@@ -1,0 +1,4 @@
+select vdisk file="D:\Data\users\Konect\1Documents\programmation\Kot\Bin\kot.vhd"
+attach vdisk
+select volume 4
+assign letter="E"

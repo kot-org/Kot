@@ -1,0 +1,22 @@
+{
+    "files.associations": {
+        "bootinfo.h": "c",
+        "memory.h": "c",
+        "string": "cpp",
+        "errorcodes.h": "c",
+        "acpi.h": "c",
+        "efimemory.h": "c",
+        "compare": "cpp",
+        "memory": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "xmemory": "cpp",
+        "xtr1common": "cpp",
+        "xutility": "cpp",
+        "stdint.h": "c",
+        "vector": "cpp",
+        "initializer_list": "cpp",
+        "algorithm": "cpp",
+        "atomic": "cpp"
+    }
+}

@@ -1,0 +1,251 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2010
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{B8D3EDD8-6529-4E3E-BC69-B7D34C33A8A7}"
+	ProjectSection(SolutionItems) = preProject
+		tools\fat16.c = tools\fat16.c
+		tools\fat16.h = tools\fat16.h
+		tools\fat16_test.c = tools\fat16_test.c
+		tools\img_edit.c = tools\img_edit.c
+		tools\module.mk = tools\module.mk
+		tools\os_helper.c = tools\os_helper.c
+		tools\read_boot.c = tools\read_boot.c
+		tools\set_boot.c = tools\set_boot.c
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "boot", "boot", "{53880C07-253A-4941-A0FF-BA81A3FE4884}"
+	ProjectSection(SolutionItems) = preProject
+		boot\boot.asm = boot\boot.asm
+		boot\defines.asm = boot\defines.asm
+		boot\loader.asm = boot\loader.asm
+		boot\module.mk = boot\module.mk
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{154C46AE-2126-4835-95DB-DF45EC6F6AAC}"
+	ProjectSection(SolutionItems) = preProject
+		AUTHORS = AUTHORS
+		LICENSE = LICENSE
+		Makefile = Makefile
+		module.mk = module.mk
+		qemu.bat = qemu.bat
+		README = README
+		REFERENCES = REFERENCES
+		TODO = TODO
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kernel", "kernel", "{540847D6-87C3-435D-994A-C12DE71831B0}"
+	ProjectSection(SolutionItems) = preProject
+		kernel\kernel.c = kernel\kernel.c
+		kernel\linker.ld = kernel\linker.ld
+		kernel\module.mk = kernel\module.mk
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{1D3B050B-D7ED-478F-B2D0-A4EE9CDB8761}"
+	ProjectSection(SolutionItems) = preProject
+		console\console_mock.c = console\console_mock.c
+		console\console_mock.h = console\console_mock.h
+		console\console_test.c = console\console_test.c
+		stdlib\format_test.c = stdlib\format_test.c
+		stdlib\string_test.c = stdlib\string_test.c
+		net\tcp_test.c = net\tcp_test.c
+		test\test.c = test\test.c
+		test\test.h = test\test.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "net", "net", "{A54B0484-834A-453F-AB33-EC7B0AA7596F}"
+	ProjectSection(SolutionItems) = preProject
+		net\addr.c = net\addr.c
+		net\addr.h = net\addr.h
+		net\arp.c = net\arp.c
+		net\arp.h = net\arp.h
+		net\buf.c = net\buf.c
+		net\buf.h = net\buf.h
+		net\checksum.c = net\checksum.c
+		net\checksum.h = net\checksum.h
+		net\dhcp.c = net\dhcp.c
+		net\dhcp.h = net\dhcp.h
+		net\dns.c = net\dns.c
+		net\dns.h = net\dns.h
+		net\eth.c = net\eth.c
+		net\eth.h = net\eth.h
+		net\icmp.c = net\icmp.c
+		net\icmp.h = net\icmp.h
+		net\intel.c = net\intel.c
+		net\intel.h = net\intel.h
+		net\intf.c = net\intf.c
+		net\intf.h = net\intf.h
+		net\ipv4.c = net\ipv4.c
+		net\ipv4.h = net\ipv4.h
+		net\ipv6.c = net\ipv6.c
+		net\ipv6.h = net\ipv6.h
+		net\loopback.c = net\loopback.c
+		net\loopback.h = net\loopback.h
+		net\net.c = net\net.c
+		net\net.h = net\net.h
+		net\ntp.c = net\ntp.c
+		net\ntp.h = net\ntp.h
+		net\port.c = net\port.c
+		net\port.h = net\port.h
+		net\rlog.c = net\rlog.c
+		net\rlog.h = net\rlog.h
+		net\route.c = net\route.c
+		net\route.h = net\route.h
+		net\swap.h = net\swap.h
+		net\tcp.c = net\tcp.c
+		net\tcp.h = net\tcp.h
+		net\udp.c = net\udp.c
+		net\udp.h = net\udp.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "interrupt", "interrupt", "{10A145E2-02C0-4280-AC74-F5D845EB932C}"
+	ProjectSection(SolutionItems) = preProject
+		intr\except.c = intr\except.c
+		intr\except.h = intr\except.h
+		intr\idt.c = intr\idt.c
+		intr\idt.h = intr\idt.h
+		intr\interrupt.asm = intr\interrupt.asm
+		intr\intr.c = intr\intr.c
+		intr\intr.h = intr\intr.h
+		intr\ioapic.c = intr\ioapic.c
+		intr\ioapic.h = intr\ioapic.h
+		intr\local_apic.c = intr\local_apic.c
+		intr\local_apic.h = intr\local_apic.h
+		intr\pic.c = intr\pic.c
+		intr\pic.h = intr\pic.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pci", "pci", "{4A1EE61F-E19A-4CF0-8C2F-E5A464593A4D}"
+	ProjectSection(SolutionItems) = preProject
+		pci\driver.c = pci\driver.c
+		pci\driver.h = pci\driver.h
+		pci\pci.c = pci\pci.c
+		pci\pci.h = pci\pci.h
+		pci\registry.c = pci\registry.c
+		pci\registry.h = pci\registry.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "usb", "usb", "{BDD7F67E-0256-4243-8AEF-596C3897217F}"
+	ProjectSection(SolutionItems) = preProject
+		usb\controller.c = usb\controller.c
+		usb\controller.h = usb\controller.h
+		usb\desc.c = usb\desc.c
+		usb\desc.h = usb\desc.h
+		usb\dev.c = usb\dev.c
+		usb\dev.h = usb\dev.h
+		usb\driver.c = usb\driver.c
+		usb\driver.h = usb\driver.h
+		usb\ehci.c = usb\ehci.c
+		usb\ehci.h = usb\ehci.h
+		usb\hub.c = usb\hub.c
+		usb\hub.h = usb\hub.h
+		usb\kbd.c = usb\kbd.c
+		usb\kbd.h = usb\kbd.h
+		usb\mouse.c = usb\mouse.c
+		usb\mouse.h = usb\mouse.h
+		usb\registry.h = usb\registry.h
+		usb\req.h = usb\req.h
+		usb\uhci.c = usb\uhci.c
+		usb\uhci.h = usb\uhci.h
+		usb\usb.c = usb\usb.c
+		usb\usb.h = usb\usb.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "input", "input", "{EC4B8992-44EC-4A6E-80EA-912B53F173B6}"
+	ProjectSection(SolutionItems) = preProject
+		input\input.c = input\input.c
+		input\input.h = input\input.h
+		input\keycode.h = input\keycode.h
+		input\keymap.c = input\keymap.c
+		input\keymap.h = input\keymap.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "memory", "memory", "{FFFF12C1-5F5D-4FF1-B826-F766CF0BCA47}"
+	ProjectSection(SolutionItems) = preProject
+		mem\lowmem.h = mem\lowmem.h
+		mem\mem_dump.c = mem\mem_dump.c
+		mem\mem_dump.h = mem\mem_dump.h
+		mem\vm.c = mem\vm.c
+		mem\vm.h = mem\vm.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "stdlib", "stdlib", "{030391D5-E8D0-45AB-AEA0-6417655B89BF}"
+	ProjectSection(SolutionItems) = preProject
+		stdlib\format.c = stdlib\format.c
+		stdlib\format.h = stdlib\format.h
+		stdlib\limits.h = stdlib\limits.h
+		stdlib\link.c = stdlib\link.c
+		stdlib\link.h = stdlib\link.h
+		stdlib\stdarg.h = stdlib\stdarg.h
+		stdlib\string.c = stdlib\string.c
+		stdlib\string.h = stdlib\string.h
+		stdlib\types.h = stdlib\types.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "time", "time", "{9D10BC73-04C1-415D-8196-71B05E6A7503}"
+	ProjectSection(SolutionItems) = preProject
+		time\pit.c = time\pit.c
+		time\pit.h = time\pit.h
+		time\rtc.c = time\rtc.c
+		time\rtc.h = time\rtc.h
+		time\time.c = time\time.c
+		time\time.h = time\time.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "acpi", "acpi", "{72A54662-2B90-4BE8-8B60-657235B10782}"
+	ProjectSection(SolutionItems) = preProject
+		acpi\acpi.c = acpi\acpi.c
+		acpi\acpi.h = acpi\acpi.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "console", "console", "{EAFAAEAC-4874-4AA0-B542-8B984F51A26D}"
+	ProjectSection(SolutionItems) = preProject
+		console\cmd.c = console\cmd.c
+		console\cmd.h = console\cmd.h
+		console\console.c = console\console.c
+		console\console.h = console\console.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "cpu", "cpu", "{E4EF894A-03A0-45CA-8F3A-7BD4694C0684}"
+	ProjectSection(SolutionItems) = preProject
+		cpu\detect.c = cpu\detect.c
+		cpu\detect.h = cpu\detect.h
+		cpu\io.h = cpu\io.h
+		cpu\smp.c = cpu\smp.c
+		cpu\smp.h = cpu\smp.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "gfx", "gfx", "{9EA32D36-847D-434D-9EFF-D6A8185E571A}"
+	ProjectSection(SolutionItems) = preProject
+		gfx\gfx.c = gfx\gfx.c
+		gfx\gfx.h = gfx\gfx.h
+		gfx\gfx_op_region.c = gfx\gfx_op_region.c
+		gfx\gfx_op_region.h = gfx\gfx_op_region.h
+		gfx\gfxdisplay.c = gfx\gfxdisplay.c
+		gfx\gfxdisplay.h = gfx\gfxdisplay.h
+		gfx\gfxmem.c = gfx\gfxmem.c
+		gfx\gfxmem.h = gfx\gfxmem.h
+		gfx\gfxpci.c = gfx\gfxpci.c
+		gfx\gfxpci.h = gfx\gfxpci.h
+		gfx\gfxring.c = gfx\gfxring.c
+		gfx\gfxring.h = gfx\gfxring.h
+		gfx\gtt.c = gfx\gtt.c
+		gfx\gtt.h = gfx\gtt.h
+		gfx\reg.h = gfx\reg.h
+		gfx\vga.c = gfx\vga.c
+		gfx\vga.h = gfx\vga.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shaders", "shaders", "{B152D7D8-C4C8-4E6E-8B0D-63C504E55CE6}"
+	ProjectSection(SolutionItems) = preProject
+		gfx\shaders\passthrough_p.vs = gfx\shaders\passthrough_p.vs
+		gfx\shaders\solid_ff8040ff.ps = gfx\shaders\solid_ff8040ff.ps
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B152D7D8-C4C8-4E6E-8B0D-63C504E55CE6} = {9EA32D36-847D-434D-9EFF-D6A8185E571A}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,48 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "Build kernel",
+            "command": "/usr/bin/make",
+            "args": [
+                "kernel",
+                "buildimg",
+                "2>&1"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/kernel"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "process",
+            "label": "Clean kernel",
+            "command": "/usr/bin/make",
+            "args": [
+                "clean"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/kernel"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "process",
+            "label": "Launch Qemu",
+            "command": "explorer.exe",
+            "args": [
+                "run.bat"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/kernel"
+            },
+            "dependsOn": "Build kernel",
+            "problemMatcher": []
+        }
+    ],
+    "version": "2.0.0"
+}

@@ -1,0 +1,5 @@
+### compiled files
+*.o
+*.llexec
+*.img
+*.iso

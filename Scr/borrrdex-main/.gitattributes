@@ -1,0 +1,14 @@
+* text=auto
+
+*.c text
+*.cpp text
+*.h text
+*.json text
+Makefile text
+
+*.bat text eol=crlf
+
+*.elf binary
+*.img binary
+*.efi binary
+*.fd binary

@@ -1,0 +1,2 @@
+select vdisk file="D:\Data\users\Konect\1Documents\programmation\Kot\Bin\kot.vhd"
+detach vdisk

@@ -1,0 +1,117 @@
+This is a hobby OS project for learning more about low-level hardware.  See
+the LICENSE file for details.
+
+-------------------------------------------------------------------------------
+Hardware Requirements:
+
+- Intel Ivy Bridge w/ HD Graphics 4000
+- Intel 82579V Gigabit Ethernet
+
+QEMU is also supported in text mode.
+
+-------------------------------------------------------------------------------
+Setup and Installation for Windows:
+
+- Install Cygwin (http://www.cygwin.com/) including the following packages
+  and their dependencies:
+
+    - bison
+    - flex
+    - gcc4
+    - make
+    - nasm
+    - wget
+
+- Build a 64-bit cross compiler for the kernel:
+  - Setup
+    - export PREFIX=/usr/local/cross
+    - export TARGET=x86_64-elf
+    - export PATH=$PATH:$PREFIX/bin
+    - mkdir cross_gcc
+    - cd cross_gcc
+    - mkdir build_binutils build_gcc
+
+  - Download and unpack source code
+    - wget http://ftp.gnu.org/gnu/binutils/binutils-2.22.tar.bz2
+    - wget http://ftp.gnu.org/gnu/gcc/gcc-4.7.0/gcc-4.7.0.tar.bz2
+    - wget http://ftp.gnu.org/gnu/gmp/gmp-4.3.2.tar.bz2
+    - wget http://www.mpfr.org/mpfr-2.4.2/mpfr-2.4.2.tar.bz2
+    - wget http://www.multiprecision.org/mpc/download/mpc-0.8.1.tar.gz
+    - tar xjf binutils-2.22.tar.bz2
+    - tar xjf gcc-4.7.0.tar.bz2
+    - tar xjf gmp-4.3.2.tar.bz2
+    - tar xjf mpfr-2.4.2.tar.bz2
+    - tar xzf mpc-0.8.1.tar.gz
+    - mv gmp-4.3.2 gcc-4.7.0/gmp
+    - mv mpfr-2.4.2 gcc-4.7.0/mpfr
+    - mv mpc-0.8.1 gcc-4.7.0/mpc
+
+  - Build binutils
+    - cd build_binutils
+    - ../binutils-2.22/configure --target=$TARGET --prefix=$PREFIX --disable-nls
+    - make all
+    - make install
+    - cd ..
+
+  - Build gcc
+    - cd build_gcc
+    - ../gcc-4.7.0/configure --target=$TARGET --prefix=$PREFIX --disable-nls --enable-languages=c --without-headers
+    - make all-gcc
+    - make install-gcc
+
+- Install QEMU:
+  - Precompiled Windows binaries are located at http://lassauge.free.fr/qemu/
+  - Install http://lassauge.free.fr/qemu/release/Qemu-1.0.1-windows.zip
+  - Copy bios.bin and vgabios-cirrus.bin from the Bios folder to QEMU's
+    root directory.
+
+- Install the TAP driver:
+  - OpenVPN installers are located at http://openvpn.net/index.php/download.html
+  - Install http://swupdate.openvpn.org/community/releases/openvpn-2.2.2-install.exe
+  - Install only the "TAP Virtual Ethernet Adapter" component.
+  - Modify the Network Connections:
+    - Rename the TAP interface from "Local Area Connection (n)" to "tap"
+    - Bridge the TAP interface with your active Local Area Connection.
+
+- Update PATH:
+  - Add QEMU and /usr/local/cross/bin to the PATH variable in .bash_profile
+
+-------------------------------------------------------------------------------
+Configuration:
+
+- g_localTimeZone in time.c
+
+-------------------------------------------------------------------------------
+What to expect:
+
+- Type 'help' to see available commands.  Some examples:
+
+  - 'http' fetches web pages
+  - 'gfx' switches into graphics mode
+  - 'host' performs a DNS lookup on a hostname
+  - 'ping' sends an ICMP echo request to an IP address
+  - 'lsroute' prints the routing table
+  - 'datetime' prints the current time
+  - 'synctime' sends an NTP request and updates the CMOS
+
+- tools/os_helper.exe provides services to improve OS development.  Currently
+  this is used for remote logging via UDP.
+
+-------------------------------------------------------------------------------
+Emulator steps:
+
+  $ make
+  $ qemu.bat
+
+-------------------------------------------------------------------------------
+Hardware steps:
+
+  Format a FAT16 drive, update the boot sector and copy the loader and kernel
+  binaries.
+
+  $ make
+  $ tools/set_boot.exe //./<drive letter>: boot/boot.bin
+  $ cp boot/loader.bin <drive letter>:/
+  $ cp kernel/kernel.bin <drive letter>:/
+
+  Boot!

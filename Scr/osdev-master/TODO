@@ -1,0 +1,17 @@
+
+- Interrupts
+   - MSI
+   - PCI Routing Tables from ACPI if needed
+- USB
+   - Keyboard LEDs
+   - Device attach/detach
+- Memory Management
+   - Physical Memory Allocator
+   - Virtual Memory Allocator
+- PXE Network Booting
+- APIC timer
+- Network Stack
+   - Link layer indicates broadcast packet
+- ARP
+   - Flush out-of-date entries
+   - Prevent ARP flooding
