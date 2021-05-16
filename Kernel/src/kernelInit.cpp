@@ -91,7 +91,9 @@ KernelInfo InitializeKernel(BootInfo* bootInfo){
     InitializeHeap((void*)0x0000100000000000, 0x10);
 
     globalGraphics->framebuffer->BaseAddressBackground = malloc(globalGraphics->framebuffer->FrameBufferSize);
-    
+    memset(globalGraphics->framebuffer->BaseAddressBackground, 0, globalGraphics->framebuffer->FrameBufferSize);
+    globalGraphics->Update();
+
     InitializeInterrupts();  
 
     InitPS2Mouse();
@@ -100,11 +102,11 @@ KernelInfo InitializeKernel(BootInfo* bootInfo){
     IoWrite8(PIC2_DATA, 0b11101111);
     
     //InitUserSpace();
-    schedule.AddTask((void*)task1, 4096);
-    schedule.AddTask((void*)task2, 4096);
-    schedule.AddTask((void*)task3, 4096);
-    //schedule.AddTask((void*)task4, 4096);
-    schedule.EnabledScheduler();
+    scheduler.AddTask((void*)task1, 4096);
+    scheduler.AddTask((void*)task2, 4096);
+    scheduler.AddTask((void*)task3, 4096);
+    //scheduler.AddTask((void*)task4, 4096);
+    scheduler.EnabledScheduler();
 
     InitializeACPI(bootInfo);
     

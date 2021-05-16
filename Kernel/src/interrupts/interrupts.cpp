@@ -26,11 +26,11 @@ extern "C" void MouseInt_Handler(){
     PIC_EndSlave();
 }
 
-extern "C" void* PITInt_Handler(void* stack){
+extern "C" void* PITInt_Handler(InterruptStack* Registers){
     PIT::Tick();
-    void* NewRip = schedule.Main(stack);        
+    void* NewRSP = scheduler.Scheduler(Registers);        
     PIC_EndMaster();
-    return NewRip;
+    return NewRSP;
 }
 
 void RemapPIC(){

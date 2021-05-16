@@ -32,19 +32,21 @@ extern "C" void task2(){
     asm("movq rdx, 1"); //argument 2
     asm("movq r10, 0"); //argument 3
     asm("movq r8, 0");  //argument 4
-    asm("movq r9, 0");  //argument 5
-
+    asm("movq r9, 0");  //argument 5    
     asm(".att_syntax prefix");  
-    
+
     for(uint64_t i = 0;; i++){
         char* test = "2"; 
-        asm ("movq %0, %%rax" :: "r" (i));
         asm ("movq %0, %%r9" :: "r" (test));
         asm("syscall");  
     };
 }
 
-extern "C" void task3(){ 
+extern "C" void task3(){
+    for (int i = 0; i < 10000; i++) {
+        unsigned char* screen = (unsigned char*)0xA00000;
+        screen[i] = 0xffffffff;          // BLUE
+    } 
     asm(".att_syntax prefix");
     asm(".intel_syntax noprefix");
     asm("movq rax, 0"); //syscall number

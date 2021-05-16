@@ -6,7 +6,7 @@
 ** Use VBoxManage or the VirtualBox Manager GUI to make changes.
 -->
 <VirtualBox xmlns="http://www.virtualbox.org/" version="1.15-windows">
-  <Machine uuid="{2cb7160b-05d9-429c-b3ba-04ab3140fd39}" name="LLOSv1" OSType="Windows10_64" snapshotFolder="Snapshots" lastStateChange="2021-05-14T11:33:11Z">
+  <Machine uuid="{2cb7160b-05d9-429c-b3ba-04ab3140fd39}" name="LLOSv1" OSType="Windows10_64" snapshotFolder="Snapshots" lastStateChange="2021-05-16T11:07:12Z">
     <MediaRegistry>
       <HardDisks>
         <HardDisk uuid="{821eba9b-3599-4f82-9a22-380ddb4c379c}" location="D:/Data/users/Konect/1Documents/programmation/Kot/Bin/kot.vhd" format="VHD" type="Normal"/>
@@ -20,7 +20,7 @@
     </MediaRegistry>
     <ExtraData>
       <ExtraDataItem name="GUI/LastCloseAction" value="PowerOff"/>
-      <ExtraDataItem name="GUI/LastNormalWindowPosition" value="664,310,1024,810"/>
+      <ExtraDataItem name="GUI/LastNormalWindowPosition" value="0,31,1024,810"/>
       <ExtraDataItem name="GUI/ScaleFactor" value="1"/>
     </ExtraData>
     <Hardware>
@@ -82,7 +82,7 @@
       <RTC localOrUTC="UTC"/>
       <Clipboard/>
       <GuestProperties>
-        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="fr_FR" timestamp="1620991992522339400" flags=""/>
+        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="fr_FR" timestamp="1621163232836121500" flags=""/>
       </GuestProperties>
     </Hardware>
     <StorageControllers>

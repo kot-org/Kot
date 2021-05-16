@@ -10,7 +10,7 @@ JumpIntoUserspace:
 	; Quickly save our stack pointer
 	mov		rdi, 0
 	mov		rsi, rsp
-	add		rsi, 16				; compensate for our saved parameters
+	add		rsi, 16				; compensate for our saved parameters 2 * 0x08
 	call	TSSSetStack
 	; Enter into userspace
 	pop		rcx					; Former rdi parameter, used to locate the code in userspace

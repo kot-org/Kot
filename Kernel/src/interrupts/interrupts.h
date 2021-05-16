@@ -18,12 +18,22 @@
 #define ICW4_8086 0x01
 
 
+typedef struct InterruptStack {
+    uint64_t rax, rbx, rcx, rdx, KernelRsp, rsi, rdi, rbp; //push in asm
+
+    uint64_t r8, r9, r10, r11, r12, r13, r14, r15; //push in asm
+
+    uint64_t gs, fs; //push in asm
+
+    uint64_t rip, cs, rflags, rsp, ss; //push by cpu with an interrupt
+}__attribute__((packed));
+
 extern "C" void PageFault_Handler();
 extern "C" void DoubleFault_Handler();
 extern "C" void GPFault_Handler();
 extern "C" void KeyboardInt_Handler();
 extern "C" void MouseInt_Handler();
-extern "C" void* PITInt_Handler(void* stack);
+extern "C" void PITInt_Handler(InterruptStack* Registers);
 
 void RemapPIC();
 void PIC_EndMaster();
