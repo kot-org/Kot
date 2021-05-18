@@ -1,41 +1,41 @@
 #include "scheduler.h"
 
-Schedule scheduler;
+TaskManager globalTaskManager;
 
-void Schedule::Scheduler(struct InterruptStack* Registers){
+void TaskManager::Scheduler(struct InterruptStack* Registers){
     void* rip = 0;
-    if(IsEnabled){
-        Task* LatsTask = Tasks[PIDexec];
-        LatsTask->Registers = Registers;  
-        
-        PIDexec++;
-        if(PIDexec >= PID){
-            PIDexec = 0;
+    if(IsEnabled){   
+        if(Tasks[CurrentTask].IsInit){
+            Tasks[CurrentTask].Registers = Registers;
         }
 
-        Task* task = Tasks[PIDexec];
-        if(!task->IsInit){
-            //task->Registers = NULL;
-            task->Registers->rip = (uint64_t)task->EntryPoint;
-            task->TimeSchedule++;
+        CurrentTask++;
+        if(NumTask <= CurrentTask){
+            CurrentTask = 0;
         }
-        Registers = task->Registers;
+;
+        if(!Tasks[CurrentTask].IsInit){
+            Tasks[CurrentTask].Registers = Registers;
+            Tasks[CurrentTask].Registers->rip = Tasks[CurrentTask].EntryPoint;
+            Tasks[CurrentTask].TimeSchedule++;
+            Tasks[CurrentTask].IsInit = true;             
+        }
+
+        Registers = Tasks[CurrentTask].Registers;  
     }
 }
 
-void Schedule::AddTask(void* EntryPoint, size_t Size){ 
-    //realloc task table
-    Task** NewTable = new Task*[PID + 1];
-    memcpy(NewTable, Tasks, sizeof(Tasks));
-    //free(NewTable);
+void TaskManager::AddTask(void* EntryPoint, size_t Size){ 
     globalPageTableManager.MapUserspaceMemory(EntryPoint);
-    Tasks[PID]->EntryPoint = EntryPoint; 
-    Tasks[PID]->Stack = globalAllocator.RequestPage();   
-    PID++;
+    Tasks[NumTask].EntryPoint = EntryPoint; 
+    NumTask++;
 }
 
-void Schedule::EnabledScheduler(){
+void TaskManager::EnabledScheduler(){
     IsEnabled = true;
     EnableSystemCall(); 
-    JumpIntoUserspace(Tasks[0]->EntryPoint, Tasks[0]->Stack);
+
+    void* Stack = globalAllocator.RequestPage();
+    globalPageTableManager.MapUserspaceMemory(Stack);
+    JumpIntoUserspace(Tasks[0].EntryPoint, Stack);
 }

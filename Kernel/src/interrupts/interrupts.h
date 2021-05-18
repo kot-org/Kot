@@ -1,4 +1,5 @@
 #pragma once
+#include "IDT.h"
 #include "../graphics.h"
 #include "../panic/panic.h"
 #include "../IO/IO.h"
@@ -19,14 +20,16 @@
 
 
 typedef struct InterruptStack {
-    uint64_t rax, rbx, rcx, rdx, KernelRsp, rsi, rdi, rbp; //push in asm
+    void* rax; void* rbx; void* rcx; void* rdx; void* KernelRsp; void* rsi; void* rdi; void* rbp; //push in asm
 
-    uint64_t r8, r9, r10, r11, r12, r13, r14, r15; //push in asm
+    void* r8; void* r9; void* r10; void* r11; void* r12; void* r13; void* r14; void* r15; //push in asm
 
-    uint64_t gs, fs; //push in asm
+    void* gs; void* fs; //push in asm
 
-    uint64_t rip, cs, rflags, rsp, ss; //push by cpu with an interrupt
+    void* rip; void* cs; void* rflags; void* rsp; void* ss; //push by cpu with an interrupt
 }__attribute__((packed));
+
+void InitializeInterrupts();
 
 extern "C" void PageFault_Handler();
 extern "C" void DoubleFault_Handler();

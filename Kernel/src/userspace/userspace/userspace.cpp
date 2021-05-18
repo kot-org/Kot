@@ -13,9 +13,13 @@ extern "C" void task1(){
     asm("movq rdx, 1"); //argument 2
     asm("movq r10, 0"); //argument 3
     asm("movq r8, 0");  //argument 4
-    asm("movq r9, 0");  //argument 5
+    asm("movq r9, 0");  //argument 5    
 
-    asm(".att_syntax prefix");  
+    asm(".att_syntax prefix"); 
+    
+    char* test = "task"; 
+    asm ("movq %0, %%r9" :: "r" (test));
+    asm("syscall");  
     for(;;){
         char* test = "1"; 
         asm ("movq %0, %%r9" :: "r" (test));
@@ -33,7 +37,10 @@ extern "C" void task2(){
     asm("movq r10, 0"); //argument 3
     asm("movq r8, 0");  //argument 4
     asm("movq r9, 0");  //argument 5    
-    asm(".att_syntax prefix");  
+    asm(".att_syntax prefix"); 
+    char* test = "4"; 
+    asm ("movq %0, %%r9" :: "r" (test));
+    asm("syscall");  
 
     for(uint64_t i = 0;; i++){
         char* test = "2"; 
@@ -58,6 +65,10 @@ extern "C" void task3(){
     asm("movq r9, 0");  //argument 5
 
     asm(".att_syntax prefix");  
+
+    char* test = "5"; 
+    asm ("movq %0, %%r9" :: "r" (test));
+    asm("syscall"); 
     
     for(uint64_t i = 0;; i++){
         char* test = "3"; 

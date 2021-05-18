@@ -89,12 +89,10 @@ Entry_PITInt_Handler:
 	cli
 
     PUSH_REG
-
+    
     mov rdi, rsp
     call PITInt_Handler  
-    
+
     POP_REG
-
 	sti
-
-    ret 
+    ret

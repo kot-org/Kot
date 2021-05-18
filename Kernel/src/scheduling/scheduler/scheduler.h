@@ -11,13 +11,12 @@
 
 struct Task{
     void* EntryPoint;
-    void* Stack;
     struct InterruptStack* Registers;   
     bool IsInit = false;
     int  TimeSchedule = 0;
 };
 
-class Schedule{
+class TaskManager{
     public:
         void Scheduler(struct InterruptStack* Registers);
         void AddTask(void* Address, size_t Size);    
@@ -26,12 +25,12 @@ class Schedule{
 
     private:
         bool IsEnabled = false;
-        uint64_t PID = 0;
-        uint64_t PIDexec;
-        Task** Tasks;
+        uint64_t NumTask = 0;
+        uint64_t CurrentTask = 0;
+        Task Tasks[4096];
 };
 
-extern Schedule scheduler;
+extern TaskManager globalTaskManager;
 
 extern "C" void SwitchTask();
 

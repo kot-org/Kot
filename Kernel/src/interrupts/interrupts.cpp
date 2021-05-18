@@ -1,5 +1,34 @@
 #include "interrupts.h"
 
+void InitializeInterrupts(){
+    IDTR idtr;
+    idtr.Limit = 0x0FFF;
+    idtr.Offset = (uint64_t)globalAllocator.RequestPage();
+
+    /* Page Fault */
+    SetIDTGate((void*)Entry_PageFault_Handler, 0x0E, IDT_TA_InterruptGate, 0x08, idtr);
+
+    /* Double Fault */
+    SetIDTGate((void*)Entry_DoubleFault_Handler, 0x8, IDT_TA_InterruptGate, 0x08, idtr);
+
+    /* GP Fault */
+    SetIDTGate((void*)Entry_GPFault_Handler, 0xD, IDT_TA_InterruptGate, 0x08, idtr);
+
+    /* Keyboard */
+    SetIDTGate((void*)Entry_KeyboardInt_Handler, 0x21, IDT_TA_InterruptGate, 0x08, idtr);
+
+    /* Mouse */
+    SetIDTGate((void*)Entry_MouseInt_Handler, 0x2C, IDT_TA_InterruptGate, 0x08, idtr);
+
+    /* PIT */
+    SetIDTGate((void*)Entry_PITInt_Handler, 0x20, IDT_TA_InterruptGate, 0x08, idtr);
+    PIT::SetDivisor(uint16_Limit);
+
+    asm ("lidt %0" : : "m" (idtr)); 
+
+    RemapPIC();    
+}
+
 extern "C" void PageFault_Handler(){
     Panic("Page Fault Detected");
     while(true);
@@ -26,11 +55,10 @@ extern "C" void MouseInt_Handler(){
     PIC_EndSlave();
 }
 
-extern "C" void* PITInt_Handler(InterruptStack* Registers){
+extern "C" void PITInt_Handler(InterruptStack* Registers){
     PIT::Tick();
-    void* NewRSP = scheduler.Scheduler(Registers);        
+    globalTaskManager.Scheduler(Registers);        
     PIC_EndMaster();
-    return NewRSP;
 }
 
 void RemapPIC(){

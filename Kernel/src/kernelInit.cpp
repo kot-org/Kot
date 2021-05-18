@@ -38,35 +38,6 @@ void InitializeMemory(BootInfo* bootInfo){
     kernelInfo.pageTableManager = &globalPageTableManager;
 }
 
-void InitializeInterrupts(){
-    IDTR idtr;
-    idtr.Limit = 0x0FFF;
-    idtr.Offset = (uint64_t)globalAllocator.RequestPage();
-
-    /* Page Fault */
-    SetIDTGate((void*)Entry_PageFault_Handler, 0x0E, IDT_TA_InterruptGate, 0x08, idtr);
-
-    /* Double Fault */
-    SetIDTGate((void*)Entry_DoubleFault_Handler, 0x8, IDT_TA_InterruptGate, 0x08, idtr);
-
-    /* GP Fault */
-    SetIDTGate((void*)Entry_GPFault_Handler, 0xD, IDT_TA_InterruptGate, 0x08, idtr);
-
-    /* Keyboard */
-    SetIDTGate((void*)Entry_KeyboardInt_Handler, 0x21, IDT_TA_InterruptGate, 0x08, idtr);
-
-    /* Mouse */
-    SetIDTGate((void*)Entry_MouseInt_Handler, 0x2C, IDT_TA_InterruptGate, 0x08, idtr);
-
-    /* PIT */
-    SetIDTGate((void*)Entry_PITInt_Handler, 0x20, IDT_TA_InterruptGate, 0x08, idtr);
-    PIT::SetDivisor(uint16_Limit);
-
-    asm ("lidt %0" : : "m" (idtr)); 
-
-    RemapPIC();    
-}
-
 void InitializeACPI(BootInfo* bootInfo){
     ACPI::SDTHeader* xsdt = (ACPI::SDTHeader*)(bootInfo->rsdp->XSDTAddress);
 
@@ -100,17 +71,17 @@ KernelInfo InitializeKernel(BootInfo* bootInfo){
 
     IoWrite8(PIC1_DATA, 0b11111000);
     IoWrite8(PIC2_DATA, 0b11101111);
-    
-    //InitUserSpace();
-    scheduler.AddTask((void*)task1, 4096);
-    scheduler.AddTask((void*)task2, 4096);
-    scheduler.AddTask((void*)task3, 4096);
-    //scheduler.AddTask((void*)task4, 4096);
-    scheduler.EnabledScheduler();
 
     InitializeACPI(bootInfo);
     
     FPUInit();
+    
+    globalTaskManager.AddTask((void*)task1, 4096);
+    globalTaskManager.AddTask((void*)task2, 4096);
+    globalTaskManager.AddTask((void*)task3, 4096);
+    //globalTaskManager.AddTask((void*)task4, 4096);
+    globalTaskManager.EnabledScheduler();
+
     asm("sti");
     
     return kernelInfo;

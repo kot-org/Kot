@@ -39,6 +39,7 @@ void graphics::PutChar(char chr, unsigned int xOff, unsigned int yOff){
 
 void graphics::PutChar(char chr){
     PutChar(chr, CursorPosition.X, CursorPosition.Y);
+    
     CursorPosition.X += 8;
     if(CursorPosition.X + 8 > framebuffer->Width){
         CursorPosition.X = 0;
