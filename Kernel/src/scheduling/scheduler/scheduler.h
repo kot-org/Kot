@@ -34,6 +34,6 @@ class TaskManager{
 
 extern TaskManager globalTaskManager;
 
-extern "C" void SwitchTask(), LoadKernel();
+extern "C" void LoadTask(), LoadKernel();
 
 

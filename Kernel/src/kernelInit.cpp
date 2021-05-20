@@ -76,8 +76,8 @@ KernelInfo InitializeKernel(BootInfo* bootInfo){
     
     FPUInit();
     
-    //globalTaskManager.AddTask((void*)task1, 4096);
-    //globalTaskManager.AddTask((void*)task2, 4096);
+    globalTaskManager.AddTask((void*)task1, 4096);
+    globalTaskManager.AddTask((void*)task2, 4096);
     globalTaskManager.AddTask((void*)task3, 4096);
     globalTaskManager.AddTask((void*)task4, 4096);
     globalTaskManager.EnabledScheduler();

@@ -86,7 +86,6 @@ Entry_MouseInt_Handler:
     ret 
 
 Entry_PITInt_Handler:
-
 	cli
     PUSH_REG
     

@@ -1,6 +1,6 @@
 [bits 64]
 
-GLOBAL JumpIntoUserspace, JumpUserland
+GLOBAL JumpIntoUserspace
 EXTERN TSSSetStack
 
 JumpIntoUserspace:
@@ -17,4 +17,3 @@ JumpIntoUserspace:
 	pop		rsp					; Former rsi parameter, userspace stack. Must be last popped (obviously)
 	mov		r11, 0x0202			; RFLAGS
 	o64 sysret
-	
