@@ -62,9 +62,9 @@ extern "C" void task3(){
 
     asm(".att_syntax prefix");  
 
-    char* test = "2";
+    char* test = "3";
     while (true){
-        test = "2";
+        test = "3";
         asm ("movq %0, %%r9" :: "r" (test));
         asm("syscall"); 
     }
@@ -83,10 +83,10 @@ extern "C" void task4(){
 
     asm(".att_syntax prefix");  
 
-    char* test = "3";
+    char* test = "4";
     while (true){
-        test = "3";
+        test = "4";
         asm ("movq %0, %%r9" :: "r" (test));
-        asm("syscall"); 
+        //asm("syscall"); 
     }
 }

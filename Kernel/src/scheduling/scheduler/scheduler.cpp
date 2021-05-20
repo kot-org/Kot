@@ -3,10 +3,13 @@
 TaskManager globalTaskManager;
 
 void TaskManager::Scheduler(struct InterruptStack* Registers){
+
     if(IsEnabled){   
         if(Registers->cs != (void*)0x08){
             if(Tasks[LastTask].IsInit){
-                Tasks[LastTask].Registers = Registers;
+                Tasks[LastTask].Registers->rip = Registers->rip;
+                printf("%u", LastTask);
+                globalGraphics->Update();
             }
 
             if(!Tasks[CurrentTask].IsInit){
@@ -14,13 +17,14 @@ void TaskManager::Scheduler(struct InterruptStack* Registers){
                 Tasks[CurrentTask].IsInit = true;           
             }
 
-            Registers = Tasks[CurrentTask].Registers;  
+            Registers->rip = Tasks[CurrentTask].EntryPoint;  
 
             LastTask = CurrentTask;
             CurrentTask++;
             if(NumTask <= CurrentTask){
                 CurrentTask = 0;
             }
+            //SwitchTask();
         }else{
             LoadKernel();
         }

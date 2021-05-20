@@ -17,13 +17,22 @@
     pop    r13
     pop    r14
     pop    r15
+    pop    gs
+    pop    fs    
 %endmacro
 
 EXTERN TSSGetStack
-GLOBAL LoadKernel
+GLOBAL SwitchTask, LoadKernel
+
+SwitchTask:
+    POP_REG
+    mov		r11, 0x0202
+    sti
+    o64	sysret
+    ret
 
 LoadKernel:
     mov rdi, 0
-	call	TSSGetStack   
-    mov		rsp, rax
+	call TSSGetStack   
+    mov	rsp, rax
 	ret
