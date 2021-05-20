@@ -355,7 +355,7 @@ namespace AHCI{
         for (int i = 0; i < PortCount; i++){
             Port* port = Ports[i];
 
-            port->Configure();        
+            port->Configure();    
 
             GPT::Partitons* Partitons = GPT::GetAllPartitions(port);
             

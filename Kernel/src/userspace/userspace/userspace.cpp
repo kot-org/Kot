@@ -50,10 +50,6 @@ extern "C" void task2(){
 }
 
 extern "C" void task3(){
-    for (int i = 0; i < 10000; i++) {
-        unsigned char* screen = (unsigned char*)0xA00000;
-        screen[i] = 0xffffffff;          // BLUE
-    } 
     asm(".att_syntax prefix");
     asm(".intel_syntax noprefix");
     asm("movq rax, 0"); //syscall number
@@ -66,16 +62,12 @@ extern "C" void task3(){
 
     asm(".att_syntax prefix");  
 
-    char* test = "5"; 
-    asm ("movq %0, %%r9" :: "r" (test));
-    asm("syscall"); 
-    
-    for(uint64_t i = 0;; i++){
-        char* test = "3"; 
-        asm ("movq %0, %%rax" :: "r" (i));
+    char* test = "2";
+    while (true){
+        test = "2";
         asm ("movq %0, %%r9" :: "r" (test));
-        asm("syscall");  
-    };
+        asm("syscall"); 
+    }
 }
 
 extern "C" void task4(){ 
@@ -90,10 +82,11 @@ extern "C" void task4(){
     asm("movq r9, 0");  //argument 5
 
     asm(".att_syntax prefix");  
-    
-    for(;;){
-        char* test = "4"; 
+
+    char* test = "3";
+    while (true){
+        test = "3";
         asm ("movq %0, %%r9" :: "r" (test));
-        asm("syscall");  
-    };
+        asm("syscall"); 
+    }
 }

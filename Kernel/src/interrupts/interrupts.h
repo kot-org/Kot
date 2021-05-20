@@ -24,8 +24,6 @@ typedef struct InterruptStack {
 
     void* r8; void* r9; void* r10; void* r11; void* r12; void* r13; void* r14; void* r15; //push in asm
 
-    void* gs; void* fs; //push in asm
-
     void* rip; void* cs; void* rflags; void* rsp; void* ss; //push by cpu with an interrupt
 }__attribute__((packed));
 

@@ -11,6 +11,7 @@
 
 struct Task{
     void* EntryPoint;
+    void* Stack;
     struct InterruptStack* Registers;   
     bool IsInit = false;
     int  TimeSchedule = 0;
@@ -26,12 +27,13 @@ class TaskManager{
     private:
         bool IsEnabled = false;
         uint64_t NumTask = 0;
-        uint64_t CurrentTask = 0;
+        uint64_t LastTask = 0;
+        uint64_t CurrentTask = 0;        
         Task Tasks[4096];
 };
 
 extern TaskManager globalTaskManager;
 
-extern "C" void SwitchTask();
+extern "C" void LoadKernel();
 
 

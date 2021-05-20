@@ -67,27 +67,7 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory){
     PT->entries[indexer.P_i] = PDE;
 }
 
-void PageTableManager::MapUserspaceMemory(void* virtualMemory){
-    PageDirectoryEntry entry;
-    PageLevelIndexes indexes;
-    GetIndexes(virtualMemory, &indexes);
 
-    entry = PML4->entries[indexes.L4_i];
-    entry.SetFlag(PT_Flag::UserSuper, true);
-    PML4->entries[indexes.L4_i] = entry;
-    PageTable* l3 = (PageTable*)((uint64_t)entry.GetAddress() << 12);
-    entry = l3->entries[indexes.L3_i];
-    entry.SetFlag(PT_Flag::UserSuper, true);
-    l3->entries[indexes.L3_i] = entry;
-    PageTable* l2 = (PageTable*)((uint64_t)entry.GetAddress() << 12);
-    entry = l2->entries[indexes.L2_i];
-    entry.SetFlag(PT_Flag::UserSuper, true);
-    l2->entries[indexes.L2_i] = entry;
-    PageTable* l1 = (PageTable*)((uint64_t)entry.GetAddress() << 12);
-    entry = l1->entries[indexes.L1_i];
-    entry.SetFlag(PT_Flag::UserSuper, true);
-    l1->entries[indexes.L1_i] = entry;
-}
 
 void PageTableManager::GetIndexes(void* address, PageLevelIndexes* out){
     uint64_t addr = (uint64_t)address;
@@ -99,4 +79,26 @@ void PageTableManager::GetIndexes(void* address, PageLevelIndexes* out){
     out->L3_i = addr & 0x01FF;
     addr>>=9;
     out->L4_i = addr & 0x01FF;
+}
+
+void PageTableManager::MapUserspaceMemory(void* virtualMemory) {
+    PageDirectoryEntry entry;
+    PageLevelIndexes indexes;
+    GetIndexes(virtualMemory,&indexes);
+
+    entry = PML4->entries[indexes.L4_i];
+    entry.SetFlag(PT_Flag::UserSuper,true);
+    PML4->entries[indexes.L4_i] = entry;
+    PageTable* l3 = (PageTable*)((uint64_t)entry.GetAddress() << 12);
+    entry = l3->entries[indexes.L3_i];
+    entry.SetFlag(PT_Flag::UserSuper,true);
+    l3->entries[indexes.L3_i] = entry;
+    PageTable* l2 = (PageTable*)((uint64_t)entry.GetAddress() << 12);
+    entry = l2->entries[indexes.L2_i];
+    entry.SetFlag(PT_Flag::UserSuper,true);
+    l2->entries[indexes.L2_i] = entry;
+    PageTable* l1 = (PageTable*)((uint64_t)entry.GetAddress() << 12);
+    entry = l1->entries[indexes.L1_i];
+    entry.SetFlag(PT_Flag::UserSuper,true);
+    l1->entries[indexes.L1_i] = entry;
 }

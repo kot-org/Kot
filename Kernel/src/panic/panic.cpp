@@ -6,8 +6,6 @@ void Panic(char* panicMessage){
     globalGraphics->Clear();
     globalGraphics->CursorPosition = {0, 0};
     globalGraphics->Color = 0xffffffff;
-    globalGraphics->Print("Kernel panic");
-    globalGraphics->Next();
     globalGraphics->Next();
     globalGraphics->Print(panicMessage);
     globalGraphics->Update();

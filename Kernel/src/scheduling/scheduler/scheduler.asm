@@ -1,16 +1,29 @@
 [bits 64]
 
-SwitchTask:
-    ; Save parameters
-	push	rsi
-	push	rdi
-	; Quickly save our stack pointer
-	mov		rdi, 0
-	mov		rsi, rsp
-	add		rsi, 16				; compensate for our saved parameters
-	;call	TSSSetStack
-	; Enter into userspace
-	pop		rcx					; Former rdi parameter, used to locate the code in userspace
-	pop		rsp					; Former rsi parameter, userspace stack. Must be last popped (obviously)
-	mov		r11, 0x0202			; RFLAGS
-    iretq
+%macro    POP_REG        0
+    pop    rax
+    pop    rbx
+    pop    rcx
+    pop    rdx
+    pop    rsp
+    pop    rsi
+    pop    rdi
+    pop    rbp
+    pop    r8
+    pop    r9
+    pop    r10
+    pop    r11
+    pop    r12
+    pop    r13
+    pop    r14
+    pop    r15
+%endmacro
+
+EXTERN TSSGetStack
+GLOBAL LoadKernel
+
+LoadKernel:
+    mov rdi, 0
+	call	TSSGetStack   
+    mov		rsp, rax
+	ret
