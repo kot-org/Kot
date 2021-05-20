@@ -1,4 +1,4 @@
-# Kot
+# KonectOS 2
 An 64bits operating system in c++
 
 <h1>A big thank you to ... </h1>
