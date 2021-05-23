@@ -4,7 +4,6 @@
 #include "../../IO/IO.h"
 #include "../../graphics.h"
 #include "../../lib/stdio/cstr.h"
-#include "../scheduler/scheduler.h"
 
 namespace PIT {
     extern long double TimeSinceBoot;
