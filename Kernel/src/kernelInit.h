@@ -33,8 +33,4 @@ extern "C" void main(BootInfo*);
 extern uint64_t _KernelStart;
 extern uint64_t _KernelEnd;
 
-struct KernelInfo{
-    PageTableManager* pageTableManager;
-};
-
-KernelInfo InitializeKernel(BootInfo* bootInfo);
+void InitializeKernel(BootInfo* bootInfo);

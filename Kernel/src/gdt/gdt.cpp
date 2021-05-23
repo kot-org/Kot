@@ -7,17 +7,6 @@ static GDTDescriptor gdtBaseInfo;
 
 int GDTIndexTable = 0;
 
-/*
-__attribute__((aligned(0x1000)))
-GDT DefaultGDT = {
-    {0, 0, 0, 0x00, 0x00, 0}, // null
-    {0, 0, 0, 0x9a, 0xa0, 0}, // kernel code segment
-    {0, 0, 0, 0x92, 0xa0, 0}, // kernel data segment
-    {0, 0, 0, 0x00, 0x00, 0}, // user null
-    {0, 0, 0, 0x9a, 0xa0, 0}, // user code segment
-    {0, 0, 0, 0x92, 0xa0, 0}, // user data segment
-};*/
-
 const uint8_t BASE_DESC = GDT_DESC_PRESENT | GDT_DESC_READWRITE | GDT_DESC_CODEDATA;
 const uint8_t BASE_GRAN = GDT_GRAN_64BIT | GDT_GRAN_4K;
 

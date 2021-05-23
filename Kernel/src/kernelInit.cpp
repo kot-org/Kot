@@ -1,6 +1,5 @@
 #include "kernelInit.h"
 
-KernelInfo kernelInfo;
 PageTableManager pageTableManager = NULL;
 graphics r = graphics(NULL);
 CPU cpu;
@@ -34,8 +33,6 @@ void InitializeMemory(BootInfo* bootInfo){
     }
 
     asm ("mov %0, %%cr3" :: "r" (PML4));
-
-    kernelInfo.pageTableManager = &globalPageTableManager;
 }
 
 void InitializeACPI(BootInfo* bootInfo){
@@ -49,7 +46,7 @@ void InitializeACPI(BootInfo* bootInfo){
 }
 
 
-KernelInfo InitializeKernel(BootInfo* bootInfo){   
+void InitializeKernel(BootInfo* bootInfo){   
     r = graphics(bootInfo);
     globalGraphics = &r;
 
@@ -76,6 +73,7 @@ KernelInfo InitializeKernel(BootInfo* bootInfo){
     
     FPUInit();
     
+    
     globalTaskManager.AddTask((void*)task1, 4096);
     globalTaskManager.AddTask((void*)task2, 4096);
     globalTaskManager.AddTask((void*)task3, 4096);
@@ -83,6 +81,8 @@ KernelInfo InitializeKernel(BootInfo* bootInfo){
     globalTaskManager.EnabledScheduler();
 
     asm("sti");
-    
-    return kernelInfo;
+
+    while(true){
+        asm("hlt");
+    };
 }

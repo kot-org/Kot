@@ -4,37 +4,38 @@ TaskManager globalTaskManager;
 
 void TaskManager::Scheduler(struct InterruptStack* Registers){
     
-    if(IsEnabled){  
-        if(Tasks[LastTask].IsInit){
-            Tasks[LastTask].Registers->rip = Registers->rip;
-        }
+    if(IsEnabled){          
+        Tasks[CurrentTask].Regs.rip = Registers->rip;
 
-        if(!Tasks[CurrentTask].IsInit){
-            Tasks[CurrentTask].Registers->rip = Tasks[CurrentTask].EntryPoint;
-            Tasks[CurrentTask].IsInit = true;           
-        }
-
-        Registers->rip = Tasks[CurrentTask].EntryPoint;
-
-        LastTask = CurrentTask;
         CurrentTask++;
         if(NumTask <= CurrentTask){
             CurrentTask = 0;
         }
-        LoadTask();
+
+        Registers->rip = Tasks[CurrentTask].Regs.rip;
     }
 }
 
 void TaskManager::AddTask(void* EntryPoint, size_t Size){ 
+    Task* task = &Tasks[NumTask];   
     globalPageTableManager.MapUserspaceMemory(EntryPoint);
-    Tasks[NumTask].EntryPoint = EntryPoint; 
-    Tasks[NumTask].Stack = globalAllocator.RequestPage();
-    globalPageTableManager.MapUserspaceMemory(Tasks[NumTask].Stack);
+    task->EntryPoint = EntryPoint; 
+
+    struct InterruptStack Regs;
+    Regs.rip = EntryPoint; 
+    task->Regs = Regs;
+    
+    task->Stack = globalAllocator.RequestPage();
+    globalPageTableManager.MapUserspaceMemory(task->Stack);
     NumTask++;
 }
 
 void TaskManager::EnabledScheduler(){
     IsEnabled = true;
     EnableSystemCall(); 
-    JumpIntoUserspace(Tasks[0].EntryPoint, Tasks[0].Stack);
+    JumpIntoUserspace(Tasks[CurrentTask].EntryPoint, Tasks[CurrentTask].Stack);
+}
+
+uint64_t TaskManager::GetCurrentTask(){
+    return CurrentTask;
 }

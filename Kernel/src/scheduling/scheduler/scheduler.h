@@ -3,6 +3,7 @@
 #include "../../userspace/userspace/userspace.h"
 #include "../../paging/pageTableManager.h"
 #include "../../memory/heap.h"
+#include "../../interrupts/interrupts.h"
 #include "../../lib/limits.h"
 #include "../../lib/stdio.h"
 #include "../../tss/tss.h"
@@ -12,9 +13,7 @@
 struct Task{
     void* EntryPoint;
     void* Stack;
-    struct InterruptStack* Registers;   
-    bool IsInit = false;
-    int  TimeSchedule = 0;
+    struct InterruptStack Regs;   
 };
 
 class TaskManager{
@@ -23,13 +22,13 @@ class TaskManager{
         void AddTask(void* Address, size_t Size);    
         void AddTaskTest(void* Address, size_t Size);    
         void EnabledScheduler();
+        uint64_t GetCurrentTask();
 
     private:
         bool IsEnabled = false;
         uint64_t NumTask = 0;
-        uint64_t LastTask = 0;
         uint64_t CurrentTask = 0;        
-        Task Tasks[4096];
+        Task Tasks[32];
 };
 
 extern TaskManager globalTaskManager;

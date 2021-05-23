@@ -4,8 +4,6 @@ GLOBAL Entry_PageFault_Handler, Entry_DoubleFault_Handler, Entry_GPFault_Handler
 EXTERN PageFault_Handler, DoubleFault_Handler, GPFault_Handler, KeyboardInt_Handler, MouseInt_Handler, PITInt_Handler
 
 %macro    PUSH_REG    0
-    push    fs
-    push    gs
     push    r15
     push    r14
     push    r13
@@ -40,8 +38,6 @@ EXTERN PageFault_Handler, DoubleFault_Handler, GPFault_Handler, KeyboardInt_Hand
     pop    r13
     pop    r14
     pop    r15
-    pop    gs
-    pop    fs
 %endmacro
 
 

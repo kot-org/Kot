@@ -23,7 +23,7 @@ extern "C" void task1(){
     for(;;){
         char* test = "1"; 
         asm ("movq %0, %%r9" :: "r" (test));
-        //asm("syscall");  
+        asm("syscall");  
     };
 }
 
@@ -37,10 +37,7 @@ extern "C" void task2(){
     asm("movq r10, 0"); //argument 3
     asm("movq r8, 0");  //argument 4
     asm("movq r9, 0");  //argument 5    
-    asm(".att_syntax prefix"); 
-    char* test = "4"; 
-    asm ("movq %0, %%r9" :: "r" (test));
-    asm("syscall");  
+    asm(".att_syntax prefix");  
 
     for(uint64_t i = 0;; i++){
         char* test = "2"; 
