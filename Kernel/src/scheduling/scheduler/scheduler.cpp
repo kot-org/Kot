@@ -6,7 +6,6 @@ void TaskManager::Scheduler(struct InterruptStack* Registers){
     
     if(IsEnabled){          
         Tasks[CurrentTask].Regs.rax = Registers->rax;
-        //Tasks[CurrentTask].Regs.rbx = Registers->rbx;
         Tasks[CurrentTask].Regs.rcx = Registers->rcx;
         Tasks[CurrentTask].Regs.rdx = Registers->rdx;
         Tasks[CurrentTask].Regs.rsi = Registers->rsi;
@@ -32,7 +31,6 @@ void TaskManager::Scheduler(struct InterruptStack* Registers){
         }
 
         Registers->rax = Tasks[CurrentTask].Regs.rax;
-        //Registers->rbx = Tasks[CurrentTask].Regs.rbx;
         Registers->rcx = Tasks[CurrentTask].Regs.rcx;
         Registers->rdx = Tasks[CurrentTask].Regs.rdx;
         Registers->rsi = Tasks[CurrentTask].Regs.rsi;
@@ -55,23 +53,27 @@ void TaskManager::Scheduler(struct InterruptStack* Registers){
 }
 
 void TaskManager::AddTask(void* EntryPoint, size_t Size){ 
-    Task* task = &Tasks[NumTask];   
-    globalPageTableManager.MapUserspaceMemory(EntryPoint);
-    task->EntryPoint = EntryPoint; 
+    Task* task = &Tasks[NumTask];  
 
-    struct InterruptStack Regs;
-    Regs.rip = EntryPoint; 
-    task->Regs = Regs;
+    for(int i = 0; i < (Size / 0x1000) + 1; i++){
+        globalPageTableManager.MapUserspaceMemory((void*)((uint64_t)EntryPoint + i * 0x1000));
+    }
+
+    task->EntryPoint = EntryPoint; 
+    Tasks[NumTask].Regs.rip = EntryPoint; 
     
-    task->Stack = globalAllocator.RequestPage();
-    globalPageTableManager.MapUserspaceMemory(task->Stack);
     NumTask++;
 }
 
 void TaskManager::EnabledScheduler(){
     IsEnabled = true;
     EnableSystemCall(); 
-    JumpIntoUserspace(Tasks[CurrentTask].EntryPoint, Tasks[CurrentTask].Stack);
+    uint64_t StackSize = sizeof(ContextStack);
+    void* Stack = malloc(StackSize);
+    for(int i = 0; i < (StackSize / 0x1000) + 1; i++){
+        globalPageTableManager.MapUserspaceMemory((void*)((uint64_t)Stack + i * 0x1000));
+    }    
+    JumpIntoUserspace(Tasks[CurrentTask].EntryPoint, Stack);
 }
 
 uint64_t TaskManager::GetCurrentTask(){

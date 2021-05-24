@@ -32,8 +32,8 @@ void InitializeInterrupts();
 extern "C" void PageFault_Handler();
 extern "C" void DoubleFault_Handler();
 extern "C" void GPFault_Handler();
-extern "C" void KeyboardInt_Handler();
-extern "C" void MouseInt_Handler();
+extern "C" void KeyboardInt_Handler(InterruptStack* Registers);
+extern "C" void MouseInt_Handler(InterruptStack* Registers);
 extern "C" void PITInt_Handler(InterruptStack* Registers);
 
 void RemapPIC();
@@ -43,6 +43,6 @@ void PIC_EndSlave();
 extern "C" void Entry_PageFault_Handler();
 extern "C" void Entry_DoubleFault_Handler();
 extern "C" void Entry_GPFault_Handler();
-extern "C" void Entry_KeyboardInt_Handler();
+extern "C" void Entry_KeyboardInt_Handler(void* rsp);
 extern "C" void Entry_MouseInt_Handler();
 extern "C" void Entry_PITInt_Handler();

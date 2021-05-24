@@ -18,11 +18,11 @@ void InitializeInterrupts(){
     SetIDTGate((void*)Entry_KeyboardInt_Handler, 0x21, IDT_TA_InterruptGate, 0x08, idtr);
 
     /* Mouse */
-    SetIDTGate((void*)Entry_MouseInt_Handler, 0x2C, IDT_TA_InterruptGate, 0x08, idtr);
+    //SetIDTGate((void*)Entry_MouseInt_Handler, 0x2C, IDT_TA_InterruptGate, 0x08, idtr);
 
     /* PIT */
-    SetIDTGate((void*)Entry_PITInt_Handler, 0x20, IDT_TA_InterruptGate, 0x08, idtr);
-    PIT::SetDivisor(uint16_Limit);
+    //SetIDTGate((void*)Entry_PITInt_Handler, 0x20, IDT_TA_InterruptGate, 0x08, idtr);
+    //PIT::SetDivisor(uint16_Limit);
 
     asm ("lidt %0" : : "m" (idtr)); 
 
@@ -43,13 +43,23 @@ extern "C" void GPFault_Handler(){
     Panic("General Protection Fault Detected");
     while(true);
 }
-extern "C" void KeyboardInt_Handler(){
+extern "C" void KeyboardInt_Handler(InterruptStack* Registers){
     uint8_t scancode = IoRead8(0x60);
     HandleKeyboard(scancode);
     PIC_EndMaster();
+
+    printf("%x", Registers->rsp);
+    globalGraphics->Update();
+
+    void* Stack = globalAllocator.RequestPage();
+    globalPageTableManager.MapUserspaceMemory(Stack);
+    Registers->rsp = Stack;
+    /*while(true){
+        asm("hlt");
+    }*/
 }
 
-extern "C" void MouseInt_Handler(){
+extern "C" void MouseInt_Handler(InterruptStack* Registers){
     uint8_t mousedata = IoRead8(0x60);
     HandlePS2Mouse(mousedata);
     PIC_EndSlave();

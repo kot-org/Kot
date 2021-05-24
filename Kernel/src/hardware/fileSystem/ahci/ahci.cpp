@@ -376,7 +376,7 @@ namespace AHCI{
 
                 FileSystem::KFS testTemp = FileSystem::KFS();   
                 FileSystem::KFS* test = &testTemp;
-                test->OpenFile("Alpha://re/blab/test");
+                //test->OpenFile("Alpha://re/blab/test");
             } 
 
             Partitons = GPT::GetAllPartitions(port);

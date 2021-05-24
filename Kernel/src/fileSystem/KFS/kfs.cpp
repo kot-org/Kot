@@ -25,54 +25,38 @@ namespace FileSystem{
         }
 
         for(int i = 0; i < count; i++){ 
-            //this->OpenFolderInFolder(NULL, NULL, FoldersSlit[i]);
+            //find the folder name
 
             printf("%s\n", FoldersSlit[i]);
-        }
-        /*char* nameToCheck;
-        while(*filePath != 0){
-            if(*filePath == '/'){ //open new folder or file
-                //find the folder name
-                char* tempName = filePath;
-                tempName++;
-                while(*tempName != '/'){
-                    *nameToCheck = *tempName;
-                    nameToCheck++;
-                    tempName++;
-                }
 
-                printf("%s\n", tempName);
-
-                /*uint64_t byteToScan = folderInfo->firstByte;
-                for(int i = 0; i < folderInfo->numberFiles; i++){
-                    memset(buffer, 0, sizeof(HeaderInfo));
-                    partition->Read(byteToScan, sizeof(HeaderInfo), buffer); 
-                    if(((HeaderInfo*)buffer)->IsFile == false){
-                        memset(buffer, 0, sizeof(FolderInfo));
-                        partition->Read(byteToScan + sizeof(HeaderInfo), sizeof(FolderInfo), buffer); 
+            uint64_t byteToScan = folderInfo->firstByte;
+            for(int i = 0; i < folderInfo->numberFiles; i++){
+                memset(buffer, 0, sizeof(HeaderInfo));
+                partition->Read(byteToScan, sizeof(HeaderInfo), buffer); 
+                if(!((HeaderInfo*)buffer)->IsFile){
+                    memset(buffer, 0, sizeof(FolderInfo));
+                    partition->Read(byteToScan + sizeof(HeaderInfo), sizeof(FolderInfo), buffer); 
 
 
-                        if(((FolderInfo*)buffer)->name == nameToCheck){ //check the name
-                            byteToScan = ((FolderInfo*)buffer)->firstByte;
-                        }else{
-                            byteToScan = ((FolderInfo*)buffer)->bottomHeader;
-                        }
-
+                    if(((FolderInfo*)buffer)->name == FoldersSlit[i]){ //check the name
+                        byteToScan = ((FolderInfo*)buffer)->firstByte;
                     }else{
-                        memset(buffer, 0, sizeof(FileInfo));
-                        partition->Read(byteToScan + sizeof(HeaderInfo), sizeof(FileInfo), buffer);
+                        byteToScan = ((FolderInfo*)buffer)->bottomHeader;
+                    }
 
-                        //verify if the search is finish 
-                        if(((FileInfo*)buffer)->name == nameToCheck){
-                            File* file;
-                            file->fileInfo = (FileInfo*)buffer;
-                            return file;
-                        }
-                    }                    
-                }              
-            }
-            filePath++;
-        }*/
+                }else{
+                    memset(buffer, 0, sizeof(FileInfo));
+                    partition->Read(byteToScan + sizeof(HeaderInfo), sizeof(FileInfo), buffer);
+
+                    //verify if the search is finish 
+                    if(((FileInfo*)buffer)->name == FoldersSlit[count]){
+                        File* file;
+                        file->fileInfo = (FileInfo*)buffer;
+                        return file;
+                    }
+                }                    
+            }            
+        }        
     }
 
     void KFS::Close(File* file){

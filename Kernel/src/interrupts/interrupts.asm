@@ -66,28 +66,27 @@ Entry_GPFault_Handler:
     ret
 
 Entry_KeyboardInt_Handler:
-	cli
     PUSH_REG
+    mov rdi, rsp
     call KeyboardInt_Handler
     POP_REG
-	sti
-    ret 
+	iretq
 
 Entry_MouseInt_Handler:
-	cli
-    PUSH_REG
-    call MouseInt_Handler
-    POP_REG
-	sti
-    ret 
+	;cli
+    ;PUSH_REG
+    ;call MouseInt_Handler
+    ;POP_REG
+	;sti
+    ;ret 
 
 Entry_PITInt_Handler:
-	cli
-    PUSH_REG
+	;cli
+    ;PUSH_REG
     
-    mov rdi, rsp
-    call PITInt_Handler  
+    ;mov rdi, rsp
+    ;call PITInt_Handler  
 
-    POP_REG
-	sti
+    ;POP_REG
+	;sti
     ret

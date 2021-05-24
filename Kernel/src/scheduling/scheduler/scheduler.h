@@ -18,7 +18,6 @@ typedef struct ContextStack {
 
 struct Task{
     void* EntryPoint;
-    void* Stack;
     struct ContextStack Regs;   
 };
 
@@ -38,7 +37,5 @@ class TaskManager{
 };
 
 extern TaskManager globalTaskManager;
-
-extern "C" void LoadTask(), LoadKernel();
 
 
