@@ -43,17 +43,27 @@ EXTERN TSSGetStack, SyscallEntry, SystemExit
 
 
 EnableSystemCall:
-    mov rcx, 0xc0000080 ; EFER MSR
-    rdmsr               ; read current EFER
-    or eax, 1           ; enable SCE bit
-    wrmsr               ; write back new EFER
-    mov rcx, 0xc0000081 ; STAR MSR
-    rdmsr               ; read current STAR
-    mov edx, 0x00180008 ; load up GDT segment bases 0x0 (kernel) and 0x18 (user)
-    wrmsr               ; write back new STAR
-    ret                 ; return back to C
+	; Load handler RIP into LSTAR MSR
+	mov		rax, syscall_entry
+	mov		rdx, rax
+	shr		rdx, 0x20
+	mov		rcx, 0xc0000082
+	wrmsr
+	; Enable syscall / sysret instruction
+	mov		rcx, 0xc0000080
+	rdmsr
+	or		eax, 1
+	wrmsr
+	; Load segments into STAR MSR
+	mov		rcx, 0xc0000081
+	rdmsr
+	mov		edx, 0x00180008
+	wrmsr
+	ret      
 
 syscall_entry:
+	cli
+
 	; Save and switch context
 	PUSH_REG
 	push	r11
@@ -76,13 +86,15 @@ syscall_entry:
 	cmp		rbx, rdx
 	je		.kernel_exit
 	.sysret_exit:
-		POP_REG	
-		o64 sysret	
+		POP_REG		
+		o64	sysret
+		;sti
 		ret
 	.kernel_exit:
 		POP_REG
 		mov		rdi, 0
 		call	TSSGetStack		
 		mov		rsp, rax
+		;sti
 		ret
 

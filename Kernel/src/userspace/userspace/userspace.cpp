@@ -19,7 +19,7 @@ extern "C" void task1(){
     
     char* test = "task"; 
     asm ("movq %0, %%r9" :: "r" (test));
-    asm("syscall");  
+    //asm("syscall");  
     for(;;){
         char* test = "1"; 
         asm ("movq %0, %%r9" :: "r" (test));

@@ -4,7 +4,6 @@ GLOBAL JumpIntoUserspace
 EXTERN TSSSetStack
 
 JumpIntoUserspace:
-	cli
 	; Save parameters
 	push	rsi
 	push	rdi
@@ -17,5 +16,6 @@ JumpIntoUserspace:
 	pop		rcx					; Former rdi parameter, used to locate the code in userspace
 	pop		rsp					; Former rsi parameter, userspace stack. Must be last popped (obviously)
 	mov		r11, 0x0202			; RFLAGS
-	sti
+
 	o64 sysret
+	ret

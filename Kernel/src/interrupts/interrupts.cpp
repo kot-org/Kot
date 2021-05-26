@@ -47,7 +47,7 @@ extern "C" void KeyboardInt_Handler(InterruptStack* Registers){
     uint8_t scancode = IoRead8(0x60);
     HandleKeyboard(scancode);
     PIC_EndMaster();
-    //while(true);
+    globalGraphics->Update();
     /*while(true){
         asm("hlt");
     }*/

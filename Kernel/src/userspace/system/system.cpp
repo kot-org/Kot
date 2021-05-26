@@ -13,10 +13,8 @@ extern "C" uint64_t SyscallEntry(int arg0, int arg1, int arg2, int reserved, int
             break;
     }
     //globalGraphics->Rectangle(500, 500, 0, 0, arg0, arg1, arg4);
-    globalGraphics->Print("test");
-    globalGraphics->Update(); 
-    
-
+    //globalGraphics->Update(); 
+   
     return 0;
 }
 
