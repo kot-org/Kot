@@ -47,13 +47,7 @@ extern "C" void KeyboardInt_Handler(InterruptStack* Registers){
     uint8_t scancode = IoRead8(0x60);
     HandleKeyboard(scancode);
     PIC_EndMaster();
-
-    printf("%x", Registers->rsp);
-    globalGraphics->Update();
-
-    void* Stack = globalAllocator.RequestPage();
-    globalPageTableManager.MapUserspaceMemory(Stack);
-    Registers->rsp = Stack;
+    //while(true);
     /*while(true){
         asm("hlt");
     }*/

@@ -6,7 +6,7 @@
 ** Use VBoxManage or the VirtualBox Manager GUI to make changes.
 -->
 <VirtualBox xmlns="http://www.virtualbox.org/" version="1.15-windows">
-  <Machine uuid="{2cb7160b-05d9-429c-b3ba-04ab3140fd39}" name="LLOSv1" OSType="Windows10_64" snapshotFolder="Snapshots" lastStateChange="2021-05-23T11:29:28Z">
+  <Machine uuid="{2cb7160b-05d9-429c-b3ba-04ab3140fd39}" name="LLOSv1" OSType="Windows10_64" snapshotFolder="Snapshots" lastStateChange="2021-05-24T15:59:34Z">
     <MediaRegistry>
       <DVDImages>
         <Image uuid="{699ddece-9f0a-4aa6-8c07-e4b39ea95faf}" location="C:/home/alex/LLOS/kernel/bin/LLOS.iso"/>
@@ -17,7 +17,7 @@
     </MediaRegistry>
     <ExtraData>
       <ExtraDataItem name="GUI/LastCloseAction" value="PowerOff"/>
-      <ExtraDataItem name="GUI/LastNormalWindowPosition" value="0,23,2560,1377,max"/>
+      <ExtraDataItem name="GUI/LastNormalWindowPosition" value="639,333,1024,810"/>
     </ExtraData>
     <Hardware>
       <CPU>
@@ -78,7 +78,7 @@
       <RTC localOrUTC="UTC"/>
       <Clipboard/>
       <GuestProperties>
-        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="fr_FR" timestamp="1621769267561872600" flags=""/>
+        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="fr_FR" timestamp="1621871974600151900" flags=""/>
       </GuestProperties>
     </Hardware>
     <StorageControllers>
