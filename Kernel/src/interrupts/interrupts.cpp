@@ -47,10 +47,13 @@ extern "C" void KeyboardInt_Handler(InterruptStack* Registers){
     uint8_t scancode = IoRead8(0x60);
     HandleKeyboard(scancode);
     PIC_EndMaster();
+    printf("%x = %x \n", Registers->rax, Registers->rip);
+    printf("%x = %x \n", Registers->rbx, Registers->cs);
+    printf("%x = %x \n", Registers->rcx, Registers->rflags);
+    printf("%x = %x \n", Registers->rdx, Registers->rsp);
+    printf("%x = %x \n", Registers->rdi, Registers->ss);
     globalGraphics->Update();
-    /*while(true){
-        asm("hlt");
-    }*/
+    while(true);
 }
 
 extern "C" void MouseInt_Handler(InterruptStack* Registers){

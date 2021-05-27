@@ -4,6 +4,7 @@ GLOBAL Entry_PageFault_Handler, Entry_DoubleFault_Handler, Entry_GPFault_Handler
 EXTERN PageFault_Handler, DoubleFault_Handler, GPFault_Handler, KeyboardInt_Handler, MouseInt_Handler, PITInt_Handler
 
 %macro    PUSH_REG    0
+
     push    r15
     push    r14
     push    r13
@@ -60,6 +61,11 @@ Entry_GPFault_Handler:
     iretq
 
 Entry_KeyboardInt_Handler:
+    pop rax ; rip
+    pop rbx ; cs
+    pop rcx ; rflags
+    pop rdx ; rsp
+    pop rdi ; ss
     PUSH_REG
     mov rdi, rsp
     call KeyboardInt_Handler

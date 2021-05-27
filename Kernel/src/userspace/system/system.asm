@@ -43,23 +43,30 @@ EXTERN TSSGetStack, SyscallEntry, SystemExit
 
 
 EnableSystemCall:
-	; Load handler RIP into LSTAR MSR
-	mov		rax, syscall_entry
-	mov		rdx, rax
-	shr		rdx, 0x20
-	mov		rcx, 0xc0000082
-	wrmsr
-	; Enable syscall / sysret instruction
-	mov		rcx, 0xc0000080
-	rdmsr
-	or		eax, 1
-	wrmsr
-	; Load segments into STAR MSR
-	mov		rcx, 0xc0000081
-	rdmsr
-	mov		edx, 0x00180008
-	wrmsr
-	ret      
+    mov rax, syscall_entry
+    mov r8, rax
+    shr r8, 0x20
+    mov rdx, r8
+
+    ; Truncate to 32-bits
+    mov eax, eax
+    mov edx, edx
+
+    ; LSTAR MSR, set handler RIP
+    mov rcx, 0xc0000082
+    wrmsr
+
+    ; While we are here, set up syscall/sysret
+    mov rcx, 0xc0000080
+    rdmsr
+    or eax, 1
+    wrmsr
+    mov rcx, 0xc0000081
+    or eax, 1
+    mov edx, 0x00180008
+    wrmsr
+
+    ret 
 
 syscall_entry:
 	cli
@@ -86,15 +93,15 @@ syscall_entry:
 	cmp		rbx, rdx
 	je		.kernel_exit
 	.sysret_exit:
-		POP_REG		
+		POP_REG	
 		o64	sysret
-		;sti
+		sti
 		ret
 	.kernel_exit:
 		POP_REG
 		mov		rdi, 0
 		call	TSSGetStack		
 		mov		rsp, rax
-		;sti
+		sti
 		ret
 
