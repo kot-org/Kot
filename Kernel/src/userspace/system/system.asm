@@ -43,30 +43,20 @@ EXTERN TSSGetStack, SyscallEntry, SystemExit
 
 
 EnableSystemCall:
-    mov rax, syscall_entry
-    mov r8, rax
-    shr r8, 0x20
-    mov rdx, r8
-
-    ; Truncate to 32-bits
-    mov eax, eax
-    mov edx, edx
-
-    ; LSTAR MSR, set handler RIP
-    mov rcx, 0xc0000082
-    wrmsr
-
-    ; While we are here, set up syscall/sysret
-    mov rcx, 0xc0000080
-    rdmsr
-    or eax, 1
-    wrmsr
-    mov rcx, 0xc0000081
-    or eax, 1
-    mov edx, 0x00180008
-    wrmsr
-
-    ret 
+	mov		rax, syscall_entry
+	mov		rdx, rax
+	shr		rdx, 0x20
+	mov		rcx, 0xc0000082
+	wrmsr
+	mov		rcx, 0xc0000080
+	rdmsr
+	or		eax, 1
+	wrmsr
+	mov		rcx, 0xc0000081
+	rdmsr
+	mov		edx, 0x00180008
+	wrmsr
+	ret      
 
 syscall_entry:
 	cli
@@ -82,23 +72,16 @@ syscall_entry:
 
 	call	SyscallEntry
 
-	mov		rax, rbx		; save the function pointer return of syscall
-	mov		rcx, r10		; syscall's 4th param and sys v abi's 4th param are the only misaligned parameters
-	call	rbx				; call the returned function pointer
-
 	; Restore state-sensitive information and exit
 	pop		rcx
 	pop		r11
-	lea		rdx, [rel SystemExit]
-	cmp		rbx, rdx
-	je		.kernel_exit
+    
+    POP_REG
 	.sysret_exit:
-		POP_REG	
 		o64	sysret
 		sti
 		ret
 	.kernel_exit:
-		POP_REG
 		mov		rdi, 0
 		call	TSSGetStack		
 		mov		rsp, rax

@@ -25,13 +25,13 @@ typedef struct InterruptStack {
     void* r8; void* r9; void* r10; void* r11; void* r12; void* r13; void* r14; void* r15; //push in asm
 
     void* rip; void* cs; void* rflags; void* rsp; void* ss; //push by cpu with an interrupt
-}__attribute__((packed));
+};
 
 void InitializeInterrupts();
 
 extern "C" void PageFault_Handler();
 extern "C" void DoubleFault_Handler();
-extern "C" void GPFault_Handler();
+extern "C" void GPFault_Handler(InterruptStack* Registers);
 extern "C" void KeyboardInt_Handler(InterruptStack* Registers);
 extern "C" void MouseInt_Handler(InterruptStack* Registers);
 extern "C" void PITInt_Handler(InterruptStack* Registers);

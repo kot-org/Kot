@@ -55,22 +55,15 @@ Entry_DoubleFault_Handler:
 
 Entry_GPFault_Handler:
     PUSH_REG
+
+    mov rdi, rsp
+
     call GPFault_Handler
+    
     POP_REG
     iretq
 
 Entry_KeyboardInt_Handler:
-    pop rax ; rip
-    pop rbx ; cs
-    pop rcx ; rflags
-    pop rdx ; rsp
-    pop rdi ; ss
-    push rax ; rip
-    push rbx ; cs
-    push rcx ; rflags
-    push rdx ; rsp
-    push rdi ; ss
-    
     PUSH_REG
 
     mov rdi, rsp
@@ -78,7 +71,6 @@ Entry_KeyboardInt_Handler:
     call KeyboardInt_Handler
 
     POP_REG
-    
 	iretq
 
 Entry_MouseInt_Handler:
