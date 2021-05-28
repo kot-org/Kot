@@ -5,7 +5,7 @@
 #include "lib.h"
 #include "elf.h"
 
-EFI_STATUS efi_main(EFI_HANDLE IH, EFI_SYSTEM_TABLE *ST)
+EFI_STATUS efi_main(EFI_HANDLE IH, EFI_SYSTEM_TABLE* ST)
 {
     //send systemTable to lib
     ImageHandle = IH;

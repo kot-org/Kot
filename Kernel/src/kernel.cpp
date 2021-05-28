@@ -1,6 +1,6 @@
 #include "kernelInit.h"
 
-void main(BootInfo* bootInfo)
+extern "C" void main(BootInfo* bootInfo)
 {   
     InitializeKernel(bootInfo);
 }
