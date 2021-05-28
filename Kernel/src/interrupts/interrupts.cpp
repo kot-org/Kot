@@ -41,27 +41,12 @@ extern "C" void DoubleFault_Handler(){
 
 extern "C" void GPFault_Handler(InterruptStack* Registers){
     Panic("General Protection Fault Detected");
-    printf("\n");
-    //printf("Error Code : %u\n", (uint64_t)Registers->errorCode);
-    printf("Rip : %x\n", (uint64_t)Registers->rip);
-    printf("Cs : %x\n", (uint64_t)Registers->cs);
-    printf("Rflags : %x\n", (uint64_t)Registers->rflags);
-    printf("Rsp : %x\n", (uint64_t)Registers->rsp);
-    printf("Ss : %x\n", (uint64_t)Registers->ss);
-    globalGraphics->Update();
     while(true);
 }
 extern "C" void KeyboardInt_Handler(InterruptStack* Registers){
     uint8_t scancode = IoRead8(0x60);
     HandleKeyboard(scancode);
     PIC_EndMaster();
-    printf("%x\n", (uint64_t)Registers->rip);
-    printf("%x\n", (uint64_t)Registers->cs);
-    printf("%x\n", (uint64_t)Registers->rflags);
-    printf("%x\n", (uint64_t)Registers->rsp);
-    printf("%x\n", (uint64_t)Registers->ss);
-    globalGraphics->Update();
-    //while(true);
 }
 
 extern "C" void MouseInt_Handler(InterruptStack* Registers){

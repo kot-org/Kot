@@ -77,14 +77,8 @@ syscall_entry:
 	pop		r11
     
     POP_REG
-	.sysret_exit:
-		o64	sysret
-		sti
-		ret
-	.kernel_exit:
-		mov		rdi, 0
-		call	TSSGetStack		
-		mov		rsp, rax
-		sti
-		ret
+
+    o64	sysret
+	sti
+	ret
 
