@@ -18,6 +18,7 @@ typedef struct ContextStack {
 
 struct Task{
     void* EntryPoint;
+    void* Stack;
     struct ContextStack Regs;   
 };
 

@@ -43,8 +43,14 @@ struct gdtTSSEntry{
     uint32_t Reserved;
 } __attribute__((packed));
 
-extern int GDTKernelSelector;
-extern int GDTUserSelector;
+struct gdtInfoSelectors{
+    int KCode;
+    int KData;
+    int UCode;
+    int UData
+} __attribute__((packed));
+
+extern gdtInfoSelectors GDTInfoSelectors;
 
 void gdtInit();
 int gdtInstallDescriptor(uint64_t base, uint64_t limit, uint8_t access, uint8_t other);

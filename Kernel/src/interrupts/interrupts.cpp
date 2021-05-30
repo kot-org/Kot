@@ -18,11 +18,11 @@ void InitializeInterrupts(){
     SetIDTGate((void*)Entry_KeyboardInt_Handler, 0x21, IDT_TA_InterruptGate, 0x08, idtr);
 
     /* Mouse */
-    //SetIDTGate((void*)Entry_MouseInt_Handler, 0x2C, IDT_TA_InterruptGate, 0x08, idtr);
+    SetIDTGate((void*)Entry_MouseInt_Handler, 0x2C, IDT_TA_InterruptGate, 0x08, idtr);
 
     /* PIT */
-    //SetIDTGate((void*)Entry_PITInt_Handler, 0x20, IDT_TA_InterruptGate, 0x08, idtr);
-    //PIT::SetDivisor(uint16_Limit);
+    SetIDTGate((void*)Entry_PITInt_Handler, 0x20, IDT_TA_InterruptGate, 0x08, idtr);
+    PIT::SetDivisor(uint16_Limit);
 
     asm ("lidt %0" : : "m" (idtr)); 
 
@@ -48,21 +48,6 @@ extern "C" void KeyboardInt_Handler(InterruptStack* Registers){
     uint8_t scancode = IoRead8(0x60);
     HandleKeyboard(scancode);
     PIC_EndMaster();
-    printf("%x %x\n", Registers->ss, GDTKernelSelector);
-    Registers->cs = (void*)GDTKernelSelector;
-    Registers->ss = (void*)Registers->cs + 0x08;
-    globalGraphics->Update();
-    //while(true);   
-}
-
-extern "C" void Print(void* Register){
-    printf("%x", Register);
-    globalGraphics->Update();
-}
-
-void Test(){
-    printf("ok");
-    globalGraphics->Update();
 }
 
 extern "C" void MouseInt_Handler(InterruptStack* Registers){

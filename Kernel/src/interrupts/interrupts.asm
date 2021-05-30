@@ -76,20 +76,23 @@ Entry_KeyboardInt_Handler:
 	iretq
 
 Entry_MouseInt_Handler:
-	;cli
-    ;PUSH_REG
-    ;call MouseInt_Handler
-    ;POP_REG
-	;sti
-    ;ret 
+    PUSH_REG
+
+    mov rdi, rsp
+
+    call MouseInt_Handler
+    
+    POP_REG     
+
+	iretq 
 
 Entry_PITInt_Handler:
-	;cli
-    ;PUSH_REG
-    
-    ;mov rdi, rsp
-    ;call PITInt_Handler  
+    PUSH_REG
 
-    ;POP_REG
-	;sti
-    ;ret
+    mov rdi, rsp
+
+    call PITInt_Handler
+    
+    POP_REG     
+
+	iretq 

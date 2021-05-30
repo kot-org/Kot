@@ -6,8 +6,7 @@ static __attribute__((aligned(0x1000)))GDTEntry GDTEntries[GDT_MAX_DESCRIPTORS];
 static GDTDescriptor gdtBaseInfo;
 
 int GDTIndexTable = 0;
-int GDTKernelSelector = 0;
-int GDTUserSelector = 0;
+gdtInfoSelectors GDTInfoSelectors;
 
 const uint8_t BASE_DESC = GDT_DESC_PRESENT | GDT_DESC_READWRITE | GDT_DESC_CODEDATA;
 const uint8_t BASE_GRAN = GDT_GRAN_64BIT | GDT_GRAN_4K;
@@ -18,13 +17,14 @@ void gdtInit(){
     gdtBaseInfo.Offset = (uint64_t)&GDTEntries[0]; //get adress of the table where gdt entries are
 
     gdtInstallDescriptor(0, 0, 0x00, 0x00); // kernel null
-    GDTKernelSelector = gdtInstallDescriptor(0, 0, BASE_DESC | GDT_DESC_EXECUTABLE, BASE_GRAN); // kernel code segment
-    gdtInstallDescriptor(0, 0, BASE_DESC, BASE_GRAN); // kernel data segment
+    GDTInfoSelectors.KCode = gdtInstallDescriptor(0, 0, BASE_DESC | GDT_DESC_EXECUTABLE, BASE_GRAN); // kernel code segment
+    GDTInfoSelectors.KData = gdtInstallDescriptor(0, 0, BASE_DESC, BASE_GRAN); // kernel data segment
 
 
     gdtInstallDescriptor(0, 0, 0x00, 0x00); // user null
-    GDTUserSelector = gdtInstallDescriptor(0, 0, BASE_DESC | GDT_DESC_EXECUTABLE | GDT_DESC_DPL, BASE_GRAN); // user code segment
-    gdtInstallDescriptor(0, 0, BASE_DESC | GDT_DESC_DPL, BASE_GRAN); // user data segment    
+    GDTInfoSelectors.UData = gdtInstallDescriptor(0, 0, BASE_DESC | GDT_DESC_DPL, BASE_GRAN); // user data segment   
+    GDTInfoSelectors.UCode = gdtInstallDescriptor(0, 0, BASE_DESC | GDT_DESC_EXECUTABLE | GDT_DESC_DPL, BASE_GRAN); // user code segment
+         
     TSSInit();
     
     LoadGDT(&gdtBaseInfo);    

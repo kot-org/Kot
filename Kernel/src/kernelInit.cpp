@@ -66,7 +66,7 @@ void InitializeKernel(BootInfo* bootInfo){
 
     InitPS2Mouse();
 
-    IoWrite8(PIC1_DATA, 0b11111101);
+    IoWrite8(PIC1_DATA, 0b11111000);
     IoWrite8(PIC2_DATA, 0b11101111);
 
     InitializeACPI(bootInfo);
