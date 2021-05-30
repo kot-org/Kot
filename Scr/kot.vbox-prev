@@ -6,7 +6,7 @@
 ** Use VBoxManage or the VirtualBox Manager GUI to make changes.
 -->
 <VirtualBox xmlns="http://www.virtualbox.org/" version="1.15-windows">
-  <Machine uuid="{2cb7160b-05d9-429c-b3ba-04ab3140fd39}" name="LLOSv1" OSType="Windows10_64" snapshotFolder="Snapshots" lastStateChange="2021-05-29T18:11:48Z">
+  <Machine uuid="{2cb7160b-05d9-429c-b3ba-04ab3140fd39}" name="LLOSv1" OSType="Windows10_64" snapshotFolder="Snapshots" lastStateChange="2021-05-30T06:50:49Z">
     <MediaRegistry>
       <DVDImages>
         <Image uuid="{699ddece-9f0a-4aa6-8c07-e4b39ea95faf}" location="C:/home/alex/LLOS/kernel/bin/LLOS.iso"/>

@@ -19,4 +19,4 @@ JumpIntoUserspace:
 	mov		r11, 0x202			; RFLAGS
 	
 	o64 sysret
-	ret
+	ud2

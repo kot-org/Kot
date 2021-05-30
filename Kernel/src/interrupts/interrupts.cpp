@@ -48,10 +48,11 @@ extern "C" void KeyboardInt_Handler(InterruptStack* Registers){
     uint8_t scancode = IoRead8(0x60);
     HandleKeyboard(scancode);
     PIC_EndMaster();
-    printf("%x %x\n", Registers->cs, GDTKernelSelector);
+    printf("%x %x\n", Registers->ss, GDTKernelSelector);
     Registers->cs = (void*)GDTKernelSelector;
+    Registers->ss = (void*)Registers->cs + 0x08;
     globalGraphics->Update();
-    while(true);   
+    //while(true);   
 }
 
 extern "C" void Print(void* Register){
