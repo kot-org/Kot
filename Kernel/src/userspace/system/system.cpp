@@ -12,9 +12,9 @@ extern "C" uint64_t SyscallEntry(int arg0, int arg1, int arg2, int reserved, int
         case 0x01:
             break;
     }
-    //globalGraphics->Rectangle(500, 500, 0, 0, arg0, arg1, arg4);
-    //globalGraphics->Print("ok");
-    globalGraphics->Update(); 
+    /*globalGraphics->Rectangle(500, 500, 0, 0, arg0, arg1, arg4);
+    globalGraphics->Print("ok");
+    globalGraphics->Update(); */
    
     return 0;
 }

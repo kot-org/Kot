@@ -72,7 +72,7 @@ void TaskManager::EnabledScheduler(){
     void* Stack = malloc(StackSize);
     for(int i = 0; i < (StackSize / 0x1000) + 1; i++){
         globalPageTableManager.MapUserspaceMemory((void*)((uint64_t)Stack + i * 0x1000));
-    }    
+    }   
     JumpIntoUserspace(Tasks[CurrentTask].EntryPoint, Stack);
 }
 

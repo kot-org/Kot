@@ -29,6 +29,7 @@ typedef struct InterruptStack {
 
 void InitializeInterrupts();
 
+extern "C" void Print(void* Register);
 extern "C" void PageFault_Handler();
 extern "C" void DoubleFault_Handler();
 extern "C" void GPFault_Handler(InterruptStack* Registers);

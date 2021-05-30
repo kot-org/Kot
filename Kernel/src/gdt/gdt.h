@@ -43,23 +43,14 @@ struct gdtTSSEntry{
     uint32_t Reserved;
 } __attribute__((packed));
 
-
-
-/*struct GDT{
-    GDTEntry Null; //0x00
-    GDTEntry KernelCode; //0x08
-    GDTEntry KernelData; //0x10
-    GDTEntry UserNull;
-    GDTEntry UserCode;
-    GDTEntry UserData;
-} __attribute__((packed)) 
-__attribute((aligned(0x1000)));
-
-extern GDT DefaultGDT;*/
+extern int GDTKernelSelector;
+extern int GDTUserSelector;
 
 void gdtInit();
-void gdtInstallDescriptor(uint64_t base, uint64_t limit, uint8_t access, uint8_t other);
+int gdtInstallDescriptor(uint64_t base, uint64_t limit, uint8_t access, uint8_t other);
 uint16_t gdtInstallTSS(uint64_t base, uint64_t limit);
 
 extern int GDTIndexTable;
+
+
 extern "C" void LoadGDT(GDTDescriptor* gdtDescriptor);

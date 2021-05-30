@@ -43,10 +43,25 @@ extern "C" void GPFault_Handler(InterruptStack* Registers){
     Panic("General Protection Fault Detected");
     while(true);
 }
+
 extern "C" void KeyboardInt_Handler(InterruptStack* Registers){
     uint8_t scancode = IoRead8(0x60);
     HandleKeyboard(scancode);
     PIC_EndMaster();
+    printf("%x %x\n", Registers->cs, GDTKernelSelector);
+    Registers->cs = (void*)GDTKernelSelector;
+    globalGraphics->Update();
+    while(true);   
+}
+
+extern "C" void Print(void* Register){
+    printf("%x", Register);
+    globalGraphics->Update();
+}
+
+void Test(){
+    printf("ok");
+    globalGraphics->Update();
 }
 
 extern "C" void MouseInt_Handler(InterruptStack* Registers){

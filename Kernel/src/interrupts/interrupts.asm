@@ -61,24 +61,17 @@ Entry_GPFault_Handler:
     call GPFault_Handler
     
     POP_REG
+ 
     iretq
 
 Entry_KeyboardInt_Handler:
-
     PUSH_REG
 
     mov rdi, rsp
 
     call KeyboardInt_Handler
-
-    POP_REG 
-    pop rcx
-    pop cs
-    pop r11
-    pop rsp
-    pop rax
-    o64 sysret
-    ret
+    
+    POP_REG     
 
 	iretq
 
