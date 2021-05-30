@@ -47,7 +47,7 @@ struct gdtInfoSelectors{
     int KCode;
     int KData;
     int UCode;
-    int UData
+    int UData;
 } __attribute__((packed));
 
 extern gdtInfoSelectors GDTInfoSelectors;

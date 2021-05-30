@@ -40,7 +40,7 @@ extern "C" void task2(){
     for(uint64_t i = 0;; i++){
         char* test = "2"; 
         asm ("movq %0, %%r9" :: "r" (test));
-        //asm("syscall");  
+        asm("syscall");  
     };
 }
 
@@ -61,7 +61,7 @@ extern "C" void task3(){
     while (true){
         test = "3";
         asm ("movq %0, %%r9" :: "r" (test));
-        //asm("syscall"); 
+        asm("syscall"); 
     }
 }
 
@@ -82,6 +82,6 @@ extern "C" void task4(){
     while (true){
         test = "4";
         asm ("movq %0, %%r9" :: "r" (test));
-        //asm("syscall"); 
+        asm("syscall"); 
     }
 }

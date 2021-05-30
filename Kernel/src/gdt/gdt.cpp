@@ -24,7 +24,7 @@ void gdtInit(){
     gdtInstallDescriptor(0, 0, 0x00, 0x00); // user null
     GDTInfoSelectors.UData = gdtInstallDescriptor(0, 0, BASE_DESC | GDT_DESC_DPL, BASE_GRAN); // user data segment   
     GDTInfoSelectors.UCode = gdtInstallDescriptor(0, 0, BASE_DESC | GDT_DESC_EXECUTABLE | GDT_DESC_DPL, BASE_GRAN); // user code segment
-         
+
     TSSInit();
     
     LoadGDT(&gdtBaseInfo);    
@@ -55,7 +55,7 @@ int gdtInstallDescriptor(uint64_t base, uint64_t limit, uint8_t access, uint8_t 
     GDTEntries[GDTIndexTable].Other |= flags & 0xF0;
 
     GDTIndexTable++;
-    return (GDTIndexTable - 1) * sizeof(GDTEntry);
+    return ((GDTIndexTable - 1) * sizeof(GDTEntry)) + 3;
 }
 
 uint16_t gdtInstallTSS(uint64_t base, uint64_t limit){ 

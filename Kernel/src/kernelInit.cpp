@@ -82,7 +82,5 @@ void InitializeKernel(BootInfo* bootInfo){
 
     asm("sti");
 
-    while(true){
-        asm("hlt");
-    };
+    return;
 }

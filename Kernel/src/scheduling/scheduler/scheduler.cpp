@@ -49,9 +49,6 @@ void TaskManager::Scheduler(struct InterruptStack* Registers){
         Registers->rflags = Tasks[CurrentTask].Regs.rflags;
         Registers->rsp = Tasks[CurrentTask].Regs.rsp;
         Registers->ss = Tasks[CurrentTask].Regs.ss;
-        printf("%x %x", Tasks[CurrentTask].Regs.cs, Tasks[CurrentTask].Regs.ss);
-        globalGraphics->Update();
-        while(true);
     }
 }
 
@@ -63,24 +60,26 @@ void TaskManager::AddTask(void* EntryPoint, size_t Size){
     }
 
     uint64_t StackSize = sizeof(ContextStack);
-    Tasks[NumTask].Stack = malloc(StackSize);
+    task->Stack = malloc(StackSize);
     for(int i = 0; i < (StackSize / 0x1000) + 1; i++){
-        globalPageTableManager.MapUserspaceMemory((void*)((uint64_t)Tasks[NumTask].Stack + i * 0x1000));
+        globalPageTableManager.MapUserspaceMemory((void*)((uint64_t)task->Stack + i * 0x1000));
     }  
 
     task->EntryPoint = EntryPoint; 
     Tasks[NumTask].Regs.rip = EntryPoint; 
-    Tasks[NumTask].Regs.cs = (void*)GDTUserSelector; 
-    Tasks[NumTask].Regs.ss = (void*)(GDTUserSelector - 0x08); 
-    
+    Tasks[NumTask].Regs.cs = (void*)GDTInfoSelectors.UCode; //user code selector
+    Tasks[NumTask].Regs.ss = (void*)GDTInfoSelectors.UData; //user data selector
+    Tasks[NumTask].Regs.rsp = task->Stack;
+    Tasks[NumTask].Regs.rflags = (void*)0x202;
     NumTask++;
 }
 
 void TaskManager::EnabledScheduler(){
+    Task* task = &Tasks[CurrentTask];
     IsEnabled = true;
     EnableSystemCall();  
 
-    JumpIntoUserspace(Tasks[CurrentTask].EntryPoint, Stack);
+    JumpIntoUserspace(task->EntryPoint, task->Stack);
 }
 
 uint64_t TaskManager::GetCurrentTask(){
