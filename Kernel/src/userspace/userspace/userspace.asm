@@ -11,11 +11,11 @@ JumpIntoUserspace:
 	push	rdi ; user function
 	push 	rdx ; gdt user code
 	push 	rcx ; gdt user data
-	
+
 	; Quickly save our stack pointer
 	mov		rdi, 0
 	mov		rsi, rsp
-	add		rsi, 16				; compensate for our saved parameters 2 * 0x08
+	add		rsi, 32				; compensate for our saved parameters 2 * 0x08
 	call	TSSSetStack
 
 	; Enter into userspace
