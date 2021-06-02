@@ -66,7 +66,7 @@ void InitializeKernel(BootInfo* bootInfo){
 
     InitPS2Mouse();
 
-    IoWrite8(PIC1_DATA, 0b11111001);
+    IoWrite8(PIC1_DATA, 0b11111000);
     IoWrite8(PIC2_DATA, 0b11101111);
 
     InitializeACPI(bootInfo);
@@ -75,9 +75,9 @@ void InitializeKernel(BootInfo* bootInfo){
     
     
     globalTaskManager.AddTask((void*)task1, 4096);
-    //globalTaskManager.AddTask((void*)task2, 4096);
-    //globalTaskManager.AddTask((void*)task3, 4096);
-    //globalTaskManager.AddTask((void*)task4, 4096);
+    globalTaskManager.AddTask((void*)task2, 4096);
+    globalTaskManager.AddTask((void*)task3, 4096);
+    globalTaskManager.AddTask((void*)task4, 4096);
     globalTaskManager.EnabledScheduler();
 
     asm("sti");

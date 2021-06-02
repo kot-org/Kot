@@ -5,11 +5,13 @@ EXTERN TSSSetStack
 
 JumpIntoUserspace:
 	cli
+
 	; Save parameters
 	push	rsi ; user stack
 	push	rdi ; user function
 	push 	rdx ; gdt user code
 	push 	rcx ; gdt user data
+	
 	; Quickly save our stack pointer
 	mov		rdi, 0
 	mov		rsi, rsp
