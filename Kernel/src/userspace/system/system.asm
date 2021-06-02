@@ -55,34 +55,34 @@ EnableSystemCall:
 	ret
 
 syscall_entry:
-	o64	sysret
-	
-	ret
-	hlt
 	cli
+	mov rdi, rsp ; save rsp
+	push r11 ; rflag
+	push rcx ; rip
 
-	;call TSSGetStack
-	;mov rsp, rax
 	; Save and switch context
 	SYSCALL_SAVE
-	push	r11
-	push	rcx
-
-	; Get syscall handler and call the routine
-	
 	
 
-	;call	SyscallEntry
+	; Get syscall handler and call the routine	
 
-	; Restore state-sensitive information and exit
-    
-	pop		rcx
-	pop		r11
+	call SyscallEntry
+
+	; Restore state-sensitive information and exit    
+	
     SYSCALL_RESTORE
 
-    sti
+	pop	rcx ; rip
+	pop	r11 ; rflags
+    
+	push rdx ; push ss
+	push rdi ; push stack
+	push r11 ; push rflags
+	push rsi ; push cs
+	push rcx ; push rip
 
-    o64	sysret
+	sti
+    iretq
 	
 	ret
 
