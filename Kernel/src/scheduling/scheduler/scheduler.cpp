@@ -70,7 +70,7 @@ void TaskManager::AddTask(void* EntryPoint, size_t Size){
     Tasks[NumTask].Regs.cs = (void*)GDTInfoSelectors.UCode; //user code selector
     Tasks[NumTask].Regs.ss = (void*)GDTInfoSelectors.UData; //user data selector
     Tasks[NumTask].Regs.rsp = task->Stack;
-    Tasks[NumTask].Regs.rflags = (void*)0x202;
+    Tasks[NumTask].Regs.rflags = (void*)0x202; //interrupts & syscall
     NumTask++;
 }
 
@@ -78,8 +78,8 @@ void TaskManager::EnabledScheduler(){
     Task* task = &Tasks[CurrentTask];
     IsEnabled = true;
     EnableSystemCall();  
-
-    JumpIntoUserspace(task->EntryPoint, task->Stack);
+    
+    JumpIntoUserspace(task->EntryPoint, task->Stack, task->Regs.cs, task->Regs.ss);
 }
 
 uint64_t TaskManager::GetCurrentTask(){

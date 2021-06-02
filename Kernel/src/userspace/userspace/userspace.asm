@@ -6,17 +6,29 @@ EXTERN TSSSetStack
 JumpIntoUserspace:
 	cli
 	; Save parameters
-	push	rsi
-	push	rdi
+	push	rsi ; user stack
+	push	rdi ; user function
+	push 	rdx ; gdt user code
+	push 	rcx ; gdt user data
 	; Quickly save our stack pointer
 	mov		rdi, 0
 	mov		rsi, rsp
 	add		rsi, 16				; compensate for our saved parameters 2 * 0x08
 	call	TSSSetStack
+
 	; Enter into userspace
-	pop		rcx					; Former rdi parameter, used to locate the code in userspace
-	pop		rsp					; Former rsi parameter, userspace stack. Must be last popped (obviously)
-	mov		r11, 0x202			; RFLAGS
+
+	pop rdx  ; pop gdt user data
+	pop rsi  ; pop gdt user code
+	pop rax  ; pop user function
+	pop rdi  ; pop user stack
 	
-	o64 sysret
-	ud2
+
+	mov r11, 0x202 ; interrupts and syscalls 
+
+	push rdx ; push ss
+	push rdi ; push stack
+	push r11 ; push rflags
+	push rsi ; push cs
+	push rax ; push rip
+	iretq

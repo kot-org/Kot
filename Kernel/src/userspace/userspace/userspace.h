@@ -11,4 +11,4 @@ extern "C" void task3();
 extern "C" void task4();
 void InitUserSpace();
 
-extern "C" void JumpIntoUserspace(void* userFunction, void* userStack);
+extern "C" void JumpIntoUserspace(void* userFunction, void* userStack, void* cs, void* ss);

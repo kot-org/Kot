@@ -1,84 +1,88 @@
 [bits 64]
+ALIGN	4096
 
-%macro    PUSH_REG    0
-    push    r15
-    push    r14
-    push    r13
-    push    r12
-    push    r11
-    push    r10
-    push    r9
-    push    r8
-    push    rbp
-    push    rdi
-    push    rsi
-    push    rsp
-    push    rdx
-    push    rcx
-    push    rbx
-    push    rax
+%macro	SYSCALL_SAVE	0
+	push	r15
+	push	r14
+	push	r13
+	push	r12
+	push	r10
+	push	r9
+	push	r8
+	push	rbp
+	push	rdi
+	push	rsi
+	push	rdx
+	push	rbx
 %endmacro
-%macro    POP_REG        0
-    pop    rax
-    pop    rbx
-    pop    rcx
-    pop    rdx
-    pop    rsp
-    pop    rsi
-    pop    rdi
-    pop    rbp
-    pop    r8
-    pop    r9
-    pop    r10
-    pop    r11
-    pop    r12
-    pop    r13
-    pop    r14
-    pop    r15
+%macro	SYSCALL_RESTORE	0
+	pop	rbx
+	pop	rdx
+	pop	rsi
+	pop	rdi
+	pop	rbp
+	pop	r8
+	pop	r9
+	pop	r10
+	pop	r12
+	pop	r13
+	pop	r14
+	pop	r15
 %endmacro
 
 
 GLOBAL EnableSystemCall
-EXTERN TSSGetStack, SyscallEntry, SystemExit
+EXTERN TSSGetStack, TSSSetStack, SyscallEntry, SystemExit
 
 
 EnableSystemCall:
+	; Load handler RIP into LSTAR MSR
+	mov		rcx, 0xc0000082
 	mov		rax, syscall_entry
 	mov		rdx, rax
-	shr		rdx, 0x20
-	mov		rcx, 0xc0000082
+	shr		rdx, 32
 	wrmsr
+	; Enable syscall / sysret instruction
 	mov		rcx, 0xc0000080
 	rdmsr
-	or		eax, 1
+	or		rax, 1
 	wrmsr
+	; Load segments into STAR MSR
 	mov		rcx, 0xc0000081
 	rdmsr
 	mov		edx, 0x00180008
 	wrmsr
-	ret      
+	ret
 
 syscall_entry:
+	o64	sysret
+	
+	ret
+	hlt
 	cli
 
+	;call TSSGetStack
+	;mov rsp, rax
 	; Save and switch context
-	PUSH_REG
+	SYSCALL_SAVE
 	push	r11
 	push	rcx
- 
-	; Get syscall handler and call the routine
-	mov		r14, rax
-	mov 	r15, r10
 
-	call	SyscallEntry
+	; Get syscall handler and call the routine
+	
+	
+
+	;call	SyscallEntry
 
 	; Restore state-sensitive information and exit
+    
 	pop		rcx
 	pop		r11
-    
-    POP_REG
+    SYSCALL_RESTORE
+
+    sti
 
     o64	sysret
-	sti
+	
 	ret
 

@@ -43,12 +43,14 @@ EXTERN PageFault_Handler, DoubleFault_Handler, GPFault_Handler, KeyboardInt_Hand
 
 Entry_PageFault_Handler:
     PUSH_REG
+    mov rdi, rsp
     call PageFault_Handler
     POP_REG
     iretq
 
 Entry_DoubleFault_Handler:
     PUSH_REG
+    mov rdi, rsp
     call DoubleFault_Handler
     POP_REG
     iretq

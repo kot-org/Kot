@@ -27,11 +27,19 @@ typedef struct InterruptStack {
     void* rip; void* cs; void* rflags; void* rsp; void* ss; //push by cpu with an interrupt
 };
 
+typedef struct ErrorInterruptStack {
+    void* rax; void* rbx; void* rcx; void* rdx; void* KernelRsp; void* rsi; void* rdi; void* rbp; //push in asm
+
+    void* r8; void* r9; void* r10; void* r11; void* r12; void* r13; void* r14; void* r15; //push in asm
+
+    void* errorCode; void* rip; void* cs; void* rflags; void* rsp; void* ss; //push by cpu with an interrupt
+}__attribute__((packed));
+
 void InitializeInterrupts();
 
-extern "C" void PageFault_Handler();
-extern "C" void DoubleFault_Handler();
-extern "C" void GPFault_Handler(InterruptStack* Registers);
+extern "C" void PageFault_Handler(ErrorInterruptStack* Registers);
+extern "C" void DoubleFault_Handler(ErrorInterruptStack* Registers);
+extern "C" void GPFault_Handler(ErrorInterruptStack* Registers);
 extern "C" void KeyboardInt_Handler(InterruptStack* Registers);
 extern "C" void MouseInt_Handler(InterruptStack* Registers);
 extern "C" void PITInt_Handler(InterruptStack* Registers);

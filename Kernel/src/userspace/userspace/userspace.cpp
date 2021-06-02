@@ -21,7 +21,7 @@ extern "C" void task1(){
     while (true){
         test = "1";
         asm ("movq %0, %%r9" :: "r" (test));
-        asm("syscall"); 
+        //asm("syscall"); 
     }
 }
 

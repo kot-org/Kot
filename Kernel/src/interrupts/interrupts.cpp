@@ -29,17 +29,19 @@ void InitializeInterrupts(){
     RemapPIC();    
 }
 
-extern "C" void PageFault_Handler(){
+extern "C" void PageFault_Handler(ErrorInterruptStack* Registers){
     Panic("Page Fault Detected");
+    printf("\n%u\n", Registers->ss);
+    globalGraphics->Update();
     while(true);
 }
 
-extern "C" void DoubleFault_Handler(){
+extern "C" void DoubleFault_Handler(ErrorInterruptStack* Registers){
     Panic("Double Fault Detected");
     while(true);
 }
 
-extern "C" void GPFault_Handler(InterruptStack* Registers){
+extern "C" void GPFault_Handler(ErrorInterruptStack* Registers){
     Panic("General Protection Fault Detected");
     while(true);
 }
@@ -54,6 +56,7 @@ extern "C" void MouseInt_Handler(InterruptStack* Registers){
     uint8_t mousedata = IoRead8(0x60);
     HandlePS2Mouse(mousedata);
     PIC_EndSlave();
+
 }
 
 extern "C" void PITInt_Handler(InterruptStack* Registers){
