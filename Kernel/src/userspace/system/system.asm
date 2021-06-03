@@ -10,16 +10,12 @@ ALIGN	4096
 	push	r9
 	push	r8
 	push	rbp
-	push	rdi
-	push	rsi
 	push	rdx
 	push	rbx
 %endmacro
 %macro	SYSCALL_RESTORE	0
 	pop	rbx
 	pop	rdx
-	pop	rsi
-	pop	rdi
 	pop	rbp
 	pop	r8
 	pop	r9
@@ -74,15 +70,15 @@ syscall_entry:
 
 	pop	rcx ; rip
 	pop	r11 ; rflags
-    
-	push rdx ; push ss
+	sti
+	o64 sysret
+
+	push rsi ; push ss
 	push rdi ; push stack
 	push r11 ; push rflags
-	push rsi ; push cs
+	push rax ; push cs
 	push rcx ; push rip
 
-	sti
-    iretq
 	
-	ret
+    iretq
 

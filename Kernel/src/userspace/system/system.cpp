@@ -12,9 +12,12 @@ extern "C" uint64_t SyscallEntry(int arg0, int arg1, int arg2, int reserved, int
         case 0x01:
             break;
     }
-    //printf("%s", arg5);
-    //globalGraphics->Update(); 
-   
+    printf("%s", arg5);
+    globalGraphics->Update(); 
+
+    asm("movq %0, %%rax" :: "a" ((uint64_t)GDTInfoSelectors.UCode));
+    asm("movq %0, %%rsi" :: "a" ((uint64_t)GDTInfoSelectors.UData));
+
     return 0;
 }
 

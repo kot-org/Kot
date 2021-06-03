@@ -6,6 +6,7 @@ static __attribute__((aligned(0x1000)))GDTEntry GDTEntries[GDT_MAX_DESCRIPTORS];
 static GDTDescriptor gdtBaseInfo;
 
 int GDTIndexTable = 0;
+int ringGDT = 0; //kernel mode
 gdtInfoSelectors GDTInfoSelectors;
 
 const uint8_t BASE_DESC = GDT_DESC_PRESENT | GDT_DESC_READWRITE | GDT_DESC_CODEDATA;
@@ -16,14 +17,19 @@ void gdtInit(){
     gdtBaseInfo.Size = (sizeof(GDTEntry) * GDT_MAX_DESCRIPTORS) - 1; //get the total size where gdt entries are
     gdtBaseInfo.Offset = (uint64_t)&GDTEntries[0]; //get adress of the table where gdt entries are
 
+    setGDTRing(0); //kernel space
+
     gdtInstallDescriptor(0, 0, 0x00, 0x00); // kernel null
     GDTInfoSelectors.KCode = gdtInstallDescriptor(0, 0, BASE_DESC | GDT_DESC_EXECUTABLE, BASE_GRAN); // kernel code segment
     GDTInfoSelectors.KData = gdtInstallDescriptor(0, 0, BASE_DESC, BASE_GRAN); // kernel data segment
 
+    setGDTRing(3); //user space
 
     gdtInstallDescriptor(0, 0, 0x00, 0x00); // user null
     GDTInfoSelectors.UData = gdtInstallDescriptor(0, 0, BASE_DESC | GDT_DESC_DPL, BASE_GRAN); // user data segment   
     GDTInfoSelectors.UCode = gdtInstallDescriptor(0, 0, BASE_DESC | GDT_DESC_EXECUTABLE | GDT_DESC_DPL, BASE_GRAN); // user code segment
+
+    setGDTRing(0);
 
     TSSInit();
     
@@ -55,7 +61,7 @@ int gdtInstallDescriptor(uint64_t base, uint64_t limit, uint8_t access, uint8_t 
     GDTEntries[GDTIndexTable].Other |= flags & 0xF0;
 
     GDTIndexTable++;
-    return ((GDTIndexTable - 1) * sizeof(GDTEntry)) + 3;
+    return ((GDTIndexTable - 1) * sizeof(GDTEntry)) + ringGDT;
 }
 
 uint16_t gdtInstallTSS(uint64_t base, uint64_t limit){ 
@@ -81,4 +87,8 @@ uint16_t gdtInstallTSS(uint64_t base, uint64_t limit){
     GDTIndexTable += 2;
 
     return (uint16_t)((GDTIndexTable - 2) * sizeof(GDTEntry));
+}
+
+void setGDTRing(int ring){
+    ringGDT = ring;
 }
