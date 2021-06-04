@@ -1,29 +1,41 @@
 [bits 64]
 ALIGN	4096
 
-%macro	SYSCALL_SAVE	0
-	push	r15
-	push	r14
-	push	r13
-	push	r12
-	push	r10
-	push	r9
-	push	r8
-	push	rbp
-	push	rdx
-	push	rbx
+%macro    SYSCALL_SAVE    0
+    push    r15
+    push    r14
+    push    r13
+    push    r12
+    push    r11
+    push    r10
+    push    r9
+    push    r8
+    push    rbp
+    push    rdi
+    push    rsi
+    push    rsp
+    push    rdx
+    push    rcx
+    push    rbx
+    push    rax
 %endmacro
-%macro	SYSCALL_RESTORE	0
-	pop	rbx
-	pop	rdx
-	pop	rbp
-	pop	r8
-	pop	r9
-	pop	r10
-	pop	r12
-	pop	r13
-	pop	r14
-	pop	r15
+%macro    SYSCALL_RESTORE        0
+    pop    rax
+    pop    rbx
+    pop    rcx
+    pop    rdx
+    pop    rsp
+    pop    rsi
+    pop    rdi
+    pop    rbp
+    pop    r8
+    pop    r9
+    pop    r10
+    pop    r11
+    pop    r12
+    pop    r13
+    pop    r14
+    pop    r15
 %endmacro
 
 
@@ -53,30 +65,23 @@ EnableSystemCall:
 syscall_entry:
 	cli
 	mov rdi, rsp ; save rsp
-	push r11 ; rflag
-	push rcx ; rip
 
 	; Save and switch context
-	SYSCALL_SAVE
-	
+	SYSCALL_SAVE	
 
-	; Get syscall handler and call the routine	
+	; Get syscall handler and call the routine
 
+	mov rdi, rsp
 	call SyscallEntry
 
 	; Restore state-sensitive information and exit    
 	
     SYSCALL_RESTORE
 
-	pop	rcx ; rip
-	pop	r11 ; rflags
-	sti
-	o64 sysret
-
-	push rsi ; push ss
+	push r9 ; push ss
 	push rdi ; push stack
 	push r11 ; push rflags
-	push rax ; push cs
+	push r8 ; push cs
 	push rcx ; push rip
 
 	
