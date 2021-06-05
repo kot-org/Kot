@@ -22,7 +22,7 @@ void InitializeInterrupts(){
 
     /* PIT */
     SetIDTGate((void*)Entry_PITInt_Handler, 0x20, IDT_TA_InterruptGate, 0x08, idtr);
-    PIT::SetDivisor(uint16_Limit);
+    PIT::SetDivisor(1);
 
     asm ("lidt %0" : : "m" (idtr)); 
 

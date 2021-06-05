@@ -17,7 +17,9 @@ extern "C" void task1(){
 
     asm(".att_syntax prefix");  
 
-    char* test = "1";
+    char* test = "task";
+    asm ("movq %0, %%r9" :: "r" (test));
+    asm("syscall"); 
     while (true){
         test = "1";
         asm ("movq %0, %%r9" :: "r" (test));

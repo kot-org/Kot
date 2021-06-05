@@ -78,7 +78,7 @@ void InitializeKernel(BootInfo* bootInfo){
     globalTaskManager.AddTask((void*)task2, 4096);
     globalTaskManager.AddTask((void*)task3, 4096);
     globalTaskManager.AddTask((void*)task4, 4096);
-    globalTaskManager.EnabledScheduler();
+    //globalTaskManager.EnabledScheduler();
 
     asm("sti");
 
