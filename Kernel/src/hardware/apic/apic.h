@@ -67,6 +67,8 @@ namespace APIC{
     };
 
     void InitializeMADT(ACPI::MADTHeader* madt);
+    extern "C" void ap_trampoline();
+    void WaitAPIC(uint64_t APICAddress);
     void WriteAPIC(uint64_t apicPtr, uint32_t offset, uint32_t value);
     uint32_t ReadAPIC(uint64_t apicPtr, uint32_t offset);
 }

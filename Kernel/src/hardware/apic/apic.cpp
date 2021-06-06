@@ -50,31 +50,36 @@ namespace APIC{
 
         uint64_t lapicAddress = msr::rdmsr(0x1b) & 0xfffff000;
         globalPageTableManager.MapMemory((void*)lapicAddress, (void*)lapicAddress);
+        memcpy((void*)0x8000, (void*)ap_trampoline, 4096);
+        
         for(int i = 0; i < ProcessorCount; i++){
             //init IPI
             WriteAPIC(lapicAddress, 0x280, 0);
             WriteAPIC(lapicAddress, 0x310, ReadAPIC(lapicAddress, 0x310) & 0x00ffffff | (Processor[i]->APICID << 24));
             WriteAPIC(lapicAddress, 0x300, ReadAPIC(lapicAddress, 0x300) & 0xfff00000 | 0x00C500);         
-            do { __asm__ __volatile__ ("pause" : : : "memory"); }while(ReadAPIC(lapicAddress, 0x300) & (1 << 12)); 
+            WaitAPIC(lapicAddress); 
 
             WriteAPIC(lapicAddress, 0x310, ReadAPIC(lapicAddress, 0x310) & 0x00ffffff | (Processor[i]->APICID << 24));
             WriteAPIC(lapicAddress, 0x300, ReadAPIC(lapicAddress, 0x300) & 0xfff00000 | 0x008500);         
-            do { __asm__ __volatile__ ("pause" : : : "memory"); }while(ReadAPIC(lapicAddress, 0x300) & (1 << 12)); 
+            WaitAPIC(lapicAddress);
 
-            for(j = 0; j < 2; j++) {
-                *((volatile uint32_t*)(lapic_ptr + 0x280)) = 0;                                                                     // clear APIC errors
-                *((volatile uint32_t*)(lapic_ptr + 0x310)) = (*((volatile uint32_t*)(lapic_ptr + 0x310)) & 0x00ffffff) | (i << 24); // select AP
-                *((volatile uint32_t*)(lapic_ptr + 0x300)) = (*((volatile uint32_t*)(lapic_ptr + 0x300)) & 0xfff0f800) | 0x000608;  // trigger STARTUP IPI for 0800:0000                                                                                                       // wait 200 usec
-                WaitAPIC(lapicAddress); // wait for delivery
+            for(int j = 0; j < 2; j++) {
+                WriteAPIC(lapicAddress, 0x280, 0);
+                WriteAPIC(lapicAddress, 0x310, ReadAPIC(lapicAddress, 0x310) & 0x00ffffff | (Processor[i]->APICID << 24));
+                WriteAPIC(lapicAddress, 0x300, ReadAPIC(lapicAddress, 0x300) & 0xfff0f800 | 0x000608);
+                WaitAPIC(lapicAddress); 
             }
         }
     } 
+
     void WaitAPIC(uint64_t APICAddress){
         do { __asm__ __volatile__ ("pause" : : : "memory"); }while(*((volatile uint32_t*)(APICAddress + 0x300)) & (1 << 12)); 
     }
+
     void WriteAPIC(uint64_t apicPtr, uint32_t offset, uint32_t value){
         *((volatile uint32_t*)((uint64_t)apicPtr + offset)) = value;
     } 
+
     uint32_t ReadAPIC(uint64_t apicPtr, uint32_t offset){
         return *((volatile uint32_t*)((uint64_t)apicPtr + offset));
     } 
