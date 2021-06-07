@@ -4,6 +4,7 @@
 #include "../../lib/stdio.h"
 #include "../acpi/acpi.h"
 #include "../../IO/msr/msr.h"
+#include "../../IO/IO.h"
 #include "../../graphics.h"
 #include "../../paging/pageTableManager.h"
 
@@ -69,6 +70,9 @@ namespace APIC{
     void InitializeMADT(ACPI::MADTHeader* madt);
     extern "C" void ap_trampoline();
     void WaitAPIC(uint64_t APICAddress);
-    void WriteAPIC(uint64_t apicPtr, uint32_t offset, uint32_t value);
-    uint32_t ReadAPIC(uint64_t apicPtr, uint32_t offset);
+    void WriteAPIC(uint64_t apicPtr, uint64_t offset, uint64_t value);
+    uint32_t ReadAPIC(uint64_t apicPtr, uint64_t offset);
+
+    extern LocalProcessor* Processor[MAX_PROCESSORS];
+    extern size_t ProcessorCount;
 }

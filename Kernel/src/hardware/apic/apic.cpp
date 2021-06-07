@@ -47,40 +47,18 @@ namespace APIC{
                 }                                      
             }
         }
-
-        uint64_t lapicAddress = msr::rdmsr(0x1b) & 0xfffff000;
-        globalPageTableManager.MapMemory((void*)lapicAddress, (void*)lapicAddress);
-        memcpy((void*)0x8000, (void*)ap_trampoline, 4096);
-        
-        for(int i = 0; i < ProcessorCount; i++){
-            //init IPI
-            WriteAPIC(lapicAddress, 0x280, 0);
-            WriteAPIC(lapicAddress, 0x310, ReadAPIC(lapicAddress, 0x310) & 0x00ffffff | (Processor[i]->APICID << 24));
-            WriteAPIC(lapicAddress, 0x300, ReadAPIC(lapicAddress, 0x300) & 0xfff00000 | 0x00C500);         
-            WaitAPIC(lapicAddress); 
-
-            WriteAPIC(lapicAddress, 0x310, ReadAPIC(lapicAddress, 0x310) & 0x00ffffff | (Processor[i]->APICID << 24));
-            WriteAPIC(lapicAddress, 0x300, ReadAPIC(lapicAddress, 0x300) & 0xfff00000 | 0x008500);         
-            WaitAPIC(lapicAddress);
-
-            for(int j = 0; j < 2; j++) {
-                WriteAPIC(lapicAddress, 0x280, 0);
-                WriteAPIC(lapicAddress, 0x310, ReadAPIC(lapicAddress, 0x310) & 0x00ffffff | (Processor[i]->APICID << 24));
-                WriteAPIC(lapicAddress, 0x300, ReadAPIC(lapicAddress, 0x300) & 0xfff0f800 | 0x000608);
-                WaitAPIC(lapicAddress); 
-            }
-        }
     } 
 
     void WaitAPIC(uint64_t APICAddress){
-        do { __asm__ __volatile__ ("pause" : : : "memory"); }while(*((volatile uint32_t*)(APICAddress + 0x300)) & (1 << 12)); 
+        do { __asm__ __volatile__ ("pause" : : : "memory"); }while(*((volatile uint32_t*)(1 << 12))); 
     }
 
-    void WriteAPIC(uint64_t apicPtr, uint32_t offset, uint32_t value){
-        *((volatile uint32_t*)((uint64_t)apicPtr + offset)) = value;
+    void WriteAPIC(uint64_t apicPtr, uint64_t offset, uint64_t value){
+        *((volatile uint32_t*)(apicPtr + offset)) = value;
     } 
 
-    uint32_t ReadAPIC(uint64_t apicPtr, uint32_t offset){
-        return *((volatile uint32_t*)((uint64_t)apicPtr + offset));
+    uint32_t ReadAPIC(uint64_t apicPtr, uint64_t offset){
+        return *((volatile uint32_t*)(apicPtr + offset));
     } 
+    
 }

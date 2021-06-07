@@ -31,8 +31,6 @@ void InitializeInterrupts(){
 
 extern "C" void PageFault_Handler(ErrorInterruptStack* Registers){
     Panic("Page Fault Detected");
-    printf("\n%u\n", Registers->ss);
-    globalGraphics->Update();
     while(true);
 }
 
