@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include "../hardware/smp/smp.h"
 
 #define GDT_MAX_DESCRIPTORS  16
 

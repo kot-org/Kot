@@ -47,18 +47,5 @@ namespace APIC{
                 }                                      
             }
         }
-    } 
-
-    void WaitAPIC(uint64_t APICAddress){
-        do { __asm__ __volatile__ ("pause" : : : "memory"); }while(*((volatile uint32_t*)(1 << 12))); 
-    }
-
-    void WriteAPIC(uint64_t apicPtr, uint64_t offset, uint64_t value){
-        *((volatile uint32_t*)(apicPtr + offset)) = value;
-    } 
-
-    uint32_t ReadAPIC(uint64_t apicPtr, uint64_t offset){
-        return *((volatile uint32_t*)(apicPtr + offset));
-    } 
-    
+    }     
 }

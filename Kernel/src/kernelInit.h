@@ -19,6 +19,7 @@
 #include "hardware/acpi/acpi.h"
 #include "hardware/pci/pci.h"
 #include "hardware/apic/apic.h"
+#include "hardware/SMP/SMP.h"
 #include "hardware/cpu/cpu.h"
 #include "memory/heap.h"
 #include "scheduling/pit/pit.h"

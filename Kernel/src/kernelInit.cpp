@@ -32,6 +32,7 @@ void InitializeMemory(BootInfo* bootInfo){
         globalPageTableManager.MapMemory((void*)t, (void*)t);
     }
 
+    DataTrampoline.Paging = (uint64_t)PML4;
     asm ("mov %0, %%cr3" :: "r" (PML4));
 }
 
@@ -45,6 +46,50 @@ void InitializeACPI(BootInfo* bootInfo){
     APIC::InitializeMADT(madt);
 }
 
+void LoadCores(){
+    uint64_t lapicAddress = msr::rdmsr(0x1b) & 0xfffff000;
+
+    globalPageTableManager.MapMemory((void*)lapicAddress, (void*)lapicAddress);
+    globalPageTableManager.MapMemory((void*)0x8000, (void*)0x8000);
+
+    uint8_t bspid = 0; 
+    __asm__ __volatile__ ("mov $1, %%rax; cpuid; shrq $24, %%rbx;": "=r"(bspid)::);
+
+    memcpy((void*)0x8000, (void*)&Trampoline, 0x1000);
+
+    for(int i = 1; i < APIC::ProcessorCount; i++){         
+        if(APIC::Processor[i]->APICID == bspid) continue; 
+        
+        //init IPI
+        *((volatile uint32_t*)(lapicAddress + 0x280)) = 0;
+		*((volatile uint32_t*)(lapicAddress + 0x310)) = (*((volatile uint32_t*)(lapicAddress + 0x310)) & 0x00ffffff) | (i << 24);
+		*((volatile uint32_t*)(lapicAddress + 0x300)) = (*((volatile uint32_t*)(lapicAddress + 0x300)) & 0xfff00000) | 0x00C500;
+
+		do { __asm__ __volatile__ ("pause" : : : "memory"); }while(*((volatile uint32_t*)(lapicAddress + 0x300)) & (1 << 12));
+
+
+		*((volatile uint32_t*)(lapicAddress + 0x310)) = (*((volatile uint32_t*)(lapicAddress + 0x310)) & 0x00ffffff) | (i << 24);
+		*((volatile uint32_t*)(lapicAddress + 0x300)) = (*((volatile uint32_t*)(lapicAddress + 0x300)) & 0xfff00000) | 0x008500;
+
+		do { __asm__ __volatile__ ("pause" : : : "memory"); }while(*((volatile uint32_t*)(lapicAddress + 0x300)) & (1 << 12));
+
+        asm("sti");
+        PIT::Sleep(10);
+        asm("cli");
+        
+        *((volatile uint32_t*)(lapicAddress + 0x280)) = 0;
+		*((volatile uint32_t*)(lapicAddress + 0x310)) = (*((volatile uint32_t*)(lapicAddress + 0x310)) & 0x00ffffff) | (i << 24);
+		*((volatile uint32_t*)(lapicAddress + 0x300)) = (*((volatile uint32_t*)(lapicAddress + 0x300)) & 0xfff0f800) | 0x000608;
+        asm("sti");
+        PIT::Sleep(1);
+        asm("cli");
+		do { __asm__ __volatile__ ("pause" : : : "memory"); }while(*((volatile uint32_t*)(lapicAddress + 0x300)) & (1 << 12));
+
+        while (DataTrampoline.Status == 0); // wait processor
+        printf("cpu respond with : %u \n", DataTrampoline.Status);
+             
+    }
+}   
 
 void InitializeKernel(BootInfo* bootInfo){   
     r = graphics(bootInfo);
@@ -73,47 +118,9 @@ void InitializeKernel(BootInfo* bootInfo){
     
     InitializeACPI(bootInfo);
 
-    uint64_t lapicAddress = msr::rdmsr(0x1b) & 0xfffff000;
-
-    globalPageTableManager.MapMemory((void*)lapicAddress, (void*)lapicAddress);
-    globalPageTableManager.MapMemory((void*)0x8000, (void*)0x8000);
-
-    uint8_t bspid = 0; 
-    __asm__ __volatile__ ("mov $1, %%rax; cpuid; shrq $24, %%rbx;": "=r"(bspid)::);
-
-    memcpy((void*)0x8000, (void*)&APIC::ap_trampoline, 0x1000);
+    LoadCores();
 
     asm("sti");
-
-    for(int i = 1; i < APIC::ProcessorCount; i++){         
-        if(APIC::Processor[i]->APICID == bspid) continue; 
-        uint8_t* test = (uint8_t*)0x0;
-        
-        //init IPI
-        *((volatile uint32_t*)(lapicAddress + 0x280)) = 0;
-		*((volatile uint32_t*)(lapicAddress + 0x310)) = (*((volatile uint32_t*)(lapicAddress + 0x310)) & 0x00ffffff) | (i << 24);
-		*((volatile uint32_t*)(lapicAddress + 0x300)) = (*((volatile uint32_t*)(lapicAddress + 0x300)) & 0xfff00000) | 0x00C500;
-
-		do { __asm__ __volatile__ ("pause" : : : "memory"); }while(*((volatile uint32_t*)(lapicAddress + 0x300)) & (1 << 12));
-
-
-		*((volatile uint32_t*)(lapicAddress + 0x310)) = (*((volatile uint32_t*)(lapicAddress + 0x310)) & 0x00ffffff) | (i << 24);
-		*((volatile uint32_t*)(lapicAddress + 0x300)) = (*((volatile uint32_t*)(lapicAddress + 0x300)) & 0xfff00000) | 0x008500;
-
-		do { __asm__ __volatile__ ("pause" : : : "memory"); }while(*((volatile uint32_t*)(lapicAddress + 0x300)) & (1 << 12));
-
-        PIT::Sleep(10);
-        
-        *((volatile uint32_t*)(lapicAddress + 0x280)) = 0;
-		*((volatile uint32_t*)(lapicAddress + 0x310)) = (*((volatile uint32_t*)(lapicAddress + 0x310)) & 0x00ffffff) | (i << 24);
-		*((volatile uint32_t*)(lapicAddress + 0x300)) = (*((volatile uint32_t*)(lapicAddress + 0x300)) & 0xfff0f800) | 0x000608;
-        PIT::Sleep(1);
-		do { __asm__ __volatile__ ("pause" : : : "memory"); }while(*((volatile uint32_t*)(lapicAddress + 0x300)) & (1 << 12));
-
-        while (*test == 0);
-        printf("cpu respond with : %u \n", *test);
-        globalGraphics->Update();
-    }
     
     //globalTaskManager.AddTask((void*)task1, 4096);
     //globalTaskManager.AddTask((void*)task2, 4096);
@@ -123,3 +130,4 @@ void InitializeKernel(BootInfo* bootInfo){
 
     return;
 }
+

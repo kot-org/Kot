@@ -32,18 +32,12 @@ void gdtInit(){
     setGDTRing(0);
 
     TSSInit();
-    
+    uint16_t TSSlocation = TSSInstall(0);
+    DataTrampoline.GDTPointer = (uint64_t)&gdtBaseInfo;
     LoadGDT(&gdtBaseInfo);    
-    
-    for(int i = 0; i < MAX_PROCESSORS; i++){
-        if(TSSdescriptorsLocation[i] != 0){
-            //pass the location of tr            
-            asm("movw %%ax, %w0\n\t"
-                "ltr %%ax" :: "a" (TSSdescriptorsLocation[i]));
-        }else{
-            break;
-        }
-    }
+
+    asm("movw %%ax, %w0\n\t"
+                "ltr %%ax" :: "a" (TSSlocation));
 }
 
 int gdtInstallDescriptor(uint64_t base, uint64_t limit, uint8_t access, uint8_t flags){
