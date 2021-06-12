@@ -1,69 +1,94 @@
+ALIGN 0x1000
+
 [BITS 16]  
 GLOBAL Trampoline
-EXTERN TrampolineEnd
+EXTERN TrampolineMain
 
-%define PAGE_PRESENT    (1 << 0)
-%define PAGE_WRITE      (1 << 1)
- 
 %define CODE_SEG     0x0008
 %define DATA_SEG     0x0010
-
+%define Target(addr) ((addr - Trampoline) + 0x8000)
 
 ;------------------------------Code-----------------------------------
 
 Trampoline: 
     cli
     cld
-    mov	byte [DataTrampoline.Status], 1
-    ;Cr0 paging
-    mov eax, cr0
-    or eax, 31
-    mov cr0, eax
-    ;Cr0 protected mode enable
-    mov eax, cr0
-    or eax, 1
-    mov cr0, eax
+    mov	byte [Target(DataTrampoline.Status)], 1
 
     ;Cr4 physical address extension
     mov eax, cr4
-    or eax, 5
+    or eax, 1 << 5
     mov cr4, eax
 
-    ;efer long mode enable
-    mov ecx, 0xC0000080               
-    rdmsr    
- 
-    or eax, 0x00000100             
-    wrmsr
-
     ;Load Cr3
-    mov eax, [DataTrampoline.Paging]
+    mov eax, [Target(DataTrampoline.Paging)]
     mov cr3, eax
 
+    ;efer long mode enable
+    mov ecx, 0xC0000080 
+    rdmsr
+    or eax, 1 << 8
+    wrmsr
     
-    lgdt [DataTrampoline.GDTPointer]
- 
-    jmp 0x08:TrampolineLongMode
+    ;Cr0 protected mode enable & paging
+    mov eax, cr0
+    or eax, 0x80000001
+    mov cr0, eax    
+
+    lgdt [Target(GDT.Pointer)]
+
+    jmp CODE_SEG:Target(TrampolineLongMode)
     hlt
+
+GDT:
+.Null:
+    dq 0x0000000000000000             
+ 
+.Code:
+    dq 0x00209A0000000000             
+    dq 0x0000920000000000             
+ 
+ALIGN 4
+    dw 0                             
+ 
+.Pointer:
+    dw $ - GDT - 1                    
+    dd GDT                            
 
 [BITS 64]
 
 TrampolineLongMode:
-    mov ax, 0x10
+    mov ax, DATA_SEG
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
     mov ss, ax
+
+    mov rsp, [Target(DataTrampoline.Stack)]
+
+    mov rax, cr0
+    and ax, 0xFFFB      
+    or ax, 0x2          
+    mov cr0, rax
+
+    mov rax, cr4
+    or ax, 3 << 9		
+    mov cr4, rax
+
+    mov    rax, 1
+    cpuid
+    shr    rbx, 24
+    mov    rdi, rbx
+
+    mov	byte [Target(DataTrampoline.Status)], 3
+
+    call TrampolineMain
     hlt
-
-
-
 
 
 ;------------------------------Data-----------------------------------
 [BITS 64] 
-ALIGN 64
 
 GLOBAL DataTrampoline
 
@@ -71,3 +96,4 @@ DataTrampoline:
 	.Status:			        db	0
     .GDTPointer:                dq  0
     .Paging:                    dq  0
+    .Stack:                     dq  0

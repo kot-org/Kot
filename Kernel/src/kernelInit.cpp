@@ -57,7 +57,8 @@ void LoadCores(){
 
     memcpy((void*)0x8000, (void*)&Trampoline, 0x1000);
 
-    for(int i = 1; i < APIC::ProcessorCount; i++){         
+    for(int i = 1; i < APIC::ProcessorCount; i++){    
+        DataTrampoline.Stack = (uint64_t)globalAllocator.RequestPage();     
         if(APIC::Processor[i]->APICID == bspid) continue; 
         
         //init IPI
@@ -76,7 +77,6 @@ void LoadCores(){
         asm("sti");
         PIT::Sleep(10);
         asm("cli");
-        
         *((volatile uint32_t*)(lapicAddress + 0x280)) = 0;
 		*((volatile uint32_t*)(lapicAddress + 0x310)) = (*((volatile uint32_t*)(lapicAddress + 0x310)) & 0x00ffffff) | (i << 24);
 		*((volatile uint32_t*)(lapicAddress + 0x300)) = (*((volatile uint32_t*)(lapicAddress + 0x300)) & 0xfff0f800) | 0x000608;
@@ -84,10 +84,13 @@ void LoadCores(){
         PIT::Sleep(1);
         asm("cli");
 		do { __asm__ __volatile__ ("pause" : : : "memory"); }while(*((volatile uint32_t*)(lapicAddress + 0x300)) & (1 << 12));
-
+        
         while (DataTrampoline.Status == 0); // wait processor
         printf("cpu respond with : %u \n", DataTrampoline.Status);
-             
+        globalGraphics->Update(); 
+        while (DataTrampoline.Status != 3);
+        printf("Core %u init", i);
+        globalGraphics->Update();   
     }
 }   
 
