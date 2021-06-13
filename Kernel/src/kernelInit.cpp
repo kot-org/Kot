@@ -74,14 +74,14 @@ void LoadCores(){
 
 		do { __asm__ __volatile__ ("pause" : : : "memory"); }while(*((volatile uint32_t*)(lapicAddress + 0x300)) & (1 << 12));
         asm("sti");
-        PIT::Sleep(10);
+        //PIT::Sleep(10);
         asm("cli");
 
         for(int j = 0; j < 2; j++) {
             *((volatile uint32_t*)(lapicAddress + 0x280)) = 0;
             *((volatile uint32_t*)(lapicAddress + 0x310)) = i << 24;
             asm("sti");
-            PIT::Sleep(1);
+            //PIT::Sleep(1);
             asm("cli");
             *((volatile uint32_t*)(lapicAddress + 0x300)) = 0x000608;
         }
@@ -123,12 +123,12 @@ void InitializeKernel(BootInfo* bootInfo){
     IoWrite8(PIC1_DATA, 0b11111000);
     IoWrite8(PIC2_DATA, 0b11101111);
 
-    FPUInit();
+    printf("%u\n", (uint64_t)EnabledSSE());
     
     InitializeACPI(bootInfo);
 
+    
     LoadCores();
-
     asm("sti");
     
     //globalTaskManager.AddTask((void*)task1, 4096);

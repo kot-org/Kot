@@ -4,8 +4,8 @@ GLOBAL EnabledSSE
 EnabledSSE:
     mov rax, 0x1
     cpuid
-    test rdx, 1<<25
-    jz noSSE
+    test rdx, 1 << 25
+    jz .noSSE
 
     mov rax, cr0
     and ax, 0xFFFB		;clear coprocessor emulation CR0.EM
@@ -14,7 +14,8 @@ EnabledSSE:
     mov rax, cr4
     or ax, 3 << 9		;set CR4.OSFXSR and CR4.OSXMMEXCPT at the same time
     mov cr4, rax
+    mov rax, 1
     ret
-
-noSSE:
-    ret
+    .noSSE:
+        mov rax, 0
+        ret

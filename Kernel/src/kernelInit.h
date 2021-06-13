@@ -26,6 +26,7 @@
 #include "lib/limits.h"
 #include "drivers/rtc/rtc.h"
 #include "drivers/fpu/fpu.h"
+#include "drivers/sse/sse.h"
 #include "io/msr/msr.h"
 #include "tss/tss.h"
 

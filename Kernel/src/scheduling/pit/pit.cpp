@@ -1,7 +1,7 @@
 #include "pit.h"
 
 namespace PIT{
-    long double TimeSinceBoot = 0;
+    double TimeSinceBoot = 0;
 
     uint16_t Divisor = uint16_Limit;
 
