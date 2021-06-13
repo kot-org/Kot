@@ -33,6 +33,7 @@ namespace PIT{
     }
 
     void Tick(){  
-        TimeSinceBoot += 1 / (long double)GetFrequency();
+        //TimeSinceBoot += 1 / (long double)GetFrequency();
+        TimeSinceBoot += 1 / (double)GetFrequency();
     }
 }

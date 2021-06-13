@@ -1,6 +1,5 @@
-ALIGN 0x1000
+[BITS 16]
 
-[BITS 16]  
 GLOBAL Trampoline
 EXTERN TrampolineMain
 
@@ -13,8 +12,9 @@ EXTERN TrampolineMain
 Trampoline: 
     cli
     cld
-    mov	byte [Target(DataTrampoline.Status)], 1
-
+    
+    ;mov	byte [DataTrampoline.Status], 1
+hlt
     ;Cr4 physical address extension
     mov eax, cr4
     or eax, 1 << 5
@@ -35,7 +35,7 @@ Trampoline:
     or eax, 0x80000001
     mov cr0, eax    
 
-    lgdt [Target(GDT.Pointer)]
+    ;lgdt [GDT.Pointer]
 
     jmp CODE_SEG:Target(TrampolineLongMode)
     hlt
@@ -97,3 +97,5 @@ DataTrampoline:
     .GDTPointer:                dq  0
     .Paging:                    dq  0
     .Stack:                     dq  0
+
+times 4096 - ($ - $$) db 0

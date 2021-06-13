@@ -59,7 +59,7 @@ extern "C" void MouseInt_Handler(InterruptStack* Registers){
 
 extern "C" void PITInt_Handler(InterruptStack* Registers){
     PIT::Tick();
-    globalTaskManager.Scheduler(Registers); 
+    //globalTaskManager.Scheduler(Registers); 
     PIC_EndMaster();       
 }
 

@@ -3,6 +3,7 @@
 namespace APIC{
     LocalProcessor* Processor[MAX_PROCESSORS];
     size_t ProcessorCount = 0;
+    uint64_t lapic_ptr = 0;
 
     void InitializeMADT(ACPI::MADTHeader* madt){
         if(madt == 0){
@@ -43,6 +44,8 @@ namespace APIC{
                     break;
                 }                    
                 case EntryTypeLocalAPICAddressOverride:{
+                    LocalAPICAddressOverride* local_apic_override = (LocalAPICAddressOverride*)entryRecord;
+                    lapic_ptr = local_apic_override->LocalAPICAddress;
                     break;  
                 }                                      
             }

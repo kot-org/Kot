@@ -69,6 +69,7 @@ namespace APIC{
 
     void InitializeMADT(ACPI::MADTHeader* madt);
 
+    extern uint64_t lapic_ptr;
     extern LocalProcessor* Processor[MAX_PROCESSORS];
     extern size_t ProcessorCount;
 }
