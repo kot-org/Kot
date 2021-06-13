@@ -6,7 +6,6 @@
 #include "../../lib/stdio/cstr.h"
 
 namespace PIT {
-    extern double TimeSinceBoot;
     const uint64_t BaseFrequency = 1193182; //evry once second
 
     void Sleepd(double second);
