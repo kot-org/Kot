@@ -1,7 +1,6 @@
 [BITS 16]
 
 GLOBAL Trampoline
-EXTERN TrampolineMain
 
 %define CODE_SEG     0x0008
 %define DATA_SEG     0x0010
@@ -13,8 +12,8 @@ Trampoline:
     cli
     cld
     
-    ;mov	byte [DataTrampoline.Status], 1
-hlt
+    mov	byte [Target(DataTrampoline.Status)], 1
+    
     ;Cr4 physical address extension
     mov eax, cr4
     or eax, 1 << 5
@@ -35,7 +34,7 @@ hlt
     or eax, 0x80000001
     mov cr0, eax    
 
-    ;lgdt [GDT.Pointer]
+    lgdt [Target(GDT.Pointer)]
 
     jmp CODE_SEG:Target(TrampolineLongMode)
     hlt
@@ -65,7 +64,7 @@ TrampolineLongMode:
     mov gs, ax
     mov ss, ax
 
-    mov rsp, [Target(DataTrampoline.Stack)]
+    mov rsp, qword [Target(DataTrampoline.Stack)]
 
     mov rax, cr0
     and ax, 0xFFFB      
@@ -83,7 +82,7 @@ TrampolineLongMode:
 
     mov	byte [Target(DataTrampoline.Status)], 3
 
-    call TrampolineMain
+    jmp [Target(DataTrampoline.MainEntry)]
     hlt
 
 
@@ -97,5 +96,6 @@ DataTrampoline:
     .GDTPointer:                dq  0
     .Paging:                    dq  0
     .Stack:                     dq  0
+    .MainEntry:                 dq  0    
 
 times 4096 - ($ - $$) db 0

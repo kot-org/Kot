@@ -54,6 +54,7 @@ struct gdtInfoSelectors{
 extern gdtInfoSelectors GDTInfoSelectors;
 
 void gdtInit();
+void gdtInitCores(int cpuID);
 int gdtInstallDescriptor(uint64_t base, uint64_t limit, uint8_t access, uint8_t other);
 uint16_t gdtInstallTSS(uint64_t base, uint64_t limit);
 void setGDTRing(int ring);

@@ -40,6 +40,13 @@ void gdtInit(){
                 "ltr %%ax" :: "a" (TSSlocation));
 }
 
+void gdtInitCores(int cpuID){
+    uint16_t TSSlocation = TSSInstall(cpuID);
+    LoadGDT(&gdtBaseInfo);
+    asm("movw %%ax, %w0\n\t"
+                "ltr %%ax" :: "a" (TSSlocation));
+}
+
 int gdtInstallDescriptor(uint64_t base, uint64_t limit, uint8_t access, uint8_t flags){
     if(GDTIndexTable >= GDT_MAX_DESCRIPTORS) {
         return 0;
