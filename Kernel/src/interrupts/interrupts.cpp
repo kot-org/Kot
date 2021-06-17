@@ -69,8 +69,9 @@ extern "C" void PITInt_Handler(InterruptStack* Registers){
 }
 
 extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint8_t CoreID){
-    printf("\n%u ", CoreID);
+    printf("%u ", CoreID);
     globalGraphics->Update();
+    APIC::localApicEOI();
 }
 
 void RemapPIC(){

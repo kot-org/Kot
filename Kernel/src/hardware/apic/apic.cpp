@@ -62,7 +62,7 @@ namespace APIC{
         localAPICWriteRegister(0xF0, localAPICReadRegister(0xF0) | 0x100);
     }
 
-    void StartLapicTimer() {
+    void StartLapicTimer(){
         // Setup Local APIC timer
         localAPICWriteRegister(LocalAPICRegisterOffsetInitialCount, 0x100000);
         uint32_t divide = localAPICReadRegister(LocalAPICRegisterOffsetDivide);
@@ -74,6 +74,8 @@ namespace APIC{
         TimerRegisters.vector = 0x30;
         TimerRegisters.mask = LocalAPICInterruptRegisterMaskEnable;
         TimerRegisters.timerMode = LocalAPICInterruptTimerModePeriodic;
+        
+        localAPICWriteRegister(LocalAPICRegisterOffsetLVTTimer, CreatRegisterValueInterrupts(TimerRegisters) | (timer & 0xfffcef00));   
     }
 
     void localAPICSetTimerCount(uint32_t value){
