@@ -75,6 +75,13 @@ TrampolineLongMode:
     or ax, 3 << 9		
     mov cr4, rax
 
+    ;enabled apic
+    mov		ecx, 0x1b
+	rdmsr
+	or		eax, 0x800
+	wrmsr
+
+    ;send core id
     mov    rax, 1
     cpuid
     shr    rbx, 24

@@ -1,7 +1,7 @@
 [bits 64]
 
-GLOBAL Entry_PageFault_Handler, Entry_DoubleFault_Handler, Entry_GPFault_Handler, Entry_KeyboardInt_Handler, Entry_MouseInt_Handler, Entry_PITInt_Handler
-EXTERN PageFault_Handler, DoubleFault_Handler, GPFault_Handler, KeyboardInt_Handler, MouseInt_Handler, PITInt_Handler
+GLOBAL Entry_PageFault_Handler, Entry_DoubleFault_Handler, Entry_GPFault_Handler, Entry_KeyboardInt_Handler, Entry_MouseInt_Handler, Entry_PITInt_Handler, Entry_LAPICTIMERInt_Handler
+EXTERN PageFault_Handler, DoubleFault_Handler, GPFault_Handler, KeyboardInt_Handler, MouseInt_Handler, PITInt_Handler, LAPICTIMERInt_Handler
 
 %macro    PUSH_REG    0
     push    r15
@@ -94,6 +94,22 @@ Entry_PITInt_Handler:
     mov rdi, rsp
 
     call PITInt_Handler
+    
+    POP_REG     
+
+	iretq 
+
+Entry_LAPICTIMERInt_Handler:
+    PUSH_REG
+
+    mov rdi, rsp
+
+    mov    rax, 1
+    cpuid
+    shr    rbx, 24
+    mov    rsi, rbx
+
+    call LAPICTIMERInt_Handler
     
     POP_REG     
 

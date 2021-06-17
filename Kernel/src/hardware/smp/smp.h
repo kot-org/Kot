@@ -11,7 +11,6 @@ struct trampolineData{
     uint64_t MainEntry;
 }__attribute__((packed));
 
-void LoadCores();
 
 extern "C" trampolineData DataTrampoline;
 extern "C" void Trampoline();

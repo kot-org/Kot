@@ -35,6 +35,8 @@ typedef struct ErrorInterruptStack {
     void* errorCode; void* rip; void* cs; void* rflags; void* rsp; void* ss; //push by cpu with an interrupt
 }__attribute__((packed));
 
+extern IDTR idtr;
+
 void InitializeInterrupts();
 
 extern "C" void PageFault_Handler(ErrorInterruptStack* Registers);
@@ -43,6 +45,7 @@ extern "C" void GPFault_Handler(ErrorInterruptStack* Registers);
 extern "C" void KeyboardInt_Handler(InterruptStack* Registers);
 extern "C" void MouseInt_Handler(InterruptStack* Registers);
 extern "C" void PITInt_Handler(InterruptStack* Registers);
+extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint8_t CoreID);
 
 void RemapPIC();
 void PIC_EndMaster();
@@ -54,3 +57,5 @@ extern "C" void Entry_GPFault_Handler();
 extern "C" void Entry_KeyboardInt_Handler();
 extern "C" void Entry_MouseInt_Handler();
 extern "C" void Entry_PITInt_Handler();
+extern "C" void Entry_LAPICTIMERInt_Handler();
+

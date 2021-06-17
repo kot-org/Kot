@@ -1,7 +1,9 @@
 #include "interrupts.h"
 
+IDTR idtr;
+
 void InitializeInterrupts(){
-    IDTR idtr;
+    
     idtr.Limit = 0x0FFF;
     idtr.Offset = (uint64_t)globalAllocator.RequestPage();
 
@@ -23,6 +25,9 @@ void InitializeInterrupts(){
     /* PIT */
     SetIDTGate((void*)Entry_PITInt_Handler, 0x20, IDT_TA_InterruptGate, 0x08, idtr);
     PIT::SetDivisor(1);
+
+    /* PIT */
+    SetIDTGate((void*)Entry_LAPICTIMERInt_Handler, 0x30, IDT_TA_InterruptGate, 0x08, idtr);
 
     asm ("lidt %0" : : "m" (idtr)); 
 
@@ -61,6 +66,11 @@ extern "C" void PITInt_Handler(InterruptStack* Registers){
     PIT::Tick();
     //globalTaskManager.Scheduler(Registers); 
     PIC_EndMaster();       
+}
+
+extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint8_t CoreID){
+    printf("\n%u ", CoreID);
+    globalGraphics->Update();
 }
 
 void RemapPIC(){

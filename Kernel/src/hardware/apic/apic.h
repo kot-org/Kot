@@ -6,6 +6,7 @@
 #include "../../IO/msr/msr.h"
 #include "../../IO/IO.h"
 #include "../../graphics.h"
+#include "../../scheduling/pit/pit.h"
 #include "../../paging/pageTableManager.h"
 
 namespace APIC{
@@ -67,9 +68,91 @@ namespace APIC{
         EntryTypeLocalAPICAddressOverride = 5,
     };
 
-    void InitializeMADT(ACPI::MADTHeader* madt);
+    enum LocalAPICInterrupt{
+        LocalAPICInterruptVector			= 0,
+        LocalAPICInterruptMessageType		= 8,
+        LocalAPICInterruptDeliveryStatus	= 12,
+        LocalAPICInterruptTrigerMode		= 15,
+        LocalAPICInterruptMask				= 16,
+        LocalAPICInterruptTimerMode		    = 17,
+    };
+    enum LocalAPICInterruptRegisterMessageType{
+        LocalAPICInterruptRegisterMessageTypeFixed		= 0b000,
+        LocalAPICInterruptRegisterMessageTypeSMI		= 0b010,
+        LocalAPICInterruptRegisterMessageTypeNMI		= 0b100,
+        LocalAPICInterruptRegisterMessageTypeExtint		= 0b111,
+    };
+    enum LocalAPICInterruptRegisterDeliveryStatus{
+        LocalAPICInterruptRegisterMessageTypedle	    = 0,
+        LocalAPICInterruptRegisterMessageTypePending	= 1
+    };
+    enum LocalAPICInterruptRegisterRemoteIRR{
+        LocalAPICInterruptRegisterRemoteIRRCompleted	= 0,
+        LocalAPICInterruptRegisterRemoteIRRAccepted	    = 1,
+    };
+    enum LocalAPICInterruptRegisterTriggerMode{
+        LocalAPICInterruptRegisterTriggerModeEdge		= 0,
+        LocalAPICInterruptRegisterTriggerModeLevel	    = 1,
+    };
+    enum LocalAPICInterruptRegisterMask{
+        LocalAPICInterruptRegisterMaskEnable            = 0, 
+        LocalAPICInterruptRegisterMaskDisable           = 1,
+    };
+    enum LocalAPICInterruptTimerMode{
+        LocalAPICInterruptTimerModeOneShot	= 0,
+        LocalAPICInterruptTimerModePeriodic	= 1
+    };
 
-    extern uint64_t lapic_ptr;
+    struct LocalAPICInterruptRegister{
+        uint8_t	vector:8;
+        enum LocalAPICInterruptRegisterMessageType messageType:3;
+        enum LocalAPICInterruptRegisterDeliveryStatus deliveryStatus:1;
+        enum LocalAPICInterruptRegisterRemoteIRR remoteIrr:1;
+        enum LocalAPICInterruptRegisterTriggerMode triggerMode:1;
+        enum LocalAPICInterruptRegisterMask	mask:1;
+        enum LocalAPICInterruptTimerMode timerMode:1;
+    };
+
+    enum LocalAPICRegisterOffset {
+        LocalAPICRegisterOffsetID					    = 0x020,
+        LocalAPICRegisterOffsetVersion				    = 0x030,
+        LocalAPICRegisterOffsetTaskPriority			    = 0x080,
+        LocalAPICRegisterOffsetArbitrationPriority	    = 0x090,
+        LocalAPICRegisterOffsetProcessorPriority	    = 0x0a0,
+        LocalAPICRegisterOffsetEOI					    = 0x0b0,
+        LocalAPICRegisterOffsetRemoteRead			    = 0x0c0,
+        LocalAPICRegisterOffsetLogicalDestination	    = 0x0d0,
+        LocalAPICRegisterOffsetDestinationFormat	    = 0x0e0,
+        LocalAPICRegisterOffsetSpuriouseIntVector	    = 0x0f0,
+        LocalAPICRegisterOffsetInService		        = 0x100,
+        LocalAPICRegisterOffsetTriggerMode		        = 0x180,
+        LocalAPICRegisterOffsetInterruptdRequest		= 0x200,
+        LocalAPICRegisterOffsetErrorStatus		        = 0x280,
+        LocalAPICRegisterOffsetCMCI					    = 0x2f0,
+        LocalAPICRegisterOffsetInterruptCommand		    = 0x300,
+        LocalAPICRegisterOffsetLVTTimer				    = 0x320,
+        LocalAPICRegisterOffsetLVTThermalSensor	        = 0x330,
+        LocalAPICRegisterOffsetLVTPerfommanceMonitor	= 0x340,
+        LocalAPICRegisterOffsetLVTLINT0				    = 0x350,
+        LocalAPICRegisterOffsetLVTLINT1				    = 0x360,
+        LocalAPICRegisterOffsetLVTERROR				    = 0x370,
+        LocalAPICRegisterOffsetInitialCount			    = 0x380,
+        LocalAPICRegisterOffsetCurentCount			    = 0x390,
+        LocalAPICRegisterOffsetDivide			        = 0x3e0,
+    };
+
+    void InitializeMADT(ACPI::MADTHeader* madt);
+    void* GetLAPICAddress();
+    void EnableAPIC();
+    void StartLapicTimer();
+    uint32_t localAPICReadRegister(size_t offset);
+    uint32_t localAPICReadRegister(void* lapicAddress, size_t offset);
+    void localAPICWriteRegister(size_t offset, uint32_t value);    
+    void localAPICWriteRegister(void* lapicAddress, size_t offset, uint32_t value);    
+    void localAPICSetTimerCount(uint32_t value);
+    void localApicEOI();
+    uint32_t CreatRegisterValueInterrupts(LocalAPICInterruptRegister reg);
+
     extern LocalProcessor* Processor[MAX_PROCESSORS];
     extern size_t ProcessorCount;
 }
