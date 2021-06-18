@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include "../../lib/stdio.h"
 #include "../acpi/acpi.h"
+#include "../smp/smp.h"
 #include "../../IO/msr/msr.h"
 #include "../../IO/IO.h"
 #include "../../graphics.h"
@@ -142,15 +143,18 @@ namespace APIC{
     };
 
     void InitializeMADT(ACPI::MADTHeader* madt);
+    void LoadCores();
     void* GetLAPICAddress();
     void EnableAPIC();
     void StartLapicTimer();
+    void localAPICSetTimerCount(uint32_t value);
+    uint32_t localAPICGetTimerCount();
+    void localApicEOI();
+    void localApicEnableSpuriousInterrupts();
     uint32_t localAPICReadRegister(size_t offset);
     uint32_t localAPICReadRegister(void* lapicAddress, size_t offset);
     void localAPICWriteRegister(size_t offset, uint32_t value);    
     void localAPICWriteRegister(void* lapicAddress, size_t offset, uint32_t value);    
-    void localAPICSetTimerCount(uint32_t value);
-    void localApicEOI();
     uint32_t CreatRegisterValueInterrupts(LocalAPICInterruptRegister reg);
 
     extern LocalProcessor* Processor[MAX_PROCESSORS];

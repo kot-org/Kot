@@ -24,7 +24,7 @@ struct Task{
 
 class TaskManager{
     public:
-        void Scheduler(struct InterruptStack* Registers);
+        void Scheduler(struct InterruptStack* Registers, uint8_t CoreID);
         void AddTask(void* Address, size_t Size);    
         void AddTaskTest(void* Address, size_t Size);    
         void EnabledScheduler();

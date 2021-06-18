@@ -2,7 +2,7 @@
 
 TaskManager globalTaskManager;
 
-void TaskManager::Scheduler(struct InterruptStack* Registers){
+void TaskManager::Scheduler(struct InterruptStack* Registers, uint8_t CoreID){
     
     if(IsEnabled){          
         Tasks[CurrentTask].Regs.rax = Registers->rax;

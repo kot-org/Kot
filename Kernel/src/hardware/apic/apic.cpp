@@ -50,6 +50,48 @@ namespace APIC{
         }
     }   
 
+    void LoadCores(){
+    uint64_t lapicAddress = (uint64_t)APIC::GetLAPICAddress();
+    globalPageTableManager.MapMemory((void*)0x8000, (void*)0x8000);
+
+    uint8_t bspid = 0; 
+    __asm__ __volatile__ ("mov $1, %%rax; cpuid; shrq $24, %%rbx;": "=r"(bspid)::);
+
+    memcpy((void*)0x8000, (void*)&Trampoline, 0x1000);
+
+    trampolineData* Data = (trampolineData*) (((uint64_t) &DataTrampoline - (uint64_t) &Trampoline) + 0x8000);
+    Data->MainEntry = (uint64_t)&TrampolineMain;
+    for(int i = 1; i < APIC::ProcessorCount; i++){   
+        __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(Data->Paging)); 
+        Data->Stack = (uint64_t)globalAllocator.RequestPage();     
+        if(APIC::Processor[i]->APICID == bspid) continue; 
+        
+        //init IPI
+        localAPICWriteRegister(0x280, 0);
+        localAPICWriteRegister(0x310, i << 24);
+        localAPICWriteRegister(0x300, 0x00C500);
+        do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(0x300) & (1 << 12));
+
+        localAPICWriteRegister(0x310, i << 24);
+        localAPICWriteRegister(0x300, 0x008500);
+        do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(0x300) & (1 << 12));
+        PIT::Sleep(10);
+
+        for(int j = 0; j < 2; j++) {
+
+            localAPICWriteRegister(0x280, 0);
+            localAPICWriteRegister(0x310, i << 24);
+            PIT::Sleep(1);
+            localAPICWriteRegister(0x300, 0x000608);
+            do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(0x300) & (1 << 12));
+        }
+
+        while (Data->Status != 3); // wait processor
+        printf("Core %u init\n", i);
+        globalGraphics->Update();   
+    }
+}  
+
     void* GetLAPICAddress(){
         void* lapicAddress = (void*)(msr::rdmsr(0x1b) & 0xfffff000);
         globalPageTableManager.MapMemory(lapicAddress, lapicAddress);
@@ -63,27 +105,35 @@ namespace APIC{
     }
 
     void StartLapicTimer(){
+        localApicEnableSpuriousInterrupts();
         // Setup Local APIC timer
         localAPICWriteRegister(LocalAPICRegisterOffsetInitialCount, 0x100000);
         uint32_t divide = localAPICReadRegister(LocalAPICRegisterOffsetDivide);
         localAPICWriteRegister(LocalAPICRegisterOffsetDivide, (divide & 0xfffffff4) | 0b1010);
         uint32_t timer = localAPICReadRegister(LocalAPICRegisterOffsetLVTTimer);
 
-
         LocalAPICInterruptRegister TimerRegisters;
         TimerRegisters.vector = 0x30;
         TimerRegisters.mask = LocalAPICInterruptRegisterMaskEnable;
         TimerRegisters.timerMode = LocalAPICInterruptTimerModePeriodic;
         
-        localAPICWriteRegister(LocalAPICRegisterOffsetLVTTimer, CreatRegisterValueInterrupts(TimerRegisters) | (timer & 0xfffcef00));   
+        localAPICWriteRegister(LocalAPICRegisterOffsetLVTTimer, CreatRegisterValueInterrupts(TimerRegisters) | (timer & 0xfffcef00));      
     }
 
     void localAPICSetTimerCount(uint32_t value){
         localAPICWriteRegister(LocalAPICRegisterOffsetInitialCount, value);
     }
 
+    uint32_t localAPICGetTimerCount(){
+        return localAPICReadRegister(LocalAPICRegisterOffsetCurentCount);
+    }
+
     void localApicEOI(){
         localAPICWriteRegister(LocalAPICRegisterOffsetEOI, 0);
+    }
+
+    void localApicEnableSpuriousInterrupts(){
+        localAPICWriteRegister(LocalAPICRegisterOffsetSpuriouseIntVector, localAPICReadRegister(LocalAPICRegisterOffsetSpuriouseIntVector) | 0x100);
     }
 
     /* APIC */
