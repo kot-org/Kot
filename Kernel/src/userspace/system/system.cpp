@@ -4,7 +4,7 @@
 bool IsIntInit = false;
 bool test = true;
 
-extern "C" void SyscallEntry(InterruptStack* Registers){
+extern "C" void SyscallEntry(InterruptStack* Registers, uint8_t CoreID){
     uint64_t syscall = (uint64_t)Registers->rax;
     uint64_t arg0 = (uint64_t)Registers->rdi;
     uint64_t arg1 = (uint64_t)Registers->rsi;
@@ -16,8 +16,16 @@ extern "C" void SyscallEntry(InterruptStack* Registers){
     switch(syscall){
         case 0x01:
             break;
+        case 0xff:
+            if(arg0 == arg1 && arg1 == arg2 && arg2 == arg3 && arg3 == arg4 && arg4 == syscall){
+               globalTaskManager.IsEnabledPerCore[CoreID] = true; 
+               for(int i = 0; i < APIC::ProcessorCount; i++){
+                   if(!globalTaskManager.IsEnabledPerCore[i]) return;
+                   globalTaskManager.IsEnabled = true; 
+               }
+            }
     }
-    printf(" %s", arg5);
+    printf("%s", arg5);
 
     globalGraphics->Update(); 
 

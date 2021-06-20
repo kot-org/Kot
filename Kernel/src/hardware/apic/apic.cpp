@@ -61,9 +61,11 @@ namespace APIC{
 
     trampolineData* Data = (trampolineData*) (((uint64_t) &DataTrampoline - (uint64_t) &Trampoline) + 0x8000);
     Data->MainEntry = (uint64_t)&TrampolineMain;
+
     for(int i = 1; i < APIC::ProcessorCount; i++){   
         __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(Data->Paging)); 
-        Data->Stack = (uint64_t)globalAllocator.RequestPage();     
+        Data->Stack = (uint64_t)globalAllocator.RequestPage(); 
+            
         if(APIC::Processor[i]->APICID == bspid) continue; 
         
         //init IPI

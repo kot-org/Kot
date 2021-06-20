@@ -16,7 +16,7 @@ JumpIntoUserspace:
 
 	; Quickly save our stack pointer
 
-	mov		rdi, 0
+	mov		rdi, r8
 	mov		rsi, rsp
 	add		rsi, 32				; compensate for our saved parameters 4 * 0x08
 	call	TSSSetStack

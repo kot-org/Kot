@@ -1,3 +1,6 @@
+#define MAX_PROCESSORS      256
+#define IO_APIC             256
+
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
@@ -11,8 +14,6 @@
 #include "../../paging/pageTableManager.h"
 
 namespace APIC{
-    #define MAX_PROCESSORS   256
-    #define IO_APIC     256
 
 
     struct EntryRecord{

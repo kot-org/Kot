@@ -14,4 +14,4 @@ struct trampolineData{
 
 extern "C" trampolineData DataTrampoline;
 extern "C" void Trampoline();
-extern "C" void TrampolineMain(int cpuID);
+extern "C" void TrampolineMain(int CoreID);

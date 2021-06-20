@@ -64,10 +64,18 @@ EnableSystemCall:
 
 syscall_entry:
 	cli
+    swapgs
+
 	mov rdi, rsp ; save rsp
 
 	; Save and switch context
 	SYSCALL_SAVE	
+
+    ; Get core id
+    mov    rax, 1
+    cpuid
+    shr    rbx, 24
+    mov    rsi, rbx
 
 	; Get syscall handler and call the routine
 
@@ -83,7 +91,9 @@ syscall_entry:
 	push r11 ; push rflags
 	push r8 ; push cs
 	push rcx ; push rip
-
+    
+    swapgs
+    sti
 	
     iretq
 

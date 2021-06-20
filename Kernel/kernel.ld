@@ -5,8 +5,13 @@ SECTIONS
 {
 	. = 0x100000;
 	_KernelStart = .;
+
+
 	.text : ALIGN(0x1000)
 	{
+		IdleTaskStart = .;
+		*(.IdleTask)
+		IdleTaskEnd = .;
 		*(.text)
 	}
 	.data : ALIGN(0x1000)

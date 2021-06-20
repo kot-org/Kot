@@ -68,8 +68,6 @@ extern "C" void PITInt_Handler(InterruptStack* Registers){
 }
 
 extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint8_t CoreID){
-    printf("%u", CoreID);
-    globalGraphics->Update();
     globalTaskManager.Scheduler(Registers, CoreID); 
     APIC::localApicEOI();
 }

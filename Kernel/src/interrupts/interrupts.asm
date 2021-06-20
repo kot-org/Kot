@@ -100,6 +100,7 @@ Entry_PITInt_Handler:
 	iretq 
 
 Entry_LAPICTIMERInt_Handler:
+    swapgs
     PUSH_REG
 
     mov rdi, rsp
@@ -111,6 +112,8 @@ Entry_LAPICTIMERInt_Handler:
 
     call LAPICTIMERInt_Handler
     
-    POP_REG     
+    POP_REG   
+
+    swapgs 
 
 	iretq 

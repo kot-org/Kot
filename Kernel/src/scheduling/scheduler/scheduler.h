@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "../../userspace/userspace/userspace.h"
 #include "../../paging/pageTableManager.h"
+#include "../../hardware/apic/apic.h"
 #include "../../memory/heap.h"
 #include "../../lib/limits.h"
 #include "../../lib/stdio.h"
@@ -27,14 +28,19 @@ class TaskManager{
         void Scheduler(struct InterruptStack* Registers, uint8_t CoreID);
         void AddTask(void* Address, size_t Size);    
         void AddTaskTest(void* Address, size_t Size);    
-        void EnabledScheduler();
-        uint64_t GetCurrentTask();
-
-    private:
+        void EnabledScheduler(uint8_t CoreID, void* EntryPointIdleTask);
+        uint64_t GetCurrentTask(uint8_t CoreID);
+        bool IsProcessorIdle[MAX_PROCESSORS];
+        bool IsEnabledPerCore[MAX_PROCESSORS];
         bool IsEnabled = false;
-        uint64_t NumTask = 0;
-        uint64_t CurrentTask = 0;        
-        Task Tasks[32];
+
+    private:        
+        uint64_t NumTaskTotal = 0;
+        uint64_t NumTaskPerCore[MAX_PROCESSORS];
+        uint64_t CurrentTask[MAX_PROCESSORS];        
+        Task Tasks[MAX_PROCESSORS][32];
+        Task IdleTask[MAX_PROCESSORS];
+        int CoreSelectToCreat;
 };
 
 extern TaskManager globalTaskManager;
