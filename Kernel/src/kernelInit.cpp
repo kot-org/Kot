@@ -77,17 +77,19 @@ void InitializeKernel(BootInfo* bootInfo){
     APIC::StartLapicTimer();
     
     asm("sti");
-
-    APIC::LoadCores(); 
-
-    
-    /*globalTaskManager.AddTask((void*)task1, 4096);
+    if(!atomicLock((uint64_t*)task2, 4096 * 8)){
+        printf("oks");
+    }
+    atomicLock((uint64_t*)JumpIntoUserspace, 4096 * 8);
+    globalTaskManager.AddTask((void*)task1, 4096);
     globalTaskManager.AddTask((void*)task2, 4096);
     globalTaskManager.AddTask((void*)task3, 4096);
-    globalTaskManager.AddTask((void*)task4, 4096); */
+    globalTaskManager.AddTask((void*)task4, 4096);
+    APIC::LoadCores(); 
+
     uint8_t CoreID = 0; 
     __asm__ __volatile__ ("mov $1, %%rax; cpuid; shrq $24, %%rbx;": "=r"(CoreID)::);
-    globalTaskManager.EnabledScheduler(CoreID, (void*)task1);
+    globalTaskManager.EnabledScheduler(0);
 
     return;
 }

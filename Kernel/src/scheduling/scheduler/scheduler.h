@@ -17,31 +17,39 @@ typedef struct ContextStack {
     void* rip; void* cs; void* rflags; void* rsp; void* ss; //push by cpu with an interrupt
 }__attribute__((packed));
 
-struct Task{
+struct TaskContext{
     void* EntryPoint;
     void* Stack;
-    struct ContextStack Regs;   
+    ContextStack Regs; 
+    uint64_t ID;
+    void* parent; // if task is thread  
 };
+
+struct TaskNode{
+	TaskContext context;
+	TaskNode* previous;
+	TaskNode* next;
+} __attribute__((packed));
 
 class TaskManager{
     public:
         void Scheduler(struct InterruptStack* Registers, uint8_t CoreID);
-        void AddTask(void* Address, size_t Size);    
-        void AddTaskTest(void* Address, size_t Size);    
-        void EnabledScheduler(uint8_t CoreID, void* EntryPointIdleTask);
-        uint64_t GetCurrentTask(uint8_t CoreID);
-        bool IsProcessorIdle[MAX_PROCESSORS];
-        bool IsEnabledPerCore[MAX_PROCESSORS];
+        TaskNode* AddTask(void* EntryPoint, size_t Size);    
+        TaskNode* CreatDefaultTask();        
+        void EnabledScheduler(uint8_t CoreID);
+        TaskNode* GetCurrentTask(uint8_t CoreID);
         bool IsEnabled = false;
 
-    private:        
-        uint64_t NumTaskTotal = 0;
-        uint64_t NumTaskPerCore[MAX_PROCESSORS];
-        uint64_t CurrentTask[MAX_PROCESSORS];        
-        Task Tasks[MAX_PROCESSORS][32];
-        Task IdleTask[MAX_PROCESSORS];
-        int CoreSelectToCreat;
+    private:     
+        uint64_t CurrentTaskExecute;
+        size_t NumTaskTotal = 0;
+        TaskNode* MainNode;
+        TaskNode* MainNodeScheduler;
+        TaskNode* FirstNode;
+        TaskNode* NodeExecutePerCore[MAX_PROCESSORS];
 };
+
+
 
 extern TaskManager globalTaskManager;
 

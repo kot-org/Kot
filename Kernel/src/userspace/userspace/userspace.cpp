@@ -2,7 +2,7 @@
 
 uint64_t user_stack[1024];
 
-__attribute__((noinline, section(".IdleTask"))) void IdleTask(){
+void IdleTask(){
     //enabled scheduler
     asm(".att_syntax prefix");
     asm(".intel_syntax noprefix");

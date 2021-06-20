@@ -15,8 +15,9 @@ extern "C" void TrampolineMain(int CoreID){
     asm("sti");
 
     //void* NewLocationIdleTask = globalAllocator.RequestPage();
-    //memcpy(NewLocationIdleTask, (void*)IdleTaskStart, IdleTaskEnd - IdleTaskStart);
-    globalTaskManager.EnabledScheduler(CoreID, (void*)task2);
+    //memcpy(NewLocationIdleTask, (void*)IdleTask, IdleTaskEnd - IdleTaskStart);
+
+    globalTaskManager.EnabledScheduler(CoreID);
 
     while(true){
         asm("hlt");
