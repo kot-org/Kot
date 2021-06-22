@@ -8,7 +8,7 @@ extern "C" void TrampolineMain(int CoreID){
     asm ("lidt %0" : : "m" (idtr));
     
     APIC::localApicEOI();
-    APIC::StartLapicTimer();
+    //APIC::StartLapicTimer();
     printf("I am %u\n", CoreID);
     globalGraphics->Update();
     
@@ -16,7 +16,7 @@ extern "C" void TrampolineMain(int CoreID){
 
     //void* NewLocationIdleTask = globalAllocator.RequestPage();
     //memcpy(NewLocationIdleTask, (void*)IdleTask, IdleTaskEnd - IdleTaskStart);
-
+    //while(wait);
     globalTaskManager.EnabledScheduler(CoreID);
 
     while(true){

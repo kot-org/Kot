@@ -26,16 +26,17 @@ struct TaskContext{
 };
 
 struct TaskNode{
-	TaskContext context;
-	TaskNode* previous;
-	TaskNode* next;
+	TaskContext Content;
+	TaskNode* Last;
+	TaskNode* Next;
 } __attribute__((packed));
 
 class TaskManager{
     public:
         void Scheduler(struct InterruptStack* Registers, uint8_t CoreID);
         TaskNode* AddTask(void* EntryPoint, size_t Size);    
-        TaskNode* CreatDefaultTask();        
+        TaskNode* CreatDefaultTask();     
+        void DeleteTask(TaskNode* task);  
         void EnabledScheduler(uint8_t CoreID);
         TaskNode* GetCurrentTask(uint8_t CoreID);
         bool IsEnabled = false;
@@ -43,10 +44,12 @@ class TaskManager{
     private:     
         uint64_t CurrentTaskExecute;
         size_t NumTaskTotal = 0;
-        TaskNode* MainNode;
-        TaskNode* MainNodeScheduler;
-        TaskNode* FirstNode;
+        TaskNode* MainNode = NULL;
+        TaskNode* LastNode = NULL;
+        TaskNode* MainNodeScheduler = NULL;
+        TaskNode* FirstNode = NULL;
         TaskNode* NodeExecutePerCore[MAX_PROCESSORS];
+        bool CoreInUserSpace[MAX_PROCESSORS];
 };
 
 

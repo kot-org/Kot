@@ -9,6 +9,5 @@ extern "C" void task1();
 extern "C" void task2();
 extern "C" void task3();
 extern "C" void task4();
-void InitUserSpace();
 
 extern "C" void JumpIntoUserspace(void* userFunction, void* userStack, void* cs, void* ss, uint64_t CoreID);

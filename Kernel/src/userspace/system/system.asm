@@ -39,7 +39,7 @@ ALIGN	4096
 %endmacro
 
 
-GLOBAL EnableSystemCall
+GLOBAL EnableSystemCall, syscall_entry
 EXTERN TSSGetStack, TSSSetStack, SyscallEntry, SystemExit
 
 
@@ -62,9 +62,9 @@ EnableSystemCall:
 	wrmsr
 	ret
 
+
 syscall_entry:
 	cli
-    swapgs
 
 	mov rdi, rsp ; save rsp
 
@@ -80,20 +80,19 @@ syscall_entry:
 	; Get syscall handler and call the routine
 
 	mov rdi, rsp
-	call SyscallEntry
+	;call SyscallEntry
 
 	; Restore state-sensitive information and exit    
 	
     SYSCALL_RESTORE
-
-	push r9 ; push ss
+    sti
+    o64 sysret
+    push r9 ; push ss
 	push rdi ; push stack
 	push r11 ; push rflags
 	push r8 ; push cs
 	push rcx ; push rip
     
-    swapgs
     sti
-	
-    iretq
+	iretq
 

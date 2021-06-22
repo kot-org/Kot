@@ -46,6 +46,7 @@ extern "C" void DoubleFault_Handler(ErrorInterruptStack* Registers){
 
 extern "C" void GPFault_Handler(ErrorInterruptStack* Registers){
     Panic("General Protection Fault Detected");
+    globalGraphics->Update();
     while(true);
 }
 

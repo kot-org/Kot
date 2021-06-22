@@ -3,93 +3,96 @@
 TaskManager globalTaskManager;
 
 void TaskManager::Scheduler(struct InterruptStack* Registers, uint8_t CoreID){    
-    if(IsEnabled){ 
+    if(CoreInUserSpace[CoreID]){ 
         TaskNode* node = NodeExecutePerCore[CoreID];
-        node->context.Regs.rax = Registers->rax;
-        node->context.Regs.rcx = Registers->rcx;
-        node->context.Regs.rdx = Registers->rdx;
-        node->context.Regs.rsi = Registers->rsi;
-        node->context.Regs.rdi = Registers->rdi;
-        node->context.Regs.rbp = Registers->rbp;
-        node->context.Regs.r8 = Registers->r8;
-        node->context.Regs.r9 = Registers->r9;
-        node->context.Regs.r10 = Registers->r10;
-        node->context.Regs.r11 = Registers->r11;
-        node->context.Regs.r12 = Registers->r12;
-        node->context.Regs.r13 = Registers->r13;
-        node->context.Regs.r14 = Registers->r14;
-        node->context.Regs.r15 = Registers->r15;
-        node->context.Regs.rip = Registers->rip;
-        node->context.Regs.cs = Registers->cs;
-        node->context.Regs.rflags = Registers->rflags;
-        node->context.Regs.rsp = Registers->rsp;
-        node->context.Regs.ss = Registers->ss;
 
-        if(node->next == NULL){
-            node = FirstNode;
+        node->Content.Regs.rax = Registers->rax;
+        node->Content.Regs.rcx = Registers->rcx;
+        node->Content.Regs.rdx = Registers->rdx;
+        node->Content.Regs.rsi = Registers->rsi;
+        node->Content.Regs.rdi = Registers->rdi;
+        node->Content.Regs.rbp = Registers->rbp;
+        node->Content.Regs.r8 = Registers->r8;
+        node->Content.Regs.r9 = Registers->r9;
+        node->Content.Regs.r10 = Registers->r10;
+        node->Content.Regs.r11 = Registers->r11;
+        node->Content.Regs.r12 = Registers->r12;
+        node->Content.Regs.r13 = Registers->r13;
+        node->Content.Regs.r14 = Registers->r14;
+        node->Content.Regs.r15 = Registers->r15;
+        node->Content.Regs.rip = Registers->rip;
+        node->Content.Regs.cs = Registers->cs;
+        node->Content.Regs.rflags = Registers->rflags;
+        node->Content.Regs.rsp = Registers->rsp;
+        node->Content.Regs.ss = Registers->ss;
+
+        MainNodeScheduler = node;
+        if(MainNodeScheduler->Next == NULL){
+            MainNodeScheduler = FirstNode;
         }else{
-            node = node->next;
+            MainNodeScheduler = MainNodeScheduler->Next;
         }
 
-        NodeExecutePerCore[CoreID] = node;
+        NodeExecutePerCore[CoreID] = MainNodeScheduler;
 
-        Registers->rax = node->context.Regs.rax;
-        Registers->rcx = node->context.Regs.rcx;
-        Registers->rdx = node->context.Regs.rdx;
-        Registers->rsi = node->context.Regs.rsi;
-        Registers->rdi = node->context.Regs.rdi;
-        Registers->rbp = node->context.Regs.rbp;
-        Registers->r8 = node->context.Regs.r8;
-        Registers->r9 = node->context.Regs.r9;
-        Registers->r10 = node->context.Regs.r10;
-        Registers->r11 = node->context.Regs.r11;
-        Registers->r12 = node->context.Regs.r12;
-        Registers->r13 = node->context.Regs.r13;
-        Registers->r14 = node->context.Regs.r14;
-        Registers->r15 = node->context.Regs.r15;
-        Registers->rip = node->context.Regs.rip;
-        Registers->cs = node->context.Regs.cs;
-        Registers->rflags = node->context.Regs.rflags;
-        Registers->rsp = node->context.Regs.rsp;
-        Registers->ss = node->context.Regs.ss;
+        Registers->rax = node->Content.Regs.rax;
+        Registers->rcx = node->Content.Regs.rcx;
+        Registers->rdx = node->Content.Regs.rdx;
+        Registers->rsi = node->Content.Regs.rsi;
+        Registers->rdi = node->Content.Regs.rdi;
+        Registers->rbp = node->Content.Regs.rbp;
+        Registers->r8 = node->Content.Regs.r8;
+        Registers->r9 = node->Content.Regs.r9;
+        Registers->r10 = node->Content.Regs.r10;
+        Registers->r11 = node->Content.Regs.r11;
+        Registers->r12 = node->Content.Regs.r12;
+        Registers->r13 = node->Content.Regs.r13;
+        Registers->r14 = node->Content.Regs.r14;
+        Registers->r15 = node->Content.Regs.r15;
+        Registers->rip = node->Content.Regs.rip;
+        Registers->cs = node->Content.Regs.cs;
+        Registers->rflags = node->Content.Regs.rflags;
+        Registers->rsp = node->Content.Regs.rsp;
+        Registers->ss = node->Content.Regs.ss;
     }
 }
 
 TaskNode* TaskManager::AddTask(void* EntryPoint, size_t Size){ 
     TaskNode* node = (TaskNode*)malloc(sizeof(TaskNode));
-
-    if(NumTaskTotal == 0){
-        MainNode = node;
-        MainNode->previous = NULL;  
-        FirstNode = MainNode;   
-    }
     
     //content
     
     uint64_t StackSize = sizeof(ContextStack);
-    node->context.Stack = malloc(StackSize);
+    node->Content.Stack = malloc(StackSize);
     for(int i = 0; i < (StackSize / 0x1000) + 1; i++){
-        globalPageTableManager.MapUserspaceMemory((void*)((uint64_t)node->context.Stack + i * 0x1000));
+        globalPageTableManager.MapUserspaceMemory((void*)((uint64_t)node->Content.Stack + i * 0x1000));
     }
 
     for(int i = 0; i < (Size / 0x1000) + 1; i++){
         globalPageTableManager.MapUserspaceMemory((void*)((uint64_t)EntryPoint + i * 0x1000));
     }
 
-    globalPageTableManager.MapUserspaceMemory(node->context.Stack);
-    node->context.EntryPoint = EntryPoint; 
-    node->context.Regs.rip = EntryPoint; 
-    node->context.Regs.cs = (void*)GDTInfoSelectors.UCode; //user code selector
-    node->context.Regs.ss = (void*)GDTInfoSelectors.UData; //user data selector
-    node->context.Regs.rsp = node->context.Stack;
-    node->context.Regs.rflags = (void*)0x202; //interrupts & syscall
+    node->Content.EntryPoint = EntryPoint; 
+    node->Content.Regs.rip = EntryPoint; 
+    node->Content.Regs.cs = (void*)GDTInfoSelectors.UCode; //user code selector
+    node->Content.Regs.ss = (void*)GDTInfoSelectors.UData; //user data selector
+    node->Content.Regs.rsp = node->Content.Stack;
+    node->Content.Regs.rflags = (void*)0x202; //interrupts & syscall
     
+    node->Content.ID = NumTaskTotal;
     NumTaskTotal++;
+    
+    if(LastNode == NULL){        
+        node->Last = NULL;  
+        FirstNode = node;  
+        MainNodeScheduler = FirstNode; 
+    }else{
+        node->Last = LastNode; 
+        LastNode->Next = node;
+    }
 
-    TaskNode* LastMainNode = MainNode;
     MainNode = node;
-    MainNode->previous = LastMainNode;
-    LastMainNode->next = MainNode;
+    LastNode = MainNode;
 }
 
 TaskNode* TaskManager::CreatDefaultTask(){
@@ -99,13 +102,13 @@ TaskNode* TaskManager::CreatDefaultTask(){
 
     if(NumTaskTotal == 0){
         MainNode = node;
-        MainNode->previous = NULL;  
+        MainNode->Last = NULL;  
         FirstNode = MainNode;   
     }else{
-        node->previous = MainNode;
+        node->Last = MainNode;
     }
 
-    MainNode->next = node;
+    MainNode->Next = node;
     
     //content
     
@@ -114,45 +117,55 @@ TaskNode* TaskManager::CreatDefaultTask(){
     memcpy(EntryPoint, (void*)IdleTask, Size);
     
     uint64_t StackSize = sizeof(ContextStack);
-    node->context.Stack = malloc(StackSize);
+    node->Content.Stack = malloc(StackSize);
     for(int i = 0; i < (StackSize / 0x1000) + 1; i++){
-        globalPageTableManager.MapUserspaceMemory((void*)((uint64_t)node->context.Stack + i * 0x1000));
+        globalPageTableManager.MapUserspaceMemory((void*)((uint64_t)node->Content.Stack + i * 0x1000));
     }
 
     for(int i = 0; i < (Size / 0x1000) + 1; i++){
         globalPageTableManager.MapUserspaceMemory((void*)((uint64_t)EntryPoint + i * 0x1000));
     }
 
-    globalPageTableManager.MapUserspaceMemory(node->context.Stack);
-    node->context.EntryPoint = EntryPoint; 
-    node->context.Regs.rip = EntryPoint; 
-    node->context.Regs.cs = (void*)GDTInfoSelectors.UCode; //user code selector
-    node->context.Regs.ss = (void*)GDTInfoSelectors.UData; //user data selector
-    node->context.Regs.rsp = node->context.Stack;
-    node->context.Regs.rflags = (void*)0x202; //interrupts & syscall
+    node->Content.EntryPoint = EntryPoint; 
+    node->Content.Regs.rip = EntryPoint; 
+    node->Content.Regs.cs = (void*)GDTInfoSelectors.UCode; //user code selector
+    node->Content.Regs.ss = (void*)GDTInfoSelectors.UData; //user data selector
+    node->Content.Regs.rsp = node->Content.Stack;
+    node->Content.Regs.rflags = (void*)0x202; //interrupts & syscall
     
     NumTaskTotal++;
 
     TaskNode* LastMainNode = MainNode;
     MainNode = node;
-    MainNode->previous = LastMainNode;
+    MainNode->Last = LastMainNode;
     MainNodeScheduler = FirstNode;
 }
 
+void TaskManager::DeleteTask(TaskNode* task){
+    TaskNode* last = task->Last;
+    TaskNode* next = task->Next;
+    last->Next = next;
+    next->Last = last;
+    NumTaskTotal--;
+}
+
+
 void TaskManager::EnabledScheduler(uint8_t CoreID){  
-    if(MainNodeScheduler->next == NULL){
+    TaskNode* node = MainNodeScheduler;
+    if(MainNodeScheduler->Next == NULL){
         MainNodeScheduler = CreatDefaultTask();
     }else{
-        MainNodeScheduler = MainNodeScheduler->next;
+        MainNodeScheduler = MainNodeScheduler->Next;
     }
-
-    TaskNode* node = MainNodeScheduler;
 
     NodeExecutePerCore[CoreID] = node;
 
-    EnableSystemCall();  
-    
-    JumpIntoUserspace(node->context.EntryPoint, node->context.Stack, node->context.Regs.cs, node->context.Regs.ss, CoreID);
+    globalPageTableManager.MapUserspaceMemory((void*)syscall_entry);
+    EnableSystemCall(); 
+     
+    NodeExecutePerCore[CoreID] = node;
+
+    JumpIntoUserspace(node->Content.EntryPoint, node->Content.Stack, node->Content.Regs.cs, node->Content.Regs.ss, CoreID);
 }
 
 TaskNode* TaskManager::GetCurrentTask(uint8_t CoreID){

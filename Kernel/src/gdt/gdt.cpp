@@ -62,7 +62,7 @@ int gdtInstallDescriptor(uint64_t base, uint64_t limit, uint8_t access, uint8_t 
     GDTEntries[GDTIndexTable].Other |= flags & 0xF0;
 
     GDTIndexTable++;
-    return ((GDTIndexTable - 1) * sizeof(GDTEntry)) + ringGDT;
+    return ((GDTIndexTable - 1) * sizeof(GDTEntry)) | ringGDT;
 }
 
 uint16_t gdtInstallTSS(uint64_t base, uint64_t limit){ 

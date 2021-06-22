@@ -30,7 +30,7 @@ struct TSS{
 void TSSInit();
 uint16_t TSSInstall(int numCPU);
 
-extern "C" void TSSSetStack(int numCPU, void* stack);
+extern "C" void TSSSetStack(uint64_t numCPU, void* stack);
 extern "C" uint64_t TSSGetStack(int numCPU);
 
 extern "C" void LoadTSS(uint16_t tss);

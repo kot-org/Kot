@@ -74,7 +74,7 @@ void InitializeKernel(BootInfo* bootInfo){
     }
     
     InitializeACPI(bootInfo);
-    APIC::StartLapicTimer();
+    //APIC::StartLapicTimer();
     
     asm("sti");
     if(!atomicLock((uint64_t*)task2, 4096 * 8)){
@@ -87,8 +87,8 @@ void InitializeKernel(BootInfo* bootInfo){
     globalTaskManager.AddTask((void*)task4, 4096);
     APIC::LoadCores(); 
 
-    uint8_t CoreID = 0; 
-    __asm__ __volatile__ ("mov $1, %%rax; cpuid; shrq $24, %%rbx;": "=r"(CoreID)::);
+    printf("%u %u", GDTInfoSelectors.UCode, GDTInfoSelectors.UData);
+
     globalTaskManager.EnabledScheduler(0);
 
     return;
