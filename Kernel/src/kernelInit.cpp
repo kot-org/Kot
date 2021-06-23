@@ -14,7 +14,7 @@ void InitializeMemory(BootInfo* bootInfo){
 
     uint64_t kernelPages = (uint64_t)bootInfo->KernelSize / 0x1000 + 1;
 
-    globalAllocator.LockPages(bootInfo->KernelStart, kernelPages);
+    globalAllocator.LockPages(0, kernelPages);
 
     PageTable* PML4 = (PageTable*)globalAllocator.RequestPage();
     memset(PML4, 0, 0x1000);

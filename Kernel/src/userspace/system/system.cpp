@@ -17,14 +17,12 @@ extern "C" void SyscallEntry(InterruptStack* Registers, uint8_t CoreID){
         case 0x01:
             break;
     }
-    printf("%s", arg5);
+    /*printf("%s", arg5);
 
-    globalGraphics->Update(); 
+    globalGraphics->Update(); */
 
     Registers->r8 = (void*)GDTInfoSelectors.UCode;
     Registers->r9 = (void*)GDTInfoSelectors.UData;
-
-    wait = false;
 }
 
 extern "C" uint64_t SystemExit(uint64_t ErrorCode){

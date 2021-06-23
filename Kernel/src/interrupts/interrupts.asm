@@ -42,20 +42,31 @@ EXTERN PageFault_Handler, DoubleFault_Handler, GPFault_Handler, KeyboardInt_Hand
 
 
 Entry_PageFault_Handler:
+    swapgs
     PUSH_REG
+
     mov rdi, rsp
+
     call PageFault_Handler
+
     POP_REG
+    
     iretq
 
 Entry_DoubleFault_Handler:
+    swapgs
     PUSH_REG
+
     mov rdi, rsp
+
     call DoubleFault_Handler
+
     POP_REG
+
     iretq
 
 Entry_GPFault_Handler:
+    swapgs
     PUSH_REG
 
     mov rdi, rsp
@@ -67,28 +78,33 @@ Entry_GPFault_Handler:
     iretq
 
 Entry_KeyboardInt_Handler:
+    swapgs
     PUSH_REG
 
     mov rdi, rsp
 
     call KeyboardInt_Handler
     
-    POP_REG     
+    POP_REG
+    swapgs     
 
 	iretq
 
 Entry_MouseInt_Handler:
+    swapgs
     PUSH_REG
 
     mov rdi, rsp
 
     call MouseInt_Handler
     
-    POP_REG     
+    POP_REG   
+    swapgs  
 
 	iretq 
 
 Entry_PITInt_Handler:
+    swapgs
     PUSH_REG
 
     mov rdi, rsp
@@ -96,10 +112,12 @@ Entry_PITInt_Handler:
     call PITInt_Handler
     
     POP_REG     
+    swapgs
 
 	iretq 
 
 Entry_LAPICTIMERInt_Handler:
+    swapgs
     PUSH_REG
 
     mov rdi, rsp
@@ -111,6 +129,7 @@ Entry_LAPICTIMERInt_Handler:
 
     call LAPICTIMERInt_Handler
     
-    POP_REG    
+    POP_REG 
+    swapgs   
 
 	iretq 
