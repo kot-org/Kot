@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../hardware/atomic/atomic.h"
 #include "../../graphics.h"
 #include "../va_args.h"
 #include "../limits.h"

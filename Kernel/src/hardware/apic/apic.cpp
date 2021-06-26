@@ -89,8 +89,8 @@ namespace APIC{
         }
 
         while (Data->Status != 3); // wait processor
-        printf("Core %u init\n", i);
-        globalGraphics->Update();   
+        /*printf("Core %u init\n", i);
+        globalGraphics->Update();   */
     }
 }  
 

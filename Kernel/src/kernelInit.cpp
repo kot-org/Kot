@@ -74,20 +74,15 @@ void InitializeKernel(BootInfo* bootInfo){
     }
     
     InitializeACPI(bootInfo);
-    //APIC::StartLapicTimer();
+    APIC::StartLapicTimer();
     
     asm("sti");
-    if(!atomicLock((uint64_t*)task2, 4096 * 8)){
-        printf("oks");
-    }
-    atomicLock((uint64_t*)JumpIntoUserspace, 4096 * 8);
+
     globalTaskManager.AddTask((void*)task1, 4096);
     globalTaskManager.AddTask((void*)task2, 4096);
     globalTaskManager.AddTask((void*)task3, 4096);
     globalTaskManager.AddTask((void*)task4, 4096);
     APIC::LoadCores(); 
-
-    printf("%u %u", GDTInfoSelectors.UCode, GDTInfoSelectors.UData);
 
     globalTaskManager.EnabledScheduler(0);
 

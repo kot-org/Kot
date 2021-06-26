@@ -40,10 +40,11 @@ ALIGN	4096
 
 
 GLOBAL EnableSystemCall, syscall_entry
-EXTERN TSSGetStack, TSSSetStack, SyscallEntry, SystemExit
+EXTERN TSSGetStack, TSSSetStack, SyscallEntry, SystemExit, atomicLock, atomicUnlock, atomicWait
 
 
 EnableSystemCall:
+
 	; Load handler RIP into LSTAR MSR
 	mov		rcx, 0xc0000082
 	mov		rax, syscall_entry
@@ -70,7 +71,7 @@ syscall_entry:
 	mov rdi, rsp ; save rsp
 
 	; Save and switch context
-	SYSCALL_SAVE	
+	SYSCALL_SAVE
 
     ; Get core id
     mov    rax, 1
@@ -81,10 +82,11 @@ syscall_entry:
 	; Get syscall handler and call the routine
 
 	mov rdi, rsp
+
 	call SyscallEntry
 
 	; Restore state-sensitive information and exit    
-	
+
     SYSCALL_RESTORE
     
     push r9 ; push ss

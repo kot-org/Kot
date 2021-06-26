@@ -129,7 +129,7 @@ Entry_LAPICTIMERInt_Handler:
 
     call LAPICTIMERInt_Handler
     
-    POP_REG 
-    swapgs   
+    POP_REG     
+    swapgs
 
 	iretq 

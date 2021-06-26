@@ -1,10 +1,16 @@
 #include "system.h"
-#define PIC1_DATA 0x21
-#define PIC2_DATA 0xA1
+
 bool IsIntInit = false;
 bool wait = true;
+static void* mutex;
 
 extern "C" void SyscallEntry(InterruptStack* Registers, uint8_t CoreID){
+    if(mutex == 0){
+        mutex = globalAllocator.RequestPage();
+    }
+    Atomic::atomicWait((void*)mutex);    
+    Atomic::atomicLock((void*)mutex);
+
     uint64_t syscall = (uint64_t)Registers->rax;
     uint64_t arg0 = (uint64_t)Registers->rdi;
     uint64_t arg1 = (uint64_t)Registers->rsi;
@@ -17,12 +23,14 @@ extern "C" void SyscallEntry(InterruptStack* Registers, uint8_t CoreID){
         case 0x01:
             break;
     }
-    /*printf("%s", arg5);
-
-    globalGraphics->Update(); */
+    //printf("%s %u", arg5, CoreID);
+    globalGraphics->Print((char*)arg5);
+    globalGraphics->Update(); 
 
     Registers->r8 = (void*)GDTInfoSelectors.UCode;
     Registers->r9 = (void*)GDTInfoSelectors.UData;
+    
+    Atomic::atomicUnlock((void*)mutex);
 }
 
 extern "C" uint64_t SystemExit(uint64_t ErrorCode){

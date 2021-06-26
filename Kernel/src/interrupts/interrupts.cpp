@@ -3,9 +3,11 @@
 IDTR idtr;
 
 void InitializeInterrupts(){
-    
-    idtr.Limit = 0x0FFF;
-    idtr.Offset = (uint64_t)globalAllocator.RequestPage();
+    if(idtr.Limit == 0){
+        idtr.Limit = 0x0FFF;
+        idtr.Offset = (uint64_t)globalAllocator.RequestPage();
+    }
+
 
     /* Page Fault */
     SetIDTGate((void*)Entry_PageFault_Handler, 0x0E, IDT_TA_InterruptGate, 0x08, idtr);
@@ -26,7 +28,7 @@ void InitializeInterrupts(){
     SetIDTGate((void*)Entry_PITInt_Handler, 0x20, IDT_TA_InterruptGate, 0x08, idtr);
     PIT::SetDivisor(1);
 
-    /* PIT */
+    /* APIC Timer */
     SetIDTGate((void*)Entry_LAPICTIMERInt_Handler, 0x30, IDT_TA_InterruptGate, 0x08, idtr);
 
     asm ("lidt %0" : : "m" (idtr)); 
@@ -69,7 +71,7 @@ extern "C" void PITInt_Handler(InterruptStack* Registers){
 }
 
 extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint8_t CoreID){
-    globalTaskManager.Scheduler(Registers, CoreID); 
+    //globalTaskManager.Scheduler(Registers, CoreID); 
     APIC::localApicEOI();
 }
 
