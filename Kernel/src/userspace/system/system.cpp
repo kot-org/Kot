@@ -5,11 +5,7 @@ bool wait = true;
 static void* mutex;
 
 extern "C" void SyscallEntry(InterruptStack* Registers, uint8_t CoreID){
-    if(mutex == 0){
-        mutex = globalAllocator.RequestPage();
-    }
-    Atomic::atomicWait((void*)mutex);    
-    Atomic::atomicLock((void*)mutex);
+    mutex = Atomic::atomicLoker((void*)mutex);
 
     uint64_t syscall = (uint64_t)Registers->rax;
     uint64_t arg0 = (uint64_t)Registers->rdi;
@@ -23,7 +19,7 @@ extern "C" void SyscallEntry(InterruptStack* Registers, uint8_t CoreID){
         case 0x01:
             break;
     }
-    //printf("%s %u", arg5, CoreID);
+
     globalGraphics->Print((char*)arg5);
     globalGraphics->Update(); 
 

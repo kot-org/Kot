@@ -117,6 +117,7 @@ Entry_PITInt_Handler:
 	iretq 
 
 Entry_LAPICTIMERInt_Handler:
+    hlt
     swapgs
     PUSH_REG
 

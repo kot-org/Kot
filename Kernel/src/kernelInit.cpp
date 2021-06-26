@@ -74,7 +74,6 @@ void InitializeKernel(BootInfo* bootInfo){
     }
     
     InitializeACPI(bootInfo);
-    APIC::StartLapicTimer();
     
     asm("sti");
 
@@ -83,6 +82,8 @@ void InitializeKernel(BootInfo* bootInfo){
     globalTaskManager.AddTask((void*)task3, 4096);
     globalTaskManager.AddTask((void*)task4, 4096);
     APIC::LoadCores(); 
+
+    APIC::StartLapicTimer();
 
     globalTaskManager.EnabledScheduler(0);
 

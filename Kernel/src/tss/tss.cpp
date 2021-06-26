@@ -16,7 +16,7 @@ uint16_t TSSInstall(int numCPU){
 }
 
 void TSSSetStack(uint64_t numCPU, void* stack){
-    TSSdescriptors[numCPU].RSP[numCPU] = (uint64_t)stack;
+    TSSdescriptors[numCPU].RSP[0] = (uint64_t)stack;
 }
 
 uint64_t TSSGetStack(int numCPU){

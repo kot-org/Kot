@@ -103,7 +103,7 @@ namespace APIC{
     void EnableAPIC(){
         void* lapicAddress = GetLAPICAddress(); 
         msr::wrmsr(0x1b, (uint64_t)lapicAddress);
-        localAPICWriteRegister(0xF0, localAPICReadRegister(0xF0) | 0x100);
+        localAPICWriteRegister(0xF0, localAPICReadRegister(0xF0) | 0x1ff);
     }
 
     void StartLapicTimer(){
@@ -130,7 +130,7 @@ namespace APIC{
         return localAPICReadRegister(LocalAPICRegisterOffsetCurentCount);
     }
 
-    void localApicEOI(){
+    void localApicEOI(){        
         localAPICWriteRegister(LocalAPICRegisterOffsetEOI, 0);
     }
 

@@ -1,27 +1,45 @@
 [BITS 64]
-GLOBAL atomicLock, atomicUnlock, atomicWait
+GLOBAL atomicLock, atomicUnlock, atomicWait, atomicCheck
 
 atomicLock:
-    mov rax, 1
+    mov    rax, 1
+    cpuid
+    shr    rbx, 24
+    mov    rax, rbx
     lock xchg qword [rdi], rax
     ret
 
 atomicUnlock:
-	mov qword [rdi], 0
+	mov rax, 0
+    lock xchg qword [rdi], rax
     ret
 
 atomicWait:
-	mov rax, 1
-    lock cmpxchg qword [rdi], rax ; if [rdi] != 0
-    je                	.spin
-    jmp                	.exit
+	mov rax, 0
+    lock cmpxchg qword [rdi], rax ; if [rdi] == 0
+    je                	.exit
+    jmp                	.spin
     .spin:
         pause
-        lock cmpxchg     QWORD [rdi], rax ; if [rdi] != 0
-        je            	.spin                
-        jmp            	.exit
+        mov rax, 0
+        lock cmpxchg     qword [rdi], rax ; if [rdi] == 0
+        je            	.exit                
+        jmp            	.spin
     .exit:
         ret
 
-atomicLoker:
-    ret
+atomicCheck:
+    mov    rax, 1
+    cpuid
+    shr    rbx, 24
+    mov    rax, rbx
+    lock cmpxchg qword [rdi], rax ; if [rdi] == coreID
+    je .true
+    jmp .false
+    .true:   
+        mov rax, 1                 
+        ret
+    .false:
+        mov rax, 0
+        ret
+

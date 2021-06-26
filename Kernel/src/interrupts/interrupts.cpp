@@ -30,10 +30,12 @@ void InitializeInterrupts(){
 
     /* APIC Timer */
     SetIDTGate((void*)Entry_LAPICTIMERInt_Handler, 0x30, IDT_TA_InterruptGate, 0x08, idtr);
+    
+    RemapPIC();
 
     asm ("lidt %0" : : "m" (idtr)); 
 
-    RemapPIC();    
+       
 }
 
 extern "C" void PageFault_Handler(ErrorInterruptStack* Registers){
@@ -48,7 +50,6 @@ extern "C" void DoubleFault_Handler(ErrorInterruptStack* Registers){
 
 extern "C" void GPFault_Handler(ErrorInterruptStack* Registers){
     Panic("General Protection Fault Detected");
-    globalGraphics->Update();
     while(true);
 }
 
