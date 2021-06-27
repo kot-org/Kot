@@ -51,7 +51,7 @@ namespace APIC{
     }   
 
     void LoadCores(){
-    uint64_t lapicAddress = (uint64_t)APIC::GetLAPICAddress();
+    uint64_t lapicAddress = (uint64_t)GetLAPICAddress();
     globalPageTableManager.MapMemory((void*)0x8000, (void*)0x8000);
 
     uint8_t bspid = 0; 
@@ -62,11 +62,11 @@ namespace APIC{
     trampolineData* Data = (trampolineData*) (((uint64_t) &DataTrampoline - (uint64_t) &Trampoline) + 0x8000);
     Data->MainEntry = (uint64_t)&TrampolineMain;
 
-    for(int i = 1; i < APIC::ProcessorCount; i++){   
+    for(int i = 1; i < ProcessorCount; i++){   
         __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(Data->Paging)); 
         Data->Stack = (uint64_t)globalAllocator.RequestPage(); 
             
-        if(APIC::Processor[i]->APICID == bspid) continue; 
+        if(Processor[i]->APICID == bspid) continue; 
         
         //init IPI
         localAPICWriteRegister(0x280, 0);
@@ -89,8 +89,6 @@ namespace APIC{
         }
 
         while (Data->Status != 3); // wait processor
-        /*printf("Core %u init\n", i);
-        globalGraphics->Update();   */
     }
 }  
 

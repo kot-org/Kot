@@ -13,11 +13,10 @@ extern "C" void IdleTask(){
 
     asm(".att_syntax prefix");  
     
-    while (true){
-        char* test = "0";
-        asm ("movq %0, %%r9" :: "r" (test));
-        asm("syscall"); 
-    }
+    char* test = "0";
+    asm ("movq %0, %%r9" :: "r" (test));
+    asm("syscall"); 
+    while(true);
 }
 
 extern "C" void task1(){
