@@ -6,6 +6,9 @@ static void* mutex;
 
 extern "C" void SyscallEntry(InterruptStack* Registers, uint8_t CoreID){
     mutex = Atomic::atomicLoker((void*)mutex);
+    if(!globalTaskManager.CoreInUserSpace[CoreID]){
+        globalTaskManager.CoreInUserSpace[CoreID] = true;
+    }
 
     uint64_t syscall = (uint64_t)Registers->rax;
     uint64_t arg0 = (uint64_t)Registers->rdi;

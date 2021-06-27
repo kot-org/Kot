@@ -1,7 +1,7 @@
 [bits 64]
 
 GLOBAL Entry_PageFault_Handler, Entry_DoubleFault_Handler, Entry_GPFault_Handler, Entry_KeyboardInt_Handler, Entry_MouseInt_Handler, Entry_PITInt_Handler, Entry_LAPICTIMERInt_Handler
-EXTERN PageFault_Handler, DoubleFault_Handler, GPFault_Handler, KeyboardInt_Handler, MouseInt_Handler, PITInt_Handler, LAPICTIMERInt_Handler
+EXTERN PageFault_Handler, DoubleFault_Handler, GPFault_Handler, KeyboardInt_Handler, MouseInt_Handler, PITInt_Handler, LAPICTIMERInt_Handler, APICEnd
 
 %macro    PUSH_REG    0
     push    r15
@@ -117,7 +117,6 @@ Entry_PITInt_Handler:
 	iretq 
 
 Entry_LAPICTIMERInt_Handler:
-    hlt
     swapgs
     PUSH_REG
 

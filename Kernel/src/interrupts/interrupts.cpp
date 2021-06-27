@@ -71,8 +71,9 @@ extern "C" void PITInt_Handler(InterruptStack* Registers){
     PIC_EndMaster();       
 }
 
+
 extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint8_t CoreID){
-    //globalTaskManager.Scheduler(Registers, CoreID); 
+    globalTaskManager.Scheduler(Registers, CoreID); 
     APIC::localApicEOI();
 }
 

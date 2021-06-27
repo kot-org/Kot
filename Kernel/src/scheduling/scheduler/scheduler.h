@@ -39,7 +39,7 @@ class TaskManager{
         void DeleteTask(TaskNode* task);  
         void EnabledScheduler(uint8_t CoreID);
         TaskNode* GetCurrentTask(uint8_t CoreID);
-        bool IsEnabled = false;
+        bool CoreInUserSpace[MAX_PROCESSORS];
 
     private:     
         uint64_t CurrentTaskExecute;
@@ -49,7 +49,6 @@ class TaskManager{
         TaskNode* MainNodeScheduler = NULL;
         TaskNode* FirstNode = NULL;
         TaskNode* NodeExecutePerCore[MAX_PROCESSORS];
-        bool CoreInUserSpace[MAX_PROCESSORS];
 };
 
 
