@@ -27,8 +27,8 @@ void TaskManager::Scheduler(struct InterruptStack* Registers, uint8_t CoreID){
         node->Content.Regs.rsp = Registers->rsp;
         node->Content.Regs.ss = Registers->ss;
 
-        printf("%k %u %k", 0xffffff00, MainNodeScheduler->Content.ID, 0xffffffff);
-        /*if(MainNodeScheduler->Next == NULL){
+        /*printf("%k %u %k", 0xffffff00, MainNodeScheduler->Content.ID, 0xffffffff);
+        if(MainNodeScheduler->Next == NULL){
             MainNodeScheduler = FirstNode;
         }else{
             MainNodeScheduler = MainNodeScheduler->Next;
@@ -79,7 +79,8 @@ TaskNode* TaskManager::AddTask(void* EntryPoint, size_t Size){
     node->Content.Regs.rsp = node->Content.Stack;
     node->Content.Regs.rflags = (void*)0x202; //interrupts & syscall
     
-    node->Content.ID = NumTaskTotal;
+    
+    node->Content.ID = NumTaskTotal; //min of ID is 0
     NumTaskTotal++;
     
     if(LastNode == NULL){        
@@ -93,10 +94,44 @@ TaskNode* TaskManager::AddTask(void* EntryPoint, size_t Size){
 
     MainNode = node;
     LastNode = MainNode;
+
+    return node;
 }
 
 TaskNode* TaskManager::CreatDefaultTask(){
+    void* EntryPoint = (void*)task1;
+    TaskNode* node = (TaskNode*)malloc(sizeof(TaskNode));
+    
+    uint64_t StackSize = sizeof(ContextStack);
+    node->Content.Stack = malloc(StackSize);
+    for(int i = 0; i < (StackSize / 0x1000) + 1; i++){
+        globalPageTableManager.MapUserspaceMemory((void*)((uint64_t)node->Content.Stack + i * 0x1000));
+    }
 
+    node->Content.EntryPoint = EntryPoint; 
+    node->Content.Regs.rip = EntryPoint; 
+    node->Content.Regs.cs = (void*)GDTInfoSelectors.UCode; //user code selector
+    node->Content.Regs.ss = (void*)GDTInfoSelectors.UData; //user data selector
+    node->Content.Regs.rsp = node->Content.Stack;
+    node->Content.Regs.rflags = (void*)0x202; //interrupts & syscall
+    
+    
+    node->Content.ID = NumTaskTotal; //min of ID is 0
+    NumTaskTotal++;
+    
+    if(LastNode == NULL){        
+        node->Last = NULL;  
+        FirstNode = node;  
+        MainNodeScheduler = node; 
+    }else{
+        node->Last = LastNode; 
+        LastNode->Next = node;
+    }
+
+    MainNode = node;
+    LastNode = MainNode;
+
+    return node;
 }
 
 void TaskManager::DeleteTask(TaskNode* task){
@@ -105,13 +140,14 @@ void TaskManager::DeleteTask(TaskNode* task){
     last->Next = next;
     next->Last = last;
     NumTaskTotal--;
+    free((void*)task);
 }
 
 
-void TaskManager::EnabledScheduler(uint8_t CoreID){  
+void TaskManager::EnabledScheduler(uint8_t CoreID){ 
     TaskNode* node = MainNodeScheduler;
     if(MainNodeScheduler->Next == NULL){
-        MainNodeScheduler = FirstNode;
+        MainNodeScheduler = MainNodeScheduler->Next;
     }else{
         MainNodeScheduler = MainNodeScheduler->Next;
     }        

@@ -22,7 +22,8 @@ struct TaskContext{
     void* Stack;
     ContextStack Regs; 
     uint64_t ID;
-    void* parent; // if task is thread  
+    bool IsIddle;
+    void* parent; // if task is thread    
 };
 
 struct TaskNode{

@@ -2,8 +2,7 @@
 #include <stdint.h>
 #include "../hardware/smp/smp.h"
 
-#define GDT_MAX_DESCRIPTORS  16
-
+#define GDT_MAX_DESCRIPTORS uint16_Limit / sizeof(GDTEntry)
 #define GDT_DESC_ACCESS 0x01
 #define GDT_DESC_READWRITE 0x02
 #define GDT_DESC_DC 0x04

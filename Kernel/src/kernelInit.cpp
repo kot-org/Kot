@@ -77,6 +77,19 @@ void InitializeKernel(BootInfo* bootInfo){
     
     asm("sti");
 
+    globalTaskManager.AddTask((void*)IdleTask, 4096);
+    globalTaskManager.AddTask((void*)IdleTask, 4096);
+    globalTaskManager.AddTask((void*)IdleTask, 4096);
+    globalTaskManager.AddTask((void*)IdleTask, 4096);
+    globalTaskManager.AddTask((void*)IdleTask, 4096);
+    globalTaskManager.AddTask((void*)IdleTask, 4096);
+    globalTaskManager.AddTask((void*)IdleTask, 4096);
+    globalTaskManager.AddTask((void*)IdleTask, 4096);
+    globalTaskManager.AddTask((void*)IdleTask, 4096);
+    globalTaskManager.AddTask((void*)IdleTask, 4096);
+    globalTaskManager.AddTask((void*)IdleTask, 4096);
+    globalTaskManager.AddTask((void*)IdleTask, 4096);
+
     globalTaskManager.AddTask((void*)task1, 4096);
     globalTaskManager.AddTask((void*)task2, 4096);
     globalTaskManager.AddTask((void*)task3, 4096);
