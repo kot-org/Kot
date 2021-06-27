@@ -71,10 +71,12 @@ extern "C" void PITInt_Handler(InterruptStack* Registers){
     PIC_EndMaster();       
 }
 
-
+static void* mutexLAPICTIMERInt_Handler;
 extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint8_t CoreID){
+    mutexLAPICTIMERInt_Handler = Atomic::atomicLoker((void*)mutexLAPICTIMERInt_Handler);
     globalTaskManager.Scheduler(Registers, CoreID); 
     APIC::localApicEOI();
+    Atomic::atomicUnlock((void*)mutexLAPICTIMERInt_Handler);
 }
 
 void RemapPIC(){

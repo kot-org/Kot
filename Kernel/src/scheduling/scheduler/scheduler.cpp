@@ -5,7 +5,7 @@ TaskManager globalTaskManager;
 void TaskManager::Scheduler(struct InterruptStack* Registers, uint8_t CoreID){    
     if(CoreInUserSpace[CoreID]){ 
 
-        /*TaskNode* node = NodeExecutePerCore[CoreID];
+        TaskNode* node = NodeExecutePerCore[CoreID];
 
         node->Content.Regs.rax = Registers->rax;
         node->Content.Regs.rcx = Registers->rcx;
@@ -27,12 +27,12 @@ void TaskManager::Scheduler(struct InterruptStack* Registers, uint8_t CoreID){
         node->Content.Regs.rsp = Registers->rsp;
         node->Content.Regs.ss = Registers->ss;
 
-        if(MainNodeScheduler->Next == NULL){
+        printf("%k %u %k", 0xffffff00, MainNodeScheduler->Content.ID, 0xffffffff);
+        /*if(MainNodeScheduler->Next == NULL){
             MainNodeScheduler = FirstNode;
         }else{
             MainNodeScheduler = MainNodeScheduler->Next;
         }
-        printf("%u", MainNodeScheduler->Content.ID);
         
         NodeExecutePerCore[CoreID] = MainNodeScheduler;
 

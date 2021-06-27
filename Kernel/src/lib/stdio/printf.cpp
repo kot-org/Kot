@@ -35,9 +35,9 @@ void printf(const char* str, ...) {
         } else if (str[index] == '%' && str[index+1] == 'p') {
             globalGraphics->Print(to_string((uint64_t)va_arg(args, void*))); //address
             index++;
-        } else if (str[index] == '%' && str[index+1] == 'c' && str[index+2] == 'o') {
-            globalGraphics->Color = va_arg (args, int); //colour
-            index+=2;
+        } else if (str[index] == '%' && str[index+1] == 'k') {
+            globalGraphics->Color = va_arg (args, uint32_t); //colour
+            index++;
         } else if (str[index] == '\n'){
             globalGraphics->Next();
         }else {
