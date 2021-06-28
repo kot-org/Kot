@@ -60,10 +60,6 @@ void TaskManager::Scheduler(struct InterruptStack* Registers, uint8_t CoreID){
 }
 
 TaskNode* TaskManager::AddTask(void* EntryPoint, size_t Size, bool IsIddle){ 
-    if(IddleTaskNumber != 0 && !IsIddle){
-        DeleteTask(IdleNode[IddleTaskNumber - 1]); /* because we add 1 in this function */
-    }
-
     TaskNode* node = (TaskNode*)malloc(sizeof(TaskNode));
     
     uint64_t StackSize = sizeof(ContextStack);
@@ -85,10 +81,24 @@ TaskNode* TaskManager::AddTask(void* EntryPoint, size_t Size, bool IsIddle){
     node->Content.IsIddle = IsIddle;
     
     
-    node->Content.ID = NumTaskTotal; //min of ID is 0
+    node->Content.ID = IDTask; //min of ID is 0
+    IDTask++;
     NumTaskTotal++;
-    
-    if(LastNode == NULL){        
+    //link
+    node = NewNode(node);
+    if(IsIddle){  
+        IdleNode[IddleTaskNumber] = node;
+
+        IddleTaskNumber++;
+    }else if(IddleTaskNumber != 0){
+        DeleteTask(IdleNode[IddleTaskNumber - 1]); /* because we add 1 in this function */
+    }
+
+    return node;
+}
+
+TaskNode* TaskManager::NewNode(TaskNode* node){
+    if(FirstNode == NULL){        
         node->Last = NULL;  
         FirstNode = node;  
         MainNodeScheduler = node; 
@@ -98,14 +108,7 @@ TaskNode* TaskManager::AddTask(void* EntryPoint, size_t Size, bool IsIddle){
     }
 
     MainNode = node;
-    LastNode = MainNode;
-
-    if(IsIddle){  
-        IdleNode[IddleTaskNumber] = node;
-
-        IddleTaskNumber++;
-    }
-
+    LastNode = node;
     return node;
 }
 
@@ -113,18 +116,30 @@ TaskNode* TaskManager::CreatDefaultTask(){
     TaskNode* node = globalTaskManager.AddTask((void*)IdleTask, 0x1000, true);
 }
 
-void TaskManager::DeleteTask(TaskNode* task){
-    if(task->Content.IsIddle){
+void TaskManager::DeleteTask(TaskNode* node){
+    if(node->Content.IsIddle){
         IddleTaskNumber--;
     }
-    TaskNode* last = task->Last;
-    TaskNode* next = task->Next;
+
+    TaskNode* next = node->Next;
+    TaskNode* last = node->Last;
+
+    if(node == MainNode || node == LastNode || node == FirstNode || node == MainNodeScheduler){
+        if(next != NULL){
+            MainNode = next;
+        }else{
+            MainNode = last;
+        }
+    }
+
     last->Next = next;
     next->Last = last;
+
     NumTaskTotal--;
-    free((void*)task);
+    free((void*)node);
 
     if(NumTaskTotal <= APIC::ProcessorCount){
+        IdleNode[IddleTaskNumber] = NULL;
         CreatDefaultTask();
     }
 }
@@ -132,7 +147,7 @@ void TaskManager::DeleteTask(TaskNode* task){
 void TaskManager::InitScheduler(uint8_t NumberOfCores){
     for(int i = 0; i < NumberOfCores; i++){
         CreatDefaultTask();
-    }
+    }   
 
     TaskManagerInit = true;
 }
@@ -146,7 +161,7 @@ void TaskManager::EnabledScheduler(uint8_t CoreID){
         
         NodeExecutePerCore[CoreID] = node;
 
-        JumpIntoUserspace(node->Content.EntryPoint, node->Content.Stack, node->Content.Regs.cs, node->Content.Regs.ss, CoreID);        
+        JumpIntoUserspace(node->Content.EntryPoint, node->Content.Stack, node->Content.Regs.cs, node->Content.Regs.ss, CoreID); 
     }
 
 }

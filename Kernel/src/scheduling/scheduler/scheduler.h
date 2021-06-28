@@ -24,30 +24,32 @@ struct TaskContext{
     uint64_t ID;
     bool IsIddle;
     void* parent; // if task is thread    
-};
+}__attribute__((packed));
 
 struct TaskNode{
 	TaskContext Content;
 	TaskNode* Last;
 	TaskNode* Next;
-} __attribute__((packed));
+}__attribute__((packed));
 
 class TaskManager{
     public:
         void Scheduler(struct InterruptStack* Registers, uint8_t CoreID);
         TaskNode* AddTask(void* EntryPoint, size_t Size, bool IsIddle);    
+        TaskNode* NewNode(TaskNode* node);
         TaskNode* CreatDefaultTask();     
         void DeleteTask(TaskNode* task);  
         void InitScheduler(uint8_t NumberOfCores);
         void EnabledScheduler(uint8_t CoreID);
         TaskNode* GetCurrentTask(uint8_t CoreID);
         bool CoreInUserSpace[MAX_PROCESSORS];
-        size_t IddleTaskNumber = 0;
 
     private:  
         bool TaskManagerInit;  
         uint64_t CurrentTaskExecute;
+        size_t IddleTaskNumber = 0;
         size_t NumTaskTotal = 0;
+        size_t IDTask = 0;
         TaskNode* MainNode = NULL;
         TaskNode* LastNode = NULL;
         TaskNode* FirstNode = NULL;

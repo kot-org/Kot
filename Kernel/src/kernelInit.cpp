@@ -74,13 +74,12 @@ void InitializeKernel(BootInfo* bootInfo){
     }
     
     InitializeACPI(bootInfo);
-    
-    globalTaskManager.InitScheduler(APIC::ProcessorCount);
 
     globalTaskManager.AddTask((void*)task1, 4096, false);
     globalTaskManager.AddTask((void*)task2, 4096, false);
     globalTaskManager.AddTask((void*)task3, 4096, false);
     globalTaskManager.AddTask((void*)task4, 4096, false);
+    globalTaskManager.InitScheduler(APIC::ProcessorCount); 
 
 
     asm("sti");

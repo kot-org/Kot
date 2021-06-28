@@ -17,7 +17,7 @@
     </MediaRegistry>
     <ExtraData>
       <ExtraDataItem name="GUI/LastCloseAction" value="PowerOff"/>
-      <ExtraDataItem name="GUI/LastNormalWindowPosition" value="375,243,640,522"/>
+      <ExtraDataItem name="GUI/LastNormalWindowPosition" value="375,243,1024,810"/>
       <ExtraDataItem name="GUI/LastScaleWindowPosition" value="789,249,1458,942"/>
     </ExtraData>
     <Hardware>
@@ -50,7 +50,7 @@
       <RTC localOrUTC="UTC"/>
       <Clipboard/>
       <GuestProperties>
-        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="fr_FR" timestamp="1624106961462780300" flags=""/>
+        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="fr_FR" timestamp="1624117660626334700" flags=""/>
       </GuestProperties>
     </Hardware>
     <StorageControllers>
