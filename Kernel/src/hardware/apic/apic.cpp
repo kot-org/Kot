@@ -21,25 +21,21 @@ namespace APIC{
                 case EntryTypeLocalProcessor: {
                     LocalProcessor* processor = (LocalProcessor*)entryRecord;
                     Processor[ProcessorCount] = processor;
-                    ProcessorCount++;
-                    printf("Processor ID: %u APIC-ID: %u Flags: %u\n", processor->ProcessorID, processor->APICID, processor->Flags);
+                    ProcessorCount++;        
                     break;                    
                 }
                 case EntryTypeIOAPIC:{
                     IOAPIC* ioApic = (IOAPIC*)entryRecord;
                     void* apicPtr = (void*)(uint64_t)ioApic->APICAddress;
                     globalPageTableManager.MapMemory(apicPtr, apicPtr);
-                    printf("IO APIC: 0x%x\n", apicPtr);
                     break;
                 }                    
                 case EntryTypeInterruptSourceOverride:{
                     InterruptSourceOverride* iso = (InterruptSourceOverride*)entryRecord;
-					printf("Interrupt Source Override source: 0x%d\n", iso->IRQSource);
                     break;
                 }                    
                 case EntryTypeNonmaskableinterrupts:{
                     NonMaskableinterrupts* nmi = (NonMaskableinterrupts*)entryRecord;
-					printf("Non-Maskable Interrupt ID: %d\n", nmi->ACPIProcessorID);
                     break;
                 }                    
                 case EntryTypeLocalAPICAddressOverride:{
@@ -51,46 +47,46 @@ namespace APIC{
     }   
 
     void LoadCores(){
-    uint64_t lapicAddress = (uint64_t)GetLAPICAddress();
-    globalPageTableManager.MapMemory((void*)0x8000, (void*)0x8000);
+        uint64_t lapicAddress = (uint64_t)GetLAPICAddress();
+        globalPageTableManager.MapMemory((void*)0x8000, (void*)0x8000);
 
-    uint8_t bspid = 0; 
-    __asm__ __volatile__ ("mov $1, %%rax; cpuid; shrq $24, %%rbx;": "=r"(bspid)::);
+        uint8_t bspid = 0; 
+        __asm__ __volatile__ ("mov $1, %%rax; cpuid; shrq $24, %%rbx;": "=r"(bspid)::);
 
-    memcpy((void*)0x8000, (void*)&Trampoline, 0x1000);
+        memcpy((void*)0x8000, (void*)&Trampoline, 0x1000);
 
-    trampolineData* Data = (trampolineData*) (((uint64_t) &DataTrampoline - (uint64_t) &Trampoline) + 0x8000);
-    Data->MainEntry = (uint64_t)&TrampolineMain;
+        trampolineData* Data = (trampolineData*) (((uint64_t) &DataTrampoline - (uint64_t) &Trampoline) + 0x8000);
+        Data->MainEntry = (uint64_t)&TrampolineMain;
 
-    for(int i = 1; i < ProcessorCount; i++){   
-        __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(Data->Paging)); 
-        Data->Stack = (uint64_t)globalAllocator.RequestPage(); 
+        for(int i = 1; i < ProcessorCount; i++){   
+            __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(Data->Paging)); 
+            Data->Stack = (uint64_t)globalAllocator.RequestPage(); 
+                
+            if(Processor[i]->APICID == bspid) continue; 
             
-        if(Processor[i]->APICID == bspid) continue; 
-        
-        //init IPI
-        localAPICWriteRegister(0x280, 0);
-        localAPICWriteRegister(0x310, i << 24);
-        localAPICWriteRegister(0x300, 0x00C500);
-        do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(0x300) & (1 << 12));
-
-        localAPICWriteRegister(0x310, i << 24);
-        localAPICWriteRegister(0x300, 0x008500);
-        do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(0x300) & (1 << 12));
-        PIT::Sleep(10);
-
-        for(int j = 0; j < 2; j++) {
-
+            //init IPI
             localAPICWriteRegister(0x280, 0);
             localAPICWriteRegister(0x310, i << 24);
-            PIT::Sleep(1);
-            localAPICWriteRegister(0x300, 0x000608);
+            localAPICWriteRegister(0x300, 0x00C500);
             do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(0x300) & (1 << 12));
-        }
 
-        while (Data->Status != 3); // wait processor
-    }
-}  
+            localAPICWriteRegister(0x310, i << 24);
+            localAPICWriteRegister(0x300, 0x008500);
+            do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(0x300) & (1 << 12));
+            PIT::Sleep(10);
+
+            for(int j = 0; j < 2; j++) {
+
+                localAPICWriteRegister(0x280, 0);
+                localAPICWriteRegister(0x310, i << 24);
+                PIT::Sleep(1);
+                localAPICWriteRegister(0x300, 0x000608);
+                do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(0x300) & (1 << 12));
+            }
+
+            while (Data->Status != 3); // wait processor
+        }
+    }  
 
     void* GetLAPICAddress(){
         void* lapicAddress = (void*)(msr::rdmsr(0x1b) & 0xfffff000);

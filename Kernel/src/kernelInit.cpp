@@ -43,6 +43,9 @@ void InitializeACPI(BootInfo* bootInfo){
 
     ACPI::MADTHeader* madt = (ACPI::MADTHeader*)ACPI::FindTable(xsdt, (char*)"APIC");
     APIC::InitializeMADT(madt);
+
+    ACPI::FADTHeader* fadt = (ACPI::FADTHeader*)ACPI::FindTable(xsdt, (char*)"FACP");
+    ACPI::InitializeFADT(fadt);
 }
   
 
@@ -72,15 +75,14 @@ void InitializeKernel(BootInfo* bootInfo){
     if(EnabledSSE() == 0){
         FPUInit();
     }
-    
+
     InitializeACPI(bootInfo);
 
-    globalTaskManager.AddTask((void*)task1, 4096, false);
-    globalTaskManager.AddTask((void*)task2, 4096, false);
-    globalTaskManager.AddTask((void*)task3, 4096, false);
-    globalTaskManager.AddTask((void*)task4, 4096, false);
+    globalTaskManager.AddTask((void*)task1, 4096, false, true);
+    globalTaskManager.AddTask((void*)task2, 4096, false, true);
+    globalTaskManager.AddTask((void*)task3, 4096, false, true);
+    globalTaskManager.AddTask((void*)task4, 4096, false, true);
     globalTaskManager.InitScheduler(APIC::ProcessorCount); 
-
 
     asm("sti");
 

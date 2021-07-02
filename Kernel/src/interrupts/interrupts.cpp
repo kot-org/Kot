@@ -26,12 +26,12 @@ void InitializeInterrupts(){
 
     /* PIT */
     SetIDTGate((void*)Entry_PITInt_Handler, 0x20, IDT_TA_InterruptGate, 0x08, idtr);
-    PIT::SetDivisor(1);
 
     /* APIC Timer */
     SetIDTGate((void*)Entry_LAPICTIMERInt_Handler, 0x30, IDT_TA_InterruptGate, 0x08, idtr);
     
     RemapPIC();
+    PIT::SetDivisor(uint16_Limit);
 
     asm ("lidt %0" : : "m" (idtr)); 
 
@@ -71,12 +71,9 @@ extern "C" void PITInt_Handler(InterruptStack* Registers){
     PIC_EndMaster();       
 }
 
-static void* mutexLAPICTIMERInt_Handler;
 extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint8_t CoreID){
-    mutexLAPICTIMERInt_Handler = Atomic::atomicLoker((void*)mutexLAPICTIMERInt_Handler);
     globalTaskManager.Scheduler(Registers, CoreID); 
     APIC::localApicEOI();
-    Atomic::atomicUnlock((void*)mutexLAPICTIMERInt_Handler);
 }
 
 void RemapPIC(){

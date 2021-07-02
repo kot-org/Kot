@@ -5,7 +5,7 @@ EXTERN TSSSetStack
 
 JumpIntoUserspace:
 	cli
-
+	
 	; Save parameters
 	
 	push	rsi ; user stack

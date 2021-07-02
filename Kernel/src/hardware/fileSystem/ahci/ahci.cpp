@@ -266,16 +266,16 @@ namespace AHCI{
                 return false;
             }
         }
-        this->DiskInfo = (ATACommandIdentify*)buffer;
+        DiskInfo = (ATACommandIdentify*)buffer;
         return true;
     }
 
     uint64_t Port::GetNumberSectorsLBA(){ //this function get the size / 512 to get the number of sectors it only specify as 512 bytes secotrs
-        return this->DiskInfo->TotalNumberUserAddressableLBASectorsAvailable; //LBA always specify sectors as 512 
+        return DiskInfo->TotalNumberUserAddressableLBASectorsAvailable; //LBA always specify sectors as 512 
     }
 
     uint64_t Port::GetSectorNumberPhysical(){
-        uint64_t ReturnValue = this->GetSize() / this->GetSectorSizePhysical();
+        uint64_t ReturnValue = GetSize() / GetSectorSizePhysical();
         return ReturnValue;
     }
 
@@ -284,39 +284,35 @@ namespace AHCI{
     }
 
     uint16_t Port::GetSectorSizePhysical(){
-        return this->DiskInfo->SectorSize;
+        return DiskInfo->SectorSize;
     }
 
     uint64_t Port::GetSize(){
-        uint64_t ReturnValue = this->GetNumberSectorsLBA() * GetSectorSizeLBA(); //512 is the size of a sector in lba because we get lba number of sectors
+        uint64_t ReturnValue = GetNumberSectorsLBA() * GetSectorSizeLBA(); //512 is the size of a sector in lba because we get lba number of sectors
         return ReturnValue;
     }
 
     uint16_t* Port::GetModelNumber(){       
-        return this->DiskInfo->DriveModelNumber;
+        return DiskInfo->DriveModelNumber;
     }
 
     uint16_t* Port::GetSerialNumber(){
-        return this->DiskInfo->SerialNumber;
+        return DiskInfo->SerialNumber;
     }
 
     void Port::ResetDisk(){
-        uint32_t ResetPerSliceBytes = 4096 * this->GetSectorSizeLBA();
-        uint16_t SectorResetCount = ResetPerSliceBytes / this->GetSectorSizeLBA();
-        this->Buffer = globalAllocator.RequestPage();
-        memset(this->Buffer, 0, ResetPerSliceBytes);
+        uint32_t ResetPerSliceBytes = 4096 * GetSectorSizeLBA();
+        uint16_t SectorResetCount = ResetPerSliceBytes / GetSectorSizeLBA();
+        Buffer = globalAllocator.RequestPage();
+        memset(Buffer, 0, ResetPerSliceBytes);
         int i = 0;
         while(true){
-            globalGraphics->Clear();
-            this->Write(i * SectorResetCount, SectorResetCount, this->Buffer);          
-            printf("%u / %u", i * SectorResetCount, this->GetNumberSectorsLBA());
-            globalGraphics->Update();
-            if((i * SectorResetCount) > this->GetNumberSectorsLBA()){
+            Write(i * SectorResetCount, SectorResetCount, Buffer);          
+            if((i * SectorResetCount) > GetNumberSectorsLBA()){
                 break;
             }
             i++;
         }
-        globalGraphics->Clear();
     }
 
     bool Port::IsPortInit(GUID* GUIDOfInitPartition){
@@ -385,9 +381,7 @@ namespace AHCI{
             for(int t = 0; t < Partitons->NumberPartitionsCreated; t++){
                 GPT::AllPartitionsInfo[GPT::AllPartitionsInfoNumber]->Partition = Partitons->AllParitions[t];
                 GPT::AllPartitionsInfoNumber++;
-            }            
-
-            globalGraphics->Next();         
+            }               
         }
     }
 

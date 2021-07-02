@@ -318,7 +318,6 @@ namespace GPT{
     bool Partition::Read(uint64_t firstByte, size_t size, void* buffer){
         uint64_t LBASectorCount = size / this->port->GetSectorSizeLBA() + 1;
         uint64_t LBAFirstSector = this->partition->FirstLBA + (firstByte / this->port->GetSectorSizeLBA());
-        printf("test : %u\n", LBAFirstSector);
 
         if(LBASectorCount > (partition->LastLBA - partition->FirstLBA)){
             LBASectorCount = partition->LastLBA - partition->FirstLBA;

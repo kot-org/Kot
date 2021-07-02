@@ -33,3 +33,14 @@ void fastmemcpy(void* destination, void* source, uint64_t num){
     );  
 }
 
+int memcmp(const void *aptr, const void *bptr, size_t n){
+	const unsigned char *a = (const unsigned char*)aptr, *b = (const unsigned char*)bptr;
+	for (size_t i = 0; i < n; i++) {
+		if (a[i] < b[i])
+			return -1;
+		else if (a[i] > b[i])
+			return 1;
+	}
+	return 0;
+}
+

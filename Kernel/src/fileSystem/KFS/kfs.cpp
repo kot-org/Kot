@@ -27,8 +27,6 @@ namespace FileSystem{
         for(int i = 0; i < count; i++){ 
             //find the folder name
 
-            printf("%s\n", FoldersSlit[i]);
-
             uint64_t byteToScan = folderInfo->firstByte;
             for(int i = 0; i < folderInfo->numberFiles; i++){
                 memset(buffer, 0, sizeof(HeaderInfo));
