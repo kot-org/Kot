@@ -78,19 +78,18 @@ void InitializeKernel(BootInfo* bootInfo){
 
     InitializeACPI(bootInfo);
 
+    globalTaskManager.InitScheduler(APIC::ProcessorCount);
     globalTaskManager.AddTask((void*)task1, 4096, false, true);
     globalTaskManager.AddTask((void*)task2, 4096, false, true);
     globalTaskManager.AddTask((void*)task3, 4096, false, true);
     globalTaskManager.AddTask((void*)task4, 4096, false, true);
-    globalTaskManager.InitScheduler(APIC::ProcessorCount); 
-
-    asm("sti");
-
-    APIC::LoadCores(); 
 
     APIC::StartLapicTimer();
 
+    APIC::LoadCores(); 
+
     globalTaskManager.EnabledScheduler(0);
+    asm("sti");
 
     return;
 }

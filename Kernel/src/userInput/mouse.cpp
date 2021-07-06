@@ -169,7 +169,6 @@ void ProcessMousePacket(){
 
         MousePacketReady = false;
         MousePositionOld = MousePosition;
-        globalGraphics->Update();
     }
 
 }

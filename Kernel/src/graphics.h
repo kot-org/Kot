@@ -35,6 +35,7 @@ class graphics{
         uint32_t            MouseCursorBuffer[16 * 16];
         uint32_t            MouseCursorBufferAfter[16 * 16];
         bool                MouseDrawn;
+        uint8_t             FPS;
 };
 
 extern graphics* globalGraphics;

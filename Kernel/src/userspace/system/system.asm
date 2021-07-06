@@ -68,10 +68,10 @@ syscall_entry:
 	cli
     swapgs
 
-	mov rdi, rsp ; save rsp
-
 	; Save and switch context
 	SYSCALL_SAVE
+
+    mov r11, 0
 
     ; Get core id
     mov    rax, 1
@@ -85,18 +85,12 @@ syscall_entry:
 
 	call SyscallEntry
 
-	; Restore state-sensitive information and exit    
+	; Restore information and exit    
 
     SYSCALL_RESTORE
-    
-    push r9 ; push ss
-	push rdi ; push stack
-	push r11 ; push rflags
-	push r8 ; push cs
-	push rcx ; push rip
 
     swapgs
     
     sti
-	iretq
+    o64 sysret
 

@@ -117,17 +117,18 @@ Entry_PITInt_Handler:
 	iretq 
 
 Entry_LAPICTIMERInt_Handler:
-    PUSH_REG
-
-    mov rdi, rsp
+    swapgs
+    PUSH_REG    
 
     mov    rax, 1
     cpuid
     shr    rbx, 24
     mov    rsi, rbx
 
-    call LAPICTIMERInt_Handler
-    
-    POP_REG     
+    mov rdi, rsp
 
+    call LAPICTIMERInt_Handler
+
+    POP_REG 
+    swapgs    
 	iretq 

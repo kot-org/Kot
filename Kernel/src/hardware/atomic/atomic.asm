@@ -1,45 +1,31 @@
 [BITS 64]
-GLOBAL atomicLock, atomicUnlock, atomicWait, atomicCheck
+GLOBAL atomicLock, atomicUnlock, atomicSpinlock
 
-atomicLock:
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rax, rbx
-    lock xchg qword [rdi], rax
-    ret
+%macro	CF_RESULT	0
+	mov		rcx, 1
+	mov		rax, 0
+	cmovnc	rax, rcx	
+%endmacro
 
-atomicUnlock:
-	mov rax, 0
-    lock xchg qword [rdi], rax
-    ret
+atomicLock:	
+	lock bts	QWORD [rdi], rsi
+	CF_RESULT		
+	ret
 
-atomicWait:
-	mov rax, 0
-    lock cmpxchg qword [rdi], rax ; if [rdi] == 0
-    je                	.exit
-    jmp                	.spin
-    .spin:
-        pause
-        mov rax, 0
-        lock cmpxchg     qword [rdi], rax ; if [rdi] == 0
-        je            	.exit                
-        jmp            	.spin
-    .exit:
-        ret
+atomicUnlock:	; rdi= mutex location memory , rsi= location of the bit where we store the statu
+	btr		QWORD [rdi], rsi
+	CF_RESULT
+	ret
 
-atomicCheck:
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rax, rbx
-    lock cmpxchg qword [rdi], rax ; if [rdi] == coreID
-    je .true
-    jmp .false
-    .true:   
-        mov rax, 1                 
-        ret
-    .false:
-        mov rax, 0
-        ret
+atomicSpinlock:	; rdi= mutex location memory , rsi= location of the bit where we store the statu
+	.acquire:
+		lock bts	QWORD [rdi], rsi
+		jnc			.exit				; CF = 0 to begin with
+	.spin:
+		pause
+		bt			QWORD [rdi], rsi
+		jc			.spin				; CF = 1 still
+		jmp			.acquire
+	.exit:
+		ret
 

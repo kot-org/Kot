@@ -2,10 +2,11 @@
 
 bool IsIntInit = false;
 bool wait = true;
-static void* mutex;
+static uint64_t mutexSyscall;
 
-extern "C" void SyscallEntry(InterruptStack* Registers, uint8_t CoreID){
-    mutex = Atomic::atomicLoker((void*)mutex);
+extern "C" void SyscallEntry(SyscallStack* Registers, uint8_t CoreID){
+    Atomic::atomicSpinlock(&mutexSyscall, 0);
+    Atomic::atomicLock(&mutexSyscall, 0);
 
     uint64_t syscall = (uint64_t)Registers->rax;
     uint64_t arg0 = (uint64_t)Registers->rdi;
@@ -20,13 +21,10 @@ extern "C" void SyscallEntry(InterruptStack* Registers, uint8_t CoreID){
             break;
     }
 
-    globalGraphics->Print((char*)arg5);
-    globalGraphics->Update(); 
+    //globalGraphics->Print((char*)arg5);
 
-    Registers->r8 = (void*)GDTInfoSelectors.UCode;
-    Registers->r9 = (void*)GDTInfoSelectors.UData;
-    
-    Atomic::atomicUnlock((void*)mutex);
+    __asm__ __volatile__ ("pause" : : : "memory");
+    Atomic::atomicUnlock(&mutexSyscall, 0);
 }
 
 extern "C" uint64_t SystemExit(uint64_t ErrorCode){

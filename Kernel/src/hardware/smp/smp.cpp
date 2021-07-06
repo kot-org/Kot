@@ -3,10 +3,11 @@
 extern uint64_t IdleTaskStart;
 extern uint64_t IdleTaskEnd;
 
-static void* mutex;
+static uint64_t mutexSMP;
 
 extern "C" void TrampolineMain(int CoreID){
-    mutex = Atomic::atomicLoker((void*)mutex);
+    Atomic::atomicSpinlock(&mutexSMP, 0);
+    Atomic::atomicLock(&mutexSMP, 0);
     gdtInitCores(CoreID);
     asm ("lidt %0" : : "m" (idtr));
     
@@ -19,10 +20,9 @@ extern "C" void TrampolineMain(int CoreID){
         FPUInit();
     }
 
-    Atomic::atomicUnlock((void*)mutex);
-    asm("sti");
-
     globalTaskManager.EnabledScheduler(CoreID);
+    Atomic::atomicUnlock(&mutexSMP, 0);
+    asm("sti");
 
     while(true){
         asm("hlt");

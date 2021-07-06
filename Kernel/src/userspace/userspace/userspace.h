@@ -10,4 +10,4 @@ extern "C" void task2();
 extern "C" void task3();
 extern "C" void task4();
 
-extern "C" void JumpIntoUserspace(void* userFunction, void* userStack, void* cs, void* ss, uint64_t CoreID);
+extern "C" void SaveTSS(uint64_t CoreID);

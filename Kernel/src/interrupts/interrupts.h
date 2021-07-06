@@ -6,6 +6,7 @@
 #include "../userInput/keyboard.h"
 #include "../userInput/mouse.h"
 #include "../scheduling/pit/pit.h"
+#include "../paging/pageFrameAllocator.h"
 #include "../scheduling/scheduler/scheduler.h"
 
 #define PIC1_COMMAND 0x20
@@ -45,7 +46,7 @@ extern "C" void GPFault_Handler(ErrorInterruptStack* Registers);
 extern "C" void KeyboardInt_Handler(InterruptStack* Registers);
 extern "C" void MouseInt_Handler(InterruptStack* Registers);
 extern "C" void PITInt_Handler(InterruptStack* Registers);
-extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint8_t CoreID);
+extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID);
 
 void RemapPIC();
 void PIC_EndMaster();

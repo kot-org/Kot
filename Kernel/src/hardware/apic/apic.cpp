@@ -60,7 +60,9 @@ namespace APIC{
 
         for(int i = 1; i < ProcessorCount; i++){   
             __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(Data->Paging)); 
-            Data->Stack = (uint64_t)globalAllocator.RequestPage(); 
+
+            uint64_t StackSize = 0x1000000; // 10 mb
+            Data->Stack = (uint64_t)malloc(StackSize) + StackSize;
                 
             if(Processor[i]->APICID == bspid) continue; 
             
@@ -73,13 +75,11 @@ namespace APIC{
             localAPICWriteRegister(0x310, i << 24);
             localAPICWriteRegister(0x300, 0x008500);
             do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(0x300) & (1 << 12));
-            PIT::Sleep(10);
 
             for(int j = 0; j < 2; j++) {
 
                 localAPICWriteRegister(0x280, 0);
                 localAPICWriteRegister(0x310, i << 24);
-                PIT::Sleep(1);
                 localAPICWriteRegister(0x300, 0x000608);
                 do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(0x300) & (1 << 12));
             }
@@ -100,7 +100,10 @@ namespace APIC{
         localAPICWriteRegister(0xF0, localAPICReadRegister(0xF0) | 0x1ff);
     }
 
+    static uint64_t mutexSLT;
     void StartLapicTimer(){
+        Atomic::atomicSpinlock(&mutexSLT, 0);
+        Atomic::atomicLock(&mutexSLT, 0);
         localApicEnableSpuriousInterrupts();
         // Setup Local APIC timer
         localAPICWriteRegister(LocalAPICRegisterOffsetInitialCount, 0x100000);
@@ -114,6 +117,7 @@ namespace APIC{
         TimerRegisters.timerMode = LocalAPICInterruptTimerModePeriodic;
         
         localAPICWriteRegister(LocalAPICRegisterOffsetLVTTimer, CreatRegisterValueInterrupts(TimerRegisters) | (timer & 0xfffcef00));      
+        Atomic::atomicUnlock(&mutexSLT, 0);
     }
 
     void localAPICSetTimerCount(uint32_t value){

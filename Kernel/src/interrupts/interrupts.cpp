@@ -13,7 +13,7 @@ void InitializeInterrupts(){
     SetIDTGate((void*)Entry_PageFault_Handler, 0x0E, IDT_TA_InterruptGate, 0x08, idtr);
 
     /* Double Fault */
-    SetIDTGate((void*)Entry_DoubleFault_Handler, 0x8, IDT_TA_InterruptGate, 0x08, idtr);
+    SetIDTGate((void*)Entry_DoubleFault_Handler, 0xC, IDT_TA_InterruptGate, 0x08, idtr);
 
     /* GP Fault */
     SetIDTGate((void*)Entry_GPFault_Handler, 0xD, IDT_TA_InterruptGate, 0x08, idtr);
@@ -71,9 +71,15 @@ extern "C" void PITInt_Handler(InterruptStack* Registers){
     PIC_EndMaster();       
 }
 
-extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint8_t CoreID){
+
+static uint64_t mutexScheduler;
+extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID){
+    Atomic::atomicSpinlock(&mutexScheduler, 0);
+    Atomic::atomicLock(&mutexScheduler, 0);
     globalTaskManager.Scheduler(Registers, CoreID); 
+    
     APIC::localApicEOI();
+    Atomic::atomicUnlock(&mutexScheduler, 0);
 }
 
 void RemapPIC(){

@@ -38,8 +38,8 @@ class TaskManager{
         TaskNode* AddTask(void* EntryPoint, size_t Size, bool IsIddle, bool IsLinked);    
         TaskNode* NewNode(TaskNode* node);
         TaskNode* CreatDefaultTask(bool IsLinked);     
-        void DeleteTask(TaskNode* task);  
-        void InitScheduler(uint8_t NumberOfCores);
+        void DeleteTask(TaskNode* task); 
+        void InitScheduler(uint8_t NumberOfCores); 
         void EnabledScheduler(uint8_t CoreID);
         TaskNode* GetCurrentTask(uint8_t CoreID);
         bool CoreInUserSpace[MAX_PROCESSORS];
@@ -50,7 +50,6 @@ class TaskManager{
         size_t IddleTaskNumber = 0;
         size_t NumTaskTotal = 0;
         size_t IDTask = 0;
-        TaskNode* MainNode = NULL;
         TaskNode* LastNode = NULL;
         TaskNode* FirstNode = NULL;
         TaskNode* MainNodeScheduler = NULL;
