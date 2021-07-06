@@ -319,12 +319,18 @@ namespace GPT{
         uint64_t LBASectorCount = size / this->port->GetSectorSizeLBA() + 1;
         uint64_t LBAFirstSector = this->partition->FirstLBA + (firstByte / this->port->GetSectorSizeLBA());
 
+        buffer = mallocK(LBASectorCount * port->GetSectorSizeLBA());
+
         if(LBASectorCount > (partition->LastLBA - partition->FirstLBA)){
             LBASectorCount = partition->LastLBA - partition->FirstLBA;
         }
 
         memset(buffer, 0, size);
-        return this->port->Read(LBAFirstSector, LBASectorCount, buffer);
+        bool Check = this->port->Read(LBAFirstSector, LBASectorCount, buffer);
+
+        buffer = realloc(buffer, size, size % this->port->GetSectorSizeLBA());
+        
+        return Check;
     }
 
     bool Partition::Write(uint64_t firstByte, size_t size, void* buffer){

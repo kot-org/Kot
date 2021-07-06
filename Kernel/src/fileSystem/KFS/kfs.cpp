@@ -19,10 +19,7 @@ namespace FileSystem{
         char* Folders = SplitPath[1];
         char** FoldersSlit = split(Folders, "/");
         int count;
-
-        for(int i = 0; FoldersSlit[i] != 0; i++){ 
-            count++;
-        }
+        for(count = 0; FoldersSlit[count] != 0; count++); 
 
         for(int i = 0; i < count; i++){ 
             //find the folder name

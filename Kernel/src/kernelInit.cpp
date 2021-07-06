@@ -61,7 +61,7 @@ void InitializeKernel(BootInfo* bootInfo){
 
     InitializeHeap((void*)0x0000100000000000, 0x10);
 
-    globalGraphics->framebuffer->BaseAddressBackground = malloc(globalGraphics->framebuffer->FrameBufferSize);
+    globalGraphics->framebuffer->BaseAddressBackground = mallocK(globalGraphics->framebuffer->FrameBufferSize);
     memset(globalGraphics->framebuffer->BaseAddressBackground, 0, globalGraphics->framebuffer->FrameBufferSize);
     globalGraphics->Update();
 
@@ -86,9 +86,9 @@ void InitializeKernel(BootInfo* bootInfo){
 
     APIC::StartLapicTimer();
 
-    APIC::LoadCores(); 
+    //APIC::LoadCores(); 
 
-    globalTaskManager.EnabledScheduler(0);
+    //globalTaskManager.EnabledScheduler(0);
     asm("sti");
 
     return;

@@ -56,11 +56,11 @@ void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){
 }
 
 TaskNode* TaskManager::AddTask(void* EntryPoint, size_t Size, bool IsIddle, bool IsLinked){ 
-    TaskNode* node = (TaskNode*)malloc(sizeof(TaskNode));
+    TaskNode* node = (TaskNode*)mallocK(sizeof(TaskNode));
     
     uint64_t StackSize = 0x100000; // 1 mb
 
-    node->Content.Stack = malloc(StackSize);
+    node->Content.Stack = mallocK(StackSize);
     for(int i = 0; i < (StackSize / 0x1000) + 1; i++){
         globalPageTableManager.MapUserspaceMemory((void*)((uint64_t)node->Content.Stack + i * 0x1000));
     } 

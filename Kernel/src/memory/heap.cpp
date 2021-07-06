@@ -33,7 +33,19 @@ void free(void* address){
     segment->CombineBackward();
 }
 
-void* malloc(size_t size){
+void* realloc(void* buffer, size_t size, uint64_t ajustement){
+    void* newBuffer = mallocK(size);
+    if(ajustement >= 0){
+        memcpy(newBuffer, (void*)((uint64_t)buffer + ajustement), size);
+    }else{
+        memcpy(newBuffer, buffer, size - ajustement);
+    }
+    
+    free(buffer);
+    return newBuffer;
+}
+
+void* mallocK(size_t size){
     if (size % 0x10 > 0){ // it is not a multiple of 0x10
         size -= (size % 0x10);
         size += 0x10;
@@ -59,7 +71,7 @@ void* malloc(size_t size){
     }
     ExtendHeap(size);
     
-    return malloc(size);
+    return mallocK(size);
 }
 
 HeapSegmentHeader* HeapSegmentHeader::Split(size_t splitLength){
