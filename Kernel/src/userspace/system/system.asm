@@ -92,5 +92,7 @@ syscall_entry:
     swapgs
     
     sti
+
     o64 sysret
+    ret
 
