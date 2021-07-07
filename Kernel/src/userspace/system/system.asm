@@ -88,11 +88,15 @@ syscall_entry:
 	; Restore information and exit    
 
     SYSCALL_RESTORE
+    
+    push 0x23 ; push ss
+	push rsp ; push stack
+	push r11 ; push rflags
+	push 0x2B ; push cs
+	push rcx ; push rip
 
     swapgs
     
     sti
-
-    o64 sysret
-    ret
+	iretq
 

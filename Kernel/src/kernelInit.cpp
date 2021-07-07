@@ -86,9 +86,9 @@ void InitializeKernel(BootInfo* bootInfo){
 
     APIC::StartLapicTimer();
 
-    //APIC::LoadCores(); 
+    APIC::LoadCores(); 
 
-    //globalTaskManager.EnabledScheduler(0);
+    globalTaskManager.EnabledScheduler(0);
     asm("sti");
 
     return;
