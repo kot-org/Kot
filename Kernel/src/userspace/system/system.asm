@@ -68,6 +68,7 @@ syscall_entry:
 	cli
     swapgs
 
+    mov rdi, rsp
 	; Save and switch context
 	SYSCALL_SAVE
 
@@ -90,7 +91,7 @@ syscall_entry:
     SYSCALL_RESTORE
     
     push 0x23 ; push ss
-	push rsp ; push stack
+	push rdi ; push stack
 	push r11 ; push rflags
 	push 0x2B ; push cs
 	push rcx ; push rip
