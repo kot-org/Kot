@@ -319,28 +319,31 @@ namespace GPT{
         uint64_t LBASectorCount = size / this->port->GetSectorSizeLBA() + 1;
         uint64_t LBAFirstSector = this->partition->FirstLBA + (firstByte / this->port->GetSectorSizeLBA());
 
-        buffer = mallocK(LBASectorCount * port->GetSectorSizeLBA());
+        void* bufferCopy = mallocK(LBASectorCount * port->GetSectorSizeLBA());
 
         if(LBASectorCount > (partition->LastLBA - partition->FirstLBA)){
             LBASectorCount = partition->LastLBA - partition->FirstLBA;
         }
 
-        memset(buffer, 0, size);
-        bool Check = this->port->Read(LBAFirstSector, LBASectorCount, buffer);
+        memset(bufferCopy, 0, size);
+        bool Check = this->port->Read(LBAFirstSector, LBASectorCount, bufferCopy);
 
-        buffer = realloc(buffer, size, size % this->port->GetSectorSizeLBA());
+        bufferCopy = realloc(bufferCopy, size, size % this->port->GetSectorSizeLBA());
+        memcpy(buffer, bufferCopy, size);
+        free(bufferCopy);
         
         return Check;
     }
 
     bool Partition::Write(uint64_t firstByte, size_t size, void* buffer){
         uint64_t LBASectorCount = (size / this->port->GetSectorSizeLBA()) + 1;
-        uint64_t TotalSizeSector = LBASectorCount * 512;
+        uint64_t TotalSizeSector = LBASectorCount * port->GetSectorSizeLBA();
         uint64_t LBAFirstSector = (firstByte / this->port->GetSectorSizeLBA()) + this->partition->FirstLBA;
-        void* bufferCopy = globalAllocator.RequestPage();
-        memset(bufferCopy, 0, TotalSizeSector);
-        memcpy(bufferCopy, buffer, size);
-        return this->port->Write(LBAFirstSector, LBASectorCount, buffer);
+        void* bufferCopy = mallocK(TotalSizeSector);
+        memcpy(bufferCopy, (void*)((uint64_t)buffer + size % this->port->GetSectorSizeLBA()), size);
+        bool Check = this->port->Write(LBAFirstSector, LBASectorCount, bufferCopy);
+        free(bufferCopy);
+        return Check;
     }
 }
 

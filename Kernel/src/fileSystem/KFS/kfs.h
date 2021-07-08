@@ -8,13 +8,28 @@
 #include "../../memory/heap.h"
 
 namespace FileSystem{
-
     #define MaxPath 512
     #define MaxName 256
     #define MaxPassword 512
     #define MaxUserRight 256   
 
-    #define blockSize 0x1000; 
+    #define blockSize 0x10000; 
+
+
+    struct KFSinfo{
+        bool        IsInit;
+        size_t      bitmapSizeByte;
+        size_t      bitmapSizeBloc;
+        uint64_t    bitmapPosition;
+        size_t      BlockSize;
+        size_t      numBlock;
+        uint64_t    firstBlocFile;
+    }__attribute__((packed));
+
+    struct BlockHeader{
+        uint64_t LastBlock;
+        uint64_t NextBlock;
+    }__attribute__((packed));
 
     struct TimeInfoFS{
         Time CreateTime;
@@ -94,15 +109,26 @@ namespace FileSystem{
 
     class KFS{
         public:
-            KFS();
+            KFS(GPT::Partition* partition);
 
+            void InitKFS();
+            
             File* OpenFile(char* filePath);            
-            void Close(File* file);  
+            void Close(File* file);
+
+            uint64_t Alloc(size_t size);
+            void Free(uint64_t Block, bool DeleteData);
+            void LockBlock(uint64_t Block);  
+            void UnlockBlock(uint64_t Block);  
+            bool CheckBlock(uint64_t Block);  
+            void GetBlockData(uint64_t Block, void* buffer);
+            void SetBlockData(uint64_t Block, void* buffer);
             
             FolderInfo* OpenFolderInFolder(GPT::Partition* Partition, FolderInfo* FolderOpened, char* FolderName); 
 
         private:
-            PartitionNameAndGUID** IDPartitions;
+            GPT::Partition* globalPartition;
+            KFSinfo* KFSPartitionInfo;
     };  
 
 }
