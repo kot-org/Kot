@@ -15,7 +15,7 @@ extern "C" void IdleTask(){
     
     char* test = "0";
     asm ("movq %0, %%r9" :: "r" (test));
-    asm("syscall"); 
+    asm("int $0x80"); 
     while(true);
 }
 
@@ -34,11 +34,11 @@ extern "C" void task1(){
 
     char* test = "task";
     asm ("movq %0, %%r9" :: "r" (test));
-    asm("syscall"); 
+    asm("int $0x80");  
     while (true){
         test = "1";
         asm ("movq %0, %%r9" :: "r" (test));
-        asm("syscall"); 
+        asm("int $0x80"); 
     }
 }
 
@@ -57,7 +57,7 @@ extern "C" void task2(){
     for(uint64_t i = 0;; i++){
         char* test = "2"; 
         asm ("movq %0, %%r9" :: "r" (test));
-        asm("syscall");  
+        asm("int $0x80");  
     };
 }
 
@@ -72,11 +72,11 @@ extern "C" void task3(){
     asm("movq r8, 0");  //argument 4
     asm("movq r9, 0");  //argument 5    
     asm(".att_syntax prefix");  
-
+    asm("int $0x80"); 
     for(uint64_t i = 0;; i++){
         char* test = "3"; 
-        asm ("movq %0, %%r9" :: "r" (test));
-        asm("syscall");  
+        asm ("movq %0, %%r9" :: "r" (test));  
+        asm("int $0x80"); 
     };
 }
 
@@ -95,6 +95,6 @@ extern "C" void task4(){
     for(uint64_t i = 0;; i++){
         char* test = "4"; 
         asm ("movq %0, %%r9" :: "r" (test));
-        asm("syscall");  
+        asm("int $0x80"); 
     };
 }

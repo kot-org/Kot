@@ -26,10 +26,18 @@ void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){
             node->Content.Regs.rflags = Registers->rflags;
             node->Content.Regs.rsp = Registers->rsp;
             node->Content.Regs.ss = Registers->ss;
+            node->Content.IsRunning = false;
         }
-
-        node = MainNodeScheduler;
+        
         MainNodeScheduler = MainNodeScheduler->Next;
+        node = MainNodeScheduler;
+        while(node->Content.IsRunning){
+            MainNodeScheduler = MainNodeScheduler->Next;
+            node = MainNodeScheduler;
+        }   
+        
+
+        node->Content.IsRunning = true;
 
         NodeExecutePerCore[CoreID] = node;
 
@@ -161,7 +169,7 @@ void TaskManager::DeleteTask(TaskNode* node){
 }
 
 void TaskManager::InitScheduler(uint8_t NumberOfCores){
-    for(int i = 0; i <= NumberOfCores; i++){
+    for(int i = 0; i < NumberOfCores; i++){
         CreatDefaultTask(true);
     } 
 
@@ -173,8 +181,7 @@ static uint64_t mutexSchedulerEnable;
 void TaskManager::EnabledScheduler(uint8_t CoreID){ 
     if(TaskManagerInit){
         Atomic::atomicSpinlock(&mutexSchedulerEnable, 0);
-        Atomic::atomicLock(&mutexSchedulerEnable, 0);
-        EnableSystemCall(); 
+        Atomic::atomicLock(&mutexSchedulerEnable, 0); 
 
         NodeExecutePerCore[CoreID] = NULL;
         

@@ -2,9 +2,10 @@
 #include <stdint.h>
 #include "../lib/stdio.h"
 
-#define IDT_TA_InterruptGate    0b10001110
-#define IDT_TA_CallGate         0b10001100
-#define IDT_TA_TrapGate         0b10001111
+#define IDT_TA_InterruptGate            0b10001110 /* P=1, DPL=00b, S=0b, type=1110b */
+#define IDT_TA_InterruptGateUserDPL     0b11101110 /* DPL=11b = 3*/
+#define IDT_TA_CallGate                 0b10001100
+#define IDT_TA_TrapGate                 0b10001111
 
 /* variables */
 struct IDTDescEntry{

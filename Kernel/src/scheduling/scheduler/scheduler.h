@@ -23,6 +23,7 @@ struct TaskContext{
     ContextStack Regs; 
     uint64_t ID;
     bool IsIddle;
+    bool IsRunning = false;
     void* parent; // if task is thread    
 }__attribute__((packed));
 

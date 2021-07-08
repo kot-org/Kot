@@ -84,10 +84,12 @@ void InitializeKernel(BootInfo* bootInfo){
     globalTaskManager.AddTask((void*)task3, 4096, false, true);
     globalTaskManager.AddTask((void*)task4, 4096, false, true);
 
+    APIC::EnableAPIC();
+    APIC::localApicEOI();
     APIC::StartLapicTimer();
 
     APIC::LoadCores(); 
-
+    
     globalTaskManager.EnabledScheduler(0);
     asm("sti");
 

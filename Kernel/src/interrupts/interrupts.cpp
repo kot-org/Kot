@@ -13,10 +13,10 @@ void InitializeInterrupts(){
     SetIDTGate((void*)Entry_PageFault_Handler, 0x0E, IDT_TA_InterruptGate, 0x08, idtr);
 
     /* Double Fault */
-    SetIDTGate((void*)Entry_DoubleFault_Handler, 0xC, IDT_TA_InterruptGate, 0x08, idtr);
+    SetIDTGate((void*)Entry_DoubleFault_Handler, 0x0C, IDT_TA_InterruptGate, 0x08, idtr);
 
     /* GP Fault */
-    SetIDTGate((void*)Entry_GPFault_Handler, 0xD, IDT_TA_InterruptGate, 0x08, idtr);
+    SetIDTGate((void*)Entry_GPFault_Handler, 0x0D, IDT_TA_InterruptGate, 0x08, idtr);
 
     /* Keyboard */
     SetIDTGate((void*)Entry_KeyboardInt_Handler, 0x21, IDT_TA_InterruptGate, 0x08, idtr);
@@ -30,12 +30,13 @@ void InitializeInterrupts(){
     /* APIC Timer */
     SetIDTGate((void*)Entry_LAPICTIMERInt_Handler, 0x30, IDT_TA_InterruptGate, 0x08, idtr);
     
+    /* Syscall */
+    SetIDTGate((void*)Entry_SyscallInt_Handler, 0x80, IDT_TA_InterruptGateUserDPL, 0x08, idtr);
+    
     RemapPIC();
     PIT::SetDivisor(uint16_Limit);
 
-    asm ("lidt %0" : : "m" (idtr)); 
-
-       
+    asm ("lidt %0" : : "m" (idtr));        
 }
 
 extern "C" void PageFault_Handler(ErrorInterruptStack* Registers){
@@ -66,13 +67,14 @@ extern "C" void MouseInt_Handler(InterruptStack* Registers){
 
 }
 
+
+static uint64_t mutexScheduler;
+
 extern "C" void PITInt_Handler(InterruptStack* Registers){
     PIT::Tick();
     PIC_EndMaster();       
 }
 
-
-static uint64_t mutexScheduler;
 extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID){
     Atomic::atomicSpinlock(&mutexScheduler, 0);
     Atomic::atomicLock(&mutexScheduler, 0);
@@ -80,6 +82,29 @@ extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID
     
     APIC::localApicEOI();
     Atomic::atomicUnlock(&mutexScheduler, 0);
+}
+
+static uint64_t mutexSyscall;
+
+extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
+    Atomic::atomicSpinlock(&mutexSyscall, 0);
+    Atomic::atomicLock(&mutexSyscall, 0);
+
+    uint64_t syscall = (uint64_t)Registers->rax;
+    uint64_t arg0 = (uint64_t)Registers->rdi;
+    uint64_t arg1 = (uint64_t)Registers->rsi;
+    uint64_t arg2 = (uint64_t)Registers->rdx;
+    uint64_t arg3 = (uint64_t)Registers->r10;
+    uint64_t arg4 = (uint64_t)Registers->r8;
+    uint64_t arg5 = (uint64_t)Registers->r9;
+
+    switch(syscall){
+        case 0x01:
+            break;
+    }
+
+    //globalGraphics->Print((char*)arg5);
+    Atomic::atomicUnlock(&mutexSyscall, 0);    
 }
 
 void RemapPIC(){
