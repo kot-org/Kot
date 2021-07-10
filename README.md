@@ -18,8 +18,10 @@ An 64bits operating system in c++, which boot in uefi
 * :heavy_check_mark: PCI reader that lead to different drivers
 * :heavy_check_mark: AHCI driver to read sata hard disk
 * :heavy_check_mark: APIC, Symmetric Multiprocessing
+* :heavy_check_mark: IO
 * :heavy_check_mark: Userspace with syscalls
 * :heavy_check_mark: Task handler with scheduler
+* :heavy_check_mark: Get CPU info
 
 ## To do:
 
