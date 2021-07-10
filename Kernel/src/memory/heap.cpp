@@ -26,7 +26,7 @@ void InitializeHeap(void* heapAddress, size_t pageCount){
     LastHdr = startSeg;
 }
 
-void free(void* address){
+void freeK(void* address){
     HeapSegmentHeader* segment = (HeapSegmentHeader*)address - 1;
     segment->free = true;
     segment->CombineForward();
@@ -36,12 +36,12 @@ void free(void* address){
 void* realloc(void* buffer, size_t size, uint64_t ajustement){
     void* newBuffer = mallocK(size);
     if(ajustement >= 0){
-        memcpy(newBuffer, (void*)((uint64_t)buffer + ajustement), size);
+        memcpy(newBuffer, (void*)((uint64_t)buffer + ajustement), size - ajustement);
     }else{
         memcpy(newBuffer, buffer, size - ajustement);
     }
     
-    free(buffer);
+    freeK(buffer);
     return newBuffer;
 }
 
@@ -123,11 +123,11 @@ void HeapSegmentHeader::CombineForward(){
     if (next == LastHdr) LastHdr = this;
 
     if (next->next != NULL){
-        next = next->next;
         next->next->last = this;
+        next = next->next;
     }
 
-    length = length + next->length + sizeof(HeapSegmentHeader);   
+    length = length + next->length + sizeof(HeapSegmentHeader);
 }
 
 void HeapSegmentHeader::CombineBackward(){

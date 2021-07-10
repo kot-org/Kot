@@ -103,8 +103,7 @@ namespace AHCI{
     };
 
     struct HBAPRDTEntry{
-        uint32_t DataBaseAddress;
-        uint32_t DataBaseAddressUpper;
+        uint64_t DataBaseAddress;
         uint32_t Reserved0;
 
         uint32_t ByteCount:22;
@@ -235,7 +234,8 @@ namespace AHCI{
             ATACommandIdentify* DiskInfo;
             HBAPort* HbaPort;
             PortType portType;
-            void* Buffer;
+            void* Buffer; //the size of the buffer is 0x1000
+            uint64_t BufferSize;
             uint8_t PortNumber;
             void Configure();
             void StartCMD();

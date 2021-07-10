@@ -18,11 +18,11 @@ void InitializeHeap(void* heapAddress, size_t pageCount);
 
 void* mallocK(size_t size);
 void* realloc(void* buffer, size_t size, uint64_t ajustement);
-void free(void* address);
+void freeK(void* address);
 
 void ExtendHeap(size_t lenght);
 
 inline void* operator new(size_t size) {return mallocK(size);}
 inline void* operator new[](size_t size) {return mallocK(size);}
 
-inline void operator delete(void* address) {free(address);}
+inline void operator delete(void* address) {freeK(address);}

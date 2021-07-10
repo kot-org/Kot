@@ -164,8 +164,8 @@ void TaskManager::DeleteTask(TaskNode* node){
     last->Next = next;
     next->Last = last;
 
-    free((void*)node->Content.Stack);
-    free((void*)node);
+    freeK((void*)node->Content.Stack);
+    freeK((void*)node);
 }
 
 void TaskManager::InitScheduler(uint8_t NumberOfCores){

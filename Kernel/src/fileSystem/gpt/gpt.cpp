@@ -6,7 +6,6 @@ namespace GPT{
     uint64_t AllPartitionsInfoNumber;
 
     GPTHeader* GetGPTHeader(AHCI::Port* port){
-        port->Buffer = globalAllocator.RequestPage();
         memset(port->Buffer, 0, sizeof(GPTHeader));
         if(port->Read(1, 1, port->Buffer)){
             GPTHeader* ReturnValue = (GPTHeader*)port->Buffer;
@@ -17,7 +16,6 @@ namespace GPT{
     }
 
     bool SetGPTHeader(AHCI::Port* port, GPTHeader* newGPTHeader){
-        port->Buffer = globalAllocator.RequestPage();
         memset(port->Buffer, 0, sizeof(GPTHeader));
         memcpy(port->Buffer, newGPTHeader, sizeof(GPTHeader));
         port->Write(1, 1, port->Buffer);     
@@ -319,18 +317,29 @@ namespace GPT{
         uint64_t LBASectorCount = size / this->port->GetSectorSizeLBA() + 1;
         uint64_t LBAFirstSector = this->partition->FirstLBA + (firstByte / this->port->GetSectorSizeLBA());
 
-        void* bufferCopy = mallocK(LBASectorCount * port->GetSectorSizeLBA());
-
         if(LBASectorCount > (partition->LastLBA - partition->FirstLBA)){
             LBASectorCount = partition->LastLBA - partition->FirstLBA;
         }
 
-        memset(bufferCopy, 0, size);
-        bool Check = this->port->Read(LBAFirstSector, LBASectorCount, bufferCopy);
+        bool Check;
+        memset(buffer, 0, size);
+        uint64_t sizeRead = 0;
+        uint64_t sizeToRead = 0;
+        uint64_t sectorsToRead = 0;
+        uint64_t sectorsRead = 0;
+        for(int i = 0; i < (size / port->BufferSize) + 1; i++){            
+            sizeToRead = size - sizeRead;
+            if(sizeToRead > port->BufferSize){
+                sizeToRead = port->BufferSize;
+            }
 
-        bufferCopy = realloc(bufferCopy, size, size % this->port->GetSectorSizeLBA());
-        memcpy(buffer, bufferCopy, size);
-        free(bufferCopy);
+            sectorsToRead = (sizeToRead / port->GetSectorSizeLBA()) + 1;
+
+            Check = port->Read(LBAFirstSector + sectorsRead, sectorsToRead, port->Buffer);
+            memcpy((void*)((uint64_t)buffer + sizeRead), port->Buffer, sizeToRead);
+            sizeRead += sizeToRead;
+            sectorsRead += sectorsToRead;
+        }
         
         return Check;
     }
@@ -339,10 +348,24 @@ namespace GPT{
         uint64_t LBASectorCount = (size / this->port->GetSectorSizeLBA()) + 1;
         uint64_t TotalSizeSector = LBASectorCount * port->GetSectorSizeLBA();
         uint64_t LBAFirstSector = (firstByte / this->port->GetSectorSizeLBA()) + this->partition->FirstLBA;
-        void* bufferCopy = mallocK(TotalSizeSector);
-        memcpy(bufferCopy, (void*)((uint64_t)buffer + size % this->port->GetSectorSizeLBA()), size);
-        bool Check = this->port->Write(LBAFirstSector, LBASectorCount, bufferCopy);
-        free(bufferCopy);
+
+        bool Check;
+        uint64_t sizeWrite = 0;
+        uint64_t sizeToWrite = 0;
+        uint64_t sectorsToWrite = 0;
+        uint64_t sectorsWrite = 0;
+        for(int i = 0; i < (size / port->BufferSize) + 1; i++){           
+            sizeToWrite = size - sizeWrite;
+            if(sizeToWrite > port->BufferSize){
+                sizeToWrite = port->BufferSize;
+            }
+
+            sectorsToWrite = (sizeWrite / port->GetSectorSizeLBA()) + 1;
+            memcpy(port->Buffer, (void*)((uint64_t)buffer + sizeWrite), sizeToWrite);
+            Check = port->Write(LBAFirstSector + sectorsWrite, sectorsToWrite, port->Buffer);            
+            sizeWrite += sectorsToWrite;
+            sizeWrite += sectorsToWrite;
+        }
         return Check;
     }
 }

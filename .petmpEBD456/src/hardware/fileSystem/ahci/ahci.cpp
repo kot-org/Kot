@@ -371,12 +371,7 @@ namespace AHCI{
                     GPT::CreatPartition(port, GPT::GetFreeSizePatition(port), "KotData", GPT::GetDataGUIDPartitionType(), 7);
         
                 }
-
-                
-
-                FileSystem::KFS testTemp = FileSystem::KFS();   
-                FileSystem::KFS* test = &testTemp;
-                //test->OpenFile("Alpha://re/blab/test");
+                GPT::Partition = GPT::Partition(port, GPT::GetPartitionByGUID(port, GPT::GetDataGUIDPartitionType()));
             } 
 
             Partitons = GPT::GetAllPartitions(port);
@@ -385,9 +380,7 @@ namespace AHCI{
             for(int t = 0; t < Partitons->NumberPartitionsCreated; t++){
                 GPT::AllPartitionsInfo[GPT::AllPartitionsInfoNumber]->Partition = Partitons->AllParitions[t];
                 GPT::AllPartitionsInfoNumber++;
-            }            
-
-            globalGraphics->Next();         
+            }                   
         }
     }
 

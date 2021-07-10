@@ -5,6 +5,7 @@
 
 #include "../gpt/gpt.h"
 #include "../../lib/time.h"
+#include "../../drivers/rtc/rtc.h"
 #include "../../memory/heap.h"
 
 namespace FileSystem{
@@ -19,7 +20,7 @@ namespace FileSystem{
     struct KFSinfo{
         bool        IsInit;
         size_t      bitmapSizeByte;
-        size_t      bitmapSizeBloc;
+        size_t      bitmapSizeBlock;
         uint64_t    bitmapPosition;
         size_t      BlockSize;
         size_t      numBlock;
@@ -42,8 +43,9 @@ namespace FileSystem{
 
     struct FileInfo{
         /* location info */
-        uint64_t firstByte;
-        size_t size;           
+        uint64_t firstBlock;
+        size_t size;  
+        size_t FileBlockSize; 
         char path[MaxPath];
         char name[MaxName];
 
@@ -55,21 +57,11 @@ namespace FileSystem{
         /* time */
         TimeInfoFS timeInfoFS;
 
-        /* last folder */
-        uint64_t lastHeaderInfoFolderByte;
-
-        /* partition info */
-        GUID UniquePartitionGUID;
-
-        /* file/folder next to this */
-        uint64_t topHeader;
-        uint64_t bottomHeader;
-
     }__attribute__((packed));
 
     struct FolderInfo{
         /* location info */
-        uint64_t firstByte;
+        uint64_t firstBlock;
         uint64_t numberFiles;
         size_t size;           
         char path[MaxPath];
@@ -83,16 +75,6 @@ namespace FileSystem{
         /* time */
         TimeInfoFS timeInfoFS;
 
-        /* next and last folder */
-        uint64_t lastHeaderInfoFolderByte;
-
-        /* partition info */
-        GUID UniquePartitionGUID;
-
-        /* file/folder next to this */
-        uint64_t topHeader;
-        uint64_t bottomHeader;
-
     }__attribute__((packed));
 
     struct PartitionNameAndGUID{
@@ -105,6 +87,7 @@ namespace FileSystem{
             void Read();
             void Write(size_t size, void* buffer);
             FileInfo* fileInfo;
+            char* mode;
     };
 
     class KFS{
@@ -113,7 +96,7 @@ namespace FileSystem{
 
             void InitKFS();
             
-            File* OpenFile(char* filePath);            
+            File* OpenFile(char* filePath);                        
             void Close(File* file);
 
             uint64_t Alloc(size_t size);
@@ -123,7 +106,9 @@ namespace FileSystem{
             bool CheckBlock(uint64_t Block);  
             void GetBlockData(uint64_t Block, void* buffer);
             void SetBlockData(uint64_t Block, void* buffer);
-            
+
+            File* fopen(char *filename, char *mode);
+            FileInfo* NewFile(char* filePath);
             FolderInfo* OpenFolderInFolder(GPT::Partition* Partition, FolderInfo* FolderOpened, char* FolderName); 
 
         private:

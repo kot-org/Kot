@@ -122,8 +122,7 @@ namespace AHCI{
         HBACommandTable* commandTable = (HBACommandTable*)(cmdHeader->CommandTableBaseAddress);
         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry));
 
-        commandTable->PrdtEntry[0].DataBaseAddress = (uint32_t)(uint64_t)buffer;
-        commandTable->PrdtEntry[0].DataBaseAddressUpper = (uint32_t)((uint64_t)buffer >> 32);
+        commandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)buffer;
         commandTable->PrdtEntry[0].ByteCount = (sectorCount << 9) - 1; // 512 bytes per sector
         commandTable->PrdtEntry[0].InterruptOnCompletion = 1;
 
@@ -182,8 +181,7 @@ namespace AHCI{
         HBACommandTable* commandTable = (HBACommandTable*)(cmdHeader->CommandTableBaseAddress);
         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry));
 
-        commandTable->PrdtEntry[0].DataBaseAddress = (uint32_t)(uint64_t)buffer;
-        commandTable->PrdtEntry[0].DataBaseAddressUpper = (uint32_t)((uint64_t)buffer >> 32);
+        commandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)buffer;
         commandTable->PrdtEntry[0].ByteCount = (sectorCount << 9) - 1;
         commandTable->PrdtEntry[0].InterruptOnCompletion = 1;
 
@@ -237,8 +235,7 @@ namespace AHCI{
         HBACommandTable* commandTable = (HBACommandTable*)(cmdHeader->CommandTableBaseAddress);
         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->PrdtLength-1)*sizeof(HBAPRDTEntry));
 
-        commandTable->PrdtEntry[0].DataBaseAddress = (uint32_t)(uint64_t)buffer;
-        commandTable->PrdtEntry[0].DataBaseAddressUpper = (uint32_t)((uint64_t)buffer >> 32);
+        commandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)buffer;
         commandTable->PrdtEntry[0].ByteCount = sizeof(ATACommandIdentify);
         commandTable->PrdtEntry[0].InterruptOnCompletion = 1;
 
@@ -351,6 +348,9 @@ namespace AHCI{
         for (int i = 0; i < PortCount; i++){
             Port* port = Ports[i];
 
+            /*Creat static buffer for the disk */
+            port->Buffer = globalAllocator.RequestPage();
+            port->BufferSize = 0x1000;
             port->Configure();    
 
             GPT::Partitons* Partitons = GPT::GetAllPartitions(port);
@@ -368,20 +368,10 @@ namespace AHCI{
         
                 }
 
-                
-
-                FileSystem::KFS testTemp = FileSystem::KFS();   
-                FileSystem::KFS* test = &testTemp;
-                //test->OpenFile("Alpha://re/blab/test");
-            } 
-
-            Partitons = GPT::GetAllPartitions(port);
-            
-            GPT::AllPartitionsInfo[i]->Port = port;
-            for(int t = 0; t < Partitons->NumberPartitionsCreated; t++){
-                GPT::AllPartitionsInfo[GPT::AllPartitionsInfoNumber]->Partition = Partitons->AllParitions[t];
-                GPT::AllPartitionsInfoNumber++;
-            }               
+                GPT::Partition partitionTest = GPT::Partition(port, GPT::GetPartitionByGUID(port, GPT::GetDataGUIDPartitionType()));
+                FileSystem::KFS Fs = FileSystem::KFS(&partitionTest);   
+                Fs.fopen("test.txt", "r");
+            }      
         }
     }
 

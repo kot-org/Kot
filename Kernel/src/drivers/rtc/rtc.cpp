@@ -15,7 +15,7 @@ unsigned char RealTimeClock::getRegister(int reg) {
     return (IoRead8(0x71));
 }
 
-uint32_t RealTimeClock::readSeconds() {
+uint32_t RealTimeClock::readSeconds(){
     while(getUpdateInProgress());
     int second = getRegister(0x0);
     return (second & 0x0F) + ((second / 16) * 10);

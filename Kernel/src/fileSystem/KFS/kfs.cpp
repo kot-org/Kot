@@ -8,38 +8,40 @@ namespace FileSystem{
         KFSPartitionInfo = (KFSinfo*)mallocK(sizeof(KFSinfo));
         while(true){
             globalPartition->Read(0, sizeof(KFSinfo), KFSPartitionInfo);
-            if(KFSPartitionInfo->IsInit) break;
+            
             InitKFS();
+            if(KFSPartitionInfo->IsInit) break;
         }
         
     }
 
     void KFS::InitKFS(){
         KFSinfo* info = (KFSinfo*)mallocK(sizeof(KFSinfo));
-        uint64_t MemTotPartiton = globalPartition->partition->LastLBA - globalPartition->partition->FirstLBA;
+        uint64_t MemTotPartiton = (globalPartition->partition->LastLBA - globalPartition->partition->FirstLBA) * globalPartition->port->GetSectorSizeLBA();
         uint64_t BlockSize = blockSize;
         info->IsInit = true;        
         info->bitmapSizeByte = (MemTotPartiton / BlockSize) / 8;
         info->BlockSize = BlockSize;
-        info->bitmapSizeBloc = info->bitmapSizeByte / info->BlockSize;        
+        info->bitmapSizeBlock = info->bitmapSizeByte / info->BlockSize + 1;        
         info->numBlock = MemTotPartiton / BlockSize;
         info->bitmapPosition = BlockSize;
-        info->firstBlocFile = info->bitmapPosition + info->bitmapSizeBloc;
+        info->firstBlocFile = (info->bitmapPosition / BlockSize) + info->bitmapSizeBlock;
         globalPartition->Write(0, sizeof(KFSinfo), info);
 
         /*Clear Bitmap*/
         void* FreeBitmap = mallocK(info->BlockSize);
-        memset(FreeBitmap, 0, info->BlockSize);
-        for(int i = 0; i < info->bitmapSizeBloc; i++){
+        memset(FreeBitmap, 2, info->BlockSize);
+
+        for(int i = 0; i < info->bitmapSizeBlock; i++){
             globalPartition->Write(info->bitmapPosition + (i * info->BlockSize), info->BlockSize, FreeBitmap);
         }
-
         /* Lock KFSInfo*/
         for(int i = 0; i < info->firstBlocFile; i++){
             LockBlock(i);
         }
-        free(FreeBitmap);
-        free((void*)info);
+
+        freeK(FreeBitmap);
+        freeK((void*)info);
     }   
 
 
@@ -66,11 +68,11 @@ namespace FileSystem{
                     GetBlockData(LastBlock, blockHeaderLast);
                     blockHeaderLast->NextBlock = i;
                     SetBlockData(LastBlock, blockHeaderLast);
-                    free(blockHeaderLast);
+                    freeK(blockHeaderLast);
                 }
                 
                 SetBlockData(i, blockHeader);
-                free(blockHeader);
+                freeK(blockHeader);
                 LastBlock = i;
             }
         }
@@ -101,7 +103,7 @@ namespace FileSystem{
                 break;
             }
         }
-        free(blockHeaderToDelete);
+        freeK(blockHeaderToDelete);
     }
 
     void KFS::LockBlock(uint64_t Block){
@@ -110,7 +112,7 @@ namespace FileSystem{
         uint8_t value = *(uint8_t*)((uint64_t)BitmapBuffer);
         WriteBit(value, Block % 8, 1);
         globalPartition->Write(KFSPartitionInfo->bitmapPosition + (Block / 8), 1, BitmapBuffer);
-        free(BitmapBuffer);
+        freeK(BitmapBuffer);
     }
 
     void KFS::UnlockBlock(uint64_t Block){
@@ -119,7 +121,7 @@ namespace FileSystem{
         uint8_t value = *(uint8_t*)((uint64_t)BitmapBuffer);
         WriteBit(value, Block % 8, 0);
         globalPartition->Write(KFSPartitionInfo->bitmapPosition + (Block / 8), 1, BitmapBuffer);
-        free(BitmapBuffer);
+        freeK(BitmapBuffer);
     } 
 
     bool KFS::CheckBlock(uint64_t Block){
@@ -132,7 +134,7 @@ namespace FileSystem{
         }else{
             Check = false;
         }
-        free(BitmapBuffer);
+        freeK(BitmapBuffer);
         return Check;
     }
 
@@ -144,91 +146,107 @@ namespace FileSystem{
         globalPartition->Write(Block * KFSPartitionInfo->BlockSize, KFSPartitionInfo->BlockSize, buffer);
     }
 
-    File* KFS::OpenFile(char* filePath){
-        FolderInfo* folderInfo = NULL;
-        GPT::Partition partitionTemp = GPT::Partition(NULL, NULL);
-        GPT::Partition* partition = &partitionTemp;
-        void* buffer = globalAllocator.RequestPage();
-
-
-        char** SplitPath = split(filePath, "://");
-        char* PartitionName = SplitPath[0];
-        char* Folders = SplitPath[1];
-        char** FoldersSlit = split(Folders, "/");
-        int count;
-        for(count = 0; FoldersSlit[count] != 0; count++); 
-
-        for(int i = 0; i < count; i++){ 
-            //find the folder name
-
-            uint64_t byteToScan = folderInfo->firstByte;
-            for(int i = 0; i < folderInfo->numberFiles; i++){
-                memset(buffer, 0, sizeof(HeaderInfo));
-                partition->Read(byteToScan, sizeof(HeaderInfo), buffer); 
-                if(!((HeaderInfo*)buffer)->IsFile){
-                    memset(buffer, 0, sizeof(FolderInfo));
-                    partition->Read(byteToScan + sizeof(HeaderInfo), sizeof(FolderInfo), buffer); 
-
-
-                    if(((FolderInfo*)buffer)->name == FoldersSlit[i]){ //check the name
-                        byteToScan = ((FolderInfo*)buffer)->firstByte;
-                    }else{
-                        byteToScan = ((FolderInfo*)buffer)->bottomHeader;
-                    }
-
-                }else{
-                    memset(buffer, 0, sizeof(FileInfo));
-                    partition->Read(byteToScan + sizeof(HeaderInfo), sizeof(FileInfo), buffer);
-
-                    //verify if the search is finish 
-                    if(((FileInfo*)buffer)->name == FoldersSlit[count]){
-                        File* file;
-                        file->fileInfo = (FileInfo*)buffer;
-                        return file;
-                    }
-                }                    
-            }            
-        }        
-    }
-
     void KFS::Close(File* file){
 
     }
-    
-    FolderInfo* OpenFolderInFolder(GPT::Partition* Partition, FolderInfo* FolderOpened, char* FolderName){
-        void* buffer = globalAllocator.RequestPage();
-        uint64_t firstByte = 0;
-        uint64_t byteToScan = 0;
 
-        if(FolderOpened == NULL){
-            firstByte = Partition->partition->FirstLBA;
-        }else{
-            firstByte = FolderOpened->firstByte;
-        }
+    File* KFS::fopen(char* filename, char* mode){
+        char** FoldersSlit = split(filename, "/");
+        int count = 0;
+        for(; FoldersSlit[count] != 0; count++);
+        count--;
 
-        byteToScan = firstByte;
+        void* Block = mallocK(KFSPartitionInfo->BlockSize);
+        char* FileName;
+        uint64_t ScanBlock = KFSPartitionInfo->firstBlocFile;
+        BlockHeader* ScanBlockHeader;
+        HeaderInfo* ScanHeader;
 
-        while(true){            
-            memset(buffer, 0, sizeof(HeaderInfo));
-            Partition->Read(byteToScan, sizeof(HeaderInfo), buffer); 
-
-            if(((HeaderInfo*)buffer)->IsFile == false){
-                memset(buffer, 0, sizeof(FolderInfo));
-                Partition->Read(byteToScan + sizeof(HeaderInfo), sizeof(FolderInfo), buffer); 
-                if(((FolderInfo*)buffer)->name == FolderName){
-                    return (FolderInfo*)buffer;
+        File* returnData;
+        
+        for(int i = 0; i <= count; i++){
+            while(true){
+                printf("%u ", KFSPartitionInfo->firstBlocFile);
+                globalGraphics->Update();
+                GetBlockData(ScanBlock, Block);
+                ScanBlockHeader = (BlockHeader*)Block;
+                ScanHeader = (HeaderInfo*)((uint64_t)Block + sizeof(BlockHeader));
+                if(ScanHeader->IsFile){
+                    FileInfo* fileInfo = (FileInfo*)((uint64_t)Block + sizeof(BlockHeader) + sizeof(HeaderInfo));
+                    FileName = fileInfo->name;
+                    if(i == count){
+                        returnData->fileInfo = fileInfo;
+                        returnData->mode = mode;
+                        return returnData;
+                    }
                 }else{
-                    byteToScan = ((FolderInfo*)buffer)->bottomHeader;
-                }
-            }else{
-                memset(buffer, 0, sizeof(FileInfo));
-                Partition->Read(byteToScan + sizeof(HeaderInfo), sizeof(FileInfo), buffer); 
-                byteToScan = ((FileInfo*)buffer)->bottomHeader;
-            }
+                    /* it can also be nothing */
+                    FolderInfo* folderInfo = (FolderInfo*)((uint64_t)Block + sizeof(BlockHeader) + sizeof(HeaderInfo));
+                    FileName = folderInfo->name;
+                    if(i == count){
+                        returnData = NULL;
+                    }
 
-            if(byteToScan == 0){
-                return NULL;
-            }
+                    if(FileName == FoldersSlit[i]){
+                        ScanBlock = folderInfo->firstBlock;
+                    }
+                } 
+                if(FileName == FoldersSlit[i]) break;
+
+                ScanBlock = ScanBlockHeader->NextBlock;
+                if(ScanBlock == 0){
+                    returnData = NULL;
+                    if(i == count){
+                        returnData->fileInfo = NewFile(filename);
+                        returnData->mode = mode;
+                        return returnData;
+                    }
+                }else{
+                    returnData = NULL;
+                }
+            }            
+        } 
+
+        freeK((void*)Block);
+        return returnData;
+    }
+
+    FileInfo* KFS::NewFile(char* filePath){
+        uint64_t FileBlockSize = KFSPartitionInfo->BlockSize; //alloc two bloc, one for the struct and other for the data
+        uint64_t blocPosition = Alloc(FileBlockSize); 
+        void* block = mallocK(KFSPartitionInfo->BlockSize);
+        GetBlockData(blocPosition, block);
+        HeaderInfo* Header = (HeaderInfo*)block + sizeof(BlockHeader);
+        Header->IsFile = true;
+        FileInfo* fileInfo = (FileInfo*)block + sizeof(BlockHeader) + sizeof(HeaderInfo);
+        fileInfo->firstBlock = ((BlockHeader*)block)->NextBlock;
+        fileInfo->size = 0;
+        fileInfo->FileBlockSize = FileBlockSize;
+        for(int i = 0; i < MaxPath; i++){
+            fileInfo->path[i] = *filePath;
+            filePath++;
         }
+        
+
+        char** FoldersSlit = split(filePath, "/");
+        int count;
+        for(count = 0; FoldersSlit[count] != 0; count++);
+        for(int i = 0; i < MaxName; i++){
+            fileInfo->name[i] = *FoldersSlit[count];
+            FoldersSlit[count]++;
+        }
+
+        RealTimeClock* realTimeClock;
+        fileInfo->timeInfoFS.CreateTime.seconds = realTimeClock->readSeconds();
+        fileInfo->timeInfoFS.CreateTime.minutes = realTimeClock->readMinutes();
+        fileInfo->timeInfoFS.CreateTime.hours = realTimeClock->readHours();
+        fileInfo->timeInfoFS.CreateTime.days = realTimeClock->readDay();
+        fileInfo->timeInfoFS.CreateTime.months = realTimeClock->readMonth();
+        fileInfo->timeInfoFS.CreateTime.years = realTimeClock->readYear() + 2000;
+        
+        SetBlockData(blocPosition, block);
+
+        
+        return fileInfo;
     }
 }
