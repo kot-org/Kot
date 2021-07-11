@@ -10,4 +10,5 @@ struct GUID{
 }__attribute__((packed));
 
 bool ReadBit(uint8_t byte, int position);
-void WriteBit(uint8_t byte, int position, bool value);
+uint8_t WriteBit(uint8_t byte, int position, bool value);
+uint64_t Divide(uint64_t value, uint64_t divider);

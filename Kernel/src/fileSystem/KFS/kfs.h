@@ -23,8 +23,8 @@ namespace FileSystem{
         size_t      bitmapSizeBlock;
         uint64_t    bitmapPosition;
         size_t      BlockSize;
-        size_t      numBlock;
-        uint64_t    firstBlocFile;
+        size_t      numberOfBlock;
+        uint64_t    firstBlockFile;
     }__attribute__((packed));
 
     struct BlockHeader{
@@ -101,6 +101,7 @@ namespace FileSystem{
 
             uint64_t Alloc(size_t size);
             void Free(uint64_t Block, bool DeleteData);
+            uint64_t RequestBlock();
             void LockBlock(uint64_t Block);  
             void UnlockBlock(uint64_t Block);  
             bool CheckBlock(uint64_t Block);  

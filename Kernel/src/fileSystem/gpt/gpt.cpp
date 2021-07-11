@@ -314,29 +314,28 @@ namespace GPT{
     }
 
     bool Partition::Read(uint64_t firstByte, size_t size, void* buffer){
-        uint64_t LBASectorCount = size / this->port->GetSectorSizeLBA() + 1;
         uint64_t LBAFirstSector = this->partition->FirstLBA + (firstByte / this->port->GetSectorSizeLBA());
-
-        if(LBASectorCount > (partition->LastLBA - partition->FirstLBA)){
-            LBASectorCount = partition->LastLBA - partition->FirstLBA;
-        }
-
         bool Check;
         memset(buffer, 0, size);
         uint64_t sizeRead = 0;
         uint64_t sizeToRead = 0;
         uint64_t sectorsToRead = 0;
         uint64_t sectorsRead = 0;
-        for(int i = 0; i < (size / port->BufferSize) + 1; i++){            
+        for(int i = 0; i < Divide(size, port->BufferSize); i++){            
             sizeToRead = size - sizeRead;
             if(sizeToRead > port->BufferSize){
                 sizeToRead = port->BufferSize;
             }
 
-            sectorsToRead = (sizeToRead / port->GetSectorSizeLBA()) + 1;
+            sectorsToRead = Divide(sizeToRead, port->GetSectorSizeLBA());
 
             Check = port->Read(LBAFirstSector + sectorsRead, sectorsToRead, port->Buffer);
-            memcpy((void*)((uint64_t)buffer + sizeRead), port->Buffer, sizeToRead);
+            if(sizeRead != 0){
+                memcpy((void*)((uint64_t)buffer + sizeRead), port->Buffer, sizeToRead);
+            }else{
+                memcpy((void*)((uint64_t)buffer + sizeRead), (void*)((uint64_t)port->Buffer + firstByte % this->port->GetSectorSizeLBA()), sizeToRead); //Get the correct first byte
+            }
+            
             sizeRead += sizeToRead;
             sectorsRead += sectorsToRead;
         }
@@ -345,8 +344,6 @@ namespace GPT{
     }
 
     bool Partition::Write(uint64_t firstByte, size_t size, void* buffer){
-        uint64_t LBASectorCount = (size / this->port->GetSectorSizeLBA()) + 1;
-        uint64_t TotalSizeSector = LBASectorCount * port->GetSectorSizeLBA();
         uint64_t LBAFirstSector = (firstByte / this->port->GetSectorSizeLBA()) + this->partition->FirstLBA;
 
         bool Check;
@@ -354,14 +351,19 @@ namespace GPT{
         uint64_t sizeToWrite = 0;
         uint64_t sectorsToWrite = 0;
         uint64_t sectorsWrite = 0;
-        for(int i = 0; i < (size / port->BufferSize) + 1; i++){           
+        for(int i = 0; i < Divide(size, port->BufferSize); i++){           
             sizeToWrite = size - sizeWrite;
             if(sizeToWrite > port->BufferSize){
                 sizeToWrite = port->BufferSize;
             }
 
-            sectorsToWrite = (sizeWrite / port->GetSectorSizeLBA()) + 1;
-            memcpy(port->Buffer, (void*)((uint64_t)buffer + sizeWrite), sizeToWrite);
+            sectorsToWrite = Divide(sizeToWrite, port->GetSectorSizeLBA());
+            Check = port->Read(LBAFirstSector + sectorsWrite, sectorsToWrite, port->Buffer);
+            if(sizeWrite != 0){
+                memcpy(port->Buffer, (void*)((uint64_t)buffer + sizeWrite), sizeToWrite);
+            }else{
+                memcpy((void*)((uint64_t)port->Buffer + firstByte % this->port->GetSectorSizeLBA()), (void*)((uint64_t)buffer + sizeWrite), sizeToWrite);
+            }
             Check = port->Write(LBAFirstSector + sectorsWrite, sectorsToWrite, port->Buffer);            
             sizeWrite += sectorsToWrite;
             sizeWrite += sectorsToWrite;

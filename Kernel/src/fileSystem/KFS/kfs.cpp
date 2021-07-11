@@ -8,7 +8,6 @@ namespace FileSystem{
         KFSPartitionInfo = (KFSinfo*)mallocK(sizeof(KFSinfo));
         while(true){
             globalPartition->Read(0, sizeof(KFSinfo), KFSPartitionInfo);
-            
             InitKFS();
             if(KFSPartitionInfo->IsInit) break;
         }
@@ -19,45 +18,50 @@ namespace FileSystem{
         KFSinfo* info = (KFSinfo*)mallocK(sizeof(KFSinfo));
         uint64_t MemTotPartiton = (globalPartition->partition->LastLBA - globalPartition->partition->FirstLBA) * globalPartition->port->GetSectorSizeLBA();
         uint64_t BlockSize = blockSize;
-        info->IsInit = true;        
-        info->bitmapSizeByte = (MemTotPartiton / BlockSize) / 8;
+        info->IsInit = true;
+        info->numberOfBlock = MemTotPartiton / BlockSize;        
+        info->bitmapSizeByte = Divide(info->numberOfBlock, 8);
         info->BlockSize = BlockSize;
-        info->bitmapSizeBlock = info->bitmapSizeByte / info->BlockSize + 1;        
-        info->numBlock = MemTotPartiton / BlockSize;
+        info->bitmapSizeBlock = Divide(info->bitmapSizeByte, info->BlockSize);
         info->bitmapPosition = BlockSize;
-        info->firstBlocFile = (info->bitmapPosition / BlockSize) + info->bitmapSizeBlock;
+        info->firstBlockFile = Divide(info->bitmapPosition, BlockSize) + info->bitmapSizeBlock;
         globalPartition->Write(0, sizeof(KFSinfo), info);
 
         /*Clear Bitmap*/
         void* FreeBitmap = mallocK(info->BlockSize);
-        memset(FreeBitmap, 2, info->BlockSize);
+        memset(FreeBitmap, 0, info->BlockSize);
+        
 
         for(int i = 0; i < info->bitmapSizeBlock; i++){
             globalPartition->Write(info->bitmapPosition + (i * info->BlockSize), info->BlockSize, FreeBitmap);
         }
         /* Lock KFSInfo*/
-        for(int i = 0; i < info->firstBlocFile; i++){
+        for(int i = 0; i < info->firstBlockFile; i++){
             LockBlock(i);
         }
 
+
+        printf("%u", Alloc(0x1000000000));
+        memset(FreeBitmap, 0, info->BlockSize);
         freeK(FreeBitmap);
         freeK((void*)info);
     }   
 
 
     uint64_t KFS::Alloc(size_t size){
-        uint64_t NumberBlockToAllocate = size / KFSPartitionInfo->BlockSize;
+        uint64_t NumberBlockToAllocate = Divide(size, KFSPartitionInfo->BlockSize);
         uint64_t BlockAllocate = 0;
         uint64_t FirstBlocAllocated = 0;
         uint64_t LastBlock = 0;
         uint64_t NextBlock = 0;
 
-        for(int i = 0; i < KFSPartitionInfo->BlockSize; i++){
-            if(CheckBlock(i)){                
-                LockBlock(i);
+        for(int i = 0; i < NumberBlockToAllocate; i++){
+            uint64_t BlockRequested = RequestBlock();
+            if(BlockRequested != 0){
                 BlockAllocate++;
-                if(FirstBlocAllocated == 0){
-                    FirstBlocAllocated = i;
+
+                if(FirstBlocAllocated == 0){ //for the return value
+                    FirstBlocAllocated = BlockRequested;
                 }
                 BlockHeader* blockHeader = (BlockHeader*)mallocK(sizeof(BlockHeader));
                 blockHeader->LastBlock = LastBlock;
@@ -66,7 +70,9 @@ namespace FileSystem{
                 if(LastBlock != 0){
                     BlockHeader* blockHeaderLast = (BlockHeader*)mallocK(sizeof(BlockHeader));
                     GetBlockData(LastBlock, blockHeaderLast);
-                    blockHeaderLast->NextBlock = i;
+                    printf("%u ", blockHeaderLast->NextBlock);
+
+                    blockHeaderLast->NextBlock = BlockRequested;
                     SetBlockData(LastBlock, blockHeaderLast);
                     freeK(blockHeaderLast);
                 }
@@ -74,10 +80,12 @@ namespace FileSystem{
                 SetBlockData(i, blockHeader);
                 freeK(blockHeader);
                 LastBlock = i;
+            }else{
+                break;
             }
         }
 
-        if(BlockAllocate < NumberBlockToAllocate){
+        if(BlockAllocate < NumberBlockToAllocate && BlockAllocate > 0){
             Free(FirstBlocAllocated, true);
             return 0;
         }
@@ -106,11 +114,34 @@ namespace FileSystem{
         freeK(blockHeaderToDelete);
     }
 
+    uint64_t KFS::RequestBlock(){
+        bool Check = false;
+        void* BitmapBuffer = mallocK(KFSPartitionInfo->BlockSize);
+        for(int i = 0; i < KFSPartitionInfo->bitmapSizeBlock; i++){
+            for(int j = 0; j < KFSPartitionInfo->BlockSize; j++){
+                uint8_t value = *(uint8_t*)((uint64_t)BitmapBuffer + j);
+                if(value != uint8_Limit){ //so more than one block is free in this byte
+                    for(int y = 0; y < 8; y++){
+                        uint64_t Block = i * KFSPartitionInfo->BlockSize + j * 8 + y;
+                        if(CheckBlock(Block)){ /* is free block */
+                            LockBlock(Block);
+                            freeK(BitmapBuffer);
+                            return Block;
+                        }
+                    }
+                }
+            }
+        } 
+        freeK(BitmapBuffer);
+        return 0;
+    }
+
     void KFS::LockBlock(uint64_t Block){
         void* BitmapBuffer = mallocK(1); 
         globalPartition->Read(KFSPartitionInfo->bitmapPosition + (Block / 8), 1, BitmapBuffer);
         uint8_t value = *(uint8_t*)((uint64_t)BitmapBuffer);
-        WriteBit(value, Block % 8, 1);
+        value = WriteBit(value, Block % 8, 1);
+        *(uint8_t*)((uint64_t)BitmapBuffer) = value;
         globalPartition->Write(KFSPartitionInfo->bitmapPosition + (Block / 8), 1, BitmapBuffer);
         freeK(BitmapBuffer);
     }
@@ -119,23 +150,19 @@ namespace FileSystem{
         void* BitmapBuffer = mallocK(1); 
         globalPartition->Read(KFSPartitionInfo->bitmapPosition + (Block / 8), 1, BitmapBuffer);
         uint8_t value = *(uint8_t*)((uint64_t)BitmapBuffer);
-        WriteBit(value, Block % 8, 0);
+        value = WriteBit(value, Block % 8, 0);
+        *(uint8_t*)((uint64_t)BitmapBuffer) = value;
         globalPartition->Write(KFSPartitionInfo->bitmapPosition + (Block / 8), 1, BitmapBuffer);
         freeK(BitmapBuffer);
-    } 
+    }
 
     bool KFS::CheckBlock(uint64_t Block){
         bool Check = false;
         void* BitmapBuffer = mallocK(1); 
         globalPartition->Read(KFSPartitionInfo->bitmapPosition + (Block / 8), 1, BitmapBuffer);
         uint8_t value = *(uint8_t*)((uint64_t)BitmapBuffer);
-        if(!ReadBit(value, Block % 8)){
-            Check = true;
-        }else{
-            Check = false;
-        }
         freeK(BitmapBuffer);
-        return Check;
+        return !ReadBit(value, Block % 8);
     }
 
     void KFS::GetBlockData(uint64_t Block, void* buffer){
@@ -158,7 +185,7 @@ namespace FileSystem{
 
         void* Block = mallocK(KFSPartitionInfo->BlockSize);
         char* FileName;
-        uint64_t ScanBlock = KFSPartitionInfo->firstBlocFile;
+        uint64_t ScanBlock = KFSPartitionInfo->firstBlockFile;
         BlockHeader* ScanBlockHeader;
         HeaderInfo* ScanHeader;
 
@@ -166,7 +193,7 @@ namespace FileSystem{
         
         for(int i = 0; i <= count; i++){
             while(true){
-                printf("%u ", KFSPartitionInfo->firstBlocFile);
+                printf("%u ", KFSPartitionInfo->firstBlockFile);
                 globalGraphics->Update();
                 GetBlockData(ScanBlock, Block);
                 ScanBlockHeader = (BlockHeader*)Block;
