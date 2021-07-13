@@ -369,8 +369,9 @@ namespace AHCI{
                 }
 
                 GPT::Partition partitionTest = GPT::Partition(port, GPT::GetPartitionByGUID(port, GPT::GetDataGUIDPartitionType()));
-                FileSystem::KFS Fs = FileSystem::KFS(&partitionTest);   
-                //Fs.fopen("test.txt", "r");
+                FileSystem::KFS Fs = FileSystem::KFS(&partitionTest);
+                Fs.fopen("test.txt", "r");
+                Fs.fopen("test.txt", "r");
             }      
         }
     }

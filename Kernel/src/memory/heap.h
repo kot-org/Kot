@@ -9,18 +9,18 @@ struct HeapSegmentHeader{
     HeapSegmentHeader* next;
     HeapSegmentHeader* last;
     bool free;
-    void CombineForward();
-    void CombineBackward();
-    HeapSegmentHeader* Split(size_t splitLenght);
+    void volatile CombineForward();
+    void volatile CombineBackward();
+    HeapSegmentHeader* volatile Split(size_t splitLenght);
 };
 
-void InitializeHeap(void* heapAddress, size_t pageCount);
+void volatile InitializeHeap(void* heapAddress, size_t pageCount);
 
-void* mallocK(size_t size);
-void* realloc(void* buffer, size_t size, uint64_t ajustement);
-void freeK(void* address);
+void* volatile mallocK(size_t size);
+void* volatile realloc(void* buffer, size_t size, uint64_t ajustement);
+void volatile freeK(void* address);
 
-void ExtendHeap(size_t lenght);
+void volatile ExtendHeap(size_t lenght);
 
 inline void* operator new(size_t size) {return mallocK(size);}
 inline void* operator new[](size_t size) {return mallocK(size);}

@@ -366,7 +366,7 @@ namespace GPT{
             }
             Check = port->Write(LBAFirstSector + sectorsWrite, sectorsToWrite, port->Buffer);            
             sizeWrite += sectorsToWrite;
-            sizeWrite += sectorsToWrite;
+            sectorsWrite += sectorsToWrite;
         }
         return Check;
     }

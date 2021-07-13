@@ -14,17 +14,23 @@ namespace FileSystem{
     #define MaxPassword 512
     #define MaxUserRight 256   
 
-    #define blockSize 0x10000; 
+    #define blockSize 0x10000
+
+    #define GUIDData1 0x47A1ACC0
+    #define GUIDData2 0x3B41 
+    #define GUIDData3 0x2A53
+    #define GUIDData4 0xF38D3D321F6D 
 
 
     struct KFSinfo{
-        bool        IsInit;
         size_t      bitmapSizeByte;
         size_t      bitmapSizeBlock;
         uint64_t    bitmapPosition;
         size_t      BlockSize;
         size_t      numberOfBlock;
         uint64_t    firstBlockFile;
+        uint64_t    fid;
+        GUID        IsInit;
     }__attribute__((packed));
 
     struct BlockHeader{
@@ -38,6 +44,7 @@ namespace FileSystem{
     }__attribute__((packed));
 
     struct HeaderInfo{
+        uint64_t FID;
         bool IsFile = false;
     }__attribute__((packed));
 
@@ -56,6 +63,9 @@ namespace FileSystem{
 
         /* time */
         TimeInfoFS timeInfoFS;
+
+        /* File data */
+        BlockHeader blockHeader; 
 
     }__attribute__((packed));
 
@@ -99,7 +109,7 @@ namespace FileSystem{
             File* OpenFile(char* filePath);                        
             void Close(File* file);
 
-            uint64_t Alloc(size_t size);
+            uint64_t Allocate(size_t size);
             void Free(uint64_t Block, bool DeleteData);
             uint64_t RequestBlock();
             void LockBlock(uint64_t Block);  
@@ -111,6 +121,8 @@ namespace FileSystem{
             File* fopen(char *filename, char *mode);
             FileInfo* NewFile(char* filePath);
             FolderInfo* OpenFolderInFolder(GPT::Partition* Partition, FolderInfo* FolderOpened, char* FolderName); 
+            uint64_t GetFID();
+            bool UpdatePartitionInfo();
 
         private:
             GPT::Partition* globalPartition;

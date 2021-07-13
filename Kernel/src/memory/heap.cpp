@@ -6,7 +6,7 @@ void* heapStart;
 void* heapEnd;
 HeapSegmentHeader* LastHdr;
 
-void InitializeHeap(void* heapAddress, size_t pageCount){
+void volatile InitializeHeap(void* heapAddress, size_t pageCount){
     void* pos = heapAddress;
 
     for (size_t i = 0; i < pageCount; i++){
@@ -26,14 +26,14 @@ void InitializeHeap(void* heapAddress, size_t pageCount){
     LastHdr = startSeg;
 }
 
-void freeK(void* address){
+void volatile freeK(void* address){
     HeapSegmentHeader* segment = (HeapSegmentHeader*)address - 1;
     segment->free = true;
     segment->CombineForward();
     segment->CombineBackward();
 }
 
-void* realloc(void* buffer, size_t size, uint64_t ajustement){
+void* volatile realloc(void* buffer, size_t size, uint64_t ajustement){
     void* newBuffer = mallocK(size);
     if(ajustement >= 0){
         memcpy(newBuffer, (void*)((uint64_t)buffer + ajustement), size - ajustement);
@@ -45,7 +45,7 @@ void* realloc(void* buffer, size_t size, uint64_t ajustement){
     return newBuffer;
 }
 
-void* mallocK(size_t size){
+void* volatile mallocK(size_t size){
     if (size % 0x10 > 0){ // it is not a multiple of 0x10
         size -= (size % 0x10);
         size += 0x10;
@@ -74,7 +74,7 @@ void* mallocK(size_t size){
     return mallocK(size);
 }
 
-HeapSegmentHeader* HeapSegmentHeader::Split(size_t splitLength){
+HeapSegmentHeader* volatile HeapSegmentHeader::Split(size_t splitLength){
     if (splitLength < 0x10) return NULL;
     int64_t splitSegLength = length - splitLength - (sizeof(HeapSegmentHeader));
     if (splitSegLength < 0x10) return NULL;
@@ -92,7 +92,7 @@ HeapSegmentHeader* HeapSegmentHeader::Split(size_t splitLength){
     return newSplitHdr;
 }
 
-void ExtendHeap(size_t length){
+void volatile ExtendHeap(size_t length){
     if (length % 0x1000) {
         length -= length % 0x1000;
         length += 0x1000;
@@ -116,7 +116,7 @@ void ExtendHeap(size_t length){
 
 }
 
-void HeapSegmentHeader::CombineForward(){
+void volatile HeapSegmentHeader::CombineForward(){
     if (next == NULL) return;
     if (!next->free) return;
 
@@ -130,6 +130,6 @@ void HeapSegmentHeader::CombineForward(){
     length = length + next->length + sizeof(HeapSegmentHeader);
 }
 
-void HeapSegmentHeader::CombineBackward(){
+void volatile HeapSegmentHeader::CombineBackward(){
     if (last != NULL && last->free) last->CombineForward();
 }
