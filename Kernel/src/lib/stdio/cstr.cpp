@@ -178,6 +178,21 @@ int strlen(char*p){
     return count;
 }
 
+bool strcmp(char* a, char* b){
+    int alen = strlen(a);
+    int blen = strlen(b);
+    if(alen == blen){
+        for(int i = 0 ; i < alen; i++){
+            if(a[i] != b[i]){
+                return false;
+            }
+        }
+        return true;
+    }else{
+        return false;
+    }
+}
+
 
 char** split(char* str, char* delimiters){
     char* entry = str;

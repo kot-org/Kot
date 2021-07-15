@@ -18,4 +18,5 @@ const char* to_string(double value);
 const char* to_string(char c);
 
 int strlen(char*p);
+bool strcmp(char* a, char* b);
 char** split(char* tosplit, char* spliter);

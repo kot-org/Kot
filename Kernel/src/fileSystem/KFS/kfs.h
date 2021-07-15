@@ -28,6 +28,7 @@ namespace FileSystem{
         uint64_t    bitmapPosition;
         size_t      BlockSize;
         size_t      numberOfBlock;
+        uint64_t    firstBlockFree;
         uint64_t    firstBlockFile;
         uint64_t    fid;
         GUID        IsInit;
@@ -44,7 +45,8 @@ namespace FileSystem{
     }__attribute__((packed));
 
     struct HeaderInfo{
-        uint64_t FID;
+        uint64_t FID = 0;
+        uint64_t ParentLocationBlock = 0; //location of the parent's header
         bool IsFile = false;
     }__attribute__((packed));
 
