@@ -333,7 +333,7 @@ namespace GPT{
             if(sizeRead != 0){
                 memcpy((void*)((uint64_t)buffer + sizeRead), port->Buffer, sizeToRead);
             }else{
-                memcpy(buffer, (void*)((uint64_t)port->Buffer + firstByte % this->port->GetSectorSizeLBA()), sizeToRead); //Get the correct first byte
+                memcpy((void*)((uint64_t)buffer + sizeRead), (void*)((uint64_t)port->Buffer + firstByte % this->port->GetSectorSizeLBA()), sizeToRead); //Get the correct first byte
             }
             
             sizeRead += sizeToRead;

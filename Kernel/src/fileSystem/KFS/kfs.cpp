@@ -8,8 +8,8 @@ namespace FileSystem{
         KFSPartitionInfo = (KFSinfo*)mallocK(sizeof(KFSinfo));
         while(true){
             globalPartition->Read(0, sizeof(KFSinfo), KFSPartitionInfo);
-            if(KFSPartitionInfo->IsInit.Data1 == GUIDData1 && KFSPartitionInfo->IsInit.Data2 == GUIDData2 && KFSPartitionInfo->IsInit.Data3 == GUIDData3 && KFSPartitionInfo->IsInit.Data4 == GUIDData4) break;
             InitKFS();
+            if(KFSPartitionInfo->IsInit.Data1 == GUIDData1 && KFSPartitionInfo->IsInit.Data2 == GUIDData2 && KFSPartitionInfo->IsInit.Data3 == GUIDData3 && KFSPartitionInfo->IsInit.Data4 == GUIDData4) break;  
         }     
     }
 
@@ -568,7 +568,6 @@ namespace FileSystem{
             Fs->GetBlockData(ReadBlock, Block);
 
             ReadBlock = ((BlockHeader*)Block)->NextBlock;
-            memcpy(buffer, Block, Fs->KFSPartitionInfo->BlockSize);
 
             if(ReadBlock == 0){
                 return 0; //end of file before end of read
@@ -619,10 +618,44 @@ namespace FileSystem{
             }
         }
 
-        uint64_t ReadBlock = fileInfo->firstBlockData;
+        uint64_t FirstByte = start % Fs->KFSPartitionInfo->BlockSize;
+        uint64_t WriteBlock = fileInfo->firstBlockData;
         uint64_t bytesWrite = 0;
         uint64_t bytesToWrite = 0;
         uint64_t blockWrite = 0;
 
+        //find the start Block
+        for(int i = 0; i < BlockStart; i++){
+            Fs->GetBlockData(WriteBlock, Block);
+
+            WriteBlock = ((BlockHeader*)Block)->NextBlock;
+
+            if(WriteBlock == 0){
+                return 0; //end of file before end of read
+            }
+        }
+
+        for(int i = 0; i < BlockCount; i++){
+            bytesToWrite = size - bytesWrite;
+            if(bytesToWrite > Fs->KFSPartitionInfo->BlockSize){
+                bytesToWrite = Fs->KFSPartitionInfo->BlockSize;
+            }
+
+            Fs->SetBlockData(WriteBlock, Block);
+
+            WriteBlock = ((BlockHeader*)Block)->NextBlock;
+
+            if(WriteBlock == 0){
+                return 0; //end of file before end of read
+            }
+
+            if(bytesWrite != 0){
+                memcpy(Block, (void*)((uint64_t)buffer + bytesWrite), bytesToWrite);
+            }else{
+                memcpy((void*)((uint64_t)Block + FirstByte), buffer, bytesToWrite); //Get the correct first byte
+            }
+
+            bytesWrite += Fs->KFSPartitionInfo->BlockSize;
+        }
     }
 }
