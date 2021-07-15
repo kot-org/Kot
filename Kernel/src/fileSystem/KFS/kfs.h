@@ -68,7 +68,6 @@ namespace FileSystem{
 
         /* userRight */
         char password[MaxPassword];
-        uint8_t userRight[MaxUserRight];
         GUID owner;
 
         /* time */
@@ -88,7 +87,6 @@ namespace FileSystem{
 
         /* userRight */
         char password[MaxPassword];
-        uint8_t userRight[MaxUserRight];
         GUID owner;
 
         /* time */

@@ -372,6 +372,7 @@ namespace AHCI{
                 FileSystem::KFS Fs = FileSystem::KFS(&partitionTest);
                 Fs.fopen("terre.txt", "r");
                 Fs.fopen("test.txt", "r");
+                //Fs.mkdir("folder", 0777);
                 Fs.flist("");
             }      
         }
