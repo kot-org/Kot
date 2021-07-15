@@ -8,8 +8,8 @@ namespace FileSystem{
         KFSPartitionInfo = (KFSinfo*)mallocK(sizeof(KFSinfo));
         while(true){
             globalPartition->Read(0, sizeof(KFSinfo), KFSPartitionInfo);
-            if(KFSPartitionInfo->IsInit.Data1 == GUIDData1 && KFSPartitionInfo->IsInit.Data2 == GUIDData2 && KFSPartitionInfo->IsInit.Data3 == GUIDData3 && KFSPartitionInfo->IsInit.Data4 == GUIDData4) break;          
             InitKFS();
+            if(KFSPartitionInfo->IsInit.Data1 == GUIDData1 && KFSPartitionInfo->IsInit.Data2 == GUIDData2 && KFSPartitionInfo->IsInit.Data3 == GUIDData3 && KFSPartitionInfo->IsInit.Data4 == GUIDData4) break;
         }     
     }
 
@@ -28,9 +28,9 @@ namespace FileSystem{
         info->BlockSize = BlockSize;
         info->bitmapSizeBlock = Divide(info->bitmapSizeByte, info->BlockSize);
         info->bitmapPosition = BlockSize;
-        info->firstBlockFree = info->bitmapPosition / BlockSize + info->bitmapSizeBlock;
-        info->firstBlockFile = 0;
-        info->fid = 0;
+        info->root.firstBlockForFile = info->bitmapPosition / BlockSize + info->bitmapSizeBlock;
+        info->root.firstBlockFile = 0;
+        info->root.fid = 0;
         globalPartition->Write(0, sizeof(KFSinfo), info);
 
         /* Clear Bitmap */
@@ -42,7 +42,7 @@ namespace FileSystem{
             globalPartition->Write(info->bitmapPosition + (i * info->BlockSize), info->BlockSize, FreeBitmap);
         }
         /* Lock KFSInfo */
-        for(int i = 0; i < info->firstBlockFree; i++){
+        for(int i = 0; i < info->root.firstBlockForFile; i++){
             LockBlock(i);
         }
         
@@ -54,12 +54,13 @@ namespace FileSystem{
     }   
 
 
-    uint64_t KFS::Allocate(size_t size){
+    uint64_t KFS::Allocate(size_t size, Folder* folder){
         uint64_t NumberBlockToAllocate = Divide(size, KFSPartitionInfo->BlockSize);
         uint64_t BlockAllocate = 0;
         uint64_t FirstBlocAllocated = 0;
-        uint64_t LastBlock = 0;
         uint64_t NextBlock = 0;
+        uint64_t lastBlockRequested = KFSPartitionInfo->root.lastBlockAllocated;
+        if(folder != NULL) lastBlockRequested = folder->folderInfo->lastBlockRequested;
         void* Block = mallocK(KFSPartitionInfo->BlockSize);
         void* BlockLast = mallocK(KFSPartitionInfo->BlockSize);
 
@@ -74,20 +75,29 @@ namespace FileSystem{
 
                 GetBlockData(BlockRequested, Block);
                 BlockHeader* blockHeader = (BlockHeader*)Block;
-                blockHeader->LastBlock = LastBlock;
+                blockHeader->LastBlock = lastBlockRequested;
                 blockHeader->NextBlock = 0;
-
-                if(LastBlock != 0){
-                    GetBlockData(LastBlock, BlockLast);
+                if(lastBlockRequested != 0){
+                    GetBlockData(lastBlockRequested, BlockLast);
                     BlockHeader* blockHeaderLast = (BlockHeader*)BlockLast;
                     blockHeaderLast->NextBlock = BlockRequested;
                     memcpy(BlockLast, blockHeaderLast, sizeof(BlockHeader));
-                    SetBlockData(LastBlock, BlockLast);
+                    SetBlockData(lastBlockRequested, BlockLast);
                 }
                 
                 memcpy(Block, blockHeader, sizeof(BlockHeader));
                 SetBlockData(BlockRequested, Block);
-                LastBlock = BlockRequested;
+                lastBlockRequested = BlockRequested;
+
+                /* Update lastblock requested */
+                if(folder == NULL){
+                    KFSPartitionInfo->root.lastBlockAllocated = lastBlockRequested;
+                    UpdatePartitionInfo();
+                }else{
+                    folder->folderInfo->lastBlockRequested = lastBlockRequested;
+                    UpdateFolderInfo(folder);
+                }
+                 
             }else{
                 break;
             }
@@ -194,6 +204,104 @@ namespace FileSystem{
 
     }
 
+    void KFS::flist(char* filePath){
+        char** FoldersSlit = split(filePath, "/");
+        int count = 0;
+        for(; FoldersSlit[count] != 0; count++);
+        count--;
+
+        
+
+        if(KFSPartitionInfo->root.firstBlockFile == 0){
+            printf("The disk is empty");
+            return;
+        }
+
+        void* Block = mallocK(KFSPartitionInfo->BlockSize);
+        uint64_t ScanBlock = KFSPartitionInfo->root.firstBlockFile;
+        BlockHeader* ScanBlockHeader;
+        HeaderInfo* ScanHeader;
+
+        for(int i = 0; i <= count; i++){
+            while(true){
+                GetBlockData(ScanBlock, Block);
+                ScanBlockHeader = (BlockHeader*)Block;
+                ScanHeader = (HeaderInfo*)((uint64_t)Block + sizeof(BlockHeader));
+             
+                if(ScanHeader->IsFile){
+                    FileInfo* fileInfo = (FileInfo*)((uint64_t)Block + sizeof(BlockHeader) + sizeof(HeaderInfo));
+                    printf("File name : %s FID : %u Block : %u\n", fileInfo->name, ScanHeader->FID, ScanBlock); 
+                    globalGraphics->Update();
+                }else if(ScanHeader->FID != 0){
+                    FolderInfo* folderInfo = (FolderInfo*)((uint64_t)Block + sizeof(BlockHeader) + sizeof(HeaderInfo));
+                    printf("Folder name : %s", folderInfo->name);
+                }
+
+                ScanBlock = ScanBlockHeader->NextBlock;
+                if(ScanBlock == 0){
+                    break;
+                }
+            }
+        }
+        memset(Block, 0, sizeof(KFSPartitionInfo->BlockSize));
+        freeK((void*)Block);
+    }
+
+    uint64_t KFS::mkdir(char* filePath, uint64_t mode){
+        uint64_t BlockSize = 2;
+        uint64_t BlockSize = KFSPartitionInfo->BlockSize * BlockSize; //alloc one bloc, for the header and data
+        uint64_t blockPosition = Allocate(BlockSize, folder); 
+        if(KFSPartitionInfo->root.firstBlockFile == 0){
+            KFSPartitionInfo->root.firstBlockFile = blockPosition;
+        }
+        void* block = mallocK(KFSPartitionInfo->BlockSize);
+        GetBlockData(blockPosition, block);
+        HeaderInfo* Header = (HeaderInfo*)(void*)((uint64_t)block + sizeof(BlockHeader));
+        Header->FID = GetFID();
+        Header->IsFile = true;
+        FolderInfo* folderInfo = (FolderInfo*)(void*)((uint64_t)block + sizeof(BlockHeader) + sizeof(HeaderInfo));
+        folderInfo->firstBlockData = ((BlockHeader*)block)->NextBlock;
+        folderInfo->size = 0;
+        folderInfo->FileBlockSize = BlockSize;
+
+        for(int i = 0; i < MaxPath; i++){
+            folderInfo->path[i] = filePath[i];
+        }
+        
+
+        char** FoldersSlit = split(filePath, "/");
+        int count;
+        for(count = 0; FoldersSlit[count] != 0; count++);
+        for(int i = 0; i < MaxName; i++){
+            folderInfo->name[i] = FoldersSlit[count - 1][i];
+        }
+
+        RealTimeClock* realTimeClock;
+        folderInfo->timeInfoFS.CreateTime.seconds = realTimeClock->readSeconds();
+        folderInfo->timeInfoFS.CreateTime.minutes = realTimeClock->readMinutes();
+        folderInfo->timeInfoFS.CreateTime.hours = realTimeClock->readHours();
+        folderInfo->timeInfoFS.CreateTime.days = realTimeClock->readDay();
+        folderInfo->timeInfoFS.CreateTime.months = realTimeClock->readMonth();
+        folderInfo->timeInfoFS.CreateTime.years = realTimeClock->readYear() + 2000;
+
+        memcpy((void*)((uint64_t)block + sizeof(BlockHeader)), Header, sizeof(HeaderInfo));
+        memcpy((void*)((uint64_t)block + sizeof(BlockHeader) + sizeof(HeaderInfo)), fileInfo, sizeof(fileInfo));
+        
+        SetBlockData(blockPosition, block);
+
+        GetBlockData(blockPosition, block);
+        fileInfo = (FileInfo*)(void*)((uint64_t)block + sizeof(BlockHeader) + sizeof(HeaderInfo));
+        Header = (HeaderInfo*)(void*)((uint64_t)block + sizeof(BlockHeader));
+        
+        memset(block, 0, KFSPartitionInfo->BlockSize);
+        freeK(block);
+        return 1; //sucess
+    }
+
+    Folder* KFS::readdir(char* filePath){
+
+    }
+
     File* KFS::fopen(char* filePath, char* mode){
         char** FoldersSlit = split(filePath, "/");
         int count = 0;
@@ -202,20 +310,22 @@ namespace FileSystem{
         void* Block = mallocK(KFSPartitionInfo->BlockSize);
         char* FileName;
         char* FileNameSearch = FoldersSlit[count];
-        uint64_t ScanBlock = KFSPartitionInfo->firstBlockFile;
+        uint64_t ScanBlock = KFSPartitionInfo->root.firstBlockFile;
         BlockHeader* ScanBlockHeader;
         HeaderInfo* ScanHeader;
 
+        Folder* folder = NULL;
+
         File* returnData;
 
-        if(KFSPartitionInfo->firstBlockFile == 0 && count == 0){
+        if(KFSPartitionInfo->root.firstBlockFile == 0 && count == 0){
             returnData = (File*)mallocK(sizeof(File));
-            returnData->fileInfo = NewFile(filePath);
+            returnData->fileInfo = NewFile(filePath, folder);
             returnData->mode = mode;
             memset(Block, 0, sizeof(KFSPartitionInfo->BlockSize));
             freeK((void*)Block);
             return returnData;
-        }else if(KFSPartitionInfo->firstBlockFile == 0 && count != 0){
+        }else if(KFSPartitionInfo->root.firstBlockFile == 0 && count != 0){
             memset(Block, 0, sizeof(KFSPartitionInfo->BlockSize));
             freeK((void*)Block);
             return NULL;
@@ -237,9 +347,13 @@ namespace FileSystem{
                         returnData = (File*)mallocK(sizeof(File));
                         returnData->fileInfo = fileInfo;
                         returnData->mode = mode;
+                        returnData->Fs = this;
+                        if(folder != NULL){
+                            memset(folder, 0, sizeof(Folder));
+                            freeK((void*)folder);
+                        }
                         memset(Block, 0, KFSPartitionInfo->BlockSize);
                         freeK((void*)Block);
-                        printf("File found : %s", FileNameSearch);
                         return returnData;
                     }
                 }else if(ScanHeader->FID != 0){
@@ -250,7 +364,8 @@ namespace FileSystem{
                     }
 
                     if(FileName == FoldersSlit[i]){
-                        ScanBlock = folderInfo->firstBlock;
+                        ScanBlock = folderInfo->firstBlockData;
+                        folder = (Folder*)mallocK(sizeof(Folder));
                     }
                 }
                 if(FileName == FoldersSlit[i]) break;
@@ -259,10 +374,13 @@ namespace FileSystem{
                 if(ScanBlock == 0){
                     returnData = NULL;
                     if(i == count){
-                        printf("ok");
                         returnData = (File*)mallocK(sizeof(File));
-                        returnData->fileInfo = NewFile(filePath);
+                        returnData->fileInfo = NewFile(filePath, folder);
                         returnData->mode = mode;
+                        if(folder != NULL){
+                            memset(folder, 0, sizeof(Folder));
+                            freeK((void*)folder);
+                        }
                         memset(Block, 0, sizeof(KFSPartitionInfo->BlockSize));
                         freeK((void*)Block);
                         return returnData;
@@ -273,17 +391,22 @@ namespace FileSystem{
             }            
         } 
 
+        if(folder != NULL){
+            memset(folder, 0, sizeof(Folder));
+            freeK((void*)folder);
+        }
         memset(Block, 0, sizeof(KFSPartitionInfo->BlockSize));
         freeK((void*)Block);
         return returnData;
     }
 
-    FileInfo* KFS::NewFile(char* filePath){
+    FileInfo* KFS::NewFile(char* filePath, Folder* folder){
         printf("New file: %s\n", filePath);
-        uint64_t FileBlockSize = KFSPartitionInfo->BlockSize; //alloc two bloc, one for the struct and other for the data
-        uint64_t blockPosition = Allocate(FileBlockSize); 
-        if(KFSPartitionInfo->firstBlockFile == 0){
-            KFSPartitionInfo->firstBlockFile = blockPosition;
+        uint64_t BlockSize = 2;
+        uint64_t FileBlockSize = KFSPartitionInfo->BlockSize * BlockSize; //alloc one bloc, for the header and data
+        uint64_t blockPosition = Allocate(FileBlockSize, folder); 
+        if(KFSPartitionInfo->root.firstBlockFile == 0){
+            KFSPartitionInfo->root.firstBlockFile = blockPosition;
         }
         void* block = mallocK(KFSPartitionInfo->BlockSize);
         GetBlockData(blockPosition, block);
@@ -293,7 +416,7 @@ namespace FileSystem{
         FileInfo* fileInfo = (FileInfo*)(void*)((uint64_t)block + sizeof(BlockHeader) + sizeof(HeaderInfo));
         fileInfo->firstBlock = ((BlockHeader*)block)->NextBlock;
         fileInfo->size = 0;
-        fileInfo->FileBlockSize = FileBlockSize;
+        fileInfo->FileBlockSize = BlockSize;
 
         for(int i = 0; i < MaxPath; i++){
             fileInfo->path[i] = filePath[i];
@@ -330,12 +453,16 @@ namespace FileSystem{
     }
 
     uint64_t KFS::GetFID(){
-        KFSPartitionInfo->fid++;
+        KFSPartitionInfo->root.fid++;
         while(!UpdatePartitionInfo());
-        return KFSPartitionInfo->fid;
+        return KFSPartitionInfo->root.fid;
     }
 
     bool KFS::UpdatePartitionInfo(){
         return globalPartition->Write(0, sizeof(KFSinfo), KFSPartitionInfo);
+    }
+
+    void KFS::UpdateFolderInfo(Folder* folder){
+        SetBlockData(folder->folderInfo->BlockHeader, folder->folderInfo);
     }
 }

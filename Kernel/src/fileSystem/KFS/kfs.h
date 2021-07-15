@@ -21,6 +21,13 @@ namespace FileSystem{
     #define GUIDData3 0x2A53
     #define GUIDData4 0xF38D3D321F6D 
 
+    struct Root{
+        char        name[MaxName];
+        uint64_t    firstBlockForFile;
+        uint64_t    firstBlockFile;
+        uint64_t    fid;
+        uint64_t    lastBlockAllocated;
+    }__attribute__((packed));
 
     struct KFSinfo{
         size_t      bitmapSizeByte;
@@ -28,11 +35,11 @@ namespace FileSystem{
         uint64_t    bitmapPosition;
         size_t      BlockSize;
         size_t      numberOfBlock;
-        uint64_t    firstBlockFree;
-        uint64_t    firstBlockFile;
-        uint64_t    fid;
+        Root        root;
         GUID        IsInit;
     }__attribute__((packed));
+
+
 
     struct BlockHeader{
         uint64_t LastBlock;
@@ -48,13 +55,14 @@ namespace FileSystem{
         uint64_t FID = 0;
         uint64_t ParentLocationBlock = 0; //location of the parent's header
         bool IsFile = false;
+        uint64_t Version = 0;
     }__attribute__((packed));
 
     struct FileInfo{
         /* location info */
         uint64_t firstBlock;
         size_t size;  
-        size_t FileBlockSize; 
+        size_t FileBlockSize; //number of block 
         char path[MaxPath];
         char name[MaxName];
 
@@ -65,17 +73,16 @@ namespace FileSystem{
 
         /* time */
         TimeInfoFS timeInfoFS;
-
-        /* File data */
-        BlockHeader blockHeader; 
 
     }__attribute__((packed));
 
     struct FolderInfo{
         /* location info */
-        uint64_t firstBlock;
+        uint64_t BlockHeader;
+        uint64_t firstBlockData;
         uint64_t numberFiles;
-        size_t size;           
+        size_t size;   
+        size_t FileBlockSize; //number of block 
         char path[MaxPath];
         char name[MaxName];
 
@@ -86,6 +93,9 @@ namespace FileSystem{
 
         /* time */
         TimeInfoFS timeInfoFS;
+
+        uint64_t lastBlockRequested;
+        uint64_t mode;
 
     }__attribute__((packed));
 
@@ -94,13 +104,24 @@ namespace FileSystem{
         GUID* UniquePartitionGUID;
     };
 
+    class KFS;
+    class File;
+    class Folder;
+
     class File{
         public:
+            KFS* Fs;
             void Read();
             void Write(size_t size, void* buffer);
             FileInfo* fileInfo;
             char* mode;
     };
+
+    class Folder{
+        public:
+            KFS* Fs;
+            FolderInfo* folderInfo;
+    }; 
 
     class KFS{
         public:
@@ -111,7 +132,7 @@ namespace FileSystem{
             File* OpenFile(char* filePath);                        
             void Close(File* file);
 
-            uint64_t Allocate(size_t size);
+            uint64_t Allocate(size_t size, Folder* folder);
             void Free(uint64_t Block, bool DeleteData);
             uint64_t RequestBlock();
             void LockBlock(uint64_t Block);  
@@ -120,15 +141,19 @@ namespace FileSystem{
             void GetBlockData(uint64_t Block, void* buffer);
             void SetBlockData(uint64_t Block, void* buffer);
 
-            File* fopen(char *filename, char *mode);
-            FileInfo* NewFile(char* filePath);
+            uint64_t mkdir(char* filePath, uint64_t mode);
+            Folder* readdir(char* filePath);
+
+            void flist(char *filename);
+
+            File* fopen(char *filename, char *mode);            
+            FileInfo* NewFile(char* filePath, Folder* folder);
             FolderInfo* OpenFolderInFolder(GPT::Partition* Partition, FolderInfo* FolderOpened, char* FolderName); 
             uint64_t GetFID();
             bool UpdatePartitionInfo();
+            void UpdateFolderInfo(Folder* folder);
 
-        private:
             GPT::Partition* globalPartition;
             KFSinfo* KFSPartitionInfo;
-    };  
-
+    }; 
 }
