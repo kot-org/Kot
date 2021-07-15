@@ -54,12 +54,17 @@ namespace FileSystem{
     }   
 
 
-    uint64_t KFS::Allocate(size_t size, Folder* folder){
+    AllocatePartition* KFS::Allocate(size_t size, Folder* folder, uint64_t lastBlockRequested){
         uint64_t NumberBlockToAllocate = Divide(size, KFSPartitionInfo->BlockSize);
         uint64_t BlockAllocate = 0;
         uint64_t FirstBlocAllocated = 0;
         uint64_t NextBlock = 0;
-        uint64_t lastBlockRequested = KFSPartitionInfo->root.lastBlockAllocated;
+        if(lastBlockRequested == 0){
+            lastBlockRequested = KFSPartitionInfo->root.lastBlockAllocated;
+        }        
+
+        AllocatePartition allocatePartition;
+
         if(folder != NULL) lastBlockRequested = folder->folderInfo->lastBlockRequested;
         void* Block = mallocK(KFSPartitionInfo->BlockSize);
         void* BlockLast = mallocK(KFSPartitionInfo->BlockSize);
@@ -87,30 +92,36 @@ namespace FileSystem{
                 
                 memcpy(Block, blockHeader, sizeof(BlockHeader));
                 SetBlockData(BlockRequested, Block);
-                lastBlockRequested = BlockRequested;
-
-                /* Update lastblock requested */
-                if(folder == NULL){
-                    KFSPartitionInfo->root.lastBlockAllocated = lastBlockRequested;
-                    UpdatePartitionInfo();
-                }else{
-                    folder->folderInfo->lastBlockRequested = lastBlockRequested;
-                    UpdateFolderInfo(folder);
-                }
-                 
+                lastBlockRequested = BlockRequested;                 
             }else{
                 break;
             }
         }
         if(BlockAllocate < NumberBlockToAllocate && BlockAllocate > 0){
             Free(FirstBlocAllocated, true);
+            memset(Block, 0, KFSPartitionInfo->BlockSize);
+            memset(BlockLast, 0, KFSPartitionInfo->BlockSize);
+            freeK(Block);
+            freeK(BlockLast);
+            return 0;
+        }
+
+        /* Update lastblock requested */
+        if(folder == NULL){
+            KFSPartitionInfo->root.lastBlockAllocated = FirstBlocAllocated;
+            UpdatePartitionInfo();
+        }else{
+            folder->folderInfo->lastBlockRequested = FirstBlocAllocated;
+            UpdateFolderInfo(folder);
         }
 
         memset(Block, 0, KFSPartitionInfo->BlockSize);
         memset(BlockLast, 0, KFSPartitionInfo->BlockSize);
         freeK(Block);
         freeK(BlockLast);
-        return FirstBlocAllocated;
+        allocatePartition.FirstBlock = FirstBlocAllocated; 
+        allocatePartition.LastBlock = lastBlockRequested;
+        return &allocatePartition;
     }
 
     void KFS::Free(uint64_t Block, bool DeleteData){
@@ -263,7 +274,7 @@ namespace FileSystem{
         }
         uint64_t BlockSize = 2;
         uint64_t BlockSizeFolder = KFSPartitionInfo->BlockSize * BlockSize; //alloc one bloc, for the header and data
-        uint64_t blockPosition = Allocate(BlockSizeFolder, folder); 
+        uint64_t blockPosition = Allocate(BlockSizeFolder, folder, 0)->FirstBlock; 
         if(KFSPartitionInfo->root.firstBlockFile == 0){
             KFSPartitionInfo->root.firstBlockFile = blockPosition;
         }
@@ -457,7 +468,9 @@ namespace FileSystem{
         printf("New file: %s\n", filePath);
         uint64_t BlockSize = 2;
         uint64_t FileBlockSize = KFSPartitionInfo->BlockSize * BlockSize; //alloc one bloc, for the header and data
-        uint64_t blockPosition = Allocate(FileBlockSize, folder); 
+        AllocatePartition* allocatePartition = Allocate(FileBlockSize, folder, 0);
+        uint64_t BlockLastAllocate = allocatePartition->LastBlock;
+        uint64_t blockPosition = allocatePartition->FirstBlock; 
         if(KFSPartitionInfo->root.firstBlockFile == 0){
             KFSPartitionInfo->root.firstBlockFile = blockPosition;
         }
@@ -466,10 +479,14 @@ namespace FileSystem{
         HeaderInfo* Header = (HeaderInfo*)(void*)((uint64_t)block + sizeof(BlockHeader));
         Header->FID = GetFID();
         Header->IsFile = true;
+        Header->ParentLocationBlock = folder->folderInfo->BlockHeader;
         FileInfo* fileInfo = (FileInfo*)(void*)((uint64_t)block + sizeof(BlockHeader) + sizeof(HeaderInfo));
-        fileInfo->firstBlock = ((BlockHeader*)block)->NextBlock;
+        fileInfo->BlockHeader = blockPosition;
+        fileInfo->firstBlockData = ((BlockHeader*)block)->NextBlock;
         fileInfo->size = 0;
         fileInfo->FileBlockSize = BlockSize;
+        fileInfo->FileBlockData = BlockSize - 1; //the header use 1 block
+        fileInfo->lastBlock = BlockLastAllocate;
 
         for(int i = 0; i < MaxPath; i++){
             fileInfo->path[i] = filePath[i];
@@ -513,5 +530,99 @@ namespace FileSystem{
 
     void KFS::UpdateFolderInfo(Folder* folder){
         SetBlockData(folder->folderInfo->BlockHeader, folder->folderInfo);
+    }
+
+    void KFS::UpdateFileInfo(File* file){
+        SetBlockData(file->fileInfo->BlockHeader, file->fileInfo);
+    }
+
+    uint64_t File::Read(uint64_t start, size_t size, void* buffer){
+        void* Block = mallocK(Fs->KFSPartitionInfo->BlockSize);
+
+        uint64_t BlockStart = start / Fs->KFSPartitionInfo->BlockSize;
+        uint64_t BlockCount = Divide(start, Fs->KFSPartitionInfo->BlockSize);
+        
+        uint64_t FirstByte = start % Fs->KFSPartitionInfo->BlockSize;
+        uint64_t ReadBlock = fileInfo->firstBlockData;
+        uint64_t bytesRead = 0;
+        uint64_t bytesToRead = 0;
+        uint64_t blockRead = 0;
+
+        //find the start Block
+        for(int i = 0; i < BlockStart; i++){
+            Fs->GetBlockData(ReadBlock, Block);
+
+            ReadBlock = ((BlockHeader*)Block)->NextBlock;
+
+            if(ReadBlock == 0){
+                return 0; //end of file before end of read
+            }
+        }
+
+        for(int i = 0; i < BlockCount; i++){
+            bytesToRead = size - bytesRead;
+            if(bytesToRead > Fs->KFSPartitionInfo->BlockSize){
+                bytesToRead = Fs->KFSPartitionInfo->BlockSize;
+            }
+
+            Fs->GetBlockData(ReadBlock, Block);
+
+            ReadBlock = ((BlockHeader*)Block)->NextBlock;
+            memcpy(buffer, Block, Fs->KFSPartitionInfo->BlockSize);
+
+            if(ReadBlock == 0){
+                return 0; //end of file before end of read
+            }
+
+            if(bytesRead != 0){
+                memcpy((void*)((uint64_t)buffer + bytesRead), Block, bytesToRead);
+            }else{
+                memcpy(buffer, (void*)((uint64_t)Block + FirstByte), bytesToRead); //Get the correct first byte
+            }
+
+            bytesRead += Fs->KFSPartitionInfo->BlockSize;
+        }
+
+        memset(Block, 0, Fs->KFSPartitionInfo->BlockSize);
+        freeK(Block);
+
+        if(BlockStart + BlockCount > fileInfo->FileBlockSize){
+            return 2; //size too big
+        }
+    }
+
+    uint64_t File::Write(uint64_t start, size_t size, void* buffer){
+        //let's check if we need to enlarge the file or shrink it
+        void* Block = mallocK(Fs->KFSPartitionInfo->BlockSize);
+
+        uint64_t BlockStart = start / Fs->KFSPartitionInfo->BlockSize;
+        uint64_t BlockCount = Divide(start, Fs->KFSPartitionInfo->BlockSize);
+        uint64_t BlockTotal = BlockStart + BlockCount;
+
+        if(BlockTotal != fileInfo->FileBlockData){
+            if(BlockTotal > fileInfo->FileBlockData){
+                size_t NewSize = BlockTotal * Fs->KFSPartitionInfo->BlockSize;
+                //Aloc new blocks
+                fileInfo->lastBlock = Fs->Allocate(NewSize, NULL, fileInfo->lastBlock)->LastBlock;
+                fileInfo->size = NewSize;
+                fileInfo->FileBlockData = BlockTotal;
+                fileInfo->FileBlockSize = BlockTotal + 1;
+                Fs->UpdateFileInfo(this);
+            }else{
+                size_t NewSize = BlockTotal * Fs->KFSPartitionInfo->BlockSize;
+                //Free last block
+                Fs->Free(fileInfo->firstBlockData + BlockTotal, true);
+                fileInfo->size = NewSize;
+                fileInfo->FileBlockData = BlockTotal;
+                fileInfo->FileBlockSize = BlockTotal + 1;
+                Fs->UpdateFileInfo(this);
+            }
+        }
+
+        uint64_t ReadBlock = fileInfo->firstBlockData;
+        uint64_t bytesWrite = 0;
+        uint64_t bytesToWrite = 0;
+        uint64_t blockWrite = 0;
+
     }
 }
