@@ -18,5 +18,6 @@
         "initializer_list": "cpp",
         "algorithm": "cpp",
         "atomic": "cpp"
-    }
+    },
+    "C_Cpp.errorSquiggles": "Disabled"
 }

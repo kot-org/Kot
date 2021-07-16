@@ -13,6 +13,7 @@ class PageTableManager {
     PageTableManager(PageTable* PML4Address);
     PageTable* PML4;
     void MapMemory(void* virtualMemory, void* physicalMemory);
+    void UnmapMememory(void* virtualMemory);
     void MapUserspaceMemory(void* virtualMemory);
     void GetIndexes(void* address, PageLevelIndexes* out);
 };

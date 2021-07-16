@@ -6,7 +6,9 @@ void* heapStart;
 void* heapEnd;
 HeapSegmentHeader* LastHdr;
 
-void volatile InitializeHeap(void* heapAddress, size_t pageCount){
+//Heap globalHeap;
+
+void InitializeHeap(void* heapAddress, size_t pageCount){
     void* pos = heapAddress;
 
     for (size_t i = 0; i < pageCount; i++){
@@ -26,14 +28,18 @@ void volatile InitializeHeap(void* heapAddress, size_t pageCount){
     LastHdr = startSeg;
 }
 
-void volatile freeK(void* address){
+void freeK(void* address){
     HeapSegmentHeader* segment = (HeapSegmentHeader*)address - 1;
     segment->free = true;
     segment->CombineForward();
     segment->CombineBackward();
+
+    uint64_t length = segment->length;
+
+    memset(address, 0, length);
 }
 
-void* volatile realloc(void* buffer, size_t size, uint64_t ajustement){
+void* realloc(void* buffer, size_t size, uint64_t ajustement){
     void* newBuffer = mallocK(size);
     if(ajustement >= 0){
         memcpy(newBuffer, (void*)((uint64_t)buffer + ajustement), size - ajustement);
@@ -45,7 +51,7 @@ void* volatile realloc(void* buffer, size_t size, uint64_t ajustement){
     return newBuffer;
 }
 
-void* volatile mallocK(size_t size){
+void* mallocK(size_t size){
     if (size % 0x10 > 0){ // it is not a multiple of 0x10
         size -= (size % 0x10);
         size += 0x10;
@@ -69,12 +75,11 @@ void* volatile mallocK(size_t size){
         if (currentSeg->next == NULL) break;
         currentSeg = currentSeg->next;
     }
-    ExtendHeap(size);
-    
+    ExpandHeap(size);
     return mallocK(size);
 }
 
-HeapSegmentHeader* volatile HeapSegmentHeader::Split(size_t splitLength){
+HeapSegmentHeader* HeapSegmentHeader::Split(size_t splitLength){
     if (splitLength < 0x10) return NULL;
     int64_t splitSegLength = length - splitLength - (sizeof(HeapSegmentHeader));
     if (splitSegLength < 0x10) return NULL;
@@ -92,7 +97,7 @@ HeapSegmentHeader* volatile HeapSegmentHeader::Split(size_t splitLength){
     return newSplitHdr;
 }
 
-void volatile ExtendHeap(size_t length){
+void ExpandHeap(size_t length){
     if (length % 0x1000) {
         length -= length % 0x1000;
         length += 0x1000;
@@ -116,7 +121,7 @@ void volatile ExtendHeap(size_t length){
 
 }
 
-void volatile HeapSegmentHeader::CombineForward(){
+void HeapSegmentHeader::CombineForward(){
     if (next == NULL) return;
     if (!next->free) return;
 
@@ -124,12 +129,56 @@ void volatile HeapSegmentHeader::CombineForward(){
 
     if (next->next != NULL){
         next->next->last = this;
-        next = next->next;
     }
 
     length = length + next->length + sizeof(HeapSegmentHeader);
+
+    next = next->next;
 }
 
-void volatile HeapSegmentHeader::CombineBackward(){
+void HeapSegmentHeader::CombineBackward(){
     if (last != NULL && last->free) last->CombineForward();
 }
+
+/*void KInitializeHeap(void* heapAddress){
+    globalHeap.heapLast = heapAddress;
+}
+
+void* Kalloc(size_t size){
+    size += sizeof(HeapHeader);
+    uint64_t TotalSize = size;
+    if(size % 0x1000 > 0){
+        TotalSize -= size % 0x1000;
+        TotalSize += 0x1000;
+    }
+
+    uint64_t NumberOfPages = TotalSize / 0x1000;
+    void* FirstAddress;
+
+    for(int i = 0; i < NumberOfPages; i++){
+        if(i == 0){
+            ((HeapHeader*)globalHeap.heapLast)->length = TotalSize;
+            FirstAddress = (void*)((uint64_t)globalHeap.heapLast + sizeof(HeapHeader));            
+            if(heapStart == 0){
+                heapStart = globalHeap.heapLast;
+            }  
+        }
+        
+        //globalPageTableManager.MapMemory(globalHeap.heapLast, globalAllocator.RequestPage());
+        globalHeap.heapLast += 0x1000;
+    }
+
+    return FirstAddress;
+}
+
+void KFree(void* address){
+    //get heap length
+    void* BaseAddress = (void*)((uint64_t)address - sizeof(HeapHeader));
+    HeapHeader* heapHeader = (HeapHeader*)BaseAddress; 
+    uint64_t NumberOfPages = heapHeader->length / 0x1000;    
+
+    for(int i = 0; i < NumberOfPages; i++){
+        memset(BaseAddress, 0, 0x1000);
+        globalPageTableManager.UnmapMememory(BaseAddress);        
+    }
+}*/
