@@ -65,8 +65,6 @@ namespace FileSystem{
             lastBlockRequested = KFSPartitionInfo->root.lastBlockAllocated;
         }        
 
-        AllocatePartition allocatePartition;
-
         if(folder != NULL) lastBlockRequested = folder->folderInfo->lastBlockRequested;
         void* Block = mallocK(KFSPartitionInfo->BlockSize);
         void* BlockLast = mallocK(KFSPartitionInfo->BlockSize);
@@ -103,7 +101,7 @@ namespace FileSystem{
             Free(FirstBlocAllocated, true);
             freeK(Block);
             freeK(BlockLast);
-            return 0;
+            return NULL;
         }
 
         /* Update lastblock requested */
@@ -114,12 +112,13 @@ namespace FileSystem{
             folder->folderInfo->lastBlockRequested = FirstBlocAllocated;
             UpdateFolderInfo(folder);
         }
-        printf("oks");
+
         freeK(Block);
         freeK(BlockLast);
-        allocatePartition.FirstBlock = FirstBlocAllocated; 
-        allocatePartition.LastBlock = lastBlockRequested;
-        return &allocatePartition;
+        AllocatePartition* allocatePartition = (AllocatePartition*)mallocK(sizeof(AllocatePartition));
+        allocatePartition->FirstBlock = FirstBlocAllocated; 
+        allocatePartition->LastBlock = lastBlockRequested;
+        return allocatePartition;
     }
 
     void KFS::Free(uint64_t Block, bool DeleteData){
@@ -379,7 +378,6 @@ namespace FileSystem{
             return NULL;
         }
 
-
         for(int i = 0; i <= count; i++){
             while(true){
                 GetBlockData(ScanBlock, Block);
@@ -421,9 +419,6 @@ namespace FileSystem{
                     }
                 }
 
-                printf("%u", ScanBlock);
-                globalGraphics->Update();
-
                 ScanBlock = ScanBlockHeader->NextBlock;
                 if(ScanBlock == 0){
                     returnData = NULL;
@@ -432,6 +427,7 @@ namespace FileSystem{
                         returnData = (File*)mallocK(sizeof(File));
                         returnData->fileInfo = NewFile(filePath, folder);
                         returnData->mode = mode;
+                        returnData->Fs = this;
 
                         if(folder != NULL){
                             freeK((void*)folder);
@@ -459,6 +455,7 @@ namespace FileSystem{
         AllocatePartition* allocatePartition = Allocate(FileBlockSize, folder, 0);
         uint64_t BlockLastAllocate = allocatePartition->LastBlock;
         uint64_t blockPosition = allocatePartition->FirstBlock; 
+        freeK(allocatePartition);
         if(KFSPartitionInfo->root.firstBlockFile == 0){
             KFSPartitionInfo->root.firstBlockFile = blockPosition;
         }
@@ -577,7 +574,6 @@ namespace FileSystem{
     uint64_t File::Write(uint64_t start, size_t size, void* buffer){
         //let's check if we need to enlarge the file or shrink it
         void* Block = mallocK(Fs->KFSPartitionInfo->BlockSize);
-
         uint64_t BlockStart = start / Fs->KFSPartitionInfo->BlockSize;
         uint64_t BlockCount = Divide(start, Fs->KFSPartitionInfo->BlockSize);
         uint64_t BlockTotal = BlockStart + BlockCount;
@@ -641,5 +637,8 @@ namespace FileSystem{
 
             bytesWrite += Fs->KFSPartitionInfo->BlockSize;
         }
+
+        freeK(Block);
+        return 1;
     }
 }
