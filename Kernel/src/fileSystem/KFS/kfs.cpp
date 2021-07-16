@@ -512,8 +512,8 @@ namespace FileSystem{
         SetBlockData(folder->folderInfo->BlockHeader, folder->folderInfo);
     }
 
-    void KFS::UpdateFileInfo(File* file){
-        SetBlockData(file->fileInfo->BlockHeader, file->fileInfo);
+    void KFS::UpdateFileInfo(FileInfo* fileInfo){
+        SetBlockData(fileInfo->BlockHeader, fileInfo);
     }
 
     uint64_t KFS::File::Read(uint64_t start, size_t size, void* buffer){
@@ -588,7 +588,7 @@ namespace FileSystem{
                 fileInfo->size = NewSize;
                 fileInfo->FileBlockData = BlockTotal;
                 fileInfo->FileBlockSize = BlockTotal + 1;
-                UpdateFileInfo(this);
+                KFSStatic.KFS::UpdateFileInfo(fileInfo);
             }else{
                 size_t NewSize = BlockTotal * KFS::KFSPartitionInfo->BlockSize - sizeof(BlockHeader);
                 //Free last block
@@ -596,7 +596,7 @@ namespace FileSystem{
                 fileInfo->size = NewSize;
                 fileInfo->FileBlockData = BlockTotal;
                 fileInfo->FileBlockSize = BlockTotal + 1;
-                UpdateFileInfo(this);
+                KFSStatic.KFS::UpdateFileInfo(fileInfo);
             }
         }
 
