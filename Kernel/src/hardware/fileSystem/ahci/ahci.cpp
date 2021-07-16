@@ -370,13 +370,13 @@ namespace AHCI{
 
                 GPT::Partition partitionTest = GPT::Partition(port, GPT::GetPartitionByGUID(port, GPT::GetDataGUIDPartitionType()));
                 FileSystem::KFS Fs = FileSystem::KFS(&partitionTest);
-                Fs.fopen("terre.txt", "r");
-                FileSystem::File* file = Fs.fopen("test.txt", "r");
+                FileSystem::File* file = Fs.fopen("terre.txt", "r");
+                Fs.fopen("test.txt", "r");
                 void* buf = mallocK(0x10);
                 memset(buf, 'c', 0x10);              
                 file->Write(0, 0x10, buf);
                 memset(buf, 'b', 0x10);   
-                file->Read(0, 0x10, buf);
+                //file->Read(0, 0x10, buf);
                 for(int i = 0; i < 0x10; i++){
                     printf("%c", *(uint8_t*)((uint64_t)buf + i));
                 }

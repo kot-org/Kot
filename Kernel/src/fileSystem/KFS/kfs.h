@@ -111,27 +111,18 @@ namespace FileSystem{
         GUID* UniquePartitionGUID;
     };
 
-    class KFS;
-    class File;
-    class Folder;
-
-    class File{
-        public:
-            KFS* Fs;
-            uint64_t Read(uint64_t start, size_t size, void* buffer);
-            uint64_t Write(uint64_t start, size_t size, void* buffer);
-            FileInfo* fileInfo;
-            char* mode;
-    };
-
-    class Folder{
-        public:
-            KFS* Fs;
-            FolderInfo* folderInfo;
-    }; 
-
     class KFS{
         public:
+            struct File{
+                uint64_t Read(uint64_t start, size_t size, void* buffer);
+                uint64_t Write(uint64_t start, size_t size, void* buffer);
+                FileInfo* fileInfo;
+                char* mode;
+            };
+            struct Folder{
+                FolderInfo* folderInfo;
+            };
+
             KFS(GPT::Partition* partition);
 
             void InitKFS();
@@ -162,6 +153,7 @@ namespace FileSystem{
             void UpdateFileInfo(File* file);
 
             GPT::Partition* globalPartition;
-            KFSinfo* KFSPartitionInfo;
-    }; 
+            static KFSinfo* KFSPartitionInfo;
+            static KFS KFSStatic;
+    }__attribute__((packed)); 
 }

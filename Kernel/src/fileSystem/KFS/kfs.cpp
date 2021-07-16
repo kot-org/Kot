@@ -83,7 +83,7 @@ namespace FileSystem{
                 blockHeader->LastBlock = lastBlockRequested;
                 blockHeader->NextBlock = 0;
                 if(lastBlockRequested != 0){
-                    GetBlockData(lastBlockRequested, BlockLast);
+                    KFS::GetBlockData(lastBlockRequested, BlockLast);
                     BlockHeader* blockHeaderLast = (BlockHeader*)BlockLast;
                     blockHeaderLast->NextBlock = BlockRequested;
                     memcpy(BlockLast, blockHeaderLast, sizeof(BlockHeader));
@@ -126,7 +126,7 @@ namespace FileSystem{
         BlockHeader* blockHeaderToDelete = (BlockHeader*)mallocK(sizeof(BlockHeader));
         void* BlankBuffer = mallocK(KFSPartitionInfo->BlockSize);
         while(true){
-            GetBlockData(NextBlocToDelete, blockHeaderToDelete);                
+            KFS::GetBlockData(NextBlocToDelete, blockHeaderToDelete);                
             uint64_t temp = NextBlocToDelete;
             NextBlocToDelete = blockHeaderToDelete->NextBlock;
             if(DeleteData){
@@ -205,7 +205,7 @@ namespace FileSystem{
     }
 
     void KFS::Close(File* file){
-
+        freeK(file);
     }
 
     void KFS::flist(char* filePath){
@@ -228,7 +228,7 @@ namespace FileSystem{
 
         for(int i = 0; i <= count; i++){
             while(true){
-                GetBlockData(ScanBlock, Block);
+                KFS::GetBlockData(ScanBlock, Block);
                 ScanBlockHeader = (BlockHeader*)Block;
                 ScanHeader = (HeaderInfo*)((uint64_t)Block + sizeof(BlockHeader));
              
@@ -271,7 +271,7 @@ namespace FileSystem{
             KFSPartitionInfo->root.firstBlockFile = blockPosition;
         }
         void* block = mallocK(KFSPartitionInfo->BlockSize);
-        GetBlockData(blockPosition, block);
+        KFSStatic.KFS::GetBlockData(blockPosition, block);
         HeaderInfo* Header = (HeaderInfo*)(void*)((uint64_t)block + sizeof(BlockHeader));
         Header->FID = GetFID();
         Header->IsFile = true;
@@ -307,7 +307,7 @@ namespace FileSystem{
         return 1; //sucess
     }
 
-    Folder* KFS::readdir(char* filePath){
+    KFS::Folder* KFS::readdir(char* filePath){
         char** FoldersSlit = split(filePath, "/");
         int count = 0;
         for(; FoldersSlit[count] != 0; count++);
@@ -327,7 +327,7 @@ namespace FileSystem{
 
         for(int i = 0; i <= count; i++){
             while(true){
-                GetBlockData(ScanBlock, Block);
+                KFS::GetBlockData(ScanBlock, Block);
                 ScanBlockHeader = (BlockHeader*)Block;
                 ScanHeader = (HeaderInfo*)((uint64_t)Block + sizeof(BlockHeader));
              
@@ -351,7 +351,7 @@ namespace FileSystem{
         return folder;
     }
 
-    File* KFS::fopen(char* filePath, char* mode){
+    KFS::File* KFS::fopen(char* filePath, char* mode){
         char** FoldersSlit = split(filePath, "/");
         int count = 0;
         for(; FoldersSlit[count] != 0; count++);
@@ -380,7 +380,7 @@ namespace FileSystem{
 
         for(int i = 0; i <= count; i++){
             while(true){
-                GetBlockData(ScanBlock, Block);
+                KFSStatic.KFS::GetBlockData(ScanBlock, Block);
                 ScanBlockHeader = (BlockHeader*)Block;
                 ScanHeader = (HeaderInfo*)((uint64_t)Block + sizeof(BlockHeader));
              
@@ -396,7 +396,6 @@ namespace FileSystem{
                         returnData = (File*)mallocK(sizeof(File));
                         returnData->fileInfo = fileInfo;
                         returnData->mode = mode;
-                        returnData->Fs = this;
                         if(folder != NULL){
                             freeK((void*)folder);
                         }
@@ -427,7 +426,6 @@ namespace FileSystem{
                         returnData = (File*)mallocK(sizeof(File));
                         returnData->fileInfo = NewFile(filePath, folder);
                         returnData->mode = mode;
-                        returnData->Fs = this;
 
                         if(folder != NULL){
                             freeK((void*)folder);
@@ -518,13 +516,13 @@ namespace FileSystem{
         SetBlockData(file->fileInfo->BlockHeader, file->fileInfo);
     }
 
-    uint64_t File::Read(uint64_t start, size_t size, void* buffer){
-        void* Block = mallocK(Fs->KFSPartitionInfo->BlockSize);
+    uint64_t KFS::File::Read(uint64_t start, size_t size, void* buffer){
+        void* Block = mallocK(KFS::KFSPartitionInfo->BlockSize);
 
-        uint64_t BlockStart = start / Fs->KFSPartitionInfo->BlockSize;
-        uint64_t BlockCount = Divide(start, Fs->KFSPartitionInfo->BlockSize);
+        uint64_t BlockStart = start / KFS::KFSPartitionInfo->BlockSize;
+        uint64_t BlockCount = Divide(size, KFS::KFSPartitionInfo->BlockSize - sizeof(BlockHeader));
         
-        uint64_t FirstByte = start % Fs->KFSPartitionInfo->BlockSize;
+        uint64_t FirstByte = start % KFS::KFSPartitionInfo->BlockSize;
         uint64_t ReadBlock = fileInfo->firstBlockData;
         uint64_t bytesRead = 0;
         uint64_t bytesToRead = 0;
@@ -532,7 +530,7 @@ namespace FileSystem{
 
         //find the start Block
         for(int i = 0; i < BlockStart; i++){
-            Fs->GetBlockData(ReadBlock, Block);
+            KFSStatic.KFS::GetBlockData(ReadBlock, Block);
 
             ReadBlock = ((BlockHeader*)Block)->NextBlock;
 
@@ -543,11 +541,12 @@ namespace FileSystem{
 
         for(int i = 0; i < BlockCount; i++){
             bytesToRead = size - bytesRead;
-            if(bytesToRead > Fs->KFSPartitionInfo->BlockSize){
-                bytesToRead = Fs->KFSPartitionInfo->BlockSize;
+            if(bytesToRead > KFS::KFSPartitionInfo->BlockSize){
+                bytesToRead = KFS::KFSPartitionInfo->BlockSize;
             }
 
-            Fs->GetBlockData(ReadBlock, Block);
+            printf("%k %u %k", 0xffffffff00, ReadBlock, 0xffffffffff);
+            KFSStatic.KFS::GetBlockData(ReadBlock, Block);
 
             ReadBlock = ((BlockHeader*)Block)->NextBlock;
 
@@ -556,12 +555,12 @@ namespace FileSystem{
             }
 
             if(bytesRead != 0){
-                memcpy((void*)((uint64_t)buffer + bytesRead), Block, bytesToRead);
+                memcpy((void*)((uint64_t)buffer + bytesRead), Block + sizeof(BlockHeader), bytesToRead);
             }else{
-                memcpy(buffer, (void*)((uint64_t)Block + FirstByte), bytesToRead); //Get the correct first byte
+                memcpy(buffer, (void*)((uint64_t)Block + sizeof(BlockHeader) + FirstByte), bytesToRead); //Get the correct first byte
             }
 
-            bytesRead += Fs->KFSPartitionInfo->BlockSize;
+            bytesRead += KFS::KFSPartitionInfo->BlockSize;
         }
 
         freeK(Block);
@@ -571,34 +570,37 @@ namespace FileSystem{
         }
     }
 
-    uint64_t File::Write(uint64_t start, size_t size, void* buffer){
+    uint64_t KFS::File::Write(uint64_t start, size_t size, void* buffer){
         //let's check if we need to enlarge the file or shrink it
-        void* Block = mallocK(Fs->KFSPartitionInfo->BlockSize);
-        uint64_t BlockStart = start / Fs->KFSPartitionInfo->BlockSize;
-        uint64_t BlockCount = Divide(start, Fs->KFSPartitionInfo->BlockSize);
+        void* Block = mallocK(KFS::KFSPartitionInfo->BlockSize);
+        printf("%u", KFS::KFSPartitionInfo->BlockSize);
+        freeK(Block);
+        return 1;
+        uint64_t BlockStart = start / KFS::KFSPartitionInfo->BlockSize - sizeof(BlockHeader);
+        uint64_t BlockCount = Divide(size, KFS::KFSPartitionInfo->BlockSize - sizeof(BlockHeader));
         uint64_t BlockTotal = BlockStart + BlockCount;
 
         if(BlockTotal != fileInfo->FileBlockData){
             if(BlockTotal > fileInfo->FileBlockData){
-                size_t NewSize = BlockTotal * Fs->KFSPartitionInfo->BlockSize;
+                size_t NewSize = BlockTotal * KFS::KFSPartitionInfo->BlockSize - sizeof(BlockHeader);
                 //Aloc new blocks
-                fileInfo->lastBlock = Fs->Allocate(NewSize, NULL, fileInfo->lastBlock)->LastBlock;
+                fileInfo->lastBlock = KFSStatic.KFS::Allocate(NewSize, NULL, fileInfo->lastBlock)->LastBlock;
                 fileInfo->size = NewSize;
                 fileInfo->FileBlockData = BlockTotal;
                 fileInfo->FileBlockSize = BlockTotal + 1;
-                Fs->UpdateFileInfo(this);
+                UpdateFileInfo(this);
             }else{
-                size_t NewSize = BlockTotal * Fs->KFSPartitionInfo->BlockSize;
+                size_t NewSize = BlockTotal * KFS::KFSPartitionInfo->BlockSize - sizeof(BlockHeader);
                 //Free last block
-                Fs->Free(fileInfo->firstBlockData + BlockTotal, true);
+                KFSStatic.KFS::Free(fileInfo->firstBlockData + BlockTotal, true);
                 fileInfo->size = NewSize;
                 fileInfo->FileBlockData = BlockTotal;
                 fileInfo->FileBlockSize = BlockTotal + 1;
-                Fs->UpdateFileInfo(this);
+                UpdateFileInfo(this);
             }
         }
 
-        uint64_t FirstByte = start % Fs->KFSPartitionInfo->BlockSize;
+        uint64_t FirstByte = start % KFS::KFSPartitionInfo->BlockSize - sizeof(BlockHeader);
         uint64_t WriteBlock = fileInfo->firstBlockData;
         uint64_t bytesWrite = 0;
         uint64_t bytesToWrite = 0;
@@ -606,7 +608,7 @@ namespace FileSystem{
 
         //find the start Block
         for(int i = 0; i < BlockStart; i++){
-            Fs->GetBlockData(WriteBlock, Block);
+            KFSStatic.KFS::GetBlockData(WriteBlock, Block);
 
             WriteBlock = ((BlockHeader*)Block)->NextBlock;
 
@@ -617,25 +619,27 @@ namespace FileSystem{
 
         for(int i = 0; i < BlockCount; i++){
             bytesToWrite = size - bytesWrite;
-            if(bytesToWrite > Fs->KFSPartitionInfo->BlockSize){
-                bytesToWrite = Fs->KFSPartitionInfo->BlockSize;
+            if(bytesToWrite > KFS::KFSPartitionInfo->BlockSize){
+                bytesToWrite = KFS::KFSPartitionInfo->BlockSize;
             }
 
-            Fs->SetBlockData(WriteBlock, Block);
+            printf("%k %u %k", 0xffffffff00, WriteBlock, 0xffffffffff);
+            KFSStatic.KFS::SetBlockData(WriteBlock, Block);
+            if(bytesWrite != 0){
+                memcpy(Block, (void*)((uint64_t)buffer + sizeof(BlockHeader) + bytesWrite), bytesToWrite);
+            }else{
+                memcpy((void*)((uint64_t)Block + sizeof(BlockHeader) + FirstByte), buffer, bytesToWrite); //Get the correct first byte
+            }
+
+            KFSStatic.KFS::GetBlockData(WriteBlock, Block);
 
             WriteBlock = ((BlockHeader*)Block)->NextBlock;
 
             if(WriteBlock == 0){
                 return 0; //end of file before end of read
-            }
+            }            
 
-            if(bytesWrite != 0){
-                memcpy(Block, (void*)((uint64_t)buffer + bytesWrite), bytesToWrite);
-            }else{
-                memcpy((void*)((uint64_t)Block + FirstByte), buffer, bytesToWrite); //Get the correct first byte
-            }
-
-            bytesWrite += Fs->KFSPartitionInfo->BlockSize;
+            bytesWrite += KFS::KFSPartitionInfo->BlockSize;
         }
 
         freeK(Block);
