@@ -33,10 +33,6 @@ void freeK(void* address){
     segment->free = true;
     segment->CombineForward();
     segment->CombineBackward();
-
-    uint64_t length = segment->length;
-
-    memset(address, 0, length);
 }
 
 void* realloc(void* buffer, size_t size, uint64_t ajustement){
@@ -129,11 +125,10 @@ void HeapSegmentHeader::CombineForward(){
 
     if (next->next != NULL){
         next->next->last = this;
+        next = next->next;
     }
 
-    length = length + next->length + sizeof(HeapSegmentHeader);
-
-    next = next->next;
+    length = length + next->length + sizeof(HeapSegmentHeader);    
 }
 
 void HeapSegmentHeader::CombineBackward(){

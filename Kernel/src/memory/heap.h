@@ -28,7 +28,7 @@ struct HeapSegmentHeader{
     void CombineForward();
     void CombineBackward();
     HeapSegmentHeader* Split(size_t splitLenght);
-};
+}__attribute__((packed));
 
 void InitializeHeap(void* heapAddress, size_t pageCount);
 
