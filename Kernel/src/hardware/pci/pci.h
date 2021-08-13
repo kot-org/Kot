@@ -1,10 +1,10 @@
 #pragma once
 
-#include <stdint.h>
-#include "../../memory/heap.h"
+#include "../../lib/types.h"
+#include "../../memory/heap/heap.h"
 #include "../acpi/acpi.h"
-#include "../../paging/pageTableManager.h"
-#include "../../graphics.h"
+#include "../../memory/paging/pageTableManager.h"
+#include "../../drivers/graphics/graphics.h"
 #include "../../lib/stdio/cstr.h"
 
 namespace PCI{
@@ -21,7 +21,7 @@ namespace PCI{
         uint8_t LatencyTimer;
         uint8_t HeaderType;
         uint8_t BIST;
-    };
+    }__attribute__((packed));
 
     struct PCIHeader0{
         PCIDeviceHeader Header;
@@ -43,7 +43,7 @@ namespace PCI{
         uint8_t IntreruptPin;
         uint8_t MinGrant;
         uint8_t MaxLatency;
-    };
+    }__attribute__((packed));
     
     void EnumeratePCI(ACPI::MCFGHeader* mcfg);
 

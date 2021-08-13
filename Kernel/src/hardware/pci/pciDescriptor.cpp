@@ -1,4 +1,4 @@
-#include <stdint.h>
+#include "../../lib/types.h"
 #include "../../lib/stdio/cstr.h"
 
 namespace PCI {

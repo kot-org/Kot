@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../efiMemory.h"
+#include "../lib/types.h"
+#include "../memory/efiMemory.h"
 #include "../hardware/acpi/acpi.h"
 
 /* font */

@@ -1,13 +1,13 @@
 #pragma once
-#include <stdint.h>
-#include "../../userspace/userspace/userspace.h"
-#include "../../paging/pageTableManager.h"
+#include "../../lib/types.h"
+#include "../../arch/x86-64/userspace/userspace/userspace.h"
+#include "../../memory/paging/pageTableManager.h"
 #include "../../hardware/apic/apic.h"
-#include "../../memory/heap.h"
+#include "../../memory/heap/heap.h"
 #include "../../lib/limits.h"
 #include "../../lib/stdio.h"
-#include "../../tss/tss.h"
-#include "../../graphics.h"
+#include "../../arch/x86-64/tss/tss.h"
+#include "../../drivers/graphics/graphics.h"
 
 typedef struct ContextStack {
     void* rax; void* rbx; void* rcx; void* rdx; void* KernelRsp; void* rsi; void* rdi; void* rbp; //push in asm
@@ -36,7 +36,7 @@ struct TaskNode{
 class TaskManager{
     public:
         void Scheduler(struct InterruptStack* Registers, uint8_t CoreID);
-        TaskNode* AddTask(void* EntryPoint, size_t Size, bool IsIddle, bool IsLinked);    
+        TaskNode* AddTask(void* EntryPoint, size_t Size, bool IsIddle, bool IsLinked, int ring);    
         TaskNode* NewNode(TaskNode* node);
         TaskNode* CreatDefaultTask(bool IsLinked);     
         void DeleteTask(TaskNode* task); 

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <stdint.h>
+#include "../../lib/types.h"
 #include "printf.h"
-#include "../../graphics.h"
-#include "../../memory/heap.h"
+#include "../../drivers/graphics/graphics.h"
+#include "../../memory/heap/heap.h"
 
 
 const char* to_string(uint64_t value);

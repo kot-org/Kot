@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../hardware/atomic/atomic.h"
-#include "../../graphics.h"
+#include "../../drivers/graphics/graphics.h"
 #include "../va_args.h"
 #include "../limits.h"
 #include "cstr.h"

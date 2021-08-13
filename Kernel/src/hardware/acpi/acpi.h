@@ -1,5 +1,7 @@
 #pragma once
-#include <stdint.h>
+#include "../../lib/types.h"
+#include "../../arch/x86-64/io/io.h"
+#include "../../memory/memory.h"
 
 namespace ACPI{
     struct RSDP2 {

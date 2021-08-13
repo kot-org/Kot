@@ -1,5 +1,5 @@
 #pragma once
-#include <stdint.h>
+#include "../lib/types.h"
 
 struct Time{
     uint8_t seconds;

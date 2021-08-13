@@ -1,8 +1,8 @@
 #pragma once
-#include <stdint.h>
 #include "../../lib/limits.h"
-#include "../../IO/IO.h"
-#include "../../graphics.h"
+#include "../../lib/types.h"
+#include "../../arch/x86-64/io/io.h"
+#include "../../drivers/graphics/graphics.h"
 #include "../../lib/stdio/cstr.h"
 
 namespace PIT {

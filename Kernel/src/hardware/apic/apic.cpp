@@ -62,7 +62,7 @@ namespace APIC{
             __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(Data->Paging)); 
 
             uint64_t StackSize = 0x1000000; // 10 mb
-            Data->Stack = (uint64_t)mallocK(StackSize) + StackSize;
+            Data->Stack = (uint64_t)malloc(StackSize) + StackSize;
                 
             if(Processor[i]->APICID == bspid) continue; 
             

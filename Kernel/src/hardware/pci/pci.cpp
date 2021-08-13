@@ -1,5 +1,4 @@
-#include "../fileSystem/ahci/ahci.h"
-#include "../../drivers/usb/uhci/uhci.h"
+#include "../../drivers/ahci/ahci.h"
 #include "pci.h"
 
 namespace PCI{
@@ -24,16 +23,6 @@ namespace PCI{
                             case 0x01: //AHCI 1.0 device
                                 new AHCI::AHCIDriver(pciDeviceHeader);
                         }
-                }
-            case 0x0C: //usb controller
-                switch (pciDeviceHeader->Subclass){
-                case 0x03:
-                    switch (pciDeviceHeader->ProgIF){
-                    case 0x00:
-                        UHCI::InitializeUHCI(pciDeviceHeader);
-                        break;
-                    }
-                    break;
                 }
         }
 

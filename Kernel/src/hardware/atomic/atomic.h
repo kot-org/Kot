@@ -1,7 +1,6 @@
 #pragma once
-#include <stdint.h>
-#include <stddef.h>
-#include "../../paging/pageFrameAllocator.h"
+#include "../../lib/types.h"
+#include "../../memory/paging/pageFrameAllocator.h"
 
 namespace Atomic{
     extern "C" bool atomicLock(uint64_t* mutex, uint64_t bit);

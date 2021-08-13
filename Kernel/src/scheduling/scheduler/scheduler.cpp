@@ -63,12 +63,12 @@ void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){
     }
 }
 
-TaskNode* TaskManager::AddTask(void* EntryPoint, size_t Size, bool IsIddle, bool IsLinked){ 
-    TaskNode* node = (TaskNode*)mallocK(sizeof(TaskNode));
+TaskNode* TaskManager::AddTask(void* EntryPoint, size_t Size, bool IsIddle, bool IsLinked, int ring){ 
+    TaskNode* node = (TaskNode*)malloc(sizeof(TaskNode));
     
     uint64_t StackSize = 0x100000; // 1 mb
 
-    node->Content.Stack = mallocK(StackSize);
+    node->Content.Stack = malloc(StackSize);
     for(int i = 0; i < (StackSize / 0x1000) + 1; i++){
         globalPageTableManager.MapUserspaceMemory((void*)((uint64_t)node->Content.Stack + i * 0x1000));
     } 
@@ -80,8 +80,8 @@ TaskNode* TaskManager::AddTask(void* EntryPoint, size_t Size, bool IsIddle, bool
 
     node->Content.EntryPoint = EntryPoint; 
     node->Content.Regs.rip = EntryPoint; 
-    node->Content.Regs.cs = (void*)GDTInfoSelectors.UCode; //user code selector
-    node->Content.Regs.ss = (void*)GDTInfoSelectors.UData; //user data selector
+    node->Content.Regs.cs = (void*)(GDTInfoSelectorsRing[ring].Code | ring); //user code selector
+    node->Content.Regs.ss = (void*)(GDTInfoSelectorsRing[ring].Data | ring); //user data selector
     node->Content.Regs.rsp = (void*)((uint64_t)node->Content.Stack + StackSize); //because the pile goes down I had not seen it ;(
     node->Content.Regs.rflags = (void*)0x202; //interrupts & syscall
     node->Content.IsIddle = IsIddle;
@@ -122,7 +122,7 @@ TaskNode* TaskManager::NewNode(TaskNode* node){
 }
 
 TaskNode* TaskManager::CreatDefaultTask(bool IsLinked){
-    TaskNode* node = globalTaskManager.AddTask((void*)IdleTask, 0x1000, true, IsLinked);
+    TaskNode* node = globalTaskManager.AddTask((void*)IdleTask, 0x1000, true, IsLinked, UserAppRing);
 }
 
 void TaskManager::DeleteTask(TaskNode* node){
@@ -164,8 +164,8 @@ void TaskManager::DeleteTask(TaskNode* node){
     last->Next = next;
     next->Last = last;
 
-    freeK((void*)node->Content.Stack);
-    freeK((void*)node);
+    free((void*)node->Content.Stack);
+    free((void*)node);
 }
 
 void TaskManager::InitScheduler(uint8_t NumberOfCores){

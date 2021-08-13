@@ -1,12 +1,11 @@
 #pragma once
-#include <stdint.h>
-#include <stdlib.h>
 
+#include "../../lib/types.h"
 #include "../../lib/lib.h"
 #include "../../lib/stdio.h"
 #include "../../lib/hash/hash.h"
-#include "../../memory/heap.h"
-#include "../../hardware/fileSystem/ahci/ahci.h"
+#include "../../memory/heap/heap.h"
+#include "../../drivers/ahci/ahci.h"
 
 
 namespace GPT{
