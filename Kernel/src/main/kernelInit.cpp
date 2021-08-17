@@ -75,10 +75,17 @@ void InitializeKernel(BootInfo* bootInfo){
     if(EnabledSSE() == 0){
         FPUInit();
     }
-    
-    free(malloc(0x10 * 4096));
-    free(malloc(0x10 * 4096));
-    while(true);
+    printf("%x", 0x0000100000000000 + 0x10 * 0x1000);
+    void* test = malloc(4096);
+    globalGraphics->Update();
+    //free(test);
+    void* test1 = malloc(0x10 * 4096);
+    printf("ok");
+    globalGraphics->Update();
+    //free(test);
+    //free(malloc(0x10 * 4096));
+    //realloc(malloc(0x10 * 4096), 4096, 0);
+    while (true);
     InitializeACPI(bootInfo);
 
     globalTaskManager.InitScheduler(APIC::ProcessorCount);

@@ -1,24 +1,24 @@
-00:00:02.051413 VirtualBox VM 6.1.22 r144080 win.amd64 (Apr 28 2021 17:23:11) release log
-00:00:02.051417 Log opened 2021-07-16T11:32:49.460323500Z
-00:00:02.051417 Build Type: release
-00:00:02.051420 OS Product: Windows 10
-00:00:02.051420 OS Release: 10.0.19043
-00:00:02.051421 OS Service Pack: 
-00:00:02.102825 DMI Product Name: MS-7C56
-00:00:02.106447 DMI Product Version: 1.0
-00:00:02.106456 Firmware type: UEFI
-00:00:02.106786 Secure Boot: VERR_PRIVILEGE_NOT_HELD
-00:00:02.106797 Host RAM: 16310MB (15.9GB) total, 6833MB (6.6GB) available
-00:00:02.106798 Executable: C:\Program Files\Oracle\VirtualBox\VirtualBoxVM.exe
-00:00:02.106799 Process ID: 2476
-00:00:02.106799 Package type: WINDOWS_64BITS_GENERIC
-00:00:02.107392 Installed Extension Packs:
-00:00:02.107777   Oracle VM VirtualBox Extension Pack (Version: 6.1.22 r144080; VRDE Module: VBoxVRDP)
-00:00:02.108254 Console: Machine state changed to 'Starting'
-00:00:02.108358 Qt version: 5.6.2
-00:00:02.109438 Console: Machine state changed to 'PoweredOff'
-00:00:02.110393 GUI: UIMediumEnumerator: Medium-enumeration finished!
-00:00:02.173024 Power up failed (vrc=VINF_SUCCESS, rc=E_FAIL (0X80004005))
-00:00:02.673570 GUI: UIMachineViewNormal::resendSizeHint: Restoring guest size-hint for screen 0 to 800x600
-00:00:02.673615 ERROR [COM]: aRC=E_ACCESSDENIED (0x80070005) aIID={4680b2de-8690-11e9-b83d-5719e53cf1de} aComponent={DisplayWrap} aText={The console is not powered up}, preserve=false aResultDetail=0
-00:00:02.673747 GUI: Aborting startup due to power up progress issue detected...
+00:00:02.161993 VirtualBox VM 6.1.22 r144080 win.amd64 (Apr 28 2021 17:23:11) release log
+00:00:02.161996 Log opened 2021-08-14T16:34:41.039751200Z
+00:00:02.161997 Build Type: release
+00:00:02.162000 OS Product: Windows 10
+00:00:02.162000 OS Release: 10.0.19043
+00:00:02.162001 OS Service Pack: 
+00:00:02.247677 DMI Product Name: MS-7C56
+00:00:02.251736 DMI Product Version: 1.0
+00:00:02.251752 Firmware type: UEFI
+00:00:02.252177 Secure Boot: VERR_PRIVILEGE_NOT_HELD
+00:00:02.252191 Host RAM: 16310MB (15.9GB) total, 5470MB (5.3GB) available
+00:00:02.252193 Executable: C:\Program Files\Oracle\VirtualBox\VirtualBoxVM.exe
+00:00:02.252195 Process ID: 33088
+00:00:02.252195 Package type: WINDOWS_64BITS_GENERIC
+00:00:02.252966 Installed Extension Packs:
+00:00:02.253352   Oracle VM VirtualBox Extension Pack (Version: 6.1.22 r144080; VRDE Module: VBoxVRDP)
+00:00:02.253954 Console: Machine state changed to 'Starting'
+00:00:02.254077 Qt version: 5.6.2
+00:00:02.255308 Console: Machine state changed to 'PoweredOff'
+00:00:02.255953 GUI: UIMediumEnumerator: Medium-enumeration finished!
+00:00:02.341357 Power up failed (vrc=VINF_SUCCESS, rc=E_FAIL (0X80004005))
+00:00:02.841278 GUI: UIMachineViewNormal::resendSizeHint: Restoring guest size-hint for screen 0 to 800x600
+00:00:02.841314 ERROR [COM]: aRC=E_ACCESSDENIED (0x80070005) aIID={4680b2de-8690-11e9-b83d-5719e53cf1de} aComponent={DisplayWrap} aText={The console is not powered up}, preserve=false aResultDetail=0
+00:00:02.841444 GUI: Aborting startup due to power up progress issue detected...

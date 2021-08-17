@@ -4,14 +4,12 @@
 
 Heap globalHeap;
 
-//Heap globalHeap;
-
-void InitializeHeap(void* heapAddress, size_t pageCount){
+void volatile InitializeHeap(void* heapAddress, size_t pageCount){
     globalHeap.heapEnd = heapAddress;
     ExpandHeap(pageCount * 0x1000);
 }
 
-void* malloc(size_t size){
+void* volatile malloc(size_t size){
     if(size % 0x10 > 0){ // it is not a multiple of 0x10
         size -= (size % 0x10);
         size += 0x10;
@@ -23,15 +21,9 @@ void* malloc(size_t size){
     while(true){
         if(currentSeg->IsFree){
             if(currentSeg->length > size){
+                printf("\n->%x %x", currentSeg->length, size);
                 // split this segment in two 
-                SegmentHeader* newSegment = (SegmentHeader*)(void*)((uint64_t)currentSeg + size);
-                newSegment->IsFree = true;
-                newSegment->length = currentSeg->length - (size + sizeof(SegmentHeader));
-                newSegment->next = currentSeg->next;
-                newSegment->last = currentSeg;
-                currentSeg->next = newSegment;
-                currentSeg->length = size;
-
+                SplitSegment(currentSeg, size);
                 currentSeg->IsFree = false;
                 globalHeap.UsedSize += currentSeg->length;
                 globalHeap.FreeSize -= currentSeg->length;
@@ -50,22 +42,9 @@ void* malloc(size_t size){
     return malloc(size);
 }
 
-void* realloc(void* buffer, size_t size, uint64_t adjustement){
-    void* newBuffer = malloc(size);
-
-    if(adjustement >= 0){
-        memcpy(newBuffer, (void*)((uint64_t)buffer + adjustement), size - adjustement);
-    }else{
-        memcpy(newBuffer, buffer, size - adjustement);
-    }
-    
-    free(buffer);
-    return 0;
-}
-
-void free(void* address){
+void volatile free(void* address){
     if(address != NULL){
-        SegmentHeader* header = (SegmentHeader*)((uint64_t)address - sizeof(SegmentHeader));
+        SegmentHeader* header = (SegmentHeader*)(void*)((uint64_t)address - sizeof(SegmentHeader));
         header->IsFree = true;
         globalHeap.FreeSize += header->length;
         globalHeap.UsedSize -= header->length;
@@ -93,7 +72,36 @@ void free(void* address){
     }
 }
 
-void ExpandHeap(size_t length){
+void* volatile realloc(void* buffer, size_t size, uint64_t adjustement){
+    printf("%u", size);
+    globalGraphics->Update();
+    malloc(0x1000);
+    while(1);
+
+    /*if(adjustement >= 0){
+        memcpy(newBuffer, (void*)((uint64_t)buffer + adjustement), size - adjustement);
+    }else{
+        memcpy(newBuffer, buffer, size - adjustement);
+    }
+    
+    free(buffer);*/
+    return 0;
+}
+
+void volatile SplitSegment(SegmentHeader* segment, size_t size){
+    SegmentHeader* newSegment = (SegmentHeader*)(void*)((uint64_t)segment + (uint64_t)size);
+    newSegment->IsFree = true;         
+    newSegment->length = segment->length - (size + sizeof(SegmentHeader));
+    if(segment->next == NULL){
+        globalHeap.lastSegment = newSegment;
+    }
+    newSegment->next = segment->next;
+    newSegment->last = segment;
+    segment->next = newSegment;
+    segment->length = size;
+}
+
+void volatile ExpandHeap(size_t length){
     length += sizeof(SegmentHeader);
     if(length % 0x1000){
         length -= length % 0x1000;
@@ -106,12 +114,13 @@ void ExpandHeap(size_t length){
 
     for (size_t i = 0; i < pageCount; i++){
         globalPageTableManager.MapMemory(globalHeap.heapEnd, globalAllocator.RequestPage());
-        globalHeap.heapEnd += 0x1000;
+        globalHeap.heapEnd = (void*)((uint64_t)globalHeap.heapEnd + 0x1000);
     }
     newSegment->length = length - sizeof(SegmentHeader);
     newSegment->IsFree = true;
     newSegment->IsUser = false;
     newSegment->last = globalHeap.lastSegment;
+    newSegment->next = NULL;
     if(globalHeap.lastSegment != NULL){
         globalHeap.lastSegment->next = newSegment;
     }
@@ -124,4 +133,3 @@ void ExpandHeap(size_t length){
     globalHeap.TotalSize += length;     
     globalHeap.FreeSize += length;     
 }
-

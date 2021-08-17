@@ -24,7 +24,10 @@ void graphics::Print(const char* str){
 }
 
 void graphics::PutChar(char chr, unsigned int xOff, unsigned int yOff){
-    unsigned int* pixPtr = (unsigned int*)framebuffer->BaseAddressBackground;
+    unsigned int* pixPtr = (unsigned int*)framebuffer->BaseAddress;
+    if(framebuffer->BaseAddressBackground != 0){
+        pixPtr = (unsigned int*)framebuffer->BaseAddressBackground;
+    }
     char* fontPtr = (char*)PSF1_Font->glyphBuffer + (chr * PSF1_Font->charsize) - 3; // -3 is to clean the reflect of the font
     for (unsigned long y = yOff; y < yOff + 16; y++){
         for (unsigned long x = xOff; x < xOff + 8; x++){
