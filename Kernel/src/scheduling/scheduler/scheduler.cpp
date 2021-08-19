@@ -189,6 +189,7 @@ void TaskManager::EnabledScheduler(uint8_t CoreID){
 
         CoreInUserSpace[CoreID] = true;
         Atomic::atomicUnlock(&mutexSchedulerEnable, 0);
+        globalLogs->Successful("Scheduler is enabled for the processor : %u", CoreID);
     }
 }
 

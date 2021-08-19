@@ -3,11 +3,12 @@
 #include "../../lib/stdio.h"
 #include "../paging/pageTableManager.h"
 #include "../paging/pageFrameAllocator.h"
+#include "../../logs/logs.h"
 
 struct SegmentHeader{
-    size_t length;
     bool IsFree;
     bool IsUser;
+    size_t length;
     SegmentHeader* next;
     SegmentHeader* last;
 }__attribute__((packed));

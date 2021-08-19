@@ -7,4 +7,3 @@
 #include "cstr.h"
 
 void printf(const char* str, ...);
-void sprintf(char* buffer,const char* str, ...);

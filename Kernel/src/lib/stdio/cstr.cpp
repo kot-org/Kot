@@ -247,3 +247,29 @@ char** split(char* str, char* delimiters){
     
     return ReturnValue;
 }
+
+char returnChar[128];
+char* ConvertByte(uint64_t bytes){
+    char* units[5];
+    units[0] = " B";
+    units[1] = " KB";
+    units[2] = " MB";
+    units[3] = " GB";
+    units[4] = " TB";
+
+    double returnValue;
+    returnValue = (double)bytes;
+    int i;
+    while(returnValue / 1024 > 1){
+        returnValue = (double)(returnValue / 1024);
+        i++;
+        if(i > 3) break;
+    }
+
+    char* value = (char*)to_string((uint64_t)returnValue);
+
+    memcpy(returnChar, value, strlen(value));
+    memcpy(returnChar + strlen(value), units[i], strlen(units[i]));
+    return returnChar;
+
+}

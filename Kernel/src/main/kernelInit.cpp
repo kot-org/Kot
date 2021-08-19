@@ -50,42 +50,59 @@ void InitializeACPI(BootInfo* bootInfo){
   
 
 void InitializeKernel(BootInfo* bootInfo){   
+    globalCOM1->Initialize();
+    globalCOM1->ClearMonitor();
+    globalLogs->Message("(c) Kot Corporation. All rights reserved");
+    globalLogs->Message("CPU : %s %s", globalCPU.getName(), globalCPU.getVendorID());
+    globalCPU.getFeatures();
+    globalLogs->Message("CPU features :");
+    for(int i = 0; i < globalCPU.cpuFeatures; i++){
+        globalCOM1->Print(globalCPU.features[i]);
+        globalCOM1->Print(" | ");
+    }
+    globalCOM1->Print("\n");
+
     r = graphics(bootInfo);
     globalGraphics = &r;
 
     gdtInit();
+    globalLogs->Successful("GDT intialize");
+
 
     InitializeMemory(bootInfo);
+    globalLogs->Successful("Memory intialize : map and paging");
 
-    memset(globalGraphics->framebuffer->BaseAddress, 128, globalGraphics->framebuffer->FrameBufferSize);
 
-    InitializeHeap((void*)0x0000100000000000, 0x10);
+
+    InitializeHeap((void*)0x0000010000000000, 0x10);
+    globalLogs->Successful("Heap intialize");
 
     globalGraphics->framebuffer->BaseAddressBackground = malloc(globalGraphics->framebuffer->FrameBufferSize);
-    memset(globalGraphics->framebuffer->BaseAddressBackground, 128, globalGraphics->framebuffer->FrameBufferSize);
+    memset(globalGraphics->framebuffer->BaseAddressBackground, 0, globalGraphics->framebuffer->FrameBufferSize);
     globalGraphics->Update();
 
     InitializeInterrupts();  
+    globalLogs->Successful("IDT intialize");
+    globalLogs->Message("RAM : %s", ConvertByte(globalAllocator.GetTotalRAM()));
+
     
     InitPS2Mouse();
 
-    IoWrite8(PIC1_DATA, 0b11111000);
+    IoWrite8(PIC1_DATA, 0b11111111);
     IoWrite8(PIC2_DATA, 0b11101111);
     
     if(EnabledSSE() == 0){
         FPUInit();
+        globalLogs->Successful("FPU intialize");
+    }else{
+        globalLogs->Successful("SSE intialize");
     }
-    printf("%x", 0x0000100000000000 + 0x10 * 0x1000);
-    void* test = malloc(4096);
-    globalGraphics->Update();
-    //free(test);
-    void* test1 = malloc(0x10 * 4096);
-    printf("ok");
-    globalGraphics->Update();
-    //free(test);
-    //free(malloc(0x10 * 4096));
-    //realloc(malloc(0x10 * 4096), 4096, 0);
-    while (true);
+    
+    free(malloc(0x1000 * 0x10));
+    malloc(0x1000 * 0x10);
+
+    globalLogs->Successful("Alloc and Free");
+
     InitializeACPI(bootInfo);
 
     globalTaskManager.InitScheduler(APIC::ProcessorCount);
@@ -99,7 +116,6 @@ void InitializeKernel(BootInfo* bootInfo){
     APIC::StartLapicTimer();
 
     APIC::LoadCores(); 
-    
     globalTaskManager.EnabledScheduler(0);
     asm("sti");
 

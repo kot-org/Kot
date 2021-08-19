@@ -21,7 +21,6 @@ void* volatile malloc(size_t size){
     while(true){
         if(currentSeg->IsFree){
             if(currentSeg->length > size){
-                printf("\n->%x %x", currentSeg->length, size);
                 // split this segment in two 
                 SplitSegment(currentSeg, size);
                 currentSeg->IsFree = false;
@@ -54,18 +53,75 @@ void volatile free(void* address){
             header->last->next = header->next;
             header->next->last = header->last;
             header->last->length += header->length;
+            if(header == globalHeap.lastSegment){
+                if(header->next != NULL){
+                    globalHeap.lastSegment = header->next;
+                }else{
+                    globalHeap.lastSegment = header->last;
+                }
+            }
+            if(header == globalHeap.mainSegment){
+                if(header->next != NULL){
+                    globalHeap.mainSegment = header->next;
+                }else{
+                    globalHeap.mainSegment = header->last;
+                }
+            }
             memset(header, 0, sizeof(SegmentHeader));
         }else if(header->next->IsFree && !header->last->IsFree){
             // merge this segment into the next segment
             header->next->last = header->last;
             header->last->next = header->next;
-            header->next->length = header->length;
+            header->next->length += header->length;
+            if(header == globalHeap.lastSegment){
+                if(header->next != NULL){
+                    globalHeap.lastSegment = header->next;
+                }else{
+                    globalHeap.lastSegment = header->last;
+                }
+            }
+            if(header == globalHeap.mainSegment){
+                if(header->next != NULL){
+                    globalHeap.mainSegment = header->next;
+                }else{
+                    globalHeap.mainSegment = header->last;
+                }
+            }
+
             memset(header, 0, sizeof(SegmentHeader));
         }else if(header->next->IsFree && header->last->IsFree){
             // merge this segment and next segment into the last segment
             header->last->next = header->next->next;
             header->next->next->last = header->last;
             header->last->length += header->length + header->next->length;
+            if(header->next == globalHeap.lastSegment){
+                if(header->next->next != NULL){
+                    globalHeap.lastSegment = header->next->next;
+                }else{
+                    globalHeap.lastSegment = header->next->last;
+                }
+            }
+            if(header->next == globalHeap.mainSegment){
+                if(header->next->next != NULL){
+                    globalHeap.mainSegment = header->next->next;
+                }else{
+                    globalHeap.mainSegment = header->next->last;
+                }
+            }
+            if(header == globalHeap.lastSegment){
+                if(header->next != NULL){
+                    globalHeap.lastSegment = header->next;
+                }else{
+                    globalHeap.lastSegment = header->last;
+                }
+            }
+            if(header == globalHeap.mainSegment){
+                if(header->next != NULL){
+                    globalHeap.mainSegment = header->next;
+                }else{
+                    globalHeap.mainSegment = header->last;
+                }
+            }
             memset(header->next, 0, sizeof(SegmentHeader));
             memset(header, 0, sizeof(SegmentHeader));
         }
@@ -73,28 +129,26 @@ void volatile free(void* address){
 }
 
 void* volatile realloc(void* buffer, size_t size, uint64_t adjustement){
-    printf("%u", size);
-    globalGraphics->Update();
-    malloc(0x1000);
-    while(1);
+    void* newBuffer = malloc(size);
 
-    /*if(adjustement >= 0){
+    if(adjustement >= 0){
         memcpy(newBuffer, (void*)((uint64_t)buffer + adjustement), size - adjustement);
     }else{
         memcpy(newBuffer, buffer, size - adjustement);
     }
     
-    free(buffer);*/
-    return 0;
+    free(buffer);
+    return newBuffer;
 }
 
 void volatile SplitSegment(SegmentHeader* segment, size_t size){
-    SegmentHeader* newSegment = (SegmentHeader*)(void*)((uint64_t)segment + (uint64_t)size);
+    SegmentHeader* newSegment = (SegmentHeader*)(void*)((uint64_t)segment + sizeof(SegmentHeader) + (uint64_t)size);
     newSegment->IsFree = true;         
     newSegment->length = segment->length - (size + sizeof(SegmentHeader));
     if(segment->next == NULL){
         globalHeap.lastSegment = newSegment;
     }
+
     newSegment->next = segment->next;
     newSegment->last = segment;
     segment->next = newSegment;
@@ -113,9 +167,11 @@ void volatile ExpandHeap(size_t length){
     SegmentHeader* newSegment = (SegmentHeader*)globalHeap.heapEnd;
 
     for (size_t i = 0; i < pageCount; i++){
-        globalPageTableManager.MapMemory(globalHeap.heapEnd, globalAllocator.RequestPage());
+        void* NewPhysicalAddress = globalAllocator.RequestPage();
+        globalPageTableManager.MapMemory(globalHeap.heapEnd, NewPhysicalAddress);
         globalHeap.heapEnd = (void*)((uint64_t)globalHeap.heapEnd + 0x1000);
     }
+
     newSegment->length = length - sizeof(SegmentHeader);
     newSegment->IsFree = true;
     newSegment->IsUser = false;
@@ -129,7 +185,7 @@ void volatile ExpandHeap(size_t length){
     if(globalHeap.mainSegment == NULL){
         globalHeap.mainSegment = newSegment;
     }   
-
+    
     globalHeap.TotalSize += length;     
     globalHeap.FreeSize += length;     
 }

@@ -12,6 +12,7 @@ class PageTableManager {
     void MapMemory(void* virtualMemory, void* physicalMemory);
     void UnmapMememory(void* virtualMemory);
     void MapUserspaceMemory(void* virtualMemory);
+    void* GetPhysicalAddress(void* virtualAddress);
 };
 
 extern PageTableManager globalPageTableManager;

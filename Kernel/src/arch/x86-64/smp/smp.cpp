@@ -12,17 +12,17 @@ extern "C" void TrampolineMain(int CoreID){
     asm ("lidt %0" : : "m" (idtr));
     
     APIC::EnableAPIC();
-    APIC::localApicEOI();
     APIC::StartLapicTimer();
 
     
     if(EnabledSSE() == 0){
         FPUInit();
     }
-
+    
     globalTaskManager.EnabledScheduler(CoreID);
     Atomic::atomicUnlock(&mutexSMP, 0);
     asm("sti");
+    asm("int $0x30");
 
     while(true){
         asm("hlt");

@@ -8,15 +8,68 @@ void InitializeInterrupts(){
         idtr.Offset = (uint64_t)globalAllocator.RequestPage();
     }
 
+    /* Exceptions */
 
-    /* Page Fault */
-    SetIDTGate((void*)Entry_PageFault_Handler, 0x0E, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    /* Divide-by-zero */
+    SetIDTGate((void*)Entry_DivideByZero_Handler, 0x0, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    
+    /* Debug */
+    SetIDTGate((void*)Entry_Debug_Handler, 0x1, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    
+    /* NMI */
+    SetIDTGate((void*)Entry_NMI_Handler, 0x2, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    
+    /* Breakpoint */
+    SetIDTGate((void*)Entry_Breakpoint_Handler, 0x3, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    
+    /* Overflow */
+    SetIDTGate((void*)Entry_Overflow_Handler, 0x4, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    
+    /* Bound Range Exceeded */
+    SetIDTGate((void*)Entry_BoundRangeExceeded_Handler, 0x5, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    
+    /* Invalid Opcode */
+    SetIDTGate((void*)Entry_InvalidOpcode_Handler, 0x6, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    
+    /* Device Not Available */
+    SetIDTGate((void*)Entry_DeviceNotAvailable_Handler, 0x7, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
 
     /* Double Fault */
-    SetIDTGate((void*)Entry_DoubleFault_Handler, 0x0C, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_DoubleFault_Handler, 0x8, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+
+    /* Invalid TSS */
+    SetIDTGate((void*)Entry_InvalidTSS_Handler, 0xA, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+
+    /* Segment Not Present */
+    SetIDTGate((void*)Entry_SegmentNotPresent_Handler, 0xB, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+
+    /* Stack-Segment Fault */
+    SetIDTGate((void*)Entry_StackSegmentFault_Handler, 0xC, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
 
     /* GP Fault */
-    SetIDTGate((void*)Entry_GPFault_Handler, 0x0D, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_GPFault_Handler, 0xD, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+
+    /* Page Fault */
+    SetIDTGate((void*)Entry_PageFault_Handler, 0xE, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+
+    /* x87 Floating-Point Exception */
+    SetIDTGate((void*)Entry_x87FloatingPointException_Handler, 0x10, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+
+    /* Alignment Check */
+    SetIDTGate((void*)Entry_AlignmentCheck_Handler, 0x11, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+
+    /* Machine Check */
+    SetIDTGate((void*)Entry_MachineCheck_Handler, 0x12, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+
+    /* SIMD Floating-Point Exception */
+    SetIDTGate((void*)Entry_SIMDFloatingPointException_Handler, 0x13, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+
+    /* Virtualization Exception */
+    SetIDTGate((void*)Entry_VirtualizationException_Handler, 0x14, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    
+    /* Security Exception */
+    SetIDTGate((void*)Entry_SecurityException_Handler, 0x1E, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+
 
     /* Keyboard */
     SetIDTGate((void*)Entry_KeyboardInt_Handler, 0x21, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
@@ -39,18 +92,123 @@ void InitializeInterrupts(){
     asm ("lidt %0" : : "m" (idtr));        
 }
 
-extern "C" void PageFault_Handler(ErrorInterruptStack* Registers){
-    Panic("Page Fault Detected");
+extern "C" void DivideByZero_Handler(InterruptStack* Registers, uint64_t CoreID){
+    Panic("Divide-by-zero Error Detected");
+    globalLogs->Error("Divide-by-zero Error Detected -> At processor %u", CoreID);
     while(true);
 }
 
-extern "C" void DoubleFault_Handler(ErrorInterruptStack* Registers){
+extern "C" void Debug_Handler(InterruptStack* Registers, uint64_t CoreID){
+    Panic("Debug Detected");
+    globalLogs->Error("Debug Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void NMI_Handler(InterruptStack* Registers, uint64_t CoreID){
+    Panic("Non-maskable Interrupt Detected");
+    globalLogs->Error("Non-maskable Interrupt Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void Breakpoint_Handler(InterruptStack* Registers, uint64_t CoreID){
+    Panic("Breakpoint Detected");
+    globalLogs->Error("Breakpoint Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void Overflow_Handler(InterruptStack* Registers, uint64_t CoreID){
+    Panic("Overflow Detected");
+    globalLogs->Error("Overflow Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void BoundRangeExceeded_Handler(InterruptStack* Registers, uint64_t CoreID){
+    Panic("Bound Range Exceeded Detected");
+    globalLogs->Error("Bound Range Exceeded Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void InvalidOpcode_Handler(InterruptStack* Registers, uint64_t CoreID){
+    Panic("Invalid Opcode Detected");
+    globalLogs->Error("Invalid Opcode Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void DeviceNotAvailable_Handler(InterruptStack* Registers, uint64_t CoreID){
+    Panic("Device Not Available Detected");
+    globalLogs->Error("Device Not Available Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void DoubleFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
     Panic("Double Fault Detected");
+    globalLogs->Error("Double Fault Detected -> At processor %u", CoreID);
     while(true);
 }
 
-extern "C" void GPFault_Handler(ErrorInterruptStack* Registers){
+extern "C" void InvalidTSS_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
+    Panic("Invalid TSS Detected");
+    globalLogs->Error("Invalid TSS Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void SegmentNotPresent_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
+    Panic("Segment Not Present Detected");
+    globalLogs->Error("Segment Not Present Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void StackSegmentFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
+    Panic("Stack-Segment Fault Detected");
+    globalLogs->Error("Stack-Segment Fault Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void GPFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
     Panic("General Protection Fault Detected");
+    globalLogs->Error("General Protection Fault Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void PageFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
+    Panic("Page Fault Detected");
+    globalLogs->Error("Page Fault Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void x87FloatingPointException_Handler(InterruptStack* Registers, uint64_t CoreID){
+    Panic("x87 Floating-Point Exception Detected");
+    globalLogs->Error("x87 Floating-Point Exception Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void AlignmentCheck_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
+    Panic("Alignment Check Detected");
+    globalLogs->Error("Alignment Check Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void MachineCheck_Handler(InterruptStack* Registers, uint64_t CoreID){
+    Panic("Machine Check Detected");
+    globalLogs->Error("Machine Check Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void SIMDFloatingPointException_Handler(InterruptStack* Registers, uint64_t CoreID){
+    Panic("SIMD Floating-Point Exception Detected");
+    globalLogs->Error("SIMD Floating-Point Exception Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void VirtualizationException_Handler(InterruptStack* Registers, uint64_t CoreID){
+    Panic("Virtualization Exception Detected");
+    globalLogs->Error("Virtualization Exception Detected -> At processor %u", CoreID);
+    while(true);
+}
+
+extern "C" void SecurityException_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
+    Panic("Security Exception Detected");
+    globalLogs->Error("Security Exception Detected -> At processor %u", CoreID);
     while(true);
 }
 
@@ -64,16 +222,15 @@ extern "C" void MouseInt_Handler(InterruptStack* Registers){
     uint8_t mousedata = IoRead8(0x60);
     HandlePS2Mouse(mousedata);
     PIC_EndSlave();
-
 }
 
-static uint64_t mutexScheduler;
 
 extern "C" void PITInt_Handler(InterruptStack* Registers){
     PIT::Tick();
     PIC_EndMaster();       
 }
 
+static uint64_t mutexScheduler;
 extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID){
     Atomic::atomicSpinlock(&mutexScheduler, 0);
     Atomic::atomicLock(&mutexScheduler, 0);
@@ -102,7 +259,6 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
             break;
     }
 
-    //globalGraphics->Print((char*)arg5);
     Atomic::atomicUnlock(&mutexSyscall, 0);    
 }
 
