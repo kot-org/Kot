@@ -3,7 +3,7 @@
 </p>
 
 # KonectOS 2
-An 64bits operating system in c++, which boot in uefi
+A 64bits operating system in c++, which boot in uefi
 
 # Road map
 
