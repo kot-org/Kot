@@ -12,7 +12,7 @@ A 64bits operating system in c++, which boot in uefi
 * :heavy_check_mark: UEFI bootloader, made without gnu efi, with splash bmp (:house: home-made bmp parser) and elf loader
 * :heavy_check_mark: Paging & heap (physical and virtual memory)
 * :heavy_check_mark: Interrupts :
-    * Exectpions (GP, PF, DF)
+    * Excetpions 
     * PIC, timer, keyboard, mouse
     * APIC timer
 * :heavy_check_mark: PCI reader that lead to different drivers
