@@ -70,7 +70,6 @@ void InitializeInterrupts(){
     /* Security Exception */
     SetIDTGate((void*)Entry_SecurityException_Handler, 0x1E, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
 
-
     /* Keyboard */
     SetIDTGate((void*)Entry_KeyboardInt_Handler, 0x21, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
 
@@ -259,6 +258,7 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
             break;
     }
 
+    globalLogs->Successful("%u %s", CoreID, arg5);
     Atomic::atomicUnlock(&mutexSyscall, 0);    
 }
 

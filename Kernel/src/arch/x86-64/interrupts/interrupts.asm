@@ -15,7 +15,6 @@ EXTERN DivideByZero_Handler, Debug_Handler, NMI_Handler, Breakpoint_Handler, Ove
     push    rbp
     push    rdi
     push    rsi
-    push    rsp
     push    rdx
     push    rcx
     push    rbx
@@ -26,7 +25,6 @@ EXTERN DivideByZero_Handler, Debug_Handler, NMI_Handler, Breakpoint_Handler, Ove
     pop    rbx
     pop    rcx
     pop    rdx
-    pop    rsp
     pop    rsi
     pop    rdi
     pop    rbp

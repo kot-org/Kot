@@ -12,7 +12,7 @@ void InitializeMemory(BootInfo* bootInfo){
 
     globalAllocator.ReadEFIMemoryMap(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
 
-    uint64_t kernelPages = (uint64_t)bootInfo->KernelSize / 0x1000 + 1;
+    uint64_t kernelPages = Divide((uint64_t)bootInfo->KernelStart + bootInfo->KernelSize, 0x1000);
 
     globalAllocator.LockPages(0, kernelPages);
 
@@ -88,7 +88,7 @@ void InitializeKernel(BootInfo* bootInfo){
     
     InitPS2Mouse();
 
-    IoWrite8(PIC1_DATA, 0b11111111);
+    IoWrite8(PIC1_DATA, 0b11111011);
     IoWrite8(PIC2_DATA, 0b11101111);
     
     if(EnabledSSE() == 0){
@@ -97,11 +97,6 @@ void InitializeKernel(BootInfo* bootInfo){
     }else{
         globalLogs->Successful("SSE intialize");
     }
-    
-    free(malloc(0x1000 * 0x10));
-    malloc(0x1000 * 0x10);
-
-    globalLogs->Successful("Alloc and Free");
 
     InitializeACPI(bootInfo);
 

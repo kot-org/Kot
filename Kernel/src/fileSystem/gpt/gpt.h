@@ -41,7 +41,7 @@ namespace GPT{
     struct Partitons{
         GUIDPartitionEntryFormat* AllParitions[MaxParitionsNumber];
         uint64_t NumberPartitionsCreated;
-        Bitmap* IsPartitionsEntryBitmapFree;
+        BitmapHeap IsPartitionsEntryBitmapFree;
     }__attribute__((packed));
 
     struct PartionsInfo{

@@ -7,25 +7,7 @@ void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){
         TaskNode* node = NodeExecutePerCore[CoreID];
         
         if(node != NULL){
-            node->Content.Regs.rax = Registers->rax;
-            node->Content.Regs.rcx = Registers->rcx;
-            node->Content.Regs.rdx = Registers->rdx;
-            node->Content.Regs.rsi = Registers->rsi;
-            node->Content.Regs.rdi = Registers->rdi;
-            node->Content.Regs.rbp = Registers->rbp;
-            node->Content.Regs.r8 = Registers->r8;
-            node->Content.Regs.r9 = Registers->r9;
-            node->Content.Regs.r10 = Registers->r10;
-            node->Content.Regs.r11 = Registers->r11;
-            node->Content.Regs.r12 = Registers->r12;
-            node->Content.Regs.r13 = Registers->r13;
-            node->Content.Regs.r14 = Registers->r14;
-            node->Content.Regs.r15 = Registers->r15;
-            node->Content.Regs.rip = Registers->rip;
-            node->Content.Regs.cs = Registers->cs;
-            node->Content.Regs.rflags = Registers->rflags;
-            node->Content.Regs.rsp = Registers->rsp;
-            node->Content.Regs.ss = Registers->ss;
+            memcpy(&node->Content.Regs, Registers, sizeof(ContextStack));
             node->Content.IsRunning = false;
         }
         
@@ -41,25 +23,7 @@ void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){
 
         NodeExecutePerCore[CoreID] = node;
 
-        Registers->rax = node->Content.Regs.rax;
-        Registers->rcx = node->Content.Regs.rcx;
-        Registers->rdx = node->Content.Regs.rdx;
-        Registers->rsi = node->Content.Regs.rsi;
-        Registers->rdi = node->Content.Regs.rdi;
-        Registers->rbp = node->Content.Regs.rbp;
-        Registers->r8 = node->Content.Regs.r8;
-        Registers->r9 = node->Content.Regs.r9;
-        Registers->r10 = node->Content.Regs.r10;
-        Registers->r11 = node->Content.Regs.r11;
-        Registers->r12 = node->Content.Regs.r12;
-        Registers->r13 = node->Content.Regs.r13;
-        Registers->r14 = node->Content.Regs.r14;
-        Registers->r15 = node->Content.Regs.r15;
-        Registers->rip = node->Content.Regs.rip;
-        Registers->cs = node->Content.Regs.cs;
-        Registers->rflags = node->Content.Regs.rflags;
-        Registers->rsp = node->Content.Regs.rsp; 
-        Registers->ss = node->Content.Regs.ss;
+        memcpy(Registers, &node->Content.Regs, sizeof(ContextStack));
     }
 }
 
@@ -85,6 +49,7 @@ TaskNode* TaskManager::AddTask(void* EntryPoint, size_t Size, bool IsIddle, bool
     node->Content.Regs.rsp = (void*)((uint64_t)node->Content.Stack + StackSize); //because the pile goes down I had not seen it ;(
     node->Content.Regs.rflags = (void*)0x202; //interrupts & syscall
     node->Content.IsIddle = IsIddle;
+    node->Content.IsRunning = false;
     
     node->Content.ID = IDTask; //min of ID is 0
     IDTask++;

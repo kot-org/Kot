@@ -7,8 +7,9 @@ namespace GPT{
 
     GPTHeader* GetGPTHeader(AHCI::Port* port){
         memset(port->Buffer, 0, sizeof(GPTHeader));
-        if(port->Read(1, 1, port->Buffer)){
-            GPTHeader* ReturnValue = (GPTHeader*)port->Buffer;
+        if(port->Read(1, 1, port->Buffer)){            
+            GPTHeader* ReturnValue = (GPTHeader*)malloc(sizeof(GPTHeader));
+            memcpy(ReturnValue, port->Buffer, sizeof(GPTHeader));
             return ReturnValue;           
         }else{
             return NULL;
@@ -25,7 +26,7 @@ namespace GPT{
     void InitGPTHeader(AHCI::Port* port){
         /* https://fr.wikipedia.org/wiki/GUID_Partition_Table */
         
-        GPTHeader* gptheader = (GPTHeader*)globalAllocator.RequestPage();
+        GPTHeader* gptheader = (GPTHeader*)malloc(sizeof(GPTHeader));
         
         //efi part signature
         gptheader->Signature[0] = 'E'; 
@@ -65,7 +66,7 @@ namespace GPT{
         gptheader->LastUsableLBAPartitions = port->GetNumberSectorsLBA() - gptheader->FirstUsableLBAPartitions;
 
         //DiskGUID
-        GUID* DiskGUID = (GUID*)globalAllocator.RequestPage();
+        GUID* DiskGUID = (GUID*)malloc(sizeof(GUID));
         DiskGUID->Data1 = (uint32_t)port->DiskInfo->SerialNumber[0] & port->DiskInfo->SerialNumber[9];
         DiskGUID->Data2 = (uint16_t)port->DiskInfo->DriveModelNumber[0] & port->DiskInfo->DriveModelNumber[19];
         DiskGUID->Data3 = (uint16_t)port->DiskInfo->DriveModelNumber[9];
@@ -85,14 +86,15 @@ namespace GPT{
         gptheader->CRC32PartitionArray = 0;
 
         SetGPTHeader(port, gptheader);
+        free(DiskGUID);
+        free(gptheader);
     }
 
     GUIDPartitionEntryFormat* GetGUIDPartitionEntryFormat(AHCI::Port* port, uint64_t LBAAddress, uint8_t which){
         uint8_t MaxGUIDPartitionEntryFormatPerSectors = port->GetSectorSizeLBA() / sizeof(GUIDPartitionEntryFormat);
-        port->Buffer = globalAllocator.RequestPage();
         memset(port->Buffer, 0, port->GetSectorSizeLBA());
 
-        void* buffer = globalAllocator.RequestPage();
+        void* buffer = malloc(sizeof(GUIDPartitionEntryFormat));
         memset(buffer, 0, sizeof(GUIDPartitionEntryFormat));
 
         if(port->Read(LBAAddress, 1, port->Buffer)){
@@ -100,18 +102,15 @@ namespace GPT{
             GUIDPartitionEntryFormat* ReturnValue = (GUIDPartitionEntryFormat*)buffer;
             return ReturnValue;
         }else{
+            free(buffer);
             return NULL;
         }        
     }
 
     bool SetGUIDPartitionEntryFormat(AHCI::Port* port, uint64_t LBAAddress, uint8_t which, GUIDPartitionEntryFormat* newGuidPartitionEntryFormat, GPTHeader* GptHeader){
         uint8_t MaxGUIDPartitionEntryFormatPerSectors = port->GetSectorSizeLBA() / sizeof(GUIDPartitionEntryFormat);
-        port->Buffer = globalAllocator.RequestPage();
         memset(port->Buffer, 0, sizeof(GUIDPartitionEntryFormat));
         memcpy(port->Buffer, newGuidPartitionEntryFormat, sizeof(GUIDPartitionEntryFormat));
-
-        void* buffer = globalAllocator.RequestPage();
-        memset(buffer, 0, sizeof(GUIDPartitionEntryFormat));
 
         if(port->Read(LBAAddress, 1, port->Buffer)){
             memcpy((port->Buffer + (which * sizeof(GUIDPartitionEntryFormat))), newGuidPartitionEntryFormat, sizeof(GUIDPartitionEntryFormat));
@@ -146,34 +145,38 @@ namespace GPT{
 
         for(int i = 0; i < AllPartitions->NumberPartitionsCreated; i++){
             if(AllPartitions->AllParitions[i]->PartitionTypeGUID.Data1 == guid->Data1 &&
-               AllPartitions->AllParitions[i]->PartitionTypeGUID.Data2 == guid->Data2 &&
-               AllPartitions->AllParitions[i]->PartitionTypeGUID.Data3 == guid->Data3 &&
-               AllPartitions->AllParitions[i]->PartitionTypeGUID.Data4 == guid->Data4){
-                   return AllPartitions->AllParitions[i];
-               }
+                AllPartitions->AllParitions[i]->PartitionTypeGUID.Data2 == guid->Data2 &&
+                AllPartitions->AllParitions[i]->PartitionTypeGUID.Data3 == guid->Data3 &&
+                AllPartitions->AllParitions[i]->PartitionTypeGUID.Data4 == guid->Data4){
+                return AllPartitions->AllParitions[i];
+            }
         }
         return NULL;
     }
 
     Partitons* GetAllPartitions(AHCI::Port* port){
         GPTHeader* gptHeader = GetGPTHeader(port);
-        Partitons* ReturnValue = (Partitons*)globalAllocator.RequestPage();
+        Partitons* ReturnValue = (Partitons*)malloc(sizeof(Partitons));
         memset(ReturnValue, 0, sizeof(Partitons));
+        ReturnValue->IsPartitionsEntryBitmapFree = BitmapHeap(gptHeader->NumberPartitionEntries);
 
         uint8_t MaxGUIDPartitionEntryFormatPerSectors = port->GetSectorSizeLBA() / sizeof(GUIDPartitionEntryFormat);
         uint64_t PartitionEntriesStartingLBA = gptHeader->PartitionEntriesStartingLBA;
-        GUIDPartitionEntryFormat** CheckEntry = (GUIDPartitionEntryFormat**)globalAllocator.RequestPage();
 
+
+        GUIDPartitionEntryFormat* CheckEntry = NULL;
         for(int i = 0; i < gptHeader->NumberPartitionEntries; i++){
-            CheckEntry[i] = GetGUIDPartitionEntryFormat(port, PartitionEntriesStartingLBA + (i / MaxGUIDPartitionEntryFormatPerSectors), i % MaxGUIDPartitionEntryFormatPerSectors);
-            if(CheckEntry[i]->FirstLBA != 0){
-                ReturnValue->AllParitions[ReturnValue->NumberPartitionsCreated] = CheckEntry[i];
+            CheckEntry = (GUIDPartitionEntryFormat*)malloc(sizeof(GUIDPartitionEntryFormat));
+            CheckEntry = GetGUIDPartitionEntryFormat(port, PartitionEntriesStartingLBA + (i / MaxGUIDPartitionEntryFormatPerSectors), i % MaxGUIDPartitionEntryFormatPerSectors);
+            if(CheckEntry->FirstLBA != 0){
+                ReturnValue->AllParitions[ReturnValue->NumberPartitionsCreated] = CheckEntry;
                 ReturnValue->NumberPartitionsCreated++;
-                ReturnValue->IsPartitionsEntryBitmapFree->Set(i, false);
+                ReturnValue->IsPartitionsEntryBitmapFree.Set(i, false);
             }else{
-                ReturnValue->IsPartitionsEntryBitmapFree->Set(i, true);
+                ReturnValue->IsPartitionsEntryBitmapFree.Set(i, true);
             }
         }
+
         return ReturnValue;
     }
 
@@ -202,8 +205,8 @@ namespace GPT{
         if(UsedLBASectors + sizeLBA < TotalUsableLBASectors){
             
             for(int i = 0; i < gptHeader->NumberPartitionEntries; i++){                
-                if(partitions->IsPartitionsEntryBitmapFree->Get(i) == true){
-                    GUIDPartitionEntryFormat* newGuidPartitionEntryFormat = (GUIDPartitionEntryFormat*)globalAllocator.RequestPage();
+                if(partitions->IsPartitionsEntryBitmapFree.Get(i) == true){
+                    GUIDPartitionEntryFormat* newGuidPartitionEntryFormat = (GUIDPartitionEntryFormat*)malloc(sizeof(GUIDPartitionEntryFormat));
 
 
                     uint64_t partitionFirstLBA;
@@ -228,7 +231,7 @@ namespace GPT{
 
                     newGuidPartitionEntryFormat->PartitionTypeGUID = *PartitionTypeGUID;
 
-                    GUID* UniquePartitionGUID = (GUID*)globalAllocator.RequestPage();
+                    GUID* UniquePartitionGUID = (GUID*)malloc(sizeof(GUID));
 
                     UniquePartitionGUID->Data1 = (uint32_t)port->DiskInfo->SerialNumber[0] & port->DiskInfo->SerialNumber[9];
                     UniquePartitionGUID->Data2 = (uint16_t)port->DiskInfo->SerialNumber[5];
@@ -239,6 +242,7 @@ namespace GPT{
                     
                     SetGUIDPartitionEntryFormat(port, PartitionEntriesStartingLBA + (i / MaxGUIDPartitionEntryFormatPerSectors), i % MaxGUIDPartitionEntryFormatPerSectors, newGuidPartitionEntryFormat, gptHeader);
                     
+                    free(newGuidPartitionEntryFormat);
                     return true;                   
                 }
             }
@@ -256,17 +260,19 @@ namespace GPT{
         uint64_t UsedLBASectors = 0;
         uint64_t TotalUsableLBASectors = gptHeader->LastUsableLBAPartitions - gptHeader->FirstUsableLBAPartitions;
 
+        globalLogs->Successful("Test : %s %x", gptHeader->Signature, gptHeader->LastUsableLBAPartitions);
         for(int i = 0; i < partitions->NumberPartitionsCreated; i++){
+            //the problem come from here
             UsedLBASectors += partitions->AllParitions[i]->LastLBA - partitions->AllParitions[i]->FirstLBA;
         }
-        uint64_t freeSizeSectors = TotalUsableLBASectors - UsedLBASectors;     
+        uint64_t freeSizeSectors = TotalUsableLBASectors - UsedLBASectors;   
         uint64_t freeSize = (freeSizeSectors * port->GetSectorSizeLBA()) - 1;
         return freeSize;
     }
 
 
     GUID* GetReservedGUIDPartitionType(){
-        GUID* KotReservedGUID = (GUID*)globalAllocator.RequestPage();
+        GUID* KotReservedGUID = (GUID*)malloc(sizeof(GUID));
         KotReservedGUID->Data1 = 0x47A1ACC0;
         KotReservedGUID->Data2 = 0x3B40;
         KotReservedGUID->Data3 = 0x2A53;
@@ -275,7 +281,7 @@ namespace GPT{
     }
 
     GUID* GetDataGUIDPartitionType(){
-        GUID* KotReservedGUID = (GUID*)globalAllocator.RequestPage();
+        GUID* KotReservedGUID = (GUID*)malloc(sizeof(GUID));
         KotReservedGUID->Data1 = 0x64617461;
         KotReservedGUID->Data2 = 0x3B40;
         KotReservedGUID->Data3 = 0x2A53;
@@ -284,7 +290,7 @@ namespace GPT{
     }
 
     GUID* GetSystemGUIDPartitionType(){
-        GUID* KotReservedGUID = (GUID*)globalAllocator.RequestPage();
+        GUID* KotReservedGUID = (GUID*)malloc(sizeof(GUID));
         KotReservedGUID->Data1 = 0xC12A7328;
         KotReservedGUID->Data2 = 0xF81F;
         KotReservedGUID->Data3 = 0x11D2;

@@ -17,6 +17,10 @@ namespace FileSystem{
     #define GUIDData3 0x2A53
     #define GUIDData4 0xF38D3D321F6D 
 
+    #define HeaderInfoPosition sizeof(ClusterHeader)
+    #define FileInfoPosition sizeof(ClusterHeader) + sizeof(HeaderInfo)
+    #define DataPosition sizeof(ClusterHeader) + sizeof(HeaderInfo) + sizeof(FileInfo)
+
     struct Root{
         char        name[MaxName];
         uint64_t    firstClusterForFile;
@@ -140,21 +144,21 @@ namespace FileSystem{
         void UpdateFolderInfo(Folder* folder);
         void UpdateFileInfo(FileInfo* fileInfo);
 
+
         GPT::Partition* globalPartition;
         KFSinfo* KFSPartitionInfo;
-    }; 
+    }__attribute__((packed));
 
     struct File{
-        uint64_t Read(uint64_t start, size_t size, void* buffer);
-        uint64_t Write(uint64_t start, size_t size, void* buffer);
         FileInfo* fileInfo;
         char* mode;            
         KFS* kfs;
-    };
-    class Folder{
-        public:
-            FolderInfo* folderInfo;            
-        private:
-            KFS* kfs;
-    };
+        uint64_t Read(uint64_t start, size_t size, void* buffer);
+        uint64_t Write(uint64_t start, size_t size, void* buffer);
+    }__attribute__((packed));
+
+    struct Folder{
+        FolderInfo* folderInfo;            
+        KFS* kfs;
+    }__attribute__((packed));
 }

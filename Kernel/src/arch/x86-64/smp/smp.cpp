@@ -22,7 +22,6 @@ extern "C" void TrampolineMain(int CoreID){
     globalTaskManager.EnabledScheduler(CoreID);
     Atomic::atomicUnlock(&mutexSMP, 0);
     asm("sti");
-    asm("int $0x30");
 
     while(true){
         asm("hlt");

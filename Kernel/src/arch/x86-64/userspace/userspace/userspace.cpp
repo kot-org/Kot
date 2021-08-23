@@ -32,9 +32,12 @@ extern "C" void task1(){
 
     asm(".att_syntax prefix");  
 
-    char* test = "task";
-    asm ("movq %0, %%r9" :: "r" (test));
-    asm("int $0x80");  
+    char* test;
+    for(int i = 0; i < 100; i++){
+        test = "task";
+        asm ("movq %0, %%r9" :: "r" (test));
+        asm("int $0x80");  
+    }
     while (true){
         test = "1";
         asm ("movq %0, %%r9" :: "r" (test));

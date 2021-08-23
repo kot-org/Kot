@@ -84,7 +84,9 @@ namespace APIC{
                 do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(0x300) & (1 << 12));
             }
 
+            globalLogs->Message("Wait processor %u", i);
             while (Data->Status != 3); // wait processor
+            globalLogs->Successful("Load processor %u", i);
         }
     }  
 
