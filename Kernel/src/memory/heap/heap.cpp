@@ -35,7 +35,6 @@ void* volatile malloc(size_t size){
 
     SegmentHeader* currentSeg = (SegmentHeader*)globalHeap.mainSegment;
 
-    SegmentHeader* lastFreeSeg;
     while(true){
         if(currentSeg->IsFree){
             if(currentSeg->length > size){
@@ -52,12 +51,11 @@ void* volatile malloc(size_t size){
                 return (void*)((uint64_t)currentSeg + sizeof(SegmentHeader));
             }
 
-            lastFreeSeg = currentSeg;
         }
         if (currentSeg->next == NULL) break;
         currentSeg = currentSeg->next;
     }
-    ExpandHeap(size - lastFreeSeg->length);
+    ExpandHeap(size);
     return malloc(size);
 }
 
@@ -70,9 +68,9 @@ void volatile free(void* address){
 
         if(header->last->IsFree && !header->next->IsFree && header->last != 0){
             // merge this segment into the last segment
+            header->last->length += header->length + sizeof(SegmentHeader);
             header->last->next = header->next;
             header->next->last = header->last;
-            header->last->length += header->length + sizeof(SegmentHeader);
             if(header == globalHeap.lastSegment){
                 if(header->next != NULL){
                     globalHeap.lastSegment = header->next;
@@ -90,30 +88,27 @@ void volatile free(void* address){
             memset(header, 0, sizeof(SegmentHeader));
         }else if(header->next->IsFree && !header->last->IsFree && header->next != 0){
             // merge this segment into the next segment
-            header->next->last = header->last;
-            header->last->next = header->next;
-            header->next->length += header->length + sizeof(SegmentHeader);
+            SegmentHeader* headerNext = header->next;
+            header->length += header->next->length + sizeof(SegmentHeader);
+            header->next = header->next->next;
+            header->next->last = header;
             if(header == globalHeap.lastSegment){
-                if(header->next != NULL){
-                    globalHeap.lastSegment = header->next;
+                if(header->next->next != NULL){
+                    globalHeap.lastSegment = header->next->next;
                 }else{
-                    globalHeap.lastSegment = header->last;
+                    globalHeap.lastSegment = header;
                 }
             }
             if(header == globalHeap.mainSegment){
-                if(header->last != NULL){
-                    globalHeap.mainSegment = header->last;
-                }else{
-                    globalHeap.mainSegment = header->next;
-                }
+                globalHeap.mainSegment = header->last;
             }
 
-            memset(header, 0, sizeof(SegmentHeader));
+            memset(headerNext, 0, sizeof(SegmentHeader));
         }else if(header->next->IsFree && header->last->IsFree && header->next != 0  && header->last != 0){
             // merge this segment and next segment into the last segment
+            header->last->length += header->length + sizeof(SegmentHeader) + header->next->length + sizeof(SegmentHeader);
             header->last->next = header->next->next;
             header->next->next->last = header->last;
-            header->last->length += header->length + sizeof(SegmentHeader) + header->next->length + sizeof(SegmentHeader);
             if(header->next == globalHeap.lastSegment){
                 if(header->next->next != NULL){
                     globalHeap.lastSegment = header->next->next;
