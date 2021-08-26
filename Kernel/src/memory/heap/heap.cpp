@@ -11,18 +11,28 @@ void volatile InitializeHeap(void* heapAddress, size_t pageCount){
 
 void volatile SegmentTracker(){
     SegmentHeader* currentSeg = (SegmentHeader*)globalHeap.mainSegment;
-    globalCOM1->Print("Heap segments : \n");
+
     while(true){
-        if(currentSeg->IsFree){
+        if(currentSeg == globalHeap.mainSegment){
+             globalCOM1->Print(SerialBLUE); globalCOM1->Write((char)220); globalCOM1->Print(SerialReset);
+        }else if(currentSeg == globalHeap.lastSegment){
+            globalCOM1->Print(SerialPINK); globalCOM1->Write((char)220); globalCOM1->Print(SerialReset);
+        }else if(currentSeg->IsFree){
             globalCOM1->Print(SerialGREEN); globalCOM1->Write((char)220); globalCOM1->Print(SerialReset);
         }else{
             globalCOM1->Print(SerialRED); globalCOM1->Write((char)220); globalCOM1->Print(SerialReset);
-        }
+        }   
 
         if(currentSeg->next == NULL) break;
         currentSeg = currentSeg->next;
     }
     globalCOM1->Print("\n");
+}
+
+void* calloc(size_t size){
+    void* address = malloc(size);
+    memset(address, 0, size);
+    return address;
 }
 
 void* volatile malloc(size_t size){
@@ -50,7 +60,6 @@ void* volatile malloc(size_t size){
                 globalHeap.FreeSize -= currentSeg->length + sizeof(SegmentHeader);
                 return (void*)((uint64_t)currentSeg + sizeof(SegmentHeader));
             }
-
         }
         if (currentSeg->next == NULL) break;
         currentSeg = currentSeg->next;
@@ -92,6 +101,7 @@ void volatile free(void* address){
             header->length += header->next->length + sizeof(SegmentHeader);
             header->next = header->next->next;
             header->next->last = header;
+            
             if(header == globalHeap.lastSegment){
                 if(header->next->next != NULL){
                     globalHeap.lastSegment = header->next->next;
@@ -99,6 +109,14 @@ void volatile free(void* address){
                     globalHeap.lastSegment = header;
                 }
             }
+            if(headerNext == globalHeap.lastSegment){
+                if(header->next != NULL){
+                    globalHeap.lastSegment = header->next;
+                }else{
+                    globalHeap.lastSegment = header;
+                }
+            }
+
             if(header == globalHeap.mainSegment){
                 globalHeap.mainSegment = header->last;
             }

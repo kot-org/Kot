@@ -27,6 +27,7 @@ extern Heap globalHeap;
 void volatile InitializeHeap(void* heapAddress, size_t pageCount);
 void volatile SegmentTracker();
 
+void* calloc(size_t size);
 void* volatile malloc(size_t size);
 void* volatile realloc(void* buffer, size_t size, uint64_t adjustement);
 void volatile free(void* address);
