@@ -52,21 +52,18 @@ namespace FileSystem{
     }__attribute__((packed));
 
     struct HeaderInfo{
+        bool IsFile = false;
         uint64_t FID = 0;
         uint64_t ParentLocationCluster = 0; //location of the parent's header
-        bool IsFile = false;
         uint64_t Version = 0;
-        uint64_t LastClusterAllocated = 0;
     }__attribute__((packed));
 
     struct FileInfo{
         /* location info */
-        uint64_t ClusterHeader;
-        uint64_t firstClusterData;
-        uint64_t lastCluster;
-        size_t size;  
-        size_t FileClusterSize; //number of Cluster 
-        size_t FileClusterData; //number of Cluster of data
+        uint64_t LastClusterOfTheFile;
+        uint64_t ClusterHeaderPostition;
+        size_t BytesSize;  
+        size_t ClusterSize; //number of Cluster 
         char path[MaxPath];
         char name[MaxName];
 
@@ -77,6 +74,7 @@ namespace FileSystem{
         /* time */
         TimeInfoFS timeInfoFS;
 
+        uint64_t NextCluster;
     }__attribute__((packed));
 
     struct FolderInfo{

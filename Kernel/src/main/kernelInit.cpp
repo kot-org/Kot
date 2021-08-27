@@ -72,6 +72,7 @@ void InitializeKernel(BootInfo* bootInfo){
     InitializeMemory(bootInfo);
     globalLogs->Successful("Memory intialize : map and paging");
 
+    memset(globalGraphics->framebuffer->BaseAddress, 128, globalGraphics->framebuffer->FrameBufferSize);
 
 
     InitializeHeap((void*)0x0000010000000000, 0x10);
@@ -84,11 +85,10 @@ void InitializeKernel(BootInfo* bootInfo){
     InitializeInterrupts();  
     globalLogs->Successful("IDT intialize");
     globalLogs->Message("RAM : %s", ConvertByte(globalAllocator.GetTotalRAM()));
-
     
     InitPS2Mouse();
 
-    IoWrite8(PIC1_DATA, 0b11111011);
+    IoWrite8(PIC1_DATA, 0b11111011); /* problem with pit and keyboard */
     IoWrite8(PIC2_DATA, 0b11101111);
     
     if(EnabledSSE() == 0){

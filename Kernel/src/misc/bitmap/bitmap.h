@@ -16,6 +16,7 @@ class BitmapHeap{
         Bitmap* bitmap;
     public:
         BitmapHeap(size_t size);
+        void Free();
         bool operator[](uint64_t index);
         bool Get(uint64_t index);
         bool Set(uint64_t index, bool value);    

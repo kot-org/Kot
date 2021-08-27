@@ -321,7 +321,7 @@ namespace AHCI{
         }
     }
 
-    bool Port::IsPortInit(GUID* GUIDOfInitPartition){
+    bool Port::IsPortInit(GUID* GUIDOfInitPartition){  
         GPT::Partitons* AllPartitions = GPT::GetAllPartitions(this);
         for(int i = 0; i < AllPartitions->NumberPartitionsCreated; i++){
             if(AllPartitions->AllParitions[i]->PartitionTypeGUID.Data1 == GUIDOfInitPartition->Data1 &&
@@ -362,8 +362,8 @@ namespace AHCI{
             port->Configure();
             GPT::Partitons* Partitons = GPT::GetAllPartitions(port);           
 
-            if(port->PortNumber == 0){
-                GPT::GPTHeader* GptHeader = GPT::GetGPTHeader(port);               
+            if(port->PortNumber == 1){
+                GPT::GPTHeader* GptHeader = GPT::GetGPTHeader(port);             
                 if(!port->IsPortInit(GPT::GetReservedGUIDPartitionType())){   
                     globalLogs->Warning("[AHCI] Disk at port %u not initialize yet", port->PortNumber); 
                     port->ResetDisk();
@@ -372,23 +372,27 @@ namespace AHCI{
                     globalLogs->Successful("%x", GPT::GetFreeSizePatition(port)); 
                     GPT::CreatPartition(port, 0, "KotReserved", GPT::GetReservedGUIDPartitionType(), 8);
                     
-                    GPT::CreatPartition(port, GPT::GetFreeSizePatition(port), "KotData", GPT::GetDataGUIDPartitionType(), 7);
-
-        
+                    GPT::CreatPartition(port, GPT::GetFreeSizePatition(port), "KotData", GPT::GetDataGUIDPartitionType(), 7);        
                 }
-  
+
                 GPT::Partition partitionTest = GPT::Partition(port, GPT::GetPartitionByGUID(port, GPT::GetDataGUIDPartitionType()));  
                 FileSystem::KFS* Fs = new FileSystem::KFS(&partitionTest);
                 //Fs->flist("");
                 FileSystem::File* file = Fs->fopen("terre.txt", "r");
-                char* bufferfile = (char*)malloc(4331);
-                bufferfile = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque in luctus elit. Ut eleifend posuere imperdiet. Duis quis ante laoreet, blandit erat in, maximus tortor. Nunc sit amet semper massa. Nulla ipsum ex, sollicitudin ac efficitur at, efficitur quis lacus. Sed eros justo, vehicula et suscipit nec, malesuada id velit. Morbi lacinia nulla eros, vel tempor erat blandit in. Proin molestie lectus nisi, vel ultrices turpis posuere et. Morbi nec semper felis. Nullam pretium ipsum mollis, volutpat libero ac, ullamcorper lacus. Nulla imperdiet, sem vel scelerisque lacinia, arcu nulla congue lorem, id tempor est justo sit amet arcu. Integer et congue neque. Cras ultricies lorem eget erat porta pulvinar. Nullam rutrum imperdiet pretium. Ut lobortis sapien non dui pulvinar commodo. Aenean commodo condimentum est at ultrices. Nulla eget magna sed magna imperdiet tempor ut non purus. Maecenas ultricies efficitur libero sit amet interdum. Phasellus egestas, urna in efficitur accumsan, enim tellus aliquam metus, vel sodales velit mauris eget est. Pellentesque posuere nisl est, vel semper orci imperdiet quis. Duis sit amet laoreet tellus. Aenean malesuada lobortis mauris, id dignissim diam commodo at. Nunc ornare dictum sagittis. Donec ut tellus nisl. Nunc pulvinar tempus lacus sit amet sollicitudin.Aliquam convallis urna auctor magna fringilla, quis consequat elit ornare. Duis id ullamcorper tortor. Duis in quam vitae nisl porta dapibus. Sed sit amet ultrices sapien. Quisque consequat, elit sit amet facilisis feugiat, ex lacus aliquam tortor, at condimentum orci neque et neque. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Morbi ut imperdiet magna, eget aliquet leo. Suspendisse sed viverra erat, vitae cursus massa. Morbi dictum consectetur lacus at pharetra. Nam ut porttitor ligula, tincidunt ultrices metus. In placerat a neque non tristique. Ut feugiat tellus sed felis rhoncus volutpat. Suspendisse commodo scelerisque ex ut finibus. Nam neque ante, tincidunt ut ligula vitae, dictum tincidunt nisi. Sed pulvinar, sapien consectetur fringilla fermentum, massa nulla malesuada ex, quis tristique erat sapien sit amet quam. Sed et felis sed odio elementum posuere eget ut lacus.Suspendisse a dictum nulla, in mollis nunc. Fusce lobortis sapien vel lacus varius, et tincidunt lorem facilisis. Mauris dignissim molestie congue. Nunc in imperdiet est, non consectetur nisl. Sed elementum sit amet elit at porttitor. Mauris quis ornare sem. Vivamus egestas venenatis massa quis lobortis. Aliquam semper vulputate metus, a volutpat felis sodales non. Praesent fringilla commodo dolor, at porta urna laoreet faucibus. In a felis sollicitudin, facilisis risus vitae, sodales felis. Mauris ultrices auctor erat, at laoreet sem laoreet auctor. Nunc malesuada non nunc quis dictum. Vestibulum posuere justo velit, eget elementum odio finibus at.Fusce at dignissim augue, ac blandit enim. Aliquam eget sollicitudin libero, ac mattis quam. Nulla at dolor sit amet purus ultricies elementum. Suspendisse ornare, orci et commodo hendrerit, lorem eros vulputate felis, eget ultrices nisl ex eu eros. Praesent bibendum aliquam nisl, quis mattis nibh imperdiet nec. Maecenas semper nibh nisl, nec tristique ipsum pretium tempus. Pellentesque id bibendum ipsum, semper molestie quam. Donec sed diam lorem. Pellentesque lobortis diam non interdum convallis. Quisque eros metus, ullamcorper a sem sit amet, rutrum tincidunt purus. Pellentesque ut augue risus. Proin efficitur pharetra massa a ultricies.Maecenas rutrum lacus diam, nec tempus sem aliquam ut. Donec in nulla elit. Integer eu sem semper, finibus ipsum et, vestibulum dui. Pellentesque vel porttitor odio. Nunc tempor sem ut magna maximus, a rutrum lacus mattis. Cras aliquet orci at nibh mollis iaculis id sit amet augue. Nam congue ligula a libero varius feugiat. Proin lectus risus, convallis at massa eu, tristique placerat lacus.Nulla tempus pellentesque feugiat. Quisque non lorem mollis, consectetur ligula in, bibendum sem. Sed sed magna et dolor pharetra venenatis quis quis est. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Suspendisse rutrum sapien et tristique consequat. Nam fermentum sapien sit amet volutpat luctus. Donec bibendum viverra dui hendrerit posuere.";
-                file->Write(0, 4331, bufferfile);
-                memset(bufferfile, 0, 4331);
-                file->Read(0, 4331, bufferfile);
-                for(int i = 0; i < 4331; i++) {
-                    globalCOM1->Write(*(uint8_t*)((uint64_t)bufferfile + i));
+                char* bufferfile = (char*)calloc(0x20010);
+                bufferfile = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed hendrerit nisl at nisi bibendum sodales. Donec facilisis, sem non sodales cursus, elit dolor tempor dolor, id ullamcorper velit lacus vitae felis. Nullam cursus ex non accumsan feugiat. Fusce ut neque ipsum. Phasellus aliquet libero at enim eleifend, quis tempus nulla rhoncus. Sed nec condimentum massa, nec facilisis massa. Donec sit amet convallis ipsum, eu molestie purus. Nulla in scelerisque metus, sed semper massa. Morbi mollis nisl id consequat finibus. Mauris luctus tempus lacus at auctor. Mauris rutrum vehicula metus, et bibendum enim rhoncus ac.";              
+                memset(bufferfile + 0x20000, 'd', 0x10);
+                file->Write(0, 0x20010, bufferfile);
+                void* buffersecond = calloc(0x20010);
+                file->Read(0, 0x20010, buffersecond);
+                for (int i = 0; i < strlen(bufferfile); i++){
+                    globalCOM1->Write(*(uint8_t*)(buffersecond + i));
                 }
+
+                for(int i = 0x20000; i < 0x20010; i++){
+                    globalCOM1->Write(*(uint8_t*)(buffersecond + i));
+                }
+                Fs->flist("");
                 /*void* bufferfile = malloc(255);
                 memset(bufferfile, 'a', 255);
                 file->Write(0, 255, bufferfile);
@@ -397,7 +401,9 @@ namespace AHCI{
                 for(int i = 0; i < 255; i++) {
                     globalCOM1->Write(*(uint8_t*)((uint64_t)bufferfile + i));
                 }*/
-                //Fs->flist("");
+                while (true){
+                    asm("hlt");
+                }
             }      
         }
     }

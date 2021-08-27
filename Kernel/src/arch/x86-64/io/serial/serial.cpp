@@ -69,8 +69,6 @@ void SerialPort::Printf(const char* str, ...){
     va_end(args);
 }
 
-
-
 void SerialPort::ClearMonitor() {
     Write(27);
     Print("[2J");

@@ -44,7 +44,6 @@ void* volatile malloc(size_t size){
     if (size == 0) return NULL;
 
     SegmentHeader* currentSeg = (SegmentHeader*)globalHeap.mainSegment;
-
     while(true){
         if(currentSeg->IsFree){
             if(currentSeg->length > size){
@@ -124,14 +123,11 @@ void volatile free(void* address){
             memset(headerNext, 0, sizeof(SegmentHeader));
         }else if(header->next->IsFree && header->last->IsFree && header->next != 0  && header->last != 0){
             // merge this segment and next segment into the last segment
-            header->last->length += header->length + sizeof(SegmentHeader) + header->next->length + sizeof(SegmentHeader);
-            header->last->next = header->next->next;
-            header->next->next->last = header->last;
             if(header->next == globalHeap.lastSegment){
                 if(header->next->next != NULL){
                     globalHeap.lastSegment = header->next->next;
                 }else{
-                    globalHeap.lastSegment = header->next->last;
+                    globalHeap.lastSegment = header->last;
                 }
             }
             if(header->next == globalHeap.mainSegment){
@@ -142,8 +138,8 @@ void volatile free(void* address){
                 }
             }
             if(header == globalHeap.lastSegment){
-                if(header->next != NULL){
-                    globalHeap.lastSegment = header->next;
+                if(header->next->next != NULL){
+                    globalHeap.lastSegment = header->next->next;
                 }else{
                     globalHeap.lastSegment = header->last;
                 }
@@ -152,9 +148,13 @@ void volatile free(void* address){
                 if(header->last != NULL){
                     globalHeap.mainSegment = header->last;
                 }else{
-                    globalHeap.mainSegment = header->next;
+                    globalHeap.mainSegment = header->next->next;
                 }
             }
+            
+            header->last->length += header->length + sizeof(SegmentHeader) + header->next->length + sizeof(SegmentHeader);
+            header->last->next = header->next->next;
+            header->next->next->last = header->last;
             memset(header->next, 0, sizeof(SegmentHeader));
             memset(header, 0, sizeof(SegmentHeader));
         }

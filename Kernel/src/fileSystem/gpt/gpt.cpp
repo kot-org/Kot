@@ -154,9 +154,10 @@ namespace GPT{
         return NULL;
     }
 
-    Partitons* GetAllPartitions(AHCI::Port* port){
+    Partitons* GetAllPartitions(AHCI::Port* port){  
         GPTHeader* gptHeader = GetGPTHeader(port);
         Partitons* ReturnValue = (Partitons*)malloc(sizeof(Partitons));
+
         memset(ReturnValue, 0, sizeof(Partitons));
         ReturnValue->IsPartitionsEntryBitmapFree = BitmapHeap(gptHeader->NumberPartitionEntries);
 
@@ -164,7 +165,7 @@ namespace GPT{
         uint64_t PartitionEntriesStartingLBA = gptHeader->PartitionEntriesStartingLBA;
 
 
-        GUIDPartitionEntryFormat* CheckEntry = NULL;
+        GUIDPartitionEntryFormat* CheckEntry = (GUIDPartitionEntryFormat*)malloc(sizeof(GUIDPartitionEntryFormat));;
         for(int i = 0; i < gptHeader->NumberPartitionEntries; i++){
             CheckEntry = (GUIDPartitionEntryFormat*)malloc(sizeof(GUIDPartitionEntryFormat));
             CheckEntry = GetGUIDPartitionEntryFormat(port, PartitionEntriesStartingLBA + (i / MaxGUIDPartitionEntryFormatPerSectors), i % MaxGUIDPartitionEntryFormatPerSectors);
@@ -173,6 +174,7 @@ namespace GPT{
                 ReturnValue->NumberPartitionsCreated++;
                 ReturnValue->IsPartitionsEntryBitmapFree.Set(i, false);
             }else{
+                free(CheckEntry);
                 ReturnValue->IsPartitionsEntryBitmapFree.Set(i, true);
             }
         }
@@ -260,7 +262,6 @@ namespace GPT{
         uint64_t UsedLBASectors = 0;
         uint64_t TotalUsableLBASectors = gptHeader->LastUsableLBAPartitions - gptHeader->FirstUsableLBAPartitions;
 
-        globalLogs->Successful("Test : %s %x", gptHeader->Signature, gptHeader->LastUsableLBAPartitions);
         for(int i = 0; i < partitions->NumberPartitionsCreated; i++){
             //the problem come from here
             UsedLBASectors += partitions->AllParitions[i]->LastLBA - partitions->AllParitions[i]->FirstLBA;

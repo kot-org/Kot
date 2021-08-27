@@ -33,7 +33,7 @@
 
 extern "C" void main(BootInfo*);
 
-extern uint64_t _KernelStart;
-extern uint64_t _KernelEnd;
+extern "C" uint64_t _KernelStart;
+extern "C" uint64_t _KernelEnd;
 
 void InitializeKernel(BootInfo* bootInfo);

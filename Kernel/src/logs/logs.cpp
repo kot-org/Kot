@@ -50,7 +50,10 @@ void Logs::Message(const char* str, ...){
 void Logs::Successful(const char* str, ...){
     va_list args;
     va_start(args, str);
+    
+    globalCOM1->Print(SerialGREEN);
     globalCOM1->Print("[OK] ");
+    globalCOM1->Print(SerialReset);
     
     int index = 0;
     while(str[index] != 0) {
@@ -96,7 +99,10 @@ void Logs::Successful(const char* str, ...){
 void Logs::Warning(const char* str, ...){
     va_list args;
     va_start(args, str);
+    
+    globalCOM1->Print(SerialYELLOW);
     globalCOM1->Print("[Warning] ");
+    globalCOM1->Print(SerialReset);
     
     int index = 0;
     while(str[index] != 0) {
@@ -142,7 +148,9 @@ void Logs::Warning(const char* str, ...){
 void Logs::Error(const char * str, ...){
     va_list args;
     va_start(args, str);
+    globalCOM1->Print(SerialRED);
     globalCOM1->Print("[Error] ");
+    globalCOM1->Print(SerialReset);
     
     int index = 0;
     while(str[index] != 0) {

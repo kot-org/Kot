@@ -34,6 +34,11 @@ BitmapHeap::BitmapHeap(size_t size){
     bitmap->Buffer = (uint8_t*)malloc(Divide(size, 8));
 }
 
+void BitmapHeap::Free(){
+    free(bitmap->Buffer);
+    free(bitmap);
+}
+
 bool BitmapHeap::operator[](uint64_t index){
     return bitmap->Get(index);
 }
