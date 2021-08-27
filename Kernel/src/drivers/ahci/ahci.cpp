@@ -348,7 +348,7 @@ namespace AHCI{
     }
 
     AHCIDriver::AHCIDriver(PCI::PCIDeviceHeader* pciBaseAddress){
-        globalLogs->Warning("AHCIDriver is loading"); 
+        globalLogs->Warning("[AHCI] Driver is loading"); 
         this->PCIBaseAddress = pciBaseAddress;
 
         ABAR = (HBAMemory*)((PCI::PCIHeader0*)pciBaseAddress)->BAR5;
@@ -369,7 +369,6 @@ namespace AHCI{
                     port->ResetDisk();
                     GPT::InitGPTHeader(port);
                     
-                    globalLogs->Successful("%x", GPT::GetFreeSizePatition(port)); 
                     GPT::CreatPartition(port, 0, "KotReserved", GPT::GetReservedGUIDPartitionType(), 8);
                     
                     GPT::CreatPartition(port, GPT::GetFreeSizePatition(port), "KotData", GPT::GetDataGUIDPartitionType(), 7);        
@@ -377,21 +376,26 @@ namespace AHCI{
 
                 GPT::Partition partitionTest = GPT::Partition(port, GPT::GetPartitionByGUID(port, GPT::GetDataGUIDPartitionType()));  
                 FileSystem::KFS* Fs = new FileSystem::KFS(&partitionTest);
-                //Fs->flist("");
+                Fs->flist("");
                 FileSystem::File* file = Fs->fopen("terre.txt", "r");
-                char* bufferfile = (char*)calloc(0x20010);
-                bufferfile = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed hendrerit nisl at nisi bibendum sodales. Donec facilisis, sem non sodales cursus, elit dolor tempor dolor, id ullamcorper velit lacus vitae felis. Nullam cursus ex non accumsan feugiat. Fusce ut neque ipsum. Phasellus aliquet libero at enim eleifend, quis tempus nulla rhoncus. Sed nec condimentum massa, nec facilisis massa. Donec sit amet convallis ipsum, eu molestie purus. Nulla in scelerisque metus, sed semper massa. Morbi mollis nisl id consequat finibus. Mauris luctus tempus lacus at auctor. Mauris rutrum vehicula metus, et bibendum enim rhoncus ac.";              
-                memset(bufferfile + 0x20000, 'd', 0x10);
-                file->Write(0, 0x20010, bufferfile);
+                FileSystem::File* file2 = Fs->fopen("test.txt", "r");
+                FileSystem::File* file3 = Fs->fopen("test2.txt", "r");
+                
+                char* bufferfile = (char*)calloc(0x1000);
+                bufferfile = "Vestibulum blandit laoreet purus id lobortis. Pellentesque accumsan congue nulla, eu sagittis nunc imperdiet quis. Etiam dapibus porta mauris non pharetra. Nullam elementum elit a ullamcorper rhoncus. Ut id felis nibh. Sed mollis ornare orci vel maximus. Nulla pulvinar, quam eu maximus egestas, mi purus eleifend nulla, eu pharetra velit felis sed dolor. In nec est volutpat, maximus nulla non, vulputate velit. Maecenas molestie vitae ligula at elementum. Quisque non turpis ligula. Nam malesuada neque eu turpis cursus auctor. Quisque pellentesque pretium mauris vel dapibus.";              
+                file2->Write(0, strlen(bufferfile), bufferfile);
+                globalLogs->Error("1");
                 void* buffersecond = calloc(0x20010);
+                file2->Read(0, strlen(bufferfile), buffersecond);
+                for (int i = 0; i < file2->fileInfo->BytesSize; i++){
+                    globalCOM1->Write(*(uint8_t*)(buffersecond + i));
+                }
                 file->Read(0, 0x20010, buffersecond);
+                globalCOM1->Print(SerialGREEN);
                 for (int i = 0; i < strlen(bufferfile); i++){
                     globalCOM1->Write(*(uint8_t*)(buffersecond + i));
                 }
-
-                for(int i = 0x20000; i < 0x20010; i++){
-                    globalCOM1->Write(*(uint8_t*)(buffersecond + i));
-                }
+                globalCOM1->Print(SerialReset);
                 Fs->flist("");
                 /*void* bufferfile = malloc(255);
                 memset(bufferfile, 'a', 255);

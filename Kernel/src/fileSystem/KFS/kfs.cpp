@@ -123,26 +123,19 @@ namespace FileSystem{
 
     void KFS::Free(uint64_t Cluster, bool DeleteData){
         uint64_t NextBlocToDelete = Cluster;
-        ClusterHeader* ClusterHeaderToDelete = (ClusterHeader*)malloc(sizeof(ClusterHeader));
-        void* BlankBuffer = malloc(KFSPartitionInfo->ClusterSize);
-        memset(BlankBuffer, 0, KFSPartitionInfo->ClusterSize);
+        void* ClusterData = malloc(KFSPartitionInfo->ClusterSize);
         while(true){
-            GetClusterData(NextBlocToDelete, ClusterHeaderToDelete);                
+            GetClusterData(NextBlocToDelete, ClusterData);                
             uint64_t temp = NextBlocToDelete;
-            NextBlocToDelete = ClusterHeaderToDelete->NextCluster;
-            if(DeleteData){
-               SetClusterData(temp, BlankBuffer); 
-            }
-            
-            UnlockCluster(temp);
+            NextBlocToDelete = ((ClusterHeader*)ClusterData)->NextCluster;
+            UnlockCluster(temp);           
 
             if(NextBlocToDelete == 0){
                 break;
             }
         }
-
-        free(BlankBuffer);        
-        free(ClusterHeaderToDelete);
+      
+        free(ClusterData);
     }
 
     uint64_t KFS::RequestCluster(){
@@ -394,7 +387,6 @@ namespace FileSystem{
                     int FileNameLen = strlen(FileName);
                     int FileNameTempLen = strlen(FoldersSlit[count]);
                     if(i == count && strcmp(FileName, FoldersSlit[count])){
-
                         returnData = (File*)malloc(sizeof(File));
                         returnData->fileInfo = (FileInfo*)malloc(sizeof(FileInfo));
                         memcpy(returnData->fileInfo, fileInfo, sizeof(FileInfo));
@@ -561,7 +553,11 @@ namespace FileSystem{
         }
 
 
-        for(int i = 0; i < ClusterCount; i++){
+        while(bytesRead < size){
+            if(ReadCluster == 0){
+                return 0; //end of file before end of read
+            }
+
             bytesToRead = size - bytesRead;
             if(bytesToRead > kfs->KFSPartitionInfo->ClusterSize){
                 bytesToRead = kfs->KFSPartitionInfo->ClusterSize;
@@ -579,9 +575,11 @@ namespace FileSystem{
             }else{
                 if(ReadCluster == fileInfo->ClusterHeaderPostition){
                     FirstByte += sizeof(HeaderInfo) + sizeof(FileInfo);
-                    bytesToRead -= FirstByte - sizeof(ClusterHeader);
+                    if(bytesToRead > kfs->KFSPartitionInfo->ClusterSize - FirstByte){
+                        bytesToRead -= FirstByte;
+                    }
                 } 
-                memcpy(buffer, (void*)((uint64_t)Cluster + FirstByte), bytesToRead); //Get the correct first byte
+                memcpy(buffer, (void*)((uint64_t)Cluster + FirstByte + sizeof(ClusterHeader)), bytesToRead); //Get the correct first byte
             }
 
             if(ReadCluster != fileInfo->ClusterHeaderPostition){
@@ -590,9 +588,6 @@ namespace FileSystem{
                 ReadCluster = fileInfo->NextCluster;
             }
 
-            if(ReadCluster == 0){
-                return 0; //end of file before end of read
-            }
             bytesRead += bytesToRead;
         }
 
@@ -614,6 +609,7 @@ namespace FileSystem{
             BytesStart = start % (kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader));
         }
 
+
         uint64_t ClusterCount = 0;
         if(ClusterStart == 0 && BytesStart < DataPosition){
             ClusterCount = Divide(size + DataPosition, kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader));
@@ -621,10 +617,9 @@ namespace FileSystem{
             ClusterCount = Divide(size + BytesStart, kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader));
         }
 
+
         uint64_t ClusterTotal = ClusterStart + ClusterCount;
-
-        fileInfo->BytesSize = start + size + DataPosition;
-
+        fileInfo->BytesSize = start + size;
         if(ClusterTotal != fileInfo->ClusterSize && ClusterTotal != 0){
             if(ClusterTotal > fileInfo->ClusterSize){
                 size_t NewSize = (ClusterTotal - fileInfo->ClusterSize) * kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader);
@@ -638,16 +633,30 @@ namespace FileSystem{
                 }
                 fileInfo->LastClusterOfTheFile = allocatePartition->LastCluster;
                 free(allocatePartition);
-                fileInfo->ClusterSize = ClusterTotal + Divide(sizeof(ClusterHeader), kfs->KFSPartitionInfo->ClusterSize);
+                fileInfo->ClusterSize = ClusterTotal;
+                if(fileInfo->ClusterSize == 0) fileInfo->ClusterSize++;
             }else{
                 size_t NewSize = ClusterTotal * kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader);
                 //Free last Cluster
-                kfs->Free(fileInfo->ClusterHeaderPostition + ClusterTotal, true);
-                fileInfo->ClusterSize = ClusterTotal + Divide(sizeof(ClusterHeader), kfs->KFSPartitionInfo->ClusterSize);
+                uint64_t ClusterToDelete = fileInfo->ClusterHeaderPostition;
+                //find the start Cluster
+                for(int i = 0; i < ClusterTotal; i++){
+                    kfs->GetClusterData(ClusterToDelete, Cluster);
+                    if(ClusterToDelete != fileInfo->ClusterHeaderPostition){
+                        ClusterToDelete = ((ClusterHeader*)Cluster)->NextCluster;
+                    }else{
+                        ClusterToDelete = fileInfo->NextCluster;
+                    }
+                }   
+                kfs->Free(ClusterToDelete, true);
+                fileInfo->ClusterSize = ClusterTotal;
+                if(fileInfo->ClusterSize == 0) fileInfo->ClusterSize++;
             }
         }
+
         kfs->UpdateFileInfo(fileInfo);
-        uint64_t FirstByte = start % kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader);
+
+        uint64_t FirstByte = start % kfs->KFSPartitionInfo->ClusterSize;
         uint64_t WriteCluster = fileInfo->ClusterHeaderPostition;
         uint64_t bytesWrite = 0;
         uint64_t bytesToWrite = 0;
@@ -666,8 +675,7 @@ namespace FileSystem{
                 return 0; //end of file before end of read
             }
         }   
-
-        for(int i = 0; i < ClusterCount; i++){
+        while(bytesWrite < size){
             if(WriteCluster == 0){
                 free(Cluster);
                 return 0; //end of file before end of write
@@ -688,11 +696,13 @@ namespace FileSystem{
             }else{
                 if(WriteCluster == fileInfo->ClusterHeaderPostition){
                     FirstByte += sizeof(HeaderInfo) + sizeof(FileInfo);
-                    bytesToWrite -= FirstByte;
+                    if(bytesToWrite > kfs->KFSPartitionInfo->ClusterSize - FirstByte){
+                        bytesToWrite -= FirstByte;
+                    }
                 }
-                    
                 memcpy((void*)((uint64_t)Cluster + sizeof(ClusterHeader) + FirstByte), buffer, bytesToWrite); //Get the correct first byte
             }
+
             kfs->SetClusterData(WriteCluster, Cluster);
 
             if(WriteCluster != fileInfo->ClusterHeaderPostition){
@@ -700,7 +710,6 @@ namespace FileSystem{
             }else{
                 WriteCluster = fileInfo->NextCluster;
             }
-
 
             bytesWrite += bytesToWrite;
         }
