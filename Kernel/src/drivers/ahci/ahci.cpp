@@ -384,27 +384,29 @@ namespace AHCI{
                 char* bufferfile = (char*)calloc(0x1000);
                 bufferfile = "Vestibulum blandit laoreet purus id lobortis. Pellentesque accumsan congue nulla, eu sagittis nunc imperdiet quis. Etiam dapibus porta mauris non pharetra. Nullam elementum elit a ullamcorper rhoncus. Ut id felis nibh. Sed mollis ornare orci vel maximus. Nulla pulvinar, quam eu maximus egestas, mi purus eleifend nulla, eu pharetra velit felis sed dolor. In nec est volutpat, maximus nulla non, vulputate velit. Maecenas molestie vitae ligula at elementum. Quisque non turpis ligula. Nam malesuada neque eu turpis cursus auctor. Quisque pellentesque pretium mauris vel dapibus.";              
                 file2->Write(0, strlen(bufferfile), bufferfile);
-                globalLogs->Error("1");
                 void* buffersecond = calloc(0x20010);
-                file2->Read(0, strlen(bufferfile), buffersecond);
+                file2->Read(0, file2->fileInfo->BytesSize, buffersecond);
                 for (int i = 0; i < file2->fileInfo->BytesSize; i++){
                     globalCOM1->Write(*(uint8_t*)(buffersecond + i));
                 }
-                file->Read(0, 0x20010, buffersecond);
+            
+                Fs->mkdir("fichiertest", 777);
+                Fs->mkdir("fichiertest/fichierinfini", 777);
+                Fs->mkdir("fichiertest/fichierinfini/fichierinfini2", 777);
+                Fs->flist("");
+                globalCOM1->Print(SerialGREEN);
+                FileSystem::File* file4 = Fs->fopen("fichiertest/fichierinfini/fichierinfini2/testfichiertest.txt", "r");
+                Fs->flist("fichiertest/fichierinfini/fichierinfini2");
+                bufferfile = "infini";
+                file4->Write(0, strlen(bufferfile), bufferfile);
+                file4->Read(0, file4->fileInfo->BytesSize, buffersecond);
                 globalCOM1->Print(SerialGREEN);
                 for (int i = 0; i < strlen(bufferfile); i++){
                     globalCOM1->Write(*(uint8_t*)(buffersecond + i));
                 }
-                globalCOM1->Print(SerialReset);
-                Fs->flist("");
-                /*void* bufferfile = malloc(255);
-                memset(bufferfile, 'a', 255);
-                file->Write(0, 255, bufferfile);
-                memset(bufferfile, 0, 255);
-                file->Read(0, 255, bufferfile);
-                for(int i = 0; i < 255; i++) {
-                    globalCOM1->Write(*(uint8_t*)((uint64_t)bufferfile + i));
-                }*/
+                
+                //Fs->flist("fichiertest32");
+
                 while (true){
                     asm("hlt");
                 }

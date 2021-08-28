@@ -9,7 +9,7 @@
 namespace FileSystem{
     #define MaxPath 512
     #define MaxName 256
-    #define MaxPassword 512
+    #define MaxPassword 256
     #define MaxUserRight 256   
 
     #define GUIDData1 0x47A1ACC0
@@ -21,21 +21,21 @@ namespace FileSystem{
     #define FileInfoPosition sizeof(ClusterHeader) + sizeof(HeaderInfo)
     #define DataPosition sizeof(ClusterHeader) + sizeof(HeaderInfo) + sizeof(FileInfo)
 
-    struct Root{
-        char        name[MaxName];
-        uint64_t    firstClusterForFile;
-        uint64_t    firstClusterFile;
-        uint64_t    fid;
-        uint64_t    lastClusterAllocated;
+    struct root{
+        char        Name[MaxName];
+        uint64_t    FirstClusterForFile;
+        uint64_t    FirstClusterFile;
+        uint64_t    FID;
+        uint64_t    LastClusterAllocated;
     }__attribute__((packed));
 
     struct KFSinfo{
-        size_t      bitmapSizeByte;
-        size_t      bitmapSizeCluster;
-        uint64_t    bitmapPosition;
+        size_t      BitmapSizeByte;
+        size_t      BitmapSizeCluster;
+        uint64_t    BitmapPosition;
         size_t      ClusterSize;
-        size_t      numberOfCluster;
-        Root        root;
+        size_t      NumberOfCluster;
+        root        Root;
         GUID        IsInit;
     }__attribute__((packed));
 
@@ -46,7 +46,7 @@ namespace FileSystem{
         uint64_t NextCluster;
     }__attribute__((packed));
 
-    struct TimeInfoFS{
+    struct timeInfoFS{
         Time CreateTime;
         Time ModifyTime;
     }__attribute__((packed));
@@ -64,38 +64,38 @@ namespace FileSystem{
         uint64_t ClusterHeaderPostition;
         size_t BytesSize;  
         size_t ClusterSize; //number of Cluster 
-        char path[MaxPath];
-        char name[MaxName];
+        char Path[MaxPath];
+        char Name[MaxName];
 
         /* userRight */
-        char password[MaxPassword];
-        GUID owner;
+        char Password[MaxPassword];
+        GUID Owner;
 
         /* time */
-        TimeInfoFS timeInfoFS;
+        timeInfoFS TimeInfoFS;
 
         uint64_t NextCluster;
     }__attribute__((packed));
 
     struct FolderInfo{
         /* location info */
-        uint64_t ClusterHeader;
-        uint64_t firstClusterData;
+        uint64_t ClusterHeaderPostion;
+        uint64_t FirstClusterData;
         uint64_t numberFiles;
-        size_t size;   
+        size_t BytesSize;   
         size_t FileClusterSize; //number of Cluster 
-        char path[MaxPath];
-        char name[MaxName];
+        char Path[MaxPath];
+        char Name[MaxName];
 
         /* userRight */
-        char password[MaxPassword];
-        GUID owner;
+        char Password[MaxPassword];
+        GUID Owner;
 
         /* time */
-        TimeInfoFS timeInfoFS;
+        timeInfoFS TimeInfoFS;
 
-        uint64_t lastClusterRequested;
-        uint64_t mode;
+        uint64_t LastClusterRequested;
+        uint64_t Mode;
 
     }__attribute__((packed));
 
@@ -133,13 +133,14 @@ namespace FileSystem{
         Folder* readdir(char* filePath);
 
         void flist(char *filename);
+        bool IsDirExist(char* filepath);
 
         File* fopen(char *filename, char *mode);            
         FileInfo* NewFile(char* filePath, Folder* folder);
-        FolderInfo* OpenFolderInFolder(GPT::Partition* Partition, FolderInfo* FolderOpened, char* FolderName); 
+
         uint64_t GetFID();
         bool UpdatePartitionInfo();
-        void UpdateFolderInfo(Folder* folder);
+        void UpdateFolderInfo(FolderInfo* folderInfo);
         void UpdateFileInfo(FileInfo* fileInfo);
 
 
@@ -149,7 +150,7 @@ namespace FileSystem{
 
     struct File{
         FileInfo* fileInfo;
-        char* mode;            
+        char* Mode;            
         KFS* kfs;
         uint64_t Read(uint64_t start, size_t size, void* buffer);
         uint64_t Write(uint64_t start, size_t size, void* buffer);
