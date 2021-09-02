@@ -36,6 +36,7 @@ namespace FileSystem{
         size_t      ClusterSize;
         size_t      NumberOfCluster;
         root        Root;
+        uint64_t    IndexToAllocate;
         GUID        IsInit;
     }__attribute__((packed));
 
@@ -120,7 +121,7 @@ namespace FileSystem{
         File* OpenFile(char* filePath);                        
         void Close(File* file);
 
-        AllocatePartition* Allocate(size_t size, Folder* folder, uint64_t lastClusterRequested);
+        AllocatePartition* Allocate(size_t size, Folder* folder, uint64_t lastClusterRequested, bool GetAutoLastCluster);
         void Free(uint64_t Cluster, bool DeleteData);
         uint64_t RequestCluster();
         void LockCluster(uint64_t Cluster);  

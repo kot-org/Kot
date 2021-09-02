@@ -1,8 +1,9 @@
 #include "gpt.h"
+#include "../kfs/kfs.h"
 
 namespace GPT{
 
-    PartionsInfo** AllPartitionsInfo;
+    PartitionsInfo** AllPartitionsInfo;
     uint64_t AllPartitionsInfoNumber;
 
     GPTHeader* GetGPTHeader(AHCI::Port* port){
@@ -126,7 +127,7 @@ namespace GPT{
     
     uint64_t GetFirstFreeLBA(AHCI::Port* port){
         GPTHeader* gptHeader = GetGPTHeader(port);
-        Partitons* partitions = GetAllPartitions(port);
+        Partitions* partitions = GetAllPartitions(port);
         uint64_t MaxLastUsedLBA = 0;
         if(partitions->NumberPartitionsCreated == 0){
             
@@ -141,7 +142,7 @@ namespace GPT{
     }
 
     GUIDPartitionEntryFormat* GetPartitionByGUID(AHCI::Port* port, GUID* guid){
-        Partitons* AllPartitions = GetAllPartitions(port);
+        Partitions* AllPartitions = GetAllPartitions(port);
 
         for(int i = 0; i < AllPartitions->NumberPartitionsCreated; i++){
             if(AllPartitions->AllParitions[i]->PartitionTypeGUID.Data1 == guid->Data1 &&
@@ -154,11 +155,11 @@ namespace GPT{
         return NULL;
     }
 
-    Partitons* GetAllPartitions(AHCI::Port* port){  
+    Partitions* GetAllPartitions(AHCI::Port* port){  
         GPTHeader* gptHeader = GetGPTHeader(port);
-        Partitons* ReturnValue = (Partitons*)malloc(sizeof(Partitons));
+        Partitions* ReturnValue = (Partitions*)malloc(sizeof(Partitions));
 
-        memset(ReturnValue, 0, sizeof(Partitons));
+        memset(ReturnValue, 0, sizeof(Partitions));
         ReturnValue->IsPartitionsEntryBitmapFree = BitmapHeap(gptHeader->NumberPartitionEntries);
 
         uint8_t MaxGUIDPartitionEntryFormatPerSectors = port->GetSectorSizeLBA() / sizeof(GUIDPartitionEntryFormat);
@@ -184,7 +185,7 @@ namespace GPT{
 
     bool CreatPartition(AHCI::Port* port, size_t size, char* PartitionName, GUID* PartitionTypeGUID, uint64_t flags){
         GPTHeader* gptHeader = GetGPTHeader(port);
-        Partitons* partitions = GetAllPartitions(port);
+        Partitions* partitions = GetAllPartitions(port);
 
 
         if(partitions->NumberPartitionsCreated >= gptHeader->NumberPartitionEntries){
@@ -257,7 +258,7 @@ namespace GPT{
 
     uint64_t GetFreeSizePatition(AHCI::Port* port){
         GPTHeader* gptHeader = GetGPTHeader(port);
-        Partitons* partitions = GetAllPartitions(port);
+        Partitions* partitions = GetAllPartitions(port);
 
         uint64_t UsedLBASectors = 0;
         uint64_t TotalUsableLBASectors = gptHeader->LastUsableLBAPartitions - gptHeader->FirstUsableLBAPartitions;
@@ -299,7 +300,7 @@ namespace GPT{
         return KotReservedGUID;
     }
 
-    void AssignNamePartitonsGUID(){
+    void AssignNamePartitionsGUID(){
         bool systemPartInit = false;
         uint64_t PatitionNumber = 0;
         for(int i = 0; i < AllPartitionsInfoNumber; i++){
@@ -321,7 +322,7 @@ namespace GPT{
     }
 
     bool Partition::Read(uint64_t firstByte, size_t size, void* buffer){
-        uint64_t LBAFirstSector = this->partition->FirstLBA + (firstByte / this->port->GetSectorSizeLBA());
+        uint64_t LBAFirstSector = this->partition->FirstLBA + (firstByte / this->port->GetSectorSizeLBA());        
         bool Check;
         memset(buffer, 0, size);
         uint64_t sizeRead = 0;
@@ -337,12 +338,13 @@ namespace GPT{
             sectorsToRead = Divide(sizeToRead, port->GetSectorSizeLBA());
 
             Check = port->Read(LBAFirstSector + sectorsRead, sectorsToRead, port->Buffer);
+            
             if(sizeRead != 0){
                 memcpy((void*)((uint64_t)buffer + sizeRead), port->Buffer, sizeToRead);
             }else{
-                memcpy((void*)((uint64_t)buffer + sizeRead), (void*)((uint64_t)port->Buffer + firstByte % this->port->GetSectorSizeLBA()), sizeToRead); //Get the correct first byte
+                memcpy(buffer, (void*)((uint64_t)port->Buffer + firstByte % this->port->GetSectorSizeLBA()), sizeToRead); //Get the correct first byte
             }
-            
+
             sizeRead += sizeToRead;
             sectorsRead += sectorsToRead;
         }
@@ -369,10 +371,11 @@ namespace GPT{
             if(sizeWrite != 0){
                 memcpy(port->Buffer, (void*)((uint64_t)buffer + sizeWrite), sizeToWrite);
             }else{
-                memcpy((void*)((uint64_t)port->Buffer + firstByte % this->port->GetSectorSizeLBA()), (void*)((uint64_t)buffer + sizeWrite), sizeToWrite);
+                memcpy((void*)((uint64_t)port->Buffer + firstByte % this->port->GetSectorSizeLBA()), buffer, sizeToWrite);
             }
-            Check = port->Write(LBAFirstSector + sectorsWrite, sectorsToWrite, port->Buffer);            
-            sizeWrite += sectorsToWrite;
+            Check = port->Write(LBAFirstSector + sectorsWrite, sectorsToWrite, port->Buffer);
+                       
+            sizeWrite += sizeToWrite;
             sectorsWrite += sectorsToWrite;
         }
         return Check;

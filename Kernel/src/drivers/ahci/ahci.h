@@ -8,8 +8,9 @@
 #include "../../memory/paging/pageFrameAllocator.h"
 #include "../../memory/heap/heap.h"
 
-namespace AHCI{
 
+
+namespace AHCI{
     #define ATA_DEV_BUSY 0x80
     #define ATA_DEV_DRQ 0x08
 
@@ -265,4 +266,6 @@ namespace AHCI{
             Port* Ports[32];
             uint8_t PortCount;
     };
+
+    extern AHCIDriver* ahciDriver;
 }

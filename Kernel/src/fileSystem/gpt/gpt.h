@@ -38,19 +38,19 @@ namespace GPT{
     }__attribute__((packed));
 
 
-    struct Partitons{
+    struct Partitions{
         GUIDPartitionEntryFormat* AllParitions[MaxParitionsNumber];
         uint64_t NumberPartitionsCreated;
         BitmapHeap IsPartitionsEntryBitmapFree;
     }__attribute__((packed));
 
-    struct PartionsInfo{
+    struct PartitionsInfo{
         AHCI::Port* Port;
         GUIDPartitionEntryFormat* Partition;    
         uint64_t PatitionNumber;    
     }__attribute__((packed));
 
-    extern PartionsInfo** AllPartitionsInfo;
+    extern PartitionsInfo** AllPartitionsInfo;
     extern uint64_t AllPartitionsInfoNumber;
 
     
@@ -65,7 +65,7 @@ namespace GPT{
 
     uint64_t GetFirstFreeLBA(AHCI::Port* port);
 
-    Partitons* GetAllPartitions(AHCI::Port* port);
+    Partitions* GetAllPartitions(AHCI::Port* port);
     bool CreatPartition(AHCI::Port* port, size_t size, char* PartitionName, GUID* PartitionTypeGUID, uint64_t flags);
 
     uint64_t GetFreeSizePatition(AHCI::Port* port);

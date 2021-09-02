@@ -22,7 +22,7 @@ EFI_GRAPHICS_OUTPUT_BLT_PIXEL GraphicsColor;
 EFI_STATUS Status;
 EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *Volume;
 EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* InfoModeGop;
-Framebuffer* framebuffer;
+Framebuffer framebuffer;
 int debug = 0;
 
 //graphic variable

@@ -100,6 +100,46 @@ void InitializeKernel(BootInfo* bootInfo){
 
     InitializeACPI(bootInfo);
 
+    GPT::Partition partitionTest = GPT::Partition(AHCI::ahciDriver->Ports[1], GPT::GetPartitionByGUID(AHCI::ahciDriver->Ports[1], GPT::GetDataGUIDPartitionType()));  
+    FileSystem::KFS* Fs = new FileSystem::KFS(&partitionTest);
+
+    Fs->mkdir("system", 777);
+    Fs->mkdir("system/background", 777);
+    FileSystem::File* picture = Fs->fopen("system/background/1.bmp", "r");
+
+    void* pictureBuffer = malloc(picture->fileInfo->BytesSize);
+    picture->Read(0, picture->fileInfo->BytesSize, pictureBuffer);
+
+    unsigned char info[54];
+    for(int i = 0; i < 54; i++){
+        info[i] =  *(uint8_t*)((uint64_t)pictureBuffer + i);
+    }
+    
+
+    int dataOffset = *(int*)&info[10]; 
+    int src_width = *(int*)&info[18];
+    int src_height = *(int*)&info[22];
+    int bitCount = (*(short*)&info[28]) / 8;
+
+    pictureBuffer += dataOffset;
+
+    globalLogs->Successful("%u %u", src_width, src_height);
+
+    for(int i = 0; i < globalGraphics->framebuffer->Height; i++) {
+        for(int j = 0; j < globalGraphics->framebuffer->Width; j++){
+            uint8_t r = *(uint8_t*)((uint64_t)pictureBuffer + (i * src_width + j) * 4 + 0);
+            uint8_t g = *(uint8_t*)((uint64_t)pictureBuffer + (i * src_width + j) * 4 + 1);
+            uint8_t b = *(uint8_t*)((uint64_t)pictureBuffer + (i * src_width + j) * 4 + 2);
+            globalGraphics->Putpixel(j, i, r, g, b);
+        }
+    }
+    
+    globalLogs->Successful("");
+    while (true){
+        asm("hlt");
+    }
+
+
     globalTaskManager.InitScheduler(APIC::ProcessorCount);
     globalTaskManager.AddTask((void*)task1, 4096, false, true, 1);
     globalTaskManager.AddTask((void*)task2, 4096, false, true, 2);

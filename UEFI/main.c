@@ -124,15 +124,15 @@ EFI_STATUS efi_main(EFI_HANDLE IH, EFI_SYSTEM_TABLE* ST)
 
 	BootInfo bootInfo; 
 
-	framebuffer->BaseAddress = (void*)gop->Mode->FrameBufferBase;
-	framebuffer->FrameBufferSize = gop->Mode->FrameBufferSize;
-    framebuffer->Width = gop->Mode->Info->HorizontalResolution;
-    framebuffer->Height = gop->Mode->Info->VerticalResolution;
-    framebuffer->PixelsPerScanLine = gop->Mode->Info->PixelsPerScanLine;
+	framebuffer.BaseAddress = (void*)gop->Mode->FrameBufferBase;
+	framebuffer.FrameBufferSize = gop->Mode->FrameBufferSize;
+    framebuffer.Height = gop->Mode->Info->VerticalResolution;
+    framebuffer.Width = gop->Mode->Info->HorizontalResolution;
+    framebuffer.PixelsPerScanLine = gop->Mode->Info->PixelsPerScanLine;
 
 	bootInfo.KernelStart = header.e_entry;
 	bootInfo.KernelSize = KernelSize;
-	bootInfo.framebuffer = framebuffer;
+	bootInfo.framebuffer = &framebuffer;
 	bootInfo.psf1_Font = LinuxFont;
 	bootInfo.mMap = Map;
 	bootInfo.mMapSize = MapSize;

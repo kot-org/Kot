@@ -8,12 +8,13 @@ namespace FileSystem{
         KFSPartitionInfo = (KFSinfo*)malloc(sizeof(KFSinfo));
         while(true){
             globalPartition->Read(0, sizeof(KFSinfo), KFSPartitionInfo);
-            InitKFS();
             if(KFSPartitionInfo->IsInit.Data1 == GUIDData1 && KFSPartitionInfo->IsInit.Data2 == GUIDData2 && KFSPartitionInfo->IsInit.Data3 == GUIDData3 && KFSPartitionInfo->IsInit.Data4 == GUIDData4) break;  
+            InitKFS();
         }     
     }
 
     void KFS::InitKFS(){
+        globalLogs->Warning("Initialize KFS partition");
         uint64_t ClusterSize = 0x10000;
         void* Cluster = malloc(ClusterSize);
         KFSinfo* info = (KFSinfo*)malloc(sizeof(KFSinfo));
@@ -29,11 +30,17 @@ namespace FileSystem{
         info->ClusterSize = ClusterSize;
         info->BitmapSizeCluster = Divide(info->BitmapSizeByte, info->ClusterSize);
         info->BitmapPosition = ClusterSize;
+        info->IndexToAllocate = 0;
         info->Root.FirstClusterForFile = info->BitmapPosition / ClusterSize + info->BitmapSizeCluster;
         info->Root.FirstClusterFile = 0;
         info->Root.FID = 0;
-        globalPartition->Write(0, sizeof(KFSinfo), info);
+        char* Name = "Kot file system";
 
+        int counter = strlen(Name);
+        if(counter > MaxName) counter = MaxName;
+        memcpy(info->Root.Name, Name, counter);
+
+        globalPartition->Write(0, sizeof(KFSinfo), info);
 
         /* Clear Bitmap */        
         memset(Cluster, 0, info->ClusterSize);
@@ -56,12 +63,12 @@ namespace FileSystem{
     }   
 
 
-    AllocatePartition* KFS::Allocate(size_t size, Folder* folder, uint64_t LastClusterRequested){
+    AllocatePartition* KFS::Allocate(size_t size, Folder* folder, uint64_t LastClusterRequested, bool GetAutoLastCluster){
         uint64_t NumberClusterToAllocate = Divide(size, KFSPartitionInfo->ClusterSize);
         uint64_t ClusterAllocate = 1;
         uint64_t FirstBlocAllocated = 0;
         uint64_t NextCluster = 0;
-        if(LastClusterRequested == 0){
+        if(LastClusterRequested == 0 && GetAutoLastCluster){
             LastClusterRequested = KFSPartitionInfo->Root.LastClusterAllocated;
         }        
 
@@ -141,25 +148,13 @@ namespace FileSystem{
         free(ClusterData);
     }
 
-    uint64_t KFS::RequestCluster(){
-        bool Check = false;
-        void* BitmapBuffer = malloc(KFSPartitionInfo->ClusterSize);
-        for(int i = 0; i < KFSPartitionInfo->BitmapSizeCluster; i++){
-            for(int j = 0; j < KFSPartitionInfo->ClusterSize; j++){
-                uint8_t value = *(uint8_t*)((uint64_t)BitmapBuffer + j);
-                if(value != uint8_Limit){ //so more than one Cluster is free in this byte
-                    for(int y = 0; y < 8; y++){
-                        uint64_t Cluster = i * KFSPartitionInfo->ClusterSize + j * 8 + y;
-                        if(CheckCluster(Cluster)){ /* is free Cluster */
-                            LockCluster(Cluster);
-                            free(BitmapBuffer);
-                            return Cluster;
-                        }
-                    }
-                }
-            }
-        } 
-        free(BitmapBuffer);
+    uint64_t KFS::RequestCluster() {
+        for (int i = KFSPartitionInfo->IndexToAllocate; i < KFSPartitionInfo->NumberOfCluster; i++) {
+            if (CheckCluster(i)) { /* is free Cluster */
+                LockCluster(i);
+                return i;
+            }             
+        }
         return 0;
     }
 
@@ -171,6 +166,8 @@ namespace FileSystem{
         *(uint8_t*)((uint64_t)BitmapBuffer) = value;
         globalPartition->Write(KFSPartitionInfo->BitmapPosition + (Cluster / 8), 1, BitmapBuffer);
         free(BitmapBuffer);
+        KFSPartitionInfo->IndexToAllocate = Cluster;
+        UpdatePartitionInfo();
     }
 
     void KFS::UnlockCluster(uint64_t Cluster){
@@ -181,6 +178,10 @@ namespace FileSystem{
         *(uint8_t*)((uint64_t)BitmapBuffer) = value;
         globalPartition->Write(KFSPartitionInfo->BitmapPosition + (Cluster / 8), 1, BitmapBuffer);
         free(BitmapBuffer);
+        if(Cluster < KFSPartitionInfo->IndexToAllocate){
+            KFSPartitionInfo->IndexToAllocate = Cluster;
+            UpdatePartitionInfo();            
+        }
     }
 
     bool KFS::CheckCluster(uint64_t Cluster){
@@ -257,7 +258,7 @@ namespace FileSystem{
          
             if(ScanHeader->IsFile){
                 FileInfo* fileInfo = (FileInfo*)((uint64_t)Cluster + FileInfoPosition);
-                globalLogs->Message("File Name : %s FID : %u Cluster : %u\n", fileInfo->Name, ScanHeader->FID, ScanCluster); 
+                globalLogs->Message("File Name : %s FID : %u Cluster : %u Size : %u\n", fileInfo->Name, ScanHeader->FID, ScanCluster, fileInfo->BytesSize); 
             }else if(ScanHeader->FID != 0){
                 FolderInfo* folderInfo = (FolderInfo*)((uint64_t)Cluster + FileInfoPosition);
                 globalLogs->Message("Folder Name : %s", folderInfo->Name);
@@ -361,13 +362,13 @@ namespace FileSystem{
 
         uint64_t ClusterSize = Divide(DataPosition, KFSPartitionInfo->ClusterSize);
         uint64_t ClusterSizeFolder = KFSPartitionInfo->ClusterSize * ClusterSize;
-        AllocatePartition* allocatePartition = Allocate(ClusterSizeFolder, folder, 0);
+        AllocatePartition* allocatePartition = Allocate(ClusterSizeFolder, folder, 0, true);
         
         uint64_t ParentClusterHeaderPostion = 0;
         if(folder != NULL){
             ParentClusterHeaderPostion = folder->folderInfo->ClusterHeaderPostion;
-            free(folder);
             free(folder->folderInfo);
+            free(folder);
         }
         
         folder = (Folder*)malloc(sizeof(Folder)); 
@@ -390,8 +391,15 @@ namespace FileSystem{
         folderInfo->FileClusterSize = ClusterSize;
         folderInfo->ClusterHeaderPostion = ClusterPosition;
 
-        memcpy(folderInfo->Path, filePath, MaxPath);
-        memcpy(folderInfo->Name, FoldersSlit[count - 1], MaxName);
+        int counter = strlen(filePath);
+        if(counter > MaxPath) counter = MaxPath;
+        memcpy(folderInfo->Path, filePath, counter);
+        folderInfo->Path[counter] = 0;
+
+        counter = strlen(filePath);
+        if(counter > MaxName) counter = MaxName;
+        memcpy(folderInfo->Name, FoldersSlit[count - 1], counter);
+        folderInfo->Name[counter] = 0;
 
         RealTimeClock* realTimeClock;
         folderInfo->TimeInfoFS.CreateTime.seconds = realTimeClock->readSeconds();
@@ -567,7 +575,7 @@ namespace FileSystem{
         globalLogs->Message("New file: %s\n", filePath);
         uint64_t ClusterSize = Divide(DataPosition, KFSPartitionInfo->ClusterSize);
         uint64_t FileClusterSize = KFSPartitionInfo->ClusterSize * ClusterSize; //alloc one bloc, for the header and data
-        AllocatePartition* allocatePartition = Allocate(FileClusterSize, folder, 0);
+        AllocatePartition* allocatePartition = Allocate(FileClusterSize, folder, 0, true);
         uint64_t ClusterLastAllocate = allocatePartition->LastCluster;
         uint64_t ClusterPosition = allocatePartition->FirstCluster; 
         free(allocatePartition);
@@ -590,23 +598,25 @@ namespace FileSystem{
             Header->ParentLocationCluster = folder->folderInfo->ClusterHeaderPostion;
         }
         FileInfo* fileInfo = (FileInfo*)(void*)((uint64_t)Cluster + sizeof(ClusterHeader) + sizeof(HeaderInfo));
-        fileInfo->BytesSize = DataPosition;
+        fileInfo->BytesSize = 0;
         fileInfo->ClusterSize = ClusterSize;
         fileInfo->LastClusterOfTheFile = ClusterLastAllocate;
         fileInfo->ClusterHeaderPostition = ClusterPosition;
         fileInfo->NextCluster = 0;
 
-        for(int i = 0; i < MaxPath; i++){
-            fileInfo->Path[i] = filePath[i];
-        }
-        
+        int counter = strlen(filePath);
+        if(counter > MaxPath) counter = MaxPath;
+        memcpy(fileInfo->Path, filePath, counter);
+        fileInfo->Path[counter] = 0;
 
         char** FoldersSlit = split(filePath, "/");
         int count;
         for(count = 0; FoldersSlit[count] != 0; count++);
-        for(int i = 0; i < MaxName; i++){
-            fileInfo->Name[i] = FoldersSlit[count - 1][i];
-        }
+        counter = strlen(FoldersSlit[count - 1]);
+        if(counter > MaxName) counter = MaxName;
+        memcpy(fileInfo->Name, FoldersSlit[count - 1], counter);
+        fileInfo->Name[counter] = 0;
+        
 
         RealTimeClock* realTimeClock;
         fileInfo->TimeInfoFS.CreateTime.seconds = realTimeClock->readSeconds();
@@ -686,6 +696,7 @@ namespace FileSystem{
 
         while(bytesRead < size){
             if(ReadCluster == 0){
+                free(Cluster);
                 return 0; //end of file before end of read
             }
 
@@ -712,6 +723,7 @@ namespace FileSystem{
                 } 
                 memcpy(buffer, (void*)((uint64_t)Cluster + FirstByte + sizeof(ClusterHeader)), bytesToRead); //Get the correct first byte
             }
+
 
             if(ReadCluster != fileInfo->ClusterHeaderPostition){
                 ReadCluster = ((ClusterHeader*)Cluster)->NextCluster;
@@ -757,10 +769,10 @@ namespace FileSystem{
                 //Alloc new Clusters
                 AllocatePartition* allocatePartition;
                 if(fileInfo->NextCluster == 0){
-                    allocatePartition = kfs->Allocate(NewSize, NULL, 0);
+                    allocatePartition = kfs->Allocate(NewSize, NULL, 0, false);
                     fileInfo->NextCluster = allocatePartition->FirstCluster;
                 }else{
-                    allocatePartition = kfs->Allocate(NewSize, NULL, fileInfo->LastClusterOfTheFile);
+                    allocatePartition = kfs->Allocate(NewSize, NULL, fileInfo->LastClusterOfTheFile, false);
                 }
                 fileInfo->LastClusterOfTheFile = allocatePartition->LastCluster;
                 free(allocatePartition);
@@ -831,10 +843,10 @@ namespace FileSystem{
                         bytesToWrite -= FirstByte;
                     }
                 }
-                memcpy((void*)((uint64_t)Cluster + sizeof(ClusterHeader) + FirstByte), buffer, bytesToWrite); //Get the correct first byte
+                memcpy((void*)((uint64_t)Cluster + FirstByte + sizeof(ClusterHeader)), buffer, bytesToWrite); //Get the correct first byte  
             }
-
             kfs->SetClusterData(WriteCluster, Cluster);
+ 
 
             if(WriteCluster != fileInfo->ClusterHeaderPostition){
                 WriteCluster = ((ClusterHeader*)Cluster)->NextCluster;

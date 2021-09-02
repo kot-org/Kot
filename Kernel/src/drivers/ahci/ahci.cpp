@@ -4,6 +4,8 @@
 
 
 namespace AHCI{
+    AHCI::AHCIDriver* ahciDriver;
+
 
     #define HBA_PORT_DEV_PRESENT 0x3
     #define HBA_PORT_IPM_ACTIVE 0x1
@@ -322,7 +324,7 @@ namespace AHCI{
     }
 
     bool Port::IsPortInit(GUID* GUIDOfInitPartition){  
-        GPT::Partitons* AllPartitions = GPT::GetAllPartitions(this);
+        GPT::Partitions* AllPartitions = GPT::GetAllPartitions(this);
         for(int i = 0; i < AllPartitions->NumberPartitionsCreated; i++){
             if(AllPartitions->AllParitions[i]->PartitionTypeGUID.Data1 == GUIDOfInitPartition->Data1 &&
                AllPartitions->AllParitions[i]->PartitionTypeGUID.Data2 == GUIDOfInitPartition->Data2 &&
@@ -335,7 +337,7 @@ namespace AHCI{
     }
     
     bool Port::IsPortSystem(GUID* GUIDOfSystemPartition){
-        GPT::Partitons* AllPartitions = GPT::GetAllPartitions(this);
+        GPT::Partitions* AllPartitions = GPT::GetAllPartitions(this);
         for(int i = 0; i < AllPartitions->NumberPartitionsCreated; i++){
             if(AllPartitions->AllParitions[i]->PartitionTypeGUID.Data1 == GUIDOfSystemPartition->Data1 &&
                AllPartitions->AllParitions[i]->PartitionTypeGUID.Data2 == GUIDOfSystemPartition->Data2 &&
@@ -348,6 +350,7 @@ namespace AHCI{
     }
 
     AHCIDriver::AHCIDriver(PCI::PCIDeviceHeader* pciBaseAddress){
+        ahciDriver = this;
         globalLogs->Warning("[AHCI] Driver is loading"); 
         this->PCIBaseAddress = pciBaseAddress;
 
@@ -360,7 +363,7 @@ namespace AHCI{
 
 
             port->Configure();
-            GPT::Partitons* Partitons = GPT::GetAllPartitions(port);           
+            GPT::Partitions* Partitons = GPT::GetAllPartitions(port);           
 
             if(port->PortNumber == 1){
                 GPT::GPTHeader* GptHeader = GPT::GetGPTHeader(port);             
@@ -373,44 +376,8 @@ namespace AHCI{
                     
                     GPT::CreatPartition(port, GPT::GetFreeSizePatition(port), "KotData", GPT::GetDataGUIDPartitionType(), 7);        
                 }
-
-                GPT::Partition partitionTest = GPT::Partition(port, GPT::GetPartitionByGUID(port, GPT::GetDataGUIDPartitionType()));  
-                FileSystem::KFS* Fs = new FileSystem::KFS(&partitionTest);
-                Fs->flist("");
-                FileSystem::File* file = Fs->fopen("terre.txt", "r");
-                FileSystem::File* file2 = Fs->fopen("test.txt", "r");
-                FileSystem::File* file3 = Fs->fopen("test2.txt", "r");
-                
-                char* bufferfile = (char*)calloc(0x1000);
-                bufferfile = "Vestibulum blandit laoreet purus id lobortis. Pellentesque accumsan congue nulla, eu sagittis nunc imperdiet quis. Etiam dapibus porta mauris non pharetra. Nullam elementum elit a ullamcorper rhoncus. Ut id felis nibh. Sed mollis ornare orci vel maximus. Nulla pulvinar, quam eu maximus egestas, mi purus eleifend nulla, eu pharetra velit felis sed dolor. In nec est volutpat, maximus nulla non, vulputate velit. Maecenas molestie vitae ligula at elementum. Quisque non turpis ligula. Nam malesuada neque eu turpis cursus auctor. Quisque pellentesque pretium mauris vel dapibus.";              
-                file2->Write(0, strlen(bufferfile), bufferfile);
-                void* buffersecond = calloc(0x20010);
-                file2->Read(0, file2->fileInfo->BytesSize, buffersecond);
-                for (int i = 0; i < file2->fileInfo->BytesSize; i++){
-                    globalCOM1->Write(*(uint8_t*)(buffersecond + i));
-                }
-            
-                Fs->mkdir("fichiertest", 777);
-                Fs->mkdir("fichiertest/fichierinfini", 777);
-                Fs->mkdir("fichiertest/fichierinfini/fichierinfini2", 777);
-                Fs->flist("");
-                globalCOM1->Print(SerialGREEN);
-                FileSystem::File* file4 = Fs->fopen("fichiertest/fichierinfini/fichierinfini2/testfichiertest.txt", "r");
-                Fs->flist("fichiertest/fichierinfini/fichierinfini2");
-                bufferfile = "infini";
-                file4->Write(0, strlen(bufferfile), bufferfile);
-                file4->Read(0, file4->fileInfo->BytesSize, buffersecond);
-                globalCOM1->Print(SerialGREEN);
-                for (int i = 0; i < strlen(bufferfile); i++){
-                    globalCOM1->Write(*(uint8_t*)(buffersecond + i));
-                }
-                
-                //Fs->flist("fichiertest32");
-
-                while (true){
-                    asm("hlt");
-                }
-            }      
+            }
+                 
         }
     }
 

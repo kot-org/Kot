@@ -20,6 +20,8 @@
 #include "../hardware/apic/apic.h"
 #include "../arch/x86-64/smp/smp.h"
 #include "../arch/x86-64/cpu/cpu.h"
+#include "../fileSystem/gpt/gpt.h"
+#include "../fileSystem/KFS/kfs.h"
 #include "../memory/heap/heap.h"
 #include "../scheduling/pit/pit.h"
 #include "../lib/limits.h"
