@@ -35,12 +35,11 @@ namespace FileSystem{
         uint64_t    BitmapPosition;
         size_t      ClusterSize;
         size_t      NumberOfCluster;
+        uint64_t    NumberOfClusterUsed;
         root        Root;
         uint64_t    IndexToAllocate;
         GUID        IsInit;
     }__attribute__((packed));
-
-
 
     struct ClusterHeader{
         uint64_t LastCluster;
@@ -80,9 +79,8 @@ namespace FileSystem{
 
     struct FolderInfo{
         /* location info */
-        uint64_t ClusterHeaderPostion;
+        uint64_t ClusterHeaderPostition;
         uint64_t FirstClusterData;
-        uint64_t numberFiles;
         size_t BytesSize;   
         size_t FileClusterSize; //number of Cluster 
         char Path[MaxPath];
@@ -122,7 +120,7 @@ namespace FileSystem{
         void Close(File* file);
 
         AllocatePartition* Allocate(size_t size, Folder* folder, uint64_t lastClusterRequested, bool GetAutoLastCluster);
-        void Free(uint64_t Cluster, bool DeleteData);
+        void Free(uint64_t Cluster);
         uint64_t RequestCluster();
         void LockCluster(uint64_t Cluster);  
         void UnlockCluster(uint64_t Cluster);  
@@ -132,18 +130,29 @@ namespace FileSystem{
 
         uint64_t mkdir(char* filePath, uint64_t mode);
         Folder* readdir(char* filePath);
+        Folder* readdirWithCluster(uint64_t cluster);
 
         void flist(char *filename);
         bool IsDirExist(char* filepath);
 
-        File* fopen(char *filename, char *mode);            
+        File* fopen(char *filename, char *mode);         
         FileInfo* NewFile(char* filePath, Folder* folder);
-
+        
         uint64_t GetFID();
+
+        uint64_t remove(char* filePath);  
+        void DeleteFile(FileInfo* fileInfo);
+        void CleanFolder(FolderInfo* folderInfo);
+
         bool UpdatePartitionInfo();
+        ClusterHeader* GetClusterHeader(uint64_t cluster);
+        HeaderInfo* GetHeaderInfo(uint64_t cluster);
+        FolderInfo* GetParentInfo(FileInfo* fileInfo);
+        void UpdateClusterHeader(ClusterHeader* header, uint64_t cluster);
         void UpdateFolderInfo(FolderInfo* folderInfo);
         void UpdateFileInfo(FileInfo* fileInfo);
-
+        void UpdateFileSize(FileInfo* fileInfo, uint64_t newSizeBytes, uint64_t newClusterSize);
+        void UpdateFolderSize(FolderInfo* folderInfo, uint64_t newClusterSize);
 
         GPT::Partition* globalPartition;
         KFSinfo* KFSPartitionInfo;
@@ -155,9 +164,11 @@ namespace FileSystem{
         KFS* kfs;
         uint64_t Read(uint64_t start, size_t size, void* buffer);
         uint64_t Write(uint64_t start, size_t size, void* buffer);
+        void Close();
     }__attribute__((packed));
 
     struct Folder{
+        uint64_t GetNumberOfFiles();
         FolderInfo* folderInfo;            
         KFS* kfs;
     }__attribute__((packed));

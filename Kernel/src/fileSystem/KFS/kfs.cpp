@@ -8,8 +8,8 @@ namespace FileSystem{
         KFSPartitionInfo = (KFSinfo*)malloc(sizeof(KFSinfo));
         while(true){
             globalPartition->Read(0, sizeof(KFSinfo), KFSPartitionInfo);
-            if(KFSPartitionInfo->IsInit.Data1 == GUIDData1 && KFSPartitionInfo->IsInit.Data2 == GUIDData2 && KFSPartitionInfo->IsInit.Data3 == GUIDData3 && KFSPartitionInfo->IsInit.Data4 == GUIDData4) break;  
             InitKFS();
+            if(KFSPartitionInfo->IsInit.Data1 == GUIDData1 && KFSPartitionInfo->IsInit.Data2 == GUIDData2 && KFSPartitionInfo->IsInit.Data3 == GUIDData3 && KFSPartitionInfo->IsInit.Data4 == GUIDData4) break;  
         }     
     }
 
@@ -71,7 +71,6 @@ namespace FileSystem{
         if(LastClusterRequested == 0 && GetAutoLastCluster){
             LastClusterRequested = KFSPartitionInfo->Root.LastClusterAllocated;
         }        
-
         if(folder != NULL) LastClusterRequested = folder->folderInfo->LastClusterRequested;
         void* Cluster = malloc(KFSPartitionInfo->ClusterSize);
         void* ClusterLast = malloc(KFSPartitionInfo->ClusterSize);
@@ -105,7 +104,7 @@ namespace FileSystem{
             }
         }
         if(ClusterAllocate < NumberClusterToAllocate && ClusterAllocate > 0){
-            Free(FirstBlocAllocated, true);
+            Free(FirstBlocAllocated);
             free(Cluster);
             free(ClusterLast);
             return NULL;
@@ -131,9 +130,9 @@ namespace FileSystem{
         return allocatePartition;
     }
 
-    void KFS::Free(uint64_t Cluster, bool DeleteData){
+    void KFS::Free(uint64_t Cluster){
         uint64_t NextBlocToDelete = Cluster;
-        void* ClusterData = malloc(KFSPartitionInfo->ClusterSize);
+        void* ClusterData = calloc(KFSPartitionInfo->ClusterSize);
         while(true){
             GetClusterData(NextBlocToDelete, ClusterData);                
             uint64_t temp = NextBlocToDelete;
@@ -167,6 +166,7 @@ namespace FileSystem{
         globalPartition->Write(KFSPartitionInfo->BitmapPosition + (Cluster / 8), 1, BitmapBuffer);
         free(BitmapBuffer);
         KFSPartitionInfo->IndexToAllocate = Cluster;
+        KFSPartitionInfo->NumberOfClusterUsed += 1;
         UpdatePartitionInfo();
     }
 
@@ -180,8 +180,9 @@ namespace FileSystem{
         free(BitmapBuffer);
         if(Cluster < KFSPartitionInfo->IndexToAllocate){
             KFSPartitionInfo->IndexToAllocate = Cluster;
-            UpdatePartitionInfo();            
         }
+        KFSPartitionInfo->NumberOfClusterUsed -= 1;
+        UpdatePartitionInfo();            
     }
 
     bool KFS::CheckCluster(uint64_t Cluster){
@@ -364,9 +365,9 @@ namespace FileSystem{
         uint64_t ClusterSizeFolder = KFSPartitionInfo->ClusterSize * ClusterSize;
         AllocatePartition* allocatePartition = Allocate(ClusterSizeFolder, folder, 0, true);
         
-        uint64_t ParentClusterHeaderPostion = 0;
+        uint64_t ParentClusterHeaderPostition = 0;
         if(folder != NULL){
-            ParentClusterHeaderPostion = folder->folderInfo->ClusterHeaderPostion;
+            ParentClusterHeaderPostition = folder->folderInfo->ClusterHeaderPostition;
             free(folder->folderInfo);
             free(folder);
         }
@@ -384,12 +385,11 @@ namespace FileSystem{
         HeaderInfo* Header = (HeaderInfo*)(void*)((uint64_t)Cluster + sizeof(ClusterHeader));
         Header->FID = GetFID();
         Header->IsFile = false;
-        Header->ParentLocationCluster = ParentClusterHeaderPostion;
+        Header->ParentLocationCluster = ParentClusterHeaderPostition;
         FolderInfo* folderInfo = (FolderInfo*)(void*)((uint64_t)Cluster + sizeof(ClusterHeader) + sizeof(HeaderInfo));
         folderInfo->FirstClusterData = 0;
         folderInfo->BytesSize = 0;
-        folderInfo->FileClusterSize = ClusterSize;
-        folderInfo->ClusterHeaderPostion = ClusterPosition;
+        folderInfo->ClusterHeaderPostition = ClusterPosition;
 
         int counter = strlen(filePath);
         if(counter > MaxPath) counter = MaxPath;
@@ -411,12 +411,15 @@ namespace FileSystem{
 
         folderInfo->Mode = Mode;
 
+        UpdateFolderSize(folderInfo, ClusterSize);
+
         memcpy((void*)((uint64_t)Cluster + HeaderInfoPosition), Header, sizeof(HeaderInfo));
         memcpy((void*)((uint64_t)Cluster + FileInfoPosition), folderInfo, sizeof(FolderInfo));
         
         SetClusterData(ClusterPosition, Cluster);
         
         free(Cluster);
+        
         return 1; //sucess
     }
 
@@ -439,6 +442,7 @@ namespace FileSystem{
         Folder* folder = NULL;
 
         for(int i = 0; i <= count; i++){
+            globalLogs->Successful("%u", count);
             while(true){
                 GetClusterData(ScanCluster, Cluster);
                 ScanClusterHeader = (ClusterHeader*)Cluster;
@@ -461,6 +465,8 @@ namespace FileSystem{
                             free((void*)Cluster);
                             return NULL;
                         }
+
+                        break;
                     }
                 }
 
@@ -471,6 +477,21 @@ namespace FileSystem{
                 }
             }
         }
+        free((void*)Cluster);
+        return folder;
+    }
+
+    Folder* KFS::readdirWithCluster(uint64_t cluster){
+        void* Cluster = malloc(KFSPartitionInfo->ClusterSize);
+        GetClusterData(cluster, Cluster);
+        
+        FolderInfo* folderInfo = (FolderInfo*)((uint64_t)Cluster + FileInfoPosition);
+        Folder* folder = NULL;
+        folder = (Folder*)malloc(sizeof(Folder));
+        folder->folderInfo = (FolderInfo*)malloc(sizeof(FolderInfo));
+        folder->kfs = this;
+        memcpy(folder->folderInfo, folderInfo, sizeof(FolderInfo));
+        
         free((void*)Cluster);
         return folder;
     }
@@ -589,17 +610,12 @@ namespace FileSystem{
         Header->FID = GetFID();
         Header->IsFile = true;
         if(folder != NULL){
-            Header->ParentLocationCluster = folder->folderInfo->ClusterHeaderPostion;
+            Header->ParentLocationCluster = folder->folderInfo->ClusterHeaderPostition;
         }else{
             Header->ParentLocationCluster = 0;
         }
 
-        if(folder != NULL){
-            Header->ParentLocationCluster = folder->folderInfo->ClusterHeaderPostion;
-        }
         FileInfo* fileInfo = (FileInfo*)(void*)((uint64_t)Cluster + sizeof(ClusterHeader) + sizeof(HeaderInfo));
-        fileInfo->BytesSize = 0;
-        fileInfo->ClusterSize = ClusterSize;
         fileInfo->LastClusterOfTheFile = ClusterLastAllocate;
         fileInfo->ClusterHeaderPostition = ClusterPosition;
         fileInfo->NextCluster = 0;
@@ -633,6 +649,8 @@ namespace FileSystem{
         memcpy(fileInfo, (void*)((uint64_t)Cluster + FileInfoPosition), sizeof(FileInfo));
         free(Cluster);
 
+        UpdateFileSize(fileInfo, 0, ClusterSize);
+
         return fileInfo;
     }
 
@@ -642,15 +660,349 @@ namespace FileSystem{
         return KFSPartitionInfo->Root.FID;
     }
 
+    uint64_t KFS::remove(char* filePath){
+        char** FoldersSlit = split(filePath, "/");
+        int count = 0;
+        for(; FoldersSlit[count] != 0; count++);
+        count--;        
+
+        if(KFSPartitionInfo->Root.FirstClusterFile == 0){
+            globalLogs->Warning("The disk is empty");
+            return 0;
+        }
+
+        void* Cluster = malloc(KFSPartitionInfo->ClusterSize);
+        uint64_t ScanCluster = KFSPartitionInfo->Root.FirstClusterFile;
+        ClusterHeader* ScanClusterHeader;
+        HeaderInfo* ScanHeader;
+        FolderInfo* folderInfoToDelete;
+
+        if(strlen(filePath) != 0){
+            //search folder
+            for(int i = 0; i <= count; i++){
+                while(true){
+                    GetClusterData(ScanCluster, Cluster);
+                    ScanClusterHeader = (ClusterHeader*)Cluster;
+                    ScanHeader = (HeaderInfo*)((uint64_t)Cluster + HeaderInfoPosition);
+                
+                    if(ScanHeader->FID != 0){
+                        if(ScanHeader->IsFile){
+                            FileInfo* fileInfo = (FileInfo*)((uint64_t)Cluster + FileInfoPosition);
+                            if(strcmp(fileInfo->Name, FoldersSlit[i])){
+                                DeleteFile(fileInfo);
+                            }
+                        }else{
+                            FolderInfo* folderInfo = (FolderInfo*)((uint64_t)Cluster + FileInfoPosition);
+                            if(strcmp(folderInfo->Name, FoldersSlit[i])){
+                                ScanCluster = folderInfo->FirstClusterData;
+                                if(ScanCluster == 0){
+                                    free(Cluster);
+                                    //the folder is empty
+                                    if(i == count){
+                                        CleanFolder(folderInfo);
+                                        return 1;
+                                    }else{
+                                        //folder doesn't exist
+                                        return 0;
+                                    }                            
+                                }
+
+                                folderInfoToDelete = folderInfo;
+                                break;
+                            }                            
+                        }
+
+                    }
+                    
+                    if(ScanClusterHeader->NextCluster == NULL) return 0;
+                    ScanCluster = ScanClusterHeader->NextCluster;
+                }
+            }
+        }else{
+            while(true){
+                GetClusterData(ScanCluster, Cluster);
+                ScanClusterHeader = (ClusterHeader*)Cluster;
+                ScanHeader = (HeaderInfo*)((uint64_t)Cluster + HeaderInfoPosition);
+            
+                if(ScanHeader->IsFile){
+                    FileInfo* fileInfo = (FileInfo*)((uint64_t)Cluster + FileInfoPosition);
+                    DeleteFile(fileInfo);
+                }else if(ScanHeader->FID != 0){
+                    FolderInfo* folderInfo = (FolderInfo*)((uint64_t)Cluster + FileInfoPosition);
+                    CleanFolder(folderInfo);
+                }
+                
+                if(ScanClusterHeader->NextCluster == NULL) break;
+                ScanCluster = ScanClusterHeader->NextCluster;
+            }
+            free(Cluster);
+            return 1;
+        }
+        
+        CleanFolder(folderInfoToDelete);
+        free(Cluster);
+    }    
+
+    void KFS::DeleteFile(FileInfo* fileInfo){
+        UpdateFileSize(fileInfo, 0, 0);
+        UpdateFileInfo(fileInfo);
+        ClusterHeader* ScanClusterHeader = GetClusterHeader(fileInfo->ClusterHeaderPostition);
+        HeaderInfo* ScanHeader = GetHeaderInfo(fileInfo->ClusterHeaderPostition);
+        ClusterHeader* lastHeader = GetClusterHeader(ScanClusterHeader->LastCluster);
+        ClusterHeader* nextHeader = GetClusterHeader(ScanClusterHeader->NextCluster);
+
+        if(fileInfo->NextCluster != NULL){
+            Free(fileInfo->NextCluster);
+        }
+
+        if(ScanHeader->ParentLocationCluster != NULL){            
+            Folder* folderParent = readdirWithCluster(ScanHeader->ParentLocationCluster);
+
+            if(fileInfo->ClusterHeaderPostition == folderParent->folderInfo->FirstClusterData){
+                if(folderParent->GetNumberOfFiles() != 0){
+                    folderParent->folderInfo->FirstClusterData = ScanClusterHeader->NextCluster;
+                }else{
+                    folderParent->folderInfo->FirstClusterData = 0;
+                }
+
+            }else{
+                lastHeader->NextCluster = ScanClusterHeader->NextCluster;
+            }
+
+            if(fileInfo->ClusterHeaderPostition == folderParent->folderInfo->LastClusterRequested){
+                folderParent->folderInfo->LastClusterRequested = ScanClusterHeader->LastCluster;
+            }else{
+                nextHeader->LastCluster = ScanClusterHeader->LastCluster;
+            }
+
+            UpdateFolderInfo(folderParent->folderInfo);
+            free(folderParent->folderInfo);                              
+            free(folderParent);                              
+        }else{
+            //the parent is root
+            if(KFSPartitionInfo->Root.FirstClusterFile == fileInfo->ClusterHeaderPostition){
+                KFSPartitionInfo->Root.FirstClusterFile = ScanClusterHeader->NextCluster;
+                UpdatePartitionInfo();
+            }
+
+            if(KFSPartitionInfo->Root.LastClusterAllocated == fileInfo->ClusterHeaderPostition){
+                KFSPartitionInfo->Root.LastClusterAllocated = ScanClusterHeader->LastCluster;
+                UpdatePartitionInfo();
+            }
+
+            nextHeader->LastCluster = ScanClusterHeader->LastCluster;
+            lastHeader->NextCluster = ScanClusterHeader->NextCluster;
+        }
+        
+        UpdateClusterHeader(lastHeader, ScanClusterHeader->LastCluster);
+        UpdateClusterHeader(nextHeader, ScanClusterHeader->NextCluster);
+
+        UnlockCluster(fileInfo->ClusterHeaderPostition);
+
+        free(ScanClusterHeader);
+        free(lastHeader);
+        free(nextHeader);
+        free(ScanHeader);
+    }
+
+    void KFS::CleanFolder(FolderInfo* folderInfo){
+        void* Cluster = calloc(KFSPartitionInfo->ClusterSize);
+        uint64_t ScanCluster = folderInfo->FirstClusterData;
+        ClusterHeader* ScanClusterHeader;
+        HeaderInfo* ScanHeader;
+        while(true){
+            GetClusterData(ScanCluster, Cluster);
+            ScanClusterHeader = (ClusterHeader*)Cluster;
+            ScanHeader = (HeaderInfo*)((uint64_t)Cluster + HeaderInfoPosition);
+         
+            if(ScanHeader->IsFile){
+                FileInfo* fileInfo = (FileInfo*)((uint64_t)Cluster + FileInfoPosition);
+                DeleteFile(fileInfo);
+
+            }else if(ScanHeader->FID != 0){
+                Folder* folderChildren = readdirWithCluster(ScanCluster);
+                FolderInfo* folderInfoChildren = folderChildren->folderInfo;
+                ScanClusterHeader = GetClusterHeader(folderInfoChildren->ClusterHeaderPostition);
+
+                CleanFolder(folderInfoChildren);
+
+                UpdateFolderSize(folderInfoChildren, 0);
+                UpdateFolderInfo(folderInfoChildren);
+
+                ClusterHeader* lastHeader = GetClusterHeader(ScanClusterHeader->LastCluster);
+                ClusterHeader* nextHeader = GetClusterHeader(ScanClusterHeader->NextCluster);
+
+                if(ScanHeader->ParentLocationCluster != NULL){            
+                    Folder* folderParent = readdirWithCluster(ScanHeader->ParentLocationCluster);
+
+                    if(folderInfoChildren->ClusterHeaderPostition == folderParent->folderInfo->FirstClusterData){
+                        if(folderParent->GetNumberOfFiles() != 0){
+                            folderParent->folderInfo->FirstClusterData = ScanClusterHeader->NextCluster;
+                        }else{
+                            folderParent->folderInfo->FirstClusterData = 0;
+                        }
+
+                    }else{
+                        lastHeader->NextCluster = ScanClusterHeader->NextCluster;
+                    }
+
+                    if(folderInfoChildren->ClusterHeaderPostition == folderParent->folderInfo->LastClusterRequested){
+                        folderParent->folderInfo->LastClusterRequested = ScanClusterHeader->LastCluster;
+                    }else{
+                        nextHeader->LastCluster = ScanClusterHeader->LastCluster;
+                    }
+
+                    UpdateFolderInfo(folderParent->folderInfo);
+                    free(folderParent->folderInfo);                              
+                    free(folderParent);                              
+                }else{
+                    //the parent is root
+                    if(KFSPartitionInfo->Root.FirstClusterFile == folderInfo->ClusterHeaderPostition){
+                        KFSPartitionInfo->Root.FirstClusterFile = ScanClusterHeader->NextCluster;
+                        UpdatePartitionInfo();
+                    }
+
+                    if(KFSPartitionInfo->Root.LastClusterAllocated == folderInfo->ClusterHeaderPostition){
+                        KFSPartitionInfo->Root.LastClusterAllocated = ScanClusterHeader->LastCluster;
+                        UpdatePartitionInfo();
+                    }
+
+                    nextHeader->LastCluster = ScanClusterHeader->LastCluster;
+                    lastHeader->NextCluster = ScanClusterHeader->NextCluster;
+                }
+                
+                UpdateClusterHeader(lastHeader, ScanClusterHeader->LastCluster);
+                UpdateClusterHeader(nextHeader, ScanClusterHeader->NextCluster);
+
+                UnlockCluster(folderInfoChildren->ClusterHeaderPostition);
+
+                free(folderInfoChildren);
+                free(folderChildren);
+                free(ScanClusterHeader);
+                free(lastHeader);
+                free(nextHeader);
+            }
+            
+            if(ScanClusterHeader->NextCluster == NULL) break;
+            ScanCluster = ScanClusterHeader->NextCluster;
+        }
+
+        //Delete this folder 
+       
+        UpdateFolderSize(folderInfo, 0);
+        UpdateFolderInfo(folderInfo);
+        ScanClusterHeader = GetClusterHeader(folderInfo->ClusterHeaderPostition);
+        ScanHeader = GetHeaderInfo(folderInfo->ClusterHeaderPostition);
+
+        ClusterHeader* lastHeader = GetClusterHeader(ScanClusterHeader->LastCluster);
+        ClusterHeader* nextHeader = GetClusterHeader(ScanClusterHeader->NextCluster);
+
+        if(ScanHeader->ParentLocationCluster != NULL){         
+            Folder* folderParent = readdirWithCluster(ScanHeader->ParentLocationCluster);
+
+            if(folderInfo->ClusterHeaderPostition == folderParent->folderInfo->FirstClusterData){
+                if(folderParent->GetNumberOfFiles() != 0){
+                    folderParent->folderInfo->FirstClusterData = ScanClusterHeader->NextCluster;
+                }else{
+                    folderParent->folderInfo->FirstClusterData = 0;
+                }
+
+            }else{
+                lastHeader->NextCluster = ScanClusterHeader->NextCluster;
+            }
+
+            globalLogs->Warning("%s %u", folderParent->folderInfo->Name, folderInfo->ClusterHeaderPostition);
+            if(folderInfo->ClusterHeaderPostition == folderParent->folderInfo->LastClusterRequested){
+                globalLogs->Warning("1");
+                folderParent->folderInfo->LastClusterRequested = ScanClusterHeader->LastCluster;
+            }else{
+                globalLogs->Warning("2");
+                nextHeader->LastCluster = ScanClusterHeader->LastCluster;
+            }
+
+            UpdateFolderInfo(folderParent->folderInfo);
+            free(folderParent->folderInfo);                              
+            free(folderParent);                              
+        }else{
+            //the parent is root
+            if(KFSPartitionInfo->Root.FirstClusterFile == folderInfo->ClusterHeaderPostition){
+                KFSPartitionInfo->Root.FirstClusterFile = ScanClusterHeader->NextCluster;
+                UpdatePartitionInfo();
+            }
+
+            if(KFSPartitionInfo->Root.LastClusterAllocated == folderInfo->ClusterHeaderPostition){
+                KFSPartitionInfo->Root.LastClusterAllocated = ScanClusterHeader->LastCluster;
+                UpdatePartitionInfo();
+            }
+
+            nextHeader->LastCluster = ScanClusterHeader->LastCluster;
+            lastHeader->NextCluster = ScanClusterHeader->NextCluster;
+        }
+        UpdateClusterHeader(lastHeader, ScanClusterHeader->LastCluster);
+        UpdateClusterHeader(nextHeader, ScanClusterHeader->NextCluster);
+
+        UnlockCluster(folderInfo->ClusterHeaderPostition);
+        
+        free(lastHeader);
+        free(nextHeader);
+        free(Cluster);   
+    }
+
     bool KFS::UpdatePartitionInfo(){
         return globalPartition->Write(0, sizeof(KFSinfo), KFSPartitionInfo);
     }
 
+    ClusterHeader* KFS::GetClusterHeader(uint64_t cluster){
+        if(cluster == 0) return NULL;
+        void* Cluster = calloc(KFSPartitionInfo->ClusterSize);
+        ClusterHeader* clusterHeader = (ClusterHeader*)malloc(sizeof(ClusterHeader));
+        GetClusterData(cluster, Cluster);
+        memcpy(clusterHeader, Cluster, sizeof(ClusterHeader));
+        free(Cluster);       
+        return clusterHeader;
+    }
+
+    HeaderInfo* KFS::GetHeaderInfo(uint64_t cluster){
+        if(cluster == 0) return NULL;
+        void* Cluster = calloc(KFSPartitionInfo->ClusterSize);
+        HeaderInfo* headerInfo = (HeaderInfo*)malloc(sizeof(HeaderInfo));
+        GetClusterData(cluster, Cluster);
+        memcpy(headerInfo, Cluster + HeaderInfoPosition, sizeof(HeaderInfo));
+        free(Cluster);       
+        return headerInfo;
+    }
+
+    FolderInfo* KFS::GetParentInfo(FileInfo* fileInfo){
+        void* Cluster = calloc(KFSPartitionInfo->ClusterSize);
+        HeaderInfo* ScanHeader = GetHeaderInfo(fileInfo->ClusterHeaderPostition);
+        if(ScanHeader->ParentLocationCluster == NULL){
+            free(Cluster); 
+            free(ScanHeader);      
+            return NULL;
+        }
+
+        FolderInfo* folderInfo = (FolderInfo*)malloc(sizeof(FolderInfo));
+        GetClusterData(ScanHeader->ParentLocationCluster, Cluster);
+        memcpy(folderInfo, Cluster + FileInfoPosition, sizeof(FolderInfo));
+        free(Cluster); 
+        free(ScanHeader);      
+        return folderInfo;
+    }
+
+    void KFS::UpdateClusterHeader(ClusterHeader* header, uint64_t cluster){
+        if(cluster == 0) return;
+        void* Cluster = calloc(KFSPartitionInfo->ClusterSize);
+        GetClusterData(cluster, Cluster);
+        memcpy(Cluster, header, sizeof(ClusterHeader));
+        SetClusterData(cluster, Cluster);
+        free(Cluster);       
+    }
+
     void KFS::UpdateFolderInfo(FolderInfo* folderInfo){
         void* Cluster = calloc(KFSPartitionInfo->ClusterSize);
-        GetClusterData(folderInfo->ClusterHeaderPostion, Cluster);
+        GetClusterData(folderInfo->ClusterHeaderPostition, Cluster);
         memcpy(Cluster + FileInfoPosition, folderInfo, sizeof(FolderInfo));
-        SetClusterData(folderInfo->ClusterHeaderPostion, Cluster);
+        SetClusterData(folderInfo->ClusterHeaderPostition, Cluster);
         free(Cluster);
     }
 
@@ -660,6 +1012,88 @@ namespace FileSystem{
         memcpy(Cluster + FileInfoPosition, fileInfo, sizeof(FileInfo));
         SetClusterData(fileInfo->ClusterHeaderPostition, Cluster);
         free(Cluster);
+    }
+
+    void KFS::UpdateFileSize(FileInfo* fileInfo, uint64_t newSizeBytes, uint64_t newClusterSize){
+        void* Cluster = calloc(KFSPartitionInfo->ClusterSize);
+        int64_t SizeToAddBytes = newSizeBytes - fileInfo->BytesSize;
+        int64_t SizeToAddCluster = newClusterSize - fileInfo->ClusterSize;
+        fileInfo->BytesSize = newSizeBytes;
+        fileInfo->ClusterSize = newClusterSize;
+
+        //Update time file
+
+        RealTimeClock* realTimeClock;
+        fileInfo->TimeInfoFS.ModifyTime.seconds = realTimeClock->readSeconds();
+        fileInfo->TimeInfoFS.ModifyTime.minutes = realTimeClock->readMinutes();
+        fileInfo->TimeInfoFS.ModifyTime.hours = realTimeClock->readHours();
+        fileInfo->TimeInfoFS.ModifyTime.days = realTimeClock->readDay();
+        fileInfo->TimeInfoFS.ModifyTime.months = realTimeClock->readMonth();
+        fileInfo->TimeInfoFS.ModifyTime.years = realTimeClock->readYear() + 2000;
+
+        uint64_t ClusterParents = fileInfo->ClusterHeaderPostition;
+        HeaderInfo* ParentsHeader;
+        FolderInfo* folderInfo;
+        while(true){
+            GetClusterData(ClusterParents, Cluster);
+            ParentsHeader = (HeaderInfo*)((uint64_t)Cluster + HeaderInfoPosition);
+            folderInfo = (FolderInfo*)((uint64_t)Cluster + FileInfoPosition);
+            folderInfo->BytesSize += SizeToAddBytes;
+            folderInfo->FileClusterSize += SizeToAddCluster;
+
+            //Update time folder
+
+            folderInfo->TimeInfoFS.ModifyTime.seconds = realTimeClock->readSeconds();
+            folderInfo->TimeInfoFS.ModifyTime.minutes = realTimeClock->readMinutes();
+            folderInfo->TimeInfoFS.ModifyTime.hours = realTimeClock->readHours();
+            folderInfo->TimeInfoFS.ModifyTime.days = realTimeClock->readDay();
+            folderInfo->TimeInfoFS.ModifyTime.months = realTimeClock->readMonth();
+            folderInfo->TimeInfoFS.ModifyTime.years = realTimeClock->readYear() + 2000;
+
+            UpdateFolderInfo(folderInfo);
+            
+            if(ParentsHeader->ParentLocationCluster == NULL) break;
+            ClusterParents = ParentsHeader->ParentLocationCluster;
+        }
+    }
+
+    void KFS::UpdateFolderSize(FolderInfo* folderInfo, uint64_t newClusterSize){
+        void* Cluster = calloc(KFSPartitionInfo->ClusterSize);
+        int64_t SizeToAddCluster = newClusterSize - folderInfo->FileClusterSize;
+        folderInfo->FileClusterSize = newClusterSize;
+
+        //Update time file
+
+        RealTimeClock* realTimeClock;
+        folderInfo->TimeInfoFS.ModifyTime.seconds = realTimeClock->readSeconds();
+        folderInfo->TimeInfoFS.ModifyTime.minutes = realTimeClock->readMinutes();
+        folderInfo->TimeInfoFS.ModifyTime.hours = realTimeClock->readHours();
+        folderInfo->TimeInfoFS.ModifyTime.days = realTimeClock->readDay();
+        folderInfo->TimeInfoFS.ModifyTime.months = realTimeClock->readMonth();
+        folderInfo->TimeInfoFS.ModifyTime.years = realTimeClock->readYear() + 2000;
+
+        uint64_t ClusterParents = folderInfo->ClusterHeaderPostition;
+        HeaderInfo* ParentsHeader;
+        while(true){
+            GetClusterData(ClusterParents, Cluster);
+            ParentsHeader = (HeaderInfo*)((uint64_t)Cluster + HeaderInfoPosition);
+            folderInfo = (FolderInfo*)((uint64_t)Cluster + FileInfoPosition);
+            folderInfo->FileClusterSize += SizeToAddCluster;
+
+            //Update time folder
+
+            folderInfo->TimeInfoFS.ModifyTime.seconds = realTimeClock->readSeconds();
+            folderInfo->TimeInfoFS.ModifyTime.minutes = realTimeClock->readMinutes();
+            folderInfo->TimeInfoFS.ModifyTime.hours = realTimeClock->readHours();
+            folderInfo->TimeInfoFS.ModifyTime.days = realTimeClock->readDay();
+            folderInfo->TimeInfoFS.ModifyTime.months = realTimeClock->readMonth();
+            folderInfo->TimeInfoFS.ModifyTime.years = realTimeClock->readYear() + 2000;
+
+            UpdateFolderInfo(folderInfo);
+            
+            if(ParentsHeader->ParentLocationCluster == NULL) break;
+            ClusterParents = ParentsHeader->ParentLocationCluster;
+        }
     }
 
     uint64_t File::Read(uint64_t start, size_t size, void* buffer){
@@ -762,7 +1196,7 @@ namespace FileSystem{
 
 
         uint64_t ClusterTotal = ClusterStart + ClusterCount;
-        fileInfo->BytesSize = start + size;
+    
         if(ClusterTotal != fileInfo->ClusterSize && ClusterTotal != 0){
             if(ClusterTotal > fileInfo->ClusterSize){
                 size_t NewSize = (ClusterTotal - fileInfo->ClusterSize) * kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader);
@@ -776,7 +1210,6 @@ namespace FileSystem{
                 }
                 fileInfo->LastClusterOfTheFile = allocatePartition->LastCluster;
                 free(allocatePartition);
-                fileInfo->ClusterSize = ClusterTotal;
                 if(fileInfo->ClusterSize == 0) fileInfo->ClusterSize++;
             }else{
                 size_t NewSize = ClusterTotal * kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader);
@@ -791,12 +1224,12 @@ namespace FileSystem{
                         ClusterToDelete = fileInfo->NextCluster;
                     }
                 }   
-                kfs->Free(ClusterToDelete, true);
-                fileInfo->ClusterSize = ClusterTotal;
+                kfs->Free(ClusterToDelete);
                 if(fileInfo->ClusterSize == 0) fileInfo->ClusterSize++;
             }
         }
 
+        kfs->UpdateFileSize(fileInfo, start + size, ClusterTotal);
         kfs->UpdateFileInfo(fileInfo);
 
         uint64_t FirstByte = start % kfs->KFSPartitionInfo->ClusterSize;
@@ -845,6 +1278,7 @@ namespace FileSystem{
                 }
                 memcpy((void*)((uint64_t)Cluster + FirstByte + sizeof(ClusterHeader)), buffer, bytesToWrite); //Get the correct first byte  
             }
+            
             kfs->SetClusterData(WriteCluster, Cluster);
  
 
@@ -859,5 +1293,31 @@ namespace FileSystem{
 
         free(Cluster);
         return 1;
+    }
+
+    void File::Close(){
+        free(fileInfo);
+        free(this);
+    }
+
+    uint64_t Folder::GetNumberOfFiles(){
+        uint64_t ScanCluster = folderInfo->FirstClusterData;
+        if(ScanCluster == 0) return 0;
+
+        void* Cluster = calloc(kfs->KFSPartitionInfo->ClusterSize);
+        ClusterHeader* ScanClusterHeader;
+        uint64_t numFiles = 0;
+
+        while(true){
+            kfs->GetClusterData(ScanCluster, Cluster);
+            ScanClusterHeader = (ClusterHeader*)Cluster;
+            numFiles++;            
+            if(ScanClusterHeader->NextCluster == NULL) break;
+            //globalLogs->Successful("Wait %u", ScanCluster);
+            ScanCluster = ScanClusterHeader->NextCluster;
+        }
+        free((void*)Cluster);   
+
+        return numFiles;
     }
 }
