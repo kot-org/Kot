@@ -232,3 +232,7 @@ void volatile ExpandHeap(size_t length){
     globalHeap.TotalSize += length + sizeof(SegmentHeader);     
     globalHeap.FreeSize += length + sizeof(SegmentHeader);     
 }
+
+SegmentHeader* GetSegmentHeader(void* address){
+    return (SegmentHeader*)(void*)((uint64_t)address - sizeof(SegmentHeader));
+}

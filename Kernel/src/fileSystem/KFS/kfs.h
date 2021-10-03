@@ -115,9 +115,6 @@ namespace FileSystem{
         KFS(GPT::Partition* partition);
 
         void InitKFS();
-            
-        File* OpenFile(char* filePath);                        
-        void Close(File* file);
 
         AllocatePartition* Allocate(size_t size, Folder* folder, uint64_t lastClusterRequested, bool GetAutoLastCluster);
         void Free(uint64_t Cluster);
@@ -130,7 +127,9 @@ namespace FileSystem{
 
         uint64_t mkdir(char* filePath, uint64_t mode);
         Folder* readdir(char* filePath);
+
         Folder* readdirWithCluster(uint64_t cluster);
+        File* fopenWithCluster(uint64_t cluster);
 
         void flist(char *filename);
         bool IsDirExist(char* filepath);
@@ -139,6 +138,8 @@ namespace FileSystem{
         FileInfo* NewFile(char* filePath, Folder* folder);
         
         uint64_t GetFID();
+
+        uint64_t rename(char* oldPath, char* newPath);
 
         uint64_t remove(char* filePath);  
         void DeleteFile(FileInfo* fileInfo);

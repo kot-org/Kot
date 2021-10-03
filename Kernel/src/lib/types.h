@@ -23,5 +23,11 @@ typedef unsigned long int           uint64_t;
 typedef unsigned long long int      uint64_t;
 #endif
 
+#if __WORDSIZE == 64
+typedef unsigned long int           size64_t;
+#else
+typedef unsigned long long int      size64_t;
+#endif
+
 typedef long unsigned int           size_t;
 typedef void*                       uintptr_t;

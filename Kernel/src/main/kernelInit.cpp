@@ -88,7 +88,7 @@ void InitializeKernel(BootInfo* bootInfo){
     
     InitPS2Mouse();
 
-    IoWrite8(PIC1_DATA, 0b11111011); /* problem with pit and keyboard */
+    IoWrite8(PIC1_DATA, 0b11111000); /* problem with pit and keyboard */
     IoWrite8(PIC2_DATA, 0b11101111);
     
     if(EnabledSSE() == 0){
@@ -104,7 +104,8 @@ void InitializeKernel(BootInfo* bootInfo){
     FileSystem::KFS* Fs = new FileSystem::KFS(&partitionTest);
 
     Fs->mkdir("system", 777);
-    Fs->mkdir("system/background", 777);
+    Fs->mkdir("system/background", 777);   
+
     FileSystem::File* picture = Fs->fopen("system/background/1.bmp", "r");
 
     void* pictureBuffer = malloc(picture->fileInfo->BytesSize);
@@ -123,18 +124,22 @@ void InitializeKernel(BootInfo* bootInfo){
 
     pictureBuffer += dataOffset;
 
-    globalLogs->Successful("%u %u", src_width, src_height);
+    globalLogs->Successful("%u %u %x", src_width, src_height);
+    Fs->fopen("system/background/2.bmp", "r");
+    Fs->fopen("system/background/3.bmp", "r");
+    Fs->fopen("system/background/4.bmp", "r");
 
     for(int i = 0; i < globalGraphics->framebuffer->Height; i++) {
         for(int j = 0; j < globalGraphics->framebuffer->Width; j++){
-            uint8_t r = *(uint8_t*)((uint64_t)pictureBuffer + (i * src_width + j) * 4 + 0);
-            uint8_t g = *(uint8_t*)((uint64_t)pictureBuffer + (i * src_width + j) * 4 + 1);
-            uint8_t b = *(uint8_t*)((uint64_t)pictureBuffer + (i * src_width + j) * 4 + 2);
+            uint64_t position = ((globalGraphics->framebuffer->Height - i) * src_width + j) * 4;
+            uint8_t r = *(uint8_t*)((uint64_t)pictureBuffer + position + 2);
+            uint8_t g = *(uint8_t*)((uint64_t)pictureBuffer + position + 1);
+            uint8_t b = *(uint8_t*)((uint64_t)pictureBuffer + position);
             globalGraphics->Putpixel(j, i, r, g, b);
         }
     }
-    
-    globalLogs->Successful("");
+
+    asm("sti");
     while (true){
         asm("hlt");
     }

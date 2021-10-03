@@ -89,7 +89,7 @@ void graphics::Rectangle(int w, int h, int x, int y, int r, int g, int b) {
 }
 
 void graphics::Putpixel(int x, int y, int r, int g, int b) {
-    unsigned char* screen = (unsigned char*)framebuffer->BaseAddress;
+    unsigned char* screen = (unsigned char*)framebuffer->BaseAddressBackground;
     int where = (x + (y * framebuffer->Width)) * 4;
     screen[where] = b;          // BLUE
     screen[where + 1] = g;      // GREEN
@@ -97,7 +97,7 @@ void graphics::Putpixel(int x, int y, int r, int g, int b) {
 }
 
 void graphics::Putpix(uint32_t x, uint32_t y, uint32_t color){
-    *(uint32_t*)((uint64_t)framebuffer->BaseAddress + (x*4) + (y * framebuffer->PixelsPerScanLine * 4)) = color;
+    *(uint32_t*)((uint64_t)framebuffer->BaseAddressBackground + (x*4) + (y * framebuffer->PixelsPerScanLine * 4)) = color;
 }
 
 uint32_t graphics::Getpix(uint32_t x, uint32_t y){
