@@ -10,7 +10,9 @@ struct trampolineData{
     uint64_t MainEntry;
 }__attribute__((packed));
 
+extern uint64_t StatusProcessor;
 
 extern "C" trampolineData DataTrampoline;
 extern "C" void Trampoline();
+extern "C" void TrampolinePaging();
 extern "C" void TrampolineMain(int CoreID);

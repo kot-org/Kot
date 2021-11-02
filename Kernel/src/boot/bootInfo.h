@@ -5,30 +5,39 @@
 #include "../hardware/acpi/acpi.h"
 
 /* font */
-typedef struct {
+struct PSF_FONT{
     uint8_t        Signature[2];
     uint8_t        mode;
     uint8_t        charsize;
     char*        glyphBuffer[256];
-} PSF_FONT __attribute__((packed));
+}__attribute__((packed));
+
 
 /* GOP */
-typedef struct {
+struct Framebuffer{
 	void* BaseAddress;
 	void* BaseAddressBackground;
     size_t FrameBufferSize;
 	unsigned int Width;
 	unsigned int Height;
 	unsigned int PixelsPerScanLine;
-} Framebuffer __attribute__((packed));
+}__attribute__((packed));
 
-struct BootInfo {
-	void* KernelStart;
-	size_t KernelSize;
-	Framebuffer* framebuffer;
-	PSF_FONT* psf1_Font;	
+/* Memory */
+struct MemoryInfo{
 	EFI_MEMORY_DESCRIPTOR* mMap;
 	uint64_t mMapSize;
 	uint64_t mMapDescSize;
-	ACPI::RSDP2* rsdp;
-} __attribute__((packed)); 
+
+	uint64_t UEFI_CR3;
+	uint64_t VirtualKernelStart;
+	uint64_t VirtualKernelEnd;
+}__attribute__((packed));
+/* Boot info stuct */
+
+struct BootInfo{
+	struct Framebuffer framebuffer;
+	struct PSF_FONT* psf1_Font;
+	struct MemoryInfo memoryInfo;
+    ACPI::RSDP2* rsdp; //read system descriptor pointer
+}__attribute__((packed));

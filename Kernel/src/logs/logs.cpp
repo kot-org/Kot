@@ -1,8 +1,11 @@
 #include "logs.h"
 
 Logs* globalLogs;
+static uint64_t mutexLog;
 
 void Logs::Message(const char* str, ...){
+    Atomic::atomicSpinlock(&mutexLog, 0);
+    Atomic::atomicLock(&mutexLog, 0);
     va_list args;
     va_start(args, str);
     
@@ -45,9 +48,12 @@ void Logs::Message(const char* str, ...){
 
     globalCOM1->Print("\n");
     va_end(args);
+    Atomic::atomicUnlock(&mutexLog, 0);
 }   
 
 void Logs::Successful(const char* str, ...){
+    Atomic::atomicSpinlock(&mutexLog, 0);
+    Atomic::atomicLock(&mutexLog, 0);
     va_list args;
     va_start(args, str);
     
@@ -94,9 +100,12 @@ void Logs::Successful(const char* str, ...){
 
     globalCOM1->Print("\n");
     va_end(args);
+    Atomic::atomicUnlock(&mutexLog, 0);
 }
 
 void Logs::Warning(const char* str, ...){
+    Atomic::atomicSpinlock(&mutexLog, 0);
+    Atomic::atomicLock(&mutexLog, 0);
     va_list args;
     va_start(args, str);
     
@@ -143,6 +152,7 @@ void Logs::Warning(const char* str, ...){
 
     globalCOM1->Print("\n");
     va_end(args);
+    Atomic::atomicUnlock(&mutexLog, 0);
 }
 
 void Logs::Error(const char * str, ...){

@@ -69,14 +69,14 @@ namespace AHCI{
         void* newBase = globalAllocator.RequestPage();
         HbaPort->CommandListBase = (uint32_t)(uint64_t)newBase;
         HbaPort->CommandListBaseUpper = (uint32_t)((uint64_t)newBase >> 32);
-        memset((void*)(HbaPort->CommandListBase), 0, 1024);
+        memset(globalPageTableManager.GetVirtualAddress((void*)(HbaPort->CommandListBase)), 0, 1024);
 
         void* fisBase = globalAllocator.RequestPage();
         HbaPort->FisBaseAddress = (uint32_t)(uint64_t)fisBase;
         HbaPort->FisBaseAddressUpper = (uint32_t)((uint64_t)fisBase >> 32);
-        memset(fisBase, 0, 256);
+        memset(globalPageTableManager.GetVirtualAddress(fisBase), 0, 256);
 
-        HBACommandHeader* cmdHeader = (HBACommandHeader*)((uint64_t)HbaPort->CommandListBase + ((uint64_t)HbaPort->CommandListBaseUpper << 32));
+        HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager.GetVirtualAddress((void*)((uint64_t)HbaPort->CommandListBase + ((uint64_t)HbaPort->CommandListBaseUpper << 32)));
 
         for (int i = 0; i < 32; i++){
             cmdHeader[i].PrdtLength = 8;
@@ -85,11 +85,10 @@ namespace AHCI{
             uint64_t address = (uint64_t)cmdTableAddress + (i << 8);
             cmdHeader[i].CommandTableBaseAddress = (uint32_t)(uint64_t)address;
             cmdHeader[i].CommandTableBaseAddressUpper = (uint32_t)((uint64_t)address >> 32);
-            memset(cmdTableAddress, 0, 256);
+            memset(globalPageTableManager.GetVirtualAddress(cmdTableAddress), 0, 256);
         }
 
         StartCMD();
-
         /* get disk info */
         GetDiskInfo();
 
@@ -97,7 +96,6 @@ namespace AHCI{
         if(DiskInfo->SectorSize == 0){
             globalLogs->Warning("[AHCI] No disk detected at port %u", PortNumber);
         }
-
     }
 
     void Port::StopCMD(){
@@ -126,12 +124,12 @@ namespace AHCI{
 
         HbaPort->InterruptStatus = (uint32_t) - 1; // Clear pending interrupt bits
 
-        HBACommandHeader* cmdHeader = (HBACommandHeader*)HbaPort->CommandListBase;
+        HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager.GetVirtualAddress((void*)HbaPort->CommandListBase);
         cmdHeader->CommandFISLength = sizeof(FIS_REG_H2D)/ sizeof(uint32_t); //command FIS size;
         cmdHeader->Write = 0; //read mode
         cmdHeader->PrdtLength = 1;
 
-        HBACommandTable* commandTable = (HBACommandTable*)(cmdHeader->CommandTableBaseAddress);
+        HBACommandTable* commandTable = (HBACommandTable*)globalPageTableManager.GetVirtualAddress((void*)cmdHeader->CommandTableBaseAddress);
         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry));
 
         commandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)buffer;
@@ -185,12 +183,12 @@ namespace AHCI{
 
         HbaPort->InterruptStatus = (uint32_t) - 1; // Clear pending interrupt bits
 
-        HBACommandHeader* cmdHeader = (HBACommandHeader*)HbaPort->CommandListBase;
-        cmdHeader->CommandFISLength = sizeof(FIS_REG_H2D)/ sizeof(uint32_t); //command FIS size;
+        HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager.GetVirtualAddress((void*)HbaPort->CommandListBase);
+        cmdHeader->CommandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t); //command FIS size;
         cmdHeader->Write = 1; //write mode
         cmdHeader->PrdtLength = 1;
 
-        HBACommandTable* commandTable = (HBACommandTable*)(cmdHeader->CommandTableBaseAddress);
+        HBACommandTable* commandTable = (HBACommandTable*)globalPageTableManager.GetVirtualAddress((void*)cmdHeader->CommandTableBaseAddress);
         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry));
 
         commandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)buffer;
@@ -238,12 +236,12 @@ namespace AHCI{
         return true;
     }
     bool Port::GetDiskInfo(){
-        HBACommandHeader* cmdHeader = (HBACommandHeader*)HbaPort->CommandListBase;
-        cmdHeader->CommandFISLength = sizeof(FIS_REG_H2D)/ sizeof(uint32_t); //command FIS size;
+        HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager.GetVirtualAddress((void*)HbaPort->CommandListBase);
+        cmdHeader->CommandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t); //command FIS size;
         cmdHeader->Write = 0;
         cmdHeader->PrdtLength = 1;
 
-        HBACommandTable* commandTable = (HBACommandTable*)(cmdHeader->CommandTableBaseAddress);
+        HBACommandTable* commandTable = (HBACommandTable*)globalPageTableManager.GetVirtualAddress((void*)cmdHeader->CommandTableBaseAddress);
         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry));
         commandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)Buffer;
         commandTable->PrdtEntry[0].ByteCount = sizeof(ATACommandIdentify);
@@ -258,7 +256,7 @@ namespace AHCI{
         uint64_t spin = 0;
         uint64_t timeOut = 1000000;
         while ((HbaPort->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < timeOut){
-            spin ++;
+            spin++;
         }
         if (spin >= timeOut) {
             return false;
@@ -274,7 +272,7 @@ namespace AHCI{
             }
         }
         DiskInfo = (ATACommandIdentify*)malloc(sizeof(ATACommandIdentify));
-        memcpy(DiskInfo, Buffer, sizeof(ATACommandIdentify));
+        memcpy(DiskInfo, globalPageTableManager.GetVirtualAddress(Buffer), sizeof(ATACommandIdentify));
         return true;
     }
 
@@ -309,7 +307,7 @@ namespace AHCI{
     }
 
     void Port::ResetDisk(){
-        memset(Buffer, 0, BufferSize);
+        memset(globalPageTableManager.GetVirtualAddress(Buffer), 0, BufferSize);
         uint64_t sectorReset = 0;
         uint64_t sectorToReset = GetNumberSectorsLBA();
         uint64_t sectorResetByWrite = BufferSize / GetSectorSizeLBA();
@@ -355,8 +353,8 @@ namespace AHCI{
         this->PCIBaseAddress = pciBaseAddress;
 
         ABAR = (HBAMemory*)((PCI::PCIHeader0*)pciBaseAddress)->BAR5;
+        ABAR = (HBAMemory*)globalPageTableManager.MapMemory((void*)ABAR, 1);
 
-        globalPageTableManager.MapMemory(ABAR, ABAR);
         ProbePorts();
         for (int i = 0; i < PortCount; i++){
             Port* port = Ports[i];
@@ -364,7 +362,6 @@ namespace AHCI{
 
             port->Configure();
             GPT::Partitions* Partitons = GPT::GetAllPartitions(port);           
-
             if(port->PortNumber == 1){
                 GPT::GPTHeader* GptHeader = GPT::GetGPTHeader(port);             
                 if(!port->IsPortInit(GPT::GetReservedGUIDPartitionType())){   

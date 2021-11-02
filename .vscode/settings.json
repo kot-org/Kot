@@ -17,7 +17,9 @@
         "vector": "cpp",
         "initializer_list": "cpp",
         "algorithm": "cpp",
-        "atomic": "cpp"
+        "atomic": "cpp",
+        "logs.h": "c",
+        "types.h": "c"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

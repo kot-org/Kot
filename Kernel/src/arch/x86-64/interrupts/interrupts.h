@@ -56,7 +56,7 @@ extern "C" void InvalidTSS_Handler(ErrorInterruptStack* Registers, uint64_t Core
 extern "C" void SegmentNotPresent_Handler(ErrorInterruptStack* Registers, uint64_t CoreID);
 extern "C" void StackSegmentFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID);
 extern "C" void GPFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID);
-extern "C" void PageFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID);
+extern "C" void PageFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID, void* Address);
 extern "C" void x87FloatingPointException_Handler(InterruptStack* Registers, uint64_t CoreID);
 extern "C" void AlignmentCheck_Handler(ErrorInterruptStack* Registers, uint64_t CoreID);
 extern "C" void MachineCheck_Handler(InterruptStack* Registers, uint64_t CoreID);

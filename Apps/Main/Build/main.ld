@@ -3,15 +3,8 @@ ENTRY(main)
 
 SECTIONS
 {
-	. = 0xFFFF800000000000;
-	_KernelStart = .;
-
-
 	.text : ALIGN(0x1000)
 	{
-		IdleTaskStart = .;
-		*(.IdleTask)
-		IdleTaskEnd = .;
 		*(.text)
 	}
 	.data : ALIGN(0x1000)
@@ -27,5 +20,4 @@ SECTIONS
 		*(COMMON)
 		*(.bss)
 	}
-	_KernelEnd = .;
 }

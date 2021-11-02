@@ -157,6 +157,6 @@ namespace APIC{
     void localAPICWriteRegister(void* lapicAddress, size_t offset, uint32_t value);    
     uint32_t CreatRegisterValueInterrupts(LocalAPICInterruptRegister reg);
 
-    extern LocalProcessor* Processor[MAX_PROCESSORS];
-    extern size_t ProcessorCount;
+    extern LocalProcessor** Processor;
+    extern uint8_t ProcessorCount;
 }

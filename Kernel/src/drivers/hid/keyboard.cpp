@@ -28,7 +28,7 @@ void HandleKeyboard(uint8_t scancode){
             break;
         default:
             char ascii = AZERTYKeyboard::Translate(scancode, isShiftPressed);
-
+            
             if(ascii != 0){
                 globalGraphics->PutChar(ascii);
             }

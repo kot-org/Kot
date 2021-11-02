@@ -1,10 +1,14 @@
 #include "apic.h"
 
-namespace APIC{
-    LocalProcessor* Processor[MAX_PROCESSORS];
-    size_t ProcessorCount = 0;
+namespace APIC{ 
+    LocalProcessor** Processor;
+    uint8_t ProcessorCount;
+    void* lapicAddressVirtual;
 
     void InitializeMADT(ACPI::MADTHeader* madt){
+        lapicAddressVirtual = globalPageTableManager.MapMemory(0, 1);
+        ProcessorCount = 0;
+        Processor = (LocalProcessor**)malloc(sizeof(LocalProcessor) * MAX_PROCESSORS);
         if(madt == 0){
             return;
         }
@@ -12,9 +16,7 @@ namespace APIC{
         uint64_t entries = (madt->Header.Length - sizeof(ACPI::MADTHeader));
         
         for(uint64_t i = 0; i < entries;){
-
             EntryRecord* entryRecord = (EntryRecord*)((uint64_t)madt + sizeof(ACPI::MADTHeader) + i);
-            globalPageTableManager.MapMemory(entryRecord, entryRecord);
             i += entryRecord->Length;
 
             switch(entryRecord->Type){
@@ -27,7 +29,6 @@ namespace APIC{
                 case EntryTypeIOAPIC:{
                     IOAPIC* ioApic = (IOAPIC*)entryRecord;
                     void* apicPtr = (void*)(uint64_t)ioApic->APICAddress;
-                    globalPageTableManager.MapMemory(apicPtr, apicPtr);
                     break;
                 }                    
                 case EntryTypeInterruptSourceOverride:{
@@ -48,24 +49,30 @@ namespace APIC{
 
     void LoadCores(){
         uint64_t lapicAddress = (uint64_t)GetLAPICAddress();
-        globalPageTableManager.MapMemory((void*)0x8000, (void*)0x8000);
+        void* TrampolineVirtualAddress = globalPageTableManager.MapMemory((void*)0x8000, 1);
 
         uint8_t bspid = 0; 
         __asm__ __volatile__ ("mov $1, %%rax; cpuid; shrq $24, %%rbx;": "=r"(bspid)::);
 
-        memcpy((void*)0x8000, (void*)&Trampoline, 0x1000);
+        memcpy((void*)TrampolineVirtualAddress, (void*)&Trampoline, 0x1000);
 
-        trampolineData* Data = (trampolineData*) (((uint64_t) &DataTrampoline - (uint64_t) &Trampoline) + 0x8000);
-        Data->MainEntry = (uint64_t)&TrampolineMain;
+        trampolineData* Data = (trampolineData*) (((uint64_t)&DataTrampoline - (uint64_t) &Trampoline) + TrampolineVirtualAddress);
 
-        for(int i = 1; i < ProcessorCount; i++){   
-            __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(Data->Paging)); 
+        Data->MainEntry = (uint64_t)&TrampolineMain; 
 
+        PageTable* PML4 = (PageTable*)globalAllocator.RequestPage();
+        memset(globalPageTableManager.GetVirtualAddress(PML4), 0, 0x1000);
+        
+        //temp trampoline map
+        globalPageTableManager.MapMemory((void*)0x8000, (void*)0x8000);
+
+        for(int i = 1; i < ProcessorCount; i++){ 
+            Data->Paging = (uint64_t)globalPageTableManager.PML4;
             uint64_t StackSize = 0x1000000; // 10 mb
             Data->Stack = (uint64_t)malloc(StackSize) + StackSize;
                 
             if(Processor[i]->APICID == bspid) continue; 
-            
+
             //init IPI
             localAPICWriteRegister(0x280, 0);
             localAPICWriteRegister(0x310, i << 24);
@@ -84,20 +91,26 @@ namespace APIC{
                 do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(0x300) & (1 << 12));
             }
 
-            globalLogs->Message("Wait processor %u", i);
+            globalLogs->Warning("Wait processor %u", i);
+
             while (Data->Status != 3); // wait processor
-            globalLogs->Successful("Load processor %u", i);
+            globalLogs->Successful("Processor %u respond with success", i);
+
+            while (StatusProcessor != 4); // wait processor
+            globalLogs->Successful("Processor %u is in the main function", i);
+            StatusProcessor = 0;
         }
+        globalPageTableManager.UnmapMemory((void*)0x8000);
     }  
 
     void* GetLAPICAddress(){
         void* lapicAddress = (void*)(msr::rdmsr(0x1b) & 0xfffff000);
-        globalPageTableManager.MapMemory(lapicAddress, lapicAddress);
-        return lapicAddress;
+        globalPageTableManager.MapMemory(lapicAddressVirtual, lapicAddress);
+        return lapicAddressVirtual;
     }
 
     void EnableAPIC(){
-        void* lapicAddress = GetLAPICAddress(); 
+        void* lapicAddress = (void*)(msr::rdmsr(0x1b) & 0xfffff000);
         msr::wrmsr(0x1b, (uint64_t)lapicAddress);
         localAPICWriteRegister(0xF0, localAPICReadRegister(0xF0) | 0x1ff);
     }

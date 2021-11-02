@@ -282,9 +282,10 @@ Entry_PageFault_Handler:
     mov    rax, 1
     cpuid
     shr    rbx, 24
-    mov    rsi, rbx
 
+    mov rsi, rbx
     mov rdi, rsp
+    mov rdx, cr2
 
     call PageFault_Handler
     

@@ -43,7 +43,7 @@ char* CPU::getName() {
 char vendor2[13];
 char* CPU::getVendorID(){
     uint32_t standardfunc;
-    cpuid(0, &standardfunc, (uint32_t *)(vendor2 + 0), (uint32_t *)(vendor2 + 8), (uint32_t *)(vendor2 + 4));
+    cpuid(0, (uint32_t *)&standardfunc, (uint32_t *)(vendor2 + 0), (uint32_t *)(vendor2 + 8), (uint32_t *)(vendor2 + 4));
     vendor[12] = 0;
     return vendor2;
 }

@@ -30,6 +30,9 @@ void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){
 TaskNode* TaskManager::AddTask(void* EntryPoint, size_t Size, bool IsIddle, bool IsLinked, int ring){ 
     TaskNode* node = (TaskNode*)malloc(sizeof(TaskNode));
     
+    //Creat task's paging
+    node->paging.PageTableManagerInit
+
     uint64_t StackSize = 0x100000; // 1 mb
 
     node->Content.Stack = malloc(StackSize);
@@ -126,8 +129,13 @@ void TaskManager::DeleteTask(TaskNode* node){
         }
     }
 
-    last->Next = next;
-    next->Last = last;
+    if(last != NULL){
+        last->Next = next;     
+    }
+
+    if(next != NULL){
+        next->Last = last;      
+    }
 
     free((void*)node->Content.Stack);
     free((void*)node);

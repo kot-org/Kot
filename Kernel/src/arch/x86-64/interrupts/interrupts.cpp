@@ -2,10 +2,12 @@
 
 IDTR idtr;
 
+uint8_t IDTData[0x1000];
+
 void InitializeInterrupts(){
     if(idtr.Limit == 0){
         idtr.Limit = 0x0FFF;
-        idtr.Offset = (uint64_t)globalAllocator.RequestPage();
+        idtr.Offset = (uint64_t)&IDTData[0];
     }
 
     /* Exceptions */
@@ -88,7 +90,7 @@ void InitializeInterrupts(){
     RemapPIC();
     PIT::SetDivisor(uint16_Limit);
 
-    asm ("lidt %0" : : "m" (idtr));        
+    asm("lidt %0" : : "m" (idtr));     
 }
 
 extern "C" void DivideByZero_Handler(InterruptStack* Registers, uint64_t CoreID){
@@ -166,12 +168,69 @@ extern "C" void StackSegmentFault_Handler(ErrorInterruptStack* Registers, uint64
 extern "C" void GPFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
     Panic("General Protection Fault Detected");
     globalLogs->Error("General Protection Fault Detected -> At processor %u", CoreID);
+    if(ReadBit((uint8_t)(uint64_t)Registers->errorCode, 0)){
+        globalLogs->Message("The exception originated externally to the processor");
+    }
+
+    uint8_t Tbl = 0;
+    Tbl |= ReadBit((uint8_t)(uint64_t)Registers->errorCode, 1);
+    Tbl |= ReadBit((uint8_t)(uint64_t)Registers->errorCode, 2) << 1;
+    switch (Tbl)
+    {
+    case 0:
+        globalLogs->Message("Caused by gdt");
+        break;
+    case 1:
+        globalLogs->Message("Caused by idt");
+        break;
+    case 2:
+        globalLogs->Message("Caused by ldt");
+        break;
+    
+    default:
+        break;
+    }
     while(true);
 }
 
-extern "C" void PageFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
+extern "C" void PageFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID, void* Address){
+    globalLogs->Error("Page Fault Detected : Memory address : 0x%x | Processor ID : %u", Address, CoreID);
     Panic("Page Fault Detected");
-    globalLogs->Error("Page Fault Detected -> At processor %u", CoreID);
+    if(ReadBit((uint8_t)(uint64_t)Registers->errorCode, 0)){
+        globalLogs->Message("Page-protection violation");
+    }else{
+        globalLogs->Message("Non-present page");
+    }
+
+    if(ReadBit((uint8_t)(uint64_t)Registers->errorCode, 1)){
+        globalLogs->Message("Error caused by writting");
+    }else{
+        globalLogs->Message("Error caused by reading");
+    }   
+
+    if(ReadBit((uint8_t)(uint64_t)Registers->errorCode, 2)){
+        globalLogs->Message("Non-user page");
+    }
+
+    if(ReadBit((uint8_t)(uint64_t)Registers->errorCode, 3)){
+        globalLogs->Message("Page contain reserved bit");
+    }
+
+    if(ReadBit((uint8_t)(uint64_t)Registers->errorCode, 4)){
+        globalLogs->Message("Caused by an instruction fetch");
+    }
+
+    if(ReadBit((uint8_t)(uint64_t)Registers->errorCode, 5)){
+        globalLogs->Message("Protection-key violation");
+    }
+
+    if(ReadBit((uint8_t)(uint64_t)Registers->errorCode, 6)){
+        globalLogs->Message("Caused by shadow stack access");
+    }
+
+    if(ReadBit((uint8_t)(uint64_t)Registers->errorCode, 7)){
+        globalLogs->Message("Caused to an SGX violaton");
+    }
     while(true);
 }
 
@@ -258,7 +317,11 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
             break;
     }
 
-    globalLogs->Successful("%u %s", CoreID, arg5);
+    if(arg5 != NULL){
+        globalLogs->Successful("%u %s", CoreID, arg5);
+    }else{
+        globalLogs->Error("%u", CoreID);
+    }
     Atomic::atomicUnlock(&mutexSyscall, 0);    
 }
 

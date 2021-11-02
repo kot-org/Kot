@@ -23,13 +23,13 @@ Trampoline:
     mov eax, [Target(DataTrampoline.Paging)]
     mov cr3, eax
 
-    ;efer long mode enable
+    ;long mode enable
     mov ecx, 0xC0000080 
     rdmsr
     or eax, 1 << 8
     wrmsr
     
-    ;Cr0 protected mode enable & paging
+    ;Cr0 protected mode enable
     mov eax, cr0
     or eax, 0x80000001
     mov cr0, eax    
@@ -51,8 +51,8 @@ ALIGN 4
     dw 0                             
  
 .Pointer:
-    dw $ - GDT - 1                    
-    dd GDT                            
+    dw Target($ - GDT - 1)                 
+    dd Target(GDT)                            
 
 [BITS 64]
 

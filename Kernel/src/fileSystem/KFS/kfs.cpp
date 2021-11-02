@@ -273,8 +273,6 @@ namespace FileSystem{
         for(; FoldersSlit[count] != 0; count++);
         count--;
 
-        
-
         if(KFSPartitionInfo->Root.FirstClusterFile == 0){
             globalLogs->Warning("The disk is empty");
             return false;

@@ -7,10 +7,10 @@ namespace GPT{
     uint64_t AllPartitionsInfoNumber;
 
     GPTHeader* GetGPTHeader(AHCI::Port* port){
-        memset(port->Buffer, 0, sizeof(GPTHeader));
+        memset(globalPageTableManager.GetVirtualAddress(port->Buffer), 0, sizeof(GPTHeader));
         if(port->Read(1, 1, port->Buffer)){            
             GPTHeader* ReturnValue = (GPTHeader*)malloc(sizeof(GPTHeader));
-            memcpy(ReturnValue, port->Buffer, sizeof(GPTHeader));
+            memcpy(ReturnValue, globalPageTableManager.GetVirtualAddress(port->Buffer), sizeof(GPTHeader));
             return ReturnValue;           
         }else{
             return NULL;
@@ -18,8 +18,7 @@ namespace GPT{
     }
 
     bool SetGPTHeader(AHCI::Port* port, GPTHeader* newGPTHeader){
-        memset(port->Buffer, 0, sizeof(GPTHeader));
-        memcpy(port->Buffer, newGPTHeader, sizeof(GPTHeader));
+        memcpy(globalPageTableManager.GetVirtualAddress(port->Buffer), newGPTHeader, sizeof(GPTHeader));
         port->Write(1, 1, port->Buffer);     
         port->Write(newGPTHeader->BackupLBA, 1, port->Buffer);
     }
@@ -93,13 +92,13 @@ namespace GPT{
 
     GUIDPartitionEntryFormat* GetGUIDPartitionEntryFormat(AHCI::Port* port, uint64_t LBAAddress, uint8_t which){
         uint8_t MaxGUIDPartitionEntryFormatPerSectors = port->GetSectorSizeLBA() / sizeof(GUIDPartitionEntryFormat);
-        memset(port->Buffer, 0, port->GetSectorSizeLBA());
+        memset(globalPageTableManager.GetVirtualAddress(port->Buffer), 0, port->GetSectorSizeLBA());
 
         void* buffer = malloc(sizeof(GUIDPartitionEntryFormat));
         memset(buffer, 0, sizeof(GUIDPartitionEntryFormat));
 
         if(port->Read(LBAAddress, 1, port->Buffer)){
-            memcpy(buffer, (port->Buffer + (which * sizeof(GUIDPartitionEntryFormat))), sizeof(GUIDPartitionEntryFormat));
+            memcpy(buffer, globalPageTableManager.GetVirtualAddress(port->Buffer + (which * sizeof(GUIDPartitionEntryFormat))), sizeof(GUIDPartitionEntryFormat));
             GUIDPartitionEntryFormat* ReturnValue = (GUIDPartitionEntryFormat*)buffer;
             return ReturnValue;
         }else{
@@ -110,15 +109,14 @@ namespace GPT{
 
     bool SetGUIDPartitionEntryFormat(AHCI::Port* port, uint64_t LBAAddress, uint8_t which, GUIDPartitionEntryFormat* newGuidPartitionEntryFormat, GPTHeader* GptHeader){
         uint8_t MaxGUIDPartitionEntryFormatPerSectors = port->GetSectorSizeLBA() / sizeof(GUIDPartitionEntryFormat);
-        memset(port->Buffer, 0, sizeof(GUIDPartitionEntryFormat));
-        memcpy(port->Buffer, newGuidPartitionEntryFormat, sizeof(GUIDPartitionEntryFormat));
+        memcpy(globalPageTableManager.GetVirtualAddress(port->Buffer), newGuidPartitionEntryFormat, sizeof(GUIDPartitionEntryFormat));
 
         if(port->Read(LBAAddress, 1, port->Buffer)){
-            memcpy((port->Buffer + (which * sizeof(GUIDPartitionEntryFormat))), newGuidPartitionEntryFormat, sizeof(GUIDPartitionEntryFormat));
+            memcpy(globalPageTableManager.GetVirtualAddress(port->Buffer + (which * sizeof(GUIDPartitionEntryFormat))), newGuidPartitionEntryFormat, sizeof(GUIDPartitionEntryFormat));
 
             port->Write(LBAAddress, 1, port->Buffer);  
         
-            memcpy((port->Buffer + (which * sizeof(GUIDPartitionEntryFormat))), newGuidPartitionEntryFormat, sizeof(GUIDPartitionEntryFormat));
+            memcpy(globalPageTableManager.GetVirtualAddress(port->Buffer + (which * sizeof(GUIDPartitionEntryFormat))), newGuidPartitionEntryFormat, sizeof(GUIDPartitionEntryFormat));
             return port->Write(GptHeader->LastUsableLBAPartitions + (LBAAddress - (GptHeader->CurrentLBA + 1)), 1, port->Buffer);
         }else{
             return false;
@@ -164,8 +162,6 @@ namespace GPT{
 
         uint8_t MaxGUIDPartitionEntryFormatPerSectors = port->GetSectorSizeLBA() / sizeof(GUIDPartitionEntryFormat);
         uint64_t PartitionEntriesStartingLBA = gptHeader->PartitionEntriesStartingLBA;
-
-
         GUIDPartitionEntryFormat* CheckEntry = (GUIDPartitionEntryFormat*)malloc(sizeof(GUIDPartitionEntryFormat));;
         for(int i = 0; i < gptHeader->NumberPartitionEntries; i++){
             CheckEntry = (GUIDPartitionEntryFormat*)malloc(sizeof(GUIDPartitionEntryFormat));
@@ -175,8 +171,8 @@ namespace GPT{
                 ReturnValue->NumberPartitionsCreated++;
                 ReturnValue->IsPartitionsEntryBitmapFree.Set(i, false);
             }else{
-                free(CheckEntry);
                 ReturnValue->IsPartitionsEntryBitmapFree.Set(i, true);
+                free(CheckEntry);
             }
         }
 
@@ -340,9 +336,9 @@ namespace GPT{
             Check = port->Read(LBAFirstSector + sectorsRead, sectorsToRead, port->Buffer);
             
             if(sizeRead != 0){
-                memcpy((void*)((uint64_t)buffer + sizeRead), port->Buffer, sizeToRead);
+                memcpy((void*)((uint64_t)buffer + sizeRead), globalPageTableManager.GetVirtualAddress(port->Buffer), sizeToRead);
             }else{
-                memcpy(buffer, (void*)((uint64_t)port->Buffer + firstByte % this->port->GetSectorSizeLBA()), sizeToRead); //Get the correct first byte
+                memcpy(buffer, globalPageTableManager.GetVirtualAddress((void*)((uint64_t)port->Buffer + firstByte % this->port->GetSectorSizeLBA())), sizeToRead); //Get the correct first byte
             }
 
             sizeRead += sizeToRead;
@@ -369,9 +365,9 @@ namespace GPT{
             sectorsToWrite = Divide(sizeToWrite, port->GetSectorSizeLBA());
             Check = port->Read(LBAFirstSector + sectorsWrite, sectorsToWrite, port->Buffer);
             if(sizeWrite != 0){
-                memcpy(port->Buffer, (void*)((uint64_t)buffer + sizeWrite), sizeToWrite);
+                memcpy(globalPageTableManager.GetVirtualAddress(port->Buffer), (void*)((uint64_t)buffer + sizeWrite), sizeToWrite);
             }else{
-                memcpy((void*)((uint64_t)port->Buffer + firstByte % this->port->GetSectorSizeLBA()), buffer, sizeToWrite);
+                memcpy(globalPageTableManager.GetVirtualAddress((void*)((uint64_t)port->Buffer + firstByte % this->port->GetSectorSizeLBA())), buffer, sizeToWrite);
             }
             Check = port->Write(LBAFirstSector + sectorsWrite, sectorsToWrite, port->Buffer);
                        

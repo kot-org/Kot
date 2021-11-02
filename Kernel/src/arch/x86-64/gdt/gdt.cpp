@@ -4,11 +4,11 @@
 
 static __attribute__((aligned(0x1000)))GDTEntry GDTEntries[GDT_MAX_DESCRIPTORS];
 static GDTDescriptor gdtBaseInfo;
+static TSS DefaultTSS;
 gdtInfoSelectorsRing GDTInfoSelectorsRing[4];
 int GDTIndexTable = 0;
 
 void gdtInit(){
-    TSS DefaultTSS;
     gdtBaseInfo.Size = (sizeof(GDTEntry) * GDT_MAX_DESCRIPTORS) - 1; //get the total size where gdt entries 
     gdtBaseInfo.Offset = (uint64_t)&GDTEntries[0]; //get adress of the table where gdt entries 
 
@@ -23,7 +23,6 @@ void gdtInit(){
     DataTrampoline.GDTPointer = (uint64_t)&gdtBaseInfo;
 
     LoadGDT(&gdtBaseInfo);    
-
     asm("movw %%ax, %w0\n\t" "ltr %%ax" :: "a" (TSSlocation));
 }
 

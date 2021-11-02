@@ -3,8 +3,12 @@
 graphics* globalGraphics;
 
 graphics::graphics(BootInfo* bootInfo) {
-    framebuffer = bootInfo->framebuffer;
-    PSF1_Font = bootInfo->psf1_Font;
+    framebuffer = (Framebuffer*)malloc(sizeof(Framebuffer));
+    memcpy(framebuffer, &bootInfo->framebuffer, sizeof(Framebuffer));
+    
+    uint64_t fbSize = (uint64_t)bootInfo->framebuffer.FrameBufferSize + 0x1000;
+    framebuffer->BaseAddress = globalPageTableManager.MapMemory(framebuffer->BaseAddress, Divide(fbSize, 0x1000));
+    PSF1_Font = (PSF_FONT*)globalPageTableManager.GetVirtualAddress(bootInfo->psf1_Font);
     Color = 0xffffffff;
     CursorPosition = {0, 0};
 }
@@ -13,7 +17,7 @@ void graphics::Print(const char* str){
     char* chr = (char*)str;
     while(*chr != 0){
         PutChar(*chr, CursorPosition.X, CursorPosition.Y);
-        CursorPosition.X+=8;
+        CursorPosition.X += 8;
         if(CursorPosition.X + 8 > framebuffer->Width)
         {
             CursorPosition.X = 0;

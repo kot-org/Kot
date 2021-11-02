@@ -21,8 +21,10 @@ struct PageDirectoryEntry {
     bool GetFlag(PT_Flag flag);
     void SetAddress(uint64_t address);
     uint64_t GetAddress();
-};
+}__attribute__((packed));
 
 struct PageTable { 
-    PageDirectoryEntry entries [512];
+    PageDirectoryEntry entries[512];
 }__attribute__((aligned(0x1000)));
+
+extern "C" void LoadPaging(PageTable* PageTableEntry, void* PhysicalMemoryVirtualAddress);

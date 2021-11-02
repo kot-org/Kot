@@ -18,6 +18,7 @@ struct ContextStack {
 }__attribute__((packed));
 
 struct TaskContext{
+    PageTableManager paging;
     void* EntryPoint;
     void* Stack;
     ContextStack Regs; 

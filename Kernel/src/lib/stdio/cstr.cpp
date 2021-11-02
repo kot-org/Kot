@@ -196,18 +196,37 @@ bool strcmp(char* a, char* b){
 
 char** split(char* str, char* delimiters){
     char* entry = str;
+    char* entryCount = str;
+
     int len = strlen(str);
-    char** ReturnValue = (char**)globalAllocator.RequestPage();
-    int currentItemNumber = 0;
-    int checkNum = 0;
     char* c = delimiters;
+
+    int currentItemNumber = 0;
     int currentCharNumber = 0;
+    int ItemNumber = 1;
+    int checkNum = 0;
     int charNumberStart = 0;
 
     int lastCharEnd = 0;
     
+    while(*entryCount != 0){  
+        if(*entryCount == *c){
+            checkNum++;
+            c++;
+        }else{
+            c = delimiters;
+            checkNum = 0;
+        }
+        
+        if(checkNum >= strlen(delimiters)){                               
+            ItemNumber++;
+            checkNum = 0;                         
+        }
+        entryCount++; 
+    }
+    
+    char** ReturnValue = (char**)malloc(sizeof(char*) * ItemNumber);
     while(*str != 0){  
-        ReturnValue[currentItemNumber] = (char*)globalAllocator.RequestPage();
         currentCharNumber++;
 
         if(*str == *c){
@@ -227,6 +246,7 @@ char** split(char* str, char* delimiters){
                 charNumberStart = 0;
             }
             int y = 0;
+            ReturnValue[currentItemNumber] = (char*)malloc(sizeof(char*) * (charNumberStart - lastCharEnd));
             for(int i = lastCharEnd; i < charNumberStart; i++){
                 ReturnValue[currentItemNumber][y++] = entry[i];
             }   
@@ -239,7 +259,7 @@ char** split(char* str, char* delimiters){
         str++; 
     }
 
-    ReturnValue[currentItemNumber] = (char*)globalAllocator.RequestPage();
+    ReturnValue[currentItemNumber] = (char*)malloc(sizeof(char*) * (len - lastCharEnd));
     int y = 0;
     for(int i = lastCharEnd; i < len; i++){
         ReturnValue[currentItemNumber][y++] = entry[i];
@@ -257,19 +277,19 @@ char* ConvertByte(uint64_t bytes){
     units[3] = " GB";
     units[4] = " TB";
 
-    double returnValue;
-    returnValue = (double)bytes;
     int i;
-    while(returnValue / 1024 > 1){
-        returnValue = (double)(returnValue / 1024);
+    while(bytes / 1024 > 1){
+        bytes = (double)(bytes / 1024);
         i++;
         if(i > 3) break;
     }
 
-    char* value = (char*)to_string((uint64_t)returnValue);
+    globalLogs->Message("RAM : %x", bytes);
+    char* value = (char*)to_string(bytes);
 
     memcpy(returnChar, value, strlen(value));
     memcpy(returnChar + strlen(value), units[i], strlen(units[i]));
+    returnChar[127] = 0;
     return returnChar;
 
 }

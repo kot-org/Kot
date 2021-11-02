@@ -3,6 +3,8 @@
 #ifndef LIB_H
 #define LIB_H
 
+//#define DEBUG
+
 /* variables */
 #define SIZEOF(object) (char *)(&object+1) - (char *)(&object)
 
@@ -22,8 +24,6 @@ EFI_GRAPHICS_OUTPUT_BLT_PIXEL GraphicsColor;
 EFI_STATUS Status;
 EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *Volume;
 EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* InfoModeGop;
-Framebuffer framebuffer;
-int debug = 0;
 
 //graphic variable
 struct color{
@@ -70,14 +70,14 @@ void SetColor(uint_t Attribute)
 
 void Print(char16_t* str)
 {
-    if(debug){
+    #ifdef DEBUG
         if(str == CheckStandardEFIError(EFI_SUCCESS)){
             SetColor(EFI_GREEN); 
         }else{
             SetColor(EFI_RED); 
         }
         SystemTable->ConOut->OutputString(SystemTable->ConOut, str);
-    }    
+    #endif  
 }
 
 void HitAnyKey()
@@ -238,7 +238,7 @@ typedef struct GCP{
     unsigned int Y;
 } GCP;
 
-PSF_FONT* LinuxFont;
+struct PSF_FONT* LinuxFont;
 GCP GraphicCursorPosition;
 
 void GraphicChar(char chr, unsigned int xOff, unsigned int yOff)
@@ -278,7 +278,7 @@ void SetGraphicCursorPosition(unsigned int x, unsigned int y)
 int initFont(char16_t* FileName){
     EFI_FILE_PROTOCOL* font = openFile(FileName);
 
-    uint_t lfsize = sizeof(PSF_FONT);
+    uint_t lfsize = sizeof(struct PSF_FONT);
     Status = SystemTable->BootServices->AllocatePool(EfiLoaderData, lfsize, (void**)&LinuxFont);
     Print(CheckStandardEFIError(Status));
     Status = font->Read(font, &lfsize, LinuxFont);
@@ -505,7 +505,8 @@ void Printf(char *s, ...)
             //CR
             GraphicCursorPosition.X = 0;
         }else
-            GraphicChar(c, GraphicCursorPosition.X, GraphicCursorPosition.Y);
+            SetGraphicsColor(0xffffff);
+            Print(c);
             GraphicCursorPosition.X+=8;
             if(GraphicCursorPosition.X + 8 > gop->Mode->Info->HorizontalResolution)
             {
@@ -524,6 +525,12 @@ int memcmp(const void* aptr, const void* bptr, size_t n){
 		else if (a[i] > b[i]) return 1;
 	}
 	return 0;
+}
+
+void memset(void* start, uint8_t value, uint64_t num){
+    for (uint64_t i = 0; i < num; i++){
+        *(uint8_t*)((uint64_t)start + i) = value;
+    }
 }
 
 UINTN strcmp(CHAR8* a, CHAR8* b, UINTN length){

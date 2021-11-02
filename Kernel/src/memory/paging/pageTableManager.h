@@ -5,14 +5,20 @@
 #include "PageFrameAllocator.h"
 #include "../memory.h"
 
-class PageTableManager {
-    public:
-    PageTableManager(PageTable* PML4Address);
-    PageTable* PML4;
+struct PageTableManager {
+    void PageTableManagerInit(PageTable* PML4Address);
+    void DefinePhysicalMemoryLocation(void* PhysicalMemoryVirtualAddress);
+    void DefineVirtualTableLocation();
     void MapMemory(void* virtualMemory, void* physicalMemory);
-    void UnmapMememory(void* virtualMemory);
+    void* MapMemory(void* physicalMemory, size_t pages);
+    void UnmapMemory(void* virtualMemory);
     void MapUserspaceMemory(void* virtualMemory);
     void* GetPhysicalAddress(void* virtualAddress);
-};
+    void* GetVirtualAddress(void* physicalAddress); //this function exist because physicall address is locate at the higher half
+    void* PhysicalMemoryVirtualAddressSaver;
+    void* PhysicalMemoryVirtualAddress;
+    PageTable* PML4;
+    uint64_t VirtualAddress;
+}__attribute__((packed));
 
 extern PageTableManager globalPageTableManager;
