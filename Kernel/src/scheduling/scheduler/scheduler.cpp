@@ -2,7 +2,7 @@
 
 TaskManager globalTaskManager;
 
-void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){  
+void* TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){  
     if(CoreInUserSpace[CoreID]){  
         TaskNode* node = NodeExecutePerCore[CoreID];
         
@@ -24,26 +24,40 @@ void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){
         NodeExecutePerCore[CoreID] = node;
 
         memcpy(Registers, &node->Content.Regs, sizeof(ContextStack));
+        return node->Content.paging.PML4;
+    }else{
+        return globalPageTableManager.PML4;
     }
 }
 
-TaskNode* TaskManager::AddTask(void* EntryPoint, size_t Size, bool IsIddle, bool IsLinked, int ring){ 
+TaskNode* TaskManager::AddTask(void* Buffer, void* FirstByte, void* EntryPoint, size_t Size, bool IsIddle, bool IsLinked, int ring){ 
     TaskNode* node = (TaskNode*)malloc(sizeof(TaskNode));
     
     //Creat task's paging
-    node->paging.PageTableManagerInit
+    void* PML4 = globalAllocator.RequestPage();
+    node->Content.paging.PageTableManagerInit((PageTable*)PML4);
+    node->Content.paging.CopyHigherHalf(&globalPageTableManager);
+    asm("mov %0, %%cr3" :: "r" (PML4));
+
+    //Creat heap
+    uint64_t FirstFreePage = (uint64_t)FirstByte + Size;
+    if(FirstFreePage % 0x1000 > 0){
+        FirstFreePage -= FirstFreePage % 0x1000;
+        FirstFreePage += 0x1000;
+    }
+
+    node->Content.heap = UserHeap::InitializeHeap((void*)FirstFreePage, 0x10, &node->Content.paging);
 
     uint64_t StackSize = 0x100000; // 1 mb
 
-    node->Content.Stack = malloc(StackSize);
-    for(int i = 0; i < (StackSize / 0x1000) + 1; i++){
-        globalPageTableManager.MapUserspaceMemory((void*)((uint64_t)node->Content.Stack + i * 0x1000));
-    } 
+    node->Content.Stack = node->Content.heap->malloc(StackSize);
 
     for(int i = 0; i < (Size / 0x1000) + 1; i++){
-        globalPageTableManager.MapUserspaceMemory((void*)((uint64_t)EntryPoint + i * 0x1000));
+        node->Content.paging.MapMemory((void*)((uint64_t)FirstByte + i * 0x1000), globalAllocator.RequestPage());
+        node->Content.paging.MapUserspaceMemory((void*)((uint64_t)FirstByte + i * 0x1000));
     } 
     
+    memcpy(FirstByte, Buffer, Size);    
 
     node->Content.EntryPoint = EntryPoint; 
     node->Content.Regs.rip = EntryPoint; 
@@ -58,6 +72,7 @@ TaskNode* TaskManager::AddTask(void* EntryPoint, size_t Size, bool IsIddle, bool
     IDTask++;
     NumTaskTotal++;
     //link
+
     if(IsLinked){
         node = NewNode(node);
         if(IsIddle){  
@@ -69,7 +84,7 @@ TaskNode* TaskManager::AddTask(void* EntryPoint, size_t Size, bool IsIddle, bool
         }        
     }
 
-
+    asm("mov %0, %%cr3" :: "r" (globalPageTableManager.PML4));
     return node;
 }
 
@@ -90,7 +105,7 @@ TaskNode* TaskManager::NewNode(TaskNode* node){
 }
 
 TaskNode* TaskManager::CreatDefaultTask(bool IsLinked){
-    TaskNode* node = globalTaskManager.AddTask((void*)IdleTask, 0x1000, true, IsLinked, UserAppRing);
+    TaskNode* node = globalTaskManager.AddTask((void*)IdleTask, 0, 0, 0x1000, true, IsLinked, UserAppRing);
 }
 
 void TaskManager::DeleteTask(TaskNode* node){
@@ -137,7 +152,9 @@ void TaskManager::DeleteTask(TaskNode* node){
         next->Last = last;      
     }
 
-    free((void*)node->Content.Stack);
+    asm ("mov %0, %%cr3" :: "r" (node->Content.paging.PML4));
+    node->Content.heap->free((void*)node->Content.Stack);
+    asm ("mov %0, %%cr3" :: "r" (globalPageTableManager.PML4));
     free((void*)node);
 }
 

@@ -404,6 +404,7 @@ Entry_SecurityException_Handler:
 
 
 Entry_KeyboardInt_Handler:
+    hlt
     swapgs
     PUSH_REG
 
@@ -417,6 +418,7 @@ Entry_KeyboardInt_Handler:
 	iretq
 
 Entry_MouseInt_Handler:
+    hlt
     swapgs
     PUSH_REG
 
@@ -443,20 +445,20 @@ Entry_PITInt_Handler:
 	iretq 
 
 Entry_LAPICTIMERInt_Handler:
-    swapgs
     PUSH_REG    
 
-    mov    rax, 1
+    mov rax, 1
     cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
+    shr rbx, 24
+    mov rsi, rbx
 
     mov rdi, rsp
-
+    
     call LAPICTIMERInt_Handler
 
-    POP_REG 
-    swapgs    
+    mov cr3, rax
+
+    POP_REG  
 	iretq 
 
 Entry_SyscallInt_Handler:
@@ -472,6 +474,6 @@ Entry_SyscallInt_Handler:
 
     call SyscallInt_Handler
 
-    POP_REG 
-    swapgs    
+    POP_REG    
+    swapgs 
 	iretq 

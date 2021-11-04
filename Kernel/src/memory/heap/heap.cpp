@@ -9,26 +9,6 @@ void volatile InitializeHeap(void* heapAddress, size_t pageCount){
     ExpandHeap(pageCount * 0x1000);
 }
 
-void volatile SegmentTracker(){
-    SegmentHeader* currentSeg = (SegmentHeader*)globalHeap.mainSegment;
-
-    while(true){
-        if(currentSeg == globalHeap.mainSegment){
-             globalCOM1->Print(SerialBLUE); globalCOM1->Write((char)220); globalCOM1->Print(SerialReset);
-        }else if(currentSeg == globalHeap.lastSegment){
-            globalCOM1->Print(SerialPINK); globalCOM1->Write((char)220); globalCOM1->Print(SerialReset);
-        }else if(currentSeg->IsFree){
-            globalCOM1->Print(SerialGREEN); globalCOM1->Write((char)220); globalCOM1->Print(SerialReset);
-        }else{
-            globalCOM1->Print(SerialRED); globalCOM1->Write((char)220); globalCOM1->Print(SerialReset);
-        }   
-
-        if(currentSeg->next == NULL) break;
-        currentSeg = currentSeg->next;
-    }
-    globalCOM1->Print("\n");
-}
-
 void* calloc(size_t size){
     void* address = malloc(size);
     memset(address, 0, size);
@@ -228,6 +208,7 @@ void volatile ExpandHeap(size_t length){
     for (size_t i = 0; i < pageCount; i++){
         void* NewPhysicalAddress = globalAllocator.RequestPage();
         globalPageTableManager.MapMemory(globalHeap.heapEnd, NewPhysicalAddress);
+        globalPageTableManager.MapUserspaceMemory(globalHeap.heapEnd);
         globalHeap.heapEnd = (void*)((uint64_t)globalHeap.heapEnd + 0x1000);
     }
 
@@ -236,7 +217,6 @@ void volatile ExpandHeap(size_t length){
     }else{
         newSegment->length = length - sizeof(SegmentHeader);
         newSegment->IsFree = true;
-        newSegment->IsUser = false;
         newSegment->last = globalHeap.lastSegment;
         newSegment->next = NULL;
         if(globalHeap.lastSegment != NULL){

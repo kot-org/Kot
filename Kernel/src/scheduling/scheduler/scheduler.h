@@ -8,6 +8,7 @@
 #include "../../lib/stdio.h"
 #include "../../arch/x86-64/tss/tss.h"
 #include "../../drivers/graphics/graphics.h"
+#include "../../memory/UserHeap/heap.h"
 
 struct ContextStack {
     void* rax; void* rbx; void* rcx; void* rdx; void* rsi; void* rdi; void* rbp; //push in asm
@@ -19,6 +20,7 @@ struct ContextStack {
 
 struct TaskContext{
     PageTableManager paging;
+    UserHeap::Heap* heap;
     void* EntryPoint;
     void* Stack;
     ContextStack Regs; 
@@ -36,8 +38,8 @@ struct TaskNode{
 
 class TaskManager{
     public:
-        void Scheduler(struct InterruptStack* Registers, uint8_t CoreID);
-        TaskNode* AddTask(void* EntryPoint, size_t Size, bool IsIddle, bool IsLinked, int ring);    
+        void* Scheduler(struct InterruptStack* Registers, uint8_t CoreID);
+        TaskNode* AddTask(void* Buffer, void* FirstByte, void* EntryPoint, size_t Size, bool IsIddle, bool IsLinked, int ring);    
         TaskNode* NewNode(TaskNode* node);
         TaskNode* CreatDefaultTask(bool IsLinked);     
         void DeleteTask(TaskNode* task); 

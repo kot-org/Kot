@@ -280,3 +280,13 @@ void* PageTableManager::GetPhysicalAddress(void* virtualMemory){
 void* PageTableManager::GetVirtualAddress(void* physicalAddress){
     return (void*)((uint64_t)PhysicalMemoryVirtualAddress + (uint64_t)physicalAddress);
 }
+
+void PageTableManager::CopyHigherHalf(PageTableManager* pageTableManagerToCopy){
+    DefinePhysicalMemoryLocation(pageTableManagerToCopy->PhysicalMemoryVirtualAddress);
+    this->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddressSaver;
+    PageTable* PML4VirtualAddressDestination = (PageTable*)globalPageTableManager.GetVirtualAddress(PML4);
+    PageTable* PML4VirtualAddressToCopy = (PageTable*)globalPageTableManager.GetVirtualAddress(pageTableManagerToCopy->PML4);
+    for(int i = 255; i < 512; i++){
+        PML4VirtualAddressDestination->entries[i] = PML4VirtualAddressToCopy->entries[i];
+    }
+}

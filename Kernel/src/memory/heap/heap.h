@@ -7,7 +7,6 @@
 
 struct SegmentHeader{
     bool IsFree;
-    bool IsUser;
     size_t length;
     SegmentHeader* next;
     SegmentHeader* last;
@@ -25,7 +24,6 @@ struct Heap{
 extern Heap globalHeap;
 
 void volatile InitializeHeap(void* heapAddress, size_t pageCount);
-void volatile SegmentTracker();
 
 void* calloc(size_t size);
 void* volatile malloc(size_t size);

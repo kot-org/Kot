@@ -15,6 +15,7 @@ struct PageTableManager {
     void MapUserspaceMemory(void* virtualMemory);
     void* GetPhysicalAddress(void* virtualAddress);
     void* GetVirtualAddress(void* physicalAddress); //this function exist because physicall address is locate at the higher half
+    void CopyHigherHalf(PageTableManager* pageTableManagerToCopy);
     void* PhysicalMemoryVirtualAddressSaver;
     void* PhysicalMemoryVirtualAddress;
     PageTable* PML4;

@@ -167,7 +167,7 @@ extern "C" void StackSegmentFault_Handler(ErrorInterruptStack* Registers, uint64
 
 extern "C" void GPFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
     Panic("General Protection Fault Detected");
-    globalLogs->Error("General Protection Fault Detected -> At processor %u", CoreID);
+    globalLogs->Error("General Protection Fault Detected -> At processor %u | RIP : %x", CoreID, Registers->rip);
     if(ReadBit((uint8_t)(uint64_t)Registers->errorCode, 0)){
         globalLogs->Message("The exception originated externally to the processor");
     }
@@ -289,13 +289,14 @@ extern "C" void PITInt_Handler(InterruptStack* Registers){
 }
 
 static uint64_t mutexScheduler;
-extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID){
+extern "C" void* LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID){
     Atomic::atomicSpinlock(&mutexScheduler, 0);
     Atomic::atomicLock(&mutexScheduler, 0);
-    globalTaskManager.Scheduler(Registers, CoreID); 
+    void* cr3 = globalTaskManager.Scheduler(Registers, CoreID); 
     
     APIC::localApicEOI();
     Atomic::atomicUnlock(&mutexScheduler, 0);
+    return cr3;
 }
 
 static uint64_t mutexSyscall;
@@ -320,8 +321,9 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
     if(arg5 != NULL){
         globalLogs->Successful("%u %s", CoreID, arg5);
     }else{
-        globalLogs->Error("%u", CoreID);
+        globalLogs->Successful("%u", CoreID);
     }
+
     Atomic::atomicUnlock(&mutexSyscall, 0);    
 }
 

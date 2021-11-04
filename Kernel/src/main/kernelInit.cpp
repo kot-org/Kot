@@ -157,10 +157,10 @@ void InitializeKernel(BootInfo* bootInfo){
 
     globalTaskManager.InitScheduler(APIC::ProcessorCount);
 
-    globalTaskManager.AddTask((void*)task1, 4096, false, true, 1);
-    globalTaskManager.AddTask((void*)task2, 4096, false, true, 2);
-    globalTaskManager.AddTask((void*)task3, 4096, false, true, 3);
-    globalTaskManager.AddTask((void*)task4, 4096, false, true, 3);
+    // globalTaskManager.AddTask((void*)task1, 0, 4096, false, true, 1);
+    // globalTaskManager.AddTask((void*)task2, 0, 4096, false, true, 2);
+    // globalTaskManager.AddTask((void*)task3, 0, 4096, false, true, 3);
+    // globalTaskManager.AddTask((void*)task4, 0, 4096, false, true, 3);
 
     APIC::EnableAPIC();
     APIC::localApicEOI();
