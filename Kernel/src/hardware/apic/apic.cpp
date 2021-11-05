@@ -59,9 +59,6 @@ namespace APIC{
         trampolineData* Data = (trampolineData*) (((uint64_t)&DataTrampoline - (uint64_t) &Trampoline) + TrampolineVirtualAddress);
 
         Data->MainEntry = (uint64_t)&TrampolineMain; 
-
-        PageTable* PML4 = (PageTable*)globalAllocator.RequestPage();
-        memset(globalPageTableManager.GetVirtualAddress(PML4), 0, 0x1000);
         
         //temp trampoline map
         globalPageTableManager.MapMemory((void*)0x8000, (void*)0x8000);

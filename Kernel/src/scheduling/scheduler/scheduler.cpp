@@ -13,7 +13,8 @@ void* TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){
         
         MainNodeScheduler = MainNodeScheduler->Next;
         node = MainNodeScheduler;
-        while(node->Content.IsRunning){
+
+        while(node->Content.IsRunning || node->Content.IsPaused){
             MainNodeScheduler = MainNodeScheduler->Next;
             node = MainNodeScheduler;
         }   
@@ -30,61 +31,45 @@ void* TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){
     }
 }
 
-TaskNode* TaskManager::AddTask(void* Buffer, void* FirstByte, void* EntryPoint, size_t Size, bool IsIddle, bool IsLinked, int ring){ 
+TaskNode* TaskManager::AddTask(bool IsIddle, bool IsLinked, int ring){ 
     TaskNode* node = (TaskNode*)malloc(sizeof(TaskNode));
     
     //Creat task's paging
     void* PML4 = globalAllocator.RequestPage();
     node->Content.paging.PageTableManagerInit((PageTable*)PML4);
     node->Content.paging.CopyHigherHalf(&globalPageTableManager);
-    asm("mov %0, %%cr3" :: "r" (PML4));
+    globalPageTableManager.ChangePaging(&node->Content.paging);
 
     //Creat heap
-    uint64_t FirstFreePage = (uint64_t)FirstByte + Size;
-    if(FirstFreePage % 0x1000 > 0){
-        FirstFreePage -= FirstFreePage % 0x1000;
-        FirstFreePage += 0x1000;
-    }
-
-    node->Content.heap = UserHeap::InitializeHeap((void*)FirstFreePage, 0x10, &node->Content.paging);
-
+    node->Content.heap = UserHeap::InitializeHeap((void*)0x400000000000, 0x10, &node->Content.paging); // 0x400000000000 = higher half of the lower half
     uint64_t StackSize = 0x100000; // 1 mb
 
     node->Content.Stack = node->Content.heap->malloc(StackSize);
 
-    for(int i = 0; i < (Size / 0x1000) + 1; i++){
-        node->Content.paging.MapMemory((void*)((uint64_t)FirstByte + i * 0x1000), globalAllocator.RequestPage());
-        node->Content.paging.MapUserspaceMemory((void*)((uint64_t)FirstByte + i * 0x1000));
-    } 
-    
-    memcpy(FirstByte, Buffer, Size);    
-
-    node->Content.EntryPoint = EntryPoint; 
-    node->Content.Regs.rip = EntryPoint; 
     node->Content.Regs.cs = (void*)(GDTInfoSelectorsRing[ring].Code | ring); //user code selector
     node->Content.Regs.ss = (void*)(GDTInfoSelectorsRing[ring].Data | ring); //user data selector
-    node->Content.Regs.rsp = (void*)((uint64_t)node->Content.Stack + StackSize); //because the pile goes down I had not seen it ;(
+    node->Content.Regs.rsp = (void*)((uint64_t)node->Content.Stack + StackSize); //because the pile goes down
     node->Content.Regs.rflags = (void*)0x202; //interrupts & syscall
     node->Content.IsIddle = IsIddle;
     node->Content.IsRunning = false;
+    node->Content.IsPaused = true;
     
     node->Content.ID = IDTask; //min of ID is 0
     IDTask++;
     NumTaskTotal++;
+    
+    globalPageTableManager.RestorePaging();
     //link
-
     if(IsLinked){
         node = NewNode(node);
         if(IsIddle){  
             IdleNode[IddleTaskNumber] = node;
-
             IddleTaskNumber++;
         }else if(IddleTaskNumber != 0){
             DeleteTask(IdleNode[IddleTaskNumber - 1]); /* because we add 1 in this function */
         }        
     }
 
-    asm("mov %0, %%cr3" :: "r" (globalPageTableManager.PML4));
     return node;
 }
 
@@ -105,7 +90,7 @@ TaskNode* TaskManager::NewNode(TaskNode* node){
 }
 
 TaskNode* TaskManager::CreatDefaultTask(bool IsLinked){
-    TaskNode* node = globalTaskManager.AddTask((void*)IdleTask, 0, 0, 0x1000, true, IsLinked, UserAppRing);
+    TaskNode* node = globalTaskManager.AddTask(true, IsLinked, UserAppRing);
 }
 
 void TaskManager::DeleteTask(TaskNode* node){
@@ -148,13 +133,13 @@ void TaskManager::DeleteTask(TaskNode* node){
         last->Next = next;     
     }
 
-    if(next != NULL){
-        next->Last = last;      
+    if(next != NULL){    
+        next->Last = last;  
     }
 
-    asm ("mov %0, %%cr3" :: "r" (node->Content.paging.PML4));
+    globalPageTableManager.ChangePaging(&node->Content.paging);
     node->Content.heap->free((void*)node->Content.Stack);
-    asm ("mov %0, %%cr3" :: "r" (globalPageTableManager.PML4));
+    globalPageTableManager.RestorePaging();
     free((void*)node);
 }
 
@@ -185,4 +170,11 @@ void TaskManager::EnabledScheduler(uint8_t CoreID){
 
 TaskNode* TaskManager::GetCurrentTask(uint8_t CoreID){
     return NodeExecutePerCore[CoreID];
+}
+
+
+void TaskContext::Launch(void* EntryPoint){
+    this->Regs.rip = EntryPoint;
+    this->EntryPoint = EntryPoint;
+    this->IsPaused = false;
 }

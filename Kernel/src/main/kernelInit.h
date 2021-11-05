@@ -32,6 +32,7 @@
 #include "../arch/x86-64/io/serial/serial.h"
 #include "../arch/x86-64/tss/tss.h"
 #include "../logs/logs.h"
+#include "../elf/elf.h"
 
 extern "C" void main(BootInfo*);
 

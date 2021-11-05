@@ -26,8 +26,12 @@ struct TaskContext{
     ContextStack Regs; 
     uint64_t ID;
     bool IsIddle;
-    bool IsRunning = false;
-    void* parent; // if task is thread    
+    bool IsRunning;
+    bool IsPaused;
+    void* parent; // if task is thread  
+
+    void CreatThread();  
+    void Launch(void* EntryPoint);
 }__attribute__((packed));
 
 struct TaskNode{
@@ -39,7 +43,7 @@ struct TaskNode{
 class TaskManager{
     public:
         void* Scheduler(struct InterruptStack* Registers, uint8_t CoreID);
-        TaskNode* AddTask(void* Buffer, void* FirstByte, void* EntryPoint, size_t Size, bool IsIddle, bool IsLinked, int ring);    
+        TaskNode* AddTask(bool IsIddle, bool IsLinked, int ring);    
         TaskNode* NewNode(TaskNode* node);
         TaskNode* CreatDefaultTask(bool IsLinked);     
         void DeleteTask(TaskNode* task); 

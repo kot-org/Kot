@@ -52,7 +52,7 @@ struct gdtTSSEntry{
     uint8_t Base2;
     uint32_t Base3;
     uint32_t Reserved;
-} __attribute__((packed));
+}__attribute__((packed));
 
 struct gdtInfoSelectorsRing{
     uint16_t Code;

@@ -290,3 +290,11 @@ void PageTableManager::CopyHigherHalf(PageTableManager* pageTableManagerToCopy){
         PML4VirtualAddressDestination->entries[i] = PML4VirtualAddressToCopy->entries[i];
     }
 }
+
+void PageTableManager::ChangePaging(PageTableManager* NewPaging){
+    asm("mov %0, %%cr3" :: "r" (NewPaging->PML4));
+}
+
+void PageTableManager::RestorePaging(){
+    asm("mov %0, %%cr3" :: "r" (PML4));
+}

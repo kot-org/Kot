@@ -2,7 +2,7 @@
 
 namespace UserHeap{
     Heap* InitializeHeap(void* heapAddress, size_t pageCount, PageTableManager* UserPageTable){
-        Heap* heap = (Heap*)malloc(sizeof(Heap));
+        Heap* heap = (Heap*)calloc(sizeof(Heap));
         heap->heapEnd = heapAddress;
         heap->UserPageTable = UserPageTable;
         heap->ExpandHeap(pageCount * 0x1000);
@@ -113,7 +113,9 @@ namespace UserHeap{
         SegmentHeader* headerNext = header->next;
         header->length += header->next->length + sizeof(SegmentHeader);
         header->next = header->next->next;
-        header->next->last = header;
+        if(header->next != NULL){
+            header->next->last = header;
+        }
         
         if(header == this->lastSegment){
             if(header->next->next != NULL){
@@ -150,12 +152,12 @@ namespace UserHeap{
                     MergeNextAndThisToLast(header);
                 }
             }else if(header->last != NULL){
-                if(header->last->IsFree){
+                if(header->last->IsFree){ 
                     // merge this segment into the last segment
                     MergeThisToLast(header);              
                 }
             }else if(header->next != NULL){
-                if(header->next->IsFree){
+                if(header->next->IsFree){ 
                     // merge this segment into the next segment
                     MergeNextToThis(header);
                 }
@@ -208,6 +210,7 @@ namespace UserHeap{
         for (size_t i = 0; i < pageCount; i++){
             void* NewPhysicalAddress = globalAllocator.RequestPage();
             UserPageTable->MapMemory(this->heapEnd, NewPhysicalAddress);
+            UserPageTable->MapUserspaceMemory(this->heapEnd);
             this->heapEnd = (void*)((uint64_t)this->heapEnd + 0x1000);
         }
 
@@ -223,8 +226,6 @@ namespace UserHeap{
             }
             this->lastSegment = newSegment;        
         }
-
-
 
         if(this->mainSegment == NULL){
             this->mainSegment = newSegment;
