@@ -2,7 +2,7 @@
 
 TaskManager globalTaskManager;
 
-void* TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){  
+void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){  
     if(CoreInUserSpace[CoreID]){  
         TaskNode* node = NodeExecutePerCore[CoreID];
         
@@ -25,9 +25,7 @@ void* TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){
         NodeExecutePerCore[CoreID] = node;
 
         memcpy(Registers, &node->Content.Regs, sizeof(ContextStack));
-        return node->Content.paging.PML4;
-    }else{
-        return globalPageTableManager.PML4;
+        asm("mov %0, %%cr3" :: "r" (node->Content.paging.PML4));
     }
 }
 
@@ -36,8 +34,10 @@ TaskNode* TaskManager::AddTask(bool IsIddle, bool IsLinked, int ring){
     
     //Creat task's paging
     void* PML4 = globalAllocator.RequestPage();
+    memset(globalPageTableManager.GetVirtualAddress(PML4), 0, 0x1000);
     node->Content.paging.PageTableManagerInit((PageTable*)PML4);
     node->Content.paging.CopyHigherHalf(&globalPageTableManager);
+    node->Content.paging.PhysicalMemoryVirtualAddress = globalPageTableManager.PhysicalMemoryVirtualAddress;
     globalPageTableManager.ChangePaging(&node->Content.paging);
 
     //Creat heap

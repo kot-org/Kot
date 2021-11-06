@@ -115,8 +115,8 @@ void InitializeKernel(BootInfo* bootInfo){
     
     InitPS2Mouse();
 
-    IoWrite8(PIC1_DATA, 0b11111001); //disable pit
-    IoWrite8(PIC2_DATA, 0b11101111);
+    //IoWrite8(PIC1_DATA, 0b11111001); //disable pit
+    //IoWrite8(PIC2_DATA, 0b11101111);
 
     InitializeACPI(bootInfo);
     // GPT::Partition partitionTest = GPT::Partition(AHCI::ahciDriver->Ports[1], GPT::GetPartitionByGUID(AHCI::ahciDriver->Ports[1], GPT::GetDataGUIDPartitionType()));  
@@ -172,7 +172,6 @@ void InitializeKernel(BootInfo* bootInfo){
     APIC::EnableAPIC();
     APIC::localApicEOI();
     APIC::StartLapicTimer();
-
 
     APIC::LoadCores(); 
     globalTaskManager.EnabledScheduler(0);

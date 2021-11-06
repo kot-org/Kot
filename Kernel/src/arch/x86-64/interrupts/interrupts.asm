@@ -456,13 +456,10 @@ Entry_LAPICTIMERInt_Handler:
     
     call LAPICTIMERInt_Handler
 
-    mov cr3, rax
-
     POP_REG  
 	iretq 
 
 Entry_SyscallInt_Handler:
-    swapgs
     PUSH_REG    
 
     mov    rax, 1
@@ -474,6 +471,5 @@ Entry_SyscallInt_Handler:
 
     call SyscallInt_Handler
 
-    POP_REG    
-    swapgs 
+    POP_REG     
 	iretq 

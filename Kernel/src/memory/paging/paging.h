@@ -10,7 +10,7 @@ enum PT_Flag {
     CacheDisabled = 4,
     Accessed = 5,
     LargerPages = 7,
-    Custom0 = 9,
+    IsUserExecutable = 9, //Custom0
     Custom1 = 10,
     Custom2 = 11,
 };

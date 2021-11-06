@@ -194,7 +194,7 @@ extern "C" void GPFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID)
 }
 
 extern "C" void PageFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID, void* Address){
-    globalLogs->Error("Page Fault Detected : Memory address : 0x%x | Processor ID : %u", Address, CoreID);
+    globalLogs->Error("Page Fault Detected : Memory address : 0x%x | Processor ID : %u | RIP : %x", Address, CoreID, Registers->rip);
     Panic("Page Fault Detected");
     if(ReadBit((uint8_t)(uint64_t)Registers->errorCode, 0)){
         globalLogs->Message("Page-protection violation");
@@ -289,14 +289,13 @@ extern "C" void PITInt_Handler(InterruptStack* Registers){
 }
 
 static uint64_t mutexScheduler;
-extern "C" void* LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID){
+extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID){
     Atomic::atomicSpinlock(&mutexScheduler, 0);
     Atomic::atomicLock(&mutexScheduler, 0);
-    void* cr3 = globalTaskManager.Scheduler(Registers, CoreID); 
+    globalTaskManager.Scheduler(Registers, CoreID); 
     
     APIC::localApicEOI();
     Atomic::atomicUnlock(&mutexScheduler, 0);
-    return cr3;
 }
 
 static uint64_t mutexSyscall;
@@ -318,10 +317,13 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
             break;
     }
 
+    for(int i = 0; i < 10; i++){
+            globalLogs->Warning("%x", *(uint8_t*)(i + 0x1000));
+        } 
     if(arg5 != NULL){
-        globalLogs->Successful("%u %s", CoreID, arg5);
+        globalLogs->Successful("%u | %x | %s", CoreID, arg5, arg5);
     }else{
-        globalLogs->Successful("%u", CoreID);
+        globalLogs->Successful("%u | %x", CoreID, Registers->r9);
     }
 
     Atomic::atomicUnlock(&mutexSyscall, 0);    

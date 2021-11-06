@@ -18,6 +18,8 @@ struct PageTableManager {
     void CopyHigherHalf(PageTableManager* pageTableManagerToCopy);
     void ChangePaging(PageTableManager* NewPaging);
     void RestorePaging();
+    bool GetFlags(void* virtualMemory, int flags);
+    void SetFlags(void* virtualMemory, int flags, bool value);
     void* PhysicalMemoryVirtualAddressSaver;
     void* PhysicalMemoryVirtualAddress;
     PageTable* PML4;

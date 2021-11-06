@@ -42,7 +42,7 @@ struct TaskNode{
 
 class TaskManager{
     public:
-        void* Scheduler(struct InterruptStack* Registers, uint8_t CoreID);
+        void Scheduler(struct InterruptStack* Registers, uint8_t CoreID);
         TaskNode* AddTask(bool IsIddle, bool IsLinked, int ring);    
         TaskNode* NewNode(TaskNode* node);
         TaskNode* CreatDefaultTask(bool IsLinked);     
@@ -51,6 +51,7 @@ class TaskManager{
         void EnabledScheduler(uint8_t CoreID);
         TaskNode* GetCurrentTask(uint8_t CoreID);
         bool CoreInUserSpace[MAX_PROCESSORS];
+        TaskNode* NodeExecutePerCore[MAX_PROCESSORS];
 
     private:  
         bool TaskManagerInit;  
@@ -65,7 +66,6 @@ class TaskManager{
         //iddle
         TaskNode* IdleNode[MAX_PROCESSORS];         
         
-        TaskNode* NodeExecutePerCore[MAX_PROCESSORS];
 
 };
 

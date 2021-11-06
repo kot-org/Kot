@@ -11,7 +11,8 @@ void main(int test){
 
     asm(".att_syntax prefix");  
     
-    while(true){
-        asm("int $0x80");
-    }
+    char* text = "I am an ELF";
+    asm("movq %0, %%r9" :: "r" (text));
+    asm("int $0x80");
+    while(true);
 }

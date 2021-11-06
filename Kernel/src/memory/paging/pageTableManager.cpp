@@ -298,3 +298,110 @@ void PageTableManager::ChangePaging(PageTableManager* NewPaging){
 void PageTableManager::RestorePaging(){
     asm("mov %0, %%cr3" :: "r" (PML4));
 }
+
+bool PageTableManager::GetFlags(void* virtualMemory, int flags){
+    PageMapIndexer indexer = PageMapIndexer((uint64_t)virtualMemory);
+    PageDirectoryEntry PDE;
+
+    PageTable* PML4VirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PML4);
+    PDE = PML4VirtualAddress->entries[indexer.PDP_i];
+    PageTable* PDP;
+    PageTable* PDPVirtualAddress;
+    if (!PDE.GetFlag(PT_Flag::Present)){
+        return false;
+    }
+    else
+    {
+        PDP = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+        PDPVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PDP); 
+    }
+    
+    PML4VirtualAddress->entries[indexer.PDP_i] = PDE;
+
+    PDE = PDPVirtualAddress->entries[indexer.PD_i];
+
+    PageTable* PD;
+    PageTable* PDVirtualAddress;
+    if (!PDE.GetFlag(PT_Flag::Present)){
+        return false;
+    }
+    else
+    {
+        PD = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+        PDVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PD);  
+    }
+
+    PDPVirtualAddress->entries[indexer.PD_i] = PDE;
+
+    PDE = PDVirtualAddress->entries[indexer.PT_i];
+
+    PageTable* PT;
+    PageTable* PTVirtualAddress;
+    if (!PDE.GetFlag(PT_Flag::Present)){
+        return false;
+    }
+    else
+    {
+        PT = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+        PTVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PT);
+    }
+
+    PDVirtualAddress->entries[indexer.PT_i] = PDE;
+
+    PDE = PTVirtualAddress->entries[indexer.P_i];
+    return PDE.GetFlag((PT_Flag)flags);
+}
+
+void PageTableManager::SetFlags(void* virtualMemory, int flags, bool value){
+    PageMapIndexer indexer = PageMapIndexer((uint64_t)virtualMemory);
+    PageDirectoryEntry PDE;
+
+    PageTable* PML4VirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PML4);
+    PDE = PML4VirtualAddress->entries[indexer.PDP_i];
+    PageTable* PDP;
+    PageTable* PDPVirtualAddress;
+    if (!PDE.GetFlag(PT_Flag::Present)){
+        return;
+    }
+    else
+    {
+        PDP = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+        PDPVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PDP); 
+    }
+    
+    PML4VirtualAddress->entries[indexer.PDP_i] = PDE;
+
+    PDE = PDPVirtualAddress->entries[indexer.PD_i];
+
+    PageTable* PD;
+    PageTable* PDVirtualAddress;
+    if (!PDE.GetFlag(PT_Flag::Present)){
+        return;
+    }
+    else
+    {
+        PD = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+        PDVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PD);  
+    }
+
+    PDPVirtualAddress->entries[indexer.PD_i] = PDE;
+
+    PDE = PDVirtualAddress->entries[indexer.PT_i];
+
+    PageTable* PT;
+    PageTable* PTVirtualAddress;
+    if (!PDE.GetFlag(PT_Flag::Present)){
+        return;
+    }
+    else
+    {
+        PT = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+        PTVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PT);
+    }
+
+    PDVirtualAddress->entries[indexer.PT_i] = PDE;
+
+    PDE = PTVirtualAddress->entries[indexer.P_i];
+    PDE.SetFlag((PT_Flag)flags, value);
+    PTVirtualAddress->entries[indexer.P_i] = PDE;   
+}

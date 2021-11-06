@@ -1,7 +1,7 @@
 #include "elf.h"
 
 namespace ELF{
-    int loadElf(void* buffer){
+    volatile int loadElf(void* buffer){
         Elf64_Ehdr* header = (Elf64_Ehdr*)buffer;
         //check elf
         if(header->e_ident[0] != EI_MAG0 || header->e_ident[1] != EI_MAG1 || header->e_ident[2] != EI_MAG2 || header->e_ident[3] != EI_MAG3) return 0;
@@ -17,14 +17,16 @@ namespace ELF{
 
             int pages = Divide(phdr->p_memsz, 0x1000);
             for(uint64_t y = 0; y < pages; y++){
-                void* PhysicalBuffer = globalAllocator.RequestPage();
-                task->Content.paging.MapMemory((void*)segment + i * 0x1000, (void*)PhysicalBuffer);
-                task->Content.paging.MapUserspaceMemory((void*)segment + i * 0x1000);
-            }	
-            size_t size = phdr->p_filesz;
-            memcpy((void*)segment, (void*)((uint64_t)buffer + phdr->p_offset), size);            
+                void* virtualAddress = (void*)(segment + y * 0x1000);
+                if(!task->Content.paging.GetFlags(virtualAddress, PT_Flag::IsUserExecutable)){
+                    void* PhysicalBuffer = globalAllocator.RequestPage();
+                    task->Content.paging.MapMemory((void*)virtualAddress, (void*)PhysicalBuffer);
+                    globalLogs->Warning("%x", PhysicalBuffer);
+                    task->Content.paging.MapUserspaceMemory((void*)virtualAddress);
+                }
+            }
+            memcpy((void*)segment, (void*)((uint64_t)buffer + phdr->p_offset), phdr->p_filesz);   
         }
-        
         globalPageTableManager.RestorePaging();
         task->Content.Launch((void*)header->e_entry);
         return 1;
