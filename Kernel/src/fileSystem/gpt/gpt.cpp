@@ -325,6 +325,7 @@ namespace GPT{
         uint64_t sizeToRead = 0;
         uint64_t sectorsToRead = 0;
         uint64_t sectorsRead = 0;
+        
         for(int i = 0; i < Divide(size, port->BufferSize); i++){            
             sizeToRead = size - sizeRead;
             if(sizeToRead > port->BufferSize){
@@ -334,13 +335,11 @@ namespace GPT{
             sectorsToRead = Divide(sizeToRead, port->GetSectorSizeLBA());
 
             Check = port->Read(LBAFirstSector + sectorsRead, sectorsToRead, port->Buffer);
-            
             if(sizeRead != 0){
                 memcpy((void*)((uint64_t)buffer + sizeRead), globalPageTableManager.GetVirtualAddress(port->Buffer), sizeToRead);
             }else{
                 memcpy(buffer, globalPageTableManager.GetVirtualAddress((void*)((uint64_t)port->Buffer + firstByte % this->port->GetSectorSizeLBA())), sizeToRead); //Get the correct first byte
             }
-
             sizeRead += sizeToRead;
             sectorsRead += sectorsToRead;
         }

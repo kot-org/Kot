@@ -298,37 +298,6 @@ extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID
     Atomic::atomicUnlock(&mutexScheduler, 0);
 }
 
-static uint64_t mutexSyscall;
-
-extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
-    Atomic::atomicSpinlock(&mutexSyscall, 0);
-    Atomic::atomicLock(&mutexSyscall, 0);
-
-    uint64_t syscall = (uint64_t)Registers->rax;
-    uint64_t arg0 = (uint64_t)Registers->rdi;
-    uint64_t arg1 = (uint64_t)Registers->rsi;
-    uint64_t arg2 = (uint64_t)Registers->rdx;
-    uint64_t arg3 = (uint64_t)Registers->r10;
-    uint64_t arg4 = (uint64_t)Registers->r8;
-    uint64_t arg5 = (uint64_t)Registers->r9;
-
-    switch(syscall){
-        case 0x01:
-            break;
-    }
-
-    for(int i = 0; i < 10; i++){
-            globalLogs->Warning("%x", *(uint8_t*)(i + 0x1000));
-        } 
-    if(arg5 != NULL){
-        globalLogs->Successful("%u | %x | %s", CoreID, arg5, arg5);
-    }else{
-        globalLogs->Successful("%u | %x", CoreID, Registers->r9);
-    }
-
-    Atomic::atomicUnlock(&mutexSyscall, 0);    
-}
-
 void RemapPIC(){
     uint8_t a1, a2;
 

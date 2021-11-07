@@ -157,12 +157,17 @@ void InitializeKernel(BootInfo* bootInfo){
 
     globalTaskManager.InitScheduler(APIC::ProcessorCount);
 
-    GPT::Partition partitionTest = GPT::Partition(AHCI::ahciDriver->Ports[1], GPT::GetPartitionByGUID(AHCI::ahciDriver->Ports[1], GPT::GetDataGUIDPartitionType()));  
+    GPT::Partition partitionTest = GPT::Partition(AHCI::ahciDriver->Ports[1], GPT::GetPartitionByGUID(AHCI::ahciDriver->Ports[1], GPT::GetSystemGUIDPartitionType()));  
     FileSystem::KFS* Fs = new FileSystem::KFS(&partitionTest);
+
+    Fs->mkdir("system", 777);
+    Fs->mkdir("system/background", 777);   
+    Fs->mkdir("system/apps", 777);  
+
     FileSystem::File* app = Fs->fopen("system/apps/main.elf", "r");
     void* appBuffer = malloc(app->fileInfo->BytesSize);
     app->Read(0, app->fileInfo->BytesSize, appBuffer);
-    ELF::loadElf(appBuffer);
+    ELF::loadElf(appBuffer, 1);
 
     // globalTaskManager.AddTask((void*)task1, 0, 4096, false, true, 1);
     // globalTaskManager.AddTask((void*)task2, 0, 4096, false, true, 2);

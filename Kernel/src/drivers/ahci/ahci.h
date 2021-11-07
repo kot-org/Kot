@@ -200,7 +200,7 @@ namespace AHCI{
         uint16_t TransportMajorVersionNumber;
         uint16_t ATAReserved5[32];
         uint16_t IntegrityWord;
-    } __attribute__((packed));
+    }__attribute__((packed));
 
     struct FIS_REG_H2D {
         uint8_t FisType;
@@ -229,6 +229,16 @@ namespace AHCI{
 
         uint8_t Reserved1[4];
     };
+
+    struct GUIDPartitionEntryFormat{
+        GUID PartitionTypeGUID;
+        GUID UniquePartitionGUID;
+        uint64_t FirstLBA;
+        uint64_t LastLBA;
+        uint64_t Flags;
+        uint16_t PartitionName[36];
+    }__attribute__((packed));
+
     
     class Port {
         public:
@@ -256,15 +266,28 @@ namespace AHCI{
             bool IsPortSystem(GUID* GUIDOfSystemPartition);           
     };
 
+    struct PartitionInfo{
+        Port* port;
+        GUIDPartitionEntryFormat* PartitionInfo;
+    };
+
+    struct PartitionNode{
+        PartitionInfo Content;
+        PartitionNode* Last;
+        PartitionNode* Next;
+    };
+
     class AHCIDriver{
         public:
             AHCIDriver(PCI::PCIDeviceHeader* pciBaseAddress);
             ~AHCIDriver();
+            PartitionInfo* GetSystemPartition();
             PCI::PCIDeviceHeader* PCIBaseAddress;
             HBAMemory* ABAR;
             void ProbePorts();
             Port* Ports[32];
             uint8_t PortCount;
+            PartitionNode* PartitionsList;
     };
 
     extern AHCIDriver* ahciDriver;

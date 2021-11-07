@@ -225,7 +225,7 @@ char** split(char* str, char* delimiters){
         entryCount++; 
     }
     
-    char** ReturnValue = (char**)malloc(sizeof(char*) * ItemNumber);
+    char** ReturnValue = (char**)malloc(sizeof(char*) * (ItemNumber + 1));
     while(*str != 0){  
         currentCharNumber++;
 
@@ -265,6 +265,7 @@ char** split(char* str, char* delimiters){
         ReturnValue[currentItemNumber][y++] = entry[i];
     }
     
+    ReturnValue[ItemNumber] = 0;
     return ReturnValue;
 }
 

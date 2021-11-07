@@ -348,6 +348,8 @@ namespace AHCI{
     }
 
     AHCIDriver::AHCIDriver(PCI::PCIDeviceHeader* pciBaseAddress){
+        PartitionNode* LastNode = NULL;
+        PartitionNode* CurrentNode;
         ahciDriver = this;
         globalLogs->Warning("[AHCI] Driver is loading"); 
         this->PCIBaseAddress = pciBaseAddress;
@@ -361,24 +363,50 @@ namespace AHCI{
 
 
             port->Configure();
-            GPT::Partitions* Partitons = GPT::GetAllPartitions(port);           
+            
+            GPT::Partitions* Partitons = GPT::GetAllPartitions(port);  
+            for(int y = 0; y < Partitons->NumberPartitionsCreated; y++){
+                CurrentNode = (PartitionNode*)malloc(sizeof(PartitionNode));
+                if(PartitionsList == NULL) PartitionsList = CurrentNode;
+                CurrentNode->Content.PartitionInfo = (GUIDPartitionEntryFormat*)Partitons->AllParitions[y];
+               
+                CurrentNode->Last = LastNode;
+                if(LastNode != NULL){
+                    LastNode->Next = CurrentNode;
+                }
+                LastNode = CurrentNode;
+            }    
+
             if(port->PortNumber == 1){
                 GPT::GPTHeader* GptHeader = GPT::GetGPTHeader(port);             
-                if(!port->IsPortInit(GPT::GetReservedGUIDPartitionType())){   
+                if(!port->IsPortInit(GPT::GetSystemGUIDPartitionType())){   
                     globalLogs->Warning("[AHCI] Disk at port %u not initialize yet", port->PortNumber); 
+                    
                     port->ResetDisk();
+                    
                     GPT::InitGPTHeader(port);
-                    
-                    GPT::CreatPartition(port, 0, "KotReserved", GPT::GetReservedGUIDPartitionType(), 8);
-                    
-                    GPT::CreatPartition(port, GPT::GetFreeSizePatition(port), "KotData", GPT::GetDataGUIDPartitionType(), 7);        
+                
+                    GPT::CreatPartition(port, GPT::GetFreeSizePatition(port), "KotData", GPT::GetSystemGUIDPartitionType(), 7);        
                 }
-            }
-                 
+            }                 
         }
     }
 
     AHCIDriver::~AHCIDriver(){
  
+    }
+
+    PartitionInfo* AHCIDriver::GetSystemPartition(){
+        PartitionNode* list = PartitionsList;
+        GUID* guid = GPT::GetSystemGUIDPartitionType();
+        while(list != NULL){
+            if(list->Content.PartitionInfo->PartitionTypeGUID.Data1 == guid->Data1 &&
+                list->Content.PartitionInfo->PartitionTypeGUID.Data2 == guid->Data2 &&
+                list->Content.PartitionInfo->PartitionTypeGUID.Data3 == guid->Data3 &&
+                list->Content.PartitionInfo->PartitionTypeGUID.Data4 == guid->Data4){
+                return &list->Content;
+            }
+            list = list->Next;
+        }
     }
 }

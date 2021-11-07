@@ -68,7 +68,6 @@ extern "C" void KeyboardInt_Handler(InterruptStack* Registers);
 extern "C" void MouseInt_Handler(InterruptStack* Registers);
 extern "C" void PITInt_Handler(InterruptStack* Registers);
 extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID);
-extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID);
 
 void RemapPIC();
 void PIC_EndMaster();

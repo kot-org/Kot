@@ -247,6 +247,7 @@ namespace FileSystem{
                 }
             }
         }
+        
         globalLogs->Message("Listing cluster : %u", ScanCluster);
         while(true){
             GetClusterData(ScanCluster, Cluster);

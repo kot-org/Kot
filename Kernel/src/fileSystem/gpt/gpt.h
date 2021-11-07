@@ -72,6 +72,7 @@ namespace GPT{
 
     GUID* GetReservedGUIDPartitionType();
     GUID* GetDataGUIDPartitionType();
+    GUID* GetSystemGUIDPartitionType();
 
     GUIDPartitionEntryFormat* GetPartitionByGUID(AHCI::Port* port, GUID* guid);
     
