@@ -86,9 +86,6 @@ void InitializeInterrupts(){
     
     /* Syscall */
     SetIDTGate((void*)Entry_SyscallInt_Handler, 0x80, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    
-    RemapPIC();
-    PIT::SetDivisor(uint16_Limit);
 
     asm("lidt %0" : : "m" (idtr));     
 }

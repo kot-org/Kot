@@ -113,12 +113,10 @@ void InitializeKernel(BootInfo* bootInfo){
         globalLogs->Successful("SSE intialize");
     }
     
+    InitializeACPI(bootInfo);
+    
     InitPS2Mouse();
 
-    //IoWrite8(PIC1_DATA, 0b11111001); //disable pit
-    //IoWrite8(PIC2_DATA, 0b11101111);
-
-    InitializeACPI(bootInfo);
     // GPT::Partition partitionTest = GPT::Partition(AHCI::ahciDriver->Ports[1], GPT::GetPartitionByGUID(AHCI::ahciDriver->Ports[1], GPT::GetDataGUIDPartitionType()));  
     // FileSystem::KFS* Fs = new FileSystem::KFS(&partitionTest);
     // Fs->mkdir("system", 777);
@@ -169,10 +167,6 @@ void InitializeKernel(BootInfo* bootInfo){
     app->Read(0, app->fileInfo->BytesSize, appBuffer);
     ELF::loadElf(appBuffer, 1);
 
-    // globalTaskManager.AddTask((void*)task1, 0, 4096, false, true, 1);
-    // globalTaskManager.AddTask((void*)task2, 0, 4096, false, true, 2);
-    // globalTaskManager.AddTask((void*)task3, 0, 4096, false, true, 3);
-    // globalTaskManager.AddTask((void*)task4, 0, 4096, false, true, 3);
 
     APIC::EnableAPIC();
     APIC::localApicEOI();

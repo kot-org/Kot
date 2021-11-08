@@ -1,38 +1,88 @@
 #include "apic.h"
 
 namespace APIC{ 
+    //processors
     LocalProcessor** Processor;
     uint8_t ProcessorCount;
+
+    //IOAPIC
+    IOAPIC** IOapic;
+    uint64_t IOAPICCount;
+
+    //ISO
+    InterruptSourceOverride** Iso;
+    uint64_t IsoCount;
+
     void* lapicAddressVirtual;
 
     void InitializeMADT(ACPI::MADTHeader* madt){
         lapicAddressVirtual = globalPageTableManager.MapMemory(0, 1);
         ProcessorCount = 0;
-        Processor = (LocalProcessor**)malloc(sizeof(LocalProcessor) * MAX_PROCESSORS);
+        IsoCount = 0;
+
         if(madt == 0){
             return;
         }
 
         uint64_t entries = (madt->Header.Length - sizeof(ACPI::MADTHeader));
-        
+
         for(uint64_t i = 0; i < entries;){
             EntryRecord* entryRecord = (EntryRecord*)((uint64_t)madt + sizeof(ACPI::MADTHeader) + i);
             i += entryRecord->Length;
 
             switch(entryRecord->Type){
                 case EntryTypeLocalProcessor: {
-                    LocalProcessor* processor = (LocalProcessor*)entryRecord;
-                    Processor[ProcessorCount] = processor;
                     ProcessorCount++;        
                     break;                    
                 }
                 case EntryTypeIOAPIC:{
+                    IOAPICCount++;
+                    break;
+                }                    
+                case EntryTypeInterruptSourceOverride:{
+                    IsoCount++;
+                    break;
+                }                    
+                case EntryTypeNonmaskableinterrupts:{
+                    break;
+                }                    
+                case EntryTypeLocalAPICAddressOverride:{
+                    break;  
+                }                                      
+            }
+        }
+
+        Processor = (LocalProcessor**)malloc(sizeof(LocalProcessor) * ProcessorCount);
+
+        IOapic = (IOAPIC**)malloc(sizeof(IOAPIC) * IOAPICCount);
+
+        Iso = (InterruptSourceOverride**)malloc(sizeof(InterruptSourceOverride) * IsoCount);
+
+        uint8_t ProcessorCountTemp = 0;
+        uint64_t IsoCountTemp = 0;
+        uint8_t IOAPICTemp = 0;
+
+        for(uint64_t i = 0; i < entries;){            
+            EntryRecord* entryRecord = (EntryRecord*)((uint64_t)madt + sizeof(ACPI::MADTHeader) + i);
+            i += entryRecord->Length;
+
+            switch(entryRecord->Type){
+                case EntryTypeLocalProcessor: {
+                    LocalProcessor* processor = (LocalProcessor*)entryRecord;
+                    Processor[ProcessorCountTemp] = processor;   
+                    ProcessorCountTemp++;
+                    break;                    
+                }
+                case EntryTypeIOAPIC:{
                     IOAPIC* ioApic = (IOAPIC*)entryRecord;
-                    void* apicPtr = (void*)(uint64_t)ioApic->APICAddress;
+                    IOapic[IOAPICTemp] = ioApic;
+                    IOAPICTemp++;
                     break;
                 }                    
                 case EntryTypeInterruptSourceOverride:{
                     InterruptSourceOverride* iso = (InterruptSourceOverride*)entryRecord;
+                    Iso[IsoCountTemp] = iso;
+                    IsoCountTemp++;
                     break;
                 }                    
                 case EntryTypeNonmaskableinterrupts:{
@@ -45,7 +95,30 @@ namespace APIC{
                 }                                      
             }
         }
-    }   
+        IoAPICInit();
+    }  
+
+    void IoAPICInit(){
+        // Configure first IOAPIC
+        IOAPIC* ioapic = IOapic[0];
+        void* apicPtr  = globalPageTableManager.MapMemory((void*)(uint64_t)ioapic->APICAddress, 1);
+        uint8_t MaxInterrupts = ((ioapicReadRegister(apicPtr , IOAPICVersion) >> 16) & 0xff) + 1;
+        ioapic->MaxInterrupts = MaxInterrupts;
+        // Set the entries
+        uint32_t base = ioapic->GlobalSystemInterruptBase;
+        for(size_t j = 0; j < IsoCount; j++) {
+            InterruptSourceOverride* iso = Iso[j];
+            uint16_t IRQNumber = iso->IRQSource + IRQ_START;
+            IoApicSetRedirectionEntry(apicPtr , iso->IRQSource, (IOAPICRedirectionEntry){
+                .vector = IRQNumber,
+                .delivery_mode = IOAPICRedirectionEntryDeliveryModeFixed,
+                .destination_mode = IOAPICRedirectionEntryDestinationModePhysicall,
+                .pin_polarity = (iso->Flags & 0x03) == 0x03 ? IOAPICRedirectionEntryPinPolarityActiveLow : IOAPICRedirectionEntryPinPolarityActiveHigh,
+                .trigger_mode = (iso->Flags & 0x0c) == 0x0c ? IOAPICRedirectionEntryTriggerModeLevel : IOAPICRedirectionEntryTriggerModeEdge,
+                .mask = IOAPICRedirectionEntryMaskEnable,
+            });
+        } 
+    } 
 
     void LoadCores(){
         uint64_t lapicAddress = (uint64_t)GetLAPICAddress();
@@ -158,6 +231,16 @@ namespace APIC{
     uint32_t localAPICReadRegister(void* lapicAddress, size_t offset){
 	    return *((volatile uint32_t*)((void*)((uint64_t)lapicAddress + offset)));
     }
+
+    uint32_t ioapicReadRegister(void* apicPtr , uint8_t offset){
+        *(volatile uint32_t*)(apicPtr) = offset;
+        return *(volatile uint32_t*)(apicPtr  + 0x10);
+    }
+
+    void ioapicWriteRegister(void* apicPtr , uint8_t offset, uint32_t value){
+        *(volatile uint32_t*)(apicPtr) = offset;
+        *(volatile uint32_t*)(apicPtr + 0x10) = value;
+    }
     
     void localAPICWriteRegister(size_t offset, uint32_t value){
         void* lapicAddress = GetLAPICAddress();
@@ -169,13 +252,31 @@ namespace APIC{
     }
 
     uint32_t CreatRegisterValueInterrupts(LocalAPICInterruptRegister reg){
-	return (
-		(reg.vector << LocalAPICInterruptVector) |
-		(reg.messageType << LocalAPICInterruptMessageType) |
-		(reg.deliveryStatus << LocalAPICInterruptDeliveryStatus) |
-		(reg.triggerMode << LocalAPICInterruptTrigerMode) |
-		(reg.mask << LocalAPICInterruptMask) |
-		(reg.timerMode << LocalAPICInterruptTimerMode)
-	);
-}
+        return (
+            (reg.vector << LocalAPICInterruptVector) |
+            (reg.messageType << LocalAPICInterruptMessageType) |
+            (reg.deliveryStatus << LocalAPICInterruptDeliveryStatus) |
+            (reg.triggerMode << LocalAPICInterruptTrigerMode) |
+            (reg.mask << LocalAPICInterruptMask) |
+            (reg.timerMode << LocalAPICInterruptTimerMode)
+        );
+    }
+
+    void IoApicSetRedirectionEntry(void* apicPtr, size_t index, IOAPICRedirectionEntry entry){
+        volatile uint32_t low = (
+            (entry.vector << IOAPICRedirectionBitsLowVector) |
+            (entry.delivery_mode << IOAPICRedirectionBitsLowDeliveryMode) |
+            (entry.destination_mode << IOAPICRedirectionBitsLowDestinationMode) |
+            (entry.delivery_status << IOIOAPICRedirectionBitsLowDeliveryStatus) |
+            (entry.pin_polarity << IOAPICRedirectionBitsLowPonPolarity) |
+            (entry.remote_irr << IOAPICRedirectionBitsLowRemoteIrr) |
+            (entry.trigger_mode << IOAPICRedirectionBitsLowTriggerMode) |
+            (entry.mask << IOAPICRedirectionBitsLowMask)
+        );
+        volatile uint32_t high = (
+            (entry.destination << IOAPICRedirectionBitsHighDestination)
+        );
+        ioapicWriteRegister(apicPtr, IOAPICRedirectionTable + 2 * index + 0, low);
+        ioapicWriteRegister(apicPtr, IOAPICRedirectionTable + 2 * index + 1, high);
+    }
 }

@@ -13,7 +13,7 @@
 #include "../../memory/paging/pageTableManager.h"
 
 namespace APIC{
-
+    #define IRQ_START 0x20
 
     struct EntryRecord{
         uint8_t Type;
@@ -35,6 +35,7 @@ namespace APIC{
         uint8_t Reserved;
         uint32_t APICAddress;
         uint32_t GlobalSystemInterruptBase;
+        uint8_t	MaxInterrupts;
     } __attribute__((packed));
 
     //Entry Type 2 : Interrupt Source Override
@@ -142,7 +143,75 @@ namespace APIC{
         LocalAPICRegisterOffsetDivide			        = 0x3e0,
     };
 
+    enum IOAPICRegisterOffset {
+        IOAPICId				= 0x00,
+        IOAPICVersion			= 0x01,
+        IOAPICArbitration		= 0x02,
+        IOAPICRedirectionTable	= 0x10,
+    };
+
+    enum IOAPICRedirectionBitsLow {
+        IOAPICRedirectionBitsLowVector				= 0,
+        IOAPICRedirectionBitsLowDeliveryMode		= 8,
+        IOAPICRedirectionBitsLowDestinationMode	    = 11,
+        IOIOAPICRedirectionBitsLowDeliveryStatus	= 12,
+        IOAPICRedirectionBitsLowPonPolarity		    = 13,
+        IOAPICRedirectionBitsLowRemoteIrr			= 14,
+        IOAPICRedirectionBitsLowTriggerMode		    = 15,
+        IOAPICRedirectionBitsLowMask				= 16,
+    };
+
+    enum IOAPICRedirectionBitsHigh {
+        IOAPICRedirectionBitsHighDestination	= 24
+    };
+
+    enum IOAPICRedirectionEntryDeliveryMode {
+        IOAPICRedirectionEntryDeliveryModeFixed			    = 0b000,
+        IOAPICRedirectionEntryDeliveryModeLowPriority		= 0b001,
+        IOAPICRedirectionEntryDeliveryModeSMI				= 0b010,
+        IOAPICRedirectionEntryDeliveryModeNMI				= 0b100,
+        IOAPICRedirectionEntryDeliveryModeINIT				= 0b101,
+        IOAPICRedirectionEntryDeliveryModeEXTINT			= 0b111,
+    };
+    enum IOAPICRedirectionEntryDestinationMode {
+        IOAPICRedirectionEntryDestinationModePhysicall	= 0,
+        IOAPICRedirectionEntryDestinationModeLogical	= 1
+    };
+    enum IOAPICRedirectionEntryDeliveryStatus {
+        IOAPICRedirectionEntryDeliveryStatusIdle		= 0,
+        IOAPICRedirectionEntryDeliveryStatusPending	    = 1
+    };
+    enum IOAPICRedirectionEntryPinPolarity {
+        IOAPICRedirectionEntryPinPolarityActiveHigh	    = 0,
+        IOAPICRedirectionEntryPinPolarityActiveLow		= 1
+    };
+    enum IOAPICRedirectionEntryRemoteIRR {
+        IOAPICRedirectionEntryRemoteIRRNone		= 0,
+        IOAPICRedirectionEntryRemoteIRRInflight	= 1,
+    };
+    enum IOAPICRedirectionEntryTriggerMode {
+        IOAPICRedirectionEntryTriggerModeEdge	= 0,
+        IOAPICRedirectionEntryTriggerModeLevel	= 1
+    };
+    enum IOAPICRedirectionEntryMask {
+        IOAPICRedirectionEntryMaskEnable	= 0,	// Masks the interrupt through
+        IOAPICRedirectionEntryMaskDisable	= 1		// Masks the so it doesn't go through
+    };
+
+    struct IOAPICRedirectionEntry {
+        uint8_t										vector : 8;
+        enum IOAPICRedirectionEntryDeliveryMode		delivery_mode : 3;
+        enum IOAPICRedirectionEntryDestinationMode	destination_mode : 1;
+        enum IOAPICRedirectionEntryDeliveryStatus	delivery_status : 1;
+        enum IOAPICRedirectionEntryPinPolarity		pin_polarity : 1;
+        enum IOAPICRedirectionEntryRemoteIRR		remote_irr : 1;
+        enum IOAPICRedirectionEntryTriggerMode		trigger_mode : 1;
+        enum IOAPICRedirectionEntryMask				mask : 1;
+        uint8_t										destination : 8;
+    };
+
     void InitializeMADT(ACPI::MADTHeader* madt);
+    void IoAPICInit();
     void LoadCores();
     void* GetLAPICAddress();
     void EnableAPIC();
@@ -153,9 +222,12 @@ namespace APIC{
     void localApicEnableSpuriousInterrupts();
     uint32_t localAPICReadRegister(size_t offset);
     uint32_t localAPICReadRegister(void* lapicAddress, size_t offset);
+    uint32_t ioapicReadRegister(void* apicPtr , uint8_t offset);
+    void ioapicWriteRegister(void* apicPtr , uint8_t offset, uint32_t value);
     void localAPICWriteRegister(size_t offset, uint32_t value);    
     void localAPICWriteRegister(void* lapicAddress, size_t offset, uint32_t value);    
     uint32_t CreatRegisterValueInterrupts(LocalAPICInterruptRegister reg);
+    void IoApicSetRedirectionEntry(void* apicPtr, size_t index, IOAPICRedirectionEntry entry);
 
     extern LocalProcessor** Processor;
     extern uint8_t ProcessorCount;
