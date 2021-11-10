@@ -152,6 +152,7 @@ void InitializeKernel(BootInfo* bootInfo){
     //     }
     // }
 
+    APIC::IoChangeIrqState(1, 0, true); //Enable Keyboard
 
     globalTaskManager.InitScheduler(APIC::ProcessorCount);
 

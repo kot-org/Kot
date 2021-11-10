@@ -13,7 +13,6 @@
 #include "../../memory/paging/pageTableManager.h"
 
 namespace APIC{
-    #define IRQ_START 0x20
 
     struct EntryRecord{
         uint8_t Type;
@@ -162,7 +161,7 @@ namespace APIC{
     };
 
     enum IOAPICRedirectionBitsHigh {
-        IOAPICRedirectionBitsHighDestination	= 24
+        IOAPICRedirectionBitsHighDestination	    = 24
     };
 
     enum IOAPICRedirectionEntryDeliveryMode {
@@ -211,7 +210,8 @@ namespace APIC{
     };
 
     void InitializeMADT(ACPI::MADTHeader* madt);
-    void IoAPICInit();
+    void IoAPICInit(uint8_t IOApicID);
+    void IoChangeIrqState(uint8_t irq, uint8_t IOApicID, bool IsEnable);
     void LoadCores();
     void* GetLAPICAddress();
     void EnableAPIC();

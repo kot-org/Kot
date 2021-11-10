@@ -14,9 +14,11 @@ namespace APIC{
     uint64_t IsoCount;
 
     void* lapicAddressVirtual;
+    void* IOapicAddressVirtual;
 
     void InitializeMADT(ACPI::MADTHeader* madt){
         lapicAddressVirtual = globalPageTableManager.MapMemory(0, 1);
+        IOapicAddressVirtual = globalPageTableManager.MapMemory(0, 1);
         ProcessorCount = 0;
         IsoCount = 0;
 
@@ -95,30 +97,63 @@ namespace APIC{
                 }                                      
             }
         }
-        IoAPICInit();
+        IoAPICInit(0);
     }  
 
-    void IoAPICInit(){
+    void IoAPICInit(uint8_t IOApicID){
+        // Disable PIC
+        IoWrite8(0xa1, 0xff);
+        IoWrite8(0x21, 0xff);
+
         // Configure first IOAPIC
-        IOAPIC* ioapic = IOapic[0];
-        void* apicPtr  = globalPageTableManager.MapMemory((void*)(uint64_t)ioapic->APICAddress, 1);
-        uint8_t MaxInterrupts = ((ioapicReadRegister(apicPtr , IOAPICVersion) >> 16) & 0xff) + 1;
+        IOAPIC* ioapic = IOapic[IOApicID];
+        globalPageTableManager.MapMemory((void*)IOapicAddressVirtual, (void*)(uint64_t)ioapic->APICAddress);
+        uint8_t MaxInterrupts = ((ioapicReadRegister(IOapicAddressVirtual , IOAPICVersion) >> 16) & 0xff) + 1;
         ioapic->MaxInterrupts = MaxInterrupts;
-        // Set the entries
+
+        // Set up the entries
         uint32_t base = ioapic->GlobalSystemInterruptBase;
-        for(size_t j = 0; j < IsoCount; j++) {
-            InterruptSourceOverride* iso = Iso[j];
-            uint16_t IRQNumber = iso->IRQSource + IRQ_START;
-            IoApicSetRedirectionEntry(apicPtr , iso->IRQSource, (IOAPICRedirectionEntry){
+        for (size_t i = 0; i < 16; i++){
+                uint8_t IRQNumber = i + IRQ_START;
+                IoApicSetRedirectionEntry((void*)IOapicAddressVirtual, i - base, (IOAPICRedirectionEntry){
+                    .vector = IRQNumber,
+                    .mask = IOAPICRedirectionEntryMaskDisable,
+                });
+        }
+
+        for(size_t i = 0; i < IsoCount; i++) {
+            InterruptSourceOverride* iso = Iso[i];
+            uint8_t IRQNumber = iso->IRQSource + IRQ_START;
+            IoApicSetRedirectionEntry(IOapicAddressVirtual , iso->IRQSource, (IOAPICRedirectionEntry){
                 .vector = IRQNumber,
                 .delivery_mode = IOAPICRedirectionEntryDeliveryModeFixed,
                 .destination_mode = IOAPICRedirectionEntryDestinationModePhysicall,
                 .pin_polarity = (iso->Flags & 0x03) == 0x03 ? IOAPICRedirectionEntryPinPolarityActiveLow : IOAPICRedirectionEntryPinPolarityActiveHigh,
                 .trigger_mode = (iso->Flags & 0x0c) == 0x0c ? IOAPICRedirectionEntryTriggerModeLevel : IOAPICRedirectionEntryTriggerModeEdge,
-                .mask = IOAPICRedirectionEntryMaskEnable,
+                .mask = IOAPICRedirectionEntryMaskDisable,
             });
         } 
+
     } 
+
+    void IoChangeIrqState(uint8_t irq, uint8_t IOApicID, bool IsEnable){
+        IOAPIC* ioapic = IOapic[IOApicID];
+        globalPageTableManager.MapMemory((void*)IOapicAddressVirtual, (void*)(uint64_t)ioapic->APICAddress);
+        uint32_t base = ioapic->GlobalSystemInterruptBase;
+        size_t index = irq - base;
+        
+        volatile uint32_t low = 0;
+
+        low = ioapicReadRegister(IOapicAddressVirtual, IOAPICRedirectionTable + 2 * index);
+        
+        if(!IsEnable){
+            low |= 1 << IOAPICRedirectionBitsLowMask;
+        }else{
+            low &= ~(1 << IOAPICRedirectionBitsLowMask);
+        }
+
+        ioapicWriteRegister(IOapicAddressVirtual, IOAPICRedirectionTable + 2 * index, low);
+    }
 
     void LoadCores(){
         uint64_t lapicAddress = (uint64_t)GetLAPICAddress();
@@ -234,7 +269,7 @@ namespace APIC{
 
     uint32_t ioapicReadRegister(void* apicPtr , uint8_t offset){
         *(volatile uint32_t*)(apicPtr) = offset;
-        return *(volatile uint32_t*)(apicPtr  + 0x10);
+        return *(volatile uint32_t*)(apicPtr + 0x10);
     }
 
     void ioapicWriteRegister(void* apicPtr , uint8_t offset, uint32_t value){
@@ -276,7 +311,8 @@ namespace APIC{
         volatile uint32_t high = (
             (entry.destination << IOAPICRedirectionBitsHighDestination)
         );
-        ioapicWriteRegister(apicPtr, IOAPICRedirectionTable + 2 * index + 0, low);
+        
+        ioapicWriteRegister(apicPtr, IOAPICRedirectionTable + 2 * index, low);
         ioapicWriteRegister(apicPtr, IOAPICRedirectionTable + 2 * index + 1, high);
     }
 }

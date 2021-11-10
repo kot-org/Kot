@@ -22,6 +22,8 @@
 #define ICW4_8086 0x01
 
 
+#define IRQ_START 0x20
+
 struct InterruptStack {
     void* rax; void* rbx; void* rcx; void* rdx; void* rsi; void* rdi; void* rbp; //push in asm
 
@@ -41,37 +43,6 @@ struct ErrorInterruptStack {
 extern IDTR idtr;
 
 void InitializeInterrupts();
-
-
-extern "C" void DivideByZero_Handler(InterruptStack* Registers, uint64_t CoreID);
-extern "C" void Debug_Handler(InterruptStack* Registers, uint64_t CoreID);
-extern "C" void NMI_Handler(InterruptStack* Registers, uint64_t CoreID);
-extern "C" void Breakpoint_Handler(InterruptStack* Registers, uint64_t CoreID);
-extern "C" void Overflow_Handler(InterruptStack* Registers, uint64_t CoreID);
-extern "C" void BoundRangeExceeded_Handler(InterruptStack* Registers, uint64_t CoreID);
-extern "C" void InvalidOpcode_Handler(InterruptStack* Registers, uint64_t CoreID);
-extern "C" void DeviceNotAvailable_Handler(InterruptStack* Registers, uint64_t CoreID);
-extern "C" void DoubleFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID);
-extern "C" void InvalidTSS_Handler(ErrorInterruptStack* Registers, uint64_t CoreID);
-extern "C" void SegmentNotPresent_Handler(ErrorInterruptStack* Registers, uint64_t CoreID);
-extern "C" void StackSegmentFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID);
-extern "C" void GPFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID);
-extern "C" void PageFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID, void* Address);
-extern "C" void x87FloatingPointException_Handler(InterruptStack* Registers, uint64_t CoreID);
-extern "C" void AlignmentCheck_Handler(ErrorInterruptStack* Registers, uint64_t CoreID);
-extern "C" void MachineCheck_Handler(InterruptStack* Registers, uint64_t CoreID);
-extern "C" void SIMDFloatingPointException_Handler(InterruptStack* Registers, uint64_t CoreID);
-extern "C" void VirtualizationException_Handler(InterruptStack* Registers, uint64_t CoreID);
-extern "C" void SecurityException_Handler(ErrorInterruptStack* Registers, uint64_t CoreID);
-
-extern "C" void KeyboardInt_Handler(InterruptStack* Registers);
-extern "C" void MouseInt_Handler(InterruptStack* Registers);
-extern "C" void PITInt_Handler(InterruptStack* Registers);
-extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID);
-
-void RemapPIC();
-void PIC_EndMaster();
-void PIC_EndSlave();
 
 extern "C" void Entry_DivideByZero_Handler();
 extern "C" void Entry_Debug_Handler();
@@ -94,9 +65,26 @@ extern "C" void Entry_SIMDFloatingPointException_Handler();
 extern "C" void Entry_VirtualizationException_Handler();
 extern "C" void Entry_SecurityException_Handler();
 
-extern "C" void Entry_KeyboardInt_Handler();
-extern "C" void Entry_MouseInt_Handler();
-extern "C" void Entry_PITInt_Handler();
 extern "C" void Entry_LAPICTIMERInt_Handler();
 extern "C" void Entry_SyscallInt_Handler();
+
+extern "C" void Entry_IRQ0_Handler();
+extern "C" void Entry_IRQ1_Handler();
+extern "C" void Entry_IRQ2_Handler();
+extern "C" void Entry_IRQ3_Handler();
+extern "C" void Entry_IRQ4_Handler();
+extern "C" void Entry_IRQ5_Handler();
+extern "C" void Entry_IRQ6_Handler();
+extern "C" void Entry_IRQ7_Handler();
+extern "C" void Entry_IRQ8_Handler();
+extern "C" void Entry_IRQ9_Handler();
+extern "C" void Entry_IRQ10_Handler();
+extern "C" void Entry_IRQ11_Handler();
+extern "C" void Entry_IRQ12_Handler();
+extern "C" void Entry_IRQ13_Handler();
+extern "C" void Entry_IRQ14_Handler();
+extern "C" void Entry_IRQ15_Handler();
+extern "C" void Entry_IRQ16_Handler();
+
+
 

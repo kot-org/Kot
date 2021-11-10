@@ -19,7 +19,8 @@
         "algorithm": "cpp",
         "atomic": "cpp",
         "logs.h": "c",
-        "types.h": "c"
+        "types.h": "c",
+        "cstddef": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

@@ -72,14 +72,24 @@ void InitializeInterrupts(){
     /* Security Exception */
     SetIDTGate((void*)Entry_SecurityException_Handler, 0x1E, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
 
-    /* Keyboard */
-    SetIDTGate((void*)Entry_KeyboardInt_Handler, 0x21, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-
-    /* Mouse */
-    SetIDTGate((void*)Entry_MouseInt_Handler, 0x2C, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-
-    /* PIT */
-    SetIDTGate((void*)Entry_PITInt_Handler, 0x20, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    /* IRQs */
+    SetIDTGate((void*)Entry_IRQ0_Handler, IRQ_START + 0, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ1_Handler, IRQ_START + 1, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ2_Handler, IRQ_START + 2, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ3_Handler, IRQ_START + 3, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ4_Handler, IRQ_START + 4, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ5_Handler, IRQ_START + 5, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ6_Handler, IRQ_START + 6, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ7_Handler, IRQ_START + 7, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ8_Handler, IRQ_START + 8, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ9_Handler, IRQ_START + 9, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ10_Handler, IRQ_START + 10, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ11_Handler, IRQ_START + 11, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ12_Handler, IRQ_START + 12, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ13_Handler, IRQ_START + 13, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ14_Handler, IRQ_START + 14, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ15_Handler, IRQ_START + 15, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ16_Handler, IRQ_START + 16, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
 
     /* APIC Timer */
     SetIDTGate((void*)Entry_LAPICTIMERInt_Handler, 0x30, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
@@ -267,22 +277,108 @@ extern "C" void SecurityException_Handler(ErrorInterruptStack* Registers, uint64
     while(true);
 }
 
+extern "C" void IRQ0_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 0");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ1_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 1");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ2_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 2");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ3_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 3");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ4_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 4");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ5_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 5");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ6_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 6");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ7_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 7");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ8_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 8");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ9_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 9");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ10_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 10");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ11_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 11");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ12_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 12");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ13_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 13");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ14_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 14");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ15_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 15");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ16_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 16");
+    APIC::localApicEOI();
+}
+
 extern "C" void KeyboardInt_Handler(InterruptStack* Registers){
+    globalLogs->Successful("Key pressed");
     uint8_t scancode = IoRead8(0x60);
     HandleKeyboard(scancode);
-    PIC_EndMaster();
+    APIC::localApicEOI();
 }
 
 extern "C" void MouseInt_Handler(InterruptStack* Registers){
     uint8_t mousedata = IoRead8(0x60);
     HandlePS2Mouse(mousedata);
-    PIC_EndSlave();
+    APIC::localApicEOI();
 }
 
 
 extern "C" void PITInt_Handler(InterruptStack* Registers){
     PIT::Tick();
-    PIC_EndMaster();       
+    APIC::localApicEOI();      
 }
 
 static uint64_t mutexScheduler;
@@ -293,46 +389,4 @@ extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID
     
     APIC::localApicEOI();
     Atomic::atomicUnlock(&mutexScheduler, 0);
-}
-
-void RemapPIC(){
-    uint8_t a1, a2;
-
-    a1 = IoRead8(PIC1_DATA);
-    io_wait();
-    a2 = IoRead8(PIC2_DATA);
-    io_wait();
-
-    IoWrite8(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);
-    io_wait();
-    IoWrite8(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
-    io_wait();
-
-    IoWrite8(PIC1_DATA, 0x20);
-    io_wait();
-    IoWrite8(PIC2_DATA, 0x28);
-    io_wait();
-
-    IoWrite8(PIC1_DATA, 4);
-    io_wait();
-    IoWrite8(PIC2_DATA, 2);
-    io_wait();
-
-    IoWrite8(PIC1_DATA, ICW4_8086);
-    io_wait();
-    IoWrite8(PIC2_DATA, ICW4_8086);
-    io_wait();
-
-    IoWrite8(PIC1_DATA, a1);
-    io_wait();
-    IoWrite8(PIC2_DATA, a2);
-}
-
-void PIC_EndMaster(){
-    IoWrite8(PIC1_COMMAND, PIC_EOI);
-}
-
-void PIC_EndSlave(){
-    IoWrite8(PIC2_COMMAND, PIC_EOI);
-    IoWrite8(PIC1_COMMAND, PIC_EOI);
 }
