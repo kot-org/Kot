@@ -226,7 +226,7 @@ namespace APIC{
         Atomic::atomicLock(&mutexSLT, 0);
         localApicEnableSpuriousInterrupts();
         // Setup Local APIC timer
-        localAPICWriteRegister(LocalAPICRegisterOffsetInitialCount, 0x100000);
+        localAPICWriteRegister(LocalAPICRegisterOffsetInitialCount, 0x10000);
         uint32_t divide = localAPICReadRegister(LocalAPICRegisterOffsetDivide);
         localAPICWriteRegister(LocalAPICRegisterOffsetDivide, (divide & 0xfffffff4) | 0b1010);
         uint32_t timer = localAPICReadRegister(LocalAPICRegisterOffsetLVTTimer);

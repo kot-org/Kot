@@ -29,6 +29,7 @@ struct TaskContext{
     bool IsRunning;
     bool IsPaused;
     void* parent; // if task is thread  
+    uint64_t TimeUsed;
 
     void CreatThread();  
     void Launch(void* EntryPoint);
@@ -51,6 +52,7 @@ class TaskManager{
         void EnabledScheduler(uint8_t CoreID);
         TaskNode* GetCurrentTask(uint8_t CoreID);
         bool CoreInUserSpace[MAX_PROCESSORS];
+        uint64_t TimeByCore[MAX_PROCESSORS];
         TaskNode* NodeExecutePerCore[MAX_PROCESSORS];
 
     private:  

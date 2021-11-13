@@ -29,8 +29,8 @@ void graphics::Print(const char* str){
 
 void graphics::PutChar(char chr, unsigned int xOff, unsigned int yOff){
     unsigned int* pixPtr = (unsigned int*)framebuffer->BaseAddress;
-    if(framebuffer->BaseAddressBackground != 0){
-        pixPtr = (unsigned int*)framebuffer->BaseAddressBackground;
+    if(framebuffer->BaseAddress != 0){
+        pixPtr = (unsigned int*)framebuffer->BaseAddress;
     }
     char* fontPtr = (char*)PSF1_Font->glyphBuffer + (chr * PSF1_Font->charsize) - 3; // -3 is to clean the reflect of the font
     for (unsigned long y = yOff; y < yOff + 16; y++){
@@ -93,7 +93,7 @@ void graphics::Rectangle(int w, int h, int x, int y, int r, int g, int b) {
 }
 
 void graphics::Putpixel(int x, int y, int r, int g, int b) {
-    unsigned char* screen = (unsigned char*)framebuffer->BaseAddressBackground;
+    unsigned char* screen = (unsigned char*)framebuffer->BaseAddress;
     int where = (x + (y * framebuffer->Width)) * 4;
     screen[where] = b;          // BLUE
     screen[where + 1] = g;      // GREEN
@@ -101,17 +101,17 @@ void graphics::Putpixel(int x, int y, int r, int g, int b) {
 }
 
 void graphics::Putpix(uint32_t x, uint32_t y, uint32_t color){
-    *(uint32_t*)((uint64_t)framebuffer->BaseAddressBackground + (x*4) + (y * framebuffer->PixelsPerScanLine * 4)) = color;
+    *(uint32_t*)((uint64_t)framebuffer->BaseAddress + (x*4) + (y * framebuffer->PixelsPerScanLine * 4)) = color;
 }
 
 uint32_t graphics::Getpix(uint32_t x, uint32_t y){
-    return *(uint32_t*)((uint64_t)framebuffer->BaseAddressBackground + (x*4) + (y * framebuffer->PixelsPerScanLine * 4));
+    return *(uint32_t*)((uint64_t)framebuffer->BaseAddress + (x*4) + (y * framebuffer->PixelsPerScanLine * 4));
 }
 
 void graphics::Clear(){
     CursorPosition.X = 0;
     CursorPosition.Y = 0;
-    uint64_t fbBase = (uint64_t)framebuffer->BaseAddressBackground;
+    uint64_t fbBase = (uint64_t)framebuffer->BaseAddress;
     uint64_t bytesPerScanline = framebuffer->PixelsPerScanLine * 4;
     uint64_t fbHeight = framebuffer->Height;
     uint64_t fbSize = framebuffer->FrameBufferSize;
@@ -130,7 +130,7 @@ void graphics::Next(){
 }
 
 void graphics::Update(){
-    memcpy(framebuffer->BaseAddress, framebuffer->BaseAddressBackground, framebuffer->FrameBufferSize);
+    memcpy(framebuffer->BaseAddress, framebuffer->BaseAddress, framebuffer->FrameBufferSize);
 }
 
 void graphics::DrawOverlayMouseCursor(uint8_t* mouseCursor, Point position, uint32_t color){    

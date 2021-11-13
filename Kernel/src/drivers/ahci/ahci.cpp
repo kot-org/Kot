@@ -382,8 +382,6 @@ namespace AHCI{
                 if(!port->IsPortInit(GPT::GetSystemGUIDPartitionType())){   
                     globalLogs->Warning("[AHCI] Disk at port %u not initialize yet", port->PortNumber); 
                     
-                    port->ResetDisk();
-                    
                     GPT::InitGPTHeader(port);
                 
                     GPT::CreatPartition(port, GPT::GetFreeSizePatition(port), "KotData", GPT::GetSystemGUIDPartitionType(), 7);        

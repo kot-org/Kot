@@ -64,6 +64,9 @@ void InitializeACPI(BootInfo* bootInfo){
 
     ACPI::FADTHeader* fadt = (ACPI::FADTHeader*)ACPI::FindTable(xsdt, (char*)"FACP");
     ACPI::InitializeFADT(fadt);
+
+    ACPI::HPETHeader* hpet = (ACPI::HPETHeader*)ACPI::FindTable(xsdt, (char*)"HPET");
+    HPET::InitialiseHPET(hpet);
 }
   
 
@@ -153,12 +156,12 @@ void InitializeKernel(BootInfo* bootInfo){
     // }
 
     APIC::IoChangeIrqState(1, 0, true); //Enable Keyboard
+    APIC::IoChangeIrqState(12, 0, true); //Enable Mouse
 
     globalTaskManager.InitScheduler(APIC::ProcessorCount);
 
     GPT::Partition partitionTest = GPT::Partition(AHCI::ahciDriver->Ports[1], GPT::GetPartitionByGUID(AHCI::ahciDriver->Ports[1], GPT::GetSystemGUIDPartitionType()));  
     FileSystem::KFS* Fs = new FileSystem::KFS(&partitionTest);
-
     Fs->mkdir("system", 777);
     Fs->mkdir("system/background", 777);   
     Fs->mkdir("system/apps", 777);  

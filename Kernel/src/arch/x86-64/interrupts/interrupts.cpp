@@ -284,6 +284,8 @@ extern "C" void IRQ0_Handler(InterruptStack* Registers){
 
 extern "C" void IRQ1_Handler(InterruptStack* Registers){
     globalLogs->Warning("IRQ 1");
+    uint8_t scancode = IoRead8(0x60);
+    HandleKeyboard(scancode);
     APIC::localApicEOI();
 }
 
@@ -339,6 +341,8 @@ extern "C" void IRQ11_Handler(InterruptStack* Registers){
 
 extern "C" void IRQ12_Handler(InterruptStack* Registers){
     globalLogs->Warning("IRQ 12");
+    uint8_t mousedata = IoRead8(0x60);
+    HandlePS2Mouse(mousedata);
     APIC::localApicEOI();
 }
 
@@ -362,31 +366,8 @@ extern "C" void IRQ16_Handler(InterruptStack* Registers){
     APIC::localApicEOI();
 }
 
-extern "C" void KeyboardInt_Handler(InterruptStack* Registers){
-    globalLogs->Successful("Key pressed");
-    uint8_t scancode = IoRead8(0x60);
-    HandleKeyboard(scancode);
-    APIC::localApicEOI();
-}
-
-extern "C" void MouseInt_Handler(InterruptStack* Registers){
-    uint8_t mousedata = IoRead8(0x60);
-    HandlePS2Mouse(mousedata);
-    APIC::localApicEOI();
-}
-
-
-extern "C" void PITInt_Handler(InterruptStack* Registers){
-    PIT::Tick();
-    APIC::localApicEOI();      
-}
-
-static uint64_t mutexScheduler;
 extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID){
-    Atomic::atomicSpinlock(&mutexScheduler, 0);
-    Atomic::atomicLock(&mutexScheduler, 0);
-    globalTaskManager.Scheduler(Registers, CoreID); 
-    
+    globalLogs->Warning("%u", HPET::GetTime());
+    globalTaskManager.Scheduler(Registers, CoreID);     
     APIC::localApicEOI();
-    Atomic::atomicUnlock(&mutexScheduler, 0);
 }

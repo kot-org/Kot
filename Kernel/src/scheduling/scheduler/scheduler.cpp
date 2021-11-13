@@ -5,11 +5,15 @@ TaskManager globalTaskManager;
 void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){  
     if(CoreInUserSpace[CoreID]){  
         TaskNode* node = NodeExecutePerCore[CoreID];
+        uint64_t actualTime = HPET::GetTime();
         
         if(node != NULL){
+            node->Content.TimeUsed += actualTime - TimeByCore[CoreID];
             memcpy(&node->Content.Regs, Registers, sizeof(ContextStack));
             node->Content.IsRunning = false;
         }
+
+        TimeByCore[CoreID] = actualTime;
         
         MainNodeScheduler = MainNodeScheduler->Next;
         node = MainNodeScheduler;
@@ -91,6 +95,12 @@ TaskNode* TaskManager::NewNode(TaskNode* node){
 
 TaskNode* TaskManager::CreatDefaultTask(bool IsLinked){
     TaskNode* node = globalTaskManager.AddTask(true, IsLinked, UserAppRing);
+    void* physcialMemory = globalAllocator.RequestPage();
+    node->Content.paging.MapMemory(0x0, physcialMemory);
+    node->Content.paging.MapUserspaceMemory(0x0);
+    void* virtualMemory = globalPageTableManager.GetVirtualAddress(physcialMemory);
+    memcpy(virtualMemory, (void*)&IdleTask, 0x1000);
+    node->Content.Launch((void*)0);
 }
 
 void TaskManager::DeleteTask(TaskNode* node){

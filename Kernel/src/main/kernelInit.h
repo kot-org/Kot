@@ -18,6 +18,7 @@
 #include "../hardware/acpi/acpi.h"
 #include "../hardware/pci/pci.h"
 #include "../hardware/apic/apic.h"
+#include "../hardware/hpet/hpet.h"
 #include "../arch/x86-64/smp/smp.h"
 #include "../arch/x86-64/cpu/cpu.h"
 #include "../fileSystem/gpt/gpt.h"
