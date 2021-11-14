@@ -17,14 +17,17 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
     uint64_t returnValue = 0;
 
     switch(syscall){
-        case 0x00: //Get Kernel Info
-            returnValue = GetKernelInfo(arg0, (void*)arg1);
+        case 0x00: 
+
             break;
         case 0x01:
-            globalLogs->Message("%x", arg0);
+            
+            break;
+        case 0x02: 
+            returnValue = (void*)fileSystem->fopen(arg0, arg1); 
             break;
         default:
-            returnValue = 0;
+            globalLogs->Error("Unknown syscall 0x%x", syscall);
             break;
     }
 

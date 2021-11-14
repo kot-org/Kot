@@ -269,6 +269,9 @@ namespace AHCI{
     struct PartitionInfo{
         Port* port;
         GUIDPartitionEntryFormat* PartitionInfo;
+        char* PartitionName;
+        char* FSSignature;
+        void* FSData;
     };
 
     struct PartitionNode{

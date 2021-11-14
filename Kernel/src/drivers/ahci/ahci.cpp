@@ -361,21 +361,7 @@ namespace AHCI{
         for (int i = 0; i < PortCount; i++){
             Port* port = Ports[i];
 
-
             port->Configure();
-            
-            GPT::Partitions* Partitons = GPT::GetAllPartitions(port);  
-            for(int y = 0; y < Partitons->NumberPartitionsCreated; y++){
-                CurrentNode = (PartitionNode*)malloc(sizeof(PartitionNode));
-                if(PartitionsList == NULL) PartitionsList = CurrentNode;
-                CurrentNode->Content.PartitionInfo = (GUIDPartitionEntryFormat*)Partitons->AllParitions[y];
-               
-                CurrentNode->Last = LastNode;
-                if(LastNode != NULL){
-                    LastNode->Next = CurrentNode;
-                }
-                LastNode = CurrentNode;
-            }    
 
             if(port->PortNumber == 1){
                 GPT::GPTHeader* GptHeader = GPT::GetGPTHeader(port);             
@@ -384,9 +370,32 @@ namespace AHCI{
                     
                     GPT::InitGPTHeader(port);
                 
-                    GPT::CreatPartition(port, GPT::GetFreeSizePatition(port), "KotData", GPT::GetSystemGUIDPartitionType(), 7);        
+                    GPT::CreatPartition(port, GPT::GetFreeSizePatition(port), "KotData", GPT::GetSystemGUIDPartitionType(), 0);        
                 }
             }                 
+            
+            GPT::Partitions* Partitons = GPT::GetAllPartitions(port);  
+            for(int y = 0; y < Partitons->NumberPartitionsCreated; y++){
+                CurrentNode = (PartitionNode*)malloc(sizeof(PartitionNode));
+                if(PartitionsList == NULL) PartitionsList = CurrentNode;
+                CurrentNode->Content.PartitionInfo = (GUIDPartitionEntryFormat*)Partitons->AllParitions[y];
+                CurrentNode->Content.port = port;
+
+                //Setup KotFS
+                if(CompareGUID(&CurrentNode->Content.PartitionInfo->PartitionTypeGUID, GPT::GetSystemGUIDPartitionType()) || CompareGUID(&CurrentNode->Content.PartitionInfo->PartitionTypeGUID, GPT::GetDataGUIDPartitionType())){
+                    CurrentNode->Content.FSSignature = "KOTFS";
+                    GPT::Partition* KotPartition = new GPT::Partition(CurrentNode->Content.port, (GPT::GUIDPartitionEntryFormat*)CurrentNode->Content.PartitionInfo);  
+                    FileSystem::KFS* Fs = new FileSystem::KFS(KotPartition);
+                    CurrentNode->Content.FSData = (void*)Fs;
+                }
+               
+                CurrentNode->Last = LastNode;
+                if(LastNode != NULL){
+                    LastNode->Next = CurrentNode;
+                }
+                LastNode = CurrentNode;
+            }    
+
         }
     }
 

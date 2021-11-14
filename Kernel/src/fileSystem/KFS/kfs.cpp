@@ -521,6 +521,7 @@ namespace FileSystem{
 
         File* returnData = NULL;
 
+        globalLogs->Successful("%s", filePath);
         if(KFSPartitionInfo->Root.FirstClusterFile == 0 && count == 0){
             free((void*)Cluster);
             returnData = (File*)malloc(sizeof(File));
@@ -532,7 +533,6 @@ namespace FileSystem{
             free((void*)Cluster);
             return NULL;
         }
-
         for(int i = 0; i <= count; i++){
             while(true){
                 GetClusterData(ScanCluster, Cluster);

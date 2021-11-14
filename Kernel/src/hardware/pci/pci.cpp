@@ -2,7 +2,7 @@
 #include "pci.h"
 
 namespace PCI{
-
+    static PCINode* PCINodeMain;
 
     void EnumerateFunction(uint64_t deviceAddress, uint64_t function){
         uint64_t offset = function << 12;
@@ -16,6 +16,8 @@ namespace PCI{
 
         globalLogs->Message("- Vendor name : %s | Device class : %s | Device type : %s | Device name : %s", GetVendorName(pciDeviceHeader->VendorID), DeviceClasses[pciDeviceHeader->Class], GetProgIFName(pciDeviceHeader->Class, pciDeviceHeader->Subclass, pciDeviceHeader->ProgIF), GetDeviceName(pciDeviceHeader->VendorID, pciDeviceHeader->DeviceID));
 
+        SavePCIDevice(pciDeviceHeader);
+
         switch (pciDeviceHeader->Class)
         {
             case 0x01: //mass storage controller
@@ -27,8 +29,7 @@ namespace PCI{
                         }
                 }
         }
-
-
+ 
     }
 
     void EnumerateDevice(uint64_t busAddress, uint64_t device){
@@ -72,4 +73,65 @@ namespace PCI{
         }
     }
 
+    void SavePCIDevice(PCIDeviceHeader* device){
+        static PCINode* PCINodeLast;
+        static PCINode* PCINodeActual;
+        
+        PCINodeActual = (PCINode*)malloc(sizeof(PCIDeviceHeader));
+        memcpy(PCINodeActual, device, sizeof(PCIDeviceHeader));
+        if(PCINodeLast != NULL) PCINodeLast->next = PCINodeActual;
+        PCINodeLast = PCINodeActual;
+        
+        if(PCINodeMain == NULL){
+            PCINodeMain = PCINodeActual;
+        }
+
+    }
+
+    PCIDeviceHeader* GetPCIDevice(PCIDeviceHeaderSearcher* searcher){
+        PCINode* node = PCINodeMain;
+        int checkNeed = 0;
+            if(searcher->VendorID != NULL){
+                checkNeed++;
+            }
+            if(searcher->DeviceID != NULL){
+                checkNeed++;
+            }
+            if(searcher->RevisionID != NULL){
+                checkNeed++;
+            }
+            if(searcher->ProgIF != NULL){
+                checkNeed++;
+            }
+            if(searcher->Subclass != NULL){
+                checkNeed++;
+            }
+            if(searcher->Class != NULL){
+                checkNeed++;
+            }
+        int checkNum = 0;
+        while(node != NULL){
+            PCIDeviceHeader* device = node->device;
+            if(searcher->VendorID != NULL){
+                if(device->VendorID == searcher->VendorID) checkNum++;
+            }
+            if(searcher->DeviceID != NULL){
+                if(device->DeviceID == searcher->DeviceID) checkNum++;
+            }
+            if(searcher->RevisionID != NULL){
+                if(device->RevisionID == searcher->RevisionID) checkNum++;
+            }
+            if(searcher->ProgIF != NULL){
+                if(device->ProgIF == searcher->ProgIF) checkNum++;
+            }
+            if(searcher->Subclass != NULL){
+                if(device->Subclass == searcher->Subclass) checkNum++;
+            }
+            if(searcher->Class != NULL){
+                if(device->Class == searcher->Class) checkNum++;
+            }
+            if(checkNum == checkNeed) return device;
+            node = node->next;
+        }
+    }
 }

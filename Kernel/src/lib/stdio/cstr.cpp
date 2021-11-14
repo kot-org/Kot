@@ -250,6 +250,7 @@ char** split(char* str, char* delimiters){
             for(int i = lastCharEnd; i < charNumberStart; i++){
                 ReturnValue[currentItemNumber][y++] = entry[i];
             }   
+            ReturnValue[currentItemNumber][y++] = 0;
             lastCharEnd = charNumberStart + strlen(delimiters);
             c = delimiters;
             

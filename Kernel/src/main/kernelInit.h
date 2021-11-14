@@ -1,3 +1,4 @@
+#pragma once
 #include "../lib/types.h"
 #include "../boot/bootInfo.h"
 #include "../drivers/graphics/graphics.h"
@@ -23,6 +24,7 @@
 #include "../arch/x86-64/cpu/cpu.h"
 #include "../fileSystem/gpt/gpt.h"
 #include "../fileSystem/KFS/kfs.h"
+#include "../fileSystem/main/main.h"
 #include "../memory/heap/heap.h"
 #include "../scheduling/pit/pit.h"
 #include "../lib/limits.h"
@@ -36,8 +38,5 @@
 #include "../elf/elf.h"
 
 extern "C" void main(BootInfo*);
-
-extern "C" uint64_t _KernelStart;
-extern "C" uint64_t _KernelEnd;
 
 void InitializeKernel(BootInfo* bootInfo);

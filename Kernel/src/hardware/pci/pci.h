@@ -44,8 +44,25 @@ namespace PCI{
         uint8_t MinGrant;
         uint8_t MaxLatency;
     }__attribute__((packed));
+
+    struct PCIDeviceHeaderSearcher{
+        uint16_t VendorID;
+        uint16_t DeviceID;
+        uint8_t RevisionID;
+        uint8_t ProgIF; //program interface
+        uint8_t Subclass;
+        uint8_t Class;
+    };
+
+
+    struct PCINode{
+        PCIDeviceHeader* device;
+        PCINode* next;
+    };
     
     void EnumeratePCI(ACPI::MCFGHeader* mcfg);
+    void SavePCIDevice(PCIDeviceHeader* device);
+    PCIDeviceHeader* GetPCIDevice(PCIDeviceHeaderSearcher* searcher);
 
     extern const char* DeviceClasses[];
 

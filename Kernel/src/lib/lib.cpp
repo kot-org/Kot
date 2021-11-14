@@ -25,3 +25,8 @@ uint64_t Divide(uint64_t value, uint64_t divider){
     }
     return returnValue;
 }
+
+bool CompareGUID(GUID* first, GUID* second){
+    if(first->Data1 == second->Data1 && first->Data2 == second->Data2 && first->Data3 == second->Data3 && first->Data4 == second->Data4) return true;
+    return false;
+}

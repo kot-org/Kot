@@ -117,56 +117,24 @@ void InitializeKernel(BootInfo* bootInfo){
     }
     
     InitializeACPI(bootInfo);
+
+    //Init file system
+    OSFileSystem fileSystemTemp = OSFileSystem(AHCI::ahciDriver->PartitionsList);
+    fileSystem = &fileSystemTemp;
     
     InitPS2Mouse();
-
-    // GPT::Partition partitionTest = GPT::Partition(AHCI::ahciDriver->Ports[1], GPT::GetPartitionByGUID(AHCI::ahciDriver->Ports[1], GPT::GetDataGUIDPartitionType()));  
-    // FileSystem::KFS* Fs = new FileSystem::KFS(&partitionTest);
-    // Fs->mkdir("system", 777);
-    // Fs->mkdir("system/background", 777);   
-    // Fs->mkdir("system/apps", 777);   
-
-
-    // FileSystem::File* picture = Fs->fopen("system/background/1.bmp", "r");
-
-    // void* pictureBuffer = malloc(picture->fileInfo->BytesSize);
-    // picture->Read(0, picture->fileInfo->BytesSize, pictureBuffer);
-
-    // unsigned char info[54];
-    // for(int i = 0; i < 54; i++){
-    //     info[i] =  *(uint8_t*)((uint64_t)pictureBuffer + i);
-    // }
-    
-
-    // int dataOffset = *(int*)&info[10]; 
-    // int src_width = *(int*)&info[18];
-    // int src_height = *(int*)&info[22];
-    // int bitCount = (*(short*)&info[28]) / 8;
-
-    // pictureBuffer += dataOffset;
-
-    // for(int i = 0; i < globalGraphics->framebuffer->Height; i++) {
-    //     for(int j = 0; j < globalGraphics->framebuffer->Width; j++){
-    //         uint64_t position = ((globalGraphics->framebuffer->Height - i) * src_width + j) * 4;
-    //         uint8_t r = *(uint8_t*)((uint64_t)pictureBuffer + position + 2);
-    //         uint8_t g = *(uint8_t*)((uint64_t)pictureBuffer + position + 1);
-    //         uint8_t b = *(uint8_t*)((uint64_t)pictureBuffer + position);
-    //         globalGraphics->Putpixel(j, i, r, g, b);
-    //     }
-    // }
 
     APIC::IoChangeIrqState(1, 0, true); //Enable Keyboard
     APIC::IoChangeIrqState(12, 0, true); //Enable Mouse
 
     globalTaskManager.InitScheduler(APIC::ProcessorCount);
 
-    GPT::Partition partitionTest = GPT::Partition(AHCI::ahciDriver->Ports[1], GPT::GetPartitionByGUID(AHCI::ahciDriver->Ports[1], GPT::GetSystemGUIDPartitionType()));  
-    FileSystem::KFS* Fs = new FileSystem::KFS(&partitionTest);
-    Fs->mkdir("system", 777);
-    Fs->mkdir("system/background", 777);   
-    Fs->mkdir("system/apps", 777);  
+    fileSystem->mkdir("Alpha:/system", 777);
+    fileSystem->mkdir("Alpha:/system/background", 777);   
+    fileSystem->mkdir("Alpha:/system/apps", 777);  
 
-    FileSystem::File* app = Fs->fopen("system/apps/main.elf", "r");
+
+    FileSystem::File* app = fileSystem->fopen("Alpha:/system/apps/main.elf", "r");
     void* appBuffer = malloc(app->fileInfo->BytesSize);
     app->Read(0, app->fileInfo->BytesSize, appBuffer);
     ELF::loadElf(appBuffer, 1);

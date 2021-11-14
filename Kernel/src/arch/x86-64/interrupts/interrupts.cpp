@@ -97,6 +97,9 @@ void InitializeInterrupts(){
     /* Syscall */
     SetIDTGate((void*)Entry_SyscallInt_Handler, 0x80, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
 
+    /* Sheduler call by app */
+    SetIDTGate((void*)Entry_Schedule_Handler, 0x81, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+
     asm("lidt %0" : : "m" (idtr));     
 }
 
@@ -367,7 +370,11 @@ extern "C" void IRQ16_Handler(InterruptStack* Registers){
 }
 
 extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID){
-    globalLogs->Warning("%u", HPET::GetTime());
+    globalTaskManager.Scheduler(Registers, CoreID);     
+    APIC::localApicEOI();
+}
+
+extern "C" void Schedule_Handler(InterruptStack* Registers, uint64_t CoreID){
     globalTaskManager.Scheduler(Registers, CoreID);     
     APIC::localApicEOI();
 }
