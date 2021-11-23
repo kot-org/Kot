@@ -23,10 +23,10 @@ A 64bits operating system in c++, which boot in uefi
 * :heavy_check_mark: Task handler with scheduler
 * :heavy_check_mark: Get CPU info
 * :heavy_check_mark: File system : KFS
+* :heavy_check_mark: ELF reader
 
 ## To do:
 
-* :x: ELF reader with realloc
 * :x: Beautiful GUI
 
 
