@@ -30,7 +30,7 @@ uint16_t gdtNullDescriptor(){
     OthersStruct flagsStructNull;
     AccessByteStruct accessByteNull;
     flagsStructNull.Is64bitsCode = false;
-    flagsStructNull.Is64bitsCodeChecker = false;
+    flagsStructNull.Reserved = false;
     flagsStructNull.Size = false;
     flagsStructNull.IsUnitPage4K = false;
 
@@ -48,7 +48,7 @@ uint16_t gdtCreatCodeDescriptor(int ring){
     OthersStruct flagsStructCode;
     AccessByteStruct accessByteCode;
     flagsStructCode.Is64bitsCode = false;
-    flagsStructCode.Is64bitsCodeChecker = false;
+    flagsStructCode.Reserved = false;
     flagsStructCode.Size = false;
     flagsStructCode.IsUnitPage4K = false;
 
@@ -62,8 +62,8 @@ uint16_t gdtCreatCodeDescriptor(int ring){
 
 
     flagsStructCode.IsUnitPage4K = true;
+    flagsStructCode.Reserved = false;
     flagsStructCode.Is64bitsCode = true;
-    flagsStructCode.Is64bitsCodeChecker = true;
     accessByteCode.IsPresent = true;
     accessByteCode.DescriptorType = true;
     accessByteCode.IsReadableAndWritable = true;
@@ -76,7 +76,7 @@ uint16_t gdtCreatDataDescriptor(int ring){
     OthersStruct flagsStructData;
     AccessByteStruct accessByteData;
     flagsStructData.Is64bitsCode = false;
-    flagsStructData.Is64bitsCodeChecker = false;
+    flagsStructData.Reserved = false;
     flagsStructData.Size = false;
     flagsStructData.IsUnitPage4K = false;
 
@@ -90,12 +90,13 @@ uint16_t gdtCreatDataDescriptor(int ring){
 
 
     flagsStructData.IsUnitPage4K = true;
-    flagsStructData.Is64bitsCodeChecker = true;
-    flagsStructData.Size = true;
+    flagsStructData.Reserved = false;
+    flagsStructData.Size = false;
+
     accessByteData.IsPresent = true;
+    accessByteData.Priviledge = ring;
     accessByteData.DescriptorType = true;
     accessByteData.IsReadableAndWritable = true;
-    accessByteData.Priviledge = ring;
     return gdtInstallDescriptor(0, 0, accessByteData, flagsStructData);
 }
 

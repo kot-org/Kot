@@ -4,6 +4,7 @@
 #include "printf.h"
 #include "../../drivers/graphics/graphics.h"
 #include "../../memory/heap/heap.h"
+#include "../node/node.h"
 
 
 const char* to_string(uint64_t value);
@@ -19,5 +20,6 @@ const char* to_string(char c);
 
 int strlen(char*p);
 bool strcmp(char* a, char* b);
-char** split(char* tosplit, char* spliter);
+Node* split(char* tosplit, char* spliter);
 char* ConvertByte(uint64_t bytes);
+

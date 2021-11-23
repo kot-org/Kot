@@ -6,11 +6,12 @@ void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){
     if(CoreInUserSpace[CoreID]){  
         TaskNode* node = NodeExecutePerCore[CoreID];
         uint64_t actualTime = HPET::GetTime();
-        
+        bool test = false;
         if(node != NULL){
             node->Content.TimeUsed += actualTime - TimeByCore[CoreID];
-            memcpy(&node->Content.Regs, Registers, sizeof(ContextStack));
+            memcpy((void*)node->Content.Regs, Registers, sizeof(ContextStack));
             node->Content.IsRunning = false;
+            if(!node->Content.IsIddle) test = true;
         }
 
         TimeByCore[CoreID] = actualTime;
@@ -27,15 +28,16 @@ void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){
         node->Content.IsRunning = true;
 
         NodeExecutePerCore[CoreID] = node;
+        
+        memcpy(Registers, (void*)node->Content.Regs, sizeof(ContextStack));
 
-        memcpy(Registers, &node->Content.Regs, sizeof(ContextStack));
         asm("mov %0, %%cr3" :: "r" (node->Content.paging.PML4));
     }
 }
 
 TaskNode* TaskManager::AddTask(bool IsIddle, bool IsLinked, int ring){ 
     TaskNode* node = (TaskNode*)malloc(sizeof(TaskNode));
-    
+    node->Content.Regs = (ContextStack*)malloc(sizeof(ContextStack));
     //Creat task's paging
     void* PML4 = globalAllocator.RequestPage();
     memset(globalPageTableManager.GetVirtualAddress(PML4), 0, 0x1000);
@@ -50,15 +52,15 @@ TaskNode* TaskManager::AddTask(bool IsIddle, bool IsLinked, int ring){
 
     node->Content.Stack = node->Content.heap->malloc(StackSize);
 
-    node->Content.Regs.cs = (void*)(GDTInfoSelectorsRing[ring].Code | ring); //user code selector
-    node->Content.Regs.ss = (void*)(GDTInfoSelectorsRing[ring].Data | ring); //user data selector
-    node->Content.Regs.rsp = (void*)((uint64_t)node->Content.Stack + StackSize); //because the pile goes down
-    node->Content.Regs.rflags = (void*)0x202; //interrupts & syscall
+    node->Content.Regs->cs = (void*)(GDTInfoSelectorsRing[ring].Code | ring); //user code selector
+    node->Content.Regs->ss = (void*)(GDTInfoSelectorsRing[ring].Data | ring); //user data selector
+    node->Content.Regs->rsp = (void*)((uint64_t)node->Content.Stack + StackSize); //because the pile goes down
+    node->Content.Regs->rflags = (void*)0x202; //interrupts & syscall
     node->Content.IsIddle = IsIddle;
     node->Content.IsRunning = false;
     node->Content.IsPaused = true;
     
-    node->Content.ID = IDTask; //min of ID is 0
+    node->Content.PID = IDTask; //min of ID is 0
     IDTask++;
     NumTaskTotal++;
     
@@ -184,7 +186,7 @@ TaskNode* TaskManager::GetCurrentTask(uint8_t CoreID){
 
 
 void TaskContext::Launch(void* EntryPoint){
-    this->Regs.rip = EntryPoint;
+    this->Regs->rip = EntryPoint;
     this->EntryPoint = EntryPoint;
     this->IsPaused = false;
 }

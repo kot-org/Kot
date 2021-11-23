@@ -37,7 +37,7 @@ void InitializeInterrupts(){
     SetIDTGate((void*)Entry_DeviceNotAvailable_Handler, 0x7, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
 
     /* Double Fault */
-    SetIDTGate((void*)Entry_DoubleFault_Handler, 0x8, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_DoubleFault_Handler, 0x8, TrapGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
 
     /* Invalid TSS */
     SetIDTGate((void*)Entry_InvalidTSS_Handler, 0xA, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
@@ -102,6 +102,7 @@ void InitializeInterrupts(){
 
     asm("lidt %0" : : "m" (idtr));     
 }
+
 
 extern "C" void DivideByZero_Handler(InterruptStack* Registers, uint64_t CoreID){
     Panic("Divide-by-zero Error Detected");

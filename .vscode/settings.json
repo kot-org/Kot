@@ -20,7 +20,21 @@
         "atomic": "cpp",
         "logs.h": "c",
         "types.h": "c",
-        "cstddef": "cpp"
+        "cstddef": "cpp",
+        "format": "cpp",
+        "xiosbase": "cpp",
+        "xlocale": "cpp",
+        "sstream": "cpp",
+        "array": "cpp",
+        "xstring": "cpp",
+        "chrono": "cpp",
+        "optional": "cpp",
+        "system_error": "cpp",
+        "xlocmon": "cpp",
+        "xlocnum": "cpp",
+        "filesystem": "cpp",
+        "ratio": "cpp",
+        "tuple": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

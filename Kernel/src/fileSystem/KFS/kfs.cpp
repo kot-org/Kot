@@ -205,12 +205,8 @@ namespace FileSystem{
     }
 
     void KFS::flist(char* filePath){
-        char** FoldersSlit = split(filePath, "/");
-        int count = 0;
-        for(; FoldersSlit[count] != 0; count++);
-        count--;
-
-        
+        Node* FoldersSlit = split(filePath, "/");
+        uint64_t count = FoldersSlit->GetSize();        
 
         if(KFSPartitionInfo->Root.FirstClusterFile == 0){
             globalLogs->Warning("The disk is empty");
@@ -232,7 +228,7 @@ namespace FileSystem{
                 
                     if(!ScanHeader->IsFile && ScanHeader->FID != 0){
                         FolderInfo* folderInfo = (FolderInfo*)((uint64_t)Cluster + FileInfoPosition);
-                        if(strcmp(folderInfo->Name, FoldersSlit[i])){
+                        if(strcmp(folderInfo->Name, (char*)FoldersSlit->GetNode(i)->data)){
                             ScanCluster = folderInfo->FirstClusterData;
                             if(ScanCluster == 0){
                                 globalLogs->Warning("The folder is empty");
@@ -269,10 +265,9 @@ namespace FileSystem{
     }
 
     bool KFS::IsDirExist(char* filePath){
-        char** FoldersSlit = split(filePath, "/");
-        int count = 0;
-        for(; FoldersSlit[count] != 0; count++);
-        count--;
+        Node* FoldersSlit = split(filePath, "/");
+        uint64_t count = FoldersSlit->GetSize(); 
+        count--;   
 
         if(KFSPartitionInfo->Root.FirstClusterFile == 0){
             globalLogs->Warning("The disk is empty");
@@ -294,7 +289,7 @@ namespace FileSystem{
                 
                     if(!ScanHeader->IsFile && ScanHeader->FID != 0){
                         FolderInfo* folderInfo = (FolderInfo*)((uint64_t)Cluster + FileInfoPosition);
-                        if(strcmp(folderInfo->Name, FoldersSlit[i])){
+                        if(strcmp(folderInfo->Name, (char*)FoldersSlit->GetNode(i)->data)){
                             ScanCluster = folderInfo->FirstClusterData;
                             break;
                         }
@@ -315,9 +310,8 @@ namespace FileSystem{
 
     uint64_t KFS::mkdir(char* filePath, uint64_t Mode){
         if(IsDirExist(filePath)) return 0;
-        char** FoldersSlit = split(filePath, "/");
-        int count;
-        for(count = 0; FoldersSlit[count] != 0; count++);
+        Node* FoldersSlit = split(filePath, "/");
+        uint64_t count = FoldersSlit->GetSize();    
 
         void* Cluster = malloc(KFSPartitionInfo->ClusterSize);
         uint64_t ScanCluster = KFSPartitionInfo->Root.FirstClusterFile;
@@ -334,7 +328,7 @@ namespace FileSystem{
              
                 if(!ScanHeader->IsFile && ScanHeader->FID != 0){
                     FolderInfo* folderInfo = (FolderInfo*)((uint64_t)Cluster + FileInfoPosition);
-                    if(strcmp(folderInfo->Name, FoldersSlit[i])){
+                    if(strcmp(folderInfo->Name, (char*)FoldersSlit->GetNode(i)->data)){
                         ScanCluster = folderInfo->FirstClusterData;
                         if(folder != NULL){
                             free(folder->folderInfo);
@@ -393,7 +387,7 @@ namespace FileSystem{
 
         counter = strlen(filePath);
         if(counter > MaxName) counter = MaxName;
-        memcpy(folderInfo->Name, FoldersSlit[count - 1], counter);
+        memcpy(folderInfo->Name, FoldersSlit->GetNode(count - 1)->data, counter);
         folderInfo->Name[counter] = 0;
 
         RealTimeClock* realTimeClock;
@@ -419,9 +413,8 @@ namespace FileSystem{
     }
 
     Folder* KFS::readdir(char* filePath){
-        char** FoldersSlit = split(filePath, "/");
-        int count = 0;
-        for(; FoldersSlit[count] != 0; count++);
+        Node* FoldersSlit = split(filePath, "/");
+        uint64_t count = FoldersSlit->GetSize();   
         count--;
 
         if(KFSPartitionInfo->Root.FirstClusterFile == 0){
@@ -444,7 +437,7 @@ namespace FileSystem{
              
                 if(!ScanHeader->IsFile && ScanHeader->FID != 0){
                     FolderInfo* folderInfo = (FolderInfo*)((uint64_t)Cluster + FileInfoPosition);
-                    if(strcmp(folderInfo->Name, FoldersSlit[i])){
+                    if(strcmp(folderInfo->Name, (char*)FoldersSlit->GetNode(i)->data)){
                         ScanCluster = folderInfo->FirstClusterData;
                         if(i == count){
                             folder = (Folder*)malloc(sizeof(Folder));
@@ -506,13 +499,12 @@ namespace FileSystem{
     }
 
     File* KFS::fopen(char* filePath, char* Mode){
-        char** FoldersSlit = split(filePath, "/");
-        int count = 0;
-        for(; FoldersSlit[count] != 0; count++);
+        Node* FoldersSlit = split(filePath, "/");
+        uint64_t count = FoldersSlit->GetSize();   
         count--;
         void* Cluster = malloc(KFSPartitionInfo->ClusterSize);
         char* FileName;
-        char* FileNameSearch = FoldersSlit[count];
+        char* FileNameSearch = (char*)FoldersSlit->GetNode(count)->data;
         uint64_t ScanCluster = KFSPartitionInfo->Root.FirstClusterFile;
         ClusterHeader* ScanClusterHeader;
         HeaderInfo* ScanHeader;
@@ -521,7 +513,6 @@ namespace FileSystem{
 
         File* returnData = NULL;
 
-        globalLogs->Successful("%s", filePath);
         if(KFSPartitionInfo->Root.FirstClusterFile == 0 && count == 0){
             free((void*)Cluster);
             returnData = (File*)malloc(sizeof(File));
@@ -533,6 +524,7 @@ namespace FileSystem{
             free((void*)Cluster);
             return NULL;
         }
+
         for(int i = 0; i <= count; i++){
             while(true){
                 GetClusterData(ScanCluster, Cluster);
@@ -542,8 +534,7 @@ namespace FileSystem{
                 if(ScanHeader->IsFile){
                     FileInfo* fileInfo = (FileInfo*)((uint64_t)Cluster + sizeof(ClusterHeader) + sizeof(HeaderInfo));
                     FileName = fileInfo->Name;
-        
-                    if(i == count && strcmp(FileName, FoldersSlit[count])){
+                    if(i == count && strcmp(FileName, (char*)FileNameSearch)){
                         returnData = (File*)malloc(sizeof(File));
                         returnData->fileInfo = (FileInfo*)malloc(sizeof(FileInfo));
                         memcpy(returnData->fileInfo, fileInfo, sizeof(FileInfo));
@@ -557,13 +548,12 @@ namespace FileSystem{
                     }
                 }else if(ScanHeader->FID != 0){
                     FolderInfo* folderInfo = (FolderInfo*)((uint64_t)Cluster + sizeof(ClusterHeader) + sizeof(HeaderInfo));
-                    FileName = folderInfo->Name;                    
-                    
+                    FileName = folderInfo->Name;                  
                     if(i == count){
                         returnData = NULL;
                     }
 
-                    if(strcmp(FileName, FoldersSlit[i])){
+                    if(strcmp(FileName, (char*)FoldersSlit->GetNode(i)->data)){
                         ScanCluster = folderInfo->FirstClusterData;
                         if(folder != NULL){
                             free((void*)folder->folderInfo);
@@ -634,12 +624,11 @@ namespace FileSystem{
         memcpy(fileInfo->Path, filePath, counter);
         fileInfo->Path[counter] = 0;
 
-        char** FoldersSlit = split(filePath, "/");
-        int count;
-        for(count = 0; FoldersSlit[count] != 0; count++);
-        counter = strlen(FoldersSlit[count - 1]);
+        Node* FoldersSlit = split(filePath, "/");
+        uint64_t count = FoldersSlit->GetSize();   
+        counter = strlen((char*)FoldersSlit->GetNode(count - 1)->data);
         if(counter > MaxName) counter = MaxName;
-        memcpy(fileInfo->Name, FoldersSlit[count - 1], counter);
+        memcpy(fileInfo->Name, FoldersSlit->GetNode(count - 1)->data, counter);
         fileInfo->Name[counter] = 0;
         
 
@@ -679,13 +668,11 @@ namespace FileSystem{
 
         void* Cluster = malloc(KFSPartitionInfo->ClusterSize);
 
-        char** FoldersSlitOld = split(oldPath, "/");
-        int countOld = 0;
-        for(; FoldersSlitOld[countOld] != 0; countOld++); 
+        Node* FoldersSlitOld = split(oldPath, "/");
+        int countOld = FoldersSlitOld->GetSize();
 
-        char** FoldersSlitNew = split(newPath, "/");
-        int countNew = 0;
-        for(; FoldersSlitNew[countNew] != 0; countNew++);
+        Node* FoldersSlitNew = split(newPath, "/");
+        int countNew = FoldersSlitNew->GetSize();
         countNew--;  
 
         //find file / folder
@@ -698,7 +685,7 @@ namespace FileSystem{
 
                 if(!ScanHeader->IsFile && ScanHeader->FID != 0){
                     FolderInfo* folderInfo = (FolderInfo*)((uint64_t)Cluster + FileInfoPosition);
-                    if(strcmp(folderInfo->Name, FoldersSlitOld[i])){
+                    if(strcmp(folderInfo->Name, (char*)FoldersSlitOld->GetNode(i)->data)){
                         if(countOld - 1 != i){
                             OldClusterLocation = folderInfo->FirstClusterData;
                         }else{
@@ -708,7 +695,7 @@ namespace FileSystem{
                     }
                 }else if(ScanHeader->IsFile && ScanHeader->FID != 0){
                     FileInfo* fileInfo = (FileInfo*)((uint64_t)Cluster + FileInfoPosition);
-                    if(strcmp(fileInfo->Name, FoldersSlitOld[i])){
+                    if(strcmp(fileInfo->Name, (char*)FoldersSlitOld->GetNode(i)->data)){
                         OldClusterLocation = fileInfo->ClusterHeaderPostition;
                         break;
                     }
@@ -729,7 +716,7 @@ namespace FileSystem{
             
                 if(!ScanHeader->IsFile && ScanHeader->FID != 0){
                     FolderInfo* folderInfo = (FolderInfo*)((uint64_t)Cluster + FileInfoPosition);
-                    if(strcmp(folderInfo->Name, FoldersSlitNew[i])){
+                    if(strcmp(folderInfo->Name, (char*)FoldersSlitNew->GetNode(i)->data)){
                         NewClusterLocation = folderInfo->FirstClusterData;
                         break;
                     }
@@ -843,9 +830,9 @@ namespace FileSystem{
 
             File* file = fopenWithCluster(OldClusterLocation);
 
-            int counter = strlen(FoldersSlitNew[countNew]);
+            int counter = strlen((char*)FoldersSlitNew->GetNode(countNew)->data);
             if(counter > MaxName) counter = MaxName;
-            memcpy(file->fileInfo->Name, FoldersSlitNew[countNew], counter);
+            memcpy(file->fileInfo->Name, FoldersSlitNew->GetNode(countNew)->data, counter);
             file->fileInfo->Name[counter] = 0;
 
             UpdateFileInfo(file->fileInfo);
@@ -855,9 +842,9 @@ namespace FileSystem{
         }else{
             Folder* folder = readdirWithCluster(OldClusterLocation);
 
-            int counter = strlen(FoldersSlitNew[countNew]);
+            int counter = strlen((char*)FoldersSlitNew->GetNode(countNew)->data);
             if(counter > MaxName) counter = MaxName;
-            memcpy(folder->folderInfo->Name, FoldersSlitNew[countNew], counter);
+            memcpy(folder->folderInfo->Name, FoldersSlitNew->GetNode(countNew)->data, counter);
             folder->folderInfo->Name[counter] = 0;
             UpdateFolderInfo(folder->folderInfo);
 
@@ -871,10 +858,8 @@ namespace FileSystem{
     }
 
     uint64_t KFS::remove(char* filePath){
-        char** FoldersSlit = split(filePath, "/");
-        int count = 0;
-        for(; FoldersSlit[count] != 0; count++);
-        count--;        
+        Node* FoldersSlit = split(filePath, "/");
+        int count = FoldersSlit->GetSize();         
 
         if(KFSPartitionInfo->Root.FirstClusterFile == 0){
             globalLogs->Warning("The disk is empty");
@@ -898,12 +883,12 @@ namespace FileSystem{
                     if(ScanHeader->FID != 0){
                         if(ScanHeader->IsFile){
                             FileInfo* fileInfo = (FileInfo*)((uint64_t)Cluster + FileInfoPosition);
-                            if(strcmp(fileInfo->Name, FoldersSlit[i])){
+                            if(strcmp(fileInfo->Name, (char*)FoldersSlit->GetNode(i)->data)){
                                 DeleteFile(fileInfo);
                             }
                         }else{
                             FolderInfo* folderInfo = (FolderInfo*)((uint64_t)Cluster + FileInfoPosition);
-                            if(strcmp(folderInfo->Name, FoldersSlit[i])){
+                            if(strcmp(folderInfo->Name, (char*)FoldersSlit->GetNode(i)->data)){
                                 ScanCluster = folderInfo->FirstClusterData;
                                 if(ScanCluster == 0){
                                     free(Cluster);

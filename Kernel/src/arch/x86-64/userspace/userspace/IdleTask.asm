@@ -1,5 +1,4 @@
 [BITS 64]
-ALIGN 4096
 
 GLOBAL IdleTask
 

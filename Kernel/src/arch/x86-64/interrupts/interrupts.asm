@@ -39,8 +39,7 @@ EXTERN DivideByZero_Handler, Debug_Handler, NMI_Handler, Breakpoint_Handler, Ove
 %endmacro
 
 
-Entry_DivideByZero_Handler:
-    swapgs
+Entry_DivideByZero_Handler:    
     PUSH_REG
 
     mov    rax, 1
@@ -53,12 +52,11 @@ Entry_DivideByZero_Handler:
     call DivideByZero_Handler
 
     POP_REG
-    swapgs
+    
     
     iretq
 
-Entry_Debug_Handler:
-    swapgs
+Entry_Debug_Handler:    
     PUSH_REG
 
     mov    rax, 1
@@ -71,12 +69,11 @@ Entry_Debug_Handler:
     call Debug_Handler
 
     POP_REG
-    swapgs
+    
     
     iretq
 
-Entry_NMI_Handler:
-    swapgs
+Entry_NMI_Handler:    
     PUSH_REG
 
     mov    rax, 1
@@ -89,12 +86,11 @@ Entry_NMI_Handler:
     call NMI_Handler
 
     POP_REG
-    swapgs
+    
     
     iretq
 
-Entry_Breakpoint_Handler:
-    swapgs
+Entry_Breakpoint_Handler:    
     PUSH_REG
 
     mov    rax, 1
@@ -107,12 +103,11 @@ Entry_Breakpoint_Handler:
     call Breakpoint_Handler
 
     POP_REG
-    swapgs
+    
     
     iretq
 
-Entry_Overflow_Handler:
-    swapgs
+Entry_Overflow_Handler:    
     PUSH_REG
 
     mov    rax, 1
@@ -125,12 +120,11 @@ Entry_Overflow_Handler:
     call Overflow_Handler
 
     POP_REG
-    swapgs
+    
     
     iretq
 
-Entry_BoundRangeExceeded_Handler:
-    swapgs
+Entry_BoundRangeExceeded_Handler:    
     PUSH_REG
 
     mov    rax, 1
@@ -143,12 +137,11 @@ Entry_BoundRangeExceeded_Handler:
     call BoundRangeExceeded_Handler
 
     POP_REG
-    swapgs
+    
     
     iretq
 
-Entry_InvalidOpcode_Handler:
-    swapgs
+Entry_InvalidOpcode_Handler:    
     PUSH_REG
 
     mov    rax, 1
@@ -161,12 +154,11 @@ Entry_InvalidOpcode_Handler:
     call InvalidOpcode_Handler
 
     POP_REG
-    swapgs
+    
     
     iretq
 
-Entry_DeviceNotAvailable_Handler:
-    swapgs
+Entry_DeviceNotAvailable_Handler:   
     PUSH_REG
 
     mov    rax, 1
@@ -179,12 +171,11 @@ Entry_DeviceNotAvailable_Handler:
     call DeviceNotAvailable_Handler
 
     POP_REG
-    swapgs
+    
     
     iretq
 
 Entry_DoubleFault_Handler:
-    swapgs
     PUSH_REG
 
     mov    rax, 1
@@ -197,12 +188,11 @@ Entry_DoubleFault_Handler:
     call DoubleFault_Handler
 
     POP_REG
-    swapgs
     
     iretq
 
 Entry_InvalidTSS_Handler:
-    swapgs
+    
     PUSH_REG
 
     mov    rax, 1
@@ -215,12 +205,12 @@ Entry_InvalidTSS_Handler:
     call InvalidTSS_Handler
 
     POP_REG
-    swapgs
+    
     
     iretq
 
 Entry_SegmentNotPresent_Handler:
-    swapgs
+    
     PUSH_REG
 
     mov    rax, 1
@@ -233,14 +223,14 @@ Entry_SegmentNotPresent_Handler:
     call SegmentNotPresent_Handler
 
     POP_REG
-    swapgs
+    
     
     iretq
 
 
 
 Entry_StackSegmentFault_Handler:
-    swapgs
+    
     PUSH_REG
 
     mov    rax, 1
@@ -253,12 +243,12 @@ Entry_StackSegmentFault_Handler:
     call StackSegmentFault_Handler
 
     POP_REG
-    swapgs
+    
     
     iretq
 
 Entry_GPFault_Handler:
-    swapgs
+    
     PUSH_REG
 
     mov    rax, 1
@@ -271,12 +261,12 @@ Entry_GPFault_Handler:
     call GPFault_Handler
 
     POP_REG
-    swapgs
+    
 
     iretq
 
 Entry_PageFault_Handler:
-    swapgs
+    
     PUSH_REG
 
     mov    rax, 1
@@ -290,12 +280,12 @@ Entry_PageFault_Handler:
     call PageFault_Handler
     
     POP_REG
-    swapgs
+    
  
     iretq
 
 Entry_x87FloatingPointException_Handler:
-    swapgs
+    
     PUSH_REG
 
     mov    rax, 1
@@ -308,12 +298,12 @@ Entry_x87FloatingPointException_Handler:
     call x87FloatingPointException_Handler
     
     POP_REG
-    swapgs
+    
  
     iretq
 
 Entry_AlignmentCheck_Handler:
-    swapgs
+    
     PUSH_REG
 
     mov    rax, 1
@@ -326,12 +316,12 @@ Entry_AlignmentCheck_Handler:
     call AlignmentCheck_Handler
     
     POP_REG
-    swapgs
+    
  
     iretq
 
 Entry_MachineCheck_Handler:
-    swapgs
+    
     PUSH_REG
 
     mov    rax, 1
@@ -344,12 +334,12 @@ Entry_MachineCheck_Handler:
     call MachineCheck_Handler
     
     POP_REG
-    swapgs
+    
  
     iretq
 
 Entry_SIMDFloatingPointException_Handler:
-    swapgs
+    
     PUSH_REG
 
     mov    rax, 1
@@ -362,12 +352,12 @@ Entry_SIMDFloatingPointException_Handler:
     call SIMDFloatingPointException_Handler
     
     POP_REG
-    swapgs
+    
  
     iretq
 
 Entry_VirtualizationException_Handler:
-    swapgs
+    
     PUSH_REG
 
     mov    rax, 1
@@ -380,12 +370,12 @@ Entry_VirtualizationException_Handler:
     call VirtualizationException_Handler
     
     POP_REG
-    swapgs
+    
  
     iretq
 
 Entry_SecurityException_Handler:
-    swapgs
+    
     PUSH_REG
 
     mov    rax, 1
@@ -398,7 +388,7 @@ Entry_SecurityException_Handler:
     call SecurityException_Handler
     
     POP_REG
-    swapgs
+    
  
     iretq
 
@@ -429,9 +419,9 @@ Entry_SyscallInt_Handler:
 
     call SyscallInt_Handler
 
-    POP_REG     
+    POP_REG
 	iretq 
-    
+
 Entry_Schedule_Handler:
     PUSH_REG    
 
@@ -443,8 +433,8 @@ Entry_Schedule_Handler:
     mov rdi, rsp
 
     call Schedule_Handler
-
-    POP_REG     
+     
+    POP_REG
 	iretq 
 
 # IRQs

@@ -4,7 +4,7 @@
 
 Heap globalHeap;
 
-void volatile InitializeHeap(void* heapAddress, size_t pageCount){
+void InitializeHeap(void* heapAddress, size_t pageCount){
     globalHeap.heapEnd = heapAddress;
     ExpandHeap(pageCount * 0x1000);
 }
@@ -15,7 +15,7 @@ void* calloc(size_t size){
     return address;
 }
 
-void* volatile malloc(size_t size){
+void* malloc(size_t size){
     if(size % 0x10 > 0){ // it is not a multiple of 0x10
         size -= (size % 0x10);
         size += 0x10;
@@ -48,7 +48,7 @@ void* volatile malloc(size_t size){
 }
 
 
-void volatile MergeNextAndThisToLast(SegmentHeader* header){
+void MergeNextAndThisToLast(SegmentHeader* header){
     // merge this segment into the last segment
     if(header->next == globalHeap.lastSegment){
         if(header->next->next != NULL){
@@ -86,7 +86,7 @@ void volatile MergeNextAndThisToLast(SegmentHeader* header){
     memset(header, 0, sizeof(SegmentHeader));
 }
 
-void volatile MergeThisToLast(SegmentHeader* header){
+void MergeThisToLast(SegmentHeader* header){
     // merge this segment into the last segment
     header->last->length += header->length + sizeof(SegmentHeader);
     header->last->next = header->next;
@@ -108,7 +108,7 @@ void volatile MergeThisToLast(SegmentHeader* header){
     memset(header, 0, sizeof(SegmentHeader));
 }
 
-void volatile MergeNextToThis(SegmentHeader* header){
+void MergeNextToThis(SegmentHeader* header){
     // merge this segment into the next segment
     SegmentHeader* headerNext = header->next;
     header->length += header->next->length + sizeof(SegmentHeader);
@@ -137,7 +137,7 @@ void volatile MergeNextToThis(SegmentHeader* header){
     memset(headerNext, 0, sizeof(SegmentHeader));
 }
 
-void volatile free(void* address){
+void free(void* address){
     if(address != NULL){
         SegmentHeader* header = (SegmentHeader*)(void*)((uint64_t)address - sizeof(SegmentHeader));
         header->IsFree = true;
@@ -163,7 +163,7 @@ void volatile free(void* address){
     }
 }
 
-void* volatile realloc(void* buffer, size_t size, uint64_t adjustement){
+void* realloc(void* buffer, size_t size, uint64_t adjustement){
     void* newBuffer = malloc(size);
 
     if(adjustement >= 0){
@@ -176,7 +176,7 @@ void* volatile realloc(void* buffer, size_t size, uint64_t adjustement){
     return newBuffer;
 }
 
-void volatile SplitSegment(SegmentHeader* segment, size_t size){
+void SplitSegment(SegmentHeader* segment, size_t size){
     if(segment->length > size + sizeof(SegmentHeader)){
         SegmentHeader* newSegment = (SegmentHeader*)(void*)((uint64_t)segment + sizeof(SegmentHeader) + (uint64_t)size);
         memset(newSegment, 0, sizeof(SegmentHeader));
@@ -194,7 +194,7 @@ void volatile SplitSegment(SegmentHeader* segment, size_t size){
 
 }
 
-void volatile ExpandHeap(size_t length){
+void ExpandHeap(size_t length){
     length += sizeof(SegmentHeader);
     if(length % 0x1000){
         length -= length % 0x1000;

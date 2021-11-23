@@ -202,3 +202,9 @@ void Logs::Error(const char * str, ...){
     globalCOM1->Print("\n");
     va_end(args);
 }
+
+void Logs::PrintRegisters(RegistersLog* registers){
+    globalLogs->Message("Rax : %x Rbx : %x Rcx : %x Rdx : %x Rsi : %x Rdi : %x Rbp : %x", registers->rax, registers->rbx, registers->rcx, registers->rdx, registers->rsi, registers->rdi, registers->rbp);
+    globalLogs->Message("R8 : %x R9 : %x R10 : %x R11 : %x R12 : %x R13 : %x R14 : %x R15 : %x", registers->r8, registers->r9, registers->r10, registers->r11, registers->r12, registers->r13, registers->r14, registers->r15);
+    globalLogs->Message("Rflags: %x Rip: %x Ss: %x Cs: %x Rsp: %x", registers->rflags, registers->rip, registers->ss, registers->cs, registers->rsp);
+}

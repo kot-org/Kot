@@ -1,6 +1,7 @@
 #pragma once
 #include "../../lib/types.h"
 #include "../../arch/x86-64/userspace/userspace/userspace.h"
+#include "../../arch/x86-64/tss/tss.h"
 #include "../../memory/paging/pageTableManager.h"
 #include "../../hardware/apic/apic.h"
 #include "../../memory/heap/heap.h"
@@ -10,7 +11,7 @@
 #include "../../drivers/graphics/graphics.h"
 #include "../../memory/UserHeap/heap.h"
 
-struct ContextStack {
+struct ContextStack{
     void* rax; void* rbx; void* rcx; void* rdx; void* rsi; void* rdi; void* rbp; //push in asm
 
     void* r8; void* r9; void* r10; void* r11; void* r12; void* r13; void* r14; void* r15; //push in asm
@@ -23,8 +24,8 @@ struct TaskContext{
     UserHeap::Heap* heap;
     void* EntryPoint;
     void* Stack;
-    ContextStack Regs; 
-    uint64_t ID;
+    ContextStack* Regs; 
+    uint64_t PID;
     bool IsIddle;
     bool IsRunning;
     bool IsPaused;

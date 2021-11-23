@@ -27,8 +27,8 @@ struct AccessByteStruct{
 struct OthersStruct{
     uint8_t Limit1:4;
     /*Flags*/
+    unsigned Reserved:1;
     unsigned Is64bitsCode:1;
-    unsigned Is64bitsCodeChecker:1;
     unsigned Size:1;
     unsigned IsUnitPage4K:1;
 } __attribute__((packed));

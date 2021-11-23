@@ -23,15 +23,15 @@ struct Heap{
 
 extern Heap globalHeap;
 
-void volatile InitializeHeap(void* heapAddress, size_t pageCount);
+void InitializeHeap(void* heapAddress, size_t pageCount);
 
 void* calloc(size_t size);
-void* volatile malloc(size_t size);
-void* volatile realloc(void* buffer, size_t size, uint64_t adjustement);
-void volatile free(void* address);
+void* malloc(size_t size);
+void* realloc(void* buffer, size_t size, uint64_t adjustement);
+void free(void* address);
 
-void volatile SplitSegment(SegmentHeader* segment, size_t size);
-void volatile ExpandHeap(size_t lenght);
+void  SplitSegment(SegmentHeader* segment, size_t size);
+void  ExpandHeap(size_t lenght);
 
 inline void* operator new(size_t size) {return malloc(size);}
 inline void* operator new[](size_t size) {return malloc(size);}

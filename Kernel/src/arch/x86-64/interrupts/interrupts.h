@@ -40,6 +40,10 @@ struct ErrorInterruptStack {
     void* errorCode; void* rip; void* cs; void* rflags; void* rsp; void* ss; //push by cpu with an interrupt
 }__attribute__((packed));
 
+struct ProcessorInterruptStack {
+    void* rip; void* cs; void* rflags; void* rsp; void* ss; //push by cpu with an interrupt
+}__attribute__((packed));
+
 extern IDTR idtr;
 
 void InitializeInterrupts();

@@ -119,8 +119,7 @@ void InitializeKernel(BootInfo* bootInfo){
     InitializeACPI(bootInfo);
 
     //Init file system
-    OSFileSystem fileSystemTemp = OSFileSystem(AHCI::ahciDriver->PartitionsList);
-    fileSystem = &fileSystemTemp;
+    fileSystem = new OSFileSystem(AHCI::ahciDriver->PartitionsList);
     
     InitPS2Mouse();
 
@@ -133,12 +132,10 @@ void InitializeKernel(BootInfo* bootInfo){
     fileSystem->mkdir("Alpha:/system/background", 777);   
     fileSystem->mkdir("Alpha:/system/apps", 777);  
 
-
     FileSystem::File* app = fileSystem->fopen("Alpha:/system/apps/main.elf", "r");
     void* appBuffer = malloc(app->fileInfo->BytesSize);
     app->Read(0, app->fileInfo->BytesSize, appBuffer);
-    ELF::loadElf(appBuffer, 1);
-
+    ELF::loadElf(appBuffer, 3);
 
     APIC::EnableAPIC();
     APIC::localApicEOI();

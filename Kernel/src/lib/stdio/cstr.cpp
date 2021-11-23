@@ -194,7 +194,7 @@ bool strcmp(char* a, char* b){
 }
 
 
-char** split(char* str, char* delimiters){
+Node* split(char* str, char* delimiters){
     char* entry = str;
     char* entryCount = str;
 
@@ -224,8 +224,9 @@ char** split(char* str, char* delimiters){
         }
         entryCount++; 
     }
-    
-    char** ReturnValue = (char**)malloc(sizeof(char*) * (ItemNumber + 1));
+     
+    Node* ReturnValue = CreatNode(0);
+
     while(*str != 0){  
         currentCharNumber++;
 
@@ -245,12 +246,14 @@ char** split(char* str, char* delimiters){
             if(charNumberStart < 0){
                 charNumberStart = 0;
             }
-            int y = 0;
-            ReturnValue[currentItemNumber] = (char*)malloc(sizeof(char*) * (charNumberStart - lastCharEnd));
-            for(int i = lastCharEnd; i < charNumberStart; i++){
-                ReturnValue[currentItemNumber][y++] = entry[i];
-            }   
-            ReturnValue[currentItemNumber][y++] = 0;
+
+            uint64_t StrSize = sizeof(char) * (charNumberStart - lastCharEnd);
+            void* data = malloc(StrSize + 1);
+            memcpy(data, (void*)&entry[lastCharEnd], StrSize);
+            *(uint8_t*)((uint64_t)data + StrSize) = 0;
+            ReturnValue->data = data;
+            ReturnValue = ReturnValue->AddNext(0);
+
             lastCharEnd = charNumberStart + strlen(delimiters);
             c = delimiters;
             
@@ -260,14 +263,11 @@ char** split(char* str, char* delimiters){
         str++; 
     }
 
-    ReturnValue[currentItemNumber] = (char*)malloc(sizeof(char*) * (len - lastCharEnd));
-    int y = 0;
-    for(int i = lastCharEnd; i < len; i++){
-        ReturnValue[currentItemNumber][y++] = entry[i];
-    }
+    void* data = malloc(sizeof(char) * (len - lastCharEnd));
+    memcpy(data, (void*)&entry[lastCharEnd], len - lastCharEnd);
+    ReturnValue->data = data;
     
-    ReturnValue[ItemNumber] = 0;
-    return ReturnValue;
+    return ReturnValue->parent;
 }
 
 char returnChar[128];
@@ -295,3 +295,5 @@ char* ConvertByte(uint64_t bytes){
     return returnChar;
 
 }
+
+
