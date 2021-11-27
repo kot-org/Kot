@@ -104,6 +104,18 @@ namespace APIC{
         LocalAPICInterruptTimerModePeriodic	= 1
     };
 
+    enum LocalAPICDestinationMode{
+        LocalAPICDestinationModePhysicalDestination = 0,
+        LocalAPICDestinationModeVirtualDestination = 1
+    };
+
+    enum DestinationType{
+        LocalAPICDestinationTypeBase = 0,
+        LocalAPICDestinationTypeSendInterruptSelf = 1,
+        LocalAPICDestinationTypeSendAllProcessor = 2,
+        LocalAPICDestinationTypeSendAllButNotSelf = 3
+    };
+
     struct LocalAPICInterruptRegister{
         uint8_t	vector:8;
         enum LocalAPICInterruptRegisterMessageType messageType:3;
@@ -112,6 +124,28 @@ namespace APIC{
         enum LocalAPICInterruptRegisterTriggerMode triggerMode:1;
         enum LocalAPICInterruptRegisterMask	mask:1;
         enum LocalAPICInterruptTimerMode timerMode:1;
+    };
+
+    enum LocalAPICInterruptipi{
+        LocalAPICInterruptipiVector = 0,
+        LocalAPICInterruptipiMessageType = 8,
+        LocalAPICInterruptipiDestinationMode = 11,
+        LocalAPICInterruptipiDestinationType = 18
+    };
+
+    enum LocalAPICDeliveryMode{
+        LocalAPICDeliveryModeFixed		= 0b000,
+        LocalAPICDeliveryModeSMI		= 0b010,
+        LocalAPICDeliveryModeNMI		= 0b100,
+        LocalAPICDeliveryModeINIT		= 0b101,
+        LocalAPICDeliveryModeStartUp	= 0b111,
+    };
+
+    struct LocalAPICIipi{
+        uint8_t	vector:8;
+        enum LocalAPICDeliveryMode deliveryMode:3;
+        enum LocalAPICDestinationMode destinationMode:1;
+        enum DestinationType destinationType:2;
     };
 
     enum LocalAPICRegisterOffset {
@@ -142,7 +176,7 @@ namespace APIC{
         LocalAPICRegisterOffsetDivide			        = 0x3e0,
     };
 
-    enum IOAPICRegisterOffset {
+    enum IOAPICRegisterOffset{
         IOAPICId				= 0x00,
         IOAPICVersion			= 0x01,
         IOAPICArbitration		= 0x02,
@@ -227,8 +261,11 @@ namespace APIC{
     void localAPICWriteRegister(size_t offset, uint32_t value);    
     void localAPICWriteRegister(void* lapicAddress, size_t offset, uint32_t value);    
     uint32_t CreatRegisterValueInterrupts(LocalAPICInterruptRegister reg);
+    uint32_t CreatLocalAPICIipiRegister(LocalAPICIipi reg);
     void IoApicSetRedirectionEntry(void* apicPtr, size_t index, IOAPICRedirectionEntry entry);
-
+    void SetCommandIPI(uint32_t commandLow, uint32_t commandHigh);
+    void GenerateInterruption(uint8_t CoreID, uint8_t Vector);
+    
     extern LocalProcessor** Processor;
     extern uint8_t ProcessorCount;
 }

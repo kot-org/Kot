@@ -20,7 +20,7 @@ void memset(void* start, uint8_t value, uint64_t num){
     }
 }
 
-void fastmemcpy(void* destination, void* source, uint64_t num){
+void memcpy(void* destination, void* source, uint64_t num){
     long d0, d1, d2; 
     asm volatile(
             "rep ; movsq\n\t movq %4,%%rcx\n\t""rep ; movsb\n\t": "=&c" (d0),

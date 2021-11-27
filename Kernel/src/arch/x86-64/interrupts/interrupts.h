@@ -72,6 +72,7 @@ extern "C" void Entry_SecurityException_Handler();
 extern "C" void Entry_LAPICTIMERInt_Handler();
 extern "C" void Entry_SyscallInt_Handler();
 extern "C" void Entry_Schedule_Handler();
+extern "C" void Entry_IPI_Handler();
 
 extern "C" void Entry_IRQ0_Handler();
 extern "C" void Entry_IRQ1_Handler();

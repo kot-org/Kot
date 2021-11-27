@@ -7,7 +7,6 @@ static uint64_t mutexSMP;
 uint64_t StatusProcessor;
 
 extern "C" void TrampolineMain(int CoreID){
-    StatusProcessor = 4;
     Atomic::atomicSpinlock(&mutexSMP, 0);
     Atomic::atomicLock(&mutexSMP, 0);
     gdtInitCores(CoreID);
@@ -20,8 +19,11 @@ extern "C" void TrampolineMain(int CoreID){
     if(EnabledSSE() == 0){
         FPUInit();
     }
-    
-    globalTaskManager.EnabledScheduler(CoreID);
+
+    //End processor init
+    StatusProcessor = 4;
+
+    globalTaskManager->EnabledScheduler(CoreID);
     Atomic::atomicUnlock(&mutexSMP, 0);
     asm("sti");
 

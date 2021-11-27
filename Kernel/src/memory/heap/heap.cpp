@@ -181,6 +181,7 @@ void SplitSegment(SegmentHeader* segment, size_t size){
         SegmentHeader* newSegment = (SegmentHeader*)(void*)((uint64_t)segment + sizeof(SegmentHeader) + (uint64_t)size);
         memset(newSegment, 0, sizeof(SegmentHeader));
         newSegment->IsFree = true;         
+        newSegment->singature = 0xff;       
         newSegment->length = segment->length - (size + sizeof(SegmentHeader));
         newSegment->next = segment->next;
         newSegment->last = segment;
@@ -215,6 +216,7 @@ void ExpandHeap(size_t length){
     if(globalHeap.lastSegment != NULL && globalHeap.lastSegment->IsFree){
         globalHeap.lastSegment->length += length;
     }else{
+        newSegment->singature = 0xff;
         newSegment->length = length - sizeof(SegmentHeader);
         newSegment->IsFree = true;
         newSegment->last = globalHeap.lastSegment;

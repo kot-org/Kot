@@ -11,6 +11,11 @@
 #include "../../drivers/graphics/graphics.h"
 #include "../../memory/UserHeap/heap.h"
 
+struct ContextStack;
+struct TaskContext;
+struct TaskNode;
+class TaskManager;
+
 struct ContextStack{
     void* rax; void* rbx; void* rcx; void* rdx; void* rsi; void* rdi; void* rbp; //push in asm
 
@@ -20,20 +25,35 @@ struct ContextStack{
 }__attribute__((packed));
 
 struct TaskContext{
+    //task memory
     PageTableManager paging;
     UserHeap::Heap* heap;
-    void* EntryPoint;
     void* Stack;
+
+    //task info
+    void* EntryPoint;
     ContextStack* Regs; 
     uint64_t PID;
     bool IsIddle;
     bool IsRunning;
     bool IsPaused;
-    void* parent; // if task is thread  
     uint64_t TimeUsed;
+    bool IsThread;
 
+    //other data
+    TaskContext* TaskToLaunchWhenExit;
+
+    //parent 
+    TaskContext* ThreadParent; // if task is thread  
+    TaskNode* NodeParent;
+    TaskManager* TaskManagerParent;
+    uint8_t CoreID;
+
+    //child
+    //function
     void CreatThread();  
     void Launch(void* EntryPoint);
+    void Exit();
 }__attribute__((packed));
 
 struct TaskNode{
@@ -45,6 +65,8 @@ struct TaskNode{
 class TaskManager{
     public:
         void Scheduler(struct InterruptStack* Registers, uint8_t CoreID);
+        void SwitchTask(InterruptStack* Registers, uint8_t CoreID);
+        void SwitchTask(InterruptStack* Registers, uint8_t CoreID, GUID* APIGUID, uint64_t SpecialEntryPoint, bool IsSpecialEntryPoint);
         TaskNode* AddTask(bool IsIddle, bool IsLinked, int ring);    
         TaskNode* NewNode(TaskNode* node);
         TaskNode* CreatDefaultTask(bool IsLinked);     
@@ -67,11 +89,10 @@ class TaskManager{
         TaskNode* MainNodeScheduler = NULL;
 
         //iddle
-        TaskNode* IdleNode[MAX_PROCESSORS];         
-        
-
+        TaskNode* IdleNode[MAX_PROCESSORS];    
+        Node* APINode;
 };
 
 
 
-extern TaskManager globalTaskManager;
+extern TaskManager* globalTaskManager;

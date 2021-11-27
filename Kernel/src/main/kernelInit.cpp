@@ -126,7 +126,8 @@ void InitializeKernel(BootInfo* bootInfo){
     APIC::IoChangeIrqState(1, 0, true); //Enable Keyboard
     APIC::IoChangeIrqState(12, 0, true); //Enable Mouse
 
-    globalTaskManager.InitScheduler(APIC::ProcessorCount);
+    globalTaskManager = (TaskManager*)malloc(sizeof(TaskManager));
+    globalTaskManager->InitScheduler(APIC::ProcessorCount);
 
     fileSystem->mkdir("Alpha:/system", 777);
     fileSystem->mkdir("Alpha:/system/background", 777);   
@@ -142,7 +143,11 @@ void InitializeKernel(BootInfo* bootInfo){
     APIC::StartLapicTimer();
 
     APIC::LoadCores(); 
-    globalTaskManager.EnabledScheduler(0);
+    APIC::GenerateInterruption(0, 0x90);
+    APIC::GenerateInterruption(3, 0x90);
+    APIC::GenerateInterruption(1, 0x90);
+    APIC::GenerateInterruption(2, 0x90);
+    globalTaskManager->EnabledScheduler(0);
     asm("sti");
 
     return;

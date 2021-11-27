@@ -1,17 +1,15 @@
 #include "scheduler.h"
 
-TaskManager globalTaskManager;
+TaskManager* globalTaskManager;
 
 void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){  
     if(CoreInUserSpace[CoreID]){  
         TaskNode* node = NodeExecutePerCore[CoreID];
         uint64_t actualTime = HPET::GetTime();
-        bool test = false;
         if(node != NULL){
             node->Content.TimeUsed += actualTime - TimeByCore[CoreID];
-            memcpy((void*)node->Content.Regs, Registers, sizeof(ContextStack));
+            memcpy(node->Content.Regs, Registers, sizeof(ContextStack));
             node->Content.IsRunning = false;
-            if(!node->Content.IsIddle) test = true;
         }
 
         TimeByCore[CoreID] = actualTime;
@@ -23,21 +21,42 @@ void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){
             MainNodeScheduler = MainNodeScheduler->Next;
             node = MainNodeScheduler;
         }   
-        
 
         node->Content.IsRunning = true;
+        node->Content.CoreID = CoreID;
 
         NodeExecutePerCore[CoreID] = node;
-        
-        memcpy(Registers, (void*)node->Content.Regs, sizeof(ContextStack));
+
+        SegmentHeader* header = GetSegmentHeader(node);
+        memcpy(Registers, node->Content.Regs, sizeof(ContextStack));
 
         asm("mov %0, %%cr3" :: "r" (node->Content.paging.PML4));
     }
 }
 
+void TaskManager::SwitchTask(InterruptStack* Registers, uint8_t CoreID, GUID* APIGUID, uint64_t SpecialEntryPoint, bool IsSpecialEntryPoint){
+    //pause this task
+    NodeExecutePerCore[CoreID]->Content.IsRunning = false;
+    NodeExecutePerCore[CoreID]->Content.IsPaused = true;
+
+    TaskNode* node = FirstNode;
+    //find task
+    //TODO
+
+    node->Content.IsRunning = true;
+    node->Content.TaskToLaunchWhenExit = &NodeExecutePerCore[CoreID]->Content;
+
+    NodeExecutePerCore[CoreID] = node;
+
+    memcpy(Registers, (void*)node->Content.Regs, sizeof(ContextStack));
+
+    asm("mov %0, %%cr3" :: "r" (node->Content.paging.PML4));
+}
+
 TaskNode* TaskManager::AddTask(bool IsIddle, bool IsLinked, int ring){ 
-    TaskNode* node = (TaskNode*)malloc(sizeof(TaskNode));
-    node->Content.Regs = (ContextStack*)malloc(sizeof(ContextStack));
+    TaskNode* node = (TaskNode*)calloc(sizeof(TaskNode));
+    node->Content.Regs = (ContextStack*)calloc(sizeof(ContextStack));
+
     //Creat task's paging
     void* PML4 = globalAllocator.RequestPage();
     memset(globalPageTableManager.GetVirtualAddress(PML4), 0, 0x1000);
@@ -59,6 +78,10 @@ TaskNode* TaskManager::AddTask(bool IsIddle, bool IsLinked, int ring){
     node->Content.IsIddle = IsIddle;
     node->Content.IsRunning = false;
     node->Content.IsPaused = true;
+
+    node->Content.ThreadParent = NULL;
+    node->Content.NodeParent = node;
+    node->Content.TaskManagerParent = this;
     
     node->Content.PID = IDTask; //min of ID is 0
     IDTask++;
@@ -96,7 +119,7 @@ TaskNode* TaskManager::NewNode(TaskNode* node){
 }
 
 TaskNode* TaskManager::CreatDefaultTask(bool IsLinked){
-    TaskNode* node = globalTaskManager.AddTask(true, IsLinked, UserAppRing);
+    TaskNode* node = AddTask(true, IsLinked, UserAppRing);
     void* physcialMemory = globalAllocator.RequestPage();
     node->Content.paging.MapMemory(0x0, physcialMemory);
     node->Content.paging.MapUserspaceMemory(0x0);
@@ -143,15 +166,19 @@ void TaskManager::DeleteTask(TaskNode* node){
 
     if(last != NULL){
         last->Next = next;     
+    }else{
+        LastNode->Next = next;
     }
 
     if(next != NULL){    
-        next->Last = last;  
+        next->Last = last;
     }
 
     globalPageTableManager.ChangePaging(&node->Content.paging);
     node->Content.heap->free((void*)node->Content.Stack);
     globalPageTableManager.RestorePaging();
+    free((void*)node->Content.heap);
+    free((void*)node->Content.Regs);
     free((void*)node);
 }
 
@@ -189,4 +216,9 @@ void TaskContext::Launch(void* EntryPoint){
     this->Regs->rip = EntryPoint;
     this->EntryPoint = EntryPoint;
     this->IsPaused = false;
+}
+
+void TaskContext::Exit(){
+    TaskManagerParent->DeleteTask(NodeParent);
+    TaskManagerParent->NodeExecutePerCore[this->CoreID] = NULL;
 }

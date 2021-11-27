@@ -1,4 +1,4 @@
-GLOBAL memcpy
+;GLOBAL memcpy
 
 memcpy:
     mov rax, rdi

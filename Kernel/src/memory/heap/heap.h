@@ -10,6 +10,7 @@ struct SegmentHeader{
     size_t length;
     SegmentHeader* next;
     SegmentHeader* last;
+    uint8_t singature;
 }__attribute__((packed));
 
 struct Heap{

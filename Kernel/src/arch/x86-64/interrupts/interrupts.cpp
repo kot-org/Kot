@@ -99,10 +99,11 @@ void InitializeInterrupts(){
 
     /* Sheduler call by app */
     SetIDTGate((void*)Entry_Schedule_Handler, 0x81, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    
+    SetIDTGate((void*)Entry_IPI_Handler, 0x90, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
 
     asm("lidt %0" : : "m" (idtr));     
 }
-
 
 extern "C" void DivideByZero_Handler(InterruptStack* Registers, uint64_t CoreID){
     Panic("Divide-by-zero Error Detected");
@@ -179,6 +180,10 @@ extern "C" void StackSegmentFault_Handler(ErrorInterruptStack* Registers, uint64
 extern "C" void GPFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
     Panic("General Protection Fault Detected");
     globalLogs->Error("General Protection Fault Detected -> At processor %u | RIP : %x", CoreID, Registers->rip);
+    globalLogs->Message("Rax : %x Rbx : %x Rcx : %x Rdx : %x Rsi : %x Rdi : %x Rbp : %x", Registers->rax, Registers->rbx, Registers->rcx, Registers->rdx, Registers->rsi, Registers->rdi, Registers->rbp);
+    globalLogs->Message("R8 : %x R9 : %x R10 : %x R11 : %x R12 : %x R13 : %x R14 : %x R15 : %x", Registers->r8, Registers->r9, Registers->r10, Registers->r11, Registers->r12, Registers->r13, Registers->r14, Registers->r15);
+    globalLogs->Message("Rflags: %x Rip: %x Ss: %x Cs: %x Rsp: %x", Registers->rflags, Registers->rip, Registers->ss, Registers->cs, Registers->rsp);
+   
     if(ReadBit((uint8_t)(uint64_t)Registers->errorCode, 0)){
         globalLogs->Message("The exception originated externally to the processor");
     }
@@ -196,8 +201,7 @@ extern "C" void GPFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID)
         break;
     case 2:
         globalLogs->Message("Caused by ldt");
-        break;
-    
+        break;    
     default:
         break;
     }
@@ -371,11 +375,15 @@ extern "C" void IRQ16_Handler(InterruptStack* Registers){
 }
 
 extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID){
-    globalTaskManager.Scheduler(Registers, CoreID);     
+    globalTaskManager->Scheduler(Registers, CoreID);     
     APIC::localApicEOI();
 }
 
 extern "C" void Schedule_Handler(InterruptStack* Registers, uint64_t CoreID){
-    globalTaskManager.Scheduler(Registers, CoreID);     
+    globalTaskManager->Scheduler(Registers, CoreID);     
     APIC::localApicEOI();
+}
+
+extern "C" void IPI_Handler(InterruptStack* Registers, uint64_t CoreID){
+    globalLogs->Warning("IPI %x", CoreID);
 }

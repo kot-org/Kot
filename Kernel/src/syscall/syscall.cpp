@@ -15,8 +15,7 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
     uint64_t arg5 = (uint64_t)Registers->r9;
 
     void* returnValue = 0;
-
-    TaskContext* task = &globalTaskManager.NodeExecutePerCore[CoreID]->Content;
+    TaskContext* task = &globalTaskManager->NodeExecutePerCore[CoreID]->Content;
 
     switch(syscall){
         case 0x00: 
@@ -31,6 +30,9 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
         case 0xff: 
             returnValue = (void*)KernelRuntime(task, arg0, arg1, arg2, arg3, arg4, arg5);
             break;
+        case 0x100:
+            //jmp to another task (api ...)
+            globalTaskManager->SwitchTask(Registers, CoreID, (GUID*)arg0, arg1, (bool)arg2);
         default:
             globalLogs->Error("Unknown syscall 0x%x", syscall);
             break;
