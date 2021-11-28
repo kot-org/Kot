@@ -381,9 +381,10 @@ extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID
 
 extern "C" void Schedule_Handler(InterruptStack* Registers, uint64_t CoreID){
     globalTaskManager->Scheduler(Registers, CoreID);     
-    APIC::localApicEOI();
 }
 
 extern "C" void IPI_Handler(InterruptStack* Registers, uint64_t CoreID){
     globalLogs->Warning("IPI %x", CoreID);
+    globalTaskManager->Scheduler(Registers, CoreID); 
+    APIC::localApicEOI();
 }

@@ -16,6 +16,8 @@ struct TaskContext;
 struct TaskNode;
 class TaskManager;
 
+#define MaxNameTask 256
+
 struct ContextStack{
     void* rax; void* rbx; void* rcx; void* rdx; void* rsi; void* rdi; void* rbp; //push in asm
 
@@ -37,8 +39,10 @@ struct TaskContext{
     bool IsIddle;
     bool IsRunning;
     bool IsPaused;
+    bool IsDeviceTaskNode;
     uint64_t TimeUsed;
     bool IsThread;
+    char Name[MaxNameTask];
 
     //other data
     TaskContext* TaskToLaunchWhenExit;
@@ -62,12 +66,16 @@ struct TaskNode{
 	TaskNode* Next;
 }__attribute__((packed));
 
+struct DeviceTaskNodeData{
+    GUID* APIGUID;
+    TaskNode* task;    
+}__attribute__((packed));
+
 class TaskManager{
     public:
         void Scheduler(struct InterruptStack* Registers, uint8_t CoreID);
-        void SwitchTask(InterruptStack* Registers, uint8_t CoreID);
-        void SwitchTask(InterruptStack* Registers, uint8_t CoreID, GUID* APIGUID, uint64_t SpecialEntryPoint, bool IsSpecialEntryPoint);
-        TaskNode* AddTask(bool IsIddle, bool IsLinked, int ring);    
+        void SwitchDeviceTaskNode(InterruptStack* Registers, uint8_t CoreID, GUID* APIGUID, uint64_t SpecialEntryPoint, bool IsSpecialEntryPoint);
+        TaskNode* AddTask(bool IsIddle, bool IsLinked, int ring, char* name);    
         TaskNode* NewNode(TaskNode* node);
         TaskNode* CreatDefaultTask(bool IsLinked);     
         void DeleteTask(TaskNode* task); 
@@ -90,7 +98,7 @@ class TaskManager{
 
         //iddle
         TaskNode* IdleNode[MAX_PROCESSORS];    
-        Node* APINode;
+        Node* DeviceTaskNode = NULL;
 };
 
 

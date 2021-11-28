@@ -19,20 +19,37 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
 
     switch(syscall){
         case 0x00: 
+            //fread
             returnValue = (void*)((FileSystem::File*)arg0)->Read(arg1, arg2, (void*)arg3);
             break;
         case 0x01:
+            //fwrite
             returnValue = (void*)((FileSystem::File*)arg0)->Write(arg1, arg2, (void*)arg3);
             break;
         case 0x02: 
+            //fopen
             returnValue = (void*)fileSystem->fopen((char*)arg0, (char*)arg1);
             break;
+        case 0x3C:
+            //exit
+            if(arg0 != NULL){
+                globalLogs->Error("App %s close with error code : %x", arg0, task->Name);
+            }else{
+                globalLogs->Successful("App %s close Successfuly", task->Name);
+            }
+            task->Exit();
+            globalTaskManager->Scheduler(Registers, CoreID);
+            Atomic::atomicUnlock(&mutexSyscall, 0);
+            return;
         case 0xff: 
+            //Kernel runtime
             returnValue = (void*)KernelRuntime(task, arg0, arg1, arg2, arg3, arg4, arg5);
             break;
         case 0x100:
             //jmp to another task (api ...)
-            globalTaskManager->SwitchTask(Registers, CoreID, (GUID*)arg0, arg1, (bool)arg2);
+            globalTaskManager->SwitchDeviceTaskNode(Registers, CoreID, (GUID*)arg0, arg1, (bool)arg2);
+            Atomic::atomicUnlock(&mutexSyscall, 0);
+            return;
         default:
             globalLogs->Error("Unknown syscall 0x%x", syscall);
             break;

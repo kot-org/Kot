@@ -29,6 +29,7 @@ void main(int test){
     char* msg = "I am main.elf";
     DoSyscall(2, (uint64_t)(void*)file, (uint64_t)(void*)type, 0, 0, 0, 0);
     DoSyscall(0xff, 0, 0, (uint64_t)(void*)msg, 0, 0, 0);
+    DoSyscall(0x3C, 0, 0, (uint64_t)(void*)msg, 0, 0, 0);
 
     while(true);
 }

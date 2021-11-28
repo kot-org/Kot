@@ -136,17 +136,14 @@ void InitializeKernel(BootInfo* bootInfo){
     FileSystem::File* app = fileSystem->fopen("Alpha:/system/apps/main.elf", "r");
     void* appBuffer = malloc(app->fileInfo->BytesSize);
     app->Read(0, app->fileInfo->BytesSize, appBuffer);
-    ELF::loadElf(appBuffer, 3);
+    ELF::loadElf(appBuffer, 3, "System");
 
     APIC::EnableAPIC();
     APIC::localApicEOI();
     APIC::StartLapicTimer();
 
     APIC::LoadCores(); 
-    APIC::GenerateInterruption(0, 0x90);
-    APIC::GenerateInterruption(3, 0x90);
-    APIC::GenerateInterruption(1, 0x90);
-    APIC::GenerateInterruption(2, 0x90);
+
     globalTaskManager->EnabledScheduler(0);
     asm("sti");
 

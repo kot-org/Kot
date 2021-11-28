@@ -1,11 +1,11 @@
 #include "elf.h"
 
 namespace ELF{
-    int loadElf(void* buffer, int ring){
+    int loadElf(void* buffer, int ring, char* name){
         Elf64_Ehdr* header = (Elf64_Ehdr*)buffer;
         //check elf
         if(header->e_ident[0] != EI_MAG0 || header->e_ident[1] != EI_MAG1 || header->e_ident[2] != EI_MAG2 || header->e_ident[3] != EI_MAG3) return 0;
-        TaskNode* task = globalTaskManager->AddTask(false, true, ring);
+        TaskNode* task = globalTaskManager->AddTask(false, true, ring, name);
         globalPageTableManager.ChangePaging(&task->Content.paging);
 
         //Get location data

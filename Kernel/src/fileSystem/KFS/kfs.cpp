@@ -592,7 +592,6 @@ namespace FileSystem{
     }
 
     FileInfo* KFS::NewFile(char* filePath, Folder* folder){
-        globalLogs->Message("New file: %s\n", filePath);
         uint64_t ClusterSize = Divide(DataPosition, KFSPartitionInfo->ClusterSize);
         uint64_t FileClusterSize = KFSPartitionInfo->ClusterSize * ClusterSize; //alloc one bloc, for the header and data
         AllocatePartition* allocatePartition = Allocate(FileClusterSize, folder, 0, true);

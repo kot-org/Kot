@@ -4,8 +4,8 @@ TaskManager* globalTaskManager;
 
 void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){  
     if(CoreInUserSpace[CoreID]){  
-        TaskNode* node = NodeExecutePerCore[CoreID];
         uint64_t actualTime = HPET::GetTime();
+        TaskNode* node = NodeExecutePerCore[CoreID];
         if(node != NULL){
             node->Content.TimeUsed += actualTime - TimeByCore[CoreID];
             memcpy(node->Content.Regs, Registers, sizeof(ContextStack));
@@ -27,33 +27,42 @@ void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){
 
         NodeExecutePerCore[CoreID] = node;
 
-        SegmentHeader* header = GetSegmentHeader(node);
         memcpy(Registers, node->Content.Regs, sizeof(ContextStack));
 
         asm("mov %0, %%cr3" :: "r" (node->Content.paging.PML4));
     }
 }
 
-void TaskManager::SwitchTask(InterruptStack* Registers, uint8_t CoreID, GUID* APIGUID, uint64_t SpecialEntryPoint, bool IsSpecialEntryPoint){
+void TaskManager::SwitchDeviceTaskNode(InterruptStack* Registers, uint8_t CoreID, GUID* APIGUID, uint64_t SpecialEntryPoint, bool IsSpecialEntryPoint){
     //pause this task
     NodeExecutePerCore[CoreID]->Content.IsRunning = false;
     NodeExecutePerCore[CoreID]->Content.IsPaused = true;
 
-    TaskNode* node = FirstNode;
     //find task
-    //TODO
+    if(DeviceTaskNode == NULL) DeviceTaskNode = CreatNode(0);
+    uint64_t sizeNode = DeviceTaskNode->GetSize();
+    for(int i = 0; i < sizeNode; i++){
+        DeviceTaskNodeData* DeviceTaskData = (DeviceTaskNodeData*)DeviceTaskNode->data;
+        if(CompareGUID(DeviceTaskData->APIGUID, APIGUID)) break;
+        if(DeviceTaskNode->next == NULL) return;
+        DeviceTaskNode = DeviceTaskNode->next;
+    }
+    
+    DeviceTaskNodeData* DeviceTaskDataNode = (DeviceTaskNodeData*)DeviceTaskNode->data;
+    TaskNode* task = malloc(sizeof(TaskNode));
+    memcpy(&task->Content, &DeviceTaskDataNode->task->Content, sizeof(TaskNode));
 
-    node->Content.IsRunning = true;
-    node->Content.TaskToLaunchWhenExit = &NodeExecutePerCore[CoreID]->Content;
+    task.IsRunning = true;
+    task.TaskToLaunchWhenExit = &NodeExecutePerCore[CoreID]->Content;
 
     NodeExecutePerCore[CoreID] = node;
 
-    memcpy(Registers, (void*)node->Content.Regs, sizeof(ContextStack));
+    memcpy(Registers, (void*)task.Regs, sizeof(ContextStack));
 
-    asm("mov %0, %%cr3" :: "r" (node->Content.paging.PML4));
+    asm("mov %0, %%cr3" :: "r" (task.paging.PML4));
 }
 
-TaskNode* TaskManager::AddTask(bool IsIddle, bool IsLinked, int ring){ 
+TaskNode* TaskManager::AddTask(bool IsIddle, bool IsLinked, int ring, char* name){ 
     TaskNode* node = (TaskNode*)calloc(sizeof(TaskNode));
     node->Content.Regs = (ContextStack*)calloc(sizeof(ContextStack));
 
@@ -82,6 +91,11 @@ TaskNode* TaskManager::AddTask(bool IsIddle, bool IsLinked, int ring){
     node->Content.ThreadParent = NULL;
     node->Content.NodeParent = node;
     node->Content.TaskManagerParent = this;
+
+    int counter = strlen(name);
+    if(counter > MaxNameTask) counter = MaxNameTask;
+    memcpy(node->Content.Name, name, counter);
+    node->Content.Name[counter] = 0;
     
     node->Content.PID = IDTask; //min of ID is 0
     IDTask++;
@@ -119,7 +133,7 @@ TaskNode* TaskManager::NewNode(TaskNode* node){
 }
 
 TaskNode* TaskManager::CreatDefaultTask(bool IsLinked){
-    TaskNode* node = AddTask(true, IsLinked, UserAppRing);
+    TaskNode* node = AddTask(true, IsLinked, UserAppRing, "Idle Task");
     void* physcialMemory = globalAllocator.RequestPage();
     node->Content.paging.MapMemory(0x0, physcialMemory);
     node->Content.paging.MapUserspaceMemory(0x0);
@@ -219,6 +233,7 @@ void TaskContext::Launch(void* EntryPoint){
 }
 
 void TaskContext::Exit(){
+    uint8_t CoreID = this->CoreID;
     TaskManagerParent->DeleteTask(NodeParent);
-    TaskManagerParent->NodeExecutePerCore[this->CoreID] = NULL;
+    TaskManagerParent->NodeExecutePerCore[CoreID] = NULL;
 }

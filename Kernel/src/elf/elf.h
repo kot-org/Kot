@@ -3,7 +3,7 @@
 
 namespace ELF{
     /* Function */
-    int loadElf(void* buffer, int ring);
+    int loadElf(void* buffer, int ring, char* name);
 
     /* Data */
     /* Type for a 16-bit quantity.  */
