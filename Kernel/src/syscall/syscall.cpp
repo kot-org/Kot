@@ -30,32 +30,70 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
             //fopen
             returnValue = (void*)fileSystem->fopen((char*)arg0, (char*)arg1);
             break;
+        case 0x09:
+            //mmap
+            if(task->Priviledge <= DevicesRing){
+                returnValue = (void*)mmap(&task->paging, (void*)arg0, (void*)arg1);    
+            }else{
+                returnValue = (void*)0;
+            }
+            break;
+        case 0x0B:
+            //munmap
+            returnValue = (void*)munmap(&task->paging, (void*)arg0);
+            break;
+        case 0x0C:
+            //creat share memory
+            returnValue = (void*)Memory::CreatSharing(&task->paging, arg0, (void*)arg1, arg2);
+            //this function return the first physciall address of the sharing memory, it's the key to get sharing
+            break;
+        case 0x0D:
+            //get share memory
+            returnValue = (void*)Memory::GetSharing(&task->paging, (void*)arg0, (void*)arg1, task->PID);
+            break;
+        case 0x16: 
+            //creat subTask 
+            globalTaskManager->CreatSubTask(task->NodeParent, (void*)arg0, (DeviceTaskAdressStruct*)arg1);
+            break;
+        case 0x17: 
+            //execute subTask
+            globalTaskManager->ExecuteSubTask(Registers, CoreID, (DeviceTaskAdressStruct*)arg0, (Parameters*)arg1);
+            break;
+        case 0x27:
+            //Get PID
+            returnValue = (void*)task->PID;
+            break;
         case 0x3C:
             //exit
-            if(arg0 != NULL){
-                globalLogs->Error("App %s close with error code : %x", arg0, task->Name);
+            if(!task->IsTaskInTask){
+                if(arg0 != NULL){
+                    globalLogs->Error("App %s close with error code : %x", arg0, task->Name);
+                }else{
+                    globalLogs->Successful("App %s close Successfuly", task->Name);
+                }
+                task->Exit();
+                globalTaskManager->Scheduler(Registers, CoreID);
             }else{
-                globalLogs->Successful("App %s close Successfuly", task->Name);
+                if(arg0 != NULL){
+                    globalLogs->Error("Subtask %s close with error code : %x", arg0, task->Name);
+                }else{
+                    globalLogs->Successful("Subtask %s close Successfuly", task->Name);
+                }
+                task->ExitTaskInTask(Registers, CoreID, (void*)arg1);
             }
-            task->Exit();
-            globalTaskManager->Scheduler(Registers, CoreID);
             Atomic::atomicUnlock(&mutexSyscall, 0);
             return;
+
         case 0xff: 
-            //Kernel runtime
+            //Kernel runtime will be delete and replace by IPC
             returnValue = (void*)KernelRuntime(task, arg0, arg1, arg2, arg3, arg4, arg5);
             break;
-        case 0x100:
-            //jmp to another task (api ...)
-            globalTaskManager->SwitchDeviceTaskNode(Registers, CoreID, (GUID*)arg0, arg1, (bool)arg2);
-            Atomic::atomicUnlock(&mutexSyscall, 0);
-            return;
         default:
             globalLogs->Error("Unknown syscall 0x%x", syscall);
             break;
     }
 
-    Registers->rax = returnValue;
+    Registers->rdi = returnValue;
 
     Atomic::atomicUnlock(&mutexSyscall, 0);  
 }
@@ -90,5 +128,16 @@ uint64_t LogHandler(uint64_t type, char* str){
             break;
     }
 
+    return 1;
+}
+
+uint64_t mmap(PageTableManager* pageTable, void* addressPhysical, void* addressVirtual){
+    //check if page is free
+    pageTable->MapMemory(addressVirtual, addressPhysical);
+    return 1;
+}
+
+uint64_t munmap(PageTableManager* pageTable, void* addressVirtual){
+    pageTable->UnmapMemory(addressVirtual);
     return 1;
 }

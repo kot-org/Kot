@@ -39,13 +39,14 @@ struct TaskContext{
     bool IsIddle;
     bool IsRunning;
     bool IsPaused;
-    bool IsDeviceTaskNode;
+    bool IsTaskInTask;
     uint64_t TimeUsed;
     bool IsThread;
+    uint8_t Priviledge:3;
     char Name[MaxNameTask];
 
     //other data
-    TaskContext* TaskToLaunchWhenExit;
+    TaskNode* TaskToLaunchWhenExit;
 
     //parent 
     TaskContext* ThreadParent; // if task is thread  
@@ -58,6 +59,7 @@ struct TaskContext{
     void CreatThread();  
     void Launch(void* EntryPoint);
     void Exit();
+    void ExitTaskInTask(struct InterruptStack* Registers, uint8_t CoreID, void* returnValue);
 }__attribute__((packed));
 
 struct TaskNode{
@@ -66,15 +68,48 @@ struct TaskNode{
 	TaskNode* Next;
 }__attribute__((packed));
 
-struct DeviceTaskNodeData{
-    GUID* APIGUID;
-    TaskNode* task;    
+struct Parameters{
+    uint64_t Parameter0;
+    uint64_t Parameter1;
+    uint64_t Parameter2;
+    uint64_t Parameter3;
+    uint64_t Parameter4;
+    uint64_t Parameter5;
+}__attribute__((packed));
+
+struct DeviceTaskAdressStruct{
+	uint8_t type:3;
+    uint16_t L1:10;
+    uint16_t L2:10;
+    uint16_t L3:10;
+    uint16_t FunctionID:9;
+}__attribute__((packed));
+
+struct DeviceTaskData{
+    DeviceTaskAdressStruct* DeviceTaskAdress;
+    TaskContext* task; 
+    TaskNode* parent;   
+}__attribute__((packed));
+
+struct DeviceTaskTableEntry { 
+    void* entries[1024];
+}__attribute__((aligned(0x1000))); 
+
+struct DeviceTaskTableStruct{
+    DeviceTaskData* GetDeviceTaskData(DeviceTaskAdressStruct* DeviceAdress);
+    void SetDeviceTaskData(DeviceTaskAdressStruct* DeviceAdress, DeviceTaskData* deviceTaskData);
+
+    DeviceTaskTableEntry* DeviceTaskTableKernel;
+    DeviceTaskTableEntry* DeviceTaskTableDriver;
+    DeviceTaskTableEntry* DeviceTaskTableDevice;
+    DeviceTaskTableEntry* DeviceTaskTableApp;
 }__attribute__((packed));
 
 class TaskManager{
     public:
         void Scheduler(struct InterruptStack* Registers, uint8_t CoreID);
-        void SwitchDeviceTaskNode(InterruptStack* Registers, uint8_t CoreID, GUID* APIGUID, uint64_t SpecialEntryPoint, bool IsSpecialEntryPoint);
+        uint64_t ExecuteSubTask(struct InterruptStack* Registers, uint8_t CoreID, DeviceTaskAdressStruct* DeviceAdress, Parameters* FunctionParameters);
+        void CreatSubTask(TaskNode* parent, void* EntryPoint, DeviceTaskAdressStruct* DeviceAdress);
         TaskNode* AddTask(bool IsIddle, bool IsLinked, int ring, char* name);    
         TaskNode* NewNode(TaskNode* node);
         TaskNode* CreatDefaultTask(bool IsLinked);     
@@ -85,12 +120,12 @@ class TaskManager{
         bool CoreInUserSpace[MAX_PROCESSORS];
         uint64_t TimeByCore[MAX_PROCESSORS];
         TaskNode* NodeExecutePerCore[MAX_PROCESSORS];
+        size_t NumTaskTotal = 0;
 
     private:  
         bool TaskManagerInit;  
         uint64_t CurrentTaskExecute;
         size_t IddleTaskNumber = 0;
-        size_t NumTaskTotal = 0;
         size_t IDTask = 0;
         TaskNode* LastNode = NULL;
         TaskNode* FirstNode = NULL;
@@ -98,7 +133,7 @@ class TaskManager{
 
         //iddle
         TaskNode* IdleNode[MAX_PROCESSORS];    
-        Node* DeviceTaskNode = NULL;
+        DeviceTaskTableStruct DeviceTaskTable;
 };
 
 

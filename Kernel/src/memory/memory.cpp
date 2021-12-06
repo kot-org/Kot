@@ -43,3 +43,49 @@ int memcmp(const void *aptr, const void *bptr, size_t n){
 	return 0;
 }
 
+namespace Memory{
+    void* CreatSharing(PageTableManager* pageTable, size_t size, void* virtualAddress, uint64_t TaskPID){
+        if((uint64_t)virtualAddress % 0x1000 > 0){
+            virtualAddress -= (uint64_t)virtualAddress % 0x1000;
+            virtualAddress += 0x1000;
+        }
+        uint64_t realSize = size + sizeof(MemoryShareInfo);
+        uint64_t numberOfPage = Divide(realSize, 0x1000);
+        for(int i = 0; i < numberOfPage; i++){
+            uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * 0x1000;
+            if(!pageTable->GetFlags((void*)virtualAddressIterator, PT_Flag::Present)){
+                pageTable->MapMemory((void*)virtualAddressIterator, globalAllocator.RequestPage());
+            }
+            pageTable->MapUserspaceMemory((void*)virtualAddressIterator);
+        }
+        MemoryShareInfo* shareInfo = (MemoryShareInfo*)virtualAddress;
+        shareInfo->Lock = false;
+        shareInfo->IsGetByClient = false;
+        shareInfo->Size = realSize;
+        shareInfo->PageNumber = numberOfPage;
+        shareInfo->PIDTask = TaskPID;
+        shareInfo->PageTableParent = pageTable;
+        shareInfo->VirtualAddressParent = virtualAddress;
+        void* key = pageTable->GetPhysicalAddress(virtualAddress);
+        shareInfo = (MemoryShareInfo*)pageTable->GetVirtualAddress(key);
+        return key;
+    }
+
+    bool GetSharing(PageTableManager* pageTable, void* key, void* virtualAddress, uint64_t TaskPID){
+        if((uint64_t)virtualAddress % 0x1000 > 0){
+            virtualAddress -= (uint64_t)virtualAddress % 0x1000;
+            virtualAddress += 0x1000;
+        }
+        MemoryShareInfo* shareInfo = (MemoryShareInfo*)pageTable->GetVirtualAddress(key);
+        if(shareInfo->PIDTask != TaskPID || shareInfo->IsGetByClient) return false;
+        for(uint64_t i = 0; i < shareInfo->PageNumber; i++){
+            uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * 0x1000;
+            uint64_t virtualAddressParentIterator = (uint64_t)shareInfo->VirtualAddressParent + i * 0x1000;
+            void* physicalAddressParentIterator = shareInfo->PageTableParent->GetPhysicalAddress((void*)virtualAddressParentIterator);
+            pageTable->MapMemory((void*)virtualAddressIterator, physicalAddressParentIterator);
+            pageTable->MapUserspaceMemory((void*)virtualAddressIterator);
+        }
+        shareInfo->IsGetByClient = true;
+        return true;
+    }
+}

@@ -287,6 +287,19 @@ void PageTableManager::CopyHigherHalf(PageTableManager* pageTableManagerToCopy){
     PageTable* PML4VirtualAddressDestination = (PageTable*)globalPageTableManager.GetVirtualAddress(PML4);
     PageTable* PML4VirtualAddressToCopy = (PageTable*)globalPageTableManager.GetVirtualAddress(pageTableManagerToCopy->PML4);
     for(int i = 255; i < 512; i++){
+        PageDirectoryEntry PDE = PML4VirtualAddressDestination->entries[i];
+        PageTable* PDP;
+        PageTable* PDPVirtualAddress;
+        if (!PDE.GetFlag(PT_Flag::Present)){
+            PDP = (PageTable*)globalAllocator.RequestPage();
+            PDPVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PDP);  
+            memset(PDPVirtualAddress, 0, 0x1000);
+            PDE.SetAddress((uint64_t)PDP >> 12);
+            PDE.SetFlag(PT_Flag::Present, true);
+            PDE.SetFlag(PT_Flag::ReadWrite, true);
+            PML4VirtualAddressDestination->entries[i] = PDE;
+        }
+
         PML4VirtualAddressDestination->entries[i] = PML4VirtualAddressToCopy->entries[i];
     }
 }
