@@ -13,7 +13,7 @@ A 64-bit x86 operating system written in C++, which boots from UEFI
 * :heavy_check_mark: Paging & heap (physical and virtual memory)
 * :heavy_check_mark: Interrupts :
     * Exceptions 
-    * PIC, keyboard, mouse
+    * IO APIC, keyboard, mouse
     * APIC
 * :heavy_check_mark: PCI
 * :heavy_check_mark: AHCI driver to read SATA hard disks
