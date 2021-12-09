@@ -18,11 +18,12 @@ namespace ELF{
             int pages = Divide(phdr->p_memsz, 0x1000);
             for(uint64_t y = 0; y < pages; y++){
                 void* virtualAddress = (void*)(segment + y * 0x1000);
-                if(!task->Content.paging.GetFlags(virtualAddress, PT_Flag::IsUserExecutable)){
+                //Custom 0 : is user executable
+                if(!task->Content.paging.GetFlags(virtualAddress, PT_Flag::Custom0)){
                     void* PhysicalBuffer = globalAllocator.RequestPage();
                     task->Content.paging.MapMemory((void*)virtualAddress, (void*)PhysicalBuffer);
                     task->Content.paging.MapUserspaceMemory((void*)virtualAddress);
-                    task->Content.paging.SetFlags(virtualAddress, PT_Flag::IsUserExecutable, true);
+                    task->Content.paging.SetFlags(virtualAddress, PT_Flag::Custom0, true);
                 }
             }
             memcpy((void*)segment, (void*)((uint64_t)buffer + phdr->p_offset), phdr->p_filesz);   

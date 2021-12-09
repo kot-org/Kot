@@ -1,5 +1,6 @@
 #include "memory.h"
 #include "../logs/logs.h"
+#include "../arch/x86-64/gdt/gdt.h"
 
 
 uint64_t GetMemorySize(EFI_MEMORY_DESCRIPTOR* mMap, uint64_t mMapEntries, uint64_t mMapDescSize){
@@ -44,7 +45,10 @@ int memcmp(const void *aptr, const void *bptr, size_t n){
 }
 
 namespace Memory{
-    void* CreatSharing(PageTableManager* pageTable, size_t size, void* virtualAddress, uint64_t TaskPID){
+    //PT_Flag::Custom1 master share
+    //PT_Flag::Custom2 slave share
+    
+    void* CreatSharing(PageTableManager* pageTable, size_t size, void* virtualAddress, uint8_t Priviledge){
         if((uint64_t)virtualAddress % 0x1000 > 0){
             virtualAddress -= (uint64_t)virtualAddress % 0x1000;
             virtualAddress += 0x1000;
@@ -55,15 +59,14 @@ namespace Memory{
             uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * 0x1000;
             if(!pageTable->GetFlags((void*)virtualAddressIterator, PT_Flag::Present)){
                 pageTable->MapMemory((void*)virtualAddressIterator, globalAllocator.RequestPage());
+                pageTable->SetFlags((void*)virtualAddressIterator, PT_Flag::Custom1, true); //set master state
             }
-            pageTable->MapUserspaceMemory((void*)virtualAddressIterator);
+            if(Priviledge == UserAppRing) pageTable->MapUserspaceMemory((void*)virtualAddressIterator);
         }
         MemoryShareInfo* shareInfo = (MemoryShareInfo*)virtualAddress;
         shareInfo->Lock = false;
-        shareInfo->IsGetByClient = false;
         shareInfo->Size = realSize;
         shareInfo->PageNumber = numberOfPage;
-        shareInfo->PIDTask = TaskPID;
         shareInfo->PageTableParent = pageTable;
         shareInfo->VirtualAddressParent = virtualAddress;
         void* key = pageTable->GetPhysicalAddress(virtualAddress);
@@ -71,21 +74,20 @@ namespace Memory{
         return key;
     }
 
-    bool GetSharing(PageTableManager* pageTable, void* key, void* virtualAddress, uint64_t TaskPID){
+    bool GetSharing(PageTableManager* pageTable, void* key, void* virtualAddress, uint8_t Priviledge){
         if((uint64_t)virtualAddress % 0x1000 > 0){
             virtualAddress -= (uint64_t)virtualAddress % 0x1000;
             virtualAddress += 0x1000;
         }
         MemoryShareInfo* shareInfo = (MemoryShareInfo*)pageTable->GetVirtualAddress(key);
-        if(shareInfo->PIDTask != TaskPID || shareInfo->IsGetByClient) return false;
         for(uint64_t i = 0; i < shareInfo->PageNumber; i++){
             uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * 0x1000;
             uint64_t virtualAddressParentIterator = (uint64_t)shareInfo->VirtualAddressParent + i * 0x1000;
             void* physicalAddressParentIterator = shareInfo->PageTableParent->GetPhysicalAddress((void*)virtualAddressParentIterator);
             pageTable->MapMemory((void*)virtualAddressIterator, physicalAddressParentIterator);
-            pageTable->MapUserspaceMemory((void*)virtualAddressIterator);
+            pageTable->SetFlags((void*)virtualAddressIterator, PT_Flag::Custom2, true); //set slave state
+            if(Priviledge == UserAppRing) pageTable->MapUserspaceMemory((void*)virtualAddressIterator);
         }
-        shareInfo->IsGetByClient = true;
         return true;
     }
 }

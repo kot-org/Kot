@@ -333,7 +333,7 @@ void TaskContext::Exit(){
     TaskManagerParent->DeleteTask(NodeParent);
 }
 
-void TaskContext::ExitTaskInTask(InterruptStack* Registers, uint8_t CoreID, void* returnValue){
+void* TaskContext::ExitTaskInTask(InterruptStack* Registers, uint8_t CoreID, void* returnValue){
     uint64_t actualTime = HPET::GetTime();
     //get return value
     TaskNode* node = TaskToLaunchWhenExit;
@@ -351,7 +351,7 @@ void TaskContext::ExitTaskInTask(InterruptStack* Registers, uint8_t CoreID, void
 
     memcpy(Registers, node->Content.Regs, sizeof(ContextStack));
 
-    Registers->rax = returnValue;
-
     asm("mov %0, %%cr3" :: "r" (node->Content.paging.PML4));
+
+    return returnValue;
 }

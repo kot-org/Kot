@@ -44,12 +44,12 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
             break;
         case 0x0C:
             //creat share memory
-            returnValue = (void*)Memory::CreatSharing(&task->paging, arg0, (void*)arg1, arg2);
+            returnValue = (void*)Memory::CreatSharing(&task->paging, arg0, (void*)arg1, task->Priviledge);
             //this function return the first physciall address of the sharing memory, it's the key to get sharing
             break;
         case 0x0D:
             //get share memory
-            returnValue = (void*)Memory::GetSharing(&task->paging, (void*)arg0, (void*)arg1, task->PID);
+            returnValue = (void*)Memory::GetSharing(&task->paging, (void*)arg0, (void*)arg1, task->Priviledge);
             break;
         case 0x16: 
             //creat subTask 
@@ -67,7 +67,7 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
             //exit
             if(!task->IsTaskInTask){
                 if(arg0 != NULL){
-                    globalLogs->Error("App %s close with error code : %x", arg0, task->Name);
+                    globalLogs->Error("App %s close with error code : %x", task->Name, arg0);
                 }else{
                     globalLogs->Successful("App %s close Successfuly", task->Name);
                 }
@@ -75,12 +75,14 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
                 globalTaskManager->Scheduler(Registers, CoreID);
             }else{
                 if(arg0 != NULL){
-                    globalLogs->Error("Subtask %s close with error code : %x", arg0, task->Name);
+                    globalLogs->Error("Subtask %s close with error code : %x", task->Name, arg0);
                 }else{
                     globalLogs->Successful("Subtask %s close Successfuly", task->Name);
                 }
-                task->ExitTaskInTask(Registers, CoreID, (void*)arg1);
+                returnValue = task->ExitTaskInTask(Registers, CoreID, (void*)arg1);
             }
+
+            Registers->rdi = returnValue;
             Atomic::atomicUnlock(&mutexSyscall, 0);
             return;
 

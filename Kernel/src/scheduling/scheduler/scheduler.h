@@ -59,7 +59,7 @@ struct TaskContext{
     void CreatThread();  
     void Launch(void* EntryPoint);
     void Exit();
-    void ExitTaskInTask(struct InterruptStack* Registers, uint8_t CoreID, void* returnValue);
+    void* ExitTaskInTask(struct InterruptStack* Registers, uint8_t CoreID, void* returnValue);
 }__attribute__((packed));
 
 struct TaskNode{

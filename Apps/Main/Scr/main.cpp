@@ -35,8 +35,10 @@ uint64_t DoSyscall(uint64_t syscall, uint64_t arg0, uint64_t arg1, uint64_t arg2
 void IPCFunctionTest(uint64_t PID){
     char* msg = "Hello from IPC";
     DoSyscall(0xff, 0, 0, (uint64_t)(void*)msg, 0, 0, 0);
+    uint64_t memoryAdd = DoSyscall(0x0C, 0x1000, 0x100000, 0, 0, 0, 0);
+    *(uint8_t*)((uint64_t)0x100000 + 0x100) = 0xff;
     //exit
-    DoSyscall(0x3C, 0, 0, 0, 0, 0, 0);
+    DoSyscall(0x3C, 0, memoryAdd, 0, 0, 0, 0);
 }
 
 void main(int test){    
@@ -55,11 +57,8 @@ void main(int test){
     device.FunctionID = 0;
     DoSyscall(0x16, (uint64_t)(void*)IPCFunctionTest, (uint64_t)(void*)&device, 0, 0, 0, 0);
     Parameters parameters;
-    uint64_t PID = DoSyscall(0x27, 0, 0, 0, 0, 0, 0);
-    DoSyscall(0x17, (uint64_t)(void*)&device, (uint64_t)(void*)&parameters, 0, 0, 0, 0);
+    uint64_t memoryAdd = DoSyscall(0x17, (uint64_t)(void*)&device, (uint64_t)(void*)&parameters, 0, 0, 0, 0);
     //let's creat share memory
-    uint64_t memoryAdd = DoSyscall(0x0C, 0x1000, 0x100000, PID, 0, 0, 0);
-    *(uint8_t*)((uint64_t)0x100000 + 0x100) = 0xff;
     DoSyscall(0x0D, memoryAdd, 0x20000, 0, 0, 0, 0);
     if(*(uint8_t*)((uint64_t)0x20000 + 0x100) == 0xff){
         char* sucess = "Sucess";

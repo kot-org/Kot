@@ -12,15 +12,13 @@ void memcpy(void* destination, void* source, uint64_t num);
 namespace Memory{
     struct MemoryShareInfo{
         bool Lock;
-        bool IsGetByClient;
         size_t Size;
         uint64_t PageNumber;
-        uint64_t PIDTask;
         //Parent
-        PageTableManager* PageTableParent;
+        struct PageTableManager* PageTableParent;
         void* VirtualAddressParent;
     }__attribute__((packed));
 
-    void* CreatSharing(PageTableManager* pageTable, size_t size, void* virtualAddress, uint64_t TaskPID);
-    bool GetSharing(PageTableManager* pageTable, void* key, void* virtualAddress, uint64_t TaskPID);
+    void* CreatSharing(struct PageTableManager* pageTable, size_t size, void* virtualAddress, uint8_t Priviledge);
+    bool GetSharing(struct PageTableManager* pageTable, void* key, void* virtualAddress, uint8_t Priviledge);
 }
