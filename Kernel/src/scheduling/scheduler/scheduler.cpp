@@ -319,11 +319,23 @@ TaskNode* TaskManager::GetCurrentTask(uint8_t CoreID){
     return NodeExecutePerCore[CoreID];
 }
 
-
 void TaskContext::Launch(void* EntryPoint){
     this->Regs->rip = EntryPoint;
     this->EntryPoint = EntryPoint;
     this->IsPaused = false;
+}
+
+void TaskContext::Launch(void* EntryPoint, Parameters* FunctionParameters){
+    this->Regs->rip = EntryPoint;
+    this->EntryPoint = EntryPoint;
+    this->IsPaused = false;
+
+    this->Regs->rdi = (void*)FunctionParameters->Parameter0;
+    this->Regs->rsi = (void*)FunctionParameters->Parameter1;
+    this->Regs->rdx = (void*)FunctionParameters->Parameter2;
+    this->Regs->rcx = (void*)FunctionParameters->Parameter3;
+    this->Regs->r8 = (void*)FunctionParameters->Parameter4;
+    this->Regs->r9 = (void*)FunctionParameters->Parameter5;
 }
 
 void TaskContext::Exit(){

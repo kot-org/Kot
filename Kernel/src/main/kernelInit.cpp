@@ -136,7 +136,9 @@ void InitializeKernel(BootInfo* bootInfo){
     FileSystem::File* app = fileSystem->fopen("Alpha:/system/apps/main.elf", "r");
     void* appBuffer = malloc(app->fileInfo->BytesSize);
     app->Read(0, app->fileInfo->BytesSize, appBuffer);
-    ELF::loadElf(appBuffer, 3, "System");
+    Parameters FunctionParameters;
+    FunctionParameters.Parameter0 = (uint64_t)0xff;
+    ELF::loadElf(appBuffer, 3, "System", &FunctionParameters);
 
     APIC::EnableAPIC();
     APIC::localApicEOI();

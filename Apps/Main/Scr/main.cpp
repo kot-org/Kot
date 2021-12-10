@@ -41,11 +41,14 @@ void IPCFunctionTest(uint64_t PID){
     DoSyscall(0x3C, 0, memoryAdd, 0, 0, 0, 0);
 }
 
-void main(int test){    
+void main(uint64_t test){    
     char* file = "Alpha:/system/apps/main.elf";
     char* type = "r";
     char* msg = "I am main.elf";
     DoSyscall(2, (uint64_t)(void*)file, (uint64_t)(void*)type, 0, 0, 0, 0);
+    if(test == 0xff){
+        DoSyscall(0xff, 0, 3, (uint64_t)(void*)msg, 0, 0, 0);
+    }
     DoSyscall(0xff, 0, 0, (uint64_t)(void*)msg, 0, 0, 0);
 
     //trying IPC

@@ -26,6 +26,15 @@ struct ContextStack{
     void* rip; void* cs; void* rflags; void* rsp; void* ss; //push by cpu with an interrupt
 }__attribute__((packed));
 
+struct Parameters{
+    uint64_t Parameter0;
+    uint64_t Parameter1;
+    uint64_t Parameter2;
+    uint64_t Parameter3;
+    uint64_t Parameter4;
+    uint64_t Parameter5;
+}__attribute__((packed));
+
 struct TaskContext{
     //task memory
     PageTableManager paging;
@@ -58,6 +67,7 @@ struct TaskContext{
     //function
     void CreatThread();  
     void Launch(void* EntryPoint);
+    void Launch(void* EntryPoint, Parameters* FunctionParameters);
     void Exit();
     void* ExitTaskInTask(struct InterruptStack* Registers, uint8_t CoreID, void* returnValue);
 }__attribute__((packed));
@@ -66,15 +76,6 @@ struct TaskNode{
 	TaskContext Content;
 	TaskNode* Last;
 	TaskNode* Next;
-}__attribute__((packed));
-
-struct Parameters{
-    uint64_t Parameter0;
-    uint64_t Parameter1;
-    uint64_t Parameter2;
-    uint64_t Parameter3;
-    uint64_t Parameter4;
-    uint64_t Parameter5;
 }__attribute__((packed));
 
 struct DeviceTaskAdressStruct{
