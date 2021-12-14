@@ -380,7 +380,7 @@ extern "C" void IRQ16_Handler(InterruptStack* Registers){
 }
 
 extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID){
-    globalTaskManager->Scheduler(Registers, CoreID);     
+    globalTaskManager->Scheduler(Registers, CoreID); 
     APIC::localApicEOI();
 }
 

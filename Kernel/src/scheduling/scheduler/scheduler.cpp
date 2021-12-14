@@ -26,6 +26,7 @@ void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){
         node->Content.CoreID = CoreID;
 
         NodeExecutePerCore[CoreID] = node;
+
         memcpy(Registers, node->Content.Regs, sizeof(ContextStack));
 
         asm("mov %0, %%cr3" :: "r" (node->Content.paging.PML4));
@@ -328,7 +329,6 @@ void TaskContext::Launch(void* EntryPoint){
 void TaskContext::Launch(void* EntryPoint, Parameters* FunctionParameters){
     this->Regs->rip = EntryPoint;
     this->EntryPoint = EntryPoint;
-    this->IsPaused = false;
 
     this->Regs->rdi = (void*)FunctionParameters->Parameter0;
     this->Regs->rsi = (void*)FunctionParameters->Parameter1;
@@ -336,6 +336,7 @@ void TaskContext::Launch(void* EntryPoint, Parameters* FunctionParameters){
     this->Regs->rcx = (void*)FunctionParameters->Parameter3;
     this->Regs->r8 = (void*)FunctionParameters->Parameter4;
     this->Regs->r9 = (void*)FunctionParameters->Parameter5;
+    this->IsPaused = false;
 }
 
 void TaskContext::Exit(){

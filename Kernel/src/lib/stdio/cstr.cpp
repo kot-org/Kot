@@ -266,6 +266,7 @@ Node* split(char* str, char* delimiters){
     void* data = malloc(sizeof(char) * (len - lastCharEnd));
     memcpy(data, (void*)&entry[lastCharEnd], len - lastCharEnd);
     ReturnValue->data = data;
+    ReturnValue->next = NULL;
     
     return ReturnValue->parent;
 }

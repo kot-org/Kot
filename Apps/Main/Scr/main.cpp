@@ -35,21 +35,73 @@ uint64_t DoSyscall(uint64_t syscall, uint64_t arg0, uint64_t arg1, uint64_t arg2
 void IPCFunctionTest(uint64_t PID){
     char* msg = "Hello from IPC";
     DoSyscall(0xff, 0, 0, (uint64_t)(void*)msg, 0, 0, 0);
-    uint64_t memoryAdd = DoSyscall(0x0C, 0x1000, 0x100000, 0, 0, 0, 0);
+    uint64_t memoryAdd = 0;
+    uint64_t vmadd = 0x100000;
+    DoSyscall(0x0C, 0x1000, (uint64_t)&vmadd, (uint64_t)&memoryAdd, 0, 0, 0);
     *(uint8_t*)((uint64_t)0x100000 + 0x100) = 0xff;
     //exit
     DoSyscall(0x3C, 0, memoryAdd, 0, 0, 0, 0);
 }
 
+#define MaxPath 512
+#define MaxName 256
+#define MaxPassword 256
+#define MaxUserRight 256   
+
+struct GUID{  
+    uint32_t Data1;  
+    uint16_t Data2;  
+    uint16_t Data3;  
+    uint64_t Data4;
+}__attribute__((packed));
+
+struct Time{
+    uint8_t seconds;
+    uint8_t minutes;
+    uint8_t hours;
+    uint8_t days;
+    uint8_t months;
+    uint64_t years;
+}__attribute__((packed));
+
+struct timeInfoFS{
+    Time CreateTime;
+    Time ModifyTime;
+}__attribute__((packed));
+
+struct FileInfo{
+    /* location info */
+    uint64_t LastClusterOfTheFile;
+    uint64_t ClusterHeaderPostition;
+    size_t BytesSize;  
+    size_t ClusterSize; //number of Cluster 
+    char Path[MaxPath];
+    char Name[MaxName];
+    /* userRight */
+    char Password[MaxPassword];
+    GUID Owner;
+    /* time */
+    timeInfoFS TimeInfoFS;
+    uint64_t NextCluster;
+}__attribute__((packed));
+
+struct File{
+        FileInfo fileInfo;
+        char* Mode;            
+        void* reverved;
+}__attribute__((packed));
+
 void main(uint64_t test){    
+    char* msg = "I am main.elf";
+    char* msgk = "kernel";
+    DoSyscall(0xff, 0, 0, (uint64_t)(void*)msg, 0, 0, 0);
     char* file = "Alpha:/system/apps/main.elf";
     char* type = "r";
-    char* msg = "I am main.elf";
-    DoSyscall(2, (uint64_t)(void*)file, (uint64_t)(void*)type, 0, 0, 0, 0);
+    File filereturn;
+    DoSyscall(2, (uint64_t)(void*)file, (uint64_t)(void*)type, (uint64_t)&filereturn, 0, 0, 0);
     if(test == 0xff){
-        DoSyscall(0xff, 0, 3, (uint64_t)(void*)msg, 0, 0, 0);
+        DoSyscall(0xff, 0, 3, (uint64_t)(void*)msgk, 0, 0, 0);
     }
-    DoSyscall(0xff, 0, 0, (uint64_t)(void*)msg, 0, 0, 0);
 
     //trying IPC
     DeviceTaskAdressStruct device;
@@ -62,7 +114,8 @@ void main(uint64_t test){
     Parameters parameters;
     uint64_t memoryAdd = DoSyscall(0x17, (uint64_t)(void*)&device, (uint64_t)(void*)&parameters, 0, 0, 0, 0);
     //let's creat share memory
-    DoSyscall(0x0D, memoryAdd, 0x20000, 0, 0, 0, 0);
+    uint64_t vmadd = 0x20000;
+    DoSyscall(0x0D, memoryAdd, (uint64_t)&vmadd, 0, 0, 0, 0);
     if(*(uint8_t*)((uint64_t)0x20000 + 0x100) == 0xff){
         char* sucess = "Sucess";
         DoSyscall(0xff, 0, 0, (uint64_t)(void*)sucess, 0, 0, 0);

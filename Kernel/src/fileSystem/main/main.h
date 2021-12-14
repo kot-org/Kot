@@ -11,13 +11,12 @@ class OSFileSystem{
 
         //Main Fs functions
         uint64_t mkdir(char* filePath, uint64_t mode);
-        FileSystem::Folder* readdir(char* filepath);
+        bool readdir(char* filepath, FileSystem::Folder* folder);
 
         void flist(char *filePath);
         bool IsDirExist(char* filepath);
 
-        FileSystem::File* fopen(char *filepath, char *mode);         
-        FileSystem::FileInfo* NewFile(char* filePath, FileSystem::Folder* folder);
+        bool fopen(char* filePath, char* mode, FileSystem::File* file);
 
         uint64_t rename(char* oldPath, char* newPath);
 

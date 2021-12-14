@@ -126,7 +126,7 @@ namespace FileSystem{
         void SetClusterData(uint64_t Cluster, void* buffer);
 
         uint64_t mkdir(char* filePath, uint64_t mode);
-        Folder* readdir(char* filePath);
+        bool readdir(char* filePath, Folder* folder);
 
         Folder* readdirWithCluster(uint64_t cluster);
         File* fopenWithCluster(uint64_t cluster);
@@ -134,7 +134,7 @@ namespace FileSystem{
         void flist(char *filename);
         bool IsDirExist(char* filepath);
 
-        File* fopen(char *filename, char *mode);         
+        bool fopen(char* filePath, char* Mode, File* returnData);       
         FileInfo* NewFile(char* filePath, Folder* folder);
         
         uint64_t GetFID();
@@ -160,7 +160,7 @@ namespace FileSystem{
     }__attribute__((packed));
 
     struct File{
-        FileInfo* fileInfo;
+        FileInfo fileInfo;
         char* Mode;            
         KFS* kfs;
         uint64_t Read(uint64_t start, size_t size, void* buffer);

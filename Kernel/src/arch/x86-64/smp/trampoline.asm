@@ -80,6 +80,7 @@ TrampolineLongMode:
     cpuid
     shr    rbx, 24
     mov    rdi, rbx
+    mov    gs, rbx
 
     mov	byte [Target(DataTrampoline.Status)], 3
 

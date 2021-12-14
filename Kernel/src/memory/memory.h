@@ -19,6 +19,6 @@ namespace Memory{
         void* VirtualAddressParent;
     }__attribute__((packed));
 
-    void* CreatSharing(struct PageTableManager* pageTable, size_t size, void* virtualAddress, uint8_t Priviledge);
-    bool GetSharing(struct PageTableManager* pageTable, void* key, void* virtualAddress, uint8_t Priviledge);
+    bool CreatSharing(struct PageTableManager* pageTable, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, uint8_t Priviledge);
+    bool GetSharing(struct PageTableManager* pageTable, void* key, uint64_t* virtualAddressPointer, uint8_t Priviledge);
 }

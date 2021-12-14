@@ -18,7 +18,7 @@ namespace ELF{
             int pages = Divide(phdr->p_memsz, 0x1000);
             for(uint64_t y = 0; y < pages; y++){
                 void* virtualAddress = (void*)(segment + y * 0x1000);
-                //Custom 0 : is user executable
+                //Custom 0 flags : is user executable
                 if(!task->Content.paging.GetFlags(virtualAddress, PT_Flag::Custom0)){
                     void* PhysicalBuffer = globalAllocator.RequestPage();
                     task->Content.paging.MapMemory((void*)virtualAddress, (void*)PhysicalBuffer);
@@ -29,7 +29,7 @@ namespace ELF{
             memcpy((void*)segment, (void*)((uint64_t)buffer + phdr->p_offset), phdr->p_filesz);   
         }
         globalPageTableManager.RestorePaging();
-
+        
         if(FunctionParameters == NULL){
             task->Content.Launch((void*)header->e_entry);
         }else{

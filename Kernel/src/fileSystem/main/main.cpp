@@ -63,12 +63,12 @@ uint64_t OSFileSystem::mkdir(char* filePath, uint64_t mode){
     return 0;
 }
 
-FileSystem::Folder* OSFileSystem::readdir(char* filePath){
+bool OSFileSystem::readdir(char* filePath, FileSystem::Folder* folder){
     Node* filePathSplit = split(filePath, ":/");
     AHCI::PartitionInfo* info = GetPartitionInfo((char*)filePathSplit->GetNode(0)->data);
     if(strcmp(info->FSSignature, "KOTFS")){
         FileSystem::KFS* Fs = (FileSystem::KFS*)info->FSData;
-        return Fs->readdir((char*)filePathSplit->GetNode(1)->data);
+        return Fs->readdir((char*)filePathSplit->GetNode(1)->data, folder);
     }
     return 0;
 }
@@ -92,24 +92,14 @@ bool OSFileSystem::IsDirExist(char* filepath){
     return 0;
 }
 
-FileSystem::File* OSFileSystem::fopen(char* filePath, char* mode){
+bool OSFileSystem::fopen(char* filePath, char* mode, FileSystem::File* file){
     Node* filePathSplit = split(filePath, ":/");
     AHCI::PartitionInfo* info = GetPartitionInfo((char*)filePathSplit->GetNode(0)->data);
     if(strcmp(info->FSSignature, "KOTFS")){
         FileSystem::KFS* Fs = (FileSystem::KFS*)info->FSData;
-        return Fs->fopen((char*)filePathSplit->GetNode(1)->data, mode);
+        return Fs->fopen((char*)filePathSplit->GetNode(1)->data, mode, file);
     }
-    return 0;
-}
-
-FileSystem::FileInfo* OSFileSystem::NewFile(char* filePath, FileSystem::Folder* folder){
-    Node* filePathSplit = split(filePath, ":/");
-    AHCI::PartitionInfo* info = GetPartitionInfo((char*)filePathSplit->GetNode(0)->data);
-    if(strcmp(info->FSSignature, "KOTFS")){
-        FileSystem::KFS* Fs = (FileSystem::KFS*)info->FSData;
-        return Fs->NewFile((char*)filePathSplit->GetNode(1)->data, folder);
-    }
-    return 0;
+    return false;
 }
 
 //TODO move file between two partitions

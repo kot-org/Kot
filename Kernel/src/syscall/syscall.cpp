@@ -28,7 +28,7 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
             break;
         case 0x02: 
             //fopen
-            returnValue = (void*)fileSystem->fopen((char*)arg0, (char*)arg1);
+            returnValue = (void*)fileSystem->fopen((char*)arg0, (char*)arg1, (FileSystem::File*)arg2);
             break;
         case 0x09:
             //mmap
@@ -40,16 +40,21 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
             break;
         case 0x0B:
             //munmap
-            returnValue = (void*)munmap(&task->paging, (void*)arg0);
+            if(task->Priviledge <= DevicesRing){
+                returnValue = (void*)munmap(&task->paging, (void*)arg0);  
+            }else{
+                returnValue = (void*)0;
+            }
+
             break;
         case 0x0C:
             //creat share memory
-            returnValue = (void*)Memory::CreatSharing(&task->paging, arg0, (void*)arg1, task->Priviledge);
+            returnValue = (void*)Memory::CreatSharing(&task->paging, arg0, (uint64_t*)arg1, (uint64_t*)arg2, task->Priviledge);
             //this function return the first physciall address of the sharing memory, it's the key to get sharing
             break;
         case 0x0D:
             //get share memory
-            returnValue = (void*)Memory::GetSharing(&task->paging, (void*)arg0, (void*)arg1, task->Priviledge);
+            returnValue = (void*)Memory::GetSharing(&task->paging, (void*)arg0, (uint64_t*)arg1, task->Priviledge);
             break;
         case 0x16: 
             //creat subTask 

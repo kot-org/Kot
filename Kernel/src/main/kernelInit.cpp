@@ -132,10 +132,11 @@ void InitializeKernel(BootInfo* bootInfo){
     fileSystem->mkdir("Alpha:/system", 777);
     fileSystem->mkdir("Alpha:/system/background", 777);   
     fileSystem->mkdir("Alpha:/system/apps", 777);  
-
-    FileSystem::File* app = fileSystem->fopen("Alpha:/system/apps/main.elf", "r");
-    void* appBuffer = malloc(app->fileInfo->BytesSize);
-    app->Read(0, app->fileInfo->BytesSize, appBuffer);
+    
+    FileSystem::File* app = (FileSystem::File*)malloc(sizeof(FileSystem::File));
+    fileSystem->fopen("Alpha:/system/apps/main.elf", "r", app);
+    void* appBuffer = malloc(app->fileInfo.BytesSize);
+    app->Read(0, app->fileInfo.BytesSize, appBuffer);
     Parameters FunctionParameters;
     FunctionParameters.Parameter0 = (uint64_t)0xff;
     ELF::loadElf(appBuffer, 3, "System", &FunctionParameters);
