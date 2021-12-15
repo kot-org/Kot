@@ -75,13 +75,6 @@ TrampolineLongMode:
     or ax, 3 << 9		
     mov cr4, rax
 
-    ;send core id
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rdi, rbx
-    mov    gs, rbx
-
     mov	byte [Target(DataTrampoline.Status)], 3
 
     jmp [Target(DataTrampoline.MainEntry)]

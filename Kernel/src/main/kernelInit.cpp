@@ -72,12 +72,15 @@ void InitializeACPI(BootInfo* bootInfo){
 
 void InitializeKernel(BootInfo* bootInfo){   
     asm("cli");
+    SaveCoreID();
+
     globalCOM1->Initialize();
     globalCOM1->ClearMonitor();
     globalLogs->Message("(c) Kot Corporation. All rights reserved");
 
     gdtInit();
     globalLogs->Successful("GDT intialize");
+
 
     InitializeInterrupts();  
     globalLogs->Successful("IDT intialize");
@@ -147,7 +150,7 @@ void InitializeKernel(BootInfo* bootInfo){
 
     APIC::LoadCores(); 
 
-    globalTaskManager->EnabledScheduler(0);
+    globalTaskManager->EnabledScheduler(GetCoreID());
     asm("sti");
 
     return;

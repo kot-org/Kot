@@ -65,7 +65,7 @@ void gdtInit();
 uint16_t gdtNullDescriptor();
 uint16_t gdtCreatCodeDescriptor(int ring);
 uint16_t gdtCreatDataDescriptor(int ring);
-void gdtInitCores(int cpuID);
+void gdtInitCores(uint8_t cpuID);
 uint16_t gdtInstallDescriptor(uint64_t base, uint64_t limit, AccessByteStruct access, OthersStruct other);
 uint16_t gdtInstallTSS(uint64_t base, uint64_t limit);
 

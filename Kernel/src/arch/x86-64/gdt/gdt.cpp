@@ -100,7 +100,7 @@ uint16_t gdtCreatDataDescriptor(int ring){
     return gdtInstallDescriptor(0, 0, accessByteData, flagsStructData);
 }
 
-void gdtInitCores(int cpuID){
+void gdtInitCores(uint8_t cpuID){
     uint16_t TSSlocation = TSSInstall(cpuID);
     LoadGDT(&gdtBaseInfo);
     asm("movw %%ax, %w0\n\t"

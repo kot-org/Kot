@@ -44,12 +44,8 @@ EXTERN DivideByZero_Handler, Debug_Handler, NMI_Handler, Breakpoint_Handler, Ove
 Entry_DivideByZero_Handler:    
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call DivideByZero_Handler
 
@@ -61,12 +57,8 @@ Entry_DivideByZero_Handler:
 Entry_Debug_Handler:    
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call Debug_Handler
 
@@ -78,12 +70,8 @@ Entry_Debug_Handler:
 Entry_NMI_Handler:    
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call NMI_Handler
 
@@ -95,12 +83,8 @@ Entry_NMI_Handler:
 Entry_Breakpoint_Handler:    
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call Breakpoint_Handler
 
@@ -112,12 +96,8 @@ Entry_Breakpoint_Handler:
 Entry_Overflow_Handler:    
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call Overflow_Handler
 
@@ -129,12 +109,8 @@ Entry_Overflow_Handler:
 Entry_BoundRangeExceeded_Handler:    
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call BoundRangeExceeded_Handler
 
@@ -146,12 +122,8 @@ Entry_BoundRangeExceeded_Handler:
 Entry_InvalidOpcode_Handler:    
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call InvalidOpcode_Handler
 
@@ -163,12 +135,8 @@ Entry_InvalidOpcode_Handler:
 Entry_DeviceNotAvailable_Handler:   
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call DeviceNotAvailable_Handler
 
@@ -180,12 +148,8 @@ Entry_DeviceNotAvailable_Handler:
 Entry_DoubleFault_Handler:
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call DoubleFault_Handler
 
@@ -197,12 +161,8 @@ Entry_InvalidTSS_Handler:
     
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call InvalidTSS_Handler
 
@@ -215,12 +175,8 @@ Entry_SegmentNotPresent_Handler:
     
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call SegmentNotPresent_Handler
 
@@ -235,12 +191,8 @@ Entry_StackSegmentFault_Handler:
     
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call StackSegmentFault_Handler
 
@@ -253,12 +205,8 @@ Entry_GPFault_Handler:
     
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call GPFault_Handler
 
@@ -268,15 +216,10 @@ Entry_GPFault_Handler:
     iretq
 
 Entry_PageFault_Handler:
-    
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-
-    mov rsi, rbx
     mov rdi, rsp
+    mov rsi, gs
     mov rdx, cr2
 
     call PageFault_Handler
@@ -286,15 +229,10 @@ Entry_PageFault_Handler:
  
     iretq
 
-Entry_x87FloatingPointException_Handler:
-    
+Entry_x87FloatingPointException_Handler: 
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
+    mov rsi, gs
     mov rdi, rsp
 
     call x87FloatingPointException_Handler
@@ -304,70 +242,47 @@ Entry_x87FloatingPointException_Handler:
  
     iretq
 
-Entry_AlignmentCheck_Handler:
-    
+Entry_AlignmentCheck_Handler:    
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call AlignmentCheck_Handler
     
-    POP_REG
-    
+    POP_REG    
  
     iretq
 
-Entry_MachineCheck_Handler:
-    
+Entry_MachineCheck_Handler:    
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call MachineCheck_Handler
     
-    POP_REG
-    
+    POP_REG    
  
     iretq
 
 Entry_SIMDFloatingPointException_Handler:
-    
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call SIMDFloatingPointException_Handler
     
-    POP_REG
-    
+    POP_REG    
  
     iretq
 
-Entry_VirtualizationException_Handler:
-    
+Entry_VirtualizationException_Handler:    
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call VirtualizationException_Handler
     
@@ -376,16 +291,11 @@ Entry_VirtualizationException_Handler:
  
     iretq
 
-Entry_SecurityException_Handler:
-    
+Entry_SecurityException_Handler:    
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call SecurityException_Handler
     
@@ -396,13 +306,9 @@ Entry_SecurityException_Handler:
 
 Entry_LAPICTIMERInt_Handler:
     PUSH_REG    
-
-    mov rax, 1
-    cpuid
-    shr rbx, 24
-    mov rsi, rbx
-
+    
     mov rdi, rsp
+    mov rsi, gs
     
     call LAPICTIMERInt_Handler
 
@@ -412,12 +318,8 @@ Entry_LAPICTIMERInt_Handler:
 Entry_SyscallInt_Handler:
     PUSH_REG    
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call SyscallInt_Handler
 
@@ -427,12 +329,8 @@ Entry_SyscallInt_Handler:
 Entry_Schedule_Handler:
     PUSH_REG    
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
 
     call Schedule_Handler
      
@@ -597,12 +495,8 @@ Entry_IRQ16_Handler:
 Entry_IPI_Handler:
     PUSH_REG
 
-    mov    rax, 1
-    cpuid
-    shr    rbx, 24
-    mov    rsi, rbx
-
     mov rdi, rsp
+    mov rsi, gs
     
     call IPI_Handler
 

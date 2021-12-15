@@ -6,9 +6,11 @@ extern uint64_t IdleTaskEnd;
 static uint64_t mutexSMP;
 uint64_t StatusProcessor;
 
-extern "C" void TrampolineMain(int CoreID){
+extern "C" void TrampolineMain(){
     Atomic::atomicSpinlock(&mutexSMP, 0);
     Atomic::atomicLock(&mutexSMP, 0);
+    SaveCoreID();
+    uint8_t CoreID = GetCoreID();
     gdtInitCores(CoreID);
     asm ("lidt %0" : : "m" (idtr));
     

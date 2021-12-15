@@ -96,3 +96,6 @@ class CPU{
 extern CPU globalCPU; 
 
 CPURegisters DumpRegisters();
+
+extern "C" void SaveCoreID();
+extern "C" uint8_t GetCoreID();
