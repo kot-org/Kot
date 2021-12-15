@@ -30,7 +30,6 @@
 # Executables
 Bin/
 .vscode/
-lib/
 OVMFbin/
 *.exe
 *.out
