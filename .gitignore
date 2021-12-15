@@ -28,10 +28,10 @@
 *.lib
 
 # Executables
-*/Bin
-*/.vscode
-*/lib
-*/OVMFbin
+Bin/
+.vscode/
+lib/
+OVMFbin/
 *.exe
 *.out
 *.app
