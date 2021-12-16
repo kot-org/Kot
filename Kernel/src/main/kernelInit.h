@@ -34,6 +34,7 @@
 #include "../arch/x86-64/io/msr/msr.h"
 #include "../arch/x86-64/io/serial/serial.h"
 #include "../arch/x86-64/tss/tss.h"
+#include "../kernelIPC/kernelIPC.h"
 #include "../logs/logs.h"
 #include "../elf/elf.h"
 

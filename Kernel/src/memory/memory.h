@@ -12,6 +12,7 @@ void memcpy(void* destination, void* source, uint64_t num);
 namespace Memory{
     struct MemoryShareInfo{
         bool Lock;
+        bool ReadOnly;
         size_t Size;
         uint64_t PageNumber;
         //Parent
@@ -19,6 +20,6 @@ namespace Memory{
         void* VirtualAddressParent;
     }__attribute__((packed));
 
-    bool CreatSharing(struct PageTableManager* pageTable, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, uint8_t Priviledge);
+    bool CreatSharing(struct PageTableManager* pageTable, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, bool ReadOnly, uint8_t Priviledge);
     bool GetSharing(struct PageTableManager* pageTable, void* key, uint64_t* virtualAddressPointer, uint8_t Priviledge);
 }

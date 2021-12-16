@@ -4,7 +4,7 @@
 
 enum PT_Flag {
     Present = 0,
-    ReadWrite = 1,
+    ReadWrite = 1, //if bit set page is in read and write
     User = 2,
     WriteThrough = 3,
     CacheDisabled = 4,

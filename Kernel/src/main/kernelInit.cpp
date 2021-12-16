@@ -148,6 +148,9 @@ void InitializeKernel(BootInfo* bootInfo){
     APIC::localApicEOI();
     APIC::StartLapicTimer();
 
+    //Load Kernel Service
+    KernelIPC::Initialize();
+
     APIC::LoadCores(); 
 
     globalTaskManager->EnabledScheduler(GetCoreID());

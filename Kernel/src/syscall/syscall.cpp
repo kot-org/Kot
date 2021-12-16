@@ -49,7 +49,7 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
             break;
         case 0x0C:
             //creat share memory
-            returnValue = (void*)Memory::CreatSharing(&task->paging, arg0, (uint64_t*)arg1, (uint64_t*)arg2, task->Priviledge);
+            returnValue = (void*)Memory::CreatSharing(&task->paging, arg0, (uint64_t*)arg1, (uint64_t*)arg2, (bool)arg3, task->Priviledge);
             //this function return the first physciall address of the sharing memory, it's the key to get sharing
             break;
         case 0x0D:
@@ -88,6 +88,7 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
             }
 
             Registers->rdi = returnValue;
+            
             Atomic::atomicUnlock(&mutexSyscall, 0);
             return;
 

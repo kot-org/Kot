@@ -48,7 +48,7 @@ namespace Memory{
     //PT_Flag::Custom1 master share
     //PT_Flag::Custom2 slave share
     
-    bool CreatSharing(PageTableManager* pageTable, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, uint8_t Priviledge){
+    bool CreatSharing(PageTableManager* pageTable, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, bool ReadOnly, uint8_t Priviledge){
         void* virtualAddress = (void*)*virtualAddressPointer;
         if((uint64_t)virtualAddress % 0x1000 > 0){
             virtualAddress -= (uint64_t)virtualAddress % 0x1000;
@@ -66,6 +66,7 @@ namespace Memory{
         }
         MemoryShareInfo* shareInfo = (MemoryShareInfo*)virtualAddress;
         shareInfo->Lock = false;
+        shareInfo->ReadOnly = ReadOnly;
         shareInfo->Size = realSize;
         shareInfo->PageNumber = numberOfPage;
         shareInfo->PageTableParent = pageTable;
@@ -91,6 +92,7 @@ namespace Memory{
             pageTable->MapMemory((void*)virtualAddressIterator, physicalAddressParentIterator);
             pageTable->SetFlags((void*)virtualAddressIterator, PT_Flag::Custom2, true); //set slave state
             if(Priviledge == UserAppRing) pageTable->MapUserspaceMemory((void*)virtualAddressIterator);
+            if(shareInfo->ReadOnly) pageTable->SetFlags((void*)virtualAddressIterator, PT_Flag::ReadWrite, false); 
         }
 
         *virtualAddressPointer = (uint64_t)virtualAddress;

@@ -46,6 +46,8 @@ uint64_t TaskManager::ExecuteSubTask(InterruptStack* Registers, uint8_t CoreID, 
     //find task    
     DeviceTaskData* DeviceTaskDataNode = DeviceTaskTable.GetDeviceTaskData(DeviceAdress);
     if(DeviceTaskDataNode == NULL) return 0;
+
+    //load task
     TaskNode* task = (TaskNode*)malloc(sizeof(TaskNode));
     memcpy(&task->Content, DeviceTaskDataNode->task, sizeof(TaskNode));
 
@@ -57,8 +59,27 @@ uint64_t TaskManager::ExecuteSubTask(InterruptStack* Registers, uint8_t CoreID, 
     task->Content.IsRunning = true;
     task->Content.TaskToLaunchWhenExit = NodeExecutePerCore[CoreID];
 
+    //copy parameters
+    task->Content.Regs->rdi = (void*)FunctionParameters->Parameter0;
+    task->Content.Regs->rsi = (void*)FunctionParameters->Parameter1;
+    task->Content.Regs->rdx = (void*)FunctionParameters->Parameter2;
+    task->Content.Regs->rcx = (void*)FunctionParameters->Parameter3;
+    task->Content.Regs->r8 = (void*)FunctionParameters->Parameter4;
+    task->Content.Regs->r9 = (void*)FunctionParameters->Parameter5;
+
     uint64_t StackSize = 0x100000; // 1 mb
-    task->Content.Stack = task->Content.heap->malloc(StackSize);
+    if(DeviceAdress->type == 0){ //kernel
+        task->Content.Stack = malloc(StackSize);
+        task->Content.IsKernelStack = true;
+        task->Content.Regs->rsp = (void*)((uint64_t)task->Content.Stack + StackSize);
+        task->Content.paging.PML4 = task->Content.TaskToLaunchWhenExit->Content.paging.PML4;
+    }else{
+        asm("mov %0, %%cr3" :: "r" (task->Content.paging.PML4));
+        
+        task->Content.Stack = task->Content.heap->malloc(StackSize);
+        task->Content.Regs->rsp = (void*)((uint64_t)task->Content.Stack + StackSize);
+    }
+
 
     task->Content.PID = IDTask;
     task->Content.NodeParent = DeviceTaskDataNode->parent;
@@ -69,16 +90,8 @@ uint64_t TaskManager::ExecuteSubTask(InterruptStack* Registers, uint8_t CoreID, 
 
     task->Content.NodeParent = NewNode(task);
 
-    //copy parameters
-    task->Content.Regs->rdi = (void*)FunctionParameters->Parameter0;
-    task->Content.Regs->rsi = (void*)FunctionParameters->Parameter1;
-    task->Content.Regs->rdx = (void*)FunctionParameters->Parameter2;
-    task->Content.Regs->rcx = (void*)FunctionParameters->Parameter3;
-    task->Content.Regs->r8 = (void*)FunctionParameters->Parameter4;
-    task->Content.Regs->r9 = (void*)FunctionParameters->Parameter5;
 
     memcpy(Registers, (void*)task->Content.Regs, sizeof(ContextStack));
-    asm("mov %0, %%cr3" :: "r" (task->Content.paging.PML4));
     return 1;
 }
 
@@ -100,15 +113,19 @@ DeviceTaskData* DeviceTaskTableStruct::GetDeviceTaskData(DeviceTaskAdressStruct*
     DeviceTaskTableEntry* L1Table;
     switch (DeviceAdress->type){
         case 0: //kernel
+            if(DeviceTaskTableKernel == NULL) return NULL;
             L1Table = (DeviceTaskTableEntry*)DeviceTaskTableKernel->entries[DeviceAdress->L1];
             break;
         case 1: //driver
+            if(DeviceTaskTableDriver == NULL) return NULL;
             L1Table = (DeviceTaskTableEntry*)DeviceTaskTableDriver->entries[DeviceAdress->L1];
             break;
         case 2: //device
+            if(DeviceTaskTableDevice == NULL) return NULL;
             L1Table = (DeviceTaskTableEntry*)DeviceTaskTableDevice->entries[DeviceAdress->L1];
             break;
         case 3: //app
+            if(DeviceTaskTableApp == NULL) return NULL;
             L1Table = (DeviceTaskTableEntry*)DeviceTaskTableApp->entries[DeviceAdress->L1];
             break;
     }
@@ -283,9 +300,14 @@ void TaskManager::DeleteTask(TaskNode* node){
         next->Last = last;
     }
 
-    globalPageTableManager.ChangePaging(&node->Content.paging);
-    node->Content.heap->free((void*)node->Content.Stack);
-    globalPageTableManager.RestorePaging();
+    if(node->Content.IsKernelStack){
+        free(node->Content.Stack);
+    }else{
+        globalPageTableManager.ChangePaging(&node->Content.paging);
+        node->Content.heap->free(node->Content.Stack);
+        globalPageTableManager.RestorePaging();
+    }
+
     free((void*)node->Content.heap);
     free((void*)node->Content.Regs);
     free((void*)node);
@@ -344,6 +366,7 @@ void TaskContext::Exit(){
     TaskManagerParent->NumTaskTotal--;
     TaskManagerParent->NodeExecutePerCore[CoreID] = NULL;
     TaskManagerParent->DeleteTask(NodeParent);
+
 }
 
 void* TaskContext::ExitTaskInTask(InterruptStack* Registers, uint8_t CoreID, void* returnValue){

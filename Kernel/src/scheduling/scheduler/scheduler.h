@@ -40,6 +40,7 @@ struct TaskContext{
     PageTableManager paging;
     UserHeap::Heap* heap;
     void* Stack;
+    bool IsKernelStack;
 
     //task info
     void* EntryPoint;
