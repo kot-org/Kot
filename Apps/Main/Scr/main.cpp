@@ -35,14 +35,12 @@ struct DeviceTaskAdressStruct{
 extern "C" uint64_t DoSyscall(uint64_t syscall, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);
 
 void IPCFunctionTest(uint64_t PID){
-    char* msg = "Hello from IPC";
-    DoSyscall(0xff, 0, 0, (uint64_t)(void*)msg, 0, 0, 0);
     uint64_t memoryAdd = 0;
     uint64_t vmadd = 0x100000;
-    DoSyscall(0x0C, 0x1000, (uint64_t)&vmadd, (uint64_t)&memoryAdd, (uint64_t)false, 0, 0);
+    DoSyscall(0x0, 0x1000, (uint64_t)&vmadd, (uint64_t)&memoryAdd, (uint64_t)false, 0, 0);
     *(uint8_t*)((uint64_t)0x100000 + 0x100) = 0xff;
     //exit
-    DoSyscall(0x3C, 0, memoryAdd, 0, 0, 0, 0);
+    DoSyscall(0x04, 0, memoryAdd, 0, 0, 0, 0);
 }
 
 #define MaxPath 512
@@ -95,15 +93,6 @@ struct File{
 
 void main(uint64_t test){    
     char* msg = "I am main.elf";
-    char* msgk = "kernel";
-    DoSyscall(0xff, 0, 0, (uint64_t)(void*)msg, 0, 0, 0);
-    // char* file = "Alpha:/system/apps/main.elf";
-    // char* type = "r";
-    // File filereturn;
-    //DoSyscall(2, (uint64_t)(void*)file, (uint64_t)(void*)type, (uint64_t)&filereturn, 0, 0, 0);
-    if(test == 0xff){
-        DoSyscall(0xff, 0, 3, (uint64_t)(void*)msgk, 0, 0, 0);
-    }
 
     //trying IPC
     DeviceTaskAdressStruct device;
@@ -112,30 +101,32 @@ void main(uint64_t test){
     device.L2 = 3;
     device.L3 = 3;
     device.FunctionID = 0;
-    DoSyscall(0x16, (uint64_t)(void*)IPCFunctionTest, (uint64_t)(void*)&device, 0, 0, 0, 0);
+    DoSyscall(0x02, (uint64_t)(void*)IPCFunctionTest, (uint64_t)(void*)&device, 0, 0, 0, 0);
     Parameters parameters;
-    uint64_t memoryAdd = DoSyscall(0x17, (uint64_t)(void*)&device, (uint64_t)(void*)&parameters, 0, 0, 0, 0);
+    uint64_t memoryAdd = DoSyscall(0x03, (uint64_t)(void*)&device, (uint64_t)(void*)&parameters, 0, 0, 0, 0);
     //IPC kernel
     device.type = 0;
     device.L1 = 0;
     device.L2 = 0;
     device.L3 = 0;
     device.FunctionID = 0;  
-    parameters.Parameter0 = 1;
-    parameters.Parameter1 = (uint64_t)(void*)msgk;
-    DoSyscall(0x17, (uint64_t)(void*)&device, (uint64_t)(void*)&parameters, 0, 0, 0, 0);
+    parameters.Parameter0 = 3;
+    parameters.Parameter1 = (uint64_t)(void*)msg;
+    DoSyscall(0x03, (uint64_t)(void*)&device, (uint64_t)(void*)&parameters, 0, 0, 0, 0);
     //let's creat share memory
     uint64_t vmadd = 0x20000;
-    DoSyscall(0x0D, memoryAdd, (uint64_t)&vmadd, 0, 0, 0, 0);
+    DoSyscall(0x01, memoryAdd, (uint64_t)&vmadd, 0, 0, 0, 0);
     if(*(uint8_t*)((uint64_t)0x20000 + 0x100) == 0xff){
         *(uint8_t*)((uint64_t)0x20000 + 0x100) = 0x50;
         char* sucess = "Sucess";
-        DoSyscall(0xff, 0, 0, (uint64_t)(void*)sucess, 0, 0, 0);
+        parameters.Parameter1 = (uint64_t)(void*)sucess;
+        DoSyscall(0x03, (uint64_t)(void*)&device, (uint64_t)(void*)&parameters, 0, 0, 0, 0);
     }else{
         char* error = "Error";
-        DoSyscall(0xff, 0, 0, (uint64_t)(void*)error, 0, 0, 0);
+        parameters.Parameter1 = (uint64_t)(void*)error;
+        DoSyscall(0x03, (uint64_t)(void*)&device, (uint64_t)(void*)&parameters, 0, 0, 0, 0);
     }
     //exit
-    DoSyscall(0x3C, 0, 0, 0, 0, 0, 0);
+    DoSyscall(0x04, 0, 0, 0, 0, 0, 0);
 }
 

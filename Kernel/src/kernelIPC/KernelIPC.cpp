@@ -21,8 +21,7 @@ namespace KernelIPC{
 
     //IPC functions
 
-    uint64_t LogHandler(uint64_t type, char* str){
-        globalLogs->Successful("%x", type);
+    void LogHandler(uint64_t type, char* str){
         switch(type){
             case 0:
                 globalLogs->Message(str);
@@ -38,7 +37,22 @@ namespace KernelIPC{
                 break;
         }
 
-        DoSyscall(0x3C, 0, 1, 0, 0, 0, 0);
+        DoSyscall(ReturnSyscall, 0, 1, 0, 0, 0, 0);
+    }
+
+    void ReadFile(FileSystem::File* file, uint64_t start, size_t size, void* buffer){
+        uint64_t returnValue = file->Read(start, size, buffer);
+        DoSyscall(ReturnSyscall, 0, returnValue, 0, 0, 0, 0);
+    } 
+
+    void WriteFile(FileSystem::File* file, uint64_t start, size_t size, void* buffer){
+        uint64_t returnValue = file->Write(start, size, buffer);
+        DoSyscall(ReturnSyscall, 0, returnValue, 0, 0, 0, 0);        
+    } 
+
+    void OpenFile(char* filePath, char* mode, FileSystem::File* file){
+        uint64_t returnValue = (uint64_t)fileSystem->fopen(filePath, mode, file);
+        DoSyscall(ReturnSyscall, 0, returnValue, 0, 0, 0, 0);
     }
 }
 

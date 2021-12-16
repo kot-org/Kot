@@ -92,6 +92,7 @@ uint64_t TaskManager::ExecuteSubTask(InterruptStack* Registers, uint8_t CoreID, 
 
 
     memcpy(Registers, (void*)task->Content.Regs, sizeof(ContextStack));
+    
     return 1;
 }
 

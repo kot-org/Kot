@@ -18,57 +18,26 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
     TaskContext* task = &globalTaskManager->NodeExecutePerCore[CoreID]->Content;
 
     switch(syscall){
-        case 0x00: 
-            //fread
-            returnValue = (void*)((FileSystem::File*)arg0)->Read(arg1, arg2, (void*)arg3);
-            break;
-        case 0x01:
-            //fwrite
-            returnValue = (void*)((FileSystem::File*)arg0)->Write(arg1, arg2, (void*)arg3);
-            break;
-        case 0x02: 
-            //fopen
-            returnValue = (void*)fileSystem->fopen((char*)arg0, (char*)arg1, (FileSystem::File*)arg2);
-            break;
-        case 0x09:
-            //mmap
-            if(task->Priviledge <= DevicesRing){
-                returnValue = (void*)mmap(&task->paging, (void*)arg0, (void*)arg1);    
-            }else{
-                returnValue = (void*)0;
-            }
-            break;
-        case 0x0B:
-            //munmap
-            if(task->Priviledge <= DevicesRing){
-                returnValue = (void*)munmap(&task->paging, (void*)arg0);  
-            }else{
-                returnValue = (void*)0;
-            }
-
-            break;
-        case 0x0C:
+        case 0x0:
             //creat share memory
             returnValue = (void*)Memory::CreatSharing(&task->paging, arg0, (uint64_t*)arg1, (uint64_t*)arg2, (bool)arg3, task->Priviledge);
             //this function return the first physciall address of the sharing memory, it's the key to get sharing
             break;
-        case 0x0D:
+        case 0x01:
             //get share memory
             returnValue = (void*)Memory::GetSharing(&task->paging, (void*)arg0, (uint64_t*)arg1, task->Priviledge);
             break;
-        case 0x16: 
+        case 0x02: 
             //creat subTask 
             globalTaskManager->CreatSubTask(task->NodeParent, (void*)arg0, (DeviceTaskAdressStruct*)arg1);
             break;
-        case 0x17: 
+        case 0x03: 
             //execute subTask
             globalTaskManager->ExecuteSubTask(Registers, CoreID, (DeviceTaskAdressStruct*)arg0, (Parameters*)arg1);
-            break;
-        case 0x27:
-            //Get PID
-            returnValue = (void*)task->PID;
-            break;
-        case 0x3C:
+
+            Atomic::atomicUnlock(&mutexSyscall, 0);
+            return;
+        case 0x04:
             //exit
             if(!task->IsTaskInTask){
                 if(arg0 != NULL){
@@ -91,13 +60,25 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
             
             Atomic::atomicUnlock(&mutexSyscall, 0);
             return;
+        case 0x05:
+            //mmap
+            if(task->Priviledge <= DevicesRing){
+                returnValue = (void*)mmap(&task->paging, (void*)arg0, (void*)arg1);    
+            }else{
+                returnValue = (void*)0;
+            }
+            break;
+        case 0x06:
+            //munmap
+            if(task->Priviledge <= DevicesRing){
+                returnValue = (void*)munmap(&task->paging, (void*)arg0);  
+            }else{
+                returnValue = (void*)0;
+            }
 
-        case 0xff: 
-            //Kernel runtime will be delete and replace by IPC
-            returnValue = (void*)KernelRuntime(task, arg0, arg1, arg2, arg3, arg4, arg5);
             break;
         default:
-            globalLogs->Error("Unknown syscall 0x%x", syscall);
+            globalLogs->Error("Unknown syscall %x", syscall);
             break;
     }
 
