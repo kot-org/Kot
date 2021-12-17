@@ -91,6 +91,13 @@ extern "C" void Entry_IRQ13_Handler();
 extern "C" void Entry_IRQ14_Handler();
 extern "C" void Entry_IRQ15_Handler();
 extern "C" void Entry_IRQ16_Handler();
+extern "C" void Entry_IRQ17_Handler();
+extern "C" void Entry_IRQ18_Handler();
+extern "C" void Entry_IRQ19_Handler();
+extern "C" void Entry_IRQ20_Handler();
+extern "C" void Entry_IRQ21_Handler();
+extern "C" void Entry_IRQ22_Handler();
+extern "C" void Entry_IRQ23_Handler();
 
 
 

@@ -1,7 +1,7 @@
 [bits 64]
 
-GLOBAL Entry_DivideByZero_Handler, Entry_Debug_Handler, Entry_NMI_Handler, Entry_Breakpoint_Handler, Entry_Overflow_Handler, Entry_BoundRangeExceeded_Handler, Entry_InvalidOpcode_Handler, Entry_DeviceNotAvailable_Handler, Entry_DoubleFault_Handler, Entry_InvalidTSS_Handler, Entry_SegmentNotPresent_Handler, Entry_StackSegmentFault_Handler, Entry_GPFault_Handler, Entry_PageFault_Handler, Entry_x87FloatingPointException_Handler, Entry_AlignmentCheck_Handler, Entry_MachineCheck_Handler, Entry_SIMDFloatingPointException_Handler, Entry_VirtualizationException_Handler, Entry_SecurityException_Handler, Entry_LAPICTIMERInt_Handler, Entry_SyscallInt_Handler, Entry_Schedule_Handler, Entry_IRQ0_Handler, Entry_IRQ1_Handler, Entry_IRQ2_Handler, Entry_IRQ3_Handler, Entry_IRQ4_Handler, Entry_IRQ5_Handler, Entry_IRQ6_Handler, Entry_IRQ7_Handler, Entry_IRQ8_Handler, Entry_IRQ9_Handler, Entry_IRQ10_Handler, Entry_IRQ11_Handler, Entry_IRQ12_Handler, Entry_IRQ13_Handler, Entry_IRQ14_Handler, Entry_IRQ15_Handler, Entry_IRQ16_Handler, Entry_IPI_Handler
-EXTERN DivideByZero_Handler, Debug_Handler, NMI_Handler, Breakpoint_Handler, Overflow_Handler, BoundRangeExceeded_Handler, InvalidOpcode_Handler, DeviceNotAvailable_Handler, DoubleFault_Handler, InvalidTSS_Handler, SegmentNotPresent_Handler, StackSegmentFault_Handler, GPFault_Handler, PageFault_Handler, x87FloatingPointException_Handler, AlignmentCheck_Handler, MachineCheck_Handler, SIMDFloatingPointException_Handler, VirtualizationException_Handler, SecurityException_Handler, LAPICTIMERInt_Handler, SyscallInt_Handler, Schedule_Handler, IRQ0_Handler, IRQ1_Handler, IRQ2_Handler, IRQ3_Handler, IRQ4_Handler, IRQ5_Handler, IRQ6_Handler, IRQ7_Handler, IRQ8_Handler, IRQ9_Handler, IRQ10_Handler, IRQ11_Handler, IRQ12_Handler, IRQ13_Handler, IRQ14_Handler, IRQ15_Handler, IRQ16_Handler, IPI_Handler
+GLOBAL Entry_DivideByZero_Handler, Entry_Debug_Handler, Entry_NMI_Handler, Entry_Breakpoint_Handler, Entry_Overflow_Handler, Entry_BoundRangeExceeded_Handler, Entry_InvalidOpcode_Handler, Entry_DeviceNotAvailable_Handler, Entry_DoubleFault_Handler, Entry_InvalidTSS_Handler, Entry_SegmentNotPresent_Handler, Entry_StackSegmentFault_Handler, Entry_GPFault_Handler, Entry_PageFault_Handler, Entry_x87FloatingPointException_Handler, Entry_AlignmentCheck_Handler, Entry_MachineCheck_Handler, Entry_SIMDFloatingPointException_Handler, Entry_VirtualizationException_Handler, Entry_SecurityException_Handler, Entry_LAPICTIMERInt_Handler, Entry_SyscallInt_Handler, Entry_Schedule_Handler, Entry_IRQ0_Handler, Entry_IRQ1_Handler, Entry_IRQ2_Handler, Entry_IRQ3_Handler, Entry_IRQ4_Handler, Entry_IRQ5_Handler, Entry_IRQ6_Handler, Entry_IRQ7_Handler, Entry_IRQ8_Handler, Entry_IRQ9_Handler, Entry_IRQ10_Handler, Entry_IRQ11_Handler, Entry_IRQ12_Handler, Entry_IRQ13_Handler, Entry_IRQ14_Handler, Entry_IRQ15_Handler, Entry_IRQ16_Handler, Entry_IRQ17_Handler, Entry_IRQ18_Handler, Entry_IRQ19_Handler, Entry_IRQ20_Handler, Entry_IRQ21_Handler, Entry_IRQ22_Handler, Entry_IRQ23_Handler, Entry_IPI_Handler
+EXTERN DivideByZero_Handler, Debug_Handler, NMI_Handler, Breakpoint_Handler, Overflow_Handler, BoundRangeExceeded_Handler, InvalidOpcode_Handler, DeviceNotAvailable_Handler, DoubleFault_Handler, InvalidTSS_Handler, SegmentNotPresent_Handler, StackSegmentFault_Handler, GPFault_Handler, PageFault_Handler, x87FloatingPointException_Handler, AlignmentCheck_Handler, MachineCheck_Handler, SIMDFloatingPointException_Handler, VirtualizationException_Handler, SecurityException_Handler, LAPICTIMERInt_Handler, SyscallInt_Handler, Schedule_Handler, IRQ0_Handler, IRQ1_Handler, IRQ2_Handler, IRQ3_Handler, IRQ4_Handler, IRQ5_Handler, IRQ6_Handler, IRQ7_Handler, IRQ8_Handler, IRQ9_Handler, IRQ10_Handler, IRQ11_Handler, IRQ12_Handler, IRQ13_Handler, IRQ14_Handler, IRQ15_Handler, IRQ16_Handler, IRQ17_Handler, IRQ18_Handler, IRQ18_Handler, IRQ19_Handler, IRQ20_Handler, IRQ21_Handler, IRQ22_Handler, IRQ23_Handler, IPI_Handler
 
 %macro    PUSH_REG    0
     swapgs
@@ -460,7 +460,7 @@ Entry_IRQ13_Handler:
     PUSH_REG
     mov rdi, rsp
     
-    call IRQ0_Handler
+    call IRQ13_Handler
 
     POP_REG  
 	iretq 
@@ -469,7 +469,7 @@ Entry_IRQ14_Handler:
     PUSH_REG
     mov rdi, rsp
     
-    call IRQ0_Handler
+    call IRQ14_Handler
 
     POP_REG  
 	iretq 
@@ -478,7 +478,7 @@ Entry_IRQ15_Handler:
     PUSH_REG
     mov rdi, rsp
     
-    call IRQ0_Handler
+    call IRQ15_Handler
 
     POP_REG  
 	iretq 
@@ -487,7 +487,69 @@ Entry_IRQ16_Handler:
     PUSH_REG
     mov rdi, rsp
     
-    call IRQ0_Handler
+    call IRQ16_Handler
+
+    POP_REG  
+	iretq 
+Entry_IRQ17_Handler:
+    PUSH_REG
+    mov rdi, rsp
+    
+    call IRQ17_Handler
+
+    POP_REG  
+	iretq 
+
+Entry_IRQ18_Handler:
+    PUSH_REG
+    mov rdi, rsp
+    
+    call IRQ18_Handler
+
+    POP_REG  
+	iretq 
+
+Entry_IRQ19_Handler:
+    PUSH_REG
+    mov rdi, rsp
+    
+    call IRQ19_Handler
+
+    POP_REG  
+	iretq 
+
+Entry_IRQ20_Handler:
+    PUSH_REG
+    mov rdi, rsp
+    
+    call IRQ20_Handler
+
+    POP_REG  
+	iretq 
+
+Entry_IRQ21_Handler:
+    PUSH_REG
+    mov rdi, rsp
+    
+    call IRQ21_Handler
+
+    POP_REG  
+	iretq 
+
+Entry_IRQ22_Handler:
+    PUSH_REG
+    mov rdi, rsp
+    
+    call IRQ22_Handler
+
+    POP_REG  
+	iretq 
+
+Entry_IRQ23_Handler:
+    PUSH_REG
+    mov rdi, rsp
+    
+    call IRQ23_Handler
 
     POP_REG  
 	iretq 

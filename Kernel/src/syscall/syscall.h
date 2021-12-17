@@ -4,9 +4,7 @@
 #include "../scheduling/scheduler/scheduler.h"
 #include "syscallList.h"
 
-extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID);
-
-uint64_t KernelRuntime(TaskContext* task, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);
+extern "C" void SyscallInt_Handler(struct InterruptStack* Registers, uint64_t CoreID);
 
 uint64_t LogHandler(uint64_t type, char* str);
 

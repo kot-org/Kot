@@ -77,6 +77,8 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
             }
 
             break;
+        case Sys_IRQRedirect:
+            //IRQ
         default:
             globalLogs->Error("Unknown syscall %x", syscall);
             break;

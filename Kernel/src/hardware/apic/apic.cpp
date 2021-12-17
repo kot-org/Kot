@@ -113,7 +113,7 @@ namespace APIC{
 
         // Set up the entries
         uint32_t base = ioapic->GlobalSystemInterruptBase;
-        for (size_t i = 0; i < 16; i++){
+        for (size_t i = 0; i < 24; i++){
                 uint8_t IRQNumber = i + IRQ_START;
                 IoApicSetRedirectionEntry((void*)IOapicAddressVirtual, i - base, (IOAPICRedirectionEntry){
                     .vector = IRQNumber,
@@ -232,7 +232,7 @@ namespace APIC{
         uint32_t timer = localAPICReadRegister(LocalAPICRegisterOffsetLVTTimer);
 
         LocalAPICInterruptRegister TimerRegisters;
-        TimerRegisters.vector = 0x30;
+        TimerRegisters.vector = 0x40;
         TimerRegisters.mask = LocalAPICInterruptRegisterMaskEnable;
         TimerRegisters.timerMode = LocalAPICInterruptTimerModePeriodic;
         

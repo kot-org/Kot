@@ -90,9 +90,16 @@ void InitializeInterrupts(){
     SetIDTGate((void*)Entry_IRQ14_Handler, IRQ_START + 14, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
     SetIDTGate((void*)Entry_IRQ15_Handler, IRQ_START + 15, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
     SetIDTGate((void*)Entry_IRQ16_Handler, IRQ_START + 16, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ17_Handler, IRQ_START + 17, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ18_Handler, IRQ_START + 18, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ19_Handler, IRQ_START + 19, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ20_Handler, IRQ_START + 20, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ21_Handler, IRQ_START + 21, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ22_Handler, IRQ_START + 22, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_IRQ23_Handler, IRQ_START + 23, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
 
     /* APIC Timer */
-    SetIDTGate((void*)Entry_LAPICTIMERInt_Handler, 0x30, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)Entry_LAPICTIMERInt_Handler, 0x40, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
     
     /* Syscall */
     SetIDTGate((void*)Entry_SyscallInt_Handler, 0x80, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
@@ -376,6 +383,41 @@ extern "C" void IRQ15_Handler(InterruptStack* Registers){
 
 extern "C" void IRQ16_Handler(InterruptStack* Registers){
     globalLogs->Warning("IRQ 16");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ17_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 17");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ18_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 18");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ19_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 19");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ20_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 20");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ21_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 21");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ22_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 22");
+    APIC::localApicEOI();
+}
+
+extern "C" void IRQ23_Handler(InterruptStack* Registers){
+    globalLogs->Warning("IRQ 23");
     APIC::localApicEOI();
 }
 
