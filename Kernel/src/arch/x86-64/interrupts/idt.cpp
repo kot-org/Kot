@@ -23,3 +23,7 @@ void SetIDTGate(void* handler, uint8_t entryOffset, uint8_t GateType, int DPL, u
     interrupt->type_attr.StorageSegment = 0;
     interrupt->selector = selector;
 }
+
+IDTDescEntry* GetIdtGate(uint8_t entryOffset, IDTR idtrl){
+    return (IDTDescEntry*)(idtrl.Offset + entryOffset * sizeof(IDTDescEntry));
+}

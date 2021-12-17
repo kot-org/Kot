@@ -78,7 +78,19 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
 
             break;
         case Sys_IRQRedirect:
-            //IRQ
+            //Redirect IRQ to driver
+            if(task->Priviledge <= DevicesRing){
+                returnValue = (void*)SetIrq(task->Priviledge, &task->paging, (uint8_t)arg0, (void*)arg1);
+            }else{
+                returnValue = (void*)0;
+            }
+        case Sys_IRQDefault:
+            //Set default redirection IRQ
+            if(task->Priviledge <= DevicesRing){
+                returnValue = (void*)SetIrqDefault((uint8_t)arg0);
+            }else{
+                returnValue = (void*)0;
+            }
         default:
             globalLogs->Error("Unknown syscall %x", syscall);
             break;

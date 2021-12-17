@@ -114,6 +114,7 @@ namespace APIC{
         // Set up the entries
         uint32_t base = ioapic->GlobalSystemInterruptBase;
         for (size_t i = 0; i < 24; i++){
+                SetIrqDefault(i);
                 uint8_t IRQNumber = i + IRQ_START;
                 IoApicSetRedirectionEntry((void*)IOapicAddressVirtual, i - base, (IOAPICRedirectionEntry){
                     .vector = IRQNumber,

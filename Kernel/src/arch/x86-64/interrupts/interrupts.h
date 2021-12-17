@@ -11,18 +11,8 @@
 #include "../../../memory/paging/pageFrameAllocator.h"
 #include "../../../scheduling/scheduler/scheduler.h"
 
-#define PIC1_COMMAND 0x20
-#define PIC1_DATA 0x21
-#define PIC2_COMMAND 0xA0
-#define PIC2_DATA 0xA1
-#define PIC_EOI 0x20
-
-#define ICW1_INIT 0x10
-#define ICW1_ICW4 0x01
-#define ICW4_8086 0x01
-
-
 #define IRQ_START 0x20
+#define IRQ_MAX 0x18
 
 struct InterruptStack {
     void* rax; void* rbx; void* rcx; void* rdx; void* rsi; void* rdi; void* rbp; //push in asm
@@ -42,6 +32,12 @@ struct ErrorInterruptStack {
 
 struct ProcessorInterruptStack {
     void* rip; void* cs; void* rflags; void* rsp; void* ss; //push by cpu with an interrupt
+}__attribute__((packed));
+
+struct IRQRedirect{
+    void* stack;
+    void* cr3; 
+    void* functionAddress;
 }__attribute__((packed));
 
 extern IDTR idtr;
@@ -99,5 +95,10 @@ extern "C" void Entry_IRQ21_Handler();
 extern "C" void Entry_IRQ22_Handler();
 extern "C" void Entry_IRQ23_Handler();
 
+uint64_t SetIrq(uint8_t ring, PageTableManager* pageTable, uint8_t irq, void* address);
+uint64_t SetIrqDefault(uint8_t irq);
 
+extern "C" void ExternIRQFunction(void* stack, void* cr3, void* functionAddress);
 
+extern IRQRedirect IRQRedirectList[IRQ_MAX];
+extern void* IRQDefaultRedirect[IRQ_MAX];

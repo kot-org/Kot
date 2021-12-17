@@ -142,7 +142,7 @@ void InitializeKernel(BootInfo* bootInfo){
     app->Read(0, app->fileInfo.BytesSize, appBuffer);
     Parameters FunctionParameters;
     FunctionParameters.Parameter0 = (uint64_t)0xff;
-    ELF::loadElf(appBuffer, 3, "System", &FunctionParameters);
+    ELF::loadElf(appBuffer, 1, "System", &FunctionParameters);
 
     APIC::EnableAPIC();
     APIC::localApicEOI();

@@ -39,3 +39,4 @@ struct IDTR{
 
 /* functions */
 void SetIDTGate(void* handler, uint8_t entryOffset, uint8_t GateType, int DPL, uint8_t selector, IDTR idtrl);
+IDTDescEntry* GetIdtGate(uint8_t entryOffset, IDTR idtrl);

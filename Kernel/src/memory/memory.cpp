@@ -45,6 +45,27 @@ int memcmp(const void *aptr, const void *bptr, size_t n){
 }
 
 namespace Memory{
+    /* _____________________________Stack Creation___________________________ */
+    void* CreatStack(PageTableManager* pageTable, size_t PageNumber, bool IsUser){
+        //first free page forstack is higher half - 0x1000
+        uint64_t virtualAddressIterator = HigherHalfAddress - 0x1000;
+        //find free pages
+        while(pageTable->GetFlags((void*)virtualAddressIterator, PT_Flag::Present)){
+            virtualAddressIterator -= 0x1000;
+        }  
+
+        void* stackAddress = (void*)virtualAddressIterator;
+        //allocate pages
+        for(int i = 0; i < PageNumber; i++){
+            pageTable->MapMemory((void*)virtualAddressIterator, (void*)globalAllocator.RequestPage());
+            if(IsUser) pageTable->MapUserspaceMemory((void*)virtualAddressIterator);
+            virtualAddressIterator -= 0x1000;
+        }
+
+        return stackAddress;
+    }
+
+    /* _____________________________Share Memory_____________________________ */
     //PT_Flag::Custom1 master share
     //PT_Flag::Custom2 slave share
     

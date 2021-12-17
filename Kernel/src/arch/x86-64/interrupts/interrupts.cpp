@@ -4,6 +4,35 @@ IDTR idtr;
 
 uint8_t IDTData[0x1000];
 
+IRQRedirect IRQRedirectList[IRQ_MAX];
+
+void* IRQDefaultRedirect[IRQ_MAX] = { 
+    (void*)Entry_IRQ0_Handler,
+    (void*)Entry_IRQ1_Handler,
+    (void*)Entry_IRQ2_Handler,
+    (void*)Entry_IRQ3_Handler,
+    (void*)Entry_IRQ4_Handler,
+    (void*)Entry_IRQ5_Handler,
+    (void*)Entry_IRQ6_Handler,
+    (void*)Entry_IRQ7_Handler,
+    (void*)Entry_IRQ8_Handler,
+    (void*)Entry_IRQ9_Handler,
+    (void*)Entry_IRQ10_Handler,
+    (void*)Entry_IRQ11_Handler,
+    (void*)Entry_IRQ12_Handler,
+    (void*)Entry_IRQ13_Handler,
+    (void*)Entry_IRQ14_Handler,
+    (void*)Entry_IRQ15_Handler,
+    (void*)Entry_IRQ16_Handler,
+    (void*)Entry_IRQ17_Handler,
+    (void*)Entry_IRQ18_Handler,
+    (void*)Entry_IRQ19_Handler,
+    (void*)Entry_IRQ20_Handler,
+    (void*)Entry_IRQ21_Handler,
+    (void*)Entry_IRQ22_Handler,
+    (void*)Entry_IRQ23_Handler,
+};
+
 void InitializeInterrupts(){
     if(idtr.Limit == 0){
         idtr.Limit = 0x0FFF;
@@ -73,30 +102,9 @@ void InitializeInterrupts(){
     SetIDTGate((void*)Entry_SecurityException_Handler, 0x1E, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
 
     /* IRQs */
-    SetIDTGate((void*)Entry_IRQ0_Handler, IRQ_START + 0, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ1_Handler, IRQ_START + 1, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ2_Handler, IRQ_START + 2, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ3_Handler, IRQ_START + 3, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ4_Handler, IRQ_START + 4, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ5_Handler, IRQ_START + 5, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ6_Handler, IRQ_START + 6, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ7_Handler, IRQ_START + 7, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ8_Handler, IRQ_START + 8, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ9_Handler, IRQ_START + 9, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ10_Handler, IRQ_START + 10, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ11_Handler, IRQ_START + 11, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ12_Handler, IRQ_START + 12, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ13_Handler, IRQ_START + 13, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ14_Handler, IRQ_START + 14, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ15_Handler, IRQ_START + 15, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ16_Handler, IRQ_START + 16, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ17_Handler, IRQ_START + 17, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ18_Handler, IRQ_START + 18, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ19_Handler, IRQ_START + 19, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ20_Handler, IRQ_START + 20, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ21_Handler, IRQ_START + 21, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ22_Handler, IRQ_START + 22, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-    SetIDTGate((void*)Entry_IRQ23_Handler, IRQ_START + 23, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    for(int i = 0; i < IRQ_MAX; i++){
+        SetIDTGate((void*)IRQDefaultRedirect[i], IRQ_START + i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    }
 
     /* APIC Timer */
     SetIDTGate((void*)Entry_LAPICTIMERInt_Handler, 0x40, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
@@ -297,127 +305,123 @@ extern "C" void SecurityException_Handler(ErrorInterruptStack* Registers, uint64
     while(true);
 }
 
-extern "C" void IRQ0_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 0");
+extern "C" void IRQ0_Handler(InterruptStack* Registers){ 
+    ExternIRQFunction(IRQRedirectList[0].stack, IRQRedirectList[0].cr3, IRQRedirectList[0].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ1_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 1");
-    uint8_t scancode = IoRead8(0x60);
-    HandleKeyboard(scancode);
+    ExternIRQFunction(IRQRedirectList[1].stack, IRQRedirectList[1].cr3, IRQRedirectList[1].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ2_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 2");
+    ExternIRQFunction(IRQRedirectList[2].stack, IRQRedirectList[2].cr3, IRQRedirectList[2].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ3_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 3");
+    ExternIRQFunction(IRQRedirectList[3].stack, IRQRedirectList[3].cr3, IRQRedirectList[3].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ4_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 4");
+    ExternIRQFunction(IRQRedirectList[4].stack, IRQRedirectList[4].cr3, IRQRedirectList[4].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ5_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 5");
+    ExternIRQFunction(IRQRedirectList[5].stack, IRQRedirectList[5].cr3, IRQRedirectList[5].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ6_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 6");
+    ExternIRQFunction(IRQRedirectList[6].stack, IRQRedirectList[6].cr3, IRQRedirectList[6].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ7_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 7");
+    ExternIRQFunction(IRQRedirectList[7].stack, IRQRedirectList[7].cr3, IRQRedirectList[7].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ8_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 8");
+    ExternIRQFunction(IRQRedirectList[8].stack, IRQRedirectList[8].cr3, IRQRedirectList[8].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ9_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 9");
+    ExternIRQFunction(IRQRedirectList[9].stack, IRQRedirectList[9].cr3, IRQRedirectList[9].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ10_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 10");
+    ExternIRQFunction(IRQRedirectList[10].stack, IRQRedirectList[10].cr3, IRQRedirectList[10].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ11_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 11");
+    ExternIRQFunction(IRQRedirectList[11].stack, IRQRedirectList[11].cr3, IRQRedirectList[11].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ12_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 12");
-    uint8_t mousedata = IoRead8(0x60);
-    HandlePS2Mouse(mousedata);
+    ExternIRQFunction(IRQRedirectList[12].stack, IRQRedirectList[12].cr3, IRQRedirectList[12].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ13_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 13");
+    ExternIRQFunction(IRQRedirectList[13].stack, IRQRedirectList[13].cr3, IRQRedirectList[13].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ14_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 14");
+    ExternIRQFunction(IRQRedirectList[14].stack, IRQRedirectList[14].cr3, IRQRedirectList[14].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ15_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 15");
+    ExternIRQFunction(IRQRedirectList[15].stack, IRQRedirectList[15].cr3, IRQRedirectList[15].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ16_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 16");
+    ExternIRQFunction(IRQRedirectList[16].stack, IRQRedirectList[16].cr3, IRQRedirectList[16].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ17_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 17");
+    ExternIRQFunction(IRQRedirectList[17].stack, IRQRedirectList[17].cr3, IRQRedirectList[17].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ18_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 18");
+    ExternIRQFunction(IRQRedirectList[18].stack, IRQRedirectList[18].cr3, IRQRedirectList[18].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ19_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 19");
+    ExternIRQFunction(IRQRedirectList[19].stack, IRQRedirectList[19].cr3, IRQRedirectList[19].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ20_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 20");
+    ExternIRQFunction(IRQRedirectList[20].stack, IRQRedirectList[20].cr3, IRQRedirectList[20].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ21_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 21");
+    ExternIRQFunction(IRQRedirectList[21].stack, IRQRedirectList[21].cr3, IRQRedirectList[21].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ22_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 22");
+    ExternIRQFunction(IRQRedirectList[22].stack, IRQRedirectList[22].cr3, IRQRedirectList[22].functionAddress);
     APIC::localApicEOI();
 }
 
 extern "C" void IRQ23_Handler(InterruptStack* Registers){
-    globalLogs->Warning("IRQ 23");
+    ExternIRQFunction(IRQRedirectList[23].stack, IRQRedirectList[23].cr3, IRQRedirectList[23].functionAddress);
     APIC::localApicEOI();
 }
 

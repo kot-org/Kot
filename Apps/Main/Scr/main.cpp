@@ -127,6 +127,11 @@ void main(uint64_t test){
         DoSyscall(0x03, (uint64_t)(void*)&device, (uint64_t)(void*)&parameters, 0, 0, 0, 0);
     }
     //exit
+
+    while(true) asm("hlt");
     DoSyscall(0x04, 0, 0, 0, 0, 0, 0);
 }
 
+void IRQTest(){
+    
+}
