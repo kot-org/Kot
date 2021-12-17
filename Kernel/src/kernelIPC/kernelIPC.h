@@ -9,6 +9,9 @@ namespace KernelIPC{
 
     void LogHandler(uint64_t type, char* str);
 
+    void ReadFile(FileSystem::File* file, uint64_t start, size_t size, void* buffer);
+    void WriteFile(FileSystem::File* file, uint64_t start, size_t size, void* buffer);
+    void OpenFile(char* filePath, char* mode, FileSystem::File* file);
 }
 
 //IPC static index
