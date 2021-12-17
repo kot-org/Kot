@@ -87,39 +87,6 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
     Atomic::atomicUnlock(&mutexSyscall, 0);  
 }
 
-uint64_t KernelRuntime(TaskContext* task, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5){
-    uint64_t returnValue = 0;
-    switch(arg0){
-        case 0:
-            returnValue = LogHandler(arg1, (char*)arg2);
-            break;
-        default:
-            returnValue = 0;
-            break;
-    }
-
-    return returnValue;
-}
-
-uint64_t LogHandler(uint64_t type, char* str){
-    switch(type){
-        case 0:
-            globalLogs->Message(str);
-            break;
-        case 1:
-            globalLogs->Error(str);
-            break;
-        case 2:
-            globalLogs->Warning(str);
-            break;
-        case 3:
-            globalLogs->Successful(str);
-            break;
-    }
-
-    return 1;
-}
-
 uint64_t mmap(PageTableManager* pageTable, void* addressPhysical, void* addressVirtual){
     addressVirtual = (void*)(addressVirtual - (uint64_t)addressVirtual % 0x1000);
     if((uint64_t)addressVirtual < HigherHalfAddress){
