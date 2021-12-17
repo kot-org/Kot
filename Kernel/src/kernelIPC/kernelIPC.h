@@ -2,7 +2,6 @@
 #include "../main/kernelInit.h"
 
 namespace KernelIPC{
-    #define ReturnSyscall 0x04
     void Initialize();
     void CreatTask(void* EntryPoint, uint16_t Index);
 
@@ -11,3 +10,9 @@ namespace KernelIPC{
     void LogHandler(uint64_t type, char* str);
 
 }
+
+//IPC static index
+#define IPC_Sys_LogHandler 0x0
+#define IPC_Sys_ReadFile 0x1
+#define IPC_Sys_WriteFile 0x2
+#define IPC_Sys_OpenFile 0x3

@@ -18,26 +18,26 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
     TaskContext* task = &globalTaskManager->NodeExecutePerCore[CoreID]->Content;
 
     switch(syscall){
-        case 0x0:
+        case Sys_CreatShareMemory:
             //creat share memory
             returnValue = (void*)Memory::CreatSharing(&task->paging, arg0, (uint64_t*)arg1, (uint64_t*)arg2, (bool)arg3, task->Priviledge);
             //this function return the first physciall address of the sharing memory, it's the key to get sharing
             break;
-        case 0x01:
+        case Sys_GetShareMemory:
             //get share memory
             returnValue = (void*)Memory::GetSharing(&task->paging, (void*)arg0, (uint64_t*)arg1, task->Priviledge);
             break;
-        case 0x02: 
+        case Sys_CreatSubtask: 
             //creat subTask 
             globalTaskManager->CreatSubTask(task->NodeParent, (void*)arg0, (DeviceTaskAdressStruct*)arg1);
             break;
-        case 0x03: 
+        case Sys_ExecuteSubtask: 
             //execute subTask
             globalTaskManager->ExecuteSubTask(Registers, CoreID, (DeviceTaskAdressStruct*)arg0, (Parameters*)arg1);
 
             Atomic::atomicUnlock(&mutexSyscall, 0);
             return;
-        case 0x04:
+        case Sys_Exit:
             //exit
             if(!task->IsTaskInTask){
                 if(arg0 != NULL){
@@ -60,7 +60,7 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
             
             Atomic::atomicUnlock(&mutexSyscall, 0);
             return;
-        case 0x05:
+        case Sys_Map:
             //mmap
             if(task->Priviledge <= DevicesRing){
                 returnValue = (void*)mmap(&task->paging, (void*)arg0, (void*)arg1);    
@@ -68,7 +68,7 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
                 returnValue = (void*)0;
             }
             break;
-        case 0x06:
+        case Sys_Unmap:
             //munmap
             if(task->Priviledge <= DevicesRing){
                 returnValue = (void*)munmap(&task->paging, (void*)arg0);  
@@ -121,12 +121,17 @@ uint64_t LogHandler(uint64_t type, char* str){
 }
 
 uint64_t mmap(PageTableManager* pageTable, void* addressPhysical, void* addressVirtual){
-    //check if page is free
-    pageTable->MapMemory(addressVirtual, addressPhysical);
+    addressVirtual = (void*)(addressVirtual - (uint64_t)addressVirtual % 0x1000);
+    if((uint64_t)addressVirtual < HigherHalfAddress){
+        pageTable->MapMemory(addressVirtual, addressPhysical);
+    }
     return 1;
 }
 
 uint64_t munmap(PageTableManager* pageTable, void* addressVirtual){
-    pageTable->UnmapMemory(addressVirtual);
+    addressVirtual = (void*)(addressVirtual - (uint64_t)addressVirtual % 0x1000);
+    if((uint64_t)addressVirtual < HigherHalfAddress){
+        pageTable->UnmapMemory(addressVirtual);
+    }
     return 1;
 }

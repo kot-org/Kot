@@ -2,6 +2,7 @@
 #include "../arch/x86-64/interrupts/interrupts.h"
 #include "../fileSystem/KFS/kfs.h"
 #include "../scheduling/scheduler/scheduler.h"
+#include "syscallList.h"
 
 extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID);
 

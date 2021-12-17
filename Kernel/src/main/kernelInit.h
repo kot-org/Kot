@@ -31,6 +31,7 @@
 #include "../drivers/rtc/rtc.h"
 #include "../drivers/fpu/fpu.h"
 #include "../drivers/sse/sse.h"
+#include "../syscall/syscall.h"
 #include "../arch/x86-64/io/msr/msr.h"
 #include "../arch/x86-64/io/serial/serial.h"
 #include "../arch/x86-64/tss/tss.h"
@@ -41,3 +42,5 @@
 extern "C" void main(BootInfo*);
 
 void InitializeKernel(BootInfo* bootInfo);
+
+#define HigherHalfAddress 0xFFFF800000000000

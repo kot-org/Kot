@@ -5,7 +5,10 @@ namespace KernelIPC{
 
     void Initialize(){
         parent = globalTaskManager->AddTask(false, false, 0, "Kernel device");
-        CreatTask((void*)LogHandler, 0);
+        CreatTask((void*)LogHandler, IPC_Sys_LogHandler);
+        CreatTask((void*)ReadFile, IPC_Sys_ReadFile);
+        CreatTask((void*)WriteFile, IPC_Sys_WriteFile);
+        CreatTask((void*)OpenFile, IPC_Sys_OpenFile);
     }
 
     void CreatTask(void* EntryPoint, uint16_t Index){
@@ -37,22 +40,22 @@ namespace KernelIPC{
                 break;
         }
 
-        DoSyscall(ReturnSyscall, 0, 1, 0, 0, 0, 0);
+        DoSyscall(Sys_Exit, 0, 1, 0, 0, 0, 0);
     }
 
     void ReadFile(FileSystem::File* file, uint64_t start, size_t size, void* buffer){
         uint64_t returnValue = file->Read(start, size, buffer);
-        DoSyscall(ReturnSyscall, 0, returnValue, 0, 0, 0, 0);
+        DoSyscall(Sys_Exit, 0, returnValue, 0, 0, 0, 0);
     } 
 
     void WriteFile(FileSystem::File* file, uint64_t start, size_t size, void* buffer){
         uint64_t returnValue = file->Write(start, size, buffer);
-        DoSyscall(ReturnSyscall, 0, returnValue, 0, 0, 0, 0);        
+        DoSyscall(Sys_Exit, 0, returnValue, 0, 0, 0, 0);        
     } 
 
     void OpenFile(char* filePath, char* mode, FileSystem::File* file){
         uint64_t returnValue = (uint64_t)fileSystem->fopen(filePath, mode, file);
-        DoSyscall(ReturnSyscall, 0, returnValue, 0, 0, 0, 0);
+        DoSyscall(Sys_Exit, 0, returnValue, 0, 0, 0, 0);
     }
 }
 
