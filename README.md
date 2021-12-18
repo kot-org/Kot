@@ -1,5 +1,5 @@
 <p align="center">
-	<img src="Images/Logo/icon.png" /> 
+	<img src="Images/Logo/371D3AB5-4CFA-46D3-9C26-DC4081C0F03A.png" /> 
 </p>
 
 # KonectOS 2
