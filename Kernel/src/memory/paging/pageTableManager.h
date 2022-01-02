@@ -5,6 +5,8 @@
 #include "PageFrameAllocator.h"
 #include "../memory.h"
 
+#define MAX_PROCESSORS      256
+
 struct PageTableManager {
     void PageTableManagerInit(PageTable* PML4Address);
     void DefinePhysicalMemoryLocation(void* PhysicalMemoryVirtualAddress);
@@ -26,4 +28,4 @@ struct PageTableManager {
     uint64_t VirtualAddress;
 }__attribute__((packed));
 
-extern PageTableManager globalPageTableManager;
+extern PageTableManager globalPageTableManager[MAX_PROCESSORS];

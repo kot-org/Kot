@@ -40,4 +40,5 @@ struct BootInfo{
 	struct PSF_FONT* psf1_Font;
 	struct MemoryInfo memoryInfo;
     ACPI::RSDP2* rsdp; //read system descriptor pointer
+	void* smbios; //bios info
 }__attribute__((packed));

@@ -139,9 +139,6 @@
 #define EFI_USB_MAX_ISO_BUFFER_NUM  7   // Listed on Page 789
 #define EFI_USB_MAX_ISO_BUFFER_NUM1 2
 
-// This is listed on page 782. However is missing the value that is supposed to be assigned to it.
-// I added the 1024 just so that it will compile. I do not know the real value it should have.
-// I emailed uefi.org about it. Waiting on response.
 #define EFI_USB_MAX_BULK_BUFFER_NUM 1024
 
 
@@ -187,7 +184,7 @@
 
 
 //typedef unsigned int            UINTN;     // Uncomment for 32-Bit
-typedef unsigned long long      UINTN;     // Uncomment for 64-Bit
+typedef unsigned long long      UINTN;      // Uncomment for 64-Bit
 
 typedef unsigned char           UINT8;
 typedef unsigned short          UINT16;

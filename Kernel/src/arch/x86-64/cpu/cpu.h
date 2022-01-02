@@ -98,4 +98,5 @@ extern CPU globalCPU;
 CPURegisters DumpRegisters();
 
 extern "C" void SaveCoreID();
+extern "C" void SetCoreID(uint8_t CoreID);
 extern "C" uint8_t GetCoreID();

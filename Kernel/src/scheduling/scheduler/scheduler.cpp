@@ -2,110 +2,278 @@
 
 TaskManager* globalTaskManager;
 
+static uint64_t mutexScheduler;
+
 void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){  
-    if(CoreInUserSpace[CoreID]){  
+    if(IsSchedulerEnable[CoreID]){  
+        Atomic::atomicSpinlock(&mutexScheduler, 1);
+        Atomic::atomicLock(&mutexScheduler, 1);
+
         uint64_t actualTime = HPET::GetTime();
-        TaskNode* node = NodeExecutePerCore[CoreID];
-        if(node != NULL){
-            node->Content.TimeUsed += actualTime - TimeByCore[CoreID];
-            memcpy(node->Content.Regs, Registers, sizeof(ContextStack));
-            node->Content.IsRunning = false;
+        Task* TaskEnd = NodeExecutePerCore[CoreID];
+        if(TaskEnd != NULL){
+            TaskEnd->TimeAllocate += actualTime - TimeByCore[CoreID];
+            if(TaskEnd->Parent != NULL) TaskEnd->Parent->TimeAllocate += actualTime - TimeByCore[CoreID]; 
+            memcpy(TaskEnd->Regs, Registers, sizeof(ContextStack));
+            EnqueueTask(TaskEnd);
         }
 
         TimeByCore[CoreID] = actualTime;
-        
-        MainNodeScheduler = MainNodeScheduler->Next;
-        node = MainNodeScheduler;
 
-        while(node->Content.IsRunning || node->Content.IsPaused){
-            MainNodeScheduler = MainNodeScheduler->Next;
-            node = MainNodeScheduler;
-        }   
+        Task* TaskStart = GetTask();
 
-        node->Content.IsRunning = true;
-        node->Content.CoreID = CoreID;
+        TaskStart->TaskQueueParent = NULL;
 
-        NodeExecutePerCore[CoreID] = node;
+        TaskStart->CoreID = CoreID;
 
-        memcpy(Registers, node->Content.Regs, sizeof(ContextStack));
+        NodeExecutePerCore[CoreID] = TaskStart;
+        memcpy(Registers, TaskStart->Regs, sizeof(ContextStack));
+    
+        asm("mov %0, %%cr3" :: "r" (TaskStart->paging.PML4));
 
-        asm("mov %0, %%cr3" :: "r" (node->Content.paging.PML4));
+        Atomic::atomicUnlock(&mutexScheduler, 1);
     }
 }
 
-uint64_t TaskManager::ExecuteSubTask(InterruptStack* Registers, uint8_t CoreID, DeviceTaskAdressStruct* DeviceAdress, Parameters* FunctionParameters){
+void TaskManager::EnqueueTask(Task* task){
+    if(task->IsInQueue) return;
+    Atomic::atomicSpinlock(&mutexScheduler, 0);
+    Atomic::atomicLock(&mutexScheduler, 0);
+    
+    if(FirstNode == NULL) FirstNode = task;
+
+    if(LastNode != NULL){
+        LastNode->Next = task;
+        task->Last = LastNode;
+        task->Next = FirstNode;
+    }
+
+    LastNode = task;
+
+    task->IsInQueue = true;
+    Atomic::atomicUnlock(&mutexScheduler, 0);
+}
+
+void TaskManager::DequeueTask(Task* task){
+    if(!task->IsInQueue) return;
+    Atomic::atomicSpinlock(&mutexScheduler, 0);
+    Atomic::atomicLock(&mutexScheduler, 0);
+    if(FirstNode == task){
+        if(FirstNode != task->Next){
+           FirstNode = task->Next; 
+        }else{
+            FirstNode = NULL;
+        }
+    }
+    if(LastNode == task){
+        if(task->Last != NULL){
+            LastNode = task->Last; 
+        }else{
+            LastNode = FirstNode;
+        }
+        
+    }      
+
+    if(LastNode != NULL){
+        LastNode->Next = FirstNode;   
+    }
+   
+
+    if(task->Last != NULL) task->Last->Next = task->Next;
+    task->Next->Last = task->Last;
+    task->Last = NULL;
+    task->Next = NULL;
+
+
+    task->IsInQueue = false;
+    Atomic::atomicUnlock(&mutexScheduler, 0);
+}
+
+void TaskManager::DequeueTaskWithoutLock(Task* task){
+    if(FirstNode == task){
+        if(FirstNode != task->Next){
+           FirstNode = task->Next; 
+        }else{
+            FirstNode = NULL;
+        }
+    }
+    if(LastNode == task){
+        if(task->Last != NULL){
+            LastNode = task->Last; 
+        }else{
+            FirstNode = LastNode;
+        }
+        
+    }      
+
+    LastNode->Next = FirstNode;
+
+    if(task->Last != NULL) task->Last->Next = task->Next;
+    task->Next->Last = task->Last;
+    task->Last = NULL;
+    task->Next = NULL;
+
+    task->IsInQueue = false;
+}
+
+Task* TaskManager::GetTask(){
+    Atomic::atomicSpinlock(&mutexScheduler, 0);
+    Atomic::atomicLock(&mutexScheduler, 0);
+
+    Task* ReturnValue = FirstNode;
+
+    DequeueTaskWithoutLock(ReturnValue);
+
+    Atomic::atomicUnlock(&mutexScheduler, 0);    
+    return ReturnValue;
+}
+
+void TaskManager::SwitchTask(InterruptStack* Registers, uint8_t CoreID, Task* task){
+    if(task == NULL) return;
+
+    Atomic::atomicSpinlock(&mutexScheduler, 1);
+    Atomic::atomicLock(&mutexScheduler, 1);
+
     uint64_t actualTime = HPET::GetTime();
+    Task* TaskEnd = NodeExecutePerCore[CoreID];
+    if(TaskEnd != NULL){
+        TaskEnd->TimeAllocate += actualTime - TimeByCore[CoreID];
+        if(TaskEnd->Parent != NULL) TaskEnd->Parent->TimeAllocate += actualTime - TimeByCore[CoreID]; 
+        memcpy(TaskEnd->Regs, Registers, sizeof(ContextStack));
+        EnqueueTask(TaskEnd);
+    }
+
     TimeByCore[CoreID] = actualTime;
 
-    //pause this task
-    memcpy(NodeExecutePerCore[CoreID]->Content.Regs, Registers, sizeof(ContextStack));
-    NodeExecutePerCore[CoreID]->Content.TimeUsed += actualTime - TimeByCore[CoreID];
-    NodeExecutePerCore[CoreID]->Content.IsPaused = true;
-    NodeExecutePerCore[CoreID]->Content.IsRunning = false;
+    task->TaskQueueParent = NULL;
 
-    //find task    
-    DeviceTaskData* DeviceTaskDataNode = DeviceTaskTable.GetDeviceTaskData(DeviceAdress);
+    task->CoreID = CoreID;
+
+    NodeExecutePerCore[CoreID] = task;
+    memcpy(Registers, task->Regs, sizeof(ContextStack));
+
+    asm("mov %0, %%cr3" :: "r" (task->paging.PML4));
+
+    Atomic::atomicUnlock(&mutexScheduler, 1);
+}
+
+Task* TaskManager::DuplicateTask(Task* parent){
+    //This function setup minimal register
+    Task* task = (Task*)calloc(sizeof(Task));
+    task = (Task*)calloc(sizeof(Task));
+
+    if(AllTasks == NULL){
+        AllTasks = CreatNode((void*)task);
+        task->NodeParent = AllTasks;
+    }else{
+        task->NodeParent = AllTasks->Add(task);
+    }
+
+    task->Regs = (ContextStack*)calloc(sizeof(ContextStack));
+
+    //Copy task's paging
+    task->paging = parent->paging;
+
+    //Creat heap
+    globalPageTableManager[GetCoreID()].ChangePaging(&task->paging);
+    task->heap = parent->heap; // 0x400000000000 = higher half of the lower half
+    uint64_t StackSize = 0x100000; // 1 mb
+
+    task->Stack = task->heap->malloc(StackSize);
+
+    task->Regs->rip = parent->EntryPoint;
+    task->Regs->cs = parent->Regs->cs; //user code selector
+    task->Regs->ss = parent->Regs->ss; //user data selector
+    task->Regs->rsp = (void*)((uint64_t)task->Stack + StackSize); //because the pile goes down
+    task->Regs->rflags = parent->Regs->rflags; //interrupts & syscall
+    task->IsPaused = true;
+    task->Priviledge = parent->Priviledge;
+    task->InterruptTask = parent->InterruptTask;
+
+    task->CreationTime = HPET::GetTime();
+
+    task->Parent = task;
+    task->TaskManagerParent = this;
+
+    int counter = strlen(parent->Name);
+    if(counter > MaxNameTask) counter = MaxNameTask;
+    memcpy(task->Name, parent->Name, counter);
+    task->Name[counter] = 0;
+    
+    task->PID = IDTask; //min of ID is 0
+    IDTask++;
+    NumberTaskTotal++;
+    
+    globalPageTableManager[GetCoreID()].RestorePaging();
+    
+    return task;
+}
+
+uint64_t Task::ExecuteSubTask(InterruptStack* Registers, uint8_t CoreID, DeviceTaskAdressStruct* DeviceAdress, Parameters* FunctionParameters){
+    TaskManagerParent->CurrentTaskExecute++;
+    //pause this task
+    Pause(CoreID, Registers);
+
+    //find task  
+    DeviceTaskData* DeviceTaskDataNode = TaskManagerParent->DeviceTaskTable.GetDeviceTaskData(DeviceAdress);
     if(DeviceTaskDataNode == NULL) return 0;
 
     //load task
-    TaskNode* task = (TaskNode*)malloc(sizeof(TaskNode));
-    memcpy(&task->Content, DeviceTaskDataNode->task, sizeof(TaskNode));
+    Task* task = (Task*)malloc(sizeof(Task));
+    memcpy(task, DeviceTaskDataNode->task, sizeof(Task));
 
-    task->Content.Regs = (ContextStack*)malloc(sizeof(ContextStack));
-    memcpy(task->Content.Regs, DeviceTaskDataNode->task->Regs, sizeof(ContextStack));
+    task->Parent = DeviceTaskDataNode->parent;
 
-    task->Content.Regs->rip = task->Content.EntryPoint;
+    task->Regs = (ContextStack*)calloc(sizeof(ContextStack));
 
-    task->Content.IsRunning = true;
-    task->Content.TaskToLaunchWhenExit = NodeExecutePerCore[CoreID];
+    task->Regs->cs = task->Parent->Regs->cs;
+    task->Regs->ss = task->Parent->Regs->ss;
+    task->Regs->rflags = (void*)task->Parent->Regs->rflags;
+    task->Regs->rip = task->EntryPoint;
+
+    task->TaskToLaunchWhenExit = this;
 
     //copy parameters
-    task->Content.Regs->rdi = (void*)FunctionParameters->Parameter0;
-    task->Content.Regs->rsi = (void*)FunctionParameters->Parameter1;
-    task->Content.Regs->rdx = (void*)FunctionParameters->Parameter2;
-    task->Content.Regs->rcx = (void*)FunctionParameters->Parameter3;
-    task->Content.Regs->r8 = (void*)FunctionParameters->Parameter4;
-    task->Content.Regs->r9 = (void*)FunctionParameters->Parameter5;
+    task->Regs->rdi = (void*)FunctionParameters->Parameter0;
+    task->Regs->rsi = (void*)FunctionParameters->Parameter1;
+    task->Regs->rdx = (void*)FunctionParameters->Parameter2;
+    task->Regs->rcx = (void*)FunctionParameters->Parameter3;
+    task->Regs->r8 = (void*)FunctionParameters->Parameter4;
+    task->Regs->r9 = (void*)FunctionParameters->Parameter5;
 
+    //setup stack
     uint64_t StackSize = 0x100000; // 1 mb
     if(DeviceAdress->type == 0){ //kernel
-        task->Content.Stack = malloc(StackSize);
-        task->Content.IsKernelStack = true;
-        task->Content.Regs->rsp = (void*)((uint64_t)task->Content.Stack + StackSize);
-        task->Content.paging.PML4 = task->Content.TaskToLaunchWhenExit->Content.paging.PML4;
+        task->Stack = malloc(StackSize);
+        task->IsKernelStack = true;
+        task->Regs->rsp = (void*)((uint64_t)task->Stack + StackSize);
+        task->paging.PML4 = task->TaskToLaunchWhenExit->paging.PML4;
     }else{
-        asm("mov %0, %%cr3" :: "r" (task->Content.paging.PML4));
+        asm("mov %0, %%cr3" :: "r" (task->paging.PML4));
         
-        task->Content.Stack = task->Content.heap->malloc(StackSize);
-        task->Content.Regs->rsp = (void*)((uint64_t)task->Content.Stack + StackSize);
+        task->Stack = task->heap->malloc(StackSize);
+        task->Regs->rsp = (void*)((uint64_t)task->Stack + StackSize);
     }
 
 
-    task->Content.PID = IDTask;
-    task->Content.NodeParent = DeviceTaskDataNode->parent;
-    IDTask++;
-    NumTaskTotal++;
+    task->PID = PID;
 
-    NodeExecutePerCore[CoreID] = task;
+    TaskManagerParent->NodeExecutePerCore[CoreID] = task;
 
-    task->Content.NodeParent = NewNode(task);
-
-
-    memcpy(Registers, (void*)task->Content.Regs, sizeof(ContextStack));
+    memcpy(Registers, (void*)task->Regs, sizeof(ContextStack));
     
     return 1;
 }
 
-void TaskManager::CreatSubTask(TaskNode* parent, void* EntryPoint, DeviceTaskAdressStruct* DeviceAdress){
+void TaskManager::CreatSubTask(Task* parent, void* EntryPoint, DeviceTaskAdressStruct* DeviceAdress){
     DeviceTaskData* TaskData = (DeviceTaskData*)malloc(sizeof(DeviceTaskData));
-    TaskData->DeviceTaskAdress = DeviceAdress;
     TaskData->parent = parent;
-    TaskData->task = (TaskContext*)malloc(sizeof(TaskContext));
-    memcpy(TaskData->task, &TaskData->parent->Content, sizeof(TaskContext));
-    
+    TaskData->task = (Task*)malloc(sizeof(Task));
+    memcpy(TaskData->task, parent, sizeof(Task));
     TaskData->task->EntryPoint = EntryPoint;
     TaskData->task->IsTaskInTask = true;
-
+    TaskData->task->IsPaused = false;
+    TaskData->task->TaskManagerParent = this;
     DeviceTaskTable.SetDeviceTaskData(DeviceAdress, TaskData);
 }
 
@@ -142,181 +310,109 @@ DeviceTaskData* DeviceTaskTableStruct::GetDeviceTaskData(DeviceTaskAdressStruct*
 }
 
 void DeviceTaskTableStruct::SetDeviceTaskData(DeviceTaskAdressStruct* DeviceAdress, DeviceTaskData* deviceTaskData){    
-    DeviceTaskTableEntry* L1Table;
+    DeviceTaskTableEntry* L1Table = NULL;
     switch (DeviceAdress->type){
         case 0: //kernel
-            if(DeviceTaskTableKernel == NULL) DeviceTaskTableKernel = (DeviceTaskTableEntry*)malloc(sizeof(DeviceTaskTableEntry));
-            if(DeviceTaskTableKernel->entries[DeviceAdress->L1] == NULL) DeviceTaskTableKernel->entries[DeviceAdress->L1] = malloc(sizeof(DeviceTaskTableEntry));
+            if(DeviceTaskTableKernel == NULL) DeviceTaskTableKernel = (DeviceTaskTableEntry*)calloc(sizeof(DeviceTaskTableEntry));
+            if(DeviceTaskTableKernel->entries[DeviceAdress->L1] == NULL) DeviceTaskTableKernel->entries[DeviceAdress->L1] = calloc(sizeof(DeviceTaskTableEntry));
             L1Table = (DeviceTaskTableEntry*)DeviceTaskTableKernel->entries[DeviceAdress->L1];
             break;
         case 1: //driver
-            if(DeviceTaskTableDriver == NULL) DeviceTaskTableDriver = (DeviceTaskTableEntry*)malloc(sizeof(DeviceTaskTableEntry));
-            if(DeviceTaskTableDriver->entries[DeviceAdress->L1] == NULL) DeviceTaskTableDriver->entries[DeviceAdress->L1] = malloc(sizeof(DeviceTaskTableEntry));
+            if(DeviceTaskTableDriver == NULL) DeviceTaskTableDriver = (DeviceTaskTableEntry*)calloc(sizeof(DeviceTaskTableEntry));
+            if(DeviceTaskTableDriver->entries[DeviceAdress->L1] == NULL) DeviceTaskTableDriver->entries[DeviceAdress->L1] = calloc(sizeof(DeviceTaskTableEntry));
             L1Table = (DeviceTaskTableEntry*)DeviceTaskTableDriver->entries[DeviceAdress->L1];
             break;
         case 2: //device
-            if(DeviceTaskTableDevice == NULL) DeviceTaskTableDevice = (DeviceTaskTableEntry*)malloc(sizeof(DeviceTaskTableEntry));
-            if(DeviceTaskTableDevice->entries[DeviceAdress->L1] == NULL) DeviceTaskTableDevice->entries[DeviceAdress->L1] = malloc(sizeof(DeviceTaskTableEntry));
+            if(DeviceTaskTableDevice == NULL) DeviceTaskTableDevice = (DeviceTaskTableEntry*)calloc(sizeof(DeviceTaskTableEntry));
+            if(DeviceTaskTableDevice->entries[DeviceAdress->L1] == NULL) DeviceTaskTableDevice->entries[DeviceAdress->L1] = calloc(sizeof(DeviceTaskTableEntry));
             L1Table = (DeviceTaskTableEntry*)DeviceTaskTableDevice->entries[DeviceAdress->L1];
             break;
         case 3: //app
-            if(DeviceTaskTableApp == NULL) DeviceTaskTableApp = (DeviceTaskTableEntry*)malloc(sizeof(DeviceTaskTableEntry));
-            if(DeviceTaskTableApp->entries[DeviceAdress->L1] == NULL) DeviceTaskTableApp->entries[DeviceAdress->L1] = malloc(sizeof(DeviceTaskTableEntry));
+            if(DeviceTaskTableApp == NULL) DeviceTaskTableApp = (DeviceTaskTableEntry*)calloc(sizeof(DeviceTaskTableEntry));
+            if(DeviceTaskTableApp->entries[DeviceAdress->L1] == NULL) DeviceTaskTableApp->entries[DeviceAdress->L1] = calloc(sizeof(DeviceTaskTableEntry));
             L1Table = (DeviceTaskTableEntry*)DeviceTaskTableApp->entries[DeviceAdress->L1];
             break;
     }
 
-    if(L1Table->entries[DeviceAdress->L2]  == NULL) L1Table->entries[DeviceAdress->L2] = malloc(sizeof(DeviceTaskTableEntry));
+    if(L1Table->entries[DeviceAdress->L2]  == NULL) L1Table->entries[DeviceAdress->L2] = calloc(sizeof(DeviceTaskTableEntry));
     DeviceTaskTableEntry* L2Table = (DeviceTaskTableEntry*)L1Table->entries[DeviceAdress->L2];
-    if(L2Table->entries[DeviceAdress->L3] == NULL) L2Table->entries[DeviceAdress->L3] = malloc(sizeof(DeviceTaskTableEntry));
+    if(L2Table->entries[DeviceAdress->L3] == NULL) L2Table->entries[DeviceAdress->L3] = calloc(sizeof(DeviceTaskTableEntry));
     DeviceTaskTableEntry* L3Table = (DeviceTaskTableEntry*)L2Table->entries[DeviceAdress->L3];
     L3Table->entries[DeviceAdress->FunctionID] = (void*)deviceTaskData;
 }
 
 
-TaskNode* TaskManager::AddTask(bool IsIddle, bool IsLinked, int ring, char* name){ 
-    TaskNode* node = (TaskNode*)calloc(sizeof(TaskNode));
-    node->Content.Regs = (ContextStack*)calloc(sizeof(ContextStack));
+Task* TaskManager::AddTask(uint8_t priviledge, char* name){ 
+    Task* node = (Task*)calloc(sizeof(Task));
+    node = (Task*)calloc(sizeof(Task));
+
+    if(AllTasks == NULL){
+        AllTasks = CreatNode((void*)node);
+        node->NodeParent = AllTasks;
+    }else{
+        node->NodeParent = AllTasks->Add(node);
+    }
+
+    node->Regs = (ContextStack*)calloc(sizeof(ContextStack));
 
     //Creat task's paging
     void* PML4 = globalAllocator.RequestPage();
-    memset(globalPageTableManager.GetVirtualAddress(PML4), 0, 0x1000);
-    node->Content.paging.PageTableManagerInit((PageTable*)PML4);
-    node->Content.paging.CopyHigherHalf(&globalPageTableManager);
-    node->Content.paging.PhysicalMemoryVirtualAddress = globalPageTableManager.PhysicalMemoryVirtualAddress;
-    globalPageTableManager.ChangePaging(&node->Content.paging);
+    memset(globalPageTableManager[GetCoreID()].GetVirtualAddress(PML4), 0, 0x1000);
+    node->paging.PageTableManagerInit((PageTable*)PML4);
+    node->paging.CopyHigherHalf(&globalPageTableManager[GetCoreID()]);
+    node->paging.PhysicalMemoryVirtualAddress = globalPageTableManager[GetCoreID()].PhysicalMemoryVirtualAddress;
+    globalPageTableManager[GetCoreID()].ChangePaging(&node->paging);
 
     //Creat heap
-    node->Content.heap = UserHeap::InitializeHeap((void*)0x400000000000, 0x10, &node->Content.paging); // 0x400000000000 = higher half of the lower half
+    node->heap = UserHeap::InitializeHeap((void*)0x400000000000, 0x10, &node->paging); // 0x400000000000 = higher half of the lower half
     uint64_t StackSize = 0x100000; // 1 mb
 
-    node->Content.Stack = node->Content.heap->malloc(StackSize);
+    node->Stack = node->heap->malloc(StackSize);
 
-    node->Content.Regs->cs = (void*)(GDTInfoSelectorsRing[ring].Code | ring); //user code selector
-    node->Content.Regs->ss = (void*)(GDTInfoSelectorsRing[ring].Data | ring); //user data selector
-    node->Content.Regs->rsp = (void*)((uint64_t)node->Content.Stack + StackSize); //because the pile goes down
-    node->Content.Regs->rflags = (void*)0x202; //interrupts & syscall
-    node->Content.IsIddle = IsIddle;
-    node->Content.IsRunning = false;
-    node->Content.IsPaused = true;
-    node->Content.Priviledge = ring;
+    node->Regs->cs = (void*)(GDTInfoSelectorsRing[priviledge].Code | priviledge); //user code selector
+    node->Regs->ss = (void*)(GDTInfoSelectorsRing[priviledge].Data | priviledge); //user data selector
+    node->Regs->rsp = (void*)((uint64_t)node->Stack + StackSize); //because the pile goes down
+    node->Regs->rflags = (void*)0x202; //interrupts & syscall
+    node->IsPaused = true;
+    node->Priviledge = priviledge;
 
-    node->Content.ThreadParent = NULL;
-    node->Content.NodeParent = node;
-    node->Content.TaskManagerParent = this;
+    node->CreationTime = HPET::GetTime();
+
+    node->Parent = node;
+    node->TaskManagerParent = this;
 
     int counter = strlen(name);
     if(counter > MaxNameTask) counter = MaxNameTask;
-    memcpy(node->Content.Name, name, counter);
-    node->Content.Name[counter] = 0;
+    memcpy(node->Name, name, counter);
+    node->Name[counter] = 0;
     
-    node->Content.PID = IDTask; //min of ID is 0
+    node->PID = IDTask; //min of ID is 0
     IDTask++;
-    NumTaskTotal++;
+    NumberTaskTotal++;
     
-    globalPageTableManager.RestorePaging();
-    //link
-    if(IsLinked){
-        node = NewNode(node);
-        if(IsIddle){  
-            IdleNode[IddleTaskNumber] = node;
-            IddleTaskNumber++;
-        }else if(IddleTaskNumber != 0){
-            DeleteTask(IdleNode[IddleTaskNumber - 1]); /* because we add 1 in this function */
-        }        
-    }
+    globalPageTableManager[GetCoreID()].RestorePaging();
 
     return node;
 }
 
-TaskNode* TaskManager::NewNode(TaskNode* node){
-    if(FirstNode == NULL){        
-        node->Last = NULL;  
-        FirstNode = node;  
-        MainNodeScheduler = node; 
-    }else{
-        node->Last = LastNode; 
-        LastNode->Next = node;
-    }
+Task* TaskManager::CreatDefaultTask(){
+    Task* node = AddTask(UserAppRing, "Idle Task");
 
-    node->Next = FirstNode;
-    LastNode = node;
-    
-    return node;
-}
+    IdleNode[IddleTaskNumber] = node;
+    IddleTaskNumber++;
 
-TaskNode* TaskManager::CreatDefaultTask(bool IsLinked){
-    TaskNode* node = AddTask(true, IsLinked, UserAppRing, "Idle Task");
     void* physcialMemory = globalAllocator.RequestPage();
-    node->Content.paging.MapMemory(0x0, physcialMemory);
-    node->Content.paging.MapUserspaceMemory(0x0);
-    void* virtualMemory = globalPageTableManager.GetVirtualAddress(physcialMemory);
+    node->paging.MapMemory(0x0, physcialMemory);
+    node->paging.MapUserspaceMemory(0x0);
+    void* virtualMemory = globalPageTableManager[GetCoreID()].GetVirtualAddress(physcialMemory);
     memcpy(virtualMemory, (void*)&IdleTask, 0x1000);
-    node->Content.Launch((void*)0);
-}
 
-void TaskManager::DeleteTask(TaskNode* node){
-    if(node->Content.IsIddle){
-        IdleNode[IddleTaskNumber] = NULL;
-        IddleTaskNumber--;
-    }
-
-    NumTaskTotal--;
-    if(NumTaskTotal <= APIC::ProcessorCount){
-        CreatDefaultTask(true);
-    }
-
-    TaskNode* next = node->Next;
-    TaskNode* last = node->Last;
-
-    if(node == LastNode){
-        if(next != NULL){
-            LastNode = next;
-        }else{
-            LastNode = last;
-        }
-    }
-    if(node == FirstNode){
-        if(last != NULL){
-            FirstNode = last;
-        }else{
-            FirstNode = next;
-        }
-    }
-    if(node == MainNodeScheduler){
-        if(next != NULL){
-            MainNodeScheduler = next;
-        }else{
-            MainNodeScheduler = last;
-        }
-    }
-
-    if(last != NULL){
-        last->Next = next;     
-    }else{
-        LastNode->Next = next;
-    }
-
-    if(next != NULL){    
-        next->Last = last;
-    }
-
-    if(node->Content.IsKernelStack){
-        free(node->Content.Stack);
-    }else{
-        globalPageTableManager.ChangePaging(&node->Content.paging);
-        node->Content.heap->free(node->Content.Stack);
-        globalPageTableManager.RestorePaging();
-    }
-
-    free((void*)node->Content.heap);
-    free((void*)node->Content.Regs);
-    free((void*)node);
+    node->Launch((void*)0);
 }
 
 void TaskManager::InitScheduler(uint8_t NumberOfCores){
     for(int i = 0; i < NumberOfCores; i++){
-        CreatDefaultTask(true);
+        CreatDefaultTask();
     } 
 
     TaskManagerInit = true;
@@ -333,23 +429,26 @@ void TaskManager::EnabledScheduler(uint8_t CoreID){
         
         SaveTSS((uint64_t)CoreID);
 
-        CoreInUserSpace[CoreID] = true;
+        IsSchedulerEnable[CoreID] = true;
         Atomic::atomicUnlock(&mutexSchedulerEnable, 0);
         globalLogs->Successful("Scheduler is enabled for the processor : %u", CoreID);
     }
 }
 
-TaskNode* TaskManager::GetCurrentTask(uint8_t CoreID){
+Task* TaskManager::GetCurrentTask(uint8_t CoreID){
     return NodeExecutePerCore[CoreID];
 }
 
-void TaskContext::Launch(void* EntryPoint){
+void Task::Launch(void* EntryPoint){
     this->Regs->rip = EntryPoint;
     this->EntryPoint = EntryPoint;
     this->IsPaused = false;
+
+    TaskManagerParent->CurrentTaskExecute++;
+    TaskManagerParent->EnqueueTask(this);
 }
 
-void TaskContext::Launch(void* EntryPoint, Parameters* FunctionParameters){
+void Task::Launch(void* EntryPoint, Parameters* FunctionParameters){
     this->Regs->rip = EntryPoint;
     this->EntryPoint = EntryPoint;
 
@@ -360,35 +459,74 @@ void TaskContext::Launch(void* EntryPoint, Parameters* FunctionParameters){
     this->Regs->r8 = (void*)FunctionParameters->Parameter4;
     this->Regs->r9 = (void*)FunctionParameters->Parameter5;
     this->IsPaused = false;
+
+    TaskManagerParent->CurrentTaskExecute++;
+    TaskManagerParent->EnqueueTask(this);
 }
 
-void TaskContext::Exit(){
-    uint8_t CoreID = this->CoreID;
-    TaskManagerParent->NumTaskTotal--;
+void Task::Exit(uint8_t CoreID){
     TaskManagerParent->NodeExecutePerCore[CoreID] = NULL;
-    TaskManagerParent->DeleteTask(NodeParent);
+    NodeParent->Delete();
+    free(Regs);
+    free(this);
 
+    asm("mov %0, %%cr3" :: "r" (globalPageTableManager[CoreID].PML4));
 }
 
-void* TaskContext::ExitTaskInTask(InterruptStack* Registers, uint8_t CoreID, void* returnValue){
+void Task::Unpause(){
+    Atomic::atomicSpinlock(&mutexScheduler, 1);
+    Atomic::atomicLock(&mutexScheduler, 1);
+    IsPaused = false;
+    TaskManagerParent->EnqueueTask(this);
+    TaskManagerParent->CurrentTaskExecute++;
+    Atomic::atomicUnlock(&mutexScheduler, 1);
+}
+
+void Task::Pause(uint8_t CoreID, InterruptStack* Registers){
+    Atomic::atomicSpinlock(&mutexScheduler, 1);
+    Atomic::atomicLock(&mutexScheduler, 1);
+    uint64_t actualTime = HPET::GetTime();
+    TimeAllocate += actualTime - TaskManagerParent->TimeByCore[CoreID];
+    IsPaused = true;
+    memcpy(Regs, Registers, sizeof(ContextStack));
+    TaskManagerParent->TimeByCore[CoreID] = actualTime;
+    TaskManagerParent->NodeExecutePerCore[CoreID] = NULL;
+    TaskManagerParent->DequeueTask(this);
+    Atomic::atomicUnlock(&mutexScheduler, 1);
+}
+
+void Task::ExitIRQ(){
+    Atomic::atomicSpinlock(&mutexScheduler, 1);
+    Atomic::atomicLock(&mutexScheduler, 1);
+    uint64_t actualTime = HPET::GetTime();
+    TimeAllocate += actualTime - TaskManagerParent->TimeByCore[CoreID];
+    Regs->rip = EntryPoint;
+    TaskManagerParent->TimeByCore[CoreID] = actualTime;
+    TaskManagerParent->NodeExecutePerCore[CoreID] = NULL;
+    TaskManagerParent->DequeueTask(this);
+    Atomic::atomicUnlock(&mutexScheduler, 1);   
+}
+
+void* Task::ExitTaskInTask(InterruptStack* Registers, uint8_t CoreID, void* returnValue){
     uint64_t actualTime = HPET::GetTime();
     //get return value
-    TaskNode* node = TaskToLaunchWhenExit;
+    Task* node = TaskToLaunchWhenExit;
 
-    Exit();
+    Exit(CoreID);
 
     //load main task 
-    TaskManagerParent->TimeByCore[CoreID] = actualTime;
+    node->TaskManagerParent->TimeByCore[CoreID] = actualTime;
 
-    node->Content.IsRunning = true;
-    node->Content.IsPaused = false;
-    node->Content.CoreID = CoreID;
+    node->IsPaused = false;
+    node->CoreID = CoreID;
 
-    TaskManagerParent->NodeExecutePerCore[CoreID] = node;
+    node->TaskManagerParent->NodeExecutePerCore[CoreID] = node;
 
-    memcpy(Registers, node->Content.Regs, sizeof(ContextStack));
+    memcpy(Registers, node->Regs, sizeof(ContextStack));
 
-    asm("mov %0, %%cr3" :: "r" (node->Content.paging.PML4));
+
+    asm("mov %0, %%cr3" :: "r" (node->paging.PML4));
 
     return returnValue;
 }
+

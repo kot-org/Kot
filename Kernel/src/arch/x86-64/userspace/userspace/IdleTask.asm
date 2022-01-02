@@ -3,7 +3,8 @@
 GLOBAL IdleTask
 
 IdleTask:
-    int 0x81
-    jmp IdleTask
+.wait:
+        int 0x81
+        jmp     .wait
 
 times 4096 - ($ - $$) db 0

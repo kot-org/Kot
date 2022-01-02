@@ -5,7 +5,7 @@ namespace HPET{
     uint64_t HPETClock;
     void InitialiseHPET(ACPI::HPETHeader* hpet){
         if(hpet == NULL) return;
-        HPETAddress = globalPageTableManager.MapMemory((void*)hpet->Address.Address, 1);
+        HPETAddress = globalPageTableManager[GetCoreID()].MapMemory((void*)hpet->Address.Address, 1);
 
         HPETClock = HPETReadRegister(GeneralCapabilitiesAndIDRegister) >> GeneralCapabilitiesAndIDRegisterCounterPeriod;
         
@@ -29,7 +29,7 @@ namespace HPET{
     }
 
     uint64_t GetTime(){
-        return ((float)HPETReadRegister(MainCounterValues) / HPETClock) * 100;
+        return HPETReadRegister(MainCounterValues);
     }
 
     uint64_t HPETReadRegister(uint64_t offset){

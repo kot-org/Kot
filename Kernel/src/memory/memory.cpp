@@ -2,6 +2,7 @@
 #include "../logs/logs.h"
 #include "../arch/x86-64/gdt/gdt.h"
 
+static uint64_t mutexMemory;
 
 uint64_t GetMemorySize(EFI_MEMORY_DESCRIPTOR* mMap, uint64_t mMapEntries, uint64_t mMapDescSize){
     static uint64_t memorySizeBytes = 0;
@@ -69,7 +70,7 @@ namespace Memory{
     //PT_Flag::Custom1 master share
     //PT_Flag::Custom2 slave share
     
-    bool CreatSharing(PageTableManager* pageTable, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, bool ReadOnly, uint8_t Priviledge){
+    size_t CreatSharing(PageTableManager* pageTable, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, bool ReadOnly, uint8_t Priviledge){
         void* virtualAddress = (void*)*virtualAddressPointer;
         if((uint64_t)virtualAddress % 0x1000 > 0){
             virtualAddress -= (uint64_t)virtualAddress % 0x1000;
@@ -96,7 +97,7 @@ namespace Memory{
         shareInfo = (MemoryShareInfo*)pageTable->GetVirtualAddress(key);
         *virtualAddressPointer = (uint64_t)virtualAddress;
         *keyPointer = (uint64_t)key;
-        return true;
+        return numberOfPage * 0x1000;
     }
 
     bool GetSharing(PageTableManager* pageTable, void* key, uint64_t* virtualAddressPointer, uint8_t Priviledge){
@@ -118,5 +119,20 @@ namespace Memory{
 
         *virtualAddressPointer = (uint64_t)virtualAddress;
         return true;
+    }
+
+    size_t FreeSharing(void* virtualAddress){
+        MemoryShareInfo* shareInfo = (MemoryShareInfo*)virtualAddress;
+        PageTableManager* pageTable = shareInfo->PageTableParent;
+        size_t NumberOfPage = shareInfo->PageNumber;
+
+        for(uint64_t i = 0; i < NumberOfPage; i++){
+            uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * 0x1000;
+            void* physcialAddress = pageTable->GetPhysicalAddress((void*)virtualAddressIterator);
+            globalAllocator.FreePage(physcialAddress);
+            pageTable->UnmapMemory((void*)virtualAddressIterator);
+        }
+
+        return NumberOfPage * 0x1000;
     }
 }

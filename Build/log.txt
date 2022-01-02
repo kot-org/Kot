@@ -1,0 +1,32 @@
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[0m[35m[40m[2J[01;01H[=3h[2J[01;01H[0m[37m[40mBdsDxe: loading Boot0003 "EFI Internal Shell" from Fv(7CB8BDC9-F8EB-4F34-AAEA-3EE4AF6516A1)/FvFile(7C04A583-9E3E-4F1C-AD65-E05268D0B4D1)
+BdsDxe: starting Boot0003 "EFI Internal Shell" from Fv(7CB8BDC9-F8EB-4F34-AAEA-3EE4AF6516A1)/FvFile(7C04A583-9E3E-4F1C-AD65-E05268D0B4D1)
+[2J[01;01H[01;01HUEFI Interactive Shell v2.2
+EDK II
+UEFI v2.70 (EDK II, 0x00010000)
+[1m[33m[40mMapping table[0m[37m[40m
+[1m[33m[40m      FS0:[0m[37m[40m [1m[37m[40mAlias(s):[0m[37m[40mHD0a65535a2:;BLK2:
+          PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x0,0xFFFF,0x0)/HD(2,GPT,6591921C-37A6-4DE2-BD0D-E849648A0DA3,0x8000,0x1F7000)
+[1m[33m[40m     BLK0:[0m[37m[40m [1m[37m[40mAlias(s):[0m[37m[40m
+          PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x0,0xFFFF,0x0)
+[1m[33m[40m     BLK1:[0m[37m[40m [1m[37m[40mAlias(s):[0m[37m[40m
+          PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x0,0xFFFF,0x0)/HD(1,GPT,30A39503-E740-402D-8127-2F7D4738EEDB,0x22,0x7FDE)
+[13;01HPress [1m[37m[40mESC[0m[37m[40m in 5 seconds to skip [1m[33m[40mstartup.nsh[0m[37m[40m or any other key to continue.[13;01HPress [1m[37m[40mESC[0m[37m[40m in 4 seconds to skip [1m[33m[40mstartup.nsh[0m[37m[40m or any other key to continue.
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[2J[01;01H[2J[01;01H[=3h[2J[01;01H[1;32m[OK] [1;0mSerial initialize
+[2J[H(c) Kot Corporation. All rights reserved
+[1;32m[OK] [1;0mGDT intialize
+[1;32m[OK] [1;0mIDT intialize
+[1;32m[OK] [1;0mMemory intialize
+CPU : AMD Ryzen 7 3800X 8-Core Processor              AuthenticAMD
+CPU features :
+SSE3 | SSSE3 | CX16 | SSE41 | SSE42 | FPU | VME | DE | PSE | TSC | MSR | PAE | MCE | CX8 | APIC | SEP | MTRR | PGE | MCA | CMOV | PAT | PSE36 | CLFLUSH | MMX | FXSR | SSE | SSE2 | HTT | 
+[1;32m[OK] [1;0mHeap intialize
+[1;32m[OK] [1;0mGraphics intialize
+[1;32m[OK] [1;0mSSE intialize
+PCI devices :
+[1;31m[Error] [1;0mPage Fault Detected : Memory address : 0x0118 | Processor ID : 0 | RIP : FFFF8000000095A7 | cr3 : 00100000
+Rax : 00 Rbx : FFFF8001006D021E Rcx : FED00003 Rdx : 00011E20 Rsi : 00 Rdi : FFFF8001006D022E Rbp : FFFF8000DB277290
+R8 : 00 R9 : FFFF8000DB2769C0 R10 : 78 R11 : C8CF9C08 R12 : FFFF8000000212C0 R13 : 010B R14 : 00 R15 : D9F5C698
+Rflags: 00010086 Rip: FFFF8000000095A7 Ss: 10 Cs: 08 Rsp: FFFF8000DB2769E0
+Non-present page
+Error caused by reading
+

@@ -13,27 +13,28 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
     uint64_t arg3 = (uint64_t)Registers->r10;
     uint64_t arg4 = (uint64_t)Registers->r8;
     uint64_t arg5 = (uint64_t)Registers->r9;
-
     void* returnValue = 0;
-    TaskContext* task = &globalTaskManager->NodeExecutePerCore[CoreID]->Content;
-
+    Task* task = globalTaskManager->NodeExecutePerCore[CoreID];
     switch(syscall){
         case Sys_CreatShareMemory:
             //creat share memory
             returnValue = (void*)Memory::CreatSharing(&task->paging, arg0, (uint64_t*)arg1, (uint64_t*)arg2, (bool)arg3, task->Priviledge);
-            //this function return the first physciall address of the sharing memory, it's the key to get sharing
+            task->MemoryAllocated += (uint64_t)returnValue;
+            //this function return the allocated size
             break;
         case Sys_GetShareMemory:
             //get share memory
             returnValue = (void*)Memory::GetSharing(&task->paging, (void*)arg0, (uint64_t*)arg1, task->Priviledge);
             break;
+        case Sys_FreeShareMemory:
+            returnValue = (void*)Memory::FreeSharing((void*)arg0);
         case Sys_CreatSubtask: 
             //creat subTask 
-            globalTaskManager->CreatSubTask(task->NodeParent, (void*)arg0, (DeviceTaskAdressStruct*)arg1);
+            globalTaskManager->CreatSubTask(task, (void*)arg0, (DeviceTaskAdressStruct*)arg1);
             break;
         case Sys_ExecuteSubtask: 
             //execute subTask
-            globalTaskManager->ExecuteSubTask(Registers, CoreID, (DeviceTaskAdressStruct*)arg0, (Parameters*)arg1);
+            task->ExecuteSubTask(Registers, CoreID, (DeviceTaskAdressStruct*)arg0, (Parameters*)arg1);
 
             Atomic::atomicUnlock(&mutexSyscall, 0);
             return;
@@ -45,21 +46,23 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
                 }else{
                     globalLogs->Successful("App %s close Successfuly", task->Name);
                 }
-                task->Exit();
+                task->Exit(CoreID);
                 globalTaskManager->Scheduler(Registers, CoreID);
             }else{
-                if(arg0 != NULL){
-                    globalLogs->Error("Subtask %s close with error code : %x", task->Name, arg0);
-                }else{
-                    globalLogs->Successful("Subtask %s close Successfuly", task->Name);
-                }
                 returnValue = task->ExitTaskInTask(Registers, CoreID, (void*)arg1);
+                Registers->rdi = returnValue;
             }
 
-            Registers->rdi = returnValue;
-            
+
             Atomic::atomicUnlock(&mutexSyscall, 0);
             return;
+        case Sys_Pause:
+            task->Pause(CoreID, Registers);
+            globalLogs->Warning("App %s is paused", task->Name);
+            globalTaskManager->Scheduler(Registers, CoreID);
+            
+            Atomic::atomicUnlock(&mutexSyscall, 0);
+            return;            
         case Sys_Map:
             //mmap
             if(task->Priviledge <= DevicesRing){
@@ -78,11 +81,24 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
 
             break;
         case Sys_IRQRedirect:
-            //Redirect IRQ to driver
+            //Redirect IRQ to driver / device
             if(task->Priviledge <= DevicesRing){
-                returnValue = (void*)SetIrq(task->Priviledge, &task->paging, (uint8_t)arg0, (void*)arg1);
+                returnValue = (void*)SetIrq(task, (void*)arg0, (uint8_t)arg1);
             }else{
                 returnValue = (void*)0;
+            }
+            break;
+        case Sys_IRQExit:
+            //Close IRQ
+            if(task->InterruptTask){
+                task->ExitIRQ();
+                APIC::localApicEOI(CoreID);
+                globalTaskManager->Scheduler(Registers, CoreID);
+                Atomic::atomicUnlock(&mutexSyscall, 0);
+                return;
+            }else{
+                returnValue = (void*)0;
+                break;
             }
         case Sys_IRQDefault:
             //Set default redirection IRQ
@@ -91,6 +107,28 @@ extern "C" void SyscallInt_Handler(InterruptStack* Registers, uint64_t CoreID){
             }else{
                 returnValue = (void*)0;
             }
+            break;
+        case Sys_GetTaskInfo:
+
+            break;
+        case Sys_SetTaskInfo:
+
+            break;
+        case Sys_CreatThread:
+            
+            break;
+        case Sys_LaunchThread:
+
+            break;
+        case Sys_StopThread:
+
+            break;
+        case Sys_In:
+            returnValue = (void*)IO_IN((uint8_t)arg0, (uint16_t)arg1, (uint32_t)arg2);
+            break;
+        case Sys_Out:
+            returnValue = (void*)IO_OUT((uint8_t)arg0, (uint16_t)arg1);
+            break;
         default:
             globalLogs->Error("Unknown syscall %x", syscall);
             break;

@@ -10,6 +10,3 @@ uint64_t LogHandler(uint64_t type, char* str);
 
 uint64_t mmap(PageTableManager* pageTable, void* addressPhysical, void* addressVirtual);
 uint64_t munmap(PageTableManager* pageTable, void* addressVirtual);
-
-uint64_t SetIrq(uint8_t ring, uint8_t irq, void* address);
-uint64_t SetIrqDefault(uint8_t irq);

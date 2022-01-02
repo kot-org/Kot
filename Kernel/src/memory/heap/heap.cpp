@@ -23,6 +23,9 @@ void* malloc(size_t size){
 
     if (size == 0) return NULL;
 
+    Atomic::atomicSpinlock(&globalHeap.lock, 0);
+    Atomic::atomicLock(&globalHeap.lock, 0);
+
     SegmentHeader* currentSeg = (SegmentHeader*)globalHeap.mainSegment;
     while(true){
         if(currentSeg->IsFree){
@@ -32,18 +35,22 @@ void* malloc(size_t size){
                 currentSeg->IsFree = false;
                 globalHeap.UsedSize += currentSeg->length + sizeof(SegmentHeader);
                 globalHeap.FreeSize -= currentSeg->length + sizeof(SegmentHeader);
+                Atomic::atomicUnlock(&globalHeap.lock, 0);
                 return (void*)((uint64_t)currentSeg + sizeof(SegmentHeader));
             }else if(currentSeg->length == size){
                 currentSeg->IsFree = false;
                 globalHeap.UsedSize += currentSeg->length + sizeof(SegmentHeader);
                 globalHeap.FreeSize -= currentSeg->length + sizeof(SegmentHeader);
+                Atomic::atomicUnlock(&globalHeap.lock, 0);
                 return (void*)((uint64_t)currentSeg + sizeof(SegmentHeader));
             }
         }
         if (currentSeg->next == NULL) break;
         currentSeg = currentSeg->next;
     }
+    
     ExpandHeap(size);
+    Atomic::atomicUnlock(&globalHeap.lock, 0);
     return malloc(size);
 }
 
@@ -110,28 +117,13 @@ void MergeThisToLast(SegmentHeader* header){
 
 void MergeNextToThis(SegmentHeader* header){
     // merge this segment into the next segment
+
     SegmentHeader* headerNext = header->next;
     header->length += header->next->length + sizeof(SegmentHeader);
     header->next = header->next->next;
-    header->next->last = header;
-    
-    if(header == globalHeap.lastSegment){
-        if(header->next->next != NULL){
-            globalHeap.lastSegment = header->next->next;
-        }else{
-            globalHeap.lastSegment = header;
-        }
-    }
+    if(header->next != NULL) header->next->last = header;
     if(headerNext == globalHeap.lastSegment){
-        if(header->next != NULL){
-            globalHeap.lastSegment = header->next;
-        }else{
-            globalHeap.lastSegment = header;
-        }
-    }
-
-    if(header == globalHeap.mainSegment){
-        globalHeap.mainSegment = header->last;
+        globalHeap.lastSegment = header;
     }
 
     memset(headerNext, 0, sizeof(SegmentHeader));
@@ -139,6 +131,8 @@ void MergeNextToThis(SegmentHeader* header){
 
 void free(void* address){
     if(address != NULL){
+        Atomic::atomicSpinlock(&globalHeap.lock, 0);
+        Atomic::atomicLock(&globalHeap.lock, 0);
         SegmentHeader* header = (SegmentHeader*)(void*)((uint64_t)address - sizeof(SegmentHeader));
         header->IsFree = true;
         globalHeap.FreeSize += header->length + sizeof(SegmentHeader);
@@ -148,18 +142,29 @@ void free(void* address){
             if(header->next->IsFree && header->last->IsFree){
                 // merge this segment and next segment into the last segment
                 MergeNextAndThisToLast(header);
+                Atomic::atomicUnlock(&globalHeap.lock, 0);
+                return;
             }
-        }else if(header->last != NULL){
+        }
+        if(header->last != NULL){
             if(header->last->IsFree){
                 // merge this segment into the last segment
-                MergeThisToLast(header);              
-            }
-        }else if(header->next != NULL){
+                MergeThisToLast(header);  
+                Atomic::atomicUnlock(&globalHeap.lock, 0); 
+                return;  
+            }         
+        }
+        
+        if(header->next != NULL){
             if(header->next->IsFree){
                 // merge this segment into the next segment
                 MergeNextToThis(header);
+                Atomic::atomicUnlock(&globalHeap.lock, 0);
+                return; 
             }
         }
+
+        Atomic::atomicUnlock(&globalHeap.lock, 0);
     }
 }
 
@@ -208,8 +213,7 @@ void ExpandHeap(size_t length){
 
     for (size_t i = 0; i < pageCount; i++){
         void* NewPhysicalAddress = globalAllocator.RequestPage();
-        globalPageTableManager.MapMemory(globalHeap.heapEnd, NewPhysicalAddress);
-        globalPageTableManager.MapUserspaceMemory(globalHeap.heapEnd);
+        globalPageTableManager[GetCoreID()].MapMemory(globalHeap.heapEnd, NewPhysicalAddress);
         globalHeap.heapEnd = (void*)((uint64_t)globalHeap.heapEnd + 0x1000);
     }
 

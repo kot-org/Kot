@@ -13,7 +13,6 @@
 #include "../../memory/paging/pageTableManager.h"
 
 namespace APIC{
-
     struct EntryRecord{
         uint8_t Type;
         uint8_t Length;
@@ -243,16 +242,21 @@ namespace APIC{
         uint8_t										destination : 8;
     };
 
+    struct LapicAddress{
+        void* PhysicalAddress;
+        void* VirtualAddress;
+    } __attribute__((packed));
+
     void InitializeMADT(ACPI::MADTHeader* madt);
     void IoAPICInit(uint8_t IOApicID);
     void IoChangeIrqState(uint8_t irq, uint8_t IOApicID, bool IsEnable);
     void LoadCores();
     void* GetLAPICAddress();
-    void EnableAPIC();
+    void EnableAPIC(uint8_t CoreID);
     void StartLapicTimer();
     void localAPICSetTimerCount(uint32_t value);
     uint32_t localAPICGetTimerCount();
-    void localApicEOI();
+    void localApicEOI(uint8_t CoreID);
     void localApicEnableSpuriousInterrupts();
     uint32_t localAPICReadRegister(size_t offset);
     uint32_t localAPICReadRegister(void* lapicAddress, size_t offset);

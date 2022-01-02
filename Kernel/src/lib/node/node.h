@@ -6,8 +6,9 @@ struct Node{
         Node* last;   
         Node* parent;
         void* data;
+        Node* lastNodeCreat; //only work for parent node
         Node* GetNode(uint64_t position);
-        Node* AddNext(void* data);
+        Node* Add(void* data);
         void ModifyData(void* data);
         void Delete();
         uint64_t GetSize();

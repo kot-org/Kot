@@ -118,12 +118,19 @@ EFI_STATUS efi_main(EFI_HANDLE IH, EFI_SYSTEM_TABLE* ST)
 	/* get rsdp */
 	EFI_CONFIGURATION_TABLE* configTable = SystemTable->ConfigurationTable;
 	void* rsdp = NULL; 
+	void* smbios = NULL; 
 	EFI_GUID Acpi2TableGuid = ACPI_20_TABLE_GUID;
+	EFI_GUID SMBIOSGUID = SMBIOS_TABLE_GUID;
 
 	for (UINTN index = 0; index < SystemTable->NumberOfTableEntries; index++){
 		if (CompareGuid(&configTable[index].VendorGuid, &Acpi2TableGuid)){
 			if (strcmp((CHAR8*)"RSD PTR ", (CHAR8*)configTable->VendorTable, 8)){
 				rsdp = (void*)configTable->VendorTable;
+			}
+		}
+		if(CompareGuid(&configTable[index].VendorGuid, &SMBIOSGUID)){
+			if(strcmp((CHAR8*)"_SM_", (CHAR8*)configTable->VendorTable,4)) {
+				smbios = (void*)configTable->VendorTable;
 			}
 		}
 		configTable++;
@@ -168,11 +175,12 @@ EFI_STATUS efi_main(EFI_HANDLE IH, EFI_SYSTEM_TABLE* ST)
 			bootInfo->memoryInfo.VirtualKernelStart = VirtualKernelStart;
 			bootInfo->memoryInfo.VirtualKernelEnd = VirtualKernelEnd;
 		bootInfo->rsdp = rsdp;
+		bootInfo->smbios = smbios;
 
 	SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
 	SystemTable->BootServices->ExitBootServices(ImageHandle, MapKey);
 
-    KernelBinFile(bootInfo);
+	KernelBinFile(bootInfo);
     
     Shutdown();
 	return 0;

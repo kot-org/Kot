@@ -156,6 +156,8 @@ void Logs::Warning(const char* str, ...){
 }
 
 void Logs::Error(const char * str, ...){
+    Atomic::atomicSpinlock(&mutexLog, 0);
+    Atomic::atomicLock(&mutexLog, 0);
     va_list args;
     va_start(args, str);
     globalCOM1->Print(SerialRED);
@@ -201,6 +203,7 @@ void Logs::Error(const char * str, ...){
 
     globalCOM1->Print("\n");
     va_end(args);
+    Atomic::atomicUnlock(&mutexLog, 0);
 }
 
 void Logs::PrintRegisters(RegistersLog* registers){

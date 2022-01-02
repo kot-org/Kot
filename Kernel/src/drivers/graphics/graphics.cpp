@@ -7,8 +7,8 @@ graphics::graphics(BootInfo* bootInfo) {
     memcpy(framebuffer, &bootInfo->framebuffer, sizeof(Framebuffer));
     
     uint64_t fbSize = (uint64_t)bootInfo->framebuffer.FrameBufferSize + 0x1000;
-    framebuffer->BaseAddress = globalPageTableManager.MapMemory(framebuffer->BaseAddress, Divide(fbSize, 0x1000));
-    PSF1_Font = (PSF_FONT*)globalPageTableManager.GetVirtualAddress(bootInfo->psf1_Font);
+    framebuffer->BaseAddress = globalPageTableManager[0].MapMemory(framebuffer->BaseAddress, Divide(fbSize, 0x1000));
+    PSF1_Font = (PSF_FONT*)globalPageTableManager[0].GetVirtualAddress(bootInfo->psf1_Font);
     Color = 0xffffffff;
     CursorPosition = {0, 0};
 }

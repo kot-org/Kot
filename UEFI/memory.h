@@ -44,6 +44,7 @@ uint64_t SetAddress(uint64_t Value, uint64_t address){
     address &= 0x000000ffffffffff;
     Value &= 0xfff0000000000fff;
     Value |= (address << 12);
+    return Value;
 }
 
 

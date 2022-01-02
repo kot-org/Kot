@@ -1,14 +1,21 @@
 GLOBAL SaveCoreID, GetCoreID
 
+%Define GS_Kernel 0xC0000102
+
+;TODO remove swap and replace by wmsr/rmsr
+
 SaveCoreID:
-    swapgs
     mov    rax, 1
     cpuid
     shr    rbx, 24
-    mov    gs, rbx
-    swapgs
+
+    mov    eax, ebx
+    mov    edx, 0
+    mov    ecx, GS_Kernel
+    wrmsr
     ret
 
 GetCoreID:
-    mov rax, gs
+    mov    ecx, GS_Kernel
+    rdmsr
     ret

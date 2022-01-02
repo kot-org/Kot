@@ -10,7 +10,7 @@ int memcmp(const void *aptr, const void *bptr, size_t n);
 void memcpy(void* destination, void* source, uint64_t num);
 
 namespace Memory{
-    void* CreatStack(PageTableManager* pageTable, size_t PageNumber, bool IsUser);
+    void* CreatStack(struct PageTableManager* pageTable, size_t PageNumber, bool IsUser);
     
     struct MemoryShareInfo{
         bool Lock;
@@ -22,6 +22,7 @@ namespace Memory{
         void* VirtualAddressParent;
     }__attribute__((packed));
 
-    bool CreatSharing(struct PageTableManager* pageTable, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, bool ReadOnly, uint8_t Priviledge);
+    size_t CreatSharing(struct PageTableManager* pageTable, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, bool ReadOnly, uint8_t Priviledge);
     bool GetSharing(struct PageTableManager* pageTable, void* key, uint64_t* virtualAddressPointer, uint8_t Priviledge);
+    size_t FreeSharing(void* virtualAddress);
 }

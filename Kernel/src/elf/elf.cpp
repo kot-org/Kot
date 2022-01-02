@@ -5,8 +5,8 @@ namespace ELF{
         Elf64_Ehdr* header = (Elf64_Ehdr*)buffer;
         //check elf
         if(header->e_ident[0] != EI_MAG0 || header->e_ident[1] != EI_MAG1 || header->e_ident[2] != EI_MAG2 || header->e_ident[3] != EI_MAG3) return 0;
-        TaskNode* task = globalTaskManager->AddTask(false, true, ring, name);
-        globalPageTableManager.ChangePaging(&task->Content.paging);
+        Task* task = globalTaskManager->AddTask(ring, name);
+        globalPageTableManager[0].ChangePaging(&task->paging);
 
         //Get location data
         void* phdrs = (void*)(uint64_t)buffer + header->e_phoff;
@@ -19,21 +19,21 @@ namespace ELF{
             for(uint64_t y = 0; y < pages; y++){
                 void* virtualAddress = (void*)(segment + y * 0x1000);
                 //Custom 0 flags : is user executable
-                if(!task->Content.paging.GetFlags(virtualAddress, PT_Flag::Custom0)){
+                if(!task->paging.GetFlags(virtualAddress, PT_Flag::Custom0)){
                     void* PhysicalBuffer = globalAllocator.RequestPage();
-                    task->Content.paging.MapMemory((void*)virtualAddress, (void*)PhysicalBuffer);
-                    task->Content.paging.MapUserspaceMemory((void*)virtualAddress);
-                    task->Content.paging.SetFlags(virtualAddress, PT_Flag::Custom0, true);
+                    task->paging.MapMemory((void*)virtualAddress, (void*)PhysicalBuffer);
+                    task->paging.MapUserspaceMemory((void*)virtualAddress);
+                    task->paging.SetFlags(virtualAddress, PT_Flag::Custom0, true);
                 }
             }
             memcpy((void*)segment, (void*)((uint64_t)buffer + phdr->p_offset), phdr->p_filesz);   
         }
-        globalPageTableManager.RestorePaging();
+        globalPageTableManager[0].RestorePaging();
         
         if(FunctionParameters == NULL){
-            task->Content.Launch((void*)header->e_entry);
+            task->Launch((void*)header->e_entry);
         }else{
-            task->Content.Launch((void*)header->e_entry, FunctionParameters);
+            task->Launch((void*)header->e_entry, FunctionParameters);
         }
         return 1;
     }    

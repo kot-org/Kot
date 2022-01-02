@@ -12,8 +12,8 @@
 #include "../../memory/UserHeap/heap.h"
 
 struct ContextStack;
-struct TaskContext;
-struct TaskNode;
+struct TaskQueuNode;
+struct Task;
 class TaskManager;
 
 #define MaxNameTask 256
@@ -35,7 +35,24 @@ struct Parameters{
     uint64_t Parameter5;
 }__attribute__((packed));
 
-struct TaskContext{
+struct DeviceTaskAdressStruct{
+	uint8_t type:3;
+    uint16_t L1:10;
+    uint16_t L2:10;
+    uint16_t L3:10;
+    uint16_t FunctionID:10;
+}__attribute__((packed));
+
+struct DeviceTaskData{
+    Task* task; 
+    Task* parent;   
+}__attribute__((packed));
+
+struct DeviceTaskTableEntry { 
+    void* entries[1024];
+}__attribute__((packed)); 
+
+struct Task{
     //task memory
     PageTableManager paging;
     UserHeap::Heap* heap;
@@ -47,55 +64,51 @@ struct TaskContext{
     ContextStack* Regs; 
     uint64_t PID;
     bool IsIddle;
-    bool IsRunning;
     bool IsPaused;
     bool IsTaskInTask;
-    uint64_t TimeUsed;
+    bool InterruptTask;
+    uint64_t TimeAllocate;
+    uint64_t CreationTime;
     bool IsThread;
     uint8_t Priviledge:3;
     char Name[MaxNameTask];
+    uint64_t MemoryAllocated;
 
     //other data
-    TaskNode* TaskToLaunchWhenExit;
+    Task* TaskToLaunchWhenExit;
 
     //parent 
-    TaskContext* ThreadParent; // if task is thread  
-    TaskNode* NodeParent;
+    Task* Parent;
+    Node* NodeParent;
     TaskManager* TaskManagerParent;
     uint8_t CoreID;
+
+    TaskQueuNode* TaskQueueParent; //only if task is in qeue and not run
+
+    //Queue
+    bool IsInQueue;
+    Task* Last;
+    Task* Next;
 
     //child
     //function
     void CreatThread();  
     void Launch(void* EntryPoint);
     void Launch(void* EntryPoint, Parameters* FunctionParameters);
-    void Exit();
+    void Exit(uint8_t CoreID);
+    void Pause(uint8_t CoreID, struct InterruptStack* Registers);
+    void Unpause();
+    void ExitIRQ();
     void* ExitTaskInTask(struct InterruptStack* Registers, uint8_t CoreID, void* returnValue);
+    uint64_t ExecuteSubTask(InterruptStack* Registers, uint8_t CoreID, DeviceTaskAdressStruct* DeviceAdress, Parameters* FunctionParameters);
 }__attribute__((packed));
 
-struct TaskNode{
-	TaskContext Content;
-	TaskNode* Last;
-	TaskNode* Next;
+struct TaskQueuNode{
+	Task* TaskData;
+	TaskQueuNode* Last;
+	TaskQueuNode* Next;
 }__attribute__((packed));
 
-struct DeviceTaskAdressStruct{
-	uint8_t type:3;
-    uint16_t L1:10;
-    uint16_t L2:10;
-    uint16_t L3:10;
-    uint16_t FunctionID:9;
-}__attribute__((packed));
-
-struct DeviceTaskData{
-    DeviceTaskAdressStruct* DeviceTaskAdress;
-    TaskContext* task; 
-    TaskNode* parent;   
-}__attribute__((packed));
-
-struct DeviceTaskTableEntry { 
-    void* entries[1024];
-}__attribute__((aligned(0x1000))); 
 
 struct DeviceTaskTableStruct{
     DeviceTaskData* GetDeviceTaskData(DeviceTaskAdressStruct* DeviceAdress);
@@ -110,31 +123,37 @@ struct DeviceTaskTableStruct{
 class TaskManager{
     public:
         void Scheduler(struct InterruptStack* Registers, uint8_t CoreID);
-        uint64_t ExecuteSubTask(struct InterruptStack* Registers, uint8_t CoreID, DeviceTaskAdressStruct* DeviceAdress, Parameters* FunctionParameters);
-        void CreatSubTask(TaskNode* parent, void* EntryPoint, DeviceTaskAdressStruct* DeviceAdress);
-        TaskNode* AddTask(bool IsIddle, bool IsLinked, int ring, char* name);    
-        TaskNode* NewNode(TaskNode* node);
-        TaskNode* CreatDefaultTask(bool IsLinked);     
-        void DeleteTask(TaskNode* task); 
+        void SwitchTask(struct InterruptStack* Registers, uint8_t CoreID, Task* task);
+        Task* DuplicateTask(Task* parent);
+
+        void EnqueueTask(Task* task);
+        void DequeueTask(Task* task);
+        void DequeueTaskWithoutLock(Task* task);
+        Task* GetTask();
+
+        void CreatSubTask(Task* parent, void* EntryPoint, DeviceTaskAdressStruct* DeviceAdress);
+        Task* AddTask(uint8_t priviledge, char* name);    
+        Task* CreatDefaultTask();     
         void InitScheduler(uint8_t NumberOfCores); 
         void EnabledScheduler(uint8_t CoreID);
-        TaskNode* GetCurrentTask(uint8_t CoreID);
-        bool CoreInUserSpace[MAX_PROCESSORS];
+        Task* GetCurrentTask(uint8_t CoreID);
+        bool IsSchedulerEnable[MAX_PROCESSORS];
         uint64_t TimeByCore[MAX_PROCESSORS];
-        TaskNode* NodeExecutePerCore[MAX_PROCESSORS];
-        size_t NumTaskTotal = 0;
+        Task* NodeExecutePerCore[MAX_PROCESSORS];
 
-    private:  
         bool TaskManagerInit;  
-        uint64_t CurrentTaskExecute;
-        size_t IddleTaskNumber = 0;
-        size_t IDTask = 0;
-        TaskNode* LastNode = NULL;
-        TaskNode* FirstNode = NULL;
-        TaskNode* MainNodeScheduler = NULL;
 
+        uint64_t NumberTaskTotal = 0;
+        uint64_t CurrentTaskExecute = 0;
+        uint64_t IddleTaskNumber = 0;
+        uint64_t IDTask = 0;
+
+        Task* FirstNode;
+        Task* LastNode;
+
+        Node* AllTasks = NULL;
         //iddle
-        TaskNode* IdleNode[MAX_PROCESSORS];    
+        Task* IdleNode[MAX_PROCESSORS];    
         DeviceTaskTableStruct DeviceTaskTable;
 };
 

@@ -95,10 +95,10 @@ extern "C" void Entry_IRQ21_Handler();
 extern "C" void Entry_IRQ22_Handler();
 extern "C" void Entry_IRQ23_Handler();
 
-uint64_t SetIrq(uint8_t ring, PageTableManager* pageTable, uint8_t irq, void* address);
+uint64_t SetIrq(struct Task* parent, void* address, uint8_t irq);
 uint64_t SetIrqDefault(uint8_t irq);
+void RedirectIRQ(InterruptStack* Registers, uint8_t CoreID, Task* parent);
 
-extern "C" void ExternIRQFunction(void* stack, void* cr3, void* functionAddress);
 
-extern IRQRedirect IRQRedirectList[IRQ_MAX];
+extern struct Task* IRQRedirectList[IRQ_MAX];
 extern void* IRQDefaultRedirect[IRQ_MAX];

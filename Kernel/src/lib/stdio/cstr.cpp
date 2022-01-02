@@ -252,7 +252,7 @@ Node* split(char* str, char* delimiters){
             memcpy(data, (void*)&entry[lastCharEnd], StrSize);
             *(uint8_t*)((uint64_t)data + StrSize) = 0;
             ReturnValue->data = data;
-            ReturnValue = ReturnValue->AddNext(0);
+            ReturnValue = ReturnValue->Add(0);
 
             lastCharEnd = charNumberStart + strlen(delimiters);
             c = delimiters;
@@ -267,7 +267,6 @@ Node* split(char* str, char* delimiters){
     memcpy(data, (void*)&entry[lastCharEnd], len - lastCharEnd);
     ReturnValue->data = data;
     ReturnValue->next = NULL;
-    
     return ReturnValue->parent;
 }
 

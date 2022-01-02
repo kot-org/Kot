@@ -5,6 +5,7 @@ Node* CreatNode(void* data){
     Node* node = (Node*)malloc(sizeof(Node));
     node->data = data;
     node->parent = node;
+    node->lastNodeCreat = node;
     return node;
 }
 
@@ -33,13 +34,15 @@ uint64_t Node::GetSize(){
     }
 }
 
-Node* Node::AddNext(void* data){
-    Node* next = (Node*)malloc(sizeof(Node));
-    next->data = data;
-    this->next = next;
-    next->last = this;
-    next->parent = this->parent;
-    return next;
+Node* Node::Add(void* data){
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->data = data;
+    parent->lastNodeCreat->next = newNode;
+    newNode->last = newNode;
+    newNode->next = NULL;
+    newNode->parent = this->parent;
+    parent->lastNodeCreat = newNode;
+    return newNode;    
 }
 
 void Node::ModifyData(void* data){
@@ -47,6 +50,10 @@ void Node::ModifyData(void* data){
 }
 
 void Node::Delete(){
+    if(parent->lastNodeCreat == this){
+        parent->lastNodeCreat = this->last;
+    }
+
     if(last != NULL){
         last->next = next;
     }

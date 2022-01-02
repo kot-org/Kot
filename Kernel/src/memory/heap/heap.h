@@ -4,6 +4,7 @@
 #include "../paging/pageTableManager.h"
 #include "../paging/pageFrameAllocator.h"
 #include "../../logs/logs.h"
+#include "../../arch/x86-64/cpu/cpu.h"
 
 struct SegmentHeader{
     bool IsFree;
@@ -20,6 +21,7 @@ struct Heap{
     size_t FreeSize;
     size_t UsedSize;
     void* heapEnd = 0;
+    uint64_t lock;
 };
 
 extern Heap globalHeap;

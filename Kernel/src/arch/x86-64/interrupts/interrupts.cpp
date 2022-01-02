@@ -4,7 +4,7 @@ IDTR idtr;
 
 uint8_t IDTData[0x1000];
 
-IRQRedirect IRQRedirectList[IRQ_MAX];
+Task* IRQRedirectList[IRQ_MAX];
 
 void* IRQDefaultRedirect[IRQ_MAX] = { 
     (void*)Entry_IRQ0_Handler,
@@ -223,14 +223,13 @@ extern "C" void GPFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID)
     while(true);
 }
 
-extern "C" void PageFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID, void* Address){
-    globalLogs->Error("Page Fault Detected : Memory address : 0x%x | Processor ID : %u | RIP : %x", Address, CoreID, Registers->rip);
-        
+extern "C" void PageFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID, void* Address, void* cr3){
+    globalLogs->Error("Page Fault Detected : Memory address : 0x%x | Processor ID : %u | RIP : %x | cr3 : %x", Address, CoreID, Registers->rip, cr3);
     globalLogs->Message("Rax : %x Rbx : %x Rcx : %x Rdx : %x Rsi : %x Rdi : %x Rbp : %x", Registers->rax, Registers->rbx, Registers->rcx, Registers->rdx, Registers->rsi, Registers->rdi, Registers->rbp);
     globalLogs->Message("R8 : %x R9 : %x R10 : %x R11 : %x R12 : %x R13 : %x R14 : %x R15 : %x", Registers->r8, Registers->r9, Registers->r10, Registers->r11, Registers->r12, Registers->r13, Registers->r14, Registers->r15);
     globalLogs->Message("Rflags: %x Rip: %x Ss: %x Cs: %x Rsp: %x", Registers->rflags, Registers->rip, Registers->ss, Registers->cs, Registers->rsp);
-
     Panic("Page Fault Detected");
+
     if(ReadBit((uint8_t)(uint64_t)Registers->errorCode, 0)){
         globalLogs->Message("Page-protection violation");
     }else{
@@ -305,129 +304,105 @@ extern "C" void SecurityException_Handler(ErrorInterruptStack* Registers, uint64
     while(true);
 }
 
-extern "C" void IRQ0_Handler(InterruptStack* Registers){ 
-    ExternIRQFunction(IRQRedirectList[0].stack, IRQRedirectList[0].cr3, IRQRedirectList[0].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ0_Handler(InterruptStack* Registers, uint64_t CoreID){ 
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[0]);
 }
 
-extern "C" void IRQ1_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[1].stack, IRQRedirectList[1].cr3, IRQRedirectList[1].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ1_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[1]);
 }
 
-extern "C" void IRQ2_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[2].stack, IRQRedirectList[2].cr3, IRQRedirectList[2].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ2_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[2]);
 }
 
-extern "C" void IRQ3_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[3].stack, IRQRedirectList[3].cr3, IRQRedirectList[3].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ3_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[3]);
 }
 
-extern "C" void IRQ4_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[4].stack, IRQRedirectList[4].cr3, IRQRedirectList[4].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ4_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[4]);
 }
 
-extern "C" void IRQ5_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[5].stack, IRQRedirectList[5].cr3, IRQRedirectList[5].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ5_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[5]);
 }
 
-extern "C" void IRQ6_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[6].stack, IRQRedirectList[6].cr3, IRQRedirectList[6].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ6_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[6]);
 }
 
-extern "C" void IRQ7_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[7].stack, IRQRedirectList[7].cr3, IRQRedirectList[7].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ7_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[7]);
 }
 
-extern "C" void IRQ8_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[8].stack, IRQRedirectList[8].cr3, IRQRedirectList[8].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ8_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[8]);
 }
 
-extern "C" void IRQ9_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[9].stack, IRQRedirectList[9].cr3, IRQRedirectList[9].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ9_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[9]);
 }
 
-extern "C" void IRQ10_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[10].stack, IRQRedirectList[10].cr3, IRQRedirectList[10].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ10_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[0]);
 }
 
-extern "C" void IRQ11_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[11].stack, IRQRedirectList[11].cr3, IRQRedirectList[11].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ11_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[11]);
 }
 
-extern "C" void IRQ12_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[12].stack, IRQRedirectList[12].cr3, IRQRedirectList[12].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ12_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[12]);
 }
 
-extern "C" void IRQ13_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[13].stack, IRQRedirectList[13].cr3, IRQRedirectList[13].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ13_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[13]);
 }
 
-extern "C" void IRQ14_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[14].stack, IRQRedirectList[14].cr3, IRQRedirectList[14].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ14_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[14]);
 }
 
-extern "C" void IRQ15_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[15].stack, IRQRedirectList[15].cr3, IRQRedirectList[15].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ15_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[15]);
 }
 
-extern "C" void IRQ16_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[16].stack, IRQRedirectList[16].cr3, IRQRedirectList[16].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ16_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[16]);
 }
 
-extern "C" void IRQ17_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[17].stack, IRQRedirectList[17].cr3, IRQRedirectList[17].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ17_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[17]);
 }
 
-extern "C" void IRQ18_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[18].stack, IRQRedirectList[18].cr3, IRQRedirectList[18].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ18_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[18]);
 }
 
-extern "C" void IRQ19_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[19].stack, IRQRedirectList[19].cr3, IRQRedirectList[19].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ19_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[19]);
 }
 
-extern "C" void IRQ20_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[20].stack, IRQRedirectList[20].cr3, IRQRedirectList[20].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ20_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[20]);
 }
 
-extern "C" void IRQ21_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[21].stack, IRQRedirectList[21].cr3, IRQRedirectList[21].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ21_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[21]);
 }
 
-extern "C" void IRQ22_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[22].stack, IRQRedirectList[22].cr3, IRQRedirectList[22].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ22_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[22]);
 }
 
-extern "C" void IRQ23_Handler(InterruptStack* Registers){
-    ExternIRQFunction(IRQRedirectList[23].stack, IRQRedirectList[23].cr3, IRQRedirectList[23].functionAddress);
-    APIC::localApicEOI();
+extern "C" void IRQ23_Handler(InterruptStack* Registers, uint64_t CoreID){
+    RedirectIRQ(Registers, CoreID, IRQRedirectList[23]);
 }
 
 extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID){
     globalTaskManager->Scheduler(Registers, CoreID); 
-    APIC::localApicEOI();
+    APIC::localApicEOI(CoreID);
 }
 
 extern "C" void Schedule_Handler(InterruptStack* Registers, uint64_t CoreID){
@@ -437,5 +412,5 @@ extern "C" void Schedule_Handler(InterruptStack* Registers, uint64_t CoreID){
 extern "C" void IPI_Handler(InterruptStack* Registers, uint64_t CoreID){
     globalLogs->Warning("IPI %x", CoreID);
     globalTaskManager->Scheduler(Registers, CoreID); 
-    APIC::localApicEOI();
+    APIC::localApicEOI(CoreID);
 }

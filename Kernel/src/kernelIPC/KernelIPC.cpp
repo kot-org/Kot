@@ -1,10 +1,10 @@
 #include "kernelIPC.h"
 
 namespace KernelIPC{
-    TaskNode* parent = NULL;
+    Task* parent = NULL;
 
     void Initialize(){
-        parent = globalTaskManager->AddTask(false, false, 0, "Kernel device");
+        parent = globalTaskManager->AddTask(0, "Kernel device");
         CreatTask((void*)LogHandler, IPC_Sys_LogHandler);
         CreatTask((void*)ReadFile, IPC_Sys_ReadFile);
         CreatTask((void*)WriteFile, IPC_Sys_WriteFile);
@@ -25,6 +25,7 @@ namespace KernelIPC{
     //IPC functions
 
     void LogHandler(uint64_t type, char* str){
+        for(int i=0; i<0x100000; i++);
         switch(type){
             case 0:
                 globalLogs->Message(str);

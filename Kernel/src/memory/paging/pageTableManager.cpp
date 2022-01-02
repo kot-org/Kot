@@ -1,7 +1,7 @@
 #include "PageTableManager.h"
 #include "../../logs/logs.h"
 
-PageTableManager globalPageTableManager;
+PageTableManager globalPageTableManager[MAX_PROCESSORS];
 
 void PageTableManager::PageTableManagerInit(PageTable* PML4Address){
     this->PML4 = PML4Address;
@@ -19,20 +19,20 @@ void PageTableManager::DefinePhysicalMemoryLocation(void* PhysicalMemoryVirtualA
 
 void PageTableManager::DefineVirtualTableLocation(){
     this->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddressSaver;
-    globalAllocator.PageBitmap.Buffer = (uint8_t*)globalPageTableManager.GetVirtualAddress(globalAllocator.PageBitmap.Buffer);
+    globalAllocator.PageBitmap.Buffer = (uint8_t*)GetVirtualAddress(globalAllocator.PageBitmap.Buffer);
 }
 
 void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory){
     PageMapIndexer indexer = PageMapIndexer((uint64_t)virtualMemory);
     PageDirectoryEntry PDE;
 
-    PageTable* PML4VirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PML4);
+    PageTable* PML4VirtualAddress = (PageTable*)GetVirtualAddress(PML4);
     PDE = PML4VirtualAddress->entries[indexer.PDP_i];
     PageTable* PDP;
     PageTable* PDPVirtualAddress;
     if (!PDE.GetFlag(PT_Flag::Present)){
         PDP = (PageTable*)globalAllocator.RequestPage();
-        PDPVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PDP);  
+        PDPVirtualAddress = (PageTable*)GetVirtualAddress(PDP);  
         memset(PDPVirtualAddress, 0, 0x1000);
         PDE.SetAddress((uint64_t)PDP >> 12);
         PDE.SetFlag(PT_Flag::Present, true);
@@ -42,7 +42,7 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory){
     else
     {
         PDP = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PDPVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PDP);    
+        PDPVirtualAddress = (PageTable*)GetVirtualAddress(PDP);    
     }
 
     
@@ -52,7 +52,7 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory){
     PageTable* PDVirtualAddress;
     if (!PDE.GetFlag(PT_Flag::Present)){
         PD = (PageTable*)globalAllocator.RequestPage();
-        PDVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PD); 
+        PDVirtualAddress = (PageTable*)GetVirtualAddress(PD); 
         memset(PDVirtualAddress, 0, 0x1000);
         PDE.SetAddress((uint64_t)PD >> 12);
         PDE.SetFlag(PT_Flag::Present, true);
@@ -62,7 +62,7 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory){
     else
     {
         PD = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PDVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PD);  
+        PDVirtualAddress = (PageTable*)GetVirtualAddress(PD);  
     }
 
 
@@ -71,7 +71,7 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory){
     PageTable* PTVirtualAddress;
     if (!PDE.GetFlag(PT_Flag::Present)){
         PT = (PageTable*)globalAllocator.RequestPage();
-        PTVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PT);
+        PTVirtualAddress = (PageTable*)GetVirtualAddress(PT);
         memset(PTVirtualAddress, 0, 0x1000);
         PDE.SetAddress((uint64_t)PT >> 12);
         PDE.SetFlag(PT_Flag::Present, true);
@@ -81,7 +81,7 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory){
     else
     {
         PT = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PTVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PT);  
+        PTVirtualAddress = (PageTable*)GetVirtualAddress(PT);  
     }
 
 
@@ -107,13 +107,13 @@ void PageTableManager::UnmapMemory(void* virtualMemory){
     PageMapIndexer indexer = PageMapIndexer((uint64_t)virtualMemory);
     PageDirectoryEntry PDE;
 
-    PageTable* PML4VirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PML4);
+    PageTable* PML4VirtualAddress = (PageTable*)GetVirtualAddress(PML4);
     PDE = PML4VirtualAddress->entries[indexer.PDP_i];
     PageTable* PDP;
     PageTable* PDPVirtualAddress;
     if (!PDE.GetFlag(PT_Flag::Present)){
         PDP = (PageTable*)globalAllocator.RequestPage();
-        PDPVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PDP);  
+        PDPVirtualAddress = (PageTable*)GetVirtualAddress(PDP);  
         memset(PDPVirtualAddress, 0, 0x1000);
         PDE.SetAddress((uint64_t)PDP >> 12);
         PDE.SetFlag(PT_Flag::Present, true);
@@ -123,7 +123,7 @@ void PageTableManager::UnmapMemory(void* virtualMemory){
     else
     {
         PDP = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PDPVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PDP);    
+        PDPVirtualAddress = (PageTable*)GetVirtualAddress(PDP);    
     }
 
     
@@ -133,7 +133,7 @@ void PageTableManager::UnmapMemory(void* virtualMemory){
     PageTable* PDVirtualAddress;
     if (!PDE.GetFlag(PT_Flag::Present)){
         PD = (PageTable*)globalAllocator.RequestPage();
-        PDVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PD); 
+        PDVirtualAddress = (PageTable*)GetVirtualAddress(PD); 
         memset(PDVirtualAddress, 0, 0x1000);
         PDE.SetAddress((uint64_t)PD >> 12);
         PDE.SetFlag(PT_Flag::Present, true);
@@ -143,7 +143,7 @@ void PageTableManager::UnmapMemory(void* virtualMemory){
     else
     {
         PD = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PDVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PD);  
+        PDVirtualAddress = (PageTable*)GetVirtualAddress(PD);  
     }
 
     PDE = PDVirtualAddress->entries[indexer.PT_i];
@@ -151,7 +151,7 @@ void PageTableManager::UnmapMemory(void* virtualMemory){
     PageTable* PTVirtualAddress;
     if (!PDE.GetFlag(PT_Flag::Present)){
         PT = (PageTable*)globalAllocator.RequestPage();
-        PTVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PT);
+        PTVirtualAddress = (PageTable*)GetVirtualAddress(PT);
         memset(PTVirtualAddress, 0, 0x1000);
         PDE.SetAddress((uint64_t)PT >> 12);
         PDE.SetFlag(PT_Flag::Present, true);
@@ -161,7 +161,7 @@ void PageTableManager::UnmapMemory(void* virtualMemory){
     else
     {
         PT = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PTVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PT);  
+        PTVirtualAddress = (PageTable*)GetVirtualAddress(PT);  
     }
 
 
@@ -176,7 +176,7 @@ void PageTableManager::MapUserspaceMemory(void* virtualMemory) {
     PageMapIndexer indexer = PageMapIndexer((uint64_t)virtualMemory);
     PageDirectoryEntry PDE;
 
-    PageTable* PML4VirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PML4);
+    PageTable* PML4VirtualAddress = (PageTable*)GetVirtualAddress(PML4);
     PDE = PML4VirtualAddress->entries[indexer.PDP_i];
     PageTable* PDP;
     PageTable* PDPVirtualAddress;
@@ -186,7 +186,7 @@ void PageTableManager::MapUserspaceMemory(void* virtualMemory) {
     else
     {
         PDP = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PDPVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PDP); 
+        PDPVirtualAddress = (PageTable*)GetVirtualAddress(PDP); 
     }
     
     PDE.SetFlag(PT_Flag::User, true);
@@ -202,7 +202,7 @@ void PageTableManager::MapUserspaceMemory(void* virtualMemory) {
     else
     {
         PD = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PDVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PD);  
+        PDVirtualAddress = (PageTable*)GetVirtualAddress(PD);  
     }
 
     PDE.SetFlag(PT_Flag::User, true);
@@ -218,7 +218,7 @@ void PageTableManager::MapUserspaceMemory(void* virtualMemory) {
     else
     {
         PT = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PTVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PT);
+        PTVirtualAddress = (PageTable*)GetVirtualAddress(PT);
     }
 
     PDE.SetFlag(PT_Flag::User, true);
@@ -233,7 +233,7 @@ void* PageTableManager::GetPhysicalAddress(void* virtualMemory){
     PageMapIndexer indexer = PageMapIndexer((uint64_t)virtualMemory);
     PageDirectoryEntry PDE;
 
-    PageTable* PML4VirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PML4);
+    PageTable* PML4VirtualAddress = (PageTable*)GetVirtualAddress(PML4);
     PDE = PML4VirtualAddress->entries[indexer.PDP_i];
     PageTable* PDP;
     PageTable* PDPVirtualAddress;
@@ -243,7 +243,7 @@ void* PageTableManager::GetPhysicalAddress(void* virtualMemory){
     else
     {
         PDP = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PDPVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PDP); 
+        PDPVirtualAddress = (PageTable*)GetVirtualAddress(PDP); 
     }
     
     
@@ -257,7 +257,7 @@ void* PageTableManager::GetPhysicalAddress(void* virtualMemory){
     else
     {
         PD = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PDVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PD);  
+        PDVirtualAddress = (PageTable*)GetVirtualAddress(PD);  
     }
 
     PDE = PDVirtualAddress->entries[indexer.PT_i];
@@ -270,7 +270,7 @@ void* PageTableManager::GetPhysicalAddress(void* virtualMemory){
     else
     {
         PT = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PTVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PT);
+        PTVirtualAddress = (PageTable*)GetVirtualAddress(PT);
     }
 
     PDE = PTVirtualAddress->entries[indexer.P_i];
@@ -284,15 +284,15 @@ void* PageTableManager::GetVirtualAddress(void* physicalAddress){
 void PageTableManager::CopyHigherHalf(PageTableManager* pageTableManagerToCopy){
     DefinePhysicalMemoryLocation(pageTableManagerToCopy->PhysicalMemoryVirtualAddress);
     this->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddressSaver;
-    PageTable* PML4VirtualAddressDestination = (PageTable*)globalPageTableManager.GetVirtualAddress(PML4);
-    PageTable* PML4VirtualAddressToCopy = (PageTable*)globalPageTableManager.GetVirtualAddress(pageTableManagerToCopy->PML4);
-    for(int i = 255; i < 512; i++){
+    PageTable* PML4VirtualAddressDestination = (PageTable*)GetVirtualAddress(PML4);
+    PageTable* PML4VirtualAddressToCopy = (PageTable*)GetVirtualAddress(pageTableManagerToCopy->PML4);
+    for(int i = 256; i < 512; i++){
         PageDirectoryEntry PDE = PML4VirtualAddressDestination->entries[i];
         PageTable* PDP;
         PageTable* PDPVirtualAddress;
         if (!PDE.GetFlag(PT_Flag::Present)){
             PDP = (PageTable*)globalAllocator.RequestPage();
-            PDPVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PDP);  
+            PDPVirtualAddress = (PageTable*)GetVirtualAddress(PDP);  
             memset(PDPVirtualAddress, 0, 0x1000);
             PDE.SetAddress((uint64_t)PDP >> 12);
             PDE.SetFlag(PT_Flag::Present, true);
@@ -316,7 +316,7 @@ bool PageTableManager::GetFlags(void* virtualMemory, int flags){
     PageMapIndexer indexer = PageMapIndexer((uint64_t)virtualMemory);
     PageDirectoryEntry PDE;
 
-    PageTable* PML4VirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PML4);
+    PageTable* PML4VirtualAddress = (PageTable*)GetVirtualAddress(PML4);
     PDE = PML4VirtualAddress->entries[indexer.PDP_i];
     PageTable* PDP;
     PageTable* PDPVirtualAddress;
@@ -326,7 +326,7 @@ bool PageTableManager::GetFlags(void* virtualMemory, int flags){
     else
     {
         PDP = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PDPVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PDP); 
+        PDPVirtualAddress = (PageTable*)GetVirtualAddress(PDP); 
     }
     
     PML4VirtualAddress->entries[indexer.PDP_i] = PDE;
@@ -341,7 +341,7 @@ bool PageTableManager::GetFlags(void* virtualMemory, int flags){
     else
     {
         PD = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PDVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PD);  
+        PDVirtualAddress = (PageTable*)GetVirtualAddress(PD);  
     }
 
     PDPVirtualAddress->entries[indexer.PD_i] = PDE;
@@ -356,7 +356,7 @@ bool PageTableManager::GetFlags(void* virtualMemory, int flags){
     else
     {
         PT = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PTVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PT);
+        PTVirtualAddress = (PageTable*)GetVirtualAddress(PT);
     }
 
     PDVirtualAddress->entries[indexer.PT_i] = PDE;
@@ -369,7 +369,7 @@ void PageTableManager::SetFlags(void* virtualMemory, int flags, bool value){
     PageMapIndexer indexer = PageMapIndexer((uint64_t)virtualMemory);
     PageDirectoryEntry PDE;
 
-    PageTable* PML4VirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PML4);
+    PageTable* PML4VirtualAddress = (PageTable*)GetVirtualAddress(PML4);
     PDE = PML4VirtualAddress->entries[indexer.PDP_i];
     PageTable* PDP;
     PageTable* PDPVirtualAddress;
@@ -379,7 +379,7 @@ void PageTableManager::SetFlags(void* virtualMemory, int flags, bool value){
     else
     {
         PDP = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PDPVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PDP); 
+        PDPVirtualAddress = (PageTable*)GetVirtualAddress(PDP); 
     }
     
     PML4VirtualAddress->entries[indexer.PDP_i] = PDE;
@@ -394,7 +394,7 @@ void PageTableManager::SetFlags(void* virtualMemory, int flags, bool value){
     else
     {
         PD = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PDVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PD);  
+        PDVirtualAddress = (PageTable*)GetVirtualAddress(PD);  
     }
 
     PDPVirtualAddress->entries[indexer.PD_i] = PDE;
@@ -409,7 +409,7 @@ void PageTableManager::SetFlags(void* virtualMemory, int flags, bool value){
     else
     {
         PT = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
-        PTVirtualAddress = (PageTable*)globalPageTableManager.GetVirtualAddress(PT);
+        PTVirtualAddress = (PageTable*)GetVirtualAddress(PT);
     }
 
     PDVirtualAddress->entries[indexer.PT_i] = PDE;
