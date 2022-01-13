@@ -1,8 +1,10 @@
 # Prerequisites
-*.d
+*.d # i wont remove this but you dont use D lang
+
+#hard drive files
+*.vhd
 
 # Compiled Object files
-*.vhd
 *.slo
 *.lo
 *.o
@@ -15,11 +17,8 @@
 # Compiled Dynamic libraries
 *.so
 *.dylib
-*.dll
 
-# Fortran module files
-*.mod
-*.smod
+# this is cpp not Fortran
 
 # Compiled Static libraries
 *.lai
@@ -28,9 +27,7 @@
 *.lib
 
 # Executables
-Bin/
+*.iso
+*.elf
 .vscode/
-OVMFbin/
-*.exe
-*.out
-*.app
+#only elf is generated as a executable
