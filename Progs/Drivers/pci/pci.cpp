@@ -8,7 +8,7 @@ namespace PCI{
         uint64_t offset = function << 12;
 
         uint64_t functionAddress = deviceAddress + offset;
-        functionAddress = (uint64_t)globalPageTableManager.MapMemory((void*)functionAddress, 1);
+        functionAddress = (uint64_t)globalPageTableManager[GetCoreID()].MapMemory((void*)functionAddress, 1);
         PCIDeviceHeader* pciDeviceHeader = (PCIDeviceHeader*)functionAddress;
 
         if (pciDeviceHeader->DeviceID == 0) return;
@@ -36,7 +36,7 @@ namespace PCI{
         uint64_t offset = device << 15;
 
         uint64_t deviceAddress = busAddress + offset;
-        PCIDeviceHeader* pciDeviceHeader = (PCIDeviceHeader*)globalPageTableManager.MapMemory((void*)deviceAddress, 1);
+        PCIDeviceHeader* pciDeviceHeader = (PCIDeviceHeader*)globalPageTableManager[GetCoreID()].MapMemory((void*)deviceAddress, 1);
 
         if (pciDeviceHeader->DeviceID == 0) return;
         if (pciDeviceHeader->DeviceID == 0xFFFF) return;
@@ -50,7 +50,7 @@ namespace PCI{
         uint64_t offset = bus << 20;
 
         uint64_t busAddress = baseAddress + offset;
-        PCIDeviceHeader* pciDeviceHeader = (PCIDeviceHeader*)globalPageTableManager.MapMemory((void*)busAddress, 1);
+        PCIDeviceHeader* pciDeviceHeader = (PCIDeviceHeader*)globalPageTableManager[GetCoreID()].MapMemory((void*)busAddress, 1);
         if (pciDeviceHeader->DeviceID == 0) return;
         if (pciDeviceHeader->DeviceID == 0xFFFF) return;
 

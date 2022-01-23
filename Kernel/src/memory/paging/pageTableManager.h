@@ -17,11 +17,16 @@ struct PageTableManager {
     void MapUserspaceMemory(void* virtualMemory);
     void* GetPhysicalAddress(void* virtualAddress);
     void* GetVirtualAddress(void* physicalAddress); //this function exist because physicall address is locate at the higher half
+    void CopyAll(PageTableManager* pageTableManagerToCopy);
     void CopyHigherHalf(PageTableManager* pageTableManagerToCopy);
+    void CopyLowerHalf(PageTableManager* pageTableManagerToCopy);
+    void LoadLowerHalf();
     void ChangePaging(PageTableManager* NewPaging);
     void RestorePaging();
     bool GetFlags(void* virtualMemory, int flags);
     void SetFlags(void* virtualMemory, int flags, bool value);
+    PageTableManager* SetupProcessPaging();
+    PageTableManager* SetupThreadPaging(PageTableManager* parent);
     void* PhysicalMemoryVirtualAddressSaver;
     void* PhysicalMemoryVirtualAddress;
     PageTable* PML4;

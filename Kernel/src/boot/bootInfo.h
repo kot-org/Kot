@@ -2,7 +2,7 @@
 
 #include "../lib/types.h"
 #include "../memory/efiMemory.h"
-#include "../hardware/acpi/acpi.h"
+#include "../drivers/acpi/acpi.h"
 
 /* font */
 struct PSF_FONT{

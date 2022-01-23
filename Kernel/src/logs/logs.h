@@ -1,4 +1,5 @@
 #pragma once
+#include "../arch/x86-64/atomic/atomic.h"
 #include "../arch/x86-64/io/serial/serial.h"
 
 struct RegistersLog {

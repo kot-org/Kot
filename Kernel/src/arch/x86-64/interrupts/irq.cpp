@@ -1,26 +1,15 @@
 #include "interrupts.h"
 
-uint64_t SetIrq(Task* parent, void* address, uint8_t irq){
+uint64_t SetIrq(process_t* parent, void* entryPoint, uint8_t irq){
     if(irq < IRQ_MAX){
-        IRQRedirectList[irq] = (Task*)malloc(sizeof(Task));
-        memcpy(IRQRedirectList[irq], parent, sizeof(Task));
-        IRQRedirectList[irq]->EntryPoint = address;
-        IRQRedirectList[irq]->Regs = (ContextStack*)calloc(sizeof(ContextStack));
-        IRQRedirectList[irq]->Stack = IRQRedirectList[irq]->heap->malloc(0x100000);
-        IRQRedirectList[irq]->Regs->cs = parent->Regs->cs;
-        IRQRedirectList[irq]->Regs->ss = parent->Regs->ss;
-        IRQRedirectList[irq]->Regs->rflags = parent->Regs->rflags;
-        IRQRedirectList[irq]->Regs->rsp = (void*)((uint64_t)IRQRedirectList[irq]->Stack + 0x100000);
-        IRQRedirectList[irq]->Regs->rip = address;
-        IRQRedirectList[irq]->InterruptTask = true;
-        IRQRedirectList[irq]->Parent = parent; 
+        IRQRedirectList[irq] = parent->CreatThread((uint64_t)entryPoint, parent->DefaultPriviledge, 0);
         APIC::IoChangeIrqState(irq, 0, true);
         return 1;
     }else{
         return 0;
     }
 }
-
+ 
 uint64_t SetIrqDefault(uint8_t irq){
     if(irq < IRQ_MAX){
         APIC::IoChangeIrqState(irq, 0, false);
@@ -33,9 +22,6 @@ uint64_t SetIrqDefault(uint8_t irq){
     }
 }
 
-void RedirectIRQ(InterruptStack* Registers, uint8_t CoreID, Task* parent){
-    if(parent->InterruptTask){
-        Task* task = globalTaskManager->DuplicateTask(parent);
-        globalTaskManager->SwitchTask(Registers, CoreID, task);
-    }
+void RedirectIRQ(InterruptStack* Registers, uint8_t CoreID, uint8_t irq){
+    globalTaskManager->SwitchTask(Registers, CoreID, IRQRedirectList[irq]);
 }

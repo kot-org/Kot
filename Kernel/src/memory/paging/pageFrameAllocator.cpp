@@ -2,7 +2,6 @@
 #include "../efiMemory.h"
 #include "../../misc/bitmap/bitmap.h"
 #include "../memory.h"
-#include "../../drivers/graphics/graphics.h"
 #include "../../lib/stdio/cstr.h"
 
 uint64_t totalMemory;

@@ -40,6 +40,11 @@ EXTERN DivideByZero_Handler, Debug_Handler, NMI_Handler, Breakpoint_Handler, Ove
     pop    r15
 %endmacro
 
+%macro    POP_REG_WITH_ERROR_CODE        0
+    POP_REG
+    add rsp, 8
+%endmacro
+
 %macro Get_Core_ID        0
     mov    ecx, GS_Kernel
     rdmsr
@@ -159,7 +164,7 @@ Entry_DoubleFault_Handler:
 
     call DoubleFault_Handler
 
-    POP_REG
+    POP_REG_WITH_ERROR_CODE
     
     iretq
 
@@ -172,7 +177,7 @@ Entry_InvalidTSS_Handler:
 
     call InvalidTSS_Handler
 
-    POP_REG
+    POP_REG_WITH_ERROR_CODE
     
     
     iretq
@@ -186,7 +191,7 @@ Entry_SegmentNotPresent_Handler:
 
     call SegmentNotPresent_Handler
 
-    POP_REG
+    POP_REG_WITH_ERROR_CODE
     
     
     iretq
@@ -202,7 +207,7 @@ Entry_StackSegmentFault_Handler:
 
     call StackSegmentFault_Handler
 
-    POP_REG
+    POP_REG_WITH_ERROR_CODE
     
     
     iretq
@@ -216,7 +221,7 @@ Entry_GPFault_Handler:
 
     call GPFault_Handler
 
-    POP_REG
+    POP_REG_WITH_ERROR_CODE
     
 
     iretq
@@ -231,9 +236,8 @@ Entry_PageFault_Handler:
 
     call PageFault_Handler
     
-    POP_REG
+    POP_REG_WITH_ERROR_CODE
     
- 
     iretq
 
 Entry_x87FloatingPointException_Handler: 
@@ -257,7 +261,7 @@ Entry_AlignmentCheck_Handler:
 
     call AlignmentCheck_Handler
     
-    POP_REG    
+    POP_REG_WITH_ERROR_CODE   
  
     iretq
 
@@ -306,7 +310,7 @@ Entry_SecurityException_Handler:
 
     call SecurityException_Handler
     
-    POP_REG
+    POP_REG_WITH_ERROR_CODE
     
  
     iretq

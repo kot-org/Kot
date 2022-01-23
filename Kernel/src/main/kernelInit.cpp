@@ -1,6 +1,5 @@
 #include "kernelInit.h"
 
-graphics r = graphics(NULL);
 CPU cpu;
 
 uint64_t LastVirtualAddressUsed = 0;
@@ -18,7 +17,7 @@ PageTable* InitializeMemory(BootInfo* bootInfo){
 
     PageTable* PML4 = (PageTable*)globalAllocator.RequestPage();
     memset(PML4, 0, 0x1000);
-    globalPageTableManager[0].PageTableManagerInit(PML4);
+    globalPageTableManager[GetCoreID()].PageTableManagerInit(PML4);
 
     PageTableManager UEFI_Table;
     UEFI_Table.PageTableManagerInit((PageTable*)bootInfo->memoryInfo.UEFI_CR3);
@@ -28,12 +27,12 @@ PageTable* InitializeMemory(BootInfo* bootInfo){
     LastVirtualAddressUsed = bootInfo->memoryInfo.VirtualKernelEnd;
 
     LastVirtualAddressUsed += 0x1000 - (LastVirtualAddressUsed % 0x1000);
-    globalPageTableManager[0].DefinePhysicalMemoryLocation((void*)(LastVirtualAddressUsed + 0x1000));
+    globalPageTableManager[GetCoreID()].DefinePhysicalMemoryLocation((void*)(LastVirtualAddressUsed + 0x1000));
 
     for(uint64_t i = 0; i < KernelPageSize; i++){
         void* VirtualAddress = (void*)(bootInfo->memoryInfo.VirtualKernelStart + i * 0x1000);
         void* PhysicalAddress = UEFI_Table.GetPhysicalAddress(VirtualAddress);
-        globalPageTableManager[0].MapMemory(VirtualAddress, PhysicalAddress);
+        globalPageTableManager[GetCoreID()].MapMemory(VirtualAddress, PhysicalAddress);
     }
     
     memorySize = GetMemorySize(bootInfo->memoryInfo.mMap, mMapEntries, bootInfo->memoryInfo.mMapDescSize);
@@ -42,27 +41,22 @@ PageTable* InitializeMemory(BootInfo* bootInfo){
 
     for(uint64_t i = 0; i < memorySize; i += 0x1000){
         LastVirtualAddressUsed += 0x1000;
-        globalPageTableManager[0].MapMemory((void*)LastVirtualAddressUsed, (void*)i);
+        globalPageTableManager[GetCoreID()].MapMemory((void*)LastVirtualAddressUsed, (void*)i);
     }
     LastVirtualAddressUsed += 0x1000;
 
-    globalPageTableManager[0].DefineVirtualTableLocation();
+    globalPageTableManager[GetCoreID()].DefineVirtualTableLocation();
 
     return PML4;
 }
 
 void InitializeACPI(BootInfo* bootInfo){
-    bootInfo->rsdp = (ACPI::RSDP2*)globalPageTableManager[0].GetVirtualAddress(bootInfo->rsdp);
+    bootInfo->rsdp = (ACPI::RSDP2*)globalPageTableManager[GetCoreID()].GetVirtualAddress(bootInfo->rsdp);
     
-    ACPI::SDTHeader* xsdt = (ACPI::SDTHeader*)globalPageTableManager[0].GetVirtualAddress((void*)bootInfo->rsdp->XSDTAddress);
-    ACPI::MCFGHeader* mcfg = (ACPI::MCFGHeader*)ACPI::FindTable(xsdt, (char*)"MCFG");
-    PCI::EnumeratePCI(mcfg);
+    ACPI::SDTHeader* xsdt = (ACPI::SDTHeader*)globalPageTableManager[GetCoreID()].GetVirtualAddress((void*)bootInfo->rsdp->XSDTAddress);
 
     ACPI::MADTHeader* madt = (ACPI::MADTHeader*)ACPI::FindTable(xsdt, (char*)"APIC");
     APIC::InitializeMADT(madt);
-
-    ACPI::FADTHeader* fadt = (ACPI::FADTHeader*)ACPI::FindTable(xsdt, (char*)"FACP");
-    ACPI::InitializeFADT(fadt);
 
     ACPI::HPETHeader* hpet = (ACPI::HPETHeader*)ACPI::FindTable(xsdt, (char*)"HPET");
     HPET::InitialiseHPET(hpet);
@@ -78,22 +72,21 @@ void InitializeKernel(BootInfo* bootInfo){
 
     globalCOM1->Initialize();
     globalCOM1->ClearMonitor();
-    globalLogs->Message("(c) Kot Corporation. All rights reserved");
+    globalLogs->Message("Welcome to Kot's kernel");
     
     gdtInit();
     globalLogs->Successful("GDT intialize");
-
 
     InitializeInterrupts();  
     globalLogs->Successful("IDT intialize");
     memset(bootInfo->framebuffer.BaseAddress, 0xff, bootInfo->framebuffer.FrameBufferSize);
 
     PageTable* PML4 = InitializeMemory(bootInfo);
-    LoadPaging(PML4, globalPageTableManager[0].PhysicalMemoryVirtualAddress);
+    LoadPaging(PML4, globalPageTableManager[GetCoreID()].PhysicalMemoryVirtualAddress);
     globalLogs->Successful("Memory intialize");
 
     //Update bootinfo location
-    bootInfo = (BootInfo*)globalPageTableManager[0].GetVirtualAddress(bootInfo);
+    bootInfo = (BootInfo*)globalPageTableManager[GetCoreID()].GetVirtualAddress(bootInfo);
 
 
     globalLogs->Message("CPU : %s %s", globalCPU.getName(), globalCPU.getVendorID());
@@ -108,13 +101,6 @@ void InitializeKernel(BootInfo* bootInfo){
     InitializeHeap((void*)LastVirtualAddressUsed, 0x10);
     globalLogs->Successful("Heap intialize");
 
-    r = graphics(bootInfo);
-    globalGraphics = &r;
-    globalGraphics->framebuffer->BaseAddressBackground = malloc(globalGraphics->framebuffer->FrameBufferSize);
-    memset(globalGraphics->framebuffer->BaseAddressBackground, 0, globalGraphics->framebuffer->FrameBufferSize);
-    globalGraphics->Update();
-    globalLogs->Successful("Graphics intialize");
-
     if(EnabledSSE() == 0){
         FPUInit();
         globalLogs->Successful("FPU intialize");
@@ -124,32 +110,12 @@ void InitializeKernel(BootInfo* bootInfo){
     
     InitializeACPI(bootInfo);
 
-    //Init file system
-    fileSystem = new OSFileSystem(AHCI::ahciDriver->PartitionsList);
-    
-    InitPS2Mouse();
-
     globalTaskManager = (TaskManager*)calloc(sizeof(TaskManager));
     globalTaskManager->InitScheduler(APIC::ProcessorCount);
-
-    fileSystem->mkdir("Alpha:/system", 777);
-    fileSystem->mkdir("Alpha:/system/background", 777);   
-    fileSystem->mkdir("Alpha:/system/apps", 777);  
-    
-    FileSystem::File* app = (FileSystem::File*)malloc(sizeof(FileSystem::File));
-    fileSystem->fopen("Alpha:/system/apps/main.elf", "r", app);
-    void* appBuffer = malloc(app->fileInfo.BytesSize);
-    app->Read(0, app->fileInfo.BytesSize, appBuffer);
-    Parameters FunctionParameters;
-    FunctionParameters.Parameter0 = (uint64_t)0xff;
-    ELF::loadElf(appBuffer, 1, "System", &FunctionParameters);
 
     APIC::EnableAPIC(CoreID);
     APIC::localApicEOI(CoreID);
     APIC::StartLapicTimer();
-
-    //Load Kernel Service
-    KernelIPC::Initialize();
 
     APIC::LoadCores(); 
 

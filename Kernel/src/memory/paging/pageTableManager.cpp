@@ -1,4 +1,5 @@
 #include "PageTableManager.h"
+#include "../../scheduling/scheduler/scheduler.h"
 #include "../../logs/logs.h"
 
 PageTableManager globalPageTableManager[MAX_PROCESSORS];
@@ -281,6 +282,29 @@ void* PageTableManager::GetVirtualAddress(void* physicalAddress){
     return (void*)((uint64_t)PhysicalMemoryVirtualAddress + (uint64_t)physicalAddress);
 }
 
+void PageTableManager::CopyAll(PageTableManager* pageTableManagerToCopy){
+    DefinePhysicalMemoryLocation(pageTableManagerToCopy->PhysicalMemoryVirtualAddress);
+    this->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddressSaver;
+    PageTable* PML4VirtualAddressDestination = (PageTable*)GetVirtualAddress(PML4);
+    PageTable* PML4VirtualAddressToCopy = (PageTable*)GetVirtualAddress(pageTableManagerToCopy->PML4);
+    for(int i = 0; i < 512; i++){
+        PageDirectoryEntry PDE = PML4VirtualAddressDestination->entries[i];
+        PageTable* PDP;
+        PageTable* PDPVirtualAddress;
+        if (!PDE.GetFlag(PT_Flag::Present)){
+            PDP = (PageTable*)globalAllocator.RequestPage();
+            PDPVirtualAddress = (PageTable*)GetVirtualAddress(PDP);  
+            memset(PDPVirtualAddress, 0, 0x1000);
+            PDE.SetAddress((uint64_t)PDP >> 12);
+            PDE.SetFlag(PT_Flag::Present, true);
+            PDE.SetFlag(PT_Flag::ReadWrite, true);
+            PML4VirtualAddressDestination->entries[i] = PDE;
+        }
+
+        PML4VirtualAddressDestination->entries[i] = PML4VirtualAddressToCopy->entries[i];
+    }
+}
+
 void PageTableManager::CopyHigherHalf(PageTableManager* pageTableManagerToCopy){
     DefinePhysicalMemoryLocation(pageTableManagerToCopy->PhysicalMemoryVirtualAddress);
     this->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddressSaver;
@@ -301,6 +325,48 @@ void PageTableManager::CopyHigherHalf(PageTableManager* pageTableManagerToCopy){
         }
 
         PML4VirtualAddressDestination->entries[i] = PML4VirtualAddressToCopy->entries[i];
+    }
+}
+
+void PageTableManager::CopyLowerHalf(PageTableManager* pageTableManagerToCopy){
+    DefinePhysicalMemoryLocation(pageTableManagerToCopy->PhysicalMemoryVirtualAddress);
+    this->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddressSaver;
+    PageTable* PML4VirtualAddressDestination = (PageTable*)GetVirtualAddress(PML4);
+    PageTable* PML4VirtualAddressToCopy = (PageTable*)GetVirtualAddress(pageTableManagerToCopy->PML4);
+    for(int i = 0; i < 256; i++){
+        PageDirectoryEntry PDE = PML4VirtualAddressDestination->entries[i];
+        PageTable* PDP;
+        PageTable* PDPVirtualAddress;
+        if (!PDE.GetFlag(PT_Flag::Present)){
+            PDP = (PageTable*)globalAllocator.RequestPage();
+            PDPVirtualAddress = (PageTable*)GetVirtualAddress(PDP);  
+            memset(PDPVirtualAddress, 0, 0x1000);
+            PDE.SetAddress((uint64_t)PDP >> 12);
+            PDE.SetFlag(PT_Flag::Present, true);
+            PDE.SetFlag(PT_Flag::ReadWrite, true);
+            PML4VirtualAddressDestination->entries[i] = PDE;
+        }
+
+        PML4VirtualAddressDestination->entries[i] = PML4VirtualAddressToCopy->entries[i];
+    }
+}
+
+void PageTableManager::LoadLowerHalf(){
+    this->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddressSaver;
+    PageTable* PML4VirtualAddressDestination = (PageTable*)GetVirtualAddress(PML4);
+    for(int i = 0; i < 256; i++){
+        PageDirectoryEntry PDE = PML4VirtualAddressDestination->entries[i];
+        PageTable* PDP;
+        PageTable* PDPVirtualAddress;
+        if (!PDE.GetFlag(PT_Flag::Present)){
+            PDP = (PageTable*)globalAllocator.RequestPage();
+            PDPVirtualAddress = (PageTable*)GetVirtualAddress(PDP);  
+            memset(PDPVirtualAddress, 0, 0x1000);
+            PDE.SetAddress((uint64_t)PDP >> 12);
+            PDE.SetFlag(PT_Flag::Present, true);
+            PDE.SetFlag(PT_Flag::ReadWrite, true);
+            PML4VirtualAddressDestination->entries[i] = PDE;
+        }
     }
 }
 
@@ -417,4 +483,26 @@ void PageTableManager::SetFlags(void* virtualMemory, int flags, bool value){
     PDE = PTVirtualAddress->entries[indexer.P_i];
     PDE.SetFlag((PT_Flag)flags, value);
     PTVirtualAddress->entries[indexer.P_i] = PDE;   
+}
+
+PageTableManager* PageTableManager::SetupProcessPaging(){
+    PageTableManager* ReturnValue = (PageTableManager*)malloc(sizeof(PageTableManager));
+    void* PML4 = globalAllocator.RequestPage();
+    memset(GetVirtualAddress(PML4), 0, 0x1000);
+    ReturnValue->PageTableManagerInit((PageTable*)PML4);
+    ReturnValue->CopyHigherHalf(this);
+    ReturnValue->LoadLowerHalf();
+    ReturnValue->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddress;   
+    return ReturnValue;
+}
+
+PageTableManager* PageTableManager::SetupThreadPaging(PageTableManager* parent){
+    PageTableManager* ReturnValue = (PageTableManager*)malloc(sizeof(PageTableManager));
+    void* PML4 = globalAllocator.RequestPage();
+    memset(GetVirtualAddress(PML4), 0, 0x1000);
+    ReturnValue->PageTableManagerInit((PageTable*)PML4);
+    ReturnValue->CopyHigherHalf(this);
+    ReturnValue->CopyLowerHalf(parent);
+    ReturnValue->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddress; 
+    return ReturnValue;      
 }

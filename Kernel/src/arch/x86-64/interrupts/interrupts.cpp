@@ -4,7 +4,7 @@ IDTR idtr;
 
 uint8_t IDTData[0x1000];
 
-Task* IRQRedirectList[IRQ_MAX];
+thread_t* IRQRedirectList[IRQ_MAX];
 
 void* IRQDefaultRedirect[IRQ_MAX] = { 
     (void*)Entry_IRQ0_Handler,
@@ -121,79 +121,66 @@ void InitializeInterrupts(){
 }
 
 extern "C" void DivideByZero_Handler(InterruptStack* Registers, uint64_t CoreID){
-    Panic("Divide-by-zero Error Detected");
     globalLogs->Error("Divide-by-zero Error Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void Debug_Handler(InterruptStack* Registers, uint64_t CoreID){
-    Panic("Debug Detected");
     globalLogs->Error("Debug Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void NMI_Handler(InterruptStack* Registers, uint64_t CoreID){
-    Panic("Non-maskable Interrupt Detected");
     globalLogs->Error("Non-maskable Interrupt Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void Breakpoint_Handler(InterruptStack* Registers, uint64_t CoreID){
-    Panic("Breakpoint Detected");
     globalLogs->Error("Breakpoint Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void Overflow_Handler(InterruptStack* Registers, uint64_t CoreID){
-    Panic("Overflow Detected");
     globalLogs->Error("Overflow Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void BoundRangeExceeded_Handler(InterruptStack* Registers, uint64_t CoreID){
-    Panic("Bound Range Exceeded Detected");
     globalLogs->Error("Bound Range Exceeded Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void InvalidOpcode_Handler(InterruptStack* Registers, uint64_t CoreID){
-    Panic("Invalid Opcode Detected");
     globalLogs->Error("Invalid Opcode Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void DeviceNotAvailable_Handler(InterruptStack* Registers, uint64_t CoreID){
-    Panic("Device Not Available Detected");
     globalLogs->Error("Device Not Available Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void DoubleFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
-    Panic("Double Fault Detected");
     globalLogs->Error("Double Fault Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void InvalidTSS_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
-    Panic("Invalid TSS Detected");
     globalLogs->Error("Invalid TSS Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void SegmentNotPresent_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
-    Panic("Segment Not Present Detected");
     globalLogs->Error("Segment Not Present Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void StackSegmentFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
-    Panic("Stack-Segment Fault Detected");
     globalLogs->Error("Stack-Segment Fault Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void GPFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
-    Panic("General Protection Fault Detected");
     globalLogs->Error("General Protection Fault Detected -> At processor %u | RIP : %x", CoreID, Registers->rip);
     globalLogs->Message("Rax : %x Rbx : %x Rcx : %x Rdx : %x Rsi : %x Rdi : %x Rbp : %x", Registers->rax, Registers->rbx, Registers->rcx, Registers->rdx, Registers->rsi, Registers->rdi, Registers->rbp);
     globalLogs->Message("R8 : %x R9 : %x R10 : %x R11 : %x R12 : %x R13 : %x R14 : %x R15 : %x", Registers->r8, Registers->r9, Registers->r10, Registers->r11, Registers->r12, Registers->r13, Registers->r14, Registers->r15);
@@ -224,11 +211,16 @@ extern "C" void GPFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID)
 }
 
 extern "C" void PageFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreID, void* Address, void* cr3){
+    if(globalTaskManager->IsSchedulerEnable[CoreID] && globalTaskManager->ThreadExecutePerCore[CoreID] != NULL){
+        if(globalTaskManager->ThreadExecutePerCore[CoreID]->ExtendStack((uint64_t)Address)){
+            return;
+        } 
+    }
+    
     globalLogs->Error("Page Fault Detected : Memory address : 0x%x | Processor ID : %u | RIP : %x | cr3 : %x", Address, CoreID, Registers->rip, cr3);
     globalLogs->Message("Rax : %x Rbx : %x Rcx : %x Rdx : %x Rsi : %x Rdi : %x Rbp : %x", Registers->rax, Registers->rbx, Registers->rcx, Registers->rdx, Registers->rsi, Registers->rdi, Registers->rbp);
     globalLogs->Message("R8 : %x R9 : %x R10 : %x R11 : %x R12 : %x R13 : %x R14 : %x R15 : %x", Registers->r8, Registers->r9, Registers->r10, Registers->r11, Registers->r12, Registers->r13, Registers->r14, Registers->r15);
     globalLogs->Message("Rflags: %x Rip: %x Ss: %x Cs: %x Rsp: %x", Registers->rflags, Registers->rip, Registers->ss, Registers->cs, Registers->rsp);
-    Panic("Page Fault Detected");
 
     if(ReadBit((uint8_t)(uint64_t)Registers->errorCode, 0)){
         globalLogs->Message("Page-protection violation");
@@ -265,139 +257,134 @@ extern "C" void PageFault_Handler(ErrorInterruptStack* Registers, uint64_t CoreI
     if(ReadBit((uint8_t)(uint64_t)Registers->errorCode, 7)){
         globalLogs->Message("Caused to an SGX violaton");
     }
+    
     while(true);
 }
 
 extern "C" void x87FloatingPointException_Handler(InterruptStack* Registers, uint64_t CoreID){
-    Panic("x87 Floating-Point Exception Detected");
     globalLogs->Error("x87 Floating-Point Exception Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void AlignmentCheck_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
-    Panic("Alignment Check Detected");
     globalLogs->Error("Alignment Check Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void MachineCheck_Handler(InterruptStack* Registers, uint64_t CoreID){
-    Panic("Machine Check Detected");
     globalLogs->Error("Machine Check Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void SIMDFloatingPointException_Handler(InterruptStack* Registers, uint64_t CoreID){
-    Panic("SIMD Floating-Point Exception Detected");
     globalLogs->Error("SIMD Floating-Point Exception Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void VirtualizationException_Handler(InterruptStack* Registers, uint64_t CoreID){
-    Panic("Virtualization Exception Detected");
     globalLogs->Error("Virtualization Exception Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void SecurityException_Handler(ErrorInterruptStack* Registers, uint64_t CoreID){
-    Panic("Security Exception Detected");
     globalLogs->Error("Security Exception Detected -> At processor %u", CoreID);
     while(true);
 }
 
 extern "C" void IRQ0_Handler(InterruptStack* Registers, uint64_t CoreID){ 
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[0]);
+    RedirectIRQ(Registers, CoreID, 0);
 }
 
 extern "C" void IRQ1_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[1]);
+    RedirectIRQ(Registers, CoreID, 1);
 }
 
 extern "C" void IRQ2_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[2]);
+    RedirectIRQ(Registers, CoreID, 2);
 }
 
 extern "C" void IRQ3_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[3]);
+    RedirectIRQ(Registers, CoreID, 3);
 }
 
 extern "C" void IRQ4_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[4]);
+    RedirectIRQ(Registers, CoreID, 4);
 }
 
 extern "C" void IRQ5_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[5]);
+    RedirectIRQ(Registers, CoreID, 5);
 }
 
 extern "C" void IRQ6_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[6]);
+    RedirectIRQ(Registers, CoreID, 6);
 }
 
 extern "C" void IRQ7_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[7]);
+    RedirectIRQ(Registers, CoreID, 7);
 }
 
 extern "C" void IRQ8_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[8]);
+    RedirectIRQ(Registers, CoreID, 8);
 }
 
 extern "C" void IRQ9_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[9]);
+    RedirectIRQ(Registers, CoreID, 9);
 }
 
 extern "C" void IRQ10_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[0]);
+    RedirectIRQ(Registers, CoreID, 10);
 }
 
 extern "C" void IRQ11_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[11]);
+    RedirectIRQ(Registers, CoreID, 11);
 }
 
 extern "C" void IRQ12_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[12]);
+    RedirectIRQ(Registers, CoreID, 12);
 }
 
 extern "C" void IRQ13_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[13]);
+    RedirectIRQ(Registers, CoreID, 13);
 }
 
 extern "C" void IRQ14_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[14]);
+    RedirectIRQ(Registers, CoreID, 14);
 }
 
 extern "C" void IRQ15_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[15]);
+    RedirectIRQ(Registers, CoreID, 15);
 }
 
 extern "C" void IRQ16_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[16]);
+    RedirectIRQ(Registers, CoreID, 16);
 }
 
 extern "C" void IRQ17_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[17]);
+    RedirectIRQ(Registers, CoreID, 17);
 }
 
 extern "C" void IRQ18_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[18]);
+    RedirectIRQ(Registers, CoreID, 18);
 }
 
 extern "C" void IRQ19_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[19]);
+    RedirectIRQ(Registers, CoreID, 19);
 }
 
 extern "C" void IRQ20_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[20]);
+    RedirectIRQ(Registers, CoreID, 20);
 }
 
 extern "C" void IRQ21_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[21]);
+    RedirectIRQ(Registers, CoreID, 21);
 }
 
 extern "C" void IRQ22_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[22]);
+    RedirectIRQ(Registers, CoreID, 22);
 }
 
 extern "C" void IRQ23_Handler(InterruptStack* Registers, uint64_t CoreID){
-    RedirectIRQ(Registers, CoreID, IRQRedirectList[23]);
+    RedirectIRQ(Registers, CoreID, 23);
 }
 
 extern "C" void LAPICTIMERInt_Handler(InterruptStack* Registers, uint64_t CoreID){

@@ -1,8 +1,6 @@
 #pragma once
 
 #include "../../lib/types.h"
-#include "printf.h"
-#include "../../drivers/graphics/graphics.h"
 #include "../../memory/heap/heap.h"
 #include "../node/node.h"
 

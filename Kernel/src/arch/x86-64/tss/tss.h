@@ -2,9 +2,8 @@
 #include "../../../lib/types.h"
 #include "../gdt/gdt.h"
 #include "../../../memory/memory.h"
-#include "../../../drivers/graphics/graphics.h"
 #include "../../../lib/stdio.h"
-#include "../../../hardware/apic/apic.h"
+#include "../apic/apic.h"
 
 #define IST_POINTER         0x700000
 #define IST_SIZE            0x100000

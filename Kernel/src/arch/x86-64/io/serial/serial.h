@@ -2,6 +2,7 @@
 #include "../io.h"
 #include "../../../../logs/logs.h"
 #include "../../../../lib/stdio.h"
+#include "../../../../lib/limits.h"
 #define COM1 0x3f8
 
 #define SerialReset (char*)"\033[1;0m"

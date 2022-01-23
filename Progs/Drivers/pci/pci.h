@@ -2,7 +2,7 @@
 
 #include "../../lib/types.h"
 #include "../../memory/heap/heap.h"
-#include "../acpi/acpi.h"
+#include "../../drivers/acpi/acpi.h"
 #include "../../memory/paging/pageTableManager.h"
 #include "../../drivers/graphics/graphics.h"
 #include "../../lib/stdio/cstr.h"

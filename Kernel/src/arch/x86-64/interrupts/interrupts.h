@@ -3,11 +3,6 @@
 #include "../io/io.h"
 #include "../../../lib/types.h"
 #include "../../../logs/logs.h"
-#include "../../../drivers/graphics/graphics.h"
-#include "../../../misc/panic/panic.h"
-#include "../../../drivers/hid/keyboard.h"
-#include "../../../drivers/hid/mouse.h"
-#include "../../../scheduling/pit/pit.h"
 #include "../../../memory/paging/pageFrameAllocator.h"
 #include "../../../scheduling/scheduler/scheduler.h"
 
@@ -95,10 +90,10 @@ extern "C" void Entry_IRQ21_Handler();
 extern "C" void Entry_IRQ22_Handler();
 extern "C" void Entry_IRQ23_Handler();
 
-uint64_t SetIrq(struct Task* parent, void* address, uint8_t irq);
+uint64_t SetIrq(struct process_t* parent, void* entryPoint, uint8_t irq);
 uint64_t SetIrqDefault(uint8_t irq);
-void RedirectIRQ(InterruptStack* Registers, uint8_t CoreID, Task* parent);
+void RedirectIRQ(InterruptStack* Registers, uint8_t CoreID, uint8_t irq);
 
 
-extern struct Task* IRQRedirectList[IRQ_MAX];
+extern struct thread_t* IRQRedirectList[IRQ_MAX];
 extern void* IRQDefaultRedirect[IRQ_MAX];

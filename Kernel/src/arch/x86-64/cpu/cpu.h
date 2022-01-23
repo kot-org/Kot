@@ -1,7 +1,5 @@
 #pragma once
 #include "../../../lib/types.h"
-#include "../../../scheduling/pit/pit.h"
-#include "../../../lib/stdio/printf.h"
 
 #define ECX_SSE3                        (1 << 0)    // Streaming SIMD Extensions 3
 #define ECX_PCLMULQDQ                   (1 << 1)    // PCLMULQDQ Instruction
@@ -80,6 +78,39 @@ struct CPURegisters{
     uint64_t r14;
     uint64_t r15;
 };
+
+struct rflags_t{
+    bool CF:1;
+    bool Reserved0:1; //this is bit is set as default
+    bool PF:1;
+    bool Reserved1:1;
+    bool AF:1;
+    bool Reserved2:1;
+    bool ZF:1;
+    bool SF:1;
+    bool TF:1;
+    bool IF:1;
+    bool DF:1;
+    bool OF:1;
+    uint8_t IOPL:2;
+    bool RF:1;
+    bool VM:1;
+    bool AC:1;
+    bool VIF:1;
+    bool VIP:1;
+    bool ID:1;
+    bool Reserved3:1;
+    bool Reserved4:1;
+    bool Reserved5:1;
+    bool Reserved6:1;
+    bool Reserved7:1;
+    bool Reserved8:1;
+    bool Reserved9:1;
+    bool Reserved10:1;
+    bool Reserved11:1;
+    bool Reserved12:1;
+    uint32_t Reserved13;
+}__attribute__((packed));
 
 class CPU{
     private:
