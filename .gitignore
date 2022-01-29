@@ -30,6 +30,8 @@
 # Executables
 Bin/
 OVMFbin/
+.vs/
+
 *.exe
 *.out
 *.app
