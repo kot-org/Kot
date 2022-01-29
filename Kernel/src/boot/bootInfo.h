@@ -16,7 +16,6 @@ struct PSF_FONT{
 /* GOP */
 struct Framebuffer{
 	void* BaseAddress;
-	void* BaseAddressBackground;
     size_t FrameBufferSize;
 	unsigned int Width;
 	unsigned int Height;
@@ -33,6 +32,13 @@ struct MemoryInfo{
 	uint64_t VirtualKernelStart;
 	uint64_t VirtualKernelEnd;
 }__attribute__((packed));
+
+/* RamFs */
+struct RamFs{
+	void* RamFsBase;
+	size_t Size;
+}__attribute__((packed));
+
 /* Boot info stuct */
 
 struct BootInfo{
@@ -40,5 +46,6 @@ struct BootInfo{
 	struct PSF_FONT* psf1_Font;
 	struct MemoryInfo memoryInfo;
     ACPI::RSDP2* rsdp; //read system descriptor pointer
+	struct RamFs ramfs;
 	void* smbios; //bios info
 }__attribute__((packed));

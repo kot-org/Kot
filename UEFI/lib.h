@@ -45,6 +45,7 @@ struct GraphicModeInfo{
     uint_t BetterHorizontalResolution;
     uint_t BetterVerticalResolution;
 };
+
 struct GraphicModeInfo BetterGraphicModeInfo; 
 
 /* functions */
@@ -557,6 +558,27 @@ INT32 CompareGuid(EFI_GUID *Guid1, EFI_GUID *Guid2)
     r |= g1[3] - g2[3];
 
     return r;
+}
+
+void GetRamFS(char* filename, struct RamFs* ramfs){
+    EFI_FILE_PROTOCOL* f = openFile(filename);
+    uint64_t fileSize = 0;
+    void* Buffer;
+    if(f != NULL){         
+        EFI_FILE_INFO* FileInfo;
+        uint_t FileInfoSize = sizeof(EFI_FILE_INFO);
+        f->GetInfo(f, &EFI_FILE_INFO_GUID, &FileInfoSize, NULL);
+        SystemTable->BootServices->AllocatePool(EfiLoaderData, FileInfoSize, (void**)&FileInfo);
+        f->GetInfo(f, &EFI_FILE_INFO_GUID, &FileInfoSize, (void*)FileInfo);
+        fileSize = FileInfo->FileSize;  
+
+        SystemTable->BootServices->AllocatePool(EfiLoaderData, fileSize, (void**)&Buffer);       
+        f->Read(f, &fileSize, Buffer);
+        
+        closeFile(f);
+        ramfs->RamFsBase = Buffer;
+        ramfs->Size = fileSize;
+    }
 }
 
 #endif

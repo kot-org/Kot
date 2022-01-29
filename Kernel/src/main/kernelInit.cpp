@@ -79,7 +79,6 @@ void InitializeKernel(BootInfo* bootInfo){
 
     InitializeInterrupts();  
     globalLogs->Successful("IDT intialize");
-    memset(bootInfo->framebuffer.BaseAddress, 0xff, bootInfo->framebuffer.FrameBufferSize);
 
     PageTable* PML4 = InitializeMemory(bootInfo);
     LoadPaging(PML4, globalPageTableManager[GetCoreID()].PhysicalMemoryVirtualAddress);
@@ -87,16 +86,6 @@ void InitializeKernel(BootInfo* bootInfo){
 
     //Update bootinfo location
     bootInfo = (BootInfo*)globalPageTableManager[GetCoreID()].GetVirtualAddress(bootInfo);
-
-
-    globalLogs->Message("CPU : %s %s", globalCPU.getName(), globalCPU.getVendorID());
-    globalCPU.getFeatures();
-    globalLogs->Message("CPU features :");
-    for(int i = 0; i < globalCPU.cpuFeatures; i++){
-        globalCOM1->Print(globalCPU.features[i]);
-        globalCOM1->Print(" | ");
-    }
-    globalCOM1->Print("\n");
 
     InitializeHeap((void*)LastVirtualAddressUsed, 0x10);
     globalLogs->Successful("Heap intialize");
@@ -109,6 +98,9 @@ void InitializeKernel(BootInfo* bootInfo){
     }
     
     InitializeACPI(bootInfo);
+
+    RamFS::Parse(globalPageTableManager[GetCoreID()].GetVirtualAddress(bootInfo->ramfs.RamFsBase), bootInfo->ramfs.Size);
+    RamFS::Find("test");
 
     globalTaskManager = (TaskManager*)calloc(sizeof(TaskManager));
     globalTaskManager->InitScheduler(APIC::ProcessorCount);
@@ -123,4 +115,4 @@ void InitializeKernel(BootInfo* bootInfo){
     asm("sti");
 
     return;
-}
+} 

@@ -175,6 +175,7 @@ EFI_STATUS efi_main(EFI_HANDLE IH, EFI_SYSTEM_TABLE* ST)
 			bootInfo->memoryInfo.VirtualKernelStart = VirtualKernelStart;
 			bootInfo->memoryInfo.VirtualKernelEnd = VirtualKernelEnd;
 		bootInfo->rsdp = rsdp;
+		GetRamFS(L"RamFS.bin", &bootInfo->ramfs);
 		bootInfo->smbios = smbios;
 
 	SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
