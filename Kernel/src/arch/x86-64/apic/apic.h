@@ -251,11 +251,11 @@ namespace APIC{
     void IoChangeIrqState(uint8_t irq, uint8_t IOApicID, bool IsEnable);
     void LoadCores();
     void* GetLAPICAddress();
-    void EnableAPIC(uint8_t CoreID);
+    void EnableAPIC(uint64_t CoreID);
     void StartLapicTimer();
     void localAPICSetTimerCount(uint32_t value);
     uint32_t localAPICGetTimerCount();
-    void localApicEOI(uint8_t CoreID);
+    void localApicEOI(uint64_t CoreID);
     void localApicEnableSpuriousInterrupts();
     uint32_t localAPICReadRegister(size_t offset);
     uint32_t localAPICReadRegister(void* lapicAddress, size_t offset);
@@ -267,7 +267,7 @@ namespace APIC{
     uint32_t CreatLocalAPICIipiRegister(LocalAPICIipi reg);
     void IoApicSetRedirectionEntry(void* apicPtr, size_t index, IOAPICRedirectionEntry entry);
     void SetCommandIPI(uint32_t commandLow, uint32_t commandHigh);
-    void GenerateInterruption(uint8_t CoreID, uint8_t Vector);
+    void GenerateInterruption(uint64_t CoreID, uint8_t Vector);
     
     extern LocalProcessor** Processor;
     extern uint8_t ProcessorCount;

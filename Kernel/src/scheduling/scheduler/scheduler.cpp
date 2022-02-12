@@ -4,7 +4,7 @@ TaskManager* globalTaskManager;
 
 static uint64_t mutexScheduler;
 
-void TaskManager::Scheduler(InterruptStack* Registers, uint8_t CoreID){  
+void TaskManager::Scheduler(InterruptStack* Registers, uint64_t CoreID){  
     if(IsSchedulerEnable[CoreID]){  
         Atomic::atomicSpinlock(&mutexScheduler, 1);
         Atomic::atomicLock(&mutexScheduler, 1);
@@ -141,7 +141,7 @@ process_t* TaskManager::CreatProcess(uint8_t priviledge, void* externalData){
     }
 
     /* Setup default paging */
-    proc->SharedPaging = globalPageTableManager[GetCoreID()].SetupProcessPaging();
+    proc->SharedPaging = globalPageTableManager[CPU::GetCoreID()].SetupProcessPaging();
 
     /* Setup default priviledge */
     proc->DefaultPriviledge = priviledge;
@@ -177,7 +177,7 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
     thread->Regs = (ContextStack*)calloc(sizeof(ContextStack));
 
     /* Copy paging */
-    thread->Paging = globalPageTableManager[GetCoreID()].SetupThreadPaging(this->SharedPaging);
+    thread->Paging = globalPageTableManager[CPU::GetCoreID()].SetupThreadPaging(this->SharedPaging);
 
     /* Load new stack */
     thread->SetupStack();
@@ -187,9 +187,9 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
     thread->RingPL = priviledge;
 
     /* Setup registers */
-    thread->Regs->rip = (void*)entryPoint;
-    thread->Regs->cs = (void*)(GDTInfoSelectorsRing[RingPriviledge].Code | RingPriviledge);
-    thread->Regs->ss = (void*)(GDTInfoSelectorsRing[RingPriviledge].Data | RingPriviledge);
+    thread->Regs->rip = entryPoint;
+    thread->Regs->cs = (GDTInfoSelectorsRing[RingPriviledge].Code | RingPriviledge);
+    thread->Regs->ss = (GDTInfoSelectorsRing[RingPriviledge].Data | RingPriviledge);
     thread->Regs->rflags.Reserved0 = true;
     thread->Regs->rflags.IF = true;
     thread->Regs->rflags.IOPL = 0;
@@ -225,13 +225,13 @@ thread_t* process_t::DuplicateThread(thread_t* source){
     thread->Regs = (ContextStack*)calloc(sizeof(ContextStack));
 
     /* Copy paging */
-    thread->Paging = globalPageTableManager[GetCoreID()].SetupThreadPaging(source->Parent->SharedPaging);
+    thread->Paging = globalPageTableManager[CPU::GetCoreID()].SetupThreadPaging(source->Parent->SharedPaging);
 
     /* Load new stack */
     thread->SetupStack();
 
     /* Setup registers */
-    thread->Regs->rip = source->EntryPoint;
+    thread->Regs->rip = (uint64_t)source->EntryPoint;
     thread->Regs->cs = source->Regs->cs; 
     thread->Regs->ss = source->Regs->ss; 
     thread->Regs->rflags = source->Regs->rflags;
@@ -257,20 +257,20 @@ thread_t* process_t::DuplicateThread(thread_t* source){
 
 void thread_t::SetupStack(){
     uint64_t StackLocation = GetVirtualAddress(0x100, 0, 0, 0);
-    this->Regs->rsp = (void*)StackLocation;
+    this->Regs->rsp = StackLocation;
     this->Stack = (StackInfo*)malloc(sizeof(StackInfo));
     this->Stack->StackStart = StackLocation;
     this->Stack->StackEnd = StackLocation;
     this->Stack->StackEndMax = GetVirtualAddress(0xff, 0, 0, 0);
 
     /* Clear stack */
-    PageTable* PML4VirtualAddress = (PageTable*)globalPageTableManager[GetCoreID()].GetVirtualAddress((void*)Paging->PML4);
+    PageTable* PML4VirtualAddress = (PageTable*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress((void*)Paging->PML4);
     PML4VirtualAddress->entries[0xff].Value = NULL;
 }
 
 
 
-void TaskManager::SwitchTask(InterruptStack* Registers, uint8_t CoreID, thread_t* task){
+void TaskManager::SwitchTask(InterruptStack* Registers, uint64_t CoreID, thread_t* task){
     if(task == NULL) return;
 
     Atomic::atomicSpinlock(&mutexScheduler, 1);
@@ -305,7 +305,7 @@ void TaskManager::CreatIddleTask(){
     void* physcialMemory = globalAllocator.RequestPage();
     thread->Paging->MapMemory(0x0, physcialMemory);
     thread->Paging->MapUserspaceMemory(0x0);
-    void* virtualMemory = globalPageTableManager[GetCoreID()].GetVirtualAddress(physcialMemory);
+    void* virtualMemory = globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(physcialMemory);
     memcpy(virtualMemory, (void*)&IdleTask, 0x1000);
 
     thread->Launch();
@@ -318,32 +318,36 @@ void TaskManager::InitScheduler(uint8_t NumberOfCores){
     TaskManagerInit = true;
 }
 
-void TaskManager::EnabledScheduler(uint8_t CoreID){ 
+void TaskManager::EnabledScheduler(uint64_t CoreID){ 
     if(TaskManagerInit){
         Atomic::atomicSpinlock(&mutexScheduler, 0);
         Atomic::atomicLock(&mutexScheduler, 0); 
 
         ThreadExecutePerCore[CoreID] = NULL;
         
-        SaveTSS((uint64_t)CoreID);
+        uint64_t Stack = (uint64_t)malloc(KernelStackSize) + KernelStackSize;
+
+        TSSSetStack(CoreID, (void*)Stack);
 
         IsSchedulerEnable[CoreID] = true;
+
+        syscallEnable(GDTInfoSelectorsRing[KernelRing].Code, GDTInfoSelectorsRing[UserAppRing].Code);
         Atomic::atomicUnlock(&mutexScheduler, 0);
         globalLogs->Successful("Scheduler is enabled for the processor : %u", CoreID);
     }
 }
 
-thread_t* TaskManager::GetCurrentThread(uint8_t CoreID){
+thread_t* TaskManager::GetCurrentThread(uint64_t CoreID){
     return ThreadExecutePerCore[CoreID];
 }
 
-void thread_t::SaveContext(InterruptStack* Registers, uint8_t CoreID){
+void thread_t::SaveContext(InterruptStack* Registers, uint64_t CoreID){
     uint64_t actualTime = HPET::GetTime();
     TimeAllocate += actualTime - Parent->TaskManagerParent->TimeByCore[CoreID];
     memcpy(Regs, Registers, sizeof(ContextStack));
 }
 
-void thread_t::CreatContext(InterruptStack* Registers, uint8_t CoreID){
+void thread_t::CreatContext(InterruptStack* Registers, uint64_t CoreID){
     this->CoreID = CoreID;
     Parent->TaskManagerParent->ThreadExecutePerCore[CoreID] = this;
     memcpy(Registers, Regs, sizeof(ContextStack));
@@ -352,17 +356,17 @@ void thread_t::CreatContext(InterruptStack* Registers, uint8_t CoreID){
 }
 
 void thread_t::SetParameters(Parameters* FunctionParameters){
-    Regs->rdi = (void*)FunctionParameters->Parameter0;
-    Regs->rsi = (void*)FunctionParameters->Parameter1;
-    Regs->rdx = (void*)FunctionParameters->Parameter2;
-    Regs->rcx = (void*)FunctionParameters->Parameter3;
-    Regs->r8 = (void*)FunctionParameters->Parameter4;
-    Regs->r9 = (void*)FunctionParameters->Parameter5;
+    Regs->rdi = FunctionParameters->Parameter0;
+    Regs->rsi = FunctionParameters->Parameter1;
+    Regs->rdx = FunctionParameters->Parameter2;
+    Regs->rcx = FunctionParameters->Parameter3;
+    Regs->r8 = FunctionParameters->Parameter4;
+    Regs->r9 = FunctionParameters->Parameter5;
 }
 
 void thread_t::CopyStack(thread_t* source){
-    PageTable* PML4VirtualAddressSource = (PageTable*)globalPageTableManager[GetCoreID()].GetVirtualAddress((void*)source->Paging->PML4);
-    PageTable* PML4VirtualAddressDestination = (PageTable*)globalPageTableManager[GetCoreID()].GetVirtualAddress((void*)Paging->PML4);
+    PageTable* PML4VirtualAddressSource = (PageTable*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress((void*)source->Paging->PML4);
+    PageTable* PML4VirtualAddressDestination = (PageTable*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress((void*)Paging->PML4);
     PML4VirtualAddressSource->entries[0xff] = PML4VirtualAddressDestination->entries[0xff];
     Stack = source->Stack;
 }
@@ -391,14 +395,14 @@ bool thread_t::ExtendStack(uint64_t address){
     return true;
 }
 
-bool thread_t::Fork(InterruptStack* Registers, uint8_t CoreID, thread_t* thread, Parameters* FunctionParameters){
+bool thread_t::Fork(InterruptStack* Registers, uint64_t CoreID, thread_t* thread, Parameters* FunctionParameters){
     if(FunctionParameters != NULL){
         thread->SetParameters(FunctionParameters);
     }
     Fork(Registers, CoreID, thread);
 }
     
-bool thread_t::Fork(InterruptStack* Registers, uint8_t CoreID, thread_t* thread){
+bool thread_t::Fork(InterruptStack* Registers, uint64_t CoreID, thread_t* thread){
     Atomic::atomicSpinlock(&mutexScheduler, 1);
     Atomic::atomicLock(&mutexScheduler, 1);
 
@@ -433,7 +437,7 @@ bool thread_t::Launch(){
     return true;
 }
 
-bool thread_t::Pause(InterruptStack* Registers, uint8_t CoreID){
+bool thread_t::Pause(InterruptStack* Registers, uint64_t CoreID){
     //Save context
     SaveContext(Registers, CoreID);
 
@@ -449,9 +453,9 @@ bool thread_t::Pause(InterruptStack* Registers, uint8_t CoreID){
     return true;
 }
 
-bool thread_t::Exit(InterruptStack* Registers, uint8_t CoreID){
+bool thread_t::Exit(InterruptStack* Registers, uint64_t CoreID){
     if(IsForked){
-        void* ReturnValue = Registers->rdi;
+        uint64_t ReturnValue = Registers->rdi;
         Parent->TaskManagerParent->SwitchTask(Registers, CoreID, ForkedThread);
         Registers->rdi = ReturnValue;
     }else{

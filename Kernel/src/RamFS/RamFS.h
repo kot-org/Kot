@@ -25,7 +25,7 @@ namespace RamFS{
 
     void Parse(void* baseAddress, size_t size);
     File* Find(char* fileName);
-    bool ReadInitFile(void* buffer);
+    File* FindInitFile();
     bool Read(File* address, void* buffer);
 }
 

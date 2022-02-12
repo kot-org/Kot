@@ -22,5 +22,5 @@ struct MemoryShareInfo{
 }__attribute__((packed));
 
 size_t CreatSharing(struct PageTableManager* pageTable, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, bool ReadOnly, uint8_t Priviledge);
-bool GetSharing(struct PageTableManager* pageTable, void* key, uint64_t* virtualAddressPointer, uint8_t Priviledge);
+bool GetSharing(struct PageTableManager* pageTable, MemoryShareInfo* key, uint64_t* virtualAddressPointer, uint8_t Priviledge);
 size_t FreeSharing(void* virtualAddress);

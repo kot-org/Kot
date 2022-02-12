@@ -218,7 +218,7 @@ namespace APIC{
         return lapicAddressVirtual;
     }
 
-    void EnableAPIC(uint8_t CoreID){
+    void EnableAPIC(uint64_t CoreID){
         lapicAddress[CoreID]->PhysicalAddress = (void*)(msr::rdmsr(0x1b) & 0xfffff000);
         lapicAddress[CoreID]->VirtualAddress = globalPageTableManager[CoreID].MapMemory(lapicAddress[CoreID]->PhysicalAddress, 1); 
         msr::wrmsr(0x1b, (uint64_t)lapicAddress[CoreID]->PhysicalAddress);
@@ -253,7 +253,7 @@ namespace APIC{
         return localAPICReadRegister(LocalAPICRegisterOffsetCurentCount);
     }
 
-    void localApicEOI(uint8_t CoreID){        
+    void localApicEOI(uint64_t CoreID){        
         localAPICWriteRegister(lapicAddress[CoreID]->VirtualAddress, LocalAPICRegisterOffsetEOI, 0);
     }
 
@@ -329,7 +329,7 @@ namespace APIC{
         do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(LocalAPICRegisterOffsetInterruptCommand) & (1 << 12));
     }
 
-    void GenerateInterruption(uint8_t CoreID, uint8_t Vector){
+    void GenerateInterruption(uint64_t CoreID, uint8_t Vector){
         LocalAPICIipi registerInterrupt;
         registerInterrupt.vector = Vector;
         registerInterrupt.deliveryMode = LocalAPICDeliveryModeFixed;

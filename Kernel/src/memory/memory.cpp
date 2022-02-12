@@ -56,7 +56,7 @@ size_t CreatSharing(PageTableManager* pageTable, size_t size, uint64_t* virtualA
         virtualAddress -= (uint64_t)virtualAddress % 0x1000;
         virtualAddress += 0x1000;
     }
-    uint64_t realSize = size + sizeof(MemoryShareInfo);
+    uint64_t realSize = size;
     uint64_t numberOfPage = Divide(realSize, 0x1000);
     for(int i = 0; i < numberOfPage; i++){
         uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * 0x1000;
@@ -66,7 +66,7 @@ size_t CreatSharing(PageTableManager* pageTable, size_t size, uint64_t* virtualA
         }
         if(Priviledge == UserAppRing) pageTable->MapUserspaceMemory((void*)virtualAddressIterator);
     }
-    MemoryShareInfo* shareInfo = (MemoryShareInfo*)virtualAddress;
+    MemoryShareInfo* shareInfo = (MemoryShareInfo*)malloc(sizeof(MemoryShareInfo));
     shareInfo->Lock = false;
     shareInfo->ReadOnly = ReadOnly;
     shareInfo->Size = realSize;
@@ -78,17 +78,17 @@ size_t CreatSharing(PageTableManager* pageTable, size_t size, uint64_t* virtualA
     void* key = pageTable->GetPhysicalAddress(virtualAddress);
     shareInfo = (MemoryShareInfo*)pageTable->GetVirtualAddress(key);
     *virtualAddressPointer = (uint64_t)virtualAddress;
-    *keyPointer = (uint64_t)key;
+    *keyPointer = (uint64_t)shareInfo;
     return numberOfPage * 0x1000;
 }
 
-bool GetSharing(PageTableManager* pageTable, void* key, uint64_t* virtualAddressPointer, uint8_t Priviledge){
+bool GetSharing(PageTableManager* pageTable, MemoryShareInfo* shareInfo, uint64_t* virtualAddressPointer, uint8_t Priviledge){
     void* virtualAddress = (void*)*virtualAddressPointer;
     if((uint64_t)virtualAddress % 0x1000 > 0){
         virtualAddress -= (uint64_t)virtualAddress % 0x1000;
         virtualAddress += 0x1000;
     }
-    MemoryShareInfo* shareInfo = (MemoryShareInfo*)pageTable->GetVirtualAddress(key);
+    
     if(shareInfo->signature0 != 'S' || shareInfo->signature1 != 'M') return false;
     for(uint64_t i = 0; i < shareInfo->PageNumber; i++){
         uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * 0x1000;

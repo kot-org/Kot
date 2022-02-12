@@ -5,9 +5,7 @@
 
 int main(int argc, char** argv)
 {
-	//if (argc != 4) return 1;
 	char* fileName = argv[arg_outfile];
-	fileName = (char*)"D:\\Data\\users\\Konect\\1Documents\\programmation\\Kot\\Bin\\RamFS.bin";
 
 	//get all files
 	Header* header = (Header*)malloc(sizeof(Header));
@@ -27,9 +25,9 @@ int main(int argc, char** argv)
 	uint64_t size = sizeof(Header);
 
 	for (int i = arg_infiles; i < argc; i++) {
-		if (argv[i][0] == '-' && argv[i][1] == 'i') {
+		if (argv[i][0] == '-' && argv[i][1] == 'i' && argv[i][2] == '-') {
 			//file init
-			memcpy(argv[i], (void*)(argv[i][2]), strlen(argv[i]) - 2);
+			memcpy(argv[i], (void*)(argv[i][2]), strlen(argv[i]) - 3);
 			fileInitPos = i;
 		}
 
@@ -44,7 +42,7 @@ int main(int argc, char** argv)
 	void* buffer = malloc(size);
 
 	//open RamFS file
-	std::fstream file(fileName, std::ios::binary | std::ios::out | std::ios::in);
+	std::fstream file(fileName, std::ios::binary | std::ios::out | std::ios::in | std::ofstream::trunc);
 
 	uint64_t cursorlocation = sizeof(Header);
 	
@@ -69,6 +67,7 @@ int main(int argc, char** argv)
 
 		rewind(f);
 		fread((void*)((uint64_t)buffer + (uint64_t)cursorlocation + sizeof(File)), 1, filesize, f);
+		printf("%x", (uint64_t)cursorlocation + sizeof(File));
 		fclose(f);
 
 		if (i == fileInitPos) {

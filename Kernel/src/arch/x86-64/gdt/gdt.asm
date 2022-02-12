@@ -8,6 +8,8 @@ LoadGDT:
     mov es, ax
     mov fs, ax
     mov ss, ax
+    mov fs, ax
+    mov gs, ax
     pop rdi
     mov rax, 0x08
     push rax

@@ -28,4 +28,12 @@ class PageFrameAllocator {
 
 };
 
+struct memoryInfo_t{
+    uint64_t totalMemory;
+    uint64_t freeMemory;
+    uint64_t reservedMemory;
+    uint64_t usedMemory;    
+}__attribute__((packed));
+
 extern PageFrameAllocator globalAllocator;
+extern memoryInfo_t memoryInfo;

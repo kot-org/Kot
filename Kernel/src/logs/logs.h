@@ -1,6 +1,7 @@
 #pragma once
 #include "../arch/x86-64/atomic/atomic.h"
 #include "../arch/x86-64/io/serial/serial.h"
+#include "../lib/va_args.h"
 
 struct RegistersLog {
     void* rax; void* rbx; void* rcx; void* rdx; void* rsi; void* rdi; void* rbp; //push in asm

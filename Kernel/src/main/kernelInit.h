@@ -5,7 +5,7 @@
 #include "../memory/efiMemory.h"
 #include "../memory/memory.h"
 #include "../misc/bitmap/bitmap.h"
-#include "../arch/x86-64/userspace/userspace/userspace.h"
+#include "../arch/x86-64/userspace/userspace.h"
 #include "../memory/paging/pageFrameAllocator.h"
 #include "../memory/paging/pageMapIndexer.h"
 #include "../memory/paging/PageTableManager.h"
@@ -31,6 +31,14 @@
 #include "../RamFS/RamFS.h"
 #include "../logs/logs.h"
 #include "../elf/elf.h"
+
+struct KernelInfo{
+    struct Framebuffer* framebuffer;
+    struct RamFs* ramfs;
+    struct memoryInfo_t* memoryInfo;
+    void* smbios;
+    void* rsdp;
+}__attribute__((packed));
 
 extern "C" void main(BootInfo*);
 

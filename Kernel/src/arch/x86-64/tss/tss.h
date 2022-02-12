@@ -5,9 +5,6 @@
 #include "../../../lib/stdio.h"
 #include "../apic/apic.h"
 
-#define IST_POINTER         0x700000
-#define IST_SIZE            0x100000
-
 
 struct TSS{
     uint32_t Reserved0;
@@ -27,9 +24,9 @@ struct TSS{
 }__attribute__((packed));
 
 void TSSInit();
-uint16_t TSSInstall(int numCPU);
+uint16_t TSSInstall(uint8_t numCPU);
 
-extern "C" void TSSSetStack(uint64_t numCPU, void* stack);
-extern "C" uint64_t TSSGetStack(int numCPU);
+extern "C" void TSSSetStack(uint8_t numCPU, void* stack);
+extern "C" uint64_t TSSGetStack(uint8_t numCPU);
 
-extern "C" void LoadTSS(uint16_t tss);
+extern "C" void LoadTSS(uint8_t tss);

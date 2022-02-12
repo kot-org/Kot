@@ -1,21 +1,38 @@
-GLOBAL SaveCoreID, GetCoreID
+GLOBAL CreatCPUContext, GetCPUContext, GetCoreID, SetCPUContext
 
-%Define GS_Kernel 0xC0000102
+%Define GS_Base     0xC0000101
+%Define GS_Kernel   0xC0000102
 
-;TODO remove swap and replace by wmsr/rmsr
+CreatCPUContext:
+    mov     ax, 0x0
+    mov     gs, ax
+    mov     fs, ax
+	mov		eax, edi					
+	shr		rdi, 32
+	mov		edx, edi
+    mov		ecx, GS_Base	
+	wrmsr
+    ret
 
-SaveCoreID:
+GetCPUContext:
+    mov rax, [gs:(rdi * 8)]
+    ret
+
+SetCPUContext:
+    mov [gs:(rdi * 8)], rsi
+    ret
+
+GetCoreID:
+    mov    ax, gs
+    cmp    ax, 0x0
+    jnz    NeedCPUID
+    mov    rax, [gs:0x0]
+    ret 
+
+NeedCPUID:
     mov    rax, 1
     cpuid
     shr    rbx, 24
 
-    mov    eax, ebx
-    mov    edx, 0
-    mov    ecx, GS_Kernel
-    wrmsr
-    ret
-
-GetCoreID:
-    mov    ecx, GS_Kernel
-    rdmsr
+    mov    rax, rbx
     ret

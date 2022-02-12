@@ -10,8 +10,8 @@ extern "C" void TrampolineMain(){
     Atomic::atomicSpinlock(&mutexSMP, 0);
     Atomic::atomicLock(&mutexSMP, 0);
 
-    SaveCoreID();
-    uint8_t CoreID = GetCoreID();
+    CPU::InitCPU();
+    uint64_t CoreID = CPU::GetCoreID();
 
     //Creat new paging for each cpu
     void* PML4 = globalAllocator.RequestPage();

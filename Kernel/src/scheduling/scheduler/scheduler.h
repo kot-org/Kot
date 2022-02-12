@@ -1,6 +1,6 @@
 #pragma once
 #include "../../lib/types.h"
-#include "../../arch/x86-64/userspace/userspace/userspace.h"
+#include "../../arch/x86-64/userspace/userspace.h"
 #include "../../memory/paging/pageTableManager.h"
 #include "../../memory/heap/heap.h"
 #include "../../lib/limits.h"
@@ -12,13 +12,14 @@ struct Task;
 class TaskManager;
 
 #define MaxNameTask 256
+#define KernelStackSize 0x10000
 
 struct ContextStack{
-    void* rax; void* rbx; void* rcx; void* rdx; void* rsi; void* rdi; void* rbp; //push in asm
+    uint64_t rax; uint64_t rbx; uint64_t rcx; uint64_t rdx; uint64_t rsi; uint64_t rdi; uint64_t rbp; //push in asm
 
-    void* r8; void* r9; void* r10; void* r11; void* r12; void* r13; void* r14; void* r15; //push in asm
+    uint64_t r8; uint64_t r9; uint64_t r10; uint64_t r11; uint64_t r12; uint64_t r13; uint64_t r14; uint64_t r15; //push in asm
 
-    void* rip; void* cs; rflags_t rflags; void* rsp; void* ss; //push by cpu with an interrupt
+    uint64_t Reserved0; uint64_t Reserved1; uint64_t rip; uint64_t cs; rflags_t rflags; uint64_t rsp; uint64_t ss; //push by cpu with an interrupt
 }__attribute__((packed));
 
 struct Parameters{
@@ -82,7 +83,7 @@ struct thread_t{
     /* Context info */
     ContextStack* Regs; 
     StackInfo* Stack;
-    uint8_t CoreID;
+    uint64_t CoreID;
     bool IsBlock;
 
     /* Time info */
@@ -110,8 +111,8 @@ struct thread_t{
     /* external data */
     void* externalData;
 
-    void SaveContext(struct InterruptStack* Registers, uint8_t CoreID);
-    void CreatContext(struct InterruptStack* Registers, uint8_t CoreID);
+    void SaveContext(struct InterruptStack* Registers, uint64_t CoreID);
+    void CreatContext(struct InterruptStack* Registers, uint64_t CoreID);
 
     void SetParameters(Parameters* FunctionParameters);
 
@@ -119,21 +120,21 @@ struct thread_t{
     void CopyStack(thread_t* source);
     bool ExtendStack(uint64_t address);
 
-    bool Fork(struct InterruptStack* Registers, uint8_t CoreID, thread_t* thread, Parameters* FunctionParameters);
-    bool Fork(struct InterruptStack* Registers, uint8_t CoreID, thread_t* thread);
+    bool Fork(struct InterruptStack* Registers, uint64_t CoreID, thread_t* thread, Parameters* FunctionParameters);
+    bool Fork(struct InterruptStack* Registers, uint64_t CoreID, thread_t* thread);
 
     bool Launch(Parameters* FunctionParameters);  
     bool Launch();  
-    bool Pause(InterruptStack* Registers, uint8_t CoreID);  
-    bool Exit(InterruptStack* Registers, uint8_t CoreID);  
+    bool Pause(InterruptStack* Registers, uint64_t CoreID);  
+    bool Exit(InterruptStack* Registers, uint64_t CoreID);  
 
     bool SetIOPriviledge(ContextStack* Registers, uint8_t IOPL);
 }__attribute__((packed));  
 
 class TaskManager{
     public:
-        void Scheduler(struct InterruptStack* Registers, uint8_t CoreID);
-        void SwitchTask(struct InterruptStack* Registers, uint8_t CoreID, thread_t* task);
+        void Scheduler(struct InterruptStack* Registers, uint64_t CoreID);
+        void SwitchTask(struct InterruptStack* Registers, uint64_t CoreID, thread_t* task);
 
         void EnqueueTask(struct thread_t* task);
         void DequeueTask(struct thread_t* task);
@@ -149,8 +150,8 @@ class TaskManager{
         void CreatIddleTask();   
 
         void InitScheduler(uint8_t NumberOfCores); 
-        void EnabledScheduler(uint8_t CoreID);
-        thread_t* GetCurrentThread(uint8_t CoreID);
+        void EnabledScheduler(uint64_t CoreID);
+        thread_t* GetCurrentThread(uint64_t CoreID);
 
         bool IsSchedulerEnable[MAX_PROCESSORS];
         uint64_t TimeByCore[MAX_PROCESSORS];

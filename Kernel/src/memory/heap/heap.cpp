@@ -213,7 +213,7 @@ void ExpandHeap(size_t length){
 
     for (size_t i = 0; i < pageCount; i++){
         void* NewPhysicalAddress = globalAllocator.RequestPage();
-        globalPageTableManager[GetCoreID()].MapMemory(globalHeap.heapEnd, NewPhysicalAddress);
+        globalPageTableManager[CPU::GetCoreID()].MapMemory(globalHeap.heapEnd, NewPhysicalAddress);
         globalHeap.heapEnd = (void*)((uint64_t)globalHeap.heapEnd + 0x1000);
     }
 

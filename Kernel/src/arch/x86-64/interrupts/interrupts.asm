@@ -1,9 +1,7 @@
 [bits 64]
 
-GLOBAL Entry_DivideByZero_Handler, Entry_Debug_Handler, Entry_NMI_Handler, Entry_Breakpoint_Handler, Entry_Overflow_Handler, Entry_BoundRangeExceeded_Handler, Entry_InvalidOpcode_Handler, Entry_DeviceNotAvailable_Handler, Entry_DoubleFault_Handler, Entry_InvalidTSS_Handler, Entry_SegmentNotPresent_Handler, Entry_StackSegmentFault_Handler, Entry_GPFault_Handler, Entry_PageFault_Handler, Entry_x87FloatingPointException_Handler, Entry_AlignmentCheck_Handler, Entry_MachineCheck_Handler, Entry_SIMDFloatingPointException_Handler, Entry_VirtualizationException_Handler, Entry_SecurityException_Handler, Entry_LAPICTIMERInt_Handler, Entry_SyscallInt_Handler, Entry_Schedule_Handler, Entry_IRQ0_Handler, Entry_IRQ1_Handler, Entry_IRQ2_Handler, Entry_IRQ3_Handler, Entry_IRQ4_Handler, Entry_IRQ5_Handler, Entry_IRQ6_Handler, Entry_IRQ7_Handler, Entry_IRQ8_Handler, Entry_IRQ9_Handler, Entry_IRQ10_Handler, Entry_IRQ11_Handler, Entry_IRQ12_Handler, Entry_IRQ13_Handler, Entry_IRQ14_Handler, Entry_IRQ15_Handler, Entry_IRQ16_Handler, Entry_IRQ17_Handler, Entry_IRQ18_Handler, Entry_IRQ19_Handler, Entry_IRQ20_Handler, Entry_IRQ21_Handler, Entry_IRQ22_Handler, Entry_IRQ23_Handler, Entry_IPI_Handler
-EXTERN DivideByZero_Handler, Debug_Handler, NMI_Handler, Breakpoint_Handler, Overflow_Handler, BoundRangeExceeded_Handler, InvalidOpcode_Handler, DeviceNotAvailable_Handler, DoubleFault_Handler, InvalidTSS_Handler, SegmentNotPresent_Handler, StackSegmentFault_Handler, GPFault_Handler, PageFault_Handler, x87FloatingPointException_Handler, AlignmentCheck_Handler, MachineCheck_Handler, SIMDFloatingPointException_Handler, VirtualizationException_Handler, SecurityException_Handler, LAPICTIMERInt_Handler, SyscallInt_Handler, Schedule_Handler, IRQ0_Handler, IRQ1_Handler, IRQ2_Handler, IRQ3_Handler, IRQ4_Handler, IRQ5_Handler, IRQ6_Handler, IRQ7_Handler, IRQ8_Handler, IRQ9_Handler, IRQ10_Handler, IRQ11_Handler, IRQ12_Handler, IRQ13_Handler, IRQ14_Handler, IRQ15_Handler, IRQ16_Handler, IRQ17_Handler, IRQ18_Handler, IRQ18_Handler, IRQ19_Handler, IRQ20_Handler, IRQ21_Handler, IRQ22_Handler, IRQ23_Handler, IPI_Handler
-
-%Define GS_Kernel 0xC0000102
+GLOBAL InterruptEntryList
+EXTERN InterruptHandler
 
 %macro    PUSH_REG    0
     push    r15
@@ -38,588 +36,105 @@ EXTERN DivideByZero_Handler, Debug_Handler, NMI_Handler, Breakpoint_Handler, Ove
     pop    r13
     pop    r14
     pop    r15
+    add    rsp, 16  ; remove error code and interrupt number from stack 
 %endmacro
 
-%macro    POP_REG_WITH_ERROR_CODE        0
-    POP_REG
-    add rsp, 8
+%macro CREAT_INTERRUPT_NAME 1  
+
+    dq EntryInterruptHandler%1
+
 %endmacro
 
-%macro Get_Core_ID        0
-    mov    ecx, GS_Kernel
-    rdmsr
-    mov    esi, eax
+; function
+
+%macro GLOBAL_INTERRUPT_HANDLER 0
+    swapgs
+    PUSH_REG
+
+    mov rdi, rsp
+    mov rsi, [gs:0x0]
+
+    call InterruptHandler
+
+    mov rax, [rsp + 0xA8]      ; ss
+    mov qword [gs:0x18], rax
+    mov rax, [rsp + 0x90]      ; cs
+    mov qword [gs:0x20], rax
+
+    POP_REG
+
+    swapgs
+    iretq
+
 %endmacro
 
+; entries
+
+%macro INTERRUPT_WITHOUT_ERROR_CODE  1
+
+EntryInterruptHandler%1:
+    push 0  ; fill the stack
+    push %1
+    GLOBAL_INTERRUPT_HANDLER
+
+%endmacro
+
+%macro INTERRUPT_WITH_ERROR_CODE  1
+
+EntryInterruptHandler%1:
+    push %1
+    GLOBAL_INTERRUPT_HANDLER
+
+%endmacro
+
+; creat functions
+
+INTERRUPT_WITHOUT_ERROR_CODE 0
+INTERRUPT_WITHOUT_ERROR_CODE 1
+INTERRUPT_WITHOUT_ERROR_CODE 2
+INTERRUPT_WITHOUT_ERROR_CODE 3
+INTERRUPT_WITHOUT_ERROR_CODE 4
+INTERRUPT_WITHOUT_ERROR_CODE 5
+INTERRUPT_WITHOUT_ERROR_CODE 6
+INTERRUPT_WITHOUT_ERROR_CODE 7
+INTERRUPT_WITH_ERROR_CODE   8
+INTERRUPT_WITHOUT_ERROR_CODE 9
+INTERRUPT_WITH_ERROR_CODE   10
+INTERRUPT_WITH_ERROR_CODE   11
+INTERRUPT_WITH_ERROR_CODE   12
+INTERRUPT_WITH_ERROR_CODE   13
+INTERRUPT_WITH_ERROR_CODE   14
+INTERRUPT_WITHOUT_ERROR_CODE 15
+INTERRUPT_WITHOUT_ERROR_CODE 16
+INTERRUPT_WITH_ERROR_CODE   17
+INTERRUPT_WITHOUT_ERROR_CODE 18
+INTERRUPT_WITHOUT_ERROR_CODE 19
+INTERRUPT_WITHOUT_ERROR_CODE 20
+INTERRUPT_WITHOUT_ERROR_CODE 21
+INTERRUPT_WITHOUT_ERROR_CODE 22
+INTERRUPT_WITHOUT_ERROR_CODE 23
+INTERRUPT_WITHOUT_ERROR_CODE 24
+INTERRUPT_WITHOUT_ERROR_CODE 25
+INTERRUPT_WITHOUT_ERROR_CODE 26
+INTERRUPT_WITHOUT_ERROR_CODE 27
+INTERRUPT_WITHOUT_ERROR_CODE 28
+INTERRUPT_WITHOUT_ERROR_CODE 29
+INTERRUPT_WITH_ERROR_CODE   30
+INTERRUPT_WITHOUT_ERROR_CODE 31
+
+
+%assign i 32
+%rep 256 - i
+    INTERRUPT_WITHOUT_ERROR_CODE i
+%assign i i+1
+%endrep
+
+; link functions
+
+InterruptEntryList:
+    %assign i 0
+    %rep 256
+        CREAT_INTERRUPT_NAME i
+    %assign i i+1
+    %endrep
 
-Entry_DivideByZero_Handler:    
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call DivideByZero_Handler
-
-    POP_REG
-    
-    
-    iretq
-
-Entry_Debug_Handler:    
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call Debug_Handler
-
-    POP_REG
-    
-    
-    iretq
-
-Entry_NMI_Handler:    
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call NMI_Handler
-
-    POP_REG
-    
-    
-    iretq
-
-Entry_Breakpoint_Handler:    
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call Breakpoint_Handler
-
-    POP_REG
-    
-    
-    iretq
-
-Entry_Overflow_Handler:    
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call Overflow_Handler
-
-    POP_REG
-    
-    
-    iretq
-
-Entry_BoundRangeExceeded_Handler:    
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call BoundRangeExceeded_Handler
-
-    POP_REG
-    
-    
-    iretq
-
-Entry_InvalidOpcode_Handler:    
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call InvalidOpcode_Handler
-
-    POP_REG
-    
-    
-    iretq
-
-Entry_DeviceNotAvailable_Handler:   
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call DeviceNotAvailable_Handler
-
-    POP_REG
-    
-    
-    iretq
-
-Entry_DoubleFault_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call DoubleFault_Handler
-
-    POP_REG_WITH_ERROR_CODE
-    
-    iretq
-
-Entry_InvalidTSS_Handler:
-    
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call InvalidTSS_Handler
-
-    POP_REG_WITH_ERROR_CODE
-    
-    
-    iretq
-
-Entry_SegmentNotPresent_Handler:
-    
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call SegmentNotPresent_Handler
-
-    POP_REG_WITH_ERROR_CODE
-    
-    
-    iretq
-
-
-
-Entry_StackSegmentFault_Handler:
-    
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call StackSegmentFault_Handler
-
-    POP_REG_WITH_ERROR_CODE
-    
-    
-    iretq
-
-Entry_GPFault_Handler:
-    
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call GPFault_Handler
-
-    POP_REG_WITH_ERROR_CODE
-    
-
-    iretq
-
-Entry_PageFault_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    mov rdx, cr2
-    mov rcx, cr3
-
-    call PageFault_Handler
-    
-    POP_REG_WITH_ERROR_CODE
-    
-    iretq
-
-Entry_x87FloatingPointException_Handler: 
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call x87FloatingPointException_Handler
-    
-    POP_REG
-    
- 
-    iretq
-
-Entry_AlignmentCheck_Handler:    
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call AlignmentCheck_Handler
-    
-    POP_REG_WITH_ERROR_CODE   
- 
-    iretq
-
-Entry_MachineCheck_Handler:    
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call MachineCheck_Handler
-    
-    POP_REG    
- 
-    iretq
-
-Entry_SIMDFloatingPointException_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call SIMDFloatingPointException_Handler
-    
-    POP_REG    
- 
-    iretq
-
-Entry_VirtualizationException_Handler:    
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call VirtualizationException_Handler
-    
-    POP_REG
-    
- 
-    iretq
-
-Entry_SecurityException_Handler:    
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call SecurityException_Handler
-    
-    POP_REG_WITH_ERROR_CODE
-    
- 
-    iretq
-
-Entry_LAPICTIMERInt_Handler:
-    PUSH_REG    
-    
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call LAPICTIMERInt_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_SyscallInt_Handler:
-    PUSH_REG    
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call SyscallInt_Handler
-
-    POP_REG
-	iretq 
-
-Entry_Schedule_Handler:
-    PUSH_REG    
-
-    Get_Core_ID
-    mov rdi, rsp
-
-    call Schedule_Handler
-     
-    POP_REG
-	iretq 
-
-# IRQs
-
-Entry_IRQ0_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ0_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ1_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ1_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ2_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ2_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ3_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ3_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ4_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ4_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ5_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ5_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ6_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ6_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ7_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ7_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ8_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ8_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ9_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ9_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ10_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ10_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ11_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ11_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ12_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ12_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ13_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ13_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ14_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ14_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ15_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ15_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ16_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ16_Handler
-
-    POP_REG  
-	iretq 
-Entry_IRQ17_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ17_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ18_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ18_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ19_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ19_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ20_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ20_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ21_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ21_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ22_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ22_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IRQ23_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IRQ23_Handler
-
-    POP_REG  
-	iretq 
-
-Entry_IPI_Handler:
-    PUSH_REG
-
-    Get_Core_ID
-    mov rdi, rsp
-    
-    call IPI_Handler
-
-    POP_REG  
-	iretq 

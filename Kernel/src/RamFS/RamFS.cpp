@@ -15,7 +15,7 @@ namespace RamFS{
         uint64_t cursor = sizeof(Header);
         for(int i = 0; i < info->header->filenumber; i++){
             File* file = (File*)(cursor + (uint64_t)info->baseAddress);
-            globalLogs->Successful("%s", file->name);
+
             if(strcmp(fileName, file->name)){
                 return file;
             }
@@ -26,15 +26,16 @@ namespace RamFS{
         return NULL;
     }
 
-    bool ReadInitFile(void* buffer){
-        return Read((File*)info->header->initfile, buffer);
+    File* FindInitFile(){
+        if(info->header->initfile == NULL) return NULL;
+        File* file = (File*)(info->header->initfile + (uint64_t)info->baseAddress);
+        return file;
     }
 
-    bool Read(File* address, void* buffer){
+    bool Read(File* file, void* buffer){
         if(info == NULL) return false;
-        File* file = (File*)(address + (uint64_t)info->baseAddress);
-        void* fileData = file + sizeof(File);
+        void* fileData = (void*)((uint64_t)file + sizeof(File));
         memcpy(buffer, fileData, file->size);
+        return true;
     }
-
 }

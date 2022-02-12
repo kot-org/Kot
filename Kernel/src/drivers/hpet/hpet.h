@@ -10,6 +10,11 @@ namespace HPET{
     uint64_t HPETReadRegister(uint64_t offset);
     void HPETWriteRegister(uint64_t offset, uint64_t value);
 
+    struct Timer{
+        uint64_t* Counter;
+        uint64_t Frequency;
+    }__attribute__((packed));
+
     struct GeneralCapabilitiesAndIDRegisterStruct{
         uint8_t RevisionID;
         uint8_t NumberOfTimer:4;
@@ -60,4 +65,6 @@ namespace HPET{
         HPETTimerRegisterTimerOffsetComparatorValueRegister = 0x8,
         HPETTimerRegisterTimerOffsetFSBInterruptRouteRegister = 0x10,
     };
+
+    extern Timer timer;
 }

@@ -2,12 +2,14 @@
 
 namespace HPET{
     void* HPETAddress;
-    uint64_t HPETClock;
+    Timer timer;
+
     void InitialiseHPET(ACPI::HPETHeader* hpet){
         if(hpet == NULL) return;
-        HPETAddress = globalPageTableManager[GetCoreID()].MapMemory((void*)hpet->Address.Address, 1);
+        HPETAddress = globalPageTableManager[CPU::GetCoreID()].MapMemory((void*)hpet->Address.Address, 1);
 
-        HPETClock = HPETReadRegister(GeneralCapabilitiesAndIDRegister) >> GeneralCapabilitiesAndIDRegisterCounterPeriod;
+        timer.Counter = (uint64_t*)((uint64_t)HPETAddress + MainCounterValues);
+        timer.Frequency = HPETReadRegister(GeneralCapabilitiesAndIDRegister) >> GeneralCapabilitiesAndIDRegisterCounterPeriod;
         
         ChangeMainTimerInterruptState(false);
         HPETWriteRegister(MainCounterValues, 0);

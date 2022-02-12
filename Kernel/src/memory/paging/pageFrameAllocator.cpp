@@ -4,10 +4,9 @@
 #include "../memory.h"
 #include "../../lib/stdio/cstr.h"
 
-uint64_t totalMemory;
-uint64_t freeMemory;
-uint64_t reservedMemory;
-uint64_t usedMemory;
+
+memoryInfo_t memoryInfo;
+
 bool Initialized = false;
 PageFrameAllocator globalAllocator;
 
@@ -33,8 +32,8 @@ void PageFrameAllocator::ReadEFIMemoryMap(EFI_MEMORY_DESCRIPTOR* mMap, size_t mM
     }
 
     uint64_t memorySize = GetMemorySize(mMap, mMapEntries, mMapDescSize);
-    freeMemory = memorySize;
-    totalMemory = memorySize;
+    memoryInfo.freeMemory = memorySize;
+    memoryInfo.totalMemory = memorySize;
 
     uint64_t bitmapSize = memorySize / 4096 / 8 + 1;
 
@@ -97,8 +96,8 @@ void PageFrameAllocator::FreePage(void* address){
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap.Get(index) == false) return;
     if (PageBitmap.Set(index, false)){
-        freeMemory += 4096;
-        usedMemory -= 4096;
+        memoryInfo.freeMemory += 4096;
+        memoryInfo.usedMemory -= 4096;
         if (pageBitmapIndex > index) pageBitmapIndex = index;
     }
 }
@@ -113,8 +112,8 @@ void PageFrameAllocator::LockPage(void* address){
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap.Get(index) == true) return;
     if (PageBitmap.Set(index, true)){
-        freeMemory -= 4096;
-        usedMemory += 4096;
+        memoryInfo.freeMemory -= 4096;
+        memoryInfo.usedMemory += 4096;
     }
 }
 
@@ -128,8 +127,8 @@ void PageFrameAllocator::UnreservePage(void* address){
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap.Get(index) == false) return;
     if (PageBitmap.Set(index, false)){
-        freeMemory += 4096;
-        reservedMemory -= 4096;
+        memoryInfo.freeMemory += 4096;
+        memoryInfo.reservedMemory -= 4096;
         if (pageBitmapIndex > index) pageBitmapIndex = index;
     }
 }
@@ -144,8 +143,8 @@ void PageFrameAllocator::ReservePage(void* address){
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap.Get(index) == true) return;
     if (PageBitmap.Set(index, true)){
-        freeMemory -= 4096;
-        reservedMemory += 4096;
+        memoryInfo.freeMemory -= 4096;
+        memoryInfo.reservedMemory += 4096;
     }
 }
 
@@ -156,15 +155,15 @@ void PageFrameAllocator::ReservePages(void* address, uint64_t pageCount){
 }
 
 uint64_t PageFrameAllocator::GetTotalRAM(){
-    return totalMemory;
+    return memoryInfo.totalMemory;
 }
 
 uint64_t PageFrameAllocator::GetFreeRAM(){
-    return freeMemory;
+    return memoryInfo.freeMemory;
 }
 uint64_t PageFrameAllocator::GetUsedRAM(){
-    return usedMemory;
+    return memoryInfo.usedMemory;
 }
 uint64_t PageFrameAllocator::GetReservedRAM(){
-    return reservedMemory;
+    return memoryInfo.reservedMemory;
 }
