@@ -1,6 +1,6 @@
-#include "heap.h"
-#include "../paging/PageTableManager.h"
-#include "../paging/PageFrameAllocator.h"
+#include <memory/heap/heap.h>
+#include <memory/paging/PageTableManager.h>
+#include <memory/paging/PageFrameAllocator.h>
 
 Heap globalHeap;
 

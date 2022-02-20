@@ -1,5 +1,5 @@
 #pragma once
-#include "../../main/kernelInit.h"
+#include <main/kernelInit.h>
 
 namespace HPET{
     void InitialiseHPET(ACPI::HPETHeader* hpet);
@@ -9,6 +9,8 @@ namespace HPET{
 
     uint64_t HPETReadRegister(uint64_t offset);
     void HPETWriteRegister(uint64_t offset, uint64_t value);
+
+    void HPETSleep(uint64_t ms);
 
     struct Timer{
         uint64_t* Counter;

@@ -1,8 +1,8 @@
-#include "PageFrameAllocator.h"
-#include "../efiMemory.h"
-#include "../../misc/bitmap/bitmap.h"
-#include "../memory.h"
-#include "../../lib/stdio/cstr.h"
+#include <memory/memory.h>
+#include <lib/stdio/cstr.h>
+#include <memory/efiMemory.h>
+#include <misc/bitmap/bitmap.h>
+#include <memory/paging/PageFrameAllocator.h>
 
 
 memoryInfo_t memoryInfo;

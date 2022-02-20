@@ -1,4 +1,4 @@
-#include "rtc.h"
+#include <drivers/rtc/rtc.h>
 
 void RealTimeClock::waitUpdate() {
     int old = getRegister(0x0);

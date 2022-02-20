@@ -1,6 +1,6 @@
 #pragma once
-#include "../../../lib/types.h"
-#include "../smp/smp.h"
+#include <lib/types.h>
+#include <arch/x86-64/smp/smp.h>
 
 #define GDT_MAX_DESCRIPTORS uint16_Limit / sizeof(GDTEntry)
 

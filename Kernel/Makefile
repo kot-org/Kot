@@ -1,11 +1,13 @@
-LDS = kernel.ld
-CC = gcc
-ASMC = nasm
-LD = ld
+PREFIX = ../Toolchain/Local/bin/x86_64-elf-
 
-CFLAGS = -ffreestanding -fshort-wchar -g -mno-red-zone -fno-exceptions
+LDS = kernel.ld
+CC = $(PREFIX)gcc
+LD = $(PREFIX)ld
+ASMC = nasm
+
+CFLAGS = -ffreestanding -fshort-wchar -g -mno-red-zone -fno-exceptions -fPIC -Isrc
 ASMFLAGS = 
-LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib --no-relax
+LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib --no-relax 
 
 SRCDIR := src
 OBJDIR := lib
@@ -24,11 +26,6 @@ DIRS = $(wildcard $(SRCDIR)/*)
          
 
 kernel: $(OBJS) link 
-
-$(OBJDIR)/interrupts/interrupts.o: $(SRCDIR)/interrupts/interrupts.cpp
-	@ echo !==== COMPILING $^
-	@ mkdir -p $(@D)
-	$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -c $^ -o $@
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@ echo !==== COMPILING $^

@@ -1,4 +1,4 @@
-#include "syscall.h"
+#include <syscall/syscall.h>
 
 static uint64_t mutexSyscall;
 
@@ -61,7 +61,7 @@ extern "C" uint64_t SyscallHandler(InterruptStack* Registers, uint64_t CoreID){
         case Sys_IRQRedirect:
             //Redirect IRQ to driver / device
             if(thread->RingPL <= DevicesRing){
-                returnValue = SetIrq(thread->Parent, (void*)arg0, (uint8_t)arg1);
+                //returnValue = SetIrq(thread->Parent, (void*)arg0, (uint8_t)arg1);
             }else{
                 returnValue = 0;
             }
@@ -69,7 +69,7 @@ extern "C" uint64_t SyscallHandler(InterruptStack* Registers, uint64_t CoreID){
         case Sys_IRQDefault:
             //Set default redirection IRQ
             if(thread->RingPL <= DevicesRing){
-                returnValue = SetIrqDefault((uint8_t)arg0);
+                //returnValue = SetIrqDefault((uint8_t)arg0);
             }else{
                 returnValue = 0;
             }

@@ -1,7 +1,4 @@
-#include "smp.h" 
-
-extern uint64_t IdleTaskStart;
-extern uint64_t IdleTaskEnd;
+#include <arch/x86-64/smp/smp.h>
 
 static uint64_t mutexSMP;
 uint64_t StatusProcessor;
@@ -10,8 +7,9 @@ extern "C" void TrampolineMain(){
     Atomic::atomicSpinlock(&mutexSMP, 0);
     Atomic::atomicLock(&mutexSMP, 0);
 
-    CPU::InitCPU();
     uint64_t CoreID = CPU::GetCoreID();
+    gdtInitCores(CoreID);
+
 
     //Creat new paging for each cpu
     void* PML4 = globalAllocator.RequestPage();
@@ -24,8 +22,9 @@ extern "C" void TrampolineMain(){
     globalPageTableManager[CoreID].PhysicalMemoryVirtualAddress = globalPageTableManager[0].PhysicalMemoryVirtualAddress;
     globalPageTableManager[CoreID].ChangePaging(&globalPageTableManager[CoreID]);
 
-    gdtInitCores(CoreID);
     asm ("lidt %0" : : "m" (idtr));
+
+    CPU::InitCPU();
     
     APIC::EnableAPIC(CoreID);
     APIC::StartLapicTimer();
@@ -40,10 +39,11 @@ extern "C" void TrampolineMain(){
 
     globalTaskManager->EnabledScheduler(CoreID);
     Atomic::atomicUnlock(&mutexSMP, 0);
-    asm("sti");
+
+    LaunchUserSpace();
+
     while(true){
         asm("hlt");
     }
-
 }
 

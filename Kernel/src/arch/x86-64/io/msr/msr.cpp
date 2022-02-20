@@ -1,4 +1,4 @@
-#include "msr.h"
+#include <arch/x86-64/io/msr/msr.h>
 
 namespace msr{
     void ReadMSR(uint32_t msr,uint32_t* data,uint32_t* dataUpper) {

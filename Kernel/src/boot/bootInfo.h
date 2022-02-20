@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../lib/types.h"
-#include "../memory/efiMemory.h"
-#include "../drivers/acpi/acpi.h"
+#include <lib/types.h>
+#include <memory/efiMemory.h>
+#include <drivers/acpi/acpi.h>
 
 /* font */
 struct PSF_FONT{

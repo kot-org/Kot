@@ -1,5 +1,5 @@
-#include "acpi.h"
-#include "../../logs/logs.h"
+#include <drivers/acpi/acpi.h>
+#include <logs/logs.h>
 
 namespace ACPI{
     void* FindTable(SDTHeader* sdtHeader, char* signature){

@@ -1,4 +1,4 @@
-#include "hpet.h"
+#include <drivers/hpet/hpet.h>
 
 namespace HPET{
     void* HPETAddress;
@@ -43,6 +43,7 @@ namespace HPET{
     }
 
     void HPETSleep(uint64_t ms){
-
+        uint64_t end = HPETReadRegister(MainCounterValues) + (ms * 1000000000000) / timer.Frequency;
+        while(HPETReadRegister(MainCounterValues) <= end);
     }
 }

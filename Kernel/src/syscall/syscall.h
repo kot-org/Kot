@@ -1,8 +1,8 @@
 #pragma once
-#include "../arch/x86-64/interrupts/interrupts.h"
-#include "../scheduling/scheduler/scheduler.h"
-#include "../memory/memory.h"
-#include "syscallList.h"
+#include <arch/x86-64/interrupts/interrupts.h>
+#include <scheduler/scheduler.h>
+#include <syscall/syscallList.h>
+#include <memory/memory.h>
 
 extern "C" void syscallEnable(uint16_t KernelSegment, uint16_t UserSegment);
 

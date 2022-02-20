@@ -1,4 +1,4 @@
-#include "tss.h"
+#include <arch/x86-64/tss/tss.h>
 
 static TSS TSSdescriptors[MAX_PROCESSORS];
 
@@ -8,7 +8,7 @@ void TSSInit(){
 
 uint16_t TSSInstall(uint8_t numCPU){
     uint64_t tss_base = (uint64_t)&TSSdescriptors[numCPU];
-    memset((void *)tss_base, 0, sizeof(TSS));
+    memset((void*)tss_base, 0, sizeof(TSS));
 
     uint16_t location = gdtInstallTSS(tss_base, sizeof(TSS));
     TSSdescriptors[numCPU].IOPBOffset = sizeof(TSS);

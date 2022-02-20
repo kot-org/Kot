@@ -1,7 +1,7 @@
 D:
 cd D:\\Data\\users\\Konect\\1Documents\\programmation\\Kot\\Build
 cd ../Kernel
-start build.bat
+cmd.exe /c build.bat
 cd ../build
 diskpart /s %CD%\mount.txt
 cd ../bin

@@ -1,5 +1,5 @@
-#include "node.h"
-#include "../../memory/heap/heap.h"
+#include <lib/node/node.h>
+#include <memory/heap/heap.h>
 
 Node* CreatNode(void* data){
     Node* node = (Node*)malloc(sizeof(Node));

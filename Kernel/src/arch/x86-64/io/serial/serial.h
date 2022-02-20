@@ -1,8 +1,7 @@
 #pragma once
-#include "../io.h"
-#include "../../../../logs/logs.h"
-#include "../../../../lib/stdio.h"
-#include "../../../../lib/limits.h"
+#include <arch/x86-64/io/io.h>
+#include <lib/stdio.h>
+#include <lib/limits.h>
 #define COM1 0x3f8
 
 #define SerialReset (char*)"\033[1;0m"
@@ -15,13 +14,10 @@
 #define SerialCYAN (char*)"\033[1;36m"
 #define SerialWHITE (char*)"\033[1;37m"
 
-class SerialPort{
-public:
+namespace SerialPort{
     void Initialize();
     void Write(char chr);
     void Print(const char* chr);
     void Printf(const char* str, ...);
     void ClearMonitor();
 };
-
-extern SerialPort* globalCOM1;

@@ -1,6 +1,6 @@
 #pragma once
-#include "../../lib/types.h"
-#include "../../lib/lib.h"
+#include <lib/types.h>
+#include <lib/lib.h>
 
 class Bitmap{
     public:

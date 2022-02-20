@@ -1,10 +1,10 @@
 #pragma once
-#include "../../lib/types.h"
-#include "../../arch/x86-64/userspace/userspace.h"
-#include "../../memory/paging/pageTableManager.h"
-#include "../../memory/heap/heap.h"
-#include "../../lib/limits.h"
-#include "../../arch/x86-64/tss/tss.h"
+#include <lib/types.h>
+#include <lib/limits.h>
+#include <memory/heap/heap.h>
+#include <arch/x86-64/tss/tss.h>
+#include <arch/x86-64/userspace/userspace.h>
+#include <memory/paging/pageTableManager.h>
 
 struct ContextStack;
 struct TaskQueuNode;

@@ -1,4 +1,4 @@
-#include "interrupts.h"
+#include <arch/x86-64/interrupts/interrupts.h>
 
 IDTR idtr;
 

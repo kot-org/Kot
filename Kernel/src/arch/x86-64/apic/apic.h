@@ -2,14 +2,14 @@
 #define IO_APIC             256
 
 #pragma once
-#include "../atomic/atomic.h"
-#include "../../../lib/types.h"
-#include "../../../lib/stdio.h"
-#include "../../../drivers/acpi/acpi.h"
-#include "../../../arch/x86-64/smp/smp.h"
-#include "../../../arch/x86-64/io/msr/msr.h"
-#include "../../../arch/x86-64/io/io.h"
-#include "../../../memory/paging/pageTableManager.h"
+#include <arch/x86-64/atomic/atomic.h>
+#include <lib/types.h>
+#include <lib/stdio.h>
+#include <drivers/acpi/acpi.h>
+#include <arch/x86-64/smp/smp.h>
+#include <arch/x86-64/io/msr/msr.h>
+#include <arch/x86-64/io/io.h>
+#include <memory/paging/pageTableManager.h>
 
 namespace APIC{
     struct EntryRecord{

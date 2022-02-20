@@ -1,5 +1,5 @@
-#include "gdt.h"
-#include "../tss/tss.h"
+#include <arch/x86-64/gdt/gdt.h>
+#include <arch/x86-64/tss/tss.h>
 
 
 static __attribute__((aligned(0x1000)))GDTEntry GDTEntries[GDT_MAX_DESCRIPTORS];

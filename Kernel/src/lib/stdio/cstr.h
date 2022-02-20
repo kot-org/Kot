@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../lib/types.h"
-#include "../../memory/heap/heap.h"
-#include "../node/node.h"
+#include <lib/types.h>
+#include <lib/node/node.h>
+#include <memory/heap/heap.h>
 
 
 const char* to_string(uint64_t value);

@@ -12,7 +12,7 @@ DoSyscall:
     mov     r10, r8
     mov     r8, r9
     mov     r9, qword[rbp+16]
-    int     0x80
+    syscall
     mov     rax, rdi
     pop     rbp
     ret

@@ -1,6 +1,6 @@
   
 #pragma once
-#include "../../lib/types.h"
+#include <lib/types.h>
 
 enum PT_Flag {
     Present = 0,

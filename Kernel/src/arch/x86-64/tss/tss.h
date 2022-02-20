@@ -1,9 +1,9 @@
 #pragma once
-#include "../../../lib/types.h"
-#include "../gdt/gdt.h"
-#include "../../../memory/memory.h"
-#include "../../../lib/stdio.h"
-#include "../apic/apic.h"
+#include <arch/x86-64/gdt/gdt.h>
+#include <arch/x86-64/apic/apic.h>
+#include <lib/types.h>
+#include <memory/memory.h>
+#include <lib/stdio.h>
 
 
 struct TSS{

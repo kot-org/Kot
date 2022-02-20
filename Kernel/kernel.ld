@@ -3,7 +3,7 @@ ENTRY(main)
 
 SECTIONS
 {
-	. = 0xFFFF800000000001;
+	. = 0xFFFF800000000000;
 	_KernelStart = .;
 
 

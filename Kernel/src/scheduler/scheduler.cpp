@@ -1,4 +1,4 @@
-#include "scheduler.h"
+#include <scheduler/scheduler.h>
 
 TaskManager* globalTaskManager;
 

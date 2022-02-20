@@ -1,4 +1,4 @@
-#include "apic.h"
+#include <arch/x86-64/apic/apic.h>
 
 namespace APIC{ 
     //processors
@@ -231,17 +231,22 @@ namespace APIC{
         Atomic::atomicLock(&mutexSLT, 0);
         localApicEnableSpuriousInterrupts();
         // Setup Local APIC timer
-        localAPICWriteRegister(LocalAPICRegisterOffsetInitialCount, 0x10000);
-        uint32_t divide = localAPICReadRegister(LocalAPICRegisterOffsetDivide);
-        localAPICWriteRegister(LocalAPICRegisterOffsetDivide, (divide & 0xfffffff4) | 0b1010);
-        uint32_t timer = localAPICReadRegister(LocalAPICRegisterOffsetLVTTimer);
+        localAPICWriteRegister(LocalAPICRegisterOffsetDivide, 4);        
+        localAPICWriteRegister(LocalAPICRegisterOffsetInitialCount, 0xffffffff);
+
+        HPET::HPETSleep(10);
+        
+        uint32_t Tick10ms = 0xffffffff - localAPICReadRegister(LocalAPICRegisterOffsetCurentCount);
 
         LocalAPICInterruptRegister TimerRegisters;
         TimerRegisters.vector = 0x40;
         TimerRegisters.mask = LocalAPICInterruptRegisterMaskEnable;
         TimerRegisters.timerMode = LocalAPICInterruptTimerModePeriodic;
         
-        localAPICWriteRegister(LocalAPICRegisterOffsetLVTTimer, CreatRegisterValueInterrupts(TimerRegisters) | (timer & 0xfffcef00));      
+        uint32_t timer = localAPICReadRegister(LocalAPICRegisterOffsetLVTTimer);
+        localAPICWriteRegister(LocalAPICRegisterOffsetLVTTimer, CreatRegisterValueInterrupts(TimerRegisters) | (timer & 0xfffcef00));    
+        localAPICWriteRegister(LocalAPICRegisterOffsetDivide, 4);
+        localAPICWriteRegister(LocalAPICRegisterOffsetInitialCount, (Tick10ms / 10));  
         Atomic::atomicUnlock(&mutexSLT, 0);
     }
 

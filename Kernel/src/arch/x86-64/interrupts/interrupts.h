@@ -1,10 +1,10 @@
 #pragma once
-#include "idt.h"
-#include "../io/io.h"
-#include "../../../lib/types.h"
-#include "../../../logs/logs.h"
-#include "../../../memory/paging/pageFrameAllocator.h"
-#include "../../../scheduling/scheduler/scheduler.h"
+#include <arch/x86-64/interrupts/idt.h>
+#include <arch/x86-64/io/io.h>
+#include <lib/types.h>
+#include <logs/logs.h>
+#include <memory/paging/pageFrameAllocator.h>
+#include <scheduler/scheduler.h>
 
 #define IRQ_START 0x20
 #define IRQ_MAX 0x18

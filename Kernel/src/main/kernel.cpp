@@ -1,4 +1,4 @@
-#include "kernelInit.h"
+#include <main/kernelInit.h>
 
 extern "C" void main(BootInfo* bootInfo)
 {   

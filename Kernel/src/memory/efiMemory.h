@@ -1,5 +1,5 @@
 #pragma once
-#include "../lib/types.h"
+#include <lib/types.h>
 
 struct EFI_MEMORY_DESCRIPTOR {
     uint32_t type;

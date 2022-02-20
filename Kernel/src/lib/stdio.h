@@ -1,3 +1,3 @@
 #pragma once
 
-#include "stdio/cstr.h"
+#include <lib/stdio/cstr.h>

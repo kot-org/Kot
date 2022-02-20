@@ -1,6 +1,6 @@
-#include "memory.h"
-#include "../logs/logs.h"
-#include "../arch/x86-64/gdt/gdt.h"
+#include <logs/logs.h>
+#include <memory/memory.h>
+#include <arch/x86-64/gdt/gdt.h>
 
 static uint64_t mutexMemory;
 

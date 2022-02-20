@@ -1,9 +1,9 @@
 #pragma once
-#include "../../lib/types.h"
-#include "paging.h"
-#include "PageMapIndexer.h"
-#include "PageFrameAllocator.h"
-#include "../memory.h"
+#include <lib/types.h>
+#include <memory/memory.h>
+#include <memory/paging/paging.h>
+#include <memory/paging/PageMapIndexer.h>
+#include <memory/paging/PageFrameAllocator.h>
 
 #define MAX_PROCESSORS      256
 

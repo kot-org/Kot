@@ -1,4 +1,4 @@
-#include "hash.h"
+#include <lib/hash/hash.h>
 
 namespace hash{
     uint32_t CRC32(uint8_t* data, uint32_t size){    

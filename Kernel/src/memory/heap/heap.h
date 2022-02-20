@@ -1,10 +1,10 @@
 #pragma once
-#include "../../lib/types.h"
-#include "../../lib/stdio.h"
-#include "../paging/pageTableManager.h"
-#include "../paging/pageFrameAllocator.h"
-#include "../../logs/logs.h"
-#include "../../arch/x86-64/cpu/cpu.h"
+#include <lib/types.h>
+#include <lib/stdio.h>
+#include <logs/logs.h>
+#include <arch/x86-64/cpu/cpu.h>
+#include <memory/paging/pageTableManager.h>
+#include <memory/paging/pageFrameAllocator.h>
 
 struct SegmentHeader{
     bool IsFree;

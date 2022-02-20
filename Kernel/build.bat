@@ -1,2 +1,1 @@
-bash -c "make kernel"
-pause 
+bash -c "make kernel" 

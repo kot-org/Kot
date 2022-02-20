@@ -1,4 +1,4 @@
-#include "kernelInit.h"
+#include <main/kernelInit.h>
 
 uint64_t LastVirtualAddressUsed = 0;
 uint64_t memorySize = 0;
@@ -64,8 +64,8 @@ void InitializeACPI(BootInfo* bootInfo){
 void InitializeKernel(BootInfo* bootInfo){   
     asm("cli");
 
-    globalCOM1->Initialize();
-    globalCOM1->ClearMonitor();
+    SerialPort::Initialize();
+    SerialPort::ClearMonitor();
     globalLogs->Message("Welcome to Kot's kernel");
     
     gdtInit();

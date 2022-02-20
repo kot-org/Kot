@@ -1,6 +1,6 @@
 #pragma once
-#include "../../lib/types.h"
-#include "../../arch/x86-64/io/io.h"
+#include <lib/types.h>
+#include <arch/x86-64/io/io.h>
 
 class RealTimeClock {
     private:

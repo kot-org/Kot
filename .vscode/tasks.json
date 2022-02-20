@@ -9,9 +9,9 @@
         },
         {
             "label": "Build kernel",
-            "command": "explorer.exe",
+            "command": "cmd.exe",
             "args": [
-                "D:\\Data\\users\\Konect\\1Documents\\programmation\\Kot\\Build\\compileKernel.bat"
+                "/c D:\\Data\\users\\Konect\\1Documents\\programmation\\Kot\\Build\\compileKernel.bat"
             ],
             
             "group": {

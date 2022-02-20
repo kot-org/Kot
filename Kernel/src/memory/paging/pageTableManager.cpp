@@ -1,6 +1,6 @@
-#include "PageTableManager.h"
-#include "../../scheduling/scheduler/scheduler.h"
-#include "../../logs/logs.h"
+#include <memory/paging/PageTableManager.h>
+#include <scheduler/scheduler.h>
+#include <logs/logs.h>
 
 PageTableManager globalPageTableManager[MAX_PROCESSORS];
 

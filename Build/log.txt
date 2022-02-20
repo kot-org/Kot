@@ -1,14 +1,23 @@
-[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[0m[35m[40m[2J[01;01H[=3h[2J[01;01H[0m[37m[40mBdsDxe: loading Boot0003 "EFI Internal Shell" from Fv(7CB8BDC9-F8EB-4F34-AAEA-3EE4AF6516A1)/FvFile(7C04A583-9E3E-4F1C-AD65-E05268D0B4D1)
-BdsDxe: starting Boot0003 "EFI Internal Shell" from Fv(7CB8BDC9-F8EB-4F34-AAEA-3EE4AF6516A1)/FvFile(7C04A583-9E3E-4F1C-AD65-E05268D0B4D1)
-[2J[01;01H[01;01HUEFI Interactive Shell v2.2
-EDK II
-UEFI v2.70 (EDK II, 0x00010000)
-[1m[33m[40mMapping table[0m[37m[40m
-[1m[33m[40m      FS0:[0m[37m[40m [1m[37m[40mAlias(s):[0m[37m[40mHD0a65535a2:;BLK2:
-          PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x0,0xFFFF,0x0)/HD(2,GPT,6591921C-37A6-4DE2-BD0D-E849648A0DA3,0x8000,0x1F7000)
-[1m[33m[40m     BLK0:[0m[37m[40m [1m[37m[40mAlias(s):[0m[37m[40m
-          PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x0,0xFFFF,0x0)
-[1m[33m[40m     BLK1:[0m[37m[40m [1m[37m[40mAlias(s):[0m[37m[40m
-          PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x0,0xFFFF,0x0)/HD(1,GPT,30A39503-E740-402D-8127-2F7D4738EEDB,0x22,0x7FDE)
-[13;01HPress [1m[37m[40mESC[0m[37m[40m in 5 seconds to skip [1m[33m[40mstartup.nsh[0m[37m[40m or any other key to continue.[13;01HPress [1m[37m[40mESC[0m[37m[40m in 4 seconds to skip [1m[33m[40mstartup.nsh[0m[37m[40m or any other key to continue.[13;01HPress [1m[37m[40mESC[0m[37m[40m in 3 seconds to skip [1m[33m[40mstartup.nsh[0m[37m[40m or any other key to continue.[13;01HPress [1m[37m[40mESC[0m[37m[40m in 2 seconds to skip [1m[33m[40mstartup.nsh[0m[37m[40m or any other key to continue.[13;01HPress [1m[37m[40mESC[0m[37m[40m in 1 seconds to skip [1m[33m[40mstartup.nsh[0m[37m[40m or any other key to continue.
-[2J[01;01H[=3h[2J[01;01H[2J[01;01H[2J[01;01H[2J[01;01H[=3h[2J[01;01H
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[0m[35m[40m[2J[01;01H[=3h[2J[01;01H[0m[37m[40mBdsDxe: loading Boot0001 "UEFI VBOX HARDDISK VBffdd1095-51f854e6 " from PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x0,0xFFFF,0x0)
+BdsDxe: starting Boot0001 "UEFI VBOX HARDDISK VBffdd1095-51f854e6 " from PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x0,0xFFFF,0x0)
+[2J[01;01H[=3h[2J[01;01H[1;32m[OK] [1;0mSerial initialize
+[2J[HWelcome to Kot's kernel
+[1;32m[OK] [1;0mGDT intialize
+[1;32m[OK] [1;0mIDT intialize
+[1;32m[OK] [1;0mMemory intialize
+[1;32m[OK] [1;0mHeap intialize
+[1;32m[OK] [1;0mSSE intialize
+[1;33m[Warning] [1;0mWait processor 1
+[1;32m[OK] [1;0mProcessor 1 respond with success
+[1;32m[OK] [1;0mScheduler is enabled for the processor : 1
+[1;32m[OK] [1;0mProcessor 1 is in the main function
+[1;33m[Warning] [1;0mWait processor 2
+[1;32m[OK] [1;0mProcessor 2 respond with success
+[1;32m[OK] [1;0mProcessor 2 is in the main function
+[1;32m[OK] [1;0mScheduler is enabled for the processor : 2
+[1;33m[Warning] [1;0mWait processor 3
+[1;32m[OK] [1;0mProcessor 3 respond with success
+[1;32m[OK] [1;0mProcessor 3 is in the main function
+[1;32m[OK] [1;0mScheduler is enabled for the processor : 3
+[1;32m[OK] [1;0mScheduler is enabled for the processor : 0
+
