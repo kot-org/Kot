@@ -1,12 +1,6 @@
 #include <arch/x86-64/smp/smp.h>
 
-static uint64_t mutexSMP;
-uint64_t StatusProcessor;
-
 extern "C" void TrampolineMain(){
-    Atomic::atomicSpinlock(&mutexSMP, 0);
-    Atomic::atomicLock(&mutexSMP, 0);
-
     uint64_t CoreID = CPU::GetCoreID();
     gdtInitCores(CoreID);
 
@@ -34,11 +28,14 @@ extern "C" void TrampolineMain(){
         FPUInit();
     }
 
-    //End processor init
-    StatusProcessor = 4;
+    DataTrampoline.Status = 0xef;
+
+    while (DataTrampoline.Status != 0xff)
+    {
+        __asm__ __volatile__ ("pause" : : : "memory");
+    }    
 
     globalTaskManager->EnabledScheduler(CoreID);
-    Atomic::atomicUnlock(&mutexSMP, 0);
 
     LaunchUserSpace();
 

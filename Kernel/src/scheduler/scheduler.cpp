@@ -125,12 +125,60 @@ thread_t* TaskManager::GetTread(){
     return ReturnValue;
 }
 
-bool TaskManager::ExecThread(thread_t* self, Parameters* FunctionParameters){
-    self->Launch(FunctionParameters);
-    return true;
+uint64_t TaskManager::CreatThread(process_t* self, uint64_t entryPoint, void* externalData){
+    self->CreatThread(entryPoint, externalData);
+    return KSUCCESS;
 }
 
-process_t* TaskManager::CreatProcess(uint8_t priviledge, void* externalData){
+uint64_t TaskManager::ExecThread(thread_t* self, Parameters* FunctionParameters){
+    self->Launch(FunctionParameters);
+    return KSUCCESS;
+}
+
+uint64_t TaskManager::Pause(InterruptStack* Registers, uint64_t CoreID, thread_t* task){
+    Atomic::atomicSpinlock(&mutexScheduler, 1);
+    Atomic::atomicLock(&mutexScheduler, 1);
+
+    if(task->IsInQueue){
+        DequeueTask(task);
+    }else if(CoreID == task->CoreID){
+        task->Pause(Registers, CoreID);
+    }else{
+        ThreadExecutePerCore[task->CoreID] = NULL;
+        APIC::GenerateInterruption(task->CoreID, IPI_Schedule);
+    }
+
+    task->IsBlock = true;
+
+    Atomic::atomicUnlock(&mutexScheduler, 1);
+    return KSUCCESS;
+}
+
+uint64_t TaskManager::Unpause(thread_t* task){
+    task->IsBlock = false;
+    EnqueueTask(task);
+    return KSUCCESS;
+} 
+
+uint64_t TaskManager::Exit(InterruptStack* Registers, uint64_t CoreID, thread_t* task){
+    Atomic::atomicSpinlock(&mutexScheduler, 1);
+    Atomic::atomicLock(&mutexScheduler, 1);
+
+    if(task->IsInQueue){
+        DequeueTask(task);
+    }else if(CoreID == task->CoreID){
+        task->Exit(Registers, CoreID);
+    }else{
+        ThreadExecutePerCore[task->CoreID] = NULL;
+        APIC::GenerateInterruption(task->CoreID, IPI_Schedule);
+    }
+
+
+    Atomic::atomicUnlock(&mutexScheduler, 1);
+    return KSUCCESS;
+}
+
+uint64_t TaskManager::CreatProcess(process_t** key, uint8_t priviledge, void* externalData){
     process_t* proc = (process_t*)calloc(sizeof(process_t));
 
     if(ProcessList == NULL){
@@ -157,7 +205,8 @@ process_t* TaskManager::CreatProcess(uint8_t priviledge, void* externalData){
     PID++;
     NumberProcessTotal++;
 
-    return proc;
+    *key = proc;
+    return KSUCCESS;
 }
 
 thread_t* process_t::CreatThread(uint64_t entryPoint, void* externalData){
@@ -295,7 +344,7 @@ void TaskManager::SwitchTask(InterruptStack* Registers, uint64_t CoreID, thread_
 
 void TaskManager::CreatIddleTask(){
     if(IddleProc == NULL){
-        IddleProc = CreatProcess(0xf, 0);
+        CreatProcess(&IddleProc, 0xf, 0);
     }
     thread_t* thread = IddleProc->CreatThread(0, 0);
 
@@ -395,6 +444,29 @@ bool thread_t::ExtendStack(uint64_t address){
     return true;
 }
 
+void* thread_t::ShareDataInStack(void* data, size_t size){
+    if(size == 0) return NULL;
+    size += sizeof(StackData);
+    void* address = (void*)(this->Stack->StackEnd - size);
+    if(ExtendStack((uint64_t)address)){
+        // We consider that we have direct access to data but not to address
+        uint64_t NumberOfPage = Divide(size, 0x1000);
+        uint64_t VirtualAddressIteratorScr = (uint64_t)data;
+        uint64_t VirtualAddressIterator = sizeof(StackData);
+        for(uint64_t i = 0; i < NumberOfPage; i++){
+            void* Dst = globalPageTableManager[0].GetVirtualAddress(Paging->GetPhysicalAddress((void*)((uint64_t)address + (uint64_t)VirtualAddressIterator)));
+            memcpy(Dst, (void*)VirtualAddressIteratorScr, 0x1000);
+            VirtualAddressIterator += 0x1000;
+            VirtualAddressIteratorScr += 0x1000;
+        }
+
+        ((StackData*)address)->size = size;
+        return address;
+    }
+
+    return NULL;
+}
+
 bool thread_t::Fork(InterruptStack* Registers, uint64_t CoreID, thread_t* thread, Parameters* FunctionParameters){
     if(FunctionParameters != NULL){
         thread->SetParameters(FunctionParameters);
@@ -458,6 +530,9 @@ bool thread_t::Exit(InterruptStack* Registers, uint64_t CoreID){
         uint64_t ReturnValue = Registers->rdi;
         Parent->TaskManagerParent->SwitchTask(Registers, CoreID, ForkedThread);
         Registers->rdi = ReturnValue;
+    }else if(IsEvent){
+        Event::Exit(this);
+        return true;
     }else{
         Parent->TaskManagerParent->ThreadExecutePerCore[CoreID] = NULL;
         Parent->TaskManagerParent->Scheduler(Registers, CoreID);        

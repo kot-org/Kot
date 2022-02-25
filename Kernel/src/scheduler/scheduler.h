@@ -1,6 +1,7 @@
 #pragma once
 #include <lib/types.h>
 #include <lib/limits.h>
+#include <event/event.h>
 #include <memory/heap/heap.h>
 #include <arch/x86-64/tss/tss.h>
 #include <arch/x86-64/userspace/userspace.h>
@@ -35,6 +36,10 @@ struct StackInfo{
     uint64_t StackStart;
     uint64_t StackEnd;
     uint64_t StackEndMax;
+}__attribute__((packed));
+
+struct StackData{
+    size_t size;
 }__attribute__((packed));
 
 struct thread_t;
@@ -103,6 +108,10 @@ struct thread_t{
     bool IsForked;
     thread_t* ForkedThread;
 
+    /* Event */
+    bool IsEvent;
+    event_t* Event;
+
     /* Schedule queue */
     bool IsInQueue;
     thread_t* Last;
@@ -119,13 +128,14 @@ struct thread_t{
     void SetupStack();
     void CopyStack(thread_t* source);
     bool ExtendStack(uint64_t address);
+    void* ShareDataInStack(void* data, size_t size);
 
     bool Fork(struct InterruptStack* Registers, uint64_t CoreID, thread_t* thread, Parameters* FunctionParameters);
     bool Fork(struct InterruptStack* Registers, uint64_t CoreID, thread_t* thread);
 
     bool Launch(Parameters* FunctionParameters);  
     bool Launch();  
-    bool Pause(InterruptStack* Registers, uint64_t CoreID);  
+    bool Pause(InterruptStack* Registers, uint64_t CoreID);   
     bool Exit(InterruptStack* Registers, uint64_t CoreID);  
 
     bool SetIOPriviledge(ContextStack* Registers, uint8_t IOPL);
@@ -142,10 +152,14 @@ class TaskManager{
 
         // threads
         thread_t* GetTread();
-        bool ExecThread(thread_t* self, Parameters* FunctionParameters);
+        uint64_t CreatThread(process_t* self, uint64_t entryPoint, void* externalData);
+        uint64_t ExecThread(thread_t* self, Parameters* FunctionParameters);
+        uint64_t Pause(InterruptStack* Registers, uint64_t CoreID, thread_t* task); 
+        uint64_t Unpause(thread_t* task); 
+        uint64_t Exit(InterruptStack* Registers, uint64_t CoreID, thread_t* task); 
 
         // process
-        process_t* CreatProcess(uint8_t priviledge, void* externalData);
+        uint64_t CreatProcess(process_t** self, uint8_t priviledge, void* externalData);
 
         void CreatIddleTask();   
 

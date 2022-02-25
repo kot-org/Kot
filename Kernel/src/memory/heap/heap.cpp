@@ -168,15 +168,15 @@ void free(void* address){
     }
 }
 
-void* realloc(void* buffer, size_t size, uint64_t adjustement){
+void* realloc(void* buffer, size_t size){
     void* newBuffer = malloc(size);
 
-    if(adjustement >= 0){
-        memcpy(newBuffer, (void*)((uint64_t)buffer + adjustement), size - adjustement);
+    if(size < GetSegmentHeader(buffer)->length){
+        memcpy(newBuffer, buffer, size);
     }else{
-        memcpy(newBuffer, buffer, size - adjustement);
+        memcpy(newBuffer, buffer, GetSegmentHeader(buffer)->length);
     }
-    
+
     free(buffer);
     return newBuffer;
 }

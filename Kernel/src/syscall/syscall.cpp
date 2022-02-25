@@ -19,67 +19,68 @@ extern "C" uint64_t SyscallHandler(InterruptStack* Registers, uint64_t CoreID){
     switch(syscall){
         case Sys_CreatShareMemory:
             //creat share memory
-            returnValue = CreatSharing(thread->Paging, arg0, (uint64_t*)arg1, (uint64_t*)arg2, (bool)arg3, thread->RingPL);
-            thread->MemoryAllocated += (uint64_t)returnValue;
+            returnValue = CreatSharing((thread_t*)arg0, arg1, (uint64_t*)arg2, (uint64_t*)arg3, (bool)arg4);
             //this function return the allocated size
             break;
         case Sys_GetShareMemory:
             //get share memory
-            returnValue = GetSharing(thread->Paging, (MemoryShareInfo*)arg0, (uint64_t*)arg1, thread->RingPL);
+            returnValue = GetSharing((thread_t*)arg0, (MemoryShareInfo*)arg1, (uint64_t*)arg2);
             break;
         case Sys_FreeShareMemory:
-            returnValue = FreeSharing((void*)arg0);
+            returnValue = FreeSharing((thread_t*)arg0, (void*)arg1);
             break;
         case Sys_Fork: 
             thread->Fork(Registers, CoreID, (thread_t*)arg0, (Parameters*)arg1);
             Atomic::atomicUnlock(&mutexSyscall, 0);
             return 0xff;
+        case Sys_CreatProc: 
+            returnValue = globalTaskManager->CreatProcess((process_t**)arg0, (uint8_t)arg1, (void*)arg2);
+            break;
+        case Sys_CloseProc:
+            returnValue = KFAIL; 
+            //TODO
+            return 0xff;
         case Sys_Exit:
             //exit
             globalLogs->Warning("Thread %x exit with error code : %x", thread->TID, arg0);
-            thread->Exit(Registers, CoreID);
+            globalTaskManager->Exit(Registers, CoreID, (thread_t*)arg0);
             Atomic::atomicUnlock(&mutexSyscall, 0);
             return 0xff;
         case Sys_Pause:
             globalLogs->Warning("Thread %x is paused in process %x", thread->TID, thread->Parent->PID);
-            thread->Pause(Registers, CoreID);
+            globalTaskManager->Pause(Registers, CoreID, (thread_t*)arg0);
             globalTaskManager->Scheduler(Registers, CoreID);
             
             Atomic::atomicUnlock(&mutexSyscall, 0);
             return 0xff;            
+        case Sys_UnPause:
+            returnValue = globalTaskManager->Unpause((thread_t*)arg0);
+            break;
         case Sys_Map:
             //mmap
-            returnValue = mmap(thread->Paging, (void*)arg0, (bool)arg1, (void*)arg2);    
+            returnValue = mmap((thread_t*)arg0, (void*)arg1, (bool)arg2, (void*)arg3);    
             break;
         case Sys_Unmap:
             //munmap
-            returnValue = munmap(thread->Paging, (void*)arg0);  
+            returnValue = munmap((thread_t*)arg0, (void*)arg1);  
             break;
-        case Sys_GetPhysicallAddress:
-            returnValue = (uint64_t)thread->Paging->GetPhysicalAddress((void*)arg0);
+        case Sys_Event_Creat:
+            returnValue = Event::Creat((event_t**)arg0, EventTypeIPC, arg1);
             break;
-        case Sys_IRQRedirect:
-            //Redirect IRQ to driver / device
-            if(thread->RingPL <= DevicesRing){
-                //returnValue = SetIrq(thread->Parent, (void*)arg0, (uint8_t)arg1);
-            }else{
-                returnValue = 0;
-            }
+        case Sys_Event_Bind:
+            returnValue = Event::Bind((thread_t*)arg0, (event_t*)arg1);
             break;
-        case Sys_IRQDefault:
-            //Set default redirection IRQ
-            if(thread->RingPL <= DevicesRing){
-                //returnValue = SetIrqDefault((uint8_t)arg0);
-            }else{
-                returnValue = 0;
-            }
+        case Sys_Event_Unbind:
+            returnValue = Event::Bind((thread_t*)arg0, (event_t*)arg1);
             break;
-
+        case Sys_Event_Trigger:
+            returnValue = Event::Trigger(thread, (event_t*)arg0, (void*)arg1, (size_t)arg2);
+            break;
         case Sys_CreatThread:
-            returnValue = (uint64_t)thread->Parent->CreatThread(arg0, (void*)arg1);
+            returnValue = (uint64_t)globalTaskManager->CreatThread((process_t*)arg0, arg1, (void*)arg2);
             break;
         case Sys_ExecThread:
-            returnValue = thread->Parent->TaskManagerParent->ExecThread((thread_t*)arg0, (Parameters*)arg1);
+            returnValue = globalTaskManager->ExecThread((thread_t*)arg0, (Parameters*)arg1);
             break;
         case Sys_Get_IOPL:
             if(thread->RingPL <= DevicesRing){
@@ -102,22 +103,30 @@ extern "C" uint64_t SyscallHandler(InterruptStack* Registers, uint64_t CoreID){
     }    
 }
 
-uint64_t mmap(PageTableManager* pageTable, void* addressVirtual, bool usePhysicallAddress, void* addressPhysical){
+
+
+uint64_t mmap(thread_t* task, void* addressVirtual, bool usePhysicallAddress, void* addressPhysical){
+    PageTableManager* pageTable = task->Paging;
     addressVirtual = (void*)(addressVirtual - (uint64_t)addressVirtual % 0x1000);
     if((uint64_t)addressVirtual < HigherHalfAddress){
         if(usePhysicallAddress){
             pageTable->MapMemory(addressVirtual, addressPhysical);
         }else{
             pageTable->MapMemory(addressVirtual, globalAllocator.RequestPage());
+            pageTable->SetFlags((void*)addressVirtual, PT_Flag::Custom1, true); //set slave state
         }        
     }
-    return 1;
+    return KSUCCESS;
 }
 
-uint64_t munmap(PageTableManager* pageTable, void* addressVirtual){
+uint64_t munmap(thread_t* task, void* addressVirtual){
+    PageTableManager* pageTable = task->Paging;
     addressVirtual = (void*)(addressVirtual - (uint64_t)addressVirtual % 0x1000);
     if((uint64_t)addressVirtual < HigherHalfAddress){
+        if(pageTable->GetFlags((void*)addressVirtual, PT_Flag::Custom1)){
+            globalAllocator.FreePage(pageTable->GetPhysicalAddress(addressVirtual));
+        }
         pageTable->UnmapMemory(addressVirtual);
     }
-    return 1;
+    return KSUCCESS;
 }

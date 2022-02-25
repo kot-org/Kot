@@ -39,5 +39,6 @@
         "random": "cpp"
     },
     "debug.onTaskErrors": "debugAnyway",
-    "C_Cpp.errorSquiggles": "Disabled"
+    "C_Cpp.errorSquiggles": "Disabled",
+    "git.ignoreLimitWarning": true
 }

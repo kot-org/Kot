@@ -4,6 +4,8 @@ IDTR idtr;
 
 uint8_t IDTData[0x1000];
 
+event_t* InterruptEventList[256];
+
 char* ExceptionList[32] = {
     "DivisionByZero",
     "Debug",
@@ -47,13 +49,15 @@ void InitializeInterrupts(){
     /* init interrupt */
     for(int i = 0; i < 256; i++){
         SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+        if(i >= IRQ_START && i <= IRQ_START + IRQ_MAX){
+            Event::Creat(&InterruptEventList[i], EventTypeIRQ, i);
+        }else{
+            Event::Creat(&InterruptEventList[i], EventTypeIVT, i);
+        }
     }
 
-    /* Syscall */
-    SetIDTGate((void*)InterruptEntryList[0x80], 0x80, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
-
-    /* Sheduler call by app */
-    SetIDTGate((void*)InterruptEntryList[0x81], 0x81, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    /* Shedule */
+    SetIDTGate((void*)InterruptEntryList[IPI_Schedule], IPI_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
 
     asm("lidt %0" : : "m" (idtr));     
 }
@@ -62,20 +66,20 @@ extern "C" void InterruptHandler(InterruptStack* Registers, uint64_t CoreID){
     if(Registers->InterruptNumber < 32){
         // execptions
         ExceptionHandler(Registers, CoreID);
-    }else if(Registers->InterruptNumber >= IRQ_START && Registers->InterruptNumber <= IRQ_START + IRQ_MAX){
-        // IRQ
-        
-    }else if(Registers->InterruptNumber == 0x40){
+    }else if(Registers->InterruptNumber == IPI_Schedule){
         // APIC timer 
         globalTaskManager->Scheduler(Registers, CoreID); 
-    }else if(Registers->InterruptNumber == 0x80){
-        SyscallHandler(Registers, CoreID);
-    }else if(Registers->InterruptNumber == 0x81){
-        // schedule
-        globalTaskManager->Scheduler(Registers, CoreID); 
+    }else if(Registers->InterruptNumber == IPI_Stop){
+        // Stop all
+        while(true){
+            asm("hlt");
+        }
+    }else{
+        // Other IRQ & IVT
+        Event::Trigger((thread_t*)0x0, InterruptEventList[Registers->InterruptNumber], 0, 0);        
     }
-    APIC::localApicEOI(CoreID);
 
+    APIC::localApicEOI(CoreID);
 }
 
 void ExceptionHandler(InterruptStack* Registers, uint64_t CoreID){
@@ -90,10 +94,10 @@ void ExceptionHandler(InterruptStack* Registers, uint64_t CoreID){
                 return;
             }
         }  
-        globalTaskManager->ThreadExecutePerCore[CoreID]->Exit(Registers, CoreID);
-        globalTaskManager->Scheduler(Registers, CoreID); 
         globalLogs->Error("App Panic CPU %x", CoreID);
         globalLogs->Error("With execption : '%s' Error code : %x", ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
+        globalTaskManager->ThreadExecutePerCore[CoreID]->Exit(Registers, CoreID);
+        globalTaskManager->Scheduler(Registers, CoreID); 
     }
 
 }

@@ -1,14 +1,17 @@
 #define MAX_PROCESSORS      256
 #define IO_APIC             256
 
+#define IPI_Schedule        0x40
+#define IPI_Stop            0x41
+
 #pragma once
-#include <arch/x86-64/atomic/atomic.h>
 #include <lib/types.h>
 #include <lib/stdio.h>
+#include <arch/x86-64/io/io.h>
 #include <drivers/acpi/acpi.h>
 #include <arch/x86-64/smp/smp.h>
 #include <arch/x86-64/io/msr/msr.h>
-#include <arch/x86-64/io/io.h>
+#include <arch/x86-64/atomic/atomic.h>
 #include <memory/paging/pageTableManager.h>
 
 namespace APIC{

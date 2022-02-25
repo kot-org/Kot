@@ -31,6 +31,7 @@
 Bin/
 OVMFbin/
 Local/
+build/
 .vs/
 
 *.exe

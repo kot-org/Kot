@@ -1,5 +1,6 @@
 #pragma once
-#include <lib/types.h>
+
+#include <kot/types.h>
 #include <boot/bootInfo.h>
 #include <lib/stdio/cstr.h>
 #include <memory/efiMemory.h>

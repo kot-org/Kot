@@ -1,0 +1,46 @@
+2020-07-23  Release Manager
+
+	* GCC 10.2.0 released.
+
+2020-06-23  Eric Botcazou  <ebotcazou@gcc.gnu.org>
+
+	* gcc-interface/trans.c (gnat_to_gnu) <N_Allocator>: Minor tweaks.
+	Call Has_Constrained_Partial_View on base type of designated type.
+
+2020-05-07  Release Manager
+
+	* GCC 10.1.0 released.
+
+2020-05-04  Mikael Pettersson  <mikpelinux@gmail.com>
+
+	PR bootstrap/94918
+	* mingw32.h: Prevent windows.h from including emmintrin.h on Cygwin64.
+	* s-oscons-tmplt.c (Serial_Port_Descriptor): Use System.Win32.HANDLE
+	also on Cygwin.
+
+2020-03-11  Richard Wai  <richard@annexi-strayline.com>
+
+	* gcc-interface/decl.c (gnat_to_gnu_entity): Also test Is_Public on
+	the Alias of the entitiy, if it is present, in the main assertion.
+
+2020-02-06  Alexandre Oliva <oliva@adacore.com>
+
+	* raise-gcc.c (personality_body) [__ARM_EABI_UNWINDER__]:
+	Initialize barrier_cache.sp when ending phase1.
+
+2020-01-04  Eric Botcazou  <ebotcazou@adacore.com>
+
+	* gnatvsn.ads: Bump copyright year.
+
+2020-01-01  Jakub Jelinek  <jakub@redhat.com>
+
+	Update copyright years.
+
+  	* gnat_ugn.texi: Bump @copying's copyright year.
+  	* gnat_rm.texi: Likewise.
+
+Copyright (C) 2020 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

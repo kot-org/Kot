@@ -1,4 +1,4 @@
-PREFIX = ../Toolchain/Local/bin/x86_64-elf-
+PREFIX = ../Toolchain/Local/bin/x86_64-kot-
 
 LDS = kernel.ld
 CC = $(PREFIX)gcc

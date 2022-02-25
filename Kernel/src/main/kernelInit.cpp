@@ -67,12 +67,11 @@ void InitializeKernel(BootInfo* bootInfo){
     SerialPort::Initialize();
     SerialPort::ClearMonitor();
     globalLogs->Message("Welcome to Kot's kernel");
-    
+
     gdtInit();
     globalLogs->Successful("GDT intialize");
 
-    InitializeInterrupts();  
-    globalLogs->Successful("IDT intialize");
+
 
     PageTable* PML4 = InitializeMemory(bootInfo);
     LoadPaging(PML4, globalPageTableManager[CPU::GetCoreID()].PhysicalMemoryVirtualAddress);
@@ -83,6 +82,9 @@ void InitializeKernel(BootInfo* bootInfo){
 
     InitializeHeap((void*)LastVirtualAddressUsed, 0x10);
     globalLogs->Successful("Heap intialize");
+    
+    InitializeInterrupts();  
+    globalLogs->Successful("IDT intialize");
 
 
     CPU::InitCPU();
@@ -138,6 +140,7 @@ void InitializeKernel(BootInfo* bootInfo){
     }else{
         globalLogs->Error("Can't load initialization file");
     }
+    
     free(InitParameters);
 
     APIC::LoadCores(); 

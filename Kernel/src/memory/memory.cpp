@@ -50,7 +50,8 @@ int memcmp(const void *aptr, const void *bptr, size_t n){
 //PT_Flag::Custom1 master share
 //PT_Flag::Custom2 slave share
 
-size_t CreatSharing(PageTableManager* pageTable, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, bool ReadOnly, uint8_t Priviledge){
+uint64_t CreatSharing(thread_t* thread, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, bool ReadOnly){
+    PageTableManager* pageTable = thread->Paging;
     void* virtualAddress = (void*)*virtualAddressPointer;
     if((uint64_t)virtualAddress % 0x1000 > 0){
         virtualAddress -= (uint64_t)virtualAddress % 0x1000;
@@ -64,7 +65,7 @@ size_t CreatSharing(PageTableManager* pageTable, size_t size, uint64_t* virtualA
             pageTable->MapMemory((void*)virtualAddressIterator, globalAllocator.RequestPage());
             pageTable->SetFlags((void*)virtualAddressIterator, PT_Flag::Custom1, true); //set master state
         }
-        if(Priviledge == UserAppRing) pageTable->MapUserspaceMemory((void*)virtualAddressIterator);
+        if(thread->RingPL == UserAppRing) pageTable->MapUserspaceMemory((void*)virtualAddressIterator);
     }
     MemoryShareInfo* shareInfo = (MemoryShareInfo*)malloc(sizeof(MemoryShareInfo));
     shareInfo->Lock = false;
@@ -79,10 +80,13 @@ size_t CreatSharing(PageTableManager* pageTable, size_t size, uint64_t* virtualA
     shareInfo = (MemoryShareInfo*)pageTable->GetVirtualAddress(key);
     *virtualAddressPointer = (uint64_t)virtualAddress;
     *keyPointer = (uint64_t)shareInfo;
-    return numberOfPage * 0x1000;
+
+    thread->MemoryAllocated += numberOfPage * 0x1000;
+    return KSUCCESS;
 }
 
-bool GetSharing(PageTableManager* pageTable, MemoryShareInfo* shareInfo, uint64_t* virtualAddressPointer, uint8_t Priviledge){
+uint64_t GetSharing(thread_t* thread, MemoryShareInfo* shareInfo, uint64_t* virtualAddressPointer){
+    PageTableManager* pageTable = thread->Paging;
     void* virtualAddress = (void*)*virtualAddressPointer;
     if((uint64_t)virtualAddress % 0x1000 > 0){
         virtualAddress -= (uint64_t)virtualAddress % 0x1000;
@@ -96,22 +100,28 @@ bool GetSharing(PageTableManager* pageTable, MemoryShareInfo* shareInfo, uint64_
         void* physicalAddressParentIterator = shareInfo->PageTableParent->GetPhysicalAddress((void*)virtualAddressParentIterator);
         pageTable->MapMemory((void*)virtualAddressIterator, physicalAddressParentIterator);
         pageTable->SetFlags((void*)virtualAddressIterator, PT_Flag::Custom2, true); //set slave state
-        if(Priviledge == UserAppRing) pageTable->MapUserspaceMemory((void*)virtualAddressIterator);
+        if(thread->RingPL) pageTable->MapUserspaceMemory((void*)virtualAddressIterator);
         if(shareInfo->ReadOnly) pageTable->SetFlags((void*)virtualAddressIterator, PT_Flag::ReadWrite, false); 
     }
     *virtualAddressPointer = (uint64_t)virtualAddress;
-    return true;
+    return KSUCCESS;
 }
 
-size_t FreeSharing(void* virtualAddress){
+uint64_t FreeSharing(thread_t* thread, void* virtualAddress){
+    PageTableManager* pageTable = thread->Paging;
     MemoryShareInfo* shareInfo = (MemoryShareInfo*)virtualAddress;
-    PageTableManager* pageTable = shareInfo->PageTableParent;
+    PageTableManager* pageTableMaster = shareInfo->PageTableParent;
     size_t NumberOfPage = shareInfo->PageNumber;
     for(uint64_t i = 0; i < NumberOfPage; i++){
         uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * 0x1000;
-        void* physcialAddress = pageTable->GetPhysicalAddress((void*)virtualAddressIterator);
-        globalAllocator.FreePage(physcialAddress);
+        if(pageTable->GetFlags((void*)virtualAddressIterator, PT_Flag::Custom1)){ // is master
+            void* physcialAddress = pageTable->GetPhysicalAddress((void*)virtualAddressIterator);
+            globalAllocator.FreePage(physcialAddress);  
+            thread->MemoryAllocated -= 0x1000;      
+        }
+
         pageTable->UnmapMemory((void*)virtualAddressIterator);
     }
-    return NumberOfPage * 0x1000;
+    
+    return KSUCCESS;
 }

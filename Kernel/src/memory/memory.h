@@ -21,6 +21,6 @@ struct MemoryShareInfo{
     char signature1;
 }__attribute__((packed));
 
-size_t CreatSharing(struct PageTableManager* pageTable, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, bool ReadOnly, uint8_t Priviledge);
-bool GetSharing(struct PageTableManager* pageTable, MemoryShareInfo* key, uint64_t* virtualAddressPointer, uint8_t Priviledge);
-size_t FreeSharing(void* virtualAddress);
+uint64_t CreatSharing(struct thread_t* thread, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, bool ReadOnly);
+uint64_t GetSharing(struct thread_t* thread, MemoryShareInfo* key, uint64_t* virtualAddressPointer);
+uint64_t FreeSharing(struct thread_t* thread, void* virtualAddress);

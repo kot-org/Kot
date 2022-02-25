@@ -30,7 +30,7 @@ void InitializeHeap(void* heapAddress, size_t pageCount);
 
 void* calloc(size_t size);
 void* malloc(size_t size);
-void* realloc(void* buffer, size_t size, uint64_t adjustement);
+void* realloc(void* buffer, size_t size);
 void free(void* address);
 
 void  SplitSegment(SegmentHeader* segment, size_t size);

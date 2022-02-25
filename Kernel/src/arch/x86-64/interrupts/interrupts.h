@@ -5,6 +5,7 @@
 #include <logs/logs.h>
 #include <memory/paging/pageFrameAllocator.h>
 #include <scheduler/scheduler.h>
+#include <event/event.h>
 
 #define IRQ_START 0x20
 #define IRQ_MAX 0x18
@@ -38,12 +39,10 @@ void KernelUnrecovorable(InterruptStack* Registers, uint64_t CoreID);
 
 extern IDTR idtr;
 extern void* InterruptEntryList[256];
+extern struct event_t* InterruptEventList[256];
 
 
 uint64_t SetIrq(struct process_t* parent, void* entryPoint, uint8_t irq);
 uint64_t SetIrqDefault(uint8_t irq);
 void RedirectIRQ(InterruptStack* Registers, uint64_t CoreID, uint8_t irq);
 
-
-// extern struct thread_t* IRQRedirectList[IRQ_MAX];
-// extern void* IRQDefaultRedirect[IRQ_MAX];

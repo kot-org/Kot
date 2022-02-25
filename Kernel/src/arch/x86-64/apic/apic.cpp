@@ -201,15 +201,17 @@ namespace APIC{
             }
 
             globalLogs->Warning("Wait processor %u", i);
-
-            while (Data->Status != 3); // wait processor
+        
+            while (DataTrampoline.Status != 0xef){
+                __asm__ __volatile__ ("pause" : : : "memory");
+            } 
             globalLogs->Successful("Processor %u respond with success", i);
 
-            while (StatusProcessor != 4); // wait processor
-            globalLogs->Successful("Processor %u is in the main function", i);
-            StatusProcessor = 0;
+            DataTrampoline.Status = 0;
         }
         globalPageTableManager[0].UnmapMemory((void*)0x8000);
+
+        DataTrampoline.Status = 0xff;
     }  
 
     void* GetLAPICAddress(){
@@ -239,7 +241,7 @@ namespace APIC{
         uint32_t Tick10ms = 0xffffffff - localAPICReadRegister(LocalAPICRegisterOffsetCurentCount);
 
         LocalAPICInterruptRegister TimerRegisters;
-        TimerRegisters.vector = 0x40;
+        TimerRegisters.vector = IPI_Schedule;
         TimerRegisters.mask = LocalAPICInterruptRegisterMaskEnable;
         TimerRegisters.timerMode = LocalAPICInterruptTimerModePeriodic;
         
