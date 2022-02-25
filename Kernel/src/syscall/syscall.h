@@ -5,6 +5,8 @@
 #include <scheduler/scheduler.h>
 #include <arch/x86-64/interrupts/interrupts.h>
 
+#define GetThread(base, entry) (((entry) == NULL) ? (thread_t*)(base) : (thread_t*)(entry))
+
 extern "C" void syscallEnable(uint16_t KernelSegment, uint16_t UserSegment);
 
 extern "C" uint64_t SyscallHandler(struct InterruptStack* Registers, uint64_t CoreID);

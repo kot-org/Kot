@@ -125,8 +125,8 @@ thread_t* TaskManager::GetTread(){
     return ReturnValue;
 }
 
-uint64_t TaskManager::CreatThread(process_t* self, uint64_t entryPoint, void* externalData){
-    self->CreatThread(entryPoint, externalData);
+uint64_t TaskManager::CreatThread(thread_t** self, process_t* proc, uint64_t entryPoint, void* externalData){
+    *self = proc->CreatThread(entryPoint, externalData);
     return KSUCCESS;
 }
 

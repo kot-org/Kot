@@ -20,6 +20,7 @@ sudo apt install build-essential bison flex libgmp3-dev libmpc-dev libmpfr-dev t
 sudo mkdir -m 777 "$Sysroot"
 sudo mkdir -m 777 "$Sysroot/KotInclude"
 sudo mkdir -m 777 "$Sysroot/KotInclude/kot"
+sudo mkdir -m 777 "$Sysroot/lib"
 
 cd "sources"
 

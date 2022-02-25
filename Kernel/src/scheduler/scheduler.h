@@ -152,7 +152,7 @@ class TaskManager{
 
         // threads
         thread_t* GetTread();
-        uint64_t CreatThread(process_t* self, uint64_t entryPoint, void* externalData);
+        uint64_t CreatThread(thread_t** self, process_t* proc, uint64_t entryPoint, void* externalData);
         uint64_t ExecThread(thread_t* self, Parameters* FunctionParameters);
         uint64_t Pause(InterruptStack* Registers, uint64_t CoreID, thread_t* task); 
         uint64_t Unpause(thread_t* task); 

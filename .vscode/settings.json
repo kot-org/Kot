@@ -36,7 +36,8 @@
         "ratio": "cpp",
         "tuple": "cpp",
         "typeinfo": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "ranges": "cpp"
     },
     "debug.onTaskErrors": "debugAnyway",
     "C_Cpp.errorSquiggles": "Disabled",

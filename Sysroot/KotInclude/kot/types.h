@@ -35,8 +35,23 @@ typedef unsigned long int           KResult;
 typedef unsigned long long int      KResult;
 #endif
 
+#if __WORDSIZE == 64
+typedef unsigned long int           kthread_t;
+#else
+typedef unsigned long long int      kthread_t;
+#endif
+
 typedef long unsigned int           size_t;
 typedef void*                       uintptr_t;
 
 #define KFAIL 0
 #define KSUCCESS 1
+
+struct parameters_t{
+    uint64_t Parameter0;
+    uint64_t Parameter1;
+    uint64_t Parameter2;
+    uint64_t Parameter3;
+    uint64_t Parameter4;
+    uint64_t Parameter5;
+}__attribute__((packed));

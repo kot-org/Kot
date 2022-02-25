@@ -16,9 +16,9 @@
 #undef TARGET_OS_CPP_BUILTINS
 #define TARGET_OS_CPP_BUILTINS()          \
   do {                                    \
-    builtin_define ("__bestos__");        \
+    builtin_define ("__kot__");        \
     builtin_define ("__unix__");          \
-    builtin_assert ("system=bestos");     \
+    builtin_assert ("system=kot");     \
     builtin_assert ("system=unix");       \
     builtin_assert ("system=posix");      \
   } while (0);
