@@ -28,10 +28,11 @@
 *.lib
 
 # Executables
-Bin/
+Sysroot/
 OVMFbin/
 Local/
 build/
+Bin/
 .vs/
 
 *.exe

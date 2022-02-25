@@ -28,7 +28,7 @@ cd "sources"
 cd "binutils-$BinutilsVersion"
 mkdir build 
 cd build
-../configure --prefix="$Prefix" --target="$Target" --with-sysroot="$Sysroot" --disable-nls --disable-werror
+sudo ../configure --prefix="$Prefix" --target="$Target" --with-sysroot="$Sysroot" --disable-nls --disable-werror
 make all -j $(nproc)
 make install -j $(nproc)
 
@@ -38,7 +38,7 @@ cd ../../
 cd "gcc-$GccVersion"
 mkdir build 
 cd build
-../configure --prefix="$Prefix" --target="$Target" --with-sysroot="$Sysroot" --disable-nls --enable-languages=c,c++ --with-newlib
+sudo ../configure --prefix="$Prefix" --target="$Target" --with-sysroot="$Sysroot" --disable-nls --enable-languages=c,c++ --with-newlib
 
 make -j all-gcc 
 make -j all-target-libgcc 

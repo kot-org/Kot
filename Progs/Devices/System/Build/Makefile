@@ -1,10 +1,12 @@
+PREFIX = ../../../../Toolchain/Local/bin/x86_64-kot-
+
 LDS = main.ld
-CC = gcc
+CC = $(PREFIX)gcc
+LD = $(PREFIX)ld
 ASMC = nasm
-LD = ld
 
 CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -fno-exceptions
-LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
+LDFLAGS = -static -lc
 ASMFLAGS = 
 
 SRCDIR := ../Scr
