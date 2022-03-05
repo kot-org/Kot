@@ -22,7 +22,8 @@ namespace CPU{
         CPUContext* context = (CPUContext*)calloc(sizeof(CPUContext));
         GetFeatures(context->FeaturesECX, context->FeaturesEDX);
         context->ID = GetCoreID();
-        CreatCPUContext((uint64_t)context);
+        SetCPUGSBase((uint64_t)context);
+
         return;
     }
 

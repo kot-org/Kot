@@ -1,43 +1,9 @@
 [bits 64]
 
+%include "../cpu/cpu.inc"
+
 GLOBAL InterruptEntryList
 EXTERN InterruptHandler
-
-%macro    PUSH_REG    0
-    push    r15
-    push    r14
-    push    r13
-    push    r12
-    push    r11
-    push    r10
-    push    r9
-    push    r8
-    push    rbp
-    push    rdi
-    push    rsi
-    push    rdx
-    push    rcx
-    push    rbx
-    push    rax
-%endmacro
-%macro    POP_REG        0
-    pop    rax
-    pop    rbx
-    pop    rcx
-    pop    rdx
-    pop    rsi
-    pop    rdi
-    pop    rbp
-    pop    r8
-    pop    r9
-    pop    r10
-    pop    r11
-    pop    r12
-    pop    r13
-    pop    r14
-    pop    r15
-    add    rsp, 16  ; remove error code and interrupt number from stack 
-%endmacro
 
 %macro CREAT_INTERRUPT_NAME 1  
 
@@ -45,11 +11,11 @@ EXTERN InterruptHandler
 
 %endmacro
 
-; function
+; functions
 
 %macro GLOBAL_INTERRUPT_HANDLER 0
-    swapgs
     PUSH_REG
+    swapgs
 
     mov rdi, rsp
     mov rsi, [gs:0x0]
@@ -61,9 +27,10 @@ EXTERN InterruptHandler
     mov rax, [rsp + 0x90]      ; cs
     mov qword [gs:0x20], rax
 
-    POP_REG
-
     swapgs
+    POP_REG
+    add    rsp, 16  ; remove error code and interrupt number from stack 
+
     iretq
 
 %endmacro

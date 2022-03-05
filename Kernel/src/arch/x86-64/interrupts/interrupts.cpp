@@ -62,7 +62,7 @@ void InitializeInterrupts(){
     asm("lidt %0" : : "m" (idtr));     
 }
 
-extern "C" void InterruptHandler(InterruptStack* Registers, uint64_t CoreID){
+extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
     if(Registers->InterruptNumber < 32){
         // execptions
         ExceptionHandler(Registers, CoreID);
@@ -82,13 +82,13 @@ extern "C" void InterruptHandler(InterruptStack* Registers, uint64_t CoreID){
     APIC::localApicEOI(CoreID);
 }
 
-void ExceptionHandler(InterruptStack* Registers, uint64_t CoreID){
+void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
     // If exception come from kernel we can't recover it
 
     if(GetCodeRing(Registers) == KernelRing){ 
         KernelUnrecovorable(Registers, CoreID);
     }else{
-        //try to recover exception
+        // Try to recover exception
         if(Registers->InterruptNumber == Exception_PageFault){
             if(PageFaultHandler(Registers, CoreID)){
                 return;
@@ -104,11 +104,11 @@ void ExceptionHandler(InterruptStack* Registers, uint64_t CoreID){
 
 
 
-uint8_t GetCodeRing(InterruptStack* Registers){
+uint8_t GetCodeRing(ContextStack* Registers){
     return (Registers->cs & 0b11);
 }
 
-bool PageFaultHandler(InterruptStack* Registers, uint64_t CoreID){
+bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID){
     if(globalTaskManager->IsSchedulerEnable[CoreID] && globalTaskManager->ThreadExecutePerCore[CoreID] != NULL){
         uint64_t Address = 0;
         asm("movq %%cr2, %0" : "=r"(Address));
@@ -117,7 +117,7 @@ bool PageFaultHandler(InterruptStack* Registers, uint64_t CoreID){
     return false;
 }
 
-void KernelUnrecovorable(InterruptStack* Registers, uint64_t CoreID){
+void KernelUnrecovorable(ContextStack* Registers, uint64_t CoreID){
     globalLogs->Error("Kernel Panic CPU %x", CoreID);
     globalLogs->Error("With execption : '%s' Error code : %x", ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
 

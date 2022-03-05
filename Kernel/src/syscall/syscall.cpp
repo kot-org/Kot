@@ -2,7 +2,7 @@
 
 static uint64_t mutexSyscall;
 
-extern "C" uint64_t SyscallHandler(InterruptStack* Registers, uint64_t CoreID){
+extern "C" uint64_t SyscallHandler(ContextStack* Registers, uint64_t CoreID){
     Atomic::atomicSpinlock(&mutexSyscall, 0);
     Atomic::atomicLock(&mutexSyscall, 0);
 
@@ -19,15 +19,18 @@ extern "C" uint64_t SyscallHandler(InterruptStack* Registers, uint64_t CoreID){
     switch(syscall){
         case Sys_CreatShareMemory:
             //creat share memory
-            returnValue = CreatSharing(GetThread(thread, arg0), arg1, (uint64_t*)arg2, (uint64_t*)arg3, (bool)arg4);
+            returnValue = CreatSharing((thread_t*)arg0, arg1, (uint64_t*)arg2, (uint64_t*)arg3, (bool)arg4);
             //this function return the allocated size
             break;
         case Sys_GetShareMemory:
             //get share memory
-            returnValue = GetSharing(GetThread(thread, arg0), (MemoryShareInfo*)arg1, (uint64_t*)arg2);
+            returnValue = GetSharing((thread_t*)arg0, (MemoryShareInfo*)arg1, (uint64_t*)arg2);
             break;
         case Sys_FreeShareMemory:
-            returnValue = FreeSharing(GetThread(thread, arg0), (void*)arg1);
+            returnValue = FreeSharing((thread_t*)arg0, (void*)arg1);
+            break;
+        case Sys_StackShareMemory:
+            returnValue = globalTaskManager->ShareDataInStack((uint64_t**)arg0, (thread_t*)arg1, (void*)arg2, (size_t)arg3);
             break;
         case Sys_Fork: 
             thread->Fork(Registers, CoreID, (thread_t*)arg0, (Parameters*)arg1);
@@ -43,12 +46,12 @@ extern "C" uint64_t SyscallHandler(InterruptStack* Registers, uint64_t CoreID){
         case Sys_Exit:
             //exit
             globalLogs->Warning("Thread %x exit with error code : %x", thread->TID, arg0);
-            globalTaskManager->Exit(Registers, CoreID, GetThread(thread, arg0));
+            globalTaskManager->Exit(Registers, CoreID, (thread_t*)arg0);
             Atomic::atomicUnlock(&mutexSyscall, 0);
             return 0xff;
         case Sys_Pause:
             globalLogs->Warning("Thread %x is paused in process %x", thread->TID, thread->Parent->PID);
-            globalTaskManager->Pause(Registers, CoreID, GetThread(thread, arg0));
+            globalTaskManager->Pause(Registers, CoreID, (thread_t*)arg0);
             globalTaskManager->Scheduler(Registers, CoreID);
             
             Atomic::atomicUnlock(&mutexSyscall, 0);
@@ -58,26 +61,29 @@ extern "C" uint64_t SyscallHandler(InterruptStack* Registers, uint64_t CoreID){
             break;
         case Sys_Map:
             //mmap
-            returnValue = mmap(GetThread(thread, arg0), (void*)arg1, (bool)arg2, (void*)arg3);    
+            returnValue = mmap((thread_t*)arg0), (void*)arg1, (bool)arg2, (void*)arg3);    
             break;
         case Sys_Unmap:
             //munmap
-            returnValue = munmap(GetThread(thread, arg0), (void*)arg1);  
+            returnValue = munmap((thread_t*)arg0), (void*)arg1);  
             break;
         case Sys_Event_Creat:
             returnValue = Event::Creat((event_t**)arg0, EventTypeIPC, arg1);
             break;
         case Sys_Event_Bind:
-            returnValue = Event::Bind(GetThread(thread, arg0), (event_t*)arg1);
+            returnValue = Event::Bind((thread_t*)arg0, (event_t*)arg1);
             break;
         case Sys_Event_Unbind:
-            returnValue = Event::Bind(GetThread(thread, arg0), (event_t*)arg1);
+            returnValue = Event::Bind((thread_t*)arg0, (event_t*)arg1);
             break;
         case Sys_Event_Trigger:
             returnValue = Event::Trigger(thread, (event_t*)arg0, (void*)arg1, (size_t)arg2);
             break;
         case Sys_CreatThread:
             returnValue = globalTaskManager->CreatThread((thread_t**)arg0, (process_t*)arg1, arg2, (void*)arg3);
+            break;
+        case Sys_DuplicateThread:
+            returnValue = globalTaskManager->DuplicateThread((thread_t**)arg0, (process_t*)arg1, (thread_t*)arg2);
             break;
         case Sys_ExecThread:
             returnValue = globalTaskManager->ExecThread((thread_t*)arg0, (Parameters*)arg1);

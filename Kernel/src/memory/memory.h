@@ -9,6 +9,8 @@ int memcmp(const void *aptr, const void *bptr, size_t n);
 
 void memcpy(void* destination, void* source, uint64_t num);
 
+bool CheckAddress(PageTableManager* pageTable, void* address, size_t size);
+
 struct MemoryShareInfo{
     char signature0;
     bool Lock;

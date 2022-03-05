@@ -7,20 +7,22 @@
 #include <arch/x86-64/userspace/userspace.h>
 #include <memory/paging/pageTableManager.h>
 
-struct ContextStack;
 struct TaskQueuNode;
 struct Task;
 class TaskManager;
+class SelfData;
 
-#define MaxNameTask 256
 #define KernelStackSize 0x10000
 
-struct ContextStack{
-    uint64_t rax; uint64_t rbx; uint64_t rcx; uint64_t rdx; uint64_t rsi; uint64_t rdi; uint64_t rbp; //push in asm
+#define StackTop GetVirtualAddress(0x100, 0, 0, 0)
+#define StackBottom GetVirtualAddress(0xff, 0, 0, 0) 
+#define LockAddress GetVirtualAddress(0xfe, 0, 0, 0) 
+#define SelfDataStartAddress StackBottom 
+#define SelfDataEndAddress StackBottom + sizeof(SelfData)
 
-    uint64_t r8; uint64_t r9; uint64_t r10; uint64_t r11; uint64_t r12; uint64_t r13; uint64_t r14; uint64_t r15; //push in asm
-
-    uint64_t Reserved0; uint64_t Reserved1; uint64_t rip; uint64_t cs; rflags_t rflags; uint64_t rsp; uint64_t ss; //push by cpu with an interrupt
+struct SelfData{
+    key_t ThreadKey;
+    key_t ProcessKey;
 }__attribute__((packed));
 
 struct Parameters{
@@ -33,6 +35,7 @@ struct Parameters{
 }__attribute__((packed));
 
 struct StackInfo{
+    /* stack is also use for TLS */
     uint64_t StackStart;
     uint64_t StackEnd;
     uint64_t StackEndMax;
@@ -62,6 +65,11 @@ struct process_t{
     /* Time info */
     uint64_t CreationTime;
 
+    /* Keyhole */
+    lock_t* Locks;
+    uint64_t LockIndex;
+    uint64_t LockLimit;
+
     /* parent */
     Node* NodeParent;
     TaskManager* TaskManagerParent;
@@ -87,7 +95,7 @@ struct thread_t{
 
     /* Context info */
     ContextStack* Regs; 
-    StackInfo* Stack;
+    StackInfo* Stack; 
     uint64_t CoreID;
     bool IsBlock;
 
@@ -120,8 +128,8 @@ struct thread_t{
     /* external data */
     void* externalData;
 
-    void SaveContext(struct InterruptStack* Registers, uint64_t CoreID);
-    void CreatContext(struct InterruptStack* Registers, uint64_t CoreID);
+    void SaveContext(struct ContextStack* Registers, uint64_t CoreID);
+    void CreatContext(struct ContextStack* Registers, uint64_t CoreID);
 
     void SetParameters(Parameters* FunctionParameters);
 
@@ -130,21 +138,21 @@ struct thread_t{
     bool ExtendStack(uint64_t address);
     void* ShareDataInStack(void* data, size_t size);
 
-    bool Fork(struct InterruptStack* Registers, uint64_t CoreID, thread_t* thread, Parameters* FunctionParameters);
-    bool Fork(struct InterruptStack* Registers, uint64_t CoreID, thread_t* thread);
+    bool Fork(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread, Parameters* FunctionParameters);
+    bool Fork(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread);
 
     bool Launch(Parameters* FunctionParameters);  
     bool Launch();  
-    bool Pause(InterruptStack* Registers, uint64_t CoreID);   
-    bool Exit(InterruptStack* Registers, uint64_t CoreID);  
+    bool Pause(ContextStack* Registers, uint64_t CoreID);   
+    bool Exit(ContextStack* Registers, uint64_t CoreID);  
 
     bool SetIOPriviledge(ContextStack* Registers, uint8_t IOPL);
 }__attribute__((packed));  
 
 class TaskManager{
     public:
-        void Scheduler(struct InterruptStack* Registers, uint64_t CoreID);
-        void SwitchTask(struct InterruptStack* Registers, uint64_t CoreID, thread_t* task);
+        void Scheduler(struct ContextStack* Registers, uint64_t CoreID);
+        void SwitchTask(struct ContextStack* Registers, uint64_t CoreID, thread_t* task);
 
         void EnqueueTask(struct thread_t* task);
         void DequeueTask(struct thread_t* task);
@@ -153,10 +161,13 @@ class TaskManager{
         // threads
         thread_t* GetTread();
         uint64_t CreatThread(thread_t** self, process_t* proc, uint64_t entryPoint, void* externalData);
+        uint64_t DuplicateThread(thread_t** self, process_t* proc, thread_t* source);
         uint64_t ExecThread(thread_t* self, Parameters* FunctionParameters);
-        uint64_t Pause(InterruptStack* Registers, uint64_t CoreID, thread_t* task); 
+        uint64_t Pause(ContextStack* Registers, uint64_t CoreID, thread_t* task); 
         uint64_t Unpause(thread_t* task); 
-        uint64_t Exit(InterruptStack* Registers, uint64_t CoreID, thread_t* task); 
+        uint64_t Exit(ContextStack* Registers, uint64_t CoreID, thread_t* task); 
+
+        uint64_t ShareDataInStack(uint64_t** address, thread_t* task, void* data, size_t size);
 
         // process
         uint64_t CreatProcess(process_t** self, uint8_t priviledge, void* externalData);

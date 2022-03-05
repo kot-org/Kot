@@ -28,3 +28,5 @@ struct PageTable {
 }__attribute__((aligned(0x1000)));
 
 extern "C" void LoadPaging(PageTable* PageTableEntry, void* PhysicalMemoryVirtualAddress);
+
+bool GetFlags(void* PagingEntry, void* virtualMemory, int flags);

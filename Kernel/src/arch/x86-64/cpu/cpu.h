@@ -128,6 +128,18 @@ struct CPUContext{
     uint32_t FeaturesEDX;
 }__attribute__((packed));
 
+struct ContextStack {
+    uint64_t cr3;
+    
+    uint64_t rax; uint64_t rbx; uint64_t rcx; uint64_t rdx; uint64_t rsi; uint64_t rdi; uint64_t rbp; //push in asm
+
+    uint64_t r8; uint64_t r9; uint64_t r10; uint64_t r11; uint64_t r12; uint64_t r13; uint64_t r14; uint64_t r15; //push in asm
+
+    uint64_t InterruptNumber; uint64_t ErrorCode; 
+    
+    uint64_t rip; uint64_t cs; uint64_t rflags; uint64_t rsp; uint64_t ss;
+}__attribute__((packed)); 
+
 enum CPUContextIndex{
     CPUContextIndex_ID              = 0,
     CPUContextIndex_KernelStack     = 1,
@@ -140,7 +152,9 @@ enum CPUContextIndex{
 
 namespace CPU{
     void InitCPU();
-    extern "C" void CreatCPUContext(uint64_t Value);
+    extern "C" void SetCPUGSBase(uint64_t Value);
+    extern "C" void SetCPUGSKernelBase(uint64_t Value);
+    extern "C" void SetCPUFSBase(uint64_t Value);
     extern "C" uint64_t GetCPUContext(uint64_t index);
     extern "C" void SetCPUContext(uint64_t index, uint64_t value);
     extern "C" uint8_t GetCoreID();

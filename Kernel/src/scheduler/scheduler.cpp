@@ -4,7 +4,7 @@ TaskManager* globalTaskManager;
 
 static uint64_t mutexScheduler;
 
-void TaskManager::Scheduler(InterruptStack* Registers, uint64_t CoreID){  
+void TaskManager::Scheduler(ContextStack* Registers, uint64_t CoreID){  
     if(IsSchedulerEnable[CoreID]){  
         Atomic::atomicSpinlock(&mutexScheduler, 1);
         Atomic::atomicLock(&mutexScheduler, 1);
@@ -130,12 +130,18 @@ uint64_t TaskManager::CreatThread(thread_t** self, process_t* proc, uint64_t ent
     return KSUCCESS;
 }
 
+uint64_t TaskManager::DuplicateThread(thread_t** self, process_t* proc, thread_t* source){
+    if(source->Parent != proc) return KFAIL;
+    *self = proc->DuplicateThread(source);
+    return KSUCCESS;
+}
+
 uint64_t TaskManager::ExecThread(thread_t* self, Parameters* FunctionParameters){
     self->Launch(FunctionParameters);
     return KSUCCESS;
 }
 
-uint64_t TaskManager::Pause(InterruptStack* Registers, uint64_t CoreID, thread_t* task){
+uint64_t TaskManager::Pause(ContextStack* Registers, uint64_t CoreID, thread_t* task){
     Atomic::atomicSpinlock(&mutexScheduler, 1);
     Atomic::atomicLock(&mutexScheduler, 1);
 
@@ -160,7 +166,7 @@ uint64_t TaskManager::Unpause(thread_t* task){
     return KSUCCESS;
 } 
 
-uint64_t TaskManager::Exit(InterruptStack* Registers, uint64_t CoreID, thread_t* task){
+uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* task){
     Atomic::atomicSpinlock(&mutexScheduler, 1);
     Atomic::atomicLock(&mutexScheduler, 1);
 
@@ -173,8 +179,12 @@ uint64_t TaskManager::Exit(InterruptStack* Registers, uint64_t CoreID, thread_t*
         APIC::GenerateInterruption(task->CoreID, IPI_Schedule);
     }
 
-
     Atomic::atomicUnlock(&mutexScheduler, 1);
+    return KSUCCESS;
+}
+
+uint64_t TaskManager::ShareDataInStack(uint64_t** address, thread_t* task, void* data, size_t size){
+    *address = task->ShareDataInStack(data, size);
     return KSUCCESS;
 }
 
@@ -199,6 +209,9 @@ uint64_t TaskManager::CreatProcess(process_t** key, uint8_t priviledge, void* ex
 
     /* Other data */
     proc->TaskManagerParent = this;
+    proc->Lock = (lock_t*)LockAddress;
+    proc->LockLimit = StackBottom;
+    proc->LockIndex = 0;
     proc->externalData = externalData;
 
     proc->PID = PID; 
@@ -235,6 +248,15 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
     uint8_t RingPriviledge = priviledge & 0b11;
     thread->RingPL = priviledge;
 
+    /* Thread data */
+    void* threadDataPA = globalAllocator.RequestPage();
+    SelfData* threadData = globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(threadDataPA);
+    
+    Keyhole::Creat(globalPageTableManager[CPU::GetCoreID()], &threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread);
+    Keyhole::Creat(globalPageTableManager[CPU::GetCoreID()], &threadData->ProcessKey, this, this, DataTypeThread, (uint64_t)this);
+
+    thread->Paging->MapMemory(SelfDataStartAddress, threadDataPA);
+
     /* Setup registers */
     thread->Regs->rip = entryPoint;
     thread->Regs->cs = (GDTInfoSelectorsRing[RingPriviledge].Code | RingPriviledge);
@@ -242,8 +264,8 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
     thread->Regs->rflags.Reserved0 = true;
     thread->Regs->rflags.IF = true;
     thread->Regs->rflags.IOPL = 0;
-    
-   
+    thread->Regs->cr3 = thread->Paging->PML4; 
+
     /* Other data */
     thread->externalData = externalData;
     thread->CreationTime = HPET::GetTime();
@@ -262,6 +284,8 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
 }
 
 thread_t* process_t::DuplicateThread(thread_t* source){
+    if(source->Parent != this) return NULL;
+
     thread_t* thread = (thread_t*)calloc(sizeof(thread_t));
     if(Childs == NULL){
         Childs = CreatNode((void*)0);
@@ -279,12 +303,22 @@ thread_t* process_t::DuplicateThread(thread_t* source){
     /* Load new stack */
     thread->SetupStack();
 
+    /* Thread data */
+    void* threadDataPA = globalAllocator.RequestPage();
+    SelfData* threadData = globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(threadDataPA);
+    threadData->ThreadKey = (uint64_t)thread; 
+    threadData->ProcessKey = (uint64_t)thread->Parent; 
+    free(threadData);
+
+    thread->Paging->MapMemory(SelfDataStartAddress, threadDataPA);
+
     /* Setup registers */
     thread->Regs->rip = (uint64_t)source->EntryPoint;
     thread->Regs->cs = source->Regs->cs; 
     thread->Regs->ss = source->Regs->ss; 
     thread->Regs->rflags = source->Regs->rflags;
-    
+    thread->Regs->cr3 = source->Regs->cr3;
+
     /* Setup priviledge */
     thread->RingPL = source->RingPL;
 
@@ -305,12 +339,12 @@ thread_t* process_t::DuplicateThread(thread_t* source){
 
 
 void thread_t::SetupStack(){
-    uint64_t StackLocation = GetVirtualAddress(0x100, 0, 0, 0);
+    uint64_t StackLocation = StackTop;
     this->Regs->rsp = StackLocation;
     this->Stack = (StackInfo*)malloc(sizeof(StackInfo));
     this->Stack->StackStart = StackLocation;
     this->Stack->StackEnd = StackLocation;
-    this->Stack->StackEndMax = GetVirtualAddress(0xff, 0, 0, 0);
+    this->Stack->StackEndMax = StackBottom;
 
     /* Clear stack */
     PageTable* PML4VirtualAddress = (PageTable*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress((void*)Paging->PML4);
@@ -319,7 +353,7 @@ void thread_t::SetupStack(){
 
 
 
-void TaskManager::SwitchTask(InterruptStack* Registers, uint64_t CoreID, thread_t* task){
+void TaskManager::SwitchTask(ContextStack* Registers, uint64_t CoreID, thread_t* task){
     if(task == NULL) return;
 
     Atomic::atomicSpinlock(&mutexScheduler, 1);
@@ -380,6 +414,10 @@ void TaskManager::EnabledScheduler(uint64_t CoreID){
 
         IsSchedulerEnable[CoreID] = true;
 
+        SetCPUGSKernelBase((uint64_t)SelfDataStartAddress); // keys position
+
+        SetCPUFSBase((uint64_t)SelfDataEndAddress); // Thread Local Storage
+
         syscallEnable(GDTInfoSelectorsRing[KernelRing].Code, GDTInfoSelectorsRing[UserAppRing].Code);
         Atomic::atomicUnlock(&mutexScheduler, 0);
         globalLogs->Successful("Scheduler is enabled for the processor : %u", CoreID);
@@ -390,13 +428,13 @@ thread_t* TaskManager::GetCurrentThread(uint64_t CoreID){
     return ThreadExecutePerCore[CoreID];
 }
 
-void thread_t::SaveContext(InterruptStack* Registers, uint64_t CoreID){
+void thread_t::SaveContext(ContextStack* Registers, uint64_t CoreID){
     uint64_t actualTime = HPET::GetTime();
     TimeAllocate += actualTime - Parent->TaskManagerParent->TimeByCore[CoreID];
     memcpy(Regs, Registers, sizeof(ContextStack));
 }
 
-void thread_t::CreatContext(InterruptStack* Registers, uint64_t CoreID){
+void thread_t::CreatContext(ContextStack* Registers, uint64_t CoreID){
     this->CoreID = CoreID;
     Parent->TaskManagerParent->ThreadExecutePerCore[CoreID] = this;
     memcpy(Registers, Regs, sizeof(ContextStack));
@@ -467,14 +505,14 @@ void* thread_t::ShareDataInStack(void* data, size_t size){
     return NULL;
 }
 
-bool thread_t::Fork(InterruptStack* Registers, uint64_t CoreID, thread_t* thread, Parameters* FunctionParameters){
+bool thread_t::Fork(ContextStack* Registers, uint64_t CoreID, thread_t* thread, Parameters* FunctionParameters){
     if(FunctionParameters != NULL){
         thread->SetParameters(FunctionParameters);
     }
     Fork(Registers, CoreID, thread);
 }
     
-bool thread_t::Fork(InterruptStack* Registers, uint64_t CoreID, thread_t* thread){
+bool thread_t::Fork(ContextStack* Registers, uint64_t CoreID, thread_t* thread){
     Atomic::atomicSpinlock(&mutexScheduler, 1);
     Atomic::atomicLock(&mutexScheduler, 1);
 
@@ -509,7 +547,7 @@ bool thread_t::Launch(){
     return true;
 }
 
-bool thread_t::Pause(InterruptStack* Registers, uint64_t CoreID){
+bool thread_t::Pause(ContextStack* Registers, uint64_t CoreID){
     //Save context
     SaveContext(Registers, CoreID);
 
@@ -525,7 +563,7 @@ bool thread_t::Pause(InterruptStack* Registers, uint64_t CoreID){
     return true;
 }
 
-bool thread_t::Exit(InterruptStack* Registers, uint64_t CoreID){
+bool thread_t::Exit(ContextStack* Registers, uint64_t CoreID){
     if(IsForked){
         uint64_t ReturnValue = Registers->rdi;
         Parent->TaskManagerParent->SwitchTask(Registers, CoreID, ForkedThread);

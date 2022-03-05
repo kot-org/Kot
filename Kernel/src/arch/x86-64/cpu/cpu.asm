@@ -1,9 +1,10 @@
 GLOBAL CreatCPUContext, GetCPUContext, GetCoreID, SetCPUContext
 
-%Define GS_Base     0xC0000101
-%Define GS_Kernel   0xC0000102
+%Define FS_Base             0xC0000100
+%Define GS_Base             0xC0000101
+%Define GS_KernelBase       0xC0000102
 
-CreatCPUContext:
+SetCPUGSBase:
     mov     ax, 0x0
     mov     gs, ax
     mov     fs, ax
@@ -11,6 +12,28 @@ CreatCPUContext:
 	shr		rdi, 32
 	mov		edx, edi
     mov		ecx, GS_Base	
+	wrmsr
+    ret
+
+SetCPUGSKernelBase:
+    mov     ax, 0x0
+    mov     gs, ax
+    mov     fs, ax
+	mov		eax, edi					
+	shr		rdi, 32
+	mov		edx, edi
+    mov		ecx, GS_KernelBase	
+	wrmsr
+    ret
+
+SetCPUFSBase:
+    mov     ax, 0x0
+    mov     gs, ax
+    mov     fs, ax
+	mov		eax, edi					
+	shr		rdi, 32
+	mov		edx, edi
+    mov		ecx, FS_Base	
 	wrmsr
     ret
 

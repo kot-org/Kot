@@ -45,6 +45,20 @@ int memcmp(const void *aptr, const void *bptr, size_t n){
 	return 0;
 }
 
+bool CheckAddress(void* address, size_t size){
+    uint64_t NumberPage = Divide(size, 0x1000);
+    uint64_t AddressItinerator = (uint64_t)address;
+    void* PagingEntry = NULL;
+    __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(PagingEntry));
+
+    for(int i = 0; i < NumberPage; i++){
+        if(!GetFlags(PagingEntry, (void*)AddressItinerator, PT_Flag::IsPresent)) return false;
+        AddressItinerator += 0x1000;
+    }
+
+    return true;
+}
+
 
 /* _____________________________Share Memory_____________________________ */
 //PT_Flag::Custom1 master share
