@@ -3,7 +3,6 @@
 GLOBAL LaunchUserSpace
 
 LaunchUserSpace:
-	swapgs
 	sti
 	int 0x40 
 	ret

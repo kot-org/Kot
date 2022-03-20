@@ -118,40 +118,60 @@ struct rflags_t{
     uint32_t Reserved13;
 }__attribute__((packed));
 
+
+struct ContextStack {
+    uint64_t cr3;
+
+    uint64_t ThreadInfo; /* gs:0x8 */
+    
+    uint64_t GlobalPurpose; /* rax use for return and data */
+    uint64_t rbx; 
+    uint64_t rcx; 
+    uint64_t arg2; /* rdx */ 
+    uint64_t arg1; /* rsi */ 
+    uint64_t arg0; /* rdi */ 
+    uint64_t rbp; //push in asm
+
+    uint64_t arg5; /* r8 */ 
+    uint64_t arg4; /* r9 */ 
+    uint64_t arg3; /* r10 */ 
+    uint64_t r11; 
+    uint64_t r12; 
+    uint64_t r13; 
+    uint64_t r14; 
+    uint64_t r15; //push in asm
+
+    uint64_t InterruptNumber; 
+    uint64_t ErrorCode; 
+    
+    uint64_t rip; 
+    uint64_t cs; 
+    rflags_t rflags; 
+    uint64_t rsp; 
+    uint64_t ss;
+}__attribute__((packed)); 
+
 struct CPUContext{
     uint64_t ID;
-    uint64_t KernelStack;
+    uint64_t SyscallStack;
     uint64_t UserStack;
-    uint64_t UserSS;
-    uint64_t UserCS;
     uint32_t FeaturesECX;
     uint32_t FeaturesEDX;
 }__attribute__((packed));
 
-struct ContextStack {
-    uint64_t cr3;
-    
-    uint64_t rax; uint64_t rbx; uint64_t rcx; uint64_t rdx; uint64_t rsi; uint64_t rdi; uint64_t rbp; //push in asm
-
-    uint64_t r8; uint64_t r9; uint64_t r10; uint64_t r11; uint64_t r12; uint64_t r13; uint64_t r14; uint64_t r15; //push in asm
-
-    uint64_t InterruptNumber; uint64_t ErrorCode; 
-    
-    uint64_t rip; uint64_t cs; uint64_t rflags; uint64_t rsp; uint64_t ss;
-}__attribute__((packed)); 
-
 enum CPUContextIndex{
     CPUContextIndex_ID              = 0,
-    CPUContextIndex_KernelStack     = 1,
+    CPUContextIndex_SyscallStack    = 1,
     CPUContextIndex_UserStack       = 2,
-    CPUContextIndex_UserSS          = 4,
-    CPUContextIndex_UserCS          = 3,
-    CPUContextIndex_FeaturesECX     = 5,
-    CPUContextIndex_FeaturesEDX     = 6,
+    CPUContextIndex_FeaturesECX     = 3,
+    CPUContextIndex_FeaturesEDX     = 4,
 };
 
 namespace CPU{
     void InitCPU();
+    extern "C" void DisableInterrupts();
+    extern "C" void EnableInterrupts();
+    extern "C" void ReloadGSFS();
     extern "C" void SetCPUGSBase(uint64_t Value);
     extern "C" void SetCPUGSKernelBase(uint64_t Value);
     extern "C" void SetCPUFSBase(uint64_t Value);

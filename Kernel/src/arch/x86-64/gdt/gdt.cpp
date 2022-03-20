@@ -133,9 +133,9 @@ uint16_t gdtInstallTSS(uint64_t base, uint64_t limit){
 
     gdtTSSEntry* gdt_desc = (gdtTSSEntry*)&GDTEntries[GDTIndexTable];
 
-    gdt_desc->Type.IsPresent = true;
-    gdt_desc->Type.IsExecutable = true;
-    gdt_desc->Type.IsAccess = true;
+    gdt_desc->AccessByte.IsPresent = true;
+    gdt_desc->AccessByte.IsExecutable = true;
+    gdt_desc->AccessByte.IsAccess = true;
     
 
     gdt_desc->Base0 = base & 0xFFFF;

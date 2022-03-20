@@ -31,3 +31,5 @@ typedef unsigned long long int      size64_t;
 
 typedef long unsigned int           size_t;
 typedef void*                       uintptr_t;
+
+typedef uint64_t key_t; 

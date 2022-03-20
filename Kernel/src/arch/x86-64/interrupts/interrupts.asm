@@ -1,6 +1,6 @@
 [bits 64]
 
-%include "../cpu/cpu.inc"
+%include "src/arch/x86-64/cpu/cpu.inc"
 
 GLOBAL InterruptEntryList
 EXTERN InterruptHandler
@@ -13,22 +13,21 @@ EXTERN InterruptHandler
 
 ; functions
 
-%macro GLOBAL_INTERRUPT_HANDLER 0
+%macro GLOBAL_INTERRUPT_HANDLER 1
+    %assign y %1*2
+    SWAPGS_IF_NECESSARY y
     PUSH_REG
-    swapgs
 
     mov rdi, rsp
     mov rsi, [gs:0x0]
 
     call InterruptHandler
 
-    mov rax, [rsp + 0xA8]      ; ss
-    mov qword [gs:0x18], rax
-    mov rax, [rsp + 0x90]      ; cs
-    mov qword [gs:0x20], rax
-
-    swapgs
     POP_REG
+
+    %assign y y+1
+    SWAPGS_IF_NECESSARY y
+
     add    rsp, 16  ; remove error code and interrupt number from stack 
 
     iretq
@@ -42,7 +41,7 @@ EXTERN InterruptHandler
 EntryInterruptHandler%1:
     push 0  ; fill the stack
     push %1
-    GLOBAL_INTERRUPT_HANDLER
+    GLOBAL_INTERRUPT_HANDLER %1
 
 %endmacro
 
@@ -50,7 +49,7 @@ EntryInterruptHandler%1:
 
 EntryInterruptHandler%1:
     push %1
-    GLOBAL_INTERRUPT_HANDLER
+    GLOBAL_INTERRUPT_HANDLER %1
 
 %endmacro
 

@@ -117,7 +117,6 @@ namespace Event{
             }
 
             FunctionParameters->Parameter1 = (uint64_t)self->Tasks[i]->ShareDataInStack(Data, Size);
-            FunctionParameters->Parameter2 = (uint64_t)self->Tasks[i]->ShareDataInStack(Data, Size);
         }
 
         Atomic::atomicUnlock(&self->Lock, 0);

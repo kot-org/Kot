@@ -11,12 +11,11 @@ uint16_t TSSInstall(uint8_t numCPU){
     memset((void*)tss_base, 0, sizeof(TSS));
 
     uint16_t location = gdtInstallTSS(tss_base, sizeof(TSS));
-    TSSdescriptors[numCPU].IOPBOffset = sizeof(TSS);
+    TSSdescriptors[numCPU].IOPBOffset = 0;
     return location;
 }
 
 void TSSSetStack(uint8_t numCPU, void* stack){
-    CPU::SetCPUContext(CPUContextIndex_KernelStack, (uint64_t)stack);
     TSSdescriptors[numCPU].RSP[0] = (uint64_t)stack;
 }
 

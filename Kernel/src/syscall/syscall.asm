@@ -1,11 +1,11 @@
 [BITS 64]
 
-%include "../arch/x86-64/cpu/cpu.inc"
+%include "src/arch/x86-64/cpu/cpu.inc"
 
-EXTERN  SyscallHandler, InterruptHandler
-GLOBAL	syscallEnable
+EXTERN  SyscallDispatch, InterruptHandler
+GLOBAL	SyscallEnable
 
-syscallEnable:
+SyscallEnable:
 	; Load segments into STAR MSR
 	mov		rcx, 0xc0000081
 	rdmsr
@@ -21,50 +21,69 @@ syscallEnable:
 	mov		rdx, rax
 	shr		rdx, 32
 	wrmsr
+
+	; Setup flags for syscall
+	mov		rcx, 0xC0000084
+	rdmsr
+	or		eax, 0xfffffffe 
+	wrmsr
+
 	; Enable syscall / sysret instruction
 	mov		rcx, 0xc0000080
 	rdmsr
-	or		rax, 1
+	or		rax, 1 ; enable syscall extension
 	wrmsr
 
 	ret
 
 SyscallEntry: 
-	cli
     swapgs
 
 	mov [gs:0x10], rsp								        ; save userspace stack
-	mov	rsp, [gs:0x8]                                       ; cpu stack
+	mov	rsp, [gs:0x8]                                       ; task syscall stack
+	mov rdi, rsp
+	mov	rsp, [rsp + 0x0]  
+	mov [rsp + 0x0], rbp
+	mov rbp, [gs:0x8] 
 
-    push qword [gs:0x18]    ; ss
-    push qword [gs:0x10]    ; rsp
-    push r11                ; rflags
-    push qword [gs:0x20]    ; cs
-    push rcx                ; rip
-    push 0x0                ; error code
-    push 0x0                ; interrupt number
-    
+	cld ; clear DF to push correctly to the stack
+
+    push qword [rbp + 0x10]    	; ss
+    push qword [gs:0x10]    	; rsp
+    push r11                	; rflags
+    push qword [rbp + 0x8]    	; cs
+    push rcx                	; rip
+    push 0x0                	; error code
+    push 0x0                	; interrupt number
+	mov rbp, [rsp + 0x38]
+	sti
+
 	PUSH_REG
-
+	mov rax, [gs:0x8] 
     mov rdi, rsp
-    mov rsi, [gs:0x0]
-
-    call SyscallHandler
-
-    cmp    rax, 0xff
-    jnz    SoftReturn
+    mov rsi, [rax + 0x18]
+	
+    call SyscallDispatch
+	
+    cmp [rsp + 0xA0], rax
+    je SoftReturn
 
     POP_REG
-    add  rsp, 16 
+
+    add rsp, 16 
+
+	cli
     swapgs
-	sti
     iretq
 
 SoftReturn:
-    POP_REG
-    add  rsp, 56 
+	int 0x41
+	POP_REG
+    add rsp, 56 
+
+	cli
 	mov	rsp, [gs:0x16] 
-    swapgs
-	sti
+	
+    swapgs	 
 	o64 sysret
 

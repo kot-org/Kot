@@ -13,20 +13,13 @@
 
 #define Exception_PageFault 0xE
 
-struct IRQRedirect{
-    void* stack;
-    void* cr3; 
-    void* functionAddress;
-}__attribute__((packed));
-
-
 void InitializeInterrupts();
 void ExceptionHandler(ContextStack* Registers, uint64_t CoreID);
 bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID);
 uint8_t GetCodeRing(ContextStack* Registers);
 void KernelUnrecovorable(ContextStack* Registers, uint64_t CoreID);
 
-extern IDTR idtr;
+extern struct IDTR idtr;
 extern void* InterruptEntryList[256];
 extern struct event_t* InterruptEventList[256];
 

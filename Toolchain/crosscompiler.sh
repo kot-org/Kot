@@ -15,12 +15,11 @@ mkdir $Prefix
 
 #depencies
 
-sudo apt-get update
-sudo apt install build-essential bison flex libgmp3-dev libmpc-dev libmpfr-dev texinfo 
+sudo apt install build-essential bison flex libgmp3-dev libmpc-dev libmpfr-dev texinfo
 
 sudo mkdir -m 777 "$Sysroot"
-sudo mkdir -m 777 "$Sysroot/KotInclude"
-sudo mkdir -m 777 "$Sysroot/KotInclude/kot"
+sudo mkdir -m 777 "$Sysroot/include"
+sudo mkdir -m 777 "$Sysroot/include/kot"
 sudo mkdir -m 777 "$Sysroot/lib"
 
 cd "sources"

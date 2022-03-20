@@ -17,7 +17,7 @@ extern "C" void TrampolineMain(){
     globalPageTableManager[CoreID].ChangePaging(&globalPageTableManager[CoreID]);
 
     asm ("lidt %0" : : "m" (idtr));
-
+ 
     CPU::InitCPU();
     
     APIC::EnableAPIC(CoreID);

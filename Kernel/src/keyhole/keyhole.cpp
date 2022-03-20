@@ -3,125 +3,117 @@
 namespace Keyhole{
     static uint64_t mutexKeyhole;
 
-    uint64_t Creat(PageTableManager* caller, key_t* key, process_t* Parent, process_t* Target, enum DataType type, uint64_t data){
+    uint64_t Creat(key_t* key, process_t* parent, process_t* target, enum DataType type, uint64_t data, uint64_t flags){
         if(!CheckAddress((void*)key, sizeof(key))) return KFAIL;
-
-        caller->ChangePaging(Parent->SharedPaging);
         
         Atomic::atomicSpinlock(&mutexKeyhole, 0);
         Atomic::atomicLock(&mutexKeyhole, 0);
 
-        lock_t* Locks = parent->Lock;
-        lock_t* Lock = NULL;
-        uint64_t Index = parent->LockIndex;
-        // search free locker
-        uint64_t Address = 0;
-        uint64_t LastPage = 0;
-        for(uint64_t i = &Locks[parent->LockIndex]; i < parent->LockLimit; i += sizeof(lock_t)){}
-        while(true){
-            Address = &Locks[Index];
-            
-            uint64_t Page -= Address % 0x1000;
-            if(Page != LastPage){
-                if(!parent->SharedPaging->GetFlags((void*)Page, PT_Flag::Present)){
-                    parent->SharedPaging->MapMemory((void*)Page, globalAllocator.RequestPage());
-                    memset((void*)Page, 0, 0x1000);
-                }
-            }
-            if(!Locks[Index]->IsEnable){
-                Lock = &Locks[Index];
-                break;
-            }
+        parent->LockIndex++;
 
-            LastPage = Page;
-            Index++;
-        }
+        // alloc lock
+        lock_t* Lock = (lock_t*)malloc(sizeof(lock_t));
 
-        parent->LockIndex = Index;
+        // add reference to the parent
+        uint64_t Address = (parent->LockIndex * sizeof(uint64_t)) + (uint64_t)parent->Locks;
+        uint64_t Page = Address - (Address % 0x1000);
+        uint64_t Offset = (Address % 0x1000) / sizeof(uint64_t);
 
-        if(Lock == NULL){
-            Atomic::atomicUnlock(&mutexScheduler, 0);
-            caller->SharedPaging->RestorePaging();
-            return KFAIL;
-        }
-
-        uint64_t Page -= ((uint64_t)Lock + sizeof(lock_t)) % 0x1000;
+        lockreference_t* AccessAddress = (lockreference_t*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(parent->SharedPaging->GetPhysicalAddress((void*)Page));
+        
         if(!parent->SharedPaging->GetFlags((void*)Page, PT_Flag::Present)){
             parent->SharedPaging->MapMemory((void*)Page, globalAllocator.RequestPage());
-            memset((void*)Page, 0, 0x1000);
+            memset((void*)AccessAddress, 0, 0x1000);
         }
+
+        AccessAddress->LockOffset[Offset] = (uint64_t)Lock;
         
         // fill data
-        Lock->IsEnable = true;
         Lock->Type = type;
         Lock->Target = target;
-        Lock->Data = data
+        Lock->Address = Address;
+        Lock->Data = data;
+        Lock->Parent = parent;
+        Lock->Flags = flags;
         
         // signature
         Lock->Signature0 = 'L';
         Lock->Signature1 = 'O';
         Lock->Signature2 = 'K';
-        caller->RestorePaging();
 
         // setup key data
-        key->Parent = parent;
-        key->Offset = (uint64_t)Lock;
+        *key = (uint64_t)Lock;
 
-        key->Signature0 = 'K';
-        key->Signature1 = 'E';
-        key->Signature2 = 'Y';
-
-        Atomic::atomicUnlock(&mutexScheduler, 0);
+        Atomic::atomicUnlock(&mutexKeyhole, 0);
         return KSUCCESS;
     }
 
-    uint64_t Duplicate(thread_t* caller, key_t* key, process_t* target){
-        lock_t* data = malloc(sizeof(lock_t));
-        if(Get(caller, key, data, DataTypeAll) != KSUCCESS) return KFAIL;
-        return Creat(caller->Paging, key, data->Parent, target, data->Type, data->Data);
+    uint64_t Duplicate(thread_t* caller, key_t key, key_t* newKey, process_t* target, uint64_t flags){
+        lock_t* data;
+        if(Get(caller, key, DataTypeUnknow, &data) != KSUCCESS) return KFAIL;
+        lock_t* lock = (lock_t*)key;
+        if(!(data->Flags & 0b01)) return KFAIL;
+        if(flags & 0b1){
+            if(!(data->Flags & 0b001)) return KFAIL;
+            flags = data->Flags;
+        }
+        return Creat(newKey, data->Parent, target, data->Type, data->Data, flags);
     }
 
-    uint64_t Get(thread_t* caller, key_t* key, lock_t* data, enum DataType type){
-        // check key address
-        if(!CheckAddress((void*)key, sizeof(key))) return KFAIL;
+    uint64_t Verify(thread_t* caller, key_t key, enum DataType type){
+        // get lock
+        lock_t* lock = (lock_t*)key;
 
-        // check key signature
-        if(key->Signature0 != 'K' || key->Signature1 != 'E' || key->Signature2 != 'Y') return KFAIL;
-        
+        // check lock
+        if(!CheckAddress((void*)lock, sizeof(lock_t))) return KFAIL;
+
+        if(lock->Signature0 != 'L' || lock->Signature1 != 'O' || lock->Signature2 != 'K') return KFAIL;
+
+        if(lock->Target != NULL){
+            if(lock->Target != caller->Parent) return KFAIL;
+        }
+
+        if(type != DataTypeUnknow){
+            if(lock->Type != type) return KFAIL;            
+        }
+
         // check parent
-        if(!CheckAddress((void*)key->Parent, sizeof(process_t))) return KFAIL;
-        if(!CheckAddress((void*)key->Parent->SharedPaging, sizeof(PageTableManager))) return KFAIL;
+        if(!CheckAddress((void*)lock->Parent, sizeof(process_t))) return KFAIL;
+        if(!CheckAddress((void*)lock->Parent->SharedPaging, sizeof(PageTableManager))) return KFAIL;
         
-        uint64_t VirtualAddress = globalPageTableManager[GetCoreID()].GetVirtualAddress(key->Parent->SharedPaging->PML4);
+        uint64_t VirtualAddress = (uint64_t)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(lock->Parent->SharedPaging->PML4);
         
-        if(!ReturnValue->GetFlags(VirtualAddress, PT_Flag::Custom0) || ReturnValue->GetFlags(VirtualAddress, PT_Flag::Custom1) || !ReturnValue->SetFlags(VirtualAddress, PT_Flag::Custom2)) return KFAIL;
+        if(!lock->Parent->SharedPaging->GetFlags((void*)VirtualAddress, PT_Flag::Custom0) || lock->Parent->SharedPaging->GetFlags((void*)VirtualAddress, PT_Flag::Custom1) || !lock->Parent->SharedPaging->GetFlags((void*)VirtualAddress, PT_Flag::Custom2)) return KFAIL;
         
-        caller->Paging->ChangePaging(key->Parent->Paging);
+        uint64_t Page = lock->Address - (lock->Address % 0x1000);
+        uint64_t Offset = (lock->Address % 0x1000) / sizeof(uint64_t);
 
-        lock_t* lock = key->Parent->Locks[key->Offset];
+        if(!lock->Parent->SharedPaging->GetFlags((void*)Page, PT_Flag::Present)) return KFAIL;
 
-        if(lock->Signature0 != 'L' || lock->Signature1 != 'O' || lock->Signature2 != 'K'){
-            caller->SharedPaging->RestorePaging();
-            return KFAIL;
-        } 
+        lockreference_t* AccessAddress = (lockreference_t*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(lock->Parent->SharedPaging->GetPhysicalAddress((void*)Page));
+        if(AccessAddress->LockOffset[Offset] != (uint64_t)lock) return KFAIL;
+    }
 
-        if(lock->Target != caller->Parent){
-            caller->SharedPaging->RestorePaging();
-            return KFAIL;
-        } 
+    uint64_t Get(thread_t* caller, key_t key, enum DataType type, uint64_t* data, uint64_t* flags){        
+        uint64_t Statu = Verify(caller, key, type);
 
-        if(type != DataTypeAll){
-            if(lock->Type != type){
-                caller->SharedPaging->RestorePaging();
-                return KFAIL;
-            }            
-        }
+        if(Statu != KSUCCESS) return Statu;
 
-        if(data != NULL){
-            *data = lock->Data;
-        }
+        lock_t* lock = (lock_t*)key;
 
-        caller->SharedPaging->RestorePaging();
+        *data = lock->Data;
+        *flags = lock->Flags;
+
+        return KSUCCESS;
+    }
+
+    uint64_t Get(thread_t* caller, key_t key, enum DataType type, lock_t** lock){        
+        uint64_t Statu = Verify(caller, key, type);
+
+        if(Statu != KSUCCESS) return Statu;
+
+        *lock = (lock_t*)key;
+
         return KSUCCESS;
     }
 }

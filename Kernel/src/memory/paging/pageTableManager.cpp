@@ -487,31 +487,30 @@ void PageTableManager::SetFlags(void* virtualMemory, int flags, bool value){
 
 PageTableManager* PageTableManager::SetupProcessPaging(){
     PageTableManager* ReturnValue = (PageTableManager*)malloc(sizeof(PageTableManager));
-    void* PML4 = globalAllocator.RequestPage();
-    memset(GetVirtualAddress(PML4), 0, 0x1000);
-    ReturnValue->PageTableManagerInit((PageTable*)PML4);
+    void* PagingArray = globalAllocator.RequestPage();
+    memset(GetVirtualAddress(PagingArray), 0, 0x1000);
+    ReturnValue->PageTableManagerInit((PageTable*)PagingArray);
     ReturnValue->CopyHigherHalf(this);
     ReturnValue->LoadLowerHalf();
     PageTable* PML4VirtualAddressDestination = (PageTable*)ReturnValue->GetVirtualAddress(PML4);
-    globalAllocator.free(PML4VirtualAddressDestination->entries[0xff].GetAddress());
-    PML4VirtualAddressDestination->entries[0xff].Value = NULL;
     ReturnValue->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddress;   
     return ReturnValue;
 }
 
 PageTableManager* PageTableManager::SetupThreadPaging(PageTableManager* parent){
     PageTableManager* ReturnValue = (PageTableManager*)malloc(sizeof(PageTableManager));
-    void* PML4 = globalAllocator.RequestPage();
-    uint64_t VirtualAddress = GetVirtualAddress(PML4);
+    void* PagingArray = globalAllocator.RequestPage();
+
+    uint64_t VirtualAddress = (uint64_t)GetVirtualAddress(PagingArray);
     
-    memset(VirtualAddress, 0, 0x1000);
-    ReturnValue->PageTableManagerInit((PageTable*)PML4);
+    memset((void*)VirtualAddress, 0, 0x1000);
+    ReturnValue->PageTableManagerInit((PageTable*)PagingArray);
     ReturnValue->CopyHigherHalf(this);
     ReturnValue->CopyLowerHalf(parent);
     ReturnValue->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddress; 
     // identify this address as paging entry
-    ReturnValue->SetFlags(VirtualAddress, PT_Flag::Custom0, true);
-    ReturnValue->SetFlags(VirtualAddress, PT_Flag::Custom1, false);
-    ReturnValue->SetFlags(VirtualAddress, PT_Flag::Custom2, true);
+    ReturnValue->SetFlags((void*)VirtualAddress, PT_Flag::Custom0, true);
+    ReturnValue->SetFlags((void*)VirtualAddress, PT_Flag::Custom1, false);
+    ReturnValue->SetFlags((void*)VirtualAddress, PT_Flag::Custom2, true);
     return ReturnValue;      
 }

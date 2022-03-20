@@ -1,4 +1,6 @@
 #include <drivers/acpi/acpi.h>
+#include <arch/x86-64/io/io.h>
+#include <memory/memory.h>
 #include <logs/logs.h>
 
 namespace ACPI{

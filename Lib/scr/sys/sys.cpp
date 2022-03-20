@@ -1,12 +1,12 @@
 #include "sys.h"
 
 namespace sys{
-    KResult CreatShareSpace(kthread_t self, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, bool ReadOnly, uint8_t Priviledge){
-        return Syscall_48(Sys_CreatShareMemory, self, size, virtualAddressPointer, keyPointer, ReadOnly, Priviledge);
+    KResult CreatShareSpace(kthread_t self, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, bool ReadOnly){
+        return Syscall_40(Sys_CreatShareMemory, self, size, virtualAddressPointer, keyPointer, ReadOnly);
     }
 
-    KResult GetShareSpace(kthread_t self, uint64_t key, uint64_t* virtualAddressPointer, uint8_t Priviledge){
-        return Syscall_32(Sys_GetShareMemory, self, key, virtualAddressPointer, Priviledge);
+    KResult GetShareSpace(kthread_t self, uint64_t key, uint64_t* virtualAddressPointer){
+        return Syscall_24(Sys_GetShareMemory, self, key, virtualAddressPointer);
     }
 
     KResult FreeShareSpace(kthread_t self, void* virtualAddress){

@@ -52,7 +52,7 @@ bool CheckAddress(void* address, size_t size){
     __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(PagingEntry));
 
     for(int i = 0; i < NumberPage; i++){
-        if(!GetFlags(PagingEntry, (void*)AddressItinerator, PT_Flag::IsPresent)) return false;
+        if(!GetFlags(PagingEntry, (void*)AddressItinerator, PT_Flag::Present)) return false;
         AddressItinerator += 0x1000;
     }
 
@@ -99,7 +99,8 @@ uint64_t CreatSharing(thread_t* thread, size_t size, uint64_t* virtualAddressPoi
     return KSUCCESS;
 }
 
-uint64_t GetSharing(thread_t* thread, MemoryShareInfo* shareInfo, uint64_t* virtualAddressPointer){
+uint64_t GetSharing(thread_t* thread, uint64_t key, uint64_t* virtualAddressPointer){
+    MemoryShareInfo* shareInfo = (MemoryShareInfo*)key;
     PageTableManager* pageTable = thread->Paging;
     void* virtualAddress = (void*)*virtualAddressPointer;
     if((uint64_t)virtualAddress % 0x1000 > 0){
@@ -121,9 +122,10 @@ uint64_t GetSharing(thread_t* thread, MemoryShareInfo* shareInfo, uint64_t* virt
     return KSUCCESS;
 }
 
-uint64_t FreeSharing(thread_t* thread, void* virtualAddress){
+uint64_t FreeSharing(thread_t* thread, uint64_t key){
     PageTableManager* pageTable = thread->Paging;
-    MemoryShareInfo* shareInfo = (MemoryShareInfo*)virtualAddress;
+    MemoryShareInfo* shareInfo = (MemoryShareInfo*)key;
+    void* virtualAddress = (void*)key;
     PageTableManager* pageTableMaster = shareInfo->PageTableParent;
     size_t NumberOfPage = shareInfo->PageNumber;
     for(uint64_t i = 0; i < NumberOfPage; i++){

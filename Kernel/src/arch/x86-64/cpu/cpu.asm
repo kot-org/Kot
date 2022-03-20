@@ -1,13 +1,24 @@
-GLOBAL CreatCPUContext, GetCPUContext, GetCoreID, SetCPUContext
+GLOBAL DisableInterrupts, EnableInterrupts, ReloadGSFS, GetCPUContext, GetCoreID, SetCPUContext, GetCPUContext, SetCPUGSBase, SetCPUGSKernelBase, SetCPUFSBase
 
 %Define FS_Base             0xC0000100
 %Define GS_Base             0xC0000101
 %Define GS_KernelBase       0xC0000102
 
-SetCPUGSBase:
+DisableInterrupts:
+    cli
+    ret
+
+EnableInterrupts:
+    sti
+    ret
+
+ReloadGSFS:
     mov     ax, 0x0
     mov     gs, ax
     mov     fs, ax
+    ret
+
+SetCPUGSBase:
 	mov		eax, edi					
 	shr		rdi, 32
 	mov		edx, edi
@@ -16,9 +27,6 @@ SetCPUGSBase:
     ret
 
 SetCPUGSKernelBase:
-    mov     ax, 0x0
-    mov     gs, ax
-    mov     fs, ax
 	mov		eax, edi					
 	shr		rdi, 32
 	mov		edx, edi
@@ -27,9 +35,6 @@ SetCPUGSKernelBase:
     ret
 
 SetCPUFSBase:
-    mov     ax, 0x0
-    mov     gs, ax
-    mov     fs, ax
 	mov		eax, edi					
 	shr		rdi, 32
 	mov		edx, edi

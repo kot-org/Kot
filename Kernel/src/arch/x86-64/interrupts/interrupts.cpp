@@ -42,7 +42,7 @@ char* ExceptionList[32] = {
 
 void InitializeInterrupts(){
     if(idtr.Limit == 0){
-        idtr.Limit = 0x0FFF;
+        idtr.Limit = 0xFFF;
         idtr.Offset = (uint64_t)&IDTData[0];
     }
 
@@ -76,7 +76,7 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
         }
     }else{
         // Other IRQ & IVT
-        Event::Trigger((thread_t*)0x0, InterruptEventList[Registers->InterruptNumber], 0, 0);        
+        //Event::Trigger((thread_t*)0x0, InterruptEventList[Registers->InterruptNumber], 0, 0);        
     }
 
     APIC::localApicEOI(CoreID);
@@ -93,9 +93,10 @@ void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
             if(PageFaultHandler(Registers, CoreID)){
                 return;
             }
-        }  
-        globalLogs->Error("App Panic CPU %x", CoreID);
-        globalLogs->Error("With execption : '%s' Error code : %x", ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
+        }
+
+        globalLogs->Error("Thread error, PID : %x | TID : %x", globalTaskManager->ThreadExecutePerCore[CoreID]->Parent->PID, globalTaskManager->ThreadExecutePerCore[CoreID]->TID);
+        globalLogs->Error("With execption : '%s' | Error code : %x", ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
         globalTaskManager->ThreadExecutePerCore[CoreID]->Exit(Registers, CoreID);
         globalTaskManager->Scheduler(Registers, CoreID); 
     }
@@ -119,7 +120,7 @@ bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID){
 
 void KernelUnrecovorable(ContextStack* Registers, uint64_t CoreID){
     globalLogs->Error("Kernel Panic CPU %x", CoreID);
-    globalLogs->Error("With execption : '%s' Error code : %x", ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
+    globalLogs->Error("With execption : '%s' | Error code : %x", ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
 
     while(true){
         asm("hlt");

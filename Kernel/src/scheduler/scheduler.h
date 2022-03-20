@@ -2,10 +2,11 @@
 #include <lib/types.h>
 #include <lib/limits.h>
 #include <event/event.h>
+#include <keyhole/keyhole.h>
 #include <memory/heap/heap.h>
 #include <arch/x86-64/tss/tss.h>
-#include <arch/x86-64/userspace/userspace.h>
 #include <memory/paging/pageTableManager.h>
+#include <arch/x86-64/userspace/userspace.h>
 
 struct TaskQueuNode;
 struct Task;
@@ -17,8 +18,9 @@ class SelfData;
 #define StackTop GetVirtualAddress(0x100, 0, 0, 0)
 #define StackBottom GetVirtualAddress(0xff, 0, 0, 0) 
 #define LockAddress GetVirtualAddress(0xfe, 0, 0, 0) 
-#define SelfDataStartAddress StackBottom 
+#define SelfDataStartAddress StackBottom  
 #define SelfDataEndAddress StackBottom + sizeof(SelfData)
+#define DefaultFlagsKey 0xff
 
 struct SelfData{
     key_t ThreadKey;
@@ -34,10 +36,16 @@ struct Parameters{
     uint64_t Parameter5;
 }__attribute__((packed));
 
+struct ThreadInfo{
+    uint64_t SyscallStack;
+    uint64_t CS;
+    uint64_t SS;
+    thread_t* Thread;
+}__attribute__((packed));
+
 struct StackInfo{
     /* stack is also use for TLS */
     uint64_t StackStart;
-    uint64_t StackEnd;
     uint64_t StackEndMax;
 }__attribute__((packed));
 
@@ -55,7 +63,7 @@ struct process_t{
     uint8_t DefaultPriviledge:3;
 
     /* Memory */
-    PageTableManager* SharedPaging;
+    struct PageTableManager* SharedPaging;
 
     /* Childs */
     Node* Childs;
@@ -66,7 +74,7 @@ struct process_t{
     uint64_t CreationTime;
 
     /* Keyhole */
-    lock_t* Locks;
+    void* Locks;
     uint64_t LockIndex;
     uint64_t LockLimit;
 
@@ -87,10 +95,11 @@ struct thread_t{
     uint64_t TID;
 
     /* Thread infos */
+    ThreadInfo* Info;
     void* EntryPoint;
 
     /* Memory */
-    PageTableManager* Paging;
+    struct PageTableManager* Paging;
     uint64_t MemoryAllocated;
 
     /* Context info */
@@ -118,7 +127,7 @@ struct thread_t{
 
     /* Event */
     bool IsEvent;
-    event_t* Event;
+    struct event_t* Event;
 
     /* Schedule queue */
     bool IsInQueue;
@@ -167,10 +176,8 @@ class TaskManager{
         uint64_t Unpause(thread_t* task); 
         uint64_t Exit(ContextStack* Registers, uint64_t CoreID, thread_t* task); 
 
-        uint64_t ShareDataInStack(uint64_t** address, thread_t* task, void* data, size_t size);
-
         // process
-        uint64_t CreatProcess(process_t** self, uint8_t priviledge, void* externalData);
+        uint64_t CreatProcess(process_t** key, uint8_t priviledge, void* externalData);
 
         void CreatIddleTask();   
 

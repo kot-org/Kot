@@ -37,9 +37,20 @@
         "tuple": "cpp",
         "typeinfo": "cpp",
         "random": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "functional": "cpp",
+        "executor": "cpp",
+        "buffer": "cpp",
+        "internet": "cpp",
+        "socket": "cpp",
+        "string_view": "cpp",
+        "span": "cpp",
+        "regex": "cpp"
     },
     "debug.onTaskErrors": "debugAnyway",
     "C_Cpp.errorSquiggles": "Disabled",
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "files.exclude": {
+        "**/Toolchain": true
+    }
 }

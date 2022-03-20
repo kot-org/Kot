@@ -1,4 +1,4 @@
-select vdisk file="D:\Data\users\Konect\1Documents\programmation\Kot\Bin\debugDisk.vhd"
+select vdisk file="D:\Data\users\Konect\1Documents\programmation\Kot\Bin\Debug.vhd"
 attach vdisk
 select volume 4
 assign letter="E"

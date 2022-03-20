@@ -63,9 +63,11 @@ void PageFrameAllocator::InitBitmap(size_t bitmapSize, void* bufferAddress){
 uint64_t pageBitmapIndex = 0;
 void* PageFrameAllocator::RequestPage(){
     for (; pageBitmapIndex < PageBitmap.Size * 8; pageBitmapIndex++){
-        if (PageBitmap.Get(pageBitmapIndex) == true) continue;
-        LockPage((void*)(pageBitmapIndex * 4096));
-        return (void*)(pageBitmapIndex * 4096);
+        if(!PageBitmap.Get(pageBitmapIndex)){
+            uint64_t page = pageBitmapIndex;
+            LockPage((void*)(pageBitmapIndex * 0x1000));
+            return (void*)(pageBitmapIndex * 0x1000);
+        }
     }
     
     return NULL; // Page Frame Swap to file

@@ -1,7 +1,5 @@
 #pragma once
-
-#include <cstddef>
-#include <stdint.h>
+#include <kot/types.h>
 
 struct Framebuffer{
 	void* BaseAddress;
@@ -36,5 +34,3 @@ struct KernelInfo{
     void* rsdp;
     struct Timer* timer;
 }__attribute__((packed));
-
-extern "C" uint64_t DoSyscall(uint64_t syscall, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);

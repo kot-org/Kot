@@ -8,7 +8,6 @@ void TaskManager::Scheduler(ContextStack* Registers, uint64_t CoreID){
     if(IsSchedulerEnable[CoreID]){  
         Atomic::atomicSpinlock(&mutexScheduler, 1);
         Atomic::atomicLock(&mutexScheduler, 1);
-
         uint64_t actualTime = HPET::GetTime();
         thread_t* ThreadEnd = ThreadExecutePerCore[CoreID];
         if(ThreadExecutePerCore[CoreID] != NULL){
@@ -23,7 +22,7 @@ void TaskManager::Scheduler(ContextStack* Registers, uint64_t CoreID){
         /* Find & load new task */
         thread_t* ThreadStart = GetTread();
         ThreadStart->CreatContext(Registers, CoreID);
-
+        
         Atomic::atomicUnlock(&mutexScheduler, 1);
     }
 }
@@ -183,11 +182,6 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* t
     return KSUCCESS;
 }
 
-uint64_t TaskManager::ShareDataInStack(uint64_t** address, thread_t* task, void* data, size_t size){
-    *address = task->ShareDataInStack(data, size);
-    return KSUCCESS;
-}
-
 uint64_t TaskManager::CreatProcess(process_t** key, uint8_t priviledge, void* externalData){
     process_t* proc = (process_t*)calloc(sizeof(process_t));
 
@@ -209,7 +203,7 @@ uint64_t TaskManager::CreatProcess(process_t** key, uint8_t priviledge, void* ex
 
     /* Other data */
     proc->TaskManagerParent = this;
-    proc->Lock = (lock_t*)LockAddress;
+    proc->Locks = (lock_t*)LockAddress;
     proc->LockLimit = StackBottom;
     proc->LockIndex = 0;
     proc->externalData = externalData;
@@ -250,12 +244,16 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
 
     /* Thread data */
     void* threadDataPA = globalAllocator.RequestPage();
-    SelfData* threadData = globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(threadDataPA);
+    SelfData* threadData = (SelfData*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(threadDataPA);
     
-    Keyhole::Creat(globalPageTableManager[CPU::GetCoreID()], &threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread);
-    Keyhole::Creat(globalPageTableManager[CPU::GetCoreID()], &threadData->ProcessKey, this, this, DataTypeThread, (uint64_t)this);
+    Keyhole::Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey);
+    Keyhole::Creat(&threadData->ProcessKey, this, this, DataTypeThread, (uint64_t)this, DefaultFlagsKey);
 
-    thread->Paging->MapMemory(SelfDataStartAddress, threadDataPA);
+    thread->Paging->MapMemory((void*)SelfDataStartAddress, threadDataPA);
+    
+    if(RingPriviledge == UserAppRing){
+        thread->Paging->MapUserspaceMemory((void*)SelfDataStartAddress);
+    }
 
     /* Setup registers */
     thread->Regs->rip = entryPoint;
@@ -264,7 +262,15 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
     thread->Regs->rflags.Reserved0 = true;
     thread->Regs->rflags.IF = true;
     thread->Regs->rflags.IOPL = 0;
-    thread->Regs->cr3 = thread->Paging->PML4; 
+    thread->Regs->cr3 = (uint64_t)thread->Paging->PML4; 
+
+    /* Thread info for kernel */
+    thread->Info = (ThreadInfo*)malloc(sizeof(ThreadInfo));
+    thread->Info->SyscallStack = (uint64_t)malloc(KernelStackSize) + KernelStackSize; 
+    thread->Info->CS = thread->Regs->cs;
+    thread->Info->SS = thread->Regs->ss;
+    thread->Info->Thread = thread;
+    thread->Regs->ThreadInfo = (uint64_t)thread->Info;
 
     /* Other data */
     thread->externalData = externalData;
@@ -305,12 +311,16 @@ thread_t* process_t::DuplicateThread(thread_t* source){
 
     /* Thread data */
     void* threadDataPA = globalAllocator.RequestPage();
-    SelfData* threadData = globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(threadDataPA);
-    threadData->ThreadKey = (uint64_t)thread; 
-    threadData->ProcessKey = (uint64_t)thread->Parent; 
-    free(threadData);
+    SelfData* threadData = (SelfData*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(threadDataPA);
+    
+    Keyhole::Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
+    Keyhole::Creat(&threadData->ProcessKey, this, this, DataTypeThread, (uint64_t)this, FlagFullPermissions);
 
-    thread->Paging->MapMemory(SelfDataStartAddress, threadDataPA);
+    thread->Paging->MapMemory((void*)SelfDataStartAddress, threadDataPA);
+    
+    if(source->Regs->cs == GDTInfoSelectorsRing[UserAppRing].Code){
+        thread->Paging->MapUserspaceMemory((void*)SelfDataStartAddress);
+    }
 
     /* Setup registers */
     thread->Regs->rip = (uint64_t)source->EntryPoint;
@@ -318,6 +328,15 @@ thread_t* process_t::DuplicateThread(thread_t* source){
     thread->Regs->ss = source->Regs->ss; 
     thread->Regs->rflags = source->Regs->rflags;
     thread->Regs->cr3 = source->Regs->cr3;
+
+    /* Thread info for kernel */
+    thread->Info = (ThreadInfo*)malloc(sizeof(ThreadInfo));
+    thread->Info->SyscallStack = (uint64_t)malloc(KernelStackSize) + KernelStackSize; 
+    thread->Info->CS = thread->Regs->cs;
+    thread->Info->SS = thread->Regs->ss;
+    thread->Info->Thread = thread;
+    thread->Regs->ThreadInfo = (uint64_t)thread->Info;
+
 
     /* Setup priviledge */
     thread->RingPL = source->RingPL;
@@ -343,7 +362,6 @@ void thread_t::SetupStack(){
     this->Regs->rsp = StackLocation;
     this->Stack = (StackInfo*)malloc(sizeof(StackInfo));
     this->Stack->StackStart = StackLocation;
-    this->Stack->StackEnd = StackLocation;
     this->Stack->StackEndMax = StackBottom;
 
     /* Clear stack */
@@ -378,7 +396,7 @@ void TaskManager::SwitchTask(ContextStack* Registers, uint64_t CoreID, thread_t*
 
 void TaskManager::CreatIddleTask(){
     if(IddleProc == NULL){
-        CreatProcess(&IddleProc, 0xf, 0);
+        CreatProcess(&IddleProc, 3, 0);
     }
     thread_t* thread = IddleProc->CreatThread(0, 0);
 
@@ -408,17 +426,17 @@ void TaskManager::EnabledScheduler(uint64_t CoreID){
 
         ThreadExecutePerCore[CoreID] = NULL;
         
-        uint64_t Stack = (uint64_t)malloc(KernelStackSize) + KernelStackSize;
+        uint64_t StackTSS = (uint64_t)malloc(KernelStackSize) + KernelStackSize;
 
-        TSSSetStack(CoreID, (void*)Stack);
+        TSSSetStack(CoreID, (void*)StackTSS);
 
         IsSchedulerEnable[CoreID] = true;
 
-        SetCPUGSKernelBase((uint64_t)SelfDataStartAddress); // keys position
+        CPU::SetCPUGSKernelBase((uint64_t)SelfDataStartAddress); // keys position
 
-        SetCPUFSBase((uint64_t)SelfDataEndAddress); // Thread Local Storage
+        CPU::SetCPUFSBase((uint64_t)SelfDataEndAddress); // Thread Local Storage
 
-        syscallEnable(GDTInfoSelectorsRing[KernelRing].Code, GDTInfoSelectorsRing[UserAppRing].Code);
+        SyscallEnable(GDTInfoSelectorsRing[KernelRing].Code, GDTInfoSelectorsRing[UserAppRing].Code);
         Atomic::atomicUnlock(&mutexScheduler, 0);
         globalLogs->Successful("Scheduler is enabled for the processor : %u", CoreID);
     }
@@ -438,17 +456,15 @@ void thread_t::CreatContext(ContextStack* Registers, uint64_t CoreID){
     this->CoreID = CoreID;
     Parent->TaskManagerParent->ThreadExecutePerCore[CoreID] = this;
     memcpy(Registers, Regs, sizeof(ContextStack));
-
-    asm("mov %0, %%cr3" :: "r" (Paging->PML4));
 }
 
 void thread_t::SetParameters(Parameters* FunctionParameters){
-    Regs->rdi = FunctionParameters->Parameter0;
-    Regs->rsi = FunctionParameters->Parameter1;
-    Regs->rdx = FunctionParameters->Parameter2;
-    Regs->rcx = FunctionParameters->Parameter3;
-    Regs->r8 = FunctionParameters->Parameter4;
-    Regs->r9 = FunctionParameters->Parameter5;
+    Regs->arg0 = FunctionParameters->Parameter0;
+    Regs->arg1 = FunctionParameters->Parameter1;
+    Regs->arg2 = FunctionParameters->Parameter2;
+    Regs->arg3 = FunctionParameters->Parameter3;
+    Regs->arg4 = FunctionParameters->Parameter4;
+    Regs->arg5 = FunctionParameters->Parameter5;
 }
 
 void thread_t::CopyStack(thread_t* source){
@@ -464,28 +480,17 @@ bool thread_t::ExtendStack(uint64_t address){
     address -= address % 0x1000;
     if(this->Stack->StackStart <= address) return false;
     if(address <= this->Stack->StackEndMax) return false;
-
-    size_t SizeToAdd = this->Stack->StackEnd - address;
-    uint64_t NumberOfPage = Divide(SizeToAdd, 0x1000);
     
-    uint64_t VirtualAddressIterator = this->Stack->StackEnd;
-    bool IsUser = false;
-    if(this->RingPL == UserAppRing) IsUser = true;
-    for(uint64_t i = 0; i < NumberOfPage; i++){
-        VirtualAddressIterator -= 0x1000;
-        MemoryAllocated += 0x1000;
-        Paging->MapMemory((void*)VirtualAddressIterator, globalAllocator.RequestPage());
-        if(IsUser) Paging->MapUserspaceMemory((void*)VirtualAddressIterator);
-    }
+    Paging->MapMemory((void*)address, globalAllocator.RequestPage());
+    if(this->RingPL == UserAppRing) Paging->MapUserspaceMemory((void*)address);
 
-    this->Stack->StackEnd = VirtualAddressIterator;
     return true;
 }
 
 void* thread_t::ShareDataInStack(void* data, size_t size){
     if(size == 0) return NULL;
     size += sizeof(StackData);
-    void* address = (void*)(this->Stack->StackEnd - size);
+    void* address = (void*)(this->Stack->StackStart - size);
     if(ExtendStack((uint64_t)address)){
         // We consider that we have direct access to data but not to address
         uint64_t NumberOfPage = Divide(size, 0x1000);
@@ -565,9 +570,9 @@ bool thread_t::Pause(ContextStack* Registers, uint64_t CoreID){
 
 bool thread_t::Exit(ContextStack* Registers, uint64_t CoreID){
     if(IsForked){
-        uint64_t ReturnValue = Registers->rdi;
+        uint64_t ReturnValue = Registers->GlobalPurpose;
         Parent->TaskManagerParent->SwitchTask(Registers, CoreID, ForkedThread);
-        Registers->rdi = ReturnValue;
+        Registers->GlobalPurpose = ReturnValue;
     }else if(IsEvent){
         Event::Exit(this);
         return true;
@@ -586,7 +591,7 @@ bool thread_t::Exit(ContextStack* Registers, uint64_t CoreID){
 }
 
 bool thread_t::SetIOPriviledge(ContextStack* Registers, uint8_t IOPL){
-    Registers->rflags.IOPL = IOPL & 0b11;
+    Registers->rflags.IOPL = (IOPL & 0b11);
     this->IOPL = IOPL & 0b11;
     return true;
 }

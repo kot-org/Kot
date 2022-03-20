@@ -1,6 +1,5 @@
+#include <kot/sys/sys.h>
 #include "main.h"
-#include <immintrin.h>
-#include <cstdint>
 
 void Putpixel(Framebuffer* framebuffer, int x, int y, int r, int g, int b) {
     unsigned char* screen = (unsigned char*)framebuffer->BaseAddress;
@@ -28,13 +27,14 @@ void main(KernelInfo* kernelInfo){
     uint64_t VirtualStart = 0x100000;
     uint64_t DoubleVirtualStart = VirtualStart + kernelInfo->framebuffer->FrameBufferSize;
     uint64_t itierator = 0;
+    sys::Pause(0);
     for(int i = 0; i < kernelInfo->framebuffer->FrameBufferSize; i += 0x1000){
         DoSyscall(0x8, DoubleVirtualStart + itierator, false, 0, 0, 0, 0);  
         DoSyscall(0x8, VirtualStart, true, (uint64_t)kernelInfo->framebuffer->BaseAddress + i, 0, 0, 0);  
         VirtualStart += 0x1000;
         itierator += 0x1000;
     }
-    //while(true);
+
     kernelInfo->framebuffer->BaseAddress = (void*)0x100000;
 
     int i = 1;

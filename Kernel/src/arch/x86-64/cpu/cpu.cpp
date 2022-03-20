@@ -11,17 +11,18 @@ namespace CPU{
     }
 
     void GetMSR(uint32_t index, uint32_t* low, uint32_t* high){
-    asm volatile("rdmsr" : "=a"(*low), "=d"(*high) : "c"(index));
+        asm volatile("rdmsr" : "=a"(*low), "=d"(*high) : "c"(index));
     }
     
     void SetMSR(uint32_t index, uint32_t low, uint32_t high){
-    asm volatile("wrmsr" : : "a"(low), "d"(high), "c"(index));
+        asm volatile("wrmsr" : : "a"(low), "d"(high), "c"(index));
     }
 
     void InitCPU(){
         CPUContext* context = (CPUContext*)calloc(sizeof(CPUContext));
         GetFeatures(context->FeaturesECX, context->FeaturesEDX);
         context->ID = GetCoreID();
+        ReloadGSFS();
         SetCPUGSBase((uint64_t)context);
 
         return;

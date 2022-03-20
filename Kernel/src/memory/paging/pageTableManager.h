@@ -8,7 +8,7 @@
 #define MAX_PROCESSORS      256
 
 struct PageTableManager {
-    void PageTableManagerInit(PageTable* PML4Address);
+    void PageTableManagerInit(struct PageTable* PML4Address);
     void DefinePhysicalMemoryLocation(void* PhysicalMemoryVirtualAddress);
     void DefineVirtualTableLocation();
     void MapMemory(void* virtualMemory, void* physicalMemory);
@@ -29,7 +29,7 @@ struct PageTableManager {
     PageTableManager* SetupThreadPaging(PageTableManager* parent);
     void* PhysicalMemoryVirtualAddressSaver;
     void* PhysicalMemoryVirtualAddress;
-    PageTable* PML4;
+    struct PageTable* PML4;
     uint64_t VirtualAddress;
 }__attribute__((packed));
 

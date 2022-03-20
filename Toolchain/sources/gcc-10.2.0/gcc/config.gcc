@@ -680,7 +680,6 @@ case ${target} in
   gnu_ld=yes
   default_use_cxa_atexit=yes
   use_gcc_stdint=wrap
-  native_system_header_dir=/KotInclude
   ;;
 *-*-darwin*)
   tmake_file="t-darwin "
@@ -1042,6 +1041,7 @@ esac
 case ${target} in
 x86_64-*-kot*)
 	tm_file="${tm_file} i386/unix.h i386/att.h dbxelf.h elfos.h glibc-stdint.h i386/i386elf.h i386/x86-64.h kot.h"
+	native_system_header_dir=/include
 	;;
 aarch64*-*-elf | aarch64*-*-fuchsia* | aarch64*-*-rtems*)
 	tm_file="${tm_file} dbxelf.h elfos.h newlib-stdint.h"

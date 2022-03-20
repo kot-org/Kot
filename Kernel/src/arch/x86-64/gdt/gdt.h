@@ -47,7 +47,7 @@ struct gdtTSSEntry{
     uint16_t Limit0;
     uint16_t Base0;
     uint8_t Base1;
-    AccessByteStruct Type;
+    AccessByteStruct AccessByte;
     uint8_t Limit1;
     uint8_t Base2;
     uint32_t Base3;
