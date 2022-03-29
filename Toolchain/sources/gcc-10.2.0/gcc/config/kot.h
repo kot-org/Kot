@@ -8,17 +8,17 @@
 #define STANDARD_STARTFILE_PREFIX "/lib/"
 
 #undef STARTFILE_SPEC
-#define STARTFILE_SPEC "crt0.o%s crti.o%s crtbegin.o%s"
+#define STARTFILE_SPEC "%{!shared:crt0.o%s} crti.o%s %{shared:crtbeginS.o%s;:crtbegin.o%s}"
 
 #undef ENDFILE_SPEC
-#define ENDFILE_SPEC "crtend.o%s crtn.o%s"
+#define ENDFILE_SPEC "%{shared:crtendS.o%s;:crtend.o%s} crtn.o%s"
 
 #undef TARGET_OS_CPP_BUILTINS
 #define TARGET_OS_CPP_BUILTINS()          \
-  do {                                    \
-    builtin_define ("__kot__");        \
+  do{                                     \
+    builtin_define ("__kot__");           \
     builtin_define ("__unix__");          \
-    builtin_assert ("system=kot");     \
+    builtin_assert ("system=kot");        \
     builtin_assert ("system=unix");       \
     builtin_assert ("system=posix");      \
-  } while (0);
+  }while(0);

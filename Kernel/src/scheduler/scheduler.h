@@ -36,7 +36,7 @@ struct Parameters{
     uint64_t Parameter5;
 }__attribute__((packed));
 
-struct ThreadInfo{
+struct threadInfo_t{
     uint64_t SyscallStack;
     uint64_t CS;
     uint64_t SS;
@@ -95,7 +95,7 @@ struct thread_t{
     uint64_t TID;
 
     /* Thread infos */
-    ThreadInfo* Info;
+    threadInfo_t* Info;
     void* EntryPoint;
 
     /* Memory */

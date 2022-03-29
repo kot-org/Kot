@@ -48,7 +48,7 @@ void InitializeInterrupts(){
 
     /* init interrupt */
     for(int i = 0; i < 256; i++){
-        SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+        SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Null, idtr);
         if(i >= IRQ_START && i <= IRQ_START + IRQ_MAX){
             Event::Creat(&InterruptEventList[i], EventTypeIRQ, i);
         }else{
@@ -57,10 +57,12 @@ void InitializeInterrupts(){
     }
 
     /* Shedule */
-    SetIDTGate((void*)InterruptEntryList[IPI_Schedule], IPI_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, idtr);
+    SetIDTGate((void*)InterruptEntryList[IPI_Schedule], IPI_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
 
     asm("lidt %0" : : "m" (idtr));     
 }
+
+uint64_t testit = 0;
 
 extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
     if(Registers->InterruptNumber < 32){
@@ -76,7 +78,7 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
         }
     }else{
         // Other IRQ & IVT
-        //Event::Trigger((thread_t*)0x0, InterruptEventList[Registers->InterruptNumber], 0, 0);        
+        Event::Trigger((thread_t*)0x0, InterruptEventList[Registers->InterruptNumber], 0, 0);        
     }
 
     APIC::localApicEOI(CoreID);
@@ -96,14 +98,12 @@ void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
         }
 
         globalLogs->Error("Thread error, PID : %x | TID : %x", globalTaskManager->ThreadExecutePerCore[CoreID]->Parent->PID, globalTaskManager->ThreadExecutePerCore[CoreID]->TID);
-        globalLogs->Error("With execption : '%s' | Error code : %x", ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
+        globalLogs->Error("With execption : '%s' | Error code : %x", ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);        
         globalTaskManager->ThreadExecutePerCore[CoreID]->Exit(Registers, CoreID);
         globalTaskManager->Scheduler(Registers, CoreID); 
     }
 
 }
-
-
 
 uint8_t GetCodeRing(ContextStack* Registers){
     return (Registers->cs & 0b11);

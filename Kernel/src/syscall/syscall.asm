@@ -2,7 +2,7 @@
 
 %include "src/arch/x86-64/cpu/cpu.inc"
 
-EXTERN  SyscallDispatch, InterruptHandler
+EXTERN  SyscallDispatch, InterruptHandler, Stopit
 GLOBAL	SyscallEnable
 
 SyscallEnable:
@@ -56,6 +56,7 @@ SyscallEntry:
     push 0x0                	; error code
     push 0x0                	; interrupt number
 	mov rbp, [rsp + 0x38]
+
 	sti
 
 	PUSH_REG
@@ -73,11 +74,11 @@ SyscallEntry:
     add rsp, 16 
 
 	cli
+
     swapgs
     iretq
 
 SoftReturn:
-	int 0x41
 	POP_REG
     add rsp, 56 
 

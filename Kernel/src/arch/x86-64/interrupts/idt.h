@@ -38,5 +38,5 @@ struct IDTR{
 }__attribute__((packed));
 
 /* functions */
-void SetIDTGate(void* handler, uint8_t entryOffset, uint8_t GateType, int DPL, uint8_t selector, IDTR idtrl);
+void SetIDTGate(void* handler, uint8_t entryOffset, uint8_t GateType, int DPL, uint8_t selector, uint8_t ist, IDTR idtrl);
 IDTDescEntry* GetIdtGate(uint8_t entryOffset, IDTR idtrl);

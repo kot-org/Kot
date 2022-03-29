@@ -265,12 +265,12 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
     thread->Regs->cr3 = (uint64_t)thread->Paging->PML4; 
 
     /* Thread info for kernel */
-    thread->Info = (ThreadInfo*)malloc(sizeof(ThreadInfo));
+    thread->Info = (threadInfo_t*)malloc(sizeof(threadInfo_t));
     thread->Info->SyscallStack = (uint64_t)malloc(KernelStackSize) + KernelStackSize; 
     thread->Info->CS = thread->Regs->cs;
     thread->Info->SS = thread->Regs->ss;
     thread->Info->Thread = thread;
-    thread->Regs->ThreadInfo = (uint64_t)thread->Info;
+    thread->Regs->ThreadInfo = thread->Info;
 
     /* Other data */
     thread->externalData = externalData;
@@ -330,12 +330,12 @@ thread_t* process_t::DuplicateThread(thread_t* source){
     thread->Regs->cr3 = source->Regs->cr3;
 
     /* Thread info for kernel */
-    thread->Info = (ThreadInfo*)malloc(sizeof(ThreadInfo));
+    thread->Info = (threadInfo_t*)malloc(sizeof(threadInfo_t));
     thread->Info->SyscallStack = (uint64_t)malloc(KernelStackSize) + KernelStackSize; 
     thread->Info->CS = thread->Regs->cs;
     thread->Info->SS = thread->Regs->ss;
     thread->Info->Thread = thread;
-    thread->Regs->ThreadInfo = (uint64_t)thread->Info;
+    thread->Regs->ThreadInfo = thread->Info;
 
 
     /* Setup priviledge */
@@ -426,9 +426,10 @@ void TaskManager::EnabledScheduler(uint64_t CoreID){
 
         ThreadExecutePerCore[CoreID] = NULL;
         
-        uint64_t StackTSS = (uint64_t)malloc(KernelStackSize) + KernelStackSize;
+        uint64_t Stack = (uint64_t)malloc(KernelStackSize) + KernelStackSize;
 
-        TSSSetStack(CoreID, (void*)StackTSS);
+        TSSSetStack(CoreID, (void*)Stack);
+        TSSSetIST(CoreID, IST_Scheduler, Stack);
 
         IsSchedulerEnable[CoreID] = true;
 

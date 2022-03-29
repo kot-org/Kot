@@ -1,7 +1,0 @@
-﻿  KotRamFS.cpp
-  The contents of <filesystem> are available only with C++17 or later.
-D:\Data\users\Konect\1Documents\programmation\Kot\RamFSParser\KotRamFS\KotRamFS.cpp(70,10): warning C4477: 'printf' : la chaîne de format '%x' nécessite un argument de type 'unsigned int', mais l'argument variadique 1 est de type 'uint64_t'
-D:\Data\users\Konect\1Documents\programmation\Kot\RamFSParser\KotRamFS\KotRamFS.cpp(70,10): message : utilisez '%llx' dans la chaîne de format
-D:\Data\users\Konect\1Documents\programmation\Kot\RamFSParser\KotRamFS\KotRamFS.cpp(70,10): message : utilisez '%Ix' dans la chaîne de format
-D:\Data\users\Konect\1Documents\programmation\Kot\RamFSParser\KotRamFS\KotRamFS.cpp(70,10): message : utilisez '%I64x' dans la chaîne de format
-  KotRamFS.vcxproj -> D:\Data\users\Konect\1Documents\programmation\Kot\RamFSParser\x64\Debug\KotRamFS.exe
