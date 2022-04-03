@@ -37,4 +37,8 @@ namespace CPU{
             cpuid(1, &eax, &ebx, &FeaturesECX, &FeaturesEDX);
         } 
     }
+
+    uint8_t GetCodeRing(ContextStack* Registers){
+        return (Registers->cs & 0b11);
+    }
 }

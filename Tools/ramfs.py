@@ -22,9 +22,7 @@ def InitializeFileSystem(Self, FileCount, InitFilePosition):
 
     Self.write(FileCount.to_bytes(8, 'little'))
 
-    InitFile = InitFilePosition * FileHeaderSize + HeaderSize
-
-    Self.write(InitFile.to_bytes(8, 'little'))
+    Self.write(InitFilePosition.to_bytes(8, 'little'))
 
     print("Creating file system...\n")
 
@@ -48,15 +46,18 @@ OuputFile = open(OutputFilePath, "wb")
 InputFiles = os.listdir(InputFolderPath)
 FileCount = len(InputFiles)
 
-InitFilePos = 0
+InitFilePos = HeaderSize
 InitFileFound = 0
 
 for i in range(FileCount):
     if InputFiles[i] == InitFileName:
-        InitFilePos = i
         InitFileFound = 1
         break
+    Size = os.stat(InputFolderPath + InputFiles[i]).st_size
+    InitFilePos += FileHeaderSize
+    InitFilePos += Size
 
+print(InitFilePos)
 if InitFileFound != 1:
     print("Warning : no start file found\n")
 

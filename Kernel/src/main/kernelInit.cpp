@@ -61,7 +61,8 @@ void InitializeACPI(BootInfo* bootInfo){
 }
   
 
-void InitializeKernel(BootInfo* bootInfo){   
+void InitializeKernel(stivale2_struct* stivale2_struct){  
+    BootInfo* bootInfo;
     asm("cli");
 
     SerialPort::Initialize();
@@ -133,6 +134,7 @@ void InitializeKernel(BootInfo* bootInfo){
     //load init file
     RamFS::Parse(globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(bootInfo->ramfs.RamFsBase), bootInfo->ramfs.Size);
     RamFS::File* InitFile = RamFS::FindInitFile();
+    
     if(InitFile != NULL){
         void* BufferInitFile = malloc(InitFile->size);
         Read(InitFile, BufferInitFile);

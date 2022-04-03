@@ -19,15 +19,8 @@
 void InitializeInterrupts();
 void ExceptionHandler(ContextStack* Registers, uint64_t CoreID);
 bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID);
-uint8_t GetCodeRing(ContextStack* Registers);
 void KernelUnrecovorable(ContextStack* Registers, uint64_t CoreID);
 
 extern struct IDTR idtr;
 extern void* InterruptEntryList[256];
 extern struct event_t* InterruptEventList[256];
-
-
-uint64_t SetIrq(struct process_t* parent, void* entryPoint, uint8_t irq);
-uint64_t SetIrqDefault(uint8_t irq);
-void RedirectIRQ(ContextStack* Registers, uint64_t CoreID, uint8_t irq);
-

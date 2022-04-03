@@ -4,7 +4,7 @@ cd ../Kernel
 cmd.exe /c build.bat
 cd ../build
 diskpart /s %CD%\mount.txt
-cd ../bin
+cd ../bin/disk
 copy %CD%\*.* e:
-cd ../build
+cd ../../build
 diskpart /s %CD%\dismount.txt

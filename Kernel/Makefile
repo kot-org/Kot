@@ -12,6 +12,7 @@ LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib --no-relax
 SRCDIR := src
 OBJDIR := lib
 BUILDDIR = ../Bin
+LIMINEBUIDLDIR = ../Bin/Limine
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
@@ -23,9 +24,13 @@ OBJS += $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCCPP))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)
 
-         
+all: 
 
-kernel: $(OBJS) link 
+limine:
+	git clone https://github.com/limine-bootloader/limine.git --branch=v3.0-branch-binary --depth=1
+	make -C limine
+
+kernel: $(OBJS) link creatISO
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@ echo !==== COMPILING $^
@@ -41,10 +46,17 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 	@ echo !==== COMPILING $^
 	@ mkdir -p $(@D)
 	$(ASMC) $(ASMFLAGS) $^ -f elf64 -o $@
-
-
 	
 link:
 	@ echo !==== LINKING
 	$(LD) $(LDFLAGS) -o $(BUILDDIR)/kernel.elf $(OBJS) $(OBJSCPP)
+
+creatISO:
+	@ echo !==== ISO
+	mkdir -p $(LIMINEBUIDLDIR)
+	cp -v $(BUILDDIR)/kernel.elf limine.cfg limine/limine.sys limine/limine-cd.bin limine/limine-cd-efi.bin $(LIMINEBUIDLDIR)
+	xorriso -as mkisofs -b limine-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table \
+        --efi-boot limine-cd-efi.bin -efi-boot-part --efi-boot-image --protective-msdos-label \
+        $(LIMINEBUIDLDIR) -o $(BUILDDIR)/kot.iso
+	./limine/limine-deploy $(BUILDDIR)/kot.iso
 

@@ -80,11 +80,10 @@ SyscallEntry:
 
 SoftReturn:
 	POP_REG
+	cli
+	mov	rsp, [rsp + 40] 
     add rsp, 56 
 
-	cli
-	mov	rsp, [gs:0x16] 
-	
     swapgs	 
 	o64 sysret
 

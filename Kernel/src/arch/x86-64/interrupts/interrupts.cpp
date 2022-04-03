@@ -87,7 +87,7 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
 void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
     // If exception come from kernel we can't recover it
 
-    if(GetCodeRing(Registers) == KernelRing){ 
+    if(CPU::GetCodeRing(Registers) == KernelRing){ 
         KernelUnrecovorable(Registers, CoreID);
     }else{
         // Try to recover exception
@@ -103,10 +103,6 @@ void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
         globalTaskManager->Scheduler(Registers, CoreID); 
     }
 
-}
-
-uint8_t GetCodeRing(ContextStack* Registers){
-    return (Registers->cs & 0b11);
 }
 
 bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID){

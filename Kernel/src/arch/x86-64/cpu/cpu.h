@@ -182,5 +182,6 @@ namespace CPU{
     void GetMSR(uint32_t index, uint32_t* low, uint32_t* high);
     void SetMSR(uint32_t index, uint32_t low, uint32_t high);
     void GetFeatures(uint32_t FeaturesECX, uint32_t FeaturesEDX);
+    uint8_t GetCodeRing(ContextStack* Registers);
 };
 

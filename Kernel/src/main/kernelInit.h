@@ -29,8 +29,9 @@
 #include <arch/x86-64/io/msr/msr.h>
 #include <arch/x86-64/io/serial/serial.h>
 #include <arch/x86-64/tss/tss.h>
-#include <FS/RamFS.h>
+#include <boot/boot.h>
 #include <logs/logs.h>
+#include <FS/RamFS.h>
 #include <elf/elf.h>
 
 struct KernelInfo{
@@ -41,8 +42,8 @@ struct KernelInfo{
     void* rsdp;
 }__attribute__((packed));
 
-extern "C" void main(BootInfo*);
+extern "C" void main(stivale2_struct*);
 
-void InitializeKernel(BootInfo* bootInfo);
+void InitializeKernel(stivale2_struct* stivale2_struct);
 
 #define HigherHalfAddress 0xFFFF800000000000

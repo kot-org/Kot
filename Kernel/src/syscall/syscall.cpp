@@ -171,12 +171,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_ExecThread] = Sys_ExecThread,
 };
 
-extern "C" void Stopit(ContextStack* Registers){
-    asm("nop");
-}
-
 extern "C" uint64_t SyscallDispatch(ContextStack* Registers, thread_t* Self){
-    asm("nop");
     if(Registers->GlobalPurpose >= Syscall_Count){
         Registers->arg0 = KFAIL;
         return GDTInfoSelectorsRing[UserAppRing].Code;        
