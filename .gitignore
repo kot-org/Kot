@@ -30,6 +30,7 @@
 # Executables
 Sysroot/
 OVMFbin/
+limine/
 Local/
 build/
 Bin/
