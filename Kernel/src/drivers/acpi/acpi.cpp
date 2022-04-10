@@ -4,18 +4,35 @@
 #include <logs/logs.h>
 
 namespace ACPI{
-    void* FindTable(SDTHeader* sdtHeader, char* signature){
-        int entries = (sdtHeader->Length - sizeof(ACPI::SDTHeader)) / 8;
-        for(int t = 0; t < entries; t++){
-            ACPI::SDTHeader* newSDTHeader = (ACPI::SDTHeader*)*(uint64_t*)((uint64_t)sdtHeader + sizeof(ACPI::SDTHeader) + (t * 8));
-            newSDTHeader = (ACPI::SDTHeader*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(newSDTHeader);
-            for(int i = 0; i < 4; i++){
-                if(newSDTHeader->Signature[i] != signature[i]){
-                    break;
-                }  
-                if(i == 3){
-                    return newSDTHeader;   
-                }          
+    void* FindTable(RSDP2* rsdp, char* signature){
+        ACPI::SDTHeader* sdt = NULL;
+        bool IsXSDT;
+        uint64_t entries = 0;
+        if(rsdp->XSDTAddress != NULL){
+            sdt = (ACPI::SDTHeader*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress((void*)rsdp->XSDTAddress);
+            entries = (sdt->Length - sizeof(ACPI::SDTHeader)) / sizeof(uint64_t);
+            IsXSDT = true;
+        }else if(rsdp->RSDTAddress != NULL){
+            sdt = (ACPI::SDTHeader*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress((void*)rsdp->RSDTAddress);
+            entries = (sdt->Length - sizeof(ACPI::SDTHeader)) / sizeof(uint32_t);
+            IsXSDT = false;
+        }else{
+            return NULL;
+        }
+        
+
+        ACPI::SDTHeader* Header = NULL;
+
+        for(uint64_t i = 0; i < entries; i++){
+            if(IsXSDT){
+                Header = (ACPI::SDTHeader*)(uint64_t)((ACPI::XSDT*)sdt)->SDTPointer[i];
+            }else{
+                Header = (ACPI::SDTHeader*)(uint32_t)((ACPI::RSDT*)sdt)->SDTPointer[i];
+            }
+            Header = (ACPI::SDTHeader*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress((void*)Header);
+
+            if(strcmp((char*)Header->Signature, signature, 4)){
+                return Header;
             }
         }
         return 0;

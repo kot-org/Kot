@@ -3,67 +3,30 @@
 uint64_t LastVirtualAddressUsed = 0;
 uint64_t memorySize = 0;
 
-PageTable* InitializeMemory(BootInfo* bootInfo){
-    uint64_t mMapEntries = bootInfo->memoryInfo.mMapSize / bootInfo->memoryInfo.mMapDescSize;
-
+void InitializeMemory(BootInfo* bootInfo){
     globalAllocator = PageFrameAllocator();
 
-    globalAllocator.ReadEFIMemoryMap(bootInfo->memoryInfo.mMap, bootInfo->memoryInfo.mMapSize, bootInfo->memoryInfo.mMapDescSize);
-    uint64_t fbBase = (uint64_t)bootInfo->framebuffer.BaseAddress;
-    uint64_t fbSize = (uint64_t)bootInfo->framebuffer.FrameBufferSize + 0x1000;
-    globalAllocator.LockPages((void*)fbBase, Divide(fbSize, 0x1000));
+    globalAllocator.ReadMemoryMap(bootInfo->Memory);
 
-    PageTable* PML4 = (PageTable*)globalAllocator.RequestPage();
-    memset(PML4, 0, 0x1000);
-    globalPageTableManager[CPU::GetCoreID()].PageTableManagerInit(PML4);
-
-    PageTableManager UEFI_Table;
-    UEFI_Table.PageTableManagerInit((PageTable*)bootInfo->memoryInfo.UEFI_CR3);
-
-    //map kernel
-    uint64_t KernelPageSize = Divide(bootInfo->memoryInfo.VirtualKernelEnd - bootInfo->memoryInfo.VirtualKernelStart, 0x1000);
-    LastVirtualAddressUsed = bootInfo->memoryInfo.VirtualKernelEnd;
-
-    LastVirtualAddressUsed += 0x1000 - (LastVirtualAddressUsed % 0x1000);
-    globalPageTableManager[CPU::GetCoreID()].DefinePhysicalMemoryLocation((void*)(LastVirtualAddressUsed + 0x1000));
-
-    for(uint64_t i = 0; i < KernelPageSize; i++){
-        void* VirtualAddress = (void*)(bootInfo->memoryInfo.VirtualKernelStart + i * 0x1000);
-        void* PhysicalAddress = UEFI_Table.GetPhysicalAddress(VirtualAddress);
-        globalPageTableManager[CPU::GetCoreID()].MapMemory(VirtualAddress, PhysicalAddress);
-    }
-    
-    memorySize = GetMemorySize(bootInfo->memoryInfo.mMap, mMapEntries, bootInfo->memoryInfo.mMapDescSize);
-
-    //map all the memory
-
-    for(uint64_t i = 0; i < memorySize; i += 0x1000){
-        LastVirtualAddressUsed += 0x1000;
-        globalPageTableManager[CPU::GetCoreID()].MapMemory((void*)LastVirtualAddressUsed, (void*)i);
-    }
-    LastVirtualAddressUsed += 0x1000;
-
-    globalPageTableManager[CPU::GetCoreID()].DefineVirtualTableLocation();
-
-    return PML4;
+    vmm_Init(bootInfo);
+    return;
 }
 
 void InitializeACPI(BootInfo* bootInfo){
-    bootInfo->rsdp = (ACPI::RSDP2*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(bootInfo->rsdp);
-    
-    ACPI::SDTHeader* xsdt = (ACPI::SDTHeader*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress((void*)bootInfo->rsdp->XSDTAddress);
+    ACPI::RSDP2* RSDP = (ACPI::RSDP2*)bootInfo->RSDP->rsdp;
 
-    ACPI::MADTHeader* madt = (ACPI::MADTHeader*)ACPI::FindTable(xsdt, (char*)"APIC");
+    ACPI::MADTHeader* madt = (ACPI::MADTHeader*)ACPI::FindTable(RSDP, (char*)"APIC");
     APIC::InitializeMADT(madt);
 
-    ACPI::HPETHeader* hpet = (ACPI::HPETHeader*)ACPI::FindTable(xsdt, (char*)"HPET");
+    ACPI::HPETHeader* hpet = (ACPI::HPETHeader*)ACPI::FindTable(RSDP, (char*)"HPET");
     HPET::InitialiseHPET(hpet);
 }
   
 
 void InitializeKernel(stivale2_struct* stivale2_struct){  
-    BootInfo* bootInfo;
     asm("cli");
+
+    BootInfo* bootInfo = Boot::Init(stivale2_struct);
 
     SerialPort::Initialize();
     SerialPort::ClearMonitor();
@@ -72,30 +35,19 @@ void InitializeKernel(stivale2_struct* stivale2_struct){
     gdtInit();
     globalLogs->Successful("GDT intialize");
 
-
-
-    PageTable* PML4 = InitializeMemory(bootInfo);
-    LoadPaging(PML4, globalPageTableManager[CPU::GetCoreID()].PhysicalMemoryVirtualAddress);
+    InitializeMemory(bootInfo);
     globalLogs->Successful("Memory intialize");
-
-    //Update bootinfo location
-    bootInfo = (BootInfo*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(bootInfo);
-
+    
     InitializeHeap((void*)LastVirtualAddressUsed, 0x10);
     globalLogs->Successful("Heap intialize");
-    
+
     InitializeInterrupts();  
     globalLogs->Successful("IDT intialize");
 
-
     CPU::InitCPU();
 
-    if(EnabledSSE() == 0){
-        FPUInit();
-        globalLogs->Successful("FPU intialize");
-    }else{
-        globalLogs->Successful("SSE intialize");
-    }
+    simdInit();
+    globalLogs->Successful("SIMD intialize");
     
     InitializeACPI(bootInfo);
 
@@ -111,8 +63,8 @@ void InitializeKernel(stivale2_struct* stivale2_struct){
     KernelInfo* kernelInfo = (KernelInfo*)malloc(sizeof(KernelInfo));
 
     //frame buffer
-    kernelInfo->framebuffer = (Framebuffer*)malloc(sizeof(Framebuffer));
-    memcpy(kernelInfo->framebuffer, &bootInfo->framebuffer, sizeof(Framebuffer));
+    kernelInfo->framebuffer = (stivale2_struct_tag_framebuffer*)malloc(sizeof(stivale2_struct_tag_framebuffer));
+    memcpy(kernelInfo->framebuffer, &bootInfo->Framebuffer, sizeof(stivale2_struct_tag_framebuffer));
 
     //ramfs
     kernelInfo->ramfs = (RamFs*)malloc(sizeof(RamFs));
@@ -122,17 +74,22 @@ void InitializeKernel(stivale2_struct* stivale2_struct){
     kernelInfo->memoryInfo = &memoryInfo;
 
     //smbios
-    kernelInfo->smbios = bootInfo->smbios;
+    if(bootInfo->smbios->smbios_entry_32 != 0){
+        kernelInfo->smbios = (void*)bootInfo->smbios->smbios_entry_32;
+    }else if(bootInfo->smbios->smbios_entry_64 != 0){
+        kernelInfo->smbios = (void*)bootInfo->smbios->smbios_entry_64;
+    }
+    
 
     //rsdp
-    kernelInfo->rsdp = bootInfo->rsdp;
+    kernelInfo->rsdp = (void*)bootInfo->RSDP->rsdp;
 
     Parameters* InitParameters = (Parameters*)malloc(sizeof(Parameters));
     InitParameters->Parameter0 = (uint64_t)kernelInfo;
 
 
     //load init file
-    RamFS::Parse(globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(bootInfo->ramfs.RamFsBase), bootInfo->ramfs.Size);
+    RamFS::Parse(bootInfo->ramfs.RamFsBase, bootInfo->ramfs.Size);
     RamFS::File* InitFile = RamFS::FindInitFile();
     
     if(InitFile != NULL){
@@ -145,7 +102,7 @@ void InitializeKernel(stivale2_struct* stivale2_struct){
     
     free(InitParameters);
 
-    APIC::LoadCores(); 
+    APIC::LoadCores();
 
     globalTaskManager->EnabledScheduler(CPU::GetCoreID());
 

@@ -11,7 +11,7 @@ PageMapIndexer::PageMapIndexer(uint64_t virtualAddress){
     PDP_i = virtualAddress & 0x1ff;
 }
 
-uint64_t GetVirtualAddress(uint64_t PDP_i, uint64_t PD_i, uint64_t PT_i, uint64_t P_i){
+uint64_t GetVirtualAddressMap(uint64_t PDP_i, uint64_t PD_i, uint64_t PT_i, uint64_t P_i){
     uint64_t virtualAddress = 0;
     virtualAddress |= P_i << 12;
     virtualAddress |= PT_i << 21;

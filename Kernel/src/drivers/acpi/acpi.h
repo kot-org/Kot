@@ -2,7 +2,7 @@
 #include <lib/types.h>
 
 namespace ACPI{
-    struct RSDP2 {
+    struct RSDP2{
         unsigned char Signature[8];
         uint8_t Checksum;
         uint8_t OEMID[6];
@@ -12,7 +12,7 @@ namespace ACPI{
         uint64_t XSDTAddress;
         uint8_t ExtendedChecksum;
         uint8_t Reserved[3];
-    } __attribute__((packed));
+    }__attribute__((packed));
 
     struct SDTHeader{
         unsigned char Signature[4];
@@ -24,6 +24,16 @@ namespace ACPI{
         uint32_t OEMRevision;
         uint32_t CreatorID;
         uint32_t CreatorRevision;
+    }__attribute__((packed));
+
+    struct RSDT{
+        struct SDTHeader header;
+        uint32_t SDTPointer[];
+    }__attribute__((packed));
+
+    struct XSDT{
+        struct SDTHeader header;
+        uint64_t SDTPointer[];
     }__attribute__((packed));
 
     struct GenericAddressStructure{
@@ -71,5 +81,5 @@ namespace ACPI{
         uint32_t Reserved;
     }__attribute__((packed));
 
-    void* FindTable(SDTHeader* sdtHeader, char* signature);
+    void* FindTable(RSDP2* rsdp, char* signature);
 }

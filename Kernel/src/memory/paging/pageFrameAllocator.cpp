@@ -1,6 +1,5 @@
 #include <memory/memory.h>
 #include <lib/stdio/cstr.h>
-#include <memory/efiMemory.h>
 #include <misc/bitmap/bitmap.h>
 #include <memory/paging/PageFrameAllocator.h>
 
@@ -10,46 +9,53 @@ memoryInfo_t memoryInfo;
 bool Initialized = false;
 PageFrameAllocator globalAllocator;
 
-void PageFrameAllocator::ReadEFIMemoryMap(EFI_MEMORY_DESCRIPTOR* mMap, size_t mMapSize, size_t mMapDescSize){
+void PageFrameAllocator::ReadMemoryMap(stivale2_struct_tag_memmap* Map){
     if (Initialized) return;
 
     Initialized = true;
 
-    uint64_t mMapEntries = mMapSize / mMapDescSize;
+    void* BitmapSegment = NULL;
 
-    void* largestFreeMemSeg = NULL;
-    size_t largestFreeMemSegSize = 0;
+    uint64_t memorySize = GetMemorySize(Map);
+    uint64_t bitmapSize = memorySize / PAGE / 8 + 1;
 
-    for (int i = 0; i < mMapEntries; i++){
-        EFI_MEMORY_DESCRIPTOR* desc = (EFI_MEMORY_DESCRIPTOR*)((uint64_t)mMap + (i * mMapDescSize));
-        if (desc->type == 7){ // type = EfiConventionalMemory
-            if (desc->numPages * 4096 > largestFreeMemSegSize)
+    for (int i = 0; i < Map->entries; i++){
+        if (Map->memmap[i].type == STIVALE2_MMAP_USABLE){
+            if (Map->memmap[i].length > bitmapSize)
             {
-                largestFreeMemSeg = desc->physAddr;
-                largestFreeMemSegSize = desc->numPages * 4096;
+                BitmapSegment = (void*)Map->memmap[i].base;
+                break;
             }
         }
     }
 
-    uint64_t memorySize = GetMemorySize(mMap, mMapEntries, mMapDescSize);
     memoryInfo.freeMemory = memorySize;
     memoryInfo.totalMemory = memorySize;
 
-    uint64_t bitmapSize = memorySize / 4096 / 8 + 1;
 
-    InitBitmap(bitmapSize, largestFreeMemSeg);
+    InitBitmap(bitmapSize, BitmapSegment);
 
-    ReservePages(0, memorySize / 4096 + 1);
+    ReservePages(0, memorySize / PAGE + 1);
 
-    for (int i = 0; i < mMapEntries; i++){
-        EFI_MEMORY_DESCRIPTOR* desc = (EFI_MEMORY_DESCRIPTOR*)((uint64_t)mMap + (i * mMapDescSize));
-        if (desc->type == 7){ // efiConventionalMemory
-            UnreservePages(desc->physAddr, desc->numPages);
+    for (int i = 0; i < Map->entries; i++){
+        if (Map->memmap[i].type == STIVALE2_MMAP_USABLE && Map->memmap[i].length >= PAGE){ 
+            UnreservePages((void*)Map->memmap[i].base, Map->memmap[i].length / PAGE);
         }
     }
 
     ReservePages(0, 0x100); // reserve between 0 and 0x100000
-    LockPages(PageBitmap.Buffer, PageBitmap.Size / 4096 + 1);
+    LockPages(PageBitmap.Buffer, PageBitmap.Size / PAGE + 1);
+}
+
+uint64_t PageFrameAllocator::GetMemorySize(stivale2_struct_tag_memmap* Map){
+    static uint64_t memorySizeBytes = 0;
+    if (memorySizeBytes > 0) return memorySizeBytes;
+
+    for (int i = 0; i < Map->entries; i++){
+        memorySizeBytes += Map->memmap[i].length;
+    }
+
+    return memorySizeBytes;
 }
 
 void PageFrameAllocator::InitBitmap(size_t bitmapSize, void* bufferAddress){

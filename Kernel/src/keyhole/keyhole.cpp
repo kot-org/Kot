@@ -4,6 +4,7 @@ namespace Keyhole{
     static uint64_t mutexKeyhole;
 
     uint64_t Creat(key_t* key, process_t* parent, process_t* target, enum DataType type, uint64_t data, uint64_t flags){
+        return 0;
         if(!CheckAddress((void*)key, sizeof(key))) return KFAIL;
         
         Atomic::atomicSpinlock(&mutexKeyhole, 0);

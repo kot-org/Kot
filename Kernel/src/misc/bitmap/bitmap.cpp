@@ -1,5 +1,5 @@
 #include <misc/bitmap/bitmap.h>
-#include <memory/heap/heap.h>
+#include <heap/heap.h>
 
 bool Bitmap::operator[](uint64_t index){
     return Get(index);

@@ -244,7 +244,7 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
 
     /* Thread data */
     void* threadDataPA = globalAllocator.RequestPage();
-    SelfData* threadData = (SelfData*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(threadDataPA);
+    SelfData* threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
     Keyhole::Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey);
     Keyhole::Creat(&threadData->ProcessKey, this, this, DataTypeThread, (uint64_t)this, DefaultFlagsKey);
@@ -304,14 +304,14 @@ thread_t* process_t::DuplicateThread(thread_t* source){
     thread->Regs = (ContextStack*)calloc(sizeof(ContextStack));
 
     /* Copy paging */
-    thread->Paging = globalPageTableManager[CPU::GetCoreID()].SetupThreadPaging(source->Parent->SharedPaging);
+    thread->Paging = vmm_SetupThread(source->Parent->SharedPaging);
 
     /* Load new stack */
     thread->SetupStack();
 
     /* Thread data */
     void* threadDataPA = globalAllocator.RequestPage();
-    SelfData* threadData = (SelfData*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(threadDataPA);
+    SelfData* threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
     Keyhole::Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
     Keyhole::Creat(&threadData->ProcessKey, this, this, DataTypeThread, (uint64_t)this, FlagFullPermissions);
@@ -365,7 +365,7 @@ void thread_t::SetupStack(){
     this->Stack->StackEndMax = StackBottom;
 
     /* Clear stack */
-    PageTable* PML4VirtualAddress = (PageTable*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress((void*)Paging->PML4);
+    PageTable* PML4VirtualAddress = (PageTable*)vmm_GetVirtualAddress((void*)Paging->PML4);
     PML4VirtualAddress->entries[0xff].Value = NULL;
 }
 
@@ -406,7 +406,7 @@ void TaskManager::CreatIddleTask(){
     void* physcialMemory = globalAllocator.RequestPage();
     thread->Paging->MapMemory(0x0, physcialMemory);
     thread->Paging->MapUserspaceMemory(0x0);
-    void* virtualMemory = globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(physcialMemory);
+    void* virtualMemory = (void*)vmm_GetVirtualAddress(physcialMemory);
     memcpy(virtualMemory, (void*)&IdleTask, 0x1000);
 
     thread->Launch();
@@ -469,8 +469,8 @@ void thread_t::SetParameters(Parameters* FunctionParameters){
 }
 
 void thread_t::CopyStack(thread_t* source){
-    PageTable* PML4VirtualAddressSource = (PageTable*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress((void*)source->Paging->PML4);
-    PageTable* PML4VirtualAddressDestination = (PageTable*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress((void*)Paging->PML4);
+    PageTable* PML4VirtualAddressSource = (PageTable*)vmm_GetVirtualAddress((void*)source->Paging->PML4);
+    PageTable* PML4VirtualAddressDestination = (PageTable*)vmm_GetVirtualAddress((void*)Paging->PML4);
     PML4VirtualAddressSource->entries[0xff] = PML4VirtualAddressDestination->entries[0xff];
     Stack = source->Stack;
 }
@@ -498,7 +498,7 @@ void* thread_t::ShareDataInStack(void* data, size_t size){
         uint64_t VirtualAddressIteratorScr = (uint64_t)data;
         uint64_t VirtualAddressIterator = sizeof(StackData);
         for(uint64_t i = 0; i < NumberOfPage; i++){
-            void* Dst = globalPageTableManager[0].GetVirtualAddress(Paging->GetPhysicalAddress((void*)((uint64_t)address + (uint64_t)VirtualAddressIterator)));
+            void* Dst = (void*)vmm_GetVirtualAddress(vmm_GetVirtualAddress((void*)((uint64_t)address + (uint64_t)VirtualAddressIterator)));
             memcpy(Dst, (void*)VirtualAddressIteratorScr, 0x1000);
             VirtualAddressIterator += 0x1000;
             VirtualAddressIteratorScr += 0x1000;

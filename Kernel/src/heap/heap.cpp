@@ -1,4 +1,4 @@
-#include <memory/heap/heap.h>
+#include <heap/heap.h>
 #include <memory/paging/PageTableManager.h>
 #include <memory/paging/PageFrameAllocator.h>
 

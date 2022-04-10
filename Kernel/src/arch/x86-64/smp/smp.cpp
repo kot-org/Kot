@@ -4,18 +4,6 @@ extern "C" void TrampolineMain(){
     uint64_t CoreID = CPU::GetCoreID();
     gdtInitCores(CoreID);
 
-
-    //Creat new paging for each cpu
-    void* PML4 = globalAllocator.RequestPage();
-    memset(globalPageTableManager[0].GetVirtualAddress(PML4), 0, 0x1000);
-    globalPageTableManager[CoreID].PageTableManagerInit((PageTable*)PML4);
-    globalPageTableManager[CoreID].PhysicalMemoryVirtualAddressSaver = globalPageTableManager[0].PhysicalMemoryVirtualAddressSaver;
-    globalPageTableManager[CoreID].PhysicalMemoryVirtualAddress = globalPageTableManager[0].PhysicalMemoryVirtualAddress;
-    globalPageTableManager[CoreID].VirtualAddress = globalPageTableManager[0].VirtualAddress;
-    globalPageTableManager[CoreID].CopyHigherHalf(&globalPageTableManager[0]);
-    globalPageTableManager[CoreID].PhysicalMemoryVirtualAddress = globalPageTableManager[0].PhysicalMemoryVirtualAddress;
-    globalPageTableManager[CoreID].ChangePaging(&globalPageTableManager[CoreID]);
-
     asm ("lidt %0" : : "m" (idtr));
  
     CPU::InitCPU();
@@ -24,9 +12,7 @@ extern "C" void TrampolineMain(){
     APIC::StartLapicTimer();
 
     
-    if(EnabledSSE() == 0){
-        FPUInit();
-    }
+    simdInit();
 
     DataTrampoline.Status = 0xef;
 

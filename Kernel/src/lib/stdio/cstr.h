@@ -2,7 +2,7 @@
 
 #include <lib/types.h>
 #include <lib/node/node.h>
-#include <memory/heap/heap.h>
+#include <heap/heap.h>
 
 
 const char* to_string(uint64_t value);
@@ -18,6 +18,7 @@ const char* to_string(char c);
 
 int strlen(char*p);
 bool strcmp(char* a, char* b);
+bool strcmp(char* a, char* b, size_t size);
 Node* split(char* tosplit, char* spliter);
 char* ConvertByte(uint64_t bytes);
 

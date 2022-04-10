@@ -5,7 +5,7 @@
             "name": "Debug Kernel",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/bin/disk/kernel.elf",
+            "program": "${workspaceRoot}/bin/Limine/kernel.elf",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

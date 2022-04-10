@@ -66,6 +66,58 @@ enum CPUID_FEAT{
     CPUID_FEAT_EDX_PBE          = 1 << 31
 };
 
+enum CR0{
+    CR0_PROTECTED_MODE_ENABLE       = 1 << 0,
+    CR0_MONITOR_CO_PROCESSOR        = 1 << 1,
+    CR0_EMULATION                   = 1 << 2,
+    CR0_TASK_SWITCHED               = 1 << 3,
+    CR0_EXTENSION_TYPE              = 1 << 4,
+    CR0_NUMERIC_ERROR_ENABLE        = 1 << 5,
+    CR0_WRITE_PROTECT_ENABLE        = 1 << 16,
+    CR0_ALIGNMENT_MASK              = 1 << 18,
+    CR0_NOT_WRITE_THROUGH_ENABLE    = 1 << 29,
+    CR0_CACHE_DISABLE               = 1 << 30,
+    CR0_PAGING_ENABLE               = 1 << 31,
+};
+
+enum CR4{
+    CR4_VIRTUAL_8086_MODE_EXT               = 1 << 0,
+    CR4_PROTECTED_MODE_VIRTUAL_INT          = 1 << 1,
+    CR4_TIME_STAMP_DISABLE                  = 1 << 2, 
+    CR4_DEBUGGING_EXT                       = 1 << 3,      
+    CR4_PAGE_SIZE_EXT                       = 1 << 4,
+    CR4_PHYSICAL_ADDRESS_EXT                = 1 << 5,
+    CR4_MACHINE_CHECK_EXCEPTION             = 1 << 6,
+    CR4_PAGE_GLOBAL_ENABLE                  = 1 << 7,
+    CR4_PERFORMANCE_COUNTER_ENABLE          = 1 << 8,
+    CR4_FXSR_ENABLE                         = 1 << 9,
+    CR4_SIMD_EXCEPTION_SUPPORT              = 1 << 10,
+    CR4_USER_MODE_INSTRUCTION_PREVENTION    = 1 << 11,
+    CR4_5_LEVEL_PAGING_ENABLE               = 1 << 12,
+    CR4_VIRTUAL_MACHINE_EXT_ENABLE          = 1 << 13,
+    CR4_SAFER_MODE_EXT_ENABLE               = 1 << 14,
+    CR4_FS_GS_BASE_ENABLE                   = 1 << 16,
+    CR4_PCID_ENABLE                         = 1 << 17,
+    CR4_XSAVE_ENABLE                        = 1 << 18,
+    CR4_SUPERVISOR_EXE_PROTECTION_ENABLE    = 1 << 20,
+    CR4_SUPERVISOR_ACCESS_PROTECTION_ENABLE = 1 << 21,
+    CR4_KEY_PROTECTION_ENABLE               = 1 << 22,
+    CR4_CONTROL_FLOW_ENABLE                 = 1 << 23,
+    CR4_SUPERVISOR_KEY_PROTECTION_ENABLE    = 1 << 24,
+};
+
+enum XCR0{
+    XCR0_XSAVE_SAVE_X87     = 1 << 0,
+    XCR0_XSAVE_SAVE_SSE     = 1 << 1,
+    XCR0_AVX_ENABLE         = 1 << 2,
+    XCR0_BNDREG_ENABLE      = 1 << 3,
+    XCR0_BNDCSR_ENABLE      = 1 << 4,
+    XCR0_AVX512_ENABLE      = 1 << 5,
+    XCR0_ZMM0_15_ENABLE     = 1 << 6,
+    XCR0_ZMM16_32_ENABLE    = 1 << 7,
+    XCR0_PKRU_ENABLE        = 1 << 9,
+};
+
 struct CPURegisters{
     uint64_t rax;
     uint64_t rbx;
@@ -84,6 +136,82 @@ struct CPURegisters{
     uint64_t r14;
     uint64_t r15;
 };
+
+struct cr4_t{
+    bool VME:1;
+    bool PVI:1;
+    bool TSD:1;
+    bool DE:1;
+    bool PSE:1;
+    bool PAE:1;
+    bool MCE:1;
+    bool PGE:1;
+    bool PCE:1;
+    bool OSFXSR:1;
+    bool OSXMMEXCPT:1;
+    bool UMIP:1;
+    bool Reserved0:1;
+    bool VMXE:1;
+    bool SMXE:1;
+    bool Reserved1:1;
+    bool FSGSBASE:1;
+    bool PCIDE:1;
+    bool OSXSAVE:1;
+    bool Reserved2:1;
+    bool SMEP:1;
+    bool SMAP:1;
+    bool PKE:1;
+    bool CET:1;
+    bool PKS:1;
+}__attribute__((packed));
+
+struct cr0_t{
+    bool PE:1;
+    bool MP:1;
+    bool EM:1;
+    bool TS:1;
+    bool ET:1;
+    bool Reserved0:1;
+    bool Reserved1:1;
+    bool Reserved2:1;
+    bool Reserved3:1;
+    bool Reserved4:1;
+    bool Reserved5:1;
+    bool Reserved6:1;
+    bool Reserved7:1;
+    bool Reserved8:1;
+    bool Reserved9:1;
+    bool Reserved10:1;
+    bool WP:1;
+    bool Reserved11:1;
+    bool AM:1;
+    bool Reserved12:1;
+    bool Reserved13:1;
+    bool Reserved14:1;
+    bool Reserved15:1;
+    bool Reserved16:1;
+    bool Reserved17:1;
+    bool Reserved18:1;
+    bool Reserved19:1;
+    bool Reserved20:1;
+    bool Reserved21:1;
+    bool NW:1;
+    bool CD:1;
+    bool PG:1;
+}__attribute__((packed));
+
+struct xcr0_t{
+    bool X87:1; 
+    bool SSE:1; 
+    bool AVX:1; 
+    bool BNDREG:1; 
+    bool BNDCSR:1; 
+    bool OPMASK:1; 
+    bool ZMM_Hi256:1; 
+    bool Hi16_ZMM:1; 
+    bool Reserved0:1; 
+    bool PKRU:1; 
+}__attribute__((packed));
 
 struct rflags_t{
     bool CF:1;
@@ -184,4 +312,3 @@ namespace CPU{
     void GetFeatures(uint32_t FeaturesECX, uint32_t FeaturesEDX);
     uint8_t GetCodeRing(ContextStack* Registers);
 };
-

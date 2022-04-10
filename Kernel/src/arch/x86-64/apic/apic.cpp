@@ -15,12 +15,7 @@ namespace APIC{
     InterruptSourceOverride** Iso;
     uint64_t IsoCount;
 
-    void* IOapicAddressVirtual;
-    void* lapicAddressVirtual;
-
     void InitializeMADT(ACPI::MADTHeader* madt){
-        lapicAddressVirtual = globalPageTableManager[0].MapMemory(0, 1);
-        IOapicAddressVirtual = globalPageTableManager[0].MapMemory(0, 1);
         ProcessorCount = 0;
         IsoCount = 0;
 
@@ -111,8 +106,8 @@ namespace APIC{
 
         // Configure first IOAPIC
         IOAPIC* ioapic = IOapic[IOApicID];
-        globalPageTableManager[0].MapMemory((void*)IOapicAddressVirtual, (void*)(uint64_t)ioapic->APICAddress);
-        uint8_t MaxInterrupts = ((ioapicReadRegister(IOapicAddressVirtual , IOAPICVersion) >> 16) & 0xff) + 1;
+        uint64_t IOapicAddressVirtual = vmm_Map((void*)(uint64_t)ioapic->APICAddress);
+        uint8_t MaxInterrupts = ((ioapicReadRegister((void*)IOapicAddressVirtual, IOAPICVersion) >> 16) & 0xff) + 1;
         ioapic->MaxInterrupts = MaxInterrupts;
 
         // Set up the entries
@@ -128,7 +123,7 @@ namespace APIC{
         for(size_t i = 0; i < IsoCount; i++) {
             InterruptSourceOverride* iso = Iso[i];
             uint8_t IRQNumber = iso->IRQSource + IRQ_START;
-            IoApicSetRedirectionEntry(IOapicAddressVirtual , iso->IRQSource, (IOAPICRedirectionEntry){
+            IoApicSetRedirectionEntry((void*)IOapicAddressVirtual , iso->IRQSource, (IOAPICRedirectionEntry){
                 .vector = IRQNumber,
                 .delivery_mode = IOAPICRedirectionEntryDeliveryModeFixed,
                 .destination_mode = IOAPICRedirectionEntryDestinationModePhysicall,
@@ -142,13 +137,13 @@ namespace APIC{
 
     void IoChangeIrqState(uint8_t irq, uint8_t IOApicID, bool IsEnable){
         IOAPIC* ioapic = IOapic[IOApicID];
-        globalPageTableManager[0].MapMemory((void*)IOapicAddressVirtual, (void*)(uint64_t)ioapic->APICAddress);
+        uint64_t IOapicAddressVirtual = vmm_Map((void*)(uint64_t)ioapic->APICAddress);
         uint32_t base = ioapic->GlobalSystemInterruptBase;
         size_t index = irq - base;
         
         volatile uint32_t low = 0;
 
-        low = ioapicReadRegister(IOapicAddressVirtual, IOAPICRedirectionTable + 2 * index);
+        low = ioapicReadRegister((void*)IOapicAddressVirtual, IOAPICRedirectionTable + 2 * index);
         
         if(!IsEnable){
             low |= 1 << IOAPICRedirectionBitsLowMask;
@@ -156,12 +151,12 @@ namespace APIC{
             low &= ~(1 << IOAPICRedirectionBitsLowMask);
         }
 
-        ioapicWriteRegister(IOapicAddressVirtual, IOAPICRedirectionTable + 2 * index, low);
+        ioapicWriteRegister((void*)IOapicAddressVirtual, IOAPICRedirectionTable + 2 * index, low);
     }
 
     void LoadCores(){
         uint64_t lapicAddress = (uint64_t)GetLAPICAddress();
-        void* TrampolineVirtualAddress = globalPageTableManager[0].MapMemory((void*)0x8000, 1);
+        void* TrampolineVirtualAddress = (void*)vmm_GetVirtualAddress(0x8000);
 
         uint8_t bspid = 0; 
         __asm__ __volatile__ ("mov $1, %%rax; cpuid; shrq $24, %%rbx;": "=r"(bspid)::);
@@ -173,10 +168,10 @@ namespace APIC{
         Data->MainEntry = (uint64_t)&TrampolineMain; 
         
         //temp trampoline map
-        globalPageTableManager[0].MapMemory((void*)0x8000, (void*)0x8000);
+        vmm_Map((void*)0x8000, (void*)0x8000);
 
         for(int i = 1; i < ProcessorCount; i++){ 
-            Data->Paging = (uint64_t)globalPageTableManager[0].PML4;
+            Data->Paging = (uint64_t)vmm_PageTable;
             uint64_t StackSize = 0x1000000; // 10 mb
             Data->Stack = (uint64_t)malloc(StackSize) + StackSize;
                 
@@ -209,25 +204,27 @@ namespace APIC{
 
             DataTrampoline.Status = 0;
         }
-        globalPageTableManager[0].UnmapMemory((void*)0x8000);
+
+        vmm_Unmap((void*)0x8000);
 
         DataTrampoline.Status = 0xff;
     }  
 
     void* GetLAPICAddress(){
         void* lapicAddress = (void*)(msr::rdmsr(0x1b) & 0xfffff000);
-        globalPageTableManager[0].MapMemory(lapicAddressVirtual, lapicAddress);
+        void* lapicAddressVirtual = (void*)vmm_Map(lapicAddress);
         return lapicAddressVirtual;
     }
 
     void EnableAPIC(uint64_t CoreID){
         lapicAddress[CoreID]->PhysicalAddress = (void*)(msr::rdmsr(0x1b) & 0xfffff000);
-        lapicAddress[CoreID]->VirtualAddress = globalPageTableManager[CoreID].MapMemory(lapicAddress[CoreID]->PhysicalAddress, 1); 
+        lapicAddress[CoreID]->VirtualAddress = (void*)vmm_Map(lapicAddress[CoreID]->PhysicalAddress); 
         msr::wrmsr(0x1b, (uint64_t)lapicAddress[CoreID]->PhysicalAddress);
         localAPICWriteRegister(0xF0, localAPICReadRegister(0xF0) | 0x1ff);
     }
 
     static uint64_t mutexSLT;
+
     void StartLapicTimer(){
         Atomic::atomicSpinlock(&mutexSLT, 0);
         Atomic::atomicLock(&mutexSLT, 0);

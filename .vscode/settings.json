@@ -45,7 +45,11 @@
         "socket": "cpp",
         "string_view": "cpp",
         "span": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "deque": "cpp",
+        "unordered_map": "cpp",
+        "istream": "cpp",
+        "ostream": "cpp"
     },
     "debug.onTaskErrors": "debugAnyway",
     "C_Cpp.errorSquiggles": "Disabled",

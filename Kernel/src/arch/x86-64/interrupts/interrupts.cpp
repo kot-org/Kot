@@ -97,8 +97,7 @@ void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
             }
         }
 
-        globalLogs->Error("Thread error, PID : %x | TID : %x", globalTaskManager->ThreadExecutePerCore[CoreID]->Parent->PID, globalTaskManager->ThreadExecutePerCore[CoreID]->TID);
-        globalLogs->Error("With execption : '%s' | Error code : %x", ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);        
+        globalLogs->Error("Thread error, PID : %x | TID : %x \nWith execption : '%s' | Error code : %x", globalTaskManager->ThreadExecutePerCore[CoreID]->Parent->PID, globalTaskManager->ThreadExecutePerCore[CoreID]->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);        
         globalTaskManager->ThreadExecutePerCore[CoreID]->Exit(Registers, CoreID);
         globalTaskManager->Scheduler(Registers, CoreID); 
     }
@@ -115,8 +114,7 @@ bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID){
 }
 
 void KernelUnrecovorable(ContextStack* Registers, uint64_t CoreID){
-    globalLogs->Error("Kernel Panic CPU %x", CoreID);
-    globalLogs->Error("With execption : '%s' | Error code : %x", ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
+    globalLogs->Error("Kernel Panic CPU %x \nWith execption : '%s' | Error code : %x", CoreID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
 
     while(true){
         asm("hlt");

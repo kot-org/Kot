@@ -3,7 +3,7 @@
 #include <lib/limits.h>
 #include <event/event.h>
 #include <keyhole/keyhole.h>
-#include <memory/heap/heap.h>
+#include <heap/heap.h>
 #include <arch/x86-64/tss/tss.h>
 #include <memory/paging/pageTableManager.h>
 #include <arch/x86-64/userspace/userspace.h>
@@ -15,9 +15,9 @@ class SelfData;
 
 #define KernelStackSize 0x10000
 
-#define StackTop GetVirtualAddress(0x100, 0, 0, 0)
-#define StackBottom GetVirtualAddress(0xff, 0, 0, 0) 
-#define LockAddress GetVirtualAddress(0xfe, 0, 0, 0) 
+#define StackTop GetVirtualAddressMap(0x100, 0, 0, 0)
+#define StackBottom GetVirtualAddressMap(0xff, 0, 0, 0) 
+#define LockAddress GetVirtualAddressMap(0xfe, 0, 0, 0) 
 #define SelfDataStartAddress StackBottom  
 #define SelfDataEndAddress StackBottom + sizeof(SelfData)
 #define DefaultFlagsKey 0xff
@@ -63,7 +63,7 @@ struct process_t{
     uint8_t DefaultPriviledge:3;
 
     /* Memory */
-    struct PageTableManager* SharedPaging;
+    pagetable_t SharedPaging;
 
     /* Childs */
     Node* Childs;
@@ -99,11 +99,11 @@ struct thread_t{
     void* EntryPoint;
 
     /* Memory */
-    struct PageTableManager* Paging;
+    pagetable_t Paging;
     uint64_t MemoryAllocated;
 
     /* Context info */
-    ContextStack* Regs; 
+    struct ContextStack* Regs; 
     StackInfo* Stack; 
     uint64_t CoreID;
     bool IsBlock;

@@ -3,23 +3,18 @@
 #include <logs/logs.h>
 
 PageTableManager globalPageTableManager[MAX_PROCESSORS];
+void* HHDMAddress;
 
 void PageTableManager::PageTableManagerInit(PageTable* PML4Address){
     this->PML4 = PML4Address;
-    this->PhysicalMemoryVirtualAddress = 0;
-    this->VirtualAddress = 0x10000000000000000; //It must be a multiple of 0x1000
 }
 
-void PageTableManager::DefinePhysicalMemoryLocation(void* PhysicalMemoryVirtualAddress){
-    if((uint64_t)PhysicalMemoryVirtualAddress % 0x1000){
-        PhysicalMemoryVirtualAddress -= (uint64_t)PhysicalMemoryVirtualAddress % 0x1000;
-        PhysicalMemoryVirtualAddress += 0x1000;
+void PageTableManager::SetHHDM(void* Address){
+    if((uint64_t)Address % PAGE){
+        Address -= (uint64_t)Address % PAGE;
+        Address += PAGE;
     }
-    this->PhysicalMemoryVirtualAddressSaver = PhysicalMemoryVirtualAddress;
-}
-
-void PageTableManager::DefineVirtualTableLocation(){
-    this->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddressSaver;
+    HHDMAddress = Address;
     globalAllocator.PageBitmap.Buffer = (uint8_t*)GetVirtualAddress(globalAllocator.PageBitmap.Buffer);
 }
 
@@ -94,8 +89,7 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory){
 }
 
 void* PageTableManager::MapMemory(void* physicalMemory, size_t pages){
-    this->VirtualAddress -= pages * 0x1000;
-    void* virtualMemory = (void*)this->VirtualAddress;
+    void* virtualMemory = (void*)((uint64_t)physicalMemory + (uint64_t)HHDMAddress);
 
     for(int i = 0; i < pages; i++){
         MapMemory((void*)((uint64_t)virtualMemory + i * 0x1000), (void*)((uint64_t)physicalMemory + i * 0x1000));
@@ -279,12 +273,10 @@ void* PageTableManager::GetPhysicalAddress(void* virtualMemory){
 }
 
 void* PageTableManager::GetVirtualAddress(void* physicalAddress){
-    return (void*)((uint64_t)PhysicalMemoryVirtualAddress + (uint64_t)physicalAddress);
+    return (void*)((uint64_t)HHDMAddress + (uint64_t)physicalAddress);
 }
 
 void PageTableManager::CopyAll(PageTableManager* pageTableManagerToCopy){
-    DefinePhysicalMemoryLocation(pageTableManagerToCopy->PhysicalMemoryVirtualAddress);
-    this->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddressSaver;
     PageTable* PML4VirtualAddressDestination = (PageTable*)GetVirtualAddress(PML4);
     PageTable* PML4VirtualAddressToCopy = (PageTable*)GetVirtualAddress(pageTableManagerToCopy->PML4);
     for(int i = 0; i < 512; i++){
@@ -306,8 +298,6 @@ void PageTableManager::CopyAll(PageTableManager* pageTableManagerToCopy){
 }
 
 void PageTableManager::CopyHigherHalf(PageTableManager* pageTableManagerToCopy){
-    DefinePhysicalMemoryLocation(pageTableManagerToCopy->PhysicalMemoryVirtualAddress);
-    this->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddressSaver;
     PageTable* PML4VirtualAddressDestination = (PageTable*)GetVirtualAddress(PML4);
     PageTable* PML4VirtualAddressToCopy = (PageTable*)GetVirtualAddress(pageTableManagerToCopy->PML4);
     for(int i = 256; i < 512; i++){
@@ -329,8 +319,6 @@ void PageTableManager::CopyHigherHalf(PageTableManager* pageTableManagerToCopy){
 }
 
 void PageTableManager::CopyLowerHalf(PageTableManager* pageTableManagerToCopy){
-    DefinePhysicalMemoryLocation(pageTableManagerToCopy->PhysicalMemoryVirtualAddress);
-    this->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddressSaver;
     PageTable* PML4VirtualAddressDestination = (PageTable*)GetVirtualAddress(PML4);
     PageTable* PML4VirtualAddressToCopy = (PageTable*)GetVirtualAddress(pageTableManagerToCopy->PML4);
     for(int i = 0; i < 256; i++){
@@ -352,7 +340,6 @@ void PageTableManager::CopyLowerHalf(PageTableManager* pageTableManagerToCopy){
 }
 
 void PageTableManager::LoadLowerHalf(){
-    this->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddressSaver;
     PageTable* PML4VirtualAddressDestination = (PageTable*)GetVirtualAddress(PML4);
     for(int i = 0; i < 0x100; i++){
         PageDirectoryEntry PDE = PML4VirtualAddressDestination->entries[i];
@@ -493,7 +480,6 @@ PageTableManager* PageTableManager::SetupProcessPaging(){
     ReturnValue->CopyHigherHalf(this);
     ReturnValue->LoadLowerHalf();
     PageTable* PML4VirtualAddressDestination = (PageTable*)ReturnValue->GetVirtualAddress(PML4);
-    ReturnValue->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddress;   
     return ReturnValue;
 }
 
@@ -507,7 +493,6 @@ PageTableManager* PageTableManager::SetupThreadPaging(PageTableManager* parent){
     ReturnValue->PageTableManagerInit((PageTable*)PagingArray);
     ReturnValue->CopyHigherHalf(this);
     ReturnValue->CopyLowerHalf(parent);
-    ReturnValue->PhysicalMemoryVirtualAddress = PhysicalMemoryVirtualAddress; 
     // identify this address as paging entry
     ReturnValue->SetFlags((void*)VirtualAddress, PT_Flag::Custom0, true);
     ReturnValue->SetFlags((void*)VirtualAddress, PT_Flag::Custom1, false);

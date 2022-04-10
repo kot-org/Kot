@@ -1,12 +1,14 @@
 #pragma once
+#include <main/kernelInit.h>
 #include <misc/bitmap/bitmap.h>
-#include <memory/efiMemory.h>
 
+#define PAGE 0x1000
 
 class PageFrameAllocator {
     public:
         Bitmap PageBitmap;
-        void ReadEFIMemoryMap(EFI_MEMORY_DESCRIPTOR* mMap, size_t mMapSize, size_t mMapDescSize);
+        void ReadMemoryMap(struct stivale2_struct_tag_memmap* Map);
+        uint64_t GetMemorySize(struct stivale2_struct_tag_memmap* Map);
         void FreePage(void* address);
         void FreePages(void* address, uint64_t pageCount);
         void LockPage(void* address);

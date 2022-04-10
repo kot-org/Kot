@@ -9,8 +9,7 @@
 
 struct PageTableManager {
     void PageTableManagerInit(struct PageTable* PML4Address);
-    void DefinePhysicalMemoryLocation(void* PhysicalMemoryVirtualAddress);
-    void DefineVirtualTableLocation();
+    void SetHHDM(void* HHDMAddress);
     void MapMemory(void* virtualMemory, void* physicalMemory);
     void* MapMemory(void* physicalMemory, size_t pages);
     void UnmapMemory(void* virtualMemory);
@@ -27,10 +26,5 @@ struct PageTableManager {
     void SetFlags(void* virtualMemory, int flags, bool value);
     PageTableManager* SetupProcessPaging();
     PageTableManager* SetupThreadPaging(PageTableManager* parent);
-    void* PhysicalMemoryVirtualAddressSaver;
-    void* PhysicalMemoryVirtualAddress;
     struct PageTable* PML4;
-    uint64_t VirtualAddress;
 }__attribute__((packed));
-
-extern PageTableManager globalPageTableManager[MAX_PROCESSORS];
