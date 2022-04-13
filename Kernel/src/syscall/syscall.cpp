@@ -92,7 +92,7 @@ KResult Sys_Map(ContextStack* Registers, thread_t* Thread){
         if((bool)Registers->arg2){
             vmm_Map(pageTable, addressVirtual, addressPhysical);
         }else{
-            vmm_Map(pageTable, addressVirtual, globalAllocator.RequestPage());
+            vmm_Map(pageTable, addressVirtual, Pmm_RequestPage());
             vmm_SetFlags(pageTable, (void*)addressVirtual, vmm_flag::vmm_Custom1, true); //set slave state
         }        
     }
@@ -108,7 +108,7 @@ KResult Sys_Unmap(ContextStack* Registers, thread_t* Thread){
     addressVirtual = (void*)(addressVirtual - (uint64_t)addressVirtual % 0x1000);
     if((uint64_t)addressVirtual < HigherHalfAddress){
         if(vmm_GetFlags(pageTable, (void*)addressVirtual, vmm_flag::vmm_Custom1)){
-            globalAllocator.FreePage(vmm_GetPhysical(pageTable, addressVirtual));
+            Pmm_FreePage(vmm_GetPhysical(pageTable, addressVirtual));
         }
         vmm_Unmap(pageTable, addressVirtual);
     }

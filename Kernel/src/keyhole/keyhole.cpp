@@ -22,7 +22,7 @@ namespace Keyhole{
         lockreference_t* AccessAddress = (lockreference_t*)vmm_GetVirtualAddress(vmm_GetPhysical(parent->SharedPaging, (void*)Page));
         
         if(!vmm_GetFlags(parent->SharedPaging, (void*)Page, vmm_flag::vmm_Present)){
-            vmm_Map(parent->SharedPaging, (void*)Page, globalAllocator.RequestPage());
+            vmm_Map(parent->SharedPaging, (void*)Page, Pmm_RequestPage());
             memset((void*)AccessAddress, 0, 0x1000);
         }
 

@@ -1,13 +1,5 @@
 #include <main/kernelInit.h>
 
-void InitializeMemory(BootInfo* bootInfo){
-    globalAllocator = PageFrameAllocator();
-
-    globalAllocator.ReadMemoryMap(bootInfo->Memory);
-
-    return;
-}
-
 void InitializeACPI(BootInfo* bootInfo){
     ACPI::RSDP2* RSDP = (ACPI::RSDP2*)bootInfo->RSDP->rsdp;
 
@@ -34,7 +26,7 @@ void InitializeKernel(stivale2_struct* stivale2_struct){
     InitializeInterrupts();  
     globalLogs->Successful("IDT intialize");
 
-    InitializeMemory(bootInfo);
+    Pmm_Init(bootInfo->Memory);
     globalLogs->Successful("PMM intialize");
 
     uint64_t LastAddressUsed = vmm_Init(bootInfo);;

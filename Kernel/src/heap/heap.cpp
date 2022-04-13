@@ -211,7 +211,7 @@ void ExpandHeap(size_t length){
     SegmentHeader* newSegment = (SegmentHeader*)globalHeap.heapEnd;
 
     for (size_t i = 0; i < pageCount; i++){
-        void* NewPhysicalAddress = globalAllocator.RequestPage();
+        void* NewPhysicalAddress = Pmm_RequestPage();
         vmm_Map(globalHeap.heapEnd, NewPhysicalAddress);
         globalHeap.heapEnd = (void*)((uint64_t)globalHeap.heapEnd + 0x1000);
     }

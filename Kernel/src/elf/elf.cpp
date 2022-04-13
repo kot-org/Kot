@@ -41,7 +41,7 @@ namespace ELF{
                         void* virtualAddress = (void*)(segment + y * PAGE_SIZE);
                         //Custom 0 flags : is user executable
                         if(!vmm_GetFlags(mainThread->Paging, virtualAddress, vmm_flag::vmm_Custom0)){
-                            void* PhysicalBuffer = globalAllocator.RequestPage();
+                            void* PhysicalBuffer = Pmm_RequestPage();
                             vmm_Map(mainThread->Paging, (void*)virtualAddress, (void*)PhysicalBuffer, true);
                             vmm_SetFlags(mainThread->Paging, virtualAddress, vmm_flag::vmm_Custom0, true);
                             memcpy((void*)vmm_GetVirtualAddress(PhysicalBuffer), (void*)((uint64_t)buffer + phdr->p_offset), phdr->p_filesz);

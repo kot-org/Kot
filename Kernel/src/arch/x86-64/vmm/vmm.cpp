@@ -165,7 +165,7 @@ void vmm_Map(pagetable_t table, void* Address, void* physicalAddress, bool user,
     vmm_page_table* PDPVirtualAddress;
 
     if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
-        PDP = (void*)globalAllocator.RequestPage();
+        PDP = (void*)Pmm_RequestPage();
         PDPVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PDP);  
         memset(PDPVirtualAddress, 0, 0x1000);
         vmm_SetAddress(&PDE, (uint64_t)PDP >> 12);
@@ -184,7 +184,7 @@ void vmm_Map(pagetable_t table, void* Address, void* physicalAddress, bool user,
     void* PD;
     vmm_page_table* PDVirtualAddress;
     if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
-        PD = (void*)globalAllocator.RequestPage();
+        PD = (void*)Pmm_RequestPage();
         PDVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PD); 
         memset(PDVirtualAddress, 0, 0x1000);
         vmm_SetAddress(&PDE, (uint64_t)PD >> 12);
@@ -202,7 +202,7 @@ void vmm_Map(pagetable_t table, void* Address, void* physicalAddress, bool user,
     void* PT;
     vmm_page_table* PTVirtualAddress;
     if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
-        PT = (void*)globalAllocator.RequestPage();
+        PT = (void*)Pmm_RequestPage();
         PTVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PT);
         memset(PTVirtualAddress, 0, 0x1000);
         vmm_SetAddress(&PDE, (uint64_t)PT >> 12);
@@ -340,7 +340,7 @@ void vmm_Fill(pagetable_t table, uint64_t from, uint64_t to){
         vmm_page_table* PDP;
         vmm_page_table* PDPVirtualAddress;
         if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
-            PDP = (vmm_page_table*)globalAllocator.RequestPage();
+            PDP = (vmm_page_table*)Pmm_RequestPage();
             PDPVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PDP);
             memset(PDPVirtualAddress, 0, 0x1000);
             vmm_SetAddress(&PDE, (uint64_t)PDP >> 12);
@@ -358,8 +358,8 @@ void vmm_Swap(pagetable_t table){
 }
 
 uint64_t vmm_Init(BootInfo* bootInfo){
-    vmm_PageTable = globalAllocator.RequestPage();
-    memset(vmm_PageTable, 0, PAGE);
+    vmm_PageTable = Pmm_RequestPage();
+    memset(vmm_PageTable, 0, PAGE_SIZE);
 
     /* map pmrs */
     for(uint64_t i = 0; i < bootInfo->PMRs->entries; i++){
@@ -380,7 +380,7 @@ uint64_t vmm_Init(BootInfo* bootInfo){
     /* map all the memory */
     vmm_HHDMAdress = bootInfo->HHDM->addr;
     uint64_t CurentAddress = vmm_HHDMAdress;
-    uint64_t memorySize = globalAllocator.GetMemorySize(bootInfo->Memory);
+    uint64_t memorySize = Pmm_GetMemorySize(bootInfo->Memory);
     for(uint64_t i = 0; i < memorySize; i += PAGE_SIZE){
         vmm_Map(vmm_PageTable, (void*)CurentAddress, (void*)i);
         CurentAddress += PAGE_SIZE;
@@ -389,7 +389,7 @@ uint64_t vmm_Init(BootInfo* bootInfo){
     vmm_Fill(vmm_PageTable, VMM_LOWERHALF, VMM_HIGHERALF);
 
     /* Update variable in the lower half */
-    globalAllocator.PageBitmap.Buffer = (uint8_t*)vmm_GetVirtualAddress(globalAllocator.PageBitmap.Buffer);
+    Pmm_PageBitmap.Buffer = (uint8_t*)vmm_GetVirtualAddress(Pmm_PageBitmap.Buffer);
 
     vmm_Swap(vmm_PageTable);
 
@@ -397,7 +397,7 @@ uint64_t vmm_Init(BootInfo* bootInfo){
 }
 
 pagetable_t vmm_SetupProcess(){
-    pagetable_t PageTable = globalAllocator.RequestPage();
+    pagetable_t PageTable = Pmm_RequestPage();
     memset((void*)vmm_GetVirtualAddress(PageTable), 0, 0x1000);
     vmm_Fill(PageTable, VMM_STARTRHALF, VMM_LOWERHALF);
     vmm_CopyPageTable(vmm_PageTable, PageTable, VMM_LOWERHALF, VMM_HIGHERALF);
@@ -405,7 +405,7 @@ pagetable_t vmm_SetupProcess(){
 }
 
 pagetable_t vmm_SetupThread(pagetable_t parent){
-    pagetable_t PageTable = globalAllocator.RequestPage();
+    pagetable_t PageTable = Pmm_RequestPage();
 
     uint64_t VirtualAddress = (uint64_t)vmm_GetVirtualAddress(PageTable);
     memset((void*)VirtualAddress, 0, 0x1000);

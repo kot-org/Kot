@@ -64,7 +64,7 @@ uint64_t CreatSharing(thread_t* thread, size_t size, uint64_t* virtualAddressPoi
     for(int i = 0; i < numberOfPage; i++){
         uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * 0x1000;
         if(!vmm_GetFlags(pageTable, (void*)virtualAddressIterator, vmm_flag::vmm_Present)){
-            vmm_Map(pageTable, (void*)virtualAddressIterator, globalAllocator.RequestPage(), thread->RingPL == UserAppRing);
+            vmm_Map(pageTable, (void*)virtualAddressIterator, Pmm_RequestPage(), thread->RingPL == UserAppRing);
             vmm_SetFlags(pageTable, (void*)virtualAddressIterator, vmm_flag::vmm_Custom1, true); //set master state
         }
     }
@@ -118,7 +118,7 @@ uint64_t FreeSharing(thread_t* thread, uint64_t key){
         uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * 0x1000;
         if(vmm_GetFlags(pageTable, (void*)virtualAddressIterator, vmm_flag::vmm_Custom1)){ // is master
             void* physcialAddress = vmm_GetPhysical(pageTable, (void*)virtualAddressIterator);
-            globalAllocator.FreePage(physcialAddress);  
+            Pmm_FreePage(physcialAddress);  
             thread->MemoryAllocated -= 0x1000;      
         }
 

@@ -243,7 +243,7 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
     thread->RingPL = priviledge;
 
     /* Thread data */
-    void* threadDataPA = globalAllocator.RequestPage();
+    void* threadDataPA = Pmm_RequestPage();
     SelfData* threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
     Keyhole::Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey);
@@ -306,7 +306,7 @@ thread_t* process_t::DuplicateThread(thread_t* source){
     thread->SetupStack();
 
     /* Thread data */
-    void* threadDataPA = globalAllocator.RequestPage();
+    void* threadDataPA = Pmm_RequestPage();
     SelfData* threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
     Keyhole::Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
@@ -395,7 +395,7 @@ void TaskManager::CreatIddleTask(){
     IdleNode[IddleTaskNumber] = thread;
     IddleTaskNumber++;
 
-    void* physcialMemory = globalAllocator.RequestPage();
+    void* physcialMemory = Pmm_RequestPage();
     vmm_Map(thread->Paging, 0x0, physcialMemory, true);
     void* virtualMemory = (void*)vmm_GetVirtualAddress(physcialMemory);
     memcpy(virtualMemory, (void*)&IdleTask, 0x1000);
@@ -473,7 +473,7 @@ bool thread_t::ExtendStack(uint64_t address){
     if(this->Stack->StackStart <= address) return false;
     if(address <= this->Stack->StackEndMax) return false;
     
-    vmm_Map(Paging, (void*)address, globalAllocator.RequestPage(), this->RingPL == UserAppRing);
+    vmm_Map(Paging, (void*)address, Pmm_RequestPage(), this->RingPL == UserAppRing);
 
     return true;
 }

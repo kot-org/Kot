@@ -61,17 +61,17 @@ namespace AHCI{
 
     void Port::Configure(){
         /*Creat static buffer for the disk */
-        Buffer = globalAllocator.RequestPage();
+        Buffer = Pmm_RequestPage();
         BufferSize = 0x1000;
 
         StopCMD();
 
-        void* newBase = globalAllocator.RequestPage();
+        void* newBase = Pmm_RequestPage();
         HbaPort->CommandListBase = (uint32_t)(uint64_t)newBase;
         HbaPort->CommandListBaseUpper = (uint32_t)((uint64_t)newBase >> 32);
         memset(globalPageTableManager[0].GetVirtualAddress((void*)(HbaPort->CommandListBase)), 0, 1024);
 
-        void* fisBase = globalAllocator.RequestPage();
+        void* fisBase = Pmm_RequestPage();
         HbaPort->FisBaseAddress = (uint32_t)(uint64_t)fisBase;
         HbaPort->FisBaseAddressUpper = (uint32_t)((uint64_t)fisBase >> 32);
         memset(globalPageTableManager[0].GetVirtualAddress(fisBase), 0, 256);
@@ -81,7 +81,7 @@ namespace AHCI{
         for (int i = 0; i < 32; i++){
             cmdHeader[i].PrdtLength = 8;
 
-            void* cmdTableAddress = globalAllocator.RequestPage();
+            void* cmdTableAddress = Pmm_RequestPage();
             uint64_t address = (uint64_t)cmdTableAddress + (i << 8);
             cmdHeader[i].CommandTableBaseAddress = (uint32_t)(uint64_t)address;
             cmdHeader[i].CommandTableBaseAddressUpper = (uint32_t)((uint64_t)address >> 32);
