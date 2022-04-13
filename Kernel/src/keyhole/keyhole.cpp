@@ -4,7 +4,6 @@ namespace Keyhole{
     static uint64_t mutexKeyhole;
 
     uint64_t Creat(key_t* key, process_t* parent, process_t* target, enum DataType type, uint64_t data, uint64_t flags){
-        return 0;
         if(!CheckAddress((void*)key, sizeof(key))) return KFAIL;
         
         Atomic::atomicSpinlock(&mutexKeyhole, 0);
@@ -20,10 +19,10 @@ namespace Keyhole{
         uint64_t Page = Address - (Address % 0x1000);
         uint64_t Offset = (Address % 0x1000) / sizeof(uint64_t);
 
-        lockreference_t* AccessAddress = (lockreference_t*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(parent->SharedPaging->GetPhysicalAddress((void*)Page));
+        lockreference_t* AccessAddress = (lockreference_t*)vmm_GetVirtualAddress(vmm_GetPhysical(parent->SharedPaging, (void*)Page));
         
-        if(!parent->SharedPaging->GetFlags((void*)Page, PT_Flag::Present)){
-            parent->SharedPaging->MapMemory((void*)Page, globalAllocator.RequestPage());
+        if(!vmm_GetFlags(parent->SharedPaging, (void*)Page, vmm_flag::vmm_Present)){
+            vmm_Map(parent->SharedPaging, (void*)Page, globalAllocator.RequestPage());
             memset((void*)AccessAddress, 0, 0x1000);
         }
 
@@ -80,18 +79,17 @@ namespace Keyhole{
 
         // check parent
         if(!CheckAddress((void*)lock->Parent, sizeof(process_t))) return KFAIL;
-        if(!CheckAddress((void*)lock->Parent->SharedPaging, sizeof(PageTableManager))) return KFAIL;
         
-        uint64_t VirtualAddress = (uint64_t)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(lock->Parent->SharedPaging->PML4);
+        uint64_t VirtualAddress = (uint64_t)vmm_GetVirtualAddress(lock->Parent->SharedPaging);
         
-        if(!lock->Parent->SharedPaging->GetFlags((void*)VirtualAddress, PT_Flag::Custom0) || lock->Parent->SharedPaging->GetFlags((void*)VirtualAddress, PT_Flag::Custom1) || !lock->Parent->SharedPaging->GetFlags((void*)VirtualAddress, PT_Flag::Custom2)) return KFAIL;
+        if(!vmm_GetFlags(lock->Parent->SharedPaging, (void*)VirtualAddress, vmm_flag::vmm_Custom0) || vmm_GetFlags(lock->Parent->SharedPaging, (void*)VirtualAddress, vmm_flag::vmm_Custom1) || !vmm_GetFlags(lock->Parent->SharedPaging, (void*)VirtualAddress, vmm_flag::vmm_Custom2)) return KFAIL;
         
         uint64_t Page = lock->Address - (lock->Address % 0x1000);
         uint64_t Offset = (lock->Address % 0x1000) / sizeof(uint64_t);
 
-        if(!lock->Parent->SharedPaging->GetFlags((void*)Page, PT_Flag::Present)) return KFAIL;
+        if(!vmm_GetFlags(lock->Parent->SharedPaging, (void*)Page, vmm_flag::vmm_Present)) return KFAIL;
 
-        lockreference_t* AccessAddress = (lockreference_t*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress(lock->Parent->SharedPaging->GetPhysicalAddress((void*)Page));
+        lockreference_t* AccessAddress = (lockreference_t*)(vmm_GetVirtualAddress(vmm_GetPhysical(lock->Parent->SharedPaging, (void*)Page)));
         if(AccessAddress->LockOffset[Offset] != (uint64_t)lock) return KFAIL;
     }
 

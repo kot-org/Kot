@@ -6,7 +6,7 @@ namespace HPET{
 
     void InitialiseHPET(ACPI::HPETHeader* hpet){
         if(hpet == NULL) return;
-        HPETAddress = globalPageTableManager[CPU::GetCoreID()].MapMemory((void*)hpet->Address.Address, 1);
+        HPETAddress = (void*)vmm_Map((void*)hpet->Address.Address);
 
         timer.Counter = (uint64_t*)((uint64_t)HPETAddress + MainCounterValues);
         timer.Frequency = HPETReadRegister(GeneralCapabilitiesAndIDRegister) >> GeneralCapabilitiesAndIDRegisterCounterPeriod;

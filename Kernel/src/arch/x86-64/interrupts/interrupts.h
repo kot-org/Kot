@@ -1,12 +1,9 @@
 #pragma once
-#include <memory/paging/pageFrameAllocator.h>
-#include <arch/x86-64/interrupts/idt.h>
-#include <scheduler/scheduler.h>
-#include <arch/x86-64/cpu/cpu.h>
-#include <arch/x86-64/io/io.h>
-#include <event/event.h>
+#include <arch/arch.h>
 #include <lib/types.h>
 #include <logs/logs.h>
+#include <event/event.h>
+#include <scheduler/scheduler.h>
 
 #define IRQ_START 0x20
 #define IRQ_MAX 0x18

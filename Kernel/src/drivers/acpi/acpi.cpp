@@ -9,11 +9,11 @@ namespace ACPI{
         bool IsXSDT;
         uint64_t entries = 0;
         if(rsdp->XSDTAddress != NULL){
-            sdt = (ACPI::SDTHeader*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress((void*)rsdp->XSDTAddress);
+            sdt = (ACPI::SDTHeader*)vmm_GetVirtualAddress((void*)rsdp->XSDTAddress);
             entries = (sdt->Length - sizeof(ACPI::SDTHeader)) / sizeof(uint64_t);
             IsXSDT = true;
         }else if(rsdp->RSDTAddress != NULL){
-            sdt = (ACPI::SDTHeader*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress((void*)rsdp->RSDTAddress);
+            sdt = (ACPI::SDTHeader*)vmm_GetVirtualAddress((void*)rsdp->RSDTAddress);
             entries = (sdt->Length - sizeof(ACPI::SDTHeader)) / sizeof(uint32_t);
             IsXSDT = false;
         }else{
@@ -29,7 +29,7 @@ namespace ACPI{
             }else{
                 Header = (ACPI::SDTHeader*)(uint32_t)((ACPI::RSDT*)sdt)->SDTPointer[i];
             }
-            Header = (ACPI::SDTHeader*)globalPageTableManager[CPU::GetCoreID()].GetVirtualAddress((void*)Header);
+            Header = (ACPI::SDTHeader*)vmm_GetVirtualAddress((void*)Header);
 
             if(strcmp((char*)Header->Signature, signature, 4)){
                 return Header;

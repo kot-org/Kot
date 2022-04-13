@@ -33,3 +33,5 @@ typedef long unsigned int           size_t;
 typedef void*                       uintptr_t;
 
 typedef uint64_t key_t; 
+
+typedef void* pagetable_t;

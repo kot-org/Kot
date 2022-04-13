@@ -1,14 +1,10 @@
 #include <main/kernelInit.h>
 
-uint64_t LastVirtualAddressUsed = 0;
-uint64_t memorySize = 0;
-
 void InitializeMemory(BootInfo* bootInfo){
     globalAllocator = PageFrameAllocator();
 
     globalAllocator.ReadMemoryMap(bootInfo->Memory);
 
-    vmm_Init(bootInfo);
     return;
 }
 
@@ -35,14 +31,17 @@ void InitializeKernel(stivale2_struct* stivale2_struct){
     gdtInit();
     globalLogs->Successful("GDT intialize");
 
-    InitializeMemory(bootInfo);
-    globalLogs->Successful("Memory intialize");
-    
-    InitializeHeap((void*)LastVirtualAddressUsed, 0x10);
-    globalLogs->Successful("Heap intialize");
-
     InitializeInterrupts();  
     globalLogs->Successful("IDT intialize");
+
+    InitializeMemory(bootInfo);
+    globalLogs->Successful("PMM intialize");
+
+    uint64_t LastAddressUsed = vmm_Init(bootInfo);;
+    globalLogs->Successful("VMM intialize");
+    
+    InitializeHeap((void*)LastAddressUsed, 0x10);
+    globalLogs->Successful("Heap intialize");
 
     CPU::InitCPU();
 

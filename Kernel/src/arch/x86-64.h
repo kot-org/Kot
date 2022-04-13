@@ -1,3 +1,9 @@
+#define MAX_PROCESSORS      256
+#define IO_APIC             256
+
+#define IPI_Schedule        0x40
+#define IPI_Stop            0x41
+
 #pragma once
 
 #include <arch/x86-64/asm.h>
@@ -7,6 +13,7 @@
 #include <arch/x86-64/gdt/gdt.h>
 #include <arch/x86-64/tss/tss.h>
 #include <arch/x86-64/vmm/vmm.h>
+#include <arch/x86-64/pmm/pmm.h>
 #include <arch/x86-64/apic/apic.h>
 #include <arch/x86-64/simd/simd.h>
 #include <arch/x86-64/io/msr/msr.h>

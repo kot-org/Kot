@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory/paging/PageTableManager.h>
+#include <lib/types.h>
 
 void memset(void* start, uint8_t value, uint64_t num);
 int memcmp(const void *aptr, const void *bptr, size_t n);
@@ -16,7 +16,7 @@ struct MemoryShareInfo{
     size_t Size;
     uint64_t PageNumber;
     //Parent
-    struct PageTableManager* PageTableParent;
+    pagetable_t PageTableParent;
     void* VirtualAddressParent;
     char signature1;
 }__attribute__((packed));

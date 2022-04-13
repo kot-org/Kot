@@ -1,6 +1,5 @@
 #include <heap/heap.h>
-#include <memory/paging/PageTableManager.h>
-#include <memory/paging/PageFrameAllocator.h>
+#include <arch/arch.h>
 
 Heap globalHeap;
 
@@ -213,7 +212,7 @@ void ExpandHeap(size_t length){
 
     for (size_t i = 0; i < pageCount; i++){
         void* NewPhysicalAddress = globalAllocator.RequestPage();
-        globalPageTableManager[CPU::GetCoreID()].MapMemory(globalHeap.heapEnd, NewPhysicalAddress);
+        vmm_Map(globalHeap.heapEnd, NewPhysicalAddress);
         globalHeap.heapEnd = (void*)((uint64_t)globalHeap.heapEnd + 0x1000);
     }
 

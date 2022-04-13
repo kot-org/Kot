@@ -1,3 +1,4 @@
+#pragma once
 #include <lib/types.h>
 
 static inline uint64_t ASMReadCr0(){                                            

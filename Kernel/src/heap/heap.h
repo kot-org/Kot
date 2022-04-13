@@ -3,8 +3,7 @@
 #include <lib/stdio.h>
 #include <logs/logs.h>
 #include <arch/x86-64/cpu/cpu.h>
-#include <memory/paging/pageTableManager.h>
-#include <memory/paging/pageFrameAllocator.h>
+#include <arch/arch.h>
 
 struct SegmentHeader{
     bool IsFree;

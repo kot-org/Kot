@@ -193,7 +193,7 @@ uint64_t TaskManager::CreatProcess(process_t** key, uint8_t priviledge, void* ex
     }
 
     /* Setup default paging */
-    proc->SharedPaging = globalPageTableManager[CPU::GetCoreID()].SetupProcessPaging();
+    proc->SharedPaging = vmm_SetupProcess();
 
     /* Setup default priviledge */
     proc->DefaultPriviledge = priviledge;
@@ -233,7 +233,7 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
     thread->Regs = (ContextStack*)calloc(sizeof(ContextStack));
 
     /* Copy paging */
-    thread->Paging = globalPageTableManager[CPU::GetCoreID()].SetupThreadPaging(this->SharedPaging);
+    thread->Paging = vmm_SetupThread(this->SharedPaging);
 
     /* Load new stack */
     thread->SetupStack();
@@ -249,11 +249,7 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
     Keyhole::Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey);
     Keyhole::Creat(&threadData->ProcessKey, this, this, DataTypeThread, (uint64_t)this, DefaultFlagsKey);
 
-    thread->Paging->MapMemory((void*)SelfDataStartAddress, threadDataPA);
-    
-    if(RingPriviledge == UserAppRing){
-        thread->Paging->MapUserspaceMemory((void*)SelfDataStartAddress);
-    }
+    vmm_Map(thread->Paging, (void*)SelfDataStartAddress, threadDataPA, RingPriviledge == UserAppRing);
 
     /* Setup registers */
     thread->Regs->rip = entryPoint;
@@ -262,7 +258,7 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
     thread->Regs->rflags.Reserved0 = true;
     thread->Regs->rflags.IF = true;
     thread->Regs->rflags.IOPL = 0;
-    thread->Regs->cr3 = (uint64_t)thread->Paging->PML4; 
+    thread->Regs->cr3 = (uint64_t)thread->Paging; 
 
     /* Thread info for kernel */
     thread->Info = (threadInfo_t*)malloc(sizeof(threadInfo_t));
@@ -316,11 +312,7 @@ thread_t* process_t::DuplicateThread(thread_t* source){
     Keyhole::Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
     Keyhole::Creat(&threadData->ProcessKey, this, this, DataTypeThread, (uint64_t)this, FlagFullPermissions);
 
-    thread->Paging->MapMemory((void*)SelfDataStartAddress, threadDataPA);
-    
-    if(source->Regs->cs == GDTInfoSelectorsRing[UserAppRing].Code){
-        thread->Paging->MapUserspaceMemory((void*)SelfDataStartAddress);
-    }
+    vmm_Map(thread->Paging, (void*)SelfDataStartAddress, threadDataPA, source->Regs->cs == GDTInfoSelectorsRing[UserAppRing].Code);
 
     /* Setup registers */
     thread->Regs->rip = (uint64_t)source->EntryPoint;
@@ -365,8 +357,8 @@ void thread_t::SetupStack(){
     this->Stack->StackEndMax = StackBottom;
 
     /* Clear stack */
-    PageTable* PML4VirtualAddress = (PageTable*)vmm_GetVirtualAddress((void*)Paging->PML4);
-    PML4VirtualAddress->entries[0xff].Value = NULL;
+    vmm_page_table* PML4VirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((void*)Paging);
+    PML4VirtualAddress->entries[0xff] = NULL;
 }
 
 
@@ -404,8 +396,7 @@ void TaskManager::CreatIddleTask(){
     IddleTaskNumber++;
 
     void* physcialMemory = globalAllocator.RequestPage();
-    thread->Paging->MapMemory(0x0, physcialMemory);
-    thread->Paging->MapUserspaceMemory(0x0);
+    vmm_Map(thread->Paging, 0x0, physcialMemory, true);
     void* virtualMemory = (void*)vmm_GetVirtualAddress(physcialMemory);
     memcpy(virtualMemory, (void*)&IdleTask, 0x1000);
 
@@ -469,8 +460,8 @@ void thread_t::SetParameters(Parameters* FunctionParameters){
 }
 
 void thread_t::CopyStack(thread_t* source){
-    PageTable* PML4VirtualAddressSource = (PageTable*)vmm_GetVirtualAddress((void*)source->Paging->PML4);
-    PageTable* PML4VirtualAddressDestination = (PageTable*)vmm_GetVirtualAddress((void*)Paging->PML4);
+    vmm_page_table* PML4VirtualAddressSource = (vmm_page_table*)vmm_GetVirtualAddress((void*)source->Paging);
+    vmm_page_table* PML4VirtualAddressDestination = (vmm_page_table*)vmm_GetVirtualAddress((void*)Paging);
     PML4VirtualAddressSource->entries[0xff] = PML4VirtualAddressDestination->entries[0xff];
     Stack = source->Stack;
 }
@@ -482,8 +473,7 @@ bool thread_t::ExtendStack(uint64_t address){
     if(this->Stack->StackStart <= address) return false;
     if(address <= this->Stack->StackEndMax) return false;
     
-    Paging->MapMemory((void*)address, globalAllocator.RequestPage());
-    if(this->RingPL == UserAppRing) Paging->MapUserspaceMemory((void*)address);
+    vmm_Map(Paging, (void*)address, globalAllocator.RequestPage(), this->RingPL == UserAppRing);
 
     return true;
 }

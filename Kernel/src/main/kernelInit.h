@@ -5,10 +5,6 @@
 #include <memory/memory.h>
 #include <lib/stdio/cstr.h>
 #include <misc/bitmap/bitmap.h>
-#include <memory/paging/pageFrameAllocator.h>
-#include <memory/paging/pageMapIndexer.h>
-#include <memory/paging/PageTableManager.h>
-#include <memory/paging/paging.h>
 #include <drivers/acpi/acpi.h>
 #include <drivers/hpet/hpet.h>
 #include <heap/heap.h>

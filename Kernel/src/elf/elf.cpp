@@ -9,7 +9,6 @@ namespace ELF{
         process_t* proc = NULL;
         globalTaskManager->CreatProcess(&proc, ring, 0);
         thread_t* mainThread = proc->CreatThread((uint64_t)header->e_entry, NULL);
-        globalPageTableManager[0].ChangePaging(mainThread->Paging);
 
         /* Get location data */
         void* phdrs = (void*)((uint64_t)buffer + (uint64_t)header->e_phoff);
@@ -37,18 +36,17 @@ namespace ELF{
                 {	
                     Elf64_Addr segment = phdr->p_paddr;
 
-                    int pages = Divide(phdr->p_memsz, 0x1000);
+                    int pages = Divide(phdr->p_memsz, PAGE_SIZE);
                     for(uint64_t y = 0; y < pages; y++){
-                        void* virtualAddress = (void*)(segment + y * 0x1000);
+                        void* virtualAddress = (void*)(segment + y * PAGE_SIZE);
                         //Custom 0 flags : is user executable
-                        if(!mainThread->Paging->GetFlags(virtualAddress, PT_Flag::Custom0)){
+                        if(!vmm_GetFlags(mainThread->Paging, virtualAddress, vmm_flag::vmm_Custom0)){
                             void* PhysicalBuffer = globalAllocator.RequestPage();
-                            mainThread->Paging->MapMemory((void*)virtualAddress, (void*)PhysicalBuffer);
-                            mainThread->Paging->MapUserspaceMemory((void*)virtualAddress);
-                            mainThread->Paging->SetFlags(virtualAddress, PT_Flag::Custom0, true);
+                            vmm_Map(mainThread->Paging, (void*)virtualAddress, (void*)PhysicalBuffer, true);
+                            vmm_SetFlags(mainThread->Paging, virtualAddress, vmm_flag::vmm_Custom0, true);
+                            memcpy((void*)vmm_GetVirtualAddress(PhysicalBuffer), (void*)((uint64_t)buffer + phdr->p_offset), phdr->p_filesz);
                         }
                     }
-                    memcpy((void*)segment, (void*)((uint64_t)buffer + phdr->p_offset), phdr->p_filesz);
                     break;   
                 }
                 case PT_DYNAMIC:
@@ -139,7 +137,6 @@ namespace ELF{
             }
         }
         
-        globalPageTableManager[0].RestorePaging();
         mainThread->Launch(FunctionParameters);
         return 1;
     }    

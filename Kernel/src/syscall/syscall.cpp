@@ -84,16 +84,16 @@ KResult Sys_Map(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
     if(Keyhole::Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KFAIL;
-    PageTableManager* pageTable = threadkey->Paging;
+    pagetable_t pageTable = threadkey->Paging;
     void* addressVirtual = (void*)Registers->arg1;
     void* addressPhysical = (void*)Registers->arg3;
     addressVirtual = (void*)(addressVirtual - (uint64_t)addressVirtual % 0x1000);
     if((uint64_t)addressVirtual < HigherHalfAddress){
         if((bool)Registers->arg2){
-            pageTable->MapMemory(addressVirtual, addressPhysical);
+            vmm_Map(pageTable, addressVirtual, addressPhysical);
         }else{
-            pageTable->MapMemory(addressVirtual, globalAllocator.RequestPage());
-            pageTable->SetFlags((void*)addressVirtual, PT_Flag::Custom1, true); //set slave state
+            vmm_Map(pageTable, addressVirtual, globalAllocator.RequestPage());
+            vmm_SetFlags(pageTable, (void*)addressVirtual, vmm_flag::vmm_Custom1, true); //set slave state
         }        
     }
     return KSUCCESS;
@@ -103,14 +103,14 @@ KResult Sys_Unmap(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
     if(Keyhole::Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KFAIL;
-    PageTableManager* pageTable = threadkey->Paging;
+    pagetable_t pageTable = threadkey->Paging;
     void* addressVirtual = (void*)Registers->arg1;
     addressVirtual = (void*)(addressVirtual - (uint64_t)addressVirtual % 0x1000);
     if((uint64_t)addressVirtual < HigherHalfAddress){
-        if(pageTable->GetFlags((void*)addressVirtual, PT_Flag::Custom1)){
-            globalAllocator.FreePage(pageTable->GetPhysicalAddress(addressVirtual));
+        if(vmm_GetFlags(pageTable, (void*)addressVirtual, vmm_flag::vmm_Custom1)){
+            globalAllocator.FreePage(vmm_GetPhysical(pageTable, addressVirtual));
         }
-        pageTable->UnmapMemory(addressVirtual);
+        vmm_Unmap(pageTable, addressVirtual);
     }
     return KSUCCESS;
 }

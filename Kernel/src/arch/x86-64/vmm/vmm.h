@@ -2,8 +2,6 @@
 #include <lib/types.h>
 #include <arch/x86-64.h>
 
-typedef void* pagetable_t;
-
 extern pagetable_t vmm_PageTable;
 extern uint64_t vmm_HHDMAdress;
 
@@ -45,24 +43,27 @@ void vmm_SetFlags(pagetable_t table, void* Address, vmm_flag flags, bool enabled
 
 uint64_t vmm_Map(void* physicalAddress);
 void vmm_Map(void* Address, void* physicalAddress);
-void vmm_Map(pagetable_t table, void* virtualAddress, void* physicalAddress);
-void vmm_Map(pagetable_t table, void* virtualAddress, void* physicalAddress, bool user, bool readWrite);
+void vmm_Map(pagetable_t table, void* Address, void* physicalAddress);
+void vmm_Map(pagetable_t table, void* Address, void* physicalAddress, bool user);
+void vmm_Map(pagetable_t table, void* Address, void* physicalAddress, bool user, bool readWrite);
 
-void vmm_Unmap(void* virtualAddress);
-void vmm_Unmap(pagetable_t table, void* virtualAddress);
-void* vmm_GetPhysical(pagetable_t table, void* virtualAddress);
+void vmm_Unmap(void* Address);
+void vmm_Unmap(pagetable_t table, void* Address);
+void* vmm_GetPhysical(pagetable_t table, void* Address);
 
 void vmm_CopyPageTable(pagetable_t tableSource, pagetable_t tableDestination, uint64_t from, uint64_t to);
 void vmm_Fill(pagetable_t table, uint64_t from, uint64_t to);
 
 void vmm_Swap(pagetable_t table);
-void vmm_Init(struct BootInfo* bootInfo);
+uint64_t vmm_Init(struct BootInfo* bootInfo);
 
 pagetable_t vmm_SetupProcess();
 pagetable_t vmm_SetupThread(pagetable_t parent);
 
 #define PAGE_SIZE 0x1000
-#define PMM_STARTRHALF 0x0
-#define PMM_LOWERHALF 0x100
-#define PMM_HIGHERALF 0x200
+#define VMM_STARTRHALF 0x0
+#define VMM_LOWERHALF 0x100
+#define VMM_HIGHERALF 0x200
+#define VMM_MAXLEVEL 0x4
+#define VMM_LEVELENTRY 0x200
 #define vmm_GetVirtualAddress(PhysicalAddress)((uint64_t)PhysicalAddress + vmm_HHDMAdress)
