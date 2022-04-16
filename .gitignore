@@ -32,8 +32,7 @@ Sysroot/
 OVMFbin/
 limine/
 Local/
-binutils-2.35/build/
-gcc-10.2.0/build/
+build/
 Bin/
 .vs/
 
