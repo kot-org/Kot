@@ -149,7 +149,7 @@ namespace APIC{
         LocalAPICRegisterOffsetRemoteRead			    = 0x0c0,
         LocalAPICRegisterOffsetLogicalDestination	    = 0x0d0,
         LocalAPICRegisterOffsetDestinationFormat	    = 0x0e0,
-        LocalAPICRegisterOffsetSpuriouseIntVector	    = 0x0f0,
+        LocalAPICRegisterOffsetSpuriousIntVector	    = 0x0f0,
         LocalAPICRegisterOffsetInService		        = 0x100,
         LocalAPICRegisterOffsetTriggerMode		        = 0x180,
         LocalAPICRegisterOffsetInterruptdRequest		= 0x200,

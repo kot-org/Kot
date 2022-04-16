@@ -14,6 +14,7 @@ void TaskManager::Scheduler(ContextStack* Registers, uint64_t CoreID){
             /* Save & enqueu thread */
             ThreadEnd->SaveContext(Registers, CoreID);
             EnqueueTask(ThreadEnd);
+            //globalLogs->Warning("TID %x use %u% of cpu", ThreadEnd->TID, (ThreadEnd->TimeAllocate * 100 / (actualTime - ThreadEnd->CreationTime)) / NumberOfCPU);
         }
 
         /* Update time */
@@ -252,6 +253,7 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
     vmm_Map(thread->Paging, (void*)SelfDataStartAddress, threadDataPA, RingPriviledge == UserAppRing);
 
     /* Setup registers */
+    thread->EntryPoint = (void*)entryPoint;
     thread->Regs->rip = entryPoint;
     thread->Regs->cs = (GDTInfoSelectorsRing[RingPriviledge].Code | RingPriviledge);
     thread->Regs->ss = (GDTInfoSelectorsRing[RingPriviledge].Data | RingPriviledge);
@@ -407,6 +409,7 @@ void TaskManager::InitScheduler(uint8_t NumberOfCores){
         CreatIddleTask();
     } 
 
+    NumberOfCPU = NumberOfCores;
     TaskManagerInit = true;
 }
 

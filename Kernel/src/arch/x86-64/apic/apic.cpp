@@ -244,7 +244,6 @@ namespace APIC{
         
         uint32_t timer = localAPICReadRegister(LocalAPICRegisterOffsetLVTTimer);
         localAPICWriteRegister(LocalAPICRegisterOffsetLVTTimer, CreatRegisterValueInterrupts(TimerRegisters) | (timer & 0xfffcef00));    
-        localAPICWriteRegister(LocalAPICRegisterOffsetDivide, 4);
         localAPICWriteRegister(LocalAPICRegisterOffsetInitialCount, (Tick10ms / 10));  
         Atomic::atomicUnlock(&mutexSLT, 0);
     }
@@ -262,7 +261,7 @@ namespace APIC{
     }
 
     void localApicEnableSpuriousInterrupts(){
-        localAPICWriteRegister(LocalAPICRegisterOffsetSpuriouseIntVector, localAPICReadRegister(LocalAPICRegisterOffsetSpuriouseIntVector) | 0x100);
+        localAPICWriteRegister(LocalAPICRegisterOffsetSpuriousIntVector, localAPICReadRegister(LocalAPICRegisterOffsetSpuriousIntVector) | 0x100);
     }
 
     /* APIC */

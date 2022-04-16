@@ -190,6 +190,7 @@ class TaskManager{
         bool TaskManagerInit;  
 
         uint64_t NumberProcessTotal = 0;
+        uint64_t NumberOfCPU = 0;
         uint64_t CurrentTaskExecute = 0;
         uint64_t IddleTaskNumber = 0;
         uint64_t PID = 0;
