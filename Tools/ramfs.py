@@ -38,7 +38,7 @@ def AddFileFromDisk(Self, Path):
     Data = InputFile.read()
     InputFile.close()
     Path = Path.split('/') 
-    Name = Path[-1][:MaxNameSize] + (" " * (MaxNameSize - len(Path[-1])))
+    Name = Path[-1][:MaxNameSize] + (chr(0) * (MaxNameSize - len(Path[-1])))
     AddFile(Self, Name, Size, Data) 
 
 OuputFile = open(OutputFilePath, "wb")
