@@ -11,7 +11,7 @@ LD = $(PREFIX)ld
 AS = $(PREFIX)as
 AR = $(PREFIX)ar
 
-CFLAGS = -Wall -Werror -fpic
+CFLAGS = -Wall -Werror -fpic -std=c17
 LDFLAGS = -shared 
 ASMFLAGS = 
 

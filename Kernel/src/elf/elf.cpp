@@ -83,6 +83,7 @@ namespace ELF{
         }
 
         /* Get app symbol need */
+        /* Rela */
         if(client->RelaSH != NULL && self->RelaSH != NULL){
             Elf64_Rela* rela = (Elf64_Rela*)((uint64_t)client->Buffer + client->RelaSH->sh_offset);
             uint64_t num = client->RelaSH->sh_size / client->RelaSH->sh_entsize;
@@ -109,6 +110,36 @@ namespace ELF{
                 }
 
                 rela = (Elf64_Rela*)((uint8_t*)rela + client->RelaSH->sh_entsize);
+            }            
+        } 
+
+        /* Relat */
+        if(client->RelatSH != NULL && self->RelatSH != NULL){
+            Elf64_Rela* rela = (Elf64_Rela*)((uint64_t)client->Buffer + client->RelatSH->sh_offset);
+            uint64_t num = client->RelatSH->sh_size / client->RelatSH->sh_entsize;
+            
+            for(uint64_t i = 0; i < num; i++){
+                Elf64_Sym* sym = (Elf64_Sym*)((uint64_t)client->Buffer + client->DynsymSH->sh_offset + (ELF64_R_SYM(rela->r_info) * client->DynsymSH->sh_entsize));
+                char* symbol = (char*)((uint64_t)client->Buffer + client->DynstrSH->sh_offset + sym->st_name);
+                
+                /* Now find it in the library */
+                Elf64_Rela* relaLib = (Elf64_Rela*)((uint64_t)self->Buffer + self->RelatSH->sh_offset);
+                uint64_t NumLib = self->RelatSH->sh_size / self->RelatSH->sh_entsize;
+                
+                for(uint64_t i = 0; i < NumLib; i++){
+                    Elf64_Sym* SymLib = (Elf64_Sym*)((uint64_t)self->Buffer + self->DynsymSH->sh_offset + (ELF64_R_SYM(relaLib->r_info) * self->DynsymSH->sh_entsize));
+                    char* symbolLib = (char*)((uint64_t)self->Buffer + self->DynstrSH->sh_offset + SymLib->st_name);
+
+                    if(strcmp(symbol, symbolLib)){
+                        /* Let's link it */
+                        uint64_t* GOTPointer = (uint64_t*)((uint64_t)client->Buffer + (uint64_t)client->GotSH->sh_offset + (2 + ELF64_R_SYM(rela->r_info)) * client->GotSH->sh_entsize);
+                        *GOTPointer = SymLib->st_value;
+                    }
+
+                    relaLib = (Elf64_Rela*)((uint8_t*)relaLib + self->RelatSH->sh_entsize);
+                }
+
+                rela = (Elf64_Rela*)((uint8_t*)rela + client->RelatSH->sh_entsize);
             }            
         } 
 

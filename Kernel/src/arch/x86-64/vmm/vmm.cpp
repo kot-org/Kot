@@ -386,6 +386,13 @@ uint64_t vmm_Init(BootInfo* bootInfo){
         CurentAddress += PAGE_SIZE;
     }
 
+    /* map framebuffer */
+    uint64_t FramebufferSize = bootInfo->Framebuffer->framebuffer_height * bootInfo->Framebuffer->framebuffer_width * bootInfo->Framebuffer->framebuffer_bpp;
+    bootInfo->Framebuffer->framebuffer_addr = vmm_GetVirtualAddress((bootInfo->Framebuffer->framebuffer_addr - vmm_HHDMAdress));
+    for(uint64_t i = 0; i < FramebufferSize; i += PAGE_SIZE){
+        vmm_Map((void*)(bootInfo->Framebuffer->framebuffer_addr - vmm_HHDMAdress + i));
+    }
+
     vmm_Fill(vmm_PageTable, VMM_LOWERHALF, VMM_HIGHERALF);
 
     /* Update variable in the lower half */

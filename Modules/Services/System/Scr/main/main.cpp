@@ -1,9 +1,9 @@
 #include <kot/sys/sys.h>
-#include "main.h"
+#include <main/main.h>
 
 void Putpixel(stivale2_struct_tag_framebuffer* framebuffer, int x, int y, int r, int g, int b) {
     unsigned char* screen = (unsigned char*)framebuffer->framebuffer_addr;
-    int where = (x + (y * framebuffer->framebuffer_width)) * 4;
+    int where = (x + (y * framebuffer->framebuffer_width)) * framebuffer->framebuffer_bpp;
     screen[where] = b;          // BLUE
     screen[where + 1] = g;      // GREEN
     screen[where + 2] = r;      // RED
@@ -24,13 +24,6 @@ void Rectangle(stivale2_struct_tag_framebuffer* framebuffer, int w, int h, int x
 }
  
 int main(KernelInfo* kernelInfo){
-    int i = 1;
-    Syscall_0(0);
-    SYS_Pause(_main_thread);
-    while(true){
-        Rectangle(kernelInfo->framebuffer, 500, 500, i * 500, 0, 0xee, 0xf1, 0xf);
-        i++;
-    }
-       
+    Rectangle(kernelInfo->framebuffer, 500, 500, 0, 0, 231, 76, 60);
     while(true);
 }

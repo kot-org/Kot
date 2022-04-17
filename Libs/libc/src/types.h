@@ -42,6 +42,12 @@ typedef unsigned long long int      KResult;
 #endif
 
 #if __WORDSIZE == 64
+typedef unsigned long int           kprocess_t;
+#else
+typedef unsigned long long int      kprocess_t;
+#endif
+
+#if __WORDSIZE == 64
 typedef unsigned long int           kthread_t;
 #else
 typedef unsigned long long int      kthread_t;
@@ -61,6 +67,3 @@ struct parameters_t{
     uint64_t Parameter4;
     uint64_t Parameter5;
 }__attribute__((packed));
-
-extern uint64_t _main_thread;
-extern uint64_t _process;
