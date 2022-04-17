@@ -55,7 +55,7 @@ void InitializeKernel(stivale2_struct* stivale2_struct){
 
     //frame buffer
     kernelInfo->framebuffer = (stivale2_struct_tag_framebuffer*)malloc(sizeof(stivale2_struct_tag_framebuffer));
-    memcpy(kernelInfo->framebuffer, &bootInfo->Framebuffer, sizeof(stivale2_struct_tag_framebuffer));
+    memcpy(kernelInfo->framebuffer, bootInfo->Framebuffer, sizeof(stivale2_struct_tag_framebuffer));
 
     //ramfs
     kernelInfo->ramfs = (RamFs*)malloc(sizeof(RamFs));
@@ -95,6 +95,7 @@ void InitializeKernel(stivale2_struct* stivale2_struct){
 
     APIC::LoadCores();
 
+    
     globalTaskManager->EnabledScheduler(CPU::GetCoreID());
 
     LaunchUserSpace();

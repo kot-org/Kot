@@ -18,7 +18,7 @@ namespace ELF{
 
         LoadSections(self);
 
-        memset(buffer + self->GotSH->sh_offset, 0xff, self->GotSH->sh_size);
+        uint64_t Address = GetLastAddressUsed(self);
 
         if(self->DynSH != NULL){
             Elf64_Dyn* dyn = (Elf64_Dyn*)((uint64_t)buffer + self->DynSH->sh_offset);
@@ -27,7 +27,6 @@ namespace ELF{
             for(uint64_t i = 0; i < num; i++){
                 if(dyn->d_tag == DT_NEEDED){
                     char* name = (char*)((uint64_t)buffer + (uint64_t)self->DynstrSH->sh_offset + (uint64_t)dyn->d_un.d_ptr);
-                    globalLogs->Successful("%s", name);
 
                     /* Load library file */
                     RamFS::File* LibFile = RamFS::Find(name);
@@ -35,34 +34,21 @@ namespace ELF{
                     Read(LibFile, BufferLib);
 
                     /* Load library */
-                    LoadLibrary(mainThread->Paging, self, BufferLib);
+                    LoadLibrary(mainThread->Paging, self, BufferLib, &Address);
                 }
 
                 dyn = (Elf64_Dyn*)((uint8_t*)dyn + self->DynSH->sh_entsize);
             }
         }
-
-        if(self->RelatSH != NULL){
-            Elf64_Rela* rela = (Elf64_Rela*)((uint64_t)self->Buffer + self->RelatSH->sh_offset);
-            uint64_t num = self->RelatSH->sh_size / self->RelatSH->sh_entsize;
-            
-            for(uint64_t i = 0; i < num; i++){
-                Elf64_Sym* sym = (Elf64_Sym*)((uint64_t)self->Buffer + self->DynsymSH->sh_offset + (ELF64_R_SYM(rela->r_info) * self->DynsymSH->sh_entsize));
-                char* symbol = (char*)((uint64_t)self->Buffer + self->DynstrSH->sh_offset + sym->st_name);
-                globalLogs->Successful("%s", symbol);
-
-                rela = (Elf64_Rela*)((uint8_t*)rela + self->RelatSH->sh_entsize);
-            }            
-        }
-
+        
         /* Load the elf */
-        LoadElf(mainThread->Paging, self);
+        LoadBinary(mainThread->Paging, self, 0);
         
         mainThread->Launch(FunctionParameters);
         return KSUCCESS;
     }
 
-    KResult LoadLibrary(pagetable_t paging, elf_t* app, void* buffer){
+    KResult LoadLibrary(pagetable_t paging, elf_t* client, void* buffer, uint64_t* address){
         elf_t* self = (elf_t*)calloc(sizeof(elf_t));
         self->Buffer = buffer;
         self->Header = (Elf64_Ehdr*)buffer;
@@ -75,39 +61,62 @@ namespace ELF{
         
         LoadSections(self);
 
+        /* Map local symbols */
+
+        if(self->GotSH != NULL){
+            Elf64_Rela* rela = (Elf64_Rela*)((uint64_t)self->Buffer + self->RelaSH->sh_offset);
+            uint64_t NumLib = self->RelaSH->sh_size / self->RelaSH->sh_entsize;
+            
+            for(uint64_t i = 0; i < NumLib; i++){
+                Elf64_Sym* SymLib = (Elf64_Sym*)((uint64_t)self->Buffer + self->DynsymSH->sh_offset + (ELF64_R_SYM(rela->r_info) * self->DynsymSH->sh_entsize));
+                char* symbolLib = (char*)((uint64_t)self->Buffer + self->DynstrSH->sh_offset + SymLib->st_name);
+
+                /* Update symbol entry */
+                SymLib->st_value += *address;
+
+                /* Set symbol entry in GOT */
+                uint64_t* GOTPointer = (uint64_t*)((uint64_t)self->Buffer + (uint64_t)self->GotSH->sh_offset + (2 + ELF64_R_SYM(rela->r_info)) * self->GotSH->sh_entsize);
+                *GOTPointer = SymLib->st_value;
+
+                rela = (Elf64_Rela*)((uint8_t*)rela + self->RelaSH->sh_entsize);
+            }
+        }
+
         /* Get app symbol need */
-        if(app->RelaSH != NULL){
-            Elf64_Rela* rela = (Elf64_Rela*)((uint64_t)app->Buffer + app->RelaSH->sh_offset);
-            uint64_t num = app->RelaSH->sh_size / app->RelaSH->sh_entsize;
+        if(client->RelaSH != NULL && self->RelaSH != NULL){
+            Elf64_Rela* rela = (Elf64_Rela*)((uint64_t)client->Buffer + client->RelaSH->sh_offset);
+            uint64_t num = client->RelaSH->sh_size / client->RelaSH->sh_entsize;
             
             for(uint64_t i = 0; i < num; i++){
-                Elf64_Sym* sym = (Elf64_Sym*)((uint64_t)app->Buffer + app->DynsymSH->sh_offset + (ELF64_R_SYM(rela->r_info) * app->DynsymSH->sh_entsize));
-                char* symbol = (char*)((uint64_t)app->Buffer + app->DynstrSH->sh_offset + sym->st_name);
+                Elf64_Sym* sym = (Elf64_Sym*)((uint64_t)client->Buffer + client->DynsymSH->sh_offset + (ELF64_R_SYM(rela->r_info) * client->DynsymSH->sh_entsize));
+                char* symbol = (char*)((uint64_t)client->Buffer + client->DynstrSH->sh_offset + sym->st_name);
                 
                 /* Now find it in the library */
-                Elf64_Rela* RelaLib = (Elf64_Rela*)((uint64_t)self->Buffer + self->RelaSH->sh_offset);
+                Elf64_Rela* relaLib = (Elf64_Rela*)((uint64_t)self->Buffer + self->RelaSH->sh_offset);
                 uint64_t NumLib = self->RelaSH->sh_size / self->RelaSH->sh_entsize;
                 
                 for(uint64_t i = 0; i < NumLib; i++){
-                    Elf64_Sym* SymLib = (Elf64_Sym*)((uint64_t)self->Buffer + self->DynsymSH->sh_offset + (ELF64_R_SYM(RelaLib->r_info) * self->DynsymSH->sh_entsize));
+                    Elf64_Sym* SymLib = (Elf64_Sym*)((uint64_t)self->Buffer + self->DynsymSH->sh_offset + (ELF64_R_SYM(relaLib->r_info) * self->DynsymSH->sh_entsize));
                     char* symbolLib = (char*)((uint64_t)self->Buffer + self->DynstrSH->sh_offset + SymLib->st_name);
 
                     if(strcmp(symbol, symbolLib)){
                         /* Let's link it */
-                        uint64_t* GOTPointer = (uint64_t*)((uint64_t)app->Buffer + (uint64_t)app->GotSH->sh_offset + (2 + ELF64_R_SYM(rela->r_info)) * app->GotSH->sh_entsize);
+                        uint64_t* GOTPointer = (uint64_t*)((uint64_t)client->Buffer + (uint64_t)client->GotSH->sh_offset + (2 + ELF64_R_SYM(rela->r_info)) * client->GotSH->sh_entsize);
                         *GOTPointer = SymLib->st_value;
-                        
-                        globalLogs->Warning("%x %x %s", i, RelaLib->r_offset, symbol);
                     }
 
-                    RelaLib = (Elf64_Rela*)((uint8_t*)RelaLib + self->RelaSH->sh_entsize);
+                    relaLib = (Elf64_Rela*)((uint8_t*)relaLib + self->RelaSH->sh_entsize);
                 }
 
-                rela = (Elf64_Rela*)((uint8_t*)rela + app->RelaSH->sh_entsize);
+                rela = (Elf64_Rela*)((uint8_t*)rela + client->RelaSH->sh_entsize);
             }            
         } 
 
-        LoadElf(paging, self);
+        LoadBinary(paging, self, *address);
+
+        *address = GetLastAddressUsed(self);
+
+        return KSUCCESS;
     }
 
     bool Check(elf_t* self){
@@ -165,19 +174,23 @@ namespace ELF{
             }
         }
 
+        if(ReturnValue % PAGE_SIZE != 0){
+            ReturnValue -= ReturnValue % PAGE_SIZE;
+            ReturnValue += PAGE_SIZE;
+        }
         return ReturnValue;
     }
 
-    void LoadElf(pagetable_t table, struct elf_t* self){
+    void LoadBinary(pagetable_t table, struct elf_t* self, uint64_t address){
         void* phdrs = (void*)((uint64_t)self->Buffer + (uint64_t)self->Header->e_phoff);
         for(int i = 0; i < self->Header->e_phnum; i++){
             Elf64_Phdr* phdr = (Elf64_Phdr*)((uint64_t)phdrs + (i * self->Header->e_phentsize));
             switch (phdr->p_type){
                 case PT_LOAD:
                 {	
-                    Elf64_Addr segment = phdr->p_vaddr;
+                    Elf64_Addr segment = phdr->p_vaddr + address;
 
-                    int pages = Divide(phdr->p_memsz, PAGE_SIZE);
+                    uint64_t pages = Divide(phdr->p_memsz, PAGE_SIZE);
                     uint64_t size = phdr->p_filesz;
                     for(uint64_t y = 0; y < pages; y++){
                         uint64_t SizeToCopy = 0;

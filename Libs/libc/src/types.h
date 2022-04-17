@@ -61,3 +61,6 @@ struct parameters_t{
     uint64_t Parameter4;
     uint64_t Parameter5;
 }__attribute__((packed));
+
+extern uint64_t _main_thread;
+extern uint64_t _process;

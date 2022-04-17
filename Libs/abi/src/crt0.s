@@ -1,18 +1,18 @@
 .intel_syntax noprefix
 
-.global _start, self, parent
+.global _start, _main_thread, _process
 
 .section .data
-	self: .long 0
-	parent: .long 0
+	_main_thread: .long 0
+	_process: .long 0
 
 .section .text
 _start:
 	mov rax, [gs:0x0]
 	mov rbx, [rax + 0x0]
-	mov [self], rbx
-	mov rbx, [rax + 0x0]
-	mov [self], rbx
+	mov [_main_thread], rbx
+	mov rbx, [rax + 0x8]
+	mov [_process], rbx
 	call main
 	
 

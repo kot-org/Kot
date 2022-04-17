@@ -29,13 +29,9 @@ KResult SYS_Unpause(kthread_t self){
     return Syscall_8(KSys_UnPause, self);
 }
 
-KResult SYS_Map(kthread_t self, void* addressVirtual){
-    return Syscall_32(KSys_Map, self, addressVirtual, false, 0);
+KResult SYS_Map(kthread_t self, void* addressVirtual, bool isPhysical, void* addressPhysical){
+    return Syscall_32(KSys_Map, self, addressVirtual, isPhysical, addressPhysical);
 }
-
-// KResult SYS_Map(kthread_t self, void* addressVirtual, void* addressPhysical){
-//     return Syscall_32(KSys_Map, self, addressVirtual, true, addressPhysical);
-// }
 
 KResult SYS_Unmap(kthread_t self, void* addressVirtual){
     return Syscall_16(KSys_Unmap, self, addressVirtual);
