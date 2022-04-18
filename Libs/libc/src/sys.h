@@ -24,8 +24,8 @@ KResult SYS_Fork(kthread_t task, struct parameters_t* param);
 KResult SYS_Exit(kthread_t self, uint64_t errorCode);
 KResult SYS_Pause(kthread_t self);
 KResult SYS_Unpause(kthread_t self);
-KResult SYS_Map(kthread_t self, void* addressVirtual, bool isPhysical, void* addressPhysical);
-KResult SYS_Unmap(kthread_t self, void* addressVirtual);
+KResult SYS_Map(kthread_t self, uint64_t* addressVirtual, bool isPhysical, void* addressPhysical, size_t size, bool findFree);
+KResult SYS_Unmap(kthread_t self, void* addressVirtual, size_t size);
 
 
 extern uint64_t _main_thread;

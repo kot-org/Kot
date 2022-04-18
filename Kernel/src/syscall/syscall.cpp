@@ -80,37 +80,84 @@ KResult Sys_UnPause(ContextStack* Registers, thread_t* Thread){
     return globalTaskManager->Unpause(threadkey);
 }
 
+/* Sys_Map :
+    Arguments : 
+    0 -> process            > key
+    1 -> virtual address    > uint64_t*
+    2 -> physicall or not   > bool
+    3 -> physical address   > void*
+    4 -> size               > size_t
+    5 -> find free address  > bool
+*/
 KResult Sys_Map(ContextStack* Registers, thread_t* Thread){
-    thread_t* threadkey;
+    process_t* processkey;
     uint64_t flags;
-    if(Keyhole::Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KFAIL;
-    pagetable_t pageTable = threadkey->Paging;
-    void* addressVirtual = (void*)Registers->arg1;
+    if(Keyhole::Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KFAIL;
+    pagetable_t pageTable = processkey->SharedPaging;
+    
+    uint64_t* addressVirtual = (uint64_t*)Registers->arg1;
     void* addressPhysical = (void*)Registers->arg3;
-    addressVirtual = (void*)(addressVirtual - (uint64_t)addressVirtual % 0x1000);
-    if((uint64_t)addressVirtual < HigherHalfAddress){
-        if((bool)Registers->arg2){
-            vmm_Map(pageTable, addressVirtual, addressPhysical);
-        }else{
-            vmm_Map(pageTable, addressVirtual, Pmm_RequestPage());
-            vmm_SetFlags(pageTable, (void*)addressVirtual, vmm_flag::vmm_Custom1, true); //set slave state
-        }        
+    size_t size = Registers->arg4;
+    bool IsNeedToBeFree = (bool)Registers->arg5; 
+
+    *addressVirtual = *addressVirtual - ((uint64_t)*addressVirtual % PAGE_SIZE);
+    uint64_t pages = Divide(size, PAGE_SIZE);
+    /* find free page */
+    if(IsNeedToBeFree){
+        uint64_t FreeSize = 0;
+        for(uint64_t FreeSize = 0; FreeSize < size;){
+            while(vmm_GetFlags(pageTable, (void*)*addressVirtual, vmm_flag::vmm_Present)){
+                *addressVirtual += PAGE_SIZE;
+                FreeSize = 0;
+            }
+            FreeSize += PAGE_SIZE;
+        }
     }
+
+    if((uint64_t)addressVirtual + pages * PAGE_SIZE < HigherHalfAddress){
+        for(uint64_t i = 0; i < pages; i += PAGE_SIZE){
+            if(vmm_GetFlags(pageTable, (void*)addressVirtual, vmm_flag::vmm_Custom1)){
+                Pmm_FreePage(vmm_GetPhysical(pageTable, addressVirtual));
+            }
+            vmm_Unmap(pageTable, addressVirtual);
+        }
+        
+        for(uint64_t i = 0; i < pages; i += PAGE_SIZE){
+            if((bool)Registers->arg2){
+                vmm_Map(pageTable, (void*)*addressVirtual + i, addressPhysical + i);
+            }else{
+                vmm_Map(pageTable, (void*)*addressVirtual + i, Pmm_RequestPage());
+                vmm_SetFlags(pageTable, (void*)*addressVirtual, vmm_flag::vmm_Custom1, true); //set master state
+            }        
+        } 
+    }
+
     return KSUCCESS;
 }
 
+/* Sys_Unmap :
+    Arguments : 
+    0 -> process            > key
+    1 -> virtual address    > uint64_t*
+    4 -> size               > size_t
+*/
 KResult Sys_Unmap(ContextStack* Registers, thread_t* Thread){
-    thread_t* threadkey;
+    process_t* processkey;
     uint64_t flags;
-    if(Keyhole::Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KFAIL;
-    pagetable_t pageTable = threadkey->Paging;
+    if(Keyhole::Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KFAIL;
+    pagetable_t pageTable = processkey->SharedPaging;
     void* addressVirtual = (void*)Registers->arg1;
+    size_t size = Registers->arg2;
+
     addressVirtual = (void*)(addressVirtual - (uint64_t)addressVirtual % 0x1000);
-    if((uint64_t)addressVirtual < HigherHalfAddress){
-        if(vmm_GetFlags(pageTable, (void*)addressVirtual, vmm_flag::vmm_Custom1)){
-            Pmm_FreePage(vmm_GetPhysical(pageTable, addressVirtual));
+    uint64_t pages = Divide(size, PAGE_SIZE);
+    if((uint64_t)addressVirtual + pages * PAGE_SIZE < HigherHalfAddress){
+        for(uint64_t i = 0; i < pages; i += PAGE_SIZE){
+            if(vmm_GetFlags(pageTable, (void*)addressVirtual, vmm_flag::vmm_Custom1)){
+                Pmm_FreePage(vmm_GetPhysical(pageTable, addressVirtual));
+            }
+            vmm_Unmap(pageTable, addressVirtual);
         }
-        vmm_Unmap(pageTable, addressVirtual);
     }
     return KSUCCESS;
 }

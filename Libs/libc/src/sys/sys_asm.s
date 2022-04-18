@@ -11,7 +11,7 @@ DoSyscall:
     mov     rdx, rcx
     mov     r10, r8
     mov     r8, r9
-    mov     r9, qword[rbp+16]
+    mov     r9, qword[rbp + 16]
     syscall
     mov     rax, rdi
     pop     rbp

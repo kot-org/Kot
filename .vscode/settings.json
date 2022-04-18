@@ -50,7 +50,9 @@
         "unordered_map": "cpp",
         "istream": "cpp",
         "ostream": "cpp",
-        "sys.h": "c"
+        "sys.h": "c",
+        "heap.h": "c",
+        "atomic.h": "c"
     },
     "debug.onTaskErrors": "debugAnyway",
     "C_Cpp.errorSquiggles": "Disabled",

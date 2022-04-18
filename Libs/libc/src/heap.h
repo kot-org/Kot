@@ -1,4 +1,5 @@
 #pragma once
+#include <kot/sys.h>
 #include <kot/types.h>
 #include <kot/memory.h>
 #include <kot/atomic.h>
@@ -17,20 +18,24 @@ struct Heap{
     size_t TotalSize;
     size_t FreeSize;
     size_t UsedSize;
-    void* heapEnd;
+    uint64_t heapEnd;
     uint64_t lock;
+    kprocess_t process;
 };
 
-extern struct Heap globalHeap;
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
-void InitializeHeap(void* heapAddress, size_t pageCount);
-
+void InitializeHeap(kprocess_t process);
 void* calloc(size_t size);
 void* malloc(size_t size);
 void* realloc(void* buffer, size_t size);
 void free(void* address);
-
 void  SplitSegment(struct SegmentHeader* segment, size_t size);
 void  ExpandHeap(size_t lenght);
-
 struct SegmentHeader* GetSegmentHeader(void* address);
+
+#if defined(__cplusplus)
+}
+#endif

@@ -2,9 +2,15 @@
 
 struct Heap globalHeap;
 
-void InitializeHeap(void* heapAddress, size_t pageCount){
-    globalHeap.heapEnd = heapAddress;
-    ExpandHeap(pageCount * 0x1000);
+void test(){
+    return;
+}
+
+void InitializeHeap(kprocess_t process){
+    test();
+    return;
+    globalHeap.process = process;
+    ExpandHeap(0x1000);
 }
 
 void* calloc(size_t size){
@@ -14,12 +20,13 @@ void* calloc(size_t size){
 }
 
 void* malloc(size_t size){
+    if (size == 0) return NULL;
+    
     if(size % 0x10 > 0){ // it is not a multiple of 0x10
         size -= (size % 0x10);
         size += 0x10;
     }
 
-    if (size == 0) return NULL;
 
     atomicSpinlock(&globalHeap.lock, 0);
     atomicLock(&globalHeap.lock, 0);
@@ -116,7 +123,7 @@ void MergeThisToLast(struct SegmentHeader* header){
 void MergeNextToThis(struct SegmentHeader* header){
     // merge this segment into the next segment
 
-    SegmentHeader* headerNext = header->next;
+    struct SegmentHeader* headerNext = header->next;
     header->length += header->next->length + sizeof(struct SegmentHeader);
     header->next = header->next->next;
     if(header->next != NULL) header->next->last = header;
@@ -131,7 +138,7 @@ void free(void* address){
     if(address != NULL){
         atomicSpinlock(&globalHeap.lock, 0);
         atomicLock(&globalHeap.lock, 0);
-        SegmentHeader* header = (SegmentHeader*)(void*)((uint64_t)address - sizeof(struct SegmentHeader));
+        struct SegmentHeader* header = (struct SegmentHeader*)(void*)((uint64_t)address - sizeof(struct SegmentHeader));
         header->IsFree = true;
         globalHeap.FreeSize += header->length + sizeof(struct SegmentHeader);
         globalHeap.UsedSize -= header->length + sizeof(struct SegmentHeader);
@@ -179,9 +186,9 @@ void* realloc(void* buffer, size_t size){
     return newBuffer;
 }
 
-void SplitSegment(SegmentHeader* segment, size_t size){
+void SplitSegment(struct SegmentHeader* segment, size_t size){
     if(segment->length > size + sizeof(struct SegmentHeader)){
-        SegmentHeader* newSegment = (SegmentHeader*)(void*)((uint64_t)segment + sizeof(struct SegmentHeader) + (uint64_t)size);
+        struct SegmentHeader* newSegment = (struct SegmentHeader*)(void*)((uint64_t)segment + sizeof(struct SegmentHeader) + (uint64_t)size);
         memset(newSegment, 0, sizeof(struct SegmentHeader));
         newSegment->IsFree = true;         
         newSegment->singature = 0xff;       
@@ -205,14 +212,11 @@ void ExpandHeap(size_t length){
         length += 0x1000;
     }
 
-    size_t pageCount = length / 0x1000;
 
     struct SegmentHeader* newSegment = (struct SegmentHeader*)globalHeap.heapEnd;
 
-    for (size_t i = 0; i < pageCount; i++){
-        vmm_Map(globalHeap.heapEnd, NewPhysicalAddress);
-        globalHeap.heapEnd = (void*)((uint64_t)globalHeap.heapEnd + 0x1000);
-    }
+    SYS_Map(globalHeap.process, &globalHeap.heapEnd, false, 0, length, false);
+    globalHeap.heapEnd =+ length;
 
     if(globalHeap.lastSegment != NULL && globalHeap.lastSegment->IsFree){
         globalHeap.lastSegment->length += length;

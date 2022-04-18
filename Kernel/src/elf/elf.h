@@ -15,13 +15,5 @@ namespace ELF{
     struct elf_t{
         void* Buffer;
         Elf64_Ehdr* Header;
-        Elf64_Shdr* RelaSH;
-        Elf64_Shdr* RelatSH;
-        Elf64_Shdr* DynSH;
-        Elf64_Shdr* GotSH;
-        Elf64_Shdr* DynsymSH;
-        Elf64_Shdr* DynstrSH;
-        Elf64_Shdr* SymSH;
-        Elf64_Shdr* StrSH;
     };
 }

@@ -1,6 +1,7 @@
 .intel_syntax noprefix
 
 .global _start, _main_thread, _process
+.extern main
 
 .section .data
 	_main_thread: .long 0
@@ -13,7 +14,7 @@ _start:
 	mov [_main_thread], rbx
 	mov rbx, [rax + 0x8]
 	mov [_process], rbx
-	call main
+	jmp main
 	
 
 .size _start, . - _start

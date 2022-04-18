@@ -6,7 +6,6 @@ SRCDIR := ../src
 BINDIR = ../../../Bin/Modules
 
 CC = $(PREFIX)gcc
-ASMC = nasm
 LD = $(PREFIX)ld
 AS = $(PREFIX)as
 AR = $(PREFIX)ar
@@ -29,7 +28,7 @@ OBJINC += $(patsubst $(SRCDIR)/%.h, $(INCDIR)/%.h, $(INC))
 DIRS = $(wildcard $(SRCDIR)/*)         
 
 	
-main: copy $(OBJS) link 
+main: copy $(OBJS) link copyToFS
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@ echo !==== COMPILING $^
@@ -51,4 +50,7 @@ link:
 	@ echo !==== LINKING
 	$(LD) $(LDFLAGS) -o $(BUILDDIR)/libc.so $(OBJS) $(OBJSCPP)
 	cp $(BUILDDIR)/libc.so $(BINDIR)
+
+copyToFS:
+	./../../../Tools/BuildRamFS.sh
 
