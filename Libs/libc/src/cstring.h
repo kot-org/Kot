@@ -1,4 +1,5 @@
 #pragma once
+#include <kot/sys.h>
 #include <kot/types.h>
 
 #if defined(__cplusplus)

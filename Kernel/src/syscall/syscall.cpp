@@ -219,6 +219,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
 };
 
 extern "C" uint64_t SyscallDispatch(ContextStack* Registers, thread_t* Self){
+    globalLogs->Warning("Syscall %x", Registers->GlobalPurpose);
     if(Registers->GlobalPurpose >= Syscall_Count){
         Registers->arg0 = KFAIL;
         return GDTInfoSelectorsRing[UserAppRing].Code;        

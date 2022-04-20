@@ -10,8 +10,7 @@ LD = $(PREFIX)ld
 AS = $(PREFIX)as
 AR = $(PREFIX)ar
 
-CFLAGS = -Wall -Werror -fpic -std=c17
-LDFLAGS = -shared 
+CFLAGS = 
 ASMFLAGS = 
 
 
@@ -48,8 +47,7 @@ $(INCDIR)/%.h : $(SRCDIR)/%.h
 
 link:
 	@ echo !==== LINKING
-	$(LD) $(LDFLAGS) -o $(BUILDDIR)/libc.so $(OBJS) $(OBJSCPP)
-	cp $(BUILDDIR)/libc.so $(BINDIR)
+	$(AR) rcs $(BUILDDIR)/libc.a $(OBJS) $(OBJSCPP)
 
 copyToFS:
 	./../../../Tools/BuildRamFS.sh

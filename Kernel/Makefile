@@ -60,3 +60,13 @@ creatISO:
         $(LIMINEBUIDLDIR) -o $(BUILDDIR)/kot.iso
 	./limine/limine-deploy $(BUILDDIR)/kot.iso
 
+creatISOEFI:
+	@ echo !==== ISO EFi
+	mkdir -p  $(LIMINEBUIDLDIR)
+	cp $(BUILDDIR)/kernel.elf limine/limine.sys limine/limine-cd-efi.bin  $(LIMINEBUIDLDIR)/
+	xorriso -as mkisofs --efi-boot limine-cd-efi.bin -efi-boot-part --efi-boot-image -J -o $(BUILDDIR)/kotEFI.iso  $(LIMINEBUIDLDIR)
+	./limine/limine-deploy $(BUILDDIR)/kotEFI.iso
+
+ovmf:
+	mkdir -p ../ovmf
+	-wget -nc https://retrage.github.io/edk2-nightly/bin/RELEASEX64_OVMF.fd -O ../ovmf/ovmf.fd

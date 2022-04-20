@@ -9,12 +9,12 @@
 
 .section .text
 _start:
+	call main
 	mov rax, [gs:0x0]
 	mov rbx, [rax + 0x0]
 	mov [_main_thread], rbx
 	mov rbx, [rax + 0x8]
 	mov [_process], rbx
-	jmp main
 	
 
 .size _start, . - _start

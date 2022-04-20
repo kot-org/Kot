@@ -2,15 +2,12 @@
 
 struct Heap globalHeap;
 
-void test(){
-    return;
-}
-
 void InitializeHeap(kprocess_t process){
-    test();
-    return;
+    Syscall_0(0);
     globalHeap.process = process;
+    Syscall_0(0);
     ExpandHeap(0x1000);
+    Syscall_0(0);
 }
 
 void* calloc(size_t size){
@@ -207,15 +204,11 @@ void SplitSegment(struct SegmentHeader* segment, size_t size){
 
 void ExpandHeap(size_t length){
     length += sizeof(struct SegmentHeader);
-    if(length % 0x1000){
-        length -= length % 0x1000;
-        length += 0x1000;
-    }
 
+    SYS_Map(globalHeap.process, &globalHeap.heapEnd, false, 0, length, false);
 
     struct SegmentHeader* newSegment = (struct SegmentHeader*)globalHeap.heapEnd;
 
-    SYS_Map(globalHeap.process, &globalHeap.heapEnd, false, 0, length, false);
     globalHeap.heapEnd =+ length;
 
     if(globalHeap.lastSegment != NULL && globalHeap.lastSegment->IsFree){

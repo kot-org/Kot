@@ -15,6 +15,9 @@ void InitializeKernel(stivale2_struct* stivale2_struct){
     asm("cli");
 
     BootInfo* bootInfo = Boot::Init(stivale2_struct);
+    
+    /* lear frame buffer */
+    memset((void*)bootInfo->Framebuffer->framebuffer_addr, 0, bootInfo->Framebuffer->framebuffer_pitch * bootInfo->Framebuffer->framebuffer_height);
 
     SerialPort::Initialize();
     SerialPort::ClearMonitor();
@@ -22,9 +25,6 @@ void InitializeKernel(stivale2_struct* stivale2_struct){
 
     gdtInit();
     globalLogs->Successful("GDT intialize");
-
-    InitializeInterrupts();  
-    globalLogs->Successful("IDT intialize");
 
     Pmm_Init(bootInfo->Memory);
     globalLogs->Successful("PMM intialize");
@@ -34,6 +34,10 @@ void InitializeKernel(stivale2_struct* stivale2_struct){
     
     InitializeHeap((void*)LastAddressUsed, 0x10);
     globalLogs->Successful("Heap intialize");
+    
+    InitializeInterrupts();  
+    globalLogs->Successful("IDT intialize");
+
 
     CPU::InitCPU();
 

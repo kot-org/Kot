@@ -3,7 +3,7 @@
 
 namespace ACPI{
     struct RSDP2{
-        unsigned char Signature[8];
+        uint8_t Signature[8];
         uint8_t Checksum;
         uint8_t OEMID[6];
         uint8_t Revision;
@@ -15,7 +15,7 @@ namespace ACPI{
     }__attribute__((packed));
 
     struct SDTHeader{
-        unsigned char Signature[4];
+        uint8_t Signature[4];
         uint32_t Length;
         uint8_t Revision;
         uint8_t Checksum;

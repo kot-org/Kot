@@ -1,7 +1,6 @@
 #include <kot/sys.h>
 
 KResult SYS_CreatShareSpace(kthread_t self, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, bool ReadOnly){
-    SYS_Pause(self);
     return Syscall_40(KSys_CreatShareMemory, self, size, virtualAddressPointer, keyPointer, ReadOnly);
 }
 
@@ -30,6 +29,7 @@ KResult SYS_Unpause(kthread_t self){
 }
 
 KResult SYS_Map(kthread_t self, uint64_t* addressVirtual, bool isPhysical, void* addressPhysical, size_t size, bool findFree){
+    return 0;
     return Syscall_48(KSys_Map, self, addressVirtual, isPhysical, addressPhysical, size, findFree);
 }
 
