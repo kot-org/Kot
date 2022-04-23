@@ -6,18 +6,14 @@
 namespace ACPI{
     void* FindTable(RSDP2* rsdp, char* signature){
         ACPI::SDTHeader* sdt = NULL;
-        bool IsXSDT;
+        bool IsXSDT = (rsdp->Revision >= 1);
         uint64_t entries = 0;
-        if(rsdp->XSDTAddress != NULL){
+        if(IsXSDT){
             sdt = (ACPI::SDTHeader*)vmm_GetVirtualAddress((void*)rsdp->XSDTAddress);
             entries = (sdt->Length - sizeof(ACPI::SDTHeader)) / sizeof(uint64_t);
-            IsXSDT = true;
-        }else if(rsdp->RSDTAddress != NULL){
+        }else{
             sdt = (ACPI::SDTHeader*)vmm_GetVirtualAddress((void*)rsdp->RSDTAddress);
             entries = (sdt->Length - sizeof(ACPI::SDTHeader)) / sizeof(uint32_t);
-            IsXSDT = false;
-        }else{
-            return NULL;
         }
         
 
