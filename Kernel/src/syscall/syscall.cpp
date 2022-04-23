@@ -114,7 +114,7 @@ KResult Sys_Map(ContextStack* Registers, thread_t* Thread){
         }
     }
 
-    if((uint64_t)addressVirtual + pages * PAGE_SIZE < HigherHalfAddress){
+    if((uint64_t)addressVirtual + pages * PAGE_SIZE < vmm_HHDMAdress){
         for(uint64_t i = 0; i < pages; i += PAGE_SIZE){
             if(vmm_GetFlags(pageTable, (void*)addressVirtual, vmm_flag::vmm_Custom1)){
                 Pmm_FreePage(vmm_GetPhysical(pageTable, addressVirtual));
@@ -149,9 +149,9 @@ KResult Sys_Unmap(ContextStack* Registers, thread_t* Thread){
     void* addressVirtual = (void*)Registers->arg1;
     size_t size = Registers->arg2;
 
-    addressVirtual = (void*)(addressVirtual - (uint64_t)addressVirtual % 0x1000);
+    addressVirtual = (void*)(addressVirtual - (uint64_t)addressVirtual % PAGE_SIZE);
     uint64_t pages = Divide(size, PAGE_SIZE);
-    if((uint64_t)addressVirtual + pages * PAGE_SIZE < HigherHalfAddress){
+    if((uint64_t)addressVirtual + pages * PAGE_SIZE < vmm_HHDMAdress){
         for(uint64_t i = 0; i < pages; i += PAGE_SIZE){
             if(vmm_GetFlags(pageTable, (void*)addressVirtual, vmm_flag::vmm_Custom1)){
                 Pmm_FreePage(vmm_GetPhysical(pageTable, addressVirtual));

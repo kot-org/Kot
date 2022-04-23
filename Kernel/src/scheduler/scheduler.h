@@ -11,7 +11,7 @@ struct Task;
 class TaskManager;
 class SelfData;
 
-#define KernelStackSize 0x10000
+#define KernelStackSize KERNEL_STACK_SIZE
 
 #define StackTop vmm_MapAddress(0x100, 0, 0, 0)
 #define StackBottom vmm_MapAddress(0xff, 0, 0, 0) 

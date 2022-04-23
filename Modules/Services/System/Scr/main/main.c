@@ -23,7 +23,7 @@ int main(struct KernelInfo* kernelInfo){
     SYS_Map(0,0,0,0,0,0);
     InitializeHeap(_process);
     Rectangle(kernelInfo->framebuffer, 500, 500, 500, 0, 0, 255, 60);
-    malloc(0x1000);
+    malloc(PAGE_SIZE);
     Rectangle(kernelInfo->framebuffer, 500, 500, 1000, 0, 0, 0, 255);
     while(true);
 }

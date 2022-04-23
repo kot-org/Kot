@@ -245,7 +245,7 @@ namespace AHCI{
             ATACommandIdentify* DiskInfo;
             HBAPort* HbaPort;
             PortType portType;
-            void* Buffer; //the size of the buffer is 0x1000
+            void* Buffer; //the size of the buffer is PAGE_SIZE
             uint64_t BufferSize;
             uint8_t PortNumber;
             void Configure();

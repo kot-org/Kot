@@ -1,6 +1,6 @@
 #pragma once
 #include <kot/elf.h>
-#include <main/kernelInit.h>
+#include <core/core.h>
 
 namespace ELF{
     /* Function */

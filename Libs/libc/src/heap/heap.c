@@ -6,7 +6,7 @@ void InitializeHeap(kprocess_t process){
     Syscall_0(0);
     globalHeap.process = process;
     Syscall_0(0);
-    ExpandHeap(0x1000);
+    ExpandHeap(PAGE_SIZE);
     Syscall_0(0);
 }
 

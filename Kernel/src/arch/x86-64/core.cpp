@@ -1,20 +1,22 @@
-#include <main/kernelInit.h>
+#include <arch/x86-64.h>
 
 void InitializeACPI(BootInfo* bootInfo){
     ACPI::RSDP2* RSDP = (ACPI::RSDP2*)bootInfo->RSDP->rsdp;
 
     ACPI::MADTHeader* madt = (ACPI::MADTHeader*)ACPI::FindTable(RSDP, (char*)"APIC");
     APIC::InitializeMADT(madt);
+    globalLogs->Successful("APIC intialize");
 
     ACPI::HPETHeader* hpet = (ACPI::HPETHeader*)ACPI::FindTable(RSDP, (char*)"HPET");
     HPET::InitialiseHPET(hpet);
+    globalLogs->Successful("HPET intialize");
 }
-  
 
-void InitializeKernel(stivale2_struct* stivale2_struct){  
+KernelInfo* arch_initialize(void* boot){
     asm("cli");
+    stivale2_struct* BootStruct = (stivale2_struct*)boot;
 
-    BootInfo* bootInfo = Boot::Init(stivale2_struct);
+    BootInfo* bootInfo = Boot::Init(BootStruct);
     
     /* lear frame buffer */
     memset((void*)bootInfo->Framebuffer->framebuffer_addr, 0, bootInfo->Framebuffer->framebuffer_pitch * bootInfo->Framebuffer->framebuffer_height);
@@ -53,6 +55,7 @@ void InitializeKernel(stivale2_struct* stivale2_struct){
     APIC::EnableAPIC(CPU::GetCoreID());
     APIC::localApicEOI(CPU::GetCoreID());
     APIC::StartLapicTimer();
+    APIC::LoadCores();
 
     //creat parameters
     KernelInfo* kernelInfo = (KernelInfo*)malloc(sizeof(KernelInfo));
@@ -79,30 +82,5 @@ void InitializeKernel(stivale2_struct* stivale2_struct){
     //rsdp
     kernelInfo->rsdp = (void*)bootInfo->RSDP->rsdp;
 
-    Parameters* InitParameters = (Parameters*)malloc(sizeof(Parameters));
-    InitParameters->Parameter0 = (uint64_t)kernelInfo;
-
-
-    //load init file
-    RamFS::Parse(bootInfo->ramfs.RamFsBase, bootInfo->ramfs.Size);
-    RamFS::File* InitFile = RamFS::FindInitFile();
-    
-    if(InitFile != NULL){
-        void* BufferInitFile = malloc(InitFile->size);
-        Read(InitFile, BufferInitFile);
-        ELF::loadElf(BufferInitFile, 1, InitParameters);
-    }else{
-        globalLogs->Error("Can't load initialization file");
-    }
-    
-    free(InitParameters);
-
-    APIC::LoadCores();
-
-    
-    globalTaskManager->EnabledScheduler(CPU::GetCoreID());
-
-    LaunchUserSpace();
-
-    return;
-} 
+    return kernelInfo;
+}

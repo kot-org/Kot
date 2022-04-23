@@ -43,7 +43,7 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
         }
     }
 
-    Pmm_ReservePages(0, 0x100); // reserve between 0 and 0x100000
+    Pmm_ReservePages(0, 0x100); // reserve between 0 and PAGE_SIZE00
     Pmm_LockPages(Pmm_PageBitmap.Buffer, Pmm_PageBitmap.Size / PAGE_SIZE + 1);
 }
 
@@ -51,7 +51,7 @@ uint64_t Pmm_GetMemorySize(stivale2_struct_tag_memmap* Map){
     static uint64_t memorySizeBytes = 0;
     if (memorySizeBytes > 0) return memorySizeBytes;
 
-    for (int i = 0; i < Map->entries; i++){
+    for (uint64_t i = 0; i < Map->entries; i++){
         memorySizeBytes += Map->memmap[i].length;
     }
 
@@ -71,8 +71,8 @@ void* Pmm_RequestPage(){
     for (; Pmm_PageBitmapIndex < Pmm_PageBitmap.Size * 8; Pmm_PageBitmapIndex++){
         if(!Pmm_PageBitmap.Get(Pmm_PageBitmapIndex)){
             uint64_t page = Pmm_PageBitmapIndex;
-            Pmm_LockPage((void*)(Pmm_PageBitmapIndex * 0x1000));
-            return (void*)(Pmm_PageBitmapIndex * 0x1000);
+            Pmm_LockPage((void*)(Pmm_PageBitmapIndex * PAGE_SIZE));
+            return (void*)(Pmm_PageBitmapIndex * PAGE_SIZE);
         }
     }
     

@@ -203,7 +203,7 @@
 //                         }
 //                         size -= SizeToCopy; 
 //                         void* virtualAddress = (void*)(segment + y * PAGE_SIZE);
-//                         uint64_t offset = (uint64_t)virtualAddress % 0x1000;
+//                         uint64_t offset = (uint64_t)virtualAddress % PAGE_SIZE;
 //                         virtualAddress -= offset;
 //                         //Custom 0 flags : is user executable
 //                         if(!vmm_GetFlags(table, virtualAddress, vmm_flag::vmm_Custom0)){

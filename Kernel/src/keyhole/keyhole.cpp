@@ -16,14 +16,17 @@ namespace Keyhole{
 
         // add reference to the parent
         uint64_t Address = (parent->LockIndex * sizeof(uint64_t)) + (uint64_t)parent->Locks;
-        uint64_t Page = Address - (Address % 0x1000);
-        uint64_t Offset = (Address % 0x1000) / sizeof(uint64_t);
+        uint64_t Page = Address - (Address % PAGE_SIZE);
+        uint64_t Offset = (Address % PAGE_SIZE) / sizeof(uint64_t);
 
-        lockreference_t* AccessAddress = (lockreference_t*)vmm_GetVirtualAddress(vmm_GetPhysical(parent->SharedPaging, (void*)Page));
+        lockreference_t* AccessAddress = NULL;
         
         if(!vmm_GetFlags(parent->SharedPaging, (void*)Page, vmm_flag::vmm_Present)){
             vmm_Map(parent->SharedPaging, (void*)Page, Pmm_RequestPage());
-            memset((void*)AccessAddress, 0, 0x1000);
+            AccessAddress = (lockreference_t*)vmm_GetVirtualAddress(vmm_GetPhysical(parent->SharedPaging, (void*)Page));
+            memset((void*)AccessAddress, 0, PAGE_SIZE);
+        }else{
+            AccessAddress = (lockreference_t*)vmm_GetVirtualAddress(vmm_GetPhysical(parent->SharedPaging, (void*)Page));
         }
 
         AccessAddress->LockOffset[Offset] = (uint64_t)Lock;
@@ -84,8 +87,8 @@ namespace Keyhole{
         
         if(!vmm_GetFlags(lock->Parent->SharedPaging, (void*)VirtualAddress, vmm_flag::vmm_Custom0) || vmm_GetFlags(lock->Parent->SharedPaging, (void*)VirtualAddress, vmm_flag::vmm_Custom1) || !vmm_GetFlags(lock->Parent->SharedPaging, (void*)VirtualAddress, vmm_flag::vmm_Custom2)) return KFAIL;
         
-        uint64_t Page = lock->Address - (lock->Address % 0x1000);
-        uint64_t Offset = (lock->Address % 0x1000) / sizeof(uint64_t);
+        uint64_t Page = lock->Address - (lock->Address % PAGE_SIZE);
+        uint64_t Offset = (lock->Address % PAGE_SIZE) / sizeof(uint64_t);
 
         if(!vmm_GetFlags(lock->Parent->SharedPaging, (void*)Page, vmm_flag::vmm_Present)) return KFAIL;
 

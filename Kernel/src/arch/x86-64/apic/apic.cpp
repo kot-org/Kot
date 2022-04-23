@@ -161,7 +161,7 @@ namespace APIC{
         uint8_t bspid = 0; 
         __asm__ __volatile__ ("mov $1, %%rax; cpuid; shrq $24, %%rbx;": "=r"(bspid)::);
 
-        memcpy((void*)TrampolineVirtualAddress, (void*)&Trampoline, 0x1000);
+        memcpy((void*)TrampolineVirtualAddress, (void*)&Trampoline, PAGE_SIZE);
 
         trampolineData* Data = (trampolineData*) (((uint64_t)&DataTrampoline - (uint64_t) &Trampoline) + TrampolineVirtualAddress);
 
@@ -172,7 +172,7 @@ namespace APIC{
 
         for(int i = 1; i < ProcessorCount; i++){ 
             Data->Paging = (uint64_t)vmm_PageTable;
-            uint64_t StackSize = 0x1000000; // 10 mb
+            uint64_t StackSize = KERNEL_STACK_SIZE; // 10 mb
             Data->Stack = (uint64_t)malloc(StackSize) + StackSize;
                 
             if(Processor[i]->APICID == bspid) continue; 

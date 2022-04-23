@@ -1,6 +1,6 @@
 #pragma once
 #include <lib/types.h>
-#include <main/kernelInit.h>
+#include <core/core.h>
 
 struct trampolineData{
     uint8_t Status;

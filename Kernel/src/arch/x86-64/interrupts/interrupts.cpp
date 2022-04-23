@@ -2,7 +2,7 @@
 
 IDTR idtr;
 
-uint8_t IDTData[0x1000];
+uint8_t IDTData[PAGE_SIZE];
 
 event_t* InterruptEventList[256];
 

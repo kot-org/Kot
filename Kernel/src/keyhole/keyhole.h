@@ -1,5 +1,5 @@
 #pragma once
-#include <main/kernelInit.h>
+#include <core/core.h>
 
 #define FlagFullPermissions 0xff
 
@@ -12,7 +12,7 @@ enum DataType{
 };
 
 struct lockreference_t{
-    uint64_t LockOffset[(0x1000 / sizeof(uint64_t))];   
+    uint64_t LockOffset[(PAGE_SIZE / sizeof(uint64_t))];   
 }__attribute__((packed));
 
 struct lock_t{

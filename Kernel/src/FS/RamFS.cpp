@@ -38,4 +38,4 @@ namespace RamFS{
         memcpy(buffer, fileData, file->size);
         return true;
     }
-}
+} 

@@ -1,5 +1,5 @@
 #include <arch/x86-64/cpu/cpu.h>
-#include <main/kernelInit.h>
+#include <core/core.h>
 
 
 namespace CPU{ 

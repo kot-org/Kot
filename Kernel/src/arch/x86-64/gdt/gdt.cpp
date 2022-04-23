@@ -2,7 +2,7 @@
 #include <arch/x86-64/tss/tss.h>
 
 
-static __attribute__((aligned(0x1000)))GDTEntry GDTEntries[GDT_MAX_DESCRIPTORS];
+static __attribute__((aligned(PAGE_SIZE)))GDTEntry GDTEntries[GDT_MAX_DESCRIPTORS];
 static GDTDescriptor gdtBaseInfo;
 static TSS DefaultTSS;
 gdtInfoSelectorsRing GDTInfoSelectorsRing[4];

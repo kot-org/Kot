@@ -400,7 +400,7 @@ void TaskManager::CreatIddleTask(){
     void* physcialMemory = Pmm_RequestPage();
     vmm_Map(thread->Paging, 0x0, physcialMemory, true);
     void* virtualMemory = (void*)vmm_GetVirtualAddress(physcialMemory);
-    memcpy(virtualMemory, (void*)&IdleTask, 0x1000);
+    memcpy(virtualMemory, (void*)&IdleTask, PAGE_SIZE);
 
     thread->Launch();
 }
@@ -472,7 +472,7 @@ void thread_t::CopyStack(thread_t* source){
 bool thread_t::ExtendStack(uint64_t address){
     if(this->Stack == NULL) return false;
 
-    address -= address % 0x1000;
+    address -= address % PAGE_SIZE;
     if(this->Stack->StackStart <= address) return false;
     if(address <= this->Stack->StackEndMax) return false;
     
@@ -487,14 +487,14 @@ void* thread_t::ShareDataInStack(void* data, size_t size){
     void* address = (void*)(this->Stack->StackStart - size);
     if(ExtendStack((uint64_t)address)){
         // We consider that we have direct access to data but not to address
-        uint64_t NumberOfPage = Divide(size, 0x1000);
+        uint64_t NumberOfPage = Divide(size, PAGE_SIZE);
         uint64_t VirtualAddressIteratorScr = (uint64_t)data;
         uint64_t VirtualAddressIterator = sizeof(StackData);
         for(uint64_t i = 0; i < NumberOfPage; i++){
             void* Dst = (void*)vmm_GetVirtualAddress(vmm_GetVirtualAddress((void*)((uint64_t)address + (uint64_t)VirtualAddressIterator)));
-            memcpy(Dst, (void*)VirtualAddressIteratorScr, 0x1000);
-            VirtualAddressIterator += 0x1000;
-            VirtualAddressIteratorScr += 0x1000;
+            memcpy(Dst, (void*)VirtualAddressIteratorScr, PAGE_SIZE);
+            VirtualAddressIterator += PAGE_SIZE;
+            VirtualAddressIteratorScr += PAGE_SIZE;
         }
 
         ((StackData*)address)->size = size;

@@ -16,16 +16,4 @@
 #include <FS/RamFS.h>
 #include <elf/elf.h>
 
-struct KernelInfo{
-    struct stivale2_struct_tag_framebuffer* framebuffer;
-    struct RamFs* ramfs;
-    struct memoryInfo_t* memoryInfo;
-    void* smbios;
-    void* rsdp;
-}__attribute__((packed));
-
-extern "C" void main(stivale2_struct*);
-
-void InitializeKernel(stivale2_struct* stivale2_struct);
-
-#define HigherHalfAddress 0xFFFF800000000000
+extern "C" void main(void* boot);

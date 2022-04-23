@@ -14,12 +14,12 @@ struct SegmentHeader{
 }__attribute__((packed));
 
 struct Heap{
+    void* heapEnd = 0;
     SegmentHeader* lastSegment = NULL;
     SegmentHeader* mainSegment = NULL;
     size_t TotalSize;
     size_t FreeSize;
     size_t UsedSize;
-    void* heapEnd = 0;
     uint64_t lock;
 };
 
@@ -32,7 +32,7 @@ void* malloc(size_t size);
 void* realloc(void* buffer, size_t size);
 void free(void* address);
 
-void  SplitSegment(SegmentHeader* segment, size_t size);
+SegmentHeader*  SplitSegment(SegmentHeader* segment, size_t size);
 void  ExpandHeap(size_t lenght);
 
 inline void* operator new(size_t size) {return malloc(size);}

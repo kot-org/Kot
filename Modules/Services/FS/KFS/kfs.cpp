@@ -15,7 +15,7 @@ namespace FileSystem{
 
     void KFS::InitKFS(){
         globalLogs->Warning("Initialize KFS partition");
-        uint64_t ClusterSize = 0x10000;
+        uint64_t ClusterSize = PAGE_SIZE0;
         void* Cluster = malloc(ClusterSize);
         KFSinfo* info = (KFSinfo*)malloc(sizeof(KFSinfo));
         uint64_t MemTotPartiton = (globalPartition->partition->LastLBA - globalPartition->partition->FirstLBA) * globalPartition->port->GetSectorSizeLBA();

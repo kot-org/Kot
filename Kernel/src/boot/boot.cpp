@@ -1,6 +1,6 @@
 #include <boot/boot.h>
 
-static uint8_t stack[0x10000];
+static uint8_t stack[KERNEL_STACK_SIZE];
 
 static struct stivale2_header_tag_terminal terminal_hdr_tag = {
     .tag = {

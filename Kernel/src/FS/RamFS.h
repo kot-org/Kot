@@ -1,5 +1,5 @@
 #pragma once
-#include <main/kernelInit.h>
+#include <core/core.h>
 
 #define MaxName 36
 

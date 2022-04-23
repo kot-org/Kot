@@ -60,7 +60,6 @@ uint64_t vmm_Init(struct BootInfo* bootInfo);
 pagetable_t vmm_SetupProcess();
 pagetable_t vmm_SetupThread(pagetable_t parent);
 
-#define PAGE_SIZE 0x1000
 #define VMM_STARTRHALF 0x0
 #define VMM_LOWERHALF 0x100
 #define VMM_HIGHERALF 0x200
