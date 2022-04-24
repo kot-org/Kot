@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _MEMORY_H
+#define _MEMORY_H 1
 
 #include <kot/types.h>
 
@@ -14,4 +15,6 @@ uint64_t SuperTest();
 
 #if defined(__cplusplus)
 }
+#endif
+
 #endif

@@ -18,8 +18,8 @@ KernelInfo* arch_initialize(void* boot){
 
     BootInfo* bootInfo = Boot::Init(BootStruct);
     
-    /* lear frame buffer */
-    memset((void*)bootInfo->Framebuffer->framebuffer_addr, 0, bootInfo->Framebuffer->framebuffer_pitch * bootInfo->Framebuffer->framebuffer_height);
+    /* clear frame buffer */
+    memset((void*)bootInfo->Framebuffer->framebuffer_addr, 0x0, bootInfo->Framebuffer->framebuffer_pitch * bootInfo->Framebuffer->framebuffer_height);
 
     SerialPort::Initialize();
     SerialPort::ClearMonitor();

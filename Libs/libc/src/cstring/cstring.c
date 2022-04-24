@@ -10,6 +10,7 @@ int strlen(char* p){
 }
 
 int strcmp(char* a, char* b){
+    DoSyscall(0, 0, 0, 0, 0, 0, 0);
     int alen = strlen(a);
     int blen = strlen(b);
     if(alen == blen){

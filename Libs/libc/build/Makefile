@@ -10,7 +10,7 @@ LD = $(PREFIX)ld
 AS = $(PREFIX)as
 AR = $(PREFIX)ar
 
-CFLAGS = 
+CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC
 ASMFLAGS = 
 
 
@@ -27,7 +27,7 @@ OBJINC += $(patsubst $(SRCDIR)/%.h, $(INCDIR)/%.h, $(INC))
 DIRS = $(wildcard $(SRCDIR)/*)         
 
 	
-main: copy $(OBJS) link copyToFS
+main: copy $(OBJS) link
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@ echo !==== COMPILING $^
@@ -48,7 +48,4 @@ $(INCDIR)/%.h : $(SRCDIR)/%.h
 link:
 	@ echo !==== LINKING
 	$(AR) rcs $(BUILDDIR)/libc.a $(OBJS) $(OBJSCPP)
-
-copyToFS:
-	./../../../Tools/BuildRamFS.sh
 

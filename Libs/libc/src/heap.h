@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _HEAP_H
+#define _HEAP_H 1
+
 #include <kot/sys.h>
 #include <kot/types.h>
 #include <kot/memory.h>
@@ -38,4 +40,6 @@ struct SegmentHeader* GetSegmentHeader(void* address);
 
 #if defined(__cplusplus)
 }
+#endif
+
 #endif

@@ -384,8 +384,9 @@ uint64_t vmm_Init(BootInfo* bootInfo){
     for (uint64_t i = 0; i < bootInfo->Memory->entries; i++){
         uint64_t size = bootInfo->Memory->memmap[i].length;
         for(uint64_t y = 0; y < size; y += PAGE_SIZE){
-            uint64_t virtualAddress = bootInfo->Memory->memmap[i].base + vmm_HHDMAdress + y;
-            vmm_Map(vmm_PageTable, (void*)virtualAddress, (void*)bootInfo->Memory->memmap[i].base + y);
+            uint64_t physicalAddress = bootInfo->Memory->memmap[i].base + y;
+            uint64_t virtualAddress = physicalAddress + vmm_HHDMAdress;
+            vmm_Map(vmm_PageTable, (void*)virtualAddress, (void*)physicalAddress);
         }
     }
 

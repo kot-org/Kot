@@ -2,6 +2,8 @@
 
 .global DoSyscall
 
+.section .text
+
 DoSyscall:
     push    rbp
     mov     rbp, rsp

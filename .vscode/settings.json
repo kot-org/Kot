@@ -52,7 +52,8 @@
         "ostream": "cpp",
         "sys.h": "c",
         "heap.h": "c",
-        "atomic.h": "c"
+        "atomic.h": "c",
+        "list.h": "c"
     },
     "debug.onTaskErrors": "debugAnyway",
     "C_Cpp.errorSquiggles": "Disabled",

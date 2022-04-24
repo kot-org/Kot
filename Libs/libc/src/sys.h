@@ -1,15 +1,18 @@
-#pragma once
+#ifndef _SYS_H
+#define _SYS_H 1
 
 #include <kot/types.h>
 #include <kot/sys/list.h>
 
-#define Syscall_48(syscall, arg0, arg1, arg2, arg3, arg4, arg5) (DoSyscall(syscall, (uint64_t)arg0, (uint64_t)arg1, (uint64_t)arg2, (uint64_t)arg3, (uint64_t)arg4, (uint64_t)arg5))
-#define Syscall_40(syscall, arg0, arg1, arg2, arg3, arg4) (DoSyscall(syscall, (uint64_t)arg0, (uint64_t)arg1, (uint64_t)arg2, (uint64_t)arg3, (uint64_t)arg4, 0))
-#define Syscall_32(syscall, arg0, arg1, arg2, arg3) (DoSyscall(syscall, (uint64_t)arg0, (uint64_t)arg1, (uint64_t)arg2, (uint64_t)arg3, 0, 0))
-#define Syscall_24(syscall, arg0, arg1, arg2) (DoSyscall(syscall, (uint64_t)arg0, (uint64_t)arg1, (uint64_t)arg2, 0, 0, 0))
-#define Syscall_16(syscall, arg0, arg1) (DoSyscall(syscall, (uint64_t)arg0, (uint64_t)arg1, 0, 0, 0, 0))
-#define Syscall_8(syscall, arg0) (DoSyscall(syscall, (uint64_t)arg0, 0, 0, 0, 0, 0))
-#define Syscall_0(syscall) (DoSyscall(syscall, 0, 0, 0, 0, 0, 0))
+#define ASMMACRO(X) #X
+
+#define Syscall_48(syscall, arg0, arg1, arg2, arg3, arg4, arg5) ({asm("mov %p6, %%r9\n\t""mov %p5, %%r8\n\t""mov %p4, %%r10\n\t""mov %p3, %%rdx\n\t""mov %p2, %%rsi\n\t""mov %p1, %%rdi\n\t""mov $" ASMMACRO(syscall) ", %%rax\n\t""syscall\n\t":"=a"(ReturnValue):[p1]"m"(arg0),[p2]"m"(arg1),[p3]"m"(arg2),[p4]"m"(arg3),[p5]"m"(arg4),[p6]"m"(arg5));})
+#define Syscall_40(syscall, arg0, arg1, arg2, arg3, arg4) ({asm("mov %p5, %%r8\n\t""mov %p4, %%r10\n\t""mov %p3, %%rdx\n\t""mov %p2, %%rsi\n\t""mov %p1, %%rdi\n\t""mov $" ASMMACRO(syscall) ", %%rax\n\t""syscall\n\t":"=a"(ReturnValue):[p1]"m"(arg0),[p2]"m"(arg1),[p3]"m"(arg2),[p4]"m"(arg3),[p5]"m"(arg4));})
+#define Syscall_32(syscall, arg0, arg1, arg2, arg3) ({asm("mov %p4, %%r10\n\t""mov %p3, %%rdx\n\t""mov %p2, %%rsi\n\t""mov %p1, %%rdi\n\t""mov $" ASMMACRO(syscall) ", %%rax\n\t""syscall\n\t":"=a"(ReturnValue):[p1]"m"(arg0),[p2]"m"(arg1),[p3]"m"(arg2),[p4]"m"(arg3));})
+#define Syscall_24(syscall, arg0, arg1, arg2) ({asm("mov %p3, %%rdx\n\t""mov %p2, %%rsi\n\t""mov %p1, %%rdi\n\t""mov $" ASMMACRO(syscall) ", %%rax\n\t""syscall\n\t":"=a"(ReturnValue):[p1]"m"(arg0),[p2]"m"(arg1),[p3]"m"(arg2));})
+#define Syscall_16(syscall, arg0, arg1) ({asm("mov %p2, %%rsi\n\t""mov %p1, %%rdi\n\t""mov $" ASMMACRO(syscall) ", %%rax\n\t""syscall\n\t":"=a"(ReturnValue):[p1]"m"(arg0),[p2]"m"(arg1));})
+#define Syscall_8(syscall, arg0) ({asm("mov %p1, %%rdi\n\t""mov $" ASMMACRO(syscall) ", %%rax\n\t""syscall\n\t":"=a"(ReturnValue):[p1]"m"(arg0));})
+#define Syscall_0(syscall) ({asm("mov $" ASMMACRO(syscall) ", %%rax\n\t""syscall\n\t":"=a"(ReturnValue):);})
 
 #if defined(__cplusplus)
 extern "C" {
@@ -32,4 +35,6 @@ extern uint64_t _process;
 
 #if defined(__cplusplus)
 } 
+#endif
+
 #endif

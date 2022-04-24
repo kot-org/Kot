@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _CSTRING_H
+#define _CSTRING_H 1
+
 #include <kot/sys.h>
 #include <kot/types.h>
 
@@ -12,4 +14,6 @@ int strncmp(char* a, char* b, size_t len);
 
 #if defined(__cplusplus)
 }
+#endif
+
 #endif

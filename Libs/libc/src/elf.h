@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _ELF_H
+#define _ELF_H 1
+
 #include <kot/types.h>
 
 /* Data */
@@ -179,3 +181,5 @@ typedef struct {
 #define SHT_SHLIB	        10
 #define SHT_DYNSYM	        11
 #define SHT_NUM		        12
+
+#endif

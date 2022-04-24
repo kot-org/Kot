@@ -38,7 +38,7 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
     Pmm_ReservePages(0, memorySize / PAGE_SIZE + 1);
 
     for (int i = 0; i < Map->entries; i++){
-        if (Map->memmap[i].type == STIVALE2_MMAP_USABLE && Map->memmap[i].length >= PAGE_SIZE){ 
+        if (Map->memmap[i].type == STIVALE2_MMAP_USABLE){ 
             Pmm_UnreservePages((void*)Map->memmap[i].base, Map->memmap[i].length / PAGE_SIZE);
         }
     }

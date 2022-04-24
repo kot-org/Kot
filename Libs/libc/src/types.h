@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _TYPES_H
+#define _TYPES_H 1
 
 #define NULL 0x0
 
@@ -67,3 +68,5 @@ struct parameters_t{
     uint64_t Parameter4;
     uint64_t Parameter5;
 }__attribute__((packed));
+
+#endif

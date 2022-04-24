@@ -1,6 +1,4 @@
-#pragma once
-
-#define Syscall_Count 0x12
+#define Syscall_Count 0x12 + 1
 
 #define KSys_CreatShareMemory 0x0
 #define KSys_GetShareMemory 0x1
