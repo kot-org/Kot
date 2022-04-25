@@ -84,11 +84,6 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
     APIC::localApicEOI(CoreID);
 }
 
-struct stackframe{
-  struct stackframe* rbp;
-  uint64_t rip;
-};
-
 void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
     // If exception come from kernel we can't recover it
 
@@ -100,12 +95,6 @@ void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
             if(PageFaultHandler(Registers, CoreID)){
                 return;
             }
-        }
-
-        stackframe* frame = (stackframe*)Registers->rbp;
-        while(frame != NULL){
-            globalLogs->Warning("%x", frame->rip);
-            frame = frame->rbp;
         }
 
         globalLogs->Error("Thread error, PID : %x | TID : %x \nWith execption : '%s' | Error code : %x", globalTaskManager->ThreadExecutePerCore[CoreID]->Parent->PID, globalTaskManager->ThreadExecutePerCore[CoreID]->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);        

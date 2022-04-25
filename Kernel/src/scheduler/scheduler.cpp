@@ -248,7 +248,7 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
     SelfData* threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
     Keyhole::Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey);
-    Keyhole::Creat(&threadData->ProcessKey, this, this, DataTypeThread, (uint64_t)this, DefaultFlagsKey);
+    Keyhole::Creat(&threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, DefaultFlagsKey);
 
     vmm_Map(thread->Paging, (void*)SelfDataStartAddress, threadDataPA, RingPriviledge == UserAppRing);
 
@@ -312,7 +312,7 @@ thread_t* process_t::DuplicateThread(thread_t* source){
     SelfData* threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
     Keyhole::Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
-    Keyhole::Creat(&threadData->ProcessKey, this, this, DataTypeThread, (uint64_t)this, FlagFullPermissions);
+    Keyhole::Creat(&threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, FlagFullPermissions);
 
     vmm_Map(thread->Paging, (void*)SelfDataStartAddress, threadDataPA, source->Regs->cs == GDTInfoSelectorsRing[UserAppRing].Code);
 

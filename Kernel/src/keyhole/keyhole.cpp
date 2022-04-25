@@ -81,7 +81,7 @@ namespace Keyhole{
         }
 
         // check parent
-        if(!CheckAddress((void*)lock->Parent, sizeof(process_t))) return KFAIL;
+        if(!CheckAddress((void*)lock->Pare nt, sizeof(process_t))) return KFAIL;
         
         uint64_t VirtualAddress = (uint64_t)vmm_GetVirtualAddress(lock->Parent->SharedPaging);
         
@@ -94,6 +94,8 @@ namespace Keyhole{
 
         lockreference_t* AccessAddress = (lockreference_t*)(vmm_GetVirtualAddress(vmm_GetPhysical(lock->Parent->SharedPaging, (void*)Page)));
         if(AccessAddress->LockOffset[Offset] != (uint64_t)lock) return KFAIL;
+
+        return KSUCCESS;
     }
 
     uint64_t Get(thread_t* caller, key_t key, enum DataType type, uint64_t* data, uint64_t* flags){        

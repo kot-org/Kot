@@ -412,6 +412,11 @@ pagetable_t vmm_SetupProcess(){
     memset((void*)vmm_GetVirtualAddress(PageTable), 0, PAGE_SIZE);
     vmm_Fill(PageTable, VMM_STARTRHALF, VMM_LOWERHALF);
     vmm_CopyPageTable(vmm_PageTable, PageTable, VMM_LOWERHALF, VMM_HIGHERALF);
+    
+    uint64_t VirtualAddress = (uint64_t)vmm_GetVirtualAddress(PageTable);
+    vmm_SetFlags(vmm_PageTable, (void*)VirtualAddress, vmm_flag::vmm_Custom0, true);
+    vmm_SetFlags(vmm_PageTable, (void*)VirtualAddress, vmm_flag::vmm_Custom1, false);
+    vmm_SetFlags(vmm_PageTable, (void*)VirtualAddress, vmm_flag::vmm_Custom2, true);
     return PageTable;   
 }
 

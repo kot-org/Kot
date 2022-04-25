@@ -3,11 +3,8 @@
 struct Heap globalHeap;
 
 void InitializeHeap(kprocess_t process){
-    Syscall_0(0);
     globalHeap.process = process;
-    Syscall_0(0);
     ExpandHeap(0x1000);
-    Syscall_0(0);
 }
 
 void* calloc(size_t size){

@@ -13,11 +13,11 @@ class SelfData;
 
 #define KernelStackSize KERNEL_STACK_SIZE
 
+#define SelfDataStartAddress vmm_MapAddress(0xff, 0, 0, 0)  
+#define SelfDataEndAddress SelfDataStartAddress + sizeof(SelfData)
 #define StackTop vmm_MapAddress(0x100, 0, 0, 0)
-#define StackBottom vmm_MapAddress(0xff, 0, 0, 0) 
+#define StackBottom SelfDataEndAddress 
 #define LockAddress vmm_MapAddress(0xfe, 0, 0, 0) 
-#define SelfDataStartAddress StackBottom  
-#define SelfDataEndAddress StackBottom + sizeof(SelfData)
 #define DefaultFlagsKey 0xff
 
 struct SelfData{

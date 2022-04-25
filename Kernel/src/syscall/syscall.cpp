@@ -56,8 +56,8 @@ KResult Sys_Exit(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
     if(Keyhole::Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KFAIL;
-    Registers->InterruptNumber = 1;
     CPU::DisableInterrupts();
+    Registers->InterruptNumber = 1;
     globalTaskManager->Exit(Registers, Thread->CoreID, threadkey);
     return KSUCCESS;
 }
@@ -66,8 +66,8 @@ KResult Sys_Pause(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
     if(Keyhole::Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KFAIL;
-    Registers->InterruptNumber = 1;
     CPU::DisableInterrupts();
+    Registers->InterruptNumber = 1;
     globalTaskManager->Pause(Registers, Thread->CoreID, threadkey);
     globalTaskManager->Scheduler(Registers, Thread->CoreID);
     return KSUCCESS;

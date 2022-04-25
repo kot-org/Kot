@@ -41,7 +41,6 @@ SyscallEntry:
 
 	mov [gs:0x10], rsp								        ; save userspace stack
 	mov	rsp, [gs:0x8]                                       ; task syscall stack
-	mov rdi, rsp
 	mov	rsp, [rsp + 0x0]  
 	mov [rsp + 0x0], rbp
 	mov rbp, [gs:0x8] 

@@ -53,3 +53,19 @@ KResult SYS_Unmap(kthread_t self, void* addressVirtual, size_t size){
     Syscall_24(KSys_Unmap, self, addressVirtual, size);
     return ReturnValue;
 }
+
+KResult SYS_GetThreadKey(kthread_t* self){
+    /* Get Self Data */
+    kthread_t key;
+    asm("mov %%gs:0, %0":"=r"(key));
+    *self = key; 
+    return KSUCCESS;
+}
+
+KResult SYS_GetProcessKey(kprocess_t* self){
+    /* Get Self Data */
+    kprocess_t key;
+    asm("mov %%gs:8, %0":"=r"(key));
+    *self = key; 
+    return KSUCCESS;
+}

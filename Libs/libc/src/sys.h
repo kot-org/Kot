@@ -18,7 +18,10 @@
 extern "C" {
 #endif
 
-uint64_t DoSyscall(uint64_t syscall, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);
+struct SelfData{
+    key_t ThreadKey;
+    key_t ProcessKey;
+}__attribute__((packed));
 
 KResult SYS_CreatShareSpace(kthread_t self, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, bool ReadOnly);
 KResult SYS_GetShareSpace(kthread_t self, uint64_t key, uint64_t* virtualAddressPointer);
@@ -30,8 +33,8 @@ KResult SYS_Unpause(kthread_t self);
 KResult SYS_Map(kthread_t self, uint64_t* addressVirtual, bool isPhysical, void* addressPhysical, size_t size, bool findFree);
 KResult SYS_Unmap(kthread_t self, void* addressVirtual, size_t size);
 
-extern uint64_t _main_thread;
-extern uint64_t _process;
+KResult SYS_GetThreadKey(kthread_t* self);
+KResult SYS_GetProcessKey(process_t* self);
 
 #if defined(__cplusplus)
 } 
