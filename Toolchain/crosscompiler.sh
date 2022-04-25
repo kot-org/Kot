@@ -26,8 +26,8 @@ cd "sources"
 
 #install binutils
 cd "binutils-$BinutilsVersion"
-mkdir build 
-cd build
+mkdir bin 
+cd bin
 sudo ../configure --prefix="$Prefix" --target="$Target" --with-sysroot="$Sysroot" --disable-nls --disable-werror --enable-shared
 make all -j $(nproc)
 make install -j $(nproc)
@@ -36,8 +36,8 @@ cd ../../
          
 #install gcc
 cd "gcc-$GccVersion"
-mkdir build 
-cd build
+mkdir bin 
+cd bin
 sudo ../configure --prefix="$Prefix" --target="$Target" --with-sysroot="$Sysroot" --disable-nls --enable-languages=c,c++ --with-newlib --enable-shared
 
 make -j all-gcc 
