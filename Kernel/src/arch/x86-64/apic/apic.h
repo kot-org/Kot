@@ -5,6 +5,10 @@
 #include <drivers/acpi/acpi.h>
 
 namespace APIC{
+    #define LOCAL_APIC_ENABLE 0x800
+    #define LOCAL_APIC_SPURIOUS_ALL 0x100
+    #define LOCAL_APIC_SPURIOUS_ENABLE_APIC 0xff
+
     struct EntryRecord{
         uint8_t Type;
         uint8_t Length;
@@ -129,7 +133,8 @@ namespace APIC{
         LocalAPICDeliveryModeSMI		= 0b010,
         LocalAPICDeliveryModeNMI		= 0b100,
         LocalAPICDeliveryModeINIT		= 0b101,
-        LocalAPICDeliveryModeStartUp	= 0b111,
+        LocalAPICDeliveryModeStartUp	= 0b110,
+        LocalAPICDeliveryModeReserved	= 0b111,
     };
 
     struct LocalAPICIipi{
@@ -155,7 +160,8 @@ namespace APIC{
         LocalAPICRegisterOffsetInterruptdRequest		= 0x200,
         LocalAPICRegisterOffsetErrorStatus		        = 0x280,
         LocalAPICRegisterOffsetCMCI					    = 0x2f0,
-        LocalAPICRegisterOffsetInterruptCommand		    = 0x300,
+        LocalAPICRegisterOffsetInterruptCommandLow		= 0x300,
+        LocalAPICRegisterOffsetInterruptCommandHigh		= 0x310,
         LocalAPICRegisterOffsetLVTTimer				    = 0x320,
         LocalAPICRegisterOffsetLVTThermalSensor	        = 0x330,
         LocalAPICRegisterOffsetLVTPerfommanceMonitor	= 0x340,
@@ -248,7 +254,9 @@ namespace APIC{
     void StartLapicTimer();
     void localAPICSetTimerCount(uint32_t value);
     uint32_t localAPICGetTimerCount();
-    void localApicEOI(uint64_t CoreID);
+    void lapicSendInitIPI(uint8_t CoreID);
+    void lapicSendStartupIPI(uint8_t CoreID, void* entry);
+    void localApicEOI(uint8_t CoreID);
     void localApicEnableSpuriousInterrupts();
     uint32_t localAPICReadRegister(size_t offset);
     uint32_t localAPICReadRegister(void* lapicAddress, size_t offset);

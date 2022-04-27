@@ -34,7 +34,6 @@ struct IVTEvent_t{
 struct IPCEvent_t{
     event_t header;
     thread_t* master;
-    uint64_t additionnalData;
 }__attribute__((packed));
 
 namespace Event{

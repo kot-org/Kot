@@ -23,10 +23,12 @@ namespace Event{
             case EventTypeIPC: {
                 IPCEvent_t* event = (IPCEvent_t*)malloc(sizeof(IPCEvent_t));
                 self = &event->header;
-                event->additionnalData = AdditionnalData;
                 event->master = (thread_t*)AdditionnalData;
                 break;                
             }
+
+            default:
+                return KFAIL;
 
         }
 

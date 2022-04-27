@@ -17,49 +17,54 @@ namespace ELF{
         thread_t* mainThread = proc->CreatThread((uint64_t)self->Header->e_entry, NULL);
         
         /* Load the elf */
-        LoadBinary(mainThread->Paging, self, 0);
-        
+        void* phdrs = (void*)(uint64_t)buffer + self->Header->e_phoff;
+
+        for(int i = 0; i < self->Header->e_phnum; i++){
+            Elf64_Phdr* phdr = (Elf64_Phdr*)((uint64_t)phdrs + (i * self->Header->e_phentsize));
+            if(phdr->p_type == PT_LOAD){
+                size_t align = phdr->p_vaddr & (PAGE_SIZE - 1); // get last 9 bits
+                size_t pageCount = DivideRoundUp(phdr->p_memsz + align, PAGE_SIZE);
+
+                
+                for(uint64_t y = 0; y < pageCount * PAGE_SIZE; y += PAGE_SIZE){
+                    void* DirectAddressToCopy = 0;
+                    void* VirtualAddress = (void*)(phdr->p_vaddr + y);
+                    void* PhysicalBuffer = 0;
+                    if(!vmm_GetFlags(mainThread->Paging, VirtualAddress, vmm_flag::vmm_Present)){
+                        PhysicalBuffer = Pmm_RequestPage();
+                        vmm_Map(mainThread->Paging, VirtualAddress, (void*)PhysicalBuffer, true);
+                        DirectAddressToCopy = (void*)(vmm_GetVirtualAddress(PhysicalBuffer) + (uint64_t)align);
+                    }else{
+                        DirectAddressToCopy = (void*)(vmm_GetVirtualAddress(vmm_GetPhysical(mainThread->Paging, VirtualAddress)) + (uint64_t)align);
+                    }
+                    if(y < phdr->p_filesz){
+                        size_t SizeToCopy = 0;
+                        if(phdr->p_filesz - y > PAGE_SIZE){
+                            SizeToCopy = PAGE_SIZE;
+                        }else{
+                            SizeToCopy = phdr->p_filesz - y;
+                        }
+                        memcpy((void*)DirectAddressToCopy, (void*)((uint64_t)buffer + phdr->p_offset + y), SizeToCopy);  
+                    }else{
+                        size_t SizeToFill = 0;
+                        if(phdr->p_memsz - y > PAGE_SIZE){
+                            SizeToFill = PAGE_SIZE;
+                        }else{
+                            SizeToFill = phdr->p_memsz - y;
+                        }
+                        memcpy((void*)DirectAddressToCopy, (void*)((uint64_t)buffer + phdr->p_offset + y), SizeToFill);  
+                    }
+                    
+                }
+            }
+        }
+
         mainThread->Launch(FunctionParameters);
+        free(self);
         return KSUCCESS;
     }
 
     bool Check(elf_t* self){
         return (self->Header->e_ident[0] != EI_MAG0 || self->Header->e_ident[1] != EI_MAG1 || self->Header->e_ident[2] != EI_MAG2 || self->Header->e_ident[3] != EI_MAG3);
-    }
-
-    void LoadBinary(pagetable_t table, struct elf_t* self, uint64_t address){
-        void* phdrs = (void*)((uint64_t)self->Buffer + (uint64_t)self->Header->e_phoff);
-        for(int i = 0; i < self->Header->e_phnum; i++){
-            Elf64_Phdr* phdr = (Elf64_Phdr*)((uint64_t)phdrs + (i * self->Header->e_phentsize));
-            switch (phdr->p_type){
-                case PT_LOAD:
-                {	
-                    Elf64_Addr segment = phdr->p_vaddr + address;
-
-                    uint64_t pages = Divide(phdr->p_memsz, PAGE_SIZE);
-                    uint64_t size = phdr->p_filesz;
-                    for(uint64_t y = 0; y < pages; y++){
-                        uint64_t SizeToCopy = 0;
-                        if(size > PAGE_SIZE){
-                            SizeToCopy = PAGE_SIZE; 
-                        }else{
-                            SizeToCopy = size;
-                        }
-                        size -= SizeToCopy; 
-                        void* virtualAddress = (void*)(segment + y * PAGE_SIZE);
-                        uint64_t offset = (uint64_t)virtualAddress % PAGE_SIZE;
-                        virtualAddress -= offset;
-                        //Custom 0 flags : is user executable
-                        if(!vmm_GetFlags(table, virtualAddress, vmm_flag::vmm_Custom0)){
-                            void* PhysicalBuffer = Pmm_RequestPage();
-                            vmm_Map(table, (void*)virtualAddress, (void*)PhysicalBuffer, true);
-                            vmm_SetFlags(table, virtualAddress, vmm_flag::vmm_Custom0, true);
-                            memcpy((void*)vmm_GetVirtualAddress(PhysicalBuffer) + offset, (void*)((uint64_t)self->Buffer + phdr->p_offset), SizeToCopy);
-                        }
-                    }
-                    break;   
-                }
-            }
-        }
     }
 }

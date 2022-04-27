@@ -53,7 +53,8 @@
         "sys.h": "c",
         "heap.h": "c",
         "atomic.h": "c",
-        "list.h": "c"
+        "list.h": "c",
+        "main.h": "c"
     },
     "debug.onTaskErrors": "debugAnyway",
     "C_Cpp.errorSquiggles": "Disabled",

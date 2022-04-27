@@ -177,32 +177,16 @@ namespace APIC{
                 
             if(Processor[i]->APICID == bspid) continue; 
 
-            //init IPI
-            localAPICWriteRegister(LocalAPICRegisterOffsetErrorStatus, 0);
-            localAPICWriteRegister(LocalAPICRegisterOffsetInterruptCommand + 0x10, i << 24);
-            localAPICWriteRegister(LocalAPICRegisterOffsetInterruptCommand, 0x00C500);
-            do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(LocalAPICRegisterOffsetInterruptCommand) & (1 << 12));
-
-            localAPICWriteRegister(LocalAPICRegisterOffsetInterruptCommand + 0x10, i << 24);
-            localAPICWriteRegister(LocalAPICRegisterOffsetInterruptCommand, 0x008500);
-            do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(LocalAPICRegisterOffsetInterruptCommand) & (1 << 12));
-
-            for(int j = 0; j < 2; j++) {
-
-                localAPICWriteRegister(LocalAPICRegisterOffsetErrorStatus, 0);
-                localAPICWriteRegister(LocalAPICRegisterOffsetInterruptCommand + 0x10, i << 24);
-                localAPICWriteRegister(LocalAPICRegisterOffsetInterruptCommand, 0x000608);
-                do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(LocalAPICRegisterOffsetInterruptCommand) & (1 << 12));
-            }
-
+            lapicSendInitIPI(Processor[i]->APICID);
+            lapicSendStartupIPI(Processor[i]->APICID, (void*)0x8000);
+            
             globalLogs->Warning("Wait processor %u", i);
-        
+            DataTrampoline.Status = 0;
+
             while (DataTrampoline.Status != 0xef){
                 __asm__ __volatile__ ("pause" : : : "memory");
             } 
             globalLogs->Successful("Processor %u respond with success", i);
-
-            DataTrampoline.Status = 0;
         }
 
         vmm_Unmap((void*)0x8000);
@@ -211,17 +195,17 @@ namespace APIC{
     }  
 
     void* GetLAPICAddress(){
-        void* lapicAddress = (void*)(msr::rdmsr(0x1b) & 0xfffff000);
-        void* lapicAddressVirtual = (void*)vmm_Map(lapicAddress);
-        return lapicAddressVirtual;
+        return lapicAddress[CPU::GetCoreID()]->VirtualAddress;
     }
 
     void EnableAPIC(uint64_t CoreID){
         lapicAddress[CoreID]->PhysicalAddress = (void*)(msr::rdmsr(0x1b) & 0xfffff000);
         lapicAddress[CoreID]->VirtualAddress = (void*)vmm_Map(lapicAddress[CoreID]->PhysicalAddress); 
-        msr::wrmsr(0x1b, (uint64_t)lapicAddress[CoreID]->PhysicalAddress);
-        localAPICWriteRegister(0xF0, localAPICReadRegister(0xF0) | 0x1ff);
+        msr::wrmsr(0x1b, ((uint64_t)lapicAddress[CoreID]->PhysicalAddress | LOCAL_APIC_ENABLE) & ~((1 << 10)));
+        localAPICWriteRegister(LocalAPICRegisterOffsetSpuriousIntVector, localAPICReadRegister(LocalAPICRegisterOffsetSpuriousIntVector) | (LOCAL_APIC_SPURIOUS_ALL | LOCAL_APIC_SPURIOUS_ENABLE_APIC));
     }
+
+
 
     static uint64_t mutexSLT;
 
@@ -256,7 +240,29 @@ namespace APIC{
         return localAPICReadRegister(LocalAPICRegisterOffsetCurentCount);
     }
 
-    void localApicEOI(uint64_t CoreID){        
+    void lapicSendInitIPI(uint8_t CoreID){
+        LocalAPICIipi registerInterrupt;
+        registerInterrupt.vector = 0;
+        registerInterrupt.deliveryMode = LocalAPICDeliveryModeINIT;
+        registerInterrupt.destinationMode = LocalAPICDestinationModePhysicalDestination;
+        registerInterrupt.destinationType = LocalAPICDestinationTypeBase;
+        uint32_t commandLow = CreatLocalAPICIipiRegister(registerInterrupt);
+        uint32_t commandHigh = CoreID << 24;
+        SetCommandIPI(commandLow, commandHigh);
+    }
+
+    void lapicSendStartupIPI(uint8_t CoreID, void* entry){
+        LocalAPICIipi registerInterrupt;
+        registerInterrupt.vector = (uint8_t)(((uint64_t)entry / PAGE_SIZE) & 0xff);
+        registerInterrupt.deliveryMode = LocalAPICDeliveryModeStartUp;
+        registerInterrupt.destinationMode = LocalAPICDestinationModePhysicalDestination;
+        registerInterrupt.destinationType = LocalAPICDestinationTypeBase;
+        uint32_t commandLow = CreatLocalAPICIipiRegister(registerInterrupt);
+        uint32_t commandHigh = CoreID << 24;
+        SetCommandIPI(commandLow, commandHigh);
+    }
+
+    void localApicEOI(uint8_t CoreID){        
         localAPICWriteRegister(lapicAddress[CoreID]->VirtualAddress, LocalAPICRegisterOffsetEOI, 0);
     }
 
@@ -327,9 +333,9 @@ namespace APIC{
     void SetCommandIPI(uint32_t commandLow, uint32_t commandHigh){
         void* lapicAddress = GetLAPICAddress();
         localAPICWriteRegister(LocalAPICRegisterOffsetErrorStatus, 0);
-        localAPICWriteRegister(lapicAddress, LocalAPICRegisterOffsetInterruptCommand + 0x10, commandHigh);
-        localAPICWriteRegister(lapicAddress, LocalAPICRegisterOffsetInterruptCommand, commandLow);
-        do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(LocalAPICRegisterOffsetInterruptCommand) & (1 << 12));
+        localAPICWriteRegister(lapicAddress, LocalAPICRegisterOffsetInterruptCommandHigh, commandHigh);
+        localAPICWriteRegister(lapicAddress, LocalAPICRegisterOffsetInterruptCommandLow, commandLow);
+        do { __asm__ __volatile__ ("pause" : : : "memory"); }while(localAPICReadRegister(LocalAPICRegisterOffsetInterruptCommandLow) & (1 << 12));
     }
 
     void GenerateInterruption(uint64_t CoreID, uint8_t Vector){

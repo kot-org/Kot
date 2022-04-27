@@ -1,10 +1,26 @@
 #include <kot/heap.h>
 
 struct Heap globalHeap;
+static uint64_t mutexHeap;
 
-void InitializeHeap(kprocess_t process){
-    globalHeap.process = process;
-    ExpandHeap(0x1000);
+void InitializeHeap(){
+    SYS_GetProcessKey(&globalHeap.process);
+    globalHeap.heapEnd = &globalHeap;
+    SYS_Map(globalHeap.process, &globalHeap.heapEnd, false, 0, 0x1000, true);
+
+    struct SegmentHeader* newSegment = (struct SegmentHeader*)globalHeap.heapEnd;
+
+    globalHeap.heapEnd += 0x1000;
+    newSegment->singature = 0xff;
+    newSegment->length = 0x1000 - sizeof(struct SegmentHeader);
+    newSegment->IsFree = true;
+    newSegment->last = NULL;
+    newSegment->next = NULL;
+    globalHeap.lastSegment = newSegment;    
+    globalHeap.mainSegment = newSegment; 
+    
+    globalHeap.TotalSize += 0x1000 + sizeof(struct SegmentHeader);     
+    globalHeap.FreeSize += 0x1000 + sizeof(struct SegmentHeader);    
 }
 
 void* calloc(size_t size){
@@ -21,9 +37,8 @@ void* malloc(size_t size){
         size += 0x10;
     }
 
-
-    atomicSpinlock(&globalHeap.lock, 0);
-    atomicLock(&globalHeap.lock, 0);
+    atomicSpinlock(&mutexHeap, 0);
+    atomicLock(&mutexHeap, 0);
 
     struct SegmentHeader* currentSeg = (struct SegmentHeader*)globalHeap.mainSegment;
     while(true){
@@ -34,13 +49,13 @@ void* malloc(size_t size){
                 currentSeg->IsFree = false;
                 globalHeap.UsedSize += currentSeg->length + sizeof(struct SegmentHeader);
                 globalHeap.FreeSize -= currentSeg->length + sizeof(struct SegmentHeader);
-                atomicUnlock(&globalHeap.lock, 0);
+                atomicUnlock(&mutexHeap, 0);
                 return (void*)((uint64_t)currentSeg + sizeof(struct SegmentHeader));
             }else if(currentSeg->length == size){
                 currentSeg->IsFree = false;
                 globalHeap.UsedSize += currentSeg->length + sizeof(struct SegmentHeader);
                 globalHeap.FreeSize -= currentSeg->length + sizeof(struct SegmentHeader);
-                atomicUnlock(&globalHeap.lock, 0);
+                atomicUnlock(&mutexHeap, 0);
                 return (void*)((uint64_t)currentSeg + sizeof(struct SegmentHeader));
             }
         }
@@ -49,7 +64,7 @@ void* malloc(size_t size){
     }
     
     ExpandHeap(size);
-    atomicUnlock(&globalHeap.lock, 0);
+    atomicUnlock(&mutexHeap, 0);
     return malloc(size);
 }
 
@@ -130,8 +145,8 @@ void MergeNextToThis(struct SegmentHeader* header){
 
 void free(void* address){
     if(address != NULL){
-        atomicSpinlock(&globalHeap.lock, 0);
-        atomicLock(&globalHeap.lock, 0);
+        atomicSpinlock(&mutexHeap, 0);
+        atomicLock(&mutexHeap, 0);
         struct SegmentHeader* header = (struct SegmentHeader*)(void*)((uint64_t)address - sizeof(struct SegmentHeader));
         header->IsFree = true;
         globalHeap.FreeSize += header->length + sizeof(struct SegmentHeader);
@@ -141,7 +156,7 @@ void free(void* address){
             if(header->next->IsFree && header->last->IsFree){
                 // merge this segment and next segment into the last segment
                 MergeNextAndThisToLast(header);
-                atomicUnlock(&globalHeap.lock, 0);
+                atomicUnlock(&mutexHeap, 0);
                 return;
             }
         }
@@ -149,7 +164,7 @@ void free(void* address){
             if(header->last->IsFree){
                 // merge this segment into the last segment
                 MergeThisToLast(header);  
-                atomicUnlock(&globalHeap.lock, 0); 
+                atomicUnlock(&mutexHeap, 0); 
                 return;  
             }         
         }
@@ -158,12 +173,12 @@ void free(void* address){
             if(header->next->IsFree){
                 // merge this segment into the next segment
                 MergeNextToThis(header);
-                atomicUnlock(&globalHeap.lock, 0);
+                atomicUnlock(&mutexHeap, 0);
                 return; 
             }
         }
 
-        atomicUnlock(&globalHeap.lock, 0);
+        atomicUnlock(&mutexHeap, 0);
     }
 }
 
@@ -205,8 +220,7 @@ void ExpandHeap(size_t length){
     SYS_Map(globalHeap.process, &globalHeap.heapEnd, false, 0, length, false);
 
     struct SegmentHeader* newSegment = (struct SegmentHeader*)globalHeap.heapEnd;
-
-    globalHeap.heapEnd =+ length;
+    globalHeap.heapEnd += length;
 
     if(globalHeap.lastSegment != NULL && globalHeap.lastSegment->IsFree){
         globalHeap.lastSegment->length += length;
@@ -221,8 +235,6 @@ void ExpandHeap(size_t length){
         }
         globalHeap.lastSegment = newSegment;        
     }
-
-
 
     if(globalHeap.mainSegment == NULL){
         globalHeap.mainSegment = newSegment;

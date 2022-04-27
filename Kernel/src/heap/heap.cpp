@@ -33,12 +33,12 @@ void* calloc(size_t size){
 }
 
 void* malloc(size_t size){
+    if (size == 0) return NULL;
+
     if(size % 0x10 > 0){ // it is not a multiple of 0x10
         size -= (size % 0x10);
         size += 0x10;
     }
-
-    if (size == 0) return NULL;
 
     Atomic::atomicSpinlock(&globalHeap.lock, 0);
     Atomic::atomicLock(&globalHeap.lock, 0);

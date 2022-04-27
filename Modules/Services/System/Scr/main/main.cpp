@@ -1,5 +1,6 @@
 #include <kot/sys.h>
 #include <kot/heap.h>
+#include <kot/memory.h>
 #include <main/main.h>
 
 void Putpixel(struct stivale2_struct_tag_framebuffer* framebuffer, int x, int y, int r, int g, int b) {
@@ -21,15 +22,13 @@ void Rectangle(struct stivale2_struct_tag_framebuffer* framebuffer, int w, int h
 int main(struct KernelInfo* kernelInfo){
     kthread_t self;
     SYS_GetThreadKey(&self);
-    SYS_Exit(self, 0);
-    Rectangle(kernelInfo->framebuffer, 500, 500, 0, 0, 231, 76, 60);
-    SYS_Map(0,0,0,0,0,0);
-    Rectangle(kernelInfo->framebuffer, 500, 500, 0, 0, 0, 76, 60);
-    SYS_Map(0,0,0,0,0,0);
-    Rectangle(kernelInfo->framebuffer, 500, 500, 500, 500, 0, 76, 60);
-    malloc(0x1000);
-    Rectangle(kernelInfo->framebuffer, 500, 500, 500, 0, 0, 255, 60);
-    //InitializeHeap(_process);
-    Rectangle(kernelInfo->framebuffer, 500, 500, 1000, 0, 0, 0, 255);
-    while(true);
+    InitializeHeap();
+
+    memset(malloc(0x1000), 0xff, 0x1000);
+    memset(malloc(0x4000), 0xff, 0x4000);
+
+    for(int i = 0; i < 100; i++){
+        Rectangle(kernelInfo->framebuffer, 500, 1000, i * 10, i * 20, 255, i * 10, i * 25);
+    }
+    SYS_Pause(self);
 }

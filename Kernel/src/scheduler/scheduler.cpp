@@ -487,7 +487,7 @@ void* thread_t::ShareDataInStack(void* data, size_t size){
     void* address = (void*)(this->Stack->StackStart - size);
     if(ExtendStack((uint64_t)address)){
         // We consider that we have direct access to data but not to address
-        uint64_t NumberOfPage = Divide(size, PAGE_SIZE);
+        uint64_t NumberOfPage = DivideRoundUp(size, PAGE_SIZE);
         uint64_t VirtualAddressIteratorScr = (uint64_t)data;
         uint64_t VirtualAddressIterator = sizeof(StackData);
         for(uint64_t i = 0; i < NumberOfPage; i++){

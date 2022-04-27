@@ -81,7 +81,7 @@ namespace Keyhole{
         }
 
         // check parent
-        if(!CheckAddress((void*)lock->Pare nt, sizeof(process_t))) return KFAIL;
+        if(!CheckAddress((void*)lock->Parent, sizeof(process_t))) return KFAIL;
         
         uint64_t VirtualAddress = (uint64_t)vmm_GetVirtualAddress(lock->Parent->SharedPaging);
         

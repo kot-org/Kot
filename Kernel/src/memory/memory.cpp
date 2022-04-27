@@ -34,7 +34,7 @@ int memcmp(const void *aptr, const void *bptr, size_t n){
 }
 
 bool CheckAddress(void* address, size_t size){
-    uint64_t NumberPage = Divide(size, PAGE_SIZE);
+    uint64_t NumberPage = DivideRoundUp(size, PAGE_SIZE);
     uint64_t AddressItinerator = (uint64_t)address;
     void* PagingEntry = NULL;
     __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(PagingEntry));
@@ -60,7 +60,7 @@ uint64_t CreatSharing(thread_t* thread, size_t size, uint64_t* virtualAddressPoi
         virtualAddress += PAGE_SIZE;
     }
     uint64_t realSize = size;
-    uint64_t numberOfPage = Divide(realSize, PAGE_SIZE);
+    uint64_t numberOfPage = DivideRoundUp(realSize, PAGE_SIZE);
     for(int i = 0; i < numberOfPage; i++){
         uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
         if(!vmm_GetFlags(pageTable, (void*)virtualAddressIterator, vmm_flag::vmm_Present)){

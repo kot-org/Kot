@@ -4,7 +4,6 @@
 #include <kot/sys.h>
 #include <kot/types.h>
 #include <kot/memory.h>
-#include <kot/atomic.h>
 
 struct SegmentHeader{
     bool IsFree;
@@ -21,7 +20,6 @@ struct Heap{
     size_t FreeSize;
     size_t UsedSize;
     uint64_t heapEnd;
-    uint64_t lock;
     kprocess_t process;
 };
 
@@ -29,7 +27,7 @@ struct Heap{
 extern "C" {
 #endif
 
-void InitializeHeap(kprocess_t process);
+void InitializeHeap();
 void* calloc(size_t size);
 void* malloc(size_t size);
 void* realloc(void* buffer, size_t size);

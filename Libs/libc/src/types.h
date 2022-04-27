@@ -3,11 +3,6 @@
 
 #define NULL 0x0
 
-#if !defined(__cplusplus)
-#define bool unsigned int
-#define true 1
-#define false 0
-#endif
 
 typedef signed char                 int8_t;
 typedef short int                   int16_t;
@@ -54,12 +49,23 @@ typedef unsigned long int           kthread_t;
 typedef unsigned long long int      kthread_t;
 #endif
 
+#if __WORDSIZE == 64
+typedef unsigned long int           kevent_t;
+#else
+typedef unsigned long long int      kevent_t;
+#endif
+
 typedef long unsigned int           size_t;
 typedef void*                       uintptr_t;
 
 #define KFAIL 0
 #define KSUCCESS 1
 
+#if !defined(__cplusplus)
+#define bool uint64_t
+#define true 1
+#define false 0
+#endif
 struct parameters_t{
     uint64_t Parameter0;
     uint64_t Parameter1;

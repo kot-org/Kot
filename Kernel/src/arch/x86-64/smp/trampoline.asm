@@ -76,7 +76,6 @@ TrampolineLongMode:
     mov cr4, rax
 
     mov	byte [Target(DataTrampoline.Status)], 3
-
     jmp [Target(DataTrampoline.MainEntry)]
     hlt
 

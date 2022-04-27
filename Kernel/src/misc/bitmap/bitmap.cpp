@@ -28,7 +28,7 @@ bool Bitmap::Set(uint64_t index, bool value){
 BitmapHeap::BitmapHeap(size_t size){
     bitmap = (Bitmap*)malloc(sizeof(Bitmap));
     bitmap->Size = size;
-    bitmap->Buffer = (uint8_t*)malloc(Divide(size, 8));
+    bitmap->Buffer = (uint8_t*)malloc(DivideRoundUp(size, 8));
 }
 
 void BitmapHeap::Free(){

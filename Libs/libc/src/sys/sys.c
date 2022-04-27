@@ -24,6 +24,18 @@ KResult SYS_Fork(kthread_t task, struct parameters_t* param){
     return ReturnValue;
 }
 
+KResult Sys_CreatProc(kprocess_t* key, uint8_t privilege, uint64_t data){
+    KResult ReturnValue;
+    Syscall_24(KSys_CloseProc, key, privilege, data);
+    return ReturnValue;
+}
+
+KResult Sys_CloseProc(){
+    KResult ReturnValue;
+    Syscall_0(KSys_CloseProc);
+    return ReturnValue;
+}
+
 KResult SYS_Exit(kthread_t self, uint64_t errorCode){
     KResult ReturnValue;
     Syscall_16(KSys_Exit, self, errorCode);
@@ -53,6 +65,48 @@ KResult SYS_Unmap(kthread_t self, void* addressVirtual, size_t size){
     Syscall_24(KSys_Unmap, self, addressVirtual, size);
     return ReturnValue;
 }
+
+KResult Sys_Event_Creat(kevent_t* self, enum EventType type, uint8_t vector){
+    KResult ReturnValue;
+    Syscall_16(KSys_Event_Creat, self, vector);
+    return ReturnValue;
+}
+
+KResult Sys_Event_Bind(kevent_t self, uint8_t vector){
+    KResult ReturnValue;
+    Syscall_16(KSys_Event_Bind, self, vector);
+    return ReturnValue;
+}
+
+KResult Sys_Event_Unbind(kevent_t self){
+    KResult ReturnValue;
+    Syscall_8(KSys_Event_Unbind, self);
+    return ReturnValue;
+}
+
+KResult Sys_Event_Trigger(kevent_t self, void* dataAddress, size_t dataSize){
+    KResult ReturnValue;
+    Syscall_24(KSys_Event_Trigger, self, dataAddress, dataSize);
+    return ReturnValue;
+}
+
+KResult Sys_CreatThread(kthread_t self, parameters_t* parameters){
+    KResult ReturnValue;
+    Syscall_16(KSys_CreatThread, self, parameters);
+    return ReturnValue;
+}
+
+KResult Sys_DuplicateThread(kthread_t self, kthread_t source){
+    KResult ReturnValue;
+
+    return ReturnValue;
+}
+
+KResult Sys_ExecThread(){
+    KResult ReturnValue;
+    return ReturnValue;
+}
+
 
 KResult SYS_GetThreadKey(kthread_t* self){
     /* Get Self Data */

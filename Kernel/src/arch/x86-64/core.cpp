@@ -23,7 +23,7 @@ KernelInfo* arch_initialize(void* boot){
 
     SerialPort::Initialize();
     SerialPort::ClearMonitor();
-    globalLogs->Message("Welcome to Kot's kernel");
+    globalLogs->Message("Welcome to Kot kernel");
 
     gdtInit();
     globalLogs->Successful("GDT intialize");

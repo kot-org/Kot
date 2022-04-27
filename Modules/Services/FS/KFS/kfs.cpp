@@ -26,9 +26,9 @@ namespace FileSystem{
         info->IsInit.Data4 = GUIDData4;
 
         info->NumberOfCluster = MemTotPartiton / ClusterSize;        
-        info->BitmapSizeByte = Divide(info->NumberOfCluster, 8);
+        info->BitmapSizeByte = DivideRoundUp(info->NumberOfCluster, 8);
         info->ClusterSize = ClusterSize;
-        info->BitmapSizeCluster = Divide(info->BitmapSizeByte, info->ClusterSize);
+        info->BitmapSizeCluster = DivideRoundUp(info->BitmapSizeByte, info->ClusterSize);
         info->BitmapPosition = ClusterSize;
         info->IndexToAllocate = 0;
         info->Root.FirstClusterForFile = info->BitmapPosition / ClusterSize + info->BitmapSizeCluster;
@@ -65,7 +65,7 @@ namespace FileSystem{
 
     AllocatePartition* KFS::Allocate(size_t size, Folder* folder, uint64_t LastClusterRequested, bool GetAutoLastCluster){
         globalLogs->Successful("");
-        uint64_t NumberClusterToAllocate = Divide(size, KFSPartitionInfo->ClusterSize);
+        uint64_t NumberClusterToAllocate = DivideRoundUp(size, KFSPartitionInfo->ClusterSize);
         uint64_t ClusterAllocate = 1;
         uint64_t FirstBlocAllocated = 0;
         uint64_t NextCluster = 0;
@@ -353,7 +353,7 @@ namespace FileSystem{
             if(i == (count - 2)) break; 
         }
 
-        uint64_t ClusterSize = Divide(DataPosition, KFSPartitionInfo->ClusterSize);
+        uint64_t ClusterSize = DivideRoundUp(DataPosition, KFSPartitionInfo->ClusterSize);
         uint64_t ClusterSizeFolder = KFSPartitionInfo->ClusterSize * ClusterSize;
         AllocatePartition* allocatePartition = Allocate(ClusterSizeFolder, folder, 0, true);
         uint64_t ParentClusterHeaderPostition = 0;
@@ -583,7 +583,7 @@ namespace FileSystem{
     }
 
     FileInfo* KFS::NewFile(char* filePath, Folder* folder){
-        uint64_t ClusterSize = Divide(DataPosition, KFSPartitionInfo->ClusterSize);
+        uint64_t ClusterSize = DivideRoundUp(DataPosition, KFSPartitionInfo->ClusterSize);
         uint64_t FileClusterSize = KFSPartitionInfo->ClusterSize * ClusterSize; //alloc one bloc, for the header and data
         AllocatePartition* allocatePartition = Allocate(FileClusterSize, folder, 0, true);
         uint64_t ClusterLastAllocate = allocatePartition->LastCluster;
@@ -1284,9 +1284,9 @@ namespace FileSystem{
         uint64_t ClusterCount = 0;
         uint64_t FirstByte = start % kfs->KFSPartitionInfo->ClusterSize;
         if(ClusterStart == 0 && FirstByte < DataPosition){
-            ClusterCount = Divide(size + DataPosition, kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader));
+            ClusterCount = DivideRoundUp(size + DataPosition, kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader));
         }else{
-            ClusterCount = Divide(size + FirstByte, kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader));
+            ClusterCount = DivideRoundUp(size + FirstByte, kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader));
         }
 
         uint64_t ReadCluster = fileInfo.ClusterHeaderPostition;
@@ -1370,9 +1370,9 @@ namespace FileSystem{
 
         uint64_t ClusterCount = 0;
         if(ClusterStart == 0 && BytesStart < DataPosition){
-            ClusterCount = Divide(size + DataPosition, kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader));
+            ClusterCount = DivideRoundUp(size + DataPosition, kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader));
         }else{
-            ClusterCount = Divide(size + BytesStart, kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader));
+            ClusterCount = DivideRoundUp(size + BytesStart, kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader));
         }
 
 

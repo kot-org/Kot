@@ -329,12 +329,12 @@ namespace GPT{
         uint64_t sectorsToRead = 0;
         uint64_t sectorsRead = 0;
         
-        for(int i = 0; i < Divide(size, port->BufferSize); i++){            
+        for(int i = 0; i < DivideRoundUp(size, port->BufferSize); i++){            
             sizeToRead = size - sizeRead;
             if(sizeToRead > port->BufferSize){
                 sizeToRead = port->BufferSize;
             }
-            sectorsToRead = Divide(sizeToRead, SectorSizeLBA);
+            sectorsToRead = DivideRoundUp(sizeToRead, SectorSizeLBA);
 
             Check = port->Read(LBAFirstSector + sectorsRead, sectorsToRead, port->Buffer);
             if(sizeRead != 0){
@@ -357,13 +357,13 @@ namespace GPT{
         uint64_t sizeToWrite = 0;
         uint64_t sectorsToWrite = 0;
         uint64_t sectorsWrite = 0;
-        for(int i = 0; i < Divide(size, port->BufferSize); i++){           
+        for(int i = 0; i < DivideRoundUp(size, port->BufferSize); i++){           
             sizeToWrite = size - sizeWrite;
             if(sizeToWrite > port->BufferSize){
                 sizeToWrite = port->BufferSize;
             }
 
-            sectorsToWrite = Divide(sizeToWrite, SectorSizeLBA);
+            sectorsToWrite = DivideRoundUp(sizeToWrite, SectorSizeLBA);
             Check = port->Read(LBAFirstSector + sectorsWrite, sectorsToWrite, port->Buffer);
             if(sizeWrite != 0){
                 memcpy(globalPageTableManager[0].GetVirtualAddress(port->Buffer), (void*)((uint64_t)buffer + sizeWrite), sizeToWrite);
