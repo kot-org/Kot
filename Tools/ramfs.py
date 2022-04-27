@@ -67,4 +67,4 @@ for i in range(FileCount):
     AddFileFromDisk(OuputFile, InputFolderPath + InputFiles[i])
 
 OuputFile.close()
-print("RamFS creating with success!")
+print("ramfs creating with success!")

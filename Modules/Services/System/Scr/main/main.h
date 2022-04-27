@@ -1,5 +1,6 @@
 #pragma once
 #include <kot/types.h>
+#include <fs/ramfs/ramfs.h>
 
 struct stivale2_struct_tag_framebuffer {
     uint64_t identifier;
@@ -19,8 +20,8 @@ struct stivale2_struct_tag_framebuffer {
     uint8_t  unused;
 };
 
-struct RamFs{
-	void* RamFsBase;
+struct ramfs_t{
+	void* ramfsBase;
 	size_t Size;
 }__attribute__((packed));
 
@@ -38,7 +39,7 @@ struct Timer{
 
 struct KernelInfo{
     struct stivale2_struct_tag_framebuffer* framebuffer;
-    struct RamFs* ramfs;
+    struct ramfs_t* ramfs;
     struct memoryInfo_t* memoryInfo;
     void* smbios;
     void* rsdp;

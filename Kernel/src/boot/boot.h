@@ -2,9 +2,9 @@
 #include <boot/stivale2.h>
 #include <lib/stdio.h>
 
-/* RamFs */
-struct RamFs{
-	void* RamFsBase;
+/* ramfs */
+struct ramfs_t{
+	void* ramfsBase;
 	size_t Size;
 }__attribute__((packed));
 
@@ -21,8 +21,8 @@ struct BootInfo{
     struct stivale2_struct_tag_rsdp* RSDP;
     struct stivale2_struct_tag_smbios* smbios;
     
-    /* RamFS */
-    struct RamFs ramfs;
+    /* ramfs */
+    struct ramfs_t ramfs;
 }__attribute__((packed));
 
 namespace Boot{

@@ -6,14 +6,14 @@ extern "C" void main(void* boot)
     KernelInfo* kernelInfo = arch_initialize(boot);
 
     /* load init file */
-    RamFS::Parse(kernelInfo->ramfs->RamFsBase, kernelInfo->ramfs->Size);
-    RamFS::File* InitFile = RamFS::FindInitFile();
+    ramfs::Parse(kernelInfo->ramfs->ramfsBase, kernelInfo->ramfs->Size);
+    ramfs::File* InitFile = ramfs::FindInitFile();
     
     Parameters* InitParameters = (Parameters*)malloc(sizeof(Parameters));
     InitParameters->Parameter0 = (uint64_t)kernelInfo;
     if(InitFile != NULL){
         void* BufferInitFile = malloc(InitFile->size);
-        Read(InitFile, BufferInitFile);
+        ramfs::Read(InitFile, BufferInitFile);
         ELF::loadElf(BufferInitFile, 1, InitParameters);
     }else{
         globalLogs->Error("Can't load initialization file");

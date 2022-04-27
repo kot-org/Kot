@@ -3,7 +3,7 @@
 
 #define MaxName 36
 
-namespace RamFS{
+namespace ramfs{
 
     struct Header{
         char signature[5];

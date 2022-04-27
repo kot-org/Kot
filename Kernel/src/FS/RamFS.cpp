@@ -1,6 +1,6 @@
-#include <FS/RamFS.h>
+#include <fs/ramfs.h>
 
-namespace RamFS{
+namespace ramfs{
     Info* info;
     void Parse(void* baseAddress, size_t size){
         if(size == NULL) return;

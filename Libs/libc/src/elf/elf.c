@@ -29,7 +29,7 @@
 //                     char* name = (char*)((uint64_t)buffer + (uint64_t)self->DynstrSH->sh_offset + (uint64_t)dyn->d_un.d_ptr);
 
 //                     /* Load library file */
-//                     RamFS::File* LibFile = RamFS::Find(name);
+//                     ramfs::File* LibFile = ramfs::Find(name);
 //                     void* BufferLib = malloc(LibFile->size);
 //                     Read(LibFile, BufferLib);
 

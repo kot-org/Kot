@@ -4,7 +4,7 @@ LDS = main.ld
 CC = $(PREFIX)gcc
 ASMC = nasm
 
-CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Scr
+CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Scr -O2
 LINKERFLAGS = -lc -Wall -static
 ASMFLAGS = 
 
@@ -40,7 +40,7 @@ link:
 	$(CC) $(LINKERFLAGS) -o $(BINDIR)/System.elf $(OBJS) $(OBJSCPP)
 	
 copyToFS:
-	./../../../../Tools/BuildRamFS.sh
+	./../../../../Tools/Buildramfs.sh
 
 
 

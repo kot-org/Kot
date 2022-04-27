@@ -1,6 +1,6 @@
 bash -c "make"
 
-cd ../../../../RamFSParser
-start BuildRamFs.bat
+cd ../../../../ramfsParser
+start Buildramfs.bat
 
 pause

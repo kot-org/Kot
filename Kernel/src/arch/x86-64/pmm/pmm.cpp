@@ -23,6 +23,7 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
         if (Map->memmap[i].type == STIVALE2_MMAP_USABLE){
             if (Map->memmap[i].length > bitmapSize)
             {
+                Map->memmap[i].type = STIVALE2_MMAP_RESERVED;
                 BitmapSegment = (void*)Map->memmap[i].base;
                 break;
             }

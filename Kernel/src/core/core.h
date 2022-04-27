@@ -13,7 +13,7 @@
 #include <syscall/syscall.h>
 #include <boot/boot.h>
 #include <logs/logs.h>
-#include <FS/RamFS.h>
+#include <fs/ramfs.h>
 #include <elf/elf.h>
 
 extern "C" void main(void* boot);

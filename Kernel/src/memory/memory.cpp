@@ -2,13 +2,11 @@
 #include <logs/logs.h>
 #include <memory/memory.h>
 
-static uint64_t mutexMemory;
-
 void memset(void* start, uint8_t value, uint64_t num){
-    for (uint64_t i = 0; i < num; i++){
-        *(uint8_t*)((uint64_t)start + i) = value;
+    for (; num; num--, start++){
+        *(uint8_t *)start = value;
     }
-}
+}        
 
 void memcpy(void* destination, void* source, uint64_t num){
     long d0, d1, d2; 

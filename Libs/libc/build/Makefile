@@ -10,7 +10,7 @@ LD = $(PREFIX)ld
 AS = $(PREFIX)as
 AR = $(PREFIX)ar
 
-CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC
+CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC -O2
 ASMFLAGS = 
 
 

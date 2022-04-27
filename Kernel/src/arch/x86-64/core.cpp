@@ -65,8 +65,8 @@ KernelInfo* arch_initialize(void* boot){
     memcpy(kernelInfo->framebuffer, bootInfo->Framebuffer, sizeof(stivale2_struct_tag_framebuffer));
 
     //ramfs
-    kernelInfo->ramfs = (RamFs*)malloc(sizeof(RamFs));
-    memcpy(kernelInfo->ramfs, &bootInfo->ramfs, sizeof(RamFs));
+    kernelInfo->ramfs = (ramfs_t*)malloc(sizeof(ramfs_t));
+    memcpy(kernelInfo->ramfs, &bootInfo->ramfs, sizeof(ramfs_t));
 
     //memory info
     kernelInfo->memoryInfo = &memoryInfo;
