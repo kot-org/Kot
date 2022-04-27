@@ -18,6 +18,7 @@ namespace APIC{
     void InitializeMADT(ACPI::MADTHeader* madt){
         ProcessorCount = 0;
         IsoCount = 0;
+        uint64_t MaxAPICID = 0;
 
         if(madt == 0){
             return;
@@ -31,7 +32,11 @@ namespace APIC{
 
             switch(entryRecord->Type){
                 case EntryTypeLocalProcessor: {
-                    ProcessorCount++;        
+                    LocalProcessor* processor = (LocalProcessor*)entryRecord;
+                    if(processor->APICID > MaxAPICID){
+                        MaxAPICID = processor->APICID;
+                    }  
+                    ProcessorCount++;      
                     break;                    
                 }
                 case EntryTypeIOAPIC:{
@@ -52,7 +57,7 @@ namespace APIC{
         }
 
         Processor = (LocalProcessor**)malloc(sizeof(LocalProcessor) * ProcessorCount);
-        lapicAddress = (LapicAddress**)malloc(sizeof(LapicAddress) * ProcessorCount);
+        lapicAddress = (LapicAddress**)malloc(sizeof(LapicAddress) * MaxAPICID);
 
         IOapic = (IOAPIC**)malloc(sizeof(IOAPIC) * IOAPICCount);
 
@@ -70,7 +75,7 @@ namespace APIC{
                 case EntryTypeLocalProcessor: {
                     LocalProcessor* processor = (LocalProcessor*)entryRecord;
                     Processor[ProcessorCountTemp] = processor;  
-                    lapicAddress[ProcessorCountTemp] = (LapicAddress*)malloc(sizeof(LapicAddress));
+                    lapicAddress[processor->APICID] = (LapicAddress*)malloc(sizeof(LapicAddress));
                     ProcessorCountTemp++;
                     break;
                 }
@@ -198,7 +203,7 @@ namespace APIC{
         return lapicAddress[CPU::GetCoreID()]->VirtualAddress;
     }
 
-    void EnableAPIC(uint64_t CoreID){
+    void EnableAPIC(uint8_t CoreID){
         lapicAddress[CoreID]->PhysicalAddress = (void*)(msr::rdmsr(0x1b) & 0xfffff000);
         lapicAddress[CoreID]->VirtualAddress = (void*)vmm_Map(lapicAddress[CoreID]->PhysicalAddress); 
         msr::wrmsr(0x1b, ((uint64_t)lapicAddress[CoreID]->PhysicalAddress | LOCAL_APIC_ENABLE) & ~((1 << 10)));

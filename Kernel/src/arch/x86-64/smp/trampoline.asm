@@ -11,7 +11,7 @@ GLOBAL Trampoline
 Trampoline: 
     cli
     cld
-    
+        
     mov	byte [Target(DataTrampoline.Status)], 1
     
     ;Cr4 physical address extension

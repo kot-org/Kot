@@ -250,7 +250,7 @@ namespace APIC{
     void IoChangeIrqState(uint8_t irq, uint8_t IOApicID, bool IsEnable);
     void LoadCores();
     void* GetLAPICAddress();
-    void EnableAPIC(uint64_t CoreID);
+    void EnableAPIC(uint8_t CoreID);
     void StartLapicTimer();
     void localAPICSetTimerCount(uint32_t value);
     uint32_t localAPICGetTimerCount();
