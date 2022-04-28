@@ -1,18 +1,20 @@
 #include <arch/x86-64/smp/smp.h>
 
 extern "C" void TrampolineMain(){
-    uint64_t CoreID = CPU::GetCoreID();
+    asm("cli");
+    uint64_t CoreID = CPU::GetAPICID();
+
     gdtInitCores(CoreID);
 
     asm ("lidt %0" : : "m" (idtr));
  
     CPU::InitCPU();
-    
+
     APIC::EnableAPIC(CoreID);
     APIC::StartLapicTimer();
 
-    
-    simdInit();
+    simdInit();    
+
 
     DataTrampoline.Status = 0xef;
 

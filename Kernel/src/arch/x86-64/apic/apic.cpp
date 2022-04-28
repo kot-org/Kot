@@ -163,9 +163,6 @@ namespace APIC{
         uint64_t lapicAddress = (uint64_t)GetLAPICAddress();
         void* TrampolineVirtualAddress = (void*)vmm_GetVirtualAddress(0x8000);
 
-        uint8_t bspid = 0; 
-        __asm__ __volatile__ ("mov $1, %%rax; cpuid; shrq $24, %%rbx;": "=r"(bspid)::);
-
         memcpy((void*)TrampolineVirtualAddress, (void*)&Trampoline, PAGE_SIZE);
 
         trampolineData* Data = (trampolineData*) (((uint64_t)&DataTrampoline - (uint64_t) &Trampoline) + TrampolineVirtualAddress);
@@ -175,32 +172,36 @@ namespace APIC{
         //temp trampoline map
         vmm_Map((void*)0x8000, (void*)0x8000);
 
-        for(int i = 1; i < ProcessorCount; i++){ 
+        for(int i = 0; i < ProcessorCount; i++){ 
             Data->Paging = (uint64_t)vmm_PageTable;
             uint64_t StackSize = KERNEL_STACK_SIZE; // 10 mb
             Data->Stack = (uint64_t)malloc(StackSize) + StackSize;
                 
-            if(Processor[i]->APICID == bspid) continue; 
+            if(Processor[i]->APICID == Processor[CPU::GetAPICID()]->APICID) continue; 
 
             lapicSendInitIPI(Processor[i]->APICID);
-            lapicSendStartupIPI(Processor[i]->APICID, (void*)0x8000);
+
+            DataTrampoline.Status = 0;
+            // send STARTUP IPI twice 
+            for(int j = 0; j < ProcessorCount; j++){
+                lapicSendStartupIPI(Processor[i]->APICID, (void*)0x8000);
+                HPET::HPETSleep(10);
+            }
             
             globalLogs->Warning("Wait processor %u", i);
-            DataTrampoline.Status = 0;
 
             while (DataTrampoline.Status != 0xef){
                 __asm__ __volatile__ ("pause" : : : "memory");
             } 
             globalLogs->Successful("Processor %u respond with success", i);
         }
-
+        DataTrampoline.Status = 0xff;
         vmm_Unmap((void*)0x8000);
 
-        DataTrampoline.Status = 0xff;
     }  
 
     void* GetLAPICAddress(){
-        return lapicAddress[CPU::GetCoreID()]->VirtualAddress;
+        return lapicAddress[CPU::GetAPICID()]->VirtualAddress;
     }
 
     void EnableAPIC(uint8_t CoreID){
@@ -208,6 +209,7 @@ namespace APIC{
         lapicAddress[CoreID]->VirtualAddress = (void*)vmm_Map(lapicAddress[CoreID]->PhysicalAddress); 
         msr::wrmsr(0x1b, ((uint64_t)lapicAddress[CoreID]->PhysicalAddress | LOCAL_APIC_ENABLE) & ~((1 << 10)));
         localAPICWriteRegister(LocalAPICRegisterOffsetSpuriousIntVector, localAPICReadRegister(LocalAPICRegisterOffsetSpuriousIntVector) | (LOCAL_APIC_SPURIOUS_ALL | LOCAL_APIC_SPURIOUS_ENABLE_APIC));
+        localApicEOI(CoreID);
     }
 
 
@@ -217,7 +219,7 @@ namespace APIC{
     void StartLapicTimer(){
         Atomic::atomicSpinlock(&mutexSLT, 0);
         Atomic::atomicLock(&mutexSLT, 0);
-        localApicEnableSpuriousInterrupts();
+
         // Setup Local APIC timer
         localAPICWriteRegister(LocalAPICRegisterOffsetDivide, 4);        
         localAPICWriteRegister(LocalAPICRegisterOffsetInitialCount, 0xffffffff);

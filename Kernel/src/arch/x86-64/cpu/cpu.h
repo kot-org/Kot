@@ -305,7 +305,7 @@ namespace CPU{
     extern "C" void SetCPUFSBase(uint64_t Value);
     extern "C" uint64_t GetCPUContext(uint64_t index);
     extern "C" void SetCPUContext(uint64_t index, uint64_t value);
-    extern "C" uint8_t GetCoreID();
+    extern "C" uint8_t GetAPICID();
     void cpuid(uint32_t reg, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx);
     void GetMSR(uint32_t index, uint32_t* low, uint32_t* high);
     void SetMSR(uint32_t index, uint32_t low, uint32_t high);

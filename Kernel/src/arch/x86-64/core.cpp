@@ -52,8 +52,8 @@ KernelInfo* arch_initialize(void* boot){
     globalTaskManager->InitScheduler(APIC::ProcessorCount);
 
 
-    APIC::EnableAPIC(CPU::GetCoreID());
-    APIC::localApicEOI(CPU::GetCoreID());
+    APIC::EnableAPIC(CPU::GetAPICID());
+    APIC::localApicEOI(CPU::GetAPICID());
     APIC::StartLapicTimer();
     APIC::LoadCores();
 

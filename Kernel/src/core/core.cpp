@@ -22,7 +22,7 @@ extern "C" void main(void* boot)
     free(InitParameters);
 
     
-    globalTaskManager->EnabledScheduler(CPU::GetCoreID());
+    globalTaskManager->EnabledScheduler(CPU::GetAPICID());
 
     LaunchUserSpace();
 

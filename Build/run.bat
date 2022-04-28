@@ -5,6 +5,6 @@ set OSNAME=kot
 set BUILDDIR=%0/../bin
 set OVMFDIR=%0/../OVMFbin
 
-qemu-system-x86_64 -bios ../ovmf/ovmf.fd -no-reboot -no-shutdown -M smm=off -serial stdio -machine q35 -cpu qemu64 -smp 4 -cdrom ../Bin/kot.iso -m 2G -s -S
+qemu-system-x86_64 -bios ../ovmf/ovmf.fd -no-reboot -no-shutdown -M smm=off -serial stdio -machine q35 -cpu qemu64 -smp 4 -cdrom ../Bin/kot.iso -m 4G -s -S
 
 pause

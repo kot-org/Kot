@@ -17,13 +17,21 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
     void* BitmapSegment = NULL;
 
     uint64_t memorySize = Pmm_GetMemorySize(Map);
-    uint64_t bitmapSize = memorySize / PAGE_SIZE / 8 + 1;
+    uint64_t PageCount = 0;
+    uint64_t LastBase = 0;
+    for (int i = 0; i < Map->entries; i++){
+        if(Map->memmap[i].base > LastBase){
+            LastBase = Map->memmap[i].base;
+            PageCount = DivideRoundUp(Map->memmap[i].base + Map->memmap[i].length, PAGE_SIZE);
+        }
+    }
+
+    uint64_t bitmapSize = DivideRoundUp(PageCount, 8);
 
     for (int i = 0; i < Map->entries; i++){
         if (Map->memmap[i].type == STIVALE2_MMAP_USABLE){
             if (Map->memmap[i].length > bitmapSize)
             {
-                Map->memmap[i].type = STIVALE2_MMAP_RESERVED;
                 BitmapSegment = (void*)Map->memmap[i].base;
                 break;
             }
@@ -36,7 +44,7 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
 
     Pmm_InitBitmap(bitmapSize, BitmapSegment);
 
-    Pmm_ReservePages(0, memorySize / PAGE_SIZE + 1);
+    Pmm_ReservePages(0, PageCount);
 
     for (int i = 0; i < Map->entries; i++){
         if (Map->memmap[i].type == STIVALE2_MMAP_USABLE){ 
@@ -44,8 +52,7 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
         }
     }
 
-    Pmm_ReservePages(0, 0x100); // reserve between 0 and PAGE_SIZE00
-    Pmm_LockPages(Pmm_PageBitmap.Buffer, Pmm_PageBitmap.Size / PAGE_SIZE + 1);
+    Pmm_LockPages(Pmm_PageBitmap.Buffer, DivideRoundUp(Pmm_PageBitmap.Size, PAGE_SIZE));
 }
 
 uint64_t Pmm_GetMemorySize(stivale2_struct_tag_memmap* Map){
@@ -62,9 +69,7 @@ uint64_t Pmm_GetMemorySize(stivale2_struct_tag_memmap* Map){
 void Pmm_InitBitmap(size_t bitmapSize, void* bufferAddress){
     Pmm_PageBitmap.Size = bitmapSize;
     Pmm_PageBitmap.Buffer = (uint8_t*)bufferAddress;
-    for (int i = 0; i < bitmapSize; i++){
-        *(uint8_t*)(Pmm_PageBitmap.Buffer + i) = 0;
-    }
+    memset(Pmm_PageBitmap.Buffer, 0, Pmm_PageBitmap.Size);
 }
 
 uint64_t Pmm_PageBitmapIndex = 0;
