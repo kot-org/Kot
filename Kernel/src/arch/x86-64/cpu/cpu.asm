@@ -1,4 +1,4 @@
-GLOBAL DisableInterrupts, EnableInterrupts, ReloadGSFS, GetCPUContext, GetCoreID, SetCPUContext, GetCPUContext, SetCPUGSBase, SetCPUGSKernelBase, SetCPUFSBase
+GLOBAL DisableInterrupts, EnableInterrupts, ReloadGSFS, GetCPUContext, GetAPICID, SetCPUContext, GetCPUContext, SetCPUGSBase, SetCPUGSKernelBase, SetCPUFSBase
 
 %Define FS_Base             0xC0000100
 %Define GS_Base             0xC0000101
@@ -50,7 +50,7 @@ SetCPUContext:
     mov [gs:(rdi * 8)], rsi
     ret
 
-GetCoreID:
+GetAPICID:
     mov    ax, gs
     cmp    ax, 0x0
     jnz    NeedCPUID
