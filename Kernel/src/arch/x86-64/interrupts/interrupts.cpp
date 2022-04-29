@@ -62,8 +62,6 @@ void InitializeInterrupts(){
     asm("lidt %0" : : "m" (idtr));     
 }
 
-uint64_t testit = 0;
-
 extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
     if(Registers->InterruptNumber < 32){
         // execptions

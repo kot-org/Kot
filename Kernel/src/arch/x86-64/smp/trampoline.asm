@@ -19,17 +19,17 @@ Trampoline:
     or eax, 1 << 5
     mov cr4, eax
 
-    ;Load Cr3
-    mov eax, [Target(DataTrampoline.Paging)]
-    mov cr3, eax
-
-    ;long mode enable
+    ;long mode enable efer
     mov ecx, 0xC0000080 
     rdmsr
     or eax, 1 << 8
     wrmsr
     
-    ;Cr0 protected mode enable
+    ;Load Cr3
+    mov eax, [Target(DataTrampoline.Paging)]
+    mov cr3, eax
+
+    ;Cr0 protected mode enable and paging
     mov eax, cr0
     or eax, 0x80000001
     mov cr0, eax    
@@ -87,7 +87,6 @@ GLOBAL DataTrampoline
 
 DataTrampoline:
 	.Status:			        db	0
-    .GDTPointer:                dq  0
     .Paging:                    dq  0
     .Stack:                     dq  0
     .MainEntry:                 dq  0    

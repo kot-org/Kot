@@ -4,7 +4,6 @@
 
 struct trampolineData{
     uint8_t Status;
-    uint64_t GDTPointer;
     uint64_t Paging;
     uint64_t Stack;
     uint64_t MainEntry;

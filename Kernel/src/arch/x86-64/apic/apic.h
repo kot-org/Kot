@@ -79,7 +79,7 @@ namespace APIC{
         LocalAPICInterruptRegisterMessageTypeExtint		= 0b111,
     };
     enum LocalAPICInterruptRegisterDeliveryStatus{
-        LocalAPICInterruptRegisterMessageTypedle	    = 0,
+        LocalAPICInterruptRegisterMessageTypeIddle	    = 0,
         LocalAPICInterruptRegisterMessageTypePending	= 1
     };
     enum LocalAPICInterruptRegisterRemoteIRR{

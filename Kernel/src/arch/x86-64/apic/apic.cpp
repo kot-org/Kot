@@ -160,32 +160,30 @@ namespace APIC{
     }
 
     void LoadCores(){
-        uint64_t lapicAddress = (uint64_t)GetLAPICAddress();
         void* TrampolineVirtualAddress = (void*)vmm_GetVirtualAddress(0x8000);
 
         memcpy((void*)TrampolineVirtualAddress, (void*)&Trampoline, PAGE_SIZE);
 
-        trampolineData* Data = (trampolineData*) (((uint64_t)&DataTrampoline - (uint64_t) &Trampoline) + TrampolineVirtualAddress);
+        trampolineData* Data = (trampolineData*)(((uint64_t)&DataTrampoline - (uint64_t)&Trampoline) + TrampolineVirtualAddress);
 
-        Data->MainEntry = (uint64_t)&TrampolineMain; 
         
         //temp trampoline map
         vmm_Map((void*)0x8000, (void*)0x8000);
 
         for(int i = 0; i < ProcessorCount; i++){ 
-            Data->Paging = (uint64_t)vmm_PageTable;
-            uint64_t StackSize = KERNEL_STACK_SIZE; // 10 mb
-            Data->Stack = (uint64_t)malloc(StackSize) + StackSize;
-                
             if(Processor[i]->APICID == Processor[CPU::GetAPICID()]->APICID) continue; 
+
+            Data->Paging = (uint64_t)vmm_PageTable;
+            Data->MainEntry = (uint64_t)&TrampolineMain; 
+            Data->Stack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+            memset((void*)(Data->Stack - KERNEL_STACK_SIZE), 0xff, KERNEL_STACK_SIZE);
 
             lapicSendInitIPI(Processor[i]->APICID);
 
             DataTrampoline.Status = 0;
             // send STARTUP IPI twice 
-            for(int j = 0; j < ProcessorCount; j++){
+            for(int j = 0; j < 2; j++){
                 lapicSendStartupIPI(Processor[i]->APICID, (void*)0x8000);
-                HPET::HPETSleep(10);
             }
             
             globalLogs->Warning("Wait processor %u", i);
@@ -209,7 +207,6 @@ namespace APIC{
         lapicAddress[CoreID]->VirtualAddress = (void*)vmm_Map(lapicAddress[CoreID]->PhysicalAddress); 
         msr::wrmsr(0x1b, ((uint64_t)lapicAddress[CoreID]->PhysicalAddress | LOCAL_APIC_ENABLE) & ~((1 << 10)));
         localAPICWriteRegister(LocalAPICRegisterOffsetSpuriousIntVector, localAPICReadRegister(LocalAPICRegisterOffsetSpuriousIntVector) | (LOCAL_APIC_SPURIOUS_ALL | LOCAL_APIC_SPURIOUS_ENABLE_APIC));
-        localApicEOI(CoreID);
     }
 
 
@@ -230,12 +227,16 @@ namespace APIC{
 
         LocalAPICInterruptRegister TimerRegisters;
         TimerRegisters.vector = IPI_Schedule;
+        TimerRegisters.messageType = LocalAPICInterruptRegisterMessageTypeFixed;
+        TimerRegisters.deliveryStatus = LocalAPICInterruptRegisterMessageTypeIddle;
+        TimerRegisters.remoteIrr = LocalAPICInterruptRegisterRemoteIRRCompleted;
+        TimerRegisters.triggerMode = LocalAPICInterruptRegisterTriggerModeEdge;
         TimerRegisters.mask = LocalAPICInterruptRegisterMaskEnable;
         TimerRegisters.timerMode = LocalAPICInterruptTimerModePeriodic;
         
         uint32_t timer = localAPICReadRegister(LocalAPICRegisterOffsetLVTTimer);
         localAPICWriteRegister(LocalAPICRegisterOffsetLVTTimer, CreatRegisterValueInterrupts(TimerRegisters) | (timer & 0xfffcef00));    
-        localAPICWriteRegister(LocalAPICRegisterOffsetInitialCount, (Tick10ms / 10));  
+        localAPICWriteRegister(LocalAPICRegisterOffsetInitialCount, (Tick10ms / 10)); 
         Atomic::atomicUnlock(&mutexSLT, 0);
     }
 

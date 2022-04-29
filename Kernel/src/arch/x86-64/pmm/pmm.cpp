@@ -52,7 +52,7 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
         }
     }
 
-    Pmm_LockPages(Pmm_PageBitmap.Buffer, DivideRoundUp(Pmm_PageBitmap.Size, PAGE_SIZE));
+    Pmm_LockPages(BitmapSegment, DivideRoundUp(Pmm_PageBitmap.Size, PAGE_SIZE));
 }
 
 uint64_t Pmm_GetMemorySize(stivale2_struct_tag_memmap* Map){
@@ -97,7 +97,7 @@ void* Pmm_RequestPages(uint64_t pages){
 		not_free:
 			continue;
 		exit: {
-			void* page = (void*)(Pmm_PageBitmapIndex * 4096);	// transform the index into the physical page address
+			void* page = (void*)(Pmm_PageBitmapIndex * PAGE_SIZE);	// transform the index into the physical page address
 			Pmm_PageBitmapIndex += pages;
 			Pmm_LockPages(page, pages);
 			return page;
@@ -107,64 +107,64 @@ void* Pmm_RequestPages(uint64_t pages){
 }
 
 void Pmm_FreePage(void* address){
-    uint64_t index = (uint64_t)address / 4096;
+    uint64_t index = (uint64_t)address / PAGE_SIZE;
     if (Pmm_PageBitmap.Get(index) == false) return;
     if (Pmm_PageBitmap.Set(index, false)){
-        memoryInfo.freeMemory += 4096;
-        memoryInfo.usedMemory -= 4096;
+        memoryInfo.freeMemory += PAGE_SIZE;
+        memoryInfo.usedMemory -= PAGE_SIZE;
         if (Pmm_PageBitmapIndex > index) Pmm_PageBitmapIndex = index;
     }
 }
 
 void Pmm_FreePages(void* address, uint64_t pageCount){
     for (int t = 0; t < pageCount; t++){
-        Pmm_FreePage((void*)((uint64_t)address + (t * 4096)));
+        Pmm_FreePage((void*)((uint64_t)address + (t * PAGE_SIZE)));
     }
 }
 
 void Pmm_LockPage(void* address){
-    uint64_t index = (uint64_t)address / 4096;
-    if (Pmm_PageBitmap.Get(index) == true) return;
+    uint64_t index = (uint64_t)address / PAGE_SIZE;
+    if (Pmm_PageBitmap.Get(index)) return;
     if (Pmm_PageBitmap.Set(index, true)){
-        memoryInfo.freeMemory -= 4096;
-        memoryInfo.usedMemory += 4096;
+        memoryInfo.freeMemory -= PAGE_SIZE;
+        memoryInfo.usedMemory += PAGE_SIZE;
     }
 }
 
 void Pmm_LockPages(void* address, uint64_t pageCount){
     for (int t = 0; t < pageCount; t++){
-        Pmm_LockPage((void*)((uint64_t)address + (t * 4096)));
+        Pmm_LockPage((void*)((uint64_t)address + (t * PAGE_SIZE)));
     }
 }
 
 void Pmm_UnreservePage(void* address){
-    uint64_t index = (uint64_t)address / 4096;
+    uint64_t index = (uint64_t)address / PAGE_SIZE;
     if (Pmm_PageBitmap.Get(index) == false) return;
     if (Pmm_PageBitmap.Set(index, false)){
-        memoryInfo.freeMemory += 4096;
-        memoryInfo.reservedMemory -= 4096;
+        memoryInfo.freeMemory += PAGE_SIZE;
+        memoryInfo.reservedMemory -= PAGE_SIZE;
         if (Pmm_PageBitmapIndex > index) Pmm_PageBitmapIndex = index;
     }
 }
 
 void Pmm_UnreservePages(void* address, uint64_t pageCount){
     for (int t = 0; t < pageCount; t++){
-        Pmm_UnreservePage((void*)((uint64_t)address + (t * 4096)));
+        Pmm_UnreservePage((void*)((uint64_t)address + (t * PAGE_SIZE)));
     }
 }
 
 void Pmm_ReservePage(void* address){
-    uint64_t index = (uint64_t)address / 4096;
+    uint64_t index = (uint64_t)address / PAGE_SIZE;
     if (Pmm_PageBitmap.Get(index) == true) return;
     if (Pmm_PageBitmap.Set(index, true)){
-        memoryInfo.freeMemory -= 4096;
-        memoryInfo.reservedMemory += 4096;
+        memoryInfo.freeMemory -= PAGE_SIZE;
+        memoryInfo.reservedMemory += PAGE_SIZE;
     }
 }
 
 void Pmm_ReservePages(void* address, uint64_t pageCount){
     for (int t = 0; t < pageCount; t++){
-        Pmm_ReservePage((void*)((uint64_t)address + (t * 4096)));
+        Pmm_ReservePage((void*)((uint64_t)address + (t * PAGE_SIZE)));
     }
 }
 

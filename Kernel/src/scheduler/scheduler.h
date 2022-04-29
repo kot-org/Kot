@@ -11,8 +11,6 @@ struct Task;
 class TaskManager;
 class SelfData;
 
-#define KernelStackSize KERNEL_STACK_SIZE
-
 #define SelfDataStartAddress vmm_MapAddress(0xff, 0, 0, 0)  
 #define SelfDataEndAddress SelfDataStartAddress + sizeof(SelfData)
 #define StackTop vmm_MapAddress(0x100, 0, 0, 0)
