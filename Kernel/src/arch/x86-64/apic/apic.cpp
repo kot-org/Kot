@@ -182,9 +182,7 @@ namespace APIC{
 
             DataTrampoline.Status = 0;
             // send STARTUP IPI twice 
-            for(int j = 0; j < 2; j++){
-                lapicSendStartupIPI(Processor[i]->APICID, (void*)0x8000);
-            }
+            lapicSendStartupIPI(Processor[i]->APICID, (void*)0x8000);
             
             globalLogs->Warning("Wait processor %u", i);
 
@@ -226,6 +224,8 @@ namespace APIC{
         uint32_t Tick10ms = 0xffffffff - localAPICReadRegister(LocalAPICRegisterOffsetCurentCount);
 
         LocalAPICInterruptRegister TimerRegisters;
+
+        /* Don't forget to define all the struct because it can be corrupt by the stack */
         TimerRegisters.vector = IPI_Schedule;
         TimerRegisters.messageType = LocalAPICInterruptRegisterMessageTypeFixed;
         TimerRegisters.deliveryStatus = LocalAPICInterruptRegisterMessageTypeIddle;

@@ -8,7 +8,8 @@ extern "C" void TrampolineMain(){
     asm ("lidt %0" : : "m" (idtr));
  
     CPU::InitCPU();
-    
+    simdInit();
+
     APIC::EnableAPIC(CoreID);
     APIC::StartLapicTimer();
 
