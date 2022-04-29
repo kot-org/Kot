@@ -125,14 +125,19 @@ thread_t* TaskManager::GetTread(){
     return ReturnValue;
 }
 
-uint64_t TaskManager::CreatThread(thread_t** self, process_t* proc, uint64_t entryPoint, void* externalData){
+uint64_t TaskManager::CreatThread(thread_t** self, process_t* proc, void* entryPoint, uint64_t externalData){
     *self = proc->CreatThread(entryPoint, externalData);
     return KSUCCESS;
 }
 
-uint64_t TaskManager::DuplicateThread(thread_t** self, process_t* proc, thread_t* source){
+uint64_t TaskManager::CreatThread(thread_t** self, process_t* proc, void* entryPoint, uint8_t privilege, uint64_t externalData){
+    *self = proc->CreatThread(entryPoint, externalData);
+    return KSUCCESS;
+}
+
+uint64_t TaskManager::DuplicateThread(thread_t** self, process_t* proc, thread_t* source, uint64_t externalData){
     if(source->Parent != proc) return KFAIL;
-    *self = proc->DuplicateThread(source);
+    *self = proc->DuplicateThread(source, externalData);
     return KSUCCESS;
 }
 
@@ -183,7 +188,7 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* t
     return KSUCCESS;
 }
 
-uint64_t TaskManager::CreatProcess(process_t** key, uint8_t priviledge, void* externalData){
+uint64_t TaskManager::CreatProcess(process_t** key, uint8_t priviledge, uint64_t externalData){
     process_t* proc = (process_t*)calloc(sizeof(process_t));
 
     if(ProcessList == NULL){
@@ -217,11 +222,11 @@ uint64_t TaskManager::CreatProcess(process_t** key, uint8_t priviledge, void* ex
     return KSUCCESS;
 }
 
-thread_t* process_t::CreatThread(uint64_t entryPoint, void* externalData){
+thread_t* process_t::CreatThread(void* entryPoint, uint64_t externalData){
     return CreatThread(entryPoint, DefaultPriviledge, externalData);
 }
 
-thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* externalData){
+thread_t* process_t::CreatThread(void* entryPoint, uint8_t priviledge, uint64_t externalData){
     thread_t* thread = (thread_t*)calloc(sizeof(thread_t));
     if(Childs == NULL){
         Childs = CreatNode((void*)0);
@@ -253,8 +258,8 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
     vmm_Map(thread->Paging, (void*)SelfDataStartAddress, threadDataPA, RingPriviledge == UserAppRing);
 
     /* Setup registers */
-    thread->EntryPoint = (void*)entryPoint;
-    thread->Regs->rip = entryPoint;
+    thread->EntryPoint = entryPoint;
+    thread->Regs->rip = (uint64_t)entryPoint;
     thread->Regs->cs = (GDTInfoSelectorsRing[RingPriviledge].Code | RingPriviledge);
     thread->Regs->ss = (GDTInfoSelectorsRing[RingPriviledge].Data | RingPriviledge);
     thread->Regs->rflags.Reserved0 = true;
@@ -287,7 +292,7 @@ thread_t* process_t::CreatThread(uint64_t entryPoint, uint8_t priviledge, void* 
     return thread;
 }
 
-thread_t* process_t::DuplicateThread(thread_t* source){
+thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
     if(source->Parent != this) return NULL;
 
     thread_t* thread = (thread_t*)calloc(sizeof(thread_t));
@@ -336,7 +341,7 @@ thread_t* process_t::DuplicateThread(thread_t* source){
     thread->RingPL = source->RingPL;
 
     /* Other data */
-    thread->externalData = source->externalData;
+    thread->externalData = externalData;
     thread->CreationTime = HPET::GetTime();
     thread->MemoryAllocated = 0;
     thread->TimeAllocate = 0;

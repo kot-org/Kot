@@ -90,20 +90,21 @@ KResult Sys_Event_Trigger(kevent_t self, void* dataAddress, size_t dataSize){
     return ReturnValue;
 }
 
-KResult Sys_CreatThread(kthread_t self, parameters_t* parameters){
+KResult Sys_CreatThread(kprocess_t self, void* entryPoint, uint8_t privilege, uint64_t data, kthread_t* result){
     KResult ReturnValue;
-    Syscall_16(KSys_CreatThread, self, parameters);
+    Syscall_40(KSys_CreatThread, self, entryPoint, privilege, data, result);
     return ReturnValue;
 }
 
-KResult Sys_DuplicateThread(kthread_t self, kthread_t source){
+KResult Sys_DuplicateThread(kprocess_t parent, kthread_t source, uint64_t data, kthread_t* self){
     KResult ReturnValue;
-
+    Syscall_32(KSys_DuplicateThread, parent, source, data, self);
     return ReturnValue;
 }
 
-KResult Sys_ExecThread(){
+KResult Sys_ExecThread(kthread_t self, struct parameters_t* parameters){
     KResult ReturnValue;
+    Syscall_16(KSys_ExecThread, self, parameters);
     return ReturnValue;
 }
 

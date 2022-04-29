@@ -121,7 +121,14 @@ namespace APIC{
                 uint8_t IRQNumber = i + IRQ_START;
                 IoApicSetRedirectionEntry((void*)IOapicAddressVirtual, i - base, (IOAPICRedirectionEntry){
                     .vector = IRQNumber,
+                    .delivery_mode = IOAPICRedirectionEntryDeliveryModeFixed,
+                    .destination_mode = IOAPICRedirectionEntryDestinationModePhysicall,
+                    .delivery_status = IOAPICRedirectionEntryDeliveryStatusIddle,
+                    .pin_polarity = IOAPICRedirectionEntryPinPolarityActiveHigh,
+                    .remote_irr = IOAPICRedirectionEntryRemoteIRRNone,
+                    .trigger_mode = IOAPICRedirectionEntryTriggerModeEdge,
                     .mask = IOAPICRedirectionEntryMaskDisable,
+                    .destination = NULL,
                 });
         }
 
@@ -132,9 +139,12 @@ namespace APIC{
                 .vector = IRQNumber,
                 .delivery_mode = IOAPICRedirectionEntryDeliveryModeFixed,
                 .destination_mode = IOAPICRedirectionEntryDestinationModePhysicall,
+                .delivery_status = IOAPICRedirectionEntryDeliveryStatusIddle,
                 .pin_polarity = (iso->Flags & 0x03) == 0x03 ? IOAPICRedirectionEntryPinPolarityActiveLow : IOAPICRedirectionEntryPinPolarityActiveHigh,
+                .remote_irr = IOAPICRedirectionEntryRemoteIRRNone,
                 .trigger_mode = (iso->Flags & 0x0c) == 0x0c ? IOAPICRedirectionEntryTriggerModeLevel : IOAPICRedirectionEntryTriggerModeEdge,
                 .mask = IOAPICRedirectionEntryMaskDisable,
+                .destination = NULL,
             });
         } 
 

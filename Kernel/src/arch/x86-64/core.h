@@ -6,4 +6,5 @@ struct KernelInfo{
     struct memoryInfo_t* memoryInfo;
     void* smbios;
     void* rsdp;
+    uint64_t MMapPageSize;
 }__attribute__((packed));

@@ -82,5 +82,8 @@ KernelInfo* arch_initialize(void* boot){
     //rsdp
     kernelInfo->rsdp = (void*)bootInfo->RSDP->rsdp;
 
+    //page size
+    kernelInfo->MMapPageSize = PAGE_SIZE;
+
     return kernelInfo;
 }

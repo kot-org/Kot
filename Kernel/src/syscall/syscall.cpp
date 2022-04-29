@@ -43,7 +43,7 @@ KResult Sys_Fork(ContextStack* Registers, thread_t* Thread){
 
 KResult Sys_CreatProc(ContextStack* Registers, thread_t* Thread){
     process_t* data;
-    if(globalTaskManager->CreatProcess(&data, (uint8_t)Registers->arg1, (void*)Registers->arg2) != KSUCCESS) return KFAIL;
+    if(globalTaskManager->CreatProcess(&data, (uint8_t)Registers->arg1, Registers->arg2) != KSUCCESS) return KFAIL;
     return Keyhole::Creat((key_t*)Registers->arg0, data, Thread->Parent, DataTypeProcess, (uint64_t)data, FlagFullPermissions);
 }
 
@@ -199,8 +199,8 @@ KResult Sys_CreatThread(ContextStack* Registers, thread_t* Thread){
     uint64_t flags;
     thread_t* thread;
     if(Keyhole::Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KFAIL;
-    if(globalTaskManager->CreatThread(&thread, processkey, Registers->arg2, (void*)Registers->arg3) != KSUCCESS) return KFAIL;
-    return Keyhole::Creat((key_t*)Registers->arg1, Thread->Parent, Thread->Parent, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
+    if(globalTaskManager->CreatThread(&thread, processkey, (void*)Registers->arg1, Registers->arg2, Registers->arg3) != KSUCCESS) return KFAIL;
+    return Keyhole::Creat((key_t*)Registers->arg3, Thread->Parent, Thread->Parent, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
 }
 
 KResult Sys_DuplicateThread(ContextStack* Registers, thread_t* Thread){
@@ -210,8 +210,8 @@ KResult Sys_DuplicateThread(ContextStack* Registers, thread_t* Thread){
     thread_t* thread;
     if(Keyhole::Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KFAIL;
     if(Keyhole::Get(Thread, (key_t)Registers->arg1, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KFAIL;
-    if(globalTaskManager->DuplicateThread(&thread, processkey, threadkey) != KSUCCESS) return KFAIL;     
-    return Keyhole::Creat((key_t*)Registers->arg2, Thread->Parent, Thread->Parent, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
+    if(globalTaskManager->DuplicateThread(&thread, processkey, threadkey, Registers->arg2) != KSUCCESS) return KFAIL;     
+    return Keyhole::Creat((key_t*)Registers->arg3, Thread->Parent, Thread->Parent, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
 }
 
 KResult Sys_ExecThread(ContextStack* Registers, thread_t* Thread){

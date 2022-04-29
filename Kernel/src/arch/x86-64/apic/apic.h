@@ -122,10 +122,10 @@ namespace APIC{
     };
 
     enum LocalAPICInterruptipi{
-        LocalAPICInterruptipiVector = 0,
-        LocalAPICInterruptipiMessageType = 8,
-        LocalAPICInterruptipiDestinationMode = 11,
-        LocalAPICInterruptipiDestinationType = 18
+        LocalAPICInterruptipiVector             = 0,
+        LocalAPICInterruptipiMessageType        = 8,
+        LocalAPICInterruptipiDestinationMode    = 11,
+        LocalAPICInterruptipiDestinationType    = 18
     };
 
     enum LocalAPICDeliveryMode{
@@ -208,7 +208,7 @@ namespace APIC{
         IOAPICRedirectionEntryDestinationModeLogical	= 1
     };
     enum IOAPICRedirectionEntryDeliveryStatus {
-        IOAPICRedirectionEntryDeliveryStatusIdle		= 0,
+        IOAPICRedirectionEntryDeliveryStatusIddle		= 0,
         IOAPICRedirectionEntryDeliveryStatusPending	    = 1
     };
     enum IOAPICRedirectionEntryPinPolarity {
@@ -229,15 +229,15 @@ namespace APIC{
     };
 
     struct IOAPICRedirectionEntry {
-        uint8_t										vector : 8;
-        enum IOAPICRedirectionEntryDeliveryMode		delivery_mode : 3;
-        enum IOAPICRedirectionEntryDestinationMode	destination_mode : 1;
-        enum IOAPICRedirectionEntryDeliveryStatus	delivery_status : 1;
-        enum IOAPICRedirectionEntryPinPolarity		pin_polarity : 1;
-        enum IOAPICRedirectionEntryRemoteIRR		remote_irr : 1;
-        enum IOAPICRedirectionEntryTriggerMode		trigger_mode : 1;
-        enum IOAPICRedirectionEntryMask				mask : 1;
-        uint8_t										destination : 8;
+        uint8_t										vector:8;
+        enum IOAPICRedirectionEntryDeliveryMode		delivery_mode:3;
+        enum IOAPICRedirectionEntryDestinationMode	destination_mode:1;
+        enum IOAPICRedirectionEntryDeliveryStatus	delivery_status:1;
+        enum IOAPICRedirectionEntryPinPolarity		pin_polarity:1;
+        enum IOAPICRedirectionEntryRemoteIRR		remote_irr:1;
+        enum IOAPICRedirectionEntryTriggerMode		trigger_mode:1;
+        enum IOAPICRedirectionEntryMask				mask:1;
+        uint8_t										destination:8;
     };
 
     struct LapicAddress{

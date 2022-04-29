@@ -79,11 +79,11 @@ struct process_t{
     TaskManager* TaskManagerParent;
 
     /* external data */
-    void* externalData;
+    uint64_t externalData;
 
-    thread_t* CreatThread(uint64_t entryPoint, void* externalData);
-    thread_t* CreatThread(uint64_t entryPoint, uint8_t priviledge, void* externalData);
-    thread_t* DuplicateThread(thread_t* source);
+    thread_t* CreatThread(void* entryPoint, uint64_t externalData);
+    thread_t* CreatThread(void* entryPoint, uint8_t priviledge, uint64_t externalData);
+    thread_t* DuplicateThread(thread_t* source, uint64_t externalData);
 }__attribute__((packed));  
 
 struct thread_t{
@@ -131,7 +131,7 @@ struct thread_t{
     thread_t* Next;
 
     /* external data */
-    void* externalData;
+    uint64_t externalData;
 
     void SaveContext(struct ContextStack* Registers, uint64_t CoreID);
     void CreatContext(struct ContextStack* Registers, uint64_t CoreID);
@@ -165,15 +165,16 @@ class TaskManager{
 
         // threads
         thread_t* GetTread();
-        uint64_t CreatThread(thread_t** self, process_t* proc, uint64_t entryPoint, void* externalData);
-        uint64_t DuplicateThread(thread_t** self, process_t* proc, thread_t* source);
+        uint64_t CreatThread(thread_t** self, process_t* proc, void* entryPoint, uint64_t externalData);
+        uint64_t CreatThread(thread_t** self, process_t* proc, void* entryPoint, uint8_t privilege, uint64_t externalData);
+        uint64_t DuplicateThread(thread_t** self, process_t* proc, thread_t* source, uint64_t externalData);
         uint64_t ExecThread(thread_t* self, Parameters* FunctionParameters);
         uint64_t Pause(ContextStack* Registers, uint64_t CoreID, thread_t* task); 
         uint64_t Unpause(thread_t* task); 
         uint64_t Exit(ContextStack* Registers, uint64_t CoreID, thread_t* task); 
 
         // process
-        uint64_t CreatProcess(process_t** key, uint8_t priviledge, void* externalData);
+        uint64_t CreatProcess(process_t** key, uint8_t priviledge, uint64_t externalData);
 
         void CreatIddleTask();   
 

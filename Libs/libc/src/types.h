@@ -66,6 +66,7 @@ typedef void*                       uintptr_t;
 #define true 1
 #define false 0
 #endif
+
 struct parameters_t{
     uint64_t Parameter0;
     uint64_t Parameter1;
