@@ -5,13 +5,13 @@ KResult Sys_CreatShareMemory(ContextStack* Registers, thread_t* Thread){
     uint64_t flags;
     uint64_t data;
     if(Keyhole::Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KFAIL;
-    if(CreatSharing(threadkey, Registers->arg1, (uint64_t*)Registers->arg2, &data, (bool)Registers->arg4) != KSUCCESS) return KFAIL;
+    if(CreatSharing(threadkey, Registers->arg1, (uint64_t*)Registers->arg2, &data, Registers->arg4) != KSUCCESS) return KFAIL;
     return Keyhole::Creat((key_t*)Registers->arg3, Thread->Parent, NULL, DataTypeMemory, data, FlagFullPermissions);
 }
 
 KResult Sys_GetShareMemory(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
-    uint64_t memoryKey;
+    MemoryShareInfo* memoryKey;
     uint64_t flags;
     if(Keyhole::Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KFAIL;
     if(Keyhole::Get(Thread, (key_t)Registers->arg1, DataTypeMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KFAIL;
@@ -20,11 +20,11 @@ KResult Sys_GetShareMemory(ContextStack* Registers, thread_t* Thread){
 
 KResult Sys_FreeShareMemory(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
-    uint64_t memoryKey;
+    MemoryShareInfo* memoryKey;
     uint64_t flags;
     if(Keyhole::Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KFAIL;
     if(Keyhole::Get(Thread, (key_t)Registers->arg1, DataTypeMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KFAIL;
-    return FreeSharing(threadkey, memoryKey);    
+    return FreeSharing(threadkey, memoryKey, (void*)Registers->arg2);    
 }
 
 KResult Sys_Get_IOPL(ContextStack* Registers, thread_t* Thread){
@@ -247,6 +247,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
 
 extern "C" uint64_t SyscallDispatch(ContextStack* Registers, thread_t* Self){
     if(Registers->GlobalPurpose >= Syscall_Count){
+        globalLogs->Warning("Syscall broken");
         Registers->arg0 = KFAIL;
         return GDTInfoSelectorsRing[UserAppRing].Code;        
     }
@@ -254,33 +255,4 @@ extern "C" uint64_t SyscallDispatch(ContextStack* Registers, thread_t* Self){
     Registers->GlobalPurpose = SyscallHandlers[Registers->GlobalPurpose](Registers, Self);
 
     return GDTInfoSelectorsRing[UserAppRing].Code; 
-
-    /*switch(syscall){
-        case Sys_Event_Bind:
-            returnValue = Event::Bind((thread_t*)arg0, (event_t*)arg1);
-            break;
-        case Sys_Event_Unbind:
-            returnValue = Event::Unbind((thread_t*)arg0, (event_t*)arg1);
-            break;
-        case Sys_Event_Trigger:
-            returnValue = Event::Trigger(threadkey, (event_t*)arg0, (void*)arg1, (size_t)arg2);
-            break;
-        case Sys_CreatThread:
-            returnValue = globalTaskManager->CreatThread((thread_t**)arg0, (process_t*)arg1, arg2, (void*)arg3);
-            break;
-        case Sys_DuplicateThread:
-            returnValue = globalTaskManager->DuplicateThread((thread_t**)arg0, (process_t*)arg1, (thread_t*)arg2);
-            break;
-        case Sys_ExecThread:
-            returnValue = globalTaskManager->ExecThread((thread_t*)arg0, (Parameters*)arg1);
-            break;
-        case Sys_Get_IOPL:
-            if(threadkey->RingPL <= DevicesRing){
-                returnValue = threadkey->SetIOPriviledge((ContextStack*)Registers, (uint8_t)arg0);
-            }
-            break;
-        default:
-            globalLogs->Error("Unknown syscall %x", syscall);
-            break;
-    }*/   
 }

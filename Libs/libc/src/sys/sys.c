@@ -1,20 +1,20 @@
 #include <kot/sys.h>
 
-KResult SYS_CreatShareSpace(kthread_t self, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, bool ReadOnly){
+KResult SYS_CreatShareSpace(kthread_t self, size_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, uint64_t flags){
     KResult ReturnValue;
-    Syscall_40(KSys_CreatShareMemory, self, size, virtualAddressPointer, keyPointer, ReadOnly);
+    Syscall_40(KSys_CreatShareMemory, self, size, virtualAddressPointer, keyPointer, flags);
     return ReturnValue;
 }
 
-KResult SYS_GetShareSpace(kthread_t self, uint64_t key, uint64_t* virtualAddressPointer){
+KResult SYS_GetShareSpace(kthread_t self, ksmem_t key, uintptr_t* virtualAddressPointer){
     KResult ReturnValue;
     Syscall_24(KSys_GetShareMemory, self, key, virtualAddressPointer);
     return ReturnValue;
 }
 
-KResult SYS_FreeShareSpace(kthread_t self, void* virtualAddress){
+KResult SYS_FreeShareSpace(kthread_t self, ksmem_t key, uintptr_t address){
     KResult ReturnValue;
-    Syscall_16(KSys_FreeShareMemory, self, virtualAddress);
+    Syscall_24(KSys_FreeShareMemory, self, key, address);
     return ReturnValue;
 }
 
@@ -26,7 +26,7 @@ KResult SYS_Fork(kthread_t task, struct parameters_t* param){
 
 KResult Sys_CreatProc(kprocess_t* key, uint8_t privilege, uint64_t data){
     KResult ReturnValue;
-    Syscall_24(KSys_CloseProc, key, privilege, data);
+    Syscall_24(KSys_CreatProc, key, privilege, data);
     return ReturnValue;
 }
 

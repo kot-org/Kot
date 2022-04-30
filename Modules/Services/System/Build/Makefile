@@ -4,7 +4,7 @@ LDS = main.ld
 CC = $(PREFIX)gcc
 ASMC = nasm
 
-CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Scr -O2
+CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Scr
 LINKERFLAGS = -lc -Wall -static
 ASMFLAGS = 
 

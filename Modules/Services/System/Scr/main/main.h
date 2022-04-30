@@ -1,5 +1,6 @@
 #pragma once
 #include <kot/types.h>
+#include <elf/elf.h>
 #include <fs/ramfs/ramfs.h>
 
 struct stivale2_struct_tag_framebuffer {
@@ -43,4 +44,7 @@ struct KernelInfo{
     struct memoryInfo_t* memoryInfo;
     void* smbios;
     void* rsdp;
+    uint64_t MMapPageSize;
 }__attribute__((packed));
+
+extern uint64_t MMapPageSize;

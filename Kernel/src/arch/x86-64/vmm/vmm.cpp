@@ -9,9 +9,10 @@ bool vmm_GetFlag(uint64_t* entry, uint8_t flag){
 
 void vmm_SetFlag(uint64_t* entry, uint8_t flag, bool enabled){
     uint64_t bitSelector = (uint64_t)(1 << flag);
-    *entry &= ~bitSelector;
     if (enabled){
         *entry |= bitSelector;
+    }else{
+        *entry &= ~bitSelector;
     }
 }
 

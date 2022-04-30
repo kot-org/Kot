@@ -2,12 +2,14 @@
 #include <kot/elf.h>
 #include <kot/sys.h>
 #include <kot/heap.h>
+#include <kot/math.h>
 #include <kot/cstring.h>
+
+#include <main/main.h>
 
 namespace ELF{
     /* Function */
-    KResult loadElf(void* buffer, uint8_t ring, struct Parameters* FunctionParameters);
-    KResult LoadLibrary(kthread_t thread, struct elf_t* app, void* buffer, uint64_t* address);
+    KResult loadElf(void* buffer, uint8_t ring, parameters_t* functionParameters, uint64_t identifier);
 
     bool Check(struct elf_t* self);
 

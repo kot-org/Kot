@@ -28,3 +28,16 @@ int memcmp(const void *aptr, const void *bptr, size_t n){
 	}
 	return 0;
 }
+
+bool memory_share_flag_GetFlag(uint64_t* entry, enum memory_share_flag flag){
+    return *entry & (1 << flag); 
+}
+
+void memory_share_flag_SetFlag(uint64_t* entry, enum memory_share_flag flag, bool value){
+    uint64_t bitSelector = (uint64_t)(1 << flag);
+    if (value){
+        *entry |= bitSelector;
+    }else{
+        *entry &= ~bitSelector;   
+    }
+}

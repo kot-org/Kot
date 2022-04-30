@@ -55,6 +55,12 @@ typedef unsigned long int           kevent_t;
 typedef unsigned long long int      kevent_t;
 #endif
 
+#if __WORDSIZE == 64
+typedef unsigned long int           ksmem_t;
+#else
+typedef unsigned long long int      ksmem_t;
+#endif
+
 typedef long unsigned int           size_t;
 typedef void*                       uintptr_t;
 

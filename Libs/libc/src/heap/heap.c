@@ -20,7 +20,8 @@ void InitializeHeap(){
     globalHeap.mainSegment = newSegment; 
     
     globalHeap.TotalSize += 0x1000 + sizeof(struct SegmentHeader);     
-    globalHeap.FreeSize += 0x1000 + sizeof(struct SegmentHeader);    
+    globalHeap.FreeSize += 0x1000 + sizeof(struct SegmentHeader); 
+    atomicUnlock(&mutexHeap, 0);   
 }
 
 void* calloc(size_t size){

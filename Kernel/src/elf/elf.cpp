@@ -52,7 +52,7 @@ namespace ELF{
                         }else{
                             SizeToFill = phdr->p_memsz - y;
                         }
-                        memcpy((void*)DirectAddressToCopy, (void*)((uint64_t)buffer + phdr->p_offset + y), SizeToFill);  
+                        memset((void*)DirectAddressToCopy, 0x0, SizeToFill);  
                     }
                     
                 }

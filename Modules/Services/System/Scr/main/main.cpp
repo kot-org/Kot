@@ -3,6 +3,8 @@
 #include <kot/memory.h>
 #include <main/main.h>
 
+uint64_t MMapPageSize;
+
 void Putpixel(struct stivale2_struct_tag_framebuffer* framebuffer, int x, int y, int r, int g, int b) {
     unsigned char* screen = (unsigned char*)framebuffer->framebuffer_addr;
     int where = (x + (y * framebuffer->framebuffer_width)) * (framebuffer->framebuffer_bpp / 8);
@@ -85,14 +87,38 @@ int main(struct KernelInfo* kernelInfo){
     SYS_GetThreadKey(&self);
     InitializeHeap();
 
+    MMapPageSize = kernelInfo->MMapPageSize;
+
     ramfs::Parse(kernelInfo->ramfs->ramfsBase, kernelInfo->ramfs->Size);
     
     ramfs::File* Wallpaper = ramfs::Find("Wallpaper.bmp");
-    
     if(Wallpaper != NULL){
         void* BufferWallpaper = malloc(Wallpaper->size);
         ramfs::Read(Wallpaper, BufferWallpaper);
         readBMP(kernelInfo->framebuffer, BufferWallpaper, Wallpaper->size, kernelInfo->framebuffer->framebuffer_height, 0, 0, false);
     }
+
+    ramfs::File* InitFile = ramfs::FindInitFile();
+    
+    parameters_t* InitParameters = (parameters_t*)malloc(sizeof(parameters_t));
+    InitParameters->Parameter0 = (uint64_t)kernelInfo;
+    
+    if(InitFile != NULL){
+        void* BufferInitFile = malloc(InitFile->size);
+        ramfs::Read(InitFile, BufferInitFile);
+        ELF::loadElf(BufferInitFile, 1, InitParameters, 0x0);
+    }
+
+    int x = 2;
+    while(true){
+        Rectangle(kernelInfo->framebuffer, 20, 20, x, 0, 0x0, x, 0x0);
+        x++;
+        Rectangle(kernelInfo->framebuffer, 1, 20, x - 2, 0, 0xff, 0xff, 0xff);
+
+        if(x > kernelInfo->framebuffer->framebuffer_width) x = 2;
+        for(int i = 0; i < 0x100000; i++);
+    }    
+
+
     SYS_Pause(self);
 }
