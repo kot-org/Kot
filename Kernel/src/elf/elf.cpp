@@ -54,6 +54,7 @@ namespace ELF{
                         }
                         memset((void*)DirectAddressToCopy, 0x0, SizeToFill);  
                     }
+                    vmm_SetFlags(mainThread->Paging, (void*)VirtualAddress, vmm_flag::vmm_PhysicalStorage, true);
                     
                 }
             }

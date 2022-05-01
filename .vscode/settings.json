@@ -54,7 +54,11 @@
         "heap.h": "c",
         "atomic.h": "c",
         "list.h": "c",
-        "main.h": "c"
+        "main.h": "c",
+        "cmath": "cpp",
+        "cstdio": "cpp",
+        "cstdlib": "cpp",
+        "*.tcc": "cpp"
     },
     "debug.onTaskErrors": "debugAnyway",
     "C_Cpp.errorSquiggles": "Disabled",

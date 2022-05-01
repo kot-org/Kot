@@ -31,17 +31,17 @@ enum EventType{
     DataTypeMemory = 4,
 };
 
-KResult SYS_CreatShareSpace(kthread_t self, size_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, uint64_t flags);
-KResult SYS_GetShareSpace(kthread_t self, ksmem_t key, uintptr_t* virtualAddressPointer);
-KResult SYS_FreeShareSpace(kthread_t self, ksmem_t key, uintptr_t address);
+KResult SYS_CreatShareSpace(kprocess_t self, size_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, uint64_t flags);
+KResult SYS_GetShareSpace(kprocess_t self, ksmem_t key, uintptr_t* virtualAddressPointer);
+KResult SYS_FreeShareSpace(kprocess_t self, ksmem_t key, uintptr_t address);
 KResult SYS_Fork(kthread_t task, struct parameters_t* param);
 KResult Sys_CreatProc(kprocess_t* key, uint8_t privilege, uint64_t data);
 KResult Sys_CloseProc();
 KResult SYS_Exit(kthread_t self, uint64_t errorCode);
 KResult SYS_Pause(kthread_t self);
 KResult SYS_Unpause(kthread_t self);
-KResult SYS_Map(kthread_t self, uint64_t* addressVirtual, bool isPhysical, void* addressPhysical, size_t size, bool findFree);
-KResult SYS_Unmap(kthread_t self, void* addressVirtual, size_t size);
+KResult SYS_Map(kprocess_t self, uint64_t* addressVirtual, bool isPhysical, void* addressPhysical, size_t size, bool findFree);
+KResult SYS_Unmap(kprocess_t self, void* addressVirtual, size_t size);
 KResult Sys_CreatThread(kprocess_t self, void* entryPoint, uint8_t privilege, uint64_t data, kthread_t* result);
 KResult Sys_DuplicateThread(kprocess_t parent, kthread_t source, uint64_t data, kthread_t* self);
 KResult Sys_ExecThread(kthread_t self, struct parameters_t* parameters);

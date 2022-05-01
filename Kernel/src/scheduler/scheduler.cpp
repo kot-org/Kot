@@ -252,8 +252,8 @@ thread_t* process_t::CreatThread(void* entryPoint, uint8_t priviledge, uint64_t 
     void* threadDataPA = Pmm_RequestPage();
     SelfData* threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
-    Keyhole::Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey);
-    Keyhole::Creat(&threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, DefaultFlagsKey);
+    Keyhole_Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey);
+    Keyhole_Creat(&threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, DefaultFlagsKey);
 
     vmm_Map(thread->Paging, (void*)SelfDataStartAddress, threadDataPA, RingPriviledge == UserAppRing);
 
@@ -316,8 +316,8 @@ thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
     void* threadDataPA = Pmm_RequestPage();
     SelfData* threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
-    Keyhole::Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
-    Keyhole::Creat(&threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, FlagFullPermissions);
+    Keyhole_Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
+    Keyhole_Creat(&threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, FlagFullPermissions);
 
     vmm_Map(thread->Paging, (void*)SelfDataStartAddress, threadDataPA, source->Regs->cs == GDTInfoSelectorsRing[UserAppRing].Code);
 
@@ -481,7 +481,7 @@ bool thread_t::ExtendStack(uint64_t address){
     if(this->Stack->StackStart <= address) return false;
     if(address <= this->Stack->StackEndMax) return false;
     
-    vmm_Map(Paging, (void*)address, Pmm_RequestPage(), this->RingPL == UserAppRing);
+    vmm_Map(Paging, (void*)address, Pmm_RequestPage(), this->RingPL == UserAppRing, true, true);
 
     return true;
 }

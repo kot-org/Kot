@@ -60,6 +60,7 @@ struct process_t{
 
     /* Memory */
     pagetable_t SharedPaging;
+    uint64_t MemoryAllocated;
 
     /* Childs */
     Node* Childs;
@@ -111,7 +112,6 @@ struct thread_t{
     /* Privledge */
     uint8_t RingPL:3;
     uint8_t IOPL:3;
-    
 
     /* Process */
     process_t* Parent;

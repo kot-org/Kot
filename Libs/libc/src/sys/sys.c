@@ -1,18 +1,18 @@
 #include <kot/sys.h>
 
-KResult SYS_CreatShareSpace(kthread_t self, size_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, uint64_t flags){
+KResult SYS_CreatShareSpace(kprocess_t self, size_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, uint64_t flags){
     KResult ReturnValue;
     Syscall_40(KSys_CreatShareMemory, self, size, virtualAddressPointer, keyPointer, flags);
     return ReturnValue;
 }
 
-KResult SYS_GetShareSpace(kthread_t self, ksmem_t key, uintptr_t* virtualAddressPointer){
+KResult SYS_GetShareSpace(kprocess_t self, ksmem_t key, uintptr_t* virtualAddressPointer){
     KResult ReturnValue;
     Syscall_24(KSys_GetShareMemory, self, key, virtualAddressPointer);
     return ReturnValue;
 }
 
-KResult SYS_FreeShareSpace(kthread_t self, ksmem_t key, uintptr_t address){
+KResult SYS_FreeShareSpace(kprocess_t self, ksmem_t key, uintptr_t address){
     KResult ReturnValue;
     Syscall_24(KSys_FreeShareMemory, self, key, address);
     return ReturnValue;
@@ -48,13 +48,13 @@ KResult SYS_Pause(kthread_t self){
     return ReturnValue;
 }
 
-KResult SYS_Unpause(kthread_t self){
+KResult SYS_Unpause(kprocess_t self){
     KResult ReturnValue;
     Syscall_8(KSys_UnPause, self);
     return ReturnValue;
 }
 
-KResult SYS_Map(kthread_t self, uint64_t* addressVirtual, bool isPhysical, void* addressPhysical, size_t size, bool findFree){
+KResult SYS_Map(kprocess_t self, uint64_t* addressVirtual, bool isPhysical, void* addressPhysical, size_t size, bool findFree){
     KResult ReturnValue;
     Syscall_48(KSys_Map, self, addressVirtual, isPhysical, addressPhysical, size, findFree);
     return ReturnValue;

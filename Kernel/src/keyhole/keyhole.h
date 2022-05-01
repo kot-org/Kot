@@ -27,10 +27,8 @@ struct lock_t{
     char Signature2;       
 }__attribute__((packed));
 
-namespace Keyhole{
-    uint64_t Creat(key_t* key, process_t* parent, process_t* target, enum DataType type, uint64_t data, uint64_t flags);
-    uint64_t Duplicate(struct thread_t* caller, key_t key, struct process_t* target);
-    uint64_t Verify(thread_t* caller, key_t key, enum DataType type);
-    uint64_t Get(struct thread_t* caller, key_t key, enum DataType type, uint64_t* data, uint64_t* flags);
-    uint64_t Get(thread_t* caller, key_t key, enum DataType type, lock_t** lock);
-}
+uint64_t Keyhole_Creat(key_t* key, struct process_t* parent, struct process_t* target, enum DataType type, uint64_t data, uint64_t flags);
+uint64_t Keyhole_Duplicate(struct thread_t* caller, key_t key, struct process_t* target);
+uint64_t Keyhole_Verify(struct thread_t* caller, key_t key, enum DataType type);
+uint64_t Keyhole_Get(struct thread_t* caller, key_t key, enum DataType type, uint64_t* data, uint64_t* flags);
+uint64_t Keyhole_Get(struct thread_t* caller, key_t key, enum DataType type, lock_t** lock);

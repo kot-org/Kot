@@ -7,7 +7,7 @@ void InitializeHeap(void* heapAddress, size_t pageCount){
     globalHeap.heapEnd = heapAddress;
     void* NewPhysicalAddress = Pmm_RequestPage();
     globalHeap.heapEnd = (void*)((uint64_t)globalHeap.heapEnd - PAGE_SIZE);
-    vmm_Map(globalHeap.heapEnd, NewPhysicalAddress);
+    vmm_Map(vmm_PageTable, globalHeap.heapEnd, NewPhysicalAddress, true, false, true);
     globalHeap.mainSegment = (SegmentHeader*)((uint64_t)globalHeap.heapEnd + (PAGE_SIZE - sizeof(SegmentHeader)));
     globalHeap.mainSegment->singature = 0xff;
     globalHeap.mainSegment->length = 0;
@@ -236,7 +236,7 @@ void ExpandHeap(size_t length){
     for (size_t i = 0; i < pageCount; i++){
         void* NewPhysicalAddress = Pmm_RequestPage();
         globalHeap.heapEnd = (void*)((uint64_t)globalHeap.heapEnd - PAGE_SIZE);
-        vmm_Map(globalHeap.heapEnd, NewPhysicalAddress);
+        vmm_Map(vmm_PageTable, globalHeap.heapEnd, NewPhysicalAddress, true, false, true);
     }
 
     SegmentHeader* newSegment = (SegmentHeader*)globalHeap.heapEnd;
