@@ -1,7 +1,7 @@
 #include <elf/elf.h>
 
 namespace ELF{
-    KResult loadElf(void* buffer, uint8_t ring, Parameters* FunctionParameters){
+    KResult loadElf(void* buffer, uint8_t ring, thread_t** selfThread){
         elf_t* self = (elf_t*)calloc(sizeof(elf_t));
         self->Buffer = buffer;
         self->Header = (Elf64_Ehdr*)buffer;
@@ -60,7 +60,7 @@ namespace ELF{
             }
         }
 
-        mainThread->Launch(FunctionParameters);
+        *selfThread = mainThread;
         free(self);
         return KSUCCESS;
     }

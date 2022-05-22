@@ -1,15 +1,8 @@
 #pragma once
 #include <core/core.h>
+#include <kot/sys.h>
 
 #define FlagFullPermissions 0xff
-
-enum DataType{
-    DataTypeUnknow = 0,
-    DataTypeThread = 1,
-    DataTypeProcess = 2,
-    DataTypeEvent = 3,
-    DataTypeMemory = 4,
-};
 
 struct lockreference_t{
     uint64_t LockOffset[(PAGE_SIZE / sizeof(uint64_t))];   

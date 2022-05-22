@@ -40,7 +40,6 @@ KernelInfo* arch_initialize(void* boot){
     InitializeInterrupts();  
     globalLogs->Successful("IDT intialize");
 
-
     CPU::InitCPU();
 
     simdInit();
@@ -49,7 +48,7 @@ KernelInfo* arch_initialize(void* boot){
     InitializeACPI(bootInfo);
 
     globalTaskManager = (TaskManager*)calloc(sizeof(TaskManager));
-    globalTaskManager->InitScheduler(APIC::ProcessorCount);
+    globalTaskManager->InitScheduler(APIC::ProcessorCount, (void*)&IdleTask);
 
 
     APIC::EnableAPIC(CPU::GetAPICID());
@@ -61,12 +60,10 @@ KernelInfo* arch_initialize(void* boot){
     KernelInfo* kernelInfo = (KernelInfo*)malloc(sizeof(KernelInfo));
 
     //frame buffer
-    kernelInfo->framebuffer = (stivale2_struct_tag_framebuffer*)malloc(sizeof(stivale2_struct_tag_framebuffer));
-    memcpy(kernelInfo->framebuffer, bootInfo->Framebuffer, sizeof(stivale2_struct_tag_framebuffer));
+    memcpy(&kernelInfo->framebuffer, bootInfo->Framebuffer, sizeof(stivale2_struct_tag_framebuffer));
 
     //ramfs
-    kernelInfo->ramfs = (ramfs_t*)malloc(sizeof(ramfs_t));
-    memcpy(kernelInfo->ramfs, &bootInfo->ramfs, sizeof(ramfs_t));
+    memcpy(&kernelInfo->ramfs, &bootInfo->ramfs, sizeof(ramfs_t));
 
     //memory info
     kernelInfo->memoryInfo = &memoryInfo;

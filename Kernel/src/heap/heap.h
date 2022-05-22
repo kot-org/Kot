@@ -1,5 +1,5 @@
 #pragma once
-#include <lib/types.h>
+#include <kot/types.h>
 #include <lib/stdio.h>
 #include <logs/logs.h>
 #include <arch/x86-64/cpu/cpu.h>

@@ -27,7 +27,7 @@ static struct stivale2_header stivale_hdr = {
     .flags = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4),
     .tags = (uint64_t)&framebuffer_hdr_tag
 };
-static BootInfo Info;
+static struct BootInfo Info;
 
 namespace Boot{
     

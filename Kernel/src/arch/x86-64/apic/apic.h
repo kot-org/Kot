@@ -1,6 +1,6 @@
 #pragma once
 #include <arch/arch.h>
-#include <lib/types.h>
+#include <kot/types.h>
 #include <lib/stdio.h>
 #include <drivers/acpi/acpi.h>
 

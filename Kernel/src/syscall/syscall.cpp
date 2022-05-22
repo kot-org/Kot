@@ -1,36 +1,71 @@
 #include <syscall/syscall.h>
 
+/* -------------------------------Specs--------------------------------------- */
+
+/* Sys_Function :
+    Arguments : 
+    0 -> description            > type
+    1 -> description            > type
+    2 -> description            > type
+    3 -> description            > type
+    4 -> description            > type
+    5 -> description            > type
+*/
+
+/* -------------------------------Functions------------------------------------ */
+
+/* Sys_CreatShareMemory :
+    Arguments : 
+    0 -> process taget                  > key process
+    1 -> size                           > uint64_t
+    2 -> pointer to virtual address     > uint64_t*
+    3 -> return                         > key shared memory
+    4 -> reserved                       > none
+    5 -> reserved                       > none
+*/
 KResult Sys_CreatShareMemory(ContextStack* Registers, thread_t* Thread){
     process_t* processkey;
     uint64_t flags;
     uint64_t data;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KFAIL;
     if(CreatSharing(processkey, Registers->arg1, (uint64_t*)Registers->arg2, &data, Registers->arg4) != KSUCCESS) return KFAIL;
-    return Keyhole_Creat((key_t*)Registers->arg3, Thread->Parent, NULL, DataTypeMemory, data, FlagFullPermissions);
+    return Keyhole_Creat((key_t*)Registers->arg3, Thread->Parent, NULL, DataTypeSharedMemory, data, FlagFullPermissions);
 }
 
+/* Sys_GetShareMemory :
+    Arguments : 
+*/
 KResult Sys_GetShareMemory(ContextStack* Registers, thread_t* Thread){
     process_t* processkey;
     MemoryShareInfo* memoryKey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KFAIL;
-    if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KFAIL;
+    if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeSharedMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KFAIL;
     return GetSharing(processkey, memoryKey, (uint64_t*)Registers->arg2);
 }
 
+/* Sys_FreeShareMemory :
+    Arguments : 
+*/
 KResult Sys_FreeShareMemory(ContextStack* Registers, thread_t* Thread){
     process_t* processkey;
     MemoryShareInfo* memoryKey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KFAIL;
-    if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KFAIL;
+    if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeSharedMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KFAIL;
     return FreeSharing(processkey, memoryKey, (void*)Registers->arg2);    
 }
 
+/* Sys_Get_IOPL :
+    Arguments : 
+*/
 KResult Sys_Get_IOPL(ContextStack* Registers, thread_t* Thread){
 
 }
 
+/* Sys_Fork :
+    Arguments : 
+*/
 KResult Sys_Fork(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
@@ -41,17 +76,26 @@ KResult Sys_Fork(ContextStack* Registers, thread_t* Thread){
     return KSUCCESS;
 }
 
+/* Sys_CreatProc :
+    Arguments : 
+*/
 KResult Sys_CreatProc(ContextStack* Registers, thread_t* Thread){
     process_t* data;
     if(globalTaskManager->CreatProcess(&data, (uint8_t)Registers->arg1, Registers->arg2) != KSUCCESS) return KFAIL;
     return Keyhole_Creat((key_t*)Registers->arg0, data, Thread->Parent, DataTypeProcess, (uint64_t)data, FlagFullPermissions);
 }
 
+/* Sys_CloseProc :
+    Arguments : 
+*/
 KResult Sys_CloseProc(ContextStack* Registers, thread_t* Thread){
     //TODO
     return KFAIL;
 }
 
+/* Sys_Exit :
+    Arguments : 
+*/
 KResult Sys_Exit(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
@@ -62,6 +106,9 @@ KResult Sys_Exit(ContextStack* Registers, thread_t* Thread){
     return KSUCCESS;
 }
 
+/* Sys_Pause :
+    Arguments : 
+*/
 KResult Sys_Pause(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
@@ -69,10 +116,12 @@ KResult Sys_Pause(ContextStack* Registers, thread_t* Thread){
     CPU::DisableInterrupts();
     Registers->InterruptNumber = 1;
     globalTaskManager->Pause(Registers, Thread->CoreID, threadkey);
-    globalTaskManager->Scheduler(Registers, Thread->CoreID);
     return KSUCCESS;
 }
 
+/* Sys_UnPause :
+    Arguments : 
+*/
 KResult Sys_UnPause(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
@@ -130,11 +179,11 @@ KResult Sys_Map(ContextStack* Registers, thread_t* Thread){
                 vmm_Map(pageTable, virtualAddress, addressPhysical + i * PAGE_SIZE);
             }else{
                 vmm_Map(pageTable, virtualAddress, Pmm_RequestPage());
-                vmm_SetFlags(pageTable, (void*)*addressVirtual, vmm_flag::vmm_PhysicalStorage, true); //set master state
+                vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_PhysicalStorage, true); //set master state
+                processkey->MemoryAllocated += PAGE_SIZE;
             }        
         } 
 
-        processkey->MemoryAllocated += PAGE_SIZE;
         return KSUCCESS;
     }
     return KFAIL;
@@ -168,12 +217,18 @@ KResult Sys_Unmap(ContextStack* Registers, thread_t* Thread){
     return KSUCCESS;
 }
 
+/* Sys_Event_Creat :
+    Arguments : 
+*/
 KResult Sys_Event_Creat(ContextStack* Registers, thread_t* Thread){
     uint64_t data;
     if(Event::Creat((event_t**)&data, (EventType)Registers->arg1, Registers->arg2) != KSUCCESS) return KFAIL;
     return Keyhole_Creat((key_t*)Registers->arg0, Thread->Parent, Thread->Parent, DataTypeEvent, data, FlagFullPermissions);
 }
 
+/* Sys_Event_Bind :
+    Arguments : 
+*/
 KResult Sys_Event_Bind(ContextStack* Registers, thread_t* Thread){
     event_t* event; 
     uint64_t flags;
@@ -181,6 +236,9 @@ KResult Sys_Event_Bind(ContextStack* Registers, thread_t* Thread){
     return Event::Bind(Thread, event);
 }
 
+/* Sys_Event_Unbind :
+    Arguments : 
+*/
 KResult Sys_Event_Unbind(ContextStack* Registers, thread_t* Thread){
     event_t* event; 
     uint64_t flags;
@@ -188,6 +246,9 @@ KResult Sys_Event_Unbind(ContextStack* Registers, thread_t* Thread){
     return Event::Unbind(Thread, event);
 }
 
+/* Sys_Event_Trigger :
+    Arguments : 
+*/
 KResult Sys_Event_Trigger(ContextStack* Registers, thread_t* Thread){
     event_t* event; 
     uint64_t flags;
@@ -196,6 +257,9 @@ KResult Sys_Event_Trigger(ContextStack* Registers, thread_t* Thread){
     return Event::Trigger(Thread, event, (void*)Registers->arg1, (size_t)Registers->arg2);
 }
 
+/* Sys_CreatThread :
+    Arguments : 
+*/
 KResult Sys_CreatThread(ContextStack* Registers, thread_t* Thread){
     process_t* processkey;
     uint64_t flags;
@@ -205,6 +269,9 @@ KResult Sys_CreatThread(ContextStack* Registers, thread_t* Thread){
     return Keyhole_Creat((key_t*)Registers->arg4, Thread->Parent, Thread->Parent, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
 }
 
+/* Sys_DuplicateThread :
+    Arguments : 
+*/
 KResult Sys_DuplicateThread(ContextStack* Registers, thread_t* Thread){
     process_t* processkey;
     thread_t* threadkey;
@@ -216,6 +283,9 @@ KResult Sys_DuplicateThread(ContextStack* Registers, thread_t* Thread){
     return Keyhole_Creat((key_t*)Registers->arg3, Thread->Parent, Thread->Parent, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
 }
 
+/* Sys_ExecThread :
+    Arguments : 
+*/
 KResult Sys_ExecThread(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
@@ -253,7 +323,21 @@ extern "C" uint64_t SyscallDispatch(ContextStack* Registers, thread_t* Self){
         return GDTInfoSelectorsRing[UserAppRing].Code;        
     }
 
-    Registers->GlobalPurpose = SyscallHandlers[Registers->GlobalPurpose](Registers, Self);
+    // if(Self->Parent->PID == 0x14 && Registers->GlobalPurpose == 0x12){
+    //     asm("nop");
+    // }
+    // SegmentHeader* currentSeg = (SegmentHeader*)globalHeap.mainSegment;
+    // while(true){
+    //     if(currentSeg->IsFree != 0 && currentSeg->IsFree != 1){
+    //         globalLogs->Error("%x", currentSeg->IsFree);
+    //         globalLogs->Error("Heap %x", Self->Parent->PID);
+    //         return GDTInfoSelectorsRing[UserAppRing].Code; 
+    //     }
+    //     if (currentSeg->next == NULL) break;
+    //     currentSeg = currentSeg->next;
+    // }
 
+    Registers->GlobalPurpose = SyscallHandlers[Registers->GlobalPurpose](Registers, Self);
+    
     return GDTInfoSelectorsRing[UserAppRing].Code; 
 }

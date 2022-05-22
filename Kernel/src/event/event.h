@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lib/types.h>
+#include <kot/types.h>
 #include <lib/node/node.h>
 #include <scheduler/scheduler.h>
 #include <arch/x86-64/apic/apic.h>

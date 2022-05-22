@@ -4,8 +4,8 @@ Logs* globalLogs;
 static uint64_t mutexLog;
 
 void Logs::Message(const char* str, ...){
-    Atomic::atomicSpinlock(&mutexLog, 0);
-    Atomic::atomicLock(&mutexLog, 0);
+    Atomic::atomicAcquire(&mutexLog, 0);
+
     va_list args;
     va_start(args, str);
     
@@ -52,8 +52,8 @@ void Logs::Message(const char* str, ...){
 }   
 
 void Logs::Successful(const char* str, ...){
-    Atomic::atomicSpinlock(&mutexLog, 0);
-    Atomic::atomicLock(&mutexLog, 0);
+    Atomic::atomicAcquire(&mutexLog, 0);
+
     va_list args;
     va_start(args, str);
     
@@ -104,8 +104,8 @@ void Logs::Successful(const char* str, ...){
 }
 
 void Logs::Warning(const char* str, ...){
-    Atomic::atomicSpinlock(&mutexLog, 0);
-    Atomic::atomicLock(&mutexLog, 0);
+    Atomic::atomicAcquire(&mutexLog, 0);
+
     va_list args;
     va_start(args, str);
     
@@ -156,8 +156,8 @@ void Logs::Warning(const char* str, ...){
 }
 
 void Logs::Error(const char * str, ...){
-    Atomic::atomicSpinlock(&mutexLog, 0);
-    Atomic::atomicLock(&mutexLog, 0);
+    Atomic::atomicAcquire(&mutexLog, 0);
+
     va_list args;
     va_start(args, str);
     SerialPort::Print(SerialRED);

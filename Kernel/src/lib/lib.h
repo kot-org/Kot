@@ -1,5 +1,5 @@
 #pragma once
-#include <lib/types.h>
+#include <kot/types.h>
 
 struct GUID{  
     uint32_t Data1;  

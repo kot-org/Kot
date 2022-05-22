@@ -7,11 +7,11 @@ void InitializeHeap(void* heapAddress, size_t pageCount){
     globalHeap.heapEnd = heapAddress;
     void* NewPhysicalAddress = Pmm_RequestPage();
     globalHeap.heapEnd = (void*)((uint64_t)globalHeap.heapEnd - PAGE_SIZE);
-    vmm_Map(vmm_PageTable, globalHeap.heapEnd, NewPhysicalAddress, true, false, true);
+    vmm_Map(vmm_PageTable, globalHeap.heapEnd, NewPhysicalAddress, false, true, true);
     globalHeap.mainSegment = (SegmentHeader*)((uint64_t)globalHeap.heapEnd + (PAGE_SIZE - sizeof(SegmentHeader)));
     globalHeap.mainSegment->singature = 0xff;
     globalHeap.mainSegment->length = 0;
-    globalHeap.mainSegment->IsFree = true;
+    globalHeap.mainSegment->IsFree = false;
     globalHeap.mainSegment->last = NULL;
     globalHeap.mainSegment->next = (SegmentHeader*)((uint64_t)globalHeap.mainSegment - PAGE_SIZE + sizeof(SegmentHeader));
 
@@ -40,8 +40,7 @@ void* malloc(size_t size){
         size += 0x10;
     }
 
-    Atomic::atomicSpinlock(&globalHeap.lock, 0);
-    Atomic::atomicLock(&globalHeap.lock, 0);
+    Atomic::atomicAcquire(&globalHeap.lock, 0);
 
     SegmentHeader* currentSeg = (SegmentHeader*)globalHeap.mainSegment;
     uint64_t SizeWithHeader = size + sizeof(SegmentHeader);
@@ -54,6 +53,9 @@ void* malloc(size_t size){
                 globalHeap.UsedSize += currentSeg->length + sizeof(SegmentHeader);
                 globalHeap.FreeSize -= currentSeg->length + sizeof(SegmentHeader);
                 Atomic::atomicUnlock(&globalHeap.lock, 0);
+                if((uint64_t)currentSeg == 0xffffffff7fe90620){
+                    asm("nop");
+                }
                 return (void*)((uint64_t)currentSeg + sizeof(SegmentHeader));
             }else if(currentSeg->length == size){
                 currentSeg->IsFree = false;
@@ -149,8 +151,8 @@ void MergeNextToThis(SegmentHeader* header){
 
 void free(void* address){
     if(address != NULL){
-        Atomic::atomicSpinlock(&globalHeap.lock, 0);
-        Atomic::atomicLock(&globalHeap.lock, 0);
+        Atomic::atomicAcquire(&globalHeap.lock, 0);
+        
         SegmentHeader* header = (SegmentHeader*)(void*)((uint64_t)address - sizeof(SegmentHeader));
         header->IsFree = true;
         globalHeap.FreeSize += header->length + sizeof(SegmentHeader);
@@ -236,7 +238,7 @@ void ExpandHeap(size_t length){
     for (size_t i = 0; i < pageCount; i++){
         void* NewPhysicalAddress = Pmm_RequestPage();
         globalHeap.heapEnd = (void*)((uint64_t)globalHeap.heapEnd - PAGE_SIZE);
-        vmm_Map(vmm_PageTable, globalHeap.heapEnd, NewPhysicalAddress, true, false, true);
+        vmm_Map(vmm_PageTable, globalHeap.heapEnd, NewPhysicalAddress, false, true, true);
     }
 
     SegmentHeader* newSegment = (SegmentHeader*)globalHeap.heapEnd;

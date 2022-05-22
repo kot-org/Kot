@@ -56,6 +56,8 @@ void InitializeInterrupts(){
         }
     }
 
+    // SetIDTGate((void*)0xfffffffff, 8, InterruptGateType, KernelRing, 0x0, IST_Null, idtr);
+    // SetIDTGate((void*)0xfffffffff, 13, InterruptGateType, KernelRing, 0x0, IST_Null, idtr);
     /* Shedule */
     SetIDTGate((void*)InterruptEntryList[IPI_Schedule], IPI_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
 
@@ -113,7 +115,7 @@ bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID){
 
 void KernelUnrecovorable(ContextStack* Registers, uint64_t CoreID){
     globalLogs->Error("Kernel Panic CPU %x \nWith execption : '%s' | Error code : %x", CoreID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
-
+    
     while(true){
         asm("hlt");
     }

@@ -1,5 +1,5 @@
 #pragma once
-#include <lib/types.h>
+#include <kot/types.h>
 #include <core/core.h>
 
 struct trampolineData{

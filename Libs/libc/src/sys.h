@@ -4,15 +4,17 @@
 #include <kot/types.h>
 #include <kot/sys/list.h>
 
-#define ASMMACRO(X) #X
+#define Syscall_48(syscall, arg0, arg1, arg2, arg3, arg4, arg5) (DoSyscall(syscall, (uint64_t)arg0, (uint64_t)arg1, (uint64_t)arg2, (uint64_t)arg3, (uint64_t)arg4, (uint64_t)arg5))
+#define Syscall_40(syscall, arg0, arg1, arg2, arg3, arg4) (DoSyscall(syscall, (uint64_t)arg0, (uint64_t)arg1, (uint64_t)arg2, (uint64_t)arg3, (uint64_t)arg4, 0))
+#define Syscall_32(syscall, arg0, arg1, arg2, arg3) (DoSyscall(syscall, (uint64_t)arg0, (uint64_t)arg1, (uint64_t)arg2, (uint64_t)arg3, 0, 0))
+#define Syscall_24(syscall, arg0, arg1, arg2) (DoSyscall(syscall, (uint64_t)arg0, (uint64_t)arg1, (uint64_t)arg2, 0, 0, 0))
+#define Syscall_16(syscall, arg0, arg1) (DoSyscall(syscall, (uint64_t)arg0, (uint64_t)arg1, 0, 0, 0, 0))
+#define Syscall_8(syscall, arg0) (DoSyscall(syscall, (uint64_t)arg0, 0, 0, 0, 0, 0))
+#define Syscall_0(syscall) (DoSyscall(syscall, 0, 0, 0, 0, 0, 0))
 
-#define Syscall_48(syscall, arg0, arg1, arg2, arg3, arg4, arg5) ({asm volatile("mov %p6, %%r8\n\t""mov %p5, %%r9\n\t""mov %p4, %%r10\n\t""mov %p3, %%rdx\n\t""mov %p2, %%rsi\n\t""mov %p1, %%rdi\n\t""mov $" ASMMACRO(syscall) ", %%rax\n\t""syscall\n\t":"=a"(ReturnValue):[p1]"m"(arg0),[p2]"m"(arg1),[p3]"m"(arg2),[p4]"m"(arg3),[p5]"m"(arg4),[p6]"m"(arg5));})
-#define Syscall_40(syscall, arg0, arg1, arg2, arg3, arg4) ({asm volatile("mov %p5, %%r9\n\t""mov %p4, %%r10\n\t""mov %p3, %%rdx\n\t""mov %p2, %%rsi\n\t""mov %p1, %%rdi\n\t""mov $" ASMMACRO(syscall) ", %%rax\n\t""syscall\n\t":"=a"(ReturnValue):[p1]"m"(arg0),[p2]"m"(arg1),[p3]"m"(arg2),[p4]"m"(arg3),[p5]"m"(arg4));})
-#define Syscall_32(syscall, arg0, arg1, arg2, arg3) ({asm volatile("mov %p4, %%r10\n\t""mov %p3, %%rdx\n\t""mov %p2, %%rsi\n\t""mov %p1, %%rdi\n\t""mov $" ASMMACRO(syscall) ", %%rax\n\t""syscall\n\t":"=a"(ReturnValue):[p1]"m"(arg0),[p2]"m"(arg1),[p3]"m"(arg2),[p4]"m"(arg3));})
-#define Syscall_24(syscall, arg0, arg1, arg2) ({asm volatile("mov %p3, %%rdx\n\t""mov %p2, %%rsi\n\t""mov %p1, %%rdi\n\t""mov $" ASMMACRO(syscall) ", %%rax\n\t""syscall\n\t":"=a"(ReturnValue):[p1]"m"(arg0),[p2]"m"(arg1),[p3]"m"(arg2));})
-#define Syscall_16(syscall, arg0, arg1) ({asm volatile("mov %p2, %%rsi\n\t""mov %p1, %%rdi\n\t""mov $" ASMMACRO(syscall) ", %%rax\n\t""syscall\n\t":"=a"(ReturnValue):[p1]"m"(arg0),[p2]"m"(arg1));})
-#define Syscall_8(syscall, arg0) ({asm volatile("mov %p1, %%rdi\n\t""mov $" ASMMACRO(syscall) ", %%rax\n\t""syscall\n\t":"=a"(ReturnValue):[p1]"m"(arg0));})
-#define Syscall_0(syscall) ({asm volatile("mov $" ASMMACRO(syscall) ", %%rax\n\t""syscall\n\t":"=a"(ReturnValue):);})
+#define Priviledge_Driver 0x1
+#define Priviledge_Service 0x2
+#define Priviledge_App 0x3
 
 #if defined(__cplusplus)
 extern "C" {
@@ -23,13 +25,16 @@ struct SelfData{
     kprocess_t ProcessKey;
 }__attribute__((packed));
 
-enum EventType{
+enum DataType{
     DataTypeUnknow = 0,
     DataTypeThread = 1,
     DataTypeProcess = 2,
     DataTypeEvent = 3,
-    DataTypeMemory = 4,
+    DataTypeSharedMemory = 4,
 };
+
+uint64_t DoSyscall(uint64_t syscall, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);
+
 
 KResult SYS_CreatShareSpace(kprocess_t self, size_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, uint64_t flags);
 KResult SYS_GetShareSpace(kprocess_t self, ksmem_t key, uintptr_t* virtualAddressPointer);

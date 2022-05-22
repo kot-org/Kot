@@ -61,8 +61,9 @@ typedef unsigned long int           ksmem_t;
 typedef unsigned long long int      ksmem_t;
 #endif
 
-typedef long unsigned int           size_t;
 typedef void*                       uintptr_t;
+
+typedef long unsigned int           size_t;
 
 #define KFAIL 0
 #define KSUCCESS 1

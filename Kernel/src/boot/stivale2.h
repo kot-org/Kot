@@ -1,7 +1,7 @@
 #ifndef __STIVALE__STIVALE2_H__
 #define __STIVALE__STIVALE2_H__
 
-#include <lib/types.h>
+#include <kot/types.h>
 
 #if (defined (_STIVALE2_SPLIT_64) && defined (__i386__)) || defined(_STIVALE2_SPLIT_64_FORCE)
 

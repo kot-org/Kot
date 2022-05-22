@@ -1,23 +1,23 @@
 [BITS 64]
-GLOBAL atomicLock, atomicUnlock, atomicSpinlock
+GLOBAL atomicLock, atomicUnlock, atomicAcquire
 
 %macro	CF_RESULT	0
 	mov		rcx, 1
 	mov		rax, 0
-	cmovnc	rax, rcx	
+	cmovnc	rax, rcx
 %endmacro
 
 atomicLock:	
-	lock bts	QWORD [rdi], rsi
+	lock bts		QWORD [rdi], rsi
 	CF_RESULT		
 	ret
 
-atomicUnlock:	; rdi= mutex location memory , rsi= location of the bit where we store the statu
-	btr		QWORD [rdi], rsi
+atomicUnlock:	; rdi = mutex location memory , rsi = location of the bit where we store the statu
+	lock btr		QWORD [rdi], rsi
 	CF_RESULT
 	ret
 
-atomicSpinlock:	; rdi= mutex location memory , rsi= location of the bit where we store the statu
+atomicAcquire:		; rdi = mutex location memory , rsi = location of the bit where we store the statu
 	.acquire:
 		lock bts	QWORD [rdi], rsi
 		jnc			.exit				; CF = 0 to begin with

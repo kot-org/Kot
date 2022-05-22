@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lib/types.h>
+#include <kot/types.h>
 #include <lib/node/node.h>
 #include <heap/heap.h>
 

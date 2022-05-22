@@ -18,7 +18,7 @@ namespace APIC{
     void InitializeMADT(ACPI::MADTHeader* madt){
         ProcessorCount = 0;
         IsoCount = 0;
-        uint64_t MaxAPICID = 0;
+        uint64_t MaxAPICID = 1;
 
         if(madt == 0){
             return;
@@ -63,9 +63,9 @@ namespace APIC{
 
         Iso = (InterruptSourceOverride**)malloc(sizeof(InterruptSourceOverride) * IsoCount);
 
-        uint8_t ProcessorCountTemp = 0;
-        uint64_t IsoCountTemp = 0;
-        uint8_t IOAPICTemp = 0;
+        uint8_t ProcessorCountTmp = 0;
+        uint64_t IsoCountTmp = 0;
+        uint8_t IOAPICTmp = 0;
 
         for(uint64_t i = 0; i < entries;){            
             EntryRecord* entryRecord = (EntryRecord*)((uint64_t)madt + sizeof(ACPI::MADTHeader) + i);
@@ -74,21 +74,21 @@ namespace APIC{
             switch(entryRecord->Type){
                 case EntryTypeLocalProcessor: {
                     LocalProcessor* processor = (LocalProcessor*)entryRecord;
-                    Processor[ProcessorCountTemp] = processor;  
+                    Processor[ProcessorCountTmp] = processor;  
                     lapicAddress[processor->APICID] = (LapicAddress*)malloc(sizeof(LapicAddress));
-                    ProcessorCountTemp++;
+                    ProcessorCountTmp++;
                     break;
                 }
                 case EntryTypeIOAPIC:{
                     IOAPIC* ioApic = (IOAPIC*)entryRecord;
-                    IOapic[IOAPICTemp] = ioApic;
-                    IOAPICTemp++;
+                    IOapic[IOAPICTmp] = ioApic;
+                    IOAPICTmp++;
                     break;
                 }                    
                 case EntryTypeInterruptSourceOverride:{
                     InterruptSourceOverride* iso = (InterruptSourceOverride*)entryRecord;
-                    Iso[IsoCountTemp] = iso;
-                    IsoCountTemp++;
+                    Iso[IsoCountTmp] = iso;
+                    IsoCountTmp++;
                     break;
                 }                    
                 case EntryTypeNonmaskableinterrupts:{
@@ -222,8 +222,7 @@ namespace APIC{
     static uint64_t mutexSLT;
 
     void StartLapicTimer(){
-        Atomic::atomicSpinlock(&mutexSLT, 0);
-        Atomic::atomicLock(&mutexSLT, 0);
+        Atomic::atomicAcquire(&mutexSLT, 0);
 
         // Setup Local APIC timer
         localAPICWriteRegister(LocalAPICRegisterOffsetDivide, 4);        

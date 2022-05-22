@@ -38,8 +38,7 @@ void* malloc(size_t size){
         size += 0x10;
     }
 
-    atomicSpinlock(&mutexHeap, 0);
-    atomicLock(&mutexHeap, 0);
+    atomicAcquire(&mutexHeap, 0);
 
     struct SegmentHeader* currentSeg = (struct SegmentHeader*)globalHeap.mainSegment;
     while(true){
@@ -146,8 +145,8 @@ void MergeNextToThis(struct SegmentHeader* header){
 
 void free(void* address){
     if(address != NULL){
-        atomicSpinlock(&mutexHeap, 0);
-        atomicLock(&mutexHeap, 0);
+        atomicAcquire(&mutexHeap, 0);
+        
         struct SegmentHeader* header = (struct SegmentHeader*)(void*)((uint64_t)address - sizeof(struct SegmentHeader));
         header->IsFree = true;
         globalHeap.FreeSize += header->length + sizeof(struct SegmentHeader);

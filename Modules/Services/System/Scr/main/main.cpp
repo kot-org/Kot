@@ -82,26 +82,28 @@ void readBMP(struct stivale2_struct_tag_framebuffer* framebuffer, void* buffer, 
     }
 }
 
-int main(struct KernelInfo* kernelInfo){
+int main(struct KernelInfo* kernelInfo, uint64_t squareX){
+    Rectangle(&kernelInfo->framebuffer, 20, 20, squareX, 20, 0xff, 0xff, 0xff);
     kthread_t self;
     SYS_GetThreadKey(&self);
     InitializeHeap();
 
     MMapPageSize = kernelInfo->MMapPageSize;
 
-    ramfs::Parse(kernelInfo->ramfs->ramfsBase, kernelInfo->ramfs->Size);
+    ramfs::Parse(kernelInfo->ramfs.ramfsBase, kernelInfo->ramfs.Size);
     
     ramfs::File* Wallpaper = ramfs::Find("Wallpaper.bmp");
     if(Wallpaper != NULL){
         void* BufferWallpaper = malloc(Wallpaper->size);
         ramfs::Read(Wallpaper, BufferWallpaper);
-        readBMP(kernelInfo->framebuffer, BufferWallpaper, Wallpaper->size, kernelInfo->framebuffer->framebuffer_height, 0, 0, false);
+        readBMP(&kernelInfo->framebuffer, BufferWallpaper, Wallpaper->size, kernelInfo->framebuffer.framebuffer_height, 0, 0, false);
     }
 
     ramfs::File* InitFile = ramfs::FindInitFile();
     
-    parameters_t* InitParameters = (parameters_t*)malloc(sizeof(parameters_t));
+    parameters_t* InitParameters = (parameters_t*)calloc(sizeof(parameters_t));
     InitParameters->Parameter0 = (uint64_t)kernelInfo;
+    InitParameters->Parameter1 = (uint64_t)squareX + 20;
     
     if(InitFile != NULL){
         void* BufferInitFile = malloc(InitFile->size);
@@ -109,16 +111,15 @@ int main(struct KernelInfo* kernelInfo){
         ELF::loadElf(BufferInitFile, 1, InitParameters, 0x0);
     }
 
-    int x = 2;
-    while(true){
-        Rectangle(kernelInfo->framebuffer, 20, 20, x, 0, 0x0, x, 0x0);
-        x++;
-        Rectangle(kernelInfo->framebuffer, 1, 20, x - 2, 0, 0xff, 0xff, 0xff);
+    // int x = 2;
+    // while(true){
+    //     Rectangle(kernelInfo->framebuffer, 20, 20, x, 0, 0x0, x, 0x0);
+    //     x++;
+    //     Rectangle(kernelInfo->framebuffer, 1, 20, x - 2, 0, 0xff, 0xff, 0xff);
 
-        if(x > kernelInfo->framebuffer->framebuffer_width) x = 2;
-        for(int i = 0; i < 0x100000; i++);
-    }    
-
+    //     if(x > kernelInfo->framebuffer->framebuffer_width) x = 2;
+    //     for(int i = 0; i < 0x100000; i++);
+    // }    
 
     SYS_Pause(self);
 }

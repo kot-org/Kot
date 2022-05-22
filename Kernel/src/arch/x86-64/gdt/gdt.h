@@ -1,12 +1,13 @@
 #pragma once
-#include <lib/types.h>
+#include <kot/types.h>
+#include <lib/limits.h>
 #include <arch/x86-64/smp/smp.h>
 
 #define GDT_MAX_DESCRIPTORS uint16_Limit / sizeof(GDTEntry)
 
-#define KernelRing 0
-#define DriversRing 1
-#define DevicesRing 2
+#define KernelRing  0
+#define DriversRing 3
+#define DevicesRing 3
 #define UserAppRing 3
 
 struct GDTDescriptor{
@@ -59,7 +60,7 @@ struct gdtInfoSelectorsRing{
     uint16_t Data;
 };
 
-extern gdtInfoSelectorsRing GDTInfoSelectorsRing[4];
+extern gdtInfoSelectorsRing GDTInfoSelectorsRing[(GDT_MAX_DESCRIPTORS / 2)];
 
 void gdtInit();
 uint16_t gdtNullDescriptor();
@@ -68,6 +69,8 @@ uint16_t gdtCreatDataDescriptor(int ring);
 void gdtInitCores(uint8_t cpuID);
 uint16_t gdtInstallDescriptor(uint64_t base, uint64_t limit, AccessByteStruct access, OthersStruct other);
 uint16_t gdtInstallTSS(uint64_t base, uint64_t limit);
+
+uint8_t GetRingPL(uint8_t priviledge);
 
 extern int GDTIndexTable;
 

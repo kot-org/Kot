@@ -1,6 +1,6 @@
 #pragma once
 #include <arch/arch.h>
-#include <lib/types.h>
+#include <kot/types.h>
 #include <logs/logs.h>
 #include <event/event.h>
 #include <scheduler/scheduler.h>

@@ -5,8 +5,8 @@ static uint64_t mutexKeyhole;
 uint64_t Keyhole_Creat(key_t* key, process_t* parent, process_t* target, enum DataType type, uint64_t data, uint64_t flags){
     if(!CheckAddress((void*)key, sizeof(key))) return KFAIL;
     
-    Atomic::atomicSpinlock(&mutexKeyhole, 0);
-    Atomic::atomicLock(&mutexKeyhole, 0);
+    Atomic::atomicAcquire(&mutexKeyhole, 0);
+    
     parent->LockIndex++;
     // alloc lock
     lock_t* Lock = (lock_t*)malloc(sizeof(lock_t));

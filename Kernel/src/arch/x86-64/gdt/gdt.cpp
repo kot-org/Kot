@@ -1,19 +1,23 @@
 #include <arch/x86-64/gdt/gdt.h>
 #include <arch/x86-64/tss/tss.h>
+#include <kot/sys.h>
 
 
 static __attribute__((aligned(PAGE_SIZE)))GDTEntry GDTEntries[GDT_MAX_DESCRIPTORS];
 static GDTDescriptor gdtBaseInfo;
 static TSS DefaultTSS;
-gdtInfoSelectorsRing GDTInfoSelectorsRing[4];
+gdtInfoSelectorsRing GDTInfoSelectorsRing[(GDT_MAX_DESCRIPTORS / 2)];
 int GDTIndexTable = 0;
 
 void gdtInit(){
     gdtBaseInfo.Size = (sizeof(GDTEntry) * GDT_MAX_DESCRIPTORS) - 1; //get the total size where gdt entries 
     gdtBaseInfo.Offset = (uint64_t)&GDTEntries[0]; //get adress of the table where gdt entries 
 
-    for(int i = 0; i < 4; i++){
-        gdtNullDescriptor();
+    gdtNullDescriptor();
+    GDTInfoSelectorsRing[KernelRing].Code = gdtCreatCodeDescriptor(KernelRing);
+    GDTInfoSelectorsRing[KernelRing].Data = gdtCreatDataDescriptor(KernelRing);
+
+    for(int i = DriversRing; i <= UserAppRing; i++){
         GDTInfoSelectorsRing[i].Code = gdtCreatCodeDescriptor(i);
         GDTInfoSelectorsRing[i].Data = gdtCreatDataDescriptor(i);
     }
@@ -149,4 +153,15 @@ uint16_t gdtInstallTSS(uint64_t base, uint64_t limit){
     GDTIndexTable += 2;
 
     return (uint16_t)((GDTIndexTable - 2) * sizeof(GDTEntry));
+}
+
+uint8_t GetRingPL(uint8_t priviledge){
+    switch(priviledge){
+        case Priviledge_Driver:
+            return DriversRing;
+        case Priviledge_Service:
+            return DevicesRing;
+        case Priviledge_App:
+            return UserAppRing;
+    }
 }

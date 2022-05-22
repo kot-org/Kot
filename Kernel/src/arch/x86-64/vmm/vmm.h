@@ -1,5 +1,5 @@
 #pragma once
-#include <lib/types.h>
+#include <kot/types.h>
 #include <arch/x86-64.h>
 
 extern pagetable_t vmm_PageTable;
@@ -56,6 +56,7 @@ void vmm_CopyPageTable(pagetable_t tableSource, pagetable_t tableDestination, ui
 void vmm_Fill(pagetable_t table, uint64_t from, uint64_t to);
 
 void vmm_Swap(pagetable_t table);
+pagetable_t vmm_GetPageTable();
 uint64_t vmm_Init(struct BootInfo* bootInfo);
 
 pagetable_t vmm_SetupProcess();

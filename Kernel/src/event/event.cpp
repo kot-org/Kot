@@ -42,8 +42,7 @@ namespace Event{
     }
 
     uint64_t Bind(thread_t* task, event_t* self){
-        Atomic::atomicSpinlock(&self->Lock, 0);
-        Atomic::atomicLock(&self->Lock, 0);
+        Atomic::atomicAcquire(&self->Lock, 0);
 
         self->NumTask++;
         self->Tasks = (thread_t**)realloc(self->Tasks, self->NumTask * sizeof(thread_t));
@@ -66,8 +65,7 @@ namespace Event{
 
     uint64_t Unbind(thread_t* task, event_t* self){
         if(self->NumTask <= 0) return KFAIL;
-        Atomic::atomicSpinlock(&self->Lock, 0);
-        Atomic::atomicLock(&self->Lock, 0);
+        Atomic::atomicAcquire(&self->Lock, 0);
 
         self->NumTask--;
         for(size_t i = 0; i < self->NumTask; i++){
@@ -93,8 +91,7 @@ namespace Event{
     
     uint64_t Trigger(thread_t* author, event_t* self, void* Data, size_t Size){
         if(self == NULL) return KFAIL;
-        Atomic::atomicSpinlock(&self->Lock, 0);
-        Atomic::atomicLock(&self->Lock, 0);
+        Atomic::atomicAcquire(&self->Lock, 0);
 
         Parameters* FunctionParameters = (Parameters*)calloc(sizeof(Parameters));
 

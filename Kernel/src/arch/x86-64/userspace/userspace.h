@@ -1,5 +1,5 @@
 #pragma once
-#include <lib/types.h>
+#include <kot/types.h>
 #include <arch/arch.h>
 
 extern "C" void IdleTask();

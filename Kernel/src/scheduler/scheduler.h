@@ -1,6 +1,6 @@
 #pragma once
 #include <arch/arch.h>
-#include <lib/types.h>
+#include <kot/types.h>
 #include <heap/heap.h>
 #include <lib/limits.h>
 #include <event/event.h>
@@ -9,7 +9,6 @@
 struct TaskQueuNode;
 struct Task;
 class TaskManager;
-class SelfData;
 
 #define SelfDataStartAddress vmm_MapAddress(0xff, 0, 0, 0)  
 #define SelfDataEndAddress SelfDataStartAddress + sizeof(SelfData)
@@ -17,11 +16,6 @@ class SelfData;
 #define StackBottom SelfDataEndAddress 
 #define LockAddress vmm_MapAddress(0xfe, 0, 0, 0) 
 #define DefaultFlagsKey 0xff
-
-struct SelfData{
-    key_t ThreadKey;
-    key_t ProcessKey;
-}__attribute__((packed));
 
 struct Parameters{
     uint64_t Parameter0;
@@ -56,7 +50,7 @@ struct process_t{
     uint64_t PID;
 
     /* Priviledge */
-    uint8_t DefaultPriviledge:3;
+    uint8_t DefaultPriviledge;
 
     /* Memory */
     pagetable_t SharedPaging;
@@ -110,6 +104,7 @@ struct thread_t{
     uint64_t CreationTime;
 
     /* Privledge */
+    uint8_t Priviledge;
     uint8_t RingPL:3;
     uint8_t IOPL:3;
 
@@ -178,7 +173,7 @@ class TaskManager{
 
         void CreatIddleTask();   
 
-        void InitScheduler(uint8_t NumberOfCores); 
+        void InitScheduler(uint8_t NumberOfCores, void* IddleTaskFunction); 
         void EnabledScheduler(uint64_t CoreID);
         thread_t* GetCurrentThread(uint64_t CoreID);
 
@@ -192,6 +187,7 @@ class TaskManager{
         uint64_t NumberOfCPU = 0;
         uint64_t CurrentTaskExecute = 0;
         uint64_t IddleTaskNumber = 0;
+        void* IddleTaskPointer = 0;
         uint64_t PID = 0;
 
         thread_t* FirstNode;

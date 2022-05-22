@@ -1,5 +1,5 @@
 #pragma once
-#include <lib/types.h>
+#include <kot/types.h>
 
 namespace ACPI{
     struct RSDP2{

@@ -1,6 +1,6 @@
 .intel_syntax noprefix
 
-.global atomicLock, atomicUnlock, atomicSpinlock
+.global atomicLock, atomicUnlock, atomicAcquire
 
 .macro CF_RESULT
 	mov		rcx, 1
@@ -18,7 +18,7 @@ atomicUnlock:
 	CF_RESULT
 	ret
 
-atomicSpinlock:	
+atomicAcquire:	
 	.acquire:
 		lock bts	QWORD [rdi], rsi
 		jnc			.exit				

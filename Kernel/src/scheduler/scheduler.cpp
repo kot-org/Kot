@@ -6,15 +6,15 @@ static uint64_t mutexScheduler;
 
 void TaskManager::Scheduler(ContextStack* Registers, uint64_t CoreID){  
     if(IsSchedulerEnable[CoreID]){  
-        Atomic::atomicSpinlock(&mutexScheduler, 1);
-        Atomic::atomicLock(&mutexScheduler, 1);
+        Atomic::atomicAcquire(&mutexScheduler, 1);
+
         uint64_t actualTime = HPET::GetTime();
         thread_t* ThreadEnd = ThreadExecutePerCore[CoreID];
         if(ThreadExecutePerCore[CoreID] != NULL){
             /* Save & enqueu thread */
             ThreadEnd->SaveContext(Registers, CoreID);
             EnqueueTask(ThreadEnd);
-            //globalLogs->Warning("TID %x use %u% of cpu", ThreadEnd->TID, (ThreadEnd->TimeAllocate * 100 / (actualTime - ThreadEnd->CreationTime)) / NumberOfCPU);
+            //globalLogs->Warning("PID %x use %u% of cpu", ThreadEnd->Parent->PID, (ThreadEnd->TimeAllocate * 100 / (actualTime - ThreadEnd->CreationTime)) / NumberOfCPU);
         }
 
         /* Update time */
@@ -30,8 +30,7 @@ void TaskManager::Scheduler(ContextStack* Registers, uint64_t CoreID){
 
 void TaskManager::EnqueueTask(thread_t* thread){
     if(thread->IsInQueue) return;
-    Atomic::atomicSpinlock(&mutexScheduler, 0);
-    Atomic::atomicLock(&mutexScheduler, 0);
+    Atomic::atomicAcquire(&mutexScheduler, 0);
     
     if(FirstNode == NULL) FirstNode = thread;
 
@@ -49,8 +48,8 @@ void TaskManager::EnqueueTask(thread_t* thread){
 
 void TaskManager::DequeueTask(thread_t* thread){
     if(!thread->IsInQueue) return;
-    Atomic::atomicSpinlock(&mutexScheduler, 0);
-    Atomic::atomicLock(&mutexScheduler, 0);
+    Atomic::atomicAcquire(&mutexScheduler, 0);
+
     if(FirstNode == thread){
         if(FirstNode != thread->Next){
            FirstNode = thread->Next; 
@@ -114,8 +113,7 @@ void TaskManager::DequeueTaskWithoutLock(thread_t* thread){
 }
 
 thread_t* TaskManager::GetTread(){
-    Atomic::atomicSpinlock(&mutexScheduler, 0);
-    Atomic::atomicLock(&mutexScheduler, 0);
+    Atomic::atomicAcquire(&mutexScheduler, 0);
 
     thread_t* ReturnValue = FirstNode;
 
@@ -147,11 +145,10 @@ uint64_t TaskManager::ExecThread(thread_t* self, Parameters* FunctionParameters)
 }
 
 uint64_t TaskManager::Pause(ContextStack* Registers, uint64_t CoreID, thread_t* task){
-    Atomic::atomicSpinlock(&mutexScheduler, 1);
-    Atomic::atomicLock(&mutexScheduler, 1);
-
     if(task->IsInQueue){
+        Atomic::atomicAcquire(&mutexScheduler, 1);
         DequeueTask(task);
+        Atomic::atomicUnlock(&mutexScheduler, 1);
     }else if(CoreID == task->CoreID){
         task->Pause(Registers, CoreID);
     }else{
@@ -161,7 +158,6 @@ uint64_t TaskManager::Pause(ContextStack* Registers, uint64_t CoreID, thread_t* 
 
     task->IsBlock = true;
 
-    Atomic::atomicUnlock(&mutexScheduler, 1);
     return KSUCCESS;
 }
 
@@ -172,17 +168,20 @@ uint64_t TaskManager::Unpause(thread_t* task){
 } 
 
 uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* task){
-    Atomic::atomicSpinlock(&mutexScheduler, 1);
-    Atomic::atomicLock(&mutexScheduler, 1);
-
+    Atomic::atomicAcquire(&mutexScheduler, 1);
+    
     if(task->IsInQueue){
+        Atomic::atomicAcquire(&mutexScheduler, 1);
         DequeueTask(task);
+        Atomic::atomicUnlock(&mutexScheduler, 1);
     }else if(CoreID == task->CoreID){
         task->Exit(Registers, CoreID);
     }else{
         ThreadExecutePerCore[task->CoreID] = NULL;
         APIC::GenerateInterruption(task->CoreID, IPI_Schedule);
     }
+
+    /* TODO clear task data */
 
     Atomic::atomicUnlock(&mutexScheduler, 1);
     return KSUCCESS;
@@ -245,8 +244,8 @@ thread_t* process_t::CreatThread(void* entryPoint, uint8_t priviledge, uint64_t 
     thread->SetupStack();
 
     /* Setup priviledge */
-    uint8_t RingPriviledge = priviledge & 0b11;
-    thread->RingPL = priviledge;
+    thread->Priviledge = priviledge;
+    thread->RingPL = GetRingPL(priviledge);
 
     /* Thread data */
     void* threadDataPA = Pmm_RequestPage();
@@ -255,13 +254,13 @@ thread_t* process_t::CreatThread(void* entryPoint, uint8_t priviledge, uint64_t 
     Keyhole_Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey);
     Keyhole_Creat(&threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, DefaultFlagsKey);
 
-    vmm_Map(thread->Paging, (void*)SelfDataStartAddress, threadDataPA, RingPriviledge == UserAppRing);
+    vmm_Map(thread->Paging, (void*)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
 
     /* Setup registers */
     thread->EntryPoint = entryPoint;
     thread->Regs->rip = (uint64_t)entryPoint;
-    thread->Regs->cs = (GDTInfoSelectorsRing[RingPriviledge].Code | RingPriviledge);
-    thread->Regs->ss = (GDTInfoSelectorsRing[RingPriviledge].Data | RingPriviledge);
+    thread->Regs->cs = (GDTInfoSelectorsRing[thread->RingPL].Code | thread->RingPL);
+    thread->Regs->ss = (GDTInfoSelectorsRing[thread->RingPL].Data | thread->RingPL);
     thread->Regs->rflags.Reserved0 = true;
     thread->Regs->rflags.IF = true;
     thread->Regs->rflags.IOPL = 0;
@@ -338,6 +337,7 @@ thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
 
 
     /* Setup priviledge */
+    thread->Priviledge = source->Priviledge;
     thread->RingPL = source->RingPL;
 
     /* Other data */
@@ -373,8 +373,7 @@ void thread_t::SetupStack(){
 void TaskManager::SwitchTask(ContextStack* Registers, uint64_t CoreID, thread_t* task){
     if(task == NULL) return;
 
-    Atomic::atomicSpinlock(&mutexScheduler, 1);
-    Atomic::atomicLock(&mutexScheduler, 1);
+    Atomic::atomicAcquire(&mutexScheduler, 1);
 
     uint64_t actualTime = HPET::GetTime();
     thread_t* TaskEnd = ThreadExecutePerCore[CoreID];
@@ -397,19 +396,21 @@ void TaskManager::CreatIddleTask(){
     if(IddleProc == NULL){
         CreatProcess(&IddleProc, 3, 0);
     }
-    thread_t* thread = IddleProc->CreatThread(0, 0);
+    thread_t* thread = IddleProc->CreatThread(IddleTaskPointer, 0);
 
     IdleNode[IddleTaskNumber] = thread;
     IddleTaskNumber++;
 
-    void* physcialMemory = Pmm_RequestPage();
-    vmm_Map(thread->Paging, 0x0, physcialMemory, true);
-    void* virtualMemory = (void*)vmm_GetVirtualAddress(physcialMemory);
-    memcpy(virtualMemory, (void*)&IdleTask, PAGE_SIZE);
-
     thread->Launch();
 }
-void TaskManager::InitScheduler(uint8_t NumberOfCores){
+void TaskManager::InitScheduler(uint8_t NumberOfCores, void* IddleTaskFunction){
+    void* physcialMemory = Pmm_RequestPage();
+    void* virtualMemory = (void*)vmm_GetVirtualAddress(physcialMemory);
+    vmm_Map(vmm_PageTable, virtualMemory, physcialMemory, true);
+    memcpy(virtualMemory, IddleTaskFunction, PAGE_SIZE);
+
+    IddleTaskPointer = virtualMemory; 
+
     for(int i = 0; i < NumberOfCores; i++){
         CreatIddleTask();
     } 
@@ -420,8 +421,7 @@ void TaskManager::InitScheduler(uint8_t NumberOfCores){
 
 void TaskManager::EnabledScheduler(uint64_t CoreID){ 
     if(TaskManagerInit){
-        Atomic::atomicSpinlock(&mutexScheduler, 0);
-        Atomic::atomicLock(&mutexScheduler, 0); 
+        Atomic::atomicAcquire(&mutexScheduler, 0);
 
         ThreadExecutePerCore[CoreID] = NULL;
         
@@ -488,21 +488,16 @@ bool thread_t::ExtendStack(uint64_t address){
 
 void* thread_t::ShareDataInStack(void* data, size_t size){
     if(size == 0) return NULL;
-    size += sizeof(StackData);
-    void* address = (void*)(this->Stack->StackStart - size);
+    void* address = (void*)(Regs->rsp - size);
     if(ExtendStack((uint64_t)address)){
+        pagetable_t lastPageTable = vmm_GetPageTable();
+        vmm_Swap(Paging);
         // We consider that we have direct access to data but not to address
-        uint64_t NumberOfPage = DivideRoundUp(size, PAGE_SIZE);
-        uint64_t VirtualAddressIteratorScr = (uint64_t)data;
-        uint64_t VirtualAddressIterator = sizeof(StackData);
-        for(uint64_t i = 0; i < NumberOfPage; i++){
-            void* Dst = (void*)vmm_GetVirtualAddress(vmm_GetVirtualAddress((void*)((uint64_t)address + (uint64_t)VirtualAddressIterator)));
-            memcpy(Dst, (void*)VirtualAddressIteratorScr, PAGE_SIZE);
-            VirtualAddressIterator += PAGE_SIZE;
-            VirtualAddressIteratorScr += PAGE_SIZE;
-        }
 
-        ((StackData*)address)->size = size;
+        memcpy(address, (void*)data, size);
+        
+        Regs->rsp -= size;
+        vmm_Swap(lastPageTable);
         return address;
     }
 
@@ -517,8 +512,7 @@ bool thread_t::Fork(ContextStack* Registers, uint64_t CoreID, thread_t* thread, 
 }
     
 bool thread_t::Fork(ContextStack* Registers, uint64_t CoreID, thread_t* thread){
-    Atomic::atomicSpinlock(&mutexScheduler, 1);
-    Atomic::atomicLock(&mutexScheduler, 1);
+    Atomic::atomicAcquire(&mutexScheduler, 1);
 
     thread->IsForked = true;
     thread->ForkedThread = this;
@@ -562,7 +556,7 @@ bool thread_t::Pause(ContextStack* Registers, uint64_t CoreID){
 
     IsBlock = true;
 
-    Parent->TaskManagerParent->Scheduler(Registers, CoreID);
+    Registers->rip =(uint64_t)Parent->TaskManagerParent->IddleTaskPointer;
 
     return true;
 }

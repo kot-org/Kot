@@ -19,6 +19,9 @@ namespace ELF{
         /* TODO : creat thread identifier */
         if(Sys_CreatThread(proc, (void*)self->Header->e_entry, 0x0, ring, &mainThread) != KSUCCESS) return KFAIL;
         
+        kprocess_t parentProcess = NULL;
+        SYS_GetProcessKey(&parentProcess);
+        
         /* Load the elf */
         void* phdrs = (void*)(uint64_t)buffer + self->Header->e_phoff;
 
@@ -35,11 +38,11 @@ namespace ELF{
                 ksmem_t SharedKey = NULL;
                 uint64_t flags = 0;
                 memory_share_flag_SetFlag(&flags, memory_share_flag_NLA, true);
-                SYS_CreatShareSpace(RunningThread, phdr->p_memsz, &TmpAddress, &SharedKey, flags);
+                SYS_CreatShareSpace(parentProcess, phdr->p_memsz, &TmpAddress, &SharedKey, flags);
                 uintptr_t clientAddress = (uintptr_t)phdr->p_vaddr;
-                SYS_GetShareSpace(mainThread, SharedKey, &clientAddress);
-                free(TmpAddress);
-                SYS_FreeShareSpace(RunningThread, SharedKey, TmpAddress);
+                SYS_GetShareSpace(proc, SharedKey, &clientAddress);
+                SYS_FreeShareSpace(parentProcess, SharedKey, TmpAddress);
+                free((void*)TmpAddress);
             }
         }
 
