@@ -15,7 +15,7 @@ extern "C" void main(void* boot)
         thread_t* mainThread;
         ELF::loadElf(BufferInitFile, Priviledge_Service, &mainThread);
         Parameters* InitParameters = (Parameters*)malloc(sizeof(Parameters));
-        InitParameters->Parameter0 = (uint64_t)mainThread->ShareDataInStack(kernelInfo, sizeof(KernelInfo));
+        mainThread->ShareDataUsingStackSpace(kernelInfo, sizeof(KernelInfo), &InitParameters->Parameter0);
         InitParameters->Parameter1 = (uint64_t)0x0;
         mainThread->Launch(InitParameters);
         free(InitParameters);

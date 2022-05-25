@@ -65,8 +65,11 @@ typedef void*                       uintptr_t;
 
 typedef long unsigned int           size_t;
 
-#define KFAIL 0
-#define KSUCCESS 1
+#define KFAIL               0
+#define KSUCCESS            1
+#define KNOTALLOW           2
+#define KKEYVIOLATION       3
+#define KMEMORYVIOLATION    4
 
 #if !defined(__cplusplus)
 #define bool uint64_t

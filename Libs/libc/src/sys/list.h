@@ -3,8 +3,7 @@
 #define KSys_CreatShareMemory 0x0
 #define KSys_GetShareMemory 0x1
 #define KSys_FreeShareMemory 0x2
-
-#define KSys_Get_IOPL 0x3
+#define KSys_ShareDataUsingStackSpace 0x3
 
 #define KSys_Fork 0x4
 #define KSys_CreatProc 0x5

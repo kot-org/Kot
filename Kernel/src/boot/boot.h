@@ -1,6 +1,5 @@
 #pragma once
 #include <boot/stivale2.h>
-#include <lib/stdio.h>
 
 /* ramfs */
 struct ramfs_t{

@@ -77,8 +77,8 @@ uint64_t CreatSharing(process_t* process, size_t size, uint64_t* virtualAddressP
         for(int i = 0; i < numberOfPage; i++){
             uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
             if(!vmm_GetFlags(pageTable, (void*)virtualAddressIterator, vmm_flag::vmm_Present)){
-                vmm_Map(pageTable, (void*)virtualAddressIterator, Pmm_RequestPage(), true);
-                vmm_SetFlags(pageTable, (void*)virtualAddressIterator, vmm_flag::vmm_PhysicalStorage, GetMemoryFlag(flags, memory_share_flag_User)); //set master state
+                vmm_Map(pageTable, (void*)virtualAddressIterator, Pmm_RequestPage(), GetMemoryFlag(flags, memory_share_flag_User));
+                vmm_SetFlags(pageTable, (void*)virtualAddressIterator, vmm_flag::vmm_PhysicalStorage, true); //set master state
                 process->MemoryAllocated += PAGE_SIZE;  
             }
         }        

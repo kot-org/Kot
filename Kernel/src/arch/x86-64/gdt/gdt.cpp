@@ -18,8 +18,8 @@ void gdtInit(){
     GDTInfoSelectorsRing[KernelRing].Data = gdtCreatDataDescriptor(KernelRing);
 
     for(int i = DriversRing; i <= UserAppRing; i++){
-        GDTInfoSelectorsRing[i].Code = gdtCreatCodeDescriptor(i);
         GDTInfoSelectorsRing[i].Data = gdtCreatDataDescriptor(i);
+        GDTInfoSelectorsRing[i].Code = gdtCreatCodeDescriptor(i);
     }
     
     TSSInit();

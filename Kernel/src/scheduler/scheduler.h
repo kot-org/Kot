@@ -95,6 +95,7 @@ struct thread_t{
 
     /* Context info */
     struct ContextStack* Regs; 
+    void* SIMDSaver;
     StackInfo* Stack; 
     uint64_t CoreID;
     bool IsBlock;
@@ -136,7 +137,7 @@ struct thread_t{
     void SetupStack();
     void CopyStack(thread_t* source);
     bool ExtendStack(uint64_t address);
-    void* ShareDataInStack(void* data, size_t size);
+    KResult ShareDataUsingStackSpace(void* data, size_t size, uint64_t* location);
 
     bool Fork(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread, Parameters* FunctionParameters);
     bool Fork(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread);
@@ -167,6 +168,7 @@ class TaskManager{
         uint64_t Pause(ContextStack* Registers, uint64_t CoreID, thread_t* task); 
         uint64_t Unpause(thread_t* task); 
         uint64_t Exit(ContextStack* Registers, uint64_t CoreID, thread_t* task); 
+        uint64_t ShareDataUsingStackSpace(thread_t* self, void* data, size_t size, uint64_t* location);
 
         // process
         uint64_t CreatProcess(process_t** key, uint8_t priviledge, uint64_t externalData);

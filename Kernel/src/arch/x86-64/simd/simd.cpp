@@ -11,3 +11,15 @@ void simdInit(){
     
     ASMFninit();
 }
+
+void* simdCreatSaveSpace(){
+    return calloc(512);
+}
+
+void simdSave(void* location){
+    asm volatile("fxsave (%0) "::"r"(location));
+}
+
+void simdRestore(void* location){
+    asm volatile("fxrstor (%0) "::"r"(location));
+}

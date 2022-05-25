@@ -53,9 +53,6 @@ void* malloc(size_t size){
                 globalHeap.UsedSize += currentSeg->length + sizeof(SegmentHeader);
                 globalHeap.FreeSize -= currentSeg->length + sizeof(SegmentHeader);
                 Atomic::atomicUnlock(&globalHeap.lock, 0);
-                if((uint64_t)currentSeg == 0xffffffff7fe90620){
-                    asm("nop");
-                }
                 return (void*)((uint64_t)currentSeg + sizeof(SegmentHeader));
             }else if(currentSeg->length == size){
                 currentSeg->IsFree = false;

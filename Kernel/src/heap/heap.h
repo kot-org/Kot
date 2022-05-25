@@ -6,11 +6,11 @@
 #include <arch/arch.h>
 
 struct SegmentHeader{
-    bool IsFree;
+    uint32_t IsFree;
     size_t length;
     SegmentHeader* next;
     SegmentHeader* last;
-    uint8_t singature;
+    uint32_t singature;
 }__attribute__((packed));
 
 struct Heap{

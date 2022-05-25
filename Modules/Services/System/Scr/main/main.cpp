@@ -83,16 +83,21 @@ void readBMP(struct stivale2_struct_tag_framebuffer* framebuffer, void* buffer, 
 }
 
 int main(struct KernelInfo* kernelInfo, uint64_t squareX){
-    Rectangle(&kernelInfo->framebuffer, 20, 20, squareX, 20, 0xff, 0xff, 0xff);
+    Rectangle(&kernelInfo->framebuffer, 20, 20, squareX, 20, 0xff, 0xff, 0x0);
     kthread_t self;
     SYS_GetThreadKey(&self);
+    Rectangle(&kernelInfo->framebuffer, 20, 20, squareX + 20, 20, 0xff, 0x0, 0xff);
     InitializeHeap();
+    Rectangle(&kernelInfo->framebuffer, 20, 20, squareX + 40, 20, 0x0, 0xff, 0xff);
 
     MMapPageSize = kernelInfo->MMapPageSize;
 
+    Rectangle(&kernelInfo->framebuffer, 20, 20, squareX + 60, 20, 0xff, 0xff, 0x0);
     ramfs::Parse(kernelInfo->ramfs.ramfsBase, kernelInfo->ramfs.Size);
+    Rectangle(&kernelInfo->framebuffer, 20, 20, squareX + 80, 20, 0xff, 0x0, 0xff);
     
     ramfs::File* Wallpaper = ramfs::Find("Wallpaper.bmp");
+    Rectangle(&kernelInfo->framebuffer, 20, 20, squareX + 100, 20, 0xff, 0x0, 0xff);
     if(Wallpaper != NULL){
         void* BufferWallpaper = malloc(Wallpaper->size);
         ramfs::Read(Wallpaper, BufferWallpaper);

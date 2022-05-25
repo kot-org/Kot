@@ -1,4 +1,5 @@
 #include <boot/boot.h>
+#include <lib/stdio.h>
 
 static uint8_t stack[KERNEL_STACK_SIZE];
 

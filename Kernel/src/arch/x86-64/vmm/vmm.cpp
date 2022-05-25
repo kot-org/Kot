@@ -478,6 +478,12 @@ uint64_t vmm_Init(BootInfo* bootInfo){
         vmm_Map(vmm_PageTable, (void*)(bootInfo->Framebuffer->framebuffer_addr + i), (void*)((bootInfo->Framebuffer->framebuffer_addr - vmm_HHDMAdress) + i), true);
     }
 
+    /* map ramfs */
+    bootInfo->ramfs.ramfsBase = (void*)vmm_GetVirtualAddress((bootInfo->ramfs.ramfsBase - vmm_HHDMAdress));
+    for(uint64_t i = 0; i < bootInfo->ramfs.Size; i += PAGE_SIZE){
+        vmm_Map(vmm_PageTable, (void*)(bootInfo->ramfs.ramfsBase + i), (void*)((bootInfo->ramfs.ramfsBase - vmm_HHDMAdress) + i), true, false); /* App can't write into ramfs */
+    }
+
     vmm_Fill(vmm_PageTable, VMM_LOWERHALF, VMM_HIGHERALF);
 
     /* Update variable in the lower half */

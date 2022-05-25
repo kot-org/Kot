@@ -6,6 +6,9 @@ EXTERN  SyscallDispatch, InterruptHandler
 GLOBAL	SyscallEnable
 
 SyscallEnable:
+	; Setup user gdt
+	sub		esi, 0x10 ; or cs with ring
+	or		esi, esi ; or cs with ring
 	; Load segments into STAR MSR
 	mov		rcx, 0xc0000081
 	rdmsr
@@ -42,7 +45,6 @@ SyscallEntry:
 	mov [gs:0x10], rsp								        ; save userspace stack
 	mov	rsp, [gs:0x8]                                       ; task syscall stack
 	mov	rsp, [rsp + 0x0]  
-	mov [rsp + 0x0], rbp
 	mov rbp, [gs:0x8] 
 
 	cld ; clear DF to push correctly to the stack
@@ -54,23 +56,21 @@ SyscallEntry:
     push rcx                	; rip
     push 0x0                	; error code
     push 0x0                	; interrupt number
-	mov rbp, [rsp + 0x38]
 
 	sti
-	int 0x40
 	PUSH_REG
+
 	mov rax, [gs:0x8] 
     mov rdi, rsp
     mov rsi, [rax + 0x18]
-
 
     call SyscallDispatch
 	
 	POP_REG
 	cli
-	mov	rsp, [rsp + 40] 
-    add rsp, 56 
 
+	mov rcx, [rsp + 0x10] ; update rip
+	mov rsp, [gs:0x10]
     swapgs	 
 	o64 sysret
 

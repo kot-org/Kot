@@ -146,9 +146,7 @@ uint64_t TaskManager::ExecThread(thread_t* self, Parameters* FunctionParameters)
 
 uint64_t TaskManager::Pause(ContextStack* Registers, uint64_t CoreID, thread_t* task){
     if(task->IsInQueue){
-        Atomic::atomicAcquire(&mutexScheduler, 1);
         DequeueTask(task);
-        Atomic::atomicUnlock(&mutexScheduler, 1);
     }else if(CoreID == task->CoreID){
         task->Pause(Registers, CoreID);
     }else{
@@ -185,6 +183,9 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* t
 
     Atomic::atomicUnlock(&mutexScheduler, 1);
     return KSUCCESS;
+}
+uint64_t TaskManager::ShareDataUsingStackSpace(thread_t* self, void* data, size_t size, uint64_t* location){
+    return self->ShareDataUsingStackSpace(data, size, location);
 }
 
 uint64_t TaskManager::CreatProcess(process_t** key, uint8_t priviledge, uint64_t externalData){
@@ -266,6 +267,9 @@ thread_t* process_t::CreatThread(void* entryPoint, uint8_t priviledge, uint64_t 
     thread->Regs->rflags.IOPL = 0;
     thread->Regs->cr3 = (uint64_t)thread->Paging; 
 
+    /* Setup SIMD */
+    thread->SIMDSaver = simdCreatSaveSpace();
+
     /* Thread info for kernel */
     thread->Info = (threadInfo_t*)malloc(sizeof(threadInfo_t));
     thread->Info->SyscallStack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE; 
@@ -326,6 +330,9 @@ thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
     thread->Regs->ss = source->Regs->ss; 
     thread->Regs->rflags = source->Regs->rflags;
     thread->Regs->cr3 = source->Regs->cr3;
+
+    /* Setup SIMD */
+    thread->SIMDSaver = simdCreatSaveSpace();
 
     /* Thread info for kernel */
     thread->Info = (threadInfo_t*)malloc(sizeof(threadInfo_t));
@@ -430,13 +437,13 @@ void TaskManager::EnabledScheduler(uint64_t CoreID){
         TSSSetStack(CoreID, (void*)Stack);
         TSSSetIST(CoreID, IST_Scheduler, Stack);
 
-        IsSchedulerEnable[CoreID] = true;
-
         CPU::SetCPUGSKernelBase((uint64_t)SelfDataStartAddress); // keys position
 
         CPU::SetCPUFSBase((uint64_t)SelfDataEndAddress); // Thread Local Storage
 
-        SyscallEnable(GDTInfoSelectorsRing[KernelRing].Code, GDTInfoSelectorsRing[UserAppRing].Code);
+        SyscallEnable(GDTInfoSelectorsRing[KernelRing].Code, GDTInfoSelectorsRing[UserAppRing].Code); 
+
+        IsSchedulerEnable[CoreID] = true;
         Atomic::atomicUnlock(&mutexScheduler, 0);
         globalLogs->Successful("Scheduler is enabled for the processor : %u", CoreID);
     }
@@ -449,12 +456,14 @@ thread_t* TaskManager::GetCurrentThread(uint64_t CoreID){
 void thread_t::SaveContext(ContextStack* Registers, uint64_t CoreID){
     uint64_t actualTime = HPET::GetTime();
     TimeAllocate += actualTime - Parent->TaskManagerParent->TimeByCore[CoreID];
+    simdSave(SIMDSaver);
     memcpy(Regs, Registers, sizeof(ContextStack));
 }
 
 void thread_t::CreatContext(ContextStack* Registers, uint64_t CoreID){
     this->CoreID = CoreID;
     Parent->TaskManagerParent->ThreadExecutePerCore[CoreID] = this;
+    simdSave(SIMDSaver);
     memcpy(Registers, Regs, sizeof(ContextStack));
 }
 
@@ -486,8 +495,10 @@ bool thread_t::ExtendStack(uint64_t address){
     return true;
 }
 
-void* thread_t::ShareDataInStack(void* data, size_t size){
-    if(size == 0) return NULL;
+KResult thread_t::ShareDataUsingStackSpace(void* data, size_t size, uint64_t* location){
+    *location = 0;
+    if(!IsBlock) return KFAIL;
+    if(size == 0) return KFAIL;
     void* address = (void*)(Regs->rsp - size);
     if(ExtendStack((uint64_t)address)){
         pagetable_t lastPageTable = vmm_GetPageTable();
@@ -498,10 +509,10 @@ void* thread_t::ShareDataInStack(void* data, size_t size){
         
         Regs->rsp -= size;
         vmm_Swap(lastPageTable);
-        return address;
+        *location = (uint64_t)address;
     }
 
-    return NULL;
+    return KFAIL;
 }
 
 bool thread_t::Fork(ContextStack* Registers, uint64_t CoreID, thread_t* thread, Parameters* FunctionParameters){
@@ -556,7 +567,7 @@ bool thread_t::Pause(ContextStack* Registers, uint64_t CoreID){
 
     IsBlock = true;
 
-    Registers->rip =(uint64_t)Parent->TaskManagerParent->IddleTaskPointer;
+    Registers->rip = (uint64_t)Parent->TaskManagerParent->IddleTaskPointer;
 
     return true;
 }

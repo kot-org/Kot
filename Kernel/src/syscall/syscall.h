@@ -10,4 +10,4 @@ typedef uint64_t (*SyscallHandler)(ContextStack* Registers, struct thread_t* Thr
 
 extern "C" void SyscallEnable(uint16_t KernelSegment, uint16_t UserSegment);
 
-extern "C" uint64_t SyscallDispatch(struct ContextStack* Registers, struct thread_t* Self);
+extern "C" void SyscallDispatch(struct ContextStack* Registers, struct thread_t* Self);
