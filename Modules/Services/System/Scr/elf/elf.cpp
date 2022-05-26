@@ -1,7 +1,7 @@
 #include <elf/elf.h>
 
 namespace ELF{
-    KResult loadElf(void* buffer, uint8_t ring, parameters_t* functionParameters, uint64_t identifier){
+    KResult loadElf(void* buffer, uint8_t ring, uint64_t identifier, kthread_t* mainThread){
         elf_t* self = (elf_t*)calloc(sizeof(elf_t));
         self->Buffer = buffer;
         self->Header = (Elf64_Ehdr*)buffer;
@@ -13,11 +13,10 @@ namespace ELF{
         }
         
         kprocess_t proc = NULL;
-        kthread_t mainThread = NULL;
         
         if(Sys_CreatProc(&proc, ring, identifier) != KSUCCESS) return KFAIL;
         /* TODO : creat thread identifier */
-        if(Sys_CreatThread(proc, (void*)self->Header->e_entry, 0x0, ring, &mainThread) != KSUCCESS) return KFAIL;
+        if(Sys_CreatThread(proc, (void*)self->Header->e_entry, 0x0, ring, mainThread) != KSUCCESS) return KFAIL;
         
         kprocess_t parentProcess = NULL;
         SYS_GetProcessKey(&parentProcess);
@@ -46,7 +45,6 @@ namespace ELF{
             }
         }
 
-        Sys_ExecThread(mainThread, functionParameters);
         free(self);
         return KSUCCESS;
     }

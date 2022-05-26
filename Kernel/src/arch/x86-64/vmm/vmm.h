@@ -53,7 +53,7 @@ void vmm_Unmap(pagetable_t table, void* Address);
 void* vmm_GetPhysical(pagetable_t table, void* Address);
 
 void vmm_CopyPageTable(pagetable_t tableSource, pagetable_t tableDestination, uint64_t from, uint64_t to);
-void vmm_Fill(pagetable_t table, uint64_t from, uint64_t to);
+void vmm_Fill(pagetable_t table, uint64_t from, uint64_t to, bool user);
 
 void vmm_Swap(pagetable_t table);
 pagetable_t vmm_GetPageTable();

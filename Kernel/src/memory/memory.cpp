@@ -77,7 +77,7 @@ uint64_t CreatSharing(process_t* process, size_t size, uint64_t* virtualAddressP
         for(int i = 0; i < numberOfPage; i++){
             uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
             if(!vmm_GetFlags(pageTable, (void*)virtualAddressIterator, vmm_flag::vmm_Present)){
-                vmm_Map(pageTable, (void*)virtualAddressIterator, Pmm_RequestPage(), GetMemoryFlag(flags, memory_share_flag_User));
+                vmm_Map(pageTable, (void*)virtualAddressIterator, Pmm_RequestPage(), true);
                 vmm_SetFlags(pageTable, (void*)virtualAddressIterator, vmm_flag::vmm_PhysicalStorage, true); //set master state
                 process->MemoryAllocated += PAGE_SIZE;  
             }
@@ -125,7 +125,7 @@ uint64_t GetSharing(process_t* process, MemoryShareInfo* shareInfo, uint64_t* vi
             
             for(uint64_t i = 0; i < pages; i++){
                 if(!vmm_GetFlags(pageTable, (void*)virtualAddress + i * PAGE_SIZE, vmm_flag::vmm_Present)){
-                    vmm_Map(pageTable, virtualAddress + i * PAGE_SIZE, Pmm_RequestPage());
+                    vmm_Map(pageTable, virtualAddress + i * PAGE_SIZE, Pmm_RequestPage(), true);
                     vmm_SetFlags(pageTable, virtualAddress + i * PAGE_SIZE, vmm_flag::vmm_PhysicalStorage, true); //set master state
                     process->MemoryAllocated += PAGE_SIZE;                    
                 }
@@ -176,7 +176,7 @@ uint64_t GetSharing(process_t* process, MemoryShareInfo* shareInfo, uint64_t* vi
             uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
             uint64_t virtualAddressParentIterator = (uint64_t)shareInfo->VirtualAddressParent + i * PAGE_SIZE;
             void* physicalAddressParentIterator = vmm_GetPhysical(shareInfo->PageTableParent, (void*)virtualAddressParentIterator);
-            vmm_Map(pageTable, (void*)virtualAddressIterator, physicalAddressParentIterator, GetMemoryFlag(shareInfo->flags, memory_share_flag_User));
+            vmm_Map(pageTable, (void*)virtualAddressIterator, physicalAddressParentIterator, true);
             vmm_SetFlags(pageTable, (void*)virtualAddressIterator, vmm_flag::vmm_Custom2, true); //set slave state
             if(GetMemoryFlag(shareInfo->flags, memory_share_flag_ReadOnly)) vmm_SetFlags(pageTable, (void*)virtualAddressIterator, vmm_flag::vmm_ReadWrite, false); 
         }        

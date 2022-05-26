@@ -12,6 +12,10 @@ KResult SYS_FreeShareSpace(kprocess_t self, ksmem_t key, uintptr_t address){
     return Syscall_24(KSys_FreeShareMemory, self, key, address);
 }
 
+KResult SYS_ShareDataUsingStackSpace(kthread_t self, uint64_t address, size_t size, uint64_t* clientAddress){
+    return Syscall_32(KSys_ShareDataUsingStackSpace, self, address, size, clientAddress);
+}
+
 KResult SYS_Fork(kthread_t task, struct parameters_t* param){
     return Syscall_16(KSys_Fork, task, param);
 }
@@ -45,7 +49,7 @@ KResult SYS_Unmap(kthread_t self, void* addressVirtual, size_t size){
 }
 
 KResult Sys_Event_Creat(kevent_t* self, enum EventType type, uint8_t vector){
-    return Syscall_16(KSys_Event_Creat, self, vector);
+    return Syscall_24(KSys_Event_Creat, self, type, vector);
 }
 
 KResult Sys_Event_Bind(kevent_t self, uint8_t vector){

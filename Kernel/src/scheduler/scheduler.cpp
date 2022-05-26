@@ -30,6 +30,7 @@ void TaskManager::Scheduler(ContextStack* Registers, uint64_t CoreID){
 
 void TaskManager::EnqueueTask(thread_t* thread){
     if(thread->IsInQueue) return;
+    IsSchedulerEnable[CPU::GetAPICID()] = false;
     Atomic::atomicAcquire(&mutexScheduler, 0);
     
     if(FirstNode == NULL) FirstNode = thread;
@@ -44,10 +45,12 @@ void TaskManager::EnqueueTask(thread_t* thread){
 
     thread->IsInQueue = true;
     Atomic::atomicUnlock(&mutexScheduler, 0);
+    IsSchedulerEnable[CPU::GetAPICID()] = true;
 }
 
 void TaskManager::DequeueTask(thread_t* thread){
     if(!thread->IsInQueue) return;
+    IsSchedulerEnable[CPU::GetAPICID()] = false;
     Atomic::atomicAcquire(&mutexScheduler, 0);
 
     if(FirstNode == thread){
@@ -79,6 +82,7 @@ void TaskManager::DequeueTask(thread_t* thread){
 
     thread->IsInQueue = false;
     Atomic::atomicUnlock(&mutexScheduler, 0);
+    IsSchedulerEnable[CPU::GetAPICID()] = true;
 }
 
 void TaskManager::DequeueTaskWithoutLock(thread_t* thread){
@@ -424,6 +428,7 @@ void TaskManager::InitScheduler(uint8_t NumberOfCores, void* IddleTaskFunction){
 
     NumberOfCPU = NumberOfCores;
     TaskManagerInit = true;
+    globalAddressForStackSpaceSharing = malloc(ShareMaxIntoStackSpace);
 }
 
 void TaskManager::EnabledScheduler(uint64_t CoreID){ 
@@ -499,13 +504,17 @@ KResult thread_t::ShareDataUsingStackSpace(void* data, size_t size, uint64_t* lo
     *location = 0;
     if(!IsBlock) return KFAIL;
     if(size == 0) return KFAIL;
+    if(size > ShareMaxIntoStackSpace) return KFAIL;
     void* address = (void*)(Regs->rsp - size);
     if(ExtendStack((uint64_t)address)){
+        //store data in global memory
+        memcpy(Parent->TaskManagerParent->globalAddressForStackSpaceSharing, (void*)data, size);
+        
         pagetable_t lastPageTable = vmm_GetPageTable();
         vmm_Swap(Paging);
         // We consider that we have direct access to data but not to address
 
-        memcpy(address, (void*)data, size);
+        memcpy(address, Parent->TaskManagerParent->globalAddressForStackSpaceSharing, size);
         
         Regs->rsp -= size;
         vmm_Swap(lastPageTable);

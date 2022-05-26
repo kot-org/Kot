@@ -16,6 +16,7 @@ class TaskManager;
 #define StackBottom SelfDataEndAddress 
 #define LockAddress vmm_MapAddress(0xfe, 0, 0, 0) 
 #define DefaultFlagsKey 0xff
+#define ShareMaxIntoStackSpace PAGE_SIZE * 0x10
 
 struct Parameters{
     uint64_t Parameter0;
@@ -200,6 +201,8 @@ class TaskManager{
         process_t* IddleProc = NULL;
         thread_t* IdleNode[MAX_PROCESSORS];    
         Node* GlobalProcessNode;
+
+        void* globalAddressForStackSpaceSharing;
 };
 
 

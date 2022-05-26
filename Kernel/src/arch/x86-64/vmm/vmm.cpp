@@ -413,7 +413,7 @@ void vmm_CopyPageTable(pagetable_t tableSource, pagetable_t tableDestination, ui
     }
 }
 
-void vmm_Fill(pagetable_t table, uint64_t from, uint64_t to){
+void vmm_Fill(pagetable_t table, uint64_t from, uint64_t to, bool user){
     vmm_page_table* PML4VirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(table);
     for(int i = from; i < to; i++){
         uint64_t PDE = PML4VirtualAddress->entries[i];
@@ -426,6 +426,7 @@ void vmm_Fill(pagetable_t table, uint64_t from, uint64_t to){
             vmm_SetAddress(&PDE, (uint64_t)PDP >> 12);
             vmm_SetFlag(&PDE, vmm_flag::vmm_Present, true);
             vmm_SetFlag(&PDE, vmm_flag::vmm_ReadWrite, true);
+            vmm_SetFlag(&PDE, vmm_flag::vmm_User, user);
             PML4VirtualAddress->entries[i] = PDE;
         }
     }
@@ -464,7 +465,7 @@ uint64_t vmm_Init(BootInfo* bootInfo){
 
     for (uint64_t i = 0; i < bootInfo->Memory->entries; i++){
         uint64_t size = bootInfo->Memory->memmap[i].length;
-        for(uint64_t y = 0; y < size; y += PAGE_SIZE){
+        for(uint64_t y = 0; y <= size; y += PAGE_SIZE){
             uint64_t physicalAddress = bootInfo->Memory->memmap[i].base + y;
             uint64_t virtualAddress = physicalAddress + vmm_HHDMAdress;
             vmm_Map(vmm_PageTable, (void*)virtualAddress, (void*)physicalAddress, false, true, bootInfo->Memory->memmap[i].type == STIVALE2_MMAP_USABLE);
@@ -484,7 +485,7 @@ uint64_t vmm_Init(BootInfo* bootInfo){
         vmm_Map(vmm_PageTable, (void*)(bootInfo->ramfs.ramfsBase + i), (void*)((bootInfo->ramfs.ramfsBase - vmm_HHDMAdress) + i), true, false); /* App can't write into ramfs */
     }
 
-    vmm_Fill(vmm_PageTable, VMM_LOWERHALF, VMM_HIGHERALF);
+    vmm_Fill(vmm_PageTable, VMM_LOWERHALF, VMM_HIGHERALF, false);
 
     /* Update variable in the lower half */
     Pmm_PageBitmap.Buffer = (uint8_t*)vmm_GetVirtualAddress(Pmm_PageBitmap.Buffer);
@@ -497,7 +498,7 @@ uint64_t vmm_Init(BootInfo* bootInfo){
 pagetable_t vmm_SetupProcess(){
     pagetable_t PageTable = Pmm_RequestPage();
     memset((void*)vmm_GetVirtualAddress(PageTable), 0, PAGE_SIZE);
-    vmm_Fill(PageTable, VMM_STARTRHALF, VMM_LOWERHALF);
+    vmm_Fill(PageTable, VMM_STARTRHALF, VMM_LOWERHALF, true);
     vmm_CopyPageTable(vmm_PageTable, PageTable, VMM_LOWERHALF, VMM_HIGHERALF);
     
     uint64_t VirtualAddress = (uint64_t)vmm_GetVirtualAddress(PageTable);

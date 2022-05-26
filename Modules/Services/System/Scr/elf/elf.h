@@ -9,7 +9,7 @@
 
 namespace ELF{
     /* Function */
-    KResult loadElf(void* buffer, uint8_t ring, parameters_t* functionParameters, uint64_t identifier);
+    KResult loadElf(void* buffer, uint8_t ring, uint64_t identifier, kthread_t* mainThread);
 
     bool Check(struct elf_t* self);
 

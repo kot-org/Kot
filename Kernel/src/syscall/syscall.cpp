@@ -191,7 +191,7 @@ KResult Sys_Map(ContextStack* Registers, thread_t* Thread){
             if((bool)Registers->arg2){
                 vmm_Map(pageTable, virtualAddress, addressPhysical + i * PAGE_SIZE);
             }else{
-                vmm_Map(pageTable, virtualAddress, Pmm_RequestPage());
+                vmm_Map(pageTable, virtualAddress, Pmm_RequestPage(), true);
                 vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_PhysicalStorage, true); //set master state
                 processkey->MemoryAllocated += PAGE_SIZE;
             }        

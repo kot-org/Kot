@@ -69,7 +69,7 @@ uint64_t Pmm_GetMemorySize(stivale2_struct_tag_memmap* Map){
 void Pmm_InitBitmap(size_t bitmapSize, void* bufferAddress){
     Pmm_PageBitmap.Size = bitmapSize;
     Pmm_PageBitmap.Buffer = (uint8_t*)bufferAddress;
-    memset(Pmm_PageBitmap.Buffer, 0, Pmm_PageBitmap.Size);
+    memset(Pmm_PageBitmap.Buffer, 0xff, Pmm_PageBitmap.Size);
 }
 
 uint64_t Pmm_PageBitmapIndex = 0;
