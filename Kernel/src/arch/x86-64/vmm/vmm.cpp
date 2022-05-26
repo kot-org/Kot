@@ -464,9 +464,9 @@ uint64_t vmm_Init(BootInfo* bootInfo){
     vmm_HHDMAdress = bootInfo->HHDM->addr;
 
     for (uint64_t i = 0; i < bootInfo->Memory->entries; i++){
-        uint64_t size = bootInfo->Memory->memmap[i].length;
-        for(uint64_t y = 0; y <= size; y += PAGE_SIZE){
-            uint64_t physicalAddress = bootInfo->Memory->memmap[i].base + y;
+        uint64_t PageNumber = DivideRoundUp(bootInfo->Memory->memmap[i].length, PAGE_SIZE);
+        for(uint64_t y = 0; y < PageNumber; y++){
+            uint64_t physicalAddress = bootInfo->Memory->memmap[i].base + y * PAGE_SIZE;
             uint64_t virtualAddress = physicalAddress + vmm_HHDMAdress;
             vmm_Map(vmm_PageTable, (void*)virtualAddress, (void*)physicalAddress, false, true, bootInfo->Memory->memmap[i].type == STIVALE2_MMAP_USABLE);
         }

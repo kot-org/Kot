@@ -30,8 +30,7 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
 
     for (int i = 0; i < Map->entries; i++){
         if (Map->memmap[i].type == STIVALE2_MMAP_USABLE){
-            if (Map->memmap[i].length > bitmapSize)
-            {
+            if (Map->memmap[i].length > bitmapSize){
                 BitmapSegment = (void*)Map->memmap[i].base;
                 break;
             }
@@ -46,12 +45,11 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
 
     Pmm_ReservePages(0, PageCount);
 
-    for (int i = 0; i < Map->entries; i++){
+    for (uint64_t i = 0; i < Map->entries; i++){
         if (Map->memmap[i].type == STIVALE2_MMAP_USABLE){ 
             Pmm_UnreservePages((void*)Map->memmap[i].base, Map->memmap[i].length / PAGE_SIZE);
         }
     }
-
     Pmm_LockPages(BitmapSegment, DivideRoundUp(Pmm_PageBitmap.Size, PAGE_SIZE));
 }
 
@@ -132,7 +130,7 @@ void Pmm_LockPage(void* address){
 }
 
 void Pmm_LockPages(void* address, uint64_t pageCount){
-    for (int t = 0; t < pageCount; t++){
+    for (uint64_t t = 0; t < pageCount; t++){
         Pmm_LockPage((void*)((uint64_t)address + (t * PAGE_SIZE)));
     }
 }
@@ -148,7 +146,7 @@ void Pmm_UnreservePage(void* address){
 }
 
 void Pmm_UnreservePages(void* address, uint64_t pageCount){
-    for (int t = 0; t < pageCount; t++){
+    for (uint64_t t = 0; t < pageCount; t++){
         Pmm_UnreservePage((void*)((uint64_t)address + (t * PAGE_SIZE)));
     }
 }
@@ -163,7 +161,7 @@ void Pmm_ReservePage(void* address){
 }
 
 void Pmm_ReservePages(void* address, uint64_t pageCount){
-    for (int t = 0; t < pageCount; t++){
+    for (uint64_t t = 0; t < pageCount; t++){
         Pmm_ReservePage((void*)((uint64_t)address + (t * PAGE_SIZE)));
     }
 }
