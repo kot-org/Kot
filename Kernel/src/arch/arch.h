@@ -3,3 +3,4 @@
 #endif
 
 struct KernelInfo* arch_initialize(uintptr_t boot);
+void StopAllCPU();

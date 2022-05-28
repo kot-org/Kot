@@ -5,11 +5,8 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
- 
-make: *** No rule to make target 'all'.  Stop.
 
-
-# Make data base, printed on Sat May 28 12:38:51 2022
+# Make data base, printed on Sat May 28 17:26:12 2022
 
 # Variables
 
@@ -58,7 +55,7 @@ PATH = /home/konect/.vscode-server/bin/c3511e6c69bb39013c4a4b7b9566ec1ca73fc4d5/
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-77a1be51-bc3b-4529-83fe-9cd3575c9bbd.sock
+VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-4147ac6c-2a49-4b0b-99cf-5bfe9d8cf5a2.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -149,10 +146,8 @@ TERM = xterm-256color
 VSCODE_EXTHOST_WILL_SEND_SOCKET = true
 # environment
 WSL_DISTRO_NAME = Ubuntu-20.04
-# environment
-MOTD_SHOWN = update-motd
 # variable set hash-table stats:
-# Load=69/1024=7%, Rehash=0, Collisions=4/91=4%
+# Load=68/1024=7%, Rehash=0, Collisions=4/90=4%
 
 # Pattern-specific Variable Values
 
@@ -160,9 +155,9 @@ MOTD_SHOWN = update-motd
 
 # Directories
 
-# . (device 15, inode 2533274790840632): 21 files, no impossibilities.
+# . (device 15, inode 2533274790840632): 20 files, no impossibilities.
 
-# 21 files, no impossibilities in 1 directories.
+# 20 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -212,12 +207,14 @@ GNUmakefile:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 29 / storage = 236 B / avg = 8 B
-# current buf: size = 8162 B / used = 236 B / count = 29 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 28 / storage = 230 B / avg = 8 B
+# current buf: size = 8162 B / used = 230 B / count = 28 / avg = 8 B
 
-# strcache performance: lookups = 32 / hit rate = 9%
+# strcache performance: lookups = 31 / hit rate = 9%
 # hash-table stats:
-# Load=29/8192=0%, Rehash=0, Collisions=1/32=3%
-# Finished Make data base on Sat May 28 12:38:51 2022
+# Load=28/8192=0%, Rehash=0, Collisions=1/31=3%
+# Finished Make data base on Sat May 28 17:26:12 2022
 
  
+make: *** No rule to make target 'all'.  Stop.
+

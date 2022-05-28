@@ -367,6 +367,18 @@ namespace APIC{
         SetCommandIPI(commandLow, commandHigh);
     }
 
+    void GenerateInterruptionNMI(uint64_t CoreID){
+        LocalAPICIipi registerInterrupt;
+        registerInterrupt.vector = 0x0;
+        registerInterrupt.deliveryMode = LocalAPICDeliveryModeNMI;
+        registerInterrupt.destinationMode = LocalAPICDestinationModePhysicalDestination;
+        registerInterrupt.destinationType = LocalAPICDestinationTypeBase;
+        uint32_t commandLow = CreatLocalAPICIipiRegister(registerInterrupt);
+        uint32_t commandHigh = CoreID << 24;
+        
+        SetCommandIPI(commandLow, commandHigh);
+    }
+
     uint32_t CreatLocalAPICIipiRegister(LocalAPICIipi reg){
         return (
             (reg.vector << LocalAPICInterruptipiVector) |

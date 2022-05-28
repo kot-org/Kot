@@ -1,12 +1,11 @@
 #pragma once
 
-
-
 #include <arch/arch.h>
 #include <kot/types.h>
 #include <memory/memory.h>
 #include <lib/stdio/cstr.h>
 #include <misc/bitmap/bitmap.h>
+#include <misc/panic/panic.h>
 #include <drivers/acpi/acpi.h>
 #include <drivers/hpet/hpet.h>
 #include <heap/heap.h>

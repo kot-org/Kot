@@ -81,3 +81,13 @@ KernelInfo* arch_initialize(uintptr_t boot){
 
     return kernelInfo;
 }
+
+void StopAllCPU(){
+    for(uint8_t i = 0; i < APIC::ProcessorCount; i++){
+        APIC::GenerateInterruption(i, IPI_Stop);
+    }
+
+    while(true){
+        asm("hlt");
+    }
+}

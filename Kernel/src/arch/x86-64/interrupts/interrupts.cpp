@@ -115,8 +115,5 @@ bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID){
 
 void KernelUnrecovorable(ContextStack* Registers, uint64_t CoreID){
     globalLogs->Error("Kernel Panic CPU %x \nWith execption : '%s' | Error code : %x", CoreID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
-    
-    while(true){
-        asm("hlt");
-    }
+    KernelPanic("Unrecovorable exception ;(");
 }

@@ -27,10 +27,10 @@ struct ramfs_t{
 }__attribute__((packed));
 
 struct memoryInfo_t{
-    uint64_t totalMemory;
-    uint64_t freeMemory;
-    uint64_t reservedMemory;
-    uint64_t usedMemory;    
+    uint64_t totalPageMemory;
+    uint64_t freePageMemory;
+    uint64_t reservedPageMemory;
+    uint64_t usedPageMemory;    
 }__attribute__((packed));
 
 struct Timer{

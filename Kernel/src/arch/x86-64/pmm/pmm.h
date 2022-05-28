@@ -23,10 +23,11 @@ void Pmm_UnreservePage(uintptr_t address);
 void Pmm_UnreservePages(uintptr_t address, uint64_t pageCount);
 
 struct memoryInfo_t{
-    uint64_t totalMemory;
-    uint64_t freeMemory;
-    uint64_t reservedMemory;
-    uint64_t usedMemory;    
+    uint64_t totalPageMemory;
+    uint64_t totalUsablePageMemory;
+    uint64_t freePageMemory;
+    uint64_t reservedPageMemory;
+    uint64_t usedPageMemory;    
 }__attribute__((packed));
 
 extern memoryInfo_t memoryInfo;

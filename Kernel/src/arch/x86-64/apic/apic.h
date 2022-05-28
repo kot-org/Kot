@@ -269,6 +269,7 @@ namespace APIC{
     void IoApicSetRedirectionEntry(uintptr_t apicPtr, size_t index, IOAPICRedirectionEntry entry);
     void SetCommandIPI(uint32_t commandLow, uint32_t commandHigh);
     void GenerateInterruption(uint64_t CoreID, uint8_t Vector);
+    void GenerateInterruptionNMI(uint64_t CoreID);
     
     extern LocalProcessor** Processor;
     extern uint8_t ProcessorCount;
