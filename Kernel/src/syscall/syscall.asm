@@ -7,8 +7,8 @@ GLOBAL	SyscallEnable
 
 SyscallEnable:
 	; Setup user gdt
-	sub		esi, 0x10 ; or cs with ring
-	or		esi, esi ; or cs with ring
+	or		rsi, 0x3 ; or cs with ring 3 (userspace)
+	sub		rsi, 0x10 ; or cs with ring
 	; Load segments into STAR MSR
 	mov		rcx, 0xc0000081
 	rdmsr
@@ -64,7 +64,7 @@ SyscallEntry:
     mov rsi, [rax + 0x18]
 
     call SyscallDispatch
-	
+
 	POP_REG
 
 	mov rcx, [rsp + 0x10] ; update rip
