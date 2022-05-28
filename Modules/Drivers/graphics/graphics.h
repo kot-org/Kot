@@ -26,7 +26,7 @@ class graphics{
         /* define variables */
         Point               CursorPosition;
         Framebuffer*        framebuffer;
-        void*               framebufferBackground;
+        uintptr_t               framebufferBackground;
         PSF_FONT*           PSF1_Font;
         unsigned int        Color;  
         unsigned int        ClearColor;  

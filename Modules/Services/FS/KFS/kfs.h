@@ -122,8 +122,8 @@ namespace FileSystem{
         void LockCluster(uint64_t Cluster);  
         void UnlockCluster(uint64_t Cluster);  
         bool CheckCluster(uint64_t Cluster);  
-        void GetClusterData(uint64_t Cluster, void* buffer);
-        void SetClusterData(uint64_t Cluster, void* buffer);
+        void GetClusterData(uint64_t Cluster, uintptr_t buffer);
+        void SetClusterData(uint64_t Cluster, uintptr_t buffer);
 
         uint64_t mkdir(char* filePath, uint64_t mode);
         bool readdir(char* filePath, Folder* folder);
@@ -163,8 +163,8 @@ namespace FileSystem{
         FileInfo fileInfo;
         char* Mode;            
         KFS* kfs;
-        uint64_t Read(uint64_t start, size_t size, void* buffer);
-        uint64_t Write(uint64_t start, size_t size, void* buffer);
+        uint64_t Read(uint64_t start, size_t size, uintptr_t buffer);
+        uint64_t Write(uint64_t start, size_t size, uintptr_t buffer);
         void Close();
     }__attribute__((packed));
 

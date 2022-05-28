@@ -1,7 +1,7 @@
 #include <lib/node/node.h>
 #include <heap/heap.h>
 
-Node* CreatNode(void* data){
+Node* CreatNode(uintptr_t data){
     Node* node = (Node*)malloc(sizeof(Node));
     node->data = data;
     node->parent = node;
@@ -34,7 +34,7 @@ uint64_t Node::GetSize(){
     }
 }
 
-Node* Node::Add(void* data){
+Node* Node::Add(uintptr_t data){
     Node* newNode = (Node*)malloc(sizeof(Node));
     newNode->data = data;
     parent->lastNodeCreat->next = newNode;
@@ -45,7 +45,7 @@ Node* Node::Add(void* data){
     return newNode;    
 }
 
-void Node::ModifyData(void* data){
+void Node::ModifyData(uintptr_t data){
     this->data = data;
 }
 

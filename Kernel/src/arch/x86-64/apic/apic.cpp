@@ -111,15 +111,15 @@ namespace APIC{
 
         // Configure first IOAPIC
         IOAPIC* ioapic = IOapic[IOApicID];
-        uint64_t IOapicAddressVirtual = vmm_Map((void*)(uint64_t)ioapic->APICAddress);
-        uint8_t MaxInterrupts = ((ioapicReadRegister((void*)IOapicAddressVirtual, IOAPICVersion) >> 16) & 0xff) + 1;
+        uint64_t IOapicAddressVirtual = vmm_Map((uintptr_t)(uint64_t)ioapic->APICAddress);
+        uint8_t MaxInterrupts = ((ioapicReadRegister((uintptr_t)IOapicAddressVirtual, IOAPICVersion) >> 16) & 0xff) + 1;
         ioapic->MaxInterrupts = MaxInterrupts;
 
         // Set up the entries
         uint32_t base = ioapic->GlobalSystemInterruptBase;
         for (size_t i = 0; i < 24; i++){
                 uint8_t IRQNumber = i + IRQ_START;
-                IoApicSetRedirectionEntry((void*)IOapicAddressVirtual, i - base, (IOAPICRedirectionEntry){
+                IoApicSetRedirectionEntry((uintptr_t)IOapicAddressVirtual, i - base, (IOAPICRedirectionEntry){
                     .vector = IRQNumber,
                     .delivery_mode = IOAPICRedirectionEntryDeliveryModeFixed,
                     .destination_mode = IOAPICRedirectionEntryDestinationModePhysicall,
@@ -135,7 +135,7 @@ namespace APIC{
         for(size_t i = 0; i < IsoCount; i++) {
             InterruptSourceOverride* iso = Iso[i];
             uint8_t IRQNumber = iso->IRQSource + IRQ_START;
-            IoApicSetRedirectionEntry((void*)IOapicAddressVirtual , iso->IRQSource, (IOAPICRedirectionEntry){
+            IoApicSetRedirectionEntry((uintptr_t)IOapicAddressVirtual , iso->IRQSource, (IOAPICRedirectionEntry){
                 .vector = IRQNumber,
                 .delivery_mode = IOAPICRedirectionEntryDeliveryModeFixed,
                 .destination_mode = IOAPICRedirectionEntryDestinationModePhysicall,
@@ -152,13 +152,13 @@ namespace APIC{
 
     void IoChangeIrqState(uint8_t irq, uint8_t IOApicID, bool IsEnable){
         IOAPIC* ioapic = IOapic[IOApicID];
-        uint64_t IOapicAddressVirtual = vmm_Map((void*)(uint64_t)ioapic->APICAddress);
+        uint64_t IOapicAddressVirtual = vmm_Map((uintptr_t)(uint64_t)ioapic->APICAddress);
         uint32_t base = ioapic->GlobalSystemInterruptBase;
         size_t index = irq - base;
         
         volatile uint32_t low = 0;
 
-        low = ioapicReadRegister((void*)IOapicAddressVirtual, IOAPICRedirectionTable + 2 * index);
+        low = ioapicReadRegister((uintptr_t)IOapicAddressVirtual, IOAPICRedirectionTable + 2 * index);
         
         if(!IsEnable){
             low |= 1 << IOAPICRedirectionBitsLowMask;
@@ -166,19 +166,19 @@ namespace APIC{
             low &= ~(1 << IOAPICRedirectionBitsLowMask);
         }
 
-        ioapicWriteRegister((void*)IOapicAddressVirtual, IOAPICRedirectionTable + 2 * index, low);
+        ioapicWriteRegister((uintptr_t)IOapicAddressVirtual, IOAPICRedirectionTable + 2 * index, low);
     }
 
     void LoadCores(){
-        void* TrampolineVirtualAddress = (void*)vmm_GetVirtualAddress(0x8000);
+        uintptr_t TrampolineVirtualAddress = (uintptr_t)vmm_GetVirtualAddress(0x8000);
 
-        memcpy((void*)TrampolineVirtualAddress, (void*)&Trampoline, PAGE_SIZE);
+        memcpy((uintptr_t)TrampolineVirtualAddress, (uintptr_t)&Trampoline, PAGE_SIZE);
 
         trampolineData* Data = (trampolineData*)(((uint64_t)&DataTrampoline - (uint64_t)&Trampoline) + TrampolineVirtualAddress);
 
         
         //temp trampoline map
-        vmm_Map((void*)0x8000, (void*)0x8000);
+        vmm_Map((uintptr_t)0x8000, (uintptr_t)0x8000);
 
         for(int i = 0; i < ProcessorCount; i++){ 
             if(Processor[i]->APICID == Processor[CPU::GetAPICID()]->APICID) continue; 
@@ -186,13 +186,13 @@ namespace APIC{
             Data->Paging = (uint64_t)vmm_PageTable;
             Data->MainEntry = (uint64_t)&TrampolineMain; 
             Data->Stack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
-            memset((void*)(Data->Stack - KERNEL_STACK_SIZE), 0xff, KERNEL_STACK_SIZE);
+            memset((uintptr_t)(Data->Stack - KERNEL_STACK_SIZE), 0xff, KERNEL_STACK_SIZE);
 
             lapicSendInitIPI(Processor[i]->APICID);
 
             DataTrampoline.Status = 0;
             // send STARTUP IPI twice 
-            lapicSendStartupIPI(Processor[i]->APICID, (void*)0x8000);
+            lapicSendStartupIPI(Processor[i]->APICID, (uintptr_t)0x8000);
             
             globalLogs->Warning("Wait processor %u", i);
 
@@ -202,17 +202,17 @@ namespace APIC{
             globalLogs->Successful("Processor %u respond with success", i);
         }
         DataTrampoline.Status = 0xff;
-        vmm_Unmap((void*)0x8000);
+        vmm_Unmap((uintptr_t)0x8000);
 
     }  
 
-    void* GetLAPICAddress(){
+    uintptr_t GetLAPICAddress(){
         return lapicAddress[CPU::GetAPICID()]->VirtualAddress;
     }
 
     void EnableAPIC(uint8_t CoreID){
-        lapicAddress[CoreID]->PhysicalAddress = (void*)(msr::rdmsr(0x1b) & 0xfffff000);
-        lapicAddress[CoreID]->VirtualAddress = (void*)vmm_Map(lapicAddress[CoreID]->PhysicalAddress); 
+        lapicAddress[CoreID]->PhysicalAddress = (uintptr_t)(msr::rdmsr(0x1b) & 0xfffff000);
+        lapicAddress[CoreID]->VirtualAddress = (uintptr_t)vmm_Map(lapicAddress[CoreID]->PhysicalAddress); 
         msr::wrmsr(0x1b, ((uint64_t)lapicAddress[CoreID]->PhysicalAddress | LOCAL_APIC_ENABLE) & ~((1 << 10)));
         localAPICWriteRegister(LocalAPICRegisterOffsetSpuriousIntVector, localAPICReadRegister(LocalAPICRegisterOffsetSpuriousIntVector) | (LOCAL_APIC_SPURIOUS_ALL | LOCAL_APIC_SPURIOUS_ENABLE_APIC));
     }
@@ -268,7 +268,7 @@ namespace APIC{
         SetCommandIPI(commandLow, commandHigh);
     }
 
-    void lapicSendStartupIPI(uint8_t CoreID, void* entry){
+    void lapicSendStartupIPI(uint8_t CoreID, uintptr_t entry){
         LocalAPICIipi registerInterrupt;
         registerInterrupt.vector = (uint8_t)(((uint64_t)entry / PAGE_SIZE) & 0xff);
         registerInterrupt.deliveryMode = LocalAPICDeliveryModeStartUp;
@@ -290,31 +290,31 @@ namespace APIC{
     /* APIC */
 
     uint32_t localAPICReadRegister(size_t offset){
-        void* lapicAddress = GetLAPICAddress();
-	    return *((volatile uint32_t*)((void*)((uint64_t)lapicAddress + offset)));
+        uintptr_t lapicAddress = GetLAPICAddress();
+	    return *((volatile uint32_t*)((uintptr_t)((uint64_t)lapicAddress + offset)));
     }
 
-    uint32_t localAPICReadRegister(void* lapicAddress, size_t offset){
-	    return *((volatile uint32_t*)((void*)((uint64_t)lapicAddress + offset)));
+    uint32_t localAPICReadRegister(uintptr_t lapicAddress, size_t offset){
+	    return *((volatile uint32_t*)((uintptr_t)((uint64_t)lapicAddress + offset)));
     }
 
-    uint32_t ioapicReadRegister(void* apicPtr , uint8_t offset){
+    uint32_t ioapicReadRegister(uintptr_t apicPtr , uint8_t offset){
         *(volatile uint32_t*)(apicPtr) = offset;
         return *(volatile uint32_t*)(apicPtr + 0x10);
     }
 
-    void ioapicWriteRegister(void* apicPtr , uint8_t offset, uint32_t value){
+    void ioapicWriteRegister(uintptr_t apicPtr , uint8_t offset, uint32_t value){
         *(volatile uint32_t*)(apicPtr) = offset;
         *(volatile uint32_t*)(apicPtr + 0x10) = value;
     }
     
     void localAPICWriteRegister(size_t offset, uint32_t value){
-        void* lapicAddress = GetLAPICAddress();
-        *((volatile uint32_t*)((void*)((uint64_t)lapicAddress + offset))) = value;
+        uintptr_t lapicAddress = GetLAPICAddress();
+        *((volatile uint32_t*)((uintptr_t)((uint64_t)lapicAddress + offset))) = value;
     }
 
-    void localAPICWriteRegister(void* lapicAddress, size_t offset, uint32_t value){
-        *((volatile uint32_t*)((void*)((uint64_t)lapicAddress + offset))) = value;
+    void localAPICWriteRegister(uintptr_t lapicAddress, size_t offset, uint32_t value){
+        *((volatile uint32_t*)((uintptr_t)((uint64_t)lapicAddress + offset))) = value;
     }
 
     uint32_t CreatRegisterValueInterrupts(LocalAPICInterruptRegister reg){
@@ -328,7 +328,7 @@ namespace APIC{
         );
     }
 
-    void IoApicSetRedirectionEntry(void* apicPtr, size_t index, IOAPICRedirectionEntry entry){
+    void IoApicSetRedirectionEntry(uintptr_t apicPtr, size_t index, IOAPICRedirectionEntry entry){
         volatile uint32_t low = (
             (entry.vector << IOAPICRedirectionBitsLowVector) |
             (entry.delivery_mode << IOAPICRedirectionBitsLowDeliveryMode) |
@@ -348,7 +348,7 @@ namespace APIC{
     }
 
     void SetCommandIPI(uint32_t commandLow, uint32_t commandHigh){
-        void* lapicAddress = GetLAPICAddress();
+        uintptr_t lapicAddress = GetLAPICAddress();
         localAPICWriteRegister(LocalAPICRegisterOffsetErrorStatus, 0);
         localAPICWriteRegister(lapicAddress, LocalAPICRegisterOffsetInterruptCommandHigh, commandHigh);
         localAPICWriteRegister(lapicAddress, LocalAPICRegisterOffsetInterruptCommandLow, commandLow);

@@ -1,21 +1,14 @@
 #pragma once
+
 #include <kot/types.h>
+#include <kot/heap.h>
 #include <lib/stdio.h>
 #include <logs/logs.h>
 #include <arch/x86-64/cpu/cpu.h>
 #include <arch/arch.h>
 
-struct SegmentHeader{
-    bool IsFree;
-    size_t length;
-    SegmentHeader* next;
-    SegmentHeader* last;
-    uint32_t singature;
-    uint8_t reserved[3];
-}__attribute__((packed));
-
 struct Heap{
-    void* heapEnd = 0;
+    uintptr_t heapEnd = 0;
     SegmentHeader* lastSegment = NULL;
     SegmentHeader* mainSegment = NULL;
     size_t TotalSize;
@@ -26,19 +19,19 @@ struct Heap{
 
 extern Heap globalHeap;
 
-void InitializeHeap(void* heapAddress, size_t pageCount);
+void InitializeHeap(uintptr_t heapAddress, size_t pageCount);
 
-void* calloc(size_t size);
-void* malloc(size_t size);
-void* realloc(void* buffer, size_t size);
-void free(void* address);
+uintptr_t calloc(size_t size);
+uintptr_t malloc(size_t size);
+uintptr_t realloc(uintptr_t buffer, size_t size);
+void free(uintptr_t address);
 
-SegmentHeader*  SplitSegment(SegmentHeader* segment, size_t size);
+SegmentHeader* SplitSegment(SegmentHeader* segment, size_t size);
 void  ExpandHeap(size_t lenght);
 
-inline void* operator new(size_t size) {return malloc(size);}
-inline void* operator new[](size_t size) {return malloc(size);}
+inline uintptr_t operator new(size_t size) {return malloc(size);}
+inline uintptr_t operator new[](size_t size) {return malloc(size);}
 
-inline void operator delete(void* address) {free(address);}
+inline void operator delete(uintptr_t address) {free(address);}
 
-SegmentHeader* GetSegmentHeader(void* address);
+SegmentHeader* GetSegmentHeader(uintptr_t address);

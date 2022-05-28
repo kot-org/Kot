@@ -2,6 +2,6 @@
 
 void simdInit();
 
-void* simdCreatSaveSpace();
-void simdSave(void* location);
-void simdRestore(void* location);
+uintptr_t simdCreatSaveSpace();
+void simdSave(uintptr_t location);
+void simdRestore(uintptr_t location);

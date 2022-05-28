@@ -83,8 +83,8 @@ namespace GPT{
     class Partition{
         public:
             Partition(AHCI::Port* port, GUIDPartitionEntryFormat* partition);
-            bool Read(uint64_t firstByte, size_t size, void* buffer);
-            bool Write(uint64_t firstByte, size_t size, void* buffer);            
+            bool Read(uint64_t firstByte, size_t size, uintptr_t buffer);
+            bool Write(uint64_t firstByte, size_t size, uintptr_t buffer);            
             GUIDPartitionEntryFormat* partition;
             AHCI::Port* port;
     };    

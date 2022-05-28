@@ -81,5 +81,5 @@ namespace ACPI{
         uint32_t Reserved;
     }__attribute__((packed));
 
-    void* FindTable(RSDP2* rsdp, char* signature);
+    uintptr_t FindTable(RSDP2* rsdp, char* signature);
 }

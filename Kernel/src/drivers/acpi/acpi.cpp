@@ -4,15 +4,15 @@
 #include <logs/logs.h>
 
 namespace ACPI{
-    void* FindTable(RSDP2* rsdp, char* signature){
+    uintptr_t FindTable(RSDP2* rsdp, char* signature){
         ACPI::SDTHeader* sdt = NULL;
         bool IsXSDT = (rsdp->Revision >= 1);
         uint64_t entries = 0;
         if(IsXSDT){
-            sdt = (ACPI::SDTHeader*)vmm_GetVirtualAddress((void*)rsdp->XSDTAddress);
+            sdt = (ACPI::SDTHeader*)vmm_GetVirtualAddress((uintptr_t)rsdp->XSDTAddress);
             entries = (sdt->Length - sizeof(ACPI::SDTHeader)) / sizeof(uint64_t);
         }else{
-            sdt = (ACPI::SDTHeader*)vmm_GetVirtualAddress((void*)rsdp->RSDTAddress);
+            sdt = (ACPI::SDTHeader*)vmm_GetVirtualAddress((uintptr_t)rsdp->RSDTAddress);
             entries = (sdt->Length - sizeof(ACPI::SDTHeader)) / sizeof(uint32_t);
         }
         
@@ -25,7 +25,7 @@ namespace ACPI{
             }else{
                 Header = (ACPI::SDTHeader*)(uint32_t)((ACPI::RSDT*)sdt)->SDTPointer[i];
             }
-            Header = (ACPI::SDTHeader*)vmm_GetVirtualAddress((void*)Header);
+            Header = (ACPI::SDTHeader*)vmm_GetVirtualAddress((uintptr_t)Header);
 
             if(strcmp((char*)Header->Signature, signature, 4)){
                 return Header;

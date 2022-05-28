@@ -1,5 +1,7 @@
 #include <kot/sys.h>
 
+__attribute__((section(".KotSpecificData"))) struct KotSpecificData_t KotSpecificData;
+
 KResult SYS_CreatShareSpace(kprocess_t self, size_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, uint64_t flags){
     return Syscall_40(KSys_CreatShareMemory, self, size, virtualAddressPointer, keyPointer, flags);
 }
@@ -40,11 +42,11 @@ KResult SYS_Unpause(kprocess_t self){
     return Syscall_8(KSys_UnPause, self);
 }
 
-KResult SYS_Map(kprocess_t self, uint64_t* addressVirtual, bool isPhysical, void* addressPhysical, size_t size, bool findFree){
+KResult SYS_Map(kprocess_t self, uint64_t* addressVirtual, bool isPhysical, uintptr_t addressPhysical, size_t size, bool findFree){
     return Syscall_48(KSys_Map, self, addressVirtual, isPhysical, addressPhysical, size, findFree);
 }
 
-KResult SYS_Unmap(kthread_t self, void* addressVirtual, size_t size){
+KResult SYS_Unmap(kthread_t self, uintptr_t addressVirtual, size_t size){
     return Syscall_24(KSys_Unmap, self, addressVirtual, size);
 }
 
@@ -60,11 +62,11 @@ KResult Sys_Event_Unbind(kevent_t self){
     return Syscall_8(KSys_Event_Unbind, self);
 }
 
-KResult Sys_Event_Trigger(kevent_t self, void* dataAddress, size_t dataSize){
+KResult Sys_Event_Trigger(kevent_t self, uintptr_t dataAddress, size_t dataSize){
     return Syscall_24(KSys_Event_Trigger, self, dataAddress, dataSize);
 }
 
-KResult Sys_CreatThread(kprocess_t self, void* entryPoint, uint8_t privilege, uint64_t data, kthread_t* result){
+KResult Sys_CreatThread(kprocess_t self, uintptr_t entryPoint, uint8_t privilege, uint64_t data, kthread_t* result){
     return Syscall_40(KSys_CreatThread, self, entryPoint, privilege, data, result);
 }
 

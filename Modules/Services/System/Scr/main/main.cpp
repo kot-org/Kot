@@ -3,8 +3,6 @@
 #include <kot/memory.h>
 #include <main/main.h>
 
-uint64_t MMapPageSize;
-
 void Putpixel(struct stivale2_struct_tag_framebuffer* framebuffer, int x, int y, int r, int g, int b) {
     unsigned char* screen = (unsigned char*)framebuffer->framebuffer_addr;
     int where = (x + (y * framebuffer->framebuffer_width)) * (framebuffer->framebuffer_bpp / 8);
@@ -21,7 +19,7 @@ void Rectangle(struct stivale2_struct_tag_framebuffer* framebuffer, int w, int h
     }
 }
 
-void readBMP(struct stivale2_struct_tag_framebuffer* framebuffer, void* buffer, size_t size, uint64_t height, int Lx, int Ly, bool AlignMiddle){
+void readBMP(struct stivale2_struct_tag_framebuffer* framebuffer, uintptr_t buffer, size_t size, uint64_t height, int Lx, int Ly, bool AlignMiddle){
     uint8_t* ReadBuffer = (uint8_t*)buffer;
 
     //read the header info
@@ -83,28 +81,23 @@ void readBMP(struct stivale2_struct_tag_framebuffer* framebuffer, void* buffer, 
 }
 
 int main(struct KernelInfo* kernelInfo, uint64_t squareX){
-    Rectangle(&kernelInfo->framebuffer, 20, 20, squareX, 20, 0x0, 0x0, squareX);
+    Rectangle(&kernelInfo->framebuffer, 20, 20, squareX, 20, squareX * 0x10, 0x20, squareX);
     kthread_t self;
     SYS_GetThreadKey(&self);
-    InitializeHeap();
-
-    MMapPageSize = kernelInfo->MMapPageSize;
-
     ramfs::Parse(kernelInfo->ramfs.ramfsBase, kernelInfo->ramfs.Size);
     
     ramfs::File* Wallpaper = ramfs::Find("Wallpaper.bmp");
 
     if(Wallpaper != NULL){
-        void* BufferWallpaper = malloc(Wallpaper->size);
+        uintptr_t BufferWallpaper = malloc(Wallpaper->size);
         ramfs::Read(Wallpaper, BufferWallpaper);
         readBMP(&kernelInfo->framebuffer, BufferWallpaper, Wallpaper->size, kernelInfo->framebuffer.framebuffer_height, 0, 0, false);
     }
 
     ramfs::File* InitFile = ramfs::FindInitFile();
     
-    
     if(InitFile != NULL){
-        void* BufferInitFile = malloc(InitFile->size);
+        uintptr_t BufferInitFile = malloc(InitFile->size);
         ramfs::Read(InitFile, BufferInitFile);
         kthread_t thread = NULL;
         ELF::loadElf(BufferInitFile, 1, 0x0, &thread);
@@ -112,17 +105,7 @@ int main(struct KernelInfo* kernelInfo, uint64_t squareX){
         SYS_ShareDataUsingStackSpace(thread, (uint64_t)kernelInfo, sizeof(KernelInfo), &InitParameters->Parameter0);
         InitParameters->Parameter1 = (uint64_t)squareX + 20;
         Sys_ExecThread(thread, InitParameters);
-    }
-
-    // int x = 2;
-    // while(true){
-    //     Rectangle(kernelInfo->framebuffer, 20, 20, x, 0, 0x0, x, 0x0);
-    //     x++;
-    //     Rectangle(kernelInfo->framebuffer, 1, 20, x - 2, 0, 0xff, 0xff, 0xff);
-
-    //     if(x > kernelInfo->framebuffer->framebuffer_width) x = 2;
-    //     for(int i = 0; i < 0x100000; i++);
-    // }    
-
+    } 
+    
     SYS_Pause(self);
 }

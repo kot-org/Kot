@@ -3,7 +3,7 @@
 
 /* ramfs */
 struct ramfs_t{
-	void* ramfsBase;
+	uintptr_t ramfsBase;
 	size_t Size;
 }__attribute__((packed));
 
@@ -26,5 +26,5 @@ struct BootInfo{
 
 namespace Boot{
     struct BootInfo* Init(struct stivale2_struct *stivale2_struct); 
-    void* GetTag(struct stivale2_struct *stivale2_struct, uint64_t id);
+    uintptr_t GetTag(struct stivale2_struct *stivale2_struct, uint64_t id);
 }

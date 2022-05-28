@@ -12,14 +12,14 @@ void simdInit(){
     ASMFninit();
 }
 
-void* simdCreatSaveSpace(){
+uintptr_t simdCreatSaveSpace(){
     return calloc(512);
 }
 
-void simdSave(void* location){
+void simdSave(uintptr_t location){
     asm volatile("fxsave (%0) "::"r"(location));
 }
 
-void simdRestore(void* location){
+void simdRestore(uintptr_t location){
     asm volatile("fxrstor (%0) "::"r"(location));
 }

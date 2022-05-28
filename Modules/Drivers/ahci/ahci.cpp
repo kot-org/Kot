@@ -66,22 +66,22 @@ namespace AHCI{
 
         StopCMD();
 
-        void* newBase = Pmm_RequestPage();
+        uintptr_t newBase = Pmm_RequestPage();
         HbaPort->CommandListBase = (uint32_t)(uint64_t)newBase;
         HbaPort->CommandListBaseUpper = (uint32_t)((uint64_t)newBase >> 32);
-        memset(globalPageTableManager[0].GetVirtualAddress((void*)(HbaPort->CommandListBase)), 0, 1024);
+        memset(globalPageTableManager[0].GetVirtualAddress((uintptr_t)(HbaPort->CommandListBase)), 0, 1024);
 
-        void* fisBase = Pmm_RequestPage();
+        uintptr_t fisBase = Pmm_RequestPage();
         HbaPort->FisBaseAddress = (uint32_t)(uint64_t)fisBase;
         HbaPort->FisBaseAddressUpper = (uint32_t)((uint64_t)fisBase >> 32);
         memset(globalPageTableManager[0].GetVirtualAddress(fisBase), 0, 256);
 
-        HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager[0].GetVirtualAddress((void*)((uint64_t)HbaPort->CommandListBase + ((uint64_t)HbaPort->CommandListBaseUpper << 32)));
+        HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)((uint64_t)HbaPort->CommandListBase + ((uint64_t)HbaPort->CommandListBaseUpper << 32)));
 
         for (int i = 0; i < 32; i++){
             cmdHeader[i].PrdtLength = 8;
 
-            void* cmdTableAddress = Pmm_RequestPage();
+            uintptr_t cmdTableAddress = Pmm_RequestPage();
             uint64_t address = (uint64_t)cmdTableAddress + (i << 8);
             cmdHeader[i].CommandTableBaseAddress = (uint32_t)(uint64_t)address;
             cmdHeader[i].CommandTableBaseAddressUpper = (uint32_t)((uint64_t)address >> 32);
@@ -118,18 +118,18 @@ namespace AHCI{
         HbaPort->CommandStatus |= HBA_PxCMD_ST;
     }
 
-    bool Port::Read(uint64_t sector, uint16_t sectorCount, void* buffer){ //LBA so the sector size is 512 bytes
+    bool Port::Read(uint64_t sector, uint16_t sectorCount, uintptr_t buffer){ //LBA so the sector size is 512 bytes
         uint32_t sectorL = (uint32_t) sector;
         uint32_t sectorH = (uint32_t) (sector >> 32);
 
         HbaPort->InterruptStatus = (uint32_t) - 1; // Clear pending interrupt bits
 
-        HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager[0].GetVirtualAddress((void*)HbaPort->CommandListBase);
+        HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)HbaPort->CommandListBase);
         cmdHeader->CommandFISLength = sizeof(FIS_REG_H2D)/ sizeof(uint32_t); //command FIS size;
         cmdHeader->Write = 0; //read mode
         cmdHeader->PrdtLength = 1;
 
-        HBACommandTable* commandTable = (HBACommandTable*)globalPageTableManager[0].GetVirtualAddress((void*)cmdHeader->CommandTableBaseAddress);
+        HBACommandTable* commandTable = (HBACommandTable*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)cmdHeader->CommandTableBaseAddress);
         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry));
 
         commandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)buffer;
@@ -177,18 +177,18 @@ namespace AHCI{
         return true;
     }
 
-    bool Port::Write(uint64_t sector, uint16_t sectorCount, void* buffer){ //LBA so the sector size is 512 bytes
+    bool Port::Write(uint64_t sector, uint16_t sectorCount, uintptr_t buffer){ //LBA so the sector size is 512 bytes
         uint32_t sectorL = (uint32_t) sector;
         uint32_t sectorH = (uint32_t) (sector >> 32);
 
         HbaPort->InterruptStatus = (uint32_t) - 1; // Clear pending interrupt bits
 
-        HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager[0].GetVirtualAddress((void*)HbaPort->CommandListBase);
+        HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)HbaPort->CommandListBase);
         cmdHeader->CommandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t); //command FIS size;
         cmdHeader->Write = 1; //write mode
         cmdHeader->PrdtLength = 1;
 
-        HBACommandTable* commandTable = (HBACommandTable*)globalPageTableManager[0].GetVirtualAddress((void*)cmdHeader->CommandTableBaseAddress);
+        HBACommandTable* commandTable = (HBACommandTable*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)cmdHeader->CommandTableBaseAddress);
         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry));
 
         commandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)buffer;
@@ -236,12 +236,12 @@ namespace AHCI{
         return true;
     }
     bool Port::GetDiskInfo(){
-        HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager[0].GetVirtualAddress((void*)HbaPort->CommandListBase);
+        HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)HbaPort->CommandListBase);
         cmdHeader->CommandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t); //command FIS size;
         cmdHeader->Write = 0;
         cmdHeader->PrdtLength = 1;
 
-        HBACommandTable* commandTable = (HBACommandTable*)globalPageTableManager[0].GetVirtualAddress((void*)cmdHeader->CommandTableBaseAddress);
+        HBACommandTable* commandTable = (HBACommandTable*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)cmdHeader->CommandTableBaseAddress);
         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry));
         commandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)Buffer;
         commandTable->PrdtEntry[0].ByteCount = sizeof(ATACommandIdentify);
@@ -355,7 +355,7 @@ namespace AHCI{
         this->PCIBaseAddress = pciBaseAddress;
 
         ABAR = (HBAMemory*)((PCI::PCIHeader0*)pciBaseAddress)->BAR5;
-        ABAR = (HBAMemory*)globalPageTableManager[0].MapMemory((void*)ABAR, 1);
+        ABAR = (HBAMemory*)globalPageTableManager[0].MapMemory((uintptr_t)ABAR, 1);
 
         ProbePorts();
         for (int i = 0; i < PortCount; i++){
@@ -386,7 +386,7 @@ namespace AHCI{
                     CurrentNode->Content.FSSignature = "KOTFS";
                     GPT::Partition* KotPartition = new GPT::Partition(CurrentNode->Content.port, (GPT::GUIDPartitionEntryFormat*)CurrentNode->Content.PartitionInfo);  
                     FileSystem::KFS* Fs = new FileSystem::KFS(KotPartition);
-                    CurrentNode->Content.FSData = (void*)Fs;
+                    CurrentNode->Content.FSData = (uintptr_t)Fs;
                 }
                
                 CurrentNode->Last = LastNode;

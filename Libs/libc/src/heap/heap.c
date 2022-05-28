@@ -1,37 +1,39 @@
 #include <kot/heap.h>
 
-struct Heap globalHeap;
 static uint64_t mutexHeap;
+static struct heap_t heap;
 
-void InitializeHeap(){
-    SYS_GetProcessKey(&globalHeap.process);
-    globalHeap.heapEnd = &globalHeap;
-    SYS_Map(globalHeap.process, &globalHeap.heapEnd, false, 0, 0x1000, true);
+void InitializeHeapUser(){
+    SYS_GetProcessKey(&heap.Process);
+    heap.EndAddress = KotSpecificData.HeapLocation;
+    SYS_Map(heap.Process, &heap.EndAddress, false, 0, KotSpecificData.MMapPageSize, false);
+    struct SegmentHeader* newSegment = (struct SegmentHeader*)heap.EndAddress;
 
-    struct SegmentHeader* newSegment = (struct SegmentHeader*)globalHeap.heapEnd;
-
-    globalHeap.heapEnd += 0x1000;
+    heap.EndAddress += KotSpecificData.MMapPageSize;
     newSegment->singature = 0xff;
-    newSegment->length = 0x1000 - sizeof(struct SegmentHeader);
+    newSegment->length = KotSpecificData.MMapPageSize - sizeof(struct SegmentHeader);
     newSegment->IsFree = true;
     newSegment->last = NULL;
     newSegment->next = NULL;
-    globalHeap.lastSegment = newSegment;    
-    globalHeap.mainSegment = newSegment; 
+    heap.lastSegment = newSegment;    
+    heap.mainSegment = newSegment; 
     
-    globalHeap.TotalSize += 0x1000 + sizeof(struct SegmentHeader);     
-    globalHeap.FreeSize += 0x1000 + sizeof(struct SegmentHeader); 
+    heap.TotalSize += KotSpecificData.MMapPageSize;     
+    heap.FreeSize += KotSpecificData.MMapPageSize; 
+
     atomicUnlock(&mutexHeap, 0);   
+    heap.IsHeapEnabled = true;
 }
 
-void* calloc(size_t size){
-    void* address = malloc(size);
+uintptr_t calloc(size_t size){
+    uintptr_t address = malloc(size);
     memset(address, 0, size);
     return address;
 }
 
-void* malloc(size_t size){
-    if (size == 0) return NULL;
+uintptr_t malloc(size_t size){
+    if(!heap.IsHeapEnabled) InitializeHeapUser();
+    if(size == 0) return NULL;
     
     if(size % 0x10 > 0){ // it is not a multiple of 0x10
         size -= (size % 0x10);
@@ -40,63 +42,63 @@ void* malloc(size_t size){
 
     atomicAcquire(&mutexHeap, 0);
 
-    struct SegmentHeader* currentSeg = (struct SegmentHeader*)globalHeap.mainSegment;
+    struct SegmentHeader* currentSeg = (struct SegmentHeader*)heap.mainSegment;
     while(true){
         if(currentSeg->IsFree){
             if(currentSeg->length > size){
                 // split this segment in two 
-                SplitSegment(currentSeg, size);
+                SplitSegmentUser(currentSeg, size);
                 currentSeg->IsFree = false;
-                globalHeap.UsedSize += currentSeg->length + sizeof(struct SegmentHeader);
-                globalHeap.FreeSize -= currentSeg->length + sizeof(struct SegmentHeader);
+                heap.UsedSize += currentSeg->length + sizeof(struct SegmentHeader);
+                heap.FreeSize -= currentSeg->length + sizeof(struct SegmentHeader);
                 atomicUnlock(&mutexHeap, 0);
-                return (void*)((uint64_t)currentSeg + sizeof(struct SegmentHeader));
+                return (uintptr_t)((uint64_t)currentSeg + sizeof(struct SegmentHeader));
             }else if(currentSeg->length == size){
                 currentSeg->IsFree = false;
-                globalHeap.UsedSize += currentSeg->length + sizeof(struct SegmentHeader);
-                globalHeap.FreeSize -= currentSeg->length + sizeof(struct SegmentHeader);
+                heap.UsedSize += currentSeg->length + sizeof(struct SegmentHeader);
+                heap.FreeSize -= currentSeg->length + sizeof(struct SegmentHeader);
                 atomicUnlock(&mutexHeap, 0);
-                return (void*)((uint64_t)currentSeg + sizeof(struct SegmentHeader));
+                return (uintptr_t)((uint64_t)currentSeg + sizeof(struct SegmentHeader));
             }
         }
         if (currentSeg->next == NULL) break;
         currentSeg = currentSeg->next;
     }
     
-    ExpandHeap(size);
+    ExpandHeapUser(size);
     atomicUnlock(&mutexHeap, 0);
     return malloc(size);
 }
 
 
-void MergeNextAndThisToLast(struct SegmentHeader* header){
+void MergeNextAndThisToLastUser(struct SegmentHeader* header){
     // merge this segment into the last segment
-    if(header->next == globalHeap.lastSegment){
+    if(header->next == heap.lastSegment){
         if(header->next->next != NULL){
-            globalHeap.lastSegment = header->next->next;
+            heap.lastSegment = header->next->next;
         }else{
-            globalHeap.lastSegment = header->last;
+            heap.lastSegment = header->last;
         }
     }
-    if(header->next == globalHeap.mainSegment){
+    if(header->next == heap.mainSegment){
         if(header->next->last != NULL){
-            globalHeap.mainSegment = header->next->last;
+            heap.mainSegment = header->next->last;
         }else{
-            globalHeap.mainSegment = header->next->next;
+            heap.mainSegment = header->next->next;
         }
     }
-    if(header == globalHeap.lastSegment){
+    if(header == heap.lastSegment){
         if(header->next->next != NULL){
-            globalHeap.lastSegment = header->next->next;
+            heap.lastSegment = header->next->next;
         }else{
-            globalHeap.lastSegment = header->last;
+            heap.lastSegment = header->last;
         }
     }
-    if(header == globalHeap.mainSegment){
+    if(header == heap.mainSegment){
         if(header->last != NULL){
-            globalHeap.mainSegment = header->last;
+            heap.mainSegment = header->last;
         }else{
-            globalHeap.mainSegment = header->next->next;
+            heap.mainSegment = header->next->next;
         }
     }
     
@@ -107,55 +109,55 @@ void MergeNextAndThisToLast(struct SegmentHeader* header){
     memset(header, 0, sizeof(struct SegmentHeader));
 }
 
-void MergeThisToLast(struct SegmentHeader* header){
+void MergeThisToLastUser(struct SegmentHeader* header){
     // merge this segment into the last segment
     header->last->length += header->length + sizeof(struct SegmentHeader);
     header->last->next = header->next;
     header->next->last = header->last;
-    if(header == globalHeap.lastSegment){
+    if(header == heap.lastSegment){
         if(header->next != NULL){
-            globalHeap.lastSegment = header->next;
+            heap.lastSegment = header->next;
         }else{
-            globalHeap.lastSegment = header->last;
+            heap.lastSegment = header->last;
         }
     }
-    if(header == globalHeap.mainSegment){
+    if(header == heap.mainSegment){
         if(header->last != NULL){
-            globalHeap.mainSegment = header->last;
+            heap.mainSegment = header->last;
         }else{
-            globalHeap.mainSegment = header->next;
+            heap.mainSegment = header->next;
         }
     }
     memset(header, 0, sizeof(struct SegmentHeader));
 }
 
-void MergeNextToThis(struct SegmentHeader* header){
+void MergeNextToThisUser(struct SegmentHeader* header){
     // merge this segment into the next segment
 
     struct SegmentHeader* headerNext = header->next;
     header->length += header->next->length + sizeof(struct SegmentHeader);
     header->next = header->next->next;
     if(header->next != NULL) header->next->last = header;
-    if(headerNext == globalHeap.lastSegment){
-        globalHeap.lastSegment = header;
+    if(headerNext == heap.lastSegment){
+        heap.lastSegment = header;
     }
 
     memset(headerNext, 0, sizeof(struct SegmentHeader));
 }
 
-void free(void* address){
+void free(uintptr_t address){
     if(address != NULL){
         atomicAcquire(&mutexHeap, 0);
         
-        struct SegmentHeader* header = (struct SegmentHeader*)(void*)((uint64_t)address - sizeof(struct SegmentHeader));
+        struct SegmentHeader* header = (struct SegmentHeader*)(uintptr_t)((uint64_t)address - sizeof(struct SegmentHeader));
         header->IsFree = true;
-        globalHeap.FreeSize += header->length + sizeof(struct SegmentHeader);
-        globalHeap.UsedSize -= header->length + sizeof(struct SegmentHeader);
+        heap.FreeSize += header->length + sizeof(struct SegmentHeader);
+        heap.UsedSize -= header->length + sizeof(struct SegmentHeader);
 
         if(header->next != NULL  && header->last != NULL){
             if(header->next->IsFree && header->last->IsFree){
                 // merge this segment and next segment into the last segment
-                MergeNextAndThisToLast(header);
+                MergeNextAndThisToLastUser(header);
                 atomicUnlock(&mutexHeap, 0);
                 return;
             }
@@ -163,7 +165,7 @@ void free(void* address){
         if(header->last != NULL){
             if(header->last->IsFree){
                 // merge this segment into the last segment
-                MergeThisToLast(header);  
+                MergeThisToLastUser(header);  
                 atomicUnlock(&mutexHeap, 0); 
                 return;  
             }         
@@ -172,7 +174,7 @@ void free(void* address){
         if(header->next != NULL){
             if(header->next->IsFree){
                 // merge this segment into the next segment
-                MergeNextToThis(header);
+                MergeNextToThisUser(header);
                 atomicUnlock(&mutexHeap, 0);
                 return; 
             }
@@ -182,22 +184,22 @@ void free(void* address){
     }
 }
 
-void* realloc(void* buffer, size_t size){
-    void* newBuffer = malloc(size);
+uintptr_t realloc(uintptr_t buffer, size_t size){
+    uintptr_t newBuffer = malloc(size);
 
-    if(size < GetSegmentHeader(buffer)->length){
+    if(size < GetSegmentHeaderUser(buffer)->length){
         memcpy(newBuffer, buffer, size);
     }else{
-        memcpy(newBuffer, buffer, GetSegmentHeader(buffer)->length);
+        memcpy(newBuffer, buffer, GetSegmentHeaderUser(buffer)->length);
     }
 
     free(buffer);
     return newBuffer;
 }
 
-void SplitSegment(struct SegmentHeader* segment, size_t size){
+void SplitSegmentUser(struct SegmentHeader* segment, size_t size){
     if(segment->length > size + sizeof(struct SegmentHeader)){
-        struct SegmentHeader* newSegment = (struct SegmentHeader*)(void*)((uint64_t)segment + sizeof(struct SegmentHeader) + (uint64_t)size);
+        struct SegmentHeader* newSegment = (struct SegmentHeader*)(uintptr_t)((uint64_t)segment + sizeof(struct SegmentHeader) + (uint64_t)size);
         memset(newSegment, 0, sizeof(struct SegmentHeader));
         newSegment->IsFree = true;         
         newSegment->singature = 0xff;       
@@ -206,7 +208,7 @@ void SplitSegment(struct SegmentHeader* segment, size_t size){
         newSegment->last = segment;
 
         if(segment->next == NULL){
-            globalHeap.lastSegment = newSegment;
+            heap.lastSegment = newSegment;
         }
         segment->next = newSegment;
         segment->length = size;        
@@ -214,36 +216,36 @@ void SplitSegment(struct SegmentHeader* segment, size_t size){
 
 }
 
-void ExpandHeap(size_t length){
+void ExpandHeapUser(size_t length){
     length += sizeof(struct SegmentHeader);
 
-    SYS_Map(globalHeap.process, &globalHeap.heapEnd, false, 0, length, false);
+    SYS_Map(heap.Process, &heap.EndAddress, false, 0, length, false);
 
-    struct SegmentHeader* newSegment = (struct SegmentHeader*)globalHeap.heapEnd;
-    globalHeap.heapEnd += length;
+    struct SegmentHeader* newSegment = (struct SegmentHeader*)heap.EndAddress;
+    heap.EndAddress += length;
 
-    if(globalHeap.lastSegment != NULL && globalHeap.lastSegment->IsFree){
-        globalHeap.lastSegment->length += length;
+    if(heap.lastSegment != NULL && heap.lastSegment->IsFree){
+        heap.lastSegment->length += length;
     }else{
         newSegment->singature = 0xff;
         newSegment->length = length - sizeof(struct SegmentHeader);
         newSegment->IsFree = true;
-        newSegment->last = globalHeap.lastSegment;
+        newSegment->last = heap.lastSegment;
         newSegment->next = NULL;
-        if(globalHeap.lastSegment != NULL){
-            globalHeap.lastSegment->next = newSegment;
+        if(heap.lastSegment != NULL){
+            heap.lastSegment->next = newSegment;
         }
-        globalHeap.lastSegment = newSegment;        
+        heap.lastSegment = newSegment;        
     }
 
-    if(globalHeap.mainSegment == NULL){
-        globalHeap.mainSegment = newSegment;
+    if(heap.mainSegment == NULL){
+        heap.mainSegment = newSegment;
     }   
     
-    globalHeap.TotalSize += length + sizeof(struct SegmentHeader);     
-    globalHeap.FreeSize += length + sizeof(struct SegmentHeader);     
+    heap.TotalSize += length;     
+    heap.FreeSize += length;     
 }
 
-struct SegmentHeader* GetSegmentHeader(void* address){
-    return (struct SegmentHeader*)(void*)((uint64_t)address - sizeof(struct SegmentHeader));
+struct SegmentHeader* GetSegmentHeaderUser(uintptr_t address){
+    return (struct SegmentHeader*)(uintptr_t)((uint64_t)address - sizeof(struct SegmentHeader));
 }

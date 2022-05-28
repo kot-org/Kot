@@ -1,12 +1,12 @@
 #include <kot/memory.h>
 
-void memset(void* start, uint8_t value, uint64_t num){
+void memset(uintptr_t start, uint8_t value, uint64_t num){
     for (uint64_t i = 0; i < num; i++){
         *(uint8_t*)((uint64_t)start + i) = value;
     }
 }
 
-void memcpy(void* destination, void* source, uint64_t num){
+void memcpy(uintptr_t destination, uintptr_t source, uint64_t num){
     long d0, d1, d2; 
     __asm__ volatile(
             "rep ; movsq\n\t movq %4,%%rcx\n\t""rep ; movsb\n\t": "=&c" (d0),

@@ -1,7 +1,7 @@
 // #include <elf/elf.h>
 
 // namespace ELF{
-//     KResult loadElf(void* buffer, uint8_t ring, Parameters* FunctionParameters){
+//     KResult loadElf(uintptr_t buffer, uint8_t ring, Parameters* FunctionParameters){
 //         elf_t* self = (elf_t*)calloc(sizeof(elf_t));
 //         self->Buffer = buffer;
 //         self->Header = (Elf64_Ehdr*)buffer;
@@ -30,7 +30,7 @@
 
 //                     /* Load library file */
 //                     ramfs::File* LibFile = ramfs::Find(name);
-//                     void* BufferLib = malloc(LibFile->size);
+//                     uintptr_t BufferLib = malloc(LibFile->size);
 //                     Read(LibFile, BufferLib);
 
 //                     /* Load library */
@@ -48,7 +48,7 @@
 //         return KSUCCESS;
 //     }
 
-//     KResult LoadLibrary(pagetable_t paging, elf_t* client, void* buffer, uint64_t* address){
+//     KResult LoadLibrary(pagetable_t paging, elf_t* client, uintptr_t buffer, uint64_t* address){
 //         elf_t* self = (elf_t*)calloc(sizeof(elf_t));
 //         self->Buffer = buffer;
 //         self->Header = (Elf64_Ehdr*)buffer;
@@ -166,7 +166,7 @@
 
 //     uint64_t GetLastAddressUsed(struct elf_t* self){
 //         uint64_t ReturnValue = 0;
-//         void* phdrs = (void*)((uint64_t)self->Buffer + (uint64_t)self->Header->e_phoff);
+//         uintptr_t phdrs = (uintptr_t)((uint64_t)self->Buffer + (uint64_t)self->Header->e_phoff);
 //         for(int i = 0; i < self->Header->e_phnum; i++){
 //             Elf64_Phdr* phdr = (Elf64_Phdr*)((uint64_t)phdrs + (i * self->Header->e_phentsize));
 //             if(phdr->p_type == PT_LOAD){
@@ -184,7 +184,7 @@
 //     }
 
 //     void LoadBinary(pagetable_t table, struct elf_t* self, uint64_t address){
-//         void* phdrs = (void*)((uint64_t)self->Buffer + (uint64_t)self->Header->e_phoff);
+//         uintptr_t phdrs = (uintptr_t)((uint64_t)self->Buffer + (uint64_t)self->Header->e_phoff);
 //         for(int i = 0; i < self->Header->e_phnum; i++){
 //             Elf64_Phdr* phdr = (Elf64_Phdr*)((uint64_t)phdrs + (i * self->Header->e_phentsize));
 //             switch (phdr->p_type){
@@ -202,15 +202,15 @@
 //                             SizeToCopy = size;
 //                         }
 //                         size -= SizeToCopy; 
-//                         void* virtualAddress = (void*)(segment + y * PAGE_SIZE);
+//                         uintptr_t virtualAddress = (uintptr_t)(segment + y * PAGE_SIZE);
 //                         uint64_t offset = (uint64_t)virtualAddress % PAGE_SIZE;
 //                         virtualAddress -= offset;
 //                         //Custom 0 flags : is user executable
 //                         if(!vmm_GetFlags(table, virtualAddress, vmm_flag::vmm_Custom0)){
-//                             void* PhysicalBuffer = Pmm_RequestPage();
-//                             vmm_Map(table, (void*)virtualAddress, (void*)PhysicalBuffer, true);
+//                             uintptr_t PhysicalBuffer = Pmm_RequestPage();
+//                             vmm_Map(table, (uintptr_t)virtualAddress, (uintptr_t)PhysicalBuffer, true);
 //                             vmm_SetFlags(table, virtualAddress, vmm_flag::vmm_Custom0, true);
-//                             memcpy((void*)vmm_GetVirtualAddress(PhysicalBuffer) + offset, (void*)((uint64_t)self->Buffer + phdr->p_offset), SizeToCopy);
+//                             memcpy((uintptr_t)vmm_GetVirtualAddress(PhysicalBuffer) + offset, (uintptr_t)((uint64_t)self->Buffer + phdr->p_offset), SizeToCopy);
 //                         }
 //                     }
 //                     break;   

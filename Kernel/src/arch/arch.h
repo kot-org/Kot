@@ -2,4 +2,4 @@
     #include <arch/x86-64.h>
 #endif
 
-struct KernelInfo* arch_initialize(void* boot);
+struct KernelInfo* arch_initialize(uintptr_t boot);

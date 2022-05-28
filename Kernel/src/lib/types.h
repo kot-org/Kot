@@ -3,4 +3,4 @@
 
 typedef uint64_t key_t; 
 
-typedef void* pagetable_t;
+typedef uintptr_t pagetable_t;

@@ -12,14 +12,14 @@ void InitializeACPI(BootInfo* bootInfo){
     globalLogs->Successful("HPET intialize");
 }
 
-KernelInfo* arch_initialize(void* boot){
+KernelInfo* arch_initialize(uintptr_t boot){
     asm("cli");
     stivale2_struct* BootStruct = (stivale2_struct*)boot;
 
     BootInfo* bootInfo = Boot::Init(BootStruct);
     
     /* clear frame buffer */
-    memset((void*)bootInfo->Framebuffer->framebuffer_addr, 0x0, bootInfo->Framebuffer->framebuffer_pitch * bootInfo->Framebuffer->framebuffer_height);
+    memset((uintptr_t)bootInfo->Framebuffer->framebuffer_addr, 0x0, bootInfo->Framebuffer->framebuffer_pitch * bootInfo->Framebuffer->framebuffer_height);
 
     SerialPort::Initialize();
     SerialPort::ClearMonitor();
@@ -34,7 +34,7 @@ KernelInfo* arch_initialize(void* boot){
     uint64_t LastAddressUsed = vmm_Init(bootInfo);;
     globalLogs->Successful("VMM intialize");
     
-    InitializeHeap((void*)LastAddressUsed, 0x10);
+    InitializeHeap((uintptr_t)LastAddressUsed, 0x10);
     globalLogs->Successful("Heap intialize");
     
     InitializeInterrupts();  
@@ -48,7 +48,7 @@ KernelInfo* arch_initialize(void* boot){
     InitializeACPI(bootInfo);
 
     globalTaskManager = (TaskManager*)calloc(sizeof(TaskManager));
-    globalTaskManager->InitScheduler(APIC::ProcessorCount, (void*)&IdleTask);
+    globalTaskManager->InitScheduler(APIC::ProcessorCount, (uintptr_t)&IdleTask);
 
 
     APIC::EnableAPIC(CPU::GetAPICID());
@@ -70,17 +70,14 @@ KernelInfo* arch_initialize(void* boot){
 
     //smbios
     if(bootInfo->smbios->smbios_entry_32 != 0){
-        kernelInfo->smbios = (void*)bootInfo->smbios->smbios_entry_32;
+        kernelInfo->smbios = (uintptr_t)bootInfo->smbios->smbios_entry_32;
     }else if(bootInfo->smbios->smbios_entry_64 != 0){
-        kernelInfo->smbios = (void*)bootInfo->smbios->smbios_entry_64;
+        kernelInfo->smbios = (uintptr_t)bootInfo->smbios->smbios_entry_64;
     }
     
 
     //rsdp
-    kernelInfo->rsdp = (void*)bootInfo->RSDP->rsdp;
-
-    //page size
-    kernelInfo->MMapPageSize = PAGE_SIZE;
+    kernelInfo->rsdp = (uintptr_t)bootInfo->RSDP->rsdp;
 
     return kernelInfo;
 }

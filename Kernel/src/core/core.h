@@ -1,5 +1,7 @@
 #pragma once
 
+
+
 #include <arch/arch.h>
 #include <kot/types.h>
 #include <memory/memory.h>
@@ -16,4 +18,4 @@
 #include <fs/ramfs.h>
 #include <elf/elf.h>
 
-extern "C" void main(void* boot);
+extern "C" void main(uintptr_t boot);

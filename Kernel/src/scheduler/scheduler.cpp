@@ -127,12 +127,12 @@ thread_t* TaskManager::GetTread(){
     return ReturnValue;
 }
 
-uint64_t TaskManager::CreatThread(thread_t** self, process_t* proc, void* entryPoint, uint64_t externalData){
+uint64_t TaskManager::CreatThread(thread_t** self, process_t* proc, uintptr_t entryPoint, uint64_t externalData){
     *self = proc->CreatThread(entryPoint, externalData);
     return KSUCCESS;
 }
 
-uint64_t TaskManager::CreatThread(thread_t** self, process_t* proc, void* entryPoint, uint8_t privilege, uint64_t externalData){
+uint64_t TaskManager::CreatThread(thread_t** self, process_t* proc, uintptr_t entryPoint, uint8_t privilege, uint64_t externalData){
     *self = proc->CreatThread(entryPoint, externalData);
     return KSUCCESS;
 }
@@ -188,7 +188,7 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* t
     Atomic::atomicUnlock(&mutexScheduler, 1);
     return KSUCCESS;
 }
-uint64_t TaskManager::ShareDataUsingStackSpace(thread_t* self, void* data, size_t size, uint64_t* location){
+uint64_t TaskManager::ShareDataUsingStackSpace(thread_t* self, uintptr_t data, size_t size, uint64_t* location){
     return self->ShareDataUsingStackSpace(data, size, location);
 }
 
@@ -196,7 +196,7 @@ uint64_t TaskManager::CreatProcess(process_t** key, uint8_t priviledge, uint64_t
     process_t* proc = (process_t*)calloc(sizeof(process_t));
 
     if(ProcessList == NULL){
-        ProcessList = CreatNode((void*)0);
+        ProcessList = CreatNode((uintptr_t)0);
         proc->NodeParent = ProcessList->Add(proc);
     }else{
         proc->NodeParent = ProcessList->Add(proc);
@@ -226,14 +226,14 @@ uint64_t TaskManager::CreatProcess(process_t** key, uint8_t priviledge, uint64_t
     return KSUCCESS;
 }
 
-thread_t* process_t::CreatThread(void* entryPoint, uint64_t externalData){
+thread_t* process_t::CreatThread(uintptr_t entryPoint, uint64_t externalData){
     return CreatThread(entryPoint, DefaultPriviledge, externalData);
 }
 
-thread_t* process_t::CreatThread(void* entryPoint, uint8_t priviledge, uint64_t externalData){
+thread_t* process_t::CreatThread(uintptr_t entryPoint, uint8_t priviledge, uint64_t externalData){
     thread_t* thread = (thread_t*)calloc(sizeof(thread_t));
     if(Childs == NULL){
-        Childs = CreatNode((void*)0);
+        Childs = CreatNode((uintptr_t)0);
         thread->ThreadNode = Childs->Add(thread);
     }else{
         thread->ThreadNode = Childs->Add(thread);
@@ -253,13 +253,13 @@ thread_t* process_t::CreatThread(void* entryPoint, uint8_t priviledge, uint64_t 
     thread->RingPL = GetRingPL(priviledge);
 
     /* Thread data */
-    void* threadDataPA = Pmm_RequestPage();
-    SelfData* threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
+    uintptr_t threadDataPA = Pmm_RequestPage();
+    thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
-    Keyhole_Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey);
-    Keyhole_Creat(&threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, DefaultFlagsKey);
+    Keyhole_Creat(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey);
+    Keyhole_Creat(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, DefaultFlagsKey);
 
-    vmm_Map(thread->Paging, (void*)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
+    vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
 
     /* Setup registers */
     thread->EntryPoint = entryPoint;
@@ -304,7 +304,7 @@ thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
 
     thread_t* thread = (thread_t*)calloc(sizeof(thread_t));
     if(Childs == NULL){
-        Childs = CreatNode((void*)0);
+        Childs = CreatNode((uintptr_t)0);
         thread->ThreadNode = Childs->Add(thread);
     }else{
         thread->ThreadNode = Childs->Add(thread);
@@ -320,13 +320,13 @@ thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
     thread->SetupStack();
 
     /* Thread data */
-    void* threadDataPA = Pmm_RequestPage();
-    SelfData* threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
+    uintptr_t threadDataPA = Pmm_RequestPage();
+    thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
-    Keyhole_Creat(&threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
-    Keyhole_Creat(&threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, FlagFullPermissions);
+    Keyhole_Creat(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
+    Keyhole_Creat(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, FlagFullPermissions);
 
-    vmm_Map(thread->Paging, (void*)SelfDataStartAddress, threadDataPA, source->Regs->cs == GDTInfoSelectorsRing[UserAppRing].Code);
+    vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, source->Regs->cs == GDTInfoSelectorsRing[UserAppRing].Code);
 
     /* Setup registers */
     thread->Regs->rip = (uint64_t)source->EntryPoint;
@@ -375,7 +375,7 @@ void thread_t::SetupStack(){
     this->Stack->StackEndMax = StackBottom;
 
     /* Clear stack */
-    vmm_page_table* PML4VirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((void*)Paging);
+    vmm_page_table* PML4VirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uintptr_t)Paging);
     PML4VirtualAddress->entries[0xff] = NULL;
 }
 
@@ -414,9 +414,9 @@ void TaskManager::CreatIddleTask(){
 
     thread->Launch();
 }
-void TaskManager::InitScheduler(uint8_t NumberOfCores, void* IddleTaskFunction){
-    void* physcialMemory = Pmm_RequestPage();
-    void* virtualMemory = (void*)vmm_GetVirtualAddress(physcialMemory);
+void TaskManager::InitScheduler(uint8_t NumberOfCores, uintptr_t IddleTaskFunction){
+    uintptr_t physcialMemory = Pmm_RequestPage();
+    uintptr_t virtualMemory = (uintptr_t)vmm_GetVirtualAddress(physcialMemory);
     vmm_Map(vmm_PageTable, virtualMemory, physcialMemory, true);
     memcpy(virtualMemory, IddleTaskFunction, PAGE_SIZE);
 
@@ -439,7 +439,7 @@ void TaskManager::EnabledScheduler(uint64_t CoreID){
         
         uint64_t Stack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
 
-        TSSSetStack(CoreID, (void*)Stack);
+        TSSSetStack(CoreID, (uintptr_t)Stack);
         TSSSetIST(CoreID, IST_Scheduler, Stack);
 
         CPU::SetCPUGSKernelBase((uint64_t)SelfDataStartAddress); // keys position
@@ -482,8 +482,8 @@ void thread_t::SetParameters(Parameters* FunctionParameters){
 }
 
 void thread_t::CopyStack(thread_t* source){
-    vmm_page_table* PML4VirtualAddressSource = (vmm_page_table*)vmm_GetVirtualAddress((void*)source->Paging);
-    vmm_page_table* PML4VirtualAddressDestination = (vmm_page_table*)vmm_GetVirtualAddress((void*)Paging);
+    vmm_page_table* PML4VirtualAddressSource = (vmm_page_table*)vmm_GetVirtualAddress((uintptr_t)source->Paging);
+    vmm_page_table* PML4VirtualAddressDestination = (vmm_page_table*)vmm_GetVirtualAddress((uintptr_t)Paging);
     PML4VirtualAddressSource->entries[0xff] = PML4VirtualAddressDestination->entries[0xff];
     Stack = source->Stack;
 }
@@ -495,20 +495,20 @@ bool thread_t::ExtendStack(uint64_t address){
     if(this->Stack->StackStart <= address) return false;
     if(address <= this->Stack->StackEndMax) return false;
     
-    vmm_Map(Paging, (void*)address, Pmm_RequestPage(), this->RingPL == UserAppRing, true, true);
+    vmm_Map(Paging, (uintptr_t)address, Pmm_RequestPage(), this->RingPL == UserAppRing, true, true);
 
     return true;
 }
 
-KResult thread_t::ShareDataUsingStackSpace(void* data, size_t size, uint64_t* location){
+KResult thread_t::ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t* location){
     *location = 0;
     if(!IsBlock) return KFAIL;
     if(size == 0) return KFAIL;
     if(size > ShareMaxIntoStackSpace) return KFAIL;
-    void* address = (void*)(Regs->rsp - size);
+    uintptr_t address = (uintptr_t)(Regs->rsp - size);
     if(ExtendStack((uint64_t)address)){
         //store data in global memory
-        memcpy(Parent->TaskManagerParent->globalAddressForStackSpaceSharing, (void*)data, size);
+        memcpy(Parent->TaskManagerParent->globalAddressForStackSpaceSharing, (uintptr_t)data, size);
         
         pagetable_t lastPageTable = vmm_GetPageTable();
         vmm_Swap(Paging);

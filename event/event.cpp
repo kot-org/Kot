@@ -70,10 +70,10 @@ namespace Event{
         self->NumTask--;
         for(size_t i = 0; i < self->NumTask; i++){
             if(self->Tasks[i] == task){
-                void* newPos = malloc(self->NumTask * sizeof(thread_t));
+                uintptr_t newPos = malloc(self->NumTask * sizeof(thread_t));
                 memcpy(newPos, self->Tasks[i], sizeof(thread_t) * i);
                 i++;
-                memcpy((void*)((uint64_t)newPos + sizeof(thread_t) * (i - 1)), (void*)((uint64_t)self->Tasks[i] + sizeof(thread_t) * i), sizeof(thread_t) * i);
+                memcpy((uintptr_t)((uint64_t)newPos + sizeof(thread_t) * (i - 1)), (uintptr_t)((uint64_t)self->Tasks[i] + sizeof(thread_t) * i), sizeof(thread_t) * i);
                 self->Tasks = (thread_t**)newPos;
             }
         }
@@ -89,7 +89,7 @@ namespace Event{
         return KSUCCESS;
     }
     
-    uint64_t Trigger(thread_t* author, event_t* self, void* Data, size_t Size){
+    uint64_t Trigger(thread_t* author, event_t* self, uintptr_t Data, size_t Size){
         if(self == NULL) return KFAIL;
         Atomic::atomicAcquire(&self->Lock, 0);
 

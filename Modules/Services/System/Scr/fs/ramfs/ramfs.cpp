@@ -2,7 +2,7 @@
 
 namespace ramfs{
     Info* info;
-    void Parse(void* baseAddress, size_t size){
+    void Parse(uintptr_t baseAddress, size_t size){
         if(size == NULL) return;
         info = (Info*)malloc(sizeof(Info));
         info->baseAddress = baseAddress;
@@ -32,9 +32,9 @@ namespace ramfs{
         return file;
     }
 
-    bool Read(File* file, void* buffer){
+    bool Read(File* file, uintptr_t buffer){
         if(info == NULL) return false;
-        void* fileData = (void*)((uint64_t)file + sizeof(File));
+        uintptr_t fileData = (uintptr_t)((uint64_t)file + sizeof(File));
         memcpy(buffer, fileData, file->size);
         return true;
     }

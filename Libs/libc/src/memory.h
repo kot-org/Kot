@@ -2,14 +2,15 @@
 #define _MEMORY_H 1
 
 #include <kot/types.h>
+#include <kot/heap.h>
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-void memset(void* start, uint8_t value, uint64_t num);
+void memset(uintptr_t start, uint8_t value, uint64_t num);
 int memcmp(const void *aptr, const void *bptr, size_t n);
-void memcpy(void* destination, void* source, uint64_t num);
+void memcpy(uintptr_t destination, uintptr_t source, uint64_t num);
 
 enum memory_share_flag{
     memory_share_flag_ReadOnly          = 0,

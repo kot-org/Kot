@@ -8,7 +8,7 @@ void TSSInit(){
 
 uint16_t TSSInstall(uint8_t numCPU){
     uint64_t tss_base = (uint64_t)&TSSdescriptors[numCPU];
-    memset((void*)tss_base, 0, sizeof(TSS));
+    memset((uintptr_t)tss_base, 0, sizeof(TSS));
 
     uint16_t location = gdtInstallTSS(tss_base, sizeof(TSS));
     TSSdescriptors[numCPU].IOPBOffset = 0;
@@ -17,7 +17,7 @@ uint16_t TSSInstall(uint8_t numCPU){
     return location;
 }
 
-void TSSSetStack(uint8_t numCPU, void* stack){
+void TSSSetStack(uint8_t numCPU, uintptr_t stack){
     TSSdescriptors[numCPU].RSP[0] = (uint64_t)stack;
 }
 

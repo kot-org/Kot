@@ -20,6 +20,17 @@
 extern "C" {
 #endif
 
+struct KotSpecificData_t{
+    /* Memory */
+    uint64_t MMapPageSize;
+    /* Heap */
+    uint64_t HeapLocation;
+    /* IPC */
+    kthread_t IPCDispatcher;
+}__attribute__((aligned(0x1000)));
+
+extern struct KotSpecificData_t KotSpecificData;
+
 struct SelfData{
     kprocess_t ThreadKey;
     kprocess_t ProcessKey;
@@ -52,9 +63,9 @@ KResult Sys_CloseProc();
 KResult SYS_Exit(kthread_t self, uint64_t errorCode);
 KResult SYS_Pause(kthread_t self);
 KResult SYS_Unpause(kthread_t self);
-KResult SYS_Map(kprocess_t self, uint64_t* addressVirtual, bool isPhysical, void* addressPhysical, size_t size, bool findFree);
-KResult SYS_Unmap(kprocess_t self, void* addressVirtual, size_t size);
-KResult Sys_CreatThread(kprocess_t self, void* entryPoint, uint8_t privilege, uint64_t data, kthread_t* result);
+KResult SYS_Map(kprocess_t self, uint64_t* addressVirtual, bool isPhysical, uintptr_t addressPhysical, size_t size, bool findFree);
+KResult SYS_Unmap(kprocess_t self, uintptr_t addressVirtual, size_t size);
+KResult Sys_CreatThread(kprocess_t self, uintptr_t entryPoint, uint8_t privilege, uint64_t data, kthread_t* result);
 KResult Sys_DuplicateThread(kprocess_t parent, kthread_t source, uint64_t data, kthread_t* self);
 KResult Sys_ExecThread(kthread_t self, struct parameters_t* parameters);
 

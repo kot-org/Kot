@@ -14,7 +14,7 @@ uint64_t IDTDescEntry::GetOffset(){
     return offset;
 }
 
-void SetIDTGate(void* handler, uint8_t entryOffset, uint8_t GateType, int DPL, uint8_t selector, uint8_t ist, IDTR idtrl){
+void SetIDTGate(uintptr_t handler, uint8_t entryOffset, uint8_t GateType, int DPL, uint8_t selector, uint8_t ist, IDTR idtrl){
     IDTDescEntry* interrupt = (IDTDescEntry*)(idtrl.Offset + entryOffset * sizeof(IDTDescEntry));
     interrupt->SetOffset((uint64_t)handler);
     interrupt->type_attr.GateType = GateType;

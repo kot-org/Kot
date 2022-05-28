@@ -245,14 +245,14 @@ namespace AHCI{
             ATACommandIdentify* DiskInfo;
             HBAPort* HbaPort;
             PortType portType;
-            void* Buffer; //the size of the buffer is PAGE_SIZE
+            uintptr_t Buffer; //the size of the buffer is PAGE_SIZE
             uint64_t BufferSize;
             uint8_t PortNumber;
             void Configure();
             void StartCMD();
             void StopCMD();
-            bool Read(uint64_t sector, uint16_t sectorCount, void* buffer);
-            bool Write(uint64_t sector, uint16_t sectorCount, void* buffer);
+            bool Read(uint64_t sector, uint16_t sectorCount, uintptr_t buffer);
+            bool Write(uint64_t sector, uint16_t sectorCount, uintptr_t buffer);
             bool GetDiskInfo();
             uint64_t GetNumberSectorsLBA(); //LBA sectors is 512 bytes
             uint64_t GetSectorNumberPhysical();
@@ -271,7 +271,7 @@ namespace AHCI{
         GUIDPartitionEntryFormat* PartitionInfo;
         char* PartitionName;
         char* FSSignature;
-        void* FSData;
+        uintptr_t FSData;
     };
 
     struct PartitionNode{

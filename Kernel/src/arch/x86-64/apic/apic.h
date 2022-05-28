@@ -241,32 +241,32 @@ namespace APIC{
     };
 
     struct LapicAddress{
-        void* PhysicalAddress;
-        void* VirtualAddress;
+        uintptr_t PhysicalAddress;
+        uintptr_t VirtualAddress;
     } __attribute__((packed));
 
     void InitializeMADT(ACPI::MADTHeader* madt);
     void IoAPICInit(uint8_t IOApicID);
     void IoChangeIrqState(uint8_t irq, uint8_t IOApicID, bool IsEnable);
     void LoadCores();
-    void* GetLAPICAddress();
+    uintptr_t GetLAPICAddress();
     void EnableAPIC(uint8_t CoreID);
     void StartLapicTimer();
     void localAPICSetTimerCount(uint32_t value);
     uint32_t localAPICGetTimerCount();
     void lapicSendInitIPI(uint8_t CoreID);
-    void lapicSendStartupIPI(uint8_t CoreID, void* entry);
+    void lapicSendStartupIPI(uint8_t CoreID, uintptr_t entry);
     void localApicEOI(uint8_t CoreID);
     void localApicEnableSpuriousInterrupts();
     uint32_t localAPICReadRegister(size_t offset);
-    uint32_t localAPICReadRegister(void* lapicAddress, size_t offset);
-    uint32_t ioapicReadRegister(void* apicPtr , uint8_t offset);
-    void ioapicWriteRegister(void* apicPtr , uint8_t offset, uint32_t value);
+    uint32_t localAPICReadRegister(uintptr_t lapicAddress, size_t offset);
+    uint32_t ioapicReadRegister(uintptr_t apicPtr , uint8_t offset);
+    void ioapicWriteRegister(uintptr_t apicPtr , uint8_t offset, uint32_t value);
     void localAPICWriteRegister(size_t offset, uint32_t value);    
-    void localAPICWriteRegister(void* lapicAddress, size_t offset, uint32_t value);    
+    void localAPICWriteRegister(uintptr_t lapicAddress, size_t offset, uint32_t value);    
     uint32_t CreatRegisterValueInterrupts(LocalAPICInterruptRegister reg);
     uint32_t CreatLocalAPICIipiRegister(LocalAPICIipi reg);
-    void IoApicSetRedirectionEntry(void* apicPtr, size_t index, IOAPICRedirectionEntry entry);
+    void IoApicSetRedirectionEntry(uintptr_t apicPtr, size_t index, IOAPICRedirectionEntry entry);
     void SetCommandIPI(uint32_t commandLow, uint32_t commandHigh);
     void GenerateInterruption(uint64_t CoreID, uint8_t Vector);
     

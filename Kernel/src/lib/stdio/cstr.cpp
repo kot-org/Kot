@@ -257,8 +257,8 @@ Node* split(char* str, char* delimiters){
             }
 
             uint64_t StrSize = sizeof(char) * (charNumberStart - lastCharEnd);
-            void* data = malloc(StrSize + 1);
-            memcpy(data, (void*)&entry[lastCharEnd], StrSize);
+            uintptr_t data = malloc(StrSize + 1);
+            memcpy(data, (uintptr_t)&entry[lastCharEnd], StrSize);
             *(uint8_t*)((uint64_t)data + StrSize) = 0;
             ReturnValue->data = data;
             ReturnValue = ReturnValue->Add(0);
@@ -272,8 +272,8 @@ Node* split(char* str, char* delimiters){
         str++; 
     }
 
-    void* data = malloc(sizeof(char) * (len - lastCharEnd));
-    memcpy(data, (void*)&entry[lastCharEnd], len - lastCharEnd);
+    uintptr_t data = malloc(sizeof(char) * (len - lastCharEnd));
+    memcpy(data, (uintptr_t)&entry[lastCharEnd], len - lastCharEnd);
     ReturnValue->data = data;
     ReturnValue->next = NULL;
     return ReturnValue->parent;

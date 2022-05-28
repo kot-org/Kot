@@ -46,7 +46,7 @@ namespace Boot{
         /* Get ramfs */
         for(uint64_t i = 0; i < Info.Modules->module_count; i++){
             if(strcmp(Info.Modules->modules[i].string, "ramfs.bin")){
-                Info.ramfs.ramfsBase = (void*)Info.Modules->modules[i].begin;
+                Info.ramfs.ramfsBase = (uintptr_t)Info.Modules->modules[i].begin;
                 Info.ramfs.Size = (size_t)(Info.Modules->modules[i].end - Info.Modules->modules[i].begin);
             }
         }
@@ -54,7 +54,7 @@ namespace Boot{
         return &Info;
     }    
 
-    void* GetTag(struct stivale2_struct *stivale2_struct, uint64_t id){
+    uintptr_t GetTag(struct stivale2_struct *stivale2_struct, uint64_t id){
         stivale2_tag* tag = (stivale2_tag*)stivale2_struct->tags;
         while (true)
         {

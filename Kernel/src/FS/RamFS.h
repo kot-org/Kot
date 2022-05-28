@@ -18,14 +18,14 @@ namespace ramfs{
     }__attribute__((packed));  
     
     struct Info{
-        void* baseAddress;
+        uintptr_t baseAddress;
         size_t size;
         Header* header;
     }__attribute__((packed));
 
-    void Parse(void* baseAddress, size_t size);
+    void Parse(uintptr_t baseAddress, size_t size);
     File* Find(char* fileName);
     File* FindInitFile();
-    bool Read(File* address, void* buffer);
+    bool Read(File* address, uintptr_t buffer);
 }
 

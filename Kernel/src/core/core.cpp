@@ -1,6 +1,6 @@
 #include <core/core.h>
 
-extern "C" void main(void* boot)
+extern "C" void main(uintptr_t boot)
 {   
     /* load arch */
     KernelInfo* kernelInfo = arch_initialize(boot);
@@ -10,7 +10,7 @@ extern "C" void main(void* boot)
     ramfs::File* InitFile = ramfs::FindInitFile();
     
     if(InitFile != NULL){
-        void* BufferInitFile = malloc(InitFile->size);
+        uintptr_t BufferInitFile = malloc(InitFile->size);
         ramfs::Read(InitFile, BufferInitFile);
         thread_t* mainThread;
         ELF::loadElf(BufferInitFile, Priviledge_Service, &mainThread);

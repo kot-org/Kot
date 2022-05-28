@@ -1,3 +1,4 @@
+#ifndef _KERNEL_
 #ifndef _HEAP_H
 #define _HEAP_H 1
 
@@ -10,34 +11,37 @@ struct SegmentHeader{
     size_t length;
     struct SegmentHeader* next;
     struct SegmentHeader* last;
-    uint8_t singature;
+    uint32_t singature;
+    uint8_t reserved[3];
 }__attribute__((packed));
 
-struct Heap{
+struct heap_t{
     struct SegmentHeader* lastSegment;
     struct SegmentHeader* mainSegment;
     size_t TotalSize;
     size_t FreeSize;
     size_t UsedSize;
-    uint64_t heapEnd;
-    kprocess_t process;
-};
+    uint64_t EndAddress;
+    kprocess_t Process;
+    bool IsHeapEnabled;
+}__attribute__((aligned(0x1000)));
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-void InitializeHeap();
-void* calloc(size_t size);
-void* malloc(size_t size);
-void* realloc(void* buffer, size_t size);
-void free(void* address);
-void  SplitSegment(struct SegmentHeader* segment, size_t size);
-void  ExpandHeap(size_t lenght);
-struct SegmentHeader* GetSegmentHeader(void* address);
+void InitializeHeapUser();
+uintptr_t calloc(size_t size);
+uintptr_t malloc(size_t size);
+uintptr_t realloc(uintptr_t buffer, size_t size);
+void free(uintptr_t address);
+void SplitSegmentUser(struct SegmentHeader* segment, size_t size);
+void ExpandHeapUser(size_t lenght);
+struct SegmentHeader* GetSegmentHeaderUser(uintptr_t address);
 
 #if defined(__cplusplus)
 }
 #endif
 
+#endif
 #endif

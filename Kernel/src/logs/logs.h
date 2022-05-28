@@ -4,11 +4,11 @@
 #include <arch/x86-64/io/serial/serial.h>
 
 struct RegistersLog {
-    void* rax; void* rbx; void* rcx; void* rdx; void* rsi; void* rdi; void* rbp; //push in asm
+    uintptr_t rax; uintptr_t rbx; uintptr_t rcx; uintptr_t rdx; uintptr_t rsi; uintptr_t rdi; uintptr_t rbp; //push in asm
 
-    void* r8; void* r9; void* r10; void* r11; void* r12; void* r13; void* r14; void* r15; //push in asm
+    uintptr_t r8; uintptr_t r9; uintptr_t r10; uintptr_t r11; uintptr_t r12; uintptr_t r13; uintptr_t r14; uintptr_t r15; //push in asm
 
-    void* rip; void* cs; void* rflags; void* rsp; void* ss; //push by cpu with an interrupt
+    uintptr_t rip; uintptr_t cs; uintptr_t rflags; uintptr_t rsp; uintptr_t ss; //push by cpu with an interrupt
 }__attribute__((packed));
 
 class Logs{

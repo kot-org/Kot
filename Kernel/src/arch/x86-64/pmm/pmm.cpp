@@ -14,7 +14,7 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
 
     Initialized = true;
 
-    void* BitmapSegment = NULL;
+    uintptr_t BitmapSegment = NULL;
 
     uint64_t memorySize = Pmm_GetMemorySize(Map);
     uint64_t PageCount = 0;
@@ -31,7 +31,7 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
     for (int i = 0; i < Map->entries; i++){
         if (Map->memmap[i].type == STIVALE2_MMAP_USABLE){
             if (Map->memmap[i].length > bitmapSize){
-                BitmapSegment = (void*)Map->memmap[i].base;
+                BitmapSegment = (uintptr_t)Map->memmap[i].base;
                 break;
             }
         }
@@ -47,7 +47,7 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
 
     for (uint64_t i = 0; i < Map->entries; i++){
         if (Map->memmap[i].type == STIVALE2_MMAP_USABLE){ 
-            Pmm_UnreservePages((void*)Map->memmap[i].base, Map->memmap[i].length / PAGE_SIZE);
+            Pmm_UnreservePages((uintptr_t)Map->memmap[i].base, Map->memmap[i].length / PAGE_SIZE);
         }
     }
     Pmm_LockPages(BitmapSegment, DivideRoundUp(Pmm_PageBitmap.Size, PAGE_SIZE));
@@ -64,26 +64,26 @@ uint64_t Pmm_GetMemorySize(stivale2_struct_tag_memmap* Map){
     return memorySizeBytes;
 }
 
-void Pmm_InitBitmap(size_t bitmapSize, void* bufferAddress){
+void Pmm_InitBitmap(size_t bitmapSize, uintptr_t bufferAddress){
     Pmm_PageBitmap.Size = bitmapSize;
     Pmm_PageBitmap.Buffer = (uint8_t*)bufferAddress;
     memset(Pmm_PageBitmap.Buffer, 0xff, Pmm_PageBitmap.Size);
 }
 
 uint64_t Pmm_PageBitmapIndex = 0;
-void* Pmm_RequestPage(){
+uintptr_t Pmm_RequestPage(){
     for (; Pmm_PageBitmapIndex < Pmm_PageBitmap.Size * 8; Pmm_PageBitmapIndex++){
         if(!Pmm_PageBitmap.Get(Pmm_PageBitmapIndex)){
             uint64_t page = Pmm_PageBitmapIndex;
-            Pmm_LockPage((void*)(Pmm_PageBitmapIndex * PAGE_SIZE));
-            return (void*)(Pmm_PageBitmapIndex * PAGE_SIZE);
+            Pmm_LockPage((uintptr_t)(Pmm_PageBitmapIndex * PAGE_SIZE));
+            return (uintptr_t)(Pmm_PageBitmapIndex * PAGE_SIZE);
         }
     }
     
     return NULL; // Page Frame Swap to file
 }
 
-void* Pmm_RequestPages(uint64_t pages){
+uintptr_t Pmm_RequestPages(uint64_t pages){
 	while(Pmm_PageBitmapIndex < Pmm_PageBitmap.Size) {
 		for(size_t j = 0; j < pages; j++) {
 			if(Pmm_PageBitmap[Pmm_PageBitmapIndex + j] == true) {
@@ -95,7 +95,7 @@ void* Pmm_RequestPages(uint64_t pages){
 		not_free:
 			continue;
 		exit: {
-			void* page = (void*)(Pmm_PageBitmapIndex * PAGE_SIZE);	// transform the index into the physical page address
+			uintptr_t page = (uintptr_t)(Pmm_PageBitmapIndex * PAGE_SIZE);	// transform the index into the physical page address
 			Pmm_PageBitmapIndex += pages;
 			Pmm_LockPages(page, pages);
 			return page;
@@ -104,7 +104,7 @@ void* Pmm_RequestPages(uint64_t pages){
 	return NULL;
 }
 
-void Pmm_FreePage(void* address){
+void Pmm_FreePage(uintptr_t address){
     uint64_t index = (uint64_t)address / PAGE_SIZE;
     if (Pmm_PageBitmap.Get(index) == false) return;
     if (Pmm_PageBitmap.Set(index, false)){
@@ -114,13 +114,13 @@ void Pmm_FreePage(void* address){
     }
 }
 
-void Pmm_FreePages(void* address, uint64_t pageCount){
+void Pmm_FreePages(uintptr_t address, uint64_t pageCount){
     for (int t = 0; t < pageCount; t++){
-        Pmm_FreePage((void*)((uint64_t)address + (t * PAGE_SIZE)));
+        Pmm_FreePage((uintptr_t)((uint64_t)address + (t * PAGE_SIZE)));
     }
 }
 
-void Pmm_LockPage(void* address){
+void Pmm_LockPage(uintptr_t address){
     uint64_t index = (uint64_t)address / PAGE_SIZE;
     if (Pmm_PageBitmap.Get(index)) return;
     if (Pmm_PageBitmap.Set(index, true)){
@@ -129,13 +129,13 @@ void Pmm_LockPage(void* address){
     }
 }
 
-void Pmm_LockPages(void* address, uint64_t pageCount){
+void Pmm_LockPages(uintptr_t address, uint64_t pageCount){
     for (uint64_t t = 0; t < pageCount; t++){
-        Pmm_LockPage((void*)((uint64_t)address + (t * PAGE_SIZE)));
+        Pmm_LockPage((uintptr_t)((uint64_t)address + (t * PAGE_SIZE)));
     }
 }
 
-void Pmm_UnreservePage(void* address){
+void Pmm_UnreservePage(uintptr_t address){
     uint64_t index = (uint64_t)address / PAGE_SIZE;
     if (Pmm_PageBitmap.Get(index) == false) return;
     if (Pmm_PageBitmap.Set(index, false)){
@@ -145,13 +145,13 @@ void Pmm_UnreservePage(void* address){
     }
 }
 
-void Pmm_UnreservePages(void* address, uint64_t pageCount){
+void Pmm_UnreservePages(uintptr_t address, uint64_t pageCount){
     for (uint64_t t = 0; t < pageCount; t++){
-        Pmm_UnreservePage((void*)((uint64_t)address + (t * PAGE_SIZE)));
+        Pmm_UnreservePage((uintptr_t)((uint64_t)address + (t * PAGE_SIZE)));
     }
 }
 
-void Pmm_ReservePage(void* address){
+void Pmm_ReservePage(uintptr_t address){
     uint64_t index = (uint64_t)address / PAGE_SIZE;
     if (Pmm_PageBitmap.Get(index) == true) return;
     if (Pmm_PageBitmap.Set(index, true)){
@@ -160,9 +160,9 @@ void Pmm_ReservePage(void* address){
     }
 }
 
-void Pmm_ReservePages(void* address, uint64_t pageCount){
+void Pmm_ReservePages(uintptr_t address, uint64_t pageCount){
     for (uint64_t t = 0; t < pageCount; t++){
-        Pmm_ReservePage((void*)((uint64_t)address + (t * PAGE_SIZE)));
+        Pmm_ReservePage((uintptr_t)((uint64_t)address + (t * PAGE_SIZE)));
     }
 }
 

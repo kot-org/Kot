@@ -40,10 +40,6 @@ struct StackInfo{
     uint64_t StackEndMax;
 }__attribute__((packed));
 
-struct StackData{
-    size_t size;
-}__attribute__((packed));
-
 struct thread_t;
 
 struct process_t{
@@ -66,7 +62,7 @@ struct process_t{
     uint64_t CreationTime;
 
     /* Keyhole */
-    void* Locks;
+    uintptr_t Locks;
     uint64_t LockIndex;
     uint64_t LockLimit;
 
@@ -77,18 +73,19 @@ struct process_t{
     /* external data */
     uint64_t externalData;
 
-    thread_t* CreatThread(void* entryPoint, uint64_t externalData);
-    thread_t* CreatThread(void* entryPoint, uint8_t priviledge, uint64_t externalData);
+    thread_t* CreatThread(uintptr_t entryPoint, uint64_t externalData);
+    thread_t* CreatThread(uintptr_t entryPoint, uint8_t priviledge, uint64_t externalData);
     thread_t* DuplicateThread(thread_t* source, uint64_t externalData);
 }__attribute__((packed));  
 
 struct thread_t{
     /* ID infos */
     uint64_t TID;
+    SelfData* threadData;
 
     /* Thread infos */
     threadInfo_t* Info;
-    void* EntryPoint;
+    uintptr_t EntryPoint;
 
     /* Memory */
     pagetable_t Paging;
@@ -96,7 +93,7 @@ struct thread_t{
 
     /* Context info */
     struct ContextStack* Regs; 
-    void* SIMDSaver;
+    uintptr_t SIMDSaver;
     StackInfo* Stack; 
     uint64_t CoreID;
     bool IsBlock;
@@ -138,7 +135,7 @@ struct thread_t{
     void SetupStack();
     void CopyStack(thread_t* source);
     bool ExtendStack(uint64_t address);
-    KResult ShareDataUsingStackSpace(void* data, size_t size, uint64_t* location);
+    KResult ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t* location);
 
     bool Fork(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread, Parameters* FunctionParameters);
     bool Fork(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread);
@@ -162,21 +159,21 @@ class TaskManager{
 
         // threads
         thread_t* GetTread();
-        uint64_t CreatThread(thread_t** self, process_t* proc, void* entryPoint, uint64_t externalData);
-        uint64_t CreatThread(thread_t** self, process_t* proc, void* entryPoint, uint8_t privilege, uint64_t externalData);
+        uint64_t CreatThread(thread_t** self, process_t* proc, uintptr_t entryPoint, uint64_t externalData);
+        uint64_t CreatThread(thread_t** self, process_t* proc, uintptr_t entryPoint, uint8_t privilege, uint64_t externalData);
         uint64_t DuplicateThread(thread_t** self, process_t* proc, thread_t* source, uint64_t externalData);
         uint64_t ExecThread(thread_t* self, Parameters* FunctionParameters);
         uint64_t Pause(ContextStack* Registers, uint64_t CoreID, thread_t* task); 
         uint64_t Unpause(thread_t* task); 
         uint64_t Exit(ContextStack* Registers, uint64_t CoreID, thread_t* task); 
-        uint64_t ShareDataUsingStackSpace(thread_t* self, void* data, size_t size, uint64_t* location);
+        uint64_t ShareDataUsingStackSpace(thread_t* self, uintptr_t data, size_t size, uint64_t* location);
 
         // process
         uint64_t CreatProcess(process_t** key, uint8_t priviledge, uint64_t externalData);
 
         void CreatIddleTask();   
 
-        void InitScheduler(uint8_t NumberOfCores, void* IddleTaskFunction); 
+        void InitScheduler(uint8_t NumberOfCores, uintptr_t IddleTaskFunction); 
         void EnabledScheduler(uint64_t CoreID);
         thread_t* GetCurrentThread(uint64_t CoreID);
 
@@ -190,7 +187,7 @@ class TaskManager{
         uint64_t NumberOfCPU = 0;
         uint64_t CurrentTaskExecute = 0;
         uint64_t IddleTaskNumber = 0;
-        void* IddleTaskPointer = 0;
+        uintptr_t IddleTaskPointer = 0;
         uint64_t PID = 0;
 
         thread_t* FirstNode;
@@ -202,7 +199,7 @@ class TaskManager{
         thread_t* IdleNode[MAX_PROCESSORS];    
         Node* GlobalProcessNode;
 
-        void* globalAddressForStackSpaceSharing;
+        uintptr_t globalAddressForStackSpaceSharing;
 };
 
 

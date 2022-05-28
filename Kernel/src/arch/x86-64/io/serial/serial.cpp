@@ -58,7 +58,7 @@ namespace SerialPort{
                 Print(va_arg(args, const char*)); //string
                 index++;
             } else if (str[index] == '%' && str[index+1] == 'p') {
-                Print(to_string((uint64_t)va_arg(args, void*))); //address
+                Print(to_string((uint64_t)va_arg(args, uintptr_t))); //address
                 index++;
             } else {
                 Print(to_string(str[index])); //char
