@@ -4,7 +4,7 @@ GLOBAL Trampoline
 
 %define CODE_SEG     0x0008
 %define DATA_SEG     0x0010
-%define Target(addr) ((addr - Trampoline) + 0x8000)
+%define Target(addr) ((addr - Trampoline) + 0x1000)
 
 ;------------------------------Code-----------------------------------
 
