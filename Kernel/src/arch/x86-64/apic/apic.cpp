@@ -170,7 +170,7 @@ namespace APIC{
     }
 
     void LoadCores(){
-        uintptr_t TrampolineVirtualAddress = (uintptr_t)vmm_GetVirtualAddress(0x8000);
+        uintptr_t TrampolineVirtualAddress = (uintptr_t)vmm_GetVirtualAddress(0x1000);
 
         memcpy((uintptr_t)TrampolineVirtualAddress, (uintptr_t)&Trampoline, PAGE_SIZE);
 
@@ -178,7 +178,7 @@ namespace APIC{
 
         
         //temp trampoline map
-        vmm_Map((uintptr_t)0x8000, (uintptr_t)0x8000);
+        vmm_Map((uintptr_t)TRAMPOLINE_ADDRESS, (uintptr_t)TRAMPOLINE_ADDRESS);
 
         for(int i = 0; i < ProcessorCount; i++){ 
             if(Processor[i]->APICID == Processor[CPU::GetAPICID()]->APICID) continue; 
@@ -192,7 +192,7 @@ namespace APIC{
 
             DataTrampoline.Status = 0;
             // send STARTUP IPI twice 
-            lapicSendStartupIPI(Processor[i]->APICID, (uintptr_t)0x8000);
+            lapicSendStartupIPI(Processor[i]->APICID, (uintptr_t)TRAMPOLINE_ADDRESS);
             
             globalLogs->Warning("Wait processor %u", i);
 
@@ -202,7 +202,7 @@ namespace APIC{
             globalLogs->Successful("Processor %u respond with success", i);
         }
         DataTrampoline.Status = 0xff;
-        vmm_Unmap((uintptr_t)0x8000);
+        vmm_Unmap((uintptr_t)TRAMPOLINE_ADDRESS);
 
     }  
 

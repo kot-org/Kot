@@ -3,7 +3,7 @@
 </p>
 
 # KonectOS 2
-A 64-bit x86 operating system written in C++, which boots from UEFI
+A 64-bit x86 operating system
 
 # Road map
 
@@ -32,5 +32,5 @@ A 64-bit x86 operating system written in C++, which boots from UEFI
 
 # Documentation:
 
-* To issue a syscall, use the intrerrupt 0x80 (in assembly int 80h or int 0x80)
+* To issue a syscall, use the syscall instruction 
 

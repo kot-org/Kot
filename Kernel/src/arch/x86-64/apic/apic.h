@@ -5,9 +5,12 @@
 #include <drivers/acpi/acpi.h>
 
 namespace APIC{
-    #define LOCAL_APIC_ENABLE 0x800
-    #define LOCAL_APIC_SPURIOUS_ALL 0x100
+    #define LOCAL_APIC_ENABLE               0x800
+    #define LOCAL_APIC_SPURIOUS_ALL         0x100
     #define LOCAL_APIC_SPURIOUS_ENABLE_APIC 0xff
+
+    #define TRAMPOLINE_ADDRESS  0x1000
+    #define TRAMPOLINE_SIZE     0x1000
 
     struct EntryRecord{
         uint8_t Type;
