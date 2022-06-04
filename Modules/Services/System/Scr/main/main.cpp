@@ -80,6 +80,7 @@ void readBMP(struct stivale2_struct_tag_framebuffer* framebuffer, uintptr_t buff
     }
 }
 
+
 int main(struct KernelInfo* kernelInfo, uint64_t squareX){
     Rectangle(&kernelInfo->framebuffer, 20, 20, squareX, 20, squareX * 0x10, 0x20, squareX);
     kthread_t self;
@@ -94,18 +95,38 @@ int main(struct KernelInfo* kernelInfo, uint64_t squareX){
         readBMP(&kernelInfo->framebuffer, BufferWallpaper, Wallpaper->size, kernelInfo->framebuffer.framebuffer_height, 0, 0, false);
     }
 
-    ramfs::File* InitFile = ramfs::FindInitFile();
+    /* Load services */
+
+    ramfs::File* InitFile = ramfs::Find("Starter.cfg");
     
     if(InitFile != NULL){
-        uintptr_t BufferInitFile = malloc(InitFile->size);
+        char* BufferInitFile = (char*)malloc(InitFile->size + 1);
         ramfs::Read(InitFile, BufferInitFile);
-        kthread_t thread = NULL;
-        ELF::loadElf(BufferInitFile, 1, 0x0, &thread);
-        parameters_t* InitParameters = (parameters_t*)calloc(sizeof(parameters_t));
-        SYS_ShareDataUsingStackSpace(thread, (uint64_t)kernelInfo, sizeof(KernelInfo), &InitParameters->Parameter0);
-        InitParameters->Parameter1 = (uint64_t)squareX + 20;
-        Sys_ExecThread(thread, InitParameters);
+        BufferInitFile[InitFile->size + 1] = NULL;
+        char* app;
+        uint8_t index = 0;
+
+        Sys_Logs(BufferInitFile, InitFile->size);
+        char** ServicesInfo = strsplit(BufferInitFile, "\n");
+        for(uint64_t i = 0; ServicesInfo[i] != NULL; i++){
+            char** Info = strsplit(ServicesInfo[i], ", ");
+            Sys_Logs(Info[0], strlen(Info[0]));
+            ramfs::File* ServiceFile = ramfs::Find(Info[0]);
+            if(ServiceFile != NULL){
+                uintptr_t BufferServiceFile = malloc(ServiceFile->size);
+                kthread_t thread = NULL;
+                ELF::loadElf(BufferServiceFile, atoi(Info[1]), 0x0, &thread);
+                parameters_t* InitParameters = (parameters_t*)calloc(sizeof(parameters_t));
+                Sys_ExecThread(thread, InitParameters);
+            }
+        }
     } 
+    // kthread_t thread = NULL;
+    // ELF::loadElf(BufferInitFile, 1, 0x0, &thread);
+    // parameters_t* InitParameters = (parameters_t*)calloc(sizeof(parameters_t));
+    // SYS_ShareDataUsingStackSpace(thread, (uint64_t)kernelInfo, sizeof(KernelInfo), &InitParameters->Parameter0);
+    // InitParameters->Parameter1 = (uint64_t)squareX + 20;
+    // Sys_ExecThread(thread, InitParameters);
     
     SYS_Pause(self);
 }

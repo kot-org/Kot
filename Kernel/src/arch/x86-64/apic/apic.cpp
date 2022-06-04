@@ -20,10 +20,6 @@ namespace APIC{
         IsoCount = 0;
         uint64_t MaxAPICID = 1;
 
-        if(madt == 0){
-            return;
-        }
-
         uint64_t entries = (madt->Header.Length - sizeof(ACPI::MADTHeader));
 
         for(uint64_t i = 0; i < entries;){

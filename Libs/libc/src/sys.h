@@ -57,8 +57,9 @@ KResult SYS_CreatShareSpace(kprocess_t self, size_t size, uintptr_t* virtualAddr
 KResult SYS_GetShareSpace(kprocess_t self, ksmem_t key, uintptr_t* virtualAddressPointer);
 KResult SYS_FreeShareSpace(kprocess_t self, ksmem_t key, uintptr_t address);
 KResult SYS_ShareDataUsingStackSpace(kthread_t self, uint64_t address, size_t size, uint64_t* clientAddress);
-KResult SYS_Fork(kthread_t task, struct parameters_t* param);
+KResult Sys_CIP(kthread_t task, struct parameters_t* param);
 KResult Sys_CreatProc(kprocess_t* key, uint8_t privilege, uint64_t data);
+KResult Sys_Fork(kprocess_t* src, kprocess_t* dst);
 KResult Sys_CloseProc();
 KResult SYS_Exit(kthread_t self, uint64_t errorCode);
 KResult SYS_Pause(kthread_t self);
@@ -68,6 +69,7 @@ KResult SYS_Unmap(kprocess_t self, uintptr_t addressVirtual, size_t size);
 KResult Sys_CreatThread(kprocess_t self, uintptr_t entryPoint, uint8_t privilege, uint64_t data, kthread_t* result);
 KResult Sys_DuplicateThread(kprocess_t parent, kthread_t source, uint64_t data, kthread_t* self);
 KResult Sys_ExecThread(kthread_t self, struct parameters_t* parameters);
+KResult Sys_Logs(char* message, size_t size);
 
 
 KResult SYS_GetThreadKey(kthread_t* self);

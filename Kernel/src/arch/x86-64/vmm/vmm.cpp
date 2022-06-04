@@ -72,8 +72,6 @@ bool vmm_GetFlags(pagetable_t table, uintptr_t Address, vmm_flag flags){
         PDP = (vmm_page_table*)(vmm_GetAddress(&PDE) << 12);
         PDPVirtualAddress = (vmm_page_table*)(vmm_GetVirtualAddress(PDP)); 
     }
-    
-    PML4VirtualAddress->entries[indexer.PDP_i] = PDE;
 
     PDE = PDPVirtualAddress->entries[indexer.PD_i];
 
@@ -408,14 +406,14 @@ uintptr_t vmm_GetPhysical(pagetable_t table, uintptr_t Address){
 void vmm_CopyPageTable(pagetable_t tableSource, pagetable_t tableDestination, uint64_t from, uint64_t to){
     vmm_page_table* PML4VirtualAddressDestination = (vmm_page_table*)vmm_GetVirtualAddress(tableDestination);
     vmm_page_table* PML4VirtualAddressSource = (vmm_page_table*)vmm_GetVirtualAddress(tableSource);
-    for(int i = from; i < to; i++){
+    for(uint16_t i = from; i < to; i++){
         PML4VirtualAddressDestination->entries[i] = PML4VirtualAddressSource->entries[i];
     }
 }
 
 void vmm_Fill(pagetable_t table, uint64_t from, uint64_t to, bool user){
     vmm_page_table* PML4VirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(table);
-    for(int i = from; i < to; i++){
+    for(uint16_t i = from; i < to; i++){
         uint64_t PDE = PML4VirtualAddress->entries[i];
         vmm_page_table* PDP;
         vmm_page_table* PDPVirtualAddress;
@@ -522,4 +520,76 @@ pagetable_t vmm_SetupThread(pagetable_t parent){
     vmm_SetFlags(vmm_PageTable, (uintptr_t)VirtualAddress, vmm_flag::vmm_PhysicalStorage, false);
     vmm_SetFlags(vmm_PageTable, (uintptr_t)VirtualAddress, vmm_flag::vmm_Custom2, true);
     return PageTable;      
+}
+
+
+/* TODO */
+
+struct ScanTable_t{
+    uint16_t start;
+    uint16_t end;
+    uint16_t index;
+    vmm_page_table* Table;
+};
+
+uint64_t vmm_CopyProcessMemory(pagetable_t dst, pagetable_t src){
+    vmm_page_table* PML4VirtualAddressDestination = (vmm_page_table*)vmm_GetVirtualAddress(dst);
+    vmm_page_table* PML4VirtualAddressSource = (vmm_page_table*)vmm_GetVirtualAddress(src);
+
+    uint64_t memoryUsed = 0;
+
+    ScanTable_t scanner[VMM_MAXLEVEL];
+    scanner[0].start = VMM_STARTRHALF;
+    scanner[0].end = VMM_LOWERHALF;
+    scanner[0].index = scanner[0].start;
+    scanner[0].Table = PML4VirtualAddressSource;
+
+    for(uint8_t i = 1; i < VMM_MAXLEVEL; i++){
+        scanner[i].start = VMM_STARTRHALF;
+        scanner[i].end = VMM_HIGHERALF;
+        scanner[i].index = scanner[i].start;
+        scanner[i].Table = 0;
+    }
+
+    uint8_t index = 0;
+    uintptr_t PDP;
+    uint64_t PDE = PML4VirtualAddressSource->entries[scanner[0].start];
+    while(scanner[0].index < scanner[0].end){
+        while(scanner[index].index < scanner[index].end){
+            vmm_page_table* PDPVirtualAddress;
+            if(vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
+                if((index + 1) == VMM_MAXLEVEL){
+                    uintptr_t virtualAddress = (uintptr_t)vmm_MapAddress(scanner[index - 3].index, scanner[index - 2].index, scanner[index - 1].index, scanner[index].index);
+                    uintptr_t physicalAddress = (uintptr_t)Pmm_RequestPage();
+                    memoryUsed += PAGE_SIZE;
+                    vmm_Map(dst, virtualAddress, physicalAddress, vmm_GetFlag(&PDE, vmm_flag::vmm_User), vmm_GetFlag(&PDE, vmm_flag::vmm_ReadWrite), vmm_GetFlag(&PDE, vmm_flag::vmm_PhysicalStorage));
+                    uintptr_t physicalAddressSrc = (uintptr_t)(vmm_GetAddress(&PDE) << 12);
+                    uintptr_t virtualAddressSrc = (uintptr_t)vmm_GetVirtualAddress(physicalAddressSrc);
+                    uintptr_t virtualAddressDst = (uintptr_t)vmm_GetVirtualAddress(vmm_GetPhysical(dst, virtualAddress));
+                    memcpy(virtualAddressDst, virtualAddressSrc, PAGE_SIZE);
+                    PDE = PDPVirtualAddress->entries[scanner[index].index++];
+                }else{
+                    index++;                    
+                    PDP = (uintptr_t)((uint64_t)vmm_GetAddress(&PDE) << 12);
+                    PDPVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PDP); 
+                    scanner[index].Table = PDPVirtualAddress; 
+                    scanner[index].index = scanner[index].start;               
+                    PDE = scanner[index].Table->entries[scanner[index].index];
+                }
+            }else{
+                scanner[index].index++;
+                PDE = scanner[index].Table->entries[scanner[index].index];
+            }
+        }
+        scanner[index].index = scanner[index].start;
+        index--;
+        scanner[index].index++;
+        PDE = scanner[index].Table->entries[scanner[index].index];
+    }
+
+    return memoryUsed;
+}
+
+void vmm_ClearMemory(pagetable_t src){
+
 }

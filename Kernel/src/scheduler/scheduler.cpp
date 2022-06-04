@@ -143,7 +143,7 @@ uint64_t TaskManager::DuplicateThread(thread_t** self, process_t* proc, thread_t
     return KSUCCESS;
 }
 
-uint64_t TaskManager::ExecThread(thread_t* self, Parameters* FunctionParameters){
+uint64_t TaskManager::ExecThread(thread_t* self, parameters_t* FunctionParameters){
     self->Launch(FunctionParameters);
     return KSUCCESS;
 }
@@ -250,7 +250,6 @@ thread_t* process_t::CreatThread(uintptr_t entryPoint, uint8_t priviledge, uint6
 
     /* Setup priviledge */
     thread->Priviledge = priviledge;
-    thread->RingPL = GetRingPL(priviledge);
 
     /* Thread data */
     uintptr_t threadDataPA = Pmm_RequestPage();
@@ -261,15 +260,10 @@ thread_t* process_t::CreatThread(uintptr_t entryPoint, uint8_t priviledge, uint6
 
     vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
 
-    /* Setup registers */
     thread->EntryPoint = entryPoint;
-    thread->Regs->rip = (uint64_t)entryPoint;
-    thread->Regs->cs = (GDTInfoSelectorsRing[thread->RingPL].Code | thread->RingPL);
-    thread->Regs->ss = (GDTInfoSelectorsRing[thread->RingPL].Data | thread->RingPL);
-    thread->Regs->rflags.Reserved0 = true;
-    thread->Regs->rflags.IF = true;
-    thread->Regs->rflags.IOPL = 0;
-    thread->Regs->cr3 = (uint64_t)thread->Paging; 
+
+    /* Setup registers */
+    SetupRegistersForTask(thread);
 
     /* Setup SIMD */
     thread->SIMDSaver = simdCreatSaveSpace();
@@ -300,8 +294,6 @@ thread_t* process_t::CreatThread(uintptr_t entryPoint, uint8_t priviledge, uint6
 }
 
 thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
-    if(source->Parent != this) return NULL;
-
     thread_t* thread = (thread_t*)calloc(sizeof(thread_t));
     if(Childs == NULL){
         Childs = CreatNode((uintptr_t)0);
@@ -314,7 +306,7 @@ thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
     thread->Regs = (ContextStack*)calloc(sizeof(ContextStack));
 
     /* Copy paging */
-    thread->Paging = vmm_SetupThread(source->Parent->SharedPaging);
+    thread->Paging = vmm_SetupThread(SharedPaging);
 
     /* Load new stack */
     thread->SetupStack();
@@ -411,7 +403,7 @@ void TaskManager::CreatIddleTask(){
 
     IdleNode[IddleTaskNumber] = thread;
     IddleTaskNumber++;
-
+    
     thread->Launch();
 }
 void TaskManager::InitScheduler(uint8_t NumberOfCores, uintptr_t IddleTaskFunction){
@@ -472,7 +464,7 @@ void thread_t::CreatContext(ContextStack* Registers, uint64_t CoreID){
     memcpy(Registers, Regs, sizeof(ContextStack));
 }
 
-void thread_t::SetParameters(Parameters* FunctionParameters){
+void thread_t::SetParameters(parameters_t* FunctionParameters){
     Regs->arg0 = FunctionParameters->Parameter0;
     Regs->arg1 = FunctionParameters->Parameter1;
     Regs->arg2 = FunctionParameters->Parameter2;
@@ -495,7 +487,7 @@ bool thread_t::ExtendStack(uint64_t address){
     if(this->Stack->StackStart <= address) return false;
     if(address <= this->Stack->StackEndMax) return false;
     
-    vmm_Map(Paging, (uintptr_t)address, Pmm_RequestPage(), this->RingPL == UserAppRing, true, true);
+    vmm_Map(Paging, (uintptr_t)address, Pmm_RequestPage(), true, true, true);
 
     return true;
 }
@@ -524,18 +516,18 @@ KResult thread_t::ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t
     return KFAIL;
 }
 
-bool thread_t::Fork(ContextStack* Registers, uint64_t CoreID, thread_t* thread, Parameters* FunctionParameters){
+bool thread_t::CIP(ContextStack* Registers, uint64_t CoreID, thread_t* thread, parameters_t* FunctionParameters){
     if(FunctionParameters != NULL){
         thread->SetParameters(FunctionParameters);
     }
-    Fork(Registers, CoreID, thread);
+    CIP(Registers, CoreID, thread);
 }
     
-bool thread_t::Fork(ContextStack* Registers, uint64_t CoreID, thread_t* thread){
+bool thread_t::CIP(ContextStack* Registers, uint64_t CoreID, thread_t* thread){
     Atomic::atomicAcquire(&mutexScheduler, 1);
 
-    thread->IsForked = true;
-    thread->ForkedThread = this;
+    thread->IsCIP = true;
+    thread->TCIP = this;
 
     //Save context
     SaveContext(Registers, CoreID);
@@ -551,7 +543,7 @@ bool thread_t::Fork(ContextStack* Registers, uint64_t CoreID, thread_t* thread){
     return true;
 }
 
-bool thread_t::Launch(Parameters* FunctionParameters){
+bool thread_t::Launch(parameters_t* FunctionParameters){
     if(FunctionParameters != NULL){
         SetParameters(FunctionParameters);
     }
@@ -560,6 +552,9 @@ bool thread_t::Launch(Parameters* FunctionParameters){
 }
 
 bool thread_t::Launch(){
+    if(Parent->MainThread == NULL){
+        Parent->MainThread = this;
+    }
     IsBlock = false;
     Parent->TaskManagerParent->EnqueueTask(this);
     return true;
@@ -582,9 +577,9 @@ bool thread_t::Pause(ContextStack* Registers, uint64_t CoreID){
 }
 
 bool thread_t::Exit(ContextStack* Registers, uint64_t CoreID){
-    if(IsForked){
+    if(IsCIP){
         uint64_t ReturnValue = Registers->GlobalPurpose;
-        Parent->TaskManagerParent->SwitchTask(Registers, CoreID, ForkedThread);
+        Parent->TaskManagerParent->SwitchTask(Registers, CoreID, TCIP);
         Registers->GlobalPurpose = ReturnValue;
     }else if(IsEvent){
         Event::Exit(this);

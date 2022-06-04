@@ -5,7 +5,6 @@ namespace HPET{
     Timer timer;
 
     void InitialiseHPET(ACPI::HPETHeader* hpet){
-        if(hpet == NULL) return;
         HPETAddress = (uintptr_t)vmm_Map((uintptr_t)hpet->Address.Address);
 
         timer.Counter = (uint64_t*)((uint64_t)HPETAddress + MainCounterValues);
@@ -14,7 +13,6 @@ namespace HPET{
         ChangeMainTimerInterruptState(false);
         HPETWriteRegister(MainCounterValues, 0);
         ChangeMainTimerInterruptState(true);
-        ChangeMainTimerLegacyMappingState(true);
     }   
 
 

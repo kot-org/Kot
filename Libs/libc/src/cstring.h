@@ -11,6 +11,8 @@ extern "C" {
 int strlen(char* p);
 int strcmp(char* a, char* b);
 int strncmp(char* a, char* b, size_t len);
+char** strsplit(char* str, const char* delimiters);
+int atoi(const char* str);
 
 #if defined(__cplusplus)
 }

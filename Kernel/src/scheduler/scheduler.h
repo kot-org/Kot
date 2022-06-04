@@ -54,6 +54,7 @@ struct process_t{
     uint64_t MemoryAllocated;
 
     /* Childs */
+    thread_t* MainThread;
     Node* Childs;
     uint64_t TID;
     uint64_t NumberOfThread;
@@ -111,9 +112,9 @@ struct thread_t{
     process_t* Parent;
     Node* ThreadNode;
     
-    /* Fork */
-    bool IsForked;
-    thread_t* ForkedThread;
+    /* CIP */
+    bool IsCIP;
+    thread_t* TCIP;
 
     /* Event */
     bool IsEvent;
@@ -130,17 +131,17 @@ struct thread_t{
     void SaveContext(struct ContextStack* Registers, uint64_t CoreID);
     void CreatContext(struct ContextStack* Registers, uint64_t CoreID);
 
-    void SetParameters(Parameters* FunctionParameters);
+    void SetParameters(parameters_t* FunctionParameters);
 
     void SetupStack();
     void CopyStack(thread_t* source);
     bool ExtendStack(uint64_t address);
     KResult ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t* location);
 
-    bool Fork(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread, Parameters* FunctionParameters);
-    bool Fork(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread);
+    bool CIP(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread, parameters_t* FunctionParameters);
+    bool CIP(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread);
 
-    bool Launch(Parameters* FunctionParameters);  
+    bool Launch(parameters_t* FunctionParameters);  
     bool Launch();  
     bool Pause(ContextStack* Registers, uint64_t CoreID);   
     bool Exit(ContextStack* Registers, uint64_t CoreID);  
@@ -162,12 +163,11 @@ class TaskManager{
         uint64_t CreatThread(thread_t** self, process_t* proc, uintptr_t entryPoint, uint64_t externalData);
         uint64_t CreatThread(thread_t** self, process_t* proc, uintptr_t entryPoint, uint8_t privilege, uint64_t externalData);
         uint64_t DuplicateThread(thread_t** self, process_t* proc, thread_t* source, uint64_t externalData);
-        uint64_t ExecThread(thread_t* self, Parameters* FunctionParameters);
+        uint64_t ExecThread(thread_t* self, parameters_t* FunctionParameters);
         uint64_t Pause(ContextStack* Registers, uint64_t CoreID, thread_t* task); 
         uint64_t Unpause(thread_t* task); 
         uint64_t Exit(ContextStack* Registers, uint64_t CoreID, thread_t* task); 
         uint64_t ShareDataUsingStackSpace(thread_t* self, uintptr_t data, size_t size, uint64_t* location);
-
         // process
         uint64_t CreatProcess(process_t** key, uint8_t priviledge, uint64_t externalData);
 

@@ -75,16 +75,16 @@ KResult Sys_ShareDataUsingStackSpace(ContextStack* Registers, thread_t* Thread){
     return globalTaskManager->ShareDataUsingStackSpace(threadkey, (uintptr_t)Registers->arg1, Registers->arg2, (uint64_t*)Registers->arg3);
 }
 
-/* Sys_Fork :
+/* Sys_CIP :
     Arguments : 
 */
-KResult Sys_Fork(ContextStack* Registers, thread_t* Thread){
+KResult Sys_CIP(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     Registers->InterruptNumber = 1;
     CPU::DisableInterrupts();
-    Thread->Fork(Registers, Thread->CoreID, threadkey, (Parameters*)Registers->arg1);
+    Thread->CIP(Registers, Thread->CoreID, threadkey, (parameters_t*)Registers->arg1);
     return KSUCCESS;
 }
 
@@ -304,16 +304,29 @@ KResult Sys_ExecThread(ContextStack* Registers, thread_t* Thread){
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(CheckAddress((uintptr_t)Registers->arg1, sizeof(Parameters)) != KSUCCESS) return KMEMORYVIOLATION;    
-    return globalTaskManager->ExecThread(threadkey, (Parameters*)Registers->arg1);
+    return globalTaskManager->ExecThread(threadkey, (parameters_t*)Registers->arg1);
 }
 
+/* KSys_Logs :
+    Arguments : 
+    0 -> string             > char*
+    1 -> size               > size_t
+*/
+KResult Sys_Logs(ContextStack* Registers, thread_t* Thread){
+    if(CheckAddress((uintptr_t)Registers->arg0, Registers->arg1) != KSUCCESS) return KMEMORYVIOLATION;
+    char* message = (char*)malloc(Registers->arg1 + 1);
+    memcpy(message, (uintptr_t)Registers->arg0, Registers->arg1);
+    message[Registers->arg1] = NULL;
+    globalLogs->Message("[Process 0x%x] '%s'", Thread->Parent->PID, message);
+    return KSUCCESS;
+}
 
-static SyscallHandler SyscallHandlers[Syscall_Count] = { 
+static SyscallHandler SyscallHandlers[20] = { 
     [KSys_CreatShareMemory] = Sys_CreatShareMemory,
     [KSys_GetShareMemory] = Sys_GetShareMemory,
     [KSys_FreeShareMemory] = Sys_FreeShareMemory,
     [KSys_ShareDataUsingStackSpace] = Sys_ShareDataUsingStackSpace,
-    [KSys_Fork] = Sys_CreatProc,
+    [KSys_CIP] = Sys_CIP,
     [KSys_CreatProc] = Sys_CreatProc,
     [KSys_CloseProc] = Sys_CloseProc,
     [KSys_Exit] = Sys_Exit,
@@ -328,6 +341,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_CreatThread] = Sys_CreatThread,
     [KSys_DuplicateThread] = Sys_DuplicateThread,
     [KSys_ExecThread] = Sys_ExecThread,
+    [KSys_Logs] = Sys_Logs,
 };
 
 extern "C" void SyscallDispatch(ContextStack* Registers, thread_t* Self){

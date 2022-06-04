@@ -61,6 +61,8 @@ uint64_t vmm_Init(struct BootInfo* bootInfo);
 
 pagetable_t vmm_SetupProcess();
 pagetable_t vmm_SetupThread(pagetable_t parent);
+uint64_t vmm_CopyProcessMemory(pagetable_t dst, pagetable_t src);
+void vmm_ClearMemory(pagetable_t src);
 
 #define VMM_STARTRHALF 0x0
 #define VMM_LOWERHALF 0x100

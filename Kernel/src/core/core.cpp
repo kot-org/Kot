@@ -14,7 +14,7 @@ extern "C" void main(uintptr_t boot)
         ramfs::Read(InitFile, BufferInitFile);
         thread_t* mainThread;
         ELF::loadElf(BufferInitFile, Priviledge_Service, &mainThread);
-        Parameters* InitParameters = (Parameters*)malloc(sizeof(Parameters));
+        parameters_t* InitParameters = (parameters_t*)malloc(sizeof(Parameters));
         mainThread->ShareDataUsingStackSpace(kernelInfo, sizeof(KernelInfo), &InitParameters->Parameter0);
         InitParameters->Parameter1 = (uint64_t)0x0;
         mainThread->Launch(InitParameters);
@@ -22,6 +22,7 @@ extern "C" void main(uintptr_t boot)
     }else{
         globalLogs->Error("Can't load initialization file");
     }
+
     
     globalTaskManager->EnabledScheduler(CPU::GetAPICID());
 

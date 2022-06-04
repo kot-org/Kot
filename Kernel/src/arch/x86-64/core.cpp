@@ -1,13 +1,25 @@
 #include <arch/x86-64.h>
 
 void InitializeACPI(BootInfo* bootInfo){
+    if(bootInfo->RSDP == NULL){
+        KernelPanic("RSDP not found");
+    }
+
     ACPI::RSDP2* RSDP = (ACPI::RSDP2*)bootInfo->RSDP->rsdp;
 
     ACPI::MADTHeader* madt = (ACPI::MADTHeader*)ACPI::FindTable(RSDP, (char*)"APIC");
+    if(madt == NULL){
+        KernelPanic("APIC not found");
+    }
+
     APIC::InitializeMADT(madt);
     globalLogs->Successful("APIC intialize");
 
     ACPI::HPETHeader* hpet = (ACPI::HPETHeader*)ACPI::FindTable(RSDP, (char*)"HPET");
+    if(hpet == NULL){
+        KernelPanic("HPET not found");
+    }
+    
     HPET::InitialiseHPET(hpet);
     globalLogs->Successful("HPET intialize");
 }
@@ -90,4 +102,21 @@ void StopAllCPU(){
     while(true){
         asm("hlt");
     }
+}
+
+void SetupRegistersForTask(thread_t* self){
+    self->Regs->rip = (uint64_t)self->EntryPoint;
+    self->RingPL = GetRingPL(self->Priviledge);
+    self->Regs->cs = (GDTInfoSelectorsRing[self->RingPL].Code | self->RingPL);
+    self->Regs->ss = (GDTInfoSelectorsRing[self->RingPL].Data | self->RingPL);
+    self->Regs->rflags.Reserved0 = true;
+    self->Regs->rflags.IF = true;
+    if(self->Priviledge == Priviledge_Driver){
+        // Allow IO
+        self->Regs->rflags.IOPL = 0x3;
+        // Allow CPUID
+        self->Regs->rflags.ID = true;
+    }
+    self->Regs->rflags.IOPL = 0;
+    self->Regs->cr3 = (uint64_t)self->Paging; 
 }

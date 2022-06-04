@@ -93,7 +93,7 @@ namespace Event{
         if(self == NULL) return KFAIL;
         Atomic::atomicAcquire(&self->Lock, 0);
 
-        Parameters* FunctionParameters = (Parameters*)calloc(sizeof(Parameters));
+        parameters_t* FunctionParameters = (parameters_t*)calloc(sizeof(Parameters));
 
         size_t EventStructSize = 0;
         switch (self->Type){

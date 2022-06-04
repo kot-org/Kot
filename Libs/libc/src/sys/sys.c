@@ -18,8 +18,8 @@ KResult SYS_ShareDataUsingStackSpace(kthread_t self, uint64_t address, size_t si
     return Syscall_32(KSys_ShareDataUsingStackSpace, self, address, size, clientAddress);
 }
 
-KResult SYS_Fork(kthread_t task, struct parameters_t* param){
-    return Syscall_16(KSys_Fork, task, param);
+KResult Sys_CIP(kthread_t task, struct parameters_t* param){
+    return Syscall_16(KSys_CIP, task, param);
 }
 
 KResult Sys_CreatProc(kprocess_t* key, uint8_t privilege, uint64_t data){
@@ -76,6 +76,10 @@ KResult Sys_DuplicateThread(kprocess_t parent, kthread_t source, uint64_t data, 
 
 KResult Sys_ExecThread(kthread_t self, struct parameters_t* parameters){
     return Syscall_16(KSys_ExecThread, self, parameters);
+}
+
+KResult Sys_Logs(char* message, size_t size){
+    return Syscall_16(KSys_Logs, message, size);
 }
 
 

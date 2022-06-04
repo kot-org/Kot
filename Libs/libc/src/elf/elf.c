@@ -1,7 +1,7 @@
 // #include <elf/elf.h>
 
 // namespace ELF{
-//     KResult loadElf(uintptr_t buffer, uint8_t ring, Parameters* FunctionParameters){
+//     KResult loadElf(uintptr_t buffer, uint8_t ring, parameters_t* FunctionParameters){
 //         elf_t* self = (elf_t*)calloc(sizeof(elf_t));
 //         self->Buffer = buffer;
 //         self->Header = (Elf64_Ehdr*)buffer;
