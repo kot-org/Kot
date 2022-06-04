@@ -73,23 +73,24 @@ KernelInfo* arch_initialize(uintptr_t boot){
 
     //frame buffer
     memcpy(&kernelInfo->framebuffer, bootInfo->Framebuffer, sizeof(stivale2_struct_tag_framebuffer));
+    kernelInfo->framebuffer.framebuffer_addr = kernelInfo->framebuffer.framebuffer_addr - vmm_HHDMAdress;
 
     //ramfs
     memcpy(&kernelInfo->ramfs, &bootInfo->ramfs, sizeof(ramfs_t));
 
     //memory info
-    kernelInfo->memoryInfo = &memoryInfo;
+    kernelInfo->memoryInfo = (memoryInfo_t*)vmm_GetPhysical(vmm_PageTable, &memoryInfo);
 
     //smbios
     if(bootInfo->smbios->smbios_entry_32 != 0){
-        kernelInfo->smbios = (uintptr_t)bootInfo->smbios->smbios_entry_32;
+        kernelInfo->smbios = (uintptr_t)(bootInfo->smbios->smbios_entry_32 - vmm_HHDMAdress);
     }else if(bootInfo->smbios->smbios_entry_64 != 0){
-        kernelInfo->smbios = (uintptr_t)bootInfo->smbios->smbios_entry_64;
+        kernelInfo->smbios = (uintptr_t)(bootInfo->smbios->smbios_entry_64 - vmm_HHDMAdress);
     }
     
 
     //rsdp
-    kernelInfo->rsdp = (uintptr_t)bootInfo->RSDP->rsdp;
+    kernelInfo->rsdp = (uintptr_t)(bootInfo->RSDP->rsdp - vmm_HHDMAdress);
 
     return kernelInfo;
 }
@@ -117,6 +118,6 @@ void SetupRegistersForTask(thread_t* self){
         // Allow CPUID
         self->Regs->rflags.ID = true;
     }
-    self->Regs->rflags.IOPL = 0;
+    self->IOPL = self->Regs->rflags.IOPL;
     self->Regs->cr3 = (uint64_t)self->Paging; 
 }

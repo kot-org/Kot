@@ -123,3 +123,7 @@ int atoi(const char* str){
     }
     return base * sign;
 }
+
+void strcpy(char* to, char* from){
+    while(*to++ = *from++);
+}

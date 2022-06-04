@@ -27,6 +27,8 @@ struct KotSpecificData_t{
     uint64_t HeapLocation;
     /* IPC */
     kthread_t IPCDispatcher;
+    /* FreeMemory */
+    uintptr_t FreeMemory;
 }__attribute__((aligned(0x1000)));
 
 extern struct KotSpecificData_t KotSpecificData;

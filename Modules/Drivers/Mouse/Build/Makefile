@@ -37,7 +37,7 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 
 link:
 	@ echo !==== LINKING
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Wm.elf $(OBJS) $(OBJSCPP)
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Mouse.elf $(OBJS) $(OBJSCPP)
 	
 copyToFS:
 	./../../../../Tools/Buildramfs.sh

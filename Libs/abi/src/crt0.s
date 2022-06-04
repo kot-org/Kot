@@ -7,7 +7,10 @@
 .section .text
 
 exit:
-
+	mov rdi, [gs:0x0]
+	mov rsi, rax
+	mov rax, 0x7
+	syscall
 
 _start:
 	call main

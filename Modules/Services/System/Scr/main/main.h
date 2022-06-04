@@ -3,7 +3,7 @@
 #include <elf/elf.h>
 #include <fs/ramfs/ramfs.h>
 
-struct stivale2_struct_tag_framebuffer {
+struct framebuffer_t{
     uint64_t identifier;
     uint64_t NAME;
     uint64_t framebuffer_addr;
@@ -22,8 +22,8 @@ struct stivale2_struct_tag_framebuffer {
 };
 
 struct ramfs_t{
-	uintptr_t ramfsBase;
-	size_t Size;
+	uintptr_t address;
+	size_t size;
 }__attribute__((packed));
 
 struct memoryInfo_t{
@@ -33,15 +33,17 @@ struct memoryInfo_t{
     uint64_t usedPageMemory;    
 }__attribute__((packed));
 
-struct Timer{
-    uint64_t* Counter;
-    uint64_t Frequency;
-}__attribute__((packed));
+#define KERNEL_INFO_SIZE 0x5
 
 struct KernelInfo{
-    struct stivale2_struct_tag_framebuffer framebuffer;
+    struct framebuffer_t framebuffer;
     struct ramfs_t ramfs;
     struct memoryInfo_t* memoryInfo;
     uintptr_t smbios;
     uintptr_t rsdp;
+}__attribute__((packed));
+
+struct InfoSlot{
+    size_t size;
+    uintptr_t address;
 }__attribute__((packed));

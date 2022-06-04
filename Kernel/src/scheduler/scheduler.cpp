@@ -597,9 +597,3 @@ bool thread_t::Exit(ContextStack* Registers, uint64_t CoreID){
     free(this);
     return true;
 }
-
-bool thread_t::SetIOPriviledge(ContextStack* Registers, uint8_t IOPL){
-    Registers->rflags.IOPL = (IOPL & 0b11);
-    this->IOPL = IOPL & 0b11;
-    return true;
-}

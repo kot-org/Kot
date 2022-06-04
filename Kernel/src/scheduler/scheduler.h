@@ -15,6 +15,7 @@ class TaskManager;
 #define StackTop vmm_MapAddress(0x100, 0, 0, 0)
 #define StackBottom SelfDataEndAddress 
 #define LockAddress vmm_MapAddress(0xfe, 0, 0, 0) 
+#define FreeMemoryAddress vmm_MapAddress(0xfe, 0, 0, 0) 
 #define DefaultFlagsKey 0xff
 #define ShareMaxIntoStackSpace PAGE_SIZE * 0x10
 
@@ -144,9 +145,7 @@ struct thread_t{
     bool Launch(parameters_t* FunctionParameters);  
     bool Launch();  
     bool Pause(ContextStack* Registers, uint64_t CoreID);   
-    bool Exit(ContextStack* Registers, uint64_t CoreID);  
-
-    bool SetIOPriviledge(ContextStack* Registers, uint8_t IOPL);
+    bool Exit(ContextStack* Registers, uint64_t CoreID);
 }__attribute__((packed));  
 
 class TaskManager{
