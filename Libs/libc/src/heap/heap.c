@@ -146,9 +146,7 @@ void MergeNextToThisUser(struct SegmentHeader* header){
 }
 
 void free(uintptr_t address){
-    if(address != NULL){
-        atomicAcquire(&mutexHeap, 0);
-        
+    if(address != NULL){        
         struct SegmentHeader* header = (struct SegmentHeader*)(uintptr_t)((uint64_t)address - sizeof(struct SegmentHeader));
         header->IsFree = true;
         heap.FreeSize += header->length + sizeof(struct SegmentHeader);
@@ -213,7 +211,6 @@ void SplitSegmentUser(struct SegmentHeader* segment, size_t size){
         segment->next = newSegment;
         segment->length = size;        
     }
-
 }
 
 void ExpandHeapUser(size_t length){

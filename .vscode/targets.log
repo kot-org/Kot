@@ -1,6 +1,4 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
-make: *** No rule to make target 'all'.  Stop.
-
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
@@ -8,7 +6,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sat Jun  4 17:52:44 2022
+# Make data base, printed on Sun Jun  5 17:26:08 2022
 
 # Variables
 
@@ -57,7 +55,7 @@ PATH = /home/konect/.vscode-server/bin/c3511e6c69bb39013c4a4b7b9566ec1ca73fc4d5/
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-407da20f-9ea9-4646-8a5f-c433b34c53f5.sock
+VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-8c05f07b-9d4f-4414-a615-57ddd8e3f263.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -79,7 +77,7 @@ LESSCLOSE = /usr/bin/lesspipe %s %s
 # environment
 LOGNAME = konect
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # automatic
@@ -215,6 +213,8 @@ GNUmakefile:
 # strcache performance: lookups = 31 / hit rate = 9%
 # hash-table stats:
 # Load=28/8192=0%, Rehash=0, Collisions=1/31=3%
-# Finished Make data base on Sat Jun  4 17:52:44 2022
+# Finished Make data base on Sun Jun  5 17:26:08 2022
 
  
+make: *** No rule to make target 'all'.  Stop.
+

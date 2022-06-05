@@ -169,9 +169,7 @@ uint64_t TaskManager::Unpause(thread_t* task){
     return KSUCCESS;
 } 
 
-uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* task){
-    Atomic::atomicAcquire(&mutexScheduler, 1);
-    
+uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* task){    
     if(task->IsInQueue){
         Atomic::atomicAcquire(&mutexScheduler, 1);
         DequeueTask(task);
@@ -184,8 +182,6 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* t
     }
 
     /* TODO clear task data */
-
-    Atomic::atomicUnlock(&mutexScheduler, 1);
     return KSUCCESS;
 }
 uint64_t TaskManager::ShareDataUsingStackSpace(thread_t* self, uintptr_t data, size_t size, uint64_t* location){

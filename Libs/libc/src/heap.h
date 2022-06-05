@@ -12,8 +12,7 @@ struct SegmentHeader{
     struct SegmentHeader* next;
     struct SegmentHeader* last;
     uint32_t singature;
-    uint8_t reserved[3];
-}__attribute__((packed));
+}__attribute__((aligned(0x10)));
 
 struct heap_t{
     struct SegmentHeader* lastSegment;

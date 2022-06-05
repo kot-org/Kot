@@ -8,15 +8,15 @@ void InitializeHeap(uintptr_t heapAddress, size_t pageCount){
     uintptr_t NewPhysicalAddress = Pmm_RequestPage();
     globalHeap.heapEnd = (uintptr_t)((uint64_t)globalHeap.heapEnd - PAGE_SIZE);
     vmm_Map(vmm_PageTable, globalHeap.heapEnd, NewPhysicalAddress, false, true, true);
-    globalHeap.mainSegment = (SegmentHeader*)((uint64_t)globalHeap.heapEnd + (PAGE_SIZE - sizeof(SegmentHeader)));
+    globalHeap.mainSegment = (SegmentHeader*)((uint64_t)globalHeap.heapEnd + ((uint64_t)PAGE_SIZE - sizeof(SegmentHeader)));
     globalHeap.mainSegment->singature = 0xff;
     globalHeap.mainSegment->length = 0;
     globalHeap.mainSegment->IsFree = false;
     globalHeap.mainSegment->last = NULL;
-    globalHeap.mainSegment->next = (SegmentHeader*)((uint64_t)globalHeap.mainSegment - PAGE_SIZE + sizeof(SegmentHeader));
+    globalHeap.mainSegment->next = (SegmentHeader*)((uint64_t)globalHeap.mainSegment - (uint64_t)PAGE_SIZE + sizeof(SegmentHeader));
 
     globalHeap.mainSegment->next->IsFree = true;
-    globalHeap.mainSegment->next->length = PAGE_SIZE - sizeof(SegmentHeader) - sizeof(SegmentHeader); /* remove twice because we have the main and new header in the same page */
+    globalHeap.mainSegment->next->length = (uint64_t)PAGE_SIZE - sizeof(SegmentHeader) - sizeof(SegmentHeader); /* remove twice because we have the main and new header in the same page */
     globalHeap.mainSegment->next->singature = 0xff;
     globalHeap.mainSegment->next->last = globalHeap.mainSegment;
     globalHeap.mainSegment->next->next = NULL;
@@ -110,7 +110,7 @@ void MergeNextAndThisToLast(SegmentHeader* header){
     memset(header, 0, sizeof(SegmentHeader));
 }
 
-void MergeThisToLast(SegmentHeader* header){
+void MergeNextToThis(SegmentHeader* header){
     // merge this segment into the last segment
     header->last->length += header->length + sizeof(SegmentHeader);
     header->last->next = header->next;
@@ -132,13 +132,15 @@ void MergeThisToLast(SegmentHeader* header){
     memset(header, 0, sizeof(SegmentHeader));
 }
 
-void MergeNextToThis(SegmentHeader* header){
+void MergeThisToLast(SegmentHeader* header){
     // merge this segment into the next segment
 
     SegmentHeader* headerNext = header->next;
-    header->length += header->next->length + sizeof(SegmentHeader);
-    header->next = header->next->next;
-    if(header->next != NULL) header->next->last = header;
+    header->length += headerNext->length + sizeof(SegmentHeader);
+    header->next = headerNext->next;
+    if(headerNext->next != NULL){
+        headerNext->next->last = header;
+    }
     if(headerNext == globalHeap.lastSegment){
         globalHeap.lastSegment = header;
     }
@@ -234,7 +236,7 @@ void ExpandHeap(size_t length){
 
     for (size_t i = 0; i < pageCount; i++){
         uintptr_t NewPhysicalAddress = Pmm_RequestPage();
-        globalHeap.heapEnd = (uintptr_t)((uint64_t)globalHeap.heapEnd - PAGE_SIZE);
+        globalHeap.heapEnd = (uintptr_t)((uint64_t)globalHeap.heapEnd - (uint64_t)PAGE_SIZE);
         vmm_Map(vmm_PageTable, globalHeap.heapEnd, NewPhysicalAddress, false, true, true);
     }
 

@@ -56,8 +56,6 @@ void InitializeInterrupts(){
         }
     }
 
-    // SetIDTGate((uintptr_t)0xfffffffff, 8, InterruptGateType, KernelRing, 0x0, IST_Null, idtr);
-    // SetIDTGate((uintptr_t)0xfffffffff, 13, InterruptGateType, KernelRing, 0x0, IST_Null, idtr);
     /* Shedule */
     SetIDTGate((uintptr_t)InterruptEntryList[IPI_Schedule], IPI_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
 

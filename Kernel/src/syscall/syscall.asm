@@ -57,7 +57,6 @@ SyscallEntry:
 	push 0x0                	; error code
 	push 0x0                	; interrupt number
 
-	sti
 	PUSH_REG
 
 	mov rax, [gs:0x8] 
@@ -67,7 +66,6 @@ SyscallEntry:
 	call SyscallDispatch
 
 	POP_REG
-	cli
 	
 	mov rcx, [rsp + 0x10] ; update rip
 	mov rsp, [gs:0x10]

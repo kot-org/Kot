@@ -61,7 +61,7 @@ char** strsplit(char* str, const char* delimiters){
         strTmp++; 
     }
 
-    char** ReturnValue = (char**)calloc((currentItemNumber + 1) * sizeof(char*));
+    char** ReturnValue = (char**)malloc((currentItemNumber + 1) * sizeof(char*));
     currentItemNumber = 0;
     checkNum = 0;
     while(*str != 0){
@@ -102,6 +102,16 @@ char** strsplit(char* str, const char* delimiters){
     ReturnValue[currentItemNumber + 1] = (char*)NULL;
     
     return ReturnValue;
+}
+
+void freeSplit(char** splitData){
+    uint64_t i = 0;
+    while(splitData[i] != NULL){
+        free(splitData[i]);
+        i++;
+    }
+    
+    free(splitData);
 }
 
 int atoi(const char* str){

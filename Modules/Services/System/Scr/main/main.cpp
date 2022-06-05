@@ -24,14 +24,16 @@ int main(struct KernelInfo* kernelInfo){
         uint8_t index = 0;
         char** ServicesInfo = strsplit(BufferInitFile, "\n");
         for(uint64_t i = 0; ServicesInfo[i] != NULL; i++){
-            char** Info = strsplit(ServicesInfo[i], ", ");
-            ramfs::File* ServiceFile = ramfs::Find(Info[0]);
+            char** ServiceInfo = strsplit(ServicesInfo[i], ", ");
+            ramfs::File* ServiceFile = ramfs::Find(ServiceInfo[0]);
             if(ServiceFile != NULL){
                 uintptr_t BufferServiceFile = malloc(ServiceFile->size);
                 ramfs::Read(ServiceFile, BufferServiceFile);
                 kthread_t thread = NULL;
-                ELF::loadElf(BufferServiceFile, atoi(Info[1]), 0x0, &thread);
-                parameters_t* InitParameters = (parameters_t*)calloc(sizeof(parameters_t));
+                ELF::loadElf(BufferServiceFile, atoi(ServiceInfo[1]), 0x0, &thread);
+                free(BufferServiceFile);
+
+                parameters_t* InitParameters = (parameters_t*)malloc(sizeof(parameters_t));
 
                 char** mainArguments = (char**)malloc(KERNEL_INFO_SIZE * 2);
                 InfoSlot Info;
@@ -63,8 +65,14 @@ int main(struct KernelInfo* kernelInfo){
                 SYS_ShareDataUsingStackSpace(thread, (uint64_t)&mainArguments, KERNEL_INFO_SIZE * 2, &InitParameters->Parameter1);
                 InitParameters->Parameter0 = KERNEL_INFO_SIZE;
                 Sys_ExecThread(thread, InitParameters);
+
+                free(InitParameters);
             }
+            freeSplit(ServiceInfo);
         }
+        Sys_Logs("ok", 2);
+        Sys_Logs((char*)ServicesInfo, 2);
+        freeSplit(ServicesInfo);
     }
 }
 

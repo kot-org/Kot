@@ -114,6 +114,7 @@ KResult Sys_Exit(ContextStack* Registers, thread_t* Thread){
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     Registers->InterruptNumber = 1;
     globalTaskManager->Exit(Registers, Thread->CoreID, threadkey);
+    globalLogs->Message("Thread 0x%x exit with error code : 0x%x", threadkey->TID, Registers->arg1);
     return KSUCCESS;
 }
 
@@ -317,10 +318,11 @@ KResult Sys_Logs(ContextStack* Registers, thread_t* Thread){
     memcpy(message, (uintptr_t)Registers->arg0, Registers->arg1);
     message[Registers->arg1] = NULL;
     globalLogs->Message("[Process 0x%x] '%s'", Thread->Parent->PID, message);
+    free(message);
     return KSUCCESS;
 }
 
-static SyscallHandler SyscallHandlers[20] = { 
+static SyscallHandler SyscallHandlers[Syscall_Count] = { 
     [KSys_CreatShareMemory] = Sys_CreatShareMemory,
     [KSys_GetShareMemory] = Sys_GetShareMemory,
     [KSys_FreeShareMemory] = Sys_FreeShareMemory,
