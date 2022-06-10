@@ -14,6 +14,7 @@ int strncmp(char* a, char* b, size_t len);
 char** strsplit(char* str, const char* delimiters);
 void freeSplit(char** splitData);
 int atoi(const char* str);
+char* itoa(int64_t value, char* buffer, int base);
 void strcpy(char* to, char* from);
 
 #if defined(__cplusplus)

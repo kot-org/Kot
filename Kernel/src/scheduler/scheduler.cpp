@@ -30,7 +30,6 @@ void TaskManager::Scheduler(ContextStack* Registers, uint64_t CoreID){
 
 void TaskManager::EnqueueTask(thread_t* thread){
     if(thread->IsInQueue) return;
-    IsSchedulerEnable[CPU::GetAPICID()] = false;
     Atomic::atomicAcquire(&mutexScheduler, 0);
     
     if(FirstNode == NULL) FirstNode = thread;
@@ -45,12 +44,10 @@ void TaskManager::EnqueueTask(thread_t* thread){
 
     thread->IsInQueue = true;
     Atomic::atomicUnlock(&mutexScheduler, 0);
-    IsSchedulerEnable[CPU::GetAPICID()] = true;
 }
 
 void TaskManager::DequeueTask(thread_t* thread){
     if(!thread->IsInQueue) return;
-    IsSchedulerEnable[CPU::GetAPICID()] = false;
     Atomic::atomicAcquire(&mutexScheduler, 0);
 
     if(FirstNode == thread){
@@ -82,7 +79,6 @@ void TaskManager::DequeueTask(thread_t* thread){
 
     thread->IsInQueue = false;
     Atomic::atomicUnlock(&mutexScheduler, 0);
-    IsSchedulerEnable[CPU::GetAPICID()] = true;
 }
 
 void TaskManager::DequeueTaskWithoutLock(thread_t* thread){
@@ -174,14 +170,12 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* t
         Atomic::atomicAcquire(&mutexScheduler, 1);
         DequeueTask(task);
         Atomic::atomicUnlock(&mutexScheduler, 1);
-    }else if(CoreID == task->CoreID){
-        task->Exit(Registers, CoreID);
     }else{
         ThreadExecutePerCore[task->CoreID] = NULL;
         APIC::GenerateInterruption(task->CoreID, IPI_Schedule);
     }
+    task->Exit(Registers, CoreID);
 
-    /* TODO clear task data */
     return KSUCCESS;
 }
 uint64_t TaskManager::ShareDataUsingStackSpace(thread_t* self, uintptr_t data, size_t size, uint64_t* location){
@@ -496,6 +490,7 @@ KResult thread_t::ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t
     uintptr_t address = (uintptr_t)(Regs->rsp - size);
     if(ExtendStack((uint64_t)address)){
         //store data in global memory
+        Atomic::atomicAcquire(&globalTaskManager->lockglobalAddressForStackSpaceSharing, 0);
         memcpy(Parent->TaskManagerParent->globalAddressForStackSpaceSharing, (uintptr_t)data, size);
         
         pagetable_t lastPageTable = vmm_GetPageTable();
@@ -503,7 +498,7 @@ KResult thread_t::ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t
         // We consider that we have direct access to data but not to address
 
         memcpy(address, Parent->TaskManagerParent->globalAddressForStackSpaceSharing, size);
-        
+        Atomic::atomicUnlock(&globalTaskManager->lockglobalAddressForStackSpaceSharing, 0);
         Regs->rsp -= size;
         vmm_Swap(lastPageTable);
         *location = (uint64_t)address;
@@ -548,9 +543,6 @@ bool thread_t::Launch(parameters_t* FunctionParameters){
 }
 
 bool thread_t::Launch(){
-    if(Parent->MainThread == NULL){
-        Parent->MainThread = this;
-    }
     IsBlock = false;
     Parent->TaskManagerParent->EnqueueTask(this);
     return true;
@@ -580,14 +572,11 @@ bool thread_t::Exit(ContextStack* Registers, uint64_t CoreID){
     }else if(IsEvent){
         Event::Exit(this);
         return true;
-    }else{
-        Parent->TaskManagerParent->ThreadExecutePerCore[CoreID] = NULL;
-        Parent->TaskManagerParent->Scheduler(Registers, CoreID);        
     }
 
     ThreadNode->Delete();
 
-    //TODO : free stack 
+    /* TODO clear task data and stack */
 
     free(this->Regs);
     free(this);

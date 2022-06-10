@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "${workspaceRoot}/bin/Limine/kernel.elf",
             "args": [],
-            "stopAtEntry": false,
+            "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,

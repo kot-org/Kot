@@ -13,7 +13,7 @@ extern "C" void main(uintptr_t boot)
         uintptr_t BufferInitFile = malloc(InitFile->size);
         ramfs::Read(InitFile, BufferInitFile);
         thread_t* mainThread;
-        ELF::loadElf(BufferInitFile, Priviledge_Driver, &mainThread);
+        ELF::loadElf(BufferInitFile, PriviledgeDriver, &mainThread);
         parameters_t* InitParameters = (parameters_t*)malloc(sizeof(Parameters));
         mainThread->ShareDataUsingStackSpace(kernelInfo, sizeof(KernelInfo), &InitParameters->Parameter0);
         mainThread->Launch(InitParameters);

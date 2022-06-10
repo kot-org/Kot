@@ -15,7 +15,7 @@ class TaskManager;
 #define StackTop vmm_MapAddress(0x100, 0, 0, 0)
 #define StackBottom SelfDataEndAddress 
 #define LockAddress vmm_MapAddress(0xfe, 0, 0, 0) 
-#define FreeMemoryAddress vmm_MapAddress(0xfe, 0, 0, 0) 
+#define FreeMemorySpaceAddress vmm_MapAddress(0xfe, 0, 0, 0) 
 #define DefaultFlagsKey 0xff
 #define ShareMaxIntoStackSpace PAGE_SIZE * 0x10
 
@@ -55,7 +55,6 @@ struct process_t{
     uint64_t MemoryAllocated;
 
     /* Childs */
-    thread_t* MainThread;
     Node* Childs;
     uint64_t TID;
     uint64_t NumberOfThread;
@@ -198,6 +197,7 @@ class TaskManager{
         thread_t* IdleNode[MAX_PROCESSORS];    
         Node* GlobalProcessNode;
 
+        uint64_t lockglobalAddressForStackSpaceSharing;
         uintptr_t globalAddressForStackSpaceSharing;
 };
 

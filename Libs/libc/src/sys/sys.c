@@ -22,7 +22,7 @@ KResult Sys_CIP(kthread_t task, struct parameters_t* param){
     return Syscall_16(KSys_CIP, task, param);
 }
 
-KResult Sys_CreatProc(kprocess_t* key, uint8_t privilege, uint64_t data){
+KResult Sys_CreatProc(kprocess_t* key, enum Priviledge privilege, uint64_t data){
     return Syscall_24(KSys_CreatProc, key, privilege, data);
 }
 
@@ -42,7 +42,7 @@ KResult SYS_Unpause(kprocess_t self){
     return Syscall_8(KSys_UnPause, self);
 }
 
-KResult SYS_Map(kprocess_t self, uint64_t* addressVirtual, bool isPhysical, uintptr_t addressPhysical, size_t size, bool findFree){
+KResult SYS_Map(kprocess_t self, uint64_t* addressVirtual, bool isPhysical, uintptr_t* addressPhysical, size_t* size, bool findFree){
     return Syscall_48(KSys_Map, self, addressVirtual, isPhysical, addressPhysical, size, findFree);
 }
 
@@ -54,19 +54,19 @@ KResult Sys_Event_Creat(kevent_t* self, enum EventType type, uint8_t vector){
     return Syscall_24(KSys_Event_Creat, self, type, vector);
 }
 
-KResult Sys_Event_Bind(kevent_t self, uint8_t vector){
-    return Syscall_16(KSys_Event_Bind, self, vector);
+KResult Sys_Event_Bind(kevent_t self, kthread_t task, uint8_t vector){
+    return Syscall_24(KSys_Event_Bind, self, task, vector);
 }
 
-KResult Sys_Event_Unbind(kevent_t self){
-    return Syscall_8(KSys_Event_Unbind, self);
+KResult Sys_Event_Unbind(kevent_t self, kthread_t task, uint8_t vector){
+    return Syscall_24(KSys_Event_Unbind, self, task, vector);
 }
 
 KResult Sys_Event_Trigger(kevent_t self, uintptr_t dataAddress, size_t dataSize){
     return Syscall_24(KSys_Event_Trigger, self, dataAddress, dataSize);
 }
 
-KResult Sys_CreatThread(kprocess_t self, uintptr_t entryPoint, uint8_t privilege, uint64_t data, kthread_t* result){
+KResult Sys_CreatThread(kprocess_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t data, kthread_t* result){
     return Syscall_40(KSys_CreatThread, self, entryPoint, privilege, data, result);
 }
 

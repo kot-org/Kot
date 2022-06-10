@@ -4,7 +4,7 @@
 #define IPI_Schedule        0x40
 #define IPI_Stop            0x41
 
-#define PAGE_SIZE 0x1000
+#define PAGE_SIZE (uint64_t)0x1000
 #define KERNEL_STACK_SIZE PAGE_SIZE * 0x10 /* 10 mb */
 
 #pragma once

@@ -42,10 +42,11 @@ SyscallEnable:
 SyscallEntry: 
 	swapgs
 
-	mov [gs:0x10], rsp								        ; save userspace stack
-	mov	rsp, [gs:0x8]                                       ; task syscall stack
-	mov	rsp, [rsp + 0x0]  
-	mov rbp, [gs:0x8] 
+	mov [gs:0x10], rsp			; save userspace stack
+	mov	rsp, [gs:0x8]			; setup the syscall stack
+	mov	rsp, [rsp + 0x0]  		; setup the stack
+	mov [rsp + 0x0], rbp		; 
+	mov rbp, [gs:0x8]			; save rbp
 
 	cld ; clear DF to push correctly to the stack
 
@@ -56,6 +57,7 @@ SyscallEntry:
 	push rcx                	; rip
 	push 0x0                	; error code
 	push 0x0                	; interrupt number
+	mov rbp, [rsp + 0x38]		; resotre rbp
 
 	PUSH_REG
 
@@ -67,7 +69,6 @@ SyscallEntry:
 
 	POP_REG
 	
-	mov rcx, [rsp + 0x10] ; update rip
 	mov rsp, [gs:0x10]
     swapgs	 
 	o64 sysret

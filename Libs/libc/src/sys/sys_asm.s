@@ -10,7 +10,7 @@ DoSyscall:
     mov     rsi, rdx
     mov     rdx, rcx
     mov     r10, r8
-    mov     r8, qword[rbp + 16]
+    mov     r8, qword[rbp + 8]
     syscall
     pop     rbp
     ret

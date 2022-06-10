@@ -37,7 +37,7 @@ char** strsplit(char* str, const char* delimiters){
     char* entry = str;
     char* strTmp = str;
     uint64_t len = strlen(str);
-    uint64_t currentItemNumber = 0;
+    uint64_t currentItemNumber = 2; /* One entry for data and the other one for the NULL entry */
     uint64_t checkNum = 0;
     char* c = delimiters;
     uint64_t currentCharNumber = 0;
@@ -45,7 +45,6 @@ char** strsplit(char* str, const char* delimiters){
     uint64_t lastCharEnd = 0;
     
     while(*strTmp != 0){  
-
         if(*strTmp == *c){
             checkNum++;
             c++;
@@ -61,7 +60,7 @@ char** strsplit(char* str, const char* delimiters){
         strTmp++; 
     }
 
-    char** ReturnValue = (char**)malloc((currentItemNumber + 1) * sizeof(char*));
+    char** ReturnValue = (char**)malloc(currentItemNumber * sizeof(char*));
     currentItemNumber = 0;
     checkNum = 0;
     while(*str != 0){
@@ -84,7 +83,7 @@ char** strsplit(char* str, const char* delimiters){
                 charNumberStart = currentCharNumber - strlen(delimiters);
             }
 
-            ReturnValue[currentItemNumber] = (char*)malloc((charNumberStart - lastCharEnd) * sizeof(char));
+            ReturnValue[currentItemNumber] = (char*)malloc(((charNumberStart - lastCharEnd) + 1) * sizeof(char));
             memcpy((uintptr_t)ReturnValue[currentItemNumber], (uintptr_t)((uint64_t)entry + lastCharEnd), (charNumberStart - lastCharEnd) * sizeof(char));  
             ReturnValue[currentItemNumber][(charNumberStart - lastCharEnd)] = (char*)NULL;
             lastCharEnd = currentCharNumber;
@@ -95,8 +94,7 @@ char** strsplit(char* str, const char* delimiters){
         }
         str++; 
     }
-
-    ReturnValue[currentItemNumber] = (char*)malloc((len - lastCharEnd) * sizeof(char));
+    ReturnValue[currentItemNumber] = (char*)malloc(((len - lastCharEnd) + 1) * sizeof(char));
     memcpy((uintptr_t)ReturnValue[currentItemNumber], (uintptr_t)((uint64_t)entry + lastCharEnd), (len - lastCharEnd) * sizeof(char)); 
     ReturnValue[currentItemNumber][(len - lastCharEnd)] = (char*)NULL;
     ReturnValue[currentItemNumber + 1] = (char*)NULL;
@@ -132,6 +130,28 @@ int atoi(const char* str){
         base = 10 * base + (str[i++] - '0');
     }
     return base * sign;
+}
+ 
+char* itoa(int64_t n, char* buffer, int basenumber){
+	int64_t hold;
+	int64_t i, j;
+	hold = n;
+	i = 0;
+	
+	do{
+		hold = n % basenumber;
+		buffer[i++] = (hold < 10) ? (hold + '0') : (hold + 'a' - 10);
+	} while(n /= basenumber);
+	buffer[i--] = 0;
+	
+	for(j = 0; j < i; j++, i--)
+	{
+		hold = buffer[j];
+		buffer[j] = buffer[i];
+		buffer[i] = hold;
+	}
+
+    return buffer;
 }
 
 void strcpy(char* to, char* from){

@@ -6,21 +6,7 @@ static struct heap_t heap;
 void InitializeHeapUser(){
     SYS_GetProcessKey(&heap.Process);
     heap.EndAddress = KotSpecificData.HeapLocation;
-    SYS_Map(heap.Process, &heap.EndAddress, false, 0, KotSpecificData.MMapPageSize, false);
-    struct SegmentHeader* newSegment = (struct SegmentHeader*)heap.EndAddress;
-
-    heap.EndAddress += KotSpecificData.MMapPageSize;
-    newSegment->singature = 0xff;
-    newSegment->length = KotSpecificData.MMapPageSize - sizeof(struct SegmentHeader);
-    newSegment->IsFree = true;
-    newSegment->last = NULL;
-    newSegment->next = NULL;
-    heap.lastSegment = newSegment;    
-    heap.mainSegment = newSegment; 
-    
-    heap.TotalSize += KotSpecificData.MMapPageSize;     
-    heap.FreeSize += KotSpecificData.MMapPageSize; 
-
+    ExpandHeapUser(0x1000);
     atomicUnlock(&mutexHeap, 0);   
     heap.IsHeapEnabled = true;
 }
@@ -146,7 +132,8 @@ void MergeNextToThisUser(struct SegmentHeader* header){
 }
 
 void free(uintptr_t address){
-    if(address != NULL){        
+    if(address != NULL){
+        atomicAcquire(&mutexHeap, 0);
         struct SegmentHeader* header = (struct SegmentHeader*)(uintptr_t)((uint64_t)address - sizeof(struct SegmentHeader));
         header->IsFree = true;
         heap.FreeSize += header->length + sizeof(struct SegmentHeader);
@@ -198,9 +185,8 @@ uintptr_t realloc(uintptr_t buffer, size_t size){
 void SplitSegmentUser(struct SegmentHeader* segment, size_t size){
     if(segment->length > size + sizeof(struct SegmentHeader)){
         struct SegmentHeader* newSegment = (struct SegmentHeader*)(uintptr_t)((uint64_t)segment + sizeof(struct SegmentHeader) + (uint64_t)size);
-        memset(newSegment, 0, sizeof(struct SegmentHeader));
         newSegment->IsFree = true;         
-        newSegment->singature = 0xff;       
+        newSegment->signature = 0xff;       
         newSegment->length = segment->length - (size + sizeof(struct SegmentHeader));
         newSegment->next = segment->next;
         newSegment->last = segment;
@@ -215,8 +201,8 @@ void SplitSegmentUser(struct SegmentHeader* segment, size_t size){
 
 void ExpandHeapUser(size_t length){
     length += sizeof(struct SegmentHeader);
-
-    SYS_Map(heap.Process, &heap.EndAddress, false, 0, length, false);
+    
+    SYS_Map(heap.Process, &heap.EndAddress, false, 0, &length, false);
 
     struct SegmentHeader* newSegment = (struct SegmentHeader*)heap.EndAddress;
     heap.EndAddress += length;
@@ -224,7 +210,7 @@ void ExpandHeapUser(size_t length){
     if(heap.lastSegment != NULL && heap.lastSegment->IsFree){
         heap.lastSegment->length += length;
     }else{
-        newSegment->singature = 0xff;
+        newSegment->signature = 0xff;
         newSegment->length = length - sizeof(struct SegmentHeader);
         newSegment->IsFree = true;
         newSegment->last = heap.lastSegment;
@@ -232,7 +218,7 @@ void ExpandHeapUser(size_t length){
         if(heap.lastSegment != NULL){
             heap.lastSegment->next = newSegment;
         }
-        heap.lastSegment = newSegment;        
+        heap.lastSegment = newSegment;
     }
 
     if(heap.mainSegment == NULL){

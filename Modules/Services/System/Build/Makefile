@@ -4,11 +4,11 @@ LDS = main.ld
 CC = $(PREFIX)gcc
 ASMC = nasm
 
-CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Scr
+CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src
 LINKERFLAGS = -lc -Wall -static
 ASMFLAGS = 
 
-SRCDIR := ../Scr
+SRCDIR := ../Src
 OBJDIR := ../Lib
 BUILDDIR = ../Bin
 BINDIR = ../../../../Bin/Modules

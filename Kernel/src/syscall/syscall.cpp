@@ -113,9 +113,7 @@ KResult Sys_Exit(ContextStack* Registers, thread_t* Thread){
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     Registers->InterruptNumber = 1;
-    globalTaskManager->Exit(Registers, Thread->CoreID, threadkey);
-    globalLogs->Message("Thread 0x%x exit with error code : 0x%x", threadkey->TID, Registers->arg1);
-    return KSUCCESS;
+    return globalTaskManager->Exit(Registers, Thread->CoreID, threadkey);
 }
 
 /* Sys_Pause :
@@ -125,10 +123,8 @@ KResult Sys_Pause(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    CPU::DisableInterrupts();
     Registers->InterruptNumber = 1;
-    globalTaskManager->Pause(Registers, Thread->CoreID, threadkey);
-    return KSUCCESS;
+    return globalTaskManager->Pause(Registers, Thread->CoreID, threadkey);
 }
 
 /* Sys_UnPause :
@@ -151,23 +147,38 @@ KResult Sys_UnPause(ContextStack* Registers, thread_t* Thread){
     5 -> find free address  > bool
 */
 KResult Sys_Map(ContextStack* Registers, thread_t* Thread){
-    if(Registers->arg2 && Thread->Priviledge != Priviledge_Driver) return KNOTALLOW;
+    if(Registers->arg2 && Thread->Priviledge != PriviledgeDriver) return KNOTALLOW;
     process_t* processkey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     pagetable_t pageTable = processkey->SharedPaging;
     
+    /* Get arguments */
     uint64_t* addressVirtual = (uint64_t*)Registers->arg1;
     if(!CheckAddress((uintptr_t)addressVirtual, sizeof(uint64_t))) return KMEMORYVIOLATION;
-    uintptr_t addressPhysical = (uintptr_t)Registers->arg3;
-    size_t size = Registers->arg4;
+    *addressVirtual = *addressVirtual - ((uint64_t)*addressVirtual % PAGE_SIZE);
+
+    bool AllocatePhysicallPage = (bool)Registers->arg2;
+
+    uintptr_t* addressPhysical = (uintptr_t*)Registers->arg3;
+    bool IsPhysicalAddress = false;
+    if(CheckAddress((uintptr_t)addressPhysical, sizeof(uint64_t))){
+        IsPhysicalAddress = true;
+    }else{
+        if(AllocatePhysicallPage){
+            return KMEMORYVIOLATION;
+        }
+    }
+
+    size_t* size = (size_t*)Registers->arg4;
+    if(!CheckAddress((uintptr_t)size, sizeof(uint64_t))) return KMEMORYVIOLATION;
+
     bool IsNeedToBeFree = (bool)Registers->arg5; 
 
-    *addressVirtual = *addressVirtual - ((uint64_t)*addressVirtual % PAGE_SIZE);
-    uint64_t pages = DivideRoundUp(size, PAGE_SIZE);
+    uint64_t pages = DivideRoundUp(*size, PAGE_SIZE);
     /* find free page */
     if(IsNeedToBeFree){
-        for(uint64_t FreeSize = 0; FreeSize < size;){
+        for(uint64_t FreeSize = 0; FreeSize < *size;){
             bool IsPresent = vmm_GetFlags(pageTable, (uintptr_t)*addressVirtual, vmm_flag::vmm_Present);
             while(IsPresent){
                 *addressVirtual += PAGE_SIZE;
@@ -178,22 +189,33 @@ KResult Sys_Map(ContextStack* Registers, thread_t* Thread){
         }
     }
 
+    *size = NULL;
+
     if(*addressVirtual + pages * PAGE_SIZE < vmm_HHDMAdress){
-        for(uint64_t i = 0; i < pages; i++){
-            if(vmm_GetFlags(pageTable, (uintptr_t)*addressVirtual + i * PAGE_SIZE, vmm_flag::vmm_PhysicalStorage)){
-                Pmm_FreePage(vmm_GetPhysical(pageTable, (uintptr_t)*addressVirtual + i * PAGE_SIZE));
+        if(AllocatePhysicallPage){
+            for(uint64_t i = 0; i < pages; i++){
+                if(vmm_GetFlags(pageTable, (uintptr_t)*addressVirtual + i * PAGE_SIZE, vmm_flag::vmm_PhysicalStorage)){
+                    Pmm_FreePage(vmm_GetPhysical(pageTable, (uintptr_t)*addressVirtual + i * PAGE_SIZE));
+                }
+                vmm_Unmap(pageTable, (uintptr_t)*addressVirtual + i * PAGE_SIZE);
             }
-            vmm_Unmap(pageTable, (uintptr_t)*addressVirtual + i * PAGE_SIZE);
         }
         
         for(uint64_t i = 0; i < pages; i++){
             uintptr_t virtualAddress = (uintptr_t)(*addressVirtual + i * PAGE_SIZE);
-            if((bool)Registers->arg2){
-                vmm_Map(pageTable, virtualAddress, addressPhysical + i * PAGE_SIZE);
-            }else{
-                vmm_Map(pageTable, virtualAddress, Pmm_RequestPage(), true);
+            if(AllocatePhysicallPage){
+                vmm_Map(pageTable, virtualAddress, *addressPhysical + i * PAGE_SIZE);
+            }else if(!vmm_GetFlags(pageTable, (uintptr_t)*addressVirtual + i * PAGE_SIZE, vmm_flag::vmm_PhysicalStorage)){
+                uintptr_t physicalAddressAllocated = (uintptr_t)Pmm_RequestPage();
+                if(IsPhysicalAddress){
+                    *addressPhysical = physicalAddressAllocated;
+                    /* write only the first physicall page */
+                    IsPhysicalAddress = false; 
+                }
+                vmm_Map(pageTable, virtualAddress, physicalAddressAllocated, true);
                 vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_PhysicalStorage, true); //set master state
                 processkey->MemoryAllocated += PAGE_SIZE;
+                *size += PAGE_SIZE;
             }        
         } 
 
@@ -244,18 +266,38 @@ KResult Sys_Event_Creat(ContextStack* Registers, thread_t* Thread){
 */
 KResult Sys_Event_Bind(ContextStack* Registers, thread_t* Thread){
     event_t* event; 
+    thread_t* threadkey;
     uint64_t flags;
-    if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
-    return Event::Bind(Thread, event);
+    if(Registers->arg0 != NULL){
+        if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
+    }else{
+        if(Registers->arg2 < 0xff){
+            event = InterruptEventList[Registers->arg2];
+        }else{
+            return KFAIL;
+        }
+    }
+    if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    return Event::Bind(threadkey, event);
 }
 
 /* Sys_Event_Unbind :
     Arguments : 
 */
 KResult Sys_Event_Unbind(ContextStack* Registers, thread_t* Thread){
-    event_t* event; 
+    event_t* event;
+    thread_t* threadkey;
     uint64_t flags;
-    if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(Registers->arg0 != NULL){
+        if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
+    }else{
+        if(Registers->arg2 < 0xff){
+            event = InterruptEventList[Registers->arg2];
+        }else{
+            return KFAIL;
+        }
+    }
+    if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     return Event::Unbind(Thread, event);
 }
 
@@ -314,11 +356,12 @@ KResult Sys_ExecThread(ContextStack* Registers, thread_t* Thread){
 */
 KResult Sys_Logs(ContextStack* Registers, thread_t* Thread){
     if(CheckAddress((uintptr_t)Registers->arg0, Registers->arg1) != KSUCCESS) return KMEMORYVIOLATION;
-    char* message = (char*)malloc(Registers->arg1 + 1);
-    memcpy(message, (uintptr_t)Registers->arg0, Registers->arg1);
-    message[Registers->arg1] = NULL;
-    globalLogs->Message("[Process 0x%x] '%s'", Thread->Parent->PID, message);
-    free(message);
+    if(Registers->arg1 > ShareMaxIntoStackSpace) return KFAIL;
+    Atomic::atomicAcquire(&globalTaskManager->lockglobalAddressForStackSpaceSharing, 0);
+    memcpy(globalTaskManager->globalAddressForStackSpaceSharing, (uintptr_t)Registers->arg0, Registers->arg1);
+    ((char*)globalTaskManager->globalAddressForStackSpaceSharing)[Registers->arg1] = NULL;
+    globalLogs->Message("[Process 0x%x] '%s'", Thread->Parent->PID, globalTaskManager->globalAddressForStackSpaceSharing);
+    Atomic::atomicUnlock(&globalTaskManager->lockglobalAddressForStackSpaceSharing, 0);
     return KSUCCESS;
 }
 

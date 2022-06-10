@@ -1,4 +1,3 @@
-#ifndef _KERNEL_
 #ifndef _HEAP_H
 #define _HEAP_H 1
 
@@ -11,7 +10,7 @@ struct SegmentHeader{
     size_t length;
     struct SegmentHeader* next;
     struct SegmentHeader* last;
-    uint32_t singature;
+    uint32_t signature;
 }__attribute__((aligned(0x10)));
 
 struct heap_t{
@@ -23,7 +22,7 @@ struct heap_t{
     uint64_t EndAddress;
     kprocess_t Process;
     bool IsHeapEnabled;
-}__attribute__((aligned(0x1000)));
+}__attribute__((packed));
 
 #if defined(__cplusplus)
 extern "C" {
@@ -42,5 +41,4 @@ struct SegmentHeader* GetSegmentHeaderUser(uintptr_t address);
 }
 #endif
 
-#endif
 #endif

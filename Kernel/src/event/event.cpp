@@ -15,6 +15,7 @@ namespace Event{
                 break;
             }                
             case EventTypeIVT: {
+                if(AdditionnalData < IRQ_START + IRQ_MAX) return KFAIL;
                 IVTEvent_t* event = (IVTEvent_t*)malloc(sizeof(IVTEvent_t));
                 self = &event->header;
                 event->IVT = (uint8_t)AdditionnalData;
@@ -35,6 +36,7 @@ namespace Event{
         self->Type = Type;
         self->Tasks = NULL;
         self->NumTask = 0;
+        self->ParametersBuffer = (parameters_t*)calloc(sizeof(Parameters));
 
         *event = self;
 
@@ -93,29 +95,13 @@ namespace Event{
         if(self == NULL) return KFAIL;
         Atomic::atomicAcquire(&self->Lock, 0);
 
-        parameters_t* FunctionParameters = (parameters_t*)calloc(sizeof(Parameters));
-
-        size_t EventStructSize = 0;
-        switch (self->Type){
-            case EventTypeIRQ: 
-                EventStructSize = sizeof(IRQEvent_t);    
-                break;     
-            case EventTypeIVT: 
-                EventStructSize = sizeof(IVTEvent_t);  
-                break;                
-            case EventTypeIPC:
-                EventStructSize = sizeof(IPCEvent_t);  
-                break;                
-        }
-
-        FunctionParameters->Parameter0 = self->Type;
+        self->ParametersBuffer->Parameter0 = self->Type;
 
         for(size_t i = 0; i < self->NumTask; i++){
-            if(!self->Tasks[i]->IsBlock){
-
+            if(self->Tasks[i]->IsBlock){
+                self->Tasks[i]->ShareDataUsingStackSpace(Data, Size, &self->ParametersBuffer->Parameter1);
+                self->Tasks[i]->Launch(self->ParametersBuffer);
             }
-
-            self->Tasks[i]->ShareDataUsingStackSpace(Data, Size, &FunctionParameters->Parameter1);
         }
 
         Atomic::atomicUnlock(&self->Lock, 0);
@@ -124,7 +110,8 @@ namespace Event{
 
     void Exit(thread_t* task){
         // Reset task
+        task->Regs->rsp = (uint64_t)StackTop;
         task->Regs->rip = (uint64_t)task->EntryPoint;
-        task->IsBlock = false;
+        task->IsBlock = true;
     }
 }

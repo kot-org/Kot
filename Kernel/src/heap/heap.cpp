@@ -9,7 +9,7 @@ void InitializeHeap(uintptr_t heapAddress, size_t pageCount){
     globalHeap.heapEnd = (uintptr_t)((uint64_t)globalHeap.heapEnd - PAGE_SIZE);
     vmm_Map(vmm_PageTable, globalHeap.heapEnd, NewPhysicalAddress, false, true, true);
     globalHeap.mainSegment = (SegmentHeader*)((uint64_t)globalHeap.heapEnd + ((uint64_t)PAGE_SIZE - sizeof(SegmentHeader)));
-    globalHeap.mainSegment->singature = 0xff;
+    globalHeap.mainSegment->signature = 0xff;
     globalHeap.mainSegment->length = 0;
     globalHeap.mainSegment->IsFree = false;
     globalHeap.mainSegment->last = NULL;
@@ -17,7 +17,7 @@ void InitializeHeap(uintptr_t heapAddress, size_t pageCount){
 
     globalHeap.mainSegment->next->IsFree = true;
     globalHeap.mainSegment->next->length = (uint64_t)PAGE_SIZE - sizeof(SegmentHeader) - sizeof(SegmentHeader); /* remove twice because we have the main and new header in the same page */
-    globalHeap.mainSegment->next->singature = 0xff;
+    globalHeap.mainSegment->next->signature = 0xff;
     globalHeap.mainSegment->next->last = globalHeap.mainSegment;
     globalHeap.mainSegment->next->next = NULL;
     globalHeap.lastSegment = globalHeap.mainSegment->next;  
@@ -62,7 +62,7 @@ uintptr_t malloc(size_t size){
                 return (uintptr_t)((uint64_t)currentSeg + sizeof(SegmentHeader));
             }
         }
-        if (currentSeg->next == NULL) break;
+        if(currentSeg->next == NULL) break;
         currentSeg = currentSeg->next;
     }
     
@@ -122,30 +122,24 @@ void MergeNextToThis(SegmentHeader* header){
             globalHeap.lastSegment = header->last;
         }
     }
-    if(header == globalHeap.mainSegment){
-        if(header->last != NULL){
-            globalHeap.mainSegment = header->last;
-        }else{
-            globalHeap.mainSegment = header->next;
-        }
-    }
+
     memset(header, 0, sizeof(SegmentHeader));
 }
 
 void MergeThisToLast(SegmentHeader* header){
     // merge this segment into the next segment
 
-    SegmentHeader* headerNext = header->next;
-    header->length += headerNext->length + sizeof(SegmentHeader);
-    header->next = headerNext->next;
-    if(headerNext->next != NULL){
-        headerNext->next->last = header;
+    SegmentHeader* headerLast = header->last;
+    header->length += headerLast->length + sizeof(SegmentHeader);
+    header->last = headerLast->last;
+    if(headerLast->last != NULL){
+        headerLast->last->next = header;
     }
-    if(headerNext == globalHeap.lastSegment){
+    if(headerLast == globalHeap.lastSegment){
         globalHeap.lastSegment = header;
     }
 
-    memset(headerNext, 0, sizeof(SegmentHeader));
+    memset(headerLast, 0, sizeof(SegmentHeader));
 }
 
 void free(uintptr_t address){
@@ -153,6 +147,9 @@ void free(uintptr_t address){
         Atomic::atomicAcquire(&globalHeap.lock, 0);
         
         SegmentHeader* header = (SegmentHeader*)(uintptr_t)((uint64_t)address - sizeof(SegmentHeader));
+        if(header == (SegmentHeader*)0xffffffff7ffd2b40){
+            asm("nop");
+        }
         header->IsFree = true;
         globalHeap.FreeSize += header->length + sizeof(SegmentHeader);
         globalHeap.UsedSize -= header->length + sizeof(SegmentHeader);
@@ -190,13 +187,16 @@ void free(uintptr_t address){
 uintptr_t realloc(uintptr_t buffer, size_t size){
     uintptr_t newBuffer = malloc(size);
 
-    if(size < GetSegmentHeader(buffer)->length){
-        memcpy(newBuffer, buffer, size);
-    }else{
-        memcpy(newBuffer, buffer, GetSegmentHeader(buffer)->length);
+    if(buffer != NULL){
+        if(size < GetSegmentHeader(buffer)->length){
+            memcpy(newBuffer, buffer, size);
+        }else{
+            memcpy(newBuffer, buffer, GetSegmentHeader(buffer)->length);
+        }
+
+        free(buffer);        
     }
 
-    free(buffer);
     return newBuffer;
 }
 
@@ -205,7 +205,7 @@ SegmentHeader* SplitSegment(SegmentHeader* segment, size_t size){
         SegmentHeader* newSegment = (SegmentHeader*)(uintptr_t)((uint64_t)segment + segment->length - size);
         memset(newSegment, 0, sizeof(SegmentHeader));
         newSegment->IsFree = true;         
-        newSegment->singature = 0xff;       
+        newSegment->signature = 0xff;       
         newSegment->length = size;
         newSegment->next = segment;
         newSegment->last = segment->last;
@@ -244,7 +244,7 @@ void ExpandHeap(size_t length){
 
     if(globalHeap.lastSegment != NULL && globalHeap.lastSegment->IsFree && globalHeap.lastSegment->last != NULL){
         uint64_t size = globalHeap.lastSegment->length + length;
-        newSegment->singature = 0xff;
+        newSegment->signature = 0xff;
         newSegment->length = size - sizeof(SegmentHeader);
         newSegment->IsFree = true;
         newSegment->last = globalHeap.lastSegment->last;
@@ -252,7 +252,7 @@ void ExpandHeap(size_t length){
         newSegment->next = NULL;
         globalHeap.lastSegment = newSegment;    
     }else{
-        newSegment->singature = 0xff;
+        newSegment->signature = 0xff;
         newSegment->length = length - sizeof(SegmentHeader);
         newSegment->IsFree = true;
         newSegment->last = globalHeap.lastSegment;

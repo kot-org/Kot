@@ -11,7 +11,12 @@ int main(struct KernelInfo* kernelInfo){
     kthread_t self;
     SYS_GetThreadKey(&self);
     ramfs::Parse(kernelInfo->ramfs.address, kernelInfo->ramfs.size);
+    
 
+    /* Load IPC */
+
+    KotSpecificData.IPCHandler = NULL;
+    
     /* Load services */
 
     ramfs::File* InitFile = ramfs::Find("Starter.cfg");
@@ -67,12 +72,10 @@ int main(struct KernelInfo* kernelInfo){
                 Sys_ExecThread(thread, InitParameters);
 
                 free(InitParameters);
-            }
+            }     
             freeSplit(ServiceInfo);
         }
-        Sys_Logs("ok", 2);
-        Sys_Logs((char*)ServicesInfo, 2);
         freeSplit(ServicesInfo);
     }
+    return 1;
 }
-

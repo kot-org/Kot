@@ -1,12 +1,10 @@
 #pragma once
 #include <arch/arch.h>
 #include <kot/types.h>
+#include <kot/x86_64.h>
 #include <logs/logs.h>
 #include <event/event.h>
 #include <scheduler/scheduler.h>
-
-#define IRQ_START 0x20
-#define IRQ_MAX 0x18
 
 #define Exception_PageFault 0xE
 

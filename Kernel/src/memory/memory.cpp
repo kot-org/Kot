@@ -32,6 +32,7 @@ int memcmp(const void *aptr, const void *bptr, size_t n){
 }
 
 bool CheckAddress(uintptr_t address, size_t size){
+    if(address == NULL) return false;
     uint64_t NumberPage = DivideRoundUp(size, PAGE_SIZE);
     uint64_t AddressItinerator = (uint64_t)address;
     uintptr_t PagingEntry = NULL;

@@ -50,7 +50,7 @@ void InitializeInterrupts(){
     for(int i = 0; i < 256; i++){
         SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Null, idtr);
         if(i >= IRQ_START && i <= IRQ_START + IRQ_MAX){
-            Event::Creat(&InterruptEventList[i], EventTypeIRQ, i);
+            Event::Creat(&InterruptEventList[i], EventTypeIRQ, i - IRQ_START);
         }else{
             Event::Creat(&InterruptEventList[i], EventTypeIVT, i);
         }

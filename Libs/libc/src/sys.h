@@ -1,6 +1,7 @@
 #ifndef _SYS_H
 #define _SYS_H 1
 
+#include <kot/arch.h>
 #include <kot/types.h>
 #include <kot/sys/list.h>
 
@@ -12,10 +13,6 @@
 #define Syscall_8(syscall, arg0) (DoSyscall(syscall, (uint64_t)arg0, 0, 0, 0, 0, 0))
 #define Syscall_0(syscall) (DoSyscall(syscall, 0, 0, 0, 0, 0, 0))
 
-#define Priviledge_Driver 0x1
-#define Priviledge_Service 0x2
-#define Priviledge_App 0x3
-
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -26,9 +23,9 @@ struct KotSpecificData_t{
     /* Heap */
     uint64_t HeapLocation;
     /* IPC */
-    kthread_t IPCDispatcher;
-    /* FreeMemory */
-    uintptr_t FreeMemory;
+    kthread_t IPCHandler;
+    /* FreeMemorySpace */
+    uintptr_t FreeMemorySpace;
 }__attribute__((aligned(0x1000)));
 
 extern struct KotSpecificData_t KotSpecificData;
@@ -52,6 +49,12 @@ enum EventType{
     EventTypeIPC = 2,
 };
 
+enum Priviledge{
+    PriviledgeDriver    = 0x1,
+    PriviledgeService   = 0x2,
+    PriviledgeApp       = 0x3,
+};
+
 uint64_t DoSyscall(uint64_t syscall, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);
 
 
@@ -60,15 +63,19 @@ KResult SYS_GetShareSpace(kprocess_t self, ksmem_t key, uintptr_t* virtualAddres
 KResult SYS_FreeShareSpace(kprocess_t self, ksmem_t key, uintptr_t address);
 KResult SYS_ShareDataUsingStackSpace(kthread_t self, uint64_t address, size_t size, uint64_t* clientAddress);
 KResult Sys_CIP(kthread_t task, struct parameters_t* param);
-KResult Sys_CreatProc(kprocess_t* key, uint8_t privilege, uint64_t data);
+KResult Sys_CreatProc(kprocess_t* key, enum Priviledge privilege, uint64_t data);
 KResult Sys_Fork(kprocess_t* src, kprocess_t* dst);
 KResult Sys_CloseProc();
 KResult SYS_Exit(kthread_t self, uint64_t errorCode);
 KResult SYS_Pause(kthread_t self);
 KResult SYS_Unpause(kthread_t self);
-KResult SYS_Map(kprocess_t self, uint64_t* addressVirtual, bool isPhysical, uintptr_t addressPhysical, size_t size, bool findFree);
+KResult SYS_Map(kprocess_t self, uint64_t* addressVirtual, bool isPhysical, uintptr_t* addressPhysical, size_t* size, bool findFree);
 KResult SYS_Unmap(kprocess_t self, uintptr_t addressVirtual, size_t size);
-KResult Sys_CreatThread(kprocess_t self, uintptr_t entryPoint, uint8_t privilege, uint64_t data, kthread_t* result);
+KResult Sys_Event_Creat(kevent_t* self, enum EventType type, uint8_t vector);
+KResult Sys_Event_Bind(kevent_t self, kthread_t task, uint8_t vector);
+KResult Sys_Event_Unbind(kevent_t self, kthread_t task, uint8_t vector);
+KResult Sys_Event_Trigger(kevent_t self, uintptr_t dataAddress, size_t dataSize);
+KResult Sys_CreatThread(kprocess_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t data, kthread_t* result);
 KResult Sys_DuplicateThread(kprocess_t parent, kthread_t source, uint64_t data, kthread_t* self);
 KResult Sys_ExecThread(kthread_t self, struct parameters_t* parameters);
 KResult Sys_Logs(char* message, size_t size);

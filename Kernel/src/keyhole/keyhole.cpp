@@ -23,7 +23,7 @@ uint64_t Keyhole_Creat(key_t* key, process_t* parent, process_t* target, enum Da
     }else{
         AccessAddress = (lockreference_t*)vmm_GetVirtualAddress(vmm_GetPhysical(parent->SharedPaging, (uintptr_t)Page));
     }
-    AccessAddress->LockOffset[Offset] = (uint64_t)Lock;
+    AccessAddress->LockOffset[Offset] = Lock;
     
     // fill data
     Lock->Type = type;
@@ -72,11 +72,11 @@ uint64_t Keyhole_Verify(thread_t* caller, key_t key, enum DataType type){
     
     if(!vmm_GetFlags(lock->Parent->SharedPaging, (uintptr_t)VirtualAddress, vmm_flag::vmm_Custom0) || vmm_GetFlags(lock->Parent->SharedPaging, (uintptr_t)VirtualAddress, vmm_flag::vmm_PhysicalStorage) || !vmm_GetFlags(lock->Parent->SharedPaging, (uintptr_t)VirtualAddress, vmm_flag::vmm_Custom2)) return KFAIL;
     
-    uint64_t Page = lock->Address - (lock->Address % PAGE_SIZE);
+    uint64_t PageAddress = lock->Address - (lock->Address % PAGE_SIZE);
     uint64_t Offset = (lock->Address % PAGE_SIZE) / sizeof(uint64_t);
-    if(!vmm_GetFlags(lock->Parent->SharedPaging, (uintptr_t)Page, vmm_flag::vmm_Present)) return KFAIL;
-    lockreference_t* AccessAddress = (lockreference_t*)(vmm_GetVirtualAddress(vmm_GetPhysical(lock->Parent->SharedPaging, (uintptr_t)Page)));
-    if(AccessAddress->LockOffset[Offset] != (uint64_t)lock) return KFAIL;
+    if(!vmm_GetFlags(lock->Parent->SharedPaging, (uintptr_t)PageAddress, vmm_flag::vmm_Present)) return KFAIL;
+    lockreference_t* AccessAddress = (lockreference_t*)(vmm_GetVirtualAddress(vmm_GetPhysical(lock->Parent->SharedPaging, (uintptr_t)PageAddress)));
+    if(AccessAddress->LockOffset[Offset] != lock) return KFAIL;
     return KSUCCESS;
 }
 uint64_t Keyhole_Get(thread_t* caller, key_t key, enum DataType type, uint64_t* data, uint64_t* flags){        

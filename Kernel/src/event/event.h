@@ -13,6 +13,8 @@ struct event_t{
     size_t NumTask;
 
     enum EventType Type;
+
+    parameters_t* ParametersBuffer;
 }__attribute__((packed));
 
 struct IRQEvent_t{

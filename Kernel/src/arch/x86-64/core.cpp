@@ -112,7 +112,7 @@ void SetupRegistersForTask(thread_t* self){
     self->Regs->ss = (GDTInfoSelectorsRing[self->RingPL].Data | self->RingPL);
     self->Regs->rflags.Reserved0 = true;
     self->Regs->rflags.IF = true;
-    if(self->Priviledge == Priviledge_Driver){
+    if(self->Priviledge == PriviledgeDriver){
         // Allow IO
         self->Regs->rflags.IOPL = 0x3;
         // Allow CPUID

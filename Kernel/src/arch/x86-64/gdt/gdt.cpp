@@ -157,11 +157,11 @@ uint16_t gdtInstallTSS(uint64_t base, uint64_t limit){
 
 uint8_t GetRingPL(uint8_t priviledge){
     switch(priviledge){
-        case Priviledge_Driver:
+        case PriviledgeDriver:
             return DriversRing;
-        case Priviledge_Service:
+        case PriviledgeService:
             return DevicesRing;
-        case Priviledge_App:
+        case PriviledgeApp:
             return UserAppRing;
     }
 }

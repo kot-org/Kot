@@ -313,7 +313,7 @@ void vmm_Unmap(uintptr_t Address){
 }
 
 void vmm_Unmap(pagetable_t table, uintptr_t Address){
-        vmm_index indexer = vmm_Index((uint64_t)Address);
+    vmm_index indexer = vmm_Index((uint64_t)Address);
     uint64_t PDE;
 
     vmm_page_table* PML4VirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(table);
