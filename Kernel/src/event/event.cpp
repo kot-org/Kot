@@ -44,14 +44,8 @@ namespace Event{
     }
 
     uint64_t Bind(thread_t* task, event_t* self){
+        if(task->IsEvent) return KFAIL; /* only one event per thread */
         Atomic::atomicAcquire(&self->Lock, 0);
-
-        self->NumTask++;
-        self->Tasks = (thread_t**)realloc(self->Tasks, self->NumTask * sizeof(thread_t));
-        self->Tasks[self->NumTask - 1] = task;
-
-        task->IsEvent = true;
-        task->Event = self;
 
         if(self->Type == EventTypeIRQ){
             IRQEvent_t* event = (IRQEvent_t*)self;
@@ -60,6 +54,14 @@ namespace Event{
                 APIC::IoChangeIrqState(event->IRQ, 0, event->IsEnable);
             }
         }
+        
+        self->NumTask++;
+        self->Tasks = (thread_t**)realloc(self->Tasks, self->NumTask * sizeof(thread_t));
+        self->Tasks[self->NumTask - 1] = task;
+
+        task->IsEvent = true;
+        task->Event = self;
+
 
         Atomic::atomicUnlock(&self->Lock, 0);
         return KSUCCESS;

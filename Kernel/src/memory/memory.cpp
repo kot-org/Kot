@@ -70,6 +70,12 @@ uint64_t CreatSharing(process_t* process, size_t size, uint64_t* virtualAddressP
     uint64_t numberOfPage = DivideRoundUp(realSize, PAGE_SIZE);
     if(GetMemoryFlag(flags, memory_share_flag_NLA)){
         if(CheckAddress(virtualAddress, realSize) != KSUCCESS) return KFAIL;
+        if((uint64_t)virtualAddress % PAGE_SIZE){
+            size_t nonAlignedSize = PAGE_SIZE - ((uint64_t)virtualAddress % PAGE_SIZE);
+            if(realSize > nonAlignedSize){
+                numberOfPage++;
+            }
+        }
     }else{
         if((uint64_t)virtualAddress % PAGE_SIZE > 0){
             virtualAddress -= (uint64_t)virtualAddress % PAGE_SIZE;
