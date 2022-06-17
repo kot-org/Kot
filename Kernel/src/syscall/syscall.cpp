@@ -278,7 +278,7 @@ KResult Sys_Event_Bind(ContextStack* Registers, thread_t* Thread){
         }
     }
     if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    return Event::Bind(threadkey, event);
+    return Event::Bind(threadkey, event, (bool)Registers->arg3);
 }
 
 /* Sys_Event_Unbind :
@@ -308,8 +308,7 @@ KResult Sys_Event_Trigger(ContextStack* Registers, thread_t* Thread){
     event_t* event; 
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
-    if(CheckAddress((uintptr_t)Registers->arg1, Registers->arg2) != KSUCCESS) return KMEMORYVIOLATION;
-    return Event::Trigger(Thread, event, (uintptr_t)Registers->arg1, (size_t)Registers->arg2);
+    return Event::Trigger(Thread, event);
 }
 
 /* Sys_CreatThread :

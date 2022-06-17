@@ -310,12 +310,6 @@ thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
 
     vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, source->Regs->cs == GDTInfoSelectorsRing[UserAppRing].Code);
 
-    /* Setup registers */
-    thread->Regs->rip = (uint64_t)source->EntryPoint;
-    thread->Regs->cs = source->Regs->cs; 
-    thread->Regs->ss = source->Regs->ss; 
-    thread->Regs->rflags = source->Regs->rflags;
-    thread->Regs->cr3 = source->Regs->cr3;
 
     /* Setup SIMD */
     thread->SIMDSaver = simdCreatSaveSpace();
@@ -323,15 +317,18 @@ thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
     /* Thread info for kernel */
     thread->Info = (threadInfo_t*)malloc(sizeof(threadInfo_t));
     thread->Info->SyscallStack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE; 
-    thread->Info->CS = thread->Regs->cs;
-    thread->Info->SS = thread->Regs->ss;
+    thread->Info->CS = source->Regs->cs;
+    thread->Info->SS = source->Regs->ss;
     thread->Info->Thread = thread;
-    thread->Regs->ThreadInfo = thread->Info;
-
+    thread->EntryPoint = source->EntryPoint;
 
     /* Setup priviledge */
     thread->Priviledge = source->Priviledge;
     thread->RingPL = source->RingPL;
+
+    /* Setup registers */
+    SetupRegistersForTask(thread);
+    thread->Regs->ThreadInfo = thread->Info;
 
     /* Other data */
     thread->externalData = externalData;
@@ -339,6 +336,10 @@ thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
     thread->MemoryAllocated = 0;
     thread->TimeAllocate = 0;
     thread->Parent = this;
+    thread->IsCIP = source->IsCIP;
+    thread->TCIP = source->TCIP;
+    thread->IsEvent = source->IsEvent;
+    thread->Event = source->Event;
 
     /* ID */
     thread->TID = TID; 
@@ -484,9 +485,18 @@ bool thread_t::ExtendStack(uint64_t address){
 
 KResult thread_t::ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t* location){
     *location = 0;
-    if(!IsBlock) return KFAIL;
-    if(size == 0) return KFAIL;
-    if(size > ShareMaxIntoStackSpace) return KFAIL;
+    if(!IsBlock){
+        *location = NULL;
+        return KFAIL;
+    }
+    if(size == 0){
+        *location = NULL;
+        return KFAIL;
+    } 
+    if(size > ShareMaxIntoStackSpace){
+        *location = NULL;
+        return KFAIL;
+    } 
     uintptr_t address = (uintptr_t)(Regs->rsp - size);
     if(ExtendStack((uint64_t)address)){
         //store data in global memory
@@ -516,9 +526,10 @@ bool thread_t::CIP(ContextStack* Registers, uint64_t CoreID, thread_t* thread, p
     
 bool thread_t::CIP(ContextStack* Registers, uint64_t CoreID, thread_t* thread){
     Atomic::atomicAcquire(&mutexScheduler, 1);
-
-    thread->IsCIP = true;
-    thread->TCIP = this;
+    
+    thread_t* child = Parent->DuplicateThread(thread, this->externalData);
+    child->IsCIP = true;
+    child->TCIP = this;
 
     //Save context
     SaveContext(Registers, CoreID);
@@ -527,7 +538,7 @@ bool thread_t::CIP(ContextStack* Registers, uint64_t CoreID, thread_t* thread){
     Parent->TaskManagerParent->TimeByCore[CoreID] = HPET::GetTime();
 
     //Load new task
-    thread->CreatContext(Registers, CoreID);
+    child->CreatContext(Registers, CoreID);
 
     Atomic::atomicUnlock(&mutexScheduler, 1);
 

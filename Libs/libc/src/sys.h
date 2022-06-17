@@ -72,9 +72,9 @@ KResult SYS_Unpause(kthread_t self);
 KResult SYS_Map(kprocess_t self, uint64_t* addressVirtual, bool isPhysical, uintptr_t* addressPhysical, size_t* size, bool findFree);
 KResult SYS_Unmap(kprocess_t self, uintptr_t addressVirtual, size_t size);
 KResult Sys_Event_Creat(kevent_t* self, enum EventType type, uint8_t vector);
-KResult Sys_Event_Bind(kevent_t self, kthread_t task, uint8_t vector);
+KResult Sys_Event_Bind(kevent_t self, kthread_t task, uint8_t vector, bool IgnoreMissedEvents);
 KResult Sys_Event_Unbind(kevent_t self, kthread_t task, uint8_t vector);
-KResult Sys_Event_Trigger(kevent_t self, uintptr_t dataAddress, size_t dataSize);
+KResult Sys_Event_Trigger(kevent_t self);
 KResult Sys_CreatThread(kprocess_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t data, kthread_t* result);
 KResult Sys_DuplicateThread(kprocess_t parent, kthread_t source, uint64_t data, kthread_t* self);
 KResult Sys_ExecThread(kthread_t self, struct parameters_t* parameters);
@@ -83,6 +83,9 @@ KResult Sys_Logs(char* message, size_t size);
 
 KResult SYS_GetThreadKey(kthread_t* self);
 KResult SYS_GetProcessKey(kprocess_t* self);
+
+
+KResult Printlog(char* message);
 
 #if defined(__cplusplus)
 } 

@@ -119,6 +119,7 @@ struct thread_t{
     /* Event */
     bool IsEvent;
     struct event_t* Event;
+    struct event_tasks_t* EventTask;
 
     /* Schedule queue */
     bool IsInQueue;

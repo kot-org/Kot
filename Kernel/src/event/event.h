@@ -9,12 +9,18 @@
 struct event_t{    
     uint64_t Lock;
 
-    struct thread_t** Tasks;
+    struct event_tasks_t** Tasks;
     size_t NumTask;
 
     enum EventType Type;
 
     parameters_t* ParametersBuffer;
+}__attribute__((packed));
+
+struct event_tasks_t{
+    struct thread_t* Thread;
+    uint64_t NumberMissedEvents;
+    bool IgnoreMissedEvents;
 }__attribute__((packed));
 
 struct IRQEvent_t{
@@ -35,8 +41,8 @@ struct IPCEvent_t{
 
 namespace Event{
     uint64_t Creat(event_t** event, enum EventType Type, uint64_t AdditionnalData);
-    uint64_t Bind(struct thread_t* task, struct event_t* self);
+    uint64_t Bind(struct thread_t* task, struct event_t* self, bool IgnoreMissedEvents);
     uint64_t Unbind(struct thread_t* task, struct event_t* self);
-    uint64_t Trigger(struct thread_t* author, struct event_t* self, uintptr_t Data, size_t Size);
+    uint64_t Trigger(struct thread_t* author, struct event_t* self);
     void Exit(thread_t* task);
 }

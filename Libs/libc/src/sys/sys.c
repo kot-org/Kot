@@ -54,16 +54,16 @@ KResult Sys_Event_Creat(kevent_t* self, enum EventType type, uint8_t vector){
     return Syscall_24(KSys_Event_Creat, self, type, vector);
 }
 
-KResult Sys_Event_Bind(kevent_t self, kthread_t task, uint8_t vector){
-    return Syscall_24(KSys_Event_Bind, self, task, vector);
+KResult Sys_Event_Bind(kevent_t self, kthread_t task, uint8_t vector, bool IgnoreMissedEvents){
+    return Syscall_32(KSys_Event_Bind, self, task, vector, IgnoreMissedEvents);
 }
 
 KResult Sys_Event_Unbind(kevent_t self, kthread_t task, uint8_t vector){
     return Syscall_24(KSys_Event_Unbind, self, task, vector);
 }
 
-KResult Sys_Event_Trigger(kevent_t self, uintptr_t dataAddress, size_t dataSize){
-    return Syscall_24(KSys_Event_Trigger, self, dataAddress, dataSize);
+KResult Sys_Event_Trigger(kevent_t self){
+    return Syscall_8(KSys_Event_Trigger, self);
 }
 
 KResult Sys_CreatThread(kprocess_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t data, kthread_t* result){
@@ -97,4 +97,8 @@ KResult SYS_GetProcessKey(kprocess_t* self){
     asm("mov %%gs:8, %0":"=r"(key));
     *self = key; 
     return KSUCCESS;
+}
+
+KResult Printlog(char* message){
+    return Sys_Logs(message, strlen(message));
 }

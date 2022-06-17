@@ -11,7 +11,6 @@ exit:
 	mov rsi, rax
 	mov rax, 0x7
 	syscall
-iddle:
 	jmp iddle
 
 _start:
@@ -20,4 +19,5 @@ _start:
 	call main
 	jmp exit
 
-.size _start, . - _start
+iddle:
+	jmp iddle

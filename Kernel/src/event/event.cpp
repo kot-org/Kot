@@ -37,13 +37,15 @@ namespace Event{
         self->Tasks = NULL;
         self->NumTask = 0;
         self->ParametersBuffer = (parameters_t*)calloc(sizeof(Parameters));
+        self->ParametersBuffer->Parameter0 = self->Type;
+        self->ParametersBuffer->Parameter1 = NULL;
 
         *event = self;
 
         return KSUCCESS;
     }
 
-    uint64_t Bind(thread_t* task, event_t* self){
+    uint64_t Bind(thread_t* task, event_t* self, bool IgnoreMissedEvents){
         if(task->IsEvent) return KFAIL; /* only one event per thread */
         Atomic::atomicAcquire(&self->Lock, 0);
 
@@ -56,11 +58,15 @@ namespace Event{
         }
         
         self->NumTask++;
-        self->Tasks = (thread_t**)realloc(self->Tasks, self->NumTask * sizeof(thread_t));
-        self->Tasks[self->NumTask - 1] = task;
+        self->Tasks = (event_tasks_t**)realloc(self->Tasks, self->NumTask * sizeof(event_tasks_t*));
+        self->Tasks[self->NumTask - 1] = (event_tasks_t*)calloc(sizeof(event_tasks_t));
+        self->Tasks[self->NumTask - 1]->Thread = task;
+        self->Tasks[self->NumTask - 1]->NumberMissedEvents = NULL;
+        self->Tasks[self->NumTask - 1]->IgnoreMissedEvents = IgnoreMissedEvents;
 
         task->IsEvent = true;
         task->Event = self;
+        task->EventTask = self->Tasks[self->NumTask - 1];
 
 
         Atomic::atomicUnlock(&self->Lock, 0);
@@ -71,14 +77,15 @@ namespace Event{
         if(self->NumTask <= 0) return KFAIL;
         Atomic::atomicAcquire(&self->Lock, 0);
 
+        free(task->EventTask);
         self->NumTask--;
         for(size_t i = 0; i < self->NumTask; i++){
-            if(self->Tasks[i] == task){
-                uintptr_t newPos = malloc(self->NumTask * sizeof(thread_t));
-                memcpy(newPos, self->Tasks[i], sizeof(thread_t) * i);
+            if(self->Tasks[i]->Thread == task){
+                uintptr_t newPos = malloc(self->NumTask * sizeof(event_tasks_t));
+                memcpy(newPos, self->Tasks[i], sizeof(event_tasks_t) * i);
                 i++;
-                memcpy((uintptr_t)((uint64_t)newPos + sizeof(thread_t) * (i - 1)), (uintptr_t)((uint64_t)self->Tasks[i] + sizeof(thread_t) * i), sizeof(thread_t) * i);
-                self->Tasks = (thread_t**)newPos;
+                memcpy((uintptr_t)((uint64_t)newPos + sizeof(event_tasks_t) * (i - 1)), (uintptr_t)((uint64_t)self->Tasks[i] + sizeof(event_tasks_t) * i), sizeof(event_tasks_t) * i);
+                self->Tasks = (event_tasks_t**)newPos;
             }
         }
 
@@ -93,16 +100,17 @@ namespace Event{
         return KSUCCESS;
     }
     
-    uint64_t Trigger(thread_t* author, event_t* self, uintptr_t Data, size_t Size){
+    uint64_t Trigger(thread_t* author, event_t* self){
         if(self == NULL) return KFAIL;
         Atomic::atomicAcquire(&self->Lock, 0);
 
-        self->ParametersBuffer->Parameter0 = self->Type;
-
         for(size_t i = 0; i < self->NumTask; i++){
-            if(self->Tasks[i]->IsBlock){
-                self->Tasks[i]->ShareDataUsingStackSpace(Data, Size, &self->ParametersBuffer->Parameter1);
-                self->Tasks[i]->Launch(self->ParametersBuffer);
+            if(self->Tasks[i]->Thread->IsBlock){
+                self->Tasks[i]->Thread->Launch(self->ParametersBuffer);
+            }else{
+                if(!self->Tasks[i]->IgnoreMissedEvents){
+                    self->Tasks[i]->NumberMissedEvents++;
+                }
             }
         }
 
@@ -115,5 +123,10 @@ namespace Event{
         task->Regs->rsp = (uint64_t)StackTop;
         task->Regs->rip = (uint64_t)task->EntryPoint;
         task->IsBlock = true;
+        
+        if(task->EventTask->NumberMissedEvents){
+            task->EventTask->NumberMissedEvents--;  
+            task->EventTask->Thread->Launch(task->Event->ParametersBuffer);
+        }
     }
 }
