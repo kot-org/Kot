@@ -69,4 +69,4 @@ creatISOEFI:
 
 ovmf:
 	mkdir -p ../ovmf
-	-wget -nc https://retrage.github.io/edk2-nightly/bin/RELEASEX64_OVMF.fd -O ../ovmf/ovmf.fd
+	-wget -nc https://retrage.github.io/edk2-nightly/bin/RELEASEX64_OVMF.fd -O ../../Meta/ovmf/ovmf.fd
