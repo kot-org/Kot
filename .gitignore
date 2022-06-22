@@ -31,8 +31,11 @@
 Sysroot/
 OVMFbin/
 limine/
-Local/
 Bin/
+Toolchain/Local/*
+!Toolchain/Local/bin/
+x86_64-kot-lto-dump
+x86_64-elf-lto-dump
 .vs/
 
 *.exe
