@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed Jun 22 17:36:40 2022
+# Make data base, printed on Wed Jun 22 19:50:47 2022
 
 # Variables
 
@@ -55,7 +55,7 @@ PATH = /home/konect/.vscode-server/bin/30d9c6cd9483b2cc586687151bcbcd635f373630/
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-db88ffd6-df14-44ba-89a6-67961aa4b1fe.sock
+VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-c51c86c0-7479-408d-8144-4cd7720805bc.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -213,7 +213,7 @@ GNUmakefile:
 # strcache performance: lookups = 28 / hit rate = 10%
 # hash-table stats:
 # Load=25/8192=0%, Rehash=0, Collisions=1/28=4%
-# Finished Make data base on Wed Jun 22 17:36:40 2022
+# Finished Make data base on Wed Jun 22 19:50:47 2022
 
  
 make: *** No rule to make target 'all'.  Stop.

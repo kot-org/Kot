@@ -1,9 +1,9 @@
-[submodule "Sources/Kernel"]
-	path = Sources/Kernel
+[submodule "Sources/Kot-Kernel"]
+	path = Sources/Kot-Kernel
 	url = https://github.com/Keep-Konect/Kot-Kernel
-[submodule "Sources/Libs"]
-	path = Sources/Libs
+[submodule "Sources/Kot-Libs"]
+	path = Sources/Kot-Libs
 	url = https://github.com/Keep-Konect/Kot-Libs
-[submodule "Sources/Modules"]
-	path = Sources/Libs
+[submodule "Sources/Kot-Modules"]
+	path = Sources/Kot-Modules
 	url = https://github.com/Keep-Konect/Kot-Modules
