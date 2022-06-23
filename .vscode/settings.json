@@ -67,7 +67,7 @@
     "C_Cpp.errorSquiggles": "Disabled",
     "git.ignoreLimitWarning": true,
     "files.exclude": {
-        "**/Toolchain": false
+        "**/Toolchain": true
     },
     "restoreTerminals.terminals": [
         {
