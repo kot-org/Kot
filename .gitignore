@@ -29,7 +29,6 @@
 
 # Executables
 Sysroot/
-OVMFbin/
 limine/
 Bin/
 Toolchain/Local/

@@ -454,6 +454,7 @@ uint64_t vmm_Init(BootInfo* bootInfo){
             }else{
                 physicalAddress = virtualAddress - bootInfo->HHDM->addr;
             }
+
             vmm_Map(vmm_PageTable, (uintptr_t)virtualAddress, (uintptr_t)physicalAddress, false, true, true);
         }
     }

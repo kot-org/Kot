@@ -14,8 +14,7 @@ namespace ACPI{
         }else{
             sdt = (ACPI::SDTHeader*)vmm_GetVirtualAddress((uintptr_t)rsdp->RSDTAddress);
             entries = (sdt->Length - sizeof(ACPI::SDTHeader)) / sizeof(uint32_t);
-        }
-        
+        }        
 
         ACPI::SDTHeader* Header = NULL;
 

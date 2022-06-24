@@ -6,8 +6,13 @@ void InitializeACPI(BootInfo* bootInfo){
     }
 
     ACPI::RSDP2* RSDP = (ACPI::RSDP2*)bootInfo->RSDP->rsdp;
+    
+    // map rsdp
+    uintptr_t PhysicalAddress = (uintptr_t)((uint64_t)RSDP - (uint64_t)vmm_HHDMAdress);
+    vmm_Map(RSDP, PhysicalAddress);
 
     ACPI::MADTHeader* madt = (ACPI::MADTHeader*)ACPI::FindTable(RSDP, (char*)"APIC");
+
     if(madt == NULL){
         KernelPanic("APIC not found");
     }
