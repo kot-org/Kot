@@ -1,6 +1,6 @@
-PREFIX = ../../../Toolchain/Local/bin/x86_64-kot-
-INCDIR = ../../../Sysroot/include/kot
-OBJDIR := ../../../Sysroot/lib
+PREFIX = ../../../../Toolchain/Local/bin/x86_64-kot-
+INCDIR = ../../../../Sysroot/include/kot
+OBJDIR := ../../../../Sysroot/lib
 SRCDIR := ../src
 
 CC = $(PREFIX)gcc
