@@ -22,13 +22,15 @@
 [1;32m[OK] [1;0mProcessor 6 respond with success
 [1;33m[Warning] [1;0mWait processor 7
 [1;32m[OK] [1;0mProcessor 7 respond with success
-[1;32[m[1O;K3][2 m[1[O;1K3;]20 m[m[OS1Kc;[0h]em 1dS[[;uc[[131lh1;2;ee;3m3rd32[2u21mO mlm;[Ki[e[0O]sOOmK  rKS]Ke ]c []i h1n se[;a [d10b[e1u;ml1n;l0Se;a0emcd0bmrSh mlS efSeccidocdhsurh he l eedeetfddurhouul elneir elars preb  tr rlieho esneici a sesebp s nldreeaesonnbdoaal  rbbefcf lldoeo:ee sr drfs 1[  oot21ftrrh
-d;oh  e3ret: 2  h fmtpe po[hr 1rrOeop0 K ro
-tcpoc]herce esossecs[ so1opesr;rro s or:0s:c  moe:1 Srs 44cs8
-
-ho
- er :d:  2u6
-l
-er is enabled for the processor : 0
+[1;32m[OK] [1;0mScheduler is enabled for the processor : 8
+[1;32m[OK] [1;0mScheduler is enabled for the processor : 6
+[1;32m[OK] [1;0mScheduler is enabled for the processor : 14
+[1;32m[OK] [1;0mScheduler is enabled for the processor : 10
+[1;32m[OK] [1;0mScheduler is enabled for the processor : 2
+[1;32m[OK] [1;0mScheduler is enabled for the processor : 4
+[1;32m[OK] [1;0mScheduler is enabled for the processor : 12
+[1;32m[OK] [1;0mScheduler is enabled for the processor : 0
 [Process 0x02] '[PS2] Keyboard device found'
+[Process 0x02] '[PS2] Mouse device found'
+[Process 0x02] '[PS2] Driver intialized successfully'
 

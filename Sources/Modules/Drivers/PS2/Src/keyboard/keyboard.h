@@ -5,9 +5,9 @@
 extern struct PS2Port_t* KeyboardPS2Port;
 
 enum KeyboardLEDS{
-    ScrollLock  = 0,
-    NumberLock  = 1,
-    CapsLock    = 2,
+    KeyboardLEDSScrollLock  = 0,
+    KeyboardLEDSNumberLock  = 1,
+    KeyboardLEDSCapsLock    = 2,
 };
 
 KResult KeyboardInitialize();

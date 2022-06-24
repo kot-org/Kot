@@ -27,6 +27,7 @@ int main(int argc, char* argv[]){
     status = MouseInitalize();
     if(status != KSUCCESS) return status;
 
+    Printlog("[PS2] Driver intialized successfully");
     return KSUCCESS;
 }
 

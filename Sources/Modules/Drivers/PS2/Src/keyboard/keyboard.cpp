@@ -22,7 +22,7 @@ KResult KeyboardInitialize(){
             PS2GetData();
 
             Sys_Event_Bind(NULL, InterruptThreadHandler, IRQ_START + KeyboardPS2Port->IRQ, false);
-
+            
             break;
         }
     }
@@ -31,16 +31,32 @@ KResult KeyboardInitialize(){
 }
 
 KResult KeyboardHandler(uint8_t data){
+    static int test;
+    switch(test){
+        case 0:
+            KeyboardSetLedState(KeyboardLEDSScrollLock, true);
+        case 1:
+            KeyboardSetLedState(KeyboardLEDSNumberLock, true);
+        case 2:
+            KeyboardSetLedState(KeyboardLEDSCapsLock, true);
+        default:
+            KeyboardSetLedState(KeyboardLEDSScrollLock, false);
+            KeyboardSetLedState(KeyboardLEDSNumberLock, false);
+            KeyboardSetLedState(KeyboardLEDSCapsLock, false);
+    }
+
     if(data < 0x80){
         char key[1];
         *key = (char)qwerty[data];
         Sys_Logs(key, 1);
     }
+
     return KSUCCESS;
 }
 
 KResult KeyboardSetLedState(enum KeyboardLEDS LEDID, bool IsOn){
     atomicAcquire(&KeyboardLock, 0);
+    LedStateSaver = WriteBit(LedStateSaver, LEDID, IsOn);
     KeyboardPS2Port->PS2SendDataPort(0xED);
     KeyboardPS2Port->PS2SendDataPort(LedStateSaver);
     atomicUnlock(&KeyboardLock, 0);

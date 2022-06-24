@@ -33,7 +33,7 @@ OVMFbin/
 limine/
 Bin/
 Toolchain/Local/
-.vs/
+.vscode/
 
 *.exe
 *.out
