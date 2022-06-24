@@ -24,7 +24,7 @@ OBJS += $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCCPP))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)
 
-all: 
+all: limine kernel
 
 limine:
 	git clone https://github.com/limine-bootloader/limine.git --branch=v3.0-branch-binary --depth=1
@@ -66,7 +66,3 @@ creatISOEFI:
 	cp $(BUILDDIR)/kernel.elf limine/limine.sys limine/limine-cd-efi.bin  $(LIMINEBUIDLDIR)/
 	xorriso -as mkisofs --efi-boot limine-cd-efi.bin -efi-boot-part --efi-boot-image -J -o $(BUILDDIR)/kotEFI.iso  $(LIMINEBUIDLDIR)
 	./limine/limine-deploy $(BUILDDIR)/kotEFI.iso
-
-ovmf:
-	mkdir -p ../../Meta/ovmf
-	-wget -nc https://retrage.github.io/edk2-nightly/bin/RELEASEX64_OVMF.fd -O ../../Meta/ovmf/ovmf.fd
