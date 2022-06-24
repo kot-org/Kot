@@ -76,7 +76,7 @@ KResult Sys_Event_Bind(kevent_t self, kthread_t task, uint8_t vector, bool Ignor
 KResult Sys_Event_Unbind(kevent_t self, kthread_t task, uint8_t vector);
 KResult Sys_Event_Trigger(kevent_t self, struct parameters_t* parameters);
 KResult Sys_Event_Close();
-KResult Sys_eThread(kprocess_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t data, kthread_t* result);
+KResult Sys_CreateThread(kprocess_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t data, kthread_t* result);
 KResult Sys_DuplicateThread(kprocess_t parent, kthread_t source, uint64_t data, kthread_t* self);
 KResult Sys_ExecThread(kthread_t self, struct parameters_t* parameters);
 KResult Sys_Logs(char* message, size_t size);

@@ -2,7 +2,7 @@
 
 __attribute__((section(".KotSpecificData"))) struct KotSpecificData_t KotSpecificData;
 
-KResult SYS_CreatShareSpace(kprocess_t self, size_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, uint64_t flags){
+KResult SYS_CreateShareSpace(kprocess_t self, size_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, uint64_t flags){
     return Syscall_40(KSys_CreateShareMemory, self, size, virtualAddressPointer, keyPointer, flags);
 }
 

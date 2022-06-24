@@ -2,7 +2,7 @@
 #define _UTILS_H 1
 
 static inline bool IsBeetween(uint64_t lower, uint64_t value, uint64_t upper){
-    return (lower =< value) && (upper >= value);
+    return (lower <= value) && (upper >= value);
 }
 
 static inline bool ReadBit(uint8_t byte, int position){
