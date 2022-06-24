@@ -14,12 +14,12 @@ void gdtInit(){
     gdtBaseInfo.Offset = (uint64_t)&GDTEntries[0]; //get adress of the table where gdt entries 
 
     gdtNullDescriptor();
-    GDTInfoSelectorsRing[KernelRing].Code = gdtCreatCodeDescriptor(KernelRing);
-    GDTInfoSelectorsRing[KernelRing].Data = gdtCreatDataDescriptor(KernelRing);
+    GDTInfoSelectorsRing[KernelRing].Code = gdtCreateCodeDescriptor(KernelRing);
+    GDTInfoSelectorsRing[KernelRing].Data = gdtCreateDataDescriptor(KernelRing);
 
     for(int i = DriversRing; i <= UserAppRing; i++){
-        GDTInfoSelectorsRing[i].Data = gdtCreatDataDescriptor(i);
-        GDTInfoSelectorsRing[i].Code = gdtCreatCodeDescriptor(i);
+        GDTInfoSelectorsRing[i].Data = gdtCreateDataDescriptor(i);
+        GDTInfoSelectorsRing[i].Code = gdtCreateCodeDescriptor(i);
     }
     
     TSSInit();
@@ -47,7 +47,7 @@ uint16_t gdtNullDescriptor(){
 
     return gdtInstallDescriptor(0, 0, accessByteNull, flagsStructNull);
 }
-uint16_t gdtCreatCodeDescriptor(int ring){
+uint16_t gdtCreateCodeDescriptor(int ring){
     OthersStruct flagsStructCode;
     AccessByteStruct accessByteCode;
     flagsStructCode.Is64bitsCode = false;
@@ -75,7 +75,7 @@ uint16_t gdtCreatCodeDescriptor(int ring){
     return gdtInstallDescriptor(0, 0, accessByteCode, flagsStructCode);
 }
 
-uint16_t gdtCreatDataDescriptor(int ring){
+uint16_t gdtCreateDataDescriptor(int ring){
     OthersStruct flagsStructData;
     AccessByteStruct accessByteData;
     flagsStructData.Is64bitsCode = false;

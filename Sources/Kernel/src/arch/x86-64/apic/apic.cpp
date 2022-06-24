@@ -240,7 +240,7 @@ namespace APIC{
         TimerRegisters.timerMode = LocalAPICInterruptTimerModePeriodic;
         
         uint32_t timer = localAPICReadRegister(LocalAPICRegisterOffsetLVTTimer);
-        localAPICWriteRegister(LocalAPICRegisterOffsetLVTTimer, CreatRegisterValueInterrupts(TimerRegisters) | (timer & 0xfffcef00));    
+        localAPICWriteRegister(LocalAPICRegisterOffsetLVTTimer, CreateRegisterValueInterrupts(TimerRegisters) | (timer & 0xfffcef00));    
         localAPICWriteRegister(LocalAPICRegisterOffsetInitialCount, (Tick10ms / 10)); 
         Atomic::atomicUnlock(&mutexSLT, 0);
     }
@@ -259,7 +259,7 @@ namespace APIC{
         registerInterrupt.deliveryMode = LocalAPICDeliveryModeINIT;
         registerInterrupt.destinationMode = LocalAPICDestinationModePhysicalDestination;
         registerInterrupt.destinationType = LocalAPICDestinationTypeBase;
-        uint32_t commandLow = CreatLocalAPICIipiRegister(registerInterrupt);
+        uint32_t commandLow = CreateLocalAPICIipiRegister(registerInterrupt);
         uint32_t commandHigh = CoreID << 24;
         SetCommandIPI(commandLow, commandHigh);
     }
@@ -270,7 +270,7 @@ namespace APIC{
         registerInterrupt.deliveryMode = LocalAPICDeliveryModeStartUp;
         registerInterrupt.destinationMode = LocalAPICDestinationModePhysicalDestination;
         registerInterrupt.destinationType = LocalAPICDestinationTypeBase;
-        uint32_t commandLow = CreatLocalAPICIipiRegister(registerInterrupt);
+        uint32_t commandLow = CreateLocalAPICIipiRegister(registerInterrupt);
         uint32_t commandHigh = CoreID << 24;
         SetCommandIPI(commandLow, commandHigh);
     }
@@ -313,7 +313,7 @@ namespace APIC{
         *((volatile uint32_t*)((uintptr_t)((uint64_t)lapicAddress + offset))) = value;
     }
 
-    uint32_t CreatRegisterValueInterrupts(LocalAPICInterruptRegister reg){
+    uint32_t CreateRegisterValueInterrupts(LocalAPICInterruptRegister reg){
         return (
             (reg.vector << LocalAPICInterruptVector) |
             (reg.messageType << LocalAPICInterruptMessageType) |
@@ -357,7 +357,7 @@ namespace APIC{
         registerInterrupt.deliveryMode = LocalAPICDeliveryModeFixed;
         registerInterrupt.destinationMode = LocalAPICDestinationModePhysicalDestination;
         registerInterrupt.destinationType = LocalAPICDestinationTypeBase;
-        uint32_t commandLow = CreatLocalAPICIipiRegister(registerInterrupt);
+        uint32_t commandLow = CreateLocalAPICIipiRegister(registerInterrupt);
         uint32_t commandHigh = CoreID << 24;
         
         SetCommandIPI(commandLow, commandHigh);
@@ -369,13 +369,13 @@ namespace APIC{
         registerInterrupt.deliveryMode = LocalAPICDeliveryModeNMI;
         registerInterrupt.destinationMode = LocalAPICDestinationModePhysicalDestination;
         registerInterrupt.destinationType = LocalAPICDestinationTypeBase;
-        uint32_t commandLow = CreatLocalAPICIipiRegister(registerInterrupt);
+        uint32_t commandLow = CreateLocalAPICIipiRegister(registerInterrupt);
         uint32_t commandHigh = CoreID << 24;
         
         SetCommandIPI(commandLow, commandHigh);
     }
 
-    uint32_t CreatLocalAPICIipiRegister(LocalAPICIipi reg){
+    uint32_t CreateLocalAPICIipiRegister(LocalAPICIipi reg){
         return (
             (reg.vector << LocalAPICInterruptipiVector) |
             (reg.deliveryMode << LocalAPICInterruptipiMessageType) |

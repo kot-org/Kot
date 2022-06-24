@@ -30,7 +30,7 @@ limine:
 	git clone https://github.com/limine-bootloader/limine.git --branch=v3.0-branch-binary --depth=1
 	make -C limine
 
-kernel: $(OBJS) link creatISO
+kernel: $(OBJS) link createISO
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@ echo !==== COMPILING $^
@@ -51,7 +51,7 @@ link:
 	@ echo !==== LINKING
 	$(LD) $(LDFLAGS) -o $(BUILDDIR)/kernel.elf $(OBJS) $(OBJSCPP)
 
-creatISO:
+createISO:
 	@ echo !==== ISO
 	mkdir -p $(LIMINEBUIDLDIR)
 	cp -v $(BUILDDIR)/kernel.elf limine.cfg limine/limine.sys limine/limine-cd.bin limine/limine-cd-efi.bin $(LIMINEBUIDLDIR)
@@ -60,7 +60,7 @@ creatISO:
         $(LIMINEBUIDLDIR) -o $(BUILDDIR)/kot.iso
 	./limine/limine-deploy $(BUILDDIR)/kot.iso
 
-creatISOEFI:
+createISOEFI:
 	@ echo !==== ISO EFi
 	mkdir -p  $(LIMINEBUIDLDIR)
 	cp $(BUILDDIR)/kernel.elf limine/limine.sys limine/limine-cd-efi.bin  $(LIMINEBUIDLDIR)/

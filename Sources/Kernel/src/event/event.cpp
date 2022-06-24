@@ -3,7 +3,7 @@
 namespace Event{
     static uint64_t mutexEvent;
 
-    uint64_t Creat(event_t** event, enum EventType Type, uint64_t AdditionnalData){
+    uint64_t Create(event_t** event, enum EventType Type, uint64_t AdditionnalData){
         event_t* self = NULL;
 
         switch (Type){

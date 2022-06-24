@@ -56,9 +56,9 @@ namespace ELF{
         
         kprocess_t proc = NULL;
         
-        if(Sys_CreatProc(&proc, privilege, identifier) != KSUCCESS) return KFAIL;
-        /* TODO : creat thread identifier */
-        if(Sys_CreatThread(proc, (uintptr_t)self->Header->e_entry, privilege, NULL, mainThread) != KSUCCESS) return KFAIL;
+        if(Sys_CreateProc(&proc, privilege, identifier) != KSUCCESS) return KFAIL;
+        /* TODO : create thread identifier */
+        if(Sys_CreateThread(proc, (uintptr_t)self->Header->e_entry, privilege, NULL, mainThread) != KSUCCESS) return KFAIL;
         
         kprocess_t parentProcess = NULL;
         SYS_GetProcessKey(&parentProcess);
@@ -116,7 +116,7 @@ namespace ELF{
                 ksmem_t SharedKey = NULL;
                 uint64_t flags = 0;
                 memory_share_flag_SetFlag(&flags, memory_share_flag_NLA, true);
-                SYS_CreatShareSpace(parentProcess, phdr->p_memsz, &TmpAddress, &SharedKey, flags);
+                SYS_CreateShareSpace(parentProcess, phdr->p_memsz, &TmpAddress, &SharedKey, flags);
                 uintptr_t clientAddress = (uintptr_t)phdr->p_vaddr;
                 if(self->KotSpecificSymbol != NULL){
                     if(IsBeetween((uint64_t)clientAddress, (uint64_t)self->KotSpecificSymbol->st_value, ((uint64_t)clientAddress + phdr->p_memsz))){

@@ -21,7 +21,7 @@ struct lockreference_t{
     lock_t* LockOffset[(PAGE_SIZE / sizeof(uint64_t))];   
 }__attribute__((packed));
 
-uint64_t Keyhole_Creat(key_t* key, struct process_t* parent, struct process_t* target, enum DataType type, uint64_t data, uint64_t flags);
+uint64_t Keyhole_Create(key_t* key, struct process_t* parent, struct process_t* target, enum DataType type, uint64_t data, uint64_t flags);
 uint64_t Keyhole_Duplicate(struct thread_t* caller, key_t key, struct process_t* target);
 uint64_t Keyhole_Verify(struct thread_t* caller, key_t key, enum DataType type);
 uint64_t Keyhole_Get(struct thread_t* caller, key_t key, enum DataType type, uint64_t* data, uint64_t* flags);

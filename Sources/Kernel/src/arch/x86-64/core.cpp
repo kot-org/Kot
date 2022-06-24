@@ -68,7 +68,7 @@ KernelInfo* arch_initialize(uintptr_t boot){
     APIC::StartLapicTimer();
     APIC::LoadCores();
 
-    //creat parameters
+    //create parameters
     KernelInfo* kernelInfo = (KernelInfo*)malloc(sizeof(KernelInfo));
 
     //frame buffer

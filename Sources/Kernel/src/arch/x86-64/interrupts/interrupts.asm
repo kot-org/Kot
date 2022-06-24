@@ -5,7 +5,7 @@
 GLOBAL InterruptEntryList
 EXTERN InterruptHandler
 
-%macro CREAT_INTERRUPT_NAME 1  
+%macro CREATE_INTERRUPT_NAME 1  
 
     dq EntryInterruptHandler%1
 
@@ -100,7 +100,7 @@ INTERRUPT_WITHOUT_ERROR_CODE 31
 InterruptEntryList:
     %assign i 0
     %rep 256
-        CREAT_INTERRUPT_NAME i
+        CREATE_INTERRUPT_NAME i
     %assign i i+1
     %endrep
 

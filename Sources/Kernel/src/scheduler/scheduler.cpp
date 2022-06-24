@@ -19,7 +19,7 @@ void TaskManager::Scheduler(ContextStack* Registers, uint64_t CoreID){
 
             /* Find & load new task */
             thread_t* ThreadStart = GetTreadWithoutLock();
-            ThreadStart->CreatContext(Registers, CoreID);
+            ThreadStart->CreateContext(Registers, CoreID);
         } 
         Atomic::atomicUnlock(&MutexScheduler, 0);       
     }
@@ -96,13 +96,13 @@ thread_t* TaskManager::GetTreadWithoutLock(){
     return ReturnValue;
 }
 
-uint64_t TaskManager::CreatThread(thread_t** self, process_t* proc, uintptr_t entryPoint, uint64_t externalData){
-    *self = proc->CreatThread(entryPoint, externalData);
+uint64_t TaskManager::CreateThread(thread_t** self, process_t* proc, uintptr_t entryPoint, uint64_t externalData){
+    *self = proc->CreateThread(entryPoint, externalData);
     return KSUCCESS;
 }
 
-uint64_t TaskManager::CreatThread(thread_t** self, process_t* proc, uintptr_t entryPoint, uint8_t privilege, uint64_t externalData){
-    *self = proc->CreatThread(entryPoint, externalData);
+uint64_t TaskManager::CreateThread(thread_t** self, process_t* proc, uintptr_t entryPoint, uint8_t privilege, uint64_t externalData){
+    *self = proc->CreateThread(entryPoint, externalData);
     return KSUCCESS;
 }
 
@@ -160,11 +160,11 @@ uint64_t TaskManager::ShareDataUsingStackSpace(thread_t* self, uintptr_t data, s
     return self->ShareDataUsingStackSpace(data, size, location);
 }
 
-uint64_t TaskManager::CreatProcess(process_t** key, uint8_t priviledge, uint64_t externalData){
+uint64_t TaskManager::CreateProcess(process_t** key, uint8_t priviledge, uint64_t externalData){
     process_t* proc = (process_t*)calloc(sizeof(process_t));
 
     if(ProcessList == NULL){
-        ProcessList = CreatNode((uintptr_t)0);
+        ProcessList = CreateNode((uintptr_t)0);
         proc->NodeParent = ProcessList->Add(proc);
     }else{
         proc->NodeParent = ProcessList->Add(proc);
@@ -194,14 +194,14 @@ uint64_t TaskManager::CreatProcess(process_t** key, uint8_t priviledge, uint64_t
     return KSUCCESS;
 }
 
-thread_t* process_t::CreatThread(uintptr_t entryPoint, uint64_t externalData){
-    return CreatThread(entryPoint, DefaultPriviledge, externalData);
+thread_t* process_t::CreateThread(uintptr_t entryPoint, uint64_t externalData){
+    return CreateThread(entryPoint, DefaultPriviledge, externalData);
 }
 
-thread_t* process_t::CreatThread(uintptr_t entryPoint, uint8_t priviledge, uint64_t externalData){
+thread_t* process_t::CreateThread(uintptr_t entryPoint, uint8_t priviledge, uint64_t externalData){
     thread_t* thread = (thread_t*)calloc(sizeof(thread_t));
     if(Childs == NULL){
-        Childs = CreatNode((uintptr_t)0);
+        Childs = CreateNode((uintptr_t)0);
         thread->ThreadNode = Childs->Add(thread);
     }else{
         thread->ThreadNode = Childs->Add(thread);
@@ -223,8 +223,8 @@ thread_t* process_t::CreatThread(uintptr_t entryPoint, uint8_t priviledge, uint6
     uintptr_t threadDataPA = Pmm_RequestPage();
     thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
-    Keyhole_Creat(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey);
-    Keyhole_Creat(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, DefaultFlagsKey);
+    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey);
+    Keyhole_Create(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, DefaultFlagsKey);
 
     vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
 
@@ -234,7 +234,7 @@ thread_t* process_t::CreatThread(uintptr_t entryPoint, uint8_t priviledge, uint6
     SetupRegistersForTask(thread);
 
     /* Setup SIMD */
-    thread->SIMDSaver = simdCreatSaveSpace();
+    thread->SIMDSaver = simdCreateSaveSpace();
 
     /* Thread info for kernel */
     thread->Info = (threadInfo_t*)malloc(sizeof(threadInfo_t));
@@ -264,7 +264,7 @@ thread_t* process_t::CreatThread(uintptr_t entryPoint, uint8_t priviledge, uint6
 thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
     thread_t* thread = (thread_t*)calloc(sizeof(thread_t));
     if(Childs == NULL){
-        Childs = CreatNode((uintptr_t)0);
+        Childs = CreateNode((uintptr_t)0);
         thread->ThreadNode = Childs->Add(thread);
     }else{
         thread->ThreadNode = Childs->Add(thread);
@@ -283,14 +283,14 @@ thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
     uintptr_t threadDataPA = Pmm_RequestPage();
     thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
-    Keyhole_Creat(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
-    Keyhole_Creat(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, FlagFullPermissions);
+    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
+    Keyhole_Create(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, FlagFullPermissions);
 
     vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, source->Regs->cs == GDTInfoSelectorsRing[UserAppRing].Code);
 
 
     /* Setup SIMD */
-    thread->SIMDSaver = simdCreatSaveSpace();
+    thread->SIMDSaver = simdCreateSaveSpace();
 
     /* Thread info for kernel */
     thread->Info = (threadInfo_t*)malloc(sizeof(threadInfo_t));
@@ -357,16 +357,16 @@ void TaskManager::SwitchTask(ContextStack* Registers, uint64_t CoreID, thread_t*
     TimeByCore[CoreID] = actualTime;
 
     //Load new task
-    task->CreatContext(Registers, CoreID);
+    task->CreateContext(Registers, CoreID);
 
     Atomic::atomicUnlock(&MutexScheduler, 0);
 }
 
-void TaskManager::CreatIddleTask(){
+void TaskManager::CreateIddleTask(){
     if(IddleProc == NULL){
-        CreatProcess(&IddleProc, 3, 0);
+        CreateProcess(&IddleProc, 3, 0);
     }
-    thread_t* thread = IddleProc->CreatThread(IddleTaskPointer, 0);
+    thread_t* thread = IddleProc->CreateThread(IddleTaskPointer, 0);
 
     IdleNode[IddleTaskNumber] = thread;
     IddleTaskNumber++;
@@ -382,7 +382,7 @@ void TaskManager::InitScheduler(uint8_t NumberOfCores, uintptr_t IddleTaskFuncti
     IddleTaskPointer = virtualMemory; 
 
     for(int i = 0; i < NumberOfCores; i++){
-        CreatIddleTask();
+        CreateIddleTask();
     } 
 
     NumberOfCPU = NumberOfCores;
@@ -428,7 +428,7 @@ void thread_t::SaveContext(ContextStack* Registers){
     memcpy(Regs, Registers, sizeof(ContextStack));
 }
 
-void thread_t::CreatContext(ContextStack* Registers, uint64_t CoreID){
+void thread_t::CreateContext(ContextStack* Registers, uint64_t CoreID){
     this->CoreID = CoreID;
     Parent->TaskManagerParent->ThreadExecutePerCore[CoreID] = this;
     simdSave(SIMDSaver);
@@ -518,7 +518,7 @@ bool thread_t::CIP(ContextStack* Registers, uint64_t CoreID, thread_t* thread){
     Parent->TaskManagerParent->TimeByCore[CoreID] = HPET::GetTime();
 
     //Load new task
-    child->CreatContext(Registers, CoreID);
+    child->CreateContext(Registers, CoreID);
 
     Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
 

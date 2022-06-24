@@ -12,7 +12,7 @@ void simdInit(){
     ASMFninit();
 }
 
-uintptr_t simdCreatSaveSpace(){
+uintptr_t simdCreateSaveSpace(){
     return calloc(512);
 }
 

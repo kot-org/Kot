@@ -18,16 +18,9 @@ KResult MouseInitalize(){
             || PS2Ports[i].Type == PS2_TYPE_MOUSE_5BUTTONS){
                 Printlog("[PS2] Mouse device found");
                 MousePS2Port = &PS2Ports[i];
-
-                if(MousePS2Port->PortNumber == 0){
-                    PS2SendDataPort1(0xF6);
-                    PS2SendDataPort1(0xF4);
-                    IRQRedirectionsArray[0] = MouseHandler;
-                }else if(MousePS2Port->PortNumber == 1){
-                    PS2SendDataPort2(0xF6);
-                    PS2SendDataPort2(0xF4);
-                    IRQRedirectionsArray[1] = MouseHandler;
-                }
+                MousePS2Port->PS2SendDataPort(0xF6);
+                MousePS2Port->PS2SendDataPort(0xF4);
+                IRQRedirectionsArray[MousePS2Port->PortNumber] = MouseHandler;
 
                 PS2WaitOutput();
                 PS2GetData();
@@ -40,7 +33,7 @@ KResult MouseInitalize(){
 
                 Sys_Event_Bind(NULL, InterruptThreadHandler, IRQ_START + MousePS2Port->IRQ, false);
                 
-                Sys_Event_Creat(&MouseData->onMouseStateChanged);
+                Sys_Event_Create(&MouseData->onMouseStateChanged);
                 MouseData->IsInitialized = true;
                 MouseEventParameters = (parameters_t*)malloc(sizeof(parameters_t));
                 

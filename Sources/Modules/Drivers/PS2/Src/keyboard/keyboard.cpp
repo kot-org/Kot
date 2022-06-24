@@ -6,22 +6,18 @@ static char azerty[] = "\0\e1234567890-=\b\tazertyuiop[]\n\0qsdfghjkl;'`\0\\wxcv
 
 PS2Port_t* KeyboardPS2Port;
 
+uint8_t LedStateSaver = 0;
+
+static uint64_t KeyboardLock;
 
 KResult KeyboardInitialize(){
     for(int i = 0; i < PS2_PORT_NUMBER; i++){
         if(PS2Ports[i].Type == PS2_TYPE_KEYBOARD && PS2Ports[i].IsPresent){
             Printlog("[PS2] Keyboard device found");
             KeyboardPS2Port = &PS2Ports[i];
-
-            if(KeyboardPS2Port->PortNumber == 0){
-                PS2SendDataPort1(0xF6);
-                PS2SendDataPort1(0xF4);
-                IRQRedirectionsArray[0] = KeyboardHandler;
-            }else if(KeyboardPS2Port->PortNumber == 1){
-                PS2SendDataPort2(0xF6);
-                PS2SendDataPort2(0xF4);
-                IRQRedirectionsArray[1] = KeyboardHandler;
-            }
+            KeyboardPS2Port->PS2SendDataPort(0xF6);
+            KeyboardPS2Port->PS2SendDataPort(0xF4);
+            IRQRedirectionsArray[KeyboardPS2Port->PortNumber] = KeyboardHandler;
             PS2WaitOutput();
             PS2GetData();
 
@@ -41,4 +37,11 @@ KResult KeyboardHandler(uint8_t data){
         Sys_Logs(key, 1);
     }
     return KSUCCESS;
+}
+
+KResult KeyboardSetLedState(enum KeyboardLEDS LEDID, bool IsOn){
+    atomicAcquire(&KeyboardLock, 0);
+    KeyboardPS2Port->PS2SendDataPort(0xED);
+    KeyboardPS2Port->PS2SendDataPort(LedStateSaver);
+    atomicUnlock(&KeyboardLock, 0);
 }

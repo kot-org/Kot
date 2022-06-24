@@ -2,7 +2,7 @@
 
 
 static uint64_t mutexKeyhole;
-uint64_t Keyhole_Creat(key_t* key, process_t* parent, process_t* target, enum DataType type, uint64_t data, uint64_t flags){
+uint64_t Keyhole_Create(key_t* key, process_t* parent, process_t* target, enum DataType type, uint64_t data, uint64_t flags){
     if(!CheckAddress((uintptr_t)key, sizeof(key))) return KFAIL;
     
     Atomic::atomicAcquire(&mutexKeyhole, 0);
@@ -51,7 +51,7 @@ uint64_t Keyhole_Duplicate(thread_t* caller, key_t key, key_t* newKey, process_t
         if(!(data->Flags & 0b001)) return KFAIL;
         flags = data->Flags;
     }
-    return Keyhole_Creat(newKey, data->Parent, target, data->Type, data->Data, flags);
+    return Keyhole_Create(newKey, data->Parent, target, data->Type, data->Data, flags);
 }
 uint64_t Keyhole_Verify(thread_t* caller, key_t key, enum DataType type){
     // get lock

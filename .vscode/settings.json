@@ -74,20 +74,20 @@
           "splitTerminals": [
             {
               "name": "Library",
-              "commands": ["cd Sources/Kot-Libs/Libc/Build"]
+              "commands": ["cd Sources/Libs/Libc/Build"]
             }],
         },
         {
           "splitTerminals": [
             {
             "name": "System",
-            "commands": ["cd Sources/Kot-Modules/Services/System/Build"]
+            "commands": ["cd Sources/Modules/Services/System/Build"]
           }],
         },
         {  
           "splitTerminals": [{
             "name": "PS2",
-            "commands": ["cd Sources/Kot-Modules/Drivers/PS2/Build"]
+            "commands": ["cd Sources/Modules/Drivers/PS2/Build"]
           }]
         }
       ]

@@ -43,6 +43,8 @@ struct PS2Port_t{
     uint8_t Type;
     uint8_t IRQ;
     uint8_t PortNumber;
+
+    void PS2SendDataPort(uint8_t data); 
 };
 
 int main(int argc, char* argv[]);

@@ -11,7 +11,7 @@ IRQRedirections IRQRedirectionsArray[2];
 int main(int argc, char* argv[]){
     /* Initialize PS2 drivers */
     SYS_GetProcessKey(&self);
-    Sys_CreatThread(self, (uintptr_t)&PS2InterruptHandler, PriviledgeDriver, NULL, &InterruptThreadHandler);
+    Sys_CreateThread(self, (uintptr_t)&PS2InterruptHandler, PriviledgeDriver, NULL, &InterruptThreadHandler);
 
     KResult status = KSUCCESS;
 
@@ -209,4 +209,12 @@ uint8_t PS2ControllerOutputGet(){
 void PS2ControllerOutputSet(uint8_t data){
     PS2SendCommand(0xD1);
     PS2SendCommand(data);
+}
+
+void PS2Port_t::PS2SendDataPort(uint8_t data){
+    if(PortNumber == 0){
+        PS2SendDataPort1(data);
+    }else if(PortNumber == 1){
+        PS2SendDataPort2(data);
+    }
 }

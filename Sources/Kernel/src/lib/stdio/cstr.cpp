@@ -234,7 +234,7 @@ Node* split(char* str, char* delimiters){
         entryCount++; 
     }
      
-    Node* ReturnValue = CreatNode(0);
+    Node* ReturnValue = CreateNode(0);
 
     while(*str != 0){  
         currentCharNumber++;

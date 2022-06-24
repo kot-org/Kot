@@ -181,7 +181,7 @@ namespace GPT{
         return ReturnValue;
     }
 
-    bool CreatPartition(AHCI::Port* port, size_t size, char* PartitionName, GUID* PartitionTypeGUID, uint64_t flags){
+    bool CreatePartition(AHCI::Port* port, size_t size, char* PartitionName, GUID* PartitionTypeGUID, uint64_t flags){
         GPTHeader* gptHeader = GetGPTHeader(port);
         Partitions* partitions = GetAllPartitions(port);
 

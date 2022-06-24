@@ -267,8 +267,8 @@ namespace APIC{
     void ioapicWriteRegister(uintptr_t apicPtr , uint8_t offset, uint32_t value);
     void localAPICWriteRegister(size_t offset, uint32_t value);    
     void localAPICWriteRegister(uintptr_t lapicAddress, size_t offset, uint32_t value);    
-    uint32_t CreatRegisterValueInterrupts(LocalAPICInterruptRegister reg);
-    uint32_t CreatLocalAPICIipiRegister(LocalAPICIipi reg);
+    uint32_t CreateRegisterValueInterrupts(LocalAPICInterruptRegister reg);
+    uint32_t CreateLocalAPICIipiRegister(LocalAPICIipi reg);
     void IoApicSetRedirectionEntry(uintptr_t apicPtr, size_t index, IOAPICRedirectionEntry entry);
     void SetCommandIPI(uint32_t commandLow, uint32_t commandHigh);
     void GenerateInterruption(uint64_t CoreID, uint8_t Vector);

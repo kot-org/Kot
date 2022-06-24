@@ -74,8 +74,8 @@ struct process_t{
     /* external data */
     uint64_t externalData;
 
-    thread_t* CreatThread(uintptr_t entryPoint, uint64_t externalData);
-    thread_t* CreatThread(uintptr_t entryPoint, uint8_t priviledge, uint64_t externalData);
+    thread_t* CreateThread(uintptr_t entryPoint, uint64_t externalData);
+    thread_t* CreateThread(uintptr_t entryPoint, uint8_t priviledge, uint64_t externalData);
     thread_t* DuplicateThread(thread_t* source, uint64_t externalData);
 }__attribute__((packed));  
 
@@ -131,7 +131,7 @@ struct thread_t{
 
     void SaveContext(struct ContextStack* Registers, uint64_t CoreID);
     void SaveContext(struct ContextStack* Registers);
-    void CreatContext(struct ContextStack* Registers, uint64_t CoreID);
+    void CreateContext(struct ContextStack* Registers, uint64_t CoreID);
 
     void SetParameters(parameters_t* FunctionParameters);
 
@@ -161,8 +161,8 @@ class TaskManager{
 
         // threads
         thread_t* GetTreadWithoutLock();
-        uint64_t CreatThread(thread_t** self, process_t* proc, uintptr_t entryPoint, uint64_t externalData);
-        uint64_t CreatThread(thread_t** self, process_t* proc, uintptr_t entryPoint, uint8_t privilege, uint64_t externalData);
+        uint64_t CreateThread(thread_t** self, process_t* proc, uintptr_t entryPoint, uint64_t externalData);
+        uint64_t CreateThread(thread_t** self, process_t* proc, uintptr_t entryPoint, uint8_t privilege, uint64_t externalData);
         uint64_t DuplicateThread(thread_t** self, process_t* proc, thread_t* source, uint64_t externalData);
         uint64_t ExecThread(thread_t* self, parameters_t* FunctionParameters);
         uint64_t Pause(ContextStack* Registers, uint64_t CoreID, thread_t* task); 
@@ -170,9 +170,9 @@ class TaskManager{
         uint64_t Exit(ContextStack* Registers, uint64_t CoreID, thread_t* task); 
         uint64_t ShareDataUsingStackSpace(thread_t* self, uintptr_t data, size_t size, uint64_t* location);
         // process
-        uint64_t CreatProcess(process_t** key, uint8_t priviledge, uint64_t externalData);
+        uint64_t CreateProcess(process_t** key, uint8_t priviledge, uint64_t externalData);
 
-        void CreatIddleTask();   
+        void CreateIddleTask();   
 
         void InitScheduler(uint8_t NumberOfCores, uintptr_t IddleTaskFunction); 
         void EnabledScheduler(uint64_t CoreID);

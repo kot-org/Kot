@@ -51,7 +51,7 @@ struct IPCEvent_t{
 }__attribute__((packed));
 
 namespace Event{
-    uint64_t Creat(event_t** event, enum EventType Type, uint64_t AdditionnalData);
+    uint64_t Create(event_t** event, enum EventType Type, uint64_t AdditionnalData);
     uint64_t Bind(struct thread_t* task, struct event_t* self, bool IgnoreMissedEvents);
     uint64_t Unbind(struct thread_t* task, struct event_t* self);
     uint64_t Trigger(struct thread_t* author, struct event_t* self, parameters_t* parameters);

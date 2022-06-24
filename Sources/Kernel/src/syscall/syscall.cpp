@@ -14,7 +14,7 @@
 
 /* -------------------------------Functions------------------------------------ */
 
-/* Sys_CreatShareMemory :
+/* Sys_CreateShareMemory :
     Arguments : 
     0 -> process taget                  > key process
     1 -> size                           > uint64_t
@@ -23,13 +23,13 @@
     4 -> reserved                       > none
     5 -> reserved                       > none
 */
-KResult Sys_CreatShareMemory(ContextStack* Registers, thread_t* Thread){
+KResult Sys_CreateShareMemory(ContextStack* Registers, thread_t* Thread){
     process_t* processkey;
     uint64_t flags;
     uint64_t data;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    if(CreatSharing(processkey, Registers->arg1, (uint64_t*)Registers->arg2, &data, Registers->arg4) != KSUCCESS) return KFAIL;
-    return Keyhole_Creat((key_t*)Registers->arg3, Thread->Parent, NULL, DataTypeSharedMemory, data, FlagFullPermissions);
+    if(CreateSharing(processkey, Registers->arg1, (uint64_t*)Registers->arg2, &data, Registers->arg4) != KSUCCESS) return KFAIL;
+    return Keyhole_Create((key_t*)Registers->arg3, Thread->Parent, NULL, DataTypeSharedMemory, data, FlagFullPermissions);
 }
 
 /* Sys_GetShareMemory :
@@ -88,13 +88,13 @@ KResult Sys_CIP(ContextStack* Registers, thread_t* Thread){
     return KSUCCESS;
 }
 
-/* Sys_CreatProc :
+/* Sys_CreateProc :
     Arguments : 
 */
-KResult Sys_CreatProc(ContextStack* Registers, thread_t* Thread){
+KResult Sys_CreateProc(ContextStack* Registers, thread_t* Thread){
     process_t* data;
-    if(globalTaskManager->CreatProcess(&data, (uint8_t)Registers->arg1, Registers->arg2) != KSUCCESS) return KFAIL;
-    return Keyhole_Creat((key_t*)Registers->arg0, data, Thread->Parent, DataTypeProcess, (uint64_t)data, FlagFullPermissions);
+    if(globalTaskManager->CreateProcess(&data, (uint8_t)Registers->arg1, Registers->arg2) != KSUCCESS) return KFAIL;
+    return Keyhole_Create((key_t*)Registers->arg0, data, Thread->Parent, DataTypeProcess, (uint64_t)data, FlagFullPermissions);
 }
 
 /* Sys_CloseProc :
@@ -252,13 +252,13 @@ KResult Sys_Unmap(ContextStack* Registers, thread_t* Thread){
     return KSUCCESS;
 }
 
-/* Sys_Event_Creat :
+/* Sys_Event_Create :
     Arguments : 
 */
-KResult Sys_Event_Creat(ContextStack* Registers, thread_t* Thread){
+KResult Sys_Event_Create(ContextStack* Registers, thread_t* Thread){
     uint64_t data;
-    if(Event::Creat((event_t**)&data, EventTypeIPC, Registers->arg0) != KSUCCESS) return KFAIL;
-    return Keyhole_Creat((key_t*)Registers->arg0, Thread->Parent, Thread->Parent, DataTypeEvent, data, FlagFullPermissions);
+    if(Event::Create((event_t**)&data, EventTypeIPC, Registers->arg0) != KSUCCESS) return KFAIL;
+    return Keyhole_Create((key_t*)Registers->arg0, Thread->Parent, Thread->Parent, DataTypeEvent, data, FlagFullPermissions);
 }
 
 /* Sys_Event_Bind :
@@ -320,16 +320,16 @@ KResult Sys_Event_Close(ContextStack* Registers, thread_t* Thread){
     return Event::Close(Registers, Thread);
 }
 
-/* Sys_CreatThread :
+/* Sys_CreateThread :
     Arguments : 
 */
-KResult Sys_CreatThread(ContextStack* Registers, thread_t* Thread){
+KResult Sys_CreateThread(ContextStack* Registers, thread_t* Thread){
     process_t* processkey;
     uint64_t flags;
     thread_t* ThreadData;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    if(globalTaskManager->CreatThread(&ThreadData, processkey, (uintptr_t)Registers->arg1, Registers->arg2, Registers->arg3) != KSUCCESS) return KFAIL;
-    return Keyhole_Creat((key_t*)Registers->arg4, Thread->Parent, Thread->Parent, DataTypeThread, (uint64_t)ThreadData, FlagFullPermissions);
+    if(globalTaskManager->CreateThread(&ThreadData, processkey, (uintptr_t)Registers->arg1, Registers->arg2, Registers->arg3) != KSUCCESS) return KFAIL;
+    return Keyhole_Create((key_t*)Registers->arg4, Thread->Parent, Thread->Parent, DataTypeThread, (uint64_t)ThreadData, FlagFullPermissions);
 }
 
 /* Sys_DuplicateThread :
@@ -343,7 +343,7 @@ KResult Sys_DuplicateThread(ContextStack* Registers, thread_t* Thread){
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(globalTaskManager->DuplicateThread(&thread, processkey, threadkey, Registers->arg2) != KSUCCESS) return KFAIL;     
-    return Keyhole_Creat((key_t*)Registers->arg3, Thread->Parent, Thread->Parent, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
+    return Keyhole_Create((key_t*)Registers->arg3, Thread->Parent, Thread->Parent, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
 }
 
 /* Sys_ExecThread :
@@ -376,24 +376,24 @@ KResult Sys_Logs(ContextStack* Registers, thread_t* Thread){
 }
 
 static SyscallHandler SyscallHandlers[Syscall_Count] = { 
-    [KSys_CreatShareMemory] = Sys_CreatShareMemory,
+    [KSys_CreateShareMemory] = Sys_CreateShareMemory,
     [KSys_GetShareMemory] = Sys_GetShareMemory,
     [KSys_FreeShareMemory] = Sys_FreeShareMemory,
     [KSys_ShareDataUsingStackSpace] = Sys_ShareDataUsingStackSpace,
     [KSys_CIP] = Sys_CIP,
-    [KSys_CreatProc] = Sys_CreatProc,
+    [KSys_CreateProc] = Sys_CreateProc,
     [KSys_CloseProc] = Sys_CloseProc,
     [KSys_Exit] = Sys_Exit,
     [KSys_Pause] = Sys_Pause,
     [KSys_UnPause] = Sys_UnPause,
     [KSys_Map] = Sys_Map,
     [KSys_Unmap] = Sys_Unmap,
-    [KSys_Event_Creat] = Sys_Event_Creat,
+    [KSys_Event_Create] = Sys_Event_Create,
     [KSys_Event_Bind] = Sys_Event_Bind,
     [KSys_Event_Unbind] = Sys_Event_Unbind,
     [KSys_Event_Trigger] = Sys_Event_Trigger,
     [KSys_Event_Close] = Sys_Event_Close,
-    [KSys_CreatThread] = Sys_CreatThread,
+    [KSys_CreateThread] = Sys_CreateThread,
     [KSys_DuplicateThread] = Sys_DuplicateThread,
     [KSys_ExecThread] = Sys_ExecThread,
     [KSys_Logs] = Sys_Logs,

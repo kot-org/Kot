@@ -64,8 +64,8 @@ extern gdtInfoSelectorsRing GDTInfoSelectorsRing[(GDT_MAX_DESCRIPTORS / 2)];
 
 void gdtInit();
 uint16_t gdtNullDescriptor();
-uint16_t gdtCreatCodeDescriptor(int ring);
-uint16_t gdtCreatDataDescriptor(int ring);
+uint16_t gdtCreateCodeDescriptor(int ring);
+uint16_t gdtCreateDataDescriptor(int ring);
 void gdtInitCores(uint8_t cpuID);
 uint16_t gdtInstallDescriptor(uint64_t base, uint64_t limit, AccessByteStruct access, OthersStruct other);
 uint16_t gdtInstallTSS(uint64_t base, uint64_t limit);

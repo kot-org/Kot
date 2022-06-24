@@ -1,11 +1,11 @@
 #include <lib/node/node.h>
 #include <heap/heap.h>
 
-Node* CreatNode(uintptr_t data){
+Node* CreateNode(uintptr_t data){
     Node* node = (Node*)malloc(sizeof(Node));
     node->data = data;
     node->parent = node;
-    node->lastNodeCreat = node;
+    node->lastNodeCreate = node;
     return node;
 }
 
@@ -37,11 +37,11 @@ uint64_t Node::GetSize(){
 Node* Node::Add(uintptr_t data){
     Node* newNode = (Node*)malloc(sizeof(Node));
     newNode->data = data;
-    parent->lastNodeCreat->next = newNode;
+    parent->lastNodeCreate->next = newNode;
     newNode->last = newNode;
     newNode->next = NULL;
     newNode->parent = this->parent;
-    parent->lastNodeCreat = newNode;
+    parent->lastNodeCreate = newNode;
     return newNode;    
 }
 
@@ -50,8 +50,8 @@ void Node::ModifyData(uintptr_t data){
 }
 
 void Node::Delete(){
-    if(parent->lastNodeCreat == this){
-        parent->lastNodeCreat = this->last;
+    if(parent->lastNodeCreate == this){
+        parent->lastNodeCreate = this->last;
     }
 
     if(last != NULL){

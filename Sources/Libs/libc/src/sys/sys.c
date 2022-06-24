@@ -3,7 +3,7 @@
 __attribute__((section(".KotSpecificData"))) struct KotSpecificData_t KotSpecificData;
 
 KResult SYS_CreatShareSpace(kprocess_t self, size_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, uint64_t flags){
-    return Syscall_40(KSys_CreatShareMemory, self, size, virtualAddressPointer, keyPointer, flags);
+    return Syscall_40(KSys_CreateShareMemory, self, size, virtualAddressPointer, keyPointer, flags);
 }
 
 KResult SYS_GetShareSpace(kprocess_t self, ksmem_t key, uintptr_t* virtualAddressPointer){
@@ -22,8 +22,8 @@ KResult Sys_CIP(kthread_t task, struct parameters_t* param){
     return Syscall_16(KSys_CIP, task, param);
 }
 
-KResult Sys_CreatProc(kprocess_t* key, enum Priviledge privilege, uint64_t data){
-    return Syscall_24(KSys_CreatProc, key, privilege, data);
+KResult Sys_CreateProc(kprocess_t* key, enum Priviledge privilege, uint64_t data){
+    return Syscall_24(KSys_CreateProc, key, privilege, data);
 }
 
 KResult Sys_CloseProc(){
@@ -50,8 +50,8 @@ KResult SYS_Unmap(kthread_t self, uintptr_t addressVirtual, size_t size){
     return Syscall_24(KSys_Unmap, self, addressVirtual, size);
 }
 
-KResult Sys_Event_Creat(kevent_t* self){
-    return Syscall_8(KSys_Event_Creat, self);
+KResult Sys_Event_Create(kevent_t* self){
+    return Syscall_8(KSys_Event_Create, self);
 }
 
 KResult Sys_Event_Bind(kevent_t self, kthread_t task, uint8_t vector, bool IgnoreMissedEvents){
@@ -70,8 +70,8 @@ KResult Sys_Event_Close(){
     return Syscall_0(KSys_Event_Close);
 }
 
-KResult Sys_CreatThread(kprocess_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t data, kthread_t* result){
-    return Syscall_40(KSys_CreatThread, self, entryPoint, privilege, data, result);
+KResult Sys_CreateThread(kprocess_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t data, kthread_t* result){
+    return Syscall_40(KSys_CreateThread, self, entryPoint, privilege, data, result);
 }
 
 KResult Sys_DuplicateThread(kprocess_t parent, kthread_t source, uint64_t data, kthread_t* self){

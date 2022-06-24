@@ -83,20 +83,20 @@ struct Elf64_Dyn{
   }d_un;
 };
 
-typedef struct {
+typedef struct Elf64_Sym{
     uint32_t      st_name;
     unsigned char st_info;
     unsigned char st_other;
     uint16_t      st_shndx;
     Elf64_Addr    st_value;
     uint64_t      st_size;
-} Elf64_Sym;
+};
 
-typedef struct {
+typedef struct Elf64_Rela{
     Elf64_Addr r_offset;
     uint64_t   r_info;
     int64_t    r_addend;
-} Elf64_Rela;
+};
 
 
 #define	PT_NULL		        0		/* Program header table entry unused */

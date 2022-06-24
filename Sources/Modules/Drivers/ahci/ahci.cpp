@@ -60,7 +60,7 @@ namespace AHCI{
     }
 
     void Port::Configure(){
-        /*Creat static buffer for the disk */
+        /*Create static buffer for the disk */
         Buffer = Pmm_RequestPage();
         BufferSize = PAGE_SIZE;
 

@@ -1,13 +1,11 @@
 #include <lib/lib.h>
 
 
-bool ReadBit(uint8_t byte, int position)
-{
+bool ReadBit(uint8_t byte, int position){
     return (byte >> position) & 0x1;
 }
 
-uint8_t WriteBit(uint8_t byte, int position, bool value)
-{
+uint8_t WriteBit(uint8_t byte, int position, bool value){
     if(value){
         byte |= 1 << position;
     }else{
