@@ -1,2 +1,0 @@
-select vdisk file="D:\Data\users\Konect\1Documents\programmation\Kot\Bin\Debug.vhd"
-detach vdisk
