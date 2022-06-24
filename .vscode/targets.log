@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Jun 23 12:57:44 2022
+# Make data base, printed on Fri Jun 24 08:05:26 2022
 
 # Variables
 
@@ -55,7 +55,7 @@ PATH = /home/konect/.vscode-server/bin/30d9c6cd9483b2cc586687151bcbcd635f373630/
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-d4749c94-8d50-46d7-9301-e8b4c4543bce.sock
+VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-5bf49462-3c84-44cf-a878-a600aa5f97f1.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -155,9 +155,9 @@ WSL_DISTRO_NAME = Ubuntu-20.04
 
 # Directories
 
-# . (device 15, inode 2533274790840632): 17 files, no impossibilities.
+# . (device 15, inode 2533274790840632): 16 files, no impossibilities.
 
-# 17 files, no impossibilities in 1 directories.
+# 16 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -207,14 +207,15 @@ GNUmakefile:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 25 / storage = 217 B / avg = 8 B
-# current buf: size = 8162 B / used = 217 B / count = 25 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 24 / storage = 205 B / avg = 8 B
+# current buf: size = 8162 B / used = 205 B / count = 24 / avg = 8 B
 
-# strcache performance: lookups = 28 / hit rate = 10%
+# strcache performance: lookups = 27 / hit rate = 11%
 # hash-table stats:
-# Load=25/8192=0%, Rehash=0, Collisions=1/28=4%
-# Finished Make data base on Thu Jun 23 12:57:44 2022
-
+# Load=24/8192=0%, Rehash=0, Collisions=1/27=4%
+# Finished Make data base on Fri Jun 24 08:05:26 2022
  
 make: *** No rule to make target 'all'.  Stop.
 
+
+ 
