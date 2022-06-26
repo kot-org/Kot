@@ -458,7 +458,29 @@ bool thread_t::ExtendStack(uint64_t address){
     if(this->Stack->StackStart <= address) return false;
     if(address <= this->Stack->StackEndMax) return false;
     
-    vmm_Map(Paging, (uintptr_t)address, Pmm_RequestPage(), true, true, true);
+    if(!vmm_GetFlags(Paging, (uintptr_t)address, vmm_PhysicalStorage)){
+        vmm_Map(Paging, (uintptr_t)address, Pmm_RequestPage(), true, true, true);
+        return true;
+    }
+
+    return false;
+}
+
+bool thread_t::ExtendStack(uint64_t address, size_t size){
+    if(this->Stack == NULL) return false;
+
+    size += address % PAGE_SIZE;
+    address -= address % PAGE_SIZE;
+    if(this->Stack->StackStart <= address) return false;
+    if(address <= this->Stack->StackEndMax) return false;
+    
+    uint64_t pageCount = DivideRoundUp(size, PAGE_SIZE);
+    
+    for(uint64_t i = 0; i < pageCount; i++){
+        if(!vmm_GetFlags(Paging, (uintptr_t)address + i * PAGE_SIZE, vmm_PhysicalStorage)){
+            vmm_Map(Paging, (uintptr_t)address + i * PAGE_SIZE, Pmm_RequestPage(), true, true, true);
+        }        
+    }
 
     return true;
 }
@@ -478,7 +500,7 @@ KResult thread_t::ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t
         return KFAIL;
     } 
     uintptr_t address = (uintptr_t)(Regs->rsp - size);
-    if(ExtendStack((uint64_t)address)){
+    if(ExtendStack((uint64_t)address, size)){
         //store data in global memory
         Atomic::atomicAcquire(&globalTaskManager->lockglobalAddressForStackSpaceSharing, 0);
         memcpy(Parent->TaskManagerParent->globalAddressForStackSpaceSharing, (uintptr_t)data, size);

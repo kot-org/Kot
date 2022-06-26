@@ -138,6 +138,7 @@ struct thread_t{
     void SetupStack();
     void CopyStack(thread_t* source);
     bool ExtendStack(uint64_t address);
+    bool ExtendStack(uint64_t address, size_t size);
     KResult ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t* location);
 
     bool CIP(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread, parameters_t* FunctionParameters);

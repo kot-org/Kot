@@ -100,7 +100,7 @@ void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
             }
         }
 
-        globalLogs->Error("Thread error, PID : %x | TID : %x \nWith execption : '%s' | Error code : %x", Registers->ThreadInfo->Thread->Parent->PID, Registers->ThreadInfo->Thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);        
+        globalLogs->Error("Thread error, PID : %x | TID : %x \nWith execption : '%s' | Error code : %x", Registers->ThreadInfo->Thread->Parent->PID, Registers->ThreadInfo->Thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
         globalTaskManager->Exit(Registers, CoreID, Registers->ThreadInfo->Thread); 
         globalTaskManager->Scheduler(Registers, CoreID); 
     }

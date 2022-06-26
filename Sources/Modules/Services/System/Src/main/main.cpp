@@ -4,10 +4,12 @@
 #include <main/main.h>
 
 void ShareString(kthread_t self, char* str, uint64_t* clientAddress){
-    SYS_ShareDataUsingStackSpace(self, (uint64_t)str, strlen(str), clientAddress);
+    SYS_ShareDataUsingStackSpace(self, (uint64_t)str, strlen(str) + 1, clientAddress);
 }
 
 int main(struct KernelInfo* kernelInfo){
+    Printlog("[SYSTEM] Initialization ...");
+    
     kthread_t self;
     SYS_GetThreadKey(&self);
     ramfs::Parse(kernelInfo->ramfs.address, kernelInfo->ramfs.size);
@@ -30,6 +32,9 @@ int main(struct KernelInfo* kernelInfo){
         char* app;
         uint8_t index = 0;
         char** ServicesInfo = strsplit(BufferInitFile, "\n");
+
+        parameters_t* InitParameters = (parameters_t*)calloc(sizeof(parameters_t));
+
         for(uint64_t i = 0; ServicesInfo[i] != NULL; i++){
             char** ServiceInfo = strsplit(ServicesInfo[i], ", ");
             ramfs::File* ServiceFile = ramfs::Find(ServiceInfo[0]);
@@ -40,44 +45,22 @@ int main(struct KernelInfo* kernelInfo){
                 ELF::loadElf(BufferServiceFile, (enum Priviledge)atoi(ServiceInfo[1]), NULL, &thread);
                 free(BufferServiceFile);
 
-                parameters_t* InitParameters = (parameters_t*)malloc(sizeof(parameters_t));
+                char** Parameters = (char**)malloc(sizeof(char*));
 
-                char** mainArguments = (char**)malloc(KERNEL_INFO_SIZE * sizeof(char*) * 2);
-                InfoSlot Info;
-                ShareString(thread, "FRAMEBUFFER", (uint64_t*)&mainArguments[0]);
-                Info.size = sizeof(framebuffer_t);
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t)&kernelInfo->framebuffer, sizeof(framebuffer_t), (uint64_t*)&Info.address);
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t)&Info, sizeof(InfoSlot), (uint64_t*)&mainArguments[1]);
+                InitParameters->Parameter0 = 1;
+                ShareString(thread, ServiceInfo[0], (uint64_t*)&Parameters[0]);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t)Parameters, sizeof(char*), &InitParameters->Parameter1);
 
-                ShareString(thread, "RAMFS", (uint64_t*)&mainArguments[2]);
-                Info.size = kernelInfo->ramfs.size;
-                Info.address = kernelInfo->ramfs.address;
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t)&Info, sizeof(InfoSlot), (uint64_t*)&mainArguments[3]);
-
-                ShareString(thread, "MEMINFO", (uint64_t*)&mainArguments[4]);
-                Info.size = sizeof(memoryInfo_t);
-                Info.address = kernelInfo->memoryInfo;
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t)&Info, sizeof(InfoSlot), (uint64_t*)&mainArguments[5]);
-
-                ShareString(thread, "SMBIOS", (uint64_t*)&mainArgu ments[6]);
-                Info.size = sizeof(uintptr_t);
-                Info.address = kernelInfo->smbios;
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t)&Info, sizeof(InfoSlot), (uint64_t*)&mainArguments[7]);
-
-                ShareString(thread, "RSDP", (uint64_t*)&mainArguments[8]);
-                Info.size = sizeof(uintptr_t);
-                Info.address = kernelInfo->rsdp;
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t)&Info, sizeof(InfoSlot), (uint64_t*)&mainArguments[9]);
-
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t)mainArguments, KERNEL_INFO_SIZE * 2, &InitParameters->Parameter1);
-                InitParameters->Parameter0 = KERNEL_INFO_SIZE;
                 Sys_ExecThread(thread, InitParameters);
-
-                free(InitParameters);
             }     
             freeSplit(ServiceInfo);
         }
         freeSplit(ServicesInfo);
+
+        free(InitParameters);
     }
+
+    Printlog("[SYSTEM] All tasks in 'Starter.cfg' are loaded");
+    Printlog("[SYSTEM] Service intialized successfully");
     return 1;
 }

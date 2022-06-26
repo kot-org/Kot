@@ -9,7 +9,7 @@ kthread_t InterruptThreadHandler = NULL;
 IRQRedirections IRQRedirectionsArray[2];
 
 int main(int argc, char* argv[]){
-    Printlog("[PS2] initialization ...");
+    Printlog("[PS2] Initialization ...");
     /* Initialize PS2 drivers */
     SYS_GetProcessKey(&self);
     Sys_CreateThread(self, (uintptr_t)&PS2InterruptHandler, PriviledgeDriver, NULL, &InterruptThreadHandler);
