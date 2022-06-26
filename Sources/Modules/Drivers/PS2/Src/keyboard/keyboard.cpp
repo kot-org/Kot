@@ -31,20 +31,6 @@ KResult KeyboardInitialize(){
 }
 
 KResult KeyboardHandler(uint8_t data){
-    static int test;
-    switch(test){
-        case 0:
-            KeyboardSetLedState(KeyboardLEDSScrollLock, true);
-        case 1:
-            KeyboardSetLedState(KeyboardLEDSNumberLock, true);
-        case 2:
-            KeyboardSetLedState(KeyboardLEDSCapsLock, true);
-        default:
-            KeyboardSetLedState(KeyboardLEDSScrollLock, false);
-            KeyboardSetLedState(KeyboardLEDSNumberLock, false);
-            KeyboardSetLedState(KeyboardLEDSCapsLock, false);
-    }
-
     if(data < 0x80){
         char key[1];
         *key = (char)qwerty[data];

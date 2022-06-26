@@ -29,9 +29,4 @@ void free(uintptr_t address);
 SegmentHeader* SplitSegment(SegmentHeader* segment, size_t size);
 void  ExpandHeap(size_t lenght);
 
-inline uintptr_t operator new(size_t size) {return malloc(size);}
-inline uintptr_t operator new[](size_t size) {return malloc(size);}
-
-inline void operator delete(uintptr_t address) {free(address);}
-
 SegmentHeader* GetSegmentHeader(uintptr_t address);

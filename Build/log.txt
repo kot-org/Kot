@@ -6,9 +6,7 @@
 [1;32m[OK] [1;0mHeap intialize
 [1;32m[OK] [1;0mIDT intialize
 [1;32m[OK] [1;0mSIMD intialize
-[1;32m[OK] [1;0mAPIC intialize 05 FFFF80003FFF0040
 [1;32m[OK] [1;0mAPIC intialize
-[1;32m[OK] [1;0mAPIC intialize 05 FFFF80003FFF0040
 [1;32m[OK] [1;0mHPET intialize
 [1;33m[Warning] [1;0mWait processor 1
 [1;32m[OK] [1;0mProcessor 1 respond with success
@@ -17,6 +15,12 @@
 [1;32m[OK] [1;0mScheduler is enabled for the processor : 2
 [1;32m[OK] [1;0mScheduler is enabled for the processor : 1
 [1;32m[OK] [1;0mScheduler is enabled for the processor : 0
+[Process 0x01] '7ffffffffff5'
+[Process 0x02] '[PS2] initialization ...'
 [Process 0x02] '[PS2] Keyboard device found'
+[Process 0x01] '7ffffffffff5'
 [Process 0x02] '[PS2] Driver intialized successfully'
+[Process 0x03] '[VGA] initialization ...'
+[1;31m[Error] [1;0mThread error, PID : 03 | TID : 00 
+With execption : 'Page Fault' | Error code : 04
 

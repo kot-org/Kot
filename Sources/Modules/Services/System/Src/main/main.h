@@ -1,7 +1,7 @@
 #pragma once
 #include <kot/types.h>
 #include <elf/elf.h>
-#include <fs/ramfs/ramfs.h>
+#include <ramfs/ramfs.h>
 
 struct framebuffer_t{
     uint64_t identifier;

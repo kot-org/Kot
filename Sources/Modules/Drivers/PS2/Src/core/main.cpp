@@ -9,6 +9,7 @@ kthread_t InterruptThreadHandler = NULL;
 IRQRedirections IRQRedirectionsArray[2];
 
 int main(int argc, char* argv[]){
+    Printlog("[PS2] initialization ...");
     /* Initialize PS2 drivers */
     SYS_GetProcessKey(&self);
     Sys_CreateThread(self, (uintptr_t)&PS2InterruptHandler, PriviledgeDriver, NULL, &InterruptThreadHandler);
@@ -26,7 +27,10 @@ int main(int argc, char* argv[]){
     /* Initialize mouse */
     status = MouseInitalize();
     if(status != KSUCCESS) return status;
-
+    
+    /* Clear buffer */
+    PS2GetData();
+    
     Printlog("[PS2] Driver intialized successfully");
     return KSUCCESS;
 }

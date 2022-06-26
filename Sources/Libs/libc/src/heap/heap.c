@@ -18,7 +18,10 @@ uintptr_t calloc(size_t size){
 }
 
 uintptr_t malloc(size_t size){
-    if(!heap.IsHeapEnabled) InitializeHeapUser();
+    if(!heap.IsHeapEnabled){
+        InitializeHeapUser();
+    }
+
     if(size == 0) return NULL;
     
     if(size % 0x10 > 0){ // it is not a multiple of 0x10
@@ -58,41 +61,8 @@ uintptr_t malloc(size_t size){
 
 
 void MergeNextAndThisToLastUser(struct SegmentHeader* header){
-    // merge this segment into the last segment
-    if(header->next == heap.lastSegment){
-        if(header->next->next != NULL){
-            heap.lastSegment = header->next->next;
-        }else{
-            heap.lastSegment = header->last;
-        }
-    }
-    if(header->next == heap.mainSegment){
-        if(header->next->last != NULL){
-            heap.mainSegment = header->next->last;
-        }else{
-            heap.mainSegment = header->next->next;
-        }
-    }
-    if(header == heap.lastSegment){
-        if(header->next->next != NULL){
-            heap.lastSegment = header->next->next;
-        }else{
-            heap.lastSegment = header->last;
-        }
-    }
-    if(header == heap.mainSegment){
-        if(header->last != NULL){
-            heap.mainSegment = header->last;
-        }else{
-            heap.mainSegment = header->next->next;
-        }
-    }
-    
-    header->last->length += header->length + sizeof(struct SegmentHeader) + header->next->length + sizeof(struct SegmentHeader);
-    header->last->next = header->next->next;
-    header->next->next->last = header->last;
-    memset(header->next, 0, sizeof(struct SegmentHeader));
-    memset(header, 0, sizeof(struct SegmentHeader));
+    MergeNextToThisUser(header);
+    MergeThisToLastUser(header);
 }
 
 void MergeThisToLastUser(struct SegmentHeader* header){
@@ -185,7 +155,7 @@ uintptr_t realloc(uintptr_t buffer, size_t size){
 void SplitSegmentUser(struct SegmentHeader* segment, size_t size){
     if(segment->length > size + sizeof(struct SegmentHeader)){
         struct SegmentHeader* newSegment = (struct SegmentHeader*)(uintptr_t)((uint64_t)segment + sizeof(struct SegmentHeader) + (uint64_t)size);
-        newSegment->IsFree = true;         
+        newSegment->IsFree = true;   
         newSegment->signature = 0xff;       
         newSegment->length = segment->length - (size + sizeof(struct SegmentHeader));
         newSegment->next = segment->next;

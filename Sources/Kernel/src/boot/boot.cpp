@@ -50,6 +50,12 @@ namespace Boot{
                 Info.ramfs.Size = (size_t)(Info.Modules->modules[i].end - Info.Modules->modules[i].begin);
             }
         }
+
+        /* set physicall address */
+        Info.Framebuffer->framebuffer_addr -= Info.HHDM->addr;
+        Info.RSDP->rsdp -= Info.HHDM->addr;
+        Info.smbios->smbios_entry_32 -= Info.HHDM->addr;
+        Info.smbios->smbios_entry_64 -= Info.HHDM->addr;
         
         return &Info;
     }    

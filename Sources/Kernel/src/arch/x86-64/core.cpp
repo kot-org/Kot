@@ -5,11 +5,7 @@ void InitializeACPI(BootInfo* bootInfo){
         KernelPanic("RSDP not found");
     }
 
-    ACPI::RSDP2* RSDP = (ACPI::RSDP2*)bootInfo->RSDP->rsdp;
-    
-    // map rsdp
-    uintptr_t PhysicalAddress = (uintptr_t)((uint64_t)RSDP - (uint64_t)vmm_HHDMAdress);
-    vmm_Map(RSDP, PhysicalAddress);
+    ACPI::RSDP2* RSDP = (ACPI::RSDP2*)vmm_Map((uintptr_t)bootInfo->RSDP->rsdp);
 
     ACPI::MADTHeader* madt = (ACPI::MADTHeader*)ACPI::FindTable(RSDP, (char*)"APIC");
 
@@ -78,7 +74,6 @@ KernelInfo* arch_initialize(uintptr_t boot){
 
     //frame buffer
     memcpy(&kernelInfo->framebuffer, bootInfo->Framebuffer, sizeof(stivale2_struct_tag_framebuffer));
-    kernelInfo->framebuffer.framebuffer_addr = kernelInfo->framebuffer.framebuffer_addr - vmm_HHDMAdress;
 
     //ramfs
     memcpy(&kernelInfo->ramfs, &bootInfo->ramfs, sizeof(ramfs_t));
@@ -88,14 +83,12 @@ KernelInfo* arch_initialize(uintptr_t boot){
 
     //smbios
     if(bootInfo->smbios->smbios_entry_32 != 0){
-        kernelInfo->smbios = (uintptr_t)(bootInfo->smbios->smbios_entry_32 - vmm_HHDMAdress);
+        kernelInfo->smbios = (uintptr_t)bootInfo->smbios->smbios_entry_32;
     }else if(bootInfo->smbios->smbios_entry_64 != 0){
-        kernelInfo->smbios = (uintptr_t)(bootInfo->smbios->smbios_entry_64 - vmm_HHDMAdress);
+        kernelInfo->smbios = (uintptr_t)bootInfo->smbios->smbios_entry_64;
     }
     
-
-    //rsdp
-    kernelInfo->rsdp = (uintptr_t)(bootInfo->RSDP->rsdp - vmm_HHDMAdress);
+    kernelInfo->rsdp = (uintptr_t)bootInfo->RSDP->rsdp;
 
     return kernelInfo;
 }

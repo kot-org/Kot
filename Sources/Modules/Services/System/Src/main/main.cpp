@@ -16,6 +16,8 @@ int main(struct KernelInfo* kernelInfo){
     /* Load IPC */
 
     KotSpecificData.IPCHandler = NULL;
+
+    /* TODO */
     
     /* Load services */
 
@@ -40,34 +42,34 @@ int main(struct KernelInfo* kernelInfo){
 
                 parameters_t* InitParameters = (parameters_t*)malloc(sizeof(parameters_t));
 
-                char** mainArguments = (char**)malloc(KERNEL_INFO_SIZE * 2);
+                char** mainArguments = (char**)malloc(KERNEL_INFO_SIZE * sizeof(char*) * 2);
                 InfoSlot Info;
                 ShareString(thread, "FRAMEBUFFER", (uint64_t*)&mainArguments[0]);
                 Info.size = sizeof(framebuffer_t);
                 SYS_ShareDataUsingStackSpace(thread, (uint64_t)&kernelInfo->framebuffer, sizeof(framebuffer_t), (uint64_t*)&Info.address);
-                SYS_ShareDataUsingStackSpace(self, (uint64_t)&Info, sizeof(InfoSlot), (uint64_t*)&mainArguments[1]);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t)&Info, sizeof(InfoSlot), (uint64_t*)&mainArguments[1]);
 
                 ShareString(thread, "RAMFS", (uint64_t*)&mainArguments[2]);
                 Info.size = kernelInfo->ramfs.size;
                 Info.address = kernelInfo->ramfs.address;
-                SYS_ShareDataUsingStackSpace(self, (uint64_t)&Info, sizeof(InfoSlot), (uint64_t*)&mainArguments[3]);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t)&Info, sizeof(InfoSlot), (uint64_t*)&mainArguments[3]);
 
                 ShareString(thread, "MEMINFO", (uint64_t*)&mainArguments[4]);
                 Info.size = sizeof(memoryInfo_t);
                 Info.address = kernelInfo->memoryInfo;
-                SYS_ShareDataUsingStackSpace(self, (uint64_t)&Info, sizeof(InfoSlot), (uint64_t*)&mainArguments[5]);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t)&Info, sizeof(InfoSlot), (uint64_t*)&mainArguments[5]);
 
-                ShareString(thread, "SMBIOS", (uint64_t*)&mainArguments[6]);
+                ShareString(thread, "SMBIOS", (uint64_t*)&mainArgu ments[6]);
                 Info.size = sizeof(uintptr_t);
                 Info.address = kernelInfo->smbios;
-                SYS_ShareDataUsingStackSpace(self, (uint64_t)&Info, sizeof(InfoSlot), (uint64_t*)&mainArguments[7]);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t)&Info, sizeof(InfoSlot), (uint64_t*)&mainArguments[7]);
 
-                ShareString(thread, "RSDP", (uint64_t*)&mainArguments[7]);
+                ShareString(thread, "RSDP", (uint64_t*)&mainArguments[8]);
                 Info.size = sizeof(uintptr_t);
                 Info.address = kernelInfo->rsdp;
-                SYS_ShareDataUsingStackSpace(self, (uint64_t)&Info, sizeof(InfoSlot), (uint64_t*)&mainArguments[7]);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t)&Info, sizeof(InfoSlot), (uint64_t*)&mainArguments[9]);
 
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t)&mainArguments, KERNEL_INFO_SIZE * 2, &InitParameters->Parameter1);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t)mainArguments, KERNEL_INFO_SIZE * 2, &InitParameters->Parameter1);
                 InitParameters->Parameter0 = KERNEL_INFO_SIZE;
                 Sys_ExecThread(thread, InitParameters);
 
