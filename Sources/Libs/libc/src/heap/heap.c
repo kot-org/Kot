@@ -69,7 +69,9 @@ void MergeThisToLastUser(struct SegmentHeader* header){
     // merge this segment into the last segment
     header->last->length += header->length + sizeof(struct SegmentHeader);
     header->last->next = header->next;
-    header->next->last = header->last;
+    if(header->next != NULL){
+        header->next->last = header->last;
+    }
     if(header == heap.lastSegment){
         if(header->next != NULL){
             heap.lastSegment = header->next;
