@@ -19,7 +19,7 @@ extern "C" void main(uintptr_t boot)
         mainThread->Launch(InitParameters);
         free(InitParameters);
     }else{
-        globalLogs->Error("Can't load initialization file");
+        Error("Can't load initialization file");
     }
 
     

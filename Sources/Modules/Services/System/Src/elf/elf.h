@@ -6,7 +6,7 @@
 #include <kot/cstring.h>
 #include <kot/utils.h>
 
-#include <main/main.h>
+#include <core/main.h>
 
 namespace ELF{
     /* Function */

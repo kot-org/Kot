@@ -1,11 +1,10 @@
-PREFIX = ../../../../../Toolchain/Local/bin/x86_64-kot-
-
-LDS = main.ld
-CC = $(PREFIX)gcc
+LDS = kernel.ld
+CC = clang
+LD = ld.lld
 ASMC = nasm
 
-CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src
-LINKERFLAGS = -lc -Wall -static
+CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I../../../../../Sysroot/include
+LINKERFLAGS = -Wall -static -nostdlib -L../../../../../Sysroot/lib -L../../../../../Sysroot/lib/libc.a
 ASMFLAGS = 
 
 SRCDIR := ../Src

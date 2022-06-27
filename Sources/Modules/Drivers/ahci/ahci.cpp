@@ -92,9 +92,9 @@ namespace AHCI{
         /* get disk info */
         GetDiskInfo();
 
-        globalLogs->Successful("[AHCI] Configure port %u", PortNumber);
+        Successful("[AHCI] Configure port %u", PortNumber);
         if(DiskInfo->SectorSize == 0){
-            globalLogs->Warning("[AHCI] No disk detected at port %u", PortNumber);
+            Warning("[AHCI] No disk detected at port %u", PortNumber);
         }
     }
 
@@ -311,7 +311,7 @@ namespace AHCI{
         uint64_t sectorReset = 0;
         uint64_t sectorToReset = GetNumberSectorsLBA();
         uint64_t sectorResetByWrite = BufferSize / GetSectorSizeLBA();
-        globalLogs->Warning("Reset start ... : %u", sectorToReset);
+        Warning("Reset start ... : %u", sectorToReset);
         for(sectorReset; sectorReset < sectorToReset; sectorReset++){
             if(sectorToReset - sectorReset > sectorResetByWrite){
                 Write(sectorReset, sectorResetByWrite, Buffer);  
@@ -351,7 +351,7 @@ namespace AHCI{
         PartitionNode* LastNode = NULL;
         PartitionNode* CurrentNode;
         ahciDriver = this;
-        globalLogs->Warning("[AHCI] Driver is loading"); 
+        Warning("[AHCI] Driver is loading"); 
         this->PCIBaseAddress = pciBaseAddress;
 
         ABAR = (HBAMemory*)((PCI::PCIHeader0*)pciBaseAddress)->BAR5;
@@ -366,7 +366,7 @@ namespace AHCI{
             if(port->PortNumber == 1){
                 GPT::GPTHeader* GptHeader = GPT::GetGPTHeader(port);             
                 if(!port->IsPortInit(GPT::GetSystemGUIDPartitionType())){   
-                    globalLogs->Warning("[AHCI] Disk at port %u not initialize yet", port->PortNumber); 
+                    Warning("[AHCI] Disk at port %u not initialize yet", port->PortNumber); 
                     
                     GPT::InitGPTHeader(port);
                 

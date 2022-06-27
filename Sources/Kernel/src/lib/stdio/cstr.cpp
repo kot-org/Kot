@@ -295,7 +295,7 @@ char* ConvertByte(uint64_t bytes){
         if(i > 3) break;
     }
 
-    globalLogs->Message("RAM : %x", bytes);
+    Message("RAM : %x", bytes);
     char* value = (char*)to_string(bytes);
 
     memcpy(returnChar, value, strlen(value));

@@ -11,13 +11,8 @@ struct RegistersLog {
     uintptr_t rip; uintptr_t cs; uintptr_t rflags; uintptr_t rsp; uintptr_t ss; //push by cpu with an interrupt
 }__attribute__((packed));
 
-class Logs{
-    public:
-        void Message(const char* str, ...);
-        void Successful(const char* str, ...);
-        void Warning(const char* str, ...);
-        void Error(const char* str, ...);
-        void PrintRegisters(RegistersLog* registers);
-};
-
-extern Logs* globalLogs;
+void Message(const char* str, ...);
+void Successful(const char* str, ...);
+void Warning(const char* str, ...);
+void Error(const char* str, ...);
+void PrintRegisters(RegistersLog* registers);

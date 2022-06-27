@@ -14,7 +14,7 @@ namespace PCI{
         if (pciDeviceHeader->DeviceID == 0) return;
         if (pciDeviceHeader->DeviceID == 0xFFFF) return;
 
-        globalLogs->Message("- Vendor name : %s | Device class : %s | Device type : %s | Device name : %s", GetVendorName(pciDeviceHeader->VendorID), DeviceClasses[pciDeviceHeader->Class], GetProgIFName(pciDeviceHeader->Class, pciDeviceHeader->Subclass, pciDeviceHeader->ProgIF), GetDeviceName(pciDeviceHeader->VendorID, pciDeviceHeader->DeviceID));
+        Message("- Vendor name : %s | Device class : %s | Device type : %s | Device name : %s", GetVendorName(pciDeviceHeader->VendorID), DeviceClasses[pciDeviceHeader->Class], GetProgIFName(pciDeviceHeader->Class, pciDeviceHeader->Subclass, pciDeviceHeader->ProgIF), GetDeviceName(pciDeviceHeader->VendorID, pciDeviceHeader->DeviceID));
 
         SavePCIDevice(pciDeviceHeader);
 
@@ -60,7 +60,7 @@ namespace PCI{
     }
 
     void EnumeratePCI(ACPI::MCFGHeader* mcfg){
-        globalLogs->Message("PCI devices :");
+        Message("PCI devices :");
         if(mcfg == 0){
             return;
         }

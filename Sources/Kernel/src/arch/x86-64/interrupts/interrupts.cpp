@@ -100,7 +100,7 @@ void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
             }
         }
 
-        globalLogs->Error("Thread error, PID : %x | TID : %x \nWith execption : '%s' | Error code : %x", Registers->ThreadInfo->Thread->Parent->PID, Registers->ThreadInfo->Thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
+        Error("Thread error, PID : %x | TID : %x \nWith execption : '%s' | Error code : %x", Registers->ThreadInfo->Thread->Parent->PID, Registers->ThreadInfo->Thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
         globalTaskManager->Exit(Registers, CoreID, Registers->ThreadInfo->Thread); 
         globalTaskManager->Scheduler(Registers, CoreID); 
     }
@@ -117,6 +117,6 @@ bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID){
 }
 
 void KernelUnrecovorable(ContextStack* Registers, uint64_t CoreID){
-    globalLogs->Error("Kernel Panic CPU %x \nWith execption : '%s' | Error code : %x", CoreID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
+    Error("Kernel Panic CPU %x \nWith execption : '%s' | Error code : %x", CoreID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
     KernelPanic("Unrecovorable exception ;(");
 }

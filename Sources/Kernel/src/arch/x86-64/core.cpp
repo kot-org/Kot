@@ -14,7 +14,7 @@ void InitializeACPI(BootInfo* bootInfo){
     }
 
     APIC::InitializeMADT(madt);
-    globalLogs->Successful("APIC intialize");
+    Successful("APIC intialize");
 
     ACPI::HPETHeader* hpet = (ACPI::HPETHeader*)ACPI::FindTable(RSDP, (char*)"HPET");
     if(hpet == NULL){
@@ -22,7 +22,7 @@ void InitializeACPI(BootInfo* bootInfo){
     }
     
     HPET::InitialiseHPET(hpet);
-    globalLogs->Successful("HPET intialize");
+    Successful("HPET intialize");
 }
 
 KernelInfo* arch_initialize(uintptr_t boot){
@@ -36,27 +36,27 @@ KernelInfo* arch_initialize(uintptr_t boot){
 
     SerialPort::Initialize();
     SerialPort::ClearMonitor();
-    globalLogs->Message("Welcome to Kot kernel");
+    Message("Welcome to Kot kernel");
 
     gdtInit();
-    globalLogs->Successful("GDT intialize");
+    Successful("GDT intialize");
 
     Pmm_Init(bootInfo->Memory);
-    globalLogs->Successful("PMM intialize");
+    Successful("PMM intialize");
 
     uint64_t LastAddressUsed = vmm_Init(bootInfo);;
-    globalLogs->Successful("VMM intialize");
+    Successful("VMM intialize");
     
     InitializeHeap((uintptr_t)LastAddressUsed, 0x10);
-    globalLogs->Successful("Heap intialize");
+    Successful("Heap intialize");
     
     InitializeInterrupts();  
-    globalLogs->Successful("IDT intialize");
+    Successful("IDT intialize");
 
     CPU::InitCPU();
 
     simdInit();
-    globalLogs->Successful("SIMD intialize");
+    Successful("SIMD intialize");
     
     InitializeACPI(bootInfo);
 

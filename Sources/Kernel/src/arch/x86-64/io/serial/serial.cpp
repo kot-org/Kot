@@ -11,7 +11,7 @@ namespace SerialPort{
         IoWrite8(COM1 + 2, 0xC7);    // Enable FIFO, clear them, with 14-byte threshold
         IoWrite8(COM1 + 4, 0x0B);    // IRQs enabled, RTS/DSR set
         IoWrite8(COM1 + 4, 0x0F);    // Set in normal mode
-        globalLogs->Successful("Serial initialize");
+        Successful("Serial initialize");
     }
 
     void Write(char chr) {

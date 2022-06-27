@@ -190,12 +190,12 @@ namespace APIC{
             // send STARTUP IPI twice 
             lapicSendStartupIPI(Processor[i]->APICID, (uintptr_t)TRAMPOLINE_ADDRESS);
             
-            globalLogs->Warning("Wait processor %u", i);
+            Warning("Wait processor %u", i);
 
             while (DataTrampoline.Status != 0xef){
                 __asm__ __volatile__ ("pause" : : : "memory");
             } 
-            globalLogs->Successful("Processor %u respond with success", i);
+            Successful("Processor %u respond with success", i);
         }
         DataTrampoline.Status = 0xff;
         vmm_Unmap((uintptr_t)TRAMPOLINE_ADDRESS);

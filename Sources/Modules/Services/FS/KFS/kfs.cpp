@@ -14,7 +14,7 @@ namespace FileSystem{
     }
 
     void KFS::InitKFS(){
-        globalLogs->Warning("Initialize KFS partition");
+        Warning("Initialize KFS partition");
         uint64_t ClusterSize = PAGE_SIZE0;
         uintptr_t Cluster = malloc(ClusterSize);
         KFSinfo* info = (KFSinfo*)malloc(sizeof(KFSinfo));
@@ -64,7 +64,7 @@ namespace FileSystem{
 
 
     AllocatePartition* KFS::Allocate(size_t size, Folder* folder, uint64_t LastClusterRequested, bool GetAutoLastCluster){
-        globalLogs->Successful("");
+        Successful("");
         uint64_t NumberClusterToAllocate = DivideRoundUp(size, KFSPartitionInfo->ClusterSize);
         uint64_t ClusterAllocate = 1;
         uint64_t FirstBlocAllocated = 0;
@@ -212,7 +212,7 @@ namespace FileSystem{
         uint64_t count = FoldersSlit->GetSize();        
 
         if(KFSPartitionInfo->Root.FirstClusterFile == 0){
-            globalLogs->Warning("The disk is empty");
+            Warning("The disk is empty");
             return;
         }
 
@@ -234,7 +234,7 @@ namespace FileSystem{
                         if(strcmp(folderInfo->Name, (char*)FoldersSlit->GetNode(i)->data)){
                             ScanCluster = folderInfo->FirstClusterData;
                             if(ScanCluster == 0){
-                                globalLogs->Warning("The folder is empty");
+                                Warning("The folder is empty");
                                 return;
                             }
                             break;
@@ -247,7 +247,7 @@ namespace FileSystem{
             }
         }
         
-        globalLogs->Message("Listing cluster : %u", ScanCluster);
+        Message("Listing cluster : %u", ScanCluster);
         while(true){
             GetClusterData(ScanCluster, Cluster);
             ScanClusterHeader = (ClusterHeader*)Cluster;
@@ -255,10 +255,10 @@ namespace FileSystem{
          
             if(ScanHeader->IsFile){
                 FileInfo* fileInfo = (FileInfo*)((uint64_t)Cluster + FileInfoPosition);
-                globalLogs->Message("File Name : %s | FID : %u | Cluster : %u | Size : %u\n", fileInfo->Name, ScanHeader->FID, ScanCluster, fileInfo->BytesSize); 
+                Message("File Name : %s | FID : %u | Cluster : %u | Size : %u\n", fileInfo->Name, ScanHeader->FID, ScanCluster, fileInfo->BytesSize); 
             }else if(ScanHeader->FID != 0){
                 FolderInfo* folderInfo = (FolderInfo*)((uint64_t)Cluster + FileInfoPosition);
-                globalLogs->Message("Folder Name : %s | FID : %u | Cluster : %u", folderInfo->Name, ScanHeader->FID, ScanCluster);
+                Message("Folder Name : %s | FID : %u | Cluster : %u", folderInfo->Name, ScanHeader->FID, ScanCluster);
             }
             
             if(ScanClusterHeader->NextCluster == NULL) break;
@@ -273,7 +273,7 @@ namespace FileSystem{
         count--;   
 
         if(KFSPartitionInfo->Root.FirstClusterFile == 0){
-            globalLogs->Warning("The disk is empty");
+            Warning("The disk is empty");
             return false;
         }
 
@@ -417,7 +417,7 @@ namespace FileSystem{
         count--;
 
         if(KFSPartitionInfo->Root.FirstClusterFile == 0){
-            globalLogs->Warning("The disk is empty");
+            Warning("The disk is empty");
             return false;
         }
 
@@ -650,7 +650,7 @@ namespace FileSystem{
 
     uint64_t KFS::rename(char* oldPath, char* newPath){
         if(KFSPartitionInfo->Root.FirstClusterFile == 0){
-            globalLogs->Warning("The disk is empty");
+            Warning("The disk is empty");
             return 0;
         }
 
@@ -851,7 +851,7 @@ namespace FileSystem{
         int count = FoldersSlit->GetSize();         
 
         if(KFSPartitionInfo->Root.FirstClusterFile == 0){
-            globalLogs->Warning("The disk is empty");
+            Warning("The disk is empty");
             return 0;
         }
 

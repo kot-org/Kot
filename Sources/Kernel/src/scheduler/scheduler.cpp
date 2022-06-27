@@ -11,7 +11,7 @@ void TaskManager::Scheduler(ContextStack* Registers, uint64_t CoreID){
                 /* Save & enqueu thread */
                 ThreadEnd->SaveContext(Registers, CoreID);
                 EnqueueTaskWithoutLock(ThreadEnd);
-                //globalLogs->Warning("PID %x use %u% of cpu", ThreadEnd->Parent->PID, (ThreadEnd->TimeAllocate * 100 / (actualTime - ThreadEnd->CreationTime)) / NumberOfCPU);
+                //Warning("PID %x use %u% of cpu", ThreadEnd->Parent->PID, (ThreadEnd->TimeAllocate * 100 / (actualTime - ThreadEnd->CreationTime)) / NumberOfCPU);
             }
 
             /* Update time */
@@ -407,7 +407,7 @@ void TaskManager::EnabledScheduler(uint64_t CoreID){
 
         IsSchedulerEnable[CoreID] = true;
         Atomic::atomicUnlock(&MutexScheduler, 0);
-        globalLogs->Successful("Scheduler is enabled for the processor : %u", CoreID);
+        Successful("Scheduler is enabled for the processor : %u", CoreID);
     }
 }
 
