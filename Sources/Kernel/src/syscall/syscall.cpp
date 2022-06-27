@@ -28,8 +28,9 @@ KResult Sys_CreateShareMemory(ContextStack* Registers, thread_t* Thread){
     uint64_t flags;
     uint64_t data;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
     if(CreateSharing(processkey, Registers->arg1, (uint64_t*)Registers->arg2, &data, Registers->arg4) != KSUCCESS) return KFAIL;
-    return Keyhole_Create((key_t*)Registers->arg3, Thread->Parent, NULL, DataTypeSharedMemory, data, FlagFullPermissions);
+    return Keyhole_Create((key_t*)Registers->arg3, Thread->Parent, NULL, DataTypeSharedMemory, data, KeyholeFlagFullPermissions);
 }
 
 /* Sys_GetShareMemory :
@@ -40,6 +41,7 @@ KResult Sys_GetShareMemory(ContextStack* Registers, thread_t* Thread){
     MemoryShareInfo* memoryKey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
     if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeSharedMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KKEYVIOLATION;
     return GetSharing(processkey, memoryKey, (uint64_t*)Registers->arg2);
 }
@@ -52,6 +54,7 @@ KResult Sys_FreeShareMemory(ContextStack* Registers, thread_t* Thread){
     MemoryShareInfo* memoryKey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
     if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeSharedMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KKEYVIOLATION;
     return FreeSharing(processkey, memoryKey, (uintptr_t)Registers->arg2);    
 }
@@ -70,6 +73,7 @@ KResult Sys_ShareDataUsingStackSpace(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadMemoryAccessible)) return KKEYVIOLATION;
     if(CheckAddress((uintptr_t)Registers->arg1, Registers->arg2) != KSUCCESS) return KMEMORYVIOLATION;
     if(CheckAddress((uintptr_t)Registers->arg3, sizeof(uint64_t)) != KSUCCESS) return KMEMORYVIOLATION;
     return globalTaskManager->ShareDataUsingStackSpace(threadkey, (uintptr_t)Registers->arg1, Registers->arg2, (uint64_t*)Registers->arg3);
@@ -82,6 +86,8 @@ KResult Sys_CIP(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsExecutableAsCIP)) return KKEYVIOLATION;
+    if(CheckAddress((uintptr_t)Registers->arg1, sizeof(parameters_t)) != KSUCCESS) return KMEMORYVIOLATION;
     Registers->InterruptNumber = 1;
     CPU::DisableInterrupts();
     Thread->CIP(Registers, Thread->CoreID, threadkey, (parameters_t*)Registers->arg1);
@@ -94,7 +100,7 @@ KResult Sys_CIP(ContextStack* Registers, thread_t* Thread){
 KResult Sys_CreateProc(ContextStack* Registers, thread_t* Thread){
     process_t* data;
     if(globalTaskManager->CreateProcess(&data, (uint8_t)Registers->arg1, Registers->arg2) != KSUCCESS) return KFAIL;
-    return Keyhole_Create((key_t*)Registers->arg0, data, Thread->Parent, DataTypeProcess, (uint64_t)data, FlagFullPermissions);
+    return Keyhole_Create((key_t*)Registers->arg0, data, Thread->Parent, DataTypeProcess, (uint64_t)data, KeyholeFlagFullPermissions);
 }
 
 /* Sys_CloseProc :
@@ -111,7 +117,12 @@ KResult Sys_CloseProc(ContextStack* Registers, thread_t* Thread){
 KResult Sys_Exit(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
-    if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(Registers->arg0 == NULL){
+        threadkey = Thread;
+    }else{
+        if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+        if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsExitable)) return KKEYVIOLATION;
+    }
     Registers->InterruptNumber = 1;
     return globalTaskManager->Exit(Registers, Thread->CoreID, threadkey);
 }
@@ -123,6 +134,7 @@ KResult Sys_Pause(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsPauseable)) return KKEYVIOLATION;
     Registers->InterruptNumber = 1;
     return globalTaskManager->Pause(Registers, Thread->CoreID, threadkey);
 }
@@ -134,6 +146,7 @@ KResult Sys_UnPause(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsUnpauseable)) return KKEYVIOLATION;
     return globalTaskManager->Unpause(threadkey);
 }
 
@@ -151,6 +164,8 @@ KResult Sys_Map(ContextStack* Registers, thread_t* Thread){
     process_t* processkey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
+    
     pagetable_t pageTable = processkey->SharedPaging;
     
     /* Get arguments */
@@ -234,6 +249,7 @@ KResult Sys_Unmap(ContextStack* Registers, thread_t* Thread){
     process_t* processkey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
     pagetable_t pageTable = processkey->SharedPaging;
     uintptr_t addressVirtual = (uintptr_t)Registers->arg1;
     size_t size = Registers->arg2;
@@ -258,7 +274,7 @@ KResult Sys_Unmap(ContextStack* Registers, thread_t* Thread){
 KResult Sys_Event_Create(ContextStack* Registers, thread_t* Thread){
     uint64_t data;
     if(Event::Create((event_t**)&data, EventTypeIPC, Registers->arg0) != KSUCCESS) return KFAIL;
-    return Keyhole_Create((key_t*)Registers->arg0, Thread->Parent, Thread->Parent, DataTypeEvent, data, FlagFullPermissions);
+    return Keyhole_Create((key_t*)Registers->arg0, Thread->Parent, Thread->Parent, DataTypeEvent, data, KeyholeFlagFullPermissions);
 }
 
 /* Sys_Event_Bind :
@@ -278,6 +294,7 @@ KResult Sys_Event_Bind(ContextStack* Registers, thread_t* Thread){
         }
     }
     if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsEventable)) return KKEYVIOLATION;
     return Event::Bind(threadkey, event, (bool)Registers->arg3);
 }
 
@@ -298,6 +315,7 @@ KResult Sys_Event_Unbind(ContextStack* Registers, thread_t* Thread){
         }
     }
     if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsEventable)) return KKEYVIOLATION;
     return Event::Unbind(Thread, event);
 }
 
@@ -328,8 +346,9 @@ KResult Sys_CreateThread(ContextStack* Registers, thread_t* Thread){
     uint64_t flags;
     thread_t* ThreadData;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeProcessIsThreadCreateable)) return KKEYVIOLATION;
     if(globalTaskManager->CreateThread(&ThreadData, processkey, (uintptr_t)Registers->arg1, Registers->arg2, Registers->arg3) != KSUCCESS) return KFAIL;
-    return Keyhole_Create((key_t*)Registers->arg4, Thread->Parent, Thread->Parent, DataTypeThread, (uint64_t)ThreadData, FlagFullPermissions);
+    return Keyhole_Create((key_t*)Registers->arg4, Thread->Parent, Thread->Parent, DataTypeThread, (uint64_t)ThreadData, KeyholeFlagFullPermissions);
 }
 
 /* Sys_DuplicateThread :
@@ -341,9 +360,11 @@ KResult Sys_DuplicateThread(ContextStack* Registers, thread_t* Thread){
     uint64_t flags;
     thread_t* thread;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeProcessIsThreadCreateable)) return KKEYVIOLATION;
     if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsDuplicable)) return KKEYVIOLATION;
     if(globalTaskManager->DuplicateThread(&thread, processkey, threadkey, Registers->arg2) != KSUCCESS) return KFAIL;     
-    return Keyhole_Create((key_t*)Registers->arg3, Thread->Parent, Thread->Parent, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
+    return Keyhole_Create((key_t*)Registers->arg3, Thread->Parent, Thread->Parent, DataTypeThread, (uint64_t)thread, KeyholeFlagFullPermissions);
 }
 
 /* Sys_ExecThread :
@@ -353,11 +374,29 @@ KResult Sys_ExecThread(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsExecutable)) return KKEYVIOLATION;
     if(CheckAddress((uintptr_t)Registers->arg1, sizeof(Parameters)) != KSUCCESS) return KMEMORYVIOLATION;    
     return globalTaskManager->ExecThread(threadkey, (parameters_t*)Registers->arg1);
 }
 
-/* KSys_Logs :
+/* Sys_Keyhole_CloneModify :
+    Arguments : 
+    0 -> string             > char*
+    1 -> size               > size_t
+*/
+KResult Sys_Keyhole_CloneModify(ContextStack* Registers, thread_t* Thread){
+    process_t* processkey;
+    uint64_t flags;
+    if(Registers->arg2 != NULL){
+        if(Keyhole_Get(Thread, (key_t)Registers->arg2, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;     
+    }else{
+        processkey = NULL;
+    }
+    if(CheckAddress((uintptr_t)Registers->arg1, sizeof(uint64_t)) != KSUCCESS) return KMEMORYVIOLATION;
+    return Keyhole_CloneModify(Thread, (key_t)Registers->arg0, (key_t*)Registers->arg1, processkey, Registers->arg3);
+}
+
+/* Sys_Logs :
     Arguments : 
     0 -> string             > char*
     1 -> size               > size_t
@@ -396,6 +435,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_CreateThread] = Sys_CreateThread,
     [KSys_DuplicateThread] = Sys_DuplicateThread,
     [KSys_ExecThread] = Sys_ExecThread,
+    [KSys_Keyhole_CloneModify] = Sys_Keyhole_CloneModify,
     [KSys_Logs] = Sys_Logs,
 };
 

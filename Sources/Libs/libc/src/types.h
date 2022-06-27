@@ -25,41 +25,15 @@ typedef unsigned long int           uint64_t;
 typedef unsigned long long int      uint64_t;
 #endif
 
-#if __WORDSIZE == 64
-typedef unsigned long int           size64_t;
-#else
-typedef unsigned long long int      size64_t;
-#endif
+typedef uint64_t size64_t;
+typedef uint64_t KResult;
 
-#if __WORDSIZE == 64
-typedef unsigned long int           KResult;
-#else
-typedef unsigned long long int      KResult;
-#endif
-
-#if __WORDSIZE == 64
-typedef unsigned long int           kprocess_t;
-#else
-typedef unsigned long long int      kprocess_t;
-#endif
-
-#if __WORDSIZE == 64
-typedef unsigned long int           kthread_t;
-#else
-typedef unsigned long long int      kthread_t;
-#endif
-
-#if __WORDSIZE == 64
-typedef unsigned long int           kevent_t;
-#else
-typedef unsigned long long int      kevent_t;
-#endif
-
-#if __WORDSIZE == 64
-typedef unsigned long int           ksmem_t;
-#else
-typedef unsigned long long int      ksmem_t;
-#endif
+/* Keys */
+typedef uint64_t key_t; 
+typedef key_t kprocess_t;
+typedef key_t kthread_t;
+typedef key_t kevent_t;
+typedef key_t ksmem_t;
 
 typedef void*                       uintptr_t;
 

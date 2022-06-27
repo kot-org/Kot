@@ -82,6 +82,10 @@ KResult Sys_ExecThread(kthread_t self, struct parameters_t* parameters){
     return Syscall_16(KSys_ExecThread, self, parameters);
 }
 
+KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, kprocess_t target, uint64_t flags){
+    return Syscall_32(KSys_Keyhole_CloneModify, source, destination, target, flags);
+}
+
 KResult Sys_Logs(char* message, size_t size){
     return Syscall_16(KSys_Logs, message, size);
 }

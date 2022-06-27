@@ -1,3 +1,6 @@
+#ifndef _UISD_HID_MOUSE_H
+#define _UISD_HID_MOUSE_H 1
+
 #include <kot/types.h>
 #include <kot/atomic.h>
 
@@ -29,3 +32,5 @@ struct MouseData_t{
 
     bool IsInitialized;
 }__attribute__((packed));
+
+#endif

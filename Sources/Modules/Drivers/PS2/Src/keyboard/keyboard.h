@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/main.h>
+#include <kot/modules/uisd/hid/keyboard.h>
 
 extern struct PS2Port_t* KeyboardPS2Port;
 

@@ -31,11 +31,12 @@ KResult MouseInitalize(){
 
                 MouseData->mousePortType = mousePortTypePS2;
 
-                Sys_Event_Bind(NULL, InterruptThreadHandler, IRQ_START + MousePS2Port->IRQ, false);
-                
                 Sys_Event_Create(&MouseData->onMouseStateChanged);
-                MouseData->IsInitialized = true;
+                
                 MouseEventParameters = (parameters_t*)malloc(sizeof(parameters_t));
+
+                Sys_Event_Bind(NULL, InterruptThreadHandler, IRQ_START + MousePS2Port->IRQ, false);
+                MouseData->IsInitialized = true;
                 
                 break; // Enable only one mouse
             }            

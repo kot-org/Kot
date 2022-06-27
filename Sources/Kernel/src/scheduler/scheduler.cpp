@@ -283,8 +283,8 @@ thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
     uintptr_t threadDataPA = Pmm_RequestPage();
     thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
-    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, FlagFullPermissions);
-    Keyhole_Create(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, FlagFullPermissions);
+    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, KeyholeFlagFullPermissions);
+    Keyhole_Create(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, KeyholeFlagFullPermissions);
 
     vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, source->Regs->cs == GDTInfoSelectorsRing[UserAppRing].Code);
 
@@ -345,16 +345,8 @@ void TaskManager::SwitchTask(ContextStack* Registers, uint64_t CoreID, thread_t*
 
     Atomic::atomicAcquire(&MutexScheduler, 0);
 
-    uint64_t actualTime = HPET::GetTime();
-    thread_t* TaskEnd = ThreadExecutePerCore[CoreID];
-    if(ThreadExecutePerCore[CoreID] != NULL){
-        //Save & enqueu task
-        TaskEnd->SaveContext(Registers, CoreID);
-        EnqueueTask(TaskEnd);
-    }
-
     //Update time
-    TimeByCore[CoreID] = actualTime;
+    TimeByCore[CoreID] = HPET::GetTime();
 
     //Load new task
     task->CreateContext(Registers, CoreID);
@@ -528,12 +520,13 @@ bool thread_t::CIP(ContextStack* Registers, uint64_t CoreID, thread_t* thread, p
     
 bool thread_t::CIP(ContextStack* Registers, uint64_t CoreID, thread_t* thread){
     Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
-    
-    thread_t* child = Parent->DuplicateThread(thread, this->externalData);
+
+    thread_t* child = thread->Parent->DuplicateThread(thread, this->externalData);
     child->IsCIP = true;
     child->TCIP = this;
 
     //Save context
+    thread->IsBlock = true;
     SaveContext(Registers, CoreID);
 
     //Update time

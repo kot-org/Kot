@@ -2,6 +2,7 @@
 #include <kot/types.h>
 #include <elf/elf.h>
 #include <ramfs/ramfs.h>
+#include <ipc/ipc.h>
 
 struct framebuffer_t{
     uint64_t identifier;

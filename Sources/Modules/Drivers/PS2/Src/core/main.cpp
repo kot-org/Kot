@@ -30,6 +30,8 @@ int main(int argc, char* argv[]){
     
     /* Clear buffer */
     PS2GetData();
+
+    CallIPC();
     
     Printlog("[PS2] Driver intialized successfully");
     return KSUCCESS;

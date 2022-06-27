@@ -79,6 +79,7 @@ KResult Sys_Event_Close();
 KResult Sys_CreateThread(kprocess_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t data, kthread_t* result);
 KResult Sys_DuplicateThread(kprocess_t parent, kthread_t source, uint64_t data, kthread_t* self);
 KResult Sys_ExecThread(kthread_t self, struct parameters_t* parameters);
+KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, kprocess_t target, uint64_t flags);
 KResult Sys_Logs(char* message, size_t size);
 
 
