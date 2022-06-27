@@ -19,6 +19,5 @@ kthread_t IPCInitialize(){
 
 KResult IPCHandler(){
     Printlog("IPC");
-    for(int i = 0; i < 0x100000; i++);
     SYS_Exit(NULL, KSUCCESS);
 }

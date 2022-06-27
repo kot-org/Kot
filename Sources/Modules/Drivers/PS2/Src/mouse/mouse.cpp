@@ -17,7 +17,10 @@ KResult MouseInitalize(){
             || PS2Ports[i].Type == PS2_TYPE_MOUSE_SCROLL
             || PS2Ports[i].Type == PS2_TYPE_MOUSE_5BUTTONS){
                 Printlog("[PS2] Mouse device found");
+
                 MousePS2Port = &PS2Ports[i];
+                Sys_Event_Bind(NULL, InterruptThreadHandler, IRQ_START + MousePS2Port->IRQ, false);
+
                 MousePS2Port->PS2SendDataPort(0xF6);
                 MousePS2Port->PS2SendDataPort(0xF4);
                 IRQRedirectionsArray[MousePS2Port->PortNumber] = MouseHandler;
@@ -35,7 +38,6 @@ KResult MouseInitalize(){
                 
                 MouseEventParameters = (parameters_t*)malloc(sizeof(parameters_t));
 
-                Sys_Event_Bind(NULL, InterruptThreadHandler, IRQ_START + MousePS2Port->IRQ, false);
                 MouseData->IsInitialized = true;
                 
                 break; // Enable only one mouse

@@ -161,6 +161,7 @@ uint64_t TaskManager::ShareDataUsingStackSpace(thread_t* self, uintptr_t data, s
 }
 
 uint64_t TaskManager::CreateProcess(process_t** key, uint8_t priviledge, uint64_t externalData){
+    Atomic::atomicLock(&MutexScheduler, 1);
     process_t* proc = (process_t*)calloc(sizeof(process_t));
 
     if(ProcessList == NULL){
@@ -191,6 +192,7 @@ uint64_t TaskManager::CreateProcess(process_t** key, uint8_t priviledge, uint64_
     NumberProcessTotal++;
 
     *key = proc;
+    Atomic::atomicUnlock(&MutexScheduler, 1);
     return KSUCCESS;
 }
 
@@ -199,6 +201,7 @@ thread_t* process_t::CreateThread(uintptr_t entryPoint, uint64_t externalData){
 }
 
 thread_t* process_t::CreateThread(uintptr_t entryPoint, uint8_t priviledge, uint64_t externalData){
+    Atomic::atomicLock(&globalTaskManager->MutexScheduler, 1);
     thread_t* thread = (thread_t*)calloc(sizeof(thread_t));
     if(Childs == NULL){
         Childs = CreateNode((uintptr_t)0);
@@ -258,10 +261,12 @@ thread_t* process_t::CreateThread(uintptr_t entryPoint, uint8_t priviledge, uint
     TID++;
     NumberOfThread++;
 
+    Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 1);
     return thread;
 }
 
 thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
+    Atomic::atomicLock(&globalTaskManager->MutexScheduler, 1);
     thread_t* thread = (thread_t*)calloc(sizeof(thread_t));
     if(Childs == NULL){
         Childs = CreateNode((uintptr_t)0);
@@ -322,6 +327,7 @@ thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
     TID++;
     NumberOfThread++;
 
+    Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 1);
     return thread;
 }
 
@@ -469,7 +475,7 @@ bool thread_t::ExtendStack(uint64_t address, size_t size){
     uint64_t pageCount = DivideRoundUp(size, PAGE_SIZE);
     
     for(uint64_t i = 0; i < pageCount; i++){
-        if(!vmm_GetFlags(Paging, (uintptr_t)address + i * PAGE_SIZE, vmm_PhysicalStorage)){
+        if(!vmm_GetFlags(Paging, (uintptr_t)address + i * PAGE_SIZE, vmm_PhysicalStorage) || !vmm_GetFlags(Paging, (uintptr_t)address + i * PAGE_SIZE, vmm_Present)){
             vmm_Map(Paging, (uintptr_t)address + i * PAGE_SIZE, Pmm_RequestPage(), true, true, true);
         }        
     }

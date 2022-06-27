@@ -14,7 +14,10 @@ KResult KeyboardInitialize(){
     for(int i = 0; i < PS2_PORT_NUMBER; i++){
         if(PS2Ports[i].Type == PS2_TYPE_KEYBOARD && PS2Ports[i].IsPresent){
             Printlog("[PS2] Keyboard device found");
+
             KeyboardPS2Port = &PS2Ports[i];
+            Sys_Event_Bind(NULL, InterruptThreadHandler, IRQ_START + KeyboardPS2Port->IRQ, false);
+
             KeyboardPS2Port->PS2SendDataPort(0xF6);
             KeyboardPS2Port->PS2SendDataPort(0xF4);
             IRQRedirectionsArray[KeyboardPS2Port->PortNumber] = KeyboardHandler;
@@ -25,7 +28,6 @@ KResult KeyboardInitialize(){
 
             KeyboardEventParameters = (parameters_t*)malloc(sizeof(parameters_t));
 
-            Sys_Event_Bind(NULL, InterruptThreadHandler, IRQ_START + KeyboardPS2Port->IRQ, false);
             KeyboardData->IsInitialized = true;
             
             break;
