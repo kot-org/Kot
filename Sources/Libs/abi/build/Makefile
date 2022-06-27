@@ -1,18 +1,20 @@
-PREFIX = ../../../../Toolchain/Local/bin/x86_64-kot-
-INCDIR = ../../../../Sysroot/include/kot
-OBJDIR := ../../../../Sysroot/lib
+_HOME = ../../../../
+
+INCDIR = $(_HOME)Sysroot/include/kot
+OBJDIR := $(_HOME)Sysroot/lib
+
 SRCDIR := ../src
 
-CC = $(PREFIX)gcc
+CC = clang
 ASMC = nasm
-LD = $(PREFIX)ld
-AS = $(PREFIX)as
-AR = $(PREFIX)ar
+
+LD = ld.lld
+AS = as
+AR = ar
 
 CFLAGS = -Wall -Werror -fpic
 LDFLAGS = -shared 
 ASMFLAGS = 
-
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
    

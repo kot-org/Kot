@@ -1,18 +1,19 @@
-PREFIX = ../../../../Toolchain/Local/bin/x86_64-kot-
-INCDIR = ../../../../Sysroot/include/kot
+_HOME = ../../../../
+
+INCDIR = $(_HOME)Sysroot/include
+BUILDDIR := $(_HOME)Sysroot/lib
+BINDIR = $(_HOME)Bin/Modules
+
 OBJDIR := ../lib
-BUILDDIR := ../../../../Sysroot/lib
 SRCDIR := ../src
-BINDIR = ../../../../Bin/Modules
 
-CC = $(PREFIX)gcc
-LD = $(PREFIX)ld
-AS = $(PREFIX)as
-AR = $(PREFIX)ar
+CC = clang
+LD = ld.lld
+AS = as
+AR = ar
 
-CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC -O2
+CFLAGS = -I$(INCDIR) -ffreestanding -fshort-wchar -fno-exceptions -fPIC -O2
 ASMFLAGS = 
-
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
    
@@ -22,7 +23,7 @@ ASSRC = $(call rwildcard,$(SRCDIR),*.s)
 OBJS += $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCCPP))
 OBJS += $(patsubst $(SRCDIR)/%.s, $(OBJDIR)/%.o, $(ASSRC))
 
-OBJINC += $(patsubst $(SRCDIR)/%.h, $(INCDIR)/%.h, $(INC))
+OBJINC += $(patsubst $(SRCDIR)/%.h, $(INCDIR)/kot/%.h, $(INC))
 
 DIRS = $(wildcard $(SRCDIR)/*)         
 
@@ -37,11 +38,11 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 $(OBJDIR)/%.o: $(SRCDIR)/%.s
 	@ echo !==== COMPILING $^
 	@ mkdir -p $(@D)
-	$(AS) $(ASMFLAGS) -c $^ -o $@
+	$(AS) $(ASMFLAGS) $^ -o $@
 
 copy: $(OBJINC)
 
-$(INCDIR)/%.h : $(SRCDIR)/%.h
+$(INCDIR)/kot/%.h : $(SRCDIR)/%.h
 	@ mkdir -p $(@D)
 	cp -p $^ $(@D)
 

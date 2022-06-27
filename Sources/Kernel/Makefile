@@ -1,11 +1,9 @@
-PREFIX = ../../Toolchain/Local/bin/x86_64-kot-
-
 LDS = kernel.ld
-CC = $(PREFIX)gcc
-LD = $(PREFIX)ld
+CC = clang
+LD = ld.lld
 ASMC = nasm
 
-CFLAGS = -ffreestanding -fshort-wchar -g -mno-red-zone -fno-exceptions -fPIC -Isrc
+CFLAGS = -I../../Sysroot/include/ -ffreestanding -fno-builtin -nostdlib -nostdinc -nostdinc++ -fshort-wchar -g -mno-red-zone -fno-exceptions -fPIC -Isrc
 ASMFLAGS = 
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib --no-relax 
 
