@@ -209,18 +209,18 @@ KResult Sys_Map(ContextStack* Registers, thread_t* Thread){
     if(*addressVirtual + pages * PAGE_SIZE < vmm_HHDMAdress){
         if(AllocatePhysicallPage){
             for(uint64_t i = 0; i < pages; i++){
-                if(vmm_GetFlags(pageTable, (uintptr_t)*addressVirtual + i * PAGE_SIZE, vmm_flag::vmm_PhysicalStorage)){
-                    Pmm_FreePage(vmm_GetPhysical(pageTable, (uintptr_t)*addressVirtual + i * PAGE_SIZE));
+                if(vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage)){
+                    Pmm_FreePage(vmm_GetPhysical(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE)));
                 }
-                vmm_Unmap(pageTable, (uintptr_t)*addressVirtual + i * PAGE_SIZE);
+                vmm_Unmap(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE));
             }
         }
         
         for(uint64_t i = 0; i < pages; i++){
             uintptr_t virtualAddress = (uintptr_t)(*addressVirtual + i * PAGE_SIZE);
             if(AllocatePhysicallPage){
-                vmm_Map(pageTable, virtualAddress, *addressPhysical + i * PAGE_SIZE);
-            }else if(!vmm_GetFlags(pageTable, (uintptr_t)*addressVirtual + i * PAGE_SIZE, vmm_flag::vmm_PhysicalStorage)){
+                vmm_Map(pageTable, virtualAddress, (uintptr_t)((uint64_t)*addressPhysical + i * PAGE_SIZE));
+            }else if(!vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage)){
                 uintptr_t physicalAddressAllocated = (uintptr_t)Pmm_RequestPage();
                 if(IsPhysicalAddress){
                     *addressPhysical = physicalAddressAllocated;
@@ -254,7 +254,7 @@ KResult Sys_Unmap(ContextStack* Registers, thread_t* Thread){
     uintptr_t addressVirtual = (uintptr_t)Registers->arg1;
     size_t size = Registers->arg2;
 
-    addressVirtual = (uintptr_t)(addressVirtual - (uint64_t)addressVirtual % PAGE_SIZE);
+    addressVirtual = (uintptr_t)((uint64_t)addressVirtual - (uint64_t)addressVirtual % PAGE_SIZE);
     uint64_t pages = DivideRoundUp(size, PAGE_SIZE);
     if((uint64_t)addressVirtual + pages * PAGE_SIZE < vmm_HHDMAdress){
         for(uint64_t i = 0; i < pages; i += PAGE_SIZE){

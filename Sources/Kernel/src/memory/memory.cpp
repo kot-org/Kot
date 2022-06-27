@@ -78,8 +78,8 @@ uint64_t CreateSharing(process_t* process, size_t size, uint64_t* virtualAddress
         }
     }else{
         if((uint64_t)virtualAddress % PAGE_SIZE > 0){
-            virtualAddress -= (uint64_t)virtualAddress % PAGE_SIZE;
-            virtualAddress += PAGE_SIZE;
+            virtualAddress = (uintptr_t)((uint64_t)virtualAddress - (uint64_t)virtualAddress % PAGE_SIZE);
+            virtualAddress = (uintptr_t)((uint64_t)virtualAddress + PAGE_SIZE);
         }
         for(int i = 0; i < numberOfPage; i++){
             uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
@@ -125,15 +125,15 @@ uint64_t GetSharing(process_t* process, MemoryShareInfo* shareInfo, uint64_t* vi
         /* Allocate child memory */
         if((uint64_t)virtualAddress + pages * PAGE_SIZE < vmm_HHDMAdress){
             for(uint64_t i = 0; i < pages; i++){
-                if(!vmm_GetFlags(pageTable, (uintptr_t)virtualAddress + i * PAGE_SIZE, vmm_flag::vmm_PhysicalStorage)){
-                    vmm_Unmap(pageTable, (uintptr_t)virtualAddress + i * PAGE_SIZE);
+                if(!vmm_GetFlags(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage)){
+                    vmm_Unmap(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE));
                 }
             }
             
             for(uint64_t i = 0; i < pages; i++){
-                if(!vmm_GetFlags(pageTable, (uintptr_t)virtualAddress + i * PAGE_SIZE, vmm_flag::vmm_Present)){
-                    vmm_Map(pageTable, virtualAddress + i * PAGE_SIZE, Pmm_RequestPage(), true);
-                    vmm_SetFlags(pageTable, virtualAddress + i * PAGE_SIZE, vmm_flag::vmm_PhysicalStorage, true); //set master state
+                if(!vmm_GetFlags(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Present)){
+                    vmm_Map(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), Pmm_RequestPage(), true);
+                    vmm_SetFlags(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage, true); //set master state
                     process->MemoryAllocated += PAGE_SIZE;                    
                 }
             } 
@@ -176,8 +176,8 @@ uint64_t GetSharing(process_t* process, MemoryShareInfo* shareInfo, uint64_t* vi
         vmm_Swap(lastPageTable);
     }else{
         if((uint64_t)virtualAddress % PAGE_SIZE > 0){
-            virtualAddress -= (uint64_t)virtualAddress % PAGE_SIZE;
-            virtualAddress += PAGE_SIZE;
+            virtualAddress = (uintptr_t)((uint64_t)virtualAddress - (uint64_t)virtualAddress % PAGE_SIZE);
+            virtualAddress = (uintptr_t)((uint64_t)virtualAddress + PAGE_SIZE);
         }
         for(uint64_t i = 0; i < shareInfo->PageNumber; i++){
             uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;

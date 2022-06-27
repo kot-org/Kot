@@ -475,8 +475,8 @@ bool thread_t::ExtendStack(uint64_t address, size_t size){
     uint64_t pageCount = DivideRoundUp(size, PAGE_SIZE);
     
     for(uint64_t i = 0; i < pageCount; i++){
-        if(!vmm_GetFlags(Paging, (uintptr_t)address + i * PAGE_SIZE, vmm_PhysicalStorage) || !vmm_GetFlags(Paging, (uintptr_t)address + i * PAGE_SIZE, vmm_Present)){
-            vmm_Map(Paging, (uintptr_t)address + i * PAGE_SIZE, Pmm_RequestPage(), true, true, true);
+        if(!vmm_GetFlags(Paging, (uintptr_t)(address + i * PAGE_SIZE), vmm_PhysicalStorage) || !vmm_GetFlags(Paging, (uintptr_t)(address + i * PAGE_SIZE), vmm_Present)){
+            vmm_Map(Paging, (uintptr_t)(address + i * PAGE_SIZE), Pmm_RequestPage(), true, true, true);
         }        
     }
 
