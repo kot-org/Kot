@@ -1,1 +1,0 @@
-bash -c "make kernel" 
