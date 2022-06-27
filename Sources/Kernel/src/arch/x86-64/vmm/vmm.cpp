@@ -479,7 +479,7 @@ uint64_t vmm_Init(BootInfo* bootInfo){
     }
 
     /* map ramfs */
-    bootInfo->ramfs.ramfsBase = (uintptr_t)vmm_GetVirtualAddress((bootInfo->ramfs.ramfsBase - vmm_HHDMAdress));
+    bootInfo->ramfs.ramfsBase = (uintptr_t)vmm_GetVirtualAddress(((uint64_t)bootInfo->ramfs.ramfsBase - vmm_HHDMAdress));
     for(uint64_t i = 0; i < bootInfo->ramfs.Size; i += PAGE_SIZE){
         vmm_Map(vmm_PageTable, (uintptr_t)((uint64_t)bootInfo->ramfs.ramfsBase + i), (uintptr_t)(((uint64_t)bootInfo->ramfs.ramfsBase - vmm_HHDMAdress) + i), true, false); /* App can't write into ramfs */
     }
