@@ -3,7 +3,7 @@ CC = clang
 LD = ld.lld
 ASMC = nasm
 
-CFLAGS = -I../../Sysroot/include/ -ffreestanding -fno-builtin -nostdlib -nostdinc -nostdinc++ -fshort-wchar -g -mno-red-zone -fno-exceptions -fPIC -Isrc
+CFLAGS = -I../../Sysroot/include/ -ffreestanding --target=x86_64-unknown-none-elf -fno-builtin -nostdlib -nostdinc -nostdinc++ -fshort-wchar -g -mno-red-zone -fno-exceptions -fPIC -Isrc
 ASMFLAGS = 
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib --no-relax 
 

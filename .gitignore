@@ -1,3 +1,10 @@
+# Developpers Folders
+/.vscode
+
+# Build Folders
+/Sysroot
+/Bin
+
 # Prerequisites
 *.d
 
@@ -28,12 +35,6 @@
 *.lib
 
 # Executables
-Sysroot/
-limine/
-Bin/
-Toolchain/Local/
-.vscode/
-
 *.exe
 *.out
 *.app
