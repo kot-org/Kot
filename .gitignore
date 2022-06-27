@@ -4,6 +4,7 @@
 # Build Folders
 /Sysroot
 /Bin
+/Toolchain/Local
 
 # Prerequisites
 *.d

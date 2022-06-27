@@ -39,7 +39,7 @@ link:
 	$(CC) $(LINKERFLAGS) -o $(BINDIR)/System.elf $(OBJS) $(OBJSCPP)
 	
 copyToFS:
-	../../../../../Tools/Buildramfs.sh
+	../../../../../Tools/BuildRamFS.sh
 
 
 

@@ -40,7 +40,7 @@ link:
 	$(CC) $(LINKERFLAGS) -o $(BINDIR)/PS2.elf $(OBJS) $(OBJSCPP)
 	
 copyToFS:
-	../../../../../Tools/Buildramfs.sh
+	../../../../../Tools/BuildRamFS.sh
 
 
 
