@@ -1,0 +1,6 @@
+flonum-mult.o: ../../gas/flonum-mult.c /usr/include/stdc-predef.h \
+ ../../gas/../include/ansidecl.h ../../gas/flonum.h ../../gas/bignum.h
+/usr/include/stdc-predef.h:
+../../gas/../include/ansidecl.h:
+../../gas/flonum.h:
+../../gas/bignum.h:
