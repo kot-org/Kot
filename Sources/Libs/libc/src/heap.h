@@ -37,6 +37,10 @@ void SplitSegmentUser(struct SegmentHeader* segment, size_t size);
 void ExpandHeapUser(size_t lenght);
 struct SegmentHeader* GetSegmentHeaderUser(uintptr_t address);
 
+void MergeNextAndThisToLastUser(struct SegmentHeader* header);
+void MergeThisToLastUser(struct SegmentHeader* header);
+void MergeNextToThisUser(struct SegmentHeader* header);
+
 #if defined(__cplusplus)
 }
 #endif
