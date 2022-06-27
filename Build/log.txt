@@ -12,34 +12,18 @@
 [1;32m[OK] [1;0mProcessor 1 respond with success
 [1;33m[Warning] [1;0mWait processor 2
 [1;32m[OK] [1;0mProcessor 2 respond with success
-[1;33m[Warning] [1;0mWait processor 3
-[1;32m[OK] [1;0mProcessor 3 respond with success
-[1;33m[Warning] [1;0mWait processor 4
-[1;32m[OK] [1;0mProcessor 4 respond with success
-[1;33m[Warning] [1;0mWait processor 5
-[1;32m[OK] [1;0mProcessor 5 respond with success
-[1;33m[Warning] [1;0mWait processor 6
-[1;32m[OK] [1;0mProcessor 6 respond with success
-[1;33m[Warning] [1;0mWait processor 7
-[1;32m[OK] [1;0mProcessor 7 respond with success
-[1;32m[OK] [1;0mScheduler is enabled for the processor : 14
-[1;32m[OK] [1;0mScheduler is enabled for the processor : 4
-[1;32m[OK] [1;0mScheduler is enabled for the processor : 6
 [1;32m[OK] [1;0mScheduler is enabled for the processor : 2
-[1;32m[OK] [1;0mScheduler is enabled for the processor : 8
-[1;32m[OK] [1;0mScheduler is enabled for the processor : 12
-[1;32m[OK] [1;0mScheduler is enabled for the processor : 10
+[1;32m[OK] [1;0mScheduler is enabled for the processor : 1
 [1;32m[OK] [1;0mScheduler is enabled for the processor : 0
 [Process 0x01] '[SYSTEM] Initialization ...'
 [Process 0x02] '[PS2] Initialization ...'
 [Process 0x02] '[PS2] Keyboard device found'
-[Process 0x02] '[PS2] Mouse device found'
+[Process 0x01] 'IPC'
 [Process 0x03] '[VGA] Initialization ...'
+[Process 0x02] '[PS2] Driver intialized successfully'
 [Process 0x03] '[VGA] Driver intialized successfully'
 [Process 0x01] '[SYSTEM] All tasks in 'Starter.cfg' are loaded'
 [Process 0x04] '[UISD] Initialization ...'
-[Process 0x01] '[SYSTEM] Service intialized successfully'
 [Process 0x04] '[UISD] Service intialized successfully'
-[Process 0x01] 'IPC'
-[Process 0x02] '[PS2] Driver intialized successfully'
+[Process 0x01] '[SYSTEM] Service intialized successfully'
 
