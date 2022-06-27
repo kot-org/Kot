@@ -7,7 +7,7 @@
 
 # Toolchain Folders
 /Toolchain/Local
-/Toolchain/sources/bin-gcc-11.2.0
+/Toolchain/sources
 
 # Prerequisites
 *.d
