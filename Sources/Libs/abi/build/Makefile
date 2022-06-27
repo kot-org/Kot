@@ -12,7 +12,7 @@ LD = ld.lld
 AS = as
 AR = ar
 
-CFLAGS = -Wall -Werror -fpic
+CFLAGS = -Wall -Werror -fpic --target=x86_64-unknown-none-elf
 LDFLAGS = -shared 
 ASMFLAGS = 
 
