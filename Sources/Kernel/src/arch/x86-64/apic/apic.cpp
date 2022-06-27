@@ -170,7 +170,7 @@ namespace APIC{
 
         memcpy((uintptr_t)TrampolineVirtualAddress, (uintptr_t)&Trampoline, PAGE_SIZE);
 
-        trampolineData* Data = (trampolineData*)(((uint64_t)&DataTrampoline - (uint64_t)&Trampoline) + TrampolineVirtualAddress);
+        trampolineData* Data = (trampolineData*)(((uint64_t)&DataTrampoline - (uint64_t)&Trampoline) + (uint64_t)TrampolineVirtualAddress);
 
         
         //temp trampoline map
@@ -296,12 +296,12 @@ namespace APIC{
 
     uint32_t ioapicReadRegister(uintptr_t apicPtr , uint8_t offset){
         *(volatile uint32_t*)(apicPtr) = offset;
-        return *(volatile uint32_t*)(apicPtr + 0x10);
+        return *(volatile uint32_t*)((uint64_t)apicPtr + 0x10);
     }
 
     void ioapicWriteRegister(uintptr_t apicPtr , uint8_t offset, uint32_t value){
         *(volatile uint32_t*)(apicPtr) = offset;
-        *(volatile uint32_t*)(apicPtr + 0x10) = value;
+        *(volatile uint32_t*)((uint64_t)apicPtr + 0x10) = value;
     }
     
     void localAPICWriteRegister(size_t offset, uint32_t value){

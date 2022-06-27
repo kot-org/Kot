@@ -59,7 +59,7 @@ createISO:
 	./limine/limine-deploy $(BUILDDIR)/kot.iso
 
 createISOEFI:
-	@ echo !==== ISO EFi
+	@ echo !==== ISO EFI
 	mkdir -p  $(LIMINEBUIDLDIR)
 	cp $(BUILDDIR)/kernel.elf limine/limine.sys limine/limine-cd-efi.bin  $(LIMINEBUIDLDIR)/
 	xorriso -as mkisofs --efi-boot limine-cd-efi.bin -efi-boot-part --efi-boot-image -J -o $(BUILDDIR)/kotEFI.iso  $(LIMINEBUIDLDIR)
