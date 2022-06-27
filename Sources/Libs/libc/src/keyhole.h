@@ -30,7 +30,7 @@ static inline bool Keyhole_GetFlag(uint64_t Flags, uint8_t Flag){
     return (Flags >> Flag) & 0x1;
 }
 
-static inline Keyhole_SetFlag(uint64_t* Flags, uint8_t Flag, bool Status){
+static inline void Keyhole_SetFlag(uint64_t* Flags, uint8_t Flag, bool Status){
     if(Status){
         *Flags |= Flag;        
     }else{
