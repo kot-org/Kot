@@ -2,7 +2,7 @@
 
 namespace ELF{
     static inline char* GetSectionName(elf_t* self, Elf64_Shdr* shdr){
-        return (char*)(self->Buffer + self->shstr->sh_offset + shdr->sh_name);
+        return (char*)((uint64_t)self->Buffer + self->shstr->sh_offset + shdr->sh_name);
     }
  
     static inline Elf64_Shdr* GetSectionHeaderIndex(elf_t* self, Elf64_Half index){
@@ -36,7 +36,7 @@ namespace ELF{
         for(uint64_t i = 0; i < size; i++){
             Elf64_Sym* sym = (Elf64_Sym*)((uint64_t)self->Buffer + self->symtab->sh_offset + i * sizeof(Elf64_Sym));
             if(sym->st_shndx == sectionIndex){
-                if(strcmp((char*)(self->Buffer + self->str->sh_offset + sym->st_name), name)){
+                if(strcmp((char*)((uint64_t)self->Buffer + self->str->sh_offset + sym->st_name), name)){
                     return sym;
                 }
             }
@@ -60,8 +60,8 @@ namespace ELF{
         thread_t* mainThread = proc->CreateThread((uintptr_t)self->Header->e_entry, NULL);
         
         /* Load the elf */
-        self->phdrs = (uintptr_t)(uint64_t)buffer + self->Header->e_phoff;
-        self->shdrs = (uintptr_t)(uint64_t)buffer + self->Header->e_shoff;
+        self->phdrs = (uintptr_t)((uint64_t)buffer + self->Header->e_phoff);
+        self->shdrs = (uintptr_t)((uint64_t)buffer + self->Header->e_shoff);
         
         self->shstr = GetSectionHeaderIndex(self, self->Header->e_shstrndx);
         self->str = GetSectionHeaderName(self, ".strtab");
