@@ -4,6 +4,7 @@ mkdir -p Sysroot/
 mkdir -p Sysroot/include/
 mkdir -p Sysroot/include/kot/
 mkdir -p Sysroot/lib/
+mkdir -p Bin/
 
 echo "Compiling kot libraries.."
 
