@@ -1,2 +1,0 @@
-is-strip.o: ../../binutils/is-strip.c /usr/include/stdc-predef.h
-/usr/include/stdc-predef.h:

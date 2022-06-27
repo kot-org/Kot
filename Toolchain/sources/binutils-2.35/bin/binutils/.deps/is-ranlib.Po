@@ -1,2 +1,0 @@
-is-ranlib.o: ../../binutils/is-ranlib.c /usr/include/stdc-predef.h
-/usr/include/stdc-predef.h:

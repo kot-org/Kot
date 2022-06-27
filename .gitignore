@@ -5,10 +5,6 @@
 /Sysroot
 /Bin
 
-# Toolchain Folders
-/Toolchain/Local
-/Toolchain/sources
-
 # Prerequisites
 *.d
 
