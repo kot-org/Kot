@@ -1,5 +1,7 @@
 echo "Creating compilation dirs.."
 
+cd ../
+
 mkdir -p Sysroot/
 mkdir -p Sysroot/include/
 mkdir -p Sysroot/include/kot/
