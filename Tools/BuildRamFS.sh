@@ -1,4 +1,4 @@
-File="$(dirname $(realpath $(dirname "$0")))/Tools"
-BinFile="$(dirname $(realpath $(dirname "$0")))/Bin"
+File="Tools"
+BinFile="Bin"
 mkdir -m 777 "$BinFile/Modules"
 python3 $File/ramfs.py "$BinFile/Modules/" "$BinFile/Limine/ramfs.bin" "System.elf"
