@@ -18,11 +18,16 @@ cd ../../
 
 cd abi/build/
 make 
-cd ../../
+
+
+# ramfs
+
+cd ../../../../
+sudo bash ./Tools/BuildRamFS.sh
 
 # kernel
 
-cd ../Kernel/
+cd ./Sources/Kernel/
 echo -e "\e[32mBuilding kernel...\e[0m"
 
 make all
