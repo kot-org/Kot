@@ -1,7 +1,7 @@
 PREFIX = ../../../../../Toolchain/Local/bin/x86_64-kot-
 
 LDS = main.ld
-CC = $(PREFIX)gcc
+CC = clang
 ASMC = nasm
 
 CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Scr
@@ -21,8 +21,6 @@ OBJS += $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCCPP))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)         
 
-
-
 main: $(OBJS) link copyToFS
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
@@ -41,6 +39,3 @@ link:
 	
 copyToFS:
 	../../../../../Tools/Buildramfs.sh
-
-
-

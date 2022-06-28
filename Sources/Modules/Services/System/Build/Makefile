@@ -3,7 +3,7 @@ CC = clang
 LD = ld.lld
 ASMC = nasm
 
-CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I../../../../../Sysroot/include
+CFLAGS = --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I../../../../../Sysroot/include
 LINKERFLAGS = -Wall -static -nostdlib -L../../../../../Sysroot/lib -L../../../../../Sysroot/lib/libc.a
 ASMFLAGS = 
 
@@ -19,8 +19,6 @@ ASMSRC = $(call rwildcard,$(SRCDIR),*.asm)
 OBJS += $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCCPP))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)         
-
-
 
 main: $(OBJS) link copyToFS
 

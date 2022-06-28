@@ -1,10 +1,8 @@
-PREFIX = ../../../../../Toolchain/Local/bin/x86_64-kot-
-
 LDS = main.ld
-CC = $(PREFIX)gcc
+CC = clang
 ASMC = nasm
 
-CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src
+CFLAGS = --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src
 LINKERFLAGS = -lc -Wall -static
 ASMFLAGS = 
 
@@ -20,8 +18,6 @@ ASMSRC = $(call rwildcard,$(SRCDIR),*.asm)
 OBJS += $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCCPP))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)         
-
-
 
 main: $(OBJS) link copyToFS
 
@@ -41,6 +37,3 @@ link:
 	
 copyToFS:
 	../../../../../Tools/Buildramfs.sh
-
-
-
