@@ -80,6 +80,7 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
         }
     }else{
         // Other IRQ & IVT
+        Successful("Ok");
         InterruptParameters->Parameter0 = Registers->InterruptNumber;
         Event::Trigger((thread_t*)0x0, InterruptEventList[Registers->InterruptNumber], InterruptParameters);
     }
