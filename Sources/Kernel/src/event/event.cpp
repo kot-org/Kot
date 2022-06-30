@@ -7,14 +7,14 @@ namespace Event{
         event_t* self = NULL;
 
         switch (Type){
-            case EventTypeIRQ: {
+            case EventTypeIRQLines: {
                 IRQEvent_t* event = (IRQEvent_t*)malloc(sizeof(IRQEvent_t));
                 self = &event->header;
                 event->IRQ = (uint8_t)AdditionnalData;
                 event->IsEnable = false;
                 break;
             }                
-            case EventTypeIVT: {
+            case EventTypeIRQ: {
                 if(AdditionnalData < IRQ_START + IRQ_MAX) return KFAIL;
                 IVTEvent_t* event = (IVTEvent_t*)malloc(sizeof(IVTEvent_t));
                 self = &event->header;
@@ -46,7 +46,7 @@ namespace Event{
         Atomic::atomicAcquire(&self->Lock, 0);
         Atomic::atomicAcquire(&task->EventLock, 0);
 
-        if(self->Type == EventTypeIRQ){
+        if(self->Type == EventTypeIRQLines){
             IRQEvent_t* event = (IRQEvent_t*)self;
             if(!event->IsEnable){
                 event->IsEnable = true;
@@ -95,7 +95,7 @@ namespace Event{
             }
         }
 
-        if(self->Type == EventTypeIRQ && self->NumTask == 0){
+        if(self->Type == EventTypeIRQLines && self->NumTask == 0){
             IRQEvent_t* event = (IRQEvent_t*)self;
             if(event->IsEnable){
                 event->IsEnable = false;

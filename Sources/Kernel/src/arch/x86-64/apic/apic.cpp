@@ -107,13 +107,14 @@ namespace APIC{
 
         // Configure first IOAPIC
         IOAPIC* ioapic = IOapic[IOApicID];
+        ioapic->APICAddress = (uint32_t)(uint64_t)Pmm_RequestPage();
         uint64_t IOapicAddressVirtual = vmm_Map((uintptr_t)(uint64_t)ioapic->APICAddress);
         uint8_t MaxInterrupts = ((ioapicReadRegister((uintptr_t)IOapicAddressVirtual, IOAPICVersion) >> 16) & 0xff) + 1;
         ioapic->MaxInterrupts = MaxInterrupts;
 
         // Set up the entries
         uint32_t base = ioapic->GlobalSystemInterruptBase;
-        for (size_t i = 0; i < 24; i++){
+        for (size_t i = 0; i < MaxInterrupts; i++){
                 uint8_t IRQNumber = i + IRQ_START;
                 IoApicSetRedirectionEntry((uintptr_t)IOapicAddressVirtual, i - base, (IOAPICRedirectionEntry){
                     .vector = IRQNumber,

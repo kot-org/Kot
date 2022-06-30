@@ -1,16 +1,18 @@
+_HOME = ../../
+
 LDS = kernel.ld
 CC = clang-14
 LD = ld.lld-14
 ASMC = nasm
 
-CFLAGS = -I../../Sysroot/include/ -ffreestanding --target=x86_64-unknown-none-elf -fno-builtin -nostdlib -nostdinc -nostdinc++ -fshort-wchar -g -mno-red-zone -fno-exceptions -fPIC -Isrc
+CFLAGS = -I$(_HOME)Sysroot/include/ --target=x86_64-unknown-none-elf -ffreestanding -fno-builtin -nostdlib -nostdinc -nostdinc++ -fshort-wchar -g -mno-red-zone -fno-exceptions -fPIC -Isrc
 ASMFLAGS = 
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib --no-relax
 
 SRCDIR := src
 OBJDIR := lib
-BUILDDIR = ../../Bin
-LIMINEBUIDLDIR = ../../Bin/Limine
+BUILDDIR = $(_HOME)Bin
+LIMINEBUIDLDIR = $(_HOME)Bin/Limine
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 

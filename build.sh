@@ -1,8 +1,8 @@
 echo -e "\e[32mCreating compilation dirs...\e[0m"
 
-mkdir -p Sysroot/include/kot/
-mkdir -p Sysroot/lib/
-mkdir -p Bin/Modules/
+mkdir -p "Sysroot/include/kot/"
+mkdir -p "Sysroot/lib/"
+mkdir -p "Bin/Modules/"
 
 echo -e "\e[32mCompiling kot libraries...\e[0m"
 

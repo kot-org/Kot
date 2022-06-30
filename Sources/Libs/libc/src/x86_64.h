@@ -3,9 +3,6 @@
 
 #include <kot/types.h>
 
-#define IRQ_START 0x20
-#define IRQ_MAX 0x18
-
 static inline void IoWrite8(uint16_t port, uint8_t data){
     __asm__ volatile("outb %b0, %w1" : : "a" (data), "Nd" (port));
 }

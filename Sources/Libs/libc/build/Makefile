@@ -7,10 +7,9 @@ BINDIR = $(_HOME)Bin/Modules
 OBJDIR := ../lib
 SRCDIR := ../src
 
-CC = clang
-LD = ld.lld
-AS = as
-AR = ar
+CC = clang-14
+AS = llvm-as-14
+AR = llvm-ar-14
 
 CFLAGS = -I$(INCDIR) --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-exceptions -fPIC -O2
 ASMFLAGS = 

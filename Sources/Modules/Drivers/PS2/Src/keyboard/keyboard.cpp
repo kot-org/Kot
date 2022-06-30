@@ -19,7 +19,7 @@ KResult KeyboardInitialize(){
 
             KeyboardEventParameters = (parameters_t*)malloc(sizeof(parameters_t));
             KeyboardPS2Port = &PS2Ports[i];
-            Sys_Event_Bind(NULL, InterruptThreadHandler, IRQ_START + KeyboardPS2Port->IRQ, false);
+            Sys_Event_Bind(NULL, InterruptThreadHandler, 0x20 + KeyboardPS2Port->IRQ, false);
 
             KeyboardPS2Port->PS2SendDataPort(0xF6);
             KeyboardPS2Port->PS2SendDataPort(0xF4);

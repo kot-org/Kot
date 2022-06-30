@@ -8,12 +8,10 @@ SRCDIR := ../src
 CC = clang
 ASMC = nasm
 
-LD = ld.lld
-AS = as
-AR = ar
+AS = llvm-as-14
+AR = llvm-ar-14
 
-CFLAGS = -Wall -Werror -fpic --target=x86_64-unknown-none-elf
-LDFLAGS = -shared 
+CFLAGS = -Wall -Werror -fpic --target=x86_64-unknown-none-elf 
 ASMFLAGS = 
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))

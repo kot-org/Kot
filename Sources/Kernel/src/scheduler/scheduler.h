@@ -142,7 +142,6 @@ struct thread_t{
     KResult ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t* location);
 
     bool CIP(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread, parameters_t* FunctionParameters);
-    bool CIP(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread);
 
     bool Launch(parameters_t* FunctionParameters);  
     bool Launch();  

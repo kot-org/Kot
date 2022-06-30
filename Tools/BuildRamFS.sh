@@ -1,4 +1,1 @@
-File="Tools"
-BinFile="Bin"
-mkdir -p -m 777 "$BinFile/Modules"
-python3 $File/ramfs.py "$BinFile/Modules/" "$BinFile/Limine/ramfs.bin" "System.elf"
+python3 ramfs.py "../Bin/Modules/" "../Bin/Limine/ramfs.bin" "System.elf"

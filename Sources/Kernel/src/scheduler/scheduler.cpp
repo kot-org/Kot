@@ -113,8 +113,12 @@ uint64_t TaskManager::DuplicateThread(thread_t** self, process_t* proc, thread_t
 }
 
 uint64_t TaskManager::ExecThread(thread_t* self, parameters_t* FunctionParameters){
-    self->Launch(FunctionParameters);
-    return KSUCCESS;
+    if(self->IsBlock){
+        self->Launch(FunctionParameters);
+        return KSUCCESS;
+    }else{
+        return KFAIL;
+    }
 }
 
 uint64_t TaskManager::Pause(ContextStack* Registers, uint64_t CoreID, thread_t* task){
@@ -518,13 +522,6 @@ KResult thread_t::ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t
 }
 
 bool thread_t::CIP(ContextStack* Registers, uint64_t CoreID, thread_t* thread, parameters_t* FunctionParameters){
-    if(FunctionParameters != NULL){
-        thread->SetParameters(FunctionParameters);
-    }
-    CIP(Registers, CoreID, thread);
-}
-    
-bool thread_t::CIP(ContextStack* Registers, uint64_t CoreID, thread_t* thread){
     Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
 
     thread_t* child = thread->Parent->DuplicateThread(thread, this->externalData);
@@ -540,6 +537,10 @@ bool thread_t::CIP(ContextStack* Registers, uint64_t CoreID, thread_t* thread){
 
     //Load new task
     child->CreateContext(Registers, CoreID);
+
+    if(FunctionParameters != NULL){
+        child->SetParameters(FunctionParameters);
+    }
 
     Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
 

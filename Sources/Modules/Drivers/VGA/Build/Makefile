@@ -1,12 +1,10 @@
-PREFIX = ../../../../../Toolchain/Local/bin/x86_64-kot-
+_HOME = ../../../../../
 
-LDS = main.ld
-CC = $(PREFIX)gcc
+CC = clang-14
 ASMC = nasm
 
-CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src
-LINKERFLAGS = -lc -Wall -static
-ASMFLAGS = 
+CFLAGS = --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I$(_HOME)Sysroot/include
+LINKERFLAGS = -nostartfiles -Wall -static -L$(_HOME)Sysroot/lib/ -lc
 
 SRCDIR := ../Src
 OBJDIR := ../Lib
@@ -37,10 +35,9 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 
 link:
 	@ echo !==== LINKING
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/VGA.elf $(OBJS) $(OBJSCPP)
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/VGA.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/lib/crt0.o
 	
 copyToFS:
-	../../../../../Tools/BuildRamFS.sh
-
+	cd $(_HOME)Tools && bash ./BuildRamFS.sh
 
 

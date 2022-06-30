@@ -5,22 +5,23 @@
 #define KeyholeFlagPresent                                  0x0
 #define KeyholeFlagCloneable                                0x1
 #define KeyholeFlagEditable                                 0x2
+#define KeyholeFlagOriginal                                 0x3
 
 /* Specific thread for types */
 
 /* DataTypeThread */
-#define KeyholeFlagDataTypeThreadMemoryAccessible           0x3
-#define KeyholeFlagDataTypeThreadIsExecutableAsCIP          0x4
-#define KeyholeFlagDataTypeThreadIsExitable                 0x5 
-#define KeyholeFlagDataTypeThreadIsPauseable                0x6 
-#define KeyholeFlagDataTypeThreadIsUnpauseable              0x7
-#define KeyholeFlagDataTypeThreadIsEventable                0x8
-#define KeyholeFlagDataTypeThreadIsDuplicable               0x9
-#define KeyholeFlagDataTypeThreadIsExecutable               0x10
+#define KeyholeFlagDataTypeThreadMemoryAccessible           0x4
+#define KeyholeFlagDataTypeThreadIsExecutableAsCIP          0x5
+#define KeyholeFlagDataTypeThreadIsExitable                 0x6 
+#define KeyholeFlagDataTypeThreadIsPauseable                0x7 
+#define KeyholeFlagDataTypeThreadIsUnpauseable              0x8
+#define KeyholeFlagDataTypeThreadIsEventable                0x9
+#define KeyholeFlagDataTypeThreadIsDuplicable               0x10
+#define KeyholeFlagDataTypeThreadIsExecutable               0x11
 
 /* DataTypeProcess */
-#define KeyholeFlagDataTypeProcessMemoryAccessible          0x3
-#define KeyholeFlagDataTypeProcessIsThreadCreateable        0x4
+#define KeyholeFlagDataTypeProcessMemoryAccessible          0x4
+#define KeyholeFlagDataTypeProcessIsThreadCreateable        0x5
 
 /* DataTypeEvent */
 /* DataTypeSharedMemory */

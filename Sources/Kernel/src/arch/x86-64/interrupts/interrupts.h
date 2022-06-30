@@ -11,6 +11,9 @@
 #define IST_Null 0x0
 #define IST_Scheduler 0x1
 
+#define IRQ_START 0x20
+#define IRQ_MAX 0x18
+
 void InitializeInterrupts();
 void ExceptionHandler(ContextStack* Registers, uint64_t CoreID);
 bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID);

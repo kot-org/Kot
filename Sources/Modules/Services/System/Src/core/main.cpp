@@ -7,7 +7,7 @@ void ShareString(kthread_t self, char* str, uint64_t* clientAddress){
     SYS_ShareDataUsingStackSpace(self, (uint64_t)str, strlen(str) + 1, clientAddress);
 }
 
-int main(struct KernelInfo* kernelInfo){
+extern "C" int main(struct KernelInfo* kernelInfo){
     Printlog("[SYSTEM] Initialization ...");
     
     kthread_t self;

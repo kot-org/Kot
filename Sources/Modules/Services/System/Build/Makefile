@@ -1,16 +1,16 @@
-LDS = kernel.ld
-CC = clang
-LD = ld.lld
+_HOME = ../../../../../
+
+CC = clang-14
 ASMC = nasm
 
-CFLAGS = --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I../../../../../Sysroot/include
-LINKERFLAGS = -Wall -static -nostdlib -L../../../../../Sysroot/lib -L../../../../../Sysroot/lib/libc.a
+CFLAGS = --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I$(_HOME)Sysroot/include
+LINKERFLAGS = -nostartfiles -Wall -static -L$(_HOME)Sysroot/lib/ -lc
 ASMFLAGS = 
 
 SRCDIR := ../Src
 OBJDIR := ../Lib
 BUILDDIR = ../Bin
-BINDIR = ../../../../../Bin/Modules
+BINDIR = $(_HOME)Bin/Modules
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
@@ -34,10 +34,10 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 
 link:
 	@ echo !==== LINKING
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/System.elf $(OBJS) $(OBJSCPP)
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/System.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/lib/crt0.o
 	
 copyToFS:
-	../../../../../Tools/BuildRamFS.sh
+	cd $(_HOME)Tools && bash ./BuildRamFS.sh
 
 
 

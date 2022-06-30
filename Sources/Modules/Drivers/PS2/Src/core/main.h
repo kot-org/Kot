@@ -49,7 +49,7 @@ struct PS2Port_t{
     void PS2SendDataPort(uint8_t data); 
 };
 
-int main(int argc, char* argv[]);
+extern "C" int main(int argc, char* argv[]);
 
 KResult PortsInitalize();
 

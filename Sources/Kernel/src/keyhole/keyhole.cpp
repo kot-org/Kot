@@ -27,6 +27,7 @@ uint64_t Keyhole_Create(key_t* key, process_t* parent, process_t* target, enum D
     AccessAddress->LockOffset[Offset] = Lock;
     
     // fill data
+    flags |= ~(1 << KeyholeFlagOriginal);
     Lock->Type = type;
     Lock->Target = target;
     Lock->Address = Address;
@@ -56,6 +57,9 @@ uint64_t Keyhole_CloneModify(thread_t* caller, key_t key, key_t* newKey, process
     }else{
         flags = data->Flags;
     }
+
+    flags &= ~(1 << KeyholeFlagOriginal);
+
     return Keyhole_Create(newKey, data->Parent, target, data->Type, data->Data, flags);
 }
 

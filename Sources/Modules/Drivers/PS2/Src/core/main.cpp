@@ -8,7 +8,7 @@ kthread_t InterruptThreadHandler = NULL;
 
 IRQRedirections IRQRedirectionsArray[2];
 
-int main(int argc, char* argv[]){
+extern "C" int main(int argc, char* argv[]){
     Printlog("[PS2] Initialization ...");
     /* Initialize PS2 drivers */
     SYS_GetProcessKey(&self);
@@ -31,8 +31,8 @@ int main(int argc, char* argv[]){
     /* Clear buffer */
     PS2GetData();
 
-    CallIPC();
-    
+    CallIPC("Test");
+
     Printlog("[PS2] Driver intialized successfully");
     return KSUCCESS;
 }
@@ -136,7 +136,7 @@ KResult PortsInitalize(){
 }
 
 void PS2InterruptHandler(uint8_t interrupt){
-    uint8_t IRQ = interrupt - IRQ_START;
+    uint8_t IRQ = interrupt - 0x20;
     uint8_t data = (uint8_t)PS2GetData();
     
     switch(IRQ){

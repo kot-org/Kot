@@ -44,8 +44,8 @@ enum DataType{
 };
 
 enum EventType{
-    EventTypeIRQ = 0,
-    EventTypeIVT = 1,
+    EventTypeIRQLinesLines = 0,
+    EventTypeIRQLines = 1,
     EventTypeIPC = 2,
 };
 
