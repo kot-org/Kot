@@ -37,6 +37,9 @@ struct memoryInfo_t{
 #define KERNEL_INFO_SIZE 0x5
 
 struct KernelInfo{
+    uint64_t revision;
+    uint64_t architecture;
+
     struct framebuffer_t framebuffer;
     struct ramfs_t ramfs;
     struct memoryInfo_t* memoryInfo;
