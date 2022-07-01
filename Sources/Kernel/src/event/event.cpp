@@ -153,7 +153,7 @@ namespace Event{
             task->DataNode->NumberOfMissedEvents--;
         }else{
             globalTaskManager->ThreadExecutePerCore[task->CoreID] = NULL;
-            ExitAndSetBit((uint8_t*)&task->IsBlock);
+            ForceScheduleAndSetBit((uint8_t*)&task->IsBlock);
         }  
 
         return KSUCCESS;

@@ -207,7 +207,7 @@ namespace APIC{
         IOAPICRedirectionEntryDeliveryModeEXTINT			= 0b111,
     };
     enum IOAPICRedirectionEntryDestinationMode {
-        IOAPICRedirectionEntryDestinationModePhysicall	= 0,
+        IOAPICRedirectionEntryDestinationModePhysical	= 0,
         IOAPICRedirectionEntryDestinationModeLogical	= 1
     };
     enum IOAPICRedirectionEntryDeliveryStatus {

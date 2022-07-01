@@ -113,12 +113,13 @@ namespace APIC{
 
         // Set up the entries
         uint32_t base = ioapic->GlobalSystemInterruptBase;
+
         for (size_t i = 0; i < MaxInterrupts; i++){
                 uint8_t IRQNumber = i + IRQ_START;
                 IoApicSetRedirectionEntry((uintptr_t)IOapicAddressVirtual, i - base, (IOAPICRedirectionEntry){
                     .vector = IRQNumber,
                     .delivery_mode = IOAPICRedirectionEntryDeliveryModeFixed,
-                    .destination_mode = IOAPICRedirectionEntryDestinationModePhysicall,
+                    .destination_mode = IOAPICRedirectionEntryDestinationModePhysical,
                     .delivery_status = IOAPICRedirectionEntryDeliveryStatusIddle,
                     .pin_polarity = IOAPICRedirectionEntryPinPolarityActiveHigh,
                     .remote_irr = IOAPICRedirectionEntryRemoteIRRNone,
@@ -131,10 +132,10 @@ namespace APIC{
         for(size_t i = 0; i < IsoCount; i++) {
             InterruptSourceOverride* iso = Iso[i];
             uint8_t IRQNumber = iso->IRQSource + IRQ_START;
-            IoApicSetRedirectionEntry((uintptr_t)IOapicAddressVirtual , iso->IRQSource, (IOAPICRedirectionEntry){
+            IoApicSetRedirectionEntry((uintptr_t)IOapicAddressVirtual, iso->IRQSource, (IOAPICRedirectionEntry){
                 .vector = IRQNumber,
                 .delivery_mode = IOAPICRedirectionEntryDeliveryModeFixed,
-                .destination_mode = IOAPICRedirectionEntryDestinationModePhysicall,
+                .destination_mode = IOAPICRedirectionEntryDestinationModePhysical,
                 .delivery_status = IOAPICRedirectionEntryDeliveryStatusIddle,
                 .pin_polarity = (iso->Flags & 0x03) == 0x03 ? IOAPICRedirectionEntryPinPolarityActiveLow : IOAPICRedirectionEntryPinPolarityActiveHigh,
                 .remote_irr = IOAPICRedirectionEntryRemoteIRRNone,
@@ -143,7 +144,6 @@ namespace APIC{
                 .destination = NULL,
             });
         } 
-
     } 
 
     void IoChangeIrqState(uint8_t irq, uint8_t IOApicID, bool IsEnable){

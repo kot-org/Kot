@@ -404,13 +404,11 @@ KResult Sys_Keyhole_CloneModify(ContextStack* Registers, thread_t* Thread){
 KResult Sys_Logs(ContextStack* Registers, thread_t* Thread){
     if(CheckAddress((uintptr_t)Registers->arg0, Registers->arg1) != KSUCCESS) return KMEMORYVIOLATION;
     if(Registers->arg1 > ShareMaxIntoStackSpace) return KFAIL;
-    CPU::DisableInterrupts();
     Atomic::atomicAcquire(&globalTaskManager->lockglobalAddressForStackSpaceSharing, 0);
     memcpy(globalTaskManager->globalAddressForStackSpaceSharing, (uintptr_t)Registers->arg0, Registers->arg1);
     ((char*)globalTaskManager->globalAddressForStackSpaceSharing)[Registers->arg1] = NULL;
     Message("[Process 0x%x] '%s'", Thread->Parent->PID, globalTaskManager->globalAddressForStackSpaceSharing);
     Atomic::atomicUnlock(&globalTaskManager->lockglobalAddressForStackSpaceSharing, 0);
-    CPU::EnableInterrupts();
     return KSUCCESS;
 }
 

@@ -5,4 +5,5 @@
 extern "C" void IdleTask();
 
 extern "C" void LaunchUserSpace();
-extern "C" void ExitAndSetBit(uint8_t* address);
+extern "C" void ForceSchedule();
+extern "C" void ForceScheduleAndSetBit(uint8_t* address);

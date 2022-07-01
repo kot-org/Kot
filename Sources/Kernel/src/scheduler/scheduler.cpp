@@ -145,18 +145,33 @@ uint64_t TaskManager::Unpause(thread_t* task){
 uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* task){    
     Atomic::atomicAcquire(&MutexScheduler, 0);
 
+
+    if(task->IsEvent){
+        // Clear event
+    }
+
+    task->ThreadNode->Delete();
+
+    /* TODO clear task data and stack */
+
+    free(task->Regs);
+    free(task); 
+
     if(task->IsInQueue){
         DequeueTask(task);
     }else{
-        ThreadExecutePerCore[task->CoreID] = NULL;
-        if(task->CoreID == CoreID){
-            Registers->rip = (uint64_t)IddleTaskPointer;
+        if(task->IsCIP){
+            Unpause(task->TCIP);            
         }
+
+        globalTaskManager->ThreadExecutePerCore[task->CoreID] = NULL;
+        Atomic::atomicUnlock(&MutexScheduler, 0);
+        ForceSchedule();
+
+        /* noreturn */
     }
+
     Atomic::atomicUnlock(&MutexScheduler, 0);
-
-    task->Exit(Registers, CoreID);
-
 
     return KSUCCESS;
 }
@@ -522,27 +537,16 @@ KResult thread_t::ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t
 }
 
 bool thread_t::CIP(ContextStack* Registers, uint64_t CoreID, thread_t* thread, parameters_t* FunctionParameters){
-    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
-
     thread_t* child = thread->Parent->DuplicateThread(thread, this->externalData);
     child->IsCIP = true;
     child->TCIP = this;
 
-    //Save context
-    thread->IsBlock = true;
-    SaveContext(Registers, CoreID);
+    child->Launch(FunctionParameters);
 
-    //Update time
-    Parent->TaskManagerParent->TimeByCore[CoreID] = HPET::GetTime();
+    /* Pause task */
+    Pause(Registers, CoreID);
 
-    //Load new task
-    child->CreateContext(Registers, CoreID);
-
-    if(FunctionParameters != NULL){
-        child->SetParameters(FunctionParameters);
-    }
-
-    Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
+    /* No return */
 
     return true;
 }
@@ -572,25 +576,9 @@ bool thread_t::Pause(ContextStack* Registers, uint64_t CoreID){
 
     IsBlock = true;
 
-    Registers->rip = (uint64_t)Parent->TaskManagerParent->IddleTaskPointer;
+    ForceSchedule();
 
-    return true;
-}
+    /* No return */
 
-bool thread_t::Exit(ContextStack* Registers, uint64_t CoreID){
-    if(IsCIP){
-        uint64_t ReturnValue = Registers->GlobalPurpose;
-        Parent->TaskManagerParent->SwitchTask(Registers, CoreID, TCIP);
-        Registers->GlobalPurpose = ReturnValue;
-    }else if(IsEvent){
-        // Clear event
-    }
-
-    ThreadNode->Delete();
-
-    /* TODO clear task data and stack */
-
-    free(this->Regs);
-    free(this); 
     return true;
 }

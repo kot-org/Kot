@@ -1,14 +1,17 @@
 [bits 64]
 
-GLOBAL LaunchUserSpace, ExitAndSetBit
+GLOBAL LaunchUserSpace, ForceSchedule, ForceScheduleAndSetBit
 
 LaunchUserSpace:
 	sti
 	int 0x40 
 	jmp LaunchUserSpace
 
-ExitAndSetBit:
-	mov byte [rdi], 1
-.loop:
+ForceSchedule:
+	sti
 	int 0x40
-	jmp .loop
+	jmp ForceSchedule
+
+ForceScheduleAndSetBit:
+	mov byte [rdi], 1
+	jmp ForceSchedule
