@@ -105,7 +105,6 @@ void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
         globalTaskManager->Exit(Registers, CoreID, Registers->ThreadInfo->Thread); 
         globalTaskManager->Scheduler(Registers, CoreID); 
     }
-
 }
 
 bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID){

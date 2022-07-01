@@ -136,7 +136,6 @@ namespace Event{
 
     uint64_t Close(ContextStack* Registers, thread_t* task){
         // Reset task
-        CPU::DisableInterrupts();
         task->Regs->rsp = (uint64_t)StackTop;
         task->Regs->rip = (uint64_t)task->EntryPoint;
         task->Regs->cs = Registers->ThreadInfo->CS;
