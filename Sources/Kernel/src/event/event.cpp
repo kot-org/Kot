@@ -44,7 +44,6 @@ namespace Event{
 
     uint64_t Bind(thread_t* task, event_t* self, bool IgnoreMissedEvents){
         Atomic::atomicAcquire(&self->Lock, 0);
-        Atomic::atomicAcquire(&task->EventLock, 0);
 
         if(self->Type == EventTypeIRQLines){
             IRQEvent_t* event = (IRQEvent_t*)self;
@@ -57,25 +56,26 @@ namespace Event{
         self->NumTask++;
         self->Tasks = (event_tasks_t**)realloc(self->Tasks, self->NumTask * sizeof(event_tasks_t*));
 
-        self->Tasks[self->NumTask - 1] = (event_tasks_t*)calloc(sizeof(event_tasks_t));
-        self->Tasks[self->NumTask - 1]->Thread = task;
+        event_tasks_t* TasksEvent = (event_tasks_t*)calloc(sizeof(event_tasks_t));
+        TasksEvent->Thread = task;
+        TasksEvent->Event = self;
 
-        self->Tasks[self->NumTask - 1]->NumberOfMissedEvents = NULL;
+        TasksEvent->NumberOfMissedEvents = NULL;
 
         if(!task->IsEvent){
-            task->DataNode = (event_data_node_t*)calloc(sizeof(event_data_node_t));
-            task->DataNode->LastData = (event_data_t*)malloc(sizeof(event_data_t));
-            task->DataNode->LastData->Next = (event_data_t*)malloc(sizeof(event_data_t));
-            task->DataNode->CurrentData = task->DataNode->LastData;
+            task->EventDataNode = (event_data_node_t*)calloc(sizeof(event_data_node_t));
+            task->EventDataNode->LastData = (event_data_t*)malloc(sizeof(event_data_t));
+            task->EventDataNode->LastData->Next = (event_data_t*)malloc(sizeof(event_data_t));
+            task->EventDataNode->CurrentData = task->EventDataNode->LastData;
         }
-        self->Tasks[self->NumTask - 1]->DataNode = task->DataNode;
+        TasksEvent->DataNode = task->EventDataNode;
 
-        self->Tasks[self->NumTask - 1]->IgnoreMissedEvents = IgnoreMissedEvents;
+        TasksEvent->IgnoreMissedEvents = IgnoreMissedEvents;
         
         task->IsEvent = true;   
 
+        self->Tasks[self->NumTask - 1] = TasksEvent;
 
-        Atomic::atomicUnlock(&task->EventLock, 0);
         Atomic::atomicUnlock(&self->Lock, 0);
         return KSUCCESS;
     }
@@ -108,53 +108,59 @@ namespace Event{
     
     uint64_t Trigger(thread_t* author, event_t* self, parameters_t* parameters){
         if(self == NULL) return KFAIL;
-        Atomic::atomicAcquire(&mutexEvent, 0);
 
         for(size_t i = 0; i < self->NumTask; i++){
-            if(self->Tasks[i]->Thread->IsBlock){
-                self->Tasks[i]->DataNode->CurrentData->Task = self->Tasks[i];
-                self->Tasks[i]->Thread->Launch(parameters);
+            event_tasks_t* task = self->Tasks[i];
+            Atomic::atomicAcquire(&task->Thread->EventLock, 0);
+
+            if(task->Thread->IsBlock){
+                task->DataNode->CurrentData->Task = task;
+                task->Thread->Launch(parameters);
             }else{
-                if(!self->Tasks[i]->IgnoreMissedEvents){
-                    self->Tasks[i]->DataNode->LastData = self->Tasks[i]->DataNode->LastData->Next;
-                    self->Tasks[i]->DataNode->LastData->Next = (event_data_t*)malloc(sizeof(event_data_t));
-                    self->Tasks[i]->DataNode->LastData->Task = self->Tasks[i];
+                if(!task->IgnoreMissedEvents){
+                    task->DataNode->LastData = task->DataNode->LastData->Next;
+                    task->DataNode->LastData->Next = (event_data_t*)malloc(sizeof(event_data_t));
+                    task->DataNode->LastData->Task = task;
                     if(parameters != NULL){
-                        memcpy(&self->Tasks[i]->DataNode->LastData->Parameters, parameters, sizeof(parameters_t));
+                        memcpy(&task->DataNode->LastData->Parameters, parameters, sizeof(parameters_t));
                     }else{
-                        memset(&self->Tasks[i]->DataNode->LastData->Parameters, 0, sizeof(parameters_t));
+                        memset(&task->DataNode->LastData->Parameters, 0, sizeof(parameters_t));
                     }
 
-                    self->Tasks[i]->DataNode->NumberOfMissedEvents++;
-                    self->Tasks[i]->NumberOfMissedEvents++;
+                    task->DataNode->NumberOfMissedEvents++;
+                    task->NumberOfMissedEvents++;
                 }
             }
+            Atomic::atomicUnlock(&task->Thread->EventLock, 0);
         }
-        Atomic::atomicUnlock(&mutexEvent, 0);
+
         return KSUCCESS;
     } 
 
     uint64_t Close(ContextStack* Registers, thread_t* task){
-        // Reset task
+        event_t* self = task->EventDataNode->CurrentData->Task->Event;
+        Atomic::atomicAcquire(&self->Lock, 0);
+        /* Reset task */
         task->Regs->rsp = (uint64_t)StackTop;
         task->Regs->rip = (uint64_t)task->EntryPoint;
         task->Regs->cs = Registers->ThreadInfo->CS;
         task->Regs->ss = Registers->ThreadInfo->SS;
         
-        if(task->DataNode->NumberOfMissedEvents){
-            event_data_t* Next = task->DataNode->CurrentData->Next;
+        if(task->EventDataNode->NumberOfMissedEvents){
+            event_data_t* Next = task->EventDataNode->CurrentData->Next;
             Registers->rip = task->Regs->rip;
             Registers->rsp = task->Regs->rsp;
 
-            free(task->DataNode->CurrentData);
-            task->DataNode->CurrentData = Next;
-            task->DataNode->CurrentData->Task->NumberOfMissedEvents--;
-            task->DataNode->NumberOfMissedEvents--;
+            free(task->EventDataNode->CurrentData);
+            task->EventDataNode->CurrentData = Next;
+            task->EventDataNode->CurrentData->Task->NumberOfMissedEvents--;
+            task->EventDataNode->NumberOfMissedEvents--;
         }else{
             globalTaskManager->ThreadExecutePerCore[task->CoreID] = NULL;
             ForceScheduleAndSetBit((uint8_t*)&task->IsBlock);
-        }  
+        }
 
+        Atomic::atomicUnlock(&self->Lock, 0);
         return KSUCCESS;
     }
 }

@@ -29,7 +29,6 @@ EXTERN InterruptHandler
     SWAPGS_IF_NECESSARY y
 
     add    rsp, 16  ; remove error code and interrupt number from stack 
-
     iretq
 
 %endmacro

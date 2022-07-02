@@ -24,11 +24,11 @@ KResult MouseInitalize(){
 
 
                 MousePS2Port = &PS2Ports[i];
+                IRQRedirectionsArray[MousePS2Port->PortNumber] = MouseHandler;
                 Sys_Event_Bind(NULL, InterruptThreadHandler, 0x20 + MousePS2Port->IRQ, false);
 
                 MousePS2Port->PS2SendDataPort(0xF6);
                 MousePS2Port->PS2SendDataPort(0xF4);
-                IRQRedirectionsArray[MousePS2Port->PortNumber] = MouseHandler;
 
                 PS2WaitOutput();
                 PS2GetData();
@@ -191,5 +191,6 @@ void MouseParser(uint8_t data){
 
 KResult MouseHandler(uint8_t data){
     MouseParser(data);
+    
     return KSUCCESS;
 }

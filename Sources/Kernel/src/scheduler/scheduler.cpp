@@ -143,6 +143,10 @@ uint64_t TaskManager::Unpause(thread_t* task){
 } 
 
 uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* task){    
+    if(task->IsCIP){
+        task->TCIP->Regs->GlobalPurpose = Registers->GlobalPurpose;
+        Unpause(task->TCIP);            
+    }
     Atomic::atomicAcquire(&MutexScheduler, 0);
 
 
@@ -160,10 +164,6 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* t
     if(task->IsInQueue){
         DequeueTask(task);
     }else{
-        if(task->IsCIP){
-            Unpause(task->TCIP);            
-        }
-
         globalTaskManager->ThreadExecutePerCore[task->CoreID] = NULL;
         Atomic::atomicUnlock(&MutexScheduler, 0);
         ForceSchedule();

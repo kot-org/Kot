@@ -20,6 +20,7 @@ struct event_tasks_t{
     uint64_t NumberOfMissedEvents;
     struct thread_t* Thread;
     struct event_data_node_t* DataNode;
+    struct event_t* Event;
 }__attribute__((packed));
 
 struct event_data_node_t{

@@ -119,7 +119,7 @@ struct thread_t{
     /* Event */
     bool IsEvent;
     uint64_t EventLock;
-    struct event_data_node_t* DataNode;
+    struct event_data_node_t* EventDataNode;
 
     /* Schedule queue */
     bool IsInQueue;
