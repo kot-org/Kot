@@ -1,5 +1,6 @@
 #pragma once
 
+#include <settings.h>
 #include <arch/arch.h>
 #include <kot/types.h>
 #include <memory/memory.h>

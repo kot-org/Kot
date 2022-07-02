@@ -2,7 +2,9 @@
 #include <arch/x86-64/io/io.h>
 #include <lib/stdio.h>
 #include <lib/limits.h>
+
 #define COM1 0x3f8
+#define BOCHSLOG 0xe9
 
 #define SerialReset (char*)"\033[1;0m"
 #define SerialBLACK (char*)"\033[1;30m"

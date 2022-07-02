@@ -138,6 +138,7 @@ KResult PortsInitalize(){
 void PS2InterruptHandler(uint8_t interrupt){
     uint8_t IRQ = interrupt - 0x20;
     uint8_t data = (uint8_t)PS2GetData();
+    Printlog("Clear ps2 Buffer");
     
     switch(IRQ){
         case PS2_IRQ_PORT1:

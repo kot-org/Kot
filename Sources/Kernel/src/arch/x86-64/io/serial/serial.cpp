@@ -15,7 +15,12 @@ namespace SerialPort{
     }
 
     void Write(char chr) {
-        IoWrite8(COM1, chr);
+        #ifdef DEBUG_WITH_BOCHS
+            IoWrite8(BOCHSLOG, chr);
+        #endif
+        #ifdef USE_COM_1
+            IoWrite8(COM1, chr);
+        #endif
     }
 
     void Print(const char* chr) {
