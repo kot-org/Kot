@@ -1,10 +1,5 @@
-.intel_syntax noprefix
-
-.global _start
-.extern main
-
-
-.section .text
+GLOBAL _start
+EXTERN main
 
 exit:
 	mov rdi, [gs:0x0]

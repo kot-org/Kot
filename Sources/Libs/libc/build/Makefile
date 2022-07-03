@@ -8,7 +8,7 @@ OBJDIR := ../lib
 SRCDIR := ../src
 
 CC = clang-14
-AS = llvm-as-14
+ASMC = nasm
 AR = llvm-ar-14
 
 CFLAGS = -I$(INCDIR) --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-exceptions -fPIC -O2
@@ -18,9 +18,9 @@ rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(su
    
 INC = $(call rwildcard,$(SRCDIR),*.h)      
 SRCCPP = $(call rwildcard,$(SRCDIR),*.c)      
-ASSRC = $(call rwildcard,$(SRCDIR),*.s)   
+ASSRC = $(call rwildcard,$(SRCDIR),*.asm)   
 OBJS += $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCCPP))
-OBJS += $(patsubst $(SRCDIR)/%.s, $(OBJDIR)/%.o, $(ASSRC))
+OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASSRC))
 
 OBJINC += $(patsubst $(SRCDIR)/%.h, $(INCDIR)/kot/%.h, $(INC))
 
@@ -34,10 +34,10 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@ mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $^ -o $@
    
-$(OBJDIR)/%.o: $(SRCDIR)/%.s
+$(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 	@ echo !==== COMPILING $^
 	@ mkdir -p $(@D)
-	$(AS) $(ASMFLAGS) $^ -o $@
+	$(ASMC) $(ASMFLAGS) $^ -f elf64 -o $@
 
 copy: $(OBJINC)
 

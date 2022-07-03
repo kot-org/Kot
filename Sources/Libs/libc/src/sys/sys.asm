@@ -1,6 +1,4 @@
-.intel_syntax noprefix
-
-.global DoSyscall
+GLOBAL DoSyscall
 
 DoSyscall:
     push    rbp
