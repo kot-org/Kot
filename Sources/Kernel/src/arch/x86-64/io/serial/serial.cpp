@@ -24,7 +24,7 @@ namespace SerialPort{
     }
 
     void Print(const char* chr) {
-        for(int i = 0;chr[i] != '\0';i++){
+        for(uint64_t i = 0; chr[i] != '\0'; i++){
             Write(chr[i]);
             if(chr[i] == '\n') Write('\r');   
         }

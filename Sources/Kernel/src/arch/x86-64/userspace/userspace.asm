@@ -1,6 +1,6 @@
 [bits 64]
 
-GLOBAL LaunchUserSpace, ForceSchedule, ForceScheduleAndSetBit
+GLOBAL LaunchUserSpace, ForceSchedule, ForceScheduleAndSetBit, ForceScheduleAndClearBit
 
 LaunchUserSpace:
 	sti
@@ -14,4 +14,8 @@ ForceSchedule:
 
 ForceScheduleAndSetBit:
 	mov byte [rdi], 1
+	jmp ForceSchedule
+
+ForceScheduleAndClearBit:
+	mov byte [rdi], 0
 	jmp ForceSchedule

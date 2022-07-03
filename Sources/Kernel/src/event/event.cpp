@@ -138,8 +138,7 @@ namespace Event{
     } 
 
     uint64_t Close(ContextStack* Registers, thread_t* task){
-        event_t* self = task->EventDataNode->CurrentData->Task->Event;
-        Atomic::atomicAcquire(&self->Lock, 0);
+        Atomic::atomicAcquire(&task->EventLock, 0);
         /* Reset task */
         task->Regs->rsp = (uint64_t)StackTop;
         task->Regs->rip = (uint64_t)task->EntryPoint;
@@ -155,12 +154,14 @@ namespace Event{
             task->EventDataNode->CurrentData = Next;
             task->EventDataNode->CurrentData->Task->NumberOfMissedEvents--;
             task->EventDataNode->NumberOfMissedEvents--;
+            Atomic::atomicUnlock(&task->EventLock, 0);
         }else{
             globalTaskManager->ThreadExecutePerCore[task->CoreID] = NULL;
-            ForceScheduleAndSetBit((uint8_t*)&task->IsBlock);
+            task->IsBlock = true;
+            Atomic::atomicUnlock(&task->EventLock, 0);
+            ForceSchedule();
         }
 
-        Atomic::atomicUnlock(&self->Lock, 0);
         return KSUCCESS;
     }
 }

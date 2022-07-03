@@ -123,6 +123,7 @@ KResult Sys_Exit(ContextStack* Registers, thread_t* Thread){
         if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
         if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsExitable)) return KKEYVIOLATION;
     }
+    CPU::DisableInterrupts();
     Registers->InterruptNumber = 1;
     return globalTaskManager->Exit(Registers, Thread->CoreID, threadkey);
 }
@@ -135,6 +136,7 @@ KResult Sys_Pause(ContextStack* Registers, thread_t* Thread){
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsPauseable)) return KKEYVIOLATION;
+    CPU::DisableInterrupts();
     Registers->InterruptNumber = 1;
     return globalTaskManager->Pause(Registers, Thread->CoreID, threadkey);
 }
@@ -295,6 +297,7 @@ KResult Sys_Event_Bind(ContextStack* Registers, thread_t* Thread){
     }
     if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsEventable)) return KKEYVIOLATION;
+    CPU::DisableInterrupts();
     return Event::Bind(threadkey, event, (bool)Registers->arg3);
 }
 
@@ -316,6 +319,7 @@ KResult Sys_Event_Unbind(ContextStack* Registers, thread_t* Thread){
     }
     if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsEventable)) return KKEYVIOLATION;
+    CPU::DisableInterrupts();
     return Event::Unbind(Thread, event);
 }
 
@@ -327,6 +331,7 @@ KResult Sys_Event_Trigger(ContextStack* Registers, thread_t* Thread){
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(CheckAddress((uintptr_t)Registers->arg1, sizeof(parameters_t))) return KMEMORYVIOLATION;
+    CPU::DisableInterrupts();
     return Event::Trigger(Thread, event, (parameters_t*)Registers->arg1);
 }
 
@@ -335,6 +340,7 @@ KResult Sys_Event_Trigger(ContextStack* Registers, thread_t* Thread){
 */
 KResult Sys_Event_Close(ContextStack* Registers, thread_t* Thread){
     if(!Thread->IsEvent) return KFAIL;
+    CPU::DisableInterrupts();
     return Event::Close(Registers, Thread);
 }
 
@@ -376,6 +382,7 @@ KResult Sys_ExecThread(ContextStack* Registers, thread_t* Thread){
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsExecutable)) return KKEYVIOLATION;
     if(CheckAddress((uintptr_t)Registers->arg1, sizeof(Parameters)) != KSUCCESS) return KMEMORYVIOLATION;    
+    CPU::DisableInterrupts();
     return globalTaskManager->ExecThread(threadkey, (parameters_t*)Registers->arg1);
 }
 
@@ -404,11 +411,13 @@ KResult Sys_Keyhole_CloneModify(ContextStack* Registers, thread_t* Thread){
 KResult Sys_Logs(ContextStack* Registers, thread_t* Thread){
     if(CheckAddress((uintptr_t)Registers->arg0, Registers->arg1) != KSUCCESS) return KMEMORYVIOLATION;
     if(Registers->arg1 > ShareMaxIntoStackSpace) return KFAIL;
+    CPU::DisableInterrupts();
     Atomic::atomicAcquire(&globalTaskManager->lockglobalAddressForStackSpaceSharing, 0);
     memcpy(globalTaskManager->globalAddressForStackSpaceSharing, (uintptr_t)Registers->arg0, Registers->arg1);
     ((char*)globalTaskManager->globalAddressForStackSpaceSharing)[Registers->arg1] = NULL;
     Message("[Process 0x%x] '%s'", Thread->Parent->PID, globalTaskManager->globalAddressForStackSpaceSharing);
     Atomic::atomicUnlock(&globalTaskManager->lockglobalAddressForStackSpaceSharing, 0);
+    CPU::EnableInterrupts();
     return KSUCCESS;
 }
 
