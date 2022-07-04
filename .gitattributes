@@ -1,3 +1,8 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Ignore languages on linguist
 *.roff linguist-vendored=false
+*.bat linguist-vendored=false
+*.sh linguist-vendored=false
+*.txt linguist-vendored=false
