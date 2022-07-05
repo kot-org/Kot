@@ -1,16 +1,8 @@
-GLOBAL DisableInterrupts, EnableInterrupts, ReloadGSFS, GetCPUContext, GetAPICID, SetCPUContext, GetCPUContext, SetCPUGSBase, SetCPUGSKernelBase, SetCPUFSBase
+GLOBAL ReloadGSFS, GetCPUContext, GetAPICID, SetCPUContext, GetCPUContext, SetCPUGSBase, SetCPUGSKernelBase, SetCPUFSBase
 
 %Define FS_Base             0xC0000100
 %Define GS_Base             0xC0000101
 %Define GS_KernelBase       0xC0000102
-
-DisableInterrupts:
-    cli
-    ret
-
-EnableInterrupts:
-    sti
-    ret
 
 ReloadGSFS:
     mov     ax, 0x0

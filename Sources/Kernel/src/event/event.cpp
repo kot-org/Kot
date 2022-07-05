@@ -8,17 +8,17 @@ namespace Event{
 
         switch (Type){
             case EventTypeIRQLines: {
-                IRQEvent_t* event = (IRQEvent_t*)malloc(sizeof(IRQEvent_t));
+                IRQLineEvent_t* event = (IRQLineEvent_t*)malloc(sizeof(IRQLineEvent_t));
                 self = &event->header;
-                event->IRQ = (uint8_t)AdditionnalData;
+                event->IRQLine = (uint8_t)AdditionnalData;
                 event->IsEnable = false;
                 break;
             }                
             case EventTypeIRQ: {
                 if(AdditionnalData < IRQ_START + IRQ_MAX) return KFAIL;
-                IVTEvent_t* event = (IVTEvent_t*)malloc(sizeof(IVTEvent_t));
+                IRQEvent_t* event = (IRQEvent_t*)malloc(sizeof(IRQEvent_t));
                 self = &event->header;
-                event->IVT = (uint8_t)AdditionnalData;
+                event->IRQ = (uint8_t)AdditionnalData;
                 break;                
             }
             case EventTypeIPC: {
@@ -46,10 +46,10 @@ namespace Event{
         Atomic::atomicAcquire(&self->Lock, 0);
 
         if(self->Type == EventTypeIRQLines){
-            IRQEvent_t* event = (IRQEvent_t*)self;
+            IRQLineEvent_t* event = (IRQLineEvent_t*)self;
             if(!event->IsEnable){
                 event->IsEnable = true;
-                APIC::IoChangeIrqState(event->IRQ, 0, event->IsEnable);
+                APIC::IoChangeIrqState(event->IRQLine, 0, event->IsEnable);
             }
         }
         
@@ -96,10 +96,10 @@ namespace Event{
         }
 
         if(self->Type == EventTypeIRQLines && self->NumTask == 0){
-            IRQEvent_t* event = (IRQEvent_t*)self;
+            IRQLineEvent_t* event = (IRQLineEvent_t*)self;
             if(event->IsEnable){
                 event->IsEnable = false;
-                APIC::IoChangeIrqState(event->IRQ, 0, event->IsEnable);
+                APIC::IoChangeIrqState(event->IRQLine, 0, event->IsEnable);
             }
         }
         Atomic::atomicUnlock(&self->Lock, 0);

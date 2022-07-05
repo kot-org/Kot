@@ -35,15 +35,15 @@ struct event_data_t{
     event_data_t* Next;
 }__attribute__((packed));
 
-struct IRQEvent_t{
+struct IRQLineEvent_t{
     event_t header;
-    uint8_t IRQ;
+    uint8_t IRQLine;
     bool IsEnable;
 }__attribute__((packed));
 
-struct IVTEvent_t{
+struct IRQEvent_t{
     event_t header;
-    uint8_t IVT;
+    uint8_t IRQ;
 }__attribute__((packed));
 
 struct IPCEvent_t{

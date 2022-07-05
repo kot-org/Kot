@@ -298,7 +298,9 @@ KResult Sys_Event_Bind(ContextStack* Registers, thread_t* Thread){
     if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsEventable)) return KKEYVIOLATION;
     CPU::DisableInterrupts();
-    return Event::Bind(threadkey, event, (bool)Registers->arg3);
+    uint64_t status = Event::Bind(threadkey, event, (bool)Registers->arg3);
+    CPU::EnableInterrupts();
+    return status;
 }
 
 /* Sys_Event_Unbind :
@@ -320,7 +322,9 @@ KResult Sys_Event_Unbind(ContextStack* Registers, thread_t* Thread){
     if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsEventable)) return KKEYVIOLATION;
     CPU::DisableInterrupts();
-    return Event::Unbind(Thread, event);
+    uint64_t status = Event::Unbind(Thread, event);
+    CPU::EnableInterrupts();
+    return status;
 }
 
 /* Sys_Event_Trigger :
@@ -332,7 +336,9 @@ KResult Sys_Event_Trigger(ContextStack* Registers, thread_t* Thread){
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(CheckAddress((uintptr_t)Registers->arg1, sizeof(parameters_t))) return KMEMORYVIOLATION;
     CPU::DisableInterrupts();
-    return Event::Trigger(Thread, event, (parameters_t*)Registers->arg1);
+    uint64_t status = Event::Trigger(Thread, event, (parameters_t*)Registers->arg1);
+    CPU::EnableInterrupts();
+    return status;
 }
 
 /* Sys_Event_Close :
@@ -341,7 +347,9 @@ KResult Sys_Event_Trigger(ContextStack* Registers, thread_t* Thread){
 KResult Sys_Event_Close(ContextStack* Registers, thread_t* Thread){
     if(!Thread->IsEvent) return KFAIL;
     CPU::DisableInterrupts();
-    return Event::Close(Registers, Thread);
+    uint64_t status = Event::Close(Registers, Thread);
+    CPU::EnableInterrupts();
+    return status;
 }
 
 /* Sys_CreateThread :
@@ -383,7 +391,9 @@ KResult Sys_ExecThread(ContextStack* Registers, thread_t* Thread){
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsExecutable)) return KKEYVIOLATION;
     if(CheckAddress((uintptr_t)Registers->arg1, sizeof(Parameters)) != KSUCCESS) return KMEMORYVIOLATION;    
     CPU::DisableInterrupts();
-    return globalTaskManager->ExecThread(threadkey, (parameters_t*)Registers->arg1);
+    uint64_t status = globalTaskManager->ExecThread(threadkey, (parameters_t*)Registers->arg1);
+    CPU::EnableInterrupts();
+    return status;
 }
 
 /* Sys_Keyhole_CloneModify :

@@ -15,10 +15,10 @@ KResult MouseInitalize();
 
 void MouseWait();
 void MouseWrite(uint8_t value);
-void MouseSetRate(uint8_t rate, uint8_t port);
-uint8_t MouseGetID(uint8_t port);
+void MouseSetRate(uint8_t rate, struct PS2Port_t* Self);
+uint8_t MouseGetID(struct PS2Port_t* Self);
 
-void EnableMouseScroll();
-void EnableMouse5Buttons();
+void EnableMouseScroll(struct PS2Port_t* Self);
+void EnableMouse5Buttons(struct PS2Port_t* Self);
 
 KResult MouseHandler(uint8_t data);

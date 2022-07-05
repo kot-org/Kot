@@ -30,7 +30,6 @@ extern "C" int main(int argc, char* argv[]){
     
     /* Clear buffer */
     PS2GetData();
-
     CallIPC("Test");
 
     Printlog("[PS2] Driver intialized successfully");
@@ -38,6 +37,8 @@ extern "C" int main(int argc, char* argv[]){
 }
 
 KResult PortsInitalize(){
+    uint8_t status = PS2ConfigurationGet();
+
     PS2SendCommand(0xAD); // disable port 1
     PS2SendCommand(0xA7); // disable port 2
     PS2GetData();
@@ -62,6 +63,9 @@ KResult PortsInitalize(){
     PS2Ports[0].PortNumber = 0;
 
     if(PS2Ports[0].IsPresent){
+        Printlog("[PS2] Port 1 is present");
+        status |= (1 << 0);
+
         PS2SendCommand(0xAE); // enable port 1
         PS2SendDataPort1(0xFF); // reset
         PS2WaitOutput();
@@ -99,8 +103,11 @@ KResult PortsInitalize(){
     PS2Ports[1].PortNumber = 1;
 
     if(PS2Ports[1].IsPresent){
-        PS2SendCommand(0xA8); // enable port 2
+        Printlog("[PS2] Port 2 is present");
+        status |= (1 << 1);
+
         PS2SendDataPort2(0xFF); // reset
+        PS2SendCommand(0xA8); // enable port 2
         PS2WaitOutput();
         PS2Ports[1].IsPresent = PS2GetData() == 0xFA;
 
@@ -128,9 +135,10 @@ KResult PortsInitalize(){
             default:
                 PS2Ports[1].Type = PS2_TYPE_KEYBOARD;
                 break;
-        }            
+        }     
     }
-    
+ 
+    PS2ConfigurationSet(status);     
 
     return KSUCCESS;
 }

@@ -25,17 +25,19 @@ KResult MouseInitalize(){
 
                 MousePS2Port = &PS2Ports[i];
                 IRQRedirectionsArray[MousePS2Port->PortNumber] = MouseHandler;
-                Sys_Event_Bind(NULL, InterruptThreadHandler, 0x20 + MousePS2Port->IRQ, false);
 
                 MousePS2Port->PS2SendDataPort(0xF6);
-                MousePS2Port->PS2SendDataPort(0xF4);
-
                 PS2WaitOutput();
                 PS2GetData();
+                MousePS2Port->PS2SendDataPort(0xF4);
+                PS2WaitOutput();
+                PS2GetData();
+                
+                Sys_Event_Bind(NULL, InterruptThreadHandler, 0x20 + MousePS2Port->IRQ, false);
 
                 // Identify mouse type
-                EnableMouseScroll();
-                EnableMouse5Buttons();
+                EnableMouseScroll(MousePS2Port);
+                EnableMouse5Buttons(MousePS2Port);
 
                 MouseData->mousePortType = mousePortTypePS2;
                 MouseData->IsInitialized = true;
@@ -48,57 +50,42 @@ KResult MouseInitalize(){
     return KSUCCESS;
 } 
 
-void MouseSetRate(uint8_t rate, uint8_t port){
-    if(port == 0){
-        PS2SendDataPort1(0xF3);
-        PS2WaitOutput();
-        PS2GetData();
-        PS2SendDataPort1(100);
-        PS2WaitOutput();
-        PS2GetData();
-    }else if(port == 1){
-        PS2SendDataPort2(0xF3);
-        PS2WaitOutput();
-        PS2GetData();
-        PS2SendDataPort2(100);
-        PS2WaitOutput();
-        PS2GetData();
-    }
+void MouseSetRate(uint8_t rate, PS2Port_t* Self){
+    Self->PS2SendDataPort(0xF3);
+    PS2WaitOutput();
+    PS2GetData();
+    Self->PS2SendDataPort(rate);
+    PS2WaitOutput();
+    PS2GetData();
 }
 
-uint8_t MouseGetID(uint8_t port){
-    if(port == 0){
-        PS2SendDataPort1(0xF2);
-        PS2WaitOutput();
-        return PS2GetData();
-    }else if(port == 1){
-        PS2SendDataPort2(0xF2);
-        PS2WaitOutput();
-        return PS2GetData();
-    }
+uint8_t MouseGetID(PS2Port_t* Self){
+    Self->PS2SendDataPort(0xF2);
+    PS2WaitOutput();
+    return PS2GetData();
 }
 
-void EnableMouseScroll(){
-    MouseSetRate(200, MousePS2Port->PortNumber);
-    MouseSetRate(100, MousePS2Port->PortNumber);
-    MouseSetRate(80, MousePS2Port->PortNumber);
-    if(MouseGetID(MousePS2Port->PortNumber) == 3){
+void EnableMouseScroll(PS2Port_t* Self){
+    MouseSetRate(200, Self);
+    MouseSetRate(100, Self);
+    MouseSetRate(80, Self);
+    if(MouseGetID(Self) == 3){
         MouseMaxCycles = 4;
         MouseData->mouseType = mouseTypeScroll;
         Printlog("[PS2][Mouse] Scroll enabled");
     }else{
         MouseMaxCycles = 3;
-        MousePS2Port->Type = mouseTypeGeneric;
+        MouseData->mouseType = mouseTypeGeneric;
     }
 }
 
-void EnableMouse5Buttons(){
-    EnableMouseScroll();
+void EnableMouse5Buttons(PS2Port_t* Self){
+    EnableMouseScroll(Self);
     if(MouseData->mouseType != mouseTypeScroll) return;
-    MouseSetRate(200, MousePS2Port->PortNumber);
-    MouseSetRate(200, MousePS2Port->PortNumber);
-    MouseSetRate(80, MousePS2Port->PortNumber);
-    if(MouseGetID(MousePS2Port->PortNumber) == 4){
+    MouseSetRate(200, Self);
+    MouseSetRate(200, Self);
+    MouseSetRate(80, Self);
+    if(MouseGetID(Self) == 4){
         MouseMaxCycles = 4;
         MouseData->mouseType = mouseTypeScroll5Buttons;
         Printlog("[PS2][Mouse] 5 buttons enabled");
@@ -190,6 +177,7 @@ void MouseParser(uint8_t data){
 }
 
 KResult MouseHandler(uint8_t data){
+    Printlog("Mouse");
     MouseParser(data);
     
     return KSUCCESS;

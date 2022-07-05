@@ -30,9 +30,6 @@ KernelInfo* arch_initialize(uintptr_t boot){
     stivale2_struct* BootStruct = (stivale2_struct*)boot;
 
     BootInfo* bootInfo = Boot::Init(BootStruct);
-    
-    /* clear frame buffer */
-    memset((uintptr_t)bootInfo->Framebuffer->framebuffer_addr, 0x0, bootInfo->Framebuffer->framebuffer_pitch * bootInfo->Framebuffer->framebuffer_height);
 
     SerialPort::Initialize();
     SerialPort::ClearMonitor();
