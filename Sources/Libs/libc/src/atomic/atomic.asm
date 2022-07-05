@@ -1,12 +1,10 @@
-.intel_syntax noprefix
+GLOBAL atomicLock, atomicUnlock, atomicAcquire
 
-.global atomicLock, atomicUnlock, atomicAcquire
-
-.macro CF_RESULT
+%macro	CF_RESULT	0
 	mov		rcx, 1
 	mov		rax, 0
-	cmovnc	rax, rcx	
-.endm
+	cmovnc	rax, rcx
+%endmacro
 
 atomicLock:	
 	lock bts	QWORD [rdi], rsi
