@@ -2,7 +2,6 @@
 * text=auto
 
 # Ignore languages on linguist
-*.roff linguist-vendored=false
-*.bat linguist-vendored=false
-*.sh linguist-vendored=false
-*.txt linguist-vendored=false
+*.bat linguist-vendored=true
+*.sh linguist-vendored=true
+*.txt linguist-vendored=true
