@@ -45,6 +45,9 @@ struct KernelInfo{
     struct memoryInfo_t* memoryInfo;
     uintptr_t smbios;
     uintptr_t rsdp;
+
+    uint8_t IRQLineStart;
+    uint8_t IRQLineSize;
 }__attribute__((packed));
 
 struct InfoSlot{

@@ -31,14 +31,11 @@ extern "C" int main(int argc, char* argv[]){
     /* Clear buffer */
     PS2GetData();
     CallIPC("Test");
-
     Printlog("[PS2] Driver intialized successfully");
     return KSUCCESS;
 }
 
 KResult PortsInitalize(){
-    uint8_t status = PS2ConfigurationGet();
-
     PS2SendCommand(0xAD); // disable port 1
     PS2SendCommand(0xA7); // disable port 2
     PS2GetData();
@@ -64,12 +61,19 @@ KResult PortsInitalize(){
 
     if(PS2Ports[0].IsPresent){
         Printlog("[PS2] Port 1 is present");
-        status |= (1 << 0);
 
         PS2SendCommand(0xAE); // enable port 1
+        PS2WaitOutput();
+        PS2GetData();
         PS2SendDataPort1(0xFF); // reset
         PS2WaitOutput();
-        PS2Ports[0].IsPresent = PS2GetData() == 0xFA;
+        PS2GetData();
+        uint8_t status = PS2ConfigurationGet();
+        status |= 1 << 0;
+        status &= ~(1 << 4);
+        PS2ConfigurationSet(status); 
+        PS2WaitOutput();   
+        PS2GetData();    
 
         PS2SendDataPort1(0xF5);
         PS2WaitOutput();
@@ -81,7 +85,6 @@ KResult PortsInitalize(){
         uint8_t response0 = PS2GetData();
         PS2WaitOutput();
         uint8_t response1 = PS2GetData();
-        PS2SendDataPort1(0xF4);
         switch(response0){
             case 0x0:
                 PS2Ports[0].Type = PS2_TYPE_MOUSE;
@@ -95,7 +98,11 @@ KResult PortsInitalize(){
             default:
                 PS2Ports[0].Type = PS2_TYPE_KEYBOARD;
                 break;
-        }            
+        } 
+
+        PS2SendDataPort1(0xF4);
+        PS2WaitOutput();
+        PS2GetData();   
     }
 
     PS2Ports[1].Type = PS2_TYPE_UNKNOW;
@@ -104,12 +111,19 @@ KResult PortsInitalize(){
 
     if(PS2Ports[1].IsPresent){
         Printlog("[PS2] Port 2 is present");
-        status |= (1 << 1);
 
-        PS2SendDataPort2(0xFF); // reset
         PS2SendCommand(0xA8); // enable port 2
         PS2WaitOutput();
-        PS2Ports[1].IsPresent = PS2GetData() == 0xFA;
+        PS2GetData();
+        PS2SendDataPort2(0xFF); // reset
+        PS2WaitOutput();
+        PS2GetData();
+        uint8_t status = PS2ConfigurationGet();
+        status |= 1 << 1;
+        status &= ~(1 << 5);
+        PS2ConfigurationSet(status); 
+        PS2WaitOutput(); 
+        PS2GetData();  
 
         PS2SendDataPort2(0xF5);
         PS2WaitOutput();
@@ -121,7 +135,6 @@ KResult PortsInitalize(){
         uint8_t response0 = PS2GetData();
         PS2WaitOutput();
         uint8_t response1 = PS2GetData();
-        PS2SendDataPort2(0xF4);
         switch(response0){
             case 0x0:
                 PS2Ports[1].Type = PS2_TYPE_MOUSE;
@@ -135,10 +148,11 @@ KResult PortsInitalize(){
             default:
                 PS2Ports[1].Type = PS2_TYPE_KEYBOARD;
                 break;
-        }     
-    }
- 
-    PS2ConfigurationSet(status);     
+        }  
+        PS2SendDataPort2(0xF4);
+        PS2WaitOutput();
+        PS2GetData();
+    }   
 
     return KSUCCESS;
 }
@@ -214,7 +228,7 @@ uint8_t PS2ConfigurationGet(){
 
 void PS2ConfigurationSet(uint8_t data){
     PS2SendCommand(0x60);
-    PS2SendCommand(data);
+    PS2SendData(data);
 }
 
 uint8_t PS2ControllerOutputGet(){
@@ -224,7 +238,7 @@ uint8_t PS2ControllerOutputGet(){
 
 void PS2ControllerOutputSet(uint8_t data){
     PS2SendCommand(0xD1);
-    PS2SendCommand(data);
+    PS2SendData(data);
 }
 
 void PS2Port_t::PS2SendDataPort(uint8_t data){

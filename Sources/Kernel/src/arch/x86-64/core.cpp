@@ -25,7 +25,7 @@ void InitializeACPI(BootInfo* bootInfo){
     Successful("HPET intialize");
 }
 
-KernelInfo* arch_initialize(uintptr_t boot){
+ArchInfo_t* arch_initialize(uintptr_t boot){
     asm("cli");
     stivale2_struct* BootStruct = (stivale2_struct*)boot;
 
@@ -67,27 +67,27 @@ KernelInfo* arch_initialize(uintptr_t boot){
     APIC::LoadCores();
 
     //create parameters
-    KernelInfo* kernelInfo = (KernelInfo*)malloc(sizeof(KernelInfo));
+    ArchInfo_t* ArchInfo = (ArchInfo_t*)malloc(sizeof(ArchInfo_t));
 
     //frame buffer
-    memcpy(&kernelInfo->framebuffer, bootInfo->Framebuffer, sizeof(stivale2_struct_tag_framebuffer));
+    memcpy(&ArchInfo->framebuffer, bootInfo->Framebuffer, sizeof(stivale2_struct_tag_framebuffer));
 
     //ramfs
-    memcpy(&kernelInfo->ramfs, &bootInfo->ramfs, sizeof(ramfs_t));
+    memcpy(&ArchInfo->ramfs, &bootInfo->ramfs, sizeof(ramfs_t));
 
     //memory info
-    kernelInfo->memoryInfo = (memoryInfo_t*)vmm_GetPhysical(vmm_PageTable, &memoryInfo);
+    ArchInfo->memoryInfo = (memoryInfo_t*)vmm_GetPhysical(vmm_PageTable, &memoryInfo);
 
     //smbios
     if(bootInfo->smbios->smbios_entry_32 != 0){
-        kernelInfo->smbios = (uintptr_t)bootInfo->smbios->smbios_entry_32;
+        ArchInfo->smbios = (uintptr_t)bootInfo->smbios->smbios_entry_32;
     }else if(bootInfo->smbios->smbios_entry_64 != 0){
-        kernelInfo->smbios = (uintptr_t)bootInfo->smbios->smbios_entry_64;
+        ArchInfo->smbios = (uintptr_t)bootInfo->smbios->smbios_entry_64;
     }
     
-    kernelInfo->rsdp = (uintptr_t)bootInfo->RSDP->rsdp;
+    ArchInfo->rsdp = (uintptr_t)bootInfo->RSDP->rsdp;
 
-    return kernelInfo;
+    return ArchInfo;
 }
 
 void StopAllCPU(){

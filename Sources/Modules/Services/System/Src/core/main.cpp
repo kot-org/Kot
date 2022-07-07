@@ -13,7 +13,6 @@ extern "C" int main(struct KernelInfo* kernelInfo){
     kthread_t self;
     SYS_GetThreadKey(&self);
     ramfs::Parse(kernelInfo->ramfs.address, kernelInfo->ramfs.size);
-    
 
     /* Load IPC */
     KotSpecificData.IPCHandler = IPCInitialize();

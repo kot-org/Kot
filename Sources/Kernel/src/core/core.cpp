@@ -1,12 +1,11 @@
 #include <core/core.h>
 
-extern "C" void main(uintptr_t boot)
-{   
+extern "C" void main(uintptr_t boot){   
     /* load arch */
-    KernelInfo* kernelInfo = arch_initialize(boot);
+    ArchInfo_t* ArchInfo = arch_initialize(boot);
 
     /* load init file */
-    ramfs::Parse(kernelInfo->ramfs.ramfsBase, kernelInfo->ramfs.Size);
+    ramfs::Parse(ArchInfo->ramfs.ramfsBase, ArchInfo->ramfs.Size);
     ramfs::File* InitFile = ramfs::FindInitFile();
     
     if(InitFile != NULL){
@@ -15,7 +14,7 @@ extern "C" void main(uintptr_t boot)
         thread_t* mainThread;
         ELF::loadElf(BufferInitFile, PriviledgeDriver, &mainThread);
         parameters_t* InitParameters = (parameters_t*)malloc(sizeof(Parameters));
-        mainThread->ShareDataUsingStackSpace(kernelInfo, sizeof(KernelInfo), &InitParameters->Parameter0);
+        mainThread->ShareDataUsingStackSpace(ArchInfo, sizeof(ArchInfo_t), &InitParameters->Parameter0);
         mainThread->Launch(InitParameters);
         free(InitParameters);
     }else{

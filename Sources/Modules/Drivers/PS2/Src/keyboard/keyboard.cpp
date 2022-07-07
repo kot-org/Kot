@@ -21,13 +21,6 @@ KResult KeyboardInitialize(){
             KeyboardPS2Port = &PS2Ports[i];
             IRQRedirectionsArray[KeyboardPS2Port->PortNumber] = KeyboardHandler;
 
-            KeyboardPS2Port->PS2SendDataPort(0xF6);
-            PS2WaitOutput();
-            PS2GetData();
-            KeyboardPS2Port->PS2SendDataPort(0xF4);
-            PS2WaitOutput();
-            PS2GetData();
-
             Sys_Event_Bind(NULL, InterruptThreadHandler, 0x20 + KeyboardPS2Port->IRQ, false);
 
             KeyboardData->IsInitialized = true;

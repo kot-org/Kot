@@ -6,28 +6,28 @@ mkdir -p "Bin/Modules/"
 
 echo -e "\e[32mCompiling kot libraries...\e[0m"
 
-cd Sources/Libs/
+cd "Sources/Libs/"
 
 # libc
 
-cd libc/build/
+cd "libc/build/"
 make
-cd ../../
+cd "../../"
 
 # abi
 
-cd abi/build/
+cd "abi/build/"
 make 
 
 
 # ramfs
 
-cd ../../../../
-sudo bash ./Tools/BuildRamFS.sh
+cd "../../../../"
+sudo bash "./Tools/BuildRamFS.sh"
 
 # kernel
 
-cd ./Sources/Kernel/
+cd "./Sources/Kernel/"
 echo -e "\e[32mBuilding kernel...\e[0m"
 
 make all

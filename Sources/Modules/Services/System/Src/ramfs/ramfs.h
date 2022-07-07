@@ -1,4 +1,5 @@
 #pragma once
+#include <kot/sys.h>
 #include <kot/heap.h>
 #include <kot/types.h>
 #include <kot/memory.h>
