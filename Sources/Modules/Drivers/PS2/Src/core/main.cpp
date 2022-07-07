@@ -38,7 +38,6 @@ extern "C" int main(int argc, char* argv[]){
 KResult PortsInitalize(){
     PS2SendCommand(0xAD); // disable port 1
     PS2SendCommand(0xA7); // disable port 2
-    PS2GetData();
 
     /* Test PS2 controller */
     PS2SendCommand(0xAA);
@@ -58,6 +57,10 @@ KResult PortsInitalize(){
     PS2Ports[0].Type = PS2_TYPE_UNKNOW;
     PS2Ports[0].IRQ = PS2_IRQ_PORT1;
     PS2Ports[0].PortNumber = 0;
+
+    PS2Ports[1].Type = PS2_TYPE_UNKNOW;
+    PS2Ports[1].IRQ = PS2_IRQ_PORT2;
+    PS2Ports[1].PortNumber = 1;
 
     if(PS2Ports[0].IsPresent){
         Printlog("[PS2] Port 1 is present");
@@ -105,9 +108,6 @@ KResult PortsInitalize(){
         PS2GetData();   
     }
 
-    PS2Ports[1].Type = PS2_TYPE_UNKNOW;
-    PS2Ports[1].IRQ = PS2_IRQ_PORT2;
-    PS2Ports[1].PortNumber = 1;
 
     if(PS2Ports[1].IsPresent){
         Printlog("[PS2] Port 2 is present");
