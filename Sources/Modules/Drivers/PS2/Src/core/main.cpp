@@ -65,18 +65,7 @@ KResult PortsInitalize(){
     if(PS2Ports[0].IsPresent){
         Printlog("[PS2] Port 1 is present");
 
-        PS2SendCommand(0xAE); // enable port 1
-        PS2WaitOutput();
-        PS2GetData();
-        PS2SendDataPort1(0xFF); // reset
-        PS2WaitOutput();
-        PS2GetData();
-        uint8_t status = PS2ConfigurationGet();
-        status |= 1 << 0;
-        status &= ~(1 << 4);
-        PS2ConfigurationSet(status); 
-        PS2WaitOutput();   
-        PS2GetData();    
+        PS2SendCommand(0xAE); // enable port 1  
 
         PS2SendDataPort1(0xF5);
         PS2WaitOutput();
@@ -101,11 +90,10 @@ KResult PortsInitalize(){
             default:
                 PS2Ports[0].Type = PS2_TYPE_KEYBOARD;
                 break;
-        } 
-
+        }  
         PS2SendDataPort1(0xF4);
         PS2WaitOutput();
-        PS2GetData();   
+        PS2GetData();
     }
 
 
@@ -113,17 +101,6 @@ KResult PortsInitalize(){
         Printlog("[PS2] Port 2 is present");
 
         PS2SendCommand(0xA8); // enable port 2
-        PS2WaitOutput();
-        PS2GetData();
-        PS2SendDataPort2(0xFF); // reset
-        PS2WaitOutput();
-        PS2GetData();
-        uint8_t status = PS2ConfigurationGet();
-        status |= 1 << 1;
-        status &= ~(1 << 5);
-        PS2ConfigurationSet(status); 
-        PS2WaitOutput(); 
-        PS2GetData();  
 
         PS2SendDataPort2(0xF5);
         PS2WaitOutput();
@@ -154,13 +131,21 @@ KResult PortsInitalize(){
         PS2GetData();
     }   
 
+    uint8_t status = PS2ConfigurationGet();
+
+    status = WriteBit(status, 0, PS2Ports[0].IsPresent);
+    status = WriteBit(status, 4, !PS2Ports[0].IsPresent); 
+
+    status = WriteBit(status, 1, PS2Ports[1].IsPresent);
+    status = WriteBit(status, 5, !PS2Ports[1].IsPresent); 
+    PS2ConfigurationSet(status); 
+
     return KSUCCESS;
 }
 
 void PS2InterruptHandler(uint8_t interrupt){
     uint8_t IRQ = interrupt - 0x20;
     uint8_t data = (uint8_t)PS2GetData();
-    Printlog("Clear ps2 Buffer");
     
     switch(IRQ){
         case PS2_IRQ_PORT1:
@@ -194,6 +179,7 @@ uint8_t PS2GetData(){
 }
 
 void PS2WaitOutput(){
+    Printlog("ok");
     for(uint32_t timeout = 0; timeout < 0xFFFFF; timeout++){
         if(PS2GetStatus() & 0b1){
             return;

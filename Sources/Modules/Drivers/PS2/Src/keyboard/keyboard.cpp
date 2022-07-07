@@ -34,7 +34,7 @@ KResult KeyboardInitialize(){
 
 KResult KeyboardHandler(uint8_t data){
     KeyboardEventParameters->Parameter0 = (uint64_t)data;
-
+    Printlog("Keyboard");
     Sys_Event_Trigger(KeyboardData->onKeyboardStateChanged, KeyboardEventParameters);
 
     return KSUCCESS;
