@@ -144,16 +144,18 @@ KResult PortsInitalize(){
 }
 
 void PS2InterruptHandler(uint8_t interrupt){
-    uint8_t IRQ = interrupt - 0x20;
-    uint8_t data = (uint8_t)PS2GetData();
-    
-    switch(IRQ){
-        case PS2_IRQ_PORT1:
-            IRQRedirectionsArray[0](data);
-            break;
-        case PS2_IRQ_PORT2:
-            IRQRedirectionsArray[1](data);
-            break;
+    if(PS2GetStatus() & 0b1){
+        uint8_t IRQ = interrupt - 0x20;
+        uint8_t data = (uint8_t)PS2GetData();
+        
+        switch(IRQ){
+            case PS2_IRQ_PORT1:
+                IRQRedirectionsArray[0](data);
+                break;
+            case PS2_IRQ_PORT2:
+                IRQRedirectionsArray[1](data);
+                break;
+        }
     }
     Sys_Event_Close();
 }
@@ -179,7 +181,6 @@ uint8_t PS2GetData(){
 }
 
 void PS2WaitOutput(){
-    Printlog("ok");
     for(uint32_t timeout = 0; timeout < 0xFFFFF; timeout++){
         if(PS2GetStatus() & 0b1){
             return;
