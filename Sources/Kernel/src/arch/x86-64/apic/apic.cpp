@@ -15,7 +15,7 @@ namespace APIC{
     InterruptSourceOverride** Iso;
     uint64_t IsoCount;
 
-    void InitializeMADT(ACPI::MADTHeader* madt){
+    void InitializeMADT(ACPI::MADTHeader* madt, ArchInfo_t* ArchInfo){
         ProcessorCount = 0;
         IsoCount = 0;
         uint64_t MaxAPICID = 1;
@@ -97,10 +97,15 @@ namespace APIC{
                 }                                      
             }
         }
-        IoAPICInit(0);
+
+        ArchInfo->ProcessorCount = ProcessorCount;
+
+        for(uint64_t i = 0; i < IOAPICCount; i++){
+            IoAPICInit(i, ArchInfo);
+        }
     }  
 
-    void IoAPICInit(uint8_t IOApicID){
+    void IoAPICInit(uint8_t IOApicID, ArchInfo_t* ArchInfo){
         // Disable PIC
         IoWrite8(0xa1, 0xff);
         IoWrite8(0x21, 0xff);
@@ -114,8 +119,10 @@ namespace APIC{
         // Set up the entries
         uint32_t base = ioapic->GlobalSystemInterruptBase;
 
+        ArchInfo->IRQLineSize = MaxInterrupts;
+
         for (size_t i = 0; i < MaxInterrupts; i++){
-                uint8_t IRQNumber = i + IRQ_START;
+                uint8_t IRQNumber = i + ArchInfo->IRQLineStart;
                 IoApicSetRedirectionEntry((uintptr_t)IOapicAddressVirtual, i - base, (IOAPICRedirectionEntry){
                     .vector = IRQNumber,
                     .delivery_mode = IOAPICRedirectionEntryDeliveryModeFixed,
@@ -131,7 +138,7 @@ namespace APIC{
 
         for(size_t i = 0; i < IsoCount; i++) {
             InterruptSourceOverride* iso = Iso[i];
-            uint8_t IRQNumber = iso->IRQSource + IRQ_START;
+            uint8_t IRQNumber = iso->IRQSource + ArchInfo->IRQLineStart;
             IoApicSetRedirectionEntry((uintptr_t)IOapicAddressVirtual, iso->IRQSource, (IOAPICRedirectionEntry){
                 .vector = IRQNumber,
                 .delivery_mode = IOAPICRedirectionEntryDeliveryModeFixed,

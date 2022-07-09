@@ -9,12 +9,11 @@
 #define Exception_PageFault 0xE
 
 #define IST_Null 0x0
-#define IST_Scheduler 0x1
+#define IST_Interrupts 0x1
 
 #define IRQ_START 0x20
-#define IRQ_MAX 0x18
 
-void InitializeInterrupts();
+void InitializeInterrupts(ArchInfo_t* ArchInfo);
 void ExceptionHandler(ContextStack* Registers, uint64_t CoreID);
 bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID);
 void KernelUnrecovorable(ContextStack* Registers, uint64_t CoreID);

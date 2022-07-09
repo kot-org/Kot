@@ -416,7 +416,7 @@ void TaskManager::EnabledScheduler(uint64_t CoreID){
         uint64_t Stack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
 
         TSSSetStack(CoreID, (uintptr_t)Stack);
-        TSSSetIST(CoreID, IST_Scheduler, Stack);
+        TSSSetIST(CoreID, IST_Interrupts, Stack);
 
         CPU::SetCPUGSKernelBase((uint64_t)SelfDataStartAddress); // keys position
 

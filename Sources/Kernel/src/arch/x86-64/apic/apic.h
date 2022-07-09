@@ -9,8 +9,8 @@ namespace APIC{
     #define LOCAL_APIC_SPURIOUS_ALL         0x100
     #define LOCAL_APIC_SPURIOUS_ENABLE_APIC 0xff
 
-    #define TRAMPOLINE_ADDRESS  0x1000
-    #define TRAMPOLINE_SIZE     0x1000
+    #define TRAMPOLINE_ADDRESS              0x1000
+    #define TRAMPOLINE_SIZE                 0x1000
 
     struct EntryRecord{
         uint8_t Type;
@@ -248,8 +248,8 @@ namespace APIC{
         uintptr_t VirtualAddress;
     } __attribute__((packed));
 
-    void InitializeMADT(ACPI::MADTHeader* madt);
-    void IoAPICInit(uint8_t IOApicID);
+    void InitializeMADT(ACPI::MADTHeader* madt, ArchInfo_t* ArchInfo);
+    void IoAPICInit(uint8_t IOApicID, ArchInfo_t* ArchInfo);
     void IoChangeIrqState(uint8_t irq, uint8_t IOApicID, bool IsEnable);
     void LoadCores();
     uintptr_t GetLAPICAddress();

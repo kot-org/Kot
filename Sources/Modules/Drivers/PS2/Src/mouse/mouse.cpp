@@ -161,10 +161,6 @@ void MouseParser(uint8_t data){
         MouseEventParameters->Parameter4 |= button4Click << 3;
         MouseEventParameters->Parameter4 |= button5Click << 4;
 
-        if(leftClick){
-            Printlog("OK");
-        }
-
         Sys_Event_Trigger(MouseData->onMouseStateChanged, MouseEventParameters);
     }
 }

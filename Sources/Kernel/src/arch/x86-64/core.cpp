@@ -1,6 +1,6 @@
 #include <arch/x86-64.h>
 
-void InitializeACPI(BootInfo* bootInfo){
+void InitializeACPI(BootInfo* bootInfo, ArchInfo_t* ArchInfo){
     if(bootInfo->RSDP == NULL){
         KernelPanic("RSDP not found");
     }
@@ -13,7 +13,7 @@ void InitializeACPI(BootInfo* bootInfo){
         KernelPanic("APIC not found");
     }
 
-    APIC::InitializeMADT(madt);
+    APIC::InitializeMADT(madt, ArchInfo);
     Successful("APIC intialize");
 
     ACPI::HPETHeader* hpet = (ACPI::HPETHeader*)ACPI::FindTable(RSDP, (char*)"HPET");
@@ -36,26 +36,30 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     Message("Welcome to Kot kernel");
 
     gdtInit();
-    Successful("GDT intialize");
+    Successful("GDT intialized");
 
     Pmm_Init(bootInfo->Memory);
-    Successful("PMM intialize");
+    Successful("PMM intialized");
 
-    uint64_t LastAddressUsed = vmm_Init(bootInfo);;
-    Successful("VMM intialize");
+    uint64_t LastAddressUsed = vmm_Init(bootInfo);
+    Successful("VMM intialized");
     
     InitializeHeap((uintptr_t)LastAddressUsed, 0x10);
-    Successful("Heap intialize");
-    
-    InitializeInterrupts();  
-    Successful("IDT intialize");
+    Successful("Heap intialized");
+
+    ArchInfo_t* ArchInfo = (ArchInfo_t*)malloc(sizeof(ArchInfo_t));
+    ArchInfo->IRQLineStart = IRQ_START;
+    InitializeACPI(bootInfo, ArchInfo);
+    Successful("ACPI intialized");
+
+    InitializeInterrupts(ArchInfo);  
+    Successful("IDT intialized");
 
     CPU::InitCPU();
 
     simdInit();
-    Successful("SIMD intialize");
+    Successful("SIMD intialized");
     
-    InitializeACPI(bootInfo);
 
     globalTaskManager = (TaskManager*)calloc(sizeof(TaskManager));
     globalTaskManager->InitScheduler(APIC::ProcessorCount, (uintptr_t)&IdleTask);
@@ -65,9 +69,6 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     APIC::localApicEOI(CPU::GetAPICID());
     APIC::StartLapicTimer();
     APIC::LoadCores();
-
-    //create parameters
-    ArchInfo_t* ArchInfo = (ArchInfo_t*)malloc(sizeof(ArchInfo_t));
 
     //frame buffer
     memcpy(&ArchInfo->framebuffer, bootInfo->Framebuffer, sizeof(stivale2_struct_tag_framebuffer));

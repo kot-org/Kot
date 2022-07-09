@@ -15,7 +15,6 @@ namespace Event{
                 break;
             }                
             case EventTypeIRQ: {
-                if(AdditionnalData < IRQ_START + IRQ_MAX) return KFAIL;
                 IRQEvent_t* event = (IRQEvent_t*)malloc(sizeof(IRQEvent_t));
                 self = &event->header;
                 event->IRQ = (uint8_t)AdditionnalData;
@@ -144,7 +143,7 @@ namespace Event{
         task->Regs->rip = (uint64_t)task->EntryPoint;
         task->Regs->cs = Registers->ThreadInfo->CS;
         task->Regs->ss = Registers->ThreadInfo->SS;
-        
+
         if(task->EventDataNode->NumberOfMissedEvents){
             event_data_t* Next = task->EventDataNode->CurrentData->Next;
             Registers->rip = task->Regs->rip;

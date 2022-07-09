@@ -42,7 +42,7 @@ char* ExceptionList[32] = {
     "Security Exception",
 };
 
-void InitializeInterrupts(){
+void InitializeInterrupts(ArchInfo_t* ArchInfo){
     if(idtr.Limit == 0){
         idtr.Limit = 0xFFF;
         idtr.Offset = (uint64_t)&IDTData[0];
@@ -52,16 +52,18 @@ void InitializeInterrupts(){
     InterruptParameters = (parameters_t*)malloc(sizeof(parameters_t));
 
     for(int i = 0; i < 256; i++){
-        SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Null, idtr);
-        if(i >= IRQ_START && i <= IRQ_START + IRQ_MAX){
-            Event::Create(&InterruptEventList[i], EventTypeIRQLines, i - IRQ_START);
-        }else{
-            Event::Create(&InterruptEventList[i], EventTypeIRQ, i);
+        SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);
+        if(i != IPI_Schedule && i != IPI_Stop){
+            if(i >= ArchInfo->IRQLineStart  && i <= ArchInfo->IRQLineStart + ArchInfo->IRQLineSize){
+                Event::Create(&InterruptEventList[i], EventTypeIRQLines, i - ArchInfo->IRQLineStart);
+            }else{
+                Event::Create(&InterruptEventList[i], EventTypeIRQ, i);
+            }
         }
     }
 
     /* Shedule */
-    SetIDTGate((uintptr_t)InterruptEntryList[IPI_Schedule], IPI_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
+    SetIDTGate((uintptr_t)InterruptEntryList[IPI_Schedule], IPI_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);
 
     asm("lidt %0" : : "m" (idtr));   
 }

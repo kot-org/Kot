@@ -11,6 +11,11 @@ struct ArchInfo_t{
     uintptr_t smbios;
     uintptr_t rsdp;
 
+    uint64_t ProcessorCount;
+
     uint8_t IRQLineStart;
     uint8_t IRQLineSize;
+
+    size_t IRQSize;
+    kevent_t IRQEvents[];    
 }__attribute__((packed));
