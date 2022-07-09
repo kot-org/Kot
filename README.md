@@ -5,4 +5,5 @@
 # KotOS
 A 64-bit x86 operating system
 
+<a href="https://discord.gg/XJzhM7uKkz">The discord server</a>
 
