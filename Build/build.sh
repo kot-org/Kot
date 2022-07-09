@@ -17,12 +17,17 @@ cd "../../"
 # abi
 
 cd "abi/build/"
-make 
+make
+cd "../../../"
 
+# Modules
+sudo make -C "Modules/Drivers/PS2/Build"
+sudo make -C "Modules/Drivers/VGA/Build"
+sudo make -C "Modules/Services/System/Build"
 
 # ramfs
 
-cd "../../../../"
+cd "../"
 sudo bash "./Tools/BuildRamFS.sh"
 
 # kernel
