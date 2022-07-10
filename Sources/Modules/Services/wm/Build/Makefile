@@ -1,5 +1,3 @@
-PREFIX = ../../../../../Toolchain/Local/bin/x86_64-kot-
-
 LDS = main.ld
 CC = clang
 ASMC = nasm
@@ -15,9 +13,9 @@ BINDIR = ../../../../../Bin/Modules
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
-SRCCPP = $(call rwildcard,$(SRCDIR),*.cpp)      
+SRCC = $(call rwildcard,$(SRCDIR),*.c)
 ASMSRC = $(call rwildcard,$(SRCDIR),*.asm)   
-OBJS += $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCCPP))
+OBJS += $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCC))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)         
 
