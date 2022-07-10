@@ -20,9 +20,15 @@ cd "abi/build/"
 make
 cd "../../../"
 
-# Modules
+echo -e "\e[32mCompiling kot drivers...\e[0m"
+
+# Drivers
 sudo make -C "Modules/Drivers/PS2/Build"
 sudo make -C "Modules/Drivers/VGA/Build"
+
+echo -e "\e[32mCompiling kot modules...\e[0m"
+
+# Modules
 sudo make -C "Modules/Services/System/Build"
 
 # ramfs
