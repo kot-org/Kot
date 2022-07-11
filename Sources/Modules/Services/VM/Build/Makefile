@@ -1,12 +1,13 @@
-LDS = main.ld
+_HOME = ../../../../../
+
 CC = clang
 ASMC = nasm
 
-CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Scr
-LINKERFLAGS = -lc -Wall -static
+CFLAGS = --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I$(_HOME)Sysroot/include
+LINKERFLAGS = -nostartfiles -Wall -static -L$(_HOME)Sysroot/lib/ -lc
 ASMFLAGS = 
 
-SRCDIR := ../Scr
+SRCDIR := ../Src
 OBJDIR := ../Lib
 BUILDDIR = ../Bin
 BINDIR = ../../../../../Bin/Modules
@@ -21,7 +22,7 @@ DIRS = $(wildcard $(SRCDIR)/*)
 
 main: $(OBJS) link copyToFS
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@ echo !==== COMPILING $^
 	@ mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $^ -o $@
@@ -33,7 +34,7 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 
 link:
 	@ echo !==== LINKING
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Wm.elf $(OBJS) $(OBJSCPP)
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/WM.elf $(OBJS) $(OBJSCPP)
 	
 copyToFS:
 	../../../../../Tools/Buildramfs.sh

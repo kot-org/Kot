@@ -20,7 +20,7 @@ extern "C" int main(struct KernelInfo* kernelInfo){
     /* Load services */
     ramfs::File* InitFile = ramfs::Find("Starter.cfg");
     
-    if(InitFile != NULL){
+    if(InitFile != NULL) {
         char* BufferInitFile = (char*)malloc(InitFile->size + 1);
         ramfs::Read(InitFile, BufferInitFile);
         BufferInitFile[InitFile->size + 1] = NULL;
@@ -53,9 +53,14 @@ extern "C" int main(struct KernelInfo* kernelInfo){
         freeSplit(ServicesInfo);
 
         free(InitParameters);
+    } else {
+        Printlog("[SYSTEM] Starter.cfg not found");
+
+        return KFAIL;
     }
 
     Printlog("[SYSTEM] All tasks in 'Starter.cfg' are loaded");
     Printlog("[SYSTEM] Service intialized successfully");
-    return 1;
+
+    return KSUCCESS;
 }

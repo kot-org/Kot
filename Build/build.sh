@@ -28,8 +28,9 @@ sudo make -C "Modules/Drivers/VGA/Build"
 
 echo -e "\e[32mCompiling kot modules...\e[0m"
 
-# Modules
+# Services
 sudo make -C "Modules/Services/System/Build"
+sudo make -C "Modules/Services/VM/Build"
 
 # ramfs
 
