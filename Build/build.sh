@@ -17,12 +17,24 @@ cd "../../"
 # abi
 
 cd "abi/build/"
-make 
+make
+cd "../../../"
 
+echo -e "\e[32mCompiling kot drivers...\e[0m"
+
+# Drivers
+sudo make -C "Modules/Drivers/PS2/Build"
+sudo make -C "Modules/Drivers/VGA/Build"
+
+echo -e "\e[32mCompiling kot modules...\e[0m"
+
+# Services
+sudo make -C "Modules/Services/System/Build"
+sudo make -C "Modules/Services/VM/Build"
 
 # ramfs
 
-cd "../../../../"
+cd "../"
 sudo bash "./Tools/BuildRamFS.sh"
 
 # kernel
