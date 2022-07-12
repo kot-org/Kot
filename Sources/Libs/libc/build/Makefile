@@ -17,9 +17,9 @@ ASMFLAGS =
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
    
 INC = $(call rwildcard,$(SRCDIR),*.h)      
-SRCCPP = $(call rwildcard,$(SRCDIR),*.c)      
+SRCC = $(call rwildcard,$(SRCDIR),*.c)      
 ASSRC = $(call rwildcard,$(SRCDIR),*.asm)   
-OBJS += $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCCPP))
+OBJS += $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCC))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASSRC))
 
 OBJINC += $(patsubst $(SRCDIR)/%.h, $(INCDIR)/kot/%.h, $(INC))
