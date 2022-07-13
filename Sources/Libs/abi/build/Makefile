@@ -5,7 +5,7 @@ OBJDIR := $(_HOME)Sysroot/lib
 
 SRCDIR := ../src
 
-CC = clang
+CC = clang-14
 ASMC = nasm
 
 ASMFLAGS = 

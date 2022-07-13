@@ -72,7 +72,7 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
 
 extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
     if(Registers->InterruptNumber < Exception_End){
-        // execptions
+        // exceptions
         ExceptionHandler(Registers, CoreID);
     }else if(Registers->InterruptNumber == IPI_Schedule){
         // APIC timer 
@@ -103,7 +103,7 @@ void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
             }
         }
 
-        Error("Thread error, PID : %x | TID : %x \nWith execption : '%s' | Error code : %x", Registers->ThreadInfo->Thread->Parent->PID, Registers->ThreadInfo->Thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
+        Error("Thread error, PID : %x | TID : %x \nWith exception : '%s' | Error code : %x", Registers->ThreadInfo->Thread->Parent->PID, Registers->ThreadInfo->Thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
         PrintRegisters(Registers);
         globalTaskManager->Exit(Registers, CoreID, Registers->ThreadInfo->Thread); 
         globalTaskManager->Scheduler(Registers, CoreID); 
@@ -120,7 +120,7 @@ bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID){
 }
 
 void KernelUnrecovorable(ContextStack* Registers, uint64_t CoreID){
-    Error("Kernel Panic CPU %x \nWith execption : '%s' | Error code : %x", CoreID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
+    Error("Kernel Panic CPU %x \nWith exception : '%s' | Error code : %x", CoreID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
     PrintRegisters(Registers);
-    KernelPanic("Unrecovorable exception ;(");
+    KernelPanic("Unrecoverable exception ;(");
 }

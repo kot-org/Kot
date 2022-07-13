@@ -7,3 +7,10 @@ A 64-bit x86 operating system written in c++, c
 
 <a href="https://discord.gg/XJzhM7uKkz">The discord server</a>
 
+# Build Tools
+
+- Build Essential
+- Xorriso
+- LLVM 14
+- NASM
+- Qemu (optionnal)

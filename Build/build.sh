@@ -6,19 +6,15 @@ mkdir -p "Bin/Modules/"
 
 echo -e "\e[32mCompiling kot libraries...\e[0m"
 
-cd "Sources/Libs/"
+cd "Sources/"
 
 # libc
 
-cd "libc/build/"
-make
-cd "../../"
+sudo make -C "Libs/libc/build"
 
 # abi
 
-cd "abi/build/"
-make
-cd "../../../"
+sudo make -C "Libs/abi/build"
 
 echo -e "\e[32mCompiling kot drivers...\e[0m"
 
