@@ -1,16 +1,16 @@
 <p align="center">
-	<img src="/Meta/Images/Logo/371D3AB5-4CFA-46D3-9C26-DC4081C0F03A.png?raw=true" width="406px" height="281px" /> 
+	<img src="/Meta/Images/Logo/laptop.png?raw=true" width="406px" height="281px" /> 
 </p>
 
 # KotOS
-A 64-bit x86 operating system written in c++, c
+A 64-bit x86 operating system written in C/C++
 
-<a href="https://discord.gg/XJzhM7uKkz">The discord server</a>
+<a href="https://discord.gg/XJzhM7uKkz">Discord server</a>
 
-# Build Tools
+# Required Build Tools
 
 - Build Essential
 - Xorriso
 - LLVM 14
 - NASM
-- Qemu (optionnal)
+- Qemu (optional)
