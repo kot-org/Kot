@@ -45,6 +45,7 @@ extern "C" int main(struct KernelInfo* kernelInfo){
                 InitParameters->Parameter0 = 1;
                 ShareString(thread, ServiceInfo[0], (uint64_t*)&Parameters[0]);
                 SYS_ShareDataUsingStackSpace(thread, (uint64_t)Parameters, sizeof(char*), &InitParameters->Parameter1);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t)&kernelInfo->framebuffer, sizeof(framebuffer_t), &InitParameters->Parameter2);
 
                 Sys_ExecThread(thread, InitParameters);
             }     

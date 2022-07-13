@@ -1,7 +1,6 @@
 #include <kot/sys.h>
 
-int main(struct KernelInfo* kernelInfo)
-{
+extern "C" int main(int argc, char* argv[], framebuffer_t* Framebuffer){
     Printlog("[WINDOWS MANAGER] Initialization ...");
 
     return KSUCCESS;

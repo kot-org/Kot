@@ -6,8 +6,7 @@ kthread_t IPCInitialize(){
     kthread_t IPCThreadKey;
     uint64_t IPCKeyFlags = NULL;
     Keyhole_SetFlag(&IPCKeyFlags, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&IPCKeyFlags, KeyholeFlagDataTypeThreadIsExecutableAsCIP, true);
-    Keyhole_SetFlag(&IPCKeyFlags, KeyholeFlagDataTypeThreadIsDuplicable, true);
+    Keyhole_SetFlag(&IPCKeyFlags, KeyholeFlagDataTypeThreadIsExecutableAsIPCWT, true);
 
     kprocess_t process;
     SYS_GetProcessKey(&process);
@@ -19,6 +18,12 @@ kthread_t IPCInitialize(){
 }
 
 KResult IPCHandler(){
+    Printlog("IPC");
+    Printlog("IPC");
+    Printlog("IPC");
+    Printlog("IPC");
+    Printlog("IPC");
+    Printlog("IPC");
     Printlog("IPC");
     SYS_Exit(NULL, KSUCCESS);
 }

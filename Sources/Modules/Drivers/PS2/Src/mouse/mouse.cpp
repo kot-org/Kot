@@ -26,13 +26,14 @@ KResult MouseInitalize(){
                 MousePS2Port = &PS2Ports[i];
                 IRQRedirectionsArray[MousePS2Port->PortNumber] = MouseHandler;
                 
-                Sys_Event_Bind(NULL, InterruptThreadHandler, 0x20 + MousePS2Port->IRQ, false);
 
                 // Identify mouse type
                 EnableMouseScroll(MousePS2Port);
                 EnableMouse5Buttons(MousePS2Port);
 
                 MouseData->mousePortType = mousePortTypePS2;
+                Sys_Event_Bind(NULL, InterruptThreadHandler, 0x20 + MousePS2Port->IRQ, false);
+
                 MouseData->IsInitialized = true;
 
                 break; // Enable only one mouse
