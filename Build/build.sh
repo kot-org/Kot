@@ -4,6 +4,8 @@ mkdir -p "Sysroot/include/kot/"
 mkdir -p "Sysroot/lib/"
 mkdir -p "Bin/Modules/"
 
+cp -p "Build/Starter.cfg" "Bin/Modules/Starter.cfg"
+
 echo -e "\e[32mCompiling kot libraries...\e[0m"
 
 cd "Sources/"

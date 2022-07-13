@@ -1,6 +1,6 @@
 _HOME = ../../../../../
 
-CC = clang
+CC = clang-14
 ASMC = nasm
 
 CFLAGS = --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I$(_HOME)Sysroot/include
