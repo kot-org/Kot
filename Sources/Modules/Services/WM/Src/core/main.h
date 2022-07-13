@@ -1,7 +1,9 @@
 #pragma once
+
 #include <kot/sys.h>
 
-struct framebuffer_t{
+typedef struct
+{
     uint64_t identifier;
     uint64_t NAME;
     uint64_t framebuffer_addr;
@@ -17,4 +19,11 @@ struct framebuffer_t{
     uint8_t  blue_mask_size;
     uint8_t  blue_mask_shift;
     uint8_t  unused;
-};
+} framebuffer_t;
+
+extern uint64_t fb_addr;
+extern size_t fb_size;
+extern uint16_t fb_width;
+extern uint16_t fb_height;
+extern uint16_t fb_pitch;
+extern uint16_t fb_bpp;

@@ -1,12 +1,35 @@
-#include <core/main.h>
+#include "core/main.h"
+#include "window/window.h"
 
-int main(int argc, char* argv[], struct framebuffer_t* Framebuffer){
+uint64_t fb_addr;
+size_t fb_size;
+uint16_t fb_width;
+uint16_t fb_height;
+uint16_t fb_pitch;
+uint16_t fb_bpp;
+
+int main(int argc, char* argv[], framebuffer_t* Framebuffer)
+{
     Printlog("[WINDOWS MANAGER] Initialization ...");
+    
+    /* Init and Map framebuffer */
     kprocess_t self;
-    SYS_GetProcessKey(&self);
     uint64_t virtualAddress = KotSpecificData.FreeMemorySpace - (Framebuffer->framebuffer_pitch * Framebuffer->framebuffer_height);
-    size_t frameBufferSize = Framebuffer->framebuffer_pitch * Framebuffer->framebuffer_height;
-    SYS_Map(self, &virtualAddress, true, &Framebuffer->framebuffer_addr, &frameBufferSize, false);
-    memset(virtualAddress, 0xff, frameBufferSize);
+    fb_size = Framebuffer->framebuffer_pitch * Framebuffer->framebuffer_height;
+    
+    SYS_GetProcessKey(&self);
+    SYS_Map(self, &virtualAddress, true, &Framebuffer->framebuffer_addr, &fb_size, false);
+    Framebuffer->framebuffer_addr = virtualAddress;
+
+    fb_addr = Framebuffer->framebuffer_addr;
+    fb_width = Framebuffer->framebuffer_width;
+    fb_height = Framebuffer->framebuffer_height;
+    fb_pitch = Framebuffer->framebuffer_pitch;
+    fb_bpp = Framebuffer->framebuffer_bpp;
+
+    clear_screen();
+
+    create_window(50, 50, 400, 200);
+
     return KSUCCESS;
 }

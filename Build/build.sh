@@ -30,7 +30,7 @@ echo -e "\e[32mCompiling kot modules...\e[0m"
 
 # Services
 sudo make -C "Modules/Services/System/Build"
-sudo make -C "Modules/Services/VM/Build"
+sudo make -C "Modules/Services/WM/Build"
 
 # ramfs
 
