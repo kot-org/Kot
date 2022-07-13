@@ -3,7 +3,7 @@
 
 static uint64_t mutexKeyhole;
 
-uint64_t Keyhole_Create(key_t* key, process_t* parent, process_t* target, enum DataType type, uint64_t data, uint64_t flags){
+KResult Keyhole_Create(key_t* key, process_t* parent, process_t* target, enum DataType type, uint64_t data, uint64_t flags){
     if(!CheckAddress((uintptr_t)key, sizeof(key))) return KFAIL;
     
     Atomic::atomicAcquire(&mutexKeyhole, 0);
@@ -45,7 +45,7 @@ uint64_t Keyhole_Create(key_t* key, process_t* parent, process_t* target, enum D
     return KSUCCESS;
 }
 
-uint64_t Keyhole_CloneModify(thread_t* caller, key_t key, key_t* newKey, process_t* target, uint64_t flags){
+KResult Keyhole_CloneModify(thread_t* caller, key_t key, key_t* newKey, process_t* target, uint64_t flags){
     lock_t* data;
     if(Keyhole_Get(caller, key, DataTypeUnknow, &data) != KSUCCESS) return KKEYVIOLATION;
     lock_t* lock = (lock_t*)key;
@@ -63,7 +63,7 @@ uint64_t Keyhole_CloneModify(thread_t* caller, key_t key, key_t* newKey, process
     return Keyhole_Create(newKey, data->Parent, target, data->Type, data->Data, flags);
 }
 
-uint64_t Keyhole_Verify(thread_t* caller, key_t key, enum DataType type){
+KResult Keyhole_Verify(thread_t* caller, key_t key, enum DataType type){
     // get lock
     lock_t* lock = (lock_t*)key;
     // check lock
@@ -90,7 +90,7 @@ uint64_t Keyhole_Verify(thread_t* caller, key_t key, enum DataType type){
     return KSUCCESS;
 }
 
-uint64_t Keyhole_Get(thread_t* caller, key_t key, enum DataType type, uint64_t* data, uint64_t* flags){        
+KResult Keyhole_Get(thread_t* caller, key_t key, enum DataType type, uint64_t* data, uint64_t* flags){        
     uint64_t Statu = Keyhole_Verify(caller, key, type);
     if(Statu != KSUCCESS) return Statu;
     lock_t* lock = (lock_t*)key;
@@ -99,7 +99,7 @@ uint64_t Keyhole_Get(thread_t* caller, key_t key, enum DataType type, uint64_t* 
     return KSUCCESS;
 }
 
-uint64_t Keyhole_Get(thread_t* caller, key_t key, enum DataType type, lock_t** lock){        
+KResult Keyhole_Get(thread_t* caller, key_t key, enum DataType type, lock_t** lock){        
     uint64_t Statu = Keyhole_Verify(caller, key, type);
     if(Statu != KSUCCESS) return Statu;
     *lock = (lock_t*)key;

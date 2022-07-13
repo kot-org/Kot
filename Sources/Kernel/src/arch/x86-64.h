@@ -1,5 +1,6 @@
 #define MAX_PROCESSORS      256
 #define IO_APIC             256
+#define MAX_IRQ             256
 
 #define IPI_Schedule        0x40
 #define IPI_Stop            0x41

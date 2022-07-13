@@ -19,15 +19,6 @@ class TaskManager;
 #define DefaultFlagsKey 0xff
 #define ShareMaxIntoStackSpace PAGE_SIZE * 0x10
 
-struct Parameters{
-    uint64_t Parameter0;
-    uint64_t Parameter1;
-    uint64_t Parameter2;
-    uint64_t Parameter3;
-    uint64_t Parameter4;
-    uint64_t Parameter5;
-}__attribute__((packed));
-
 struct threadInfo_t{
     uint64_t SyscallStack;
     uint64_t CS;
@@ -40,6 +31,21 @@ struct StackInfo{
     uint64_t StackStart;
     uint64_t StackEndMax;
 }__attribute__((packed));
+
+struct IPCWTInfo_t{
+    bool IsAsync;
+    uint64_t TasksInQueu;
+    uint64_t Lock;
+    struct IPCWTData_t* CurrentData;
+    struct IPCWTData_t* LastData;
+}__attribute__((packed));
+
+struct IPCWTData_t{
+    thread_t* Thread; // Thread laucnh when ipc task is finished
+    parameters_t Parameters;
+    IPCWTData_t* Next;
+}__attribute__((packed));
+
 
 struct thread_t;
 
@@ -98,6 +104,7 @@ struct thread_t{
     StackInfo* Stack; 
     uint64_t CoreID;
     bool IsBlock;
+    bool IsExit;
 
     /* Time info */
     uint64_t TimeAllocate;
@@ -112,9 +119,9 @@ struct thread_t{
     process_t* Parent;
     Node* ThreadNode;
     
-    /* CIP */
-    bool IsCIP;
-    thread_t* TCIP;
+    /* IPCWT inter processus communication with threads */
+    bool IsIPCWT;
+    IPCWTInfo_t* IPCWTInfo;
 
     /* Event */
     bool IsEvent;
@@ -141,7 +148,7 @@ struct thread_t{
     bool ExtendStack(uint64_t address, size_t size);
     KResult ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t* location);
 
-    bool CIP(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread, parameters_t* FunctionParameters);
+    bool IPCWT(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread, parameters_t* FunctionParameters, bool IsAsync);
 
     bool Launch(parameters_t* FunctionParameters);  
     bool Launch();  

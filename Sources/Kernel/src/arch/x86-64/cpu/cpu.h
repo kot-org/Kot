@@ -258,7 +258,7 @@ struct ContextStack {
     uint64_t arg2; /* rdx */ 
     uint64_t arg1; /* rsi */ 
     uint64_t arg0; /* rdi */ 
-    uint64_t rbp; //push in asm
+    uint64_t rbp; 
 
     uint64_t arg5; /* r8 */ 
     uint64_t arg4; /* r9 */ 

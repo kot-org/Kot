@@ -7,13 +7,13 @@
 static inline KResult CallIPC(char* Name){
     parameters_t Parameters;
     Parameters.Parameter0 = 0;
-    return Sys_CIP(KotSpecificData.IPCHandler, &Parameters);
+    return Sys_IPCWT(KotSpecificData.IPCHandler, &Parameters);
 }
 
 static inline KResult CreateIPC(char* Name, kthread_t* Thread){
     parameters_t Parameters;
     Parameters.Parameter0 = 1;
-    return Sys_CIP(KotSpecificData.IPCHandler, &Parameters);
+    return Sys_IPCWT(KotSpecificData.IPCHandler, &Parameters);
 }
 
 

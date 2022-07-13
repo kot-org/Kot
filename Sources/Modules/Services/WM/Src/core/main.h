@@ -1,4 +1,5 @@
 #pragma once
+#include <kot/sys.h>
 
 struct framebuffer_t{
     uint64_t identifier;

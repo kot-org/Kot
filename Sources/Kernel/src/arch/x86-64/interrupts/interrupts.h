@@ -7,6 +7,7 @@
 #include <scheduler/scheduler.h>
 
 #define Exception_PageFault 0xE
+#define Exception_End       0x20
 
 #define IST_Null 0x0
 #define IST_Interrupts 0x1

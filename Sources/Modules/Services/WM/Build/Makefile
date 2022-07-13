@@ -10,7 +10,7 @@ ASMFLAGS =
 SRCDIR := ../Src
 OBJDIR := ../Lib
 BUILDDIR = ../Bin
-BINDIR = ../../../../../Bin/Modules
+BINDIR = $(_HOME)Bin/Modules
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
@@ -34,7 +34,7 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 
 link:
 	@ echo !==== LINKING
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/WM.elf $(OBJS) $(OBJSCPP)
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/WM.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/lib/crt0.o
 	
 copyToFS:
-	../../../../../Tools/Buildramfs.sh
+	cd $(_HOME)Tools && bash ./BuildRamFS.sh

@@ -6,6 +6,10 @@ void Message(const char* str, ...){
     Atomic::atomicAcquire(&MutexLog, 0);
     va_list args;
     va_start(args, str);
+
+    SerialPort::Print(SerialCYAN);
+    SerialPort::Print("[*] ");
+    SerialPort::Print(SerialReset);
     
     int index = 0;
     while(str[index] != 0) {
@@ -55,7 +59,7 @@ void Successful(const char* str, ...){
     va_start(args, str);
     
     SerialPort::Print(SerialGREEN);
-    SerialPort::Print("[OK] ");
+    SerialPort::Print("[$] ");
     SerialPort::Print(SerialReset);
     
     int index = 0;
@@ -106,7 +110,7 @@ void Warning(const char* str, ...){
     va_start(args, str);
     
     SerialPort::Print(SerialYELLOW);
-    SerialPort::Print("[Warning] ");
+    SerialPort::Print("[%] ");
     SerialPort::Print(SerialReset);
     
     int index = 0;
@@ -152,10 +156,11 @@ void Warning(const char* str, ...){
 }
 
 void Error(const char * str, ...){
+    Atomic::atomicAcquire(&MutexLog, 0);
     va_list args;
     va_start(args, str);
     SerialPort::Print(SerialRED);
-    SerialPort::Print("[Error] ");
+    SerialPort::Print("[~] ");
     SerialPort::Print(SerialReset);
     
     int index = 0;
@@ -197,10 +202,11 @@ void Error(const char * str, ...){
 
     SerialPort::Print("\n");
     va_end(args);
+    Atomic::atomicUnlock(&MutexLog, 0);
 }
 
-void PrintRegisters(RegistersLog* registers){
-    Message("Rax : %x Rbx : %x Rcx : %x Rdx : %x Rsi : %x Rdi : %x Rbp : %x", registers->rax, registers->rbx, registers->rcx, registers->rdx, registers->rsi, registers->rdi, registers->rbp);
-    Message("R8 : %x R9 : %x R10 : %x R11 : %x R12 : %x R13 : %x R14 : %x R15 : %x", registers->r8, registers->r9, registers->r10, registers->r11, registers->r12, registers->r13, registers->r14, registers->r15);
+void PrintRegisters(ContextStack* registers){
+    Message("Rax : %x Rbx : %x Rcx : %x Rdx : %x Rsi : %x Rdi : %x Rbp : %x", registers->GlobalPurpose, registers->rbx, registers->rcx, registers->arg2, registers->arg1, registers->arg0, registers->rbp);
+    Message("R8 : %x R9 : %x R10 : %x R11 : %x R12 : %x R13 : %x R14 : %x R15 : %x", registers->arg5, registers->arg4, registers->arg3, registers->r11, registers->r12, registers->r13, registers->r14, registers->r15);
     Message("Rflags: %x Rip: %x Ss: %x Cs: %x Rsp: %x", registers->rflags, registers->rip, registers->ss, registers->cs, registers->rsp);
 }

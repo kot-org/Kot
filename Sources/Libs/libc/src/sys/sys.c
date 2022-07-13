@@ -18,8 +18,8 @@ KResult SYS_ShareDataUsingStackSpace(kthread_t self, uint64_t address, size_t si
     return Syscall_32(KSys_ShareDataUsingStackSpace, self, address, size, clientAddress);
 }
 
-KResult Sys_CIP(kthread_t task, struct parameters_t* param){
-    return Syscall_16(KSys_CIP, task, param);
+KResult Sys_IPCWT(kthread_t task, struct parameters_t* param){
+    return Syscall_16(KSys_IPCWT, task, param);
 }
 
 KResult Sys_CreateProc(kprocess_t* key, enum Priviledge privilege, uint64_t data){

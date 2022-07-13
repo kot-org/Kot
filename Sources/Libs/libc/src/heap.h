@@ -45,4 +45,11 @@ void MergeNextToThisUser(struct SegmentHeader* header);
 }
 #endif
 
+#if defined(__cplusplus)
+inline void* operator new(size_t Size) {return malloc(Size);}
+inline void* operator new[](size_t Size) {return malloc(Size);}
+
+inline void operator delete(void* p) {free(p);}
+#endif
+
 #endif

@@ -5,7 +5,6 @@ extern "C" void main(uintptr_t boot){
     ArchInfo_t* ArchInfo = arch_initialize(boot);
 
     /* load init file */
-    ramfs::Parse(ArchInfo->ramfs.ramfsBase, ArchInfo->ramfs.Size);
     ramfs::File* InitFile = ramfs::FindInitFile();
     
     if(InitFile != NULL){
@@ -13,8 +12,8 @@ extern "C" void main(uintptr_t boot){
         ramfs::Read(InitFile, BufferInitFile);
         thread_t* mainThread;
         ELF::loadElf(BufferInitFile, PriviledgeDriver, &mainThread);
-        parameters_t* InitParameters = (parameters_t*)malloc(sizeof(Parameters));
-        mainThread->ShareDataUsingStackSpace(ArchInfo, sizeof(ArchInfo_t), &InitParameters->Parameter0);
+        parameters_t* InitParameters = (parameters_t*)malloc(sizeof(parameters_t));
+        SendDataToStartService(ArchInfo, mainThread, InitParameters);
         mainThread->Launch(InitParameters);
         free(InitParameters);
     }else{

@@ -143,9 +143,42 @@ uint64_t TaskManager::Unpause(thread_t* task){
 } 
 
 uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* task){    
-    if(task->IsCIP){
-        task->TCIP->Regs->GlobalPurpose = Registers->GlobalPurpose;
-        Unpause(task->TCIP);            
+    if(task->IsIPCWT){
+        Atomic::atomicAcquire(&task->EventLock, 0);
+        IPCWTData_t* Current = task->IPCWTInfo->CurrentData;
+        if(!task->IPCWTInfo->IsAsync){
+            task->Regs->rsp = (uint64_t)StackTop;
+            task->Regs->rip = (uint64_t)task->EntryPoint;
+            task->Regs->cs = Registers->ThreadInfo->CS;
+            task->Regs->ss = Registers->ThreadInfo->SS;
+
+            if(task->IPCWTInfo->TasksInQueu){
+                IPCWTData_t* Next = task->IPCWTInfo->CurrentData->Next;
+                Registers->rsp = (uint64_t)StackTop;
+                Registers->rip = (uint64_t)task->Regs->rip;
+
+                free(task->IPCWTInfo->CurrentData);
+                task->IPCWTInfo->CurrentData = Next;
+                task->IPCWTInfo->TasksInQueu--;
+                Current->Thread->Regs->GlobalPurpose = Registers->GlobalPurpose;
+                Unpause(Current->Thread); 
+                Atomic::atomicUnlock(&task->EventLock, 0);
+            }else{
+                Current->Thread->Regs->GlobalPurpose = Registers->GlobalPurpose;
+                Unpause(Current->Thread); 
+                
+                globalTaskManager->ThreadExecutePerCore[task->CoreID] = NULL;
+                task->IsExit = true;
+                task->IsBlock = true;
+                Atomic::atomicUnlock(&task->EventLock, 0);
+                ForceSchedule();
+            }
+            return KSUCCESS;
+        }else{
+            Current->Thread->Regs->GlobalPurpose = Registers->GlobalPurpose;
+            Unpause(Current->Thread);     
+            Atomic::atomicUnlock(&task->EventLock, 0);       
+        }
     }
     Atomic::atomicAcquire(&MutexScheduler, 0);
 
@@ -163,6 +196,7 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* t
 
     if(task->IsInQueue){
         DequeueTask(task);
+        Atomic::atomicUnlock(&MutexScheduler, 0);
     }else{
         globalTaskManager->ThreadExecutePerCore[task->CoreID] = NULL;
         Atomic::atomicUnlock(&MutexScheduler, 0);
@@ -171,7 +205,6 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* t
         /* noreturn */
     }
 
-    Atomic::atomicUnlock(&MutexScheduler, 0);
 
     return KSUCCESS;
 }
@@ -241,14 +274,6 @@ thread_t* process_t::CreateThread(uintptr_t entryPoint, uint8_t priviledge, uint
     /* Setup priviledge */
     thread->Priviledge = priviledge;
 
-    /* Thread data */
-    uintptr_t threadDataPA = Pmm_RequestPage();
-    thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
-    
-    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey);
-    Keyhole_Create(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, DefaultFlagsKey);
-
-    vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
 
     thread->EntryPoint = entryPoint;
 
@@ -272,13 +297,27 @@ thread_t* process_t::CreateThread(uintptr_t entryPoint, uint8_t priviledge, uint
     thread->MemoryAllocated = 0;
     thread->TimeAllocate = 0;
     thread->IsBlock = true;
+    thread->IsExit = true;
     thread->Parent = this;
-
+    thread->IPCWTInfo = (IPCWTInfo_t*)calloc(sizeof(IPCWTInfo_t));
+    thread->IPCWTInfo->LastData = (IPCWTData_t*)malloc(sizeof(IPCWTData_t));
+    thread->IPCWTInfo->LastData->Next = (IPCWTData_t*)malloc(sizeof(IPCWTData_t));
+    thread->IPCWTInfo->CurrentData = thread->IPCWTInfo->LastData;    
 
     /* ID */
     thread->TID = TID; 
     TID++;
     NumberOfThread++;
+
+    /* Thread data */
+    uintptr_t threadDataPA = Pmm_RequestPage();
+    thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
+    
+    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey);
+    Keyhole_Create(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, DefaultFlagsKey);
+
+    vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
+
 
     Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 1);
     return thread;
@@ -302,16 +341,6 @@ thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
 
     /* Load new stack */
     thread->SetupStack();
-
-    /* Thread data */
-    uintptr_t threadDataPA = Pmm_RequestPage();
-    thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
-    
-    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, KeyholeFlagFullPermissions);
-    Keyhole_Create(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, KeyholeFlagFullPermissions);
-
-    vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, source->Regs->cs == GDTInfoSelectorsRing[UserAppRing].Code);
-
 
     /* Setup SIMD */
     thread->SIMDSaver = simdCreateSaveSpace();
@@ -337,14 +366,27 @@ thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
     thread->CreationTime = HPET::GetTime();
     thread->MemoryAllocated = 0;
     thread->TimeAllocate = 0;
+    thread->IsBlock = true;
+    thread->IsExit = true;
     thread->Parent = this;
-    thread->IsCIP = source->IsCIP;
-    thread->TCIP = source->TCIP;
-
+    thread->IPCWTInfo = (IPCWTInfo_t*)calloc(sizeof(IPCWTInfo_t*));
+    thread->IPCWTInfo->LastData = (IPCWTData_t*)malloc(sizeof(IPCWTData_t));
+    thread->IPCWTInfo->LastData->Next = (IPCWTData_t*)malloc(sizeof(IPCWTData_t));
+    thread->IPCWTInfo->CurrentData = thread->IPCWTInfo->LastData;
+    
     /* ID */
     thread->TID = TID; 
     TID++;
     NumberOfThread++;
+
+    /* Thread data */
+    uintptr_t threadDataPA = Pmm_RequestPage();
+    thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
+    
+    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, KeyholeFlagFullPermissions);
+    Keyhole_Create(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, KeyholeFlagFullPermissions);
+
+    vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, source->Regs->cs == GDTInfoSelectorsRing[UserAppRing].Code);
 
     Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 1);
     return thread;
@@ -536,12 +578,38 @@ KResult thread_t::ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t
     return KFAIL;
 }
 
-bool thread_t::CIP(ContextStack* Registers, uint64_t CoreID, thread_t* thread, parameters_t* FunctionParameters){
-    thread_t* child = thread->Parent->DuplicateThread(thread, this->externalData);
-    child->IsCIP = true;
-    child->TCIP = this;
+bool thread_t::IPCWT(ContextStack* Registers, uint64_t CoreID, thread_t* thread, parameters_t* FunctionParameters, bool IsAsync){
+    if(IsAsync){
+        Atomic::atomicAcquire(&thread->IPCWTInfo->Lock, 0);
+        thread_t* child = thread->Parent->DuplicateThread(thread, this->externalData);
+        child->IsIPCWT = true;
+        child->IPCWTInfo->CurrentData->Thread = this;
+        child->IPCWTInfo->IsAsync = true;
 
-    child->Launch(FunctionParameters);
+        child->Launch(FunctionParameters);
+        Atomic::atomicUnlock(&thread->IPCWTInfo->Lock, 0);
+    }else{
+        Atomic::atomicAcquire(&thread->IPCWTInfo->Lock, 0);
+        thread->IsIPCWT = true;
+        thread->IPCWTInfo->IsAsync = false;
+
+        if(thread->IsExit){
+            thread->IPCWTInfo->CurrentData->Thread = this;
+            thread->Launch(FunctionParameters);
+        }else{
+            thread->IPCWTInfo->LastData = thread->IPCWTInfo->LastData->Next;
+            thread->IPCWTInfo->LastData->Next = (IPCWTData_t*)malloc(sizeof(IPCWTData_t));
+            thread->IPCWTInfo->LastData->Thread = this;
+            if(FunctionParameters != NULL){
+                memcpy(&thread->IPCWTInfo->LastData->Parameters, FunctionParameters, sizeof(parameters_t));
+            }else{
+                memset(&thread->IPCWTInfo->LastData->Parameters, 0, sizeof(parameters_t));
+            }
+
+            thread->IPCWTInfo->TasksInQueu++;
+        } 
+        Atomic::atomicUnlock(&thread->IPCWTInfo->Lock, 0);
+    }
 
     /* Pause task */
     Pause(Registers, CoreID);
@@ -561,6 +629,7 @@ bool thread_t::Launch(parameters_t* FunctionParameters){
 
 bool thread_t::Launch(){
     IsBlock = false;
+    IsExit = false;
     Parent->TaskManagerParent->EnqueueTask(this);
     return true;
 }

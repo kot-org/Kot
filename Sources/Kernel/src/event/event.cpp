@@ -112,7 +112,7 @@ namespace Event{
             event_tasks_t* task = self->Tasks[i];
             Atomic::atomicAcquire(&task->Thread->EventLock, 0);
 
-            if(task->Thread->IsBlock){
+            if(task->Thread->IsExit){
                 task->DataNode->CurrentData->Task = task;
                 task->Thread->Launch(parameters);
             }else{
@@ -146,8 +146,8 @@ namespace Event{
 
         if(task->EventDataNode->NumberOfMissedEvents){
             event_data_t* Next = task->EventDataNode->CurrentData->Next;
-            Registers->rip = task->Regs->rip;
-            Registers->rsp = task->Regs->rsp;
+            Registers->rsp = (uint64_t)task->Regs->rsp;
+            Registers->rip = (uint64_t)task->Regs->rip ;
 
             free(task->EventDataNode->CurrentData);
             task->EventDataNode->CurrentData = Next;
@@ -156,6 +156,7 @@ namespace Event{
             Atomic::atomicUnlock(&task->EventLock, 0);
         }else{
             globalTaskManager->ThreadExecutePerCore[task->CoreID] = NULL;
+            task->IsExit = true;
             task->IsBlock = true;
             Atomic::atomicUnlock(&task->EventLock, 0);
             ForceSchedule();

@@ -11,7 +11,7 @@
 
 /* DataTypeThread */
 #define KeyholeFlagDataTypeThreadMemoryAccessible           0x4
-#define KeyholeFlagDataTypeThreadIsExecutableAsCIP          0x5
+#define KeyholeFlagDataTypeThreadIsExecutableAsIPCWT          0x5
 #define KeyholeFlagDataTypeThreadIsExitable                 0x6 
 #define KeyholeFlagDataTypeThreadIsPauseable                0x7 
 #define KeyholeFlagDataTypeThreadIsUnpauseable              0x8

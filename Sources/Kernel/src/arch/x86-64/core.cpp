@@ -88,7 +88,22 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     
     ArchInfo->rsdp = (uintptr_t)bootInfo->RSDP->rsdp;
 
+    ramfs::Parse(ArchInfo->ramfs.ramfsBase, ArchInfo->ramfs.Size);
+    Successful("RAMFS intialized");
     return ArchInfo;
+}
+
+KResult SendDataToStartService(ArchInfo_t* ArchInfo, thread_t* Thread, parameters_t* Parameters){
+    KResult Statu = KFAIL;
+    ArchInfo->IRQEvents = (kevent_t*)calloc(ArchInfo->IRQSize * sizeof(kevent_t));
+    for(uint64_t i = 0; i < ArchInfo->IRQSize; i++){
+        if(InterruptEventList[i] != NULL){
+            Statu = Keyhole_Create((key_t*)&ArchInfo->IRQEvents[i], Thread->Parent, Thread->Parent, DataTypeEvent, (uint64_t)InterruptEventList[i], KeyholeFlagFullPermissions);
+            if(Statu != KSUCCESS) return Statu;
+        }
+    }
+    Statu = Thread->ShareDataUsingStackSpace(ArchInfo, sizeof(ArchInfo_t), &Parameters->Parameter0);
+    return Statu;
 }
 
 void StopAllCPU(){

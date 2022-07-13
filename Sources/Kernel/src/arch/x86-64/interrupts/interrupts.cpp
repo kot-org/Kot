@@ -4,7 +4,7 @@ IDTR idtr;
 
 uint8_t IDTData[PAGE_SIZE];
 
-event_t* InterruptEventList[256];
+event_t* InterruptEventList[MAX_IRQ];
 
 parameters_t* InterruptParameters;
 
@@ -48,12 +48,14 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
         idtr.Offset = (uint64_t)&IDTData[0];
     }
 
+    ArchInfo->IRQSize = MAX_IRQ;
+
     /* init interrupts */
     InterruptParameters = (parameters_t*)malloc(sizeof(parameters_t));
 
-    for(int i = 0; i < 256; i++){
+    for(int i = 0; i < ArchInfo->IRQSize; i++){
         SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);
-        if(i != IPI_Schedule && i != IPI_Stop){
+        if(i != IPI_Schedule && i != IPI_Stop && i >= Exception_End){
             if(i >= ArchInfo->IRQLineStart  && i <= ArchInfo->IRQLineStart + ArchInfo->IRQLineSize){
                 Event::Create(&InterruptEventList[i], EventTypeIRQLines, i - ArchInfo->IRQLineStart);
             }else{
@@ -69,7 +71,7 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
 }
 
 extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
-    if(Registers->InterruptNumber < 32){
+    if(Registers->InterruptNumber < Exception_End){
         // execptions
         ExceptionHandler(Registers, CoreID);
     }else if(Registers->InterruptNumber == IPI_Schedule){
@@ -85,7 +87,6 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
         InterruptParameters->Parameter0 = Registers->InterruptNumber;
         Event::Trigger((thread_t*)0x0, InterruptEventList[Registers->InterruptNumber], InterruptParameters);
     }
-
     APIC::localApicEOI(CoreID);
 }
 
@@ -103,6 +104,7 @@ void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
         }
 
         Error("Thread error, PID : %x | TID : %x \nWith execption : '%s' | Error code : %x", Registers->ThreadInfo->Thread->Parent->PID, Registers->ThreadInfo->Thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
+        PrintRegisters(Registers);
         globalTaskManager->Exit(Registers, CoreID, Registers->ThreadInfo->Thread); 
         globalTaskManager->Scheduler(Registers, CoreID); 
     }
@@ -119,5 +121,6 @@ bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID){
 
 void KernelUnrecovorable(ContextStack* Registers, uint64_t CoreID){
     Error("Kernel Panic CPU %x \nWith execption : '%s' | Error code : %x", CoreID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
+    PrintRegisters(Registers);
     KernelPanic("Unrecovorable exception ;(");
 }

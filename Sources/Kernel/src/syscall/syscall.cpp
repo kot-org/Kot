@@ -79,19 +79,18 @@ KResult Sys_ShareDataUsingStackSpace(ContextStack* Registers, thread_t* Thread){
     return globalTaskManager->ShareDataUsingStackSpace(threadkey, (uintptr_t)Registers->arg1, Registers->arg2, (uint64_t*)Registers->arg3);
 }
 
-/* Sys_CIP :
+/* Sys_IPCWT :
     Arguments : 
 */
-KResult Sys_CIP(ContextStack* Registers, thread_t* Thread){
+KResult Sys_IPCWT(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsExecutableAsCIP)) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsExecutableAsIPCWT)) return KKEYVIOLATION;
     if(CheckAddress((uintptr_t)Registers->arg1, sizeof(parameters_t)) != KSUCCESS) return KMEMORYVIOLATION;
-    Registers->InterruptNumber = 1;
     CPU::DisableInterrupts();
-    Thread->CIP(Registers, Thread->CoreID, threadkey, (parameters_t*)Registers->arg1);
-    return KSUCCESS;
+    KResult statu = Thread->IPCWT(Registers, Thread->CoreID, threadkey, (parameters_t*)Registers->arg1, (bool)Registers->arg2);
+    return statu;
 }
 
 /* Sys_CreateProc :
@@ -125,7 +124,8 @@ KResult Sys_Exit(ContextStack* Registers, thread_t* Thread){
     }
     CPU::DisableInterrupts();
     Registers->InterruptNumber = 1;
-    return globalTaskManager->Exit(Registers, Thread->CoreID, threadkey);
+    KResult statu = globalTaskManager->Exit(Registers, Thread->CoreID, threadkey);
+    return statu;
 }
 
 /* Sys_Pause :
@@ -138,7 +138,9 @@ KResult Sys_Pause(ContextStack* Registers, thread_t* Thread){
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsPauseable)) return KKEYVIOLATION;
     CPU::DisableInterrupts();
     Registers->InterruptNumber = 1;
-    return globalTaskManager->Pause(Registers, Thread->CoreID, threadkey);
+    KResult statu = globalTaskManager->Pause(Registers, Thread->CoreID, threadkey);
+    /* No return */
+    return statu;
 }
 
 /* Sys_UnPause :
@@ -221,7 +223,7 @@ KResult Sys_Map(ContextStack* Registers, thread_t* Thread){
         for(uint64_t i = 0; i < pages; i++){
             uintptr_t virtualAddress = (uintptr_t)(*addressVirtual + i * PAGE_SIZE);
             if(AllocatePhysicallPage){
-                vmm_Map(pageTable, virtualAddress, (uintptr_t)((uint64_t)*addressPhysical + i * PAGE_SIZE));
+                vmm_Map(pageTable, virtualAddress, (uintptr_t)((uint64_t)*addressPhysical + i * PAGE_SIZE), true);
             }else if(!vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage)){
                 uintptr_t physicalAddressAllocated = (uintptr_t)Pmm_RequestPage();
                 if(IsPhysicalAddress){
@@ -232,8 +234,8 @@ KResult Sys_Map(ContextStack* Registers, thread_t* Thread){
                 vmm_Map(pageTable, virtualAddress, physicalAddressAllocated, true);
                 vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_PhysicalStorage, true); //set master state
                 processkey->MemoryAllocated += PAGE_SIZE;
-                *size += PAGE_SIZE;
-            }        
+            }
+            *size += PAGE_SIZE;      
         } 
 
         return KSUCCESS;
@@ -348,7 +350,7 @@ KResult Sys_Event_Close(ContextStack* Registers, thread_t* Thread){
     if(!Thread->IsEvent) return KFAIL;
     CPU::DisableInterrupts();
     uint64_t status = Event::Close(Registers, Thread);
-    CPU::EnableInterrupts();
+    /* No return */
     return status;
 }
 
@@ -385,11 +387,12 @@ KResult Sys_DuplicateThread(ContextStack* Registers, thread_t* Thread){
     Arguments : 
 */
 KResult Sys_ExecThread(ContextStack* Registers, thread_t* Thread){
+    /* TODO : redirect ICWP thread */
     thread_t* threadkey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsExecutable)) return KKEYVIOLATION;
-    if(CheckAddress((uintptr_t)Registers->arg1, sizeof(Parameters)) != KSUCCESS) return KMEMORYVIOLATION;    
+    if(CheckAddress((uintptr_t)Registers->arg1, sizeof(parameters_t)) != KSUCCESS) return KMEMORYVIOLATION;    
     CPU::DisableInterrupts();
     uint64_t status = globalTaskManager->ExecThread(threadkey, (parameters_t*)Registers->arg1);
     CPU::EnableInterrupts();
@@ -436,7 +439,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_GetShareMemory] = Sys_GetShareMemory,
     [KSys_FreeShareMemory] = Sys_FreeShareMemory,
     [KSys_ShareDataUsingStackSpace] = Sys_ShareDataUsingStackSpace,
-    [KSys_CIP] = Sys_CIP,
+    [KSys_IPCWT] = Sys_IPCWT,
     [KSys_CreateProc] = Sys_CreateProc,
     [KSys_CloseProc] = Sys_CloseProc,
     [KSys_Exit] = Sys_Exit,
@@ -463,6 +466,5 @@ extern "C" void SyscallDispatch(ContextStack* Registers, thread_t* Self){
     }
 
     Registers->GlobalPurpose = SyscallHandlers[Registers->GlobalPurpose](Registers, Self);
-
     return;
 }
