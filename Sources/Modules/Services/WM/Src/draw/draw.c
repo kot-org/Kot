@@ -1,27 +1,27 @@
-#include "core/main.h"
+#include <core/main.h>
 
-void put_pixel(uint32_t x, uint32_t y, int r, int g, int b)
+void PutPixel(uint32_t x, uint32_t y, uint32_t color)
 {
-    uint8_t *fb = fb_addr;
-    uint64_t index = (x + (y * fb_width)) * (fb_bpp / 8);
+    uint8_t *fb = screenInfo->fb_addr;
+    uint64_t index = (x + (y * screenInfo->width)) * (screenInfo->bpp / 8);
 
-    fb[index + 2] = r;      // RED
-    fb[index + 1] = g;      // GREEN
-    fb[index] = b;          // BLUE
+    fb[index + 2] = (color >> 16) & 255;
+    fb[index + 1] = (color >> 8) & 255;
+    fb[index] = color & 255;
 }
 
-void create_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color)
+void CreateRect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color)
 {
     for (int i = 0; i < h; i++)
     {
         for (int j = 0; j < w; j++)
         {
-            put_pixel(j + x, i + y, (color >> 16) & 255, (color >> 8) & 255, color & 255);
+            PutPixel(j + x, i + y, color);
         }
     }
 }
 
-void create_Gradientrect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t fromColor, uint32_t toColor)
+void CreateGradientRect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t fromColor, uint32_t toColor)
 {
     uint8_t bf = fromColor & 255, gf = (fromColor >> 8) & 255, rf = (fromColor >> 16) & 255;
     uint8_t bt = toColor & 255, gt = (toColor >> 8) & 255, rt = (toColor >> 16) & 255;
@@ -48,9 +48,12 @@ void create_Gradientrect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_
         pxColor.r -= jumpPx.r;
         pxColor.g -= jumpPx.g;
         pxColor.b -= jumpPx.b;
+
+        uint32_t color = (((uint32_t) pxColor.r << 16) & 255) + (((uint32_t) pxColor.g << 8) & 255) + ((uint32_t) pxColor.b & 255);
+
         for (int i = 0; i < h; i++)
         {
-            put_pixel(j + x, i + y, pxColor.r, pxColor.g, pxColor.b);
+            PutPixel(j + x, i + y, color);
         }
     }
 }

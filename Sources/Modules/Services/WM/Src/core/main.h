@@ -21,9 +21,14 @@ typedef struct
     uint8_t  unused;
 } framebuffer_t;
 
-extern uint64_t fb_addr;
-extern size_t fb_size;
-extern uint16_t fb_width;
-extern uint16_t fb_height;
-extern uint16_t fb_pitch;
-extern uint16_t fb_bpp;
+typedef struct
+{
+    uint64_t fb_addr;
+    size_t fb_size;
+    uint16_t width;
+    uint16_t height;
+    uint16_t pitch;
+    uint16_t bpp;
+} ScreenInfo;
+
+extern ScreenInfo *screenInfo;
