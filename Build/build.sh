@@ -1,22 +1,28 @@
+SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+cd $SCRIPTPATH
+cd "../"
+
 echo -e "\e[32mCreating compilation dirs...\e[0m"
 
 mkdir -p "Sysroot/include/kot/"
 mkdir -p "Sysroot/lib/"
 mkdir -p "Bin/Modules/"
 
-cp -p "Build/Starter.cfg" "Bin/Modules/Starter.cfg"
-
 echo -e "\e[32mCompiling kot libraries...\e[0m"
 
-cd "Sources/"
+cd "Sources/Libs/"
 
 # libc
 
-sudo make -C "Libs/libc/build"
+cd "libc/build/"
+make
+cd "../../"
 
 # abi
 
-sudo make -C "Libs/abi/build"
+cd "abi/build/"
+make
+cd "../../../"
 
 echo -e "\e[32mCompiling kot drivers...\e[0m"
 
@@ -28,7 +34,7 @@ echo -e "\e[32mCompiling kot modules...\e[0m"
 
 # Services
 sudo make -C "Modules/Services/System/Build"
-sudo make -C "Modules/Services/WM/Build"
+sudo make -C "Modules/Services/VM/Build"
 
 # ramfs
 
