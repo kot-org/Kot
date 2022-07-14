@@ -5,12 +5,12 @@ CC = clang-14
 LD = ld.lld-14
 ASMC = nasm
 
-CFLAGS = -I$(_HOME)Sysroot/include/ -Isrc --target=x86_64-unknown-none-elf -ffreestanding -fno-builtin -nostdlib -nostdinc -nostdinc++ -fshort-wchar -g -mno-red-zone -fno-exceptions -fPIC
+CFLAGS = -I$(_HOME)Sysroot/Include/ -Isrc --target=x86_64-unknown-none-elf -ffreestanding -fno-builtin -nostdlib -nostdinc -nostdinc++ -fshort-wchar -g -mno-red-zone -fno-exceptions -fPIC
 ASMFLAGS = 
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib --no-relax
 
-SRCDIR := src
-OBJDIR := lib
+SRCDIR := Src
+OBJDIR := Lib
 BUILDDIR = $(_HOME)Bin
 LIMINEBUIDLDIR = $(_HOME)Bin/Limine
 
@@ -49,12 +49,12 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 	
 link:
 	@ echo !==== LINKING
-	$(LD) $(LDFLAGS) -o $(BUILDDIR)/kernel.elf $(OBJS) $(OBJSCPP)
+	$(LD) $(LDFLAGS) -o $(BUILDDIR)/Kernel.elf $(OBJS) $(OBJSCPP)
 
 createISO:
 	@ echo !==== ISO
 	mkdir -p $(LIMINEBUIDLDIR)
-	cp -v $(BUILDDIR)/kernel.elf limine.cfg limine/limine.sys limine/limine-cd.bin limine/limine-cd-efi.bin $(LIMINEBUIDLDIR)
+	cp -v $(BUILDDIR)/Kernel.elf limine.cfg limine/limine.sys limine/limine-cd.bin limine/limine-cd-efi.bin $(LIMINEBUIDLDIR)
 	xorriso -as mkisofs -b limine-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table \
         --efi-boot limine-cd-efi.bin -efi-boot-part --efi-boot-image --protective-msdos-label \
         $(LIMINEBUIDLDIR) -o $(BUILDDIR)/kot.iso
@@ -63,6 +63,6 @@ createISO:
 createISOEFI:
 	@ echo !==== ISO EFI
 	mkdir -p  $(LIMINEBUIDLDIR)
-	cp $(BUILDDIR)/kernel.elf limine/limine.sys limine/limine-cd-efi.bin  $(LIMINEBUIDLDIR)/
+	cp $(BUILDDIR)/Kernel.elf limine/limine.sys limine/limine-cd-efi.bin  $(LIMINEBUIDLDIR)/
 	xorriso -as mkisofs --efi-boot limine-cd-efi.bin -efi-boot-part --efi-boot-image -J -o $(BUILDDIR)/kotEFI.iso  $(LIMINEBUIDLDIR)
 	./limine/limine-deploy $(BUILDDIR)/kotEFI.iso

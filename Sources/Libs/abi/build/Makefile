@@ -1,9 +1,9 @@
 _HOME = ../../../../
 
-INCDIR = $(_HOME)Sysroot/include/kot
-OBJDIR := $(_HOME)Sysroot/lib
+INCDIR = $(_HOME)Sysroot/Include/kot
+OBJDIR := $(_HOME)Sysroot/Lib
 
-SRCDIR := ../src
+SRCDIR := ../Src
 
 CC = clang-14
 ASMC = nasm

@@ -3,8 +3,8 @@ _HOME = ../../../../../
 CC = clang-14
 ASMC = nasm
 
-CFLAGS = --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I$(_HOME)Sysroot/include
-LINKERFLAGS = -nostartfiles -Wall -static -L$(_HOME)Sysroot/lib/ -lc
+CFLAGS = --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I$(_HOME)Sysroot/Include
+LINKERFLAGS = -nostartfiles -Wall -static -L$(_HOME)Sysroot/Lib/ -lc
 
 SRCDIR := ../Src
 OBJDIR := ../Lib
@@ -35,7 +35,7 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 
 link:
 	@ echo !==== LINKING
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/VGA.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/lib/crt0.o
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Vga.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/Lib/crt0.o
 	
 copyToFS:
 	cd $(_HOME)Tools && bash ./BuildRamFS.sh

@@ -1,11 +1,11 @@
 _HOME = ../../../../
 
-INCDIR = $(_HOME)Sysroot/include
-BUILDDIR := $(_HOME)Sysroot/lib
+INCDIR = $(_HOME)Sysroot/Include
+BUILDDIR := $(_HOME)Sysroot/Lib
 BINDIR = $(_HOME)Bin/Modules
 
-OBJDIR := ../lib
-SRCDIR := ../src
+OBJDIR := ../Lib
+SRCDIR := ../Src
 
 CC = clang-14
 ASMC = nasm
@@ -25,7 +25,6 @@ OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASSRC))
 OBJINC += $(patsubst $(SRCDIR)/%.h, $(INCDIR)/kot/%.h, $(INC))
 
 DIRS = $(wildcard $(SRCDIR)/*)         
-
 	
 main: copy $(OBJS) link
 
