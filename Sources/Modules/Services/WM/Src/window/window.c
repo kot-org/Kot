@@ -1,18 +1,27 @@
+#include <kot/modules/wm/draw/draw.h>
+
 #include <core/main.h>
-#include <draw/draw.h>
 #include <window/window.h>
 
-WindowInfo *windowInfo;
-
-void CreateWindow(uint32_t x, uint32_t y, uint32_t w, uint32_t h)
+WindowInfo_t* CreateWindow(uint32_t x, uint32_t y, uint32_t w, uint32_t h)
 {
-    windowInfo = (WindowInfo *) malloc(sizeof(WindowInfo));
+    WindowInfo_t* windowInfo = (WindowInfo_t *) malloc(sizeof(WindowInfo_t));
 
-    DrawWindow(x, y, w, h, 0x222222);
+    DrawWindow(screenInfo, x, y, w, h, 0x222222);
     
     windowInfo->visibility = true;
     windowInfo->width = w;
     windowInfo->height = h;
+    windowInfo->xPos = x;
+    windowInfo->yPos = y;
+
+    return windowInfo;
+}
+
+void MoveWindow(WindowInfo_t* windowInfo, uint32_t x, uint32_t y)
+{
+    DrawWindow(screenInfo, windowInfo->xPos, windowInfo->yPos, windowInfo->width, windowInfo->height, 0x1A1A1A);
+    DrawWindow(screenInfo, x, y, windowInfo->width, windowInfo->height, 0x222222);
 }
 
 void ClearScreen(void)

@@ -2,16 +2,9 @@
 
 #include <kot/sys.h>
 
-typedef struct
-{
-    uint64_t fb_addr;
-    bool visibility;
-    uint32_t width;
-    uint32_t height;
-} WindowInfo;
+#include <kot/modules/wm/draw/draw.h>
 
-extern WindowInfo *windowInfo;
-
-void CreateWindow(uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+WindowInfo_t* CreateWindow(uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+void MoveWindow(WindowInfo_t* windowInfo, uint32_t x, uint32_t y);
 
 void ClearScreen(void);
