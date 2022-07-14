@@ -20,6 +20,8 @@ WindowInfo_t* CreateWindow(uint32_t x, uint32_t y, uint32_t w, uint32_t h)
 
 void MoveWindow(WindowInfo_t* windowInfo, uint32_t x, uint32_t y)
 {
+    windowInfo->xPos = x;
+    windowInfo->yPos = y;
     DrawWindow(screenInfo, windowInfo->xPos, windowInfo->yPos, windowInfo->width, windowInfo->height, 0x1A1A1A);
     DrawWindow(screenInfo, x, y, windowInfo->width, windowInfo->height, 0x222222);
 }
