@@ -9,8 +9,8 @@ CFLAGS = -I$(_HOME)Sysroot/Include/ -Isrc --target=x86_64-unknown-none-elf -ffre
 ASMFLAGS = 
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib --no-relax
 
-SRCDIR := Src
-OBJDIR := Lib
+SRCDIR := src
+OBJDIR := lib
 BUILDDIR = $(_HOME)Bin
 LIMINEBUIDLDIR = $(_HOME)Bin/Limine
 

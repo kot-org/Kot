@@ -3,7 +3,7 @@ _HOME = ../../../../
 INCDIR = $(_HOME)Sysroot/Include/kot
 OBJDIR := $(_HOME)Sysroot/Lib
 
-SRCDIR := ../Src
+SRCDIR := ../src
 
 CC = clang-14
 ASMC = nasm

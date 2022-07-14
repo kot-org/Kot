@@ -15,21 +15,21 @@ cd "Sources/"
 # Libraries
 echo -e "\e[32mCompiling kot libraries...\e[0m"
 
-sudo make -C "Libs/libc/Build"
-sudo make -C "Libs/abi/Build"
+sudo make -C "Libs/libc/build"
+sudo make -C "Libs/abi/build"
 
 # Drivers
 echo -e "\e[32mCompiling kot drivers...\e[0m"
 
-sudo make -C "Modules/Drivers/ps2/Build"
-sudo make -C "Modules/Drivers/vga/Build"
+sudo make -C "Modules/Drivers/ps2/build"
+sudo make -C "Modules/Drivers/vga/build"
 
 # Services
 echo -e "\e[32mCompiling kot services...\e[0m"
 
-sudo make -C "Modules/Services/system/Build"
-sudo make -C "Modules/Services/wm/Build"
-sudo make -C "Modules/Services/uisd/Build"
+sudo make -C "Modules/Services/system/build"
+sudo make -C "Modules/Services/wm/build"
+sudo make -C "Modules/Services/uisd/build"
 
 # ramfs
 cd "../"

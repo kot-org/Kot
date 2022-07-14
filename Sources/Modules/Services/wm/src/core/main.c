@@ -33,7 +33,6 @@ int main(int argc, char* argv[], framebuffer_t* Framebuffer)
 
     // MoveWindow(window1, 400, 400);
     CloseWindow(window1);
-    MoveWindow(window1, 400, 400);
 
     return KSUCCESS;
 }
