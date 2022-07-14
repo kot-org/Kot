@@ -3,6 +3,9 @@
 #include <kot/sys.h>
 #include <kot/modules/wm/draw/draw.h>
 
+#define SCREEN_BKG_COLOR 0x1A1A1A
+#define WINDOW_BKG_COLOR 0x222222
+
 typedef struct
 {
     uint64_t identifier;
@@ -22,4 +25,4 @@ typedef struct
     uint8_t  unused;
 } framebuffer_t;
 
-extern WindowInfo_t* screenInfo;
+extern window_t* screenInfo;

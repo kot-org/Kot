@@ -13,9 +13,11 @@ typedef struct
     uint32_t bpp;
     uint32_t xPos;
     uint32_t yPos;
-} WindowInfo_t;
+} window_t;
 
-void PutPixel(WindowInfo_t* self, uint32_t x, uint32_t y, uint32_t color);
-void DrawWindowMenuBar(WindowInfo_t* self, uint32_t x, uint32_t y, uint32_t w, uint32_t h);
-void DrawWindow(WindowInfo_t* self, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color);
-void DrawRect(WindowInfo_t* self, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color);
+void PutPixel(window_t* self, uint32_t x, uint32_t y, uint32_t color);
+
+void DrawWindowMenuBar(window_t* self, uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+void DrawWindow(window_t* self, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color);
+
+void DrawRect(window_t* self, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color);

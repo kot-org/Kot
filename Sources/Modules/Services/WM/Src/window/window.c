@@ -3,11 +3,11 @@
 #include <core/main.h>
 #include <window/window.h>
 
-WindowInfo_t* CreateWindow(uint32_t x, uint32_t y, uint32_t w, uint32_t h)
+window_t* CreateWindow(uint32_t x, uint32_t y, uint32_t w, uint32_t h)
 {
-    WindowInfo_t* windowInfo = (WindowInfo_t *) malloc(sizeof(WindowInfo_t));
+    window_t* windowInfo = (window_t *) malloc(sizeof(window_t));
 
-    DrawWindow(screenInfo, x, y, w, h, 0x222222);
+    DrawWindow(screenInfo, x, y, w, h, WINDOW_BKG_COLOR);
     
     windowInfo->visibility = true;
     windowInfo->width = w;
@@ -18,15 +18,23 @@ WindowInfo_t* CreateWindow(uint32_t x, uint32_t y, uint32_t w, uint32_t h)
     return windowInfo;
 }
 
-void MoveWindow(WindowInfo_t* windowInfo, uint32_t x, uint32_t y)
+void CloseWindow(window_t* windowInfo)
 {
+    DrawWindow(screenInfo, windowInfo->xPos, windowInfo->yPos, windowInfo->width, windowInfo->height, SCREEN_BKG_COLOR);
+    
+    free(windowInfo);
+}
+
+void MoveWindow(window_t* windowInfo, uint32_t x, uint32_t y)
+{
+    DrawWindow(screenInfo, windowInfo->xPos, windowInfo->yPos, windowInfo->width, windowInfo->height, SCREEN_BKG_COLOR);
+    DrawWindow(screenInfo, x, y, windowInfo->width, windowInfo->height, WINDOW_BKG_COLOR);
+
     windowInfo->xPos = x;
     windowInfo->yPos = y;
-    DrawWindow(screenInfo, windowInfo->xPos, windowInfo->yPos, windowInfo->width, windowInfo->height, 0x1A1A1A);
-    DrawWindow(screenInfo, x, y, windowInfo->width, windowInfo->height, 0x222222);
 }
 
 void ClearScreen(void)
 {
-    memset(screenInfo->fb_addr, 0x1A1A1A, screenInfo->fb_size);
+    memset(screenInfo->fb_addr, SCREEN_BKG_COLOR, screenInfo->fb_size);
 }

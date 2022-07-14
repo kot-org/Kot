@@ -1,6 +1,6 @@
 #include <kot/modules/wm/draw/draw.h>
 
-void PutPixel(WindowInfo_t* self, uint32_t x, uint32_t y, uint32_t color)
+void PutPixel(window_t* self, uint32_t x, uint32_t y, uint32_t color)
 {
     uint8_t *fb = self->fb_addr;
     uint64_t index = (x + (y * self->width)) * (self->bpp / 8);
@@ -10,7 +10,7 @@ void PutPixel(WindowInfo_t* self, uint32_t x, uint32_t y, uint32_t color)
     fb[index] = color & 255;                // BLUE
 }
 
-void DrawWindow(WindowInfo_t* self, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color)
+void DrawWindow(window_t* self, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color)
 {
     uint32_t bdr_color = 0x000000;
 
@@ -23,7 +23,7 @@ void DrawWindow(WindowInfo_t* self, uint32_t x, uint32_t y, uint32_t w, uint32_t
     }
 }
 
-void DrawRect(WindowInfo_t* self, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color)
+void DrawRect(window_t* self, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color)
 {
     for (int i = 0; i < h; i++)
     {
