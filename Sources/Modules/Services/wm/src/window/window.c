@@ -22,7 +22,7 @@ void CloseWindow(window_t* windowInfo)
 {
     DrawWindow(screenInfo, windowInfo->xPos, windowInfo->yPos, windowInfo->width, windowInfo->height, SCREEN_BKG_COLOR);
     
-    free(windowInfo);
+    free(&windowInfo);
 }
 
 void MoveWindow(window_t* windowInfo, uint32_t x, uint32_t y)
