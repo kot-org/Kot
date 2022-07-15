@@ -392,7 +392,9 @@ KResult Sys_ExecThread(ContextStack* Registers, thread_t* Thread){
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsExecutable)) return KKEYVIOLATION;
-    if(CheckAddress((uintptr_t)Registers->arg1, sizeof(parameters_t)) != KSUCCESS) return KMEMORYVIOLATION;    
+    if(Registers->arg1 != NULL){
+        if(CheckAddress((uintptr_t)Registers->arg1, sizeof(parameters_t)) != KSUCCESS) return KMEMORYVIOLATION;    
+    }
     CPU::DisableInterrupts();
     uint64_t status = globalTaskManager->ExecThread(threadkey, (parameters_t*)Registers->arg1);
     CPU::EnableInterrupts();
