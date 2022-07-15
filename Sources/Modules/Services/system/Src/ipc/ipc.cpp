@@ -17,7 +17,7 @@ kthread_t IPCInitialize(){
     return IPCThreadKey;
 }
 
-KResult IPCHandler(uint64_t IPCTask, uint64_t GlobalPurpose, uint64_t EncodedName){
+KResult IPCHandler(uint64_t IPCTask, uint64_t EncodedName, uint64_t GlobalPurpose){
     KResult statu = KSUCCESS;
     switch (IPCTask)
     {

@@ -10,12 +10,12 @@
 #define IPCTaskCreate   0x1
 #define IPCTaskDelete   0x2
 
-static inline kthread_t CallIPC(char* Name, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3){
+static inline kthread_t CallIPC(char* Name){
     parameters_t Parameters;
     Parameters.Parameter0 = IPCTaskAsk;
     size_t lenght = strlen(Name);
     if(lenght > 8) lenght = 8;
-    memcpy(&Parameters.Parameter2, Name, lenght);
+    memcpy(&Parameters.Parameter1, Name, lenght);
 
     return Sys_IPC(KotSpecificData.IPCHandler, (parameters_t*)&Parameters, false);
 }
@@ -23,10 +23,10 @@ static inline kthread_t CallIPC(char* Name, uint64_t arg0, uint64_t arg1, uint64
 static inline KResult CreateIPC(char* Name, kthread_t Thread){
     parameters_t Parameters;
     Parameters.Parameter0 = IPCTaskAsk;
-    Parameters.Parameter1 = (uint64_t)Thread;
     size_t lenght = strlen(Name);
     if(lenght > 8) lenght = 8;
-    memcpy(&Parameters.Parameter2, Name, lenght);
+    memcpy(&Parameters.Parameter1, Name, lenght);
+    Parameters.Parameter2 = (uint64_t)Thread;
 
     return Sys_IPC(KotSpecificData.IPCHandler, (parameters_t*)&Parameters, false);
 }
