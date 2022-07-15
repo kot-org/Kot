@@ -6,4 +6,4 @@
 
 kthread_t IPCInitialize();
 
-KResult IPCHandler(struct IPCParameters_t data);
+KResult IPCHandler(uint64_t IPCTask, uint64_t GlobalPurpose, uint64_t EncodedName);

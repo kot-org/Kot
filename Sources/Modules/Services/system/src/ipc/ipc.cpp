@@ -17,7 +17,20 @@ kthread_t IPCInitialize(){
     return IPCThreadKey;
 }
 
-KResult IPCHandler(struct IPCParameters_t data){
-    Printlog(data.Name);
-    SYS_Exit(NULL, KSUCCESS);
+KResult IPCHandler(uint64_t IPCTask, uint64_t EncodedName, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3){
+    KResult statu = KSUCCESS;
+    switch (IPCTask)
+    {
+    case IPCTaskAsk:
+        break;
+    case IPCTaskCreate:
+        break;
+    case IPCTaskDelete:
+        break;
+    default:
+        statu = KFAIL;
+        break;
+    }
+
+    SYS_Exit(NULL, statu);
 }

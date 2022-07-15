@@ -4,34 +4,29 @@
 #include <kot/sys.h>
 #include <kot/types.h>
 #include <kot/memory.h>
-
-struct IPCParameters_t{
-    uint64_t IPCTask;
-    uint64_t GlobalPurpose;
-    char Name[32];
-};
+#include <kot/cstring.h>
 
 #define IPCTaskAsk      0x0
 #define IPCTaskCreate   0x1
 #define IPCTaskDelete   0x2
 
-static inline kthread_t CallIPC(char* Name){
-    IPCParameters_t Parameters;
-    Parameters.IPCTask = IPCTaskAsk;
+static inline kthread_t CallIPC(char* Name, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3){
+    parameters_t Parameters;
+    Parameters.Parameter0 = IPCTaskAsk;
     size_t lenght = strlen(Name);
-    lenght &= 0x20;
-    memcpy(&Parameters.Name, Name, lenght);
+    if(lenght > 8) lenght = 8;
+    memcpy(&Parameters.Parameter2, Name, lenght);
 
     return Sys_IPC(KotSpecificData.IPCHandler, (parameters_t*)&Parameters, false);
 }
 
 static inline KResult CreateIPC(char* Name, kthread_t Thread){
-    IPCParameters_t Parameters;
-    Parameters.IPCTask = IPCTaskAsk;
+    parameters_t Parameters;
+    Parameters.Parameter0 = IPCTaskAsk;
+    Parameters.Parameter1 = (uint64_t)Thread;
     size_t lenght = strlen(Name);
-    lenght &= 0x20;
-    memcpy(&Parameters.Name, Name, lenght);
-    Parameters.GlobalPurpose = (uint64_t)Thread;
+    if(lenght > 8) lenght = 8;
+    memcpy(&Parameters.Parameter2, Name, lenght);
 
     return Sys_IPC(KotSpecificData.IPCHandler, (parameters_t*)&Parameters, false);
 }
