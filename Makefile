@@ -16,6 +16,6 @@ deps-debian: deps-llvm
 clean:
 	rm -rf ./Bin
 
-.github: deps-llvm build
+github-action: deps-llvm build
 
-.PHONY: build run llvm deps-debian .github
+.PHONY: build run llvm deps-debian github-action
