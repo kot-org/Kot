@@ -62,7 +62,7 @@ KResult SYS_CreateShareSpace(kprocess_t self, size_t size, uintptr_t* virtualAdd
 KResult SYS_GetShareSpace(kprocess_t self, ksmem_t key, uintptr_t* virtualAddressPointer);
 KResult SYS_FreeShareSpace(kprocess_t self, ksmem_t key, uintptr_t address);
 KResult SYS_ShareDataUsingStackSpace(kthread_t self, uint64_t address, size_t size, uint64_t* clientAddress);
-KResult Sys_IPCWT(kthread_t task, struct parameters_t* param, bool IsAsync);
+KResult Sys_IPC(kthread_t task, struct parameters_t* param, bool IsAsync);
 KResult Sys_CreateProc(kprocess_t* key, enum Priviledge privilege, uint64_t data);
 KResult Sys_Fork(kprocess_t* src, kprocess_t* dst);
 KResult Sys_CloseProc();

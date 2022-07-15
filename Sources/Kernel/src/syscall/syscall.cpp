@@ -79,17 +79,17 @@ KResult Sys_ShareDataUsingStackSpace(ContextStack* Registers, thread_t* Thread){
     return globalTaskManager->ShareDataUsingStackSpace(threadkey, (uintptr_t)Registers->arg1, Registers->arg2, (uint64_t*)Registers->arg3);
 }
 
-/* Sys_IPCWT :
+/* Sys_IPC :
     Arguments : 
 */
-KResult Sys_IPCWT(ContextStack* Registers, thread_t* Thread){
+KResult Sys_IPC(ContextStack* Registers, thread_t* Thread){
     thread_t* threadkey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsExecutableAsIPCWT)) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeThreadIsExecutableAsIPC)) return KKEYVIOLATION;
     if(CheckAddress((uintptr_t)Registers->arg1, sizeof(parameters_t)) != KSUCCESS) return KMEMORYVIOLATION;
     CPU::DisableInterrupts();
-    KResult statu = Thread->IPCWT(Registers, Thread->CoreID, threadkey, (parameters_t*)Registers->arg1, (bool)Registers->arg2);
+    KResult statu = Thread->IPC(Registers, Thread->CoreID, threadkey, (parameters_t*)Registers->arg1, (bool)Registers->arg2);
     return statu;
 }
 
@@ -439,7 +439,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_GetShareMemory] = Sys_GetShareMemory,
     [KSys_FreeShareMemory] = Sys_FreeShareMemory,
     [KSys_ShareDataUsingStackSpace] = Sys_ShareDataUsingStackSpace,
-    [KSys_IPCWT] = Sys_IPCWT,
+    [KSys_IPC] = Sys_IPC,
     [KSys_CreateProc] = Sys_CreateProc,
     [KSys_CloseProc] = Sys_CloseProc,
     [KSys_Exit] = Sys_Exit,

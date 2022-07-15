@@ -5,7 +5,7 @@
 #define KSys_FreeShareMemory 0x2
 #define KSys_ShareDataUsingStackSpace 0x3
 
-#define KSys_IPCWT 0x4
+#define KSys_IPC 0x4
 #define KSys_CreateProc 0x5
 #define KSys_CloseProc 0x6
 

@@ -32,18 +32,18 @@ struct StackInfo{
     uint64_t StackEndMax;
 }__attribute__((packed));
 
-struct IPCWTInfo_t{
+struct IPCInfo_t{
     bool IsAsync;
     uint64_t TasksInQueu;
     uint64_t Lock;
-    struct IPCWTData_t* CurrentData;
-    struct IPCWTData_t* LastData;
+    struct IPCData_t* CurrentData;
+    struct IPCData_t* LastData;
 }__attribute__((packed));
 
-struct IPCWTData_t{
+struct IPCData_t{
     thread_t* Thread; // Thread laucnh when ipc task is finished
     parameters_t Parameters;
-    IPCWTData_t* Next;
+    IPCData_t* Next;
 }__attribute__((packed));
 
 
@@ -119,9 +119,9 @@ struct thread_t{
     process_t* Parent;
     Node* ThreadNode;
     
-    /* IPCWT inter processus communication with threads */
-    bool IsIPCWT;
-    IPCWTInfo_t* IPCWTInfo;
+    /* IPC inter processus communication with threads */
+    bool IsIPC;
+    IPCInfo_t* IPCInfo;
 
     /* Event */
     bool IsEvent;
@@ -148,7 +148,7 @@ struct thread_t{
     bool ExtendStack(uint64_t address, size_t size);
     KResult ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t* location);
 
-    bool IPCWT(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread, parameters_t* FunctionParameters, bool IsAsync);
+    bool IPC(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread, parameters_t* FunctionParameters, bool IsAsync);
 
     bool Launch(parameters_t* FunctionParameters);  
     bool Launch();  

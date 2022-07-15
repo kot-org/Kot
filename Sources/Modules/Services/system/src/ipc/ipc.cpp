@@ -6,7 +6,7 @@ kthread_t IPCInitialize(){
     kthread_t IPCThreadKey;
     uint64_t IPCKeyFlags = NULL;
     Keyhole_SetFlag(&IPCKeyFlags, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&IPCKeyFlags, KeyholeFlagDataTypeThreadIsExecutableAsIPCWT, true);
+    Keyhole_SetFlag(&IPCKeyFlags, KeyholeFlagDataTypeThreadIsExecutableAsIPC, true);
 
     kprocess_t process;
     SYS_GetProcessKey(&process);

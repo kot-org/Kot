@@ -143,23 +143,23 @@ uint64_t TaskManager::Unpause(thread_t* task){
 } 
 
 uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, thread_t* task){    
-    if(task->IsIPCWT){
+    if(task->IsIPC){
         Atomic::atomicAcquire(&task->EventLock, 0);
-        IPCWTData_t* Current = task->IPCWTInfo->CurrentData;
-        if(!task->IPCWTInfo->IsAsync){
+        IPCData_t* Current = task->IPCInfo->CurrentData;
+        if(!task->IPCInfo->IsAsync){
             task->Regs->rsp = (uint64_t)StackTop;
             task->Regs->rip = (uint64_t)task->EntryPoint;
             task->Regs->cs = Registers->ThreadInfo->CS;
             task->Regs->ss = Registers->ThreadInfo->SS;
 
-            if(task->IPCWTInfo->TasksInQueu){
-                IPCWTData_t* Next = task->IPCWTInfo->CurrentData->Next;
+            if(task->IPCInfo->TasksInQueu){
+                IPCData_t* Next = task->IPCInfo->CurrentData->Next;
                 Registers->rsp = (uint64_t)StackTop;
                 Registers->rip = (uint64_t)task->Regs->rip;
 
-                free(task->IPCWTInfo->CurrentData);
-                task->IPCWTInfo->CurrentData = Next;
-                task->IPCWTInfo->TasksInQueu--;
+                free(task->IPCInfo->CurrentData);
+                task->IPCInfo->CurrentData = Next;
+                task->IPCInfo->TasksInQueu--;
                 Current->Thread->Regs->GlobalPurpose = Registers->GlobalPurpose;
                 Unpause(Current->Thread); 
                 Atomic::atomicUnlock(&task->EventLock, 0);
@@ -299,10 +299,10 @@ thread_t* process_t::CreateThread(uintptr_t entryPoint, uint8_t priviledge, uint
     thread->IsBlock = true;
     thread->IsExit = true;
     thread->Parent = this;
-    thread->IPCWTInfo = (IPCWTInfo_t*)malloc(sizeof(IPCWTInfo_t));
-    thread->IPCWTInfo->LastData = (IPCWTData_t*)malloc(sizeof(IPCWTData_t));
-    thread->IPCWTInfo->LastData->Next = (IPCWTData_t*)malloc(sizeof(IPCWTData_t));
-    thread->IPCWTInfo->CurrentData = thread->IPCWTInfo->LastData;    
+    thread->IPCInfo = (IPCInfo_t*)malloc(sizeof(IPCInfo_t));
+    thread->IPCInfo->LastData = (IPCData_t*)malloc(sizeof(IPCData_t));
+    thread->IPCInfo->LastData->Next = (IPCData_t*)malloc(sizeof(IPCData_t));
+    thread->IPCInfo->CurrentData = thread->IPCInfo->LastData;    
 
     /* ID */
     thread->TID = TID; 
@@ -369,10 +369,10 @@ thread_t* process_t::DuplicateThread(thread_t* source, uint64_t externalData){
     thread->IsBlock = true;
     thread->IsExit = true;
     thread->Parent = this;
-    thread->IPCWTInfo = (IPCWTInfo_t*)calloc(sizeof(IPCWTInfo_t*));
-    thread->IPCWTInfo->LastData = (IPCWTData_t*)malloc(sizeof(IPCWTData_t));
-    thread->IPCWTInfo->LastData->Next = (IPCWTData_t*)malloc(sizeof(IPCWTData_t));
-    thread->IPCWTInfo->CurrentData = thread->IPCWTInfo->LastData;
+    thread->IPCInfo = (IPCInfo_t*)calloc(sizeof(IPCInfo_t*));
+    thread->IPCInfo->LastData = (IPCData_t*)malloc(sizeof(IPCData_t));
+    thread->IPCInfo->LastData->Next = (IPCData_t*)malloc(sizeof(IPCData_t));
+    thread->IPCInfo->CurrentData = thread->IPCInfo->LastData;
     
     /* ID */
     thread->TID = TID; 
@@ -544,7 +544,7 @@ bool thread_t::ExtendStack(uint64_t address, size_t size){
 
 KResult thread_t::ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t* location){
     *location = 0;
-    if(!IsBlock){
+    if(!IsExit){
         *location = NULL;
         return KFAIL;
     }
@@ -576,37 +576,37 @@ KResult thread_t::ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t
     return KFAIL;
 }
 
-bool thread_t::IPCWT(ContextStack* Registers, uint64_t CoreID, thread_t* thread, parameters_t* FunctionParameters, bool IsAsync){
+bool thread_t::IPC(ContextStack* Registers, uint64_t CoreID, thread_t* thread, parameters_t* FunctionParameters, bool IsAsync){
     if(IsAsync){
-        Atomic::atomicAcquire(&thread->IPCWTInfo->Lock, 0);
+        Atomic::atomicAcquire(&thread->IPCInfo->Lock, 0);
         thread_t* child = thread->Parent->DuplicateThread(thread, this->externalData);
-        child->IsIPCWT = true;
-        child->IPCWTInfo->CurrentData->Thread = this;
-        child->IPCWTInfo->IsAsync = true;
+        child->IsIPC = true;
+        child->IPCInfo->CurrentData->Thread = this;
+        child->IPCInfo->IsAsync = true;
 
         child->Launch(FunctionParameters);
-        Atomic::atomicUnlock(&thread->IPCWTInfo->Lock, 0);
+        Atomic::atomicUnlock(&thread->IPCInfo->Lock, 0);
     }else{
-        Atomic::atomicAcquire(&thread->IPCWTInfo->Lock, 0);
-        thread->IsIPCWT = true;
-        thread->IPCWTInfo->IsAsync = false;
+        Atomic::atomicAcquire(&thread->IPCInfo->Lock, 0);
+        thread->IsIPC = true;
+        thread->IPCInfo->IsAsync = false;
 
         if(thread->IsExit){
-            thread->IPCWTInfo->CurrentData->Thread = this;
+            thread->IPCInfo->CurrentData->Thread = this;
             thread->Launch(FunctionParameters);
         }else{
-            thread->IPCWTInfo->LastData = thread->IPCWTInfo->LastData->Next;
-            thread->IPCWTInfo->LastData->Next = (IPCWTData_t*)malloc(sizeof(IPCWTData_t));
-            thread->IPCWTInfo->LastData->Thread = this;
+            thread->IPCInfo->LastData = thread->IPCInfo->LastData->Next;
+            thread->IPCInfo->LastData->Next = (IPCData_t*)malloc(sizeof(IPCData_t));
+            thread->IPCInfo->LastData->Thread = this;
             if(FunctionParameters != NULL){
-                memcpy(&thread->IPCWTInfo->LastData->Parameters, FunctionParameters, sizeof(parameters_t));
+                memcpy(&thread->IPCInfo->LastData->Parameters, FunctionParameters, sizeof(parameters_t));
             }else{
-                memset(&thread->IPCWTInfo->LastData->Parameters, 0, sizeof(parameters_t));
+                memset(&thread->IPCInfo->LastData->Parameters, 0, sizeof(parameters_t));
             }
 
-            thread->IPCWTInfo->TasksInQueu++;
+            thread->IPCInfo->TasksInQueu++;
         } 
-        Atomic::atomicUnlock(&thread->IPCWTInfo->Lock, 0);
+        Atomic::atomicUnlock(&thread->IPCInfo->Lock, 0);
     }
 
     /* Pause task */
