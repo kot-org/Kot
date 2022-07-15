@@ -19,7 +19,7 @@ OBJS += $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCC))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)         
 
-main: $(OBJS) link copyToFS
+main: $(OBJS) link
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@ echo !==== COMPILING $^
@@ -34,6 +34,3 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 link:
 	@ echo !==== LINKING
 	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Flowge.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/Lib/crt0.o
-	
-copyToFS:
-	cd $(_HOME)Tools && bash ./BuildRamFS.sh

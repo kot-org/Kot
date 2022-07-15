@@ -10,6 +10,7 @@ layerContext_t* createContext(screen_t* screen) {
 void addLayer(layerContext_t* context, layer_t* layer) {
     if (context->layers == NULL) {
         context->layers = (layer_t**) calloc(1, sizeof(layer_t*));
+        context->layers[0] = layer;
     } else {
         uint64_t len = sizeof(context->layers)/sizeof(layer_t*);
         layer_t** temp = (layer_t**) calloc(len+1, sizeof(layer_t*));
