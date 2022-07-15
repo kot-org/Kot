@@ -13,5 +13,4 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: make
-      run: make all-debian
+    - name: make .github
