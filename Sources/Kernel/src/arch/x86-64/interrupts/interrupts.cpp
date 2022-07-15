@@ -65,7 +65,7 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
     }
 
     /* Shedule */
-    SetIDTGate((uintptr_t)InterruptEntryList[IPI_Schedule], IPI_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
+    SetIDTGate((uintptr_t)InterruptEntryList[IPI_Schedule], IPI_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);
 
     asm("lidt %0" : : "m" (idtr));   
 }
