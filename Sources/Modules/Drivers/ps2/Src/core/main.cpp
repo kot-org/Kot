@@ -30,7 +30,7 @@ extern "C" int main(int argc, char* argv[]){
     
     /* Clear buffer */
     PS2GetData();
-    CallIPC("Test");
+    CallIPC("Test", 0, 0, 0, 0);
     Printlog("[PS2] Driver intialized successfully");
     return KSUCCESS;
 }

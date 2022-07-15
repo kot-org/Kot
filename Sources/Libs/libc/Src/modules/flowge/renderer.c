@@ -7,7 +7,7 @@ void clear(screen_t* screen) {
 
 void putPixel(screen_t* screen, uint32_t x, uint32_t y, uint32_t colour) {
     uint8_t *fb = screen->fb_addr;
-    uint64_t index = (x * screen->pixel_width) + (y * screen->bps);
+    uint64_t index = (x * screen->btpp) + (y * screen->bps);
     fb[index + 2] = (colour >> 16) & 255;
     fb[index + 1] = (colour >> 8) & 255;
     fb[index] = colour & 255; 
@@ -20,7 +20,7 @@ bool pixelExist(screen_t* screen, uint32_t x, uint32_t y) {
 
 uint32_t getPixel(screen_t* screen, uint32_t x, uint32_t y) {
     uint8_t *fb = screen->fb_addr;
-    uint64_t index = (x * screen->pixel_width) + (y * screen->bps);
+    uint64_t index = (x * screen->btpp) + (y * screen->bps);
     return fb[index];
 }
 
@@ -74,13 +74,13 @@ void drawLine(screen_t* screen, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t 
 void fillRect(screen_t* screen, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t colour) {
     // !!! todo optimize fillRect !!!
     // uint8_t *fb = screen->fb_addr;
-    // uint64_t index = (x * screen->pixel_width) + (y * screen->bps);
+    // uint64_t index = (x * screen->btpp) + (y * screen->bps);
     // fb[index + 2] = (colour >> 16) & 255;
     // fb[index + 1] = (colour >> 8) & 255;
     // fb[index] = colour & 255; 
     // for (uint32_t i = 1; i < h; i++) {
     //     for (uint32_t j = 1; j < w; j++) {
-    //         index += j * screen->pixel_width;
+    //         index += j * screen->btpp;
     //         fb[index + 2] = (colour >> 16) & 255;
     //         fb[index + 1] = (colour >> 8) & 255;
     //         fb[index] = colour & 255; 

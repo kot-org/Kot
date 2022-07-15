@@ -28,7 +28,9 @@ typedef struct {
     uint32_t pitch;
     uint32_t bpp;
     uint32_t bps;
-    uint32_t pixel_width;
+    uint32_t btpp;
+    uint32_t px_width;
+    uint32_t px_height;
 } screen_t;
 
 void clear(screen_t* screen);

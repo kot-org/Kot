@@ -1,4 +1,5 @@
 #include <core/main.h>
+#include <layer/context.h>
 
 screen_t* screen;
 
@@ -21,8 +22,8 @@ int main(int argc, char* argv[], framebuffer_t* Framebuffer) {
     screen->height = Framebuffer->framebuffer_height;
     screen->pitch = Framebuffer->framebuffer_pitch;
     screen->bpp = Framebuffer->framebuffer_bpp;
-    screen->pixel_width = screen->bpp/8;
-    screen->bps = screen->pixel_width * screen->width;
+    screen->btpp = screen->bpp/8;
+    screen->bps = screen->btpp * screen->width;
 
     clear(screen);
 
@@ -33,6 +34,25 @@ int main(int argc, char* argv[], framebuffer_t* Framebuffer) {
     drawLine(screen, 10, 10, 100, 100, 0xFFFFFF);
     drawLine(screen, 200, 11, 170, 85, 0xFF00FF);
     drawLine(screen, 170, 85, 180,300, 0xFF00FF);
+
+    layerContext_t* context = createContext(screen);
+    layer_t* layer = createLayer(10, 10, 100, 100);
+
+    if (context->layers == NULL) {
+        Printlog("yes");
+    } else {
+        Printlog("no");
+    }
+
+    addLayer(context, layer);
+
+    layer_t* l = (layer_t*) *context->layers;
+
+    if (l->x==10) {
+        Printlog("yes");
+    } else {
+        Printlog("no");
+    }
 
     return KSUCCESS;
 
