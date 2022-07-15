@@ -1,1 +1,2 @@
-bash ./Build/build.sh
+all:
+  bash ./Build/build.sh
