@@ -6,6 +6,7 @@
 
 memoryInfo_t memoryInfo;
 Bitmap Pmm_PageBitmap;
+uint64_t Pmm_Mutex;
 
 bool Initialized = false;
 
@@ -85,20 +86,24 @@ void Pmm_InitBitmap(size_t bitmapSize, uintptr_t bufferAddress){
 
 uint64_t Pmm_PageBitmapIndex = 0;
 uintptr_t Pmm_RequestPage(){
+    Atomic::atomicAcquire(&Pmm_Mutex, 0);
     for (uint64_t i = Pmm_PageBitmapIndex; i < memoryInfo.totalPageMemory; i++){
         if(!Pmm_PageBitmap.Get(i)){
             Pmm_PageBitmapIndex = i;
             Pmm_LockPage((uintptr_t)(i * PAGE_SIZE));
+            Atomic::atomicUnlock(&Pmm_Mutex, 0);
             return (uintptr_t)(i * PAGE_SIZE);
         }
     }
     
     // Panic
+    Atomic::atomicUnlock(&Pmm_Mutex, 0);
     KernelPanic("Not enought memory available");
     return NULL; 
 }
 
 uintptr_t Pmm_RequestPages(uint64_t pages){
+    Atomic::atomicAcquire(&Pmm_Mutex, 0);
 	while(Pmm_PageBitmapIndex < memoryInfo.totalPageMemory) {
 		for(size_t j = 0; j < pages; j++) {
 			if(Pmm_PageBitmap[Pmm_PageBitmapIndex + j] == true) {
@@ -116,6 +121,7 @@ uintptr_t Pmm_RequestPages(uint64_t pages){
 			return page;
 		}
 	}
+    Atomic::atomicUnlock(&Pmm_Mutex, 0);
 	return NULL;
 }
 

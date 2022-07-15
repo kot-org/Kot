@@ -62,6 +62,5 @@ extern "C" int main(struct KernelInfo* kernelInfo){
 
     Printlog("[SYSTEM] All tasks in 'Starter.cfg' are loaded");
     Printlog("[SYSTEM] Service intialized successfully");
-
     return KSUCCESS;
 }

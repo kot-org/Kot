@@ -299,7 +299,7 @@ thread_t* process_t::CreateThread(uintptr_t entryPoint, uint8_t priviledge, uint
     thread->IsBlock = true;
     thread->IsExit = true;
     thread->Parent = this;
-    thread->IPCWTInfo = (IPCWTInfo_t*)calloc(sizeof(IPCWTInfo_t));
+    thread->IPCWTInfo = (IPCWTInfo_t*)malloc(sizeof(IPCWTInfo_t));
     thread->IPCWTInfo->LastData = (IPCWTData_t*)malloc(sizeof(IPCWTData_t));
     thread->IPCWTInfo->LastData->Next = (IPCWTData_t*)malloc(sizeof(IPCWTData_t));
     thread->IPCWTInfo->CurrentData = thread->IPCWTInfo->LastData;    
@@ -456,9 +456,9 @@ void TaskManager::EnabledScheduler(uint64_t CoreID){
         ThreadExecutePerCore[CoreID] = NULL;
         
         uint64_t Stack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
-
-        TSSSetStack(CoreID, (uintptr_t)Stack);
         TSSSetIST(CoreID, IST_Interrupts, Stack);
+        uint64_t StackScheduler = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+        TSSSetIST(CoreID, IST_Scheduler, StackScheduler);
 
         CPU::SetCPUGSKernelBase((uint64_t)SelfDataStartAddress); // keys position
 

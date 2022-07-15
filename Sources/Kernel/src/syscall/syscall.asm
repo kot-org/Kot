@@ -52,8 +52,8 @@ SyscallEntry:
 
 	push qword [rbp + 0x10]    	; ss
 	push qword [gs:0x10]    	; rsp
-	sti
 	
+	;sti
 	push r11                	; rflags
 	push qword [rbp + 0x8]    	; cs
 	push rcx                	; rip

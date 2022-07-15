@@ -111,7 +111,6 @@ namespace Event{
         for(size_t i = 0; i < self->NumTask; i++){
             event_tasks_t* task = self->Tasks[i];
             Atomic::atomicAcquire(&task->Thread->EventLock, 0);
-
             if(task->Thread->IsExit){
                 task->DataNode->CurrentData->Task = task;
                 task->Thread->Launch(parameters);

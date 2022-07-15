@@ -38,7 +38,6 @@ EXTERN InterruptHandler
 %macro INTERRUPT_WITHOUT_ERROR_CODE  1
 
 EntryInterruptHandler%1:
-    cli
     push 0  ; fill the stack
     push %1
     GLOBAL_INTERRUPT_HANDLER %1
@@ -48,7 +47,6 @@ EntryInterruptHandler%1:
 %macro INTERRUPT_WITH_ERROR_CODE  1
 
 EntryInterruptHandler%1:
-    cli
     push %1
     GLOBAL_INTERRUPT_HANDLER %1
 
