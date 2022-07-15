@@ -27,9 +27,10 @@ sudo make -C "Modules/Drivers/vga/build"
 # Services
 echo -e "\e[32mCompiling kot services...\e[0m"
 
-sudo make -C "Modules/Services/system/build"
-sudo make -C "Modules/Services/wm/build"
-sudo make -C "Modules/Services/uisd/build"
+sudo make -C "Modules/Services/system/Build"
+sudo make -C "Modules/Services/wm/Build"
+sudo make -C "Modules/Services/flowge/Build"
+sudo make -C "Modules/Services/uisd/Build"
 
 # ramfs
 cd "../"

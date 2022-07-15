@@ -19,6 +19,11 @@ struct Point_t{
 
 uint64_t DivideRoundUp(uint64_t value, uint64_t divider);
 
+int8_t sgn(int64_t value);
+int64_t abs(int64_t value);
+int64_t min(int64_t a, int64_t b);
+int64_t max(int64_t a, int64_t b);
+
 #if defined(__cplusplus)
 }
 #endif
