@@ -3,6 +3,15 @@
 
 screen_t* screen;
 
+void initContext() {
+    Printlog("[FLOWGE] Start layers render ...");
+    layerContext_t* context = createContext(screen);
+    layer_t* layer = createLayer(10, 10, 100, 100);
+    addLayer(context, layer);
+    showLayer(layer);
+    renderContext(context);
+}
+
 int main(int argc, char* argv[], framebuffer_t* Framebuffer) {   
 
     Printlog("[FLOWGE] Initialization ...");
@@ -25,34 +34,7 @@ int main(int argc, char* argv[], framebuffer_t* Framebuffer) {
     screen->btpp = screen->bpp/8;
     screen->bps = screen->btpp * screen->width;
 
-    clear(screen);
-
-    // gray rectangle with white border
-    fillRect(screen, 100, 100, 200, 200, 0x1A1A1A);
-    drawRect(screen, 100, 100, 200, 200, 0xFFFFFF);
-
-    drawLine(screen, 10, 10, 100, 100, 0xFFFFFF);
-    drawLine(screen, 200, 11, 170, 85, 0xFF00FF);
-    drawLine(screen, 170, 85, 180,300, 0xFF00FF);
-
-    layerContext_t* context = createContext(screen);
-    layer_t* layer = createLayer(10, 10, 100, 100);
-
-    if (context->layers == NULL) {
-        Printlog("yes");
-    } else {
-        Printlog("no");
-    }
-
-    addLayer(context, layer);
-
-    layer_t* l = (layer_t*) *context->layers;
-
-    if (l->x==10) {
-        Printlog("yes");
-    } else {
-        Printlog("no");
-    }
+    initContext();
 
     return KSUCCESS;
 

@@ -13,6 +13,7 @@ typedef struct {
 
 typedef struct {
     screen_t* screen;
+    screen_t* backbuffer;
     layer_t** layers;
 } layerContext_t;
 
@@ -27,3 +28,6 @@ void showLayer(layer_t* layer);
 void hideLayer(layer_t* layer);
 
 void renderLayer(layerContext_t* context, layer_t* layer);
+
+bool isFullyOverriding(layer_t* layer1, layer_t* layer2);
+bool isOverriding(layer_t* layer1, layer_t* layer2);
