@@ -2,8 +2,9 @@ SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd $SCRIPTPATH
 cd "../"
 
-sudo apt update
-sudo apt install llvm-14 clang-14
+wget https://apt.llvm.org/llvm.sh
+chmod +x llvm.sh
+sudo ./llvm.sh 14 all
 
 echo -e "\e[32mCreating compilation dirs...\e[0m"
 
