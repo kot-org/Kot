@@ -26,9 +26,6 @@ int main(int argc, char* argv[], framebuffer_t* Framebuffer)
 
     ClearScreen();
 
-    /* 
-        TODO: Pour Yira -> faire systeme pour optimiser 
-    */
     window_t* window1 = CreateWindow(50, 50, 400, 200);
 
     // MoveWindow(window1, 400, 400);
