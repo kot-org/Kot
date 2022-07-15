@@ -13,4 +13,5 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: make github-action
+    - name: make
+      run: make github-action
