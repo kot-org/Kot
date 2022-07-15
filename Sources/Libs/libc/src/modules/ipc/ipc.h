@@ -5,11 +5,11 @@
 #include <kot/types.h>
 #include <kot/memory.h>
 
-typedef struct{
+struct IPCParameters_t{
     uint64_t IPCTask;
     uint64_t GlobalPurpose;
     char Name[32];
-}IPCParameters_t;
+};
 
 #define IPCTaskAsk      0x0
 #define IPCTaskCreate   0x1

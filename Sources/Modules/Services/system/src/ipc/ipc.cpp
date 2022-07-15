@@ -17,13 +17,7 @@ kthread_t IPCInitialize(){
     return IPCThreadKey;
 }
 
-KResult IPCHandler(){
-    Printlog("IPC");
-    Printlog("IPC");
-    Printlog("IPC");
-    Printlog("IPC");
-    Printlog("IPC");
-    Printlog("IPC");
-    Printlog("IPC");
+KResult IPCHandler(struct IPCParameters_t data){
+    Printlog(data.Name);
     SYS_Exit(NULL, KSUCCESS);
 }
