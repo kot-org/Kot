@@ -19,9 +19,7 @@ OBJS += $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCCPP))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)         
 
-
-
-main: $(OBJS) link copyToFS
+main: $(OBJS) link
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@ echo !==== COMPILING $^
@@ -36,8 +34,3 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 link:
 	@ echo !==== LINKING
 	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Vga.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/Lib/crt0.o
-	
-copyToFS:
-	cd $(_HOME)Tools && bash ./BuildRamFS.sh
-
-

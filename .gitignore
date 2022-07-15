@@ -1,9 +1,9 @@
 # Developpers Folders
-/.vscode
+.vscode
 
 # Build Folders
-/Sysroot
-/Bin
+Sysroot
+Bin
 
 # Prerequisites
 *.d
@@ -38,3 +38,6 @@
 *.exe
 *.out
 *.app
+
+# Temporary scripts/files
+llvm.sh

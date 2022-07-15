@@ -32,7 +32,8 @@ sudo make -C "Modules/Services/flowge/Build"
 sudo make -C "Modules/Services/uisd/Build"
 
 # ramfs
-cd "../"
+cd $SCRIPTPATH
+cd ../
 sudo bash "./Tools/BuildRamFS.sh"
 
 # kernel
