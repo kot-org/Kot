@@ -21,6 +21,8 @@ window_t* CreateWindow(uint32_t x, uint32_t y, uint32_t w, uint32_t h)
 void CloseWindow(window_t* windowInfo)
 {
     DrawWindow(screenInfo, windowInfo->xPos, windowInfo->yPos, windowInfo->width, windowInfo->height, SCREEN_BKG_COLOR);
+
+    
     
     free(windowInfo);
 }
