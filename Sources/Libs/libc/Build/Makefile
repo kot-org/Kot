@@ -4,8 +4,8 @@ INCDIR = $(_HOME)Sysroot/Include
 BUILDDIR := $(_HOME)Sysroot/Lib
 BINDIR = $(_HOME)Bin/Modules
 
-OBJDIR := ../lib
-SRCDIR := ../src
+OBJDIR := ../Lib
+SRCDIR := ../Src
 
 CC = clang-14
 ASMC = nasm

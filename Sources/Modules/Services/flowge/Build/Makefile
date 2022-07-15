@@ -3,26 +3,25 @@ _HOME = ../../../../../
 CC = clang-14
 ASMC = nasm
 
-CFLAGS = --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../src -I$(_HOME)Sysroot/Include
+CFLAGS = --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I$(_HOME)Sysroot/Include
 LINKERFLAGS = -nostartfiles -Wall -static -L$(_HOME)Sysroot/Lib/ -lc
 ASMFLAGS = 
 
-SRCDIR := ../src
-OBJDIR := ../lib
-BUILDDIR = ../bin
-BINDIR = ../../../../../Bin/Modules
+SRCDIR := ../Src
+OBJDIR := ../Lib
+BINDIR = $(_HOME)Bin/Modules
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
-SRCCPP = $(call rwildcard,$(SRCDIR),*.cpp)      
+SRCC = $(call rwildcard,$(SRCDIR),*.c)
 ASMSRC = $(call rwildcard,$(SRCDIR),*.asm)   
-OBJS += $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCCPP))
+OBJS += $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCC))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)         
 
 main: $(OBJS) link copyToFS
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@ echo !==== COMPILING $^
 	@ mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $^ -o $@
@@ -34,7 +33,7 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 
 link:
 	@ echo !==== LINKING
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Uisd.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/Lib/crt0.o
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Flowge.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/Lib/crt0.o
 	
 copyToFS:
 	cd $(_HOME)Tools && bash ./BuildRamFS.sh
