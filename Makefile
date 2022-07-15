@@ -1,8 +1,8 @@
 build:
-	bash ./Build/build.sh
+	sudo bash ./Build/build.sh
 
 run:
-	bash ./Build/run.sh
+	sudo bash ./Build/run.sh
 
 deps-llvm:
 	wget https://apt.llvm.org/llvm.sh
