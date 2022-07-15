@@ -6,7 +6,7 @@ wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
 sudo ./llvm.sh 14 all
 sudo apt update
-sudo apt install nasm
+sudo apt install nasm xorriso 
 
 echo -e "\e[32mCreating compilation dirs...\e[0m"
 
