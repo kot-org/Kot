@@ -22,7 +22,15 @@ void CloseWindow(window_t* windowInfo)
 {
     DrawWindow(screenInfo, windowInfo->xPos, windowInfo->yPos, windowInfo->width, windowInfo->height, SCREEN_BKG_COLOR);
 
-    
+    windowInfo->fb_addr = NULL;
+    windowInfo->fb_size = NULL;
+    windowInfo->visibility = false;
+    windowInfo->width = NULL;
+    windowInfo->height = NULL;
+    windowInfo->pitch = NULL;
+    windowInfo->bpp = NULL;
+    windowInfo->xPos = NULL;
+    windowInfo->yPos = NULL;
     
     free(windowInfo);
 }
