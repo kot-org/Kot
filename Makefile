@@ -17,6 +17,15 @@ deps-debian: deps-llvm
 clean:
 	sudo rm -rf ./Bin ./Sysroot ./Sources/Kernel/Lib ./Sources/Libs/*/Lib ./Sources/Modules/Drivers/*/Lib ./Sources/Modules/Services/*/Lib
 
-github-action: deps-llvm deps-debian build
+deps-github-action:
+	wget https://apt.llvm.org/llvm.sh
+	chmod +x llvm.sh
+	sudo ./llvm.sh 14 all
+	rm -f llvm.sh
+
+	sudo apt update
+	sudo apt install nasm xorriso
+
+github-action: deps-github-action build
 
 .PHONY: build run llvm deps-debian github-action
