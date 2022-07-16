@@ -11,8 +11,8 @@ LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib --no-relax
 
 SRCDIR := Src
 OBJDIR := Lib
-BUILDDIR = $(_HOME)Bin
-LIMINEBUIDLDIR = $(_HOME)Bin/Limine
+BINDIR = $(_HOME)Bin
+LIMINEBUILDDIR = $(_HOME)Bin/Limine
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
@@ -49,18 +49,22 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 	
 link:
 	@ echo !==== LINKING
-	$(LD) $(LDFLAGS) -o $(BUILDDIR)/Kernel.elf $(OBJS) $(OBJSCPP)
-	sudo cp -v $(BUILDDIR)/Kernel.elf $(LIMINEBUIDLDIR)
+	$(LD) $(LDFLAGS) -o $(BINDIR)/Kernel.elf $(OBJS) $(OBJSCPP)
 
 createISO:
 	@ echo !==== ISO
-	echo $(shell pwd)
+
+	sudo mkdir -p $(LIMINEBUILDDIR)
+	sudo cp -v $(BINDIR)/Kernel.elf limine.cfg limine/limine.sys limine/limine-cd.bin limine/limine-cd-efi.bin $(LIMINEBUILDDIR)
+
+	sudo bash $(_HOME)Tools/BuildRamFS.sh
+
 	xorriso -as mkisofs -b limine-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table \
         --efi-boot limine-cd-efi.bin -efi-boot-part --efi-boot-image --protective-msdos-label \
-        $(LIMINEBUIDLDIR) -o $(BUILDDIR)/kot.iso
-	./limine/limine-deploy $(BUILDDIR)/kot.iso
+        $(LIMINEBUILDDIR) -o $(BINDIR)/kot.iso
+	./limine/limine-deploy $(BINDIR)/kot.iso
 
 createISOEFI:
 	@ echo !==== ISO EFI
-	xorriso -as mkisofs --efi-boot limine-cd-efi.bin -efi-boot-part --efi-boot-image -J -o $(BUILDDIR)/kotEFI.iso  $(LIMINEBUIDLDIR)
-	./limine/limine-deploy $(BUILDDIR)/kotEFI.iso
+	xorriso -as mkisofs --efi-boot limine-cd-efi.bin -efi-boot-part --efi-boot-image -J -o $(BINDIR)/kotEFI.iso  $(LIMINEBUILDDIR)
+	./limine/limine-deploy $(BINDIR)/kotEFI.iso

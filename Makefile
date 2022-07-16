@@ -28,4 +28,4 @@ deps-github-action:
 
 github-action: deps-github-action build
 
-.PHONY: build run llvm deps-debian github-action
+.PHONY: build run llvm deps-debian

@@ -1,6 +1,4 @@
-BUILDDIR="Bin"
-LIMINEBUILDDIR=$BUILDDIR"/Limine"
-KERNELDIR="Sources/Kernel"
+BINDIR="Bin"
 
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd $SCRIPTPATH
@@ -10,9 +8,9 @@ echo -e "\e[32mCreating compilation dirs...\e[0m"
 
 mkdir -p "Sysroot/Include/kot/"
 mkdir -p "Sysroot/Lib/"
-mkdir -p "Bin/Modules/"
+mkdir -p $BINDIR"/Modules/"
 
-cp -p "Build/Starter.cfg" "Bin/Modules/Starter.cfg"
+cp -p "Build/Starter.cfg" $BINDIR"/Modules/Starter.cfg"
 
 cd "Sources/"
 
@@ -35,17 +33,8 @@ sudo make -C "Modules/Services/system/Build"
 sudo make -C "Modules/Services/flowge/Build"
 sudo make -C "Modules/Services/uisd/Build"
 
-cd ../
-
-# limine
-sudo mkdir -p $LIMINEBUILDDIR
-sudo cp -v $KERNELDIR/limine.cfg $KERNELDIR/limine/limine.sys $KERNELDIR/limine/limine-cd.bin $KERNELDIR/limine/limine-cd-efi.bin $LIMINEBUILDDIR
-
-# ramfs
-sudo bash "./Tools/BuildRamFS.sh"
-
 # kernel
-cd "./Sources/Kernel/"
+cd "../Sources/Kernel/"
 echo -e "\e[32mBuilding kernel...\e[0m"
 
 make all
