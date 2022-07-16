@@ -1,6 +1,6 @@
 [BITS 64]
 
-%include "src/arch/x86-64/cpu/cpu.inc"
+%include "Src/arch/x86-64/cpu/cpu.inc"
 
 EXTERN  SyscallDispatch, InterruptHandler
 GLOBAL	SyscallEnable

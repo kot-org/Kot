@@ -1,3 +1,7 @@
+BUILDDIR="Bin"
+LIMINEBUILDDIR=$BUILDDIR"/Limine"
+KERNELDIR="Sources/Kernel"
+
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd $SCRIPTPATH
 cd "../"
@@ -31,9 +35,13 @@ sudo make -C "Modules/Services/system/Build"
 sudo make -C "Modules/Services/flowge/Build"
 sudo make -C "Modules/Services/uisd/Build"
 
-# ramfs
-cd $SCRIPTPATH
 cd ../
+
+# limine
+sudo mkdir -p $LIMINEBUILDDIR
+sudo cp -v $KERNELDIR/limine.cfg $KERNELDIR/limine/limine.sys $KERNELDIR/limine/limine-cd.bin $KERNELDIR/limine/limine-cd-efi.bin $LIMINEBUILDDIR
+
+# ramfs
 sudo bash "./Tools/BuildRamFS.sh"
 
 # kernel
