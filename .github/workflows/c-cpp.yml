@@ -22,4 +22,4 @@ jobs:
           automatic_release_tag: "latest"
           prerelease: true
           title: "Development Build"
-          files: "kot.iso"
+          files: "Bin/kot.iso"
