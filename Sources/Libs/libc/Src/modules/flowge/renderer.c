@@ -97,6 +97,6 @@ void fillRect(screen_t* screen, uint32_t x, uint32_t y, uint32_t w, uint32_t h, 
 void drawRect(screen_t* screen, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t colour) {
     drawLine(screen, x, y, x+w, y, colour);
     drawLine(screen, x, y, x, y+h, colour);
-    drawLine(screen, x+w, y, x, y+h, colour);
+    drawLine(screen, x+w, y, x+w, y+h, colour);
     drawLine(screen, x, y+h, x+w, y+h, colour);
 }

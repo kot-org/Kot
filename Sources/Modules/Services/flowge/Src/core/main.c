@@ -1,14 +1,20 @@
 #include <core/main.h>
-#include <layer/context.h>
+#include <window/context.h>
 
 screen_t* screen;
 
 void initContext() {
     Printlog("[FLOWGE] Start layers render ...");
-    layerContext_t* context = createContext(screen);
-    layer_t* layer = createLayer(10, 10, 100, 100);
-    addLayer(context, layer);
-    showLayer(layer);
+    windowContext_t* context = createContext(screen);
+    window_t* window = createWindow(10, 10, 100, 100);
+    window_t* window2 = createWindow(110, 110, 200, 200);
+    window_t* window3 = createWindow(110, 300, 200, 300);
+    addWindow(context, window);
+    addWindow(context, window2);
+    addWindow(context, window3);
+    showWindow(window);
+    showWindow(window2);
+    showWindow(window3);
     renderContext(context);
 }
 
