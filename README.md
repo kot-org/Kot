@@ -17,3 +17,5 @@ A 64-bit x86 operating system written in C/C++
 
 # Building the OS
 That's easy! Run `make deps-debian` to install all the required build tools listed before (only if you're building on Debian/Ubuntu) and then run `make build` to start the build process. After that running `make run` will start KotOS in Qemu.
+# Just run kot
+Download the latest release <a href="https://github.com/kot-org/Kot/releases">here</a> and make it run on an x86-64 emulator like qemu-kvm, bochs, vmware, virtual box, ...
