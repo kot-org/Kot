@@ -1,15 +1,13 @@
 #include <core/main.h>
 #include <layer/context.h>
 
-screen_t* screen;
-
 int main(int argc, char* argv[], framebuffer_t* Framebuffer) {   
 
     Printlog("[FLOWGE] Initialization ...");
     
     kprocess_t self;
 
-    screen = (screen_t*) malloc(sizeof(screen_t));
+    screen_t* screen = (screen_t*) malloc(sizeof(screen_t));
     screen->fb_size = Framebuffer->framebuffer_pitch * Framebuffer->framebuffer_height;
     
     uint64_t virtualAddress = KotSpecificData.FreeMemorySpace - screen->fb_size;
