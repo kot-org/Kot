@@ -1,6 +1,8 @@
 #pragma once
 
+#include <kot/math.h>
 #include <kot/sys.h>
+#include <kot/heap.h>
 
 typedef struct {
     uint64_t identifier;

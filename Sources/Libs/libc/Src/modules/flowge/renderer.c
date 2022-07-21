@@ -1,7 +1,6 @@
 #include <kot/modules/flowge/renderer.h>
-#include <kot/math.h>
 
-void clear(screen_t* screen) {
+void clear(screen_t* screen) {  
     memset(screen->fb_addr, 0x00, screen->fb_size);
 }
 
@@ -14,7 +13,6 @@ void putPixel(screen_t* screen, uint32_t x, uint32_t y, uint32_t colour) {
 }
 
 bool pixelExist(screen_t* screen, uint32_t x, uint32_t y) {
-    // todo !!
     return true;
 }
 

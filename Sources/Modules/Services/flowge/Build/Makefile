@@ -13,15 +13,15 @@ BINDIR = $(_HOME)Bin/Modules
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
-SRCC = $(call rwildcard,$(SRCDIR),*.c)
+SRCC = $(call rwildcard,$(SRCDIR),*.cpp)
 ASMSRC = $(call rwildcard,$(SRCDIR),*.asm)   
-OBJS += $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCC))
+OBJS += $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCC))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)         
 
 main: $(OBJS) link
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@ echo !==== COMPILING $^
 	@ mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $^ -o $@
