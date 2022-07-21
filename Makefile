@@ -1,8 +1,21 @@
+QEMUFLAGS =	-no-reboot 				\
+			-no-shutdown 			\
+			-M smm=off 				\
+			-serial stdio 			\
+			-machine q35 			\
+			-cpu qemu64 			\
+			-smp 8 					\
+			-cdrom ./Bin/kot.iso	\
+			-m 2G
+
 build:
 	sudo bash ./Build/build.sh
 
 run:
-	sudo bash ./Build/run.sh
+	qemu-system-x86_64 $(QEMUFLAGS)
+
+debug:
+	qemu-system-x86_64 $(QEMUFLAGS) -s -S
 
 deps-llvm:
 	wget https://apt.llvm.org/llvm.sh
@@ -17,15 +30,10 @@ deps-debian: deps-llvm
 clean:
 	sudo rm -rf ./Bin ./Sysroot ./Sources/Kernel/Lib ./Sources/Libs/*/Lib ./Sources/Modules/Drivers/*/Lib ./Sources/Modules/Services/*/Lib
 
-deps-github-action:
-	wget https://apt.llvm.org/llvm.sh
-	chmod +x llvm.sh
-	sudo ./llvm.sh 14 all
-	rm -f llvm.sh
-
+deps-github-action: deps-llvm
 	sudo apt update
 	sudo apt install nasm xorriso
 
 github-action: deps-github-action build
 
-.PHONY: build run llvm deps-debian
+.PHONY: build run deps-llvm deps-debian

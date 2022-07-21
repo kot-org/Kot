@@ -66,5 +66,11 @@ createISO:
 
 createISOEFI:
 	@ echo !==== ISO EFI
+
+	sudo mkdir -p $(LIMINEBUILDDIR)
+	sudo cp -v $(BINDIR)/Kernel.elf limine/limine.sys limine/limine-cd-efi.bin $(LIMINEBUILDDIR)
+
+	sudo bash $(_HOME)Tools/BuildRamFS.sh
+
 	xorriso -as mkisofs --efi-boot limine-cd-efi.bin -efi-boot-part --efi-boot-image -J -o $(BINDIR)/kotEFI.iso  $(LIMINEBUILDDIR)
 	./limine/limine-deploy $(BINDIR)/kotEFI.iso
