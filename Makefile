@@ -6,7 +6,7 @@ QEMUFLAGS =	-no-reboot 				\
 			-cpu qemu64 			\
 			-smp 8 					\
 			-cdrom ./Bin/kot.iso	\
-			-m 2G
+			-m 3G
 
 build:
 	sudo bash ./Build/build.sh
