@@ -6,7 +6,13 @@ void memset(uintptr_t start, uint8_t value, uint64_t num){
     for (uint64_t i = 0; i < num; i++){
         *(uint8_t*)((uint64_t)start + i) = value;
     }
-}        
+}       
+
+void memset32(uintptr_t start, uint8_t value, uint64_t num){
+    for (uint64_t i = 0; i < num; i++){
+        *(uint32_t*)((uint64_t)start + i) = value;
+    }
+}   
 
 void memcpy(uintptr_t destination, uintptr_t source, uint64_t num){
     long d0, d1, d2; 

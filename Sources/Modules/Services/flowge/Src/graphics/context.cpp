@@ -6,10 +6,27 @@ Context::Context(framebuffer_t* framebuffer) {
 
 void Context::putPixel(uint32_t x, uint32_t y, uint32_t colour) {
     uint8_t* fb = (uint8_t*) this->framebuffer->fb_addr;
-    uint64_t index = (x * this->framebuffer->btpp) + (y * this->framebuffer->bps);
+    uint64_t index = x * this->framebuffer->btpp + y * this->framebuffer->bps;
     fb[index + 2] = (colour >> 16) & 255;
     fb[index + 1] = (colour >> 8) & 255;
     fb[index] = colour & 255; 
+}
+
+void Context::fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
+
+    uint8_t* fb = (uint8_t*) this->framebuffer->fb_addr;
+
+    for (size_t h = 0; h < this->framebuffer->height; h++) {
+        uint64_t ypos = (y+h) * this->framebuffer->bps;
+        for (size_t w = 0; w < this->framebuffer->width; w++) {
+            uint64_t ypos = (x+w) * this->framebuffer->btpp;
+            uint64_t index = ypos + xpos;
+            fb[index + 2] = (colour >> 16) & 255;
+            fb[index + 1] = (colour >> 8) & 255;
+            fb[index] = colour & 255; 
+        }
+    }
+
 }
 
 void Context::swapTo(framebuffer_t* to) {
@@ -64,8 +81,8 @@ void Context::blitFrom(Context* from, uint32_t x, uint32_t y) {
     this->blitFrom(from->getFramebuffer(), x, y);
 }
 
-void Context::clearWith(uint8_t value) {
-    memset((uintptr_t) this->framebuffer->fb_addr, value, this->framebuffer->fb_size);
+void Context::clearWith(uint32_t value) {
+    memset32((uintptr_t) this->framebuffer->fb_addr, value, this->framebuffer->fb_size);
 } 
 
 void Context::clear() {

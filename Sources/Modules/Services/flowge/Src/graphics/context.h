@@ -20,6 +20,7 @@ private:
 public:
     Context(framebuffer_t* framebuffer);
     void putPixel(uint32_t x, uint32_t y, uint32_t colour);
+    void fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);
     void swapTo(framebuffer_t* to);
     void swapFrom(framebuffer_t* from);
     void swapTo(Context* to);
