@@ -8,11 +8,23 @@ void memset(uintptr_t start, uint8_t value, uint64_t num){
     }
 }       
 
-void memset32(uintptr_t start, uint8_t value, uint64_t num){
+void memset16(uintptr_t start, uint16_t value, uint64_t num){
+    for (uint64_t i = 0; i < num; i++){
+        *(uint16_t*)((uint64_t)start + i) = value;
+    }
+}
+
+void memset32(uintptr_t start, uint32_t value, uint64_t num){
     for (uint64_t i = 0; i < num; i++){
         *(uint32_t*)((uint64_t)start + i) = value;
     }
-}   
+}
+
+void memset64(uintptr_t start, uint64_t value, uint64_t num){
+    for (uint64_t i = 0; i < num; i++){
+        *(uint64_t*)((uint64_t)start + i) = value;
+    }
+}
 
 void memcpy(uintptr_t destination, uintptr_t source, uint64_t num){
     long d0, d1, d2; 

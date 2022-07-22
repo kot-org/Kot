@@ -30,6 +30,6 @@ public:
     void blitTo(Context* to, uint32_t x, uint32_t y);
     void blitFrom(Context* from, uint32_t x, uint32_t y);
     void clear();
-    void clearWith(uint8_t value);
+    void fill(uint32_t colour);
     framebuffer_t* getFramebuffer();
 };

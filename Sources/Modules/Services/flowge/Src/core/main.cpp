@@ -41,10 +41,12 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
 
     Window w1(&backbuffer_ctx, 400, 400, 100, 100);
     w1.getContext()->clear();
+    w1.getContext()->fillRect(0, 0, 10, 100, 0xff00ff);
+    w1.getContext()->fillRect(50, 10, 100, 10, 0x00ff00);
 
     // render loop
 
-    backbuffer_ctx.clearWith(0xff);
+    backbuffer_ctx.fill(0xffffff);
     // to optimize: swap back to front on another thread
     w1.render(&backbuffer_ctx);
     screen_ctx.swapFrom(&backbuffer_ctx);
