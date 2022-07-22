@@ -10,7 +10,6 @@ typedef struct {
     uint32_t height;
     uint32_t pitch;
     uint32_t bpp;
-    uint32_t bps;
     uint32_t btpp;
 } framebuffer_t;
 
@@ -18,9 +17,14 @@ class Context {
 private:
     framebuffer_t* framebuffer;
 public:
+
     Context(framebuffer_t* framebuffer);
+
     void putPixel(uint32_t x, uint32_t y, uint32_t colour);
     void fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);
+    void drawRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);
+    void drawLine(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour);
+
     void swapTo(framebuffer_t* to);
     void swapFrom(framebuffer_t* from);
     void swapTo(Context* to);
@@ -31,5 +35,7 @@ public:
     void blitFrom(Context* from, uint32_t x, uint32_t y);
     void clear();
     void fill(uint32_t colour);
+
     framebuffer_t* getFramebuffer();
+
 };

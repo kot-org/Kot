@@ -8,7 +8,6 @@ framebuffer_t* cloneFramebuffer(framebuffer_t* screen) {
     buffer->height = screen->height;
     buffer->bpp = screen->bpp;
     buffer->btpp = screen->btpp;
-    buffer->bps = screen->bps;
     buffer->pitch = screen->pitch;
     return buffer;
 }
@@ -32,21 +31,28 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
     screen->pitch = Framebuffer->framebuffer_pitch;
     screen->bpp = Framebuffer->framebuffer_bpp;
     screen->btpp = screen->bpp/8;
-    screen->bps = screen->btpp * screen->width;
 
     Context screen_ctx = Context(screen);
     Context backbuffer_ctx = Context(cloneFramebuffer(screen));
    
+    backbuffer_ctx.fill(0xffffff);
+    screen_ctx.swapFrom(&backbuffer_ctx);
+
     // window logic
 
     Window w1(&backbuffer_ctx, 400, 400, 100, 100);
     w1.getContext()->clear();
+
     w1.getContext()->fillRect(0, 0, 10, 100, 0xff00ff);
     w1.getContext()->fillRect(50, 10, 100, 10, 0x00ff00);
 
-    // render loop
+    w1.getContext()->drawLine(200, 200, 250, 250, 0xffffff); // positive octants
+    w1.getContext()->drawLine(250, 260, 200, 210, 0xffffff); // negative octants
 
-    backbuffer_ctx.fill(0xffffff);
+    w1.getContext()->fillRect(10, 300, 70, 70, 0xffffff);
+    w1.getContext()->drawRect(10, 300, 70, 70, 0xff0000);
+
+    // update logic
     // to optimize: swap back to front on another thread
     w1.render(&backbuffer_ctx);
     screen_ctx.swapFrom(&backbuffer_ctx);
