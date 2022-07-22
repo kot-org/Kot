@@ -30,10 +30,20 @@ void Window::hide() {
     this->_show = false;
 }
 
+void Window::move(uint32_t x, uint32_t y) {
+    this->x = x;
+    this->y = y;
+}
+
 Context* Window::getContext() {
     return &this->context;
 }
 
 void Window::render(Context* to) {
-    this->getContext()->blitTo(to, this->x, this->y);
+    if (this->_show == true) {
+        to->fillRect(this->x-1, this->y-20, this->width+1, 20, 0x414141);
+        to->drawRect(this->x-1, this->y-20, this->width+1, 20, 0x414141);
+        to->drawRect(this->x-1, this->y-1, this->width+1, this->height+1, 0x414141);
+        this->getContext()->blitTo(to, this->x, this->y);
+    }
 }

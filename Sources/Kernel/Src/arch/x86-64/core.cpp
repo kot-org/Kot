@@ -36,29 +36,29 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     Message("Welcome to Kot kernel");
 
     gdtInit();
-    Successful("GDT intialized");
+    Successful("GDT initialized");
 
     Pmm_Init(bootInfo->Memory);
-    Successful("PMM intialized");
+    Successful("PMM initialized");
 
     uint64_t LastAddressUsed = vmm_Init(bootInfo);
-    Successful("VMM intialized");
+    Successful("VMM initialized");
     
     InitializeHeap((uintptr_t)LastAddressUsed, 0x10);
-    Successful("Heap intialized");
+    Successful("Heap initialized");
 
     ArchInfo_t* ArchInfo = (ArchInfo_t*)malloc(sizeof(ArchInfo_t));
     ArchInfo->IRQLineStart = IRQ_START;
     InitializeACPI(bootInfo, ArchInfo);
-    Successful("ACPI intialized");
+    Successful("ACPI initialized");
 
     InitializeInterrupts(ArchInfo);  
-    Successful("IDT intialized");
+    Successful("IDT initialized");
 
     CPU::InitCPU();
 
     simdInit();
-    Successful("SIMD intialized");
+    Successful("SIMD initialized");
     
 
     globalTaskManager = (TaskManager*)calloc(sizeof(TaskManager));
@@ -89,7 +89,7 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     ArchInfo->rsdp = (uintptr_t)bootInfo->RSDP->rsdp;
 
     ramfs::Parse(ArchInfo->ramfs.ramfsBase, ArchInfo->ramfs.Size);
-    Successful("RAMFS intialized");
+    Successful("RAMFS initialized");
     return ArchInfo;
 }
 

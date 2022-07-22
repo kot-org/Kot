@@ -33,7 +33,7 @@ extern "C" int main(int argc, char* argv[]){
     
     /* Clear buffer */
     PS2GetData();
-    Printlog("[PS2] Driver intialized successfully");
+    Printlog("[PS2] Driver initialized successfully");
     return KSUCCESS;
 }
 

@@ -16,5 +16,6 @@ public:
     void show();
     void hide();
     void render(Context* to);
+    void move(uint32_t x, uint32_t y);
     Context* getContext();
 };

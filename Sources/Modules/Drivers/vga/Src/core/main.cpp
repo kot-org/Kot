@@ -3,6 +3,6 @@
 extern "C" int main(int argc, char* argv[]) {
     Printlog("[VGA] Initialization ...");
     
-    Printlog("[VGA] Driver intialized successfully");
+    Printlog("[VGA] Driver initialized successfully");
     return KSUCCESS;
 }

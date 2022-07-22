@@ -35,7 +35,7 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
     Context screen_ctx = Context(screen);
     Context backbuffer_ctx = Context(cloneFramebuffer(screen));
    
-    backbuffer_ctx.fill(0xffffff);
+    backbuffer_ctx.fill(0x000000);
     screen_ctx.swapFrom(&backbuffer_ctx);
 
     // window logic
@@ -51,11 +51,27 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
 
     w1.getContext()->fillRect(10, 300, 70, 70, 0xffffff);
     w1.getContext()->drawRect(10, 300, 70, 70, 0xff0000);
+    
+    w1.show();
 
     // update logic
+
     // to optimize: swap back to front on another thread
+    backbuffer_ctx.fill(0x000000);
     w1.render(&backbuffer_ctx);
     screen_ctx.swapFrom(&backbuffer_ctx);
+
+    for (int64_t i = 0; i < 100000000; i++) {
+        // to be able to see the movement of the window lmao :')
+    }
+
+    w1.move(150, 150);
+
+    backbuffer_ctx.fill(0x000000);
+    w1.render(&backbuffer_ctx);
+    screen_ctx.swapFrom(&backbuffer_ctx);
+
+    Printlog("[FLOWGE] Service initialized successfully");
 
     return KSUCCESS;
 

@@ -73,6 +73,16 @@ void Context::drawLine(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint3
 
 }
 
+void Context::fillTri(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t x3, uint32_t y3, uint32_t colour) {
+    // todo    
+}
+
+void Context::drawTri(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t x3, uint32_t y3, uint32_t colour) {
+    this->drawLine(x1, y1, x2, y2, colour);
+    this->drawLine(x2, y2, x3, y3, colour);
+    this->drawLine(x1, y1, x3, y3, colour);
+}
+
 void Context::drawRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
     this->drawLine(x, y, x+width, y, colour); // top
     this->drawLine(x, y+height, x+width, y+height, colour); // bottom

@@ -22,7 +22,9 @@ public:
 
     void putPixel(uint32_t x, uint32_t y, uint32_t colour);
     void fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);
+    void fillTri(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t x3, uint32_t y3, uint32_t colour);
     void drawRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);
+    void drawTri(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t x3, uint32_t y3, uint32_t colour);
     void drawLine(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour);
 
     void swapTo(framebuffer_t* to);
