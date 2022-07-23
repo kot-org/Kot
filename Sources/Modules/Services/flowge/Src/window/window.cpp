@@ -30,6 +30,14 @@ void Window::hide() {
     this->_show = false;
 }
 
+uint32_t Window::getWidth() {
+    return this->width;
+}
+
+uint32_t Window::getHeight() {
+    return this->height;
+}
+
 void Window::move(uint32_t x, uint32_t y) {
     this->x = x;
     this->y = y;

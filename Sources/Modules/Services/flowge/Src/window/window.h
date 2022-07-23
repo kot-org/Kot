@@ -21,5 +21,7 @@ public:
     void resize(uint32_t width, uint32_t height);
     void setTitle(char* title);
     char* getTitle();
+    uint32_t getHeight();
+    uint32_t getWidth();
     Context* getContext();
 };
