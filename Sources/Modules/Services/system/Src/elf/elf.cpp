@@ -61,7 +61,7 @@ namespace ELF{
         if(Sys_CreateThread(proc, (uintptr_t)self->Header->e_entry, privilege, NULL, mainThread) != KSUCCESS) return KFAIL;
         
         kprocess_t parentProcess = NULL;
-        SYS_GetProcessKey(&parentProcess);
+        Sys_GetProcessKey(&parentProcess);
         
         /* Load the elf */
         self->phdrs = (uintptr_t)((uint64_t)buffer + self->Header->e_phoff);
@@ -73,7 +73,7 @@ namespace ELF{
         self->KotSpecific = GetSectionHeaderName(self, ".KotSpecificData");
 
         kthread_t RunningThread = NULL;
-        SYS_GetThreadKey(&RunningThread);
+        Sys_GetThreadKey(&RunningThread);
 
         uint64_t HeapLocation = 0x0;
         for(int i = 0; i < self->Header->e_phnum; i++){

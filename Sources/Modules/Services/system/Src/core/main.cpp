@@ -11,7 +11,7 @@ extern "C" int main(struct KernelInfo* kernelInfo){
     Printlog("[SYSTEM] Initialization ...");
     
     kthread_t self;
-    SYS_GetThreadKey(&self);
+    Sys_GetThreadKey(&self);
     ramfs::Parse(kernelInfo->ramfs.address, kernelInfo->ramfs.size);
 
     /* Load IPC */

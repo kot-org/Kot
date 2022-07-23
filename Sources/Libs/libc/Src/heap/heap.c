@@ -4,7 +4,7 @@ static uint64_t mutexHeap;
 static struct heap_t heap;
 
 void InitializeHeapUser(){
-    SYS_GetProcessKey(&heap.Process);
+    Sys_GetProcessKey(&heap.Process);
     heap.EndAddress = KotSpecificData.HeapLocation;
     ExpandHeapUser(0x1000);
     atomicUnlock(&mutexHeap, 0);   

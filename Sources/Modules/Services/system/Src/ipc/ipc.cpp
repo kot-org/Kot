@@ -12,7 +12,7 @@ kthread_t IPCInitialize(){
     Keyhole_SetFlag(&IPCKeyFlags, KeyholeFlagDataTypeThreadIsExecutableAsIPC, true);
 
     kprocess_t process;
-    SYS_GetProcessKey(&process);
+    Sys_GetProcessKey(&process);
 
     Sys_CreateThread(process, (uintptr_t)IPCHandler, PriviledgeService, NULL, &threadIPC);
     Sys_Keyhole_CloneModify(threadIPC, &IPCThreadKey, NULL, IPCKeyFlags);

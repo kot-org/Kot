@@ -91,7 +91,7 @@ KResult Sys_Logs(char* message, size_t size){
 }
 
 
-KResult SYS_GetThreadKey(kthread_t* self){
+KResult Sys_GetThreadKey(kthread_t* self){
     /* Get Self Data */
     kthread_t key;
     asm("mov %%gs:0, %0":"=r"(key));
@@ -99,7 +99,7 @@ KResult SYS_GetThreadKey(kthread_t* self){
     return KSUCCESS;
 }
 
-KResult SYS_GetProcessKey(kprocess_t* self){
+KResult Sys_GetProcessKey(kprocess_t* self){
     /* Get Self Data */
     kprocess_t key;
     asm("mov %%gs:8, %0":"=r"(key));

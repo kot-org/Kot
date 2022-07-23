@@ -83,8 +83,8 @@ KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, kprocess_t tar
 KResult Sys_Logs(char* message, size_t size);
 
 
-KResult SYS_GetThreadKey(kthread_t* self);
-KResult SYS_GetProcessKey(kprocess_t* self);
+KResult Sys_GetThreadKey(kthread_t* self);
+KResult Sys_GetProcessKey(kprocess_t* self);
 
 
 KResult Printlog(char* message);
