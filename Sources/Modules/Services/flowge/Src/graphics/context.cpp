@@ -113,8 +113,16 @@ void blitFramebuffer(framebuffer_t* s1, framebuffer_t* s2, uint32_t x, uint32_t 
 
     to += x * s1->btpp + y * s1->pitch; // offset
 
-    for (uint64_t h = 0; h < s2->height; h++) {
-        memcpy((uintptr_t) to, (uintptr_t) from, (uint64_t) s2->pitch);
+    uint64_t num;
+
+    if (s1->pitch < s2->pitch) {
+        num = (uint64_t) s1->pitch;
+    } else {
+        num = (uint64_t) s2->pitch;
+    } 
+
+    for (uint64_t h = 0; h < s2->height && h+y < s1->height; h++) {
+        memcpy((uintptr_t) to, (uintptr_t) from, num);
         to += s1->pitch;
         from += s2->pitch;
     }

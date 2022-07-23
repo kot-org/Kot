@@ -38,10 +38,17 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
     backbuffer_ctx.fill(0x000000);
     screen_ctx.swapFrom(&backbuffer_ctx);
 
+    Printlog("[FLOWGE] Service initialized successfully");
+
     // window logic
 
     Window w1(&backbuffer_ctx, 400, 400, 100, 100);
+    Window w2(&backbuffer_ctx, 210, 210, 90, 90);
     w1.getContext()->clear();
+    w2.getContext()->clear();
+
+    w2.getContext()->drawLine(10, 10, 200, 200, 0xffffff);
+    w2.getContext()->drawLine(200, 10, 10, 200, 0xffffff);
 
     w1.getContext()->fillRect(0, 0, 10, 100, 0xff00ff);
     w1.getContext()->fillRect(50, 10, 100, 10, 0x00ff00);
@@ -53,11 +60,13 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
     w1.getContext()->drawRect(10, 300, 70, 70, 0xff0000);
     
     w1.show();
+    w2.show();
 
     // update logic
 
     // to optimize: swap back to front on another thread
     backbuffer_ctx.fill(0x000000);
+    w2.render(&backbuffer_ctx);
     w1.render(&backbuffer_ctx);
     screen_ctx.swapFrom(&backbuffer_ctx);
 
@@ -65,13 +74,24 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
         // to be able to see the movement of the window lmao :')
     }
 
-    w1.move(150, 150);
+    w1.move(250, 250);
+    w2.resize(300, 300);
 
     backbuffer_ctx.fill(0x000000);
     w1.render(&backbuffer_ctx);
+    w2.render(&backbuffer_ctx);
     screen_ctx.swapFrom(&backbuffer_ctx);
 
-    Printlog("[FLOWGE] Service initialized successfully");
+    for (int64_t i = 0; i < 100000000; i++) {
+        // to be able to see the movement of the window lmao :')
+    }
+
+    w2.resize(250, 300);
+
+    backbuffer_ctx.fill(0x000000);
+    w1.render(&backbuffer_ctx);
+    w2.render(&backbuffer_ctx);
+    screen_ctx.swapFrom(&backbuffer_ctx);
 
     return KSUCCESS;
 
