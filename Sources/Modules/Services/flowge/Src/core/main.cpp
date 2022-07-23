@@ -83,7 +83,7 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
     w3.render(&backbuffer_ctx);
     screen_ctx.swapFrom(&backbuffer_ctx);
 
-    uint64_t aa = 0;
+    bool aa = 0;
 
     for (int64_t i = 0; i < 100; i++) {
         w2.resize(w2.getWidth()+1, w2.getHeight()+1);
