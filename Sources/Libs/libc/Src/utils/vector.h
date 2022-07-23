@@ -2,6 +2,7 @@
 
 typedef struct {
     void **items;
+    size_t size;
     uint64_t length;
 } vector_t;
 
@@ -9,7 +10,7 @@ typedef struct {
 extern "C" {
 #endif
 
-vector_t* vector_create();
+vector_t* vector_create(size_t size);
 void vector_push(vector_t* vector, void *item);
 
 #if defined(__cplusplus)
