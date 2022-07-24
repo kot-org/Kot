@@ -12,13 +12,13 @@ void vector_push(vector_t* vector, uintptr_t item) {
     if (vector->items == NULL) {
         vector->items = (uintptr_t*) calloc(vector->size);
         vector->length = 1;
-        vector->items[0] = item;
+        *(vector->items) = item;
     } else {
         uintptr_t* temp = (uintptr_t*) calloc((size_t) vector->length+1 * sizeof(vector->size));
         for (uint64_t i = 0; i < vector->length; i++) {
-            temp[i] = vector->items[i];
+            *(temp + i) = vector->items[i];
         }
-        temp[vector->length] = item;
+        *(temp + vector->length) = item;
         free(vector->items);
         vector->items = temp;
         vector->length++;
