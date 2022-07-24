@@ -12,6 +12,7 @@ extern "C" {
 
 vector_t* vector_create(size_t size);
 void vector_push(vector_t* vector, void *item);
+void vector_clear(vector_t* vector);
 
 #if defined(__cplusplus)
 }

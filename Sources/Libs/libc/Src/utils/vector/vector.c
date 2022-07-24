@@ -24,3 +24,11 @@ void vector_push(vector_t* vector, uintptr_t item) {
         vector->length++;
     }
 }
+
+void vector_clear(vector_t* vector) {
+    if (vector->items != NULL) {
+        free(vector->items);
+        vector->items = NULL;
+        vector->length = 0;
+    }
+}
