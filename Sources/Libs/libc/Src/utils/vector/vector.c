@@ -10,19 +10,21 @@ vector_t* vector_create(size_t size) {
 
 void vector_push(vector_t* vector, uintptr_t item) {
     if (vector->items == NULL) {
-        vector->items = (uintptr_t*) calloc(vector->size);
+        vector->items = (uintptr_t*) malloc(vector->size);
         vector->length = 1;
         *(vector->items) = item;
     } else {
-        uintptr_t* temp = (uintptr_t*) calloc((size_t) vector->length+1 * sizeof(vector->size));
-        for (uint64_t i = 0; i < vector->length; i++) {
-            *(temp + i) = vector->items[i];
-        }
+        uintptr_t* temp = (uintptr_t*) malloc((size_t)((vector->length + 1) * vector->size));
+        memcpy(temp, vector->items, vector->length * vector->size);
         *(temp + vector->length) = item;
         free(vector->items);
         vector->items = temp;
         vector->length++;
     }
+}
+
+uintptr_t vector_get(vector_t* vector, uint64_t index) {
+    return *(vector->items + index);
 }
 
 void vector_clear(vector_t* vector) {
