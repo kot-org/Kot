@@ -2,15 +2,93 @@
 
 Context::Context(framebuffer_t* framebuffer) {
     this->framebuffer = framebuffer;
+    this->poses = vector_create(sizeof(pos_t));
 }
 
 void Context::putPixel(uint32_t x, uint32_t y, uint32_t colour) {
     uint8_t* fb = (uint8_t*) this->framebuffer->fb_addr;
     uint64_t index = x * this->framebuffer->btpp + y * this->framebuffer->pitch;
-    fb[index + 2] = (colour >> 16) & 255;
-    fb[index + 1] = (colour >> 8) & 255;
-    fb[index] = colour & 255; 
+    *(uint32_t*)(fb + index) = colour;
 }
+
+uint32_t Context::getPixel(uint32_t x, uint32_t y) {
+    uint8_t* fb = (uint8_t*) this->framebuffer->fb_addr;
+    uint64_t index = x * this->framebuffer->btpp + y * this->framebuffer->pitch;
+    return *(uint32_t*)(fb + index);
+}
+
+// ## path ##
+
+void Context::setAuto(bool _auto) {
+    this->_auto = _auto;
+}
+
+void Context::abs_pos(uint32_t x, uint32_t y) {
+    this->x = x;
+    this->y = y;
+    if (this->_auto == true) {
+        this->add_pos();
+    }
+}
+
+void Context::rel_pos(uint32_t x, uint32_t y) {
+    this->x = this->x + x;
+    this->y = this->y + y;
+    if (this->_auto == true) {
+        this->add_pos();
+    }
+}
+
+void Context::add_pos() {
+    pos_t* pos = (pos_t*) malloc(sizeof(pos_t));
+    pos->x = this->x;
+    pos->y = this->y;
+    vector_push(this->poses, pos);
+}
+
+void Context::end_path() {
+    if (this->poses->length > 0) {
+        pos_t* to = (pos_t*) malloc(sizeof(pos_t));
+        pos_t* from = (pos_t*) vector_get(this->poses, 0);
+        to->x = from->x;
+        to->y = from->y;
+        vector_push(this->poses, to);
+    }
+}
+
+void Context::draw(uint32_t colour) {
+    if (this->_auto == true) {
+        this->end_path();
+    }
+    for (uint64_t i = 0; i < this->poses->length-1; i++) {
+        pos_t* pos1 = (pos_t*) vector_get(this->poses, i);
+        pos_t* pos2 = (pos_t*) vector_get(this->poses, i+1);
+        this->drawLine(pos1->x, pos1->y, pos2->x, pos2->y, colour);
+    }
+}
+
+void Context::reset() {
+    this->x = 0;
+    this->y = 0;
+    vector_clear(this->poses);
+}
+
+// ## absolute ##
+
+void Context::fill(uint32_t x, uint32_t y, uint32_t colour) {
+    this->fill(x, y, colour, colour);
+} 
+
+void Context::fill(uint32_t x, uint32_t y, uint32_t colour, uint32_t border) {
+    uint32_t pixel = this->getPixel(x, y);
+    if (pixel != colour && pixel != border) {
+        this->putPixel(x, y, colour);
+        this->fill(x+1, y, colour, border);
+        this->fill(x, y+1, colour, border);
+        this->fill(x-1, y, colour, border);
+        this->fill(x, y-1, colour, border);
+    }
+} 
 
 void Context::fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
 
@@ -21,9 +99,7 @@ void Context::fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, 
         for (uint32_t w = x; w < width+x; w++) {
             uint64_t xpos = w * this->framebuffer->btpp;
             uint64_t index = ypos + xpos;
-            fb[index + 2] = (colour >> 16) & 255;
-            fb[index + 1] = (colour >> 8) & 255;
-            fb[index] = colour & 255; 
+            *(uint32_t*)(fb + index) = colour;
         }
     }
 
@@ -73,22 +149,14 @@ void Context::drawLine(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint3
 
 }
 
-void Context::fillTri(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t x3, uint32_t y3, uint32_t colour) {
-    // todo    
-}
-
-void Context::drawTri(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t x3, uint32_t y3, uint32_t colour) {
-    this->drawLine(x1, y1, x2, y2, colour);
-    this->drawLine(x2, y2, x3, y3, colour);
-    this->drawLine(x1, y1, x3, y3, colour);
-}
-
 void Context::drawRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
     this->drawLine(x, y, x+width, y, colour); // top
     this->drawLine(x, y+height, x+width, y+height, colour); // bottom
     this->drawLine(x, y, x, y+height, colour); // left
     this->drawLine(x+width, y, x+width, y+height, colour); // right
 }
+
+// ## frame buffer ##
 
 void Context::swapTo(framebuffer_t* to) {
     memcpy((uintptr_t)to->fb_addr, (uintptr_t)this->framebuffer->fb_addr, this->framebuffer->fb_size);
@@ -145,12 +213,12 @@ void Context::blitFrom(Context* from, uint32_t x, uint32_t y) {
     this->blitFrom(from->getFramebuffer(), x, y);
 }
 
-void Context::fill(uint32_t colour) {
-    memset32((uintptr_t) this->framebuffer->fb_addr, colour, this->framebuffer->fb_size);
-} 
-
 void Context::clear() {
     memset((uintptr_t) this->framebuffer->fb_addr, 0x00, this->framebuffer->fb_size);
+} 
+
+void Context::clear(uint32_t colour) {
+    memset32((uintptr_t) this->framebuffer->fb_addr, colour, this->framebuffer->fb_size);
 } 
 
 framebuffer_t* Context::getFramebuffer() {

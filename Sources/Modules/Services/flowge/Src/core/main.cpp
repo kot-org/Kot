@@ -1,23 +1,11 @@
 #include <core/main.h>
 
-framebuffer_t* cloneFramebuffer(framebuffer_t* screen) {
-    framebuffer_t* buffer = (framebuffer_t *) malloc(sizeof(framebuffer_t));
-    buffer->fb_addr = (uint64_t)((uint8_t*) malloc(screen->fb_size));
-    buffer->fb_size = screen->fb_size;
-    buffer->width = screen->width;
-    buffer->height = screen->height;
-    buffer->bpp = screen->bpp;
-    buffer->btpp = screen->btpp;
-    buffer->pitch = screen->pitch;
-    return buffer;
-}
+kprocess_t self;
 
-extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
+Context* screen_ctx = NULL;
+Context* backbuffer_ctx = NULL;
 
-    Printlog("[FLOWGE] Initialization ...");
-
-    kprocess_t self;
-    SYS_GetProcessKey(&self);
+void initBuffers(bootbuffer_t* Framebuffer) {
 
     framebuffer_t* screen = (framebuffer_t*) malloc(sizeof(framebuffer_t));
     screen->fb_size = Framebuffer->framebuffer_pitch * Framebuffer->framebuffer_height;
@@ -32,98 +20,106 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
     screen->bpp = Framebuffer->framebuffer_bpp;
     screen->btpp = screen->bpp/8;
 
-    Context screen_ctx = Context(screen);
-    Context backbuffer_ctx = Context(cloneFramebuffer(screen));
-   
-    backbuffer_ctx.fill(0x000000);
-    screen_ctx.swapFrom(&backbuffer_ctx);
+    screen_ctx = new Context(screen);
+
+    framebuffer_t* backbuffer = (framebuffer_t *) malloc(sizeof(framebuffer_t));
+    backbuffer->fb_addr = (uint64_t)((uint8_t*) malloc(screen->fb_size));
+    backbuffer->fb_size = screen->fb_size;
+    backbuffer->width = screen->width;
+    backbuffer->height = screen->height;
+    backbuffer->bpp = screen->bpp;
+    backbuffer->btpp = screen->btpp;
+    backbuffer->pitch = screen->pitch;
+
+    backbuffer_ctx = new Context(backbuffer);
+
+}
+
+vector_t* windows = NULL;
+kthread_t renderThread = NULL;
+
+void renderMain();
+
+void initRender() {
+    Sys_CreateThread(self, (uintptr_t)&renderMain, PriviledgeService, NULL, &renderThread);
+    windows = vector_create(sizeof(Window));
+}
+
+void renderMain() {
+
+}
+
+extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
+
+    Printlog("[FLOWGE] Initialization ...");
+
+    Sys_GetProcessKey(&self);
+
+    initBuffers(Framebuffer);
+    initRender();
 
     Printlog("[FLOWGE] Service initialized successfully");
 
-    // window logic
+    // ## test ##
 
-    Window w1(&backbuffer_ctx, 400, 400, 250, 250);
-    Window w2(&backbuffer_ctx, 210, 210, 400, 100);
-    Window w3(&backbuffer_ctx, 210, 210, 20, 20);
-    w1.getContext()->clear();
-    w2.getContext()->clear();
-    w3.getContext()->clear();
+    Window* w1 = new Window(backbuffer_ctx, 400, 400, 250, 250);
+    Window* w2 = new Window(backbuffer_ctx, 210, 210, 400, 100);
+    Window* w3 = new Window(backbuffer_ctx, 210, 210, 1, 20);
+    Window* w4 = new Window(backbuffer_ctx, 50, 50, 100, 50);
 
-    w2.getContext()->drawLine(10, 10, 200, 200, 0xffffff);
-    w2.getContext()->drawLine(200, 10, 10, 200, 0xffffff);
+    vector_push(windows, w1);
+    vector_push(windows, w2);
+    vector_push(windows, w3);
+    vector_push(windows, w4);
 
-    w3.getContext()->drawLine(10, 10, 200, 200, 0xffffff);
-    w3.getContext()->drawLine(200, 10, 10, 200, 0xffffff);
+    w1->getContext()->clear();
+    w2->getContext()->clear();
+    w3->getContext()->clear();
 
-    w1.getContext()->fillRect(0, 0, 10, 100, 0xff00ff);
-    w1.getContext()->fillRect(50, 10, 100, 10, 0x00ff00);
+    w2->getContext()->drawLine(10, 10, 200, 200, 0xffffff);
+    w2->getContext()->drawLine(200, 10, 10, 200, 0xffffff);
 
-    w1.getContext()->drawLine(200, 200, 250, 250, 0xffffff); // positive octants
-    w1.getContext()->drawLine(250, 260, 200, 210, 0xffffff); // negative octants
+    w3->getContext()->drawLine(10, 10, 200, 200, 0xffffff);
+    w3->getContext()->drawLine(200, 10, 10, 200, 0xffffff);
 
-    w1.getContext()->fillRect(10, 300, 70, 70, 0xffffff);
-    w1.getContext()->drawRect(10, 300, 70, 70, 0xff0000);
+    w1->getContext()->fillRect(0, 0, 10, 100, 0xff00ff);
+    w1->getContext()->fillRect(50, 10, 100, 10, 0x00ff00);
+
+    w1->getContext()->drawLine(200, 200, 250, 250, 0xffffff);
+    w1->getContext()->drawLine(250, 260, 200, 210, 0xffffff);
+
+    w1->getContext()->fillRect(10, 300, 70, 70, 0xffffff);
+    w1->getContext()->drawRect(10, 300, 70, 70, 0xff0000);
+
+    // draw a polygon with path function
+
+    w1->getContext()->setAuto(true);
+    w1->getContext()->abs_pos(150,150);
+    w1->getContext()->rel_pos(20, 0);
+    w1->getContext()->rel_pos(0, 20);
+    w1->getContext()->rel_pos(-20, 0);
+    w1->getContext()->rel_pos(-10, -10);
+    w1->getContext()->draw(0xff00ff);
+    w1->getContext()->reset();
+
+    // fill the polygon with flood fill function
+
+    w1->getContext()->fill(151, 151, 0xff00ff);
     
-    w1.show();
-    w2.show();
-    w3.show();
+    w1->show();
+    w2->show();
+    w3->show();
+    w4->show();
+    
+    // Sys_ExecThread(renderThread, NULL);
 
-    // to optimize: swap back to front on another thread
-    backbuffer_ctx.fill(0x000000);
-    w2.render(&backbuffer_ctx);
-    w1.render(&backbuffer_ctx);
-    w3.render(&backbuffer_ctx);
-    screen_ctx.swapFrom(&backbuffer_ctx);
+    backbuffer_ctx->clear();
 
-    for (int64_t j = 0; j < 1000000; j++) {}
-
-    backbuffer_ctx.fill(0x000000);
-    w1.render(&backbuffer_ctx);
-    w2.render(&backbuffer_ctx);
-    w3.render(&backbuffer_ctx);
-    screen_ctx.swapFrom(&backbuffer_ctx);
-
-    bool aa = 0;
-
-    for (int64_t i = 0; i < 100; i++) {
-        w2.resize(w2.getWidth()+1, w2.getHeight()+1);
-        w3.resize(w2.getWidth()+2, w2.getHeight()+2);
-        w1.resize(w1.getWidth()-1, w1.getHeight()-1);
-        backbuffer_ctx.fill(0x000000);
-        if (aa == 0) {
-            w3.getContext()->drawLine(10, 10, 200, 200, 0xffffff);
-            w3.getContext()->drawLine(200, 10, 10, 200, 0xffffff);
-            aa = 1;
-        } else {
-            w3.getContext()->drawLine(10, 10, 200, 200, 0xff0000);
-            w3.getContext()->drawLine(200, 10, 10, 200, 0xff0000);
-            aa = 0;
-        }
-        w1.render(&backbuffer_ctx);
-        w2.render(&backbuffer_ctx);
-        w3.render(&backbuffer_ctx);
-        screen_ctx.swapFrom(&backbuffer_ctx);
+    for (uint64_t i = 0; i < windows->length; i++) {
+        ((Window*) vector_get(windows, i))->render(backbuffer_ctx);
     }
 
-    for (int64_t i = 0; i < 100; i++) {
-        w2.resize(w2.getWidth()-1, w2.getHeight()-1);
-        w1.resize(w1.getWidth()+1, w1.getHeight()+1);
-        w3.resize(w2.getWidth()-2, w2.getHeight()-2);
-        backbuffer_ctx.fill(0x000000);
-        if (aa == 0) {
-            w2.getContext()->drawLine(10, 10, 200, 200, 0xffffff);
-            w2.getContext()->drawLine(200, 10, 10, 200, 0xffffff);
-            aa = 1;
-        } else {
-            w2.getContext()->drawLine(10, 10, 200, 200, 0xff0000);
-            w2.getContext()->drawLine(200, 10, 10, 200, 0xff0000);
-            aa = 0;
-        }
-        w1.render(&backbuffer_ctx);
-        w2.render(&backbuffer_ctx);
-        w3.render(&backbuffer_ctx);
-        screen_ctx.swapFrom(&backbuffer_ctx);
-    }
+    screen_ctx->swapFrom(backbuffer_ctx);
 
     return KSUCCESS;
 

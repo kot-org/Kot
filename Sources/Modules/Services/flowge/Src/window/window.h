@@ -5,7 +5,7 @@
 
 class Window {
 private:
-    Context context;
+    Context* context = NULL;
     uint32_t width;
     uint32_t height;
     uint32_t x;
@@ -23,5 +23,7 @@ public:
     char* getTitle();
     uint32_t getHeight();
     uint32_t getWidth();
+    uint32_t getX();
+    uint32_t getY();
     Context* getContext();
 };
