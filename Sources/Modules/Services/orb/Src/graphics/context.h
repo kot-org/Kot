@@ -34,9 +34,11 @@ public:
     Context(framebuffer_t* framebuffer);
 
     void putPixel(uint32_t x, uint32_t y, uint32_t colour);
+    int8_t pixelExist(uint32_t x, uint32_t y);
     uint32_t getPixel(uint32_t x, uint32_t y);
 
     void fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);
+    void fillGradientRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t fromColor, uint32_t toColor);
     void drawRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);
     void drawLine(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour);
 

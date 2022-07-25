@@ -11,6 +11,12 @@ void Context::putPixel(uint32_t x, uint32_t y, uint32_t colour) {
     *(uint32_t*)(fb + index) = colour;
 }
 
+int8_t Context::pixelExist(uint32_t x, uint32_t y) {
+    if (x < 0 || y < 0) return -1;
+    if (x > this->framebuffer->width || y > this->framebuffer->height) return -1;
+    return 1;
+}
+
 uint32_t Context::getPixel(uint32_t x, uint32_t y) {
     uint8_t* fb = (uint8_t*) this->framebuffer->fb_addr;
     uint64_t index = x * this->framebuffer->btpp + y * this->framebuffer->pitch;
@@ -81,7 +87,7 @@ void Context::fill(uint32_t x, uint32_t y, uint32_t colour) {
 
 void Context::fill(uint32_t x, uint32_t y, uint32_t colour, uint32_t border) {
     uint32_t pixel = this->getPixel(x, y);
-    if (pixel != colour && pixel != border) {
+    if (pixel != colour && pixel != border && this->pixelExist(x, y) == 1) {
         this->putPixel(x, y, colour);
         this->fill(x+1, y, colour, border);
         this->fill(x, y+1, colour, border);

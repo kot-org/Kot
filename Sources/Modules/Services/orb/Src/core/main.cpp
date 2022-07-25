@@ -55,9 +55,13 @@ void initWindowRender() {
     windows = vector_create(sizeof(Window));
 }
 
-void drawLotLogo(uint8_t scale, uint32_t x, uint32_t y) {
+void drawLotLogo() {
 
-    Window* kotLogo = new Window(backbuffer_ctx, 500, 500, x, y);
+    uint8_t scale = 786432*3/(screen_ctx->getFramebuffer()->width*screen_ctx->getFramebuffer()->height);
+
+    Window* kotLogo = new Window(backbuffer_ctx, 
+    backbuffer_ctx->getFramebuffer()->width, backbuffer_ctx->getFramebuffer()->height,
+    0, 0);
     
     vector_push(windows, kotLogo);
     
@@ -67,7 +71,7 @@ void drawLotLogo(uint8_t scale, uint32_t x, uint32_t y) {
     kotLogo->getContext()->clear();
     kotLogo->getContext()->setAuto(true);
 
-    kotLogo->getContext()->abs_pos(0, 0);
+    kotLogo->getContext()->abs_pos(backbuffer_ctx->getFramebuffer()->width/2 - scale*33 + scale*15, backbuffer_ctx->getFramebuffer()->height/2 - scale*80 + scale*5);
     kotLogo->getContext()->rel_pos(0, 75*scale);
     kotLogo->getContext()->rel_pos(10*scale, -5*scale);
     kotLogo->getContext()->rel_pos(0, -25*scale);
@@ -83,7 +87,8 @@ void drawLotLogo(uint8_t scale, uint32_t x, uint32_t y) {
 
     kotLogo->getContext()->draw(0xffffff);
 
-    kotLogo->getContext()->fill(2, 2, 0xffffff);
+    // filled with white:
+    // kotLogo->getContext()->fill(backbuffer_ctx->getFramebuffer()->width/2 - scale*33 + scale*15 + 1, backbuffer_ctx->getFramebuffer()->height/2 - scale*80 + scale*5 + 1, 0xffffff);
 
 }
 
@@ -95,17 +100,17 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
 
     initBuffers(Framebuffer);
     initWindowRender();
-    drawLotLogo(2, 20, 20);
+    drawLotLogo();
     renderWindows();
 
     Printlog("[ORB] Service initialized successfully");
 
-    return KSUCCESS;
+    for (int64_t i = 0; i < 100000000; i++) {}
 
     // ## test ##
 
     Window* w1 = new Window(backbuffer_ctx, 400, 400, 250, 250);
-    Window* w2 = new Window(backbuffer_ctx, 210, 210, 400, 100);
+    Window* w2 = new Window(backbuffer_ctx, 210, 210, 700, 100);
     Window* w3 = new Window(backbuffer_ctx, 210, 210, 1, 20);
     Window* w4 = new Window(backbuffer_ctx, 50, 50, 100, 50);
 
