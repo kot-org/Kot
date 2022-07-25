@@ -38,27 +38,69 @@ void initBuffers(bootbuffer_t* Framebuffer) {
 vector_t* windows = NULL;
 kthread_t renderThread = NULL;
 
-void renderMain();
+void renderWindows() {
+    
+    backbuffer_ctx->clear();
 
-void initRender() {
-    Sys_CreateThread(self, (uintptr_t)&renderMain, PriviledgeService, NULL, &renderThread);
+    for (uint64_t i = 0; i < windows->length; i++) {
+        ((Window*) vector_get(windows, i))->render(backbuffer_ctx);
+    }
+
+    screen_ctx->swapFrom(backbuffer_ctx);
+
+}
+
+void initWindowRender() {
+    Sys_CreateThread(self, (uintptr_t)&renderWindows, PriviledgeService, NULL, &renderThread);
     windows = vector_create(sizeof(Window));
 }
 
-void renderMain() {
+void drawLotLogo(uint8_t scale, uint32_t x, uint32_t y) {
+
+    Window* kotLogo = new Window(backbuffer_ctx, 500, 500, x, y);
+    
+    vector_push(windows, kotLogo);
+    
+    kotLogo->hideBorders();
+    kotLogo->show();
+
+    kotLogo->getContext()->clear();
+    kotLogo->getContext()->setAuto(true);
+
+    kotLogo->getContext()->abs_pos(0, 0);
+    kotLogo->getContext()->rel_pos(0, 75*scale);
+    kotLogo->getContext()->rel_pos(10*scale, -5*scale);
+    kotLogo->getContext()->rel_pos(0, -25*scale);
+    kotLogo->getContext()->rel_pos(13*scale, 0);
+    kotLogo->getContext()->rel_pos(0, 33*scale);
+    kotLogo->getContext()->rel_pos(10*scale, -5*scale);
+    kotLogo->getContext()->rel_pos(0, -38*scale);
+    kotLogo->getContext()->rel_pos(-13*scale, 0);
+    kotLogo->getContext()->rel_pos(15*scale, -17*scale);
+    kotLogo->getContext()->rel_pos(-10*scale, -3*scale);
+    kotLogo->getContext()->rel_pos(-15*scale, 17*scale);
+    kotLogo->getContext()->rel_pos(0, -35*scale);
+
+    kotLogo->getContext()->draw(0xffffff);
+
+    kotLogo->getContext()->fill(2, 2, 0xffffff);
 
 }
 
 extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
 
-    Printlog("[FLOWGE] Initialization ...");
+    Printlog("[ORB] Initialization ...");
 
     Sys_GetProcessKey(&self);
 
     initBuffers(Framebuffer);
-    initRender();
+    initWindowRender();
+    drawLotLogo(2, 20, 20);
+    renderWindows();
 
-    Printlog("[FLOWGE] Service initialized successfully");
+    Printlog("[ORB] Service initialized successfully");
+
+    return KSUCCESS;
 
     // ## test ##
 
@@ -112,14 +154,7 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
     w4->show();
     
     // Sys_ExecThread(renderThread, NULL);
-
-    backbuffer_ctx->clear();
-
-    for (uint64_t i = 0; i < windows->length; i++) {
-        ((Window*) vector_get(windows, i))->render(backbuffer_ctx);
-    }
-
-    screen_ctx->swapFrom(backbuffer_ctx);
+    renderWindows();
 
     return KSUCCESS;
 

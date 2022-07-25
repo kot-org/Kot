@@ -30,7 +30,7 @@ sudo make -C "Modules/Drivers/vga/Build"
 echo -e "\e[32mCompiling kot services...\e[0m"
 
 sudo make -C "Modules/Services/system/Build"
-sudo make -C "Modules/Services/flowge/Build"
+sudo make -C "Modules/Services/orb/Build"
 sudo make -C "Modules/Services/uisd/Build"
 
 # kernel

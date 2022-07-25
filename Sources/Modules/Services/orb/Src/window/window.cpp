@@ -30,6 +30,14 @@ void Window::hide() {
     this->_show = false;
 }
 
+void Window::showBorders() {
+    this->_showBorders = true;
+}
+
+void Window::hideBorders() {
+    this->_showBorders = false;
+}
+
 uint32_t Window::getWidth() {
     return this->width;
 }
@@ -66,12 +74,14 @@ Context* Window::getContext() {
 
 void Window::render(Context* to) {
     if (this->_show == true) {
-        to->fillRect(this->x-1, this->y-20, this->width+1, 20, 0x414141);
-        to->drawRect(this->x-1, this->y-20, this->width+1, this->height+20, 0x323232);
-        to->drawLine(this->x+this->width-15, this->y-15, this->x+this->width-5, this->y-5, 0xffffff);
-        to->drawLine(this->x+this->width-5, this->y-15, this->x+this->width-15, this->y-5, 0xffffff);
-        if (this->title != NULL) {
-            // todo
+        if (this->_showBorders) {
+             to->fillRect(this->x-1, this->y-20, this->width+1, 20, 0x414141);
+            to->drawRect(this->x-1, this->y-20, this->width+1, this->height+20, 0x323232);
+            to->drawLine(this->x+this->width-15, this->y-15, this->x+this->width-5, this->y-5, 0xffffff);
+            to->drawLine(this->x+this->width-5, this->y-15, this->x+this->width-15, this->y-5, 0xffffff);
+            if (this->title != NULL) {
+                // todo
+            }
         }
         this->getContext()->blitTo(to, this->x, this->y);
     }
