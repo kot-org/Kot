@@ -1,4 +1,4 @@
-_HOME = ../../../../../
+_HOME = ../../../
 
 CC = clang-14
 ASMC = nasm

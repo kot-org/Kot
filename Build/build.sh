@@ -20,6 +20,11 @@ echo -e "\e[32mCompiling kot libraries...\e[0m"
 sudo make -C "Libs/libc/Build"
 sudo make -C "Libs/abi/Build"
 
+# System
+echo -e "\e[32mCompiling kot system...\e[0m"
+
+sudo make -C "System/Build"
+
 # Drivers
 echo -e "\e[32mCompiling kot drivers...\e[0m"
 
@@ -29,7 +34,6 @@ sudo make -C "Modules/Drivers/vga/Build"
 # Services
 echo -e "\e[32mCompiling kot services...\e[0m"
 
-sudo make -C "Modules/Services/system/Build"
 sudo make -C "Modules/Services/orb/Build"
 sudo make -C "Modules/Services/uisd/Build"
 

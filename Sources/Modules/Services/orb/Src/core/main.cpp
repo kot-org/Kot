@@ -92,11 +92,9 @@ void drawLotLogo() {
 
 }
 
-extern "C" int main(int argc, char* argv[], vector_t* map){
+extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
 
     Printlog("[ORB] Initialization ...");
-
-    bootbuffer_t* Framebuffer = map_get(map, "framebuffer");
 
     Sys_GetProcessKey(&self);
 

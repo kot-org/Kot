@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ramfs/ramfs.h>
+#include <kot/math.h>
 #include <kot/utils/vector.h>
 
 typedef struct {
