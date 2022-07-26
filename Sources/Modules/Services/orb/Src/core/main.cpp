@@ -101,11 +101,10 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
     initBuffers(Framebuffer);
     initWindowRender();
     drawLotLogo();
-    renderWindows();
+    
+    Sys_ExecThread(renderThread, NULL);
 
     Printlog("[ORB] Service initialized successfully");
-
-    //for (int64_t i = 0; i < 100000000; i++) {}
 
     // ## test ##
 
@@ -158,9 +157,8 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
     w3->show();
     w4->show();
     
-    // Sys_ExecThread(renderThread, NULL);
-    renderWindows();
-
+    Sys_ExecThread(renderThread, NULL);
+ 
     return KSUCCESS;
 
 }
