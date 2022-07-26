@@ -1,9 +1,7 @@
 #pragma once
 
-#include <kot/heap.h>
-#include <kot/math.h>
+#include <ramfs/ramfs.h>
 #include <kot/utils/vector.h>
-#include <kot/cstring.h>
 
 typedef struct {
     uint64_t fb_addr;

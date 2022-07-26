@@ -92,9 +92,11 @@ void drawLotLogo() {
 
 }
 
-extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
+extern "C" int main(int argc, char* argv[], vector_t* map){
 
     Printlog("[ORB] Initialization ...");
+
+    bootbuffer_t* Framebuffer = map_get(map, "framebuffer");
 
     Sys_GetProcessKey(&self);
 
@@ -105,7 +107,7 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
 
     Printlog("[ORB] Service initialized successfully");
 
-    for (int64_t i = 0; i < 100000000; i++) {}
+    //for (int64_t i = 0; i < 100000000; i++) {}
 
     // ## test ##
 

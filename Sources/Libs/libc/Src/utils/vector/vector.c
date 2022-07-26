@@ -27,10 +27,31 @@ uintptr_t vector_get(vector_t* vector, uint64_t index) {
     return *(vector->items + index);
 }
 
+void vector_set(vector_t* vector, uint64_t index, uintptr_t item) {
+    if (index < vector->length) {
+        *(vector->items + index) = item;
+    }
+}
+
 void vector_clear(vector_t* vector) {
     if (vector->items != NULL) {
         free(vector->items);
         vector->items = NULL;
         vector->length = 0;
+    }
+}
+
+void vector_remove(vector_t* vector, uint64_t index) {
+    if (vector->items != NULL && index < vector->length) {
+        if (vector->length == 1) {
+            vector_clear(vector);
+        } else if (vector->length != 0) {
+            uintptr_t* temp = (uintptr_t*) malloc((size_t)((vector->length - 1) * vector->size));
+            if (index != 0) { memcpy(temp, vector->items, index * vector->size); }
+            memcpy(temp, vector->items + index, ((vector->length - 1) * vector->size) - index * vector->size);
+            free(vector->items);
+            vector->items = temp;
+            vector->length--;
+        }
     }
 }
