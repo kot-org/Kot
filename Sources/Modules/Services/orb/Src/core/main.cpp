@@ -147,6 +147,8 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
     }
     
     // ## test ##
+
+    vector_t* map = map_create();
  
     return KSUCCESS;
 
