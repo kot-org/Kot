@@ -66,6 +66,12 @@ void Window::move(uint32_t x, uint32_t y) {
 }
 
 void Window::resize(uint32_t width, uint32_t height) {
+    if (width < 59) {
+        width = 59;
+    }
+    if (height < 59) {
+        height = 59;
+    }
     this->width = width;
     this->height = height;
     framebuffer_t* temp = createWindowbuffer(this->context->getFramebuffer(), this->width, this->height);
