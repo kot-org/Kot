@@ -46,7 +46,9 @@ void renderWindows() {
         ((Window*) vector_get(windows, i))->render(backbuffer_ctx);
     }
 
+    Atomic::atomicLock((uint64_t*) screen_ctx, 0);
     screen_ctx->swapFrom(backbuffer_ctx);
+    Atomic::atomicUnlock((uint64_t*) screen_ctx, 0);
 
 }
 
@@ -107,7 +109,7 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
 
     // ## test ##
 
-    Window* w1 = new Window(backbuffer_ctx, 400, 400, 250, 400);
+    Window* w1 = new Window(backbuffer_ctx, 400, 400, 410, 410);
     Window* w2 = new Window(backbuffer_ctx, 50, 50, 100, 50);
 
     vector_push(windows, w1);
@@ -138,9 +140,12 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
     
     w1->show();
     w2->show();
-    
-    Sys_ExecThread(renderThread, NULL);
 
+    for (uint32_t i = 0; i < 400; i++) {
+        w1->move(w1->getX()-1, w1->getY()-1);
+        Sys_ExecThread(renderThread, NULL);
+    }
+    
     // ## test ##
  
     return KSUCCESS;

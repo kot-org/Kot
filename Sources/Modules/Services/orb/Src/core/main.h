@@ -3,6 +3,7 @@
 #include <kot/math.h>
 #include <kot/sys.h>
 #include <kot/heap.h>
+#include <atomic/atomic.h>
 
 #include <graphics/context.h>
 #include <window/window.h>
