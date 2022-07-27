@@ -94,8 +94,6 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
 
     Printlog("[ORB] Initialization ...");
     
-
-    
     Sys_GetProcessKey(&self);
 
     initBuffers(Framebuffer);
@@ -109,7 +107,7 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
 
     // ## test ##
 
-    Window* w1 = new Window(backbuffer_ctx, 400, 400, 250, 250);
+    Window* w1 = new Window(backbuffer_ctx, 400, 400, 250, 400);
     Window* w2 = new Window(backbuffer_ctx, 50, 50, 100, 50);
 
     vector_push(windows, w1);

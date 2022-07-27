@@ -11,6 +11,7 @@ Context::Context(framebuffer_t* framebuffer) {
 }
 
 void Context::putPixel(uint32_t x, uint32_t y, uint32_t colour) {
+    if (this->pixelExist(x, y) == -1) return;
     uint8_t* fb = (uint8_t*) this->framebuffer->fb_addr;
     uint64_t index = x * this->framebuffer->btpp + y * this->framebuffer->pitch;
     *(uint32_t*)(fb + index) = colour;
@@ -121,9 +122,20 @@ void Context::fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, 
 
     uint8_t* fb = (uint8_t*) this->framebuffer->fb_addr;
 
-    for (uint32_t h = y; h < height+y; h++) {
+    uint32_t _h = height+y;
+    uint32_t _w = width+x;
+
+    if (_h > this->framebuffer->height) {
+        _h = this->framebuffer->height;
+    }
+
+    if (_w > this->framebuffer->width) {
+        _w = this->framebuffer->width;
+    }
+
+    for (uint32_t h = y; h < _h; h++) {
         uint64_t ypos = h * this->framebuffer->pitch;
-        for (uint32_t w = x; w < width+x; w++) {
+        for (uint32_t w = x; w < _w; w++) {
             uint64_t xpos = w * this->framebuffer->btpp;
             uint64_t index = ypos + xpos;
             *(uint32_t*)(fb + index) = colour;
@@ -133,6 +145,22 @@ void Context::fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, 
 }
 
 void Context::drawLine(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour) {
+
+    if (x1 > this->framebuffer->width) {
+        x1 = this->framebuffer->width;
+    }
+
+    if (y1 > this->framebuffer->height) {
+        y1 = this->framebuffer->height;
+    }
+
+    if (x2 > this->framebuffer->width) {
+        x2 = this->framebuffer->width;
+    }
+
+    if (y2 > this->framebuffer->height) {
+        y2 = this->framebuffer->height;
+    }
 
     int32_t dx = x2-x1;
     int32_t dy = y2-y1;
