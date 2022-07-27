@@ -57,49 +57,50 @@ void initWindowRender() {
 
 void drawLotLogo() {
 
-    uint8_t scale = 786432*3/(screen_ctx->getFramebuffer()->width*screen_ctx->getFramebuffer()->height);
-
-    Window* kotLogo = new Window(backbuffer_ctx, 
-    backbuffer_ctx->getFramebuffer()->width, backbuffer_ctx->getFramebuffer()->height,
-    0, 0);
+    Window* kotLogo = new Window(backbuffer_ctx, backbuffer_ctx->getFramebuffer()->width-1, backbuffer_ctx->getFramebuffer()->height-1, 0, 0);
     
     vector_push(windows, kotLogo);
-    
+
     kotLogo->hideBorders();
     kotLogo->show();
 
-    kotLogo->getContext()->clear();
-    kotLogo->getContext()->setAuto(true);
+    Context* ctx = kotLogo->getContext();
 
-    kotLogo->getContext()->abs_pos(backbuffer_ctx->getFramebuffer()->width/2 - scale*33 + scale*15, backbuffer_ctx->getFramebuffer()->height/2 - scale*80 + scale*5);
-    kotLogo->getContext()->rel_pos(0, 75*scale);
-    kotLogo->getContext()->rel_pos(10*scale, -5*scale);
-    kotLogo->getContext()->rel_pos(0, -25*scale);
-    kotLogo->getContext()->rel_pos(13*scale, 0);
-    kotLogo->getContext()->rel_pos(0, 33*scale);
-    kotLogo->getContext()->rel_pos(10*scale, -5*scale);
-    kotLogo->getContext()->rel_pos(0, -38*scale);
-    kotLogo->getContext()->rel_pos(-13*scale, 0);
-    kotLogo->getContext()->rel_pos(15*scale, -17*scale);
-    kotLogo->getContext()->rel_pos(-10*scale, -3*scale);
-    kotLogo->getContext()->rel_pos(-15*scale, 17*scale);
-    kotLogo->getContext()->rel_pos(0, -35*scale);
+    ctx->clear();
 
-    kotLogo->getContext()->draw(0xffffff);
+    ctx->auto_pos(true);
+    ctx->scale_pos(true);
 
-    // filled with white:
-    // kotLogo->getContext()->fill(backbuffer_ctx->getFramebuffer()->width/2 - scale*33 + scale*15 + 1, backbuffer_ctx->getFramebuffer()->height/2 - scale*80 + scale*5 + 1, 0xffffff);
+    ctx->abs_pos(ctx->getFramebuffer()->width/2 - 15 * ctx->get_scale(), ctx->getFramebuffer()->height/2 - 50 * ctx->get_scale());
+    ctx->rel_pos(0, 75);
+    ctx->rel_pos(10, -5);
+    ctx->rel_pos(0, -25);
+    ctx->rel_pos(13, 0);
+    ctx->rel_pos(0, 33);
+    ctx->rel_pos(10, -5);
+    ctx->rel_pos(0, -38);
+    ctx->rel_pos(-13, 0);
+    ctx->rel_pos(15, -17);
+    ctx->rel_pos(-10, -3);
+    ctx->rel_pos(-15, 17);
+    ctx->rel_pos(0, -37);
+
+    ctx->draw(0xffffff);
+    ctx->fill(ctx->get_pos(0)->x+1, ctx->get_pos(0)->y+1, 0xffffff);
 
 }
 
 extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
 
     Printlog("[ORB] Initialization ...");
+    
 
+    
     Sys_GetProcessKey(&self);
 
     initBuffers(Framebuffer);
     initWindowRender();
+
     drawLotLogo();
     
     Sys_ExecThread(renderThread, NULL);
@@ -109,24 +110,13 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
     // ## test ##
 
     Window* w1 = new Window(backbuffer_ctx, 400, 400, 250, 250);
-    Window* w2 = new Window(backbuffer_ctx, 210, 210, 700, 100);
-    Window* w3 = new Window(backbuffer_ctx, 210, 210, 1, 20);
-    Window* w4 = new Window(backbuffer_ctx, 50, 50, 100, 50);
+    Window* w2 = new Window(backbuffer_ctx, 50, 50, 100, 50);
 
     vector_push(windows, w1);
     vector_push(windows, w2);
-    vector_push(windows, w3);
-    vector_push(windows, w4);
 
     w1->getContext()->clear();
     w2->getContext()->clear();
-    w3->getContext()->clear();
-
-    w2->getContext()->drawLine(10, 10, 200, 200, 0xffffff);
-    w2->getContext()->drawLine(200, 10, 10, 200, 0xffffff);
-
-    w3->getContext()->drawLine(10, 10, 200, 200, 0xffffff);
-    w3->getContext()->drawLine(200, 10, 10, 200, 0xffffff);
 
     w1->getContext()->fillRect(0, 0, 10, 100, 0xff00ff);
     w1->getContext()->fillRect(50, 10, 100, 10, 0x00ff00);
@@ -137,9 +127,7 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
     w1->getContext()->fillRect(10, 300, 70, 70, 0xffffff);
     w1->getContext()->drawRect(10, 300, 70, 70, 0xff0000);
 
-    // draw a polygon with path function
-
-    w1->getContext()->setAuto(true);
+    w1->getContext()->auto_pos(true);
     w1->getContext()->abs_pos(150,150);
     w1->getContext()->rel_pos(20, 0);
     w1->getContext()->rel_pos(0, 20);
@@ -148,16 +136,14 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
     w1->getContext()->draw(0xff00ff);
     w1->getContext()->reset();
 
-    // fill the polygon with flood fill function
-
     w1->getContext()->fill(151, 151, 0xff00ff);
     
     w1->show();
     w2->show();
-    w3->show();
-    w4->show();
     
     Sys_ExecThread(renderThread, NULL);
+
+    // ## test ##
  
     return KSUCCESS;
 

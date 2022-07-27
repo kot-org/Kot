@@ -3,6 +3,11 @@
 Context::Context(framebuffer_t* framebuffer) {
     this->framebuffer = framebuffer;
     this->poses = vector_create(sizeof(pos_t));
+    if (framebuffer->width >= framebuffer->height) {
+        this->scale = this->framebuffer->width/412;
+    } else {
+        this->scale = this->framebuffer->height/412;
+    }
 }
 
 void Context::putPixel(uint32_t x, uint32_t y, uint32_t colour) {
@@ -25,8 +30,20 @@ uint32_t Context::getPixel(uint32_t x, uint32_t y) {
 
 // ## path ##
 
-void Context::setAuto(bool _auto) {
+void Context::auto_pos(bool _auto) {
     this->_auto = _auto;
+}
+
+pos_t* Context::get_pos(uint16_t index) {
+    return (pos_t*) vector_get(this->poses, index);
+}
+
+void Context::scale_pos(bool _scaling) {
+    this->_scaling = _scaling;
+} 
+
+uint16_t Context::get_scale() {
+    return this->scale;
 }
 
 void Context::abs_pos(uint32_t x, uint32_t y) {
@@ -38,6 +55,10 @@ void Context::abs_pos(uint32_t x, uint32_t y) {
 }
 
 void Context::rel_pos(uint32_t x, uint32_t y) {
+    if (this->_scaling == true) {
+        x = x * this->scale;
+        y = y * this->scale;
+    }
     this->x = this->x + x;
     this->y = this->y + y;
     if (this->_auto == true) {

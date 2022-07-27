@@ -2,6 +2,7 @@
 
 #include <kot/math.h>
 #include <kot/utils/vector.h>
+#include <kot/cstring.h>
 
 typedef struct {
     uint64_t fb_addr;
@@ -23,8 +24,13 @@ private:
 
     uint32_t x = 0;
     uint32_t y = 0;
+    
     vector_t* poses;
     bool _auto = false;
+    bool _scaling = false;
+
+    uint16_t scale;
+
     framebuffer_t* framebuffer;
 
 public:
@@ -54,7 +60,12 @@ public:
     void end_path();
     void reset();
 
-    void setAuto(bool _auto);
+    pos_t* get_pos(uint16_t index);
+
+    void auto_pos(bool _auto);
+    void scale_pos(bool _scaling);
+
+    uint16_t get_scale();
 
     // framebuffer function
 
