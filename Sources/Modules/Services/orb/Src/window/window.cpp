@@ -85,14 +85,18 @@ Context* Window::getContext() {
 }
 
 void Window::render(Context* to) {
+    uint32_t w = this->width;
+    uint32_t h = this->height;
+    uint32_t x = this->x;
+    uint32_t y = this->y;
     if (this->_show == true) {
-        this->getContext()->blitTo(to, this->x, this->y);
+        this->getContext()->blitTo(to, x, y);
         if (this->_showBorders) {
-            to->drawRect(this->x-1, this->y-1, this->width+1, this->height+1, 0x323232);
-            to->drawLine(this->x+this->width-17, this->y+17, this->x+this->width-7, this->y+7, 0xffffff);
-            to->drawLine(this->x+this->width-7, this->y+17, this->x+this->width-17, this->y+7, 0xffffff);
-            to->drawRect(this->x+this->width-35, this->y+7, 10, 10, 0xffffff);
-            to->drawLine(this->x+this->width-53, this->y+17, this->x+this->width-43, this->y+17, 0xffffff);
+            to->drawRect(x-1, y-1, w+1, h+1, 0x323232);
+            to->drawLine(x+w-17, y+17, x+w-7, y+7, 0xffffff);
+            to->drawLine(x+w-7, y+17, x+w-17, y+7, 0xffffff);
+            to->drawRect(x+w-35, y+7, 10, 10, 0xffffff);
+            to->drawLine(x+w-53, y+17, x+w-43, y+17, 0xffffff);
         }
     }
 }

@@ -133,14 +133,6 @@ void Context::fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, 
         _w = this->framebuffer->width;
     }
 
-    if (_h < 0) {
-        _h = 0;
-    }
-
-    if (_w < 0) {
-        _w = 0;
-    }
-
     for (uint32_t h = y; h < _h; h++) {
         uint64_t ypos = h * this->framebuffer->pitch;
         for (uint32_t w = x; w < _w; w++) {
@@ -168,6 +160,7 @@ void Context::subSeqCircle(uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uin
 void Context::drawCircle(uint32_t xc, uint32_t yc, uint32_t r, uint32_t colour) {
     int x = 0, y = r;
     int d = 3 - 2 * r;
+    this->subSeqCircle(xc, yc, x, y, colour);
     while (y >= x) {
         this->subSeqCircle(xc, yc, x, y, colour);
         x++;
