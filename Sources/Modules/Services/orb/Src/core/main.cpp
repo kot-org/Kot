@@ -92,18 +92,19 @@ void drawLotLogo() {
 
 }
 
-extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
+extern "C" int main(int argc, char* argv[], bootbuffer_t* fb){
 
     Printlog("[ORB] Initialization ...");
     
     Sys_GetProcessKey(&self);
 
-    initBuffers(Framebuffer);
+    initBuffers(fb);
     initWindowRender();
 
     drawLotLogo();
     
-    Sys_ExecThread(renderThread, NULL);
+    //Sys_ExecThread(renderThread, NULL);
+    renderWindows();
 
     Printlog("[ORB] Service initialized successfully");
 
@@ -143,12 +144,9 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* Framebuffer){
 
     for (uint32_t i = 0; i < 400; i++) {
         w1->move(w1->getX()-1, w1->getY()-1);
-        Sys_ExecThread(renderThread, NULL);
+        //Sys_ExecThread(renderThread, NULL);
+        renderWindows();
     }
-    
-    // ## test ##
-
-    vector_t* map = map_create();
  
     return KSUCCESS;
 

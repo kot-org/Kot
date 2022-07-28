@@ -23,7 +23,14 @@ int64_t map_indexof(vector_t* map, char* key) {
 
 void map_set(vector_t* map, char* key, uintptr_t item) {
     map_item_t* map_item = (map_item_t*) malloc(sizeof(map_item_t));
-    // todo
+    map_item->key = key;
+    map_item->item = item;
+    int64_t indexof = map_indexof(map, key);
+    if (indexof == -1) {
+        vector_push(map, map_item);
+    } else {
+        vector_set(map, indexof, map_item);
+    }
 }
 
 bool map_exist(vector_t* map, char* key) {
