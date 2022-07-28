@@ -8,12 +8,12 @@ private:
     Context* context = NULL;
     uint32_t width;
     uint32_t height;
-    uint32_t x;
-    uint32_t y;
+    int32_t x;
+    int32_t y;
     bool _show = false;
     bool _showBorders = true;
 public:
-    Window(Context* from, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
+    Window(Context* from, uint32_t width, uint32_t height, uint32_t x, uint32_t y);
     void show();
     void hide();
     void showBorders();

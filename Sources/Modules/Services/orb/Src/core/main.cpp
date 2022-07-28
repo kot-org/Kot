@@ -103,8 +103,8 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* fb){
 
     drawLotLogo();
     
-    //Sys_ExecThread(renderThread, NULL);
-    renderWindows();
+    Sys_ExecThread(renderThread, NULL);
+    //renderWindows();
 
     Printlog("[ORB] Service initialized successfully");
 
@@ -138,14 +138,16 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* fb){
     w1->getContext()->reset();
 
     w1->getContext()->fill(151, 151, 0xff00ff);
+
+    w1->getContext()->drawCircle(100, 100, 20, 0xffff00);
     
     w1->show();
     w2->show();
 
     for (uint32_t i = 0; i < 400; i++) {
         w1->move(w1->getX()-1, w1->getY()-1);
-        //Sys_ExecThread(renderThread, NULL);
-        renderWindows();
+        Sys_ExecThread(renderThread, NULL);
+        //renderWindows();
     }
  
     return KSUCCESS;

@@ -33,6 +33,8 @@ private:
 
     framebuffer_t* framebuffer;
 
+    void subSeqCircle(uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour);
+
 public:
 
     Context(framebuffer_t* framebuffer);
@@ -46,10 +48,12 @@ public:
     void drawRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);
     void drawLine(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour);
 
-    // path function
+    void drawCircle(uint32_t xc, uint32_t yc, uint32_t radius, uint32_t colour);
 
     void fill(uint32_t x, uint32_t y, uint32_t colour);
     void fill(uint32_t x, uint32_t y, uint32_t colour, uint32_t border);
+
+    // path function
 
     void draw(uint32_t colour);
 

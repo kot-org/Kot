@@ -133,6 +133,14 @@ void Context::fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, 
         _w = this->framebuffer->width;
     }
 
+    if (_h < 0) {
+        _h = 0;
+    }
+
+    if (_w < 0) {
+        _w = 0;
+    }
+
     for (uint32_t h = y; h < _h; h++) {
         uint64_t ypos = h * this->framebuffer->pitch;
         for (uint32_t w = x; w < _w; w++) {
@@ -142,6 +150,35 @@ void Context::fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, 
         }
     }
 
+}
+
+void Context::subSeqCircle(uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour) {
+    uint32_t w = this->framebuffer->width;
+    uint32_t h = this->framebuffer->height;
+    this->putPixel(xc+x+w/2, (h/2)-(yc+y), colour);
+    this->putPixel(xc-x+w/2, (h/2)-(yc+y), colour);
+    this->putPixel(xc+x+w/2, (h/2)-(yc-y), colour);
+    this->putPixel(xc-x+w/2, (h/2)-(yc-y), colour);
+    this->putPixel(xc+y+w/2, (h/2)-(yc+x), colour);
+    this->putPixel(xc-y+w/2, (h/2)-(yc+x), colour);
+    this->putPixel(xc+y+w/2, (h/2)-(yc-x), colour);
+    this->putPixel(xc-y+w/2, (h/2)-(yc-x), colour);
+}
+
+void Context::drawCircle(uint32_t xc, uint32_t yc, uint32_t r, uint32_t colour) {
+    int x = 0, y = r;
+    int d = 3 - 2 * r;
+    while (y >= x) {
+        this->subSeqCircle(xc, yc, x, y, colour);
+        x++;
+        if (d > 0) {
+            y--;
+            d = d + 4 * (x - y) + 10;
+        } else {
+            d = d + 4 * x + 6;
+        }
+        this->subSeqCircle(xc, yc, x, y, colour);
+    }
 }
 
 void Context::drawLine(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour) {
@@ -160,6 +197,22 @@ void Context::drawLine(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint3
 
     if (y2 > this->framebuffer->height) {
         y2 = this->framebuffer->height;
+    }
+
+    if (x1 < 0) {
+        x1 = 0;
+    }
+
+    if (y1 < 0) {
+        y1 = 0;
+    }
+
+    if (x2 < 0) {
+        x2 = 0;
+    }
+
+    if (y2 < 0) {
+        y2 = 0;
     }
 
     int32_t dx = x2-x1;
