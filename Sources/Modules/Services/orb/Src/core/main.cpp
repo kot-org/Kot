@@ -5,19 +5,19 @@ kprocess_t self;
 Context* screen_ctx = NULL;
 Context* backbuffer_ctx = NULL;
 
-void initBuffers(bootbuffer_t* Framebuffer) {
+void initBuffers(bootbuffer_t* fb) {
 
     framebuffer_t* screen = (framebuffer_t*) malloc(sizeof(framebuffer_t));
-    screen->fb_size = Framebuffer->framebuffer_pitch * Framebuffer->framebuffer_height;
+    screen->fb_size = fb->framebuffer_pitch * fb->framebuffer_height;
 
     uint64_t virtualAddress = (uint64_t) KotSpecificData.FreeMemorySpace - screen->fb_size;
-    SYS_Map(self, &virtualAddress, true, (uintptr_t *) &Framebuffer->framebuffer_addr, &screen->fb_size, false);
+    SYS_Map(self, &virtualAddress, true, (uintptr_t *) &fb->framebuffer_addr, &screen->fb_size, false);
 
     screen->fb_addr = virtualAddress;
-    screen->width = Framebuffer->framebuffer_width;
-    screen->height = Framebuffer->framebuffer_height;
-    screen->pitch = Framebuffer->framebuffer_pitch;
-    screen->bpp = Framebuffer->framebuffer_bpp;
+    screen->width = fb->framebuffer_width;
+    screen->height = fb->framebuffer_height;
+    screen->pitch = fb->framebuffer_pitch;
+    screen->bpp = fb->framebuffer_bpp;
     screen->btpp = screen->bpp/8;
 
     screen_ctx = new Context(screen);
