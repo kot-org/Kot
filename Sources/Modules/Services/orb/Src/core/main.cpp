@@ -50,6 +50,8 @@ void renderWindows() {
     screen_ctx->swapFrom(backbuffer_ctx);
     Atomic::atomicUnlock((uint64_t*) screen_ctx, 0);
 
+    SYS_Exit(NULL, KSUCCESS);
+
 }
 
 void initWindowRender() {
@@ -104,7 +106,6 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* fb){
     drawLotLogo();
     
     Sys_ExecThread(renderThread, NULL);
-    //renderWindows();
 
     Printlog("[ORB] Service initialized successfully");
 
@@ -147,7 +148,6 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* fb){
     for (uint32_t i = 0; i < 400; i++) {
         w1->move(w1->getX()-1, w1->getY()-1);
         Sys_ExecThread(renderThread, NULL);
-        //renderWindows();
     }
  
     return KSUCCESS;
