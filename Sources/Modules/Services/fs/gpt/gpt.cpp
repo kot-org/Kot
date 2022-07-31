@@ -1,5 +1,5 @@
 #include "gpt.h"
-#include "../KFS/kfs.h"
+#include "../kfs/kfs.h"
 
 #define SectorSizeLBA 512
 
