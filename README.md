@@ -1,5 +1,5 @@
 <p align="center">
-	<img src="./Meta/Images/Logo/laptop.png?raw=true" width="406px"/> 
+	<img src="./Meta/Images/Logo/laptop.png?raw=true" width="90%"/> 
 </p>
 
 # KotOS
