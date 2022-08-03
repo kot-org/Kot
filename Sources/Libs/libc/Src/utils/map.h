@@ -1,3 +1,5 @@
+#pragma once
+
 #include <kot/utils/vector.h>
 
 #if defined(__cplusplus)
