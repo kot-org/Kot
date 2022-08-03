@@ -4,17 +4,20 @@
 JVM8Stack::JVM8Stack(size_t capacity) {
     this->capacity = capacity;
     this->arr = (uintptr_t*) malloc(this->capacity);
-    this->top = capacity/sizeof(uintptr_t);
-    char buffer[255];
-    Printlog(itoa(top, buffer, 10));
+    this->maxTop = capacity/sizeof(uintptr_t)-1;
 }
 
 bool JVM8Stack::isFull() {
-    if (index==top) {
+    if (top==maxTop) {
         return true;
     }
     return false;
 }
+
+bool JVM8Stack::isEmpty() {
+    return this->top == -1;
+}
+
 
 /**
  * @return false Stackoverflow
@@ -23,26 +26,27 @@ bool JVM8Stack::push(uintptr_t item) {
     if (isFull()) {
         return false;
     } else {
-        this->arr[top++] = item;
+        top++;
+        *(this->arr + top) = item;
         return true;
     }
 }
 
 uintptr_t JVM8Stack::pop() {
-    if (this->index == -1) {
+    if (this->top == -1) {
         return NULL;
     } else {
-        uintptr_t temp = this->arr[index];
-        this->arr[index] = NULL;
-        this->index--;
+        uintptr_t temp = *(this->arr + top);
+        *(this->arr + top) = NULL;
+        this->top--;
         return temp;
     }
 }
 
 uintptr_t JVM8Stack::peek() {
-    if (this->index == -1) {
+    if (this->top == -1) {
         return NULL;
     } else {
-        return this->arr[index];
+        return *(this->arr + top);
     }
 }

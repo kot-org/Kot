@@ -36,7 +36,6 @@ echo -e "\e[32mCompiling kot services...\e[0m"
 
 sudo make -C "Modules/Services/orb/Build"
 sudo make -C "Modules/Services/jvm/Build"
-sudo make -C "Modules/Services/uisd/Build"
 
 # kernel
 cd "../Sources/Kernel/"

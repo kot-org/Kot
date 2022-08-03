@@ -13,6 +13,6 @@ private:
     JVM8OpCodesTable* opCodesTable;
     uint64_t pc = 0;
 public:
-    JVM8();
+    JVM8(size_t stackCapacity);
     void initialize();
 };
