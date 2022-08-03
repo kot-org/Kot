@@ -1,14 +1,16 @@
 #include <elf/elf.h>
 
-namespace ELF{
-    static inline char* GetSectionName(elf_t* self, Elf64_Shdr* shdr){
+namespace ELF {
+
+    static inline char* GetSectionName(elf_t* self, Elf64_Shdr* shdr) {
         return (char*)((uint64_t)self->Buffer + self->shstr->sh_offset + shdr->sh_name);
     }
  
-    static inline Elf64_Shdr* GetSectionHeaderIndex(elf_t* self, Elf64_Half index){
+    static inline Elf64_Shdr* GetSectionHeaderIndex(elf_t* self, Elf64_Half index) {
         return (Elf64_Shdr*)((uint64_t)self->shdrs + (index * self->Header->e_shentsize));
     }
-    static inline Elf64_Shdr* GetSectionHeaderName(elf_t* self, char* name){
+
+    static inline Elf64_Shdr* GetSectionHeaderName(elf_t* self, char* name) {
         for(Elf64_Half i = 0; i <  self->Header->e_shnum; i++){
             Elf64_Shdr* shdr = GetSectionHeaderIndex(self, i);
             if(strcmp(GetSectionName(self, shdr), name)){
@@ -17,7 +19,8 @@ namespace ELF{
         }
         return NULL;
     }
-    static inline Elf64_Shdr* GetSectionHeaderType(elf_t* self, uint32_t type){
+
+    static inline Elf64_Shdr* GetSectionHeaderType(elf_t* self, uint32_t type) {
         for(Elf64_Half i = 0; i < self->Header->e_shnum; i++){
             Elf64_Shdr* shdr = GetSectionHeaderIndex(self, i);
             if(shdr->sh_type == type){
@@ -27,11 +30,11 @@ namespace ELF{
         return NULL;
     }
 
-    static inline Elf64_Half GetSectionIndex(elf_t* self, Elf64_Shdr* shdr){
+    static inline Elf64_Half GetSectionIndex(elf_t* self, Elf64_Shdr* shdr) {
         return (Elf64_Half)(((uint64_t)shdr - (uint64_t)self->shdrs) / self->Header->e_shentsize);
     }
 
-    static inline Elf64_Sym* GetSymbol(elf_t* self, Elf64_Half sectionIndex, char* name){
+    static inline Elf64_Sym* GetSymbol(elf_t* self, Elf64_Half sectionIndex, char* name) {
         uint64_t size = self->symtab->sh_size / sizeof(Elf64_Sym);
         for(uint64_t i = 0; i < size; i++){
             Elf64_Sym* sym = (Elf64_Sym*)((uint64_t)self->Buffer + self->symtab->sh_offset + i * sizeof(Elf64_Sym));
@@ -43,7 +46,7 @@ namespace ELF{
         }
     }
 
-    KResult loadElf(uintptr_t buffer, enum Priviledge privilege, uint64_t identifier, kthread_t* mainThread){
+    KResult loadElf(uintptr_t buffer, enum Priviledge privilege, uint64_t identifier, kthread_t* mainThread) {
         elf_t* self = (elf_t*)calloc(sizeof(elf_t));
         self->Buffer = buffer;
         self->Header = (Elf64_Ehdr*)buffer;
@@ -76,7 +79,7 @@ namespace ELF{
         Sys_GetThreadKey(&RunningThread);
 
         uint64_t HeapLocation = 0x0;
-        for(int i = 0; i < self->Header->e_phnum; i++){
+        for (int i = 0; i < self->Header->e_phnum; i++) {
             Elf64_Phdr* phdr = (Elf64_Phdr*)((uint64_t)self->phdrs + (i * self->Header->e_phentsize));
             if((phdr->p_vaddr + phdr->p_memsz) > HeapLocation){
                 HeapLocation = phdr->p_vaddr + phdr->p_memsz;
@@ -84,7 +87,7 @@ namespace ELF{
         }
 
         KotSpecificData_t* KotSpecificDataClient = NULL;
-        if(self->KotSpecific != NULL){
+        if (self->KotSpecific != NULL) {
             self->KotSpecificIndex = GetSectionIndex(self, self->KotSpecific);
 
             self->KotSpecificSymbol = GetSymbol(self, self->KotSpecificIndex, "KotSpecificData");
@@ -106,7 +109,7 @@ namespace ELF{
             }
         }
 
-        for(int i = 0; i < self->Header->e_phnum; i++){
+        for (int i = 0; i < self->Header->e_phnum; i++) {
             Elf64_Phdr* phdr = (Elf64_Phdr*)((uint64_t)self->phdrs + (i * self->Header->e_phentsize));
             if(phdr->p_type == PT_LOAD){
                 uintptr_t TmpAddress = (uintptr_t)malloc(phdr->p_memsz);
@@ -133,10 +136,13 @@ namespace ELF{
 
         free(KotSpecificDataClient);
         free(self);
+
         return KSUCCESS;
+
     }
 
-    bool Check(elf_t* self){
+    bool Check(elf_t* self) {
         return (self->Header->e_ident[0] != EI_MAG0 || self->Header->e_ident[1] != EI_MAG1 || self->Header->e_ident[2] != EI_MAG2 || self->Header->e_ident[3] != EI_MAG3);
     }
+
 }

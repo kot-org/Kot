@@ -1,4 +1,5 @@
 #pragma once
+
 #include <kot/elf.h>
 #include <kot/sys.h>
 #include <kot/heap.h>
@@ -8,13 +9,12 @@
 
 #include <core/main.h>
 
-namespace ELF{
-    /* Function */
+namespace ELF {
+    
     KResult loadElf(uintptr_t buffer, enum Priviledge ring, uint64_t identifier, kthread_t* mainThread);
-
     bool Check(struct elf_t* self);
 
-    struct elf_t{
+    struct elf_t {
         uintptr_t Buffer;
         Elf64_Ehdr* Header;
         uintptr_t phdrs;
@@ -26,4 +26,5 @@ namespace ELF{
         Elf64_Half KotSpecificIndex;
         Elf64_Sym* KotSpecificSymbol;
     };
+
 }

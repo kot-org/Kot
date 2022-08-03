@@ -1,4 +1,5 @@
 #pragma once
+
 #include <kot/sys.h>
 #include <kot/heap.h>
 #include <kot/types.h>
@@ -7,21 +8,21 @@
 
 #define MaxName 36
 
-namespace ramfs{
+namespace ramfs {
 
-    struct Header{
+    struct Header {
         char signature[5];
         uint64_t version;
         uint64_t filenumber;
         uint64_t initfile;
     }__attribute__((packed));
 
-    struct File{
+    struct File {
         char name[MaxName];
         uint64_t size;
     }__attribute__((packed));  
     
-    struct Info{
+    struct Info {
         uintptr_t baseAddress;
         size_t size;
         Header* header;
@@ -31,5 +32,5 @@ namespace ramfs{
     File* Find(char* fileName);
     File* FindInitFile();
     bool Read(File* address, uintptr_t buffer);
-}
 
+}

@@ -7,33 +7,40 @@ void ShareString(kthread_t self, char* str, uint64_t* clientAddress){
     SYS_ShareDataUsingStackSpace(self, (uint64_t)str, strlen(str) + 1, clientAddress);
 }
 
-extern "C" int main(struct KernelInfo* kernelInfo){
+extern "C" int main(struct KernelInfo* kernelInfo) {
+
     Printlog("[SYSTEM] Initialization ...");
     
     kthread_t self;
     Sys_GetThreadKey(&self);
+
     ramfs::Parse(kernelInfo->ramfs.address, kernelInfo->ramfs.size);
 
-    /* Load IPC */
+    // load IPC
     KotSpecificData.IPCHandler = IPCInitialize();
     
-    /* Load services */
+    // load start file
     ramfs::File* InitFile = ramfs::Find("Starter.cfg");
     
-    if(InitFile != NULL) {
+    if (InitFile != NULL) {
+
+        // fetch services
+
         char* BufferInitFile = (char*)malloc(InitFile->size + 1);
         ramfs::Read(InitFile, BufferInitFile);
         BufferInitFile[InitFile->size + 1] = NULL;
         char* app;
-        uint8_t index = 0;
         char** ServicesInfo = strsplit(BufferInitFile, "\n");
 
         parameters_t* InitParameters = (parameters_t*)calloc(sizeof(parameters_t));
 
-        for(uint64_t i = 0; ServicesInfo[i] != NULL; i++){
+        for (uint64_t i = 0; ServicesInfo[i] != NULL; i++) {
             char** ServiceInfo = strsplit(ServicesInfo[i], ", ");
             ramfs::File* ServiceFile = ramfs::Find(ServiceInfo[0]);
-            if(ServiceFile != NULL && atoi(ServiceInfo[1]) >= PriviledgeDriver && atoi(ServiceInfo[1]) <= PriviledgeApp){
+            if (ServiceFile != NULL && atoi(ServiceInfo[1]) >= PriviledgeDriver && atoi(ServiceInfo[1]) <= PriviledgeApp) {
+                
+                // load service in a thread
+
                 uintptr_t BufferServiceFile = malloc(ServiceFile->size);
                 ramfs::Read(ServiceFile, BufferServiceFile);
                 kthread_t thread = NULL;
@@ -48,19 +55,20 @@ extern "C" int main(struct KernelInfo* kernelInfo){
                 SYS_ShareDataUsingStackSpace(thread, (uint64_t)&kernelInfo->framebuffer, sizeof(framebuffer_t), &InitParameters->Parameter2);
 
                 Sys_ExecThread(thread, InitParameters);
+            
             }     
             freeSplit(ServiceInfo);
         }
         freeSplit(ServicesInfo);
-
         free(InitParameters);
     } else {
         Printlog("[SYSTEM] Starter.cfg not found");
-
         return KFAIL;
     }
 
     Printlog("[SYSTEM] All tasks in 'Starter.cfg' are loaded");
     Printlog("[SYSTEM] Service initialized successfully");
+
     return KSUCCESS;
+
 }
