@@ -16,6 +16,7 @@ vector_t* vector_create(size_t size);
 void vector_push(vector_t* vector, uintptr_t item);
 void vector_remove(vector_t* vector, uint64_t index);
 void vector_set(vector_t* vector, uint64_t index, uintptr_t item);
+void vector_expand(vector_t* vector, uint64_t len);
 uintptr_t vector_get(vector_t* vector, uint64_t index);
 void vector_clear(vector_t* vector);
 

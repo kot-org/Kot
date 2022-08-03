@@ -1,4 +1,4 @@
-BINDIR="Bin"
+BINDIR="./Bin"
 
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd $SCRIPTPATH
@@ -10,7 +10,7 @@ mkdir -p "Sysroot/Include/kot/"
 mkdir -p "Sysroot/Lib/"
 mkdir -p $BINDIR"/Modules/"
 
-cp -p "Build/Starter.cfg" $BINDIR"/Modules/Starter.cfg"
+cp -p ./Build/Bin/** $BINDIR"/Modules/"
 
 cd "Sources/"
 
@@ -35,6 +35,7 @@ sudo make -C "Modules/Drivers/vga/Build"
 echo -e "\e[32mCompiling kot services...\e[0m"
 
 sudo make -C "Modules/Services/orb/Build"
+sudo make -C "Modules/Services/jvm/Build"
 sudo make -C "Modules/Services/uisd/Build"
 
 # kernel

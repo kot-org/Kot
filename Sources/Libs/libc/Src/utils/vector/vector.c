@@ -8,17 +8,21 @@ vector_t* vector_create(size_t size) {
     return vector;
 }
 
+void vector_expand(vector_t* vector, uint64_t len) {
+    uintptr_t* temp = (uintptr_t*) malloc((size_t)((vector->length + len) * vector->size));
+    memcpy(temp, vector->items, vector->length * vector->size);
+    free(vector->items);
+    vector->items = temp;
+}
+
 void vector_push(vector_t* vector, uintptr_t item) {
     if (vector->items == NULL) {
         vector->items = (uintptr_t*) malloc(vector->size);
         vector->length = 1;
         *(vector->items) = item;
     } else {
-        uintptr_t* temp = (uintptr_t*) malloc((size_t)((vector->length + 1) * vector->size));
-        memcpy(temp, vector->items, vector->length * vector->size);
-        *(temp + vector->length) = item;
-        free(vector->items);
-        vector->items = temp;
+        vector_expand(vector, 1);
+        *(vector->items + vector->length) = item;
         vector->length++;
     }
 }
