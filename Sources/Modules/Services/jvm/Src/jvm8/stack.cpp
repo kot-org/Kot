@@ -3,50 +3,28 @@
 
 JVM8Stack::JVM8Stack(size_t capacity) {
     this->capacity = capacity;
-    this->arr = (uintptr_t*) malloc(this->capacity);
-    this->maxTop = capacity/sizeof(uintptr_t)-1;
+    this->arr = (uintptr_t) malloc(this->capacity);
 }
-
-bool JVM8Stack::isFull() {
-    if (top==maxTop) {
-        return true;
-    }
-    return false;
-}
-
-bool JVM8Stack::isEmpty() {
-    return this->top == -1;
-}
-
 
 /**
- * @return false Stackoverflow
+ * @return false StackOverflow
  */
-bool JVM8Stack::push(uintptr_t item) {
-    if (isFull()) {
+bool JVM8Stack::pushInt(int32_t item) {
+    if (top + sizeof(int32_t) > capacity) {
         return false;
-    } else {
-        top++;
-        *(this->arr + top) = item;
-        return true;
     }
+    *(int32_t*)((uint64_t) arr + top) = item;
+    top += sizeof(int32_t);
+    return true;
 }
 
-uintptr_t JVM8Stack::pop() {
-    if (this->top == -1) {
+/**
+ * @return NULL LowOverflow
+ */
+int32_t JVM8Stack::popInt() {
+    if (top - sizeof(int32_t) < 0) {
         return NULL;
-    } else {
-        uintptr_t temp = *(this->arr + top);
-        *(this->arr + top) = NULL;
-        this->top--;
-        return temp;
     }
-}
-
-uintptr_t JVM8Stack::peek() {
-    if (this->top == -1) {
-        return NULL;
-    } else {
-        return *(this->arr + top);
-    }
+    top -= sizeof(int32_t);
+    return *(int32_t*)((uint64_t) arr + top);
 }

@@ -5,15 +5,14 @@
 
 class JVM8Stack {
 private:
-    uintptr_t* arr;
+    uintptr_t arr;
     size_t capacity;
-    int64_t top = -1;
-    int64_t maxTop;
+    uint64_t top = 0;
 public:
+
     JVM8Stack(size_t capacity);
-    bool isFull();
-    bool isEmpty();
-    bool push(uintptr_t item);
-    uintptr_t pop();
-    uintptr_t peek();
+
+    bool pushInt(int32_t item);
+    int32_t popInt();
+
 };
