@@ -46,7 +46,7 @@ typedef long unsigned int           size_t;
 #define KMEMORYVIOLATION    4
 
 #if !defined(__cplusplus)
-#define bool uint64_t
+#define bool uint8_t
 #define true 1
 #define false 0
 #endif
