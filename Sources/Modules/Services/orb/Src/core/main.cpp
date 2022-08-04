@@ -41,13 +41,13 @@ kthread_t renderThread = NULL;
 void renderWindows() {
     
     
+    atomicLock((uint64_t*) backbuffer_ctx, 0);
     backbuffer_ctx->clear();
 
     for (uint64_t i = 0; i < windows->length; i++) {
         ((Window*) vector_get(windows, i))->render(backbuffer_ctx);
     }
 
-    atomicLock((uint64_t*) backbuffer_ctx, 0);
     screen_ctx->swapFrom(backbuffer_ctx);
     atomicUnlock((uint64_t*) backbuffer_ctx, 0);
 
