@@ -48,8 +48,10 @@ void renderWindows() {
         ((Window*) vector_get(windows, i))->render(backbuffer_ctx);
     }
 
+    atomicLock((uint64_t*) screen_ctx, 0);
     screen_ctx->swapFrom(backbuffer_ctx);
     atomicUnlock((uint64_t*) backbuffer_ctx, 0);
+    atomicUnlock((uint64_t*) screen_ctx, 0);
 
     SYS_Exit(NULL, KSUCCESS);
 
