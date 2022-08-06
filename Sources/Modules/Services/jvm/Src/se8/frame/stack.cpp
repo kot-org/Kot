@@ -1,15 +1,14 @@
-#include <jvm8/stack.h>
-#include <kot/cstring.h>
+#include "stack.h"
 
-JVM8Stack::JVM8Stack(size_t capacity) {
+SE8Stack::SE8Stack(size_t capacity) {
     this->capacity = capacity;
-    this->arr = (uintptr_t) malloc(this->capacity);
+    this->arr = malloc(this->capacity);
 }
 
 /**
  * @return false StackOverflow
  */
-bool JVM8Stack::pushInt(int32_t item) {
+bool SE8Stack::pushInt(int32_t item) {
     if (top + sizeof(int32_t) > capacity) {
         return false;
     }
@@ -19,9 +18,9 @@ bool JVM8Stack::pushInt(int32_t item) {
 }
 
 /**
- * @return NULL LowOverflow
+ * @return NULL StackLowflow
  */
-int32_t JVM8Stack::popInt() {
+int32_t SE8Stack::popInt() {
     if (top - sizeof(int32_t) < 0) {
         return NULL;
     }

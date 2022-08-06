@@ -1,13 +1,13 @@
 #include "main.h"
 
-extern "C" int main(int argc, char* argv[]) {
+extern "C" int main(int argc, char* argv[], void* framebuffer, void* _3and4, uintptr_t testClassBuffer) {
 
-    Printlog("[JVM] Initialization ...");
+    Printlog("[JavaVM] Initialization ...");
 
-    JVM8* jvm8 = new JVM8(512*1000);
-    jvm8->initialize();
+    JVM8* jvm = new JVM8();
+    jvm->loadClassFile(testClassBuffer);
 
-    Printlog("[JVM] Service initialized successfully");
+    Printlog("[JavaVM] Service initialized successfully");
  
     return KSUCCESS;
 

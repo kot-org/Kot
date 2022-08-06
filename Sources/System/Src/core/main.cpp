@@ -9,7 +9,7 @@ void ShareString(kthread_t self, char* str, uint64_t* clientAddress){
 
 extern "C" int main(struct KernelInfo* kernelInfo) {
 
-    Printlog("[SYSTEM] Initialization ...");
+    Printlog("[System] Initialization ...");
     
     kthread_t self;
     Sys_GetThreadKey(&self);
@@ -21,18 +21,22 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
     
     // load start file
     ramfs::File* InitFile = ramfs::Find("Starter.cfg");
-    
+    ramfs::File* testClass = ramfs::Find("Test.class");
+
     if (InitFile != NULL) {
 
         // fetch services
 
-        char* BufferInitFile = (char*)malloc(InitFile->size + 1);
+        uintptr_t testClassBuffer = (uintptr_t) calloc(testClass->size + 1);
+        ramfs::Read(testClass, testClassBuffer);
+
+        char* BufferInitFile = (char*) calloc(InitFile->size + 1);
         ramfs::Read(InitFile, BufferInitFile);
         BufferInitFile[InitFile->size + 1] = NULL;
         char* app;
         char** ServicesInfo = strsplit(BufferInitFile, "\n");
 
-        parameters_t* InitParameters = (parameters_t*)calloc(sizeof(parameters_t));
+        parameters_t* InitParameters = (parameters_t*) calloc(sizeof(parameters_t));
 
         for (uint64_t i = 0; ServicesInfo[i] != NULL; i++) {
             char** ServiceInfo = strsplit(ServicesInfo[i], ", ");
@@ -41,19 +45,20 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
                 
                 // load service in a thread
 
-                uintptr_t BufferServiceFile = malloc(ServiceFile->size);
+                uintptr_t BufferServiceFile = calloc(ServiceFile->size);
                 ramfs::Read(ServiceFile, BufferServiceFile);
                 kthread_t thread = NULL;
-                ELF::loadElf(BufferServiceFile, (enum Priviledge)atoi(ServiceInfo[1]), NULL, &thread);
+                ELF::loadElf(BufferServiceFile, (enum Priviledge) atoi(ServiceInfo[1]), NULL, &thread);
                 free(BufferServiceFile);
 
-                char** Parameters = (char**)malloc(sizeof(char*));
+                char** Parameters = (char**) calloc(sizeof(char*));
 
                 InitParameters->Parameter0 = 1;
-                ShareString(thread, ServiceInfo[0], (uint64_t*)&Parameters[0]);
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t)Parameters, sizeof(char*), &InitParameters->Parameter1);
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t)&kernelInfo->framebuffer, sizeof(framebuffer_t), &InitParameters->Parameter2);
-
+                ShareString(thread, ServiceInfo[0], (uint64_t*) &Parameters[0]);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t) Parameters, sizeof(char*), &InitParameters->Parameter1);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t) &kernelInfo->framebuffer, sizeof(framebuffer_t), &InitParameters->Parameter2);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t) testClassBuffer, testClass->size + 1, &InitParameters->Parameter5);
+    
                 Sys_ExecThread(thread, InitParameters);
             
             }     
@@ -62,12 +67,12 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
         freeSplit(ServicesInfo);
         free(InitParameters);
     } else {
-        Printlog("[SYSTEM] Starter.cfg not found");
+        Printlog("[System] Starter.cfg not found");
         return KFAIL;
     }
 
-    Printlog("[SYSTEM] All tasks in 'Starter.cfg' are loaded");
-    Printlog("[SYSTEM] Service initialized successfully");
+    Printlog("[System] All tasks in 'Starter.cfg' are loaded");
+    Printlog("[System] Service initialized successfully");
 
     return KSUCCESS;
 

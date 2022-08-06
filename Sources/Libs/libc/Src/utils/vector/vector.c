@@ -13,6 +13,7 @@ void vector_expand(vector_t* vector, uint64_t len) {
     memcpy(temp, vector->items, vector->length * vector->size);
     free(vector->items);
     vector->items = temp;
+    vector->length+=len;
 }
 
 void vector_push(vector_t* vector, uintptr_t item) {
@@ -22,8 +23,7 @@ void vector_push(vector_t* vector, uintptr_t item) {
         *(vector->items) = item;
     } else {
         vector_expand(vector, 1);
-        *(vector->items + vector->length) = item;
-        vector->length++;
+        *(vector->items + vector->length - 1) = item;
     }
 }
 
