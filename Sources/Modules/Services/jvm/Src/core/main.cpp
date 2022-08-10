@@ -4,9 +4,9 @@ extern "C" int main(int argc, char* argv[], void* framebuffer, void* _3and4, uin
 
     Printlog("[JavaVM] Initialization ...");
 
-    JVM8* jvm = new JVM8();
-    jvm->loadClassFile(testClassBuffer);
-
+    SE8::JVM* jvm = new SE8::JVM();
+    jvm->loadClassBytes(testClassBuffer);
+    
     Printlog("[JavaVM] Service initialized successfully");
  
     return KSUCCESS;

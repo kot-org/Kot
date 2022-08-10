@@ -1,4 +1,4 @@
-#include <ipc/ipc.h>
+#include "ipc.h"
 
 kthread_t threadIPC;
 IPCSaver_t* IPCSaver;

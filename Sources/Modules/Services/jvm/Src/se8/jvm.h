@@ -1,17 +1,30 @@
 #pragma once
 
 #include "frame/frame.h"
-#include "opcodes/opcodes.h"
-#include "class/class.h"
+#include "classes/classes.h"
+#include "threads/threads.h"
 
-class JVM8 {
-private:
-    SE8Class* classes;
-public:
+namespace SE8 {
 
-    JVM8();
+    class JVM {
+    private:
 
-    void loadJarFile();
-    void loadClassFile(uintptr_t bytes);
-    
-};
+        Classes* classes;
+        Threads* threads;
+
+        size_t stack_size = 512000; // 512m
+
+    public:
+
+        JVM();
+
+        void setStackSize(size_t size);
+        size_t getStackSize();
+
+        void loadClassBytes(uintptr_t bytes);
+
+        void run();
+        
+    };
+
+}

@@ -1,7 +1,7 @@
 #include <kot/utils/map.h>
 
 typedef struct {
-    char* key;
+    uint64_t key;
     uintptr_t item;
 } map_item_t;
 
@@ -9,7 +9,7 @@ vector_t* map_create() {
     return vector_create(sizeof(map_item_t));
 }
 
-int64_t map_indexof(vector_t* map, char* key) {
+int64_t map_indexof(vector_t* map, uint64_t key) {
     if (map->length > 0) {
         for (int64_t i = 0; i < map->length; i++) {
             map_item_t* map_item = (map_item_t*) vector_get(map, i);
@@ -21,7 +21,7 @@ int64_t map_indexof(vector_t* map, char* key) {
     return -1; 
 }
 
-void map_set(vector_t* map, char* key, uintptr_t item) {
+void map_set(vector_t* map, uint64_t key, uintptr_t item) {
     map_item_t* map_item = (map_item_t*) malloc(sizeof(map_item_t));
     map_item->key = key;
     map_item->item = item;
@@ -33,21 +33,21 @@ void map_set(vector_t* map, char* key, uintptr_t item) {
     }
 }
 
-bool map_exist(vector_t* map, char* key) {
+bool map_exist(vector_t* map, uint64_t key) {
     if (map_indexof(map, key) == -1) {
         return false;
     }
     return true;
 }
 
-void map_remove(vector_t* map, char* key) {
+void map_remove(vector_t* map, uint64_t key) {
     int64_t indexof = map_indexof(map, key);
     if (indexof != -1) {
         vector_remove(map, indexof);
     }
 }
 
-uintptr_t map_get(vector_t* map, char* key) {
+uintptr_t map_get(vector_t* map, uint64_t key) {
     int64_t indexof = map_indexof(map, key);
     if (indexof != -1) {
         return ((map_item_t*) vector_get(map, indexof))->item;

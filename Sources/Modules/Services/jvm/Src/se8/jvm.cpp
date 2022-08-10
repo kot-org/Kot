@@ -1,13 +1,27 @@
 #include "jvm.h"
 
-JVM8::JVM8() {
-    this->classes = new SE8Class();
-}
+namespace SE8 {
 
-void JVM8::loadClassFile(uintptr_t bytes) {
-    classes->loadClassFile(bytes);
-}
+    JVM::JVM() {
+        this->classes = new Classes();
+        this->threads = new Threads();
+    }
 
-void JVM8::loadJarFile() {
-    classes->loadJarFile();
+    void JVM::loadClassBytes(uintptr_t bytes) {
+        classes->loadClassBytes(bytes);
+    }
+
+    void JVM::run() {
+        this->threads->create("main");
+        // todo
+    }
+
+    size_t JVM::getStackSize() {
+        return this->stack_size;
+    }
+
+    void JVM::setStackSize(size_t size) {
+        this->stack_size = size;
+    }
+
 }

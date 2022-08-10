@@ -1,4 +1,4 @@
-#include <core/main.h>
+#include "main.h"
 
 kprocess_t self;
 
@@ -58,7 +58,7 @@ void renderWindows() {
 }
 
 void initWindowRender() {
-    Sys_CreateThread(self, (uintptr_t)&renderWindows, PriviledgeService, NULL, &renderThread);
+    Sys_CreateThread(self, (uintptr_t) &renderWindows, PriviledgeService, NULL, &renderThread);
     windows = vector_create(sizeof(Window));
 }
 

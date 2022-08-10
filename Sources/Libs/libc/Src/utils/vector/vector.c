@@ -1,4 +1,4 @@
-#include <kot/utils/vector.h>
+#include "../vector.h"
 
 vector_t* vector_create(size_t size) {
     vector_t* vector = (vector_t*) malloc(sizeof(vector_t));

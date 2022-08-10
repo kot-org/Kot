@@ -1,15 +1,43 @@
 #include "localVariable.h"
 
-// i'll not use a map don't be afraid
+// i'll not definitly use a map don't be afraid
 
-SE8LocalVariable::SE8LocalVariable() {
-    this->arr = map_create();
-}
+namespace SE8 {
 
-void SE8LocalVariable::setInt(uint32_t index, int32_t item) {
-    map_set(arr, (char*) index, &item);
-}
+    LocalVariable::LocalVariable() {
+        this->arr = map_create();
+    }
 
-int32_t* SE8LocalVariable::getInt(uint32_t index) {
-    return (int32_t*) map_get(arr, (char*) index);
+    void LocalVariable::setInt(uint32_t index, int32_t item) {
+        map_set(arr, index, &item);
+    }
+
+    int32_t* LocalVariable::getInt(uint32_t index) {
+        return (int32_t*) map_get(arr, index);
+    }
+
+    void LocalVariable::setLong(uint32_t index, int64_t item) {
+        map_set(arr, index, &item);
+    }
+
+    int64_t* LocalVariable::getLong(uint32_t index) {
+        return (int64_t*) map_get(arr, index);
+    }
+
+    void LocalVariable::setFloat(uint32_t index, float item) {
+        map_set(arr, index, &item);
+    }
+
+    float* LocalVariable::getFloat(uint32_t index) {
+        return (float*) map_get(arr, index);
+    }
+
+    void LocalVariable::setDouble(uint32_t index, double item) {
+        map_set(arr, index, &item);
+    }
+
+    double* LocalVariable::getDouble(uint32_t index) {
+        return (double*) map_get(arr, index);
+    }
+
 }

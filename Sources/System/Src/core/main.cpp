@@ -1,7 +1,7 @@
 #include <kot/sys.h>
 #include <kot/heap.h>
 #include <kot/memory.h>
-#include <core/main.h>
+#include "main.h"
 
 void ShareString(kthread_t self, char* str, uint64_t* clientAddress){
     SYS_ShareDataUsingStackSpace(self, (uint64_t)str, strlen(str) + 1, clientAddress);
