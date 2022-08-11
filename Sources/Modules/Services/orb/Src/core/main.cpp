@@ -59,7 +59,7 @@ void renderWindows() {
 
 void initWindowRender() {
     Sys_CreateThread(self, (uintptr_t) &renderWindows, PriviledgeService, NULL, &renderThread);
-    windows = vector_create(sizeof(Window));
+    windows = vector_create();
 }
 
 void drawLotLogo() {

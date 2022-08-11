@@ -2,7 +2,7 @@
 
 Context::Context(framebuffer_t* framebuffer) {
     this->framebuffer = framebuffer;
-    this->poses = vector_create(sizeof(pos_t));
+    this->poses = vector_create();
     if (framebuffer->width >= framebuffer->height) {
         this->scale = this->framebuffer->width/412;
     } else {
