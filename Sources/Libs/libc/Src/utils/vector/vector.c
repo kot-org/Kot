@@ -1,16 +1,15 @@
 #include "../vector.h"
 
-vector_t* vector_create(size_t size) {
+vector_t* vector_create() {
     vector_t* vector = (vector_t*) malloc(sizeof(vector_t));
     vector->items = NULL;
     vector->length = 0;
-    vector->size = size;
     return vector;
 }
 
 void vector_expand(vector_t* vector, uint64_t len) {
-    uintptr_t* temp = (uintptr_t*) malloc((size_t)((vector->length + len) * vector->size));
-    memcpy(temp, vector->items, vector->length * vector->size);
+    uintptr_t* temp = (uintptr_t*) malloc((size_t)((vector->length + len) * 8));
+    memcpy(temp, vector->items, vector->length * 8);
     free(vector->items);
     vector->items = temp;
     vector->length+=len;
@@ -18,7 +17,7 @@ void vector_expand(vector_t* vector, uint64_t len) {
 
 void vector_push(vector_t* vector, uintptr_t item) {
     if (vector->items == NULL) {
-        vector->items = (uintptr_t*) malloc(vector->size);
+        vector->items = (uintptr_t*) malloc(8);
         vector->length = 1;
         *(vector->items) = item;
     } else {
@@ -50,9 +49,9 @@ void vector_remove(vector_t* vector, uint64_t index) {
         if (vector->length == 1) {
             vector_clear(vector);
         } else if (vector->length != 0) {
-            uintptr_t* temp = (uintptr_t*) malloc((size_t)((vector->length - 1) * vector->size));
-            if (index != 0) { memcpy(temp, vector->items, index * vector->size); }
-            memcpy(temp, vector->items + index, ((vector->length - 1) * vector->size) - index * vector->size);
+            uintptr_t* temp = (uintptr_t*) malloc((size_t)((vector->length - 1) * 8));
+            if (index != 0) { memcpy(temp, vector->items, index * 8); }
+            memcpy(temp, vector->items + index, ((vector->length - 1) * 8) - index * 8);
             free(vector->items);
             vector->items = temp;
             vector->length--;
