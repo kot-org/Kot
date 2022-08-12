@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../opcodes.h"
+#include "../types.h"
 #include "../jvm.h"
 
 #include "../../utils/reader.h"
 
 #include "stack.h"
-#include "localVariable.h"
+#include "locals.h"
 
 namespace SE8 {
 
@@ -17,7 +17,7 @@ namespace SE8 {
         uint64_t pid = 0; // main thread
         uintptr_t constant_pool;
         Stack* stack;
-        LocalVariable* local_variable;
+        Locals* locals;
         JVM* jvm;
         Reader* reader;
         bool widened = false;
@@ -127,6 +127,7 @@ namespace SE8 {
         void iconst_0();
         void iconst_1();
         void iconst_2();
+        void iconst_3();
         void iconst_4();
         void iconst_5();
         void idiv();
