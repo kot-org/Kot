@@ -1,7 +1,5 @@
 #include "classes.h"
 
-#include <kot/cstring.h>
-
 namespace SE8 {
 
     Classes::Classes() {

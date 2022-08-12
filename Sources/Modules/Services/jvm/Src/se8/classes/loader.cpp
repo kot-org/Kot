@@ -1,6 +1,5 @@
 #include "loader.h"
 
-#include <kot/cstring.h>
 namespace SE8 {
 
     AttributeInfo_Type ClassLoader::getAttributeType(uint16_t attribute_name_index) {
