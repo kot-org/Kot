@@ -1,7 +1,5 @@
 #pragma once
 
-#include <kot/heap.h>
-
 #include "../types.h"
 
 namespace SE8 {
@@ -16,8 +14,12 @@ namespace SE8 {
         Stack(size_t capacity);
 
         void push(Value* value);
+
         Value* pop();
         Value* peek();
+        void wpop(); // pop without getting the value
+        
+        void empty();
 
         void pushNull();
         void pushNaN();
@@ -28,6 +30,7 @@ namespace SE8 {
         void pushLong(int64_t item);
         void pushFloat(float item);
         void pushDouble(double item);
+        void pushArrayRef(uint64_t pointer);
         
     };
 

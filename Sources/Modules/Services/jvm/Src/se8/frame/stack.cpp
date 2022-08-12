@@ -1,24 +1,5 @@
 #include "stack.h"
 
-uint8_t getTypeSize(uint8_t type) {
-    switch (type) {
-        case SE8::Null:
-        case SE8::NaN:
-            return 0;
-        case SE8::Byte:
-            return 1;
-        case SE8::Char:
-        case SE8::Short:
-            return 2;
-        case SE8::Int:
-        case SE8::Float:
-            return 4;
-        case SE8::Long:
-        case SE8::Double:
-            return 8;
-    }
-}
-
 namespace SE8 {
 
     Stack::Stack(size_t capacity) {
@@ -54,6 +35,15 @@ namespace SE8 {
         }
     }
 
+    void Stack::wpop() {
+        top--;
+        uint8_t type = *(uint8_t*)((uint64_t) arr + top);
+        uint8_t size = getTypeSize(type);
+        if (size != 0) {
+            top-=size;
+        }
+    }
+
     Value* Stack::peek() {
         uint8_t type = *(uint8_t*)((uint64_t) arr + (top - 1));
         uint8_t size = getTypeSize(type);
@@ -67,6 +57,10 @@ namespace SE8 {
             memcpy((uintptr_t)((uint64_t) ret + 1), (uintptr_t)((uint64_t) arr + (top - size - 1)), size); 
             return ret;
         }
+    }
+
+    void Stack::empty() {
+        top = 0;
     }
 
     void Stack::pushNull() {
@@ -161,6 +155,17 @@ namespace SE8 {
         *(double*)((uint64_t) arr + top) = item;
         top+=8;
         *(uint8_t*)((uint64_t) arr + top) = SE8::Double;
+        top++;
+    }
+
+    void Stack::pushArrayRef(uint64_t pointer) {
+        if (top + 9 > capacity) {
+            // stack overflow
+            return;
+        }
+        *(uint64_t*)((uint64_t) arr + top) = pointer;
+        top+=8;
+        *(uint8_t*)((uint64_t) arr + top) = SE8::ArrayRef;
         top++;
     }
 
