@@ -4,7 +4,7 @@ namespace SE8 {
 
     JVM::JVM() {
         this->classes = new Classes();
-        this->threads = new Threads();
+        this->threads = new threads();
     }
 
     void JVM::loadClassBytes(uintptr_t bytes) {

@@ -2,7 +2,7 @@
 
 namespace SE8 {
 
-    Thread::Thread() {
+    thread::thread() {
         
     }   
 

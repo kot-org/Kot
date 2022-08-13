@@ -7,7 +7,7 @@ uint8_t MouseCycle = 0;
 MouseData_t* MouseData;
 PS2Port_t* MousePS2Port;
 parameters_t* MouseEventParameters;
-kthread_t MouseThread = NULL;
+thread Mousethread = NULL;
 
 KResult MouseInitalize(){
     MouseData = (MouseData_t*)malloc(sizeof(MouseData_t));
@@ -32,7 +32,7 @@ KResult MouseInitalize(){
                 EnableMouse5Buttons(MousePS2Port);
 
                 MouseData->mousePortType = mousePortTypePS2;
-                Sys_Event_Bind(NULL, InterruptThreadHandler, 0x20 + MousePS2Port->IRQ, false);
+                Sys_Event_Bind(NULL, InterruptthreadHandler, 0x20 + MousePS2Port->IRQ, false);
 
                 MouseData->IsInitialized = true;
 

@@ -3,7 +3,7 @@
 #include <kot/memory.h>
 #include "main.h"
 
-void ShareString(kthread_t self, char* str, uint64_t* clientAddress){
+void ShareString(thread self, char* str, uint64_t* clientAddress){
     SYS_ShareDataUsingStackSpace(self, (uint64_t)str, strlen(str) + 1, clientAddress);
 }
 
@@ -11,8 +11,8 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
 
     Printlog("[System] Initialization ...");
     
-    kthread_t self;
-    Sys_GetThreadKey(&self);
+    thread self;
+    Sys_GetthreadKey(&self);
 
     ramfs::Parse(kernelInfo->ramfs.address, kernelInfo->ramfs.size);
 
@@ -47,7 +47,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
 
                 uintptr_t BufferServiceFile = calloc(ServiceFile->size);
                 ramfs::Read(ServiceFile, BufferServiceFile);
-                kthread_t thread = NULL;
+                thread thread = NULL;
                 ELF::loadElf(BufferServiceFile, (enum Priviledge) atoi(ServiceInfo[1]), NULL, &thread);
                 free(BufferServiceFile);
 
@@ -59,7 +59,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
                 SYS_ShareDataUsingStackSpace(thread, (uint64_t) &kernelInfo->framebuffer, sizeof(framebuffer_t), &InitParameters->Arg2);
                 SYS_ShareDataUsingStackSpace(thread, (uint64_t) testClassBuffer, testClass->size + 1, &InitParameters->Arg5);
     
-                Sys_ExecThread(thread, InitParameters);
+                Sys_Execthread(thread, InitParameters);
             
             }     
             freeSplit(ServiceInfo);

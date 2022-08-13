@@ -79,7 +79,7 @@ bool GetMemoryFlag(uint64_t entry, memory_share_flag flag){
 //vmm_flag::vmm_Custom1 master share
 //vmm_flag::vmm_Custom2 slave share
 
-uint64_t CreateSharing(process_t* process, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, uint64_t flags){
+uint64_t CreateSharing(kprocess_t* process, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, uint64_t flags){
     if(CheckAddress(virtualAddressPointer, sizeof(uint64_t)) != KSUCCESS) return KFAIL;
     if(CheckAddress(keyPointer, sizeof(uint64_t)) != KSUCCESS) return KFAIL;
     uintptr_t virtualAddress = (uintptr_t)*virtualAddressPointer;
@@ -125,7 +125,7 @@ uint64_t CreateSharing(process_t* process, size_t size, uint64_t* virtualAddress
     return KSUCCESS;
 }
 
-uint64_t GetSharing(process_t* process, MemoryShareInfo* shareInfo, uint64_t* virtualAddressPointer){
+uint64_t GetSharing(kprocess_t* process, MemoryShareInfo* shareInfo, uint64_t* virtualAddressPointer){
     if(CheckAddress(virtualAddressPointer, sizeof(uint64_t)) != KSUCCESS) return KFAIL;
 
     pagetable_t pageTable = process->SharedPaging;
@@ -211,7 +211,7 @@ uint64_t GetSharing(process_t* process, MemoryShareInfo* shareInfo, uint64_t* vi
     return KSUCCESS;
 }
 
-uint64_t FreeSharing(process_t* process, MemoryShareInfo* shareInfo, uintptr_t virtualAddress){
+uint64_t FreeSharing(kprocess_t* process, MemoryShareInfo* shareInfo, uintptr_t virtualAddress){
     pagetable_t pageTable = process->SharedPaging;
 
     if(CheckAddress(virtualAddress, shareInfo->PageNumber * PAGE_SIZE) != KSUCCESS) return KFAIL;

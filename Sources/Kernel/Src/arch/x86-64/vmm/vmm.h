@@ -60,7 +60,7 @@ pagetable_t vmm_GetPageTable();
 uint64_t vmm_Init(struct BootInfo* bootInfo);
 
 pagetable_t vmm_SetupProcess();
-pagetable_t vmm_SetupThread(pagetable_t parent);
+pagetable_t vmm_Setupthread(pagetable_t parent);
 uint64_t vmm_CopyProcessMemory(pagetable_t dst, pagetable_t src);
 void vmm_ClearMemory(pagetable_t src);
 

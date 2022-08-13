@@ -22,9 +22,9 @@
 #define KSys_Event_Trigger 0xF
 #define KSys_Event_Close 0x10
 
-#define KSys_CreateThread 0x11
-#define KSys_DuplicateThread 0x12
-#define KSys_ExecThread 0x13
+#define KSys_Createthread 0x11
+#define KSys_Duplicatethread 0x12
+#define KSys_Execthread 0x13
 
 #define KSys_Keyhole_CloneModify 0x14
 

@@ -44,7 +44,7 @@ namespace ELF{
     }
 
 
-    KResult loadElf(uintptr_t buffer, uint8_t ring, thread_t** selfThread){
+    KResult loadElf(uintptr_t buffer, uint8_t ring, kthread_t** selfthread){
         elf_t* self = (elf_t*)calloc(sizeof(elf_t));
         self->Buffer = buffer;
         self->Header = (Elf64_Ehdr*)buffer;
@@ -55,9 +55,9 @@ namespace ELF{
             return KFAIL;
         }
         
-        process_t* proc = NULL;
+        kprocess_t* proc = NULL;
         globalTaskManager->CreateProcess(&proc, ring, 0);
-        thread_t* mainThread = proc->CreateThread((uintptr_t)self->Header->e_entry, NULL);
+        kthread_t* mainthread = proc->Createthread((uintptr_t)self->Header->e_entry, NULL);
         
         /* Load the elf */
         self->phdrs = (uintptr_t)((uint64_t)buffer + self->Header->e_phoff);
@@ -83,12 +83,12 @@ namespace ELF{
                     uintptr_t DirectAddressToCopy = 0;
                     uintptr_t VirtualAddress = (uintptr_t)(phdr->p_vaddr + y);
                     uintptr_t PhysicalBuffer = 0;
-                    if(!vmm_GetFlags(mainThread->Paging, VirtualAddress, vmm_flag::vmm_Present)){
+                    if(!vmm_GetFlags(mainthread->Paging, VirtualAddress, vmm_flag::vmm_Present)){
                         PhysicalBuffer = Pmm_RequestPage();
-                        vmm_Map(mainThread->Paging, VirtualAddress, (uintptr_t)PhysicalBuffer, true);
+                        vmm_Map(mainthread->Paging, VirtualAddress, (uintptr_t)PhysicalBuffer, true);
                         DirectAddressToCopy = (uintptr_t)(vmm_GetVirtualAddress(PhysicalBuffer) + (uint64_t)align);
                     }else{
-                        DirectAddressToCopy = (uintptr_t)(vmm_GetVirtualAddress(vmm_GetPhysical(mainThread->Paging, VirtualAddress)) + (uint64_t)align);
+                        DirectAddressToCopy = (uintptr_t)(vmm_GetVirtualAddress(vmm_GetPhysical(mainthread->Paging, VirtualAddress)) + (uint64_t)align);
                     }
                     if(y < phdr->p_filesz){
                         size_t SizeToCopy = 0;
@@ -107,7 +107,7 @@ namespace ELF{
                         }
                         memset((uintptr_t)DirectAddressToCopy, 0x0, SizeToFill);  
                     }
-                    vmm_SetFlags(mainThread->Paging, (uintptr_t)VirtualAddress, vmm_flag::vmm_PhysicalStorage, true);
+                    vmm_SetFlags(mainthread->Paging, (uintptr_t)VirtualAddress, vmm_flag::vmm_PhysicalStorage, true);
                     
                 }
             }
@@ -130,14 +130,14 @@ namespace ELF{
                     KotSpecificData->MMapPageSize = PAGE_SIZE;
                     KotSpecificData->HeapLocation = HeapLocation;
                     KotSpecificData->FreeMemorySpace = (uintptr_t)FreeMemorySpaceAddress;
-                    uintptr_t DataAddress = (uintptr_t)vmm_GetVirtualAddress(vmm_GetPhysical(mainThread->Paging, (uintptr_t)self->KotSpecificSymbol->st_value));
+                    uintptr_t DataAddress = (uintptr_t)vmm_GetVirtualAddress(vmm_GetPhysical(mainthread->Paging, (uintptr_t)self->KotSpecificSymbol->st_value));
                     memcpy(DataAddress, KotSpecificData, sizeof(KotSpecificData_t));
                     free(KotSpecificData);
                 }
             }
         }
 
-        *selfThread = mainThread;
+        *selfthread = mainthread;
         free(self);
         return KSUCCESS;
     }

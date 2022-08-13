@@ -89,7 +89,7 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
     }else{
         // Other IRQ & IVT
         InterruptParameters->Arg0 = Registers->InterruptNumber;
-        Event::Trigger((thread_t*)0x0, InterruptEventList[Registers->InterruptNumber], InterruptParameters);
+        Event::Trigger((kthread_t*)0x0, InterruptEventList[Registers->InterruptNumber], InterruptParameters);
     }
     APIC::localApicEOI(CoreID);
 }
@@ -107,18 +107,18 @@ void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
             }
         }
 
-        Error("Thread error, PID : %x | TID : %x \nWith exception : '%s' | Error code : %x", Registers->ThreadInfo->Thread->Parent->PID, Registers->ThreadInfo->Thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
+        Error("thread error, PID : %x | TID : %x \nWith exception : '%s' | Error code : %x", Registers->threadInfo->thread->Parent->PID, Registers->threadInfo->thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
         PrintRegisters(Registers);
-        globalTaskManager->Exit(Registers, CoreID, Registers->ThreadInfo->Thread); 
+        globalTaskManager->Exit(Registers, CoreID, Registers->threadInfo->thread); 
         globalTaskManager->Scheduler(Registers, CoreID); 
     }
 }
 
 bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID){
-    if(globalTaskManager->IsSchedulerEnable[CoreID] && globalTaskManager->ThreadExecutePerCore[CoreID] != NULL){
+    if(globalTaskManager->IsSchedulerEnable[CoreID] && globalTaskManager->threadExecutePerCore[CoreID] != NULL){
         uint64_t Address = 0;
         asm("movq %%cr2, %0" : "=r"(Address));
-        return globalTaskManager->ThreadExecutePerCore[CoreID]->ExtendStack((uint64_t)Address);
+        return globalTaskManager->threadExecutePerCore[CoreID]->ExtendStack((uint64_t)Address);
     }
     return false;
 }

@@ -20,7 +20,7 @@ struct heap_t{
     size_t FreeSize;
     size_t UsedSize;
     uint64_t EndAddress;
-    kprocess_t Process;
+    process_t Process;
     bool IsHeapEnabled;
 }__attribute__((packed));
 

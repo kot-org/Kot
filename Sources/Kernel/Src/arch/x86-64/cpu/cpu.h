@@ -250,7 +250,7 @@ struct rflags_t{
 struct ContextStack {
     uint64_t cr3;
 
-    struct threadInfo_t* ThreadInfo; /* gs:0x8 */
+    struct threadInfo_t* threadInfo; /* gs:0x8 */
     
     uint64_t GlobalPurpose; /* rax use for return and data */
     uint64_t rbx; 

@@ -3,7 +3,7 @@
 
 static uint64_t mutexKeyhole;
 
-KResult Keyhole_Create(key_t* key, process_t* parent, process_t* target, enum DataType type, uint64_t data, uint64_t flags){
+KResult Keyhole_Create(key_t* key, kprocess_t* parent, kprocess_t* target, enum DataType type, uint64_t data, uint64_t flags){
     if(!CheckAddress((uintptr_t)key, sizeof(key))) return KFAIL;
     
     Atomic::atomicAcquire(&mutexKeyhole, 0);
@@ -45,7 +45,7 @@ KResult Keyhole_Create(key_t* key, process_t* parent, process_t* target, enum Da
     return KSUCCESS;
 }
 
-KResult Keyhole_CloneModify(thread_t* caller, key_t key, key_t* newKey, process_t* target, uint64_t flags){
+KResult Keyhole_CloneModify(kthread_t* caller, key_t key, key_t* newKey, kprocess_t* target, uint64_t flags){
     lock_t* data;
     if(Keyhole_Get(caller, key, DataTypeUnknow, &data) != KSUCCESS) return KKEYVIOLATION;
     lock_t* lock = (lock_t*)key;
@@ -63,7 +63,7 @@ KResult Keyhole_CloneModify(thread_t* caller, key_t key, key_t* newKey, process_
     return Keyhole_Create(newKey, data->Parent, target, data->Type, data->Data, flags);
 }
 
-KResult Keyhole_Verify(thread_t* caller, key_t key, enum DataType type){
+KResult Keyhole_Verify(kthread_t* caller, key_t key, enum DataType type){
     // get lock
     lock_t* lock = (lock_t*)key;
     // check lock
@@ -76,7 +76,7 @@ KResult Keyhole_Verify(thread_t* caller, key_t key, enum DataType type){
         if(lock->Type != type) return KFAIL;            
     }
     // check parent
-    if(!CheckAddress((uintptr_t)lock->Parent, sizeof(process_t))) return KFAIL;
+    if(!CheckAddress((uintptr_t)lock->Parent, sizeof(kprocess_t))) return KFAIL;
     
     uint64_t VirtualAddress = (uint64_t)vmm_GetVirtualAddress(lock->Parent->SharedPaging);
     
@@ -90,7 +90,7 @@ KResult Keyhole_Verify(thread_t* caller, key_t key, enum DataType type){
     return KSUCCESS;
 }
 
-KResult Keyhole_Get(thread_t* caller, key_t key, enum DataType type, uint64_t* data, uint64_t* flags){        
+KResult Keyhole_Get(kthread_t* caller, key_t key, enum DataType type, uint64_t* data, uint64_t* flags){        
     uint64_t Statu = Keyhole_Verify(caller, key, type);
     if(Statu != KSUCCESS) return Statu;
     lock_t* lock = (lock_t*)key;
@@ -99,7 +99,7 @@ KResult Keyhole_Get(thread_t* caller, key_t key, enum DataType type, uint64_t* d
     return KSUCCESS;
 }
 
-KResult Keyhole_Get(thread_t* caller, key_t key, enum DataType type, lock_t** lock){        
+KResult Keyhole_Get(kthread_t* caller, key_t key, enum DataType type, lock_t** lock){        
     uint64_t Statu = Keyhole_Verify(caller, key, type);
     if(Statu != KSUCCESS) return Statu;
     *lock = (lock_t*)key;

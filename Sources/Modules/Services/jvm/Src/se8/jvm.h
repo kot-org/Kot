@@ -10,7 +10,7 @@ namespace SE8 {
     private:
 
         Classes* classes;
-        Threads* threads;
+        threads* threads;
 
         size_t stack_size = 512000; // 512m
 

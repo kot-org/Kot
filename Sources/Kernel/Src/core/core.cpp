@@ -10,11 +10,11 @@ extern "C" void main(uintptr_t boot){
     if(InitFile != NULL){
         uintptr_t BufferInitFile = malloc(InitFile->size);
         ramfs::Read(InitFile, BufferInitFile);
-        thread_t* mainThread;
-        ELF::loadElf(BufferInitFile, PriviledgeDriver, &mainThread);
+        kthread_t* mainthread;
+        ELF::loadElf(BufferInitFile, PriviledgeDriver, &mainthread);
         parameters_t* InitParameters = (parameters_t*)malloc(sizeof(parameters_t));
-        SendDataToStartService(ArchInfo, mainThread, InitParameters);
-        mainThread->Launch(InitParameters);
+        SendDataToStartService(ArchInfo, mainthread, InitParameters);
+        mainthread->Launch(InitParameters);
         free(InitParameters);
     }else{
         Error("Can't load initialization file");
