@@ -2,15 +2,15 @@
 
 namespace SE8 {
 
-    threads::threads() {
+    Threads::Threads() {
     
     }
 
-    thread* threads::create(char* name) {
+    thread* Threads::create(char* name) {
         return NULL;
     }
 
-    thread* threads::get(uint64_t pid) {
+    thread* Threads::get(uint64_t pid) {
         return NULL;
     }
 

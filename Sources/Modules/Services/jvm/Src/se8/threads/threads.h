@@ -4,10 +4,10 @@
 
 namespace SE8 {
 
-    class threads {
+    class Threads {
     private:
     public: 
-        threads();
+        Threads();
         thread* create(char* name);
         thread* get(uint64_t pid);
     };
