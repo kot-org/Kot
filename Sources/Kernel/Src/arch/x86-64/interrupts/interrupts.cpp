@@ -48,6 +48,7 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
         idtr.Offset = (uint64_t)&IDTData[0];
     }
 
+    ArchInfo->IRQLineStart = IRQ_START;
     ArchInfo->IRQSize = MAX_IRQ;
 
     /* init interrupts */
@@ -67,6 +68,9 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
     /* Shedule */
     SetIDTGate((uintptr_t)InterruptEntryList[IPI_Schedule], IPI_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);
 
+    uint64_t stack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+    TSSSetIST(CPU::GetAPICID(), IST_Interrupts, stack);
+
     asm("lidt %0" : : "m" (idtr));   
 }
 
@@ -84,7 +88,7 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
         }
     }else{
         // Other IRQ & IVT
-        InterruptParameters->Parameter0 = Registers->InterruptNumber;
+        InterruptParameters->Arg0 = Registers->InterruptNumber;
         Event::Trigger((thread_t*)0x0, InterruptEventList[Registers->InterruptNumber], InterruptParameters);
     }
     APIC::localApicEOI(CoreID);

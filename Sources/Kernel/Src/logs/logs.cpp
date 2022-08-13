@@ -53,6 +53,20 @@ void Message(const char* str, ...){
     Atomic::atomicUnlock(&MutexLog, 0);
 }   
 
+void MessageProcess(const char* str, uint64_t charNum, uint64_t PID, uint64_t TID){
+    Atomic::atomicAcquire(&MutexLog, 0);
+
+    SerialPort::Print(SerialCYAN);
+    SerialPort::Print("[*] ");
+    SerialPort::Print(SerialReset);
+    SerialPort::Printf("[Process %x:%x]", PID, TID);
+    SerialPort::Print(str, charNum);
+    
+
+    SerialPort::Print("\n");
+    Atomic::atomicUnlock(&MutexLog, 0);
+}   
+
 void Successful(const char* str, ...){
     Atomic::atomicAcquire(&MutexLog, 0);
     va_list args;

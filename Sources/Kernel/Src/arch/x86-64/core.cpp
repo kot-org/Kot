@@ -47,15 +47,17 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     InitializeHeap((uintptr_t)LastAddressUsed, 0x10);
     Successful("Heap initialized");
 
+    CPU::InitCPU();
     ArchInfo_t* ArchInfo = (ArchInfo_t*)malloc(sizeof(ArchInfo_t));
-    ArchInfo->IRQLineStart = IRQ_START;
-    InitializeACPI(bootInfo, ArchInfo);
-    Successful("ACPI initialized");
 
     InitializeInterrupts(ArchInfo);  
     Successful("IDT initialized");
 
-    CPU::InitCPU();
+    InitializeACPI(bootInfo, ArchInfo);
+    Successful("ACPI initialized");
+
+
+
 
     simdInit();
     Successful("SIMD initialized");
@@ -102,7 +104,7 @@ KResult SendDataToStartService(ArchInfo_t* ArchInfo, thread_t* Thread, parameter
             if(Statu != KSUCCESS) return Statu;
         }
     }
-    Statu = Thread->ShareDataUsingStackSpace(ArchInfo, sizeof(ArchInfo_t), &Parameters->Parameter0);
+    Statu = Thread->ShareDataUsingStackSpace(ArchInfo, sizeof(ArchInfo_t), &Parameters->Arg0);
     return Statu;
 }
 

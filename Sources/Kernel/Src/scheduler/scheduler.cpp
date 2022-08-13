@@ -451,12 +451,7 @@ void TaskManager::InitScheduler(uint8_t NumberOfCores, uintptr_t IddleTaskFuncti
 
 void TaskManager::EnabledScheduler(uint64_t CoreID){ 
     if(TaskManagerInit){
-        Atomic::atomicAcquire(&MutexScheduler, 0);
-
         ThreadExecutePerCore[CoreID] = NULL;
-        
-        uint64_t Stack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
-        TSSSetIST(CoreID, IST_Interrupts, Stack);
 
         CPU::SetCPUGSKernelBase((uint64_t)SelfDataStartAddress); // keys position
 
@@ -465,8 +460,6 @@ void TaskManager::EnabledScheduler(uint64_t CoreID){
         SyscallEnable(GDTInfoSelectorsRing[KernelRing].Code, GDTInfoSelectorsRing[UserAppRing].Code); 
 
         IsSchedulerEnable[CoreID] = true;
-        Atomic::atomicUnlock(&MutexScheduler, 0);
-        Successful("Scheduler is enabled for the processor : %u", CoreID);
     }
 }
 
@@ -493,12 +486,12 @@ void thread_t::CreateContext(ContextStack* Registers, uint64_t CoreID){
 }
 
 void thread_t::SetParameters(parameters_t* FunctionParameters){
-    Regs->arg0 = FunctionParameters->Parameter0;
-    Regs->arg1 = FunctionParameters->Parameter1;
-    Regs->arg2 = FunctionParameters->Parameter2;
-    Regs->arg3 = FunctionParameters->Parameter3;
-    Regs->arg4 = FunctionParameters->Parameter4;
-    Regs->arg5 = FunctionParameters->Parameter5;
+    Regs->arg0 = FunctionParameters->Arg0;
+    Regs->arg1 = FunctionParameters->Arg1;
+    Regs->arg2 = FunctionParameters->Arg2;
+    Regs->arg3 = FunctionParameters->Arg3;
+    Regs->arg4 = FunctionParameters->Arg4;
+    Regs->arg5 = FunctionParameters->Arg5;
 }
 
 void thread_t::CopyStack(thread_t* source){
