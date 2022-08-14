@@ -71,15 +71,15 @@ KResult Sys_Event_Close(){
 }
 
 KResult Sys_Createthread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t data, thread* result){
-    return Syscall_40(KSys_Createthread, self, entryPoint, privilege, data, result);
+    return Syscall_40(KSys_CreateThread, self, entryPoint, privilege, data, result);
 }
 
 KResult Sys_Duplicatethread(process_t parent, thread source, uint64_t data, thread* self){
-    return Syscall_32(KSys_Duplicatethread, parent, source, data, self);
+    return Syscall_32(KSys_DuplicateThread, parent, source, data, self);
 }
 
 KResult Sys_Execthread(thread self, struct parameters_t* parameters){
-    return Syscall_16(KSys_Execthread, self, parameters);
+    return Syscall_16(KSys_ExecThread, self, parameters);
 }
 
 KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, process_t target, uint64_t flags){
