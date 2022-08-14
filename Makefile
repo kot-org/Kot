@@ -4,7 +4,7 @@ QEMUFLAGS =	-no-reboot 				\
 			-serial stdio 			\
 			-machine q35 			\
 			-cpu qemu64 			\
-			-smp 8 					\
+			-smp 1 					\
 			-cdrom ./Bin/kot.iso	\
 			-m 3G
 

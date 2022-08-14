@@ -143,7 +143,6 @@ uint64_t TaskManager::Unpause(kthread_t* task){
 } 
 
 uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* task){    
-    Atomic::atomicAcquire(&MutexScheduler, 0);
     if(task->IsIPC){
         Atomic::atomicAcquire(&task->EventLock, 0);
         IPCData_t* Current = task->IPCInfo->CurrentData;
@@ -174,11 +173,11 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* 
                 Atomic::atomicUnlock(&task->EventLock, 0);
                 ForceSchedule();
             }
-            return KSUCCESS;
         }else{
             Current->thread->Regs->GlobalPurpose = Registers->GlobalPurpose;
             Unpause(Current->thread);     
             Atomic::atomicUnlock(&task->EventLock, 0);       
+            return KSUCCESS;
         }
     }
 
@@ -193,6 +192,8 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* 
 
     free(task->Regs);
     free(task); 
+    
+    Atomic::atomicAcquire(&MutexScheduler, 0);
 
     if(task->IsInQueue){
         DequeueTask(task);

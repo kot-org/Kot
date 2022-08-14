@@ -21,6 +21,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
     
     // load start file
     ramfs::File* InitFile = ramfs::Find("Starter.cfg");
+    // todo delete testClass
     ramfs::File* testClass = ramfs::Find("Test.class");
 
     if (InitFile != NULL) {
