@@ -143,6 +143,7 @@ uint64_t TaskManager::Unpause(kthread_t* task){
 } 
 
 uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* task){    
+    Atomic::atomicAcquire(&MutexScheduler, 0);
     if(task->IsIPC){
         Atomic::atomicAcquire(&task->EventLock, 0);
         IPCData_t* Current = task->IPCInfo->CurrentData;
@@ -161,22 +162,25 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* 
                 task->IPCInfo->CurrentData = Next;
                 task->IPCInfo->TasksInQueu--;
                 Current->thread->Regs->GlobalPurpose = Registers->GlobalPurpose;
-                Unpause(Current->thread); 
+                Atomic::atomicUnlock(&MutexScheduler, 0);
                 Atomic::atomicUnlock(&task->EventLock, 0);
+                Unpause(Current->thread); 
             }else{
                 Current->thread->Regs->GlobalPurpose = Registers->GlobalPurpose;
-                Unpause(Current->thread); 
                 
                 globalTaskManager->threadExecutePerCore[task->CoreID] = NULL;
                 task->IsExit = true;
                 task->IsBlock = true;
+                Atomic::atomicUnlock(&MutexScheduler, 0);
                 Atomic::atomicUnlock(&task->EventLock, 0);
+                Unpause(Current->thread); 
                 ForceSchedule();
             }
         }else{
             Current->thread->Regs->GlobalPurpose = Registers->GlobalPurpose;
-            Unpause(Current->thread);     
+            Atomic::atomicUnlock(&MutexScheduler, 0);
             Atomic::atomicUnlock(&task->EventLock, 0);       
+            Unpause(Current->thread);     
             return KSUCCESS;
         }
     }
@@ -193,7 +197,6 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* 
     free(task->Regs);
     free(task); 
     
-    Atomic::atomicAcquire(&MutexScheduler, 0);
 
     if(task->IsInQueue){
         DequeueTask(task);
@@ -214,7 +217,7 @@ uint64_t TaskManager::ShareDataUsingStackSpace(kthread_t* self, uintptr_t data, 
 }
 
 uint64_t TaskManager::CreateProcess(kprocess_t** key, uint8_t priviledge, uint64_t externalData){
-    Atomic::atomicLock(&MutexScheduler, 1);
+    Atomic::atomicAcquire(&MutexScheduler, 1);
     kprocess_t* proc = (kprocess_t*)calloc(sizeof(kprocess_t));
 
     if(ProcessList == NULL){
@@ -254,7 +257,7 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, uint64_t externalData)
 }
 
 kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, uint8_t priviledge, uint64_t externalData){
-    Atomic::atomicLock(&globalTaskManager->MutexScheduler, 1);
+    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 1);
     kthread_t* thread = (kthread_t*)calloc(sizeof(kthread_t));
     if(Childs == NULL){
         Childs = CreateNode((uintptr_t)0);
@@ -325,7 +328,7 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, uint8_t priviledge, ui
 }
 
 kthread_t* kprocess_t::Duplicatethread(kthread_t* source, uint64_t externalData){
-    Atomic::atomicLock(&globalTaskManager->MutexScheduler, 1);
+    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 1);
     kthread_t* thread = (kthread_t*)calloc(sizeof(kthread_t));
     if(Childs == NULL){
         Childs = CreateNode((uintptr_t)0);

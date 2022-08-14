@@ -391,8 +391,6 @@ KResult Sys_ExecThread(ContextStack* Registers, kthread_t* thread){
     if(Registers->arg1 != NULL){
         if(CheckAddress((uintptr_t)Registers->arg1, sizeof(parameters_t)) != KSUCCESS) return KMEMORYVIOLATION;    
     }
-
-    CPU::DisableInterrupts();
     return globalTaskManager->Execthread(threadkey, (parameters_t*)Registers->arg1);
 }
 

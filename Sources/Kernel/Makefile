@@ -34,17 +34,17 @@ kernel: $(OBJS) link createISO
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@ echo !==== COMPILING $^
-	@ mkdir -p $(@D)
+	@ mkdir -m 777 -p $(@D)
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@ echo !==== COMPILING $^
-	@ mkdir -p $(@D)
+	@ mkdir -m 777 -p $(@D)
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 	@ echo !==== COMPILING $^
-	@ mkdir -p $(@D)
+	@ mkdir -m 777 -p $(@D)
 	$(ASMC) $(ASMFLAGS) $^ -f elf64 -o $@
 	
 link:
@@ -54,7 +54,7 @@ link:
 createISO:
 	@ echo !==== ISO
 
-	mkdir -p $(LIMINEBUILDDIR)
+	mkdir -m 777 -p $(LIMINEBUILDDIR)
 	cp -v $(BINDIR)/Kernel.elf limine.cfg limine/limine.sys limine/limine-cd.bin limine/limine-cd-efi.bin $(LIMINEBUILDDIR)
 
 	bash $(_HOME)Tools/BuildRamFS.sh
@@ -67,7 +67,7 @@ createISO:
 createISOEFI:
 	@ echo !==== ISO EFI
 
-	mkdir -p $(LIMINEBUILDDIR)
+	mkdir -m 777 -p $(LIMINEBUILDDIR)
 	cp -v $(BINDIR)/Kernel.elf limine/limine.sys limine/limine-cd-efi.bin $(LIMINEBUILDDIR)
 
 	bash $(_HOME)Tools/BuildRamFS.sh
