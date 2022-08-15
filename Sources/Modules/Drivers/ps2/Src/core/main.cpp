@@ -15,9 +15,6 @@ extern "C" int main(int argc, char* argv[]){
     Sys_Createthread(self, (uintptr_t)&PS2InterruptHandler, PriviledgeDriver, NULL, &InterruptthreadHandler);
 
     KResult status = KSUCCESS;
-    CreateIPC("PS2", InterruptthreadHandler);
-    thread test = CallIPC("PS2");
-    Sys_Execthread(test, NULL);
 
     /* Test ports */
     status = PortsInitalize();
