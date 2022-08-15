@@ -14,7 +14,7 @@
 
 /* -------------------------------Functions------------------------------------ */
 
-/* Sys_CreateShareMemory :
+/* Sys_CreateMemoryField :
     Arguments : 
     0 -> process taget                  > key process
     1 -> size                           > uint64_t
@@ -23,40 +23,40 @@
     4 -> reserved                       > none
     5 -> reserved                       > none
 */
-KResult Sys_CreateShareMemory(SyscallStack* Registers, kthread_t* thread){
+KResult Sys_CreateMemoryField(SyscallStack* Registers, kthread_t* thread){
     kprocess_t* processkey;
     uint64_t flags;
     uint64_t data;
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
-    if(CreateSharing(processkey, Registers->arg1, (uint64_t*)Registers->arg2, &data, Registers->arg4) != KSUCCESS) return KFAIL;
+    if(CreateMemoryField(processkey, Registers->arg1, (uint64_t*)Registers->arg2, &data, (enum MemoryFieldType)Registers->arg4) != KSUCCESS) return KFAIL;
     return Keyhole_Create((key_t*)Registers->arg3, thread->Parent, NULL, DataTypeSharedMemory, data, KeyholeFlagFullPermissions);
 }
 
-/* Sys_GetShareMemory :
+/* Sys_AcceptMemoryField :
     Arguments : 
 */
-KResult Sys_GetShareMemory(SyscallStack* Registers, kthread_t* thread){
+KResult Sys_AcceptMemoryField(SyscallStack* Registers, kthread_t* thread){
     kprocess_t* processkey;
     MemoryShareInfo* memoryKey;
     uint64_t flags;
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
     if(Keyhole_Get(thread, (key_t)Registers->arg1, DataTypeSharedMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    return GetSharing(processkey, memoryKey, (uint64_t*)Registers->arg2);
+    return AcceptMemoryField(processkey, memoryKey, (uint64_t*)Registers->arg2);
 }
 
-/* Sys_FreeShareMemory :
+/* Sys_FreeMemoryField :
     Arguments : 
 */
-KResult Sys_FreeShareMemory(SyscallStack* Registers, kthread_t* thread){
+KResult Sys_FreeMemoryField(SyscallStack* Registers, kthread_t* thread){
     kprocess_t* processkey;
     MemoryShareInfo* memoryKey;
     uint64_t flags;
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
     if(Keyhole_Get(thread, (key_t)Registers->arg1, DataTypeSharedMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    return FreeSharing(processkey, memoryKey, (uintptr_t)Registers->arg2);    
+    return FreeMemoryField(processkey, memoryKey, (uintptr_t)Registers->arg2);    
 }
 
 /* Sys_ShareDataUsingStackSpace :
@@ -406,9 +406,9 @@ KResult Sys_Logs(SyscallStack* Registers, kthread_t* thread){
 }
 
 static SyscallHandler SyscallHandlers[Syscall_Count] = { 
-    [KSys_CreateShareMemory] = Sys_CreateShareMemory,
-    [KSys_GetShareMemory] = Sys_GetShareMemory,
-    [KSys_FreeShareMemory] = Sys_FreeShareMemory,
+    [KSys_CreateMemoryField] = Sys_CreateMemoryField,
+    [KSys_AcceptMemoryField] = Sys_AcceptMemoryField,
+    [KSys_FreeMemoryField] = Sys_FreeMemoryField,
     [KSys_ShareDataUsingStackSpace] = Sys_ShareDataUsingStackSpace,
     [KSys_IPC] = Sys_IPC,
     [KSys_CreateProc] = Sys_CreateProc,

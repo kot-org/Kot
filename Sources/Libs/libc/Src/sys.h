@@ -3,6 +3,7 @@
 
 #include <kot/arch.h>
 #include <kot/types.h>
+#include <kot/memory.h>
 #include <kot/sys/list.h>
 
 #define Syscall_48(syscall, arg0, arg1, arg2, arg3, arg4, arg5) (DoSyscall(syscall, (uint64_t)arg0, (uint64_t)arg1, (uint64_t)arg2, (uint64_t)arg3, (uint64_t)arg4, (uint64_t)arg5))
@@ -55,12 +56,18 @@ enum Priviledge{
     PriviledgeApp       = 0x3,
 };
 
+enum MemoryFieldType{
+    MemoryFieldTypeShareSpaceRW = 0,
+    MemoryFieldTypeShareSpaceRO = 1,
+    MemoryFieldTypeSendSpaceRO = 2,
+};
+
 uint64_t DoSyscall(uint64_t syscall, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);
 
 
-KResult SYS_CreateShareSpace(process_t self, size_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, uint64_t flags);
-KResult SYS_GetShareSpace(process_t self, ksmem_t key, uintptr_t* virtualAddressPointer);
-KResult SYS_FreeShareSpace(process_t self, ksmem_t key, uintptr_t address);
+KResult Sys_CreateMemoryField(process_t self, size_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, enum MemoryFieldType type);
+KResult Sys_AcceptMemoryField(process_t self, ksmem_t key, uintptr_t* virtualAddressPointer);
+KResult Sys_FreeMemoryField(process_t self, ksmem_t key, uintptr_t address);
 KResult SYS_ShareDataUsingStackSpace(thread self, uint64_t address, size_t size, uint64_t* clientAddress);
 KResult Sys_IPC(thread task, struct parameters_t* param, bool IsAsync);
 KResult Sys_CreateProc(process_t* key, enum Priviledge privilege, uint64_t data);

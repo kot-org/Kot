@@ -16,17 +16,6 @@ void memset64(uintptr_t start, uint64_t value, uint64_t num);
 int memcmp(const void *aptr, const void *bptr, size_t n);
 void memcpy(uintptr_t destination, uintptr_t source, uint64_t num);
 
-enum memory_share_flag{
-    memory_share_flag_ReadOnly          = 0,
-    /* NLA : no live actualization means that once the memory is get by the client the won't be update 
-    if the server memory is update also the address give by the server is suppose tu be already alocated */
-    memory_share_flag_NLA                = 1,
-    memory_share_flag_User               = 2,
-};
-
-bool memory_share_flag_GetFlag(uint64_t* entry, enum memory_share_flag flag);
-void memory_share_flag_SetFlag(uint64_t* entry, enum memory_share_flag flag, bool value);
-
 #if defined(__cplusplus)
 }
 #endif

@@ -118,8 +118,8 @@ namespace ELF {
 
                 ksmem_t SharedKey = NULL;
                 uint64_t flags = 0;
-                memory_share_flag_SetFlag(&flags, memory_share_flag_NLA, true);
-                SYS_CreateShareSpace(parentProcess, phdr->p_memsz, &TmpAddress, &SharedKey, flags);
+
+                Sys_CreateMemoryField(parentProcess, phdr->p_memsz, &TmpAddress, &SharedKey, MemoryFieldTypeSendSpaceRO);
                 uintptr_t clientAddress = (uintptr_t)phdr->p_vaddr;
                 if(self->KotSpecificSymbol != NULL){
                     if(IsBeetween((uint64_t)clientAddress, (uint64_t)self->KotSpecificSymbol->st_value, ((uint64_t)clientAddress + phdr->p_memsz))){
@@ -128,8 +128,8 @@ namespace ELF {
                     }
                 }
 
-                SYS_GetShareSpace(proc, SharedKey, &clientAddress);
-                SYS_FreeShareSpace(parentProcess, SharedKey, TmpAddress);
+                Sys_AcceptMemoryField(proc, SharedKey, &clientAddress);
+                Sys_FreeMemoryField(parentProcess, SharedKey, TmpAddress);
                 free((uintptr_t)TmpAddress);
             }
         }

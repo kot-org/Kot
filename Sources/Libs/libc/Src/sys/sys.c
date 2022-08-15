@@ -2,16 +2,16 @@
 
 __attribute__((section(".KotSpecificData"))) struct KotSpecificData_t KotSpecificData;
 
-KResult SYS_CreateShareSpace(process_t self, size_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, uint64_t flags){
-    return Syscall_40(KSys_CreateShareMemory, self, size, virtualAddressPointer, keyPointer, flags);
+KResult Sys_CreateMemoryField(process_t self, size_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, enum MemoryFieldType type){
+    return Syscall_40(KSys_CreateMemoryField, self, size, virtualAddressPointer, keyPointer, type);
 }
 
-KResult SYS_GetShareSpace(process_t self, ksmem_t key, uintptr_t* virtualAddressPointer){
-    return Syscall_24(KSys_GetShareMemory, self, key, virtualAddressPointer);
+KResult Sys_AcceptMemoryField(process_t self, ksmem_t key, uintptr_t* virtualAddressPointer){
+    return Syscall_24(KSys_AcceptMemoryField, self, key, virtualAddressPointer);
 }
 
-KResult SYS_FreeShareSpace(process_t self, ksmem_t key, uintptr_t address){
-    return Syscall_24(KSys_FreeShareMemory, self, key, address);
+KResult Sys_FreeMemoryField(process_t self, ksmem_t key, uintptr_t address){
+    return Syscall_24(KSys_FreeMemoryField, self, key, address);
 }
 
 KResult SYS_ShareDataUsingStackSpace(thread self, uint64_t address, size_t size, uint64_t* clientAddress){

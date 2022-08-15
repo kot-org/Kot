@@ -49,18 +49,16 @@ int memcmp(const void *aptr, const void *bptr, size_t n){
 	return 0;
 }
 
-bool CheckAddress(uintptr_t address, size_t size){
+bool CheckAddress(uintptr_t address, size_t size, uintptr_t pagingEntry){
     if(address == NULL) return false;
     uint64_t NumberPage = DivideRoundUp(size, PAGE_SIZE);
     uint64_t AddressItinerator = (uint64_t)address;
-    uintptr_t PagingEntry = NULL;
-    __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(PagingEntry));
 
     for(int i = 0; i < NumberPage; i++){
-        if(!vmm_GetFlags(PagingEntry, (uintptr_t)AddressItinerator, vmm_flag::vmm_Present)){
+        if(!vmm_GetFlags(pagingEntry, (uintptr_t)AddressItinerator, vmm_flag::vmm_Present)){
             return false;
         } 
-        if(!vmm_GetFlags(PagingEntry, (uintptr_t)AddressItinerator, vmm_flag::vmm_PhysicalStorage)){
+        if(!vmm_GetFlags(pagingEntry, (uintptr_t)AddressItinerator, vmm_flag::vmm_PhysicalStorage)){
             return false;
         } 
         AddressItinerator += PAGE_SIZE;
@@ -69,9 +67,11 @@ bool CheckAddress(uintptr_t address, size_t size){
     return true;
 }
 
+bool CheckAddress(uintptr_t address, size_t size){
+    uintptr_t PagingEntry = NULL;
+    __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(PagingEntry));
 
-bool GetMemoryFlag(uint64_t entry, memory_share_flag flag){
-    return entry & (1 << flag); 
+    return CheckAddress(address, size, PagingEntry);
 }
 
 
@@ -79,39 +79,62 @@ bool GetMemoryFlag(uint64_t entry, memory_share_flag flag){
 //vmm_flag::vmm_Custom1 master share
 //vmm_flag::vmm_Custom2 slave share
 
-uint64_t CreateSharing(kprocess_t* process, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, uint64_t flags){
+uint64_t CreateMemoryField(kprocess_t* process, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, enum MemoryFieldType type){
     if(CheckAddress(virtualAddressPointer, sizeof(uint64_t)) != KSUCCESS) return KFAIL;
     if(CheckAddress(keyPointer, sizeof(uint64_t)) != KSUCCESS) return KFAIL;
     uintptr_t virtualAddress = (uintptr_t)*virtualAddressPointer;
     pagetable_t pageTable = process->SharedPaging;
     uint64_t realSize = size;
     uint64_t numberOfPage = DivideRoundUp(realSize, PAGE_SIZE);
-    if(GetMemoryFlag(flags, memory_share_flag_NLA)){
-        if(CheckAddress(virtualAddress, realSize) != KSUCCESS) return KFAIL;
-        if((uint64_t)virtualAddress % PAGE_SIZE){
-            size_t nonAlignedSize = PAGE_SIZE - ((uint64_t)virtualAddress % PAGE_SIZE);
-            if(realSize > nonAlignedSize){
-                numberOfPage++;
+    switch(type){
+        case MemoryFieldTypeShareSpaceRW:{
+            if((uint64_t)virtualAddress % PAGE_SIZE > 0){
+                virtualAddress = (uintptr_t)((uint64_t)virtualAddress - (uint64_t)virtualAddress % PAGE_SIZE);
+                virtualAddress = (uintptr_t)((uint64_t)virtualAddress + PAGE_SIZE);
             }
+            for(int i = 0; i < numberOfPage; i++){
+                uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
+                if(!vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Present)){
+                    vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, Pmm_RequestPage(), true);
+                    vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_PhysicalStorage, true); //set master state
+                    process->MemoryAllocated += PAGE_SIZE;  
+                }
+            }  
+            break;
         }
-    }else{
-        if((uint64_t)virtualAddress % PAGE_SIZE > 0){
-            virtualAddress = (uintptr_t)((uint64_t)virtualAddress - (uint64_t)virtualAddress % PAGE_SIZE);
-            virtualAddress = (uintptr_t)((uint64_t)virtualAddress + PAGE_SIZE);
-        }
-        for(int i = 0; i < numberOfPage; i++){
-            uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
-            if(!vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Present)){
-                vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, Pmm_RequestPage(), true);
-                vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_PhysicalStorage, true); //set master state
-                process->MemoryAllocated += PAGE_SIZE;  
+        case MemoryFieldTypeShareSpaceRO:{
+            if((uint64_t)virtualAddress % PAGE_SIZE > 0){
+                virtualAddress = (uintptr_t)((uint64_t)virtualAddress - (uint64_t)virtualAddress % PAGE_SIZE);
+                virtualAddress = (uintptr_t)((uint64_t)virtualAddress + PAGE_SIZE);
             }
-        }        
+            for(int i = 0; i < numberOfPage; i++){
+                uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
+                if(!vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Present)){
+                    vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, Pmm_RequestPage(), true);
+                    vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_PhysicalStorage, true); //set master state
+                    process->MemoryAllocated += PAGE_SIZE;  
+                }
+            }  
+            break;
+        }
+        case MemoryFieldTypeSendSpaceRO:{
+            pagetable_t lastPageTable = vmm_GetPageTable();
+            if(lastPageTable != pageTable) vmm_Swap(pageTable);
+            if(CheckAddress(virtualAddress, realSize, pageTable) != KSUCCESS) return KFAIL;
+            if((uint64_t)virtualAddress % PAGE_SIZE){
+                size_t nonAlignedSize = PAGE_SIZE - ((uint64_t)virtualAddress % PAGE_SIZE);
+                if(realSize > nonAlignedSize){
+                    numberOfPage++;
+                }
+            }
+            if(lastPageTable != pageTable) vmm_Swap(lastPageTable);
+            break;
+        }
     }
 
     MemoryShareInfo* shareInfo = (MemoryShareInfo*)malloc(sizeof(MemoryShareInfo));
     shareInfo->Lock = false;
-    shareInfo->flags = flags;
+    shareInfo->Type = type;
     shareInfo->Size = realSize;
     shareInfo->PageNumber = numberOfPage;
     shareInfo->PageTableParent = pageTable;
@@ -125,7 +148,7 @@ uint64_t CreateSharing(kprocess_t* process, size_t size, uint64_t* virtualAddres
     return KSUCCESS;
 }
 
-uint64_t GetSharing(kprocess_t* process, MemoryShareInfo* shareInfo, uint64_t* virtualAddressPointer){
+uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint64_t* virtualAddressPointer){
     if(CheckAddress(virtualAddressPointer, sizeof(uint64_t)) != KSUCCESS) return KFAIL;
 
     pagetable_t pageTable = process->SharedPaging;
@@ -133,106 +156,145 @@ uint64_t GetSharing(kprocess_t* process, MemoryShareInfo* shareInfo, uint64_t* v
     if(shareInfo->signature0 != 'S' || shareInfo->signature1 != 'M') return KFAIL;
 
     uintptr_t virtualAddress = (uintptr_t)*virtualAddressPointer;
-    if(GetMemoryFlag(shareInfo->flags, memory_share_flag_NLA)){
-        pagetable_t lastPageTable = vmm_GetPageTable();
-        vmm_Swap(pageTable);
+    
+    switch(shareInfo->Type){
+        case MemoryFieldTypeShareSpaceRW:{
+            if((uint64_t)virtualAddress % PAGE_SIZE > 0){
+                virtualAddress = (uintptr_t)((uint64_t)virtualAddress - (uint64_t)virtualAddress % PAGE_SIZE);
+                virtualAddress = (uintptr_t)((uint64_t)virtualAddress + PAGE_SIZE);
+            }
+            for(uint64_t i = 0; i < shareInfo->PageNumber; i++){
+                uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
+                uint64_t virtualAddressParentIterator = (uint64_t)shareInfo->VirtualAddressParent + i * PAGE_SIZE;
+                uintptr_t physicalAddressParentIterator = vmm_GetPhysical(shareInfo->PageTableParent, (uintptr_t)virtualAddressParentIterator);
+                vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, physicalAddressParentIterator, true);
+                vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Custom2, true); //set slave state
+            }
+            break;
+        }
+        case MemoryFieldTypeShareSpaceRO:{
+            if((uint64_t)virtualAddress % PAGE_SIZE > 0){
+                virtualAddress = (uintptr_t)((uint64_t)virtualAddress - (uint64_t)virtualAddress % PAGE_SIZE);
+                virtualAddress = (uintptr_t)((uint64_t)virtualAddress + PAGE_SIZE);
+            }
+            for(uint64_t i = 0; i < shareInfo->PageNumber; i++){
+                uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
+                uint64_t virtualAddressParentIterator = (uint64_t)shareInfo->VirtualAddressParent + i * PAGE_SIZE;
+                uintptr_t physicalAddressParentIterator = vmm_GetPhysical(shareInfo->PageTableParent, (uintptr_t)virtualAddressParentIterator);
+                vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, physicalAddressParentIterator, true);
+                vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Custom2, true); //set slave state
+                vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_ReadWrite, false); //read only
+            }            
+            break;
+        }
+        case MemoryFieldTypeSendSpaceRO:{
+            pagetable_t lastPageTable = vmm_GetPageTable();
+            vmm_Swap(pageTable);
 
-        uint64_t size = shareInfo->Size;
-        uint64_t pages = DivideRoundUp(size, PAGE_SIZE);
+            uint64_t size = shareInfo->Size;
+            uint64_t pages = DivideRoundUp(size, PAGE_SIZE);
 
-        /* Allocate child memory */
-        if((uint64_t)virtualAddress + pages * PAGE_SIZE < vmm_HHDMAdress){
-            for(uint64_t i = 0; i < pages; i++){
-                if(!vmm_GetFlags(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage)){
-                    vmm_Unmap(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE));
+            /* Allocate child memory */
+            if((uint64_t)virtualAddress + pages * PAGE_SIZE < vmm_HHDMAdress){
+                for(uint64_t i = 0; i < pages; i++){
+                    if(!vmm_GetFlags(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage)){
+                        vmm_Unmap(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE));
+                    }
                 }
+                
+                for(uint64_t i = 0; i < pages; i++){
+                    if(!vmm_GetFlags(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Present)){
+                        vmm_Map(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), Pmm_RequestPage(), true);
+                        vmm_SetFlags(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage, true); //set master state
+                        process->MemoryAllocated += PAGE_SIZE;                    
+                    }
+                } 
             }
             
-            for(uint64_t i = 0; i < pages; i++){
-                if(!vmm_GetFlags(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Present)){
-                    vmm_Map(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), Pmm_RequestPage(), true);
-                    vmm_SetFlags(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage, true); //set master state
-                    process->MemoryAllocated += PAGE_SIZE;                    
+            /* Copy memory */
+            uint64_t virtualAddressParentIterator = (uint64_t)shareInfo->VirtualAddressParent;
+            uint64_t virtualAddressIterator = (uint64_t)virtualAddress;
+            uint64_t i = 0;
+            if(virtualAddressParentIterator % PAGE_SIZE){
+                uint64_t sizeToCopy = 0;
+                if(size > PAGE_SIZE - (virtualAddressParentIterator % PAGE_SIZE)){
+                    sizeToCopy = PAGE_SIZE - (virtualAddressParentIterator % PAGE_SIZE);
+                }else{
+                    sizeToCopy = size;
                 }
+
+                uintptr_t physicalAddressParentIterator = vmm_GetPhysical(shareInfo->PageTableParent, (uintptr_t)virtualAddressParentIterator);
+                memcpy((uintptr_t)virtualAddressIterator, (uintptr_t)vmm_GetVirtualAddress(physicalAddressParentIterator), sizeToCopy);
+
+                virtualAddressParentIterator += sizeToCopy;
+                virtualAddressIterator += sizeToCopy;
+                size -= sizeToCopy;
+                i++;
+            }
+            for(; i < shareInfo->PageNumber; i++){
+                uint64_t sizeToCopy;
+                if(size > PAGE_SIZE){
+                    sizeToCopy = PAGE_SIZE;
+                }else{
+                    sizeToCopy = size;
+                }
+                uintptr_t physicalAddressParentIterator = vmm_GetPhysical(shareInfo->PageTableParent, (uintptr_t)virtualAddressParentIterator);
+
+                memcpy((uintptr_t)virtualAddressIterator, (uintptr_t)vmm_GetVirtualAddress(physicalAddressParentIterator), sizeToCopy);
+                virtualAddressIterator += sizeToCopy;
+                virtualAddressParentIterator += sizeToCopy;
+                size -= sizeToCopy;
             } 
+            vmm_Swap(lastPageTable);
+            break;
         }
-        
-        /* Copy memory */
-        uint64_t virtualAddressParentIterator = (uint64_t)shareInfo->VirtualAddressParent;
-        uint64_t virtualAddressIterator = (uint64_t)virtualAddress;
-        uint64_t i = 0;
-        if(virtualAddressParentIterator % PAGE_SIZE){
-            uint64_t sizeToCopy = 0;
-            if(size > PAGE_SIZE - (virtualAddressParentIterator % PAGE_SIZE)){
-                sizeToCopy = PAGE_SIZE - (virtualAddressParentIterator % PAGE_SIZE);
-            }else{
-                sizeToCopy = size;
-            }
-
-            uintptr_t physicalAddressParentIterator = vmm_GetPhysical(shareInfo->PageTableParent, (uintptr_t)virtualAddressParentIterator);
-            memcpy((uintptr_t)virtualAddressIterator, (uintptr_t)vmm_GetVirtualAddress(physicalAddressParentIterator), sizeToCopy);
-
-            virtualAddressParentIterator += sizeToCopy;
-            virtualAddressIterator += sizeToCopy;
-            size -= sizeToCopy;
-            i++;
-        }
-        for(; i < shareInfo->PageNumber; i++){
-            uint64_t sizeToCopy;
-            if(size > PAGE_SIZE){
-                sizeToCopy = PAGE_SIZE;
-            }else{
-                sizeToCopy = size;
-            }
-            uintptr_t physicalAddressParentIterator = vmm_GetPhysical(shareInfo->PageTableParent, (uintptr_t)virtualAddressParentIterator);
-
-            memcpy((uintptr_t)virtualAddressIterator, (uintptr_t)vmm_GetVirtualAddress(physicalAddressParentIterator), sizeToCopy);
-            virtualAddressIterator += sizeToCopy;
-            virtualAddressParentIterator += sizeToCopy;
-            size -= sizeToCopy;
-        } 
-        vmm_Swap(lastPageTable);
-    }else{
-        if((uint64_t)virtualAddress % PAGE_SIZE > 0){
-            virtualAddress = (uintptr_t)((uint64_t)virtualAddress - (uint64_t)virtualAddress % PAGE_SIZE);
-            virtualAddress = (uintptr_t)((uint64_t)virtualAddress + PAGE_SIZE);
-        }
-        for(uint64_t i = 0; i < shareInfo->PageNumber; i++){
-            uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
-            uint64_t virtualAddressParentIterator = (uint64_t)shareInfo->VirtualAddressParent + i * PAGE_SIZE;
-            uintptr_t physicalAddressParentIterator = vmm_GetPhysical(shareInfo->PageTableParent, (uintptr_t)virtualAddressParentIterator);
-            vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, physicalAddressParentIterator, true);
-            vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Custom2, true); //set slave state
-            if(GetMemoryFlag(shareInfo->flags, memory_share_flag_ReadOnly)) vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_ReadWrite, false); 
-        }        
     }
 
     *virtualAddressPointer = (uint64_t)virtualAddress;
     return KSUCCESS;
 }
 
-uint64_t FreeSharing(kprocess_t* process, MemoryShareInfo* shareInfo, uintptr_t virtualAddress){
+uint64_t FreeMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uintptr_t virtualAddress){
     pagetable_t pageTable = process->SharedPaging;
 
     if(CheckAddress(virtualAddress, shareInfo->PageNumber * PAGE_SIZE) != KSUCCESS) return KFAIL;
 
-    if(!GetMemoryFlag(shareInfo->flags, memory_share_flag_NLA)){
-        pagetable_t pageTableMaster = shareInfo->PageTableParent;
-        size_t NumberOfPage = shareInfo->PageNumber;
-        for(uint64_t i = 0; i < NumberOfPage; i++){
-            uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
-            if(vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_PhysicalStorage)){ // is master
-                uintptr_t physcialAddress = vmm_GetPhysical(pageTable, (uintptr_t)virtualAddressIterator);
-                Pmm_FreePage(physcialAddress);  
-                process->MemoryAllocated -= PAGE_SIZE;      
+    switch(shareInfo->Type){
+        case MemoryFieldTypeShareSpaceRW:{
+            pagetable_t pageTableMaster = shareInfo->PageTableParent;
+            size_t NumberOfPage = shareInfo->PageNumber;
+            for(uint64_t i = 0; i < NumberOfPage; i++){
+                uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
+                if(vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_PhysicalStorage)){ // is master
+                    uintptr_t physcialAddress = vmm_GetPhysical(pageTable, (uintptr_t)virtualAddressIterator);
+                    Pmm_FreePage(physcialAddress);  
+                    process->MemoryAllocated -= PAGE_SIZE;      
+                }
+                vmm_Unmap(pageTable, (uintptr_t)virtualAddressIterator);
             }
-            vmm_Unmap(pageTable, (uintptr_t)virtualAddressIterator);
+            break;
         }
-    }
-
-    if(shareInfo->PageTableParent == pageTable){
-        free((uintptr_t)shareInfo);
-    }    
+        case MemoryFieldTypeShareSpaceRO:{
+            pagetable_t pageTableMaster = shareInfo->PageTableParent;
+            size_t NumberOfPage = shareInfo->PageNumber;
+            for(uint64_t i = 0; i < NumberOfPage; i++){
+                uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
+                if(vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_PhysicalStorage)){ // is master
+                    uintptr_t physcialAddress = vmm_GetPhysical(pageTable, (uintptr_t)virtualAddressIterator);
+                    Pmm_FreePage(physcialAddress);  
+                    process->MemoryAllocated -= PAGE_SIZE;      
+                }
+                vmm_Unmap(pageTable, (uintptr_t)virtualAddressIterator);
+            }
+            break;
+        }
+        case MemoryFieldTypeSendSpaceRO:{
+            if(shareInfo->PageTableParent == pageTable){
+                free((uintptr_t)shareInfo);
+            }  
+            break;
+        }
+    }   
     
     return KSUCCESS;
 }

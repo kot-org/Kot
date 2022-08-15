@@ -1,8 +1,8 @@
 #define Syscall_Count 0x15 + 1
 
-#define KSys_CreateShareMemory 0x0
-#define KSys_GetShareMemory 0x1
-#define KSys_FreeShareMemory 0x2
+#define KSys_CreateMemoryField 0x0
+#define KSys_AcceptMemoryField 0x1
+#define KSys_FreeMemoryField 0x2
 #define KSys_ShareDataUsingStackSpace 0x3
 
 #define KSys_IPC 0x4
