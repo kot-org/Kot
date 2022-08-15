@@ -40,19 +40,14 @@ thread renderThread = NULL;
 
 void renderWindows() {
     
-    
-    atomicLock((uint64_t*) backbuffer_ctx, 0);
     backbuffer_ctx->clear();
 
     for (uint64_t i = 0; i < windows->length; i++) {
         ((Window*) vector_get(windows, i))->render(backbuffer_ctx);
     }
-
-    atomicLock((uint64_t*) screen_ctx, 0);
     screen_ctx->swapFrom(backbuffer_ctx);
-    atomicUnlock((uint64_t*) backbuffer_ctx, 0);
-    atomicUnlock((uint64_t*) screen_ctx, 0);
 
+    Sys_Execthread(renderThread, NULL);
     SYS_Exit(NULL, KSUCCESS);
 
 }
@@ -60,6 +55,7 @@ void renderWindows() {
 void initWindowRender() {
     Sys_Createthread(self, (uintptr_t) &renderWindows, PriviledgeService, NULL, &renderThread);
     windows = vector_create();
+    Sys_Execthread(renderThread, NULL);
 }
 
 void drawLotLogo() {
@@ -107,8 +103,6 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* fb){
     initWindowRender();
 
     drawLotLogo();
-    
-    Sys_Execthread(renderThread, NULL);
 
     Printlog("[Orb] Service initialized successfully");
 
@@ -150,7 +144,6 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* fb){
 
     for (uint32_t i = 0; i < 400; i++) {
         w1->move(w1->getX()-1, w1->getY()-1);
-        Sys_Execthread(renderThread, NULL);
     }
  
     return KSUCCESS;
