@@ -1,6 +1,6 @@
 #include "main.h"
 
-extern "C" int main(int argc, char* argv[], void* framebuffer, void* _3and4, uintptr_t testClassBuffer) {
+extern "C" int main(int argc, char* argv[], void* framebuffer, uintptr_t testClassBuffer) {
 
     Printlog("[JavaVM] Initialization ...");
 

@@ -58,7 +58,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
                 ShareString(thread, ServiceInfo[0], (uint64_t*) &Parameters[0]);
                 SYS_ShareDataUsingStackSpace(thread, (uint64_t) Parameters, sizeof(char*), &InitParameters->Arg1);
                 SYS_ShareDataUsingStackSpace(thread, (uint64_t) &kernelInfo->framebuffer, sizeof(framebuffer_t), &InitParameters->Arg2);
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t) testClassBuffer, testClass->size + 1, &InitParameters->Arg5);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t) testClassBuffer, testClass->size + 1, &InitParameters->Arg3);
     
                 Sys_Execthread(thread, InitParameters);
             
