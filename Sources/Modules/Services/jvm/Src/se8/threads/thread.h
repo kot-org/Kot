@@ -4,10 +4,10 @@
 
 namespace SE8 {
 
-    class thread {
+    class Thread {
     private:
     public:
-        thread();
+        Thread();
     };
 
 }

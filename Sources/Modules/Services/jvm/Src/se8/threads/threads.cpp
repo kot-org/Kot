@@ -6,11 +6,11 @@ namespace SE8 {
     
     }
 
-    thread* Threads::create(char* name) {
+    Thread* Threads::create(char* name) {
         return NULL;
     }
 
-    thread* Threads::get(uint64_t pid) {
+    Thread* Threads::get(uint64_t pid) {
         return NULL;
     }
 
