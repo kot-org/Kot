@@ -8,6 +8,7 @@ extern "C" void TrampolineMain(){
     asm ("lidt %0" : : "m" (idtr));
 
     TSSSetIST(CoreID, IST_Interrupts, DataTrampoline.Stack);
+    TSSSetIST(CoreID, IST_Scheduler, DataTrampoline.StackScheduler);
 
     CPU::InitCPU();
     simdInit();

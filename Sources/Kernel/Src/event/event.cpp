@@ -136,6 +136,8 @@ namespace Event{
     } 
 
     uint64_t Close(ContextStack* Registers, kthread_t* task){
+        if(!task->IsEvent) return KFAIL;
+        Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
         Atomic::atomicAcquire(&task->EventLock, 0);
         /* Reset task */
         task->Regs->rsp = (uint64_t)StackTop;
@@ -153,11 +155,13 @@ namespace Event{
             task->EventDataNode->CurrentData->Task->NumberOfMissedEvents--;
             task->EventDataNode->NumberOfMissedEvents--;
             Atomic::atomicUnlock(&task->EventLock, 0);
+            Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
         }else{
             globalTaskManager->threadExecutePerCore[task->CoreID] = NULL;
             task->IsExit = true;
             task->IsBlock = true;
             Atomic::atomicUnlock(&task->EventLock, 0);
+            Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
             ForceSchedule();
         }
 

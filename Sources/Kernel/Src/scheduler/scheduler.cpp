@@ -4,7 +4,7 @@ TaskManager* globalTaskManager;
 
 void TaskManager::Scheduler(ContextStack* Registers, uint64_t CoreID){  
     if(Atomic::atomicLock(&MutexScheduler, 0)){
-        if(IsSchedulerEnable[CoreID]){  
+        if(IsSchedulerEnable[CoreID]){
             uint64_t actualTime = HPET::GetTime();
             kthread_t* threadEnd = threadExecutePerCore[CoreID];
             if(threadExecutePerCore[CoreID] != NULL){
@@ -113,10 +113,13 @@ uint64_t TaskManager::Duplicatethread(kthread_t** self, kprocess_t* proc, kthrea
 }
 
 uint64_t TaskManager::Execthread(kthread_t* self, parameters_t* FunctionParameters){
+    Atomic::atomicAcquire(&MutexScheduler, 0);
     if(self->IsBlock){
+        Atomic::atomicUnlock(&MutexScheduler, 0);
         self->Launch(FunctionParameters);
         return KSUCCESS;
     }else{
+        Atomic::atomicUnlock(&MutexScheduler, 0);
         return KFAIL;
     }
 }
@@ -127,11 +130,15 @@ uint64_t TaskManager::Pause(ContextStack* Registers, uint64_t CoreID, kthread_t*
     }else if(CoreID == task->CoreID){
         task->Pause(Registers, CoreID);
     }else{
+        Atomic::atomicAcquire(&MutexScheduler, 0);
         threadExecutePerCore[task->CoreID] = NULL;
+        Atomic::atomicUnlock(&MutexScheduler, 0);
         APIC::GenerateInterruption(task->CoreID, IPI_Schedule);
     }
 
+    Atomic::atomicAcquire(&MutexScheduler, 0);
     task->IsBlock = true;
+    Atomic::atomicUnlock(&MutexScheduler, 0);
 
     return KSUCCESS;
 }
@@ -623,9 +630,11 @@ bool kthread_t::Launch(parameters_t* FunctionParameters){
 }
 
 bool kthread_t::Launch(){
+    Atomic::atomicAcquire(&Parent->TaskManagerParent->MutexScheduler, 0);
     IsBlock = false;
     IsExit = false;
-    Parent->TaskManagerParent->EnqueueTask(this);
+    Parent->TaskManagerParent->EnqueueTaskWithoutLock(this);
+    Atomic::atomicUnlock(&Parent->TaskManagerParent->MutexScheduler, 0);
     return true;
 }
 

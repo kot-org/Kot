@@ -220,7 +220,7 @@ void Error(const char * str, ...){
 }
 
 void PrintRegisters(ContextStack* registers){
-    Message("Rax : %x Rbx : %x Rcx : %x Rdx : %x Rsi : %x Rdi : %x Rbp : %x", registers->GlobalPurpose, registers->rbx, registers->rcx, registers->arg2, registers->arg1, registers->arg0, registers->rbp);
-    Message("R8 : %x R9 : %x R10 : %x R11 : %x R12 : %x R13 : %x R14 : %x R15 : %x", registers->arg5, registers->arg4, registers->arg3, registers->r11, registers->r12, registers->r13, registers->r14, registers->r15);
+    Message("Rax : %x Rbx : %x Rcx : %x Rdx : %x Rsi : %x Rdi : %x Rbp : %x", registers->GlobalPurpose, registers->rbx, registers->arg3, registers->arg2, registers->arg1, registers->arg0, registers->rbp);
+    Message("R8 : %x R9 : %x R10 : %x R11 : %x R12 : %x R13 : %x R14 : %x R15 : %x", registers->arg5, registers->arg4, registers->r10, registers->r11, registers->r12, registers->r13, registers->r14, registers->r15);
     Message("Rflags: %x Rip: %x Ss: %x Cs: %x Rsp: %x", registers->rflags, registers->rip, registers->ss, registers->cs, registers->rsp);
 }

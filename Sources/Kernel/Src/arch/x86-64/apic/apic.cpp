@@ -189,8 +189,8 @@ namespace APIC{
             Data->Paging = (uint64_t)vmm_PageTable;
             Data->MainEntry = (uint64_t)&TrampolineMain; 
             Data->Stack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
-            memset((uintptr_t)(Data->Stack - KERNEL_STACK_SIZE), 0xff, KERNEL_STACK_SIZE);
             DataTrampoline.Stack = Data->Stack;
+            DataTrampoline.StackScheduler = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
 
             lapicSendInitIPI(Processor[i]->APICID);
 
