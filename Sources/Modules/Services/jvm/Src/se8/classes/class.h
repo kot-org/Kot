@@ -4,7 +4,7 @@
 
 namespace SE8 {
 
-    class ClassLoader {
+    class Class {
     private:
 
         uint32_t magic;
@@ -28,16 +28,16 @@ namespace SE8 {
         MethodInfo** methods;
 
         uint16_t attributes_count;
-        AttributeInfo** attributes;
+        Attribute** attributes;
 
-        AttributeInfo_Type getAttributeType(uint16_t attribute_name_index);
-
+        Attribute** parseAttributes(uint16_t attributes_count, Reader* reader);
+        
     public:
 
-        ClassLoader(uintptr_t bytes);
+        Class(uintptr_t bytes);
 
-        uint8_t* getClassName();
-        uint8_t* getSuperClassName();
+        char* getClassName();
+        char* getSuperClassName();
 
         uintptr_t* getConstantPool();
 

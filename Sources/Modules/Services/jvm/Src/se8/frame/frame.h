@@ -6,7 +6,7 @@
 #include "../../utils/reader.h"
 
 #include "stack.h"
-#include "locals.h"
+#include "heap.h"
 
 namespace SE8 {
 
@@ -19,11 +19,14 @@ namespace SE8 {
         Stack* stack;
         Locals* locals;
         JVM* jvm;
-        Reader* reader;
         bool widened = false;
     public:
+        
+        Reader* reader;
 
         Frame(JVM* jvm, uintptr_t constant_pool);
+        
+        void throwExc();
 
         // opcodes impl
 

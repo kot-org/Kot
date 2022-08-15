@@ -10,7 +10,7 @@ namespace SE8 {
         size_t capacity;
         uint64_t top = 0;
     public:
-
+        
         Stack(size_t capacity);
 
         void push(Value* value);

@@ -14,7 +14,7 @@ namespace SE8 {
 
     Frame::Frame(JVM* jvm, uintptr_t constant_pool) {
         this->constant_pool = constant_pool;
-        this->stack = new Stack(jvm->getStackSize());
+        this->stack = new Stack(100000); // todo
         this->reader = (Reader*) malloc(sizeof(Reader));
         this->locals = new Locals();
     }
@@ -112,45 +112,26 @@ namespace SE8 {
     }
 
     void Frame::d2f() {
-        SE8::Value* value = stack->pop();
-        if (value->type == SE8::Double) {
-            double val = *(uint64_t*)((uint64_t) value + 1);
-            stack->pushFloat(static_cast<float>(val));
-        } else {
-            // throw type exception
-        }
+        double val = *(uint64_t*)((uint64_t) stack->pop() + 1);
+        stack->pushFloat(static_cast<float>(val));
     }
 
     void Frame::d2i() {
-        SE8::Value* value = stack->pop();
-        if (value->type == SE8::Double) {
-            double val = *(uint64_t*)((uint64_t) value + 1);
-            stack->pushInt(static_cast<int32_t>(val));
-        } else {
-            // throw type exception
-        }
+        double val = *(uint64_t*)((uint64_t) stack->pop() + 1);
+        stack->pushInt(static_cast<int32_t>(val));
     }
 
     void Frame::d2l() {
-        SE8::Value* value = stack->pop();
-        if (value->type == SE8::Double) {
-            double val = *(uint64_t*)((uint64_t) value + 1);
-            stack->pushLong(static_cast<int64_t>(val));
-        } else {
-            // throw type exception
-        }
+        double val = *(uint64_t*)((uint64_t) stack->pop() + 1);
+        stack->pushLong(static_cast<int64_t>(val));
     }
 
     void Frame::dadd() {
         SE8::Value* value2 = stack->pop();
         SE8::Value* value1 = stack->pop();
-        if (value1->type == SE8::Double && value2->type == SE8::Double) {
-            double val1 = *(uint64_t*)((uint64_t) value1 + 1);
-            double val2 = *(uint64_t*)((uint64_t) value2 + 1);
-            stack->pushDouble(val1 + val2);
-        } else {
-            // throw type exception
-        }
+        double val1 = *(uint64_t*)((uint64_t) value1 + 1);
+        double val2 = *(uint64_t*)((uint64_t) value2 + 1);
+        stack->pushDouble(val1 + val2);
     }
 
     void Frame::daload() {
@@ -176,8 +157,6 @@ namespace SE8 {
             } else if (val1 < val2) {
                 stack->pushInt(-1);
             }
-        } else {
-            // throw type exception
         }
     }
 
@@ -196,8 +175,6 @@ namespace SE8 {
             } else if (val1 < val2) {
                 stack->pushInt(-1);
             }
-        } else {
-            // throw type exception
         }
     }
 
@@ -215,18 +192,16 @@ namespace SE8 {
         if (value1->type == SE8::Double && value2->type == SE8::Double) {
             double val2 = *(uint64_t*)((uint64_t) value2 + 1);
             if (val2 == 0) {
-                stack->pushNaN();
+                // throw arithemic exception
             } else {
                 double val1 = *(uint64_t*)((uint64_t) value1 + 1);
                 stack->pushDouble(val1 / val2);
             }
-        } else {
-            // throw type exception
         }
     }
 
     void Frame::dload() {
-        uint64_t ptr = locals->getPtr(widened ? reader->u2L() : reader->u1());
+        uint64_t ptr = locals->getPtr(widened ? reader->u2B() : reader->u1());
         uint8_t type = locals->getType(ptr);
         if (type == SE8::Double) {
             stack->pushDouble(locals->get64(ptr));
@@ -234,8 +209,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -249,8 +222,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -264,8 +235,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -279,8 +248,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -294,8 +261,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -307,19 +272,12 @@ namespace SE8 {
             double val1 = *(uint64_t*)((uint64_t) value1 + 1);
             double val2 = *(uint64_t*)((uint64_t) value2 + 1);
             stack->pushDouble(val1 * val2);
-        } else {
-            // throw type exception
         }
     }
 
     void Frame::dneg() {
-        SE8::Value* value = stack->pop();
-        if (value->type == SE8::Double) {
-            double val = *(uint64_t*)((uint64_t) value + 1);
-            stack->pushDouble(-val);
-        } else {
-            // throw type exception
-        }
+        double val = *(uint64_t*)((uint64_t) stack->pop() + 1);
+        stack->pushDouble(-val);
     }
 
     void Frame::drem() {
@@ -329,8 +287,6 @@ namespace SE8 {
             double val1 = *(uint64_t*)((uint64_t) value1 + 1);
             double val2 = *(uint64_t*)((uint64_t) value2 + 1);
             stack->pushDouble(val1 * val2);
-        } else {
-            // throw type exception
         }
     }
 
@@ -339,7 +295,7 @@ namespace SE8 {
     }
 
     void Frame::dstore() {
-        uint64_t ptr = locals->getPtr(widened ? reader->u2L() : reader->u1());
+        uint64_t ptr = locals->getPtr(widened ? reader->u2B() : reader->u1());
         SE8::Value* value = stack->pop();
         locals->setType(ptr, value->type);
         if (value->type == SE8::Double) {
@@ -395,8 +351,6 @@ namespace SE8 {
             double val1 = *(uint64_t*)((uint64_t) value1 + 1);
             double val2 = *(uint64_t*)((uint64_t) value2 + 1);
             stack->pushDouble(val1 - val2);
-        } else {
-            // throw type exception
         }
     }
 
@@ -460,8 +414,6 @@ namespace SE8 {
         if (value->type == SE8::Float) {
             float val = *(uint32_t*)((uint64_t) value + 1);
             stack->pushDouble(static_cast<double>(val));
-        } else {
-            // throw type exception
         }
     }
 
@@ -470,8 +422,6 @@ namespace SE8 {
         if (value->type == SE8::Float) {
             float val = *(uint32_t*)((uint64_t) value + 1);
             stack->pushInt(static_cast<int32_t>(val));
-        } else {
-            // throw type exception
         }
     }
 
@@ -480,8 +430,6 @@ namespace SE8 {
         if (value->type == SE8::Float) {
             float val = *(uint32_t*)((uint64_t) value + 1);
             stack->pushLong(static_cast<int64_t>(val));
-        } else {
-            // throw type exception
         }
     }
 
@@ -492,8 +440,6 @@ namespace SE8 {
             float val1 = *(uint32_t*)((uint64_t) value1 + 1);
             float val2 = *(uint32_t*)((uint64_t) value2 + 1);
             stack->pushFloat(val1 + val2);
-        } else {
-            // throw type exception
         }
     }
 
@@ -520,8 +466,6 @@ namespace SE8 {
             } else if (val1 < val2) {
                 stack->pushInt(-1);
             }
-        } else {
-            // throw type exception
         }
     }
 
@@ -540,8 +484,6 @@ namespace SE8 {
             } else if (val1 < val2) {
                 stack->pushInt(-1);
             }
-        } else {
-            // throw type exception
         }
     }
 
@@ -568,13 +510,11 @@ namespace SE8 {
                 float val1 = *(uint32_t*)((uint64_t) value1 + 1);
                 stack->pushFloat(val1 / val2);
             }
-        } else {
-            // throw type exception
         }
     }
 
     void Frame::fload() {
-        uint64_t ptr = locals->getPtr(widened ? reader->u2L() : reader->u1());
+        uint64_t ptr = locals->getPtr(widened ? reader->u2B() : reader->u1());
         uint8_t type = locals->getType(ptr);
         if (type == SE8::Float) {
             stack->pushFloat(locals->get32(ptr));
@@ -582,8 +522,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -597,8 +535,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -612,8 +548,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -627,8 +561,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -642,8 +574,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -655,8 +585,6 @@ namespace SE8 {
             float val1 = *(uint32_t*)((uint64_t) value1 + 1);
             float val2 = *(uint32_t*)((uint64_t) value2 + 1);
             stack->pushFloat(val1 * val2);
-        } else {
-            // throw type exception
         }
     }
 
@@ -665,8 +593,6 @@ namespace SE8 {
         if (value->type == SE8::Float) {
             float val = *(uint32_t*)((uint64_t) value + 1);
             stack->pushFloat(-val);
-        } else {
-            // throw type exception
         }
     }
 
@@ -679,7 +605,7 @@ namespace SE8 {
     }
 
     void Frame::fstore() {
-        uint64_t ptr = locals->getPtr(widened ? reader->u2L() : reader->u1());
+        uint64_t ptr = locals->getPtr(widened ? reader->u2B() : reader->u1());
         SE8::Value* value = stack->pop();
         locals->setType(ptr, value->type);
         if (value->type == SE8::Float) {
@@ -735,8 +661,6 @@ namespace SE8 {
             float val1 = *(uint32_t*)((uint64_t) value1 + 1);
             float val2 = *(uint32_t*)((uint64_t) value2 + 1);
             stack->pushFloat(val1 - val2);
-        } else {
-            // throw type exception
         }
     }
 
@@ -749,71 +673,41 @@ namespace SE8 {
     }
 
     void Frame::goto_() {
-
+        reader->index += reader->u2B();
     }
 
     void Frame::goto_w() {
-
+        reader->index += reader->u4B();
     }
 
     void Frame::i2b() {
-        SE8::Value* value = stack->pop();
-        if (value->type == SE8::Int) {
-            int32_t val = *(uint32_t*)((uint64_t) value + 1);
-            stack->pushByte(static_cast<uint8_t>(val));
-        } else {
-            // throw type exception
-        }
+        int32_t val = *(uint32_t*)((uint64_t) stack->pop() + 1);
+        stack->pushByte(static_cast<uint8_t>(val));
     }
 
     void Frame::i2c() {
-        SE8::Value* value = stack->pop();
-        if (value->type == SE8::Int) {
-            int32_t val = *(uint32_t*)((uint64_t) value + 1);
-            stack->pushChar(static_cast<uint16_t>(val));
-        } else {
-            // throw type exception
-        }
+        int32_t val = *(uint32_t*)((uint64_t) stack->pop() + 1);
+        stack->pushChar(static_cast<uint16_t>(val));
     }
 
     void Frame::i2d() {
-        SE8::Value* value = stack->pop();
-        if (value->type == SE8::Int) {
-            int32_t val = *(uint32_t*)((uint64_t) value + 1);
-            stack->pushDouble(static_cast<double>(val));
-        } else {
-            // throw type exception
-        }
+        int32_t val = *(uint32_t*)((uint64_t) stack->pop() + 1);
+        stack->pushDouble(static_cast<double>(val));
     }
 
     void Frame::i2f() {
-        SE8::Value* value = stack->pop();
-        if (value->type == SE8::Int) {
-            int32_t val = *(uint32_t*)((uint64_t) value + 1);
-            stack->pushFloat(static_cast<float>(val));
-        } else {
-            // throw type exception
-        }
+        int32_t val = *(uint32_t*)((uint64_t) stack->pop() + 1);
+        stack->pushFloat(static_cast<float>(val));
     }
 
     void Frame::i2l() {
-        SE8::Value* value = stack->pop();
-        if (value->type == SE8::Int) {
-            int32_t val = *(uint32_t*)((uint64_t) value + 1);
-            stack->pushLong(static_cast<int64_t>(val));
-        } else {
-            // throw type exception
-        }
+        int32_t val = *(uint32_t*)((uint64_t) stack->pop() + 1);
+        stack->pushLong(static_cast<int64_t>(val));
     }
 
     void Frame::i2s() {
-        SE8::Value* value = stack->pop();
-        if (value->type == SE8::Int) {
-            int32_t val = *(uint32_t*)((uint64_t) value + 1);
-            stack->pushShort(static_cast<int16_t>(val));
-        } else {
-            // throw type exception
-        }
+        int32_t val = *(uint32_t*)((uint64_t) stack->pop() + 1);
+        stack->pushShort(static_cast<int16_t>(val));
     }
 
     void Frame::iadd() {
@@ -823,8 +717,6 @@ namespace SE8 {
             int32_t val1 = *(uint32_t*)((uint64_t) value1 + 1);
             int32_t val2 = *(uint32_t*)((uint64_t) value2 + 1);
             stack->pushInt(val1 + val2);
-        } else {
-            // throw type exception
         }
     }
 
@@ -879,8 +771,6 @@ namespace SE8 {
                 int val1 = *(uint32_t*)((uint64_t) value1 + 1);
                 stack->pushInt(val1 / val2);
             }
-        } else {
-            // throw type exception
         }
     }
 
@@ -953,7 +843,7 @@ namespace SE8 {
     }
 
     void Frame::iload() {
-        uint64_t ptr = locals->getPtr(widened ? reader->u2L() : reader->u1());
+        uint64_t ptr = locals->getPtr(widened ? reader->u2B() : reader->u1());
         uint8_t type = locals->getType(ptr);
         if (type == SE8::Float) {
             stack->pushInt(locals->get32(ptr));
@@ -961,8 +851,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -991,8 +879,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -1006,8 +892,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -1021,8 +905,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -1034,19 +916,12 @@ namespace SE8 {
             int32_t val1 = *(uint32_t*)((uint64_t) value1 + 1);
             int32_t val2 = *(uint32_t*)((uint64_t) value2 + 1);
             stack->pushInt(val1 * val2);
-        } else {
-            // throw type exception
         }
     }
 
     void Frame::ineg() {
-        SE8::Value* value1 = stack->pop();
-        if (value1->type == SE8::Int) {
-            int32_t val1 = *(uint32_t*)((uint64_t) value1 + 1);
-            stack->pushInt(-val1);
-        } else {
-            // throw type exception
-        }
+        int32_t val1 = *(uint32_t*)((uint64_t) stack->pop() + 1);
+        stack->pushInt(-val1);
     }
 
     void Frame::instanceof() {
@@ -1096,8 +971,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (value1->type == SE8::Null || value2->type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // type exception
         }
     }
 
@@ -1112,13 +985,11 @@ namespace SE8 {
             stack->pushNaN();
         } else if (value1->type == SE8::Null || value2->type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // type exception
         }
     }
 
     void Frame::istore() {
-        uint64_t ptr = locals->getPtr(widened ? reader->u2L() : reader->u1());
+        uint64_t ptr = locals->getPtr(widened ? reader->u2B() : reader->u1());
         SE8::Value* value = stack->pop();
         locals->setType(ptr, value->type);
         if (value->type == SE8::Int) {
@@ -1174,8 +1045,6 @@ namespace SE8 {
             int32_t val1 = *(uint32_t*)((uint64_t) value1 + 1);
             int32_t val2 = *(uint32_t*)((uint64_t) value2 + 1);
             stack->pushInt(val1 - val2);
-        } else {
-            // throw type exception
         }
     }
 
@@ -1193,8 +1062,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (value1->type == SE8::Null || value2->type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // type exception
         }
     }
 
@@ -1203,15 +1070,15 @@ namespace SE8 {
     }
 
     void Frame::jsr() {
-        uint16_t jmp = reader->u2L();
+        uint16_t jmp = reader->u2B();
         stack->pushInt(reader->index);
-        reader->index = jmp;
+        reader->index += jmp;
     }
 
     void Frame::jsr_w() {
-        uint32_t jmp = reader->u4L();
+        uint32_t jmp = reader->u4B();
         stack->pushInt(reader->index);
-        reader->index = jmp;
+        reader->index += jmp;
     }
 
     void Frame::l2d() {
@@ -1277,13 +1144,11 @@ namespace SE8 {
                 int64_t val1 = *(uint64_t*)((uint64_t) value1 + 1);
                 stack->pushLong(val1 / val2);
             }
-        } else {
-            // throw type exception
         }
     }
 
     void Frame::lload() {
-        uint64_t ptr = locals->getPtr(widened ? reader->u2L() : reader->u1());
+        uint64_t ptr = locals->getPtr(widened ? reader->u2B() : reader->u1());
         uint8_t type = locals->getType(ptr);
         if (type == SE8::Long) {
             stack->pushLong(locals->get64(ptr));
@@ -1291,8 +1156,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -1306,8 +1169,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -1321,8 +1182,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -1336,8 +1195,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -1351,8 +1208,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // throw type exception
         }
         widened = false;
     }
@@ -1364,19 +1219,12 @@ namespace SE8 {
             int64_t val1 = *(uint64_t*)((uint64_t) value1 + 1);
             int64_t val2 = *(uint64_t*)((uint64_t) value2 + 1);
             stack->pushLong(val1 * val2);
-        } else {
-            // throw type exception
         }
     }
 
     void Frame::lneg() {
-        SE8::Value* value = stack->pop();
-        if (value->type == SE8::Long) {
-            int64_t val = *(uint64_t*)((uint64_t) value + 1);
-            stack->pushLong(-val);
-        } else {
-            // throw type exception
-        }
+        int64_t val = *(uint64_t*)((uint64_t) stack->pop() + 1);
+        stack->pushLong(-val);
     }
 
     void Frame::lookupswitch() {
@@ -1406,8 +1254,6 @@ namespace SE8 {
             stack->pushNaN();
         } else if (value1->type == SE8::Null || value2->type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // type exception
         }
     }
 
@@ -1422,13 +1268,11 @@ namespace SE8 {
             stack->pushNaN();
         } else if (value1->type == SE8::Null || value2->type == SE8::Null) {
             stack->pushNull();
-        } else {
-            // type exception
         }
     }
 
     void Frame::lstore() {
-        uint64_t ptr = locals->getPtr(widened ? reader->u2L() : reader->u1());
+        uint64_t ptr = locals->getPtr(widened ? reader->u2B() : reader->u1());
         SE8::Value* value = stack->pop();
         locals->setType(ptr, value->type);
         if (value->type == SE8::Long) {
@@ -1484,8 +1328,6 @@ namespace SE8 {
             int64_t val1 = *(uint64_t*)((uint64_t) value1 + 1);
             int64_t val2 = *(uint64_t*)((uint64_t) value2 + 1);
             stack->pushDouble(val1 - val2);
-        } else {
-            // throw type exception
         }
     }
 
@@ -1529,7 +1371,19 @@ namespace SE8 {
     }
 
     void Frame::newarray() {
-
+        uint8_t arrayType = reader->u1();
+        uint32_t count = *(uint32_t*)((uint64_t) stack->pop() + 1);
+        if (count < 0) {
+            // throw NegativeArraySizeException
+        } else {
+            // todo : should use garbage collection to allocate array
+            uint8_t size = 1+getTypeSize(arrayType)*count;
+            SE8::Array* arr = (SE8::Array*) malloc(1+4+size);
+            arr->type = arrayType;
+            arr->count = count;
+            memset((uintptr_t)((uint64_t) arr + 5), 0x00, size);
+            stack->pushArrayRef((uint64_t) arr);
+        }
     }
 
     void Frame::nop() {
@@ -1569,7 +1423,7 @@ namespace SE8 {
     }
 
     void Frame::sipush() {
-
+        stack->pushShort(reader->u2B());
     }
 
     void Frame::swap() {

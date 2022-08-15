@@ -1,4 +1,4 @@
-#include "locals.h"
+#include "heap.h"
 
 namespace SE8 {
 

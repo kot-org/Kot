@@ -8,35 +8,29 @@
 #define SE8_TABLE_SIZE 1080 // 216 units
 
 namespace SE8 {
-
-    struct Array {
-
-        uint8_t type; // 0
-        uint8_t item_size; // 1
-        uint64_t length; // 2
-        uint8_t bytes[]; // 10
-
-        inline uintptr_t get(uint64_t index) {
-            return (uintptr_t)((uint64_t) this + 10 + index);
-        }
-
-        inline void set(uint64_t index, uintptr_t item) {
-            memcpy(get(index), item, item_size);
-        }
-
-    };
     
     enum Types : uint8_t {
-        Null = 0U,
-        NaN = 1U,
-        Short = 2U,
-        Int = 3U,
-        Long = 4U,
-        Float = 5U,
-        Double = 6U,
-        Char = 7U,
-        Byte = 8U,
-        ArrayRef = 9U,
+        Null = 0,
+        NaN = 1,
+        Short = 2,
+        Int = 3,
+        Long = 4,
+        Float = 5,
+        Double = 6,
+        Char = 7,
+        Byte = 8,
+        ArrayRef = 9,
+    };
+
+    enum ArrayTypes : uint8_t {
+        AT_BOOLEAN = 4,
+        AT_CHAR	= 5,
+        AT_FLOAT = 6,
+        AT_DOUBLE = 7,
+        AT_BYTE	= 8,
+        AT_SHORT = 9,
+        AT_INT = 10,
+        AT_LONG = 11
     };
 
     struct Value {
@@ -142,19 +136,47 @@ namespace SE8 {
         uint16_t name_and_type_index;
     };
 
-    enum AttributeInfo_Type {
-        Attribute_ConstantValue,
+    struct Attribute {
+        uint16_t attribute_name_index;
+        uint32_t attribute_length;
     };
 
-    struct AttributeInfo {
+    struct Attribute_ConstantValue {
         uint16_t attribute_name_index;
-        AttributeInfo_Type type;
-    };
-
-    struct AttributeInfo_ConstantValue {
-        uint16_t attribute_name_index;
-        AttributeInfo_Type type;
+        uint32_t attribute_length;
         uint16_t constantvalue_index;
+    };
+
+    struct ExceptionTable {
+        uint16_t start_pc;
+        uint16_t end_pc;
+        uint16_t handler_pc;
+        uint16_t catch_type;
+    };
+
+    struct Attribute_Code {
+        uint16_t attribute_name_index;
+        uint32_t attribute_length;
+        uint16_t max_stack;
+        uint16_t max_locals;
+        uint32_t code_length;
+        uint8_t* code;
+        uint16_t exception_length;
+        ExceptionTable** exception_table;
+        uint16_t attributes_count;
+        Attribute** attributes;
+    };
+
+    struct LineNumberTable {
+        uint16_t start_pc;
+        uint16_t line_number;
+    };
+
+    struct Attribute_LineNumberTable {
+        uint16_t attribute_name_index;
+        uint32_t attribute_length;
+        uint16_t line_number_table_length;
+        LineNumberTable** line_number_table;
     };
 
     struct FieldInfo {
@@ -162,7 +184,7 @@ namespace SE8 {
         uint16_t name_index;
         uint16_t descriptor_index;
         uint16_t attributes_count;
-        AttributeInfo** attributes;
+        Attribute** attributes;
     };
 
     struct MethodInfo {
@@ -170,7 +192,7 @@ namespace SE8 {
         uint16_t name_index;
         uint16_t descriptor_index;
         uint16_t attributes_count;
-        AttributeInfo** attributes;
+        Attribute** attributes;
     };
 
     enum OpCodes {
@@ -395,7 +417,7 @@ namespace SE8 {
             case SE8::Double:
             case SE8::ArrayRef:
                 return 8;
+        }
     }
-}
 
 }

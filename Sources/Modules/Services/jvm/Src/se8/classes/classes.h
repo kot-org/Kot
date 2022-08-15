@@ -1,6 +1,6 @@
 #pragma once
 
-#include "loader.h"
+#include "class.h"
 
 #include <kot/utils/map.h>
 
@@ -12,6 +12,7 @@ namespace SE8 {
     public:
         Classes();
         void loadClassBytes(uintptr_t bytes);
+        void clinit();
     };
 
 }

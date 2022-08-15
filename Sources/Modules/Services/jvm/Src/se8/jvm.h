@@ -8,23 +8,13 @@ namespace SE8 {
 
     class JVM {
     private:
-
         Classes* classes;
         Threads* threads;
-
-        size_t stack_size = 512000; // 512m
-
     public:
-
         JVM();
-
-        void setStackSize(size_t size);
-        size_t getStackSize();
-
-        void loadClassBytes(uintptr_t bytes);
-
         void run();
-        
+        Classes* getClasses();
+        Threads* getThreads();
     };
 
 }

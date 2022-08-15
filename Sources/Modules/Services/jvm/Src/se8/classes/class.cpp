@@ -1,29 +1,69 @@
-#include "loader.h"
+#include "class.h"
 
 namespace SE8 {
 
-    AttributeInfo_Type ClassLoader::getAttributeType(uint16_t attribute_name_index) {
+    Attribute** Class::parseAttributes(uint16_t __attributes_count, Reader* reader) {
 
-        ConstantPoolEntry* item = (ConstantPoolEntry*) constant_pool[attribute_name_index];
+        if (__attributes_count == 0) return NULL;
 
-        switch (item->tag) {
-            case CONSTANT_Long:
-            case CONSTANT_Float:
-            case CONSTANT_Double:
-            case CONSTANT_Integer:
-            case CONSTANT_String:
-                return Attribute_ConstantValue;
-            case CONSTANT_Utf8:
-                char* bytes = (char*) ((Constant_Utf8*) item)->bytes;
-                Printlog(bytes);
-                if (bytes == "Code") {
+        Attribute** ret = (Attribute**) malloc(8 * __attributes_count);
 
+        for (uint16_t i = 0; i < __attributes_count; i++) {
+            uint16_t attribute_name_index = reader->u2B();
+            uint32_t attribute_length = reader->u4B();
+            char* name = (char*) ((Constant_Utf8*) constant_pool[attribute_name_index])->bytes;
+            Printlog(name);
+            if (strcmp(name, "Code")) {
+                ret[i] = (Attribute*) malloc(sizeof(Attribute_Code));
+                Attribute_Code* attr = (Attribute_Code*) ret[i];
+                attr->max_stack = reader->u2B();
+                attr->max_locals = reader->u2B();
+                attr->code_length = reader->u4B();
+                attr->code = reader->uL(attr->code_length);
+                attr->exception_length = reader->u2B();
+                attr->exception_table = (ExceptionTable**) malloc(8 * attr->exception_length);
+                for (uint16_t j = 0; j < attr->exception_length; j++) {
+                    ExceptionTable* entry = (ExceptionTable*) malloc(sizeof(ExceptionTable));
+                    entry->start_pc = reader->u2B();
+                    entry->end_pc = reader->u2B();
+                    entry->handler_pc = reader->u2B();
+                    entry->catch_type = reader->u2B();
+                    attr->exception_table[j] = entry;
                 }
+                attr->attributes_count = reader->u2B();
+                attr->attributes = parseAttributes(attr->attributes_count, reader);
+            } else if (strcmp(name, "ConstantValue")) {
+                ret[i] = (Attribute*) malloc(sizeof(Attribute_ConstantValue));
+                ((Attribute_ConstantValue*) ret[i])->constantvalue_index = reader->u2B();
+            } else if (strcmp(name, "StackMapTable")) {
+                ret[i] = (Attribute*) malloc(sizeof(Attribute));
+            } else if (strcmp(name, "Exceptions")) {
+                ret[i] = (Attribute*) malloc(sizeof(Attribute));
+            } else if (strcmp(name, "InnerClasses")) {
+                ret[i] = (Attribute*) malloc(sizeof(Attribute));
+            } else if (strcmp(name, "EnclosingMethod")) {
+                ret[i] = (Attribute*) malloc(sizeof(Attribute));
+            } else if (strcmp(name, "Synthetic")) {
+                ret[i] = (Attribute*) malloc(sizeof(Attribute));
+            } else if (strcmp(name, "Signature")) {
+                ret[i] = (Attribute*) malloc(sizeof(Attribute));
+            } else if (strcmp(name, "SourceFile")) {
+                ret[i] = (Attribute*) malloc(sizeof(Attribute));
+            } else if (strcmp(name, "SourceDebugExtension")) {
+                    ret[i] = (Attribute*) malloc(sizeof(Attribute));
+            } else if (strcmp(name, "LineNumberTable")) {
+                ret[i] = (Attribute*) malloc(sizeof(Attribute_LineNumberTable));
+                Attribute_LineNumberTable* attr = (Attribute_LineNumberTable*) ret[i];
+
+            }
+            ret[i]->attribute_name_index = attribute_name_index;
+            ret[i]->attribute_length = attribute_length;
         }
 
+        return ret;
     }
 
-    ClassLoader::ClassLoader(uintptr_t bytes) {
+    Class::Class(uintptr_t bytes) {
 
         Reader* reader = (Reader*) malloc(sizeof(Reader));
         reader->buffer = bytes;
@@ -41,7 +81,7 @@ namespace SE8 {
         minorVersion = reader->u2B();
         majorVersion = reader->u2B();
 
-        if (majorVersion != 52) {
+        if (majorVersion > 52) {
             // todo: create actual error
             Printlog("invalid java version");
             return;
@@ -53,7 +93,7 @@ namespace SE8 {
 
         constant_pool = (uintptr_t*) malloc(constant_pool_count*sizeof(uintptr_t));
 
-        for (uint16_t i = 0; i < constant_pool_count-1; i++) {
+        for (uint16_t i = 1; i < constant_pool_count; i++) {
             uint8_t tag = reader->u1();
             uintptr_t entry;
             if (tag == CONSTANT_Class) {
@@ -62,7 +102,7 @@ namespace SE8 {
                 ((Constant_ClassInfo*) entry)->name_index = name_index;
             } else if (tag == CONSTANT_Utf8) {
                 uint16_t length = reader->u2B();
-                uint8_t* bytes = reader->uB(length);
+                uint8_t* bytes = reader->uL(length);
                 entry = (uintptr_t) malloc(sizeof(Constant_Utf8));
                 ((Constant_Utf8*) entry)->length = length;
                 ((Constant_Utf8*) entry)->bytes = bytes;
@@ -142,22 +182,7 @@ namespace SE8 {
             fields[i]->name_index = reader->u2B();
             fields[i]->descriptor_index = reader->u2B();
             fields[i]->attributes_count = reader->u2B();
-            fields[i]->attributes = (AttributeInfo**) malloc(sizeof(AttributeInfo*)*fields_count);
-            for (uint16_t j = 0; j < fields[i]->attributes_count; j++) {
-                uint16_t attribute_name_index = reader->u2B();
-                uint32_t attribute_length = reader->u4B();
-                if (attribute_length == 0) {
-                    fields[i]->attributes[j] = NULL;
-                } else {
-                    AttributeInfo_Type type = getAttributeType(attribute_name_index);
-                    if (type == Attribute_ConstantValue) {
-                        fields[i]->attributes[j] = (AttributeInfo*) malloc(sizeof(AttributeInfo_ConstantValue));
-                        ((AttributeInfo_ConstantValue*) fields[i]->attributes[j])->constantvalue_index = reader->u2B();
-                    }
-                    fields[i]->attributes[j]->attribute_name_index = attribute_name_index;
-                    fields[i]->attributes[j]->type = type;
-                }
-            }
+            fields[i]->attributes = parseAttributes(attributes_count, reader);
         }
 
         // methods
@@ -165,40 +190,37 @@ namespace SE8 {
         methods_count = reader->u2B();
         methods = (MethodInfo**) malloc(sizeof(MethodInfo*)*methods_count);
 
+        for (uint16_t i = 0; i < methods_count; i++) {
+            methods[i] = (MethodInfo*) malloc(sizeof(MethodInfo));
+            methods[i]->access_flags = reader->u2B();
+            methods[i]->name_index = reader->u2B();
+            methods[i]->descriptor_index = reader->u2B();
+            methods[i]->attributes_count = reader->u2B();
+            methods[i]->attributes = parseAttributes(methods[i]->attributes_count, reader);
+            break;
+        }
+
         // attributes
 
-        // attributes_count = reader->u2B();
-        // attributes = (SE8AttributeInfo**) malloc(sizeof(SE8AttributeInfo*)*attributes_count);
-        // for (uint16_t i = 0; i < attributes_count; i++) {
-        //     attributes[i] = (SE8AttributeInfo*) malloc(sizeof(SE8AttributeInfo));
-        //     attributes[i]->attribute_name_index = reader->u2B();
-        //     attributes[i]->attribute_length = reader->u4B();
-        //     if (attributes[i]->attribute_length == 0) {
-        //         attributes[i]->info = NULL;
-        //     } else {
-        //         attributes[i]->info = getAttributesInfo(attributes[i]->attribute_name_index, reader->uB(attributes[i]->attribute_length));
-        //     }
-        // }
-
-        // free(reader);
+        free(reader);
 
     }
 
     /**
      * @return uint8_t* (utf8 as byte array)
      */
-    uint8_t* ClassLoader::getClassName() {
-        return ((Constant_Utf8*) this->constant_pool[((Constant_ClassInfo*) this->constant_pool[this->this_class])->name_index])->bytes;
+    char* Class::getClassName() {
+        return (char*) ((Constant_Utf8*) this->constant_pool[((Constant_ClassInfo*) this->constant_pool[this->this_class])->name_index])->bytes;
     }
 
     /**
      * @return uint8_t* (utf8 as byte array)
      */
-    uint8_t* ClassLoader::getSuperClassName() {
-        return ((Constant_Utf8*) this->constant_pool[((Constant_ClassInfo*) this->constant_pool[this->super_class])->name_index])->bytes;
+    char* Class::getSuperClassName() {
+        return (char*) ((Constant_Utf8*) this->constant_pool[((Constant_ClassInfo*) this->constant_pool[this->super_class])->name_index])->bytes;
     }
 
-    uintptr_t* ClassLoader::getConstantPool() {
+    uintptr_t* Class::getConstantPool() {
         return this->constant_pool;
     }
 

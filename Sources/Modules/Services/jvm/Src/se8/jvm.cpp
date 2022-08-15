@@ -7,21 +7,16 @@ namespace SE8 {
         this->threads = new Threads();
     }
 
-    void JVM::loadClassBytes(uintptr_t bytes) {
-        classes->loadClassBytes(bytes);
+    Classes* JVM::getClasses() {
+        return this->classes;
+    }
+
+    Threads* JVM::getThreads() {
+        return this->threads;
     }
 
     void JVM::run() {
-        this->threads->create("main");
-        // todo
-    }
-
-    size_t JVM::getStackSize() {
-        return this->stack_size;
-    }
-
-    void JVM::setStackSize(size_t size) {
-        this->stack_size = size;
+        this->classes->clinit();
     }
 
 }

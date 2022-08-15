@@ -21,4 +21,14 @@ namespace SE8 {
         uint64_t get64(uint64_t ptr);
     };
 
+    struct ArrayValue {
+        uint8_t bytes[];
+    };
+
+    struct Array {
+        uint8_t type;
+        uint32_t count;
+        ArrayValue values[];
+    };
+
 }

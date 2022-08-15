@@ -39,7 +39,7 @@ struct Reader {
         return (u4B() << 32) | u4B();
     }
 
-    uint8_t* uL(uint16_t length) { // little endian
+    uint8_t* uL(uint64_t length) {
         if (length == 0) return NULL;
         uint8_t* dest = (uint8_t*) malloc(length);
         memcpy(dest, (uintptr_t)((uint64_t) buffer + index), length);
@@ -47,13 +47,15 @@ struct Reader {
         return dest;
     }
 
-    uint8_t* uB(uint16_t length) { // big endian
+    uint8_t* uB(uint64_t length) {
         if (length == 0) return NULL;
         uint8_t* dest = (uint8_t*) malloc(length);
-        for (uint16_t i = length; i != 0; i--) {
-            uint8_t byte = *(uint8_t*)((uint64_t) buffer + index);
-            index++;
+        index += length;
+        for (uint64_t i = 0; i < length; i++) {
+            index--;
+            dest[i] = *(uint8_t*)((uint64_t) buffer + index);
         }
+        index += length;
         return dest;
     }
 
