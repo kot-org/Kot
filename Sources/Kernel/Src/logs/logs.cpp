@@ -57,7 +57,7 @@ void MessageProcess(const char* str, uint64_t charNum, uint64_t PID, uint64_t TI
     Atomic::atomicAcquire(&MutexLog, 0);
 
     SerialPort::Print(SerialCYAN);
-    SerialPort::Print("[*] ");
+    SerialPort::Print("[*]");
     SerialPort::Print(SerialReset);
     SerialPort::Printf("[Process %x:%x]", PID, TID);
     SerialPort::Print(str, charNum);
@@ -73,7 +73,7 @@ void Successful(const char* str, ...){
     va_start(args, str);
     
     SerialPort::Print(SerialGREEN);
-    SerialPort::Print("[$] ");
+    SerialPort::Print("[$]");
     SerialPort::Print(SerialReset);
     
     int index = 0;
@@ -124,7 +124,7 @@ void Warning(const char* str, ...){
     va_start(args, str);
     
     SerialPort::Print(SerialYELLOW);
-    SerialPort::Print("[%] ");
+    SerialPort::Print("[%]");
     SerialPort::Print(SerialReset);
     
     int index = 0;
@@ -174,7 +174,7 @@ void Error(const char * str, ...){
     va_list args;
     va_start(args, str);
     SerialPort::Print(SerialRED);
-    SerialPort::Print("[~] ");
+    SerialPort::Print("[~]");
     SerialPort::Print(SerialReset);
     
     int index = 0;
