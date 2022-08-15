@@ -21,6 +21,7 @@ void initBuffers(bootbuffer_t* fb) {
     screen->btpp = screen->bpp/8;
 
     screen_ctx = new Context(screen);
+    atomicUnlock((uint64_t*) screen_ctx, 0);
 
     framebuffer_t* backbuffer = (framebuffer_t *) malloc(sizeof(framebuffer_t));
     backbuffer->fb_addr = (uint64_t)((uint8_t*) malloc(screen->fb_size));
@@ -32,30 +33,44 @@ void initBuffers(bootbuffer_t* fb) {
     backbuffer->pitch = screen->pitch;
 
     backbuffer_ctx = new Context(backbuffer);
+    atomicUnlock((uint64_t*) backbuffer_ctx, 0);
 
 }
 
 vector_t* windows = NULL;
-thread renderThread = NULL;
+
+thread renderThread1 = NULL;
+thread renderThread2 = NULL;
 
 void renderWindows() {
-    
+
     backbuffer_ctx->clear();
 
     for (uint64_t i = 0; i < windows->length; i++) {
         ((Window*) vector_get(windows, i))->render(backbuffer_ctx);
     }
-    screen_ctx->swapFrom(backbuffer_ctx);
 
-    Sys_Execthread(renderThread, NULL);
-    SYS_Exit(NULL, KSUCCESS);
+    screen_ctx->swapFrom(backbuffer_ctx);
 
 }
 
+void thread1() {
+    renderWindows();
+    Sys_Execthread(renderThread2, NULL);
+    SYS_Exit(NULL, KSUCCESS);
+}
+
+void thread2() {
+    renderWindows();
+    Sys_Execthread(renderThread1, NULL);
+    SYS_Exit(NULL, KSUCCESS);
+}
+
 void initWindowRender() {
-    Sys_Createthread(self, (uintptr_t) &renderWindows, PriviledgeService, NULL, &renderThread);
+    Sys_Createthread(self, (uintptr_t) &thread1, PriviledgeService, NULL, &renderThread1);
+    Sys_Createthread(self, (uintptr_t) &thread2, PriviledgeService, NULL, &renderThread2);
+    Sys_Execthread(renderThread1, NULL);
     windows = vector_create();
-    Sys_Execthread(renderThread, NULL);
 }
 
 void drawLotLogo() {
