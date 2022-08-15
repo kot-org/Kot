@@ -67,10 +67,10 @@ void thread2() {
 }
 
 void initWindowRender() {
+    windows = vector_create();
     Sys_Createthread(self, (uintptr_t) &thread1, PriviledgeService, NULL, &renderThread1);
     Sys_Createthread(self, (uintptr_t) &thread2, PriviledgeService, NULL, &renderThread2);
     Sys_Execthread(renderThread1, NULL);
-    windows = vector_create();
 }
 
 void drawLotLogo() {
