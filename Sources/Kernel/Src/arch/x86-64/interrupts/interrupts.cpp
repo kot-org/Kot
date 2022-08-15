@@ -48,6 +48,7 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
         idtr.Offset = (uint64_t)&IDTData[0];
     }
 
+    ArchInfo->IRQLineStart = IRQ_START;
     ArchInfo->IRQSize = MAX_IRQ;
 
     /* init interrupts */
@@ -65,15 +66,23 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
     }
 
     /* Shedule */
-    SetIDTGate((uintptr_t)InterruptEntryList[IPI_Schedule], IPI_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);
+    SetIDTGate((uintptr_t)InterruptEntryList[IPI_Schedule], IPI_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
+
+    uint64_t stack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+    TSSSetIST(CPU::GetAPICID(), IST_Interrupts, stack);
+    uint64_t stackScheduler = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+    TSSSetIST(CPU::GetAPICID(), IST_Scheduler, stackScheduler);
 
     asm("lidt %0" : : "m" (idtr));   
 }
 
 extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
+    // bug : styack corruptiom because it's schedule with exeception stack create ist
     if(Registers->InterruptNumber < Exception_End){
         // exceptions
+        globalTaskManager->IsSchedulerEnable[CoreID] = false;
         ExceptionHandler(Registers, CoreID);
+        globalTaskManager->IsSchedulerEnable[CoreID] = true;
     }else if(Registers->InterruptNumber == IPI_Schedule){
         // APIC timer 
         globalTaskManager->Scheduler(Registers, CoreID); 
@@ -84,15 +93,17 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
         }
     }else{
         // Other IRQ & IVT
-        InterruptParameters->Parameter0 = Registers->InterruptNumber;
-        Event::Trigger((thread_t*)0x0, InterruptEventList[Registers->InterruptNumber], InterruptParameters);
+        globalTaskManager->IsSchedulerEnable[CoreID] = false;
+        InterruptParameters->Arg0 = Registers->InterruptNumber;
+        Event::Trigger((kthread_t*)0x0, InterruptEventList[Registers->InterruptNumber], InterruptParameters);
+        globalTaskManager->IsSchedulerEnable[CoreID] = true;
     }
     APIC::localApicEOI(CoreID);
 }
 
 void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
     // If exception come from kernel we can't recover it
-
+    globalTaskManager->IsSchedulerEnable[CoreID] = false;
     if(CPU::GetCodeRing(Registers) == KernelRing){ 
         KernelUnrecovorable(Registers, CoreID);
     }else{
@@ -103,18 +114,19 @@ void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
             }
         }
 
-        Error("Thread error, PID : %x | TID : %x \nWith exception : '%s' | Error code : %x", Registers->ThreadInfo->Thread->Parent->PID, Registers->ThreadInfo->Thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
+        Error("Thread error, PID : %x | TID : %x \nWith exception : '%s' | Error code : %x", Registers->threadInfo->thread->Parent->PID, Registers->threadInfo->thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
         PrintRegisters(Registers);
-        globalTaskManager->Exit(Registers, CoreID, Registers->ThreadInfo->Thread); 
+        globalTaskManager->Exit(Registers, CoreID, Registers->threadInfo->thread); 
+        globalTaskManager->IsSchedulerEnable[CoreID] = true;
         globalTaskManager->Scheduler(Registers, CoreID); 
     }
 }
 
 bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID){
-    if(globalTaskManager->IsSchedulerEnable[CoreID] && globalTaskManager->ThreadExecutePerCore[CoreID] != NULL){
+    if(globalTaskManager->threadExecutePerCore[CoreID] != NULL){
         uint64_t Address = 0;
         asm("movq %%cr2, %0" : "=r"(Address));
-        return globalTaskManager->ThreadExecutePerCore[CoreID]->ExtendStack((uint64_t)Address);
+        return globalTaskManager->threadExecutePerCore[CoreID]->ExtendStack((uint64_t)Address);
     }
     return false;
 }

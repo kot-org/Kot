@@ -6,12 +6,12 @@
 #include <kot/keyhole.h>
 #include <kot/modules/ipc/ipc.h>
 
-kthread_t IPCInitialize();
+thread IPCInitialize();
 
 void IPCHandler(uint64_t IPCTask, uint64_t GlobalPurpose, uint64_t EncodedName);
 
 struct IPCBlock_t {
-    kthread_t Thread;
+    thread thread;
     uint64_t EncodedName;
     struct IPCBlock_t* Next;
 };

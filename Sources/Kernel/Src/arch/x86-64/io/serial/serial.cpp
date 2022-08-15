@@ -30,6 +30,13 @@ namespace SerialPort{
         }
     }
 
+    void Print(const char* chr, uint64_t charNum) {
+        for(uint64_t i = 0; i < charNum; i++){
+            Write(chr[i]);
+            if(chr[i] == '\n') Write('\r');   
+        }
+    }
+
     void Printf(const char* str, ...){
         va_list args;
         va_start(args, str);

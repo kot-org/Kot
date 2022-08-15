@@ -250,24 +250,56 @@ struct rflags_t{
 struct ContextStack {
     uint64_t cr3;
 
-    struct threadInfo_t* ThreadInfo; /* gs:0x8 */
+    struct threadInfo_t* threadInfo; /* gs:0x8 */
     
     uint64_t GlobalPurpose; /* rax use for return and data */
-    uint64_t rbx; 
-    uint64_t rcx; 
-    uint64_t arg2; /* rdx */ 
-    uint64_t arg1; /* rsi */ 
-    uint64_t arg0; /* rdi */ 
-    uint64_t rbp; 
+    uint64_t rbx;       /* rbx */
+    uint64_t arg3;      /* rcx */
+    uint64_t arg2;      /* rdx */ 
+    uint64_t arg1;      /* rsi */  
+    uint64_t arg0;      /* rdi */ 
+    uint64_t rbp;       /* rbp */
 
-    uint64_t arg5; /* r8 */ 
-    uint64_t arg4; /* r9 */ 
-    uint64_t arg3; /* r10 */ 
-    uint64_t r11; 
-    uint64_t r12; 
-    uint64_t r13; 
-    uint64_t r14; 
-    uint64_t r15; //push in asm
+    uint64_t arg4;      /* r8  */ 
+    uint64_t arg5;      /* r9  */ 
+    uint64_t r10;       /* r10 */ 
+    uint64_t r11;       /* r11 */
+    uint64_t r12;       /* r12 */
+    uint64_t r13;       /* r13 */
+    uint64_t r14;       /* r14 */
+    uint64_t r15;       /* r15 */
+
+    uint64_t InterruptNumber; 
+    uint64_t ErrorCode; 
+    
+    uint64_t rip; 
+    uint64_t cs; 
+    rflags_t rflags; 
+    uint64_t rsp; 
+    uint64_t ss;
+}__attribute__((packed)); 
+
+struct SyscallStack {
+    uint64_t cr3;
+
+    struct threadInfo_t* threadInfo; /* gs:0x8 */
+    
+    uint64_t GlobalPurpose; /* rax use for return and data */
+    uint64_t rbx;       /* rbx */
+    uint64_t rcx;       /* rcx */
+    uint64_t arg2;      /* rdx */ 
+    uint64_t arg1;      /* rsi */  
+    uint64_t arg0;      /* rdi */ 
+    uint64_t rbp;       /* rbp */
+
+    uint64_t arg5;      /* r8  */ 
+    uint64_t arg4;      /* r9  */ 
+    uint64_t arg3;      /* r10 */ 
+    uint64_t r11;       /* r11 */
+    uint64_t r12;       /* r12 */
+    uint64_t r13;       /* r13 */
+    uint64_t r14;       /* r14 */
+    uint64_t r15;       /* r15 */
 
     uint64_t InterruptNumber; 
     uint64_t ErrorCode; 

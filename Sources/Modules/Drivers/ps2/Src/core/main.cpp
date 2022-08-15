@@ -1,10 +1,10 @@
 #include <core/main.h>
 
-kprocess_t self;
+process_t self;
 
 PS2Port_t PS2Ports[2];
 
-kthread_t InterruptThreadHandler = NULL;
+thread InterruptthreadHandler = NULL;
 
 IRQRedirections IRQRedirectionsArray[2];
 
@@ -12,12 +12,12 @@ extern "C" int main(int argc, char* argv[]){
     Printlog("[PS2] Initialization ...");
     /* Initialize PS2 drivers */
     Sys_GetProcessKey(&self);
-    Sys_CreateThread(self, (uintptr_t)&PS2InterruptHandler, PriviledgeDriver, NULL, &InterruptThreadHandler);
+    Sys_Createthread(self, (uintptr_t)&PS2InterruptHandler, PriviledgeDriver, NULL, &InterruptthreadHandler);
 
     KResult status = KSUCCESS;
-    CreateIPC("PS2", InterruptThreadHandler);
-    kthread_t test = CallIPC("PS2");
-    Sys_ExecThread(test, NULL);
+    CreateIPC("PS2", InterruptthreadHandler);
+    thread test = CallIPC("PS2");
+    Sys_Execthread(test, NULL);
 
     /* Test ports */
     status = PortsInitalize();

@@ -8,8 +8,8 @@ namespace SE8 {
     private:
     public: 
         Threads();
-        Thread* create(char* name);
-        Thread* get(uint64_t pid);
+        thread* create(char* name);
+        thread* get(uint64_t pid);
     };
 
 }

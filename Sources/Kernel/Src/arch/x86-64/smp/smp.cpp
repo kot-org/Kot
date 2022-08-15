@@ -6,7 +6,10 @@ extern "C" void TrampolineMain(){
     gdtInitCores(CoreID);
 
     asm ("lidt %0" : : "m" (idtr));
- 
+
+    TSSSetIST(CoreID, IST_Interrupts, DataTrampoline.Stack);
+    TSSSetIST(CoreID, IST_Scheduler, DataTrampoline.StackScheduler);
+
     CPU::InitCPU();
     simdInit();
 
@@ -16,11 +19,11 @@ extern "C" void TrampolineMain(){
 
     DataTrampoline.Status = 0xef;
 
+    globalTaskManager->EnabledScheduler(CoreID);
+    
     while (DataTrampoline.Status != 0xff){
         __asm__ __volatile__ ("pause" : : : "memory");
     }
-
-    globalTaskManager->EnabledScheduler(CoreID);
 
     LaunchUserSpace();
 

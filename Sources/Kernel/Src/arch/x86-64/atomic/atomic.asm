@@ -22,7 +22,7 @@ atomicAcquire:		; rdi = mutex location memory , rsi = location of the bit where 
 		lock bts	QWORD [rdi], rsi
 		jnc			.exit				; CF = 0 to begin with
 	.spin:
-		pause
+		int 		0x40
 		bt			QWORD [rdi], rsi
 		jc			.spin				; CF = 1 still
 		jmp			.acquire

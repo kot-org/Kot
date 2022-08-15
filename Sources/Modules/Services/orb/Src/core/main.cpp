@@ -1,6 +1,6 @@
 #include "main.h"
 
-kprocess_t self;
+process_t self;
 
 Context* screen_ctx = NULL;
 Context* backbuffer_ctx = NULL;
@@ -36,7 +36,7 @@ void initBuffers(bootbuffer_t* fb) {
 }
 
 vector_t* windows = NULL;
-kthread_t renderThread = NULL;
+thread renderThread = NULL;
 
 void renderWindows() {
     
@@ -58,7 +58,7 @@ void renderWindows() {
 }
 
 void initWindowRender() {
-    Sys_CreateThread(self, (uintptr_t) &renderWindows, PriviledgeService, NULL, &renderThread);
+    Sys_Createthread(self, (uintptr_t) &renderWindows, PriviledgeService, NULL, &renderThread);
     windows = vector_create();
 }
 
@@ -108,7 +108,7 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* fb){
 
     drawLotLogo();
     
-    Sys_ExecThread(renderThread, NULL);
+    Sys_Execthread(renderThread, NULL);
 
     Printlog("[Orb] Service initialized successfully");
 
@@ -150,7 +150,7 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* fb){
 
     for (uint32_t i = 0; i < 400; i++) {
         w1->move(w1->getX()-1, w1->getY()-1);
-        Sys_ExecThread(renderThread, NULL);
+        Sys_Execthread(renderThread, NULL);
     }
  
     return KSUCCESS;

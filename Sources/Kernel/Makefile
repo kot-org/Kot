@@ -34,17 +34,17 @@ kernel: $(OBJS) link createISO
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@ echo !==== COMPILING $^
-	@ mkdir -p $(@D)
+	@ mkdir -m 777 -p $(@D)
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@ echo !==== COMPILING $^
-	@ mkdir -p $(@D)
+	@ mkdir -m 777 -p $(@D)
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 	@ echo !==== COMPILING $^
-	@ mkdir -p $(@D)
+	@ mkdir -m 777 -p $(@D)
 	$(ASMC) $(ASMFLAGS) $^ -f elf64 -o $@
 	
 link:
@@ -54,10 +54,10 @@ link:
 createISO:
 	@ echo !==== ISO
 
-	sudo mkdir -p $(LIMINEBUILDDIR)
-	sudo cp -v $(BINDIR)/Kernel.elf limine.cfg limine/limine.sys limine/limine-cd.bin limine/limine-cd-efi.bin $(LIMINEBUILDDIR)
+	mkdir -m 777 -p $(LIMINEBUILDDIR)
+	cp -v $(BINDIR)/Kernel.elf limine.cfg limine/limine.sys limine/limine-cd.bin limine/limine-cd-efi.bin $(LIMINEBUILDDIR)
 
-	sudo bash $(_HOME)Tools/BuildRamFS.sh
+	bash $(_HOME)Tools/BuildRamFS.sh
 
 	xorriso -as mkisofs -b limine-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table \
         --efi-boot limine-cd-efi.bin -efi-boot-part --efi-boot-image --protective-msdos-label \
@@ -67,10 +67,10 @@ createISO:
 createISOEFI:
 	@ echo !==== ISO EFI
 
-	sudo mkdir -p $(LIMINEBUILDDIR)
-	sudo cp -v $(BINDIR)/Kernel.elf limine/limine.sys limine/limine-cd-efi.bin $(LIMINEBUILDDIR)
+	mkdir -m 777 -p $(LIMINEBUILDDIR)
+	cp -v $(BINDIR)/Kernel.elf limine/limine.sys limine/limine-cd-efi.bin $(LIMINEBUILDDIR)
 
-	sudo bash $(_HOME)Tools/BuildRamFS.sh
+	bash $(_HOME)Tools/BuildRamFS.sh
 
 	xorriso -as mkisofs --efi-boot limine-cd-efi.bin -efi-boot-part --efi-boot-image -J -o $(BINDIR)/kotEFI.iso  $(LIMINEBUILDDIR)
 	./limine/limine-deploy $(BINDIR)/kotEFI.iso

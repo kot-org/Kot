@@ -23,7 +23,7 @@ struct threadInfo_t{
     uint64_t SyscallStack;
     uint64_t CS;
     uint64_t SS;
-    struct thread_t* Thread;
+    struct kthread_t* thread;
 }__attribute__((packed));
 
 struct StackInfo{
@@ -41,15 +41,15 @@ struct IPCInfo_t{
 }__attribute__((packed));
 
 struct IPCData_t{
-    thread_t* Thread; // Thread laucnh when ipc task is finished
+    kthread_t* thread; // thread laucnh when ipc task is finished
     parameters_t Parameters;
     IPCData_t* Next;
 }__attribute__((packed));
 
 
-struct thread_t;
+struct kthread_t;
 
-struct process_t{
+struct kprocess_t{
     /* ID infos */
     uint64_t PID;
 
@@ -63,7 +63,7 @@ struct process_t{
     /* Childs */
     Node* Childs;
     uint64_t TID;
-    uint64_t NumberOfThread;
+    uint64_t NumberOfthread;
 
     /* Time info */
     uint64_t CreationTime;
@@ -80,17 +80,17 @@ struct process_t{
     /* external data */
     uint64_t externalData;
 
-    thread_t* CreateThread(uintptr_t entryPoint, uint64_t externalData);
-    thread_t* CreateThread(uintptr_t entryPoint, uint8_t priviledge, uint64_t externalData);
-    thread_t* DuplicateThread(thread_t* source, uint64_t externalData);
+    kthread_t* Createthread(uintptr_t entryPoint, uint64_t externalData);
+    kthread_t* Createthread(uintptr_t entryPoint, uint8_t priviledge, uint64_t externalData);
+    kthread_t* Duplicatethread(kthread_t* source, uint64_t externalData);
 }__attribute__((packed));  
 
-struct thread_t{
+struct kthread_t{
     /* ID infos */
     uint64_t TID;
     SelfData* threadData;
 
-    /* Thread infos */
+    /* thread infos */
     threadInfo_t* Info;
     uintptr_t EntryPoint;
 
@@ -116,8 +116,8 @@ struct thread_t{
     uint8_t IOPL:3;
 
     /* Process */
-    process_t* Parent;
-    Node* ThreadNode;
+    kprocess_t* Parent;
+    Node* threadNode;
     
     /* IPC inter processus communication with threads */
     bool IsIPC;
@@ -130,8 +130,8 @@ struct thread_t{
 
     /* Schedule queue */
     bool IsInQueue;
-    thread_t* Last;
-    thread_t* Next;
+    kthread_t* Last;
+    kthread_t* Next;
 
     /* external data */
     uint64_t externalData;
@@ -143,12 +143,12 @@ struct thread_t{
     void SetParameters(parameters_t* FunctionParameters);
 
     void SetupStack();
-    void CopyStack(thread_t* source);
+    void CopyStack(kthread_t* source);
     bool ExtendStack(uint64_t address);
     bool ExtendStack(uint64_t address, size_t size);
     KResult ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t* location);
 
-    bool IPC(struct ContextStack* Registers, uint64_t CoreID, thread_t* thread, parameters_t* FunctionParameters, bool IsAsync);
+    bool IPC(struct ContextStack* Registers, uint64_t CoreID, kthread_t* thread, parameters_t* FunctionParameters, bool IsAsync);
 
     bool Launch(parameters_t* FunctionParameters);  
     bool Launch();  
@@ -159,35 +159,35 @@ struct thread_t{
 class TaskManager{
     public:
         void Scheduler(struct ContextStack* Registers, uint64_t CoreID);
-        void SwitchTask(struct ContextStack* Registers, uint64_t CoreID, thread_t* task);
+        void SwitchTask(struct ContextStack* Registers, uint64_t CoreID, kthread_t* task);
 
-        void EnqueueTask(struct thread_t* task);
-        void EnqueueTaskWithoutLock(struct thread_t* thread);
-        void DequeueTask(struct thread_t* task);
-        void DequeueTaskWithoutLock(struct thread_t* task);
+        void EnqueueTask(struct kthread_t* task);
+        void EnqueueTaskWithoutLock(struct kthread_t* thread);
+        void DequeueTask(struct kthread_t* task);
+        void DequeueTaskWithoutLock(struct kthread_t* task);
 
         // threads
-        thread_t* GetTreadWithoutLock();
-        uint64_t CreateThread(thread_t** self, process_t* proc, uintptr_t entryPoint, uint64_t externalData);
-        uint64_t CreateThread(thread_t** self, process_t* proc, uintptr_t entryPoint, uint8_t privilege, uint64_t externalData);
-        uint64_t DuplicateThread(thread_t** self, process_t* proc, thread_t* source, uint64_t externalData);
-        uint64_t ExecThread(thread_t* self, parameters_t* FunctionParameters);
-        uint64_t Pause(ContextStack* Registers, uint64_t CoreID, thread_t* task); 
-        uint64_t Unpause(thread_t* task); 
-        uint64_t Exit(ContextStack* Registers, uint64_t CoreID, thread_t* task); 
-        uint64_t ShareDataUsingStackSpace(thread_t* self, uintptr_t data, size_t size, uint64_t* location);
+        kthread_t* GetTreadWithoutLock();
+        uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint64_t externalData);
+        uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint8_t privilege, uint64_t externalData);
+        uint64_t Duplicatethread(kthread_t** self, kprocess_t* proc, kthread_t* source, uint64_t externalData);
+        uint64_t Execthread(kthread_t* self, parameters_t* FunctionParameters);
+        uint64_t Pause(ContextStack* Registers, uint64_t CoreID, kthread_t* task); 
+        uint64_t Unpause(kthread_t* task); 
+        uint64_t Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* task); 
+        uint64_t ShareDataUsingStackSpace(kthread_t* self, uintptr_t data, size_t size, uint64_t* location);
         // process
-        uint64_t CreateProcess(process_t** key, uint8_t priviledge, uint64_t externalData);
+        uint64_t CreateProcess(kprocess_t** key, uint8_t priviledge, uint64_t externalData);
 
         void CreateIddleTask();   
 
         void InitScheduler(uint8_t NumberOfCores, uintptr_t IddleTaskFunction); 
         void EnabledScheduler(uint64_t CoreID);
-        thread_t* GetCurrentThread(uint64_t CoreID);
+        kthread_t* GetCurrentthread(uint64_t CoreID);
 
         bool IsSchedulerEnable[MAX_PROCESSORS];
         uint64_t TimeByCore[MAX_PROCESSORS];
-        thread_t* ThreadExecutePerCore[MAX_PROCESSORS];
+        kthread_t* threadExecutePerCore[MAX_PROCESSORS];
 
         bool TaskManagerInit;  
         uint64_t MutexScheduler;  
@@ -199,13 +199,13 @@ class TaskManager{
         uintptr_t IddleTaskPointer = 0;
         uint64_t PID = 0;
 
-        thread_t* FirstNode;
-        thread_t* LastNode;
+        kthread_t* FirstNode;
+        kthread_t* LastNode;
 
         Node* ProcessList = NULL;
         //iddle
-        process_t* IddleProc = NULL;
-        thread_t* IdleNode[MAX_PROCESSORS];    
+        kprocess_t* IddleProc = NULL;
+        kthread_t* IdleNode[MAX_PROCESSORS];    
         Node* GlobalProcessNode;
 
         uint64_t lockglobalAddressForStackSpaceSharing;

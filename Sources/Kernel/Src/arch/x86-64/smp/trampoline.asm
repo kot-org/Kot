@@ -89,6 +89,7 @@ DataTrampoline:
 	.Status:			        db	0
     .Paging:                    dq  0
     .Stack:                     dq  0
+    .StackScheduler:            dq  0
     .MainEntry:                 dq  0    
 
 times 4096 - ($ - $$) db 0

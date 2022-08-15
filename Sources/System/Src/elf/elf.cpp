@@ -46,7 +46,7 @@ namespace ELF {
         }
     }
 
-    KResult loadElf(uintptr_t buffer, enum Priviledge privilege, uint64_t identifier, kthread_t* mainThread) {
+    KResult loadElf(uintptr_t buffer, enum Priviledge privilege, uint64_t identifier, thread* mainthread) {
         elf_t* self = (elf_t*)calloc(sizeof(elf_t));
         self->Buffer = buffer;
         self->Header = (Elf64_Ehdr*)buffer;
@@ -57,13 +57,13 @@ namespace ELF {
             return KFAIL;
         }
         
-        kprocess_t proc = NULL;
+        process_t proc = NULL;
         
         if(Sys_CreateProc(&proc, privilege, identifier) != KSUCCESS) return KFAIL;
         /* TODO : create thread identifier */
-        if(Sys_CreateThread(proc, (uintptr_t)self->Header->e_entry, privilege, NULL, mainThread) != KSUCCESS) return KFAIL;
+        if(Sys_Createthread(proc, (uintptr_t)self->Header->e_entry, privilege, NULL, mainthread) != KSUCCESS) return KFAIL;
         
-        kprocess_t parentProcess = NULL;
+        process_t parentProcess = NULL;
         Sys_GetProcessKey(&parentProcess);
         
         /* Load the elf */
@@ -75,8 +75,8 @@ namespace ELF {
         self->symtab = GetSectionHeaderType(self, SHT_SYMTAB);
         self->KotSpecific = GetSectionHeaderName(self, ".KotSpecificData");
 
-        kthread_t RunningThread = NULL;
-        Sys_GetThreadKey(&RunningThread);
+        thread Runningthread = NULL;
+        Sys_GetthreadKey(&Runningthread);
 
         uint64_t HeapLocation = 0x0;
         for (int i = 0; i < self->Header->e_phnum; i++) {

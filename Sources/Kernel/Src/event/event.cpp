@@ -23,7 +23,7 @@ namespace Event{
             case EventTypeIPC: {
                 IPCEvent_t* event = (IPCEvent_t*)malloc(sizeof(IPCEvent_t));
                 self = &event->header;
-                event->master = (thread_t*)AdditionnalData;
+                event->master = (kthread_t*)AdditionnalData;
                 break;                
             }
 
@@ -41,7 +41,7 @@ namespace Event{
         return KSUCCESS;
     }
 
-    uint64_t Bind(thread_t* task, event_t* self, bool IgnoreMissedEvents){
+    uint64_t Bind(kthread_t* task, event_t* self, bool IgnoreMissedEvents){
         Atomic::atomicAcquire(&self->Lock, 0);
 
         if(self->Type == EventTypeIRQLines){
@@ -56,7 +56,7 @@ namespace Event{
         self->Tasks = (event_tasks_t**)realloc(self->Tasks, self->NumTask * sizeof(event_tasks_t*));
 
         event_tasks_t* TasksEvent = (event_tasks_t*)calloc(sizeof(event_tasks_t));
-        TasksEvent->Thread = task;
+        TasksEvent->thread = task;
         TasksEvent->Event = self;
 
         TasksEvent->NumberOfMissedEvents = NULL;
@@ -79,13 +79,13 @@ namespace Event{
         return KSUCCESS;
     }
 
-    uint64_t Unbind(thread_t* task, event_t* self){
+    uint64_t Unbind(kthread_t* task, event_t* self){
         if(self->NumTask <= 0) return KFAIL;
         Atomic::atomicAcquire(&self->Lock, 0);
 
         self->NumTask--;
         for(size_t i = 0; i < self->NumTask; i++){
-            if(self->Tasks[i]->Thread == task){
+            if(self->Tasks[i]->thread == task){
                 uintptr_t newPos = malloc(self->NumTask * sizeof(event_tasks_t));
                 memcpy(newPos, self->Tasks[i], sizeof(event_tasks_t) * i);
                 i++;
@@ -105,15 +105,15 @@ namespace Event{
         return KSUCCESS;
     }
     
-    uint64_t Trigger(thread_t* author, event_t* self, parameters_t* parameters){
+    uint64_t Trigger(kthread_t* author, event_t* self, parameters_t* parameters){
         if(self == NULL) return KFAIL;
 
         for(size_t i = 0; i < self->NumTask; i++){
             event_tasks_t* task = self->Tasks[i];
-            Atomic::atomicAcquire(&task->Thread->EventLock, 0);
-            if(task->Thread->IsExit){
+            Atomic::atomicAcquire(&task->thread->EventLock, 0);
+            if(task->thread->IsExit){
                 task->DataNode->CurrentData->Task = task;
-                task->Thread->Launch(parameters);
+                task->thread->Launch(parameters);
             }else{
                 if(!task->IgnoreMissedEvents){
                     task->DataNode->LastData = task->DataNode->LastData->Next;
@@ -129,19 +129,21 @@ namespace Event{
                     task->NumberOfMissedEvents++;
                 }
             }
-            Atomic::atomicUnlock(&task->Thread->EventLock, 0);
+            Atomic::atomicUnlock(&task->thread->EventLock, 0);
         }
 
         return KSUCCESS;
     } 
 
-    uint64_t Close(ContextStack* Registers, thread_t* task){
+    uint64_t Close(ContextStack* Registers, kthread_t* task){
+        if(!task->IsEvent) return KFAIL;
+        Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
         Atomic::atomicAcquire(&task->EventLock, 0);
         /* Reset task */
         task->Regs->rsp = (uint64_t)StackTop;
         task->Regs->rip = (uint64_t)task->EntryPoint;
-        task->Regs->cs = Registers->ThreadInfo->CS;
-        task->Regs->ss = Registers->ThreadInfo->SS;
+        task->Regs->cs = Registers->threadInfo->CS;
+        task->Regs->ss = Registers->threadInfo->SS;
 
         if(task->EventDataNode->NumberOfMissedEvents){
             event_data_t* Next = task->EventDataNode->CurrentData->Next;
@@ -153,11 +155,13 @@ namespace Event{
             task->EventDataNode->CurrentData->Task->NumberOfMissedEvents--;
             task->EventDataNode->NumberOfMissedEvents--;
             Atomic::atomicUnlock(&task->EventLock, 0);
+            Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
         }else{
-            globalTaskManager->ThreadExecutePerCore[task->CoreID] = NULL;
+            globalTaskManager->threadExecutePerCore[task->CoreID] = NULL;
             task->IsExit = true;
             task->IsBlock = true;
             Atomic::atomicUnlock(&task->EventLock, 0);
+            Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
             ForceSchedule();
         }
 

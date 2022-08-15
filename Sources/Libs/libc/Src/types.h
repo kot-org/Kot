@@ -30,8 +30,8 @@ typedef uint64_t KResult;
 
 /* Keys */
 typedef uint64_t key_t; 
-typedef key_t kprocess_t;
-typedef key_t kthread_t;
+typedef key_t process_t;
+typedef key_t thread;
 typedef key_t kevent_t;
 typedef key_t ksmem_t;
 
@@ -52,12 +52,12 @@ typedef long unsigned int           size_t;
 #endif
 
 struct parameters_t{
-    uint64_t Parameter0;
-    uint64_t Parameter1;
-    uint64_t Parameter2;
-    uint64_t Parameter3;
-    uint64_t Parameter4;
-    uint64_t Parameter5;
+    uint64_t Arg0;
+    uint64_t Arg1;
+    uint64_t Arg2;
+    uint64_t Arg3;
+    uint64_t Arg4;
+    uint64_t Arg5;
 }__attribute__((packed));
 
 #endif

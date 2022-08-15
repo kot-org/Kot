@@ -47,15 +47,17 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     InitializeHeap((uintptr_t)LastAddressUsed, 0x10);
     Successful("Heap initialized");
 
+    CPU::InitCPU();
     ArchInfo_t* ArchInfo = (ArchInfo_t*)malloc(sizeof(ArchInfo_t));
-    ArchInfo->IRQLineStart = IRQ_START;
-    InitializeACPI(bootInfo, ArchInfo);
-    Successful("ACPI initialized");
 
     InitializeInterrupts(ArchInfo);  
     Successful("IDT initialized");
 
-    CPU::InitCPU();
+    InitializeACPI(bootInfo, ArchInfo);
+    Successful("ACPI initialized");
+
+
+
 
     simdInit();
     Successful("SIMD initialized");
@@ -93,16 +95,16 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     return ArchInfo;
 }
 
-KResult SendDataToStartService(ArchInfo_t* ArchInfo, thread_t* Thread, parameters_t* Parameters){
+KResult SendDataToStartService(ArchInfo_t* ArchInfo, kthread_t* thread, parameters_t* Parameters){
     KResult Statu = KFAIL;
     ArchInfo->IRQEvents = (kevent_t*)calloc(ArchInfo->IRQSize * sizeof(kevent_t));
     for(uint64_t i = 0; i < ArchInfo->IRQSize; i++){
         if(InterruptEventList[i] != NULL){
-            Statu = Keyhole_Create((key_t*)&ArchInfo->IRQEvents[i], Thread->Parent, Thread->Parent, DataTypeEvent, (uint64_t)InterruptEventList[i], KeyholeFlagFullPermissions);
+            Statu = Keyhole_Create((key_t*)&ArchInfo->IRQEvents[i], thread->Parent, thread->Parent, DataTypeEvent, (uint64_t)InterruptEventList[i], KeyholeFlagFullPermissions);
             if(Statu != KSUCCESS) return Statu;
         }
     }
-    Statu = Thread->ShareDataUsingStackSpace(ArchInfo, sizeof(ArchInfo_t), &Parameters->Parameter0);
+    Statu = thread->ShareDataUsingStackSpace(ArchInfo, sizeof(ArchInfo_t), &Parameters->Arg0);
     return Statu;
 }
 
@@ -111,12 +113,10 @@ void StopAllCPU(){
         APIC::GenerateInterruption(i, IPI_Stop);
     }
 
-    while(true){
-        asm("hlt");
-    }
+    asm("int $0x41");
 }
 
-void SetupRegistersForTask(thread_t* self){
+void SetupRegistersForTask(kthread_t* self){
     self->Regs->rip = (uint64_t)self->EntryPoint;
     self->RingPL = GetRingPL(self->Priviledge);
     self->Regs->cs = (GDTInfoSelectorsRing[self->RingPL].Code | self->RingPL);

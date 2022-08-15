@@ -20,6 +20,7 @@ namespace SerialPort{
     void Initialize();
     void Write(char chr);
     void Print(const char* chr);
+    void Print(const char* chr, uint64_t charNum);
     void Printf(const char* str, ...);
     void ClearMonitor();
 };

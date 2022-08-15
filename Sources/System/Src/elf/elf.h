@@ -11,7 +11,7 @@
 
 namespace ELF {
     
-    KResult loadElf(uintptr_t buffer, enum Priviledge ring, uint64_t identifier, kthread_t* mainThread);
+    KResult loadElf(uintptr_t buffer, enum Priviledge ring, uint64_t identifier, thread* mainthread);
     bool Check(struct elf_t* self);
 
     struct elf_t {

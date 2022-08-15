@@ -6,9 +6,9 @@ cd "../"
 
 echo -e "\e[32mCreating compilation dirs...\e[0m"
 
-mkdir -p "Sysroot/Include/kot/"
-mkdir -p "Sysroot/Lib/"
-mkdir -p $BINDIR"/Modules/"
+mkdir -m 777 -p "Sysroot/Include/kot/"
+mkdir -m 777 -p "Sysroot/Lib/"
+mkdir -m 777 -p $BINDIR"/Modules/"
 
 cp -p ./Build/Bin/** $BINDIR"/Modules/"
 
@@ -41,4 +41,4 @@ sudo make -C "Modules/Services/jvm/Build"
 cd "../Sources/Kernel/"
 echo -e "\e[32mBuilding kernel...\e[0m"
 
-make all
+sudo make all

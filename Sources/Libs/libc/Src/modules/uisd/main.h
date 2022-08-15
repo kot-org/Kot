@@ -15,34 +15,34 @@ typedef enum {
 } DriverTypeEnum;
 
 typedef struct {
-    kthread_t GetUSBDevice;
-    kthread_t SendUSBPacket;
-    kthread_t ReceiveUSBPacket;
+    thread GetUSBDevice;
+    thread SendUSBPacket;
+    thread ReceiveUSBPacket;
 } usb_t;
 
 typedef struct {
-    kthread_t GetPCIDevice;
-    kthread_t SetupMSIX;
+    thread GetPCIDevice;
+    thread SetupMSIX;
 } pci_t;
 
 typedef struct {
-    kthread_t GetDiskInfo;
-    kthread_t GetPartitionInfo;
+    thread GetDiskInfo;
+    thread GetPartitionInfo;
 
-    kthread_t ReadDisk;
-    kthread_t WriteDisk;
+    thread ReadDisk;
+    thread WriteDisk;
 
-    kthread_t GetVendorID;
-    kthread_t GetDeviceID;
+    thread GetVendorID;
+    thread GetDeviceID;
 } storage_t;
 
 typedef struct {
-    kthread_t rename;
-    kthread_t remove;
-    kthread_t fopen;
-    kthread_t mkdir;
-    kthread_t readdir;
-    kthread_t flist;
+    thread rename;
+    thread remove;
+    thread fopen;
+    thread mkdir;
+    thread readdir;
+    thread flist;
 } vfs_t;
 
 #endif

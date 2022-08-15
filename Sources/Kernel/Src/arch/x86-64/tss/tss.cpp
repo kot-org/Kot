@@ -26,7 +26,7 @@ uint64_t TSSGetStack(uint8_t numCPU){
 }
 
 void TSSSetIST(uint8_t numCPU, uint8_t position, uint64_t value){
-    /* remov eposition to one because the 0 ist don't exist in the tss array */
+    /* remove position to one because the 0 ist don't exist in the tss array */
     TSSdescriptors[numCPU].IST[position - 1] = value;
 }
 

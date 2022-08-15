@@ -7,7 +7,7 @@ uint8_t MouseCycle = 0;
 MouseData_t* MouseData;
 PS2Port_t* MousePS2Port;
 parameters_t* MouseEventParameters;
-kthread_t MouseThread = NULL;
+thread Mousethread = NULL;
 
 KResult MouseInitalize(){
     MouseData = (MouseData_t*)malloc(sizeof(MouseData_t));
@@ -32,7 +32,7 @@ KResult MouseInitalize(){
                 EnableMouse5Buttons(MousePS2Port);
 
                 MouseData->mousePortType = mousePortTypePS2;
-                Sys_Event_Bind(NULL, InterruptThreadHandler, 0x20 + MousePS2Port->IRQ, false);
+                Sys_Event_Bind(NULL, InterruptthreadHandler, 0x20 + MousePS2Port->IRQ, false);
 
                 MouseData->IsInitialized = true;
 
@@ -148,19 +148,19 @@ void MouseParser(uint8_t data){
         }
 
         /* Absolute position */
-        MouseEventParameters->Parameter0 = MouseData->xAxisOffset;
-        MouseEventParameters->Parameter1 = MouseData->yAxisOffset;
+        MouseEventParameters->Arg0 = MouseData->xAxisOffset;
+        MouseEventParameters->Arg1 = MouseData->yAxisOffset;
 
         /* Relative position */
-        MouseEventParameters->Parameter2 = (int64_t)MousePacket[PacketXPosition] | ((1 & (MousePacket[PacketGlobalInfo] & (1 << 4))) << 63);
-        MouseEventParameters->Parameter3 = (int64_t)MousePacket[PacketYPosition] | ((1 & (MousePacket[PacketGlobalInfo] & (1 << 5))) << 63);
+        MouseEventParameters->Arg2 = (int64_t)MousePacket[PacketXPosition] | ((1 & (MousePacket[PacketGlobalInfo] & (1 << 4))) << 63);
+        MouseEventParameters->Arg3 = (int64_t)MousePacket[PacketYPosition] | ((1 & (MousePacket[PacketGlobalInfo] & (1 << 5))) << 63);
 
         /* Buttons status */
-        MouseEventParameters->Parameter4 |= leftClick << 0;
-        MouseEventParameters->Parameter4 |= rightClick << 1;
-        MouseEventParameters->Parameter4 |= middleClick << 2;
-        MouseEventParameters->Parameter4 |= button4Click << 3;
-        MouseEventParameters->Parameter4 |= button5Click << 4;
+        MouseEventParameters->Arg4 |= leftClick << 0;
+        MouseEventParameters->Arg4 |= rightClick << 1;
+        MouseEventParameters->Arg4 |= middleClick << 2;
+        MouseEventParameters->Arg4 |= button4Click << 3;
+        MouseEventParameters->Arg4 |= button5Click << 4;
 
         Sys_Event_Trigger(MouseData->onMouseStateChanged, MouseEventParameters);
     }

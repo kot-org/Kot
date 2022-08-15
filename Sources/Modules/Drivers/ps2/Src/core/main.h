@@ -34,9 +34,9 @@
 #define PS2_STATU_TIMEOUTERROR      1 << 6
 #define PS2_STATU_PARTYERROR        1 << 7
 
-extern kprocess_t self;
+extern process_t self;
 extern struct PS2Port_t PS2Ports[2];
-extern kthread_t InterruptThreadHandler;
+extern thread InterruptthreadHandler;
 typedef KResult (*IRQRedirections)(uint8_t data);
 extern IRQRedirections IRQRedirectionsArray[2];
 

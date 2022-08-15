@@ -507,7 +507,7 @@ pagetable_t vmm_SetupProcess(){
     return PageTable;   
 }
 
-pagetable_t vmm_SetupThread(pagetable_t parent){
+pagetable_t vmm_Setupthread(pagetable_t parent){
     pagetable_t PageTable = Pmm_RequestPage();
 
     uint64_t VirtualAddress = (uint64_t)vmm_GetVirtualAddress(PageTable);

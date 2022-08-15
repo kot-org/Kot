@@ -21,7 +21,7 @@ KResult KeyboardInitialize(){
             KeyboardPS2Port = &PS2Ports[i];
             IRQRedirectionsArray[KeyboardPS2Port->PortNumber] = KeyboardHandler;
 
-            Sys_Event_Bind(NULL, InterruptThreadHandler, 0x20 + KeyboardPS2Port->IRQ, false);
+            Sys_Event_Bind(NULL, InterruptthreadHandler, 0x20 + KeyboardPS2Port->IRQ, false);
 
             KeyboardData->IsInitialized = true;
             
@@ -33,7 +33,7 @@ KResult KeyboardInitialize(){
 }
 
 KResult KeyboardHandler(uint8_t data){
-    KeyboardEventParameters->Parameter0 = (uint64_t)data;
+    KeyboardEventParameters->Arg0 = (uint64_t)data;
     Printlog("Keyboard");
     Sys_Event_Trigger(KeyboardData->onKeyboardStateChanged, KeyboardEventParameters);
 

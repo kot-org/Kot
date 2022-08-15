@@ -9,19 +9,19 @@
 
 /* Specific thread for types */
 
-/* DataTypeThread */
-#define KeyholeFlagDataTypeThreadMemoryAccessible           0x4
-#define KeyholeFlagDataTypeThreadIsExecutableAsIPC          0x5
-#define KeyholeFlagDataTypeThreadIsExitable                 0x6 
-#define KeyholeFlagDataTypeThreadIsPauseable                0x7 
-#define KeyholeFlagDataTypeThreadIsUnpauseable              0x8
-#define KeyholeFlagDataTypeThreadIsEventable                0x9
-#define KeyholeFlagDataTypeThreadIsDuplicable               0x10
-#define KeyholeFlagDataTypeThreadIsExecutable               0x11
+/* DataTypethread */
+#define KeyholeFlagDataTypethreadMemoryAccessible           0x4
+#define KeyholeFlagDataTypethreadIsExecutableAsIPC          0x5
+#define KeyholeFlagDataTypethreadIsExitable                 0x6 
+#define KeyholeFlagDataTypethreadIsPauseable                0x7 
+#define KeyholeFlagDataTypethreadIsUnpauseable              0x8
+#define KeyholeFlagDataTypethreadIsEventable                0x9
+#define KeyholeFlagDataTypethreadIsDuplicable               0x10
+#define KeyholeFlagDataTypethreadIsExecutable               0x11
 
 /* DataTypeProcess */
 #define KeyholeFlagDataTypeProcessMemoryAccessible          0x4
-#define KeyholeFlagDataTypeProcessIsThreadCreateable        0x5
+#define KeyholeFlagDataTypeProcessIsthreadCreateable        0x5
 
 /* DataTypeEvent */
 /* DataTypeSharedMemory */

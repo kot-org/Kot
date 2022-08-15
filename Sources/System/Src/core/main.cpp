@@ -3,7 +3,7 @@
 #include <kot/memory.h>
 #include "main.h"
 
-void ShareString(kthread_t self, char* str, uint64_t* clientAddress){
+void ShareString(thread self, char* str, uint64_t* clientAddress){
     SYS_ShareDataUsingStackSpace(self, (uint64_t)str, strlen(str) + 1, clientAddress);
 }
 
@@ -11,8 +11,8 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
 
     Printlog("[System] Initialization ...");
     
-    kthread_t self;
-    Sys_GetThreadKey(&self);
+    thread self;
+    Sys_GetthreadKey(&self);
 
     ramfs::Parse(kernelInfo->ramfs.address, kernelInfo->ramfs.size);
 
@@ -21,6 +21,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
     
     // load start file
     ramfs::File* InitFile = ramfs::Find("Starter.cfg");
+    // todo delete testClass
     ramfs::File* testClass = ramfs::Find("Test.class");
 
     if (InitFile != NULL) {
@@ -47,19 +48,19 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
 
                 uintptr_t BufferServiceFile = calloc(ServiceFile->size);
                 ramfs::Read(ServiceFile, BufferServiceFile);
-                kthread_t thread = NULL;
+                thread thread = NULL;
                 ELF::loadElf(BufferServiceFile, (enum Priviledge) atoi(ServiceInfo[1]), NULL, &thread);
                 free(BufferServiceFile);
 
                 char** Parameters = (char**) calloc(sizeof(char*));
 
-                InitParameters->Parameter0 = 1;
+                InitParameters->Arg0 = 1;
                 ShareString(thread, ServiceInfo[0], (uint64_t*) &Parameters[0]);
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t) Parameters, sizeof(char*), &InitParameters->Parameter1);
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t) &kernelInfo->framebuffer, sizeof(framebuffer_t), &InitParameters->Parameter2);
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t) testClassBuffer, testClass->size + 1, &InitParameters->Parameter5);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t) Parameters, sizeof(char*), &InitParameters->Arg1);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t) &kernelInfo->framebuffer, sizeof(framebuffer_t), &InitParameters->Arg2);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t) testClassBuffer, testClass->size + 1, &InitParameters->Arg5);
     
-                Sys_ExecThread(thread, InitParameters);
+                Sys_Execthread(thread, InitParameters);
             
             }     
             freeSplit(ServiceInfo);

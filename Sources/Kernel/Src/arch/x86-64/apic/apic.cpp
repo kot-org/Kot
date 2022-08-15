@@ -184,16 +184,18 @@ namespace APIC{
         vmm_Map((uintptr_t)TRAMPOLINE_ADDRESS, (uintptr_t)TRAMPOLINE_ADDRESS);
 
         for(int i = 0; i < ProcessorCount; i++){ 
-            if(Processor[i]->APICID == Processor[CPU::GetAPICID()]->APICID) continue; 
+            if(Processor[i]->APICID == CPU::GetAPICID()) continue; 
 
             Data->Paging = (uint64_t)vmm_PageTable;
             Data->MainEntry = (uint64_t)&TrampolineMain; 
             Data->Stack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
-            memset((uintptr_t)(Data->Stack - KERNEL_STACK_SIZE), 0xff, KERNEL_STACK_SIZE);
+            DataTrampoline.Stack = Data->Stack;
+            DataTrampoline.StackScheduler = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
 
             lapicSendInitIPI(Processor[i]->APICID);
 
             DataTrampoline.Status = 0;
+
             // send STARTUP IPI twice 
             lapicSendStartupIPI(Processor[i]->APICID, (uintptr_t)TRAMPOLINE_ADDRESS);
             

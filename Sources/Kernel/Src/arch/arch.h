@@ -3,6 +3,6 @@
 #endif
 
 struct ArchInfo_t* arch_initialize(uintptr_t boot);
-KResult SendDataToStartService(struct ArchInfo_t* ArchInfo, struct thread_t* Thread, struct parameters_t* Parameters);
+KResult SendDataToStartService(struct ArchInfo_t* ArchInfo, struct kthread_t* thread, struct parameters_t* Parameters);
 void StopAllCPU();
-void SetupRegistersForTask(struct thread_t* self);
+void SetupRegistersForTask(struct kthread_t* self);
