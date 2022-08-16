@@ -47,17 +47,15 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     InitializeHeap((uintptr_t)LastAddressUsed, 0x10);
     Successful("Heap initialized");
 
-    CPU::InitCPU();
     ArchInfo_t* ArchInfo = (ArchInfo_t*)malloc(sizeof(ArchInfo_t));
-
-    InitializeInterrupts(ArchInfo);  
-    Successful("IDT initialized");
+    CPU::InitCPU(ArchInfo);
+    CPU::InitCore();
 
     InitializeACPI(bootInfo, ArchInfo);
     Successful("ACPI initialized");
 
-
-
+    InitializeInterrupts(ArchInfo);  
+    Successful("IDT initialized");
 
     simdInit();
     Successful("SIMD initialized");

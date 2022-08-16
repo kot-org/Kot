@@ -1,5 +1,6 @@
 #pragma once
 #include <lib/types.h>
+#include <arch/x86-64/core.h>
 
 enum CPUID_FEAT{
     CPUID_FEAT_ECX_SSE3         = 1 << 0, 
@@ -328,7 +329,8 @@ enum CPUContextIndex{
 };
 
 namespace CPU{
-    void InitCPU();
+    void InitCPU(struct ArchInfo_t* ArchInfo);
+    void InitCore();
     static inline void DisableInterrupts(){
         asm("cli");
     }

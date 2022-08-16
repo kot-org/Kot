@@ -10,7 +10,7 @@ extern "C" void TrampolineMain(){
     TSSSetIST(CoreID, IST_Interrupts, DataTrampoline.Stack);
     TSSSetIST(CoreID, IST_Scheduler, DataTrampoline.StackScheduler);
 
-    CPU::InitCPU();
+    CPU::InitCore();
     simdInit();
 
     APIC::EnableAPIC(CoreID);
