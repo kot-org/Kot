@@ -168,7 +168,6 @@ void MouseParser(uint8_t data){
 
 KResult MouseHandler(uint8_t data){
     Printlog("Mouse");
-    CallIPC("Test");
     MouseParser(data);
     
     return KSUCCESS;

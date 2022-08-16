@@ -48,16 +48,13 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
         idtr.Offset = (uint64_t)&IDTData[0];
     }
 
-    ArchInfo->IRQLineStart = IRQ_START;
-    ArchInfo->IRQSize = MAX_IRQ;
-
     /* init interrupts */
     InterruptParameters = (parameters_t*)malloc(sizeof(parameters_t));
 
     for(int i = 0; i < ArchInfo->IRQSize; i++){
         SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);
         if(i != IPI_Schedule && i != IPI_Stop && i >= Exception_End){
-            if(i >= ArchInfo->IRQLineStart  && i <= ArchInfo->IRQLineStart + ArchInfo->IRQLineSize){
+            if(i >= ArchInfo->IRQLineStart && i <= ArchInfo->IRQLineStart + ArchInfo->IRQLineSize){
                 Event::Create(&InterruptEventList[i], EventTypeIRQLines, i - ArchInfo->IRQLineStart);
             }else{
                 Event::Create(&InterruptEventList[i], EventTypeIRQ, i);

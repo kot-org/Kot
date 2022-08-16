@@ -18,13 +18,18 @@ namespace CPU{
         asm volatile("wrmsr" : : "a"(low), "d"(high), "c"(index));
     }
 
-    void InitCPU(){
+    void InitCPU(ArchInfo_t* ArchInfo){
+        ArchInfo->IRQLineStart = IRQ_START;
+        ArchInfo->IRQSize = MAX_IRQ;
+        return;
+    }
+
+    void InitCore(){
         CPUContext* context = (CPUContext*)calloc(sizeof(CPUContext));
         GetFeatures(context->FeaturesECX, context->FeaturesEDX);
         context->ID = GetAPICID();
         ReloadGSFS();
         SetCPUGSBase((uint64_t)context);
-
         return;
     }
 
