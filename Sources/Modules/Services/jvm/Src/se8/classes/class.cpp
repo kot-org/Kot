@@ -36,25 +36,97 @@ namespace SE8 {
                 ret[i] = (Attribute*) malloc(sizeof(Attribute_ConstantValue));
                 ((Attribute_ConstantValue*) ret[i])->constantvalue_index = reader->u2B();
             } else if (strcmp(name, "StackMapTable")) {
-                ret[i] = (Attribute*) malloc(sizeof(Attribute));
+                ret[i] = (Attribute*) malloc(sizeof(Attribute_StackMapTable));
+                Attribute_StackMapTable* attr = (Attribute_StackMapTable*) ret[i];
+                attr->number_of_entries = reader->u2B();
+                attr->entries = (StackMapFrame**) malloc(8 * attr->number_of_entries);
+                for (uint16_t j = 0; j < attr->number_of_entries; j++) {
+                    attr->entries[j] = (StackMapFrame*) malloc(sizeof(StackMapFrame));
+                    uint8_t frame_type = reader->u1();
+                    if (frame_type < 64) {
+                        attr->entries[j]->same_frame.frame_type = frame_type;
+                    } else if (frame_type < 128) {
+                        attr->entries[j]->same_locals_1_stack_item_frame.frame_type = frame_type;
+                        attr->entries[j]->same_locals_1_stack_item_frame.stack = (verification_type_info*) reader->uB(4);
+                    } else if (frame_type == 247) {
+                        attr->entries[j]->same_locals_1_stack_item_frame_extended.frame_type = frame_type;
+                        attr->entries[j]->same_locals_1_stack_item_frame_extended.offset_delta = reader->u2B();
+                        attr->entries[j]->same_locals_1_stack_item_frame_extended.stack = (verification_type_info*) reader->uB(4);
+                    } else if (frame_type < 251) {
+                        attr->entries[j]->chop_frame.frame_type = frame_type;
+                        attr->entries[j]->chop_frame.offset_delta = reader->u2B();
+                    } else if (frame_type == 251) {
+                        attr->entries[j]->same_frame_extended.frame_type = frame_type;
+                        attr->entries[j]->same_frame_extended.offset_delta = reader->u2B();
+                    } else if (frame_type < 255) {
+                        attr->entries[j]->append_frame.frame_type = frame_type;
+                        attr->entries[j]->append_frame.offset_delta = reader->u2B();
+                        uint8_t stackSize = attr->entries[j]->append_frame.frame_type - 251;
+                        attr->entries[j]->append_frame.stack = (verification_type_info**) malloc(8 * stackSize);
+                        for (uint8_t k = 0; k < stackSize; k++) {
+                            attr->entries[j]->append_frame.stack[k] = (verification_type_info*) reader->uB(sizeof(verification_type_info));
+                        }
+                    } else if (frame_type == 255) {
+                        attr->entries[j]->full_frame.frame_type = frame_type;
+                        attr->entries[j]->full_frame.offset_delta = reader->u2B();
+                        attr->entries[j]->full_frame.number_of_locals = reader->u2B();
+                        attr->entries[j]->full_frame.locals = (verification_type_info**) malloc(8 * attr->entries[j]->full_frame.number_of_locals);
+                        for (uint8_t k = 0; k < attr->entries[j]->full_frame.number_of_locals; k++) {
+                            attr->entries[j]->full_frame.locals[k] = (verification_type_info*) reader->uB(sizeof(verification_type_info));
+                        }
+                        attr->entries[j]->full_frame.number_of_stack_items = reader->u2B();
+                        attr->entries[j]->full_frame.stack = (verification_type_info**) malloc(8 * attr->entries[j]->full_frame.number_of_stack_items);
+                        for (uint8_t k = 0; k < attr->entries[j]->full_frame.number_of_stack_items; k++) {
+                            attr->entries[j]->full_frame.stack[k] = (verification_type_info*) reader->uB(sizeof(verification_type_info));
+                        }
+                    }
+                }
             } else if (strcmp(name, "Exceptions")) {
-                ret[i] = (Attribute*) malloc(sizeof(Attribute));
+                ret[i] = (Attribute*) malloc(sizeof(Attribute_Exceptions));
+                Attribute_Exceptions* attr = (Attribute_Exceptions*) ret[i];
+                attr->number_of_exceptions = reader->u2B();
+                attr->exception_index_table = (uint16_t*) malloc(attr->number_of_exceptions * 2);
+                for (uint16_t j = 0; j < attr->number_of_exceptions; j++) {
+                    attr->exception_index_table[j] = reader->u2B();
+                }
             } else if (strcmp(name, "InnerClasses")) {
-                ret[i] = (Attribute*) malloc(sizeof(Attribute));
+                ret[i] = (Attribute*) malloc(sizeof(Attribute_InnerClasses));
+                Attribute_InnerClasses* attr = (Attribute_InnerClasses*) ret[i];
+                attr->number_of_classes = reader->u2B();
+                attr->classes = (InnerClass*) malloc(attr->number_of_classes * sizeof(InnerClass));
+                for (uint16_t j = 0; j < attr->number_of_classes; j++) {
+                    attr->classes[j].inner_class_info_index = reader->u2B();
+                    attr->classes[j].outer_class_info_index = reader->u2B();
+                    attr->classes[j].inner_name_index = reader->u2B();
+                    attr->classes[j].inner_class_access_flags = reader->u2B();
+                }
             } else if (strcmp(name, "EnclosingMethod")) {
-                ret[i] = (Attribute*) malloc(sizeof(Attribute));
+                ret[i] = (Attribute*) malloc(sizeof(Attribute_EnclosingMethod));
+                Attribute_EnclosingMethod* attr = (Attribute_EnclosingMethod*) ret[i];
+                attr->class_index = reader->u2B();
+                attr->method_index = reader->u2B();
             } else if (strcmp(name, "Synthetic")) {
                 ret[i] = (Attribute*) malloc(sizeof(Attribute));
             } else if (strcmp(name, "Signature")) {
-                ret[i] = (Attribute*) malloc(sizeof(Attribute));
+                ret[i] = (Attribute*) malloc(sizeof(Attribute_Signature));
+                ((Attribute_Signature*) ret[i])->signature_index = reader->u2B();
             } else if (strcmp(name, "SourceFile")) {
-                ret[i] = (Attribute*) malloc(sizeof(Attribute));
+                ret[i] = (Attribute*) malloc(sizeof(Attribute_SourceFile));
+                ((Attribute_SourceFile*) ret[i])->sourcefile_index = reader->u2B();
             } else if (strcmp(name, "SourceDebugExtension")) {
-                    ret[i] = (Attribute*) malloc(sizeof(Attribute));
+                ret[i] = (Attribute*) malloc(sizeof(Attribute_SourceDebugExtension));
+                ((Attribute_SourceDebugExtension*) ret[i])->debug_extension = reader->uB(attribute_length);
             } else if (strcmp(name, "LineNumberTable")) {
                 ret[i] = (Attribute*) malloc(sizeof(Attribute_LineNumberTable));
                 Attribute_LineNumberTable* attr = (Attribute_LineNumberTable*) ret[i];
-
+                attr->line_number_table_length = reader->u2B();
+                attr->line_number_table = (LineNumberTable*) malloc(sizeof(LineNumberTable) * attr->line_number_table_length);
+                for (uint16_t j = 0; j < attr->line_number_table_length; j++) {
+                    attr->line_number_table[j].start_pc = reader->u2B();
+                    attr->line_number_table[j].line_number = reader->u2B();
+                }
+            } else if (strcmp(name, "Deprecated")) {
+                ret[i] = (Attribute*) malloc(sizeof(Attribute));
             }
             ret[i]->attribute_name_index = attribute_name_index;
             ret[i]->attribute_length = attribute_length;
@@ -197,10 +269,12 @@ namespace SE8 {
             methods[i]->descriptor_index = reader->u2B();
             methods[i]->attributes_count = reader->u2B();
             methods[i]->attributes = parseAttributes(methods[i]->attributes_count, reader);
-            break;
         }
 
         // attributes
+
+        attributes_count = reader->u2B();
+        attributes = parseAttributes(attributes_count, reader);
 
         free(reader);
 

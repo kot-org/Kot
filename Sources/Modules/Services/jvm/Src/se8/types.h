@@ -167,6 +167,159 @@ namespace SE8 {
         Attribute** attributes;
     };
 
+    struct Top_variable_info {
+        uint8_t tag; /* 0 */
+    };
+
+    struct Integer_variable_info {
+        uint8_t tag; /* 1 */
+    };
+
+    struct Float_variable_info {
+        uint8_t tag; /* 2 */
+    };
+
+    struct Null_variable_info {
+        uint8_t tag; /* 5 */
+    };
+
+    struct UninitializedThis_variable_info  {
+        uint8_t tag; /* 6 */
+    };
+
+    struct Object_variable_info  {
+        uint8_t tag; /* 7 */
+        uint16_t cpool_index;
+    };
+
+    struct Uninitialized_variable_info  {
+        uint8_t tag; /* 8 */
+        uint16_t offset;
+    };
+
+    struct Long_variable_info {
+        uint8_t tag; /* 4 */
+    };
+
+    struct Double_variable_info {
+        uint8_t tag; /* 3 */
+    };
+
+    union verification_type_info {
+        Top_variable_info top_variable_info;
+        Integer_variable_info integer_variable_info;
+        Float_variable_info float_variable_info;
+        Long_variable_info long_variable_info;
+        Double_variable_info double_variable_info;
+        Null_variable_info null_variable_info;
+        UninitializedThis_variable_info uninitializedThis_variable_info;
+        Object_variable_info object_variable_info;
+        Uninitialized_variable_info uninitialized_variable_info;
+    };
+
+    struct SameFrame {
+        uint8_t frame_type; /* 0-63 */
+    };
+
+    struct SameLocals1StackItemFrame {
+        uint8_t frame_type; /* 64-127 */
+        verification_type_info* stack;
+    };
+
+    struct SameLocals1StackItemFrameExtended {
+        uint8_t frame_type; /* 247 */
+        uint16_t offset_delta;
+        verification_type_info* stack;
+    };
+
+    struct ChopFrame {
+        uint8_t frame_type; /* 248-250 */
+        uint16_t offset_delta;
+    };
+
+    struct SameFrameExtended {
+        uint8_t frame_type; /* 251 */
+        uint16_t offset_delta;
+    };
+
+    struct AppendFrame {
+        uint8_t frame_type; /* 252-254 */
+        uint16_t offset_delta;
+        verification_type_info** stack; /* frame_type - 251 */
+    };
+
+    struct FullFrame {
+        uint8_t frame_type; /* 255 */
+        uint16_t offset_delta;
+        uint16_t number_of_locals;
+        verification_type_info** locals;
+        uint16_t number_of_stack_items;
+        verification_type_info** stack;
+    };
+
+    union StackMapFrame {
+        SameFrame same_frame;
+        SameLocals1StackItemFrame same_locals_1_stack_item_frame;
+        SameLocals1StackItemFrameExtended same_locals_1_stack_item_frame_extended;
+        ChopFrame chop_frame;
+        SameFrameExtended same_frame_extended;
+        AppendFrame append_frame;
+        FullFrame full_frame;
+    };
+
+    struct Attribute_StackMapTable {
+        uint16_t attribute_name_index;
+        uint32_t attribute_length;
+        uint16_t number_of_entries;
+        StackMapFrame** entries;
+    };
+
+    struct Attribute_Exceptions {
+        uint16_t attribute_name_index;
+        uint32_t attribute_length;
+        uint16_t number_of_exceptions;
+        uint16_t* exception_index_table;
+    };
+
+    struct InnerClass {
+        uint16_t inner_class_info_index;
+        uint16_t outer_class_info_index;
+        uint16_t inner_name_index;
+        uint16_t inner_class_access_flags;
+    };
+
+    struct Attribute_InnerClasses {
+        uint16_t attribute_name_index;
+        uint32_t attribute_length;
+        uint16_t number_of_classes;
+        InnerClass* classes;
+    };
+
+    struct Attribute_EnclosingMethod {
+        uint16_t attribute_name_index;
+        uint32_t attribute_length;
+        uint16_t class_index;
+        uint16_t method_index;
+    };
+
+    struct Attribute_Signature {
+        uint16_t attribute_name_index;
+        uint32_t attribute_length;
+        uint16_t signature_index;
+    };
+
+    struct Attribute_SourceFile {
+        uint16_t attribute_name_index;
+        uint32_t attribute_length;
+        uint16_t sourcefile_index;
+    };
+
+    struct Attribute_SourceDebugExtension {
+        uint16_t attribute_name_index;
+        uint32_t attribute_length;
+        uint8_t* debug_extension;
+    };
+
     struct LineNumberTable {
         uint16_t start_pc;
         uint16_t line_number;
@@ -176,7 +329,7 @@ namespace SE8 {
         uint16_t attribute_name_index;
         uint32_t attribute_length;
         uint16_t line_number_table_length;
-        LineNumberTable** line_number_table;
+        LineNumberTable* line_number_table;
     };
 
     struct FieldInfo {
