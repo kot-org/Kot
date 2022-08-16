@@ -5,6 +5,9 @@ namespace SE8 {
     JVM::JVM() {
         this->classes = new Classes();
         this->threads = new Threads();
+        if (isOpCodeTableNotInit()) {
+            initOpCodeTable();
+        }
     }
 
     Classes* JVM::getClasses() {
@@ -17,6 +20,10 @@ namespace SE8 {
 
     void JVM::run() {
         this->classes->clinit();
+    }
+
+    void JVM::setEntryPoint(char* entryPoint) {
+        this->entryPoint = entryPoint;
     }
 
 }

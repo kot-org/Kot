@@ -1,8 +1,11 @@
 #pragma once
 
 #include "../types.h"
+#include "../frame/frame.h"
 
 namespace SE8 {
+
+    class Frame;
 
     class Class {
     private:
@@ -25,7 +28,7 @@ namespace SE8 {
         FieldInfo** fields;
 
         uint16_t methods_count;
-        MethodInfo** methods;
+        Method** methods;
 
         uint16_t attributes_count;
         Attribute** attributes;
@@ -38,6 +41,14 @@ namespace SE8 {
 
         char* getClassName();
         char* getSuperClassName();
+        char* getSourceFileName();
+
+        uint16_t getAccessFlags();
+
+        Method* getStaticMethod(char* name, char* descriptor);
+        Method* getMethod(char* name, char* descriptor);
+        Frame* getEntryPoint();
+        Method** getMethods();
 
         uintptr_t* getConstantPool();
 

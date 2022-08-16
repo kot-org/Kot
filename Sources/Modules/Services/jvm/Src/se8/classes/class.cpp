@@ -12,9 +12,9 @@ namespace SE8 {
             uint16_t attribute_name_index = reader->u2B();
             uint32_t attribute_length = reader->u4B();
             char* name = (char*) ((Constant_Utf8*) constant_pool[attribute_name_index])->bytes;
-            Printlog(name);
             if (strcmp(name, "Code")) {
                 ret[i] = (Attribute*) malloc(sizeof(Attribute_Code));
+                ret[i]->attribute_type = AT_Code;
                 Attribute_Code* attr = (Attribute_Code*) ret[i];
                 attr->max_stack = reader->u2B();
                 attr->max_locals = reader->u2B();
@@ -34,9 +34,11 @@ namespace SE8 {
                 attr->attributes = parseAttributes(attr->attributes_count, reader);
             } else if (strcmp(name, "ConstantValue")) {
                 ret[i] = (Attribute*) malloc(sizeof(Attribute_ConstantValue));
+                ret[i]->attribute_type = AT_ConstantValue;
                 ((Attribute_ConstantValue*) ret[i])->constantvalue_index = reader->u2B();
             } else if (strcmp(name, "StackMapTable")) {
                 ret[i] = (Attribute*) malloc(sizeof(Attribute_StackMapTable));
+                ret[i]->attribute_type = AT_StackMapTable;
                 Attribute_StackMapTable* attr = (Attribute_StackMapTable*) ret[i];
                 attr->number_of_entries = reader->u2B();
                 attr->entries = (StackMapFrame**) malloc(8 * attr->number_of_entries);
@@ -82,6 +84,7 @@ namespace SE8 {
                     }
                 }
             } else if (strcmp(name, "Exceptions")) {
+                ret[i]->attribute_type = AT_Exceptions;
                 ret[i] = (Attribute*) malloc(sizeof(Attribute_Exceptions));
                 Attribute_Exceptions* attr = (Attribute_Exceptions*) ret[i];
                 attr->number_of_exceptions = reader->u2B();
@@ -91,6 +94,7 @@ namespace SE8 {
                 }
             } else if (strcmp(name, "InnerClasses")) {
                 ret[i] = (Attribute*) malloc(sizeof(Attribute_InnerClasses));
+                ret[i]->attribute_type = AT_InnerClasses;
                 Attribute_InnerClasses* attr = (Attribute_InnerClasses*) ret[i];
                 attr->number_of_classes = reader->u2B();
                 attr->classes = (InnerClass*) malloc(attr->number_of_classes * sizeof(InnerClass));
@@ -102,22 +106,28 @@ namespace SE8 {
                 }
             } else if (strcmp(name, "EnclosingMethod")) {
                 ret[i] = (Attribute*) malloc(sizeof(Attribute_EnclosingMethod));
+                ret[i]->attribute_type = AT_EnclosingMethod;
                 Attribute_EnclosingMethod* attr = (Attribute_EnclosingMethod*) ret[i];
                 attr->class_index = reader->u2B();
                 attr->method_index = reader->u2B();
             } else if (strcmp(name, "Synthetic")) {
                 ret[i] = (Attribute*) malloc(sizeof(Attribute));
+                ret[i]->attribute_type = AT_Synthetic;
             } else if (strcmp(name, "Signature")) {
                 ret[i] = (Attribute*) malloc(sizeof(Attribute_Signature));
+                ret[i]->attribute_type = AT_Signature;
                 ((Attribute_Signature*) ret[i])->signature_index = reader->u2B();
             } else if (strcmp(name, "SourceFile")) {
                 ret[i] = (Attribute*) malloc(sizeof(Attribute_SourceFile));
+                ret[i]->attribute_type = AT_SourceFile;
                 ((Attribute_SourceFile*) ret[i])->sourcefile_index = reader->u2B();
             } else if (strcmp(name, "SourceDebugExtension")) {
                 ret[i] = (Attribute*) malloc(sizeof(Attribute_SourceDebugExtension));
+                ret[i]->attribute_type = AT_SourceDebugExtension;
                 ((Attribute_SourceDebugExtension*) ret[i])->debug_extension = reader->uB(attribute_length);
             } else if (strcmp(name, "LineNumberTable")) {
                 ret[i] = (Attribute*) malloc(sizeof(Attribute_LineNumberTable));
+                ret[i]->attribute_type = AT_LineNumberTable;
                 Attribute_LineNumberTable* attr = (Attribute_LineNumberTable*) ret[i];
                 attr->line_number_table_length = reader->u2B();
                 attr->line_number_table = (LineNumberTable*) malloc(sizeof(LineNumberTable) * attr->line_number_table_length);
@@ -127,6 +137,7 @@ namespace SE8 {
                 }
             } else if (strcmp(name, "Deprecated")) {
                 ret[i] = (Attribute*) malloc(sizeof(Attribute));
+                ret[i]->attribute_type = AT_Deprecated;
             }
             ret[i]->attribute_name_index = attribute_name_index;
             ret[i]->attribute_length = attribute_length;
@@ -260,10 +271,10 @@ namespace SE8 {
         // methods
 
         methods_count = reader->u2B();
-        methods = (MethodInfo**) malloc(sizeof(MethodInfo*)*methods_count);
+        methods = (Method**) malloc(sizeof(Method*)*methods_count);
 
         for (uint16_t i = 0; i < methods_count; i++) {
-            methods[i] = (MethodInfo*) malloc(sizeof(MethodInfo));
+            methods[i] = (Method*) malloc(sizeof(Method));
             methods[i]->access_flags = reader->u2B();
             methods[i]->name_index = reader->u2B();
             methods[i]->descriptor_index = reader->u2B();
@@ -280,22 +291,77 @@ namespace SE8 {
 
     }
 
-    /**
-     * @return uint8_t* (utf8 as byte array)
-     */
     char* Class::getClassName() {
         return (char*) ((Constant_Utf8*) this->constant_pool[((Constant_ClassInfo*) this->constant_pool[this->this_class])->name_index])->bytes;
     }
 
-    /**
-     * @return uint8_t* (utf8 as byte array)
-     */
     char* Class::getSuperClassName() {
         return (char*) ((Constant_Utf8*) this->constant_pool[((Constant_ClassInfo*) this->constant_pool[this->super_class])->name_index])->bytes;
     }
 
+    char* Class::getSourceFileName() {
+        for (uint16_t i = 0; i < attributes_count; i++) {
+            Attribute* attr = (Attribute*) attributes[i];
+            char* name = (char*) ((Constant_Utf8*) constant_pool[attr->attribute_name_index])->bytes;
+            if (strcmp(name, "SourceFile")) {
+                return (char*) ((Constant_Utf8*) constant_pool[((Attribute_SourceFile*) attr)->sourcefile_index])->bytes;
+            }
+        }
+        return NULL;
+    }
+
+    uint16_t Class::getAccessFlags() {
+        return access_flags;
+    }
+
+    Method** Class::getMethods() {
+        return methods;
+    }
+
+    Method* Class::getStaticMethod(char* name, char* descriptor) {
+        for (uint16_t i = 0; i < methods_count; i++) {
+            Method* method = methods[i];
+            if (AF_isStatic(method->access_flags)) {
+                if (strcmp((char*)((Constant_Utf8*)constant_pool[method->name_index])->bytes, name)) {
+                    if (strcmp((char*)((Constant_Utf8*)constant_pool[method->descriptor_index])->bytes, descriptor)) {
+                        return method;
+                    }
+                }
+            }
+        } 
+        return NULL;
+    }
+
+    Method* Class::getMethod(char* name, char* descriptor) {
+        for (uint16_t i = 0; i < methods_count; i++) {
+            Method* method = methods[i];
+            if (!AF_isStatic(method->access_flags)) {
+                if (strcmp((char*)((Constant_Utf8*)constant_pool[method->name_index])->bytes, name)) {
+                    if (strcmp((char*)((Constant_Utf8*)constant_pool[method->descriptor_index])->bytes, descriptor)) {
+                        return method;
+                    }
+                }
+            }
+        } 
+        return NULL;
+    }
+
+    Frame* Class::getEntryPoint() {
+        for (uint16_t i = 0; i < methods_count; i++) {
+            Method* method = methods[i];
+            if (AF_isStatic(method->access_flags) && AF_isPublic(method->access_flags)) {
+                if (strcmp((char*)((Constant_Utf8*)constant_pool[method->name_index])->bytes, "main")) {
+                    Frame* frame = (Frame*) malloc(sizeof(Frame));
+                    frame->init(this, method);
+                    return frame;
+                }
+            }
+        } 
+        return NULL;
+    }
+
     uintptr_t* Class::getConstantPool() {
-        return this->constant_pool;
+        return constant_pool;
     }
 
 }

@@ -4,13 +4,16 @@
 
 #include <kot/utils/vector.h>
 
+// todo: remake Locals
+
 namespace SE8 {
 
     class Locals {
     private:
         vector_t* tables;
+        uint64_t tableSize = 300;
     public:
-        Locals();
+        Locals(uint64_t maxLocals);
         uintptr_t provideTable(uint64_t tableIndex);
         uint64_t getPtr(uint64_t index);
         void setType(uint64_t ptr, uint8_t type);

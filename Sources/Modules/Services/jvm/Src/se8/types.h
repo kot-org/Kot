@@ -5,8 +5,6 @@
 
 #include "../utils/reader.h"
 
-#define SE8_TABLE_SIZE 1080 // 216 units
-
 namespace SE8 {
     
     enum Types : uint8_t {
@@ -136,14 +134,31 @@ namespace SE8 {
         uint16_t name_and_type_index;
     };
 
+    enum AttributeType {
+        AT_ConstantValue,
+        AT_Code,
+        AT_StackMapTable,
+        AT_Exceptions,
+        AT_InnerClasses,
+        AT_EnclosingMethod,
+        AT_Signature,
+        AT_SourceFile,
+        AT_SourceDebugExtension,
+        AT_LineNumberTable,
+        AT_Deprecated,
+        AT_Synthetic,
+    };
+
     struct Attribute {
         uint16_t attribute_name_index;
         uint32_t attribute_length;
+        uint8_t attribute_type;
     };
 
     struct Attribute_ConstantValue {
         uint16_t attribute_name_index;
         uint32_t attribute_length;
+        uint8_t attribute_type;
         uint16_t constantvalue_index;
     };
 
@@ -157,6 +172,7 @@ namespace SE8 {
     struct Attribute_Code {
         uint16_t attribute_name_index;
         uint32_t attribute_length;
+        uint8_t attribute_type;
         uint16_t max_stack;
         uint16_t max_locals;
         uint32_t code_length;
@@ -270,6 +286,7 @@ namespace SE8 {
     struct Attribute_StackMapTable {
         uint16_t attribute_name_index;
         uint32_t attribute_length;
+        uint8_t attribute_type;
         uint16_t number_of_entries;
         StackMapFrame** entries;
     };
@@ -277,6 +294,7 @@ namespace SE8 {
     struct Attribute_Exceptions {
         uint16_t attribute_name_index;
         uint32_t attribute_length;
+        uint8_t attribute_type;
         uint16_t number_of_exceptions;
         uint16_t* exception_index_table;
     };
@@ -291,6 +309,7 @@ namespace SE8 {
     struct Attribute_InnerClasses {
         uint16_t attribute_name_index;
         uint32_t attribute_length;
+        uint8_t attribute_type;
         uint16_t number_of_classes;
         InnerClass* classes;
     };
@@ -298,6 +317,7 @@ namespace SE8 {
     struct Attribute_EnclosingMethod {
         uint16_t attribute_name_index;
         uint32_t attribute_length;
+        uint8_t attribute_type;
         uint16_t class_index;
         uint16_t method_index;
     };
@@ -305,18 +325,21 @@ namespace SE8 {
     struct Attribute_Signature {
         uint16_t attribute_name_index;
         uint32_t attribute_length;
+        uint8_t attribute_type;
         uint16_t signature_index;
     };
 
     struct Attribute_SourceFile {
         uint16_t attribute_name_index;
         uint32_t attribute_length;
+        uint8_t attribute_type;
         uint16_t sourcefile_index;
     };
 
     struct Attribute_SourceDebugExtension {
         uint16_t attribute_name_index;
         uint32_t attribute_length;
+        uint8_t attribute_type;
         uint8_t* debug_extension;
     };
 
@@ -328,6 +351,7 @@ namespace SE8 {
     struct Attribute_LineNumberTable {
         uint16_t attribute_name_index;
         uint32_t attribute_length;
+        uint8_t attribute_type;
         uint16_t line_number_table_length;
         LineNumberTable* line_number_table;
     };
@@ -340,7 +364,7 @@ namespace SE8 {
         Attribute** attributes;
     };
 
-    struct MethodInfo {
+    struct Method {
         uint16_t access_flags;
         uint16_t name_index;
         uint16_t descriptor_index;
@@ -545,7 +569,7 @@ namespace SE8 {
         putstatic = 0xb3,
         ret = 0xa9,
         return_ = 0xb1,
-        saload = 0x53,
+        saload = 0x35,
         sastore = 0x56,
         sipush = 0x11,
         swap = 0x5f,
@@ -571,6 +595,18 @@ namespace SE8 {
             case SE8::ArrayRef:
                 return 8;
         }
+    }
+
+    inline bool AF_check(uint16_t flags, AccessFlags flag) {
+        return ((flags & flag) == flag);
+    }
+
+    inline bool AF_isStatic(uint16_t flags) {
+        return AF_check(flags, AccessFlags::ACC_STATIC);
+    }
+
+    inline bool AF_isPublic(uint16_t flags) {
+        return AF_check(flags, AccessFlags::ACC_PUBLIC);
     }
 
 }

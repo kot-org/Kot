@@ -2,7 +2,8 @@
 
 namespace SE8 {
 
-    Locals::Locals() {
+    Locals::Locals(uint64_t maxLocals) {
+        tableSize = maxLocals;
         tables = vector_create();
     }
 
@@ -14,15 +15,15 @@ namespace SE8 {
             vector_expand(tables, tableIndex - tables->length);
         }
         if (table == NULL) {
-            table = malloc(SE8_TABLE_SIZE);
+            table = malloc(tableSize * 5);
             vector_set(tables, tableIndex, table);
         }
         return table;
     }
 
     uint64_t Locals::getPtr(uint64_t index) {
-        uint64_t tableIndex = index / SE8_TABLE_SIZE;
-        uint64_t idx = (index - (SE8_TABLE_SIZE * tableIndex)) * 5;
+        uint64_t tableIndex = index / tableSize;
+        uint64_t idx = (index - (tableSize * tableIndex)) * 5;
         uintptr_t table = provideTable(tableIndex);
         return (uint64_t) table + idx;
     }
