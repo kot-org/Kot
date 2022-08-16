@@ -14,6 +14,10 @@ KResult Sys_FreeMemoryField(process_t self, ksmem_t key, uintptr_t address){
     return Syscall_24(KSys_FreeMemoryField, self, key, address);
 }
 
+KResult Sys_GetInfoMemoryField(ksmem_t key, uint64_t* typePointer, size_t* sizePointer){
+    return Syscall_24(KSys_GetTypeMemoryField, key, typePointer, sizePointer);
+}
+
 KResult SYS_ShareDataUsingStackSpace(thread self, uint64_t address, size_t size, uint64_t* clientAddress){
     return Syscall_32(KSys_ShareDataUsingStackSpace, self, address, size, clientAddress);
 }
@@ -84,6 +88,10 @@ KResult Sys_Execthread(thread self, struct parameters_t* parameters){
 
 KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, process_t target, uint64_t flags){
     return Syscall_32(KSys_Keyhole_CloneModify, source, destination, target, flags);
+}
+
+KResult Sys_Keyhole_Verify(key_t self, enum DataType type, process_t* target, uint64_t* flags){
+    return Syscall_32(KSys_Keyhole_Verify, self, type, target, flags);
 }
 
 KResult Sys_Logs(char* message, size_t size){

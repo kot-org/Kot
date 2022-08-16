@@ -24,7 +24,7 @@ struct KotSpecificData_t{
     /* Heap */
     uint64_t HeapLocation;
     /* IPC */
-    thread IPCHandler;
+    thread UISDHandler;
     /* FreeMemorySpace */
     uintptr_t FreeMemorySpace;
 }__attribute__((aligned(0x1000)));
@@ -37,29 +37,30 @@ struct SelfData{
 }__attribute__((packed));
 
 enum DataType{
-    DataTypeUnknow          = 0,
-    DataTypethread          = 1,
-    DataTypeProcess         = 2,
-    DataTypeEvent           = 3,
-    DataTypeSharedMemory    = 4,
+    DataTypeUnknow              = 0x0,
+    DataTypethread              = 0x1,
+    DataTypeProcess             = 0x2,
+    DataTypeEvent               = 0x3,
+    DataTypeSharedMemory        = 0x4,
 };
 
 enum EventType{
-    EventTypeIRQLines = 0,
-    EventTypeIRQ = 1,
-    EventTypeIPC = 2,
+    EventTypeIRQLines           = 0x0,
+    EventTypeIRQ                = 0x1,
+    EventTypeIPC                = 0x2,
 };
 
 enum Priviledge{
-    PriviledgeDriver    = 0x1,
-    PriviledgeService   = 0x2,
-    PriviledgeApp       = 0x3,
+    PriviledgeDriver            = 0x1,
+    PriviledgeService           = 0x2,
+    PriviledgeApp               = 0x3,
 };
 
 enum MemoryFieldType{
-    MemoryFieldTypeShareSpaceRW = 0,
-    MemoryFieldTypeShareSpaceRO = 1,
-    MemoryFieldTypeSendSpaceRO = 2,
+    MemoryFieldTypeUnknow       = 0x0,
+    MemoryFieldTypeShareSpaceRW = 0x1,
+    MemoryFieldTypeShareSpaceRO = 0x2,
+    MemoryFieldTypeSendSpaceRO  = 0x3,
 };
 
 uint64_t DoSyscall(uint64_t syscall, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);
@@ -68,6 +69,7 @@ uint64_t DoSyscall(uint64_t syscall, uint64_t arg0, uint64_t arg1, uint64_t arg2
 KResult Sys_CreateMemoryField(process_t self, size_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, enum MemoryFieldType type);
 KResult Sys_AcceptMemoryField(process_t self, ksmem_t key, uintptr_t* virtualAddressPointer);
 KResult Sys_FreeMemoryField(process_t self, ksmem_t key, uintptr_t address);
+KResult Sys_GetInfoMemoryField(ksmem_t key, uint64_t* typePointer, size_t* sizePointer);
 KResult SYS_ShareDataUsingStackSpace(thread self, uint64_t address, size_t size, uint64_t* clientAddress);
 KResult Sys_IPC(thread task, struct parameters_t* param, bool IsAsync);
 KResult Sys_CreateProc(process_t* key, enum Priviledge privilege, uint64_t data);
@@ -87,6 +89,7 @@ KResult Sys_Createthread(process_t self, uintptr_t entryPoint, enum Priviledge p
 KResult Sys_Duplicatethread(process_t parent, thread source, uint64_t data, thread* self);
 KResult Sys_Execthread(thread self, struct parameters_t* parameters);
 KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, process_t target, uint64_t flags);
+KResult Sys_Keyhole_Verify(key_t self, enum DataType type, process_t* target, uint64_t* flags);
 KResult Sys_Logs(char* message, size_t size);
 
 

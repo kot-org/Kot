@@ -3,9 +3,8 @@
 #include <kot/sys.h>
 #include <kot/utils.h>
 #include <kot/cstring.h>
-#include <kot/modules/ipc/ipc.h>
-#include <keyboard/keyboard.h>
 #include <mouse/mouse.h>
+#include <keyboard/keyboard.h>
 
 #define PS2_PORT_NUMBER 0x2
 

@@ -1,8 +1,8 @@
 #pragma once
-#include <kot/types.h>
 #include <elf/elf.h>
+#include <uisd/uisd.h>
+#include <kot/types.h>
 #include <ramfs/ramfs.h>
-#include <ipc/ipc.h>
 
 struct framebuffer_t {
     uint64_t identifier;
@@ -54,3 +54,5 @@ struct InfoSlot {
     size_t size;
     uintptr_t address;
 }__attribute__((packed));
+
+extern process_t proc;

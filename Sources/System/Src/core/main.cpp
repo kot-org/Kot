@@ -1,7 +1,9 @@
 #include <kot/sys.h>
 #include <kot/heap.h>
 #include <kot/memory.h>
-#include "main.h"
+#include <core/main.h>
+
+process_t proc;
 
 void ShareString(thread self, char* str, uint64_t* clientAddress){
     SYS_ShareDataUsingStackSpace(self, (uint64_t)str, strlen(str) + 1, clientAddress);
@@ -10,6 +12,8 @@ void ShareString(thread self, char* str, uint64_t* clientAddress){
 extern "C" int main(struct KernelInfo* kernelInfo) {
 
     Printlog("[System] Initialization ...");
+
+    Sys_GetthreadKey(&proc);
     
     thread self;
     Sys_GetthreadKey(&self);
@@ -17,7 +21,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
     ramfs::Parse(kernelInfo->ramfs.address, kernelInfo->ramfs.size);
 
     // load IPC
-    KotSpecificData.IPCHandler = IPCInitialize();
+    KotSpecificData.UISDHandler = UISDInitialize();
     
     // load start file
     ramfs::File* InitFile = ramfs::Find("Starter.cfg");
