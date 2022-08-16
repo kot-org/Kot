@@ -33,6 +33,11 @@ int strncmp(char* a, char* b, size_t len){
     return true;
 }
 
+char* strcat(char* dest, const char* src) {
+    strcpy(dest+strlen(dest), src);
+    return dest;
+}
+
 char** strsplit(char* str, const char* delimiters){
     char* entry = str;
     char* strTmp = str;

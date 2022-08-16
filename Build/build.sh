@@ -28,6 +28,7 @@ sudo make -C "System/Build"
 # Drivers
 echo -e "\e[32mCompiling kot drivers...\e[0m"
 
+sudo make -C "Modules/Drivers/pci/Build"
 sudo make -C "Modules/Drivers/ps2/Build"
 sudo make -C "Modules/Drivers/vga/Build"
 
