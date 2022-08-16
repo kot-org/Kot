@@ -11,5 +11,7 @@
 typedef struct {
 	uint32_t VendorID;
 	uint32_t DeviceID;
+	uint32_t ClassCode;
+	uint32_t SubClass;
 	uint32_t Function;
 } pci_device_t;

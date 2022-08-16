@@ -29,11 +29,23 @@ uint16_t GetVendorID(uint16_t bus, uint16_t device, uint16_t func) {
     return vID;
 }
 
-void AddPCIDevice(uint16_t vendor, uint16_t device, uint16_t func) {
+uint16_t GetClassCode(uint16_t bus, uint16_t device, uint16_t func) {
+    uint32_t ccID = ReadWord(bus, device, func, 10);
+    return (ccID & ~0x00FF) >> 8;
+}
+
+uint16_t GetSubClass(uint16_t bus, uint16_t device, uint16_t func) {
+    uint32_t scID = ReadWord(bus, device, func, 10);
+    return (scID & ~0xFF00);
+}
+
+void AddPCIDevice(uint16_t vendor, uint16_t device, uint16_t classCode, uint16_t subClass, uint16_t func) {
     pci_device_t* _device = (pci_device_t*) malloc(sizeof(pci_device_t));
 
     _device->VendorID = vendor;
     _device->DeviceID = device;
+    _device->ClassCode = classCode;
+    _device->SubClass = subClass;
     _device->Function = func;
 }
 
@@ -44,11 +56,18 @@ void PciInit() {
 
                 uint16_t vendorID = GetVendorID(bus, device, func);
                 uint16_t deviceID = GetDeviceID(bus, device, func);
+                uint16_t classCode = GetClassCode(bus, device, func);
+                uint16_t subClass = GetSubClass(bus, device, func);
 
-                if(deviceID == 0 || vendorID == 0) return; 
-                if(deviceID == 0xFFFF || vendorID == 0) return;
-                
-                AddPCIDevice(vendorID, deviceID, func);
+                if(vendorID != 0xFFFF) {
+
+                    char buffer[50];
+
+                    itoa(vendorID, buffer, 16);
+                    Printlog(strcat("[PCI] Vendor: 0x", buffer));
+                    
+                    AddPCIDevice(vendorID, deviceID, classCode, subClass, func);
+                }
             }
         }
     }
