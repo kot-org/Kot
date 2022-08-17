@@ -63,11 +63,17 @@ uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
     case 0x0:
         Header = malloc(sizeof(PCIHeader0));
         PCIMemcpyToMemory32(Header, Addr, sizeof(PCIHeader0));
-        *buffer = NULL;
         char buffer[50];
         char buffernum[33];
+        *buffer = NULL;
         strcat(buffer, "[PCI] Vendor: 0x");
         itoa(((PCIHeader0*)Header)->Header.VendorID, buffernum, 16);
+        strcat(buffer, " Device: 0x");
+        itoa(((PCIHeader0*)Header)->Header.DeviceID, buffernum, 16);
+        strcat(buffer, " Class: 0x");
+        itoa(((PCIHeader0*)Header)->Header.Class, buffernum, 16);
+        strcat(buffer, " Subclass: 0x");
+        itoa(((PCIHeader0*)Header)->Header.Subclass, buffernum, 16);
         strcat(buffer, buffernum);
         Printlog(buffer);
         break;
