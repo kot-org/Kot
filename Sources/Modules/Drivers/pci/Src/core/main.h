@@ -1,5 +1,7 @@
 #pragma once
 
+#define MAX_PCI_DEVICES		0xFFFE
+
 #define PCI_CONFIG_ADDR     0xCF8
 #define PCI_CONFIG_DATA     0xCFC
 

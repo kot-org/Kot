@@ -1,11 +1,32 @@
 #include <core/main.h>
 
+<<<<<<< HEAD
 uint32_t PCIDeviceBaseAddress(uint16_t bus, uint16_t device, uint16_t func){
     return (uint32_t) ((1 <<  31) | (bus << 16) | (device << 11) | (func << 8));
 }
 
 uint32_t PCIRead32(uint32_t addr) {
     addr &= ~(0b11);
+=======
+<<<<<<< HEAD
+uint32_t PCIRead32(uint16_t bus, uint16_t device, uint16_t func, uint16_t offset) {
+=======
+pci_device_t* pci_devices[MAX_PCI_DEVICES];
+uint32_t pci_device_index = 0;
+
+uint16_t ReadWord(uint16_t bus, uint16_t device, uint16_t func, uint16_t offset) {
+    uint64_t addr;
+    uint16_t r;
+
+>>>>>>> 058c047b0 (Update)
+    /**
+     *   -------------------------------------------------------------------------------------------------------------
+     *   |  Bit 31	    |   Bits 30-24	|  Bits 23-16	|  Bits 15-11	  |   Bits 10-8	        |   Bits 7-0         |
+     *   |  Enable Bit	|   Reserved	|  Bus Number	|  Device Number  |   Function Number	|   Register Offset  |
+     *   -------------------------------------------------------------------------------------------------------------
+     */
+    uint32_t addr = (uint32_t) ((1 <<  31) | (bus << 16) | (device << 11) | (func << 8) | (offset & 0xFC));
+>>>>>>> 917aecdec (Update)
     /* Write address */
     IoWrite32(PCI_CONFIG_ADDR, addr);
     /* Read data */
@@ -46,11 +67,25 @@ void PCIMemcpyToMemory16(uintptr_t dst, uint32_t src, size_t size){
     }
 }
 
+<<<<<<< HEAD
 void PCIMemcpyToMemory32(uintptr_t dst, uint32_t src, size_t size){
     src &= ~(0b11);
     for(size_t i = 0; i < size; i += 0x4){
         *(uint32_t*)((uint64_t)dst + i) = PCIRead32(src + i);
     }
+=======
+void AddPCIDevice(uint16_t vendor, uint16_t device, uint16_t classCode, uint16_t subClass, uint16_t func) {
+    pci_device_t* _device = (pci_device_t*) malloc(sizeof(pci_device_t));
+
+    _device->VendorID = vendor;
+    _device->DeviceID = device;
+    _device->ClassCode = classCode;
+    _device->SubClass = subClass;
+    _device->Function = func;
+
+    pci_devices[pci_device_index] = _device;
+    pci_device_index++;
+>>>>>>> 917aecdec (Update)
 }
 
 uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
