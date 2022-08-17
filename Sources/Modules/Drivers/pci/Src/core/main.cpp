@@ -63,7 +63,7 @@ uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
     case 0x0:
         Header = malloc(sizeof(PCIHeader0));
         PCIMemcpyToMemory32(Header, Addr, sizeof(PCIHeader0));
-        char buffer[50];
+        char buffer[100];
         char buffernum[33];
         *buffer = NULL;
         strcat(buffer, "[PCI] Vendor: 0x");
