@@ -10,7 +10,7 @@ uint16_t ReadWord(uint16_t bus, uint16_t device, uint16_t func, uint16_t offset)
      *   |  Enable Bit	|   Reserved	|  Bus Number	|  Device Number  |   Function Number	|   Register Offset  |
      *   -------------------------------------------------------------------------------------------------------------
      */
-    addr = (uint64_t) (0x80000000 | (bus << 16) | (device << 11) | (func << 8) | (offset & 0xFC));
+    addr = (uint64_t) ((1 <<  31) | (bus << 16) | (device << 11) | (func << 8) | (offset & 0xFC));
     /* Write address */
     IoWrite32(PCI_CONFIG_ADDR, addr);
     /* Read data */
