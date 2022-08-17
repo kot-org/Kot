@@ -11,7 +11,7 @@ extern "C" {
 int strlen(char* p);
 int strcmp(char* a, char* b);
 int strncmp(char* a, char* b, size_t len);
-char* strcat(char* dest, const char* src);
+char* strcat(char* dst, const char* src);
 char** strsplit(char* str, const char* delimiters);
 void freeSplit(char** splitData);
 int atoi(const char* str);

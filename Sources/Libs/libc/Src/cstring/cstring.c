@@ -33,9 +33,13 @@ int strncmp(char* a, char* b, size_t len){
     return true;
 }
 
-char* strcat(char* dest, const char* src) {
-    strcpy(dest+strlen(dest), src);
-    return dest;
+char* strcat(char* dst, const char* src){
+    char* ptr = dst + strlen(dst);
+    while (*src != NULL){
+        *ptr++ = *src++;
+    }
+    *ptr = NULL;
+    return dst;
 }
 
 char** strsplit(char* str, const char* delimiters){
@@ -147,7 +151,8 @@ char* itoa(int64_t n, char* buffer, int basenumber){
 		hold = n % basenumber;
 		buffer[i++] = (hold < 10) ? (hold + '0') : (hold + 'a' - 10);
 	} while(n /= basenumber);
-	buffer[i--] = 0;
+
+	buffer[i--] = NULL;
 	
 	for(j = 0; j < i; j++, i--)
 	{
@@ -155,6 +160,7 @@ char* itoa(int64_t n, char* buffer, int basenumber){
 		buffer[j] = buffer[i];
 		buffer[i] = hold;
 	}
+
 
     return buffer;
 }

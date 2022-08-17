@@ -1,81 +1,110 @@
 #include <core/main.h>
 
-uint32_t PCIRead32(uint16_t bus, uint16_t device, uint16_t func, uint16_t offset) {
-    /**
-     *   -------------------------------------------------------------------------------------------------------------
-     *   |  Bit 31	    |   Bits 30-24	|  Bits 23-16	|  Bits 15-11	  |   Bits 10-8	        |   Bits 7-0         |
-     *   |  Enable Bit	|   Reserved	|  Bus Number	|  Device Number  |   Function Number	|   Register Offset  |
-     *   -------------------------------------------------------------------------------------------------------------
-     */
-    uint32_t addr = (uint32_t) ((1 <<  31) | (bus << 16) | (device << 11) | (func << 8) | (offset & 0xFC));
+uint32_t PCIDeviceBaseAddress(uint16_t bus, uint16_t device, uint16_t func){
+    return (uint32_t) ((1 <<  31) | (bus << 16) | (device << 11) | (func << 8));
+}
+
+uint32_t PCIRead32(uint32_t addr) {
+    addr &= ~(0b11);
     /* Write address */
     IoWrite32(PCI_CONFIG_ADDR, addr);
     /* Read data */
     return IoRead32(PCI_CONFIG_DATA);
 }
 
-uint16_t PCIRead16(uint16_t bus, uint16_t device, uint16_t func, uint16_t offset) {
-    return (uint16_t) ((PCIRead32(bus, device, func, offset) >> ((offset & 2) * 8)) & 0xFFFF);
+void PCIWrite32(uint32_t addr, uint32_t data) {
+    addr &= ~(0b11);
+    /* Write address */
+    IoWrite32(PCI_CONFIG_ADDR, addr);
+    /* Read data */
+    IoWrite32(PCI_CONFIG_DATA, data);
 }
 
-uint16_t GetDeviceID(uint16_t bus, uint16_t device, uint16_t func) {
-    uint32_t dID = PCIRead16(bus, device, func, 2);
-    return dID;
+uint16_t PCIRead16(uint32_t addr) {
+    uint8_t offset = addr & 0xff;
+    addr &= ~(0b11);
+    return (uint16_t) ((PCIRead32(addr) >> ((offset & 0b10) * 0x10)) & 0xffff);
 }
 
-uint16_t GetVendorID(uint16_t bus, uint16_t device, uint16_t func) {
-    uint32_t vID = PCIRead16(bus, device, func, 0);
-    return vID;
+uint8_t PCIRead8(uint32_t addr) {
+    uint8_t offset = addr & 0xff;
+    addr &= ~(0b11);
+    return (uint16_t) ((PCIRead16(addr) >> ((offset & 0b1) * 0x8)) & 0xff);
 }
 
-uint16_t GetClassCode(uint16_t bus, uint16_t device, uint16_t func) {
-    uint32_t ccID = PCIRead16(bus, device, func, 10);
-    return (ccID & ~0x00FF) >> 8;
+void PCIMemcpyToMemory8(uintptr_t dst, uint32_t src, size_t size){
+    src &= ~(0b11);
+    for(size_t i = 0; i < size; i += 0x1){
+        *(uint8_t*)((uint64_t)dst + i) = PCIRead8(src + i);
+    }
 }
 
-uint16_t GetSubClass(uint16_t bus, uint16_t device, uint16_t func) {
-    uint32_t scID = PCIRead16(bus, device, func, 10);
-    return (scID & ~0xFF00);
+void PCIMemcpyToMemory16(uintptr_t dst, uint32_t src, size_t size){
+    src &= ~(0b11);
+    for(size_t i = 0; i < size; i += 0x2){
+        *(uint16_t*)((uint64_t)dst + i) = PCIRead16(src + i);
+    }
 }
 
-void AddPCIDevice(uint16_t vendor, uint16_t device, uint16_t classCode, uint16_t subClass, uint16_t func) {
-    pci_device_t* _device = (pci_device_t*) malloc(sizeof(pci_device_t));
-
-    _device->VendorID = vendor;
-    _device->DeviceID = device;
-    _device->ClassCode = classCode;
-    _device->SubClass = subClass;
-    _device->Function = func;
+void PCIMemcpyToMemory32(uintptr_t dst, uint32_t src, size_t size){
+    src &= ~(0b11);
+    for(size_t i = 0; i < size; i += 0x4){
+        *(uint32_t*)((uint64_t)dst + i) = PCIRead32(src + i);
+    }
 }
 
-void PciInit() {
+uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
+    uint32_t Addr = PCIDeviceBaseAddress(bus, device, func);
+    uint8_t VendorID = PCIRead8(Addr + PCI_VENDOR_ID_OFFSET);
+    if(VendorID == 0xffff) return NULL;
+    uint8_t HeaderType = PCIRead8(Addr + PCI_HEADER_TYPE_OFFSET);
+    uintptr_t Header = NULL;
+    switch (HeaderType){
+    case 0x0:
+        Header = malloc(sizeof(PCIHeader0));
+        PCIMemcpyToMemory32(Header, Addr, sizeof(PCIHeader0));
+        *buffer = NULL;
+        char buffer[50];
+        char buffernum[33];
+        strcat(buffer, "[PCI] Vendor: 0x");
+        itoa(((PCIHeader0*)Header)->Header.VendorID, buffernum, 16);
+        strcat(buffer, buffernum);
+        Printlog(buffer);
+        break;
+    case 0x1:
+        /* TODO */
+        Printlog("[Error] PCI-to-PCI bridge not supported");
+        break;
+    default:
+    return 0;
+        Printlog("[Error] Unknow header type");
+        break;
+    }
+    return Header;
+}
+
+void EnumerateDevices() {
     for(uint32_t bus = 0; bus < 256; bus++) {
         for(uint32_t device = 0; device < 32; device++) {
-            for(uint32_t func = 0; func < 8; func++) {
-
-                uint16_t vendorID = GetVendorID(bus, device, func);
-                uint16_t deviceID = GetDeviceID(bus, device, func);
-                uint16_t classCode = GetClassCode(bus, device, func);
-                uint16_t subClass = GetSubClass(bus, device, func);
-
-                if(vendorID != 0xFFFF) {
-
-                    char buffer[50];
-
-                    itoa(vendorID, buffer, 16);
-                    Printlog(strcat("[PCI] Vendor: 0x", buffer));
-                    
-                    AddPCIDevice(vendorID, deviceID, classCode, subClass, func);
+            uint32_t Addr = PCIDeviceBaseAddress(bus, device, NULL);
+            uint8_t vendorID = PCIRead8(Addr + PCI_VENDOR_ID_OFFSET);
+            if(vendorID == 0xffff) continue;
+            uint8_t headerType = PCIRead8(Addr + PCI_HEADER_TYPE_OFFSET);
+            if(headerType & 0x80 != 0){
+                for(uint32_t func = 0; func < 8; func++) {
+                    GetDevice(bus, device, func);
                 }
+            }else{
+                GetDevice(bus, device, NULL);
             }
         }
-    }
+    }    
 }
 
 extern "C" int main(int argc, char* argv[]) {
     Printlog("[PCI] Initialization ...");
 
-    PciInit();
+    EnumerateDevices();
 
     return KSUCCESS;
 }
