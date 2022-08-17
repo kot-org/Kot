@@ -1,41 +1,40 @@
 #include <core/main.h>
 
-uint16_t ReadWord(uint16_t bus, uint16_t device, uint16_t func, uint16_t offset) {
-    uint64_t addr;
-    uint16_t r;
-
+uint32_t PCIRead32(uint16_t bus, uint16_t device, uint16_t func, uint16_t offset) {
     /**
      *   -------------------------------------------------------------------------------------------------------------
      *   |  Bit 31	    |   Bits 30-24	|  Bits 23-16	|  Bits 15-11	  |   Bits 10-8	        |   Bits 7-0         |
      *   |  Enable Bit	|   Reserved	|  Bus Number	|  Device Number  |   Function Number	|   Register Offset  |
      *   -------------------------------------------------------------------------------------------------------------
      */
-    addr = (uint64_t) ((1 <<  31) | (bus << 16) | (device << 11) | (func << 8) | (offset & 0xFC));
+    uint32_t addr = (uint32_t) ((1 <<  31) | (bus << 16) | (device << 11) | (func << 8) | (offset & 0xFC));
     /* Write address */
     IoWrite32(PCI_CONFIG_ADDR, addr);
     /* Read data */
-    r = (uint16_t) ((IoRead32(PCI_CONFIG_DATA) >> ((offset & 2) * 8)) & 0xFFFF);
+    return IoRead32(PCI_CONFIG_DATA);
+}
 
-    return r;
+uint16_t PCIRead16(uint16_t bus, uint16_t device, uint16_t func, uint16_t offset) {
+    return (uint16_t) ((PCIRead32(bus, device, func, offset) >> ((offset & 2) * 8)) & 0xFFFF);
 }
 
 uint16_t GetDeviceID(uint16_t bus, uint16_t device, uint16_t func) {
-    uint32_t dID = ReadWord(bus, device, func, 2);
+    uint32_t dID = PCIRead16(bus, device, func, 2);
     return dID;
 }
 
 uint16_t GetVendorID(uint16_t bus, uint16_t device, uint16_t func) {
-    uint32_t vID = ReadWord(bus, device, func, 0);
+    uint32_t vID = PCIRead16(bus, device, func, 0);
     return vID;
 }
 
 uint16_t GetClassCode(uint16_t bus, uint16_t device, uint16_t func) {
-    uint32_t ccID = ReadWord(bus, device, func, 10);
+    uint32_t ccID = PCIRead16(bus, device, func, 10);
     return (ccID & ~0x00FF) >> 8;
 }
 
 uint16_t GetSubClass(uint16_t bus, uint16_t device, uint16_t func) {
-    uint32_t scID = ReadWord(bus, device, func, 10);
+    uint32_t scID = PCIRead16(bus, device, func, 10);
     return (scID & ~0xFF00);
 }
 
