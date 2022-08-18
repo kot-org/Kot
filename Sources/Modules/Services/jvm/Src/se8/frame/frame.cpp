@@ -12,14 +12,15 @@ uint8_t getComputationalCategory(uint8_t type) {
 
 namespace SE8 {
 
-    void Frame::init(Class* cl, Method* method) {
-        currentClass = cl;
+    void Frame::init(JavaVM* jvm, Class* cl, Method* method) {
+        constant_pool = cl->getConstantPool();
         currentMethod = method;
+        this->jvm = jvm;
         reader = (Reader*) malloc(sizeof(Reader));
         for (uint16_t i = 0; i < currentMethod->attributes_count; i++) {
             Attribute_Code* attr = (Attribute_Code*) currentMethod->attributes[i];
             if (attr->attribute_type == AT_Code) {
-                stack = new Stack(attr->max_stack*5);
+                stack = new Stack(attr->max_stack*5+1);
                 locals = new Locals(attr->max_locals);
                 reader->buffer = attr->code;
                 code_length = attr->code_length;
@@ -64,7 +65,7 @@ namespace SE8 {
     }
 
     void Opc::areturn(Frame* frame) {
-
+        frame->returnValue = frame->stack->pop();
     }
 
     void Opc::arraylength(Frame* frame) {
@@ -299,8 +300,8 @@ namespace SE8 {
     }
 
     void Opc::dreturn(Frame* frame) {
-
-    }
+        frame->returnValue = frame->stack->pop();
+    }   
 
     void Opc::dstore(Frame* frame) {
         uint64_t ptr = frame->locals->getPtr(frame->widened ? frame->reader->u2B() : frame->reader->u1());
@@ -609,7 +610,7 @@ namespace SE8 {
     }
 
     void Opc::freturn(Frame* frame) {
-
+        frame->returnValue = frame->stack->pop();
     }
 
     void Opc::fstore(Frame* frame) {
@@ -677,7 +678,14 @@ namespace SE8 {
     }
 
     void Opc::getstatic(Frame* frame) {
-
+        uint16_t idx = frame->reader->u2B();
+        Constant_RefInfo* field = (Constant_RefInfo*) frame->constant_pool[idx];
+        char* className = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_ClassInfo*) frame->constant_pool[field->class_index])->name_index])->bytes;
+        char* fieldName = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_NameAndType*) frame->constant_pool[field->name_and_type_index])->name_index])->bytes;
+        Printlog(className);
+        Printlog(fieldName);
+        frame->stack->pushNull();
+        //frame->stack->push(frame->jvm->getClasses()->getStaticField(className, fieldName));
     }
 
     void Opc::goto_(Frame* frame) {
@@ -965,7 +973,7 @@ namespace SE8 {
     }
 
     void Opc::ireturn(Frame* frame) {
-
+        frame->returnValue = frame->stack->pop();
     }
 
     void Opc::ishl(Frame* frame) {
@@ -1130,7 +1138,10 @@ namespace SE8 {
     }
 
     void Opc::ldc(Frame* frame) {
-
+        uint8_t idx = frame->reader->u1();
+        ConstantPoolEntry* entry = (ConstantPoolEntry*) frame->constant_pool[idx];
+        Printlog("tag:");
+        Printlog(itoa(entry->tag, "   ", 10));
     }
 
     void Opc::ldc_w(Frame* frame) {
@@ -1248,7 +1259,7 @@ namespace SE8 {
     }
 
     void Opc::lreturn(Frame* frame) {
-
+        frame->returnValue = frame->stack->pop();
     }
 
     void Opc::lshl(Frame* frame) {
@@ -1411,7 +1422,11 @@ namespace SE8 {
     }
 
     void Opc::putstatic(Frame* frame) {
-
+        uint16_t idx = frame->reader->u2B();
+        Constant_RefInfo* field = (Constant_RefInfo*) frame->constant_pool[idx];
+        char* className = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_ClassInfo*) frame->constant_pool[field->class_index])->name_index])->bytes;
+        char* fieldName = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_NameAndType*) frame->constant_pool[field->name_and_type_index])->name_index])->bytes;
+        frame->jvm->getClasses()->setStaticField(className, fieldName, frame->stack->pop());
     }
 
     void Opc::ret(Frame* frame) {
@@ -1419,7 +1434,7 @@ namespace SE8 {
     }
 
     void Opc::return_(Frame* frame) {
-
+        frame->returnValue = NULL;
     }
 
     void Opc::saload(Frame* frame) {
@@ -1669,9 +1684,13 @@ namespace SE8 {
                 // todo
             }
         }
-        for (; reader->index < code_length; reader->index++) {
-            oct[reader->u1()](this);
+        static bool hmm = false;
+        while (reader->index < code_length) {
+            uint8_t oc = reader->u1();
+            if (hmm) { Printlog(itoa(oc, "   ", 16)); }
+            oct[oc](this);
         }
+        hmm = true;
     }
 
 }

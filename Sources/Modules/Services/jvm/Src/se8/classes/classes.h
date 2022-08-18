@@ -2,11 +2,10 @@
 
 #include "class.h"
 
-#include <kot/utils/map.h>
-
 namespace SE8 {
 
     class Class;
+    class JavaVM;
 
     class Classes {
     private:
@@ -16,8 +15,10 @@ namespace SE8 {
         Class* getClass(char* name);
         Method* getMethod(char* className, char* methodName, char* descriptor);
         Method* getStaticMethod(char* className, char* methodName, char* descriptor);
+        void setStaticField(char* className, char* fieldName, Value* value);
+        Value* getStaticField(char* className, char* fieldName);
         void loadClassBytes(uintptr_t bytes);
-        void clinit();
+        void clinit(JavaVM* jvm);
     };
 
 }

@@ -2,7 +2,7 @@
 
 namespace SE8 {
 
-    JVM::JVM() {
+    JavaVM::JavaVM() {
         this->classes = new Classes();
         this->threads = new Threads();
         if (isOpCodeTableNotInit()) {
@@ -10,19 +10,20 @@ namespace SE8 {
         }
     }
 
-    Classes* JVM::getClasses() {
+    Classes* JavaVM::getClasses() {
         return this->classes;
     }
 
-    Threads* JVM::getThreads() {
+    Threads* JavaVM::getThreads() {
         return this->threads;
     }
 
-    void JVM::run() {
-        this->classes->clinit();
+    void JavaVM::run(Value* args, uint32_t args_length) {
+        this->classes->clinit(this);
+        this->classes->getClass(this->entryPoint)->getEntryPoint(this)->run(args, args_length);
     }
 
-    void JVM::setEntryPoint(char* entryPoint) {
+    void JavaVM::setEntryPoint(char* entryPoint) {
         this->entryPoint = entryPoint;
     }
 

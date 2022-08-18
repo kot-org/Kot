@@ -9,20 +9,23 @@
 
 namespace SE8 {
 
-    class JVM;
-
+    class JavaVM;
     class Class;
+    class Locals;
+    class Stack;
 
     struct Frame {
         uint64_t pid;
         uint64_t code_length;
+        uintptr_t* constant_pool;
         Stack* stack;
         Locals* locals;
-        Class* currentClass;
         Method* currentMethod;
         Reader* reader;
+        Value* returnValue;
+        JavaVM* jvm;
         bool widened;
-        void init(Class* cl, Method* method);
+        void init(JavaVM* jvm, Class* cl, Method* method);
         void run(Value* args, uint32_t args_length);
     };
 

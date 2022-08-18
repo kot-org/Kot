@@ -1,11 +1,21 @@
-#pragma once
+
+
+    
+
+    
+
+    
+
+    #pragma once
 
 #include <kot/heap.h>
 #include <kot/cstring.h>
-
+#include <kot/utils/map.h>
 #include "../utils/reader.h"
 
 namespace SE8 {
+
+    class JavaVM;
     
     enum Types : uint8_t {
         Null = 0,
@@ -18,6 +28,7 @@ namespace SE8 {
         Char = 7,
         Byte = 8,
         ArrayRef = 9,
+        ObjectRef = 10,
     };
 
     enum ArrayTypes : uint8_t {
@@ -36,7 +47,7 @@ namespace SE8 {
         uint8_t bytes[];
     };
 
-    enum ConstantPoolTags {
+    enum ConstantPoolTags : uint8_t {
         CONSTANT_Class = 7,
         CONSTANT_Fieldref = 9,
         CONSTANT_Methodref = 10,
@@ -593,9 +604,12 @@ namespace SE8 {
             case SE8::Long:
             case SE8::Double:
             case SE8::ArrayRef:
+            case SE8::ObjectRef:
                 return 8;
         }
     }
+
+    #define SE8_VALUE_SIZE 9
 
     inline bool AF_check(uint16_t flags, AccessFlags flag) {
         return ((flags & flag) == flag);
@@ -610,3 +624,6 @@ namespace SE8 {
     }
 
 }
+
+#include "threads/threads.h"
+#include "classes/classes.h"

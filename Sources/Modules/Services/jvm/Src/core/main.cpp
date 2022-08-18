@@ -4,11 +4,10 @@ extern "C" int main(int argc, char* argv[], void* _, uintptr_t testClassBuffer) 
 
     Printlog("[JavaVM] Initialization ...");
 
-    SE8::JVM* jvm = new SE8::JVM();
+    SE8::JavaVM* jvm = new SE8::JavaVM();
     jvm->getClasses()->loadClassBytes(testClassBuffer);
     jvm->setEntryPoint("Test");
-
-    jvm->run();
+    jvm->run(NULL, 0);
 
     Printlog("[JavaVM] Application initialized successfully");
  

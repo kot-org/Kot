@@ -4,6 +4,7 @@ namespace SE8 {
 
     Classes::Classes() {
         areas = map_create();
+        //map_set(areas, "java/lang/System", new Class());
     }
 
     void Classes::loadClassBytes(uintptr_t bytes) {
@@ -27,18 +28,26 @@ namespace SE8 {
         return cl->getStaticMethod(methodName, descriptor);
     }
 
-    void Classes::clinit() {
+    void Classes::clinit(JavaVM* jvm) {
         for (uint64_t i = 0; i < areas->length; i++) {
             Class* cl = (Class*) map_geti(areas, i);
             if (cl != NULL) {
                 Method* method = cl->getStaticMethod("<clinit>", "()V");
                 if (method != NULL) {
                     Frame* frame = (Frame*) malloc(sizeof(Frame));
-                    frame->init(cl, method);
+                    frame->init(jvm, cl, method);
                     frame->run(NULL, 0);
                 }
             }
         }
+    }
+
+    void Classes::setStaticField(char* className, char* fieldName, Value* value) {
+        getClass(className)->setStaticField(fieldName, value);
+    }
+
+    Value* Classes::getStaticField(char* className, char* fieldName) {
+        return getClass(className)->getStaticField(fieldName);
     }
 
 }

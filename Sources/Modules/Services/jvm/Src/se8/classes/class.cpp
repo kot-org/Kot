@@ -259,10 +259,17 @@ namespace SE8 {
         fields_count = reader->u2B();
         fields = (FieldInfo**) malloc(sizeof(FieldInfo*)*fields_count);
 
+        runtime_static_fields = map_create();
+
         for (uint16_t i = 0; i < fields_count; i++) {
             fields[i] = (FieldInfo*) malloc(sizeof(FieldInfo));
             fields[i]->access_flags = reader->u2B();
             fields[i]->name_index = reader->u2B();
+            if (AF_isStatic(fields[i]->access_flags)) {
+                char* name = (char*) ((Constant_Utf8*) constant_pool[fields[i]->name_index])->bytes;
+                Value* f = (Value*) malloc(SE8_VALUE_SIZE);
+                map_set(runtime_static_fields, name, f);
+            }
             fields[i]->descriptor_index = reader->u2B();
             fields[i]->attributes_count = reader->u2B();
             fields[i]->attributes = parseAttributes(attributes_count, reader);
@@ -346,13 +353,13 @@ namespace SE8 {
         return NULL;
     }
 
-    Frame* Class::getEntryPoint() {
+    Frame* Class::getEntryPoint(JavaVM* jvm) {
         for (uint16_t i = 0; i < methods_count; i++) {
             Method* method = methods[i];
             if (AF_isStatic(method->access_flags) && AF_isPublic(method->access_flags)) {
                 if (strcmp((char*)((Constant_Utf8*)constant_pool[method->name_index])->bytes, "main")) {
                     Frame* frame = (Frame*) malloc(sizeof(Frame));
-                    frame->init(this, method);
+                    frame->init(jvm, this, method);
                     return frame;
                 }
             }
@@ -362,6 +369,14 @@ namespace SE8 {
 
     uintptr_t* Class::getConstantPool() {
         return constant_pool;
+    }
+
+    void Class::setStaticField(char* fieldName, Value* value) {
+        memcpy(map_get(runtime_static_fields, fieldName), value, getTypeSize(value->type)+1);
+    }
+
+    Value* Class::getStaticField(char* fieldName) {
+        return (Value*) map_get(runtime_static_fields, fieldName);
     }
 
 }

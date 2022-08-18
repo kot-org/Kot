@@ -8,14 +8,14 @@ namespace SE8 {
 
     class Classes;
 
-    class JVM {
+    class JavaVM {
     private:
         Classes* classes;
         Threads* threads;
         char* entryPoint;
     public:
-        JVM();
-        void run();
+        JavaVM();
+        void run(Value* args, uint32_t args_length);
         Classes* getClasses();
         Threads* getThreads();
         void setEntryPoint(char* entryPoint);
