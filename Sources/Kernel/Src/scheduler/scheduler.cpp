@@ -148,14 +148,17 @@ KResult ThreadQueu_t::SetThreadInQueu(kthread_t* Caller, kthread_t* Self, argume
 }
 
 KResult ThreadQueu_t::ExecuteThreadInQueu(){
-    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
-    if(CurrentData->Data){
-        CurrentData->Task->ShareDataUsingStackSpace(CurrentData->Data->Data, CurrentData->Data->Size, &CurrentData->Parameters.arg[CurrentData->Data->ParameterPosition]);
-        free(CurrentData->Data->Data);
-        free(CurrentData->Data);
+    if(TasksInQueu){
+        Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
+        if(CurrentData->Data){
+            CurrentData->Task->ShareDataUsingStackSpace(CurrentData->Data->Data, CurrentData->Data->Size, &CurrentData->Parameters.arg[CurrentData->Data->ParameterPosition]);
+            free(CurrentData->Data->Data);
+            free(CurrentData->Data);
+        }
+        CurrentData->Task->LaunchWithoutLock(&CurrentData->Parameters);
+        Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
     }
-    CurrentData->Task->LaunchWithoutLock(&CurrentData->Parameters);
-    Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
+
     return KSUCCESS;
 }
 
@@ -230,11 +233,13 @@ uint64_t TaskManager::Unpause(kthread_t* task){
 } 
 
 uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* task){    
-    Atomic::atomicAcquire(&MutexScheduler, 0);
+    Atomic::atomicAcquire(&task->Queu->Lock, 0);
     if((task->Queu->TasksInQueu - 1)){
         task->Close(Registers, CoreID);
     }
+    Atomic::atomicUnlock(&task->Queu->Lock, 0);
 
+    Atomic::atomicAcquire(&MutexScheduler, 0);
     if(task->IsEvent){
         // Clear event
     }
