@@ -28,7 +28,7 @@ void playMusic() {
 extern "C" int main(int argc, char* argv[]) {
     Printlog("[PCSPK] Initialization ...");
 
-    playSound(1000);
+    // playSound(1000);
 
     Printlog("[PCSPK] Driver initialized successfully");
  
