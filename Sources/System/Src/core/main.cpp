@@ -41,7 +41,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
         char* app;
         char** ServicesInfo = strsplit(BufferInitFile, "\n");
 
-        parameters_t* InitParameters = (parameters_t*) calloc(sizeof(parameters_t));
+        arguments_t* InitParameters = (arguments_t*)calloc(sizeof(arguments_t));
 
         for (uint64_t i = 0; ServicesInfo[i] != NULL; i++) {
             char** ServiceInfo = strsplit(ServicesInfo[i], ", ");
@@ -58,13 +58,13 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
 
                 char** Parameters = (char**) calloc(sizeof(char*));
 
-                InitParameters->Arg0 = 1;
+                InitParameters->arg[0] = 1;
                 ShareString(thread, ServiceInfo[0], (uint64_t*) &Parameters[0]);
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t) Parameters, sizeof(char*), &InitParameters->Arg1);
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t) &kernelInfo->framebuffer, sizeof(framebuffer_t), &InitParameters->Arg2);
-                SYS_ShareDataUsingStackSpace(thread, (uint64_t) testClassBuffer, testClass->size + 1, &InitParameters->Arg3);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t) Parameters, sizeof(char*), &InitParameters->arg[1]);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t) &kernelInfo->framebuffer, sizeof(framebuffer_t), &InitParameters->arg[2]);
+                SYS_ShareDataUsingStackSpace(thread, (uint64_t) testClassBuffer, testClass->size + 1, &InitParameters->arg[3]);
     
-                Sys_Execthread(thread, InitParameters);
+                Sys_Execthread(thread, InitParameters, ExecutionTypeQueu, NULL);
             
             }     
             freeSplit(ServiceInfo);

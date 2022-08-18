@@ -95,18 +95,6 @@ KResult Sys_ShareDataUsingStackSpace(SyscallStack* Registers, kthread_t* thread)
     return globalTaskManager->ShareDataUsingStackSpace(threadkey, (uintptr_t)Registers->arg1, Registers->arg2, (uint64_t*)Registers->arg3);
 }
 
-/* Sys_IPC :
-    Arguments : 
-*/
-KResult Sys_IPC(SyscallStack* Registers, kthread_t* thread){
-    kthread_t* threadkey;
-    uint64_t flags;
-    if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsExecutableAsIPC)) return KKEYVIOLATION;
-    if(CheckAddress((uintptr_t)Registers->arg1, sizeof(parameters_t)) != KSUCCESS) return KMEMORYVIOLATION;
-    return thread->IPC((ContextStack*)Registers, thread->CoreID, threadkey, (parameters_t*)Registers->arg1, (bool)Registers->arg2);
-}
-
 /* Sys_CreateProc :
     Arguments : 
 */
@@ -136,8 +124,12 @@ KResult Sys_Exit(SyscallStack* Registers, kthread_t* thread){
         if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
         if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsExitable)) return KKEYVIOLATION;
     }
-
-    return globalTaskManager->Exit((ContextStack*)Registers, thread->CoreID, threadkey);
+    CPU::DisableInterrupts();
+    globalTaskManager->IsSchedulerEnable[thread->CoreID] = false;
+    CPU::EnableInterrupts();
+    KResult statu = globalTaskManager->Exit((ContextStack*)Registers, thread->CoreID, threadkey);
+    globalTaskManager->IsSchedulerEnable[thread->CoreID] = true;
+    return statu;
 }
 
 /* Sys_Pause :
@@ -148,7 +140,12 @@ KResult Sys_Pause(SyscallStack* Registers, kthread_t* thread){
     uint64_t flags;
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsPauseable)) return KKEYVIOLATION;
-    return globalTaskManager->Pause((ContextStack*)Registers, thread->CoreID, threadkey);;
+    CPU::DisableInterrupts();
+    globalTaskManager->IsSchedulerEnable[thread->CoreID] = false;
+    CPU::EnableInterrupts();
+    KResult statu = globalTaskManager->Pause((ContextStack*)Registers, thread->CoreID, threadkey);
+    globalTaskManager->IsSchedulerEnable[thread->CoreID] = true;
+    return statu;
     /* No return */
 }
 
@@ -339,8 +336,8 @@ KResult Sys_Event_Trigger(SyscallStack* Registers, kthread_t* thread){
     event_t* event; 
     uint64_t flags;
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
-    if(CheckAddress((uintptr_t)Registers->arg1, sizeof(parameters_t))) return KMEMORYVIOLATION;
-    return Event::Trigger(thread, event, (parameters_t*)Registers->arg1);
+    if(CheckAddress((uintptr_t)Registers->arg1, sizeof(arguments_t))) return KMEMORYVIOLATION;
+    return Event::Trigger(thread, event, (arguments_t*)Registers->arg1);
 }
 
 /* Sys_Event_Close :
@@ -382,15 +379,38 @@ KResult Sys_DuplicateThread(SyscallStack* Registers, kthread_t* thread){
     Arguments : 
 */
 KResult Sys_ExecThread(SyscallStack* Registers, kthread_t* thread){
-    /* TODO : redirect ICWP thread */
     kthread_t* threadkey;
     uint64_t flags;
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsExecutable)) return KKEYVIOLATION;
-    if(Registers->arg1 != NULL){
-        if(CheckAddress((uintptr_t)Registers->arg1, sizeof(parameters_t)) != KSUCCESS) return KMEMORYVIOLATION;    
+    enum ExecutionType Type = (enum ExecutionType)Registers->arg2;
+    if(Type > 0x3){
+        return KFAIL;
     }
-    return globalTaskManager->Execthread(threadkey, (parameters_t*)Registers->arg1);
+    if(Type == ExecutionTypeQueu || Type == ExecutionTypeQueuAwait){
+        if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsExecutableWithQueue)){
+            return KKEYVIOLATION;
+        }
+    }
+    if(Type == ExecutionTypeOneshot || Type == ExecutionTypeOneshotAwait){
+        if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsExecutableOneshot)){
+            return KKEYVIOLATION;
+        }
+    }
+
+    if(Registers->arg1 != NULL){
+        if(CheckAddress((uintptr_t)Registers->arg1, sizeof(arguments_t)) != KSUCCESS) return KMEMORYVIOLATION;    
+    }
+    ThreadShareData_t* Data = (ThreadShareData_t*)Registers->arg3;
+    if(Data != NULL){
+        if(CheckAddress((uintptr_t)Data, sizeof(ThreadShareData_t)) != KSUCCESS) return KMEMORYVIOLATION;    
+        if(CheckAddress((uintptr_t)Data->Data, Data->Size) != KSUCCESS) return KMEMORYVIOLATION;    
+    }
+    CPU::DisableInterrupts();
+    globalTaskManager->IsSchedulerEnable[thread->CoreID] = false;
+    CPU::EnableInterrupts();
+    KResult statu = globalTaskManager->Execthread(thread, threadkey, Type, (arguments_t*)Registers->arg1, Data, (ContextStack*)Registers, thread->CoreID);
+    globalTaskManager->IsSchedulerEnable[thread->CoreID] = true;
+    return statu;
 }
 
 /* Sys_Keyhole_CloneModify :
@@ -449,7 +469,6 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_FreeMemoryField] = Sys_FreeMemoryField,
     [KSys_GetTypeMemoryField] = Sys_GetInfoMemoryField,
     [KSys_ShareDataUsingStackSpace] = Sys_ShareDataUsingStackSpace,
-    [KSys_IPC] = Sys_IPC,
     [KSys_CreateProc] = Sys_CreateProc,
     [KSys_CloseProc] = Sys_CloseProc,
     [KSys_Exit] = Sys_Exit,

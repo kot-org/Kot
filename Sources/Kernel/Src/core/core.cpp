@@ -12,9 +12,11 @@ extern "C" void main(uintptr_t boot){
         ramfs::Read(InitFile, BufferInitFile);
         kthread_t* mainthread;
         ELF::loadElf(BufferInitFile, PriviledgeDriver, &mainthread);
-        parameters_t* InitParameters = (parameters_t*)malloc(sizeof(parameters_t));
-        SendDataToStartService(ArchInfo, mainthread, InitParameters);
-        mainthread->Launch(InitParameters);
+        arguments_t* InitParameters = (arguments_t*)malloc(sizeof(arguments_t));
+        ThreadShareData_t DataInfo;
+        GetDataToStartService(ArchInfo, mainthread, InitParameters, &DataInfo.Data, &DataInfo.Size);
+        DataInfo.ParameterPosition = 0x0; 
+        globalTaskManager->Execthread(mainthread, mainthread, ExecutionTypeQueu, InitParameters, &DataInfo, NULL, NULL);
         free(InitParameters);
     }else{
         Error("Can't load initialization file");

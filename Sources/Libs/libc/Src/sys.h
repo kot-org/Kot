@@ -23,7 +23,7 @@ struct KotSpecificData_t{
     uint64_t MMapPageSize;
     /* Heap */
     uint64_t HeapLocation;
-    /* IPC */
+    /* UISD */
     thread UISDHandler;
     /* FreeMemorySpace */
     uintptr_t FreeMemorySpace;
@@ -63,6 +63,19 @@ enum MemoryFieldType{
     MemoryFieldTypeSendSpaceRO  = 0x3,
 };
 
+enum ExecutionType{
+    ExecutionTypeQueu           = 0x0,
+    ExecutionTypeQueuAwait      = 0x1,
+    ExecutionTypeOneshot        = 0x2,
+    ExecutionTypeOneshotAwait   = 0x3,
+};
+
+struct ShareDataWithArguments_t{
+    size_t Size;
+    uintptr_t Data;
+    uint8_t ParameterPosition;
+};
+
 uint64_t DoSyscall(uint64_t syscall, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);
 
 
@@ -71,7 +84,6 @@ KResult Sys_AcceptMemoryField(process_t self, ksmem_t key, uintptr_t* virtualAdd
 KResult Sys_FreeMemoryField(process_t self, ksmem_t key, uintptr_t address);
 KResult Sys_GetInfoMemoryField(ksmem_t key, uint64_t* typePointer, size_t* sizePointer);
 KResult SYS_ShareDataUsingStackSpace(thread self, uint64_t address, size_t size, uint64_t* clientAddress);
-KResult Sys_IPC(thread task, struct parameters_t* param, bool IsAsync);
 KResult Sys_CreateProc(process_t* key, enum Priviledge privilege, uint64_t data);
 KResult Sys_Fork(process_t* src, process_t* dst);
 KResult Sys_CloseProc();
@@ -83,11 +95,11 @@ KResult SYS_Unmap(process_t self, uintptr_t addressVirtual, size_t size);
 KResult Sys_Event_Create(kevent_t* self);
 KResult Sys_Event_Bind(kevent_t self, thread task, uint8_t vector, bool IgnoreMissedEvents);
 KResult Sys_Event_Unbind(kevent_t self, thread task, uint8_t vector);
-KResult Sys_Event_Trigger(kevent_t self, struct parameters_t* parameters);
+KResult Sys_Event_Trigger(kevent_t self, struct arguments_t* parameters);
 KResult Sys_Event_Close();
 KResult Sys_Createthread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t data, thread* result);
 KResult Sys_Duplicatethread(process_t parent, thread source, uint64_t data, thread* self);
-KResult Sys_Execthread(thread self, struct parameters_t* parameters);
+KResult Sys_Execthread(thread self, struct arguments_t* parameters, enum ExecutionType type, struct ShareDataWithArguments_t* data);
 KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, process_t target, uint64_t flags);
 KResult Sys_Keyhole_Verify(key_t self, enum DataType type, process_t* target, uint64_t* flags);
 KResult Sys_Logs(char* message, size_t size);

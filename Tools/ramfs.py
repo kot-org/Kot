@@ -59,6 +59,7 @@ for i in range(FileCount):
 
 print(InitFilePos)
 if InitFileFound != 1:
+    InitFilePos = 0
     print("Warning : no start file found\n")
 
 InitializeFileSystem(OuputFile, FileCount, InitFilePos)

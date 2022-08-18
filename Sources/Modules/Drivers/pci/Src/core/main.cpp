@@ -82,6 +82,9 @@ uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
         strcat(buffer, " ProgIF: 0x");
         itoa(((PCIHeader0*)Header)->Header.ProgIF, buffernum, 16);
         strcat(buffer, buffernum);
+        strcat(buffer, " Bar0: 0x");
+        itoa(((PCIHeader0*)Header)->BAR[0], buffernum, 16);
+        strcat(buffer, buffernum);
         Printlog(buffer);
         break;
     case 0x1:

@@ -6,7 +6,7 @@ uint8_t IDTData[PAGE_SIZE];
 
 event_t* InterruptEventList[MAX_IRQ];
 
-parameters_t* InterruptParameters;
+arguments_t* InterruptParameters;
 
 char* ExceptionList[32] = {
     "DivisionByZero",
@@ -49,7 +49,7 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
     }
 
     /* init interrupts */
-    InterruptParameters = (parameters_t*)malloc(sizeof(parameters_t));
+    InterruptParameters = (arguments_t*)malloc(sizeof(arguments_t));
 
     for(int i = 0; i < ArchInfo->IRQSize; i++){
         SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);
@@ -91,7 +91,7 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
     }else{
         // Other IRQ & IVT
         globalTaskManager->IsSchedulerEnable[CoreID] = false;
-        InterruptParameters->Arg0 = Registers->InterruptNumber;
+        InterruptParameters->arg[0] = Registers->InterruptNumber;
         Event::Trigger((kthread_t*)0x0, InterruptEventList[Registers->InterruptNumber], InterruptParameters);
         globalTaskManager->IsSchedulerEnable[CoreID] = true;
     }

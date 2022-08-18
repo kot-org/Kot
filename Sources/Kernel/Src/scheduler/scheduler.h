@@ -32,18 +32,29 @@ struct StackInfo{
     uint64_t StackEndMax;
 }__attribute__((packed));
 
-struct IPCInfo_t{
-    bool IsAsync;
-    uint64_t TasksInQueu;
+struct ThreadQueu_t{
     uint64_t Lock;
-    struct IPCData_t* CurrentData;
-    struct IPCData_t* LastData;
+    uint64_t TasksInQueu; /* The queued task includes the running task */
+    struct ThreadQueuData_t* CurrentData;
+    struct ThreadQueuData_t* LastData;
+    KResult SetThreadInQueu(kthread_t* Caller, kthread_t* Self, arguments_t* FunctionParameters, bool IsAwaitTask, struct ThreadShareData_t* Data);
+    KResult ExecuteThreadInQueu();
+    KResult NextThreadInQueu();
 }__attribute__((packed));
 
-struct IPCData_t{
-    kthread_t* thread; // thread laucnh when ipc task is finished
-    parameters_t Parameters;
-    IPCData_t* Next;
+struct ThreadQueuData_t{
+    kthread_t* Task;
+    arguments_t Parameters;
+    struct ThreadShareData_t* Data;
+    bool IsAwaitTask;
+    kthread_t* AwaitTask;
+    ThreadQueuData_t* Next;
+}__attribute__((packed));
+
+struct ThreadShareData_t{
+    size_t Size;
+    uintptr_t Data;
+    uint8_t ParameterPosition;
 }__attribute__((packed));
 
 
@@ -120,9 +131,8 @@ struct kthread_t{
     kprocess_t* Parent;
     Node* threadNode;
     
-    /* IPC inter processus communication with threads */
-    bool IsIPC;
-    IPCInfo_t* IPCInfo;
+    /* Queu */
+    ThreadQueu_t* Queu;
 
     /* Event */
     bool IsEvent;
@@ -141,7 +151,7 @@ struct kthread_t{
     void SaveContext(struct ContextStack* Registers);
     void CreateContext(struct ContextStack* Registers, uint64_t CoreID);
 
-    void SetParameters(parameters_t* FunctionParameters);
+    void SetParameters(arguments_t* FunctionParameters);
 
     void SetupStack();
     void CopyStack(kthread_t* source);
@@ -149,12 +159,14 @@ struct kthread_t{
     bool ExtendStack(uint64_t address, size_t size);
     KResult ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t* location);
 
-    bool IPC(struct ContextStack* Registers, uint64_t CoreID, kthread_t* thread, parameters_t* FunctionParameters, bool IsAsync);
+    bool IPC(struct ContextStack* Registers, uint64_t CoreID, kthread_t* thread, arguments_t* FunctionParameters, bool IsAsync);
 
-    bool Launch(parameters_t* FunctionParameters);  
+    bool LaunchWithoutLock(arguments_t* FunctionParameters);  
+    bool Launch(arguments_t* FunctionParameters);  
+    bool LaunchWithoutLock();  
     bool Launch();  
     bool Pause(ContextStack* Registers, uint64_t CoreID);   
-    bool Exit(ContextStack* Registers, uint64_t CoreID);
+    KResult Close(ContextStack* Registers, uint64_t CoreID);
 }__attribute__((packed));  
 
 class TaskManager{
@@ -172,7 +184,7 @@ class TaskManager{
         uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint64_t externalData);
         uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint8_t privilege, uint64_t externalData);
         uint64_t Duplicatethread(kthread_t** self, kprocess_t* proc, kthread_t* source, uint64_t externalData);
-        uint64_t Execthread(kthread_t* self, parameters_t* FunctionParameters);
+        KResult Execthread(kthread_t* Caller, kthread_t* Self, enum ExecutionType Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers, uint64_t CoreID);
         uint64_t Pause(ContextStack* Registers, uint64_t CoreID, kthread_t* task); 
         uint64_t Unpause(kthread_t* task); 
         uint64_t Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* task); 

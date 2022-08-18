@@ -93,7 +93,7 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     return ArchInfo;
 }
 
-KResult SendDataToStartService(ArchInfo_t* ArchInfo, kthread_t* thread, parameters_t* Parameters){
+KResult GetDataToStartService(ArchInfo_t* ArchInfo, kthread_t* thread, arguments_t* Parameters, uintptr_t* Data, size_t* Size){
     KResult Statu = KFAIL;
     ArchInfo->IRQEvents = (kevent_t*)calloc(ArchInfo->IRQSize * sizeof(kevent_t));
     for(uint64_t i = 0; i < ArchInfo->IRQSize; i++){
@@ -102,7 +102,8 @@ KResult SendDataToStartService(ArchInfo_t* ArchInfo, kthread_t* thread, paramete
             if(Statu != KSUCCESS) return Statu;
         }
     }
-    Statu = thread->ShareDataUsingStackSpace(ArchInfo, sizeof(ArchInfo_t), &Parameters->Arg0);
+    *Data = ArchInfo;
+    *Size = sizeof(ArchInfo_t);
     return Statu;
 }
 
