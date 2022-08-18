@@ -112,16 +112,99 @@ uint64_t TaskManager::Duplicatethread(kthread_t** self, kprocess_t* proc, kthrea
     return KSUCCESS;
 }
 
-uint64_t TaskManager::Execthread(kthread_t* self, parameters_t* FunctionParameters){
-    Atomic::atomicAcquire(&MutexScheduler, 0);
-    if(self->IsBlock){
-        Atomic::atomicUnlock(&MutexScheduler, 0);
-        self->Launch(FunctionParameters);
-        return KSUCCESS;
+KResult ThreadQueu_t::SetThreadInQueu(kthread_t* Caller, kthread_t* Self, arguments_t* FunctionParameters, bool IsAwaitTask, ThreadShareData_t* Data){
+    LastData = LastData->Next;
+    LastData->Next = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
+    LastData->IsAwaitTask = IsAwaitTask;
+    LastData->Data = NULL;
+    LastData->Task = Self;
+    if(FunctionParameters != NULL){
+        if(Data != NULL){
+            LastData->Data = (ThreadShareData_t*)malloc(sizeof(ThreadShareData_t));
+            LastData->Data->Size = Data->Size;
+            LastData->Data->ParameterPosition = Data->ParameterPosition;
+            LastData->Data->Data = malloc(Data->Size);
+            memcpy(LastData->Data->Data, Data->Data, Data->Size);
+            if(LastData->Data->ParameterPosition > 0x5){
+                LastData->Data->ParameterPosition = 0x0;
+            }
+        }
+        memcpy(&LastData->Parameters, FunctionParameters, sizeof(arguments_t));
     }else{
-        Atomic::atomicUnlock(&MutexScheduler, 0);
-        return KFAIL;
+        memset(&LastData->Parameters, 0, sizeof(arguments_t));
     }
+
+    if(IsAwaitTask){
+        LastData->AwaitTask = Caller;
+    }
+
+    TasksInQueu++;
+    
+    if(!(TasksInQueu - 1)){
+        CurrentData = LastData;
+        ExecuteThreadInQueu();
+    }
+    return KSUCCESS;
+}
+
+KResult ThreadQueu_t::ExecuteThreadInQueu(){
+    if(TasksInQueu){
+        Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
+        if(CurrentData->Data){
+            CurrentData->Task->ShareDataUsingStackSpace(CurrentData->Data->Data, CurrentData->Data->Size, &CurrentData->Parameters.arg[CurrentData->Data->ParameterPosition]);
+            free(CurrentData->Data->Data);
+            free(CurrentData->Data);
+        }
+        CurrentData->Task->LaunchWithoutLock(&CurrentData->Parameters);
+        Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
+    }
+
+    return KSUCCESS;
+}
+
+KResult ThreadQueu_t::NextThreadInQueu(){
+    ThreadQueuData_t* CurrentDataOld = CurrentData;
+    CurrentData = CurrentData->Next;
+    free(CurrentDataOld);
+    TasksInQueu--;
+    return KSUCCESS;
+}
+
+KResult TaskManager::Execthread(kthread_t* Caller, kthread_t* Self, enum ExecutionType Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers, uint64_t CoreID){
+    ThreadQueu_t* queu = Self->Queu;
+    Atomic::atomicAcquire(&queu->Lock, 0);
+    switch (Type){
+        case ExecutionTypeQueu:{
+            queu->SetThreadInQueu(Caller, Self, FunctionParameters, false, Data);
+            break;
+        }        
+        case ExecutionTypeQueuAwait:{
+            queu->SetThreadInQueu(Caller, Self, FunctionParameters, true, Data);
+            Atomic::atomicUnlock(&queu->Lock, 0);
+            Caller->Pause(Registers, CoreID);
+            break;
+        }        
+        case ExecutionTypeOneshot:{
+            if(!queu->TasksInQueu){
+                queu->SetThreadInQueu(Caller, Self, FunctionParameters, false, Data);
+            }else{
+                return KFAIL;
+            }
+            break;
+        }        
+        case ExecutionTypeOneshotAwait:{
+            if(!queu->TasksInQueu){
+                queu->SetThreadInQueu(Caller, Self, FunctionParameters, true, Data);
+                Atomic::atomicUnlock(&queu->Lock, 0);
+                Caller->Pause(Registers, CoreID);
+            }else{
+                return KFAIL;
+            }
+            break;
+        }        
+    }
+    Atomic::atomicUnlock(&queu->Lock, 0);
+    return KSUCCESS;
 }
 
 uint64_t TaskManager::Pause(ContextStack* Registers, uint64_t CoreID, kthread_t* task){
@@ -150,49 +233,14 @@ uint64_t TaskManager::Unpause(kthread_t* task){
 } 
 
 uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* task){    
-    Atomic::atomicAcquire(&MutexScheduler, 0);
-    if(task->IsIPC){
-        Atomic::atomicAcquire(&task->EventLock, 0);
-        IPCData_t* Current = task->IPCInfo->CurrentData;
-        if(!task->IPCInfo->IsAsync){
-            task->Regs->rsp = (uint64_t)StackTop;
-            task->Regs->rip = (uint64_t)task->EntryPoint;
-            task->Regs->cs = Registers->threadInfo->CS;
-            task->Regs->ss = Registers->threadInfo->SS;
-
-            if(task->IPCInfo->TasksInQueu){
-                IPCData_t* Next = task->IPCInfo->CurrentData->Next;
-                Registers->rsp = (uint64_t)StackTop;
-                Registers->rip = (uint64_t)task->Regs->rip;
-
-                free(task->IPCInfo->CurrentData);
-                task->IPCInfo->CurrentData = Next;
-                task->IPCInfo->TasksInQueu--;
-                Current->thread->Regs->GlobalPurpose = Registers->GlobalPurpose;
-                Atomic::atomicUnlock(&MutexScheduler, 0);
-                Atomic::atomicUnlock(&task->EventLock, 0);
-                Unpause(Current->thread); 
-            }else{
-                Current->thread->Regs->GlobalPurpose = Registers->GlobalPurpose;
-                
-                globalTaskManager->threadExecutePerCore[task->CoreID] = NULL;
-                task->IsExit = true;
-                task->IsBlock = true;
-                Atomic::atomicUnlock(&MutexScheduler, 0);
-                Atomic::atomicUnlock(&task->EventLock, 0);
-                Unpause(Current->thread); 
-                ForceSchedule();
-            }
-        }else{
-            Current->thread->Regs->GlobalPurpose = Registers->GlobalPurpose;
-            Atomic::atomicUnlock(&MutexScheduler, 0);
-            Atomic::atomicUnlock(&task->EventLock, 0);       
-            Unpause(Current->thread);     
-            return KSUCCESS;
-        }
+    Atomic::atomicAcquire(&task->Queu->Lock, 0);
+    if((task->Queu->TasksInQueu - 1)){
+        task->Close(Registers, CoreID);
+        return KSUCCESS;
     }
+    Atomic::atomicUnlock(&task->Queu->Lock, 0);
 
-
+    Atomic::atomicAcquire(&MutexScheduler, 0);
     if(task->IsEvent){
         // Clear event
     }
@@ -209,13 +257,13 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* 
         DequeueTask(task);
         Atomic::atomicUnlock(&MutexScheduler, 0);
     }else{
-        globalTaskManager->threadExecutePerCore[task->CoreID] = NULL;
         Atomic::atomicUnlock(&MutexScheduler, 0);
+        globalTaskManager->threadExecutePerCore[task->CoreID] = NULL;
+        globalTaskManager->IsSchedulerEnable[task->CoreID] = true;
         ForceSchedule();
 
         /* noreturn */
     }
-
 
     return KSUCCESS;
 }
@@ -312,10 +360,10 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, uint8_t priviledge, ui
     thread->IsBlock = true;
     thread->IsExit = true;
     thread->Parent = this;
-    thread->IPCInfo = (IPCInfo_t*)malloc(sizeof(IPCInfo_t));
-    thread->IPCInfo->LastData = (IPCData_t*)malloc(sizeof(IPCData_t));
-    thread->IPCInfo->LastData->Next = (IPCData_t*)malloc(sizeof(IPCData_t));
-    thread->IPCInfo->CurrentData = thread->IPCInfo->LastData;    
+    thread->Queu = (ThreadQueu_t*)calloc(sizeof(ThreadQueu_t));
+    thread->Queu->LastData = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
+    thread->Queu->LastData->Next = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
+    thread->Queu->CurrentData = thread->Queu->LastData;    
 
     /* ID */
     thread->TID = TID; 
@@ -382,10 +430,10 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source, uint64_t externalData)
     thread->IsBlock = true;
     thread->IsExit = true;
     thread->Parent = this;
-    thread->IPCInfo = (IPCInfo_t*)calloc(sizeof(IPCInfo_t*));
-    thread->IPCInfo->LastData = (IPCData_t*)malloc(sizeof(IPCData_t));
-    thread->IPCInfo->LastData->Next = (IPCData_t*)malloc(sizeof(IPCData_t));
-    thread->IPCInfo->CurrentData = thread->IPCInfo->LastData;
+    thread->Queu = (ThreadQueu_t*)calloc(sizeof(ThreadQueu_t));
+    thread->Queu->LastData = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
+    thread->Queu->LastData->Next = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
+    thread->Queu->CurrentData = thread->Queu->LastData;  
     
     /* ID */
     thread->TID = TID; 
@@ -498,13 +546,13 @@ void kthread_t::CreateContext(ContextStack* Registers, uint64_t CoreID){
     memcpy(Registers, Regs, sizeof(ContextStack));
 }
 
-void kthread_t::SetParameters(parameters_t* FunctionParameters){
-    Regs->arg0 = FunctionParameters->Arg0;
-    Regs->arg1 = FunctionParameters->Arg1;
-    Regs->arg2 = FunctionParameters->Arg2;
-    Regs->arg3 = FunctionParameters->Arg3;
-    Regs->arg4 = FunctionParameters->Arg4;
-    Regs->arg5 = FunctionParameters->Arg5;
+void kthread_t::SetParameters(arguments_t* FunctionParameters){
+    Regs->arg0 = FunctionParameters->arg[0];
+    Regs->arg1 = FunctionParameters->arg[1];
+    Regs->arg2 = FunctionParameters->arg[2];
+    Regs->arg3 = FunctionParameters->arg[3];
+    Regs->arg4 = FunctionParameters->arg[4];
+    Regs->arg5 = FunctionParameters->arg[5];
 }
 
 void kthread_t::CopyStack(kthread_t* source){
@@ -582,61 +630,32 @@ KResult kthread_t::ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_
     return KFAIL;
 }
 
-bool kthread_t::IPC(ContextStack* Registers, uint64_t CoreID, kthread_t* thread, parameters_t* FunctionParameters, bool IsAsync){
-    if(IsAsync){
-        Atomic::atomicAcquire(&thread->IPCInfo->Lock, 0);
-        kthread_t* child = thread->Parent->Duplicatethread(thread, this->externalData);
-        child->IsIPC = true;
-        child->IPCInfo->CurrentData->thread = this;
-        child->IPCInfo->IsAsync = true;
-
-        child->Launch(FunctionParameters);
-        Atomic::atomicUnlock(&thread->IPCInfo->Lock, 0);
-    }else{
-        Atomic::atomicAcquire(&thread->IPCInfo->Lock, 0);
-        thread->IsIPC = true;
-        thread->IPCInfo->IsAsync = false;
-
-        if(thread->IsExit){
-            thread->IPCInfo->CurrentData->thread = this;
-            thread->Launch(FunctionParameters);
-        }else{
-            thread->IPCInfo->LastData = thread->IPCInfo->LastData->Next;
-            thread->IPCInfo->LastData->Next = (IPCData_t*)malloc(sizeof(IPCData_t));
-            thread->IPCInfo->LastData->thread = this;
-            if(FunctionParameters != NULL){
-                memcpy(&thread->IPCInfo->LastData->Parameters, FunctionParameters, sizeof(parameters_t));
-            }else{
-                memset(&thread->IPCInfo->LastData->Parameters, 0, sizeof(parameters_t));
-            }
-
-            thread->IPCInfo->TasksInQueu++;
-        } 
-        Atomic::atomicUnlock(&thread->IPCInfo->Lock, 0);
-    }
-
-    /* Pause task */
-    Pause(Registers, CoreID);
-
-    /* No return */
-
-    return true;
-}
-
-bool kthread_t::Launch(parameters_t* FunctionParameters){
-    if(FunctionParameters != NULL){
-        SetParameters(FunctionParameters);
-    }
-    Launch();
+bool kthread_t::Launch(arguments_t* FunctionParameters){
+    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
+    LaunchWithoutLock(FunctionParameters);
+    Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
     return true;
 }
 
 bool kthread_t::Launch(){
-    Atomic::atomicAcquire(&Parent->TaskManagerParent->MutexScheduler, 0);
+    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
+    LaunchWithoutLock();
+    Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
+    return true;
+}
+
+bool kthread_t::LaunchWithoutLock(arguments_t* FunctionParameters){
+    if(FunctionParameters != NULL){
+        SetParameters(FunctionParameters);
+    }
+    LaunchWithoutLock();
+    return true;
+}
+
+bool kthread_t::LaunchWithoutLock(){
     IsBlock = false;
     IsExit = false;
     Parent->TaskManagerParent->EnqueueTaskWithoutLock(this);
-    Atomic::atomicUnlock(&Parent->TaskManagerParent->MutexScheduler, 0);
     return true;
 }
 
@@ -650,10 +669,27 @@ bool kthread_t::Pause(ContextStack* Registers, uint64_t CoreID){
     Parent->TaskManagerParent->threadExecutePerCore[CoreID] = NULL;
 
     IsBlock = true;
-
+    globalTaskManager->IsSchedulerEnable[CoreID] = true;
     ForceSchedule();
 
     /* No return */
 
     return true;
+}
+
+KResult kthread_t::Close(ContextStack* Registers, uint64_t CoreID){
+    Regs->rsp = (uint64_t)StackTop;
+    Regs->rip = (uint64_t)EntryPoint;
+    Regs->cs = Registers->threadInfo->CS;
+    Regs->ss = Registers->threadInfo->SS;
+    uint64_t ReturnValue = Registers->GlobalPurpose;
+    ThreadQueuData_t* CurrentDataQueu = Queu->CurrentData;
+    Atomic::atomicAcquire(&Queu->Lock, 0);
+    Queu->NextThreadInQueu();
+    Queu->ExecuteThreadInQueu();
+    Atomic::atomicUnlock(&Queu->Lock, 0);
+    if(CurrentDataQueu->IsAwaitTask){
+        CurrentDataQueu->AwaitTask->Regs->GlobalPurpose = ReturnValue;
+        globalTaskManager->Unpause(CurrentDataQueu->AwaitTask);
+    }
 }

@@ -31,7 +31,7 @@ struct event_data_node_t{
 
 struct event_data_t{
     event_tasks_t* Task;
-    parameters_t Parameters;
+    arguments_t Parameters;
     event_data_t* Next;
 }__attribute__((packed));
 
@@ -55,6 +55,6 @@ namespace Event{
     uint64_t Create(event_t** event, enum EventType Type, uint64_t AdditionnalData);
     uint64_t Bind(struct kthread_t* task, struct event_t* self, bool IgnoreMissedEvents);
     uint64_t Unbind(struct kthread_t* task, struct event_t* self);
-    uint64_t Trigger(struct kthread_t* author, struct event_t* self, parameters_t* parameters);
+    uint64_t Trigger(struct kthread_t* author, struct event_t* self, arguments_t* parameters);
     uint64_t Close(ContextStack* Registers, kthread_t* task);
 }

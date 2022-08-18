@@ -105,7 +105,7 @@ namespace Event{
         return KSUCCESS;
     }
     
-    uint64_t Trigger(kthread_t* author, event_t* self, parameters_t* parameters){
+    uint64_t Trigger(kthread_t* author, event_t* self, arguments_t* parameters){
         if(self == NULL) return KFAIL;
 
         for(size_t i = 0; i < self->NumTask; i++){
@@ -120,9 +120,9 @@ namespace Event{
                     task->DataNode->LastData->Next = (event_data_t*)malloc(sizeof(event_data_t));
                     task->DataNode->LastData->Task = task;
                     if(parameters != NULL){
-                        memcpy(&task->DataNode->LastData->Parameters, parameters, sizeof(parameters_t));
+                        memcpy(&task->DataNode->LastData->Parameters, parameters, sizeof(arguments_t));
                     }else{
-                        memset(&task->DataNode->LastData->Parameters, 0, sizeof(parameters_t));
+                        memset(&task->DataNode->LastData->Parameters, 0, sizeof(arguments_t));
                     }
 
                     task->DataNode->NumberOfMissedEvents++;

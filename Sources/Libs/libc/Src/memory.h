@@ -15,6 +15,7 @@ void memset64(uintptr_t start, uint64_t value, uint64_t num);
 
 int memcmp(const void *aptr, const void *bptr, size_t n);
 void memcpy(uintptr_t destination, uintptr_t source, uint64_t num);
+uintptr_t getFreeAlihnedSpace(size_t size);
 
 #if defined(__cplusplus)
 }

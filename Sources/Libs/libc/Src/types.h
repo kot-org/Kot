@@ -51,13 +51,8 @@ typedef long unsigned int           size_t;
 #define false 0
 #endif
 
-struct parameters_t{
-    uint64_t Arg0;
-    uint64_t Arg1;
-    uint64_t Arg2;
-    uint64_t Arg3;
-    uint64_t Arg4;
-    uint64_t Arg5;
+struct arguments_t{
+    uint64_t arg[6];
 }__attribute__((packed));
 
 #endif

@@ -16,23 +16,11 @@ extern "C" {
 #endif
 
 static inline KResult CreateIPC(char* Name, thread thread){
-    parameters_t Parameters;
-    Parameters.Arg0 = UISDCreateTask;
-    size_t lenght = strlen(Name);
-    if(lenght > 8) lenght = 8;
-    Parameters.Arg1 = *(uint64_t*)Name;
-    Parameters.Arg2 = (uint64_t)thread;
 
-    return Sys_IPC(KotSpecificData.UISDHandler, (parameters_t*)&Parameters, false);
 }
 
 static inline thread CallIPC(char* Name){
-    parameters_t Parameters;
-    Parameters.Arg0 = UISDGetTask;
-    size_t lenght = strlen(Name);
-    if(lenght > 8) lenght = 8;
-    Parameters.Arg1 = *(uint64_t*)Name;
-    return Sys_IPC(KotSpecificData.UISDHandler, (parameters_t*)&Parameters, false);
+
 }
 
 
@@ -50,21 +38,23 @@ typedef struct {
     uint64_t Version;
     uint64_t VendorID;
     enum ControllerTypeEnum Type; 
-    ksmem_t Data;
 } controller_t;
 
 typedef struct {
+    controller_t ControllerHeader;
     thread GetUSBDevice;
     thread SendUSBPacket;
     thread ReceiveUSBPacket;
 } usb_t;
 
 typedef struct {
+    controller_t ControllerHeader;
     thread GetPCIDevice;
     thread SetupMSIX;
 } pci_t;
 
 typedef struct {
+    controller_t ControllerHeader;
     thread GetDiskInfo;
     thread GetPartitionInfo;
 
@@ -76,6 +66,7 @@ typedef struct {
 } storage_t;
 
 typedef struct {
+    controller_t ControllerHeader;
     thread rename;
     thread remove;
     thread fopen;

@@ -22,10 +22,6 @@ KResult SYS_ShareDataUsingStackSpace(thread self, uint64_t address, size_t size,
     return Syscall_32(KSys_ShareDataUsingStackSpace, self, address, size, clientAddress);
 }
 
-KResult Sys_IPC(thread task, struct parameters_t* param, bool IsAsync){
-    return Syscall_24(KSys_IPC, task, param, IsAsync);
-}
-
 KResult Sys_CreateProc(process_t* key, enum Priviledge privilege, uint64_t data){
     return Syscall_24(KSys_CreateProc, key, privilege, data);
 }
@@ -66,7 +62,7 @@ KResult Sys_Event_Unbind(kevent_t self, thread task, uint8_t vector){
     return Syscall_24(KSys_Event_Unbind, self, task, vector);
 }
 
-KResult Sys_Event_Trigger(kevent_t self, struct parameters_t* parameters){
+KResult Sys_Event_Trigger(kevent_t self, struct arguments_t* parameters){
     return Syscall_16(KSys_Event_Trigger, self, parameters);
 }
 
@@ -82,8 +78,8 @@ KResult Sys_Duplicatethread(process_t parent, thread source, uint64_t data, thre
     return Syscall_32(KSys_DuplicateThread, parent, source, data, self);
 }
 
-KResult Sys_Execthread(thread self, struct parameters_t* parameters){
-    return Syscall_16(KSys_ExecThread, self, parameters);
+KResult Sys_Execthread(thread self, struct arguments_t* parameters, enum ExecutionType type, struct ShareDataWithArguments_t* data){
+    return Syscall_32(KSys_ExecThread, self, parameters, type, data);
 }
 
 KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, process_t target, uint64_t flags){

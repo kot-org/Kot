@@ -12,14 +12,17 @@ thread UISDInitialize();
 
 void UISDHandler(uint64_t IPCTask, enum ControllerTypeEnum Controller, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
-struct IPCBlock_t {
-    thread thread;
-    uint64_t EncodedName;
-    struct IPCBlock_t* Next;
+struct controller_info_t {
+    bool IsLoad;
+    uintptr_t Data;
+    ksmem_t DataKey;
+    vector_t* WaitingTask;
 };
 
-struct IPCSaver_t {
-    struct IPCBlock_t* Main;
-    struct IPCBlock_t* Last;
-    uint64_t NumberOfTask;
+struct callback_info_t{
+    enum ControllerTypeEnum Controller;
+    process_t Self;
+    uintptr_t Address;
+    thread Callback; 
+    uint64_t Callbackarg;
 };
