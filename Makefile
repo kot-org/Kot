@@ -5,14 +5,16 @@ QEMUFLAGS =	-no-reboot 				\
 			-machine q35 			\
 			-cpu qemu64 			\
 			-smp 8 					\
-			-cdrom ./Bin/kot.iso	\
-			-m 3G
+			-m 3G					\
+			-drive id=disk,file=Bin/kot.iso,if=none \
+			-device ahci,id=ahci \
+			-device ide-hd,drive=disk,bus=ahci.0
 
 build:
 	sudo bash ./Build/build.sh
 
 run:
-	qemu-system-x86_64 $(QEMUFLAGS)
+	sudo qemu-system-x86_64 $(QEMUFLAGS)
 
 debug:
 	qemu-system-x86_64 $(QEMUFLAGS) -s -S

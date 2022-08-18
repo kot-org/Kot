@@ -3,6 +3,39 @@
 #include <tools/config.h>
 #include <tools/memory.h>
 
+PCIBar* PCIGetBaseAddressRegister(uint32_t deviceAddr) {
+    PCIBar* BaseAddrReg = (PCIBar*) malloc(sizeof(PCIBar));
+    uint32_t bar = PCIRead32(deviceAddr + PCIH0_BAR0_OFFSET);
+
+    if((bar & 0b0111) == 0b0110) { /* 64bits */
+        BaseAddrReg->Type = 0x3;
+        BaseAddrReg->Base = (bar & 0xFFFFFFF0);
+    } else if((bar & 0b0111) == 0b0001) { /* I/O */
+        BaseAddrReg->Type = 0x1;
+        BaseAddrReg->Base = (bar & 0xFFFFFFFC);
+    } else { /* 32bits */
+        BaseAddrReg->Type = 0x2;
+        BaseAddrReg->Base = (bar & 0xFFFFFFF0);
+    }
+
+    PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET, 1);
+
+    BaseAddrReg->Size = PCIRead32(deviceAddr + PCIH0_BAR0_OFFSET);
+
+    PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET, bar);
+
+    char buffer[100], buffernum[20];
+    *buffer = NULL;
+
+    strcat(buffer, "[PCI] Size: 0x");
+    itoa(BaseAddrReg->Size, buffernum, 16);
+    strcat(buffer, buffernum);
+
+    Printlog(buffer);
+
+    return BaseAddrReg;
+}
+
 uint32_t PCIDeviceBaseAddress(uint16_t bus, uint16_t device, uint16_t func){
     /**
      *   -------------------------------------------------------------------------------------------------------------
@@ -22,6 +55,7 @@ uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
     uint8_t HeaderType = PCIRead8(Addr + PCI_HEADER_TYPE_OFFSET);
     HeaderType &= ~(1 << 7);
     uintptr_t Header = NULL;
+    PCIBar* BaseAddrReg;
     
     switch (HeaderType){
         case 0x0:
@@ -29,6 +63,8 @@ uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
             PCIMemcpyToMemory32(Header, Addr, sizeof(PCIHeader0));
             char buffer[100], buffernum[33];
             *buffer = NULL;
+
+            BaseAddrReg = PCIGetBaseAddressRegister(Addr);
 
             strcat(buffer, "[PCI] Vendor: 0x");
             itoa(((PCIHeader0*)Header)->Header.VendorID, buffernum, 16);
@@ -48,6 +84,10 @@ uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
 
             strcat(buffer, " ProgIF: 0x");
             itoa(((PCIHeader0*)Header)->Header.ProgIF, buffernum, 16);
+            strcat(buffer, buffernum);
+
+            strcat(buffer, " Bar0: 0x");
+            itoa(((PCIHeader0*)Header)->BAR[0], buffernum, 16);
             strcat(buffer, buffernum);
 
             Printlog(buffer);
