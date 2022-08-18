@@ -7,7 +7,8 @@ QEMUFLAGS =	-no-reboot 										\
 			-smp 8 											\
 			-cdrom ./Bin/kot.iso							\
 			-m 3G											\
-			-netdev user,id=n0 -device rtl8139,netdev=n0 	
+			-netdev user,id=n0 -device rtl8139,netdev=n0 	\
+			-soundhw pcspk
 
 build:
 	sudo bash ./Build/build.sh
