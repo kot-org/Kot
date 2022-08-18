@@ -236,6 +236,7 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* 
     Atomic::atomicAcquire(&task->Queu->Lock, 0);
     if((task->Queu->TasksInQueu - 1)){
         task->Close(Registers, CoreID);
+        return KSUCCESS;
     }
     Atomic::atomicUnlock(&task->Queu->Lock, 0);
 
