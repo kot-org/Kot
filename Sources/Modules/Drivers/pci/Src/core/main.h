@@ -1,8 +1,5 @@
 #pragma once
 
-#define PCI_CONFIG_ADDR     0xCF8
-#define PCI_CONFIG_DATA     0xCFC
-
 #define PCI_VENDOR_ID_OFFSET 		0x0
 #define PCI_DEVICE_ID_OFFSET 		0x2
 #define PCI_COMMAND_OFFSET 			0x4
@@ -15,6 +12,13 @@
 #define PCI_LATENCY_TIMER_OFFSET 	0xD
 #define PCI_HEADER_TYPE_OFFSET 		0xE
 #define PCI_BIST_OFFSET 			0xF
+
+#define PCIH0_BAR0_OFFSET   0x10
+#define PCIH0_BAR1_OFFSET   0x14
+#define PCIH0_BAR2_OFFSET   0x18
+#define PCIH0_BAR3_OFFSET   0x1C
+#define PCIH0_BAR4_OFFSET   0x20
+#define PCIH0_BAR5_OFFSET   0x24
 
 #include <kot/sys.h>
 #include <kot/arch.h>
@@ -57,3 +61,9 @@ struct PCIHeader1{
     PCIDeviceHeader Header;
     /* TODO */
 }__attribute__((packed));
+
+struct PCIBar{
+    uint32_t Base;
+    uint32_t Size;
+    uint8_t Type;
+};
