@@ -72,6 +72,7 @@ struct kprocess_t{
     uintptr_t Locks;
     uint64_t LockIndex;
     uint64_t LockLimit;
+    key_t ProcessKey;
 
     /* parent */
     Node* NodeParent;

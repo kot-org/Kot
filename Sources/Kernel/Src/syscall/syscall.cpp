@@ -59,6 +59,22 @@ KResult Sys_FreeMemoryField(SyscallStack* Registers, kthread_t* thread){
     return FreeMemoryField(processkey, memoryKey, (uintptr_t)Registers->arg2);    
 }
 
+/* Sys_GetInfoMemoryField :
+    Arguments : 
+*/
+KResult Sys_GetInfoMemoryField(SyscallStack* Registers, kthread_t* thread){
+    MemoryShareInfo* memoryKey;
+    uint64_t flags;
+    if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeSharedMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!CheckAddress((uintptr_t)Registers->arg1, sizeof(uint64_t))) return KMEMORYVIOLATION;
+    if(!CheckAddress((uintptr_t)Registers->arg2, sizeof(uint64_t))) return KMEMORYVIOLATION;
+    uint64_t* TypePointer = (uint64_t*)Registers->arg1;
+    size_t* SizePointer = (size_t*)Registers->arg2;
+    *TypePointer = (uint64_t)memoryKey->Type;
+    *SizePointer = (uint64_t)memoryKey->Size;
+    return KSUCCESS;
+}
+
 /* Sys_ShareDataUsingStackSpace :
     Arguments :
     0 -> thread taget                   > key thread
@@ -394,6 +410,28 @@ KResult Sys_Keyhole_CloneModify(SyscallStack* Registers, kthread_t* thread){
     return Keyhole_CloneModify(thread, (key_t)Registers->arg0, (key_t*)Registers->arg1, processkey, Registers->arg3);
 }
 
+/* Sys_Keyhole_Verify :
+    Arguments : 
+
+*/
+KResult Sys_Keyhole_Verify(SyscallStack* Registers, kthread_t* thread){
+    if(CheckAddress((uintptr_t)Registers->arg2, sizeof(uint64_t)) != KSUCCESS) return KMEMORYVIOLATION;
+    if(CheckAddress((uintptr_t)Registers->arg3, sizeof(uint64_t)) != KSUCCESS) return KMEMORYVIOLATION;
+    key_t key = Registers->arg0;
+    uint64_t Statu = Keyhole_Verify(thread, key, (enum DataType)Registers->arg1);
+    if(Statu != KSUCCESS) return Statu;
+    lock_t* lock = (lock_t*)key;
+    uint64_t* target = (uint64_t*)Registers->arg2;
+    uint64_t* flags = (uint64_t*)Registers->arg3;
+    if(lock->Target == NULL){
+        *target = NULL;
+    }else{
+        *target = lock->Target->ProcessKey;
+    }
+    *flags = lock->Flags;
+    return KSUCCESS;
+}
+
 /* Sys_Logs :
     Arguments : 
     0 -> string             > char*
@@ -409,6 +447,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_CreateMemoryField] = Sys_CreateMemoryField,
     [KSys_AcceptMemoryField] = Sys_AcceptMemoryField,
     [KSys_FreeMemoryField] = Sys_FreeMemoryField,
+    [KSys_GetTypeMemoryField] = Sys_GetInfoMemoryField,
     [KSys_ShareDataUsingStackSpace] = Sys_ShareDataUsingStackSpace,
     [KSys_IPC] = Sys_IPC,
     [KSys_CreateProc] = Sys_CreateProc,
@@ -427,6 +466,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_DuplicateThread] = Sys_DuplicateThread,
     [KSys_ExecThread] = Sys_ExecThread,
     [KSys_Keyhole_CloneModify] = Sys_Keyhole_CloneModify,
+    [KSys_Keyhole_Verify] = Sys_Keyhole_Verify,
     [KSys_Logs] = Sys_Logs,
 };
 

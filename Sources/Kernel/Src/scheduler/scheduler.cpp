@@ -250,6 +250,8 @@ uint64_t TaskManager::CreateProcess(kprocess_t** key, uint8_t priviledge, uint64
     proc->LockIndex = 0;
     proc->externalData = externalData;
 
+    Keyhole_Create(&proc->ProcessKey, proc, proc, DataTypeProcess, (uint64_t)proc, DefaultFlagsKey);
+
     proc->PID = PID; 
     PID++;
     NumberProcessTotal++;
@@ -323,9 +325,9 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, uint8_t priviledge, ui
     /* thread data */
     uintptr_t threadDataPA = Pmm_RequestPage();
     thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
-    
+
+    thread->threadData->ProcessKey = ProcessKey;
     Keyhole_Create(&thread->threadData->threadKey, this, this, DataTypethread, (uint64_t)thread, DefaultFlagsKey);
-    Keyhole_Create(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, DefaultFlagsKey);
 
     vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
 
@@ -394,7 +396,7 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source, uint64_t externalData)
     uintptr_t threadDataPA = Pmm_RequestPage();
     thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
-    Keyhole_Create(&thread->threadData->threadKey, this, this, DataTypethread, (uint64_t)thread, KeyholeFlagFullPermissions);
+    thread->threadData->ProcessKey = ProcessKey;
     Keyhole_Create(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, KeyholeFlagFullPermissions);
 
     vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, source->Regs->cs == GDTInfoSelectorsRing[UserAppRing].Code);

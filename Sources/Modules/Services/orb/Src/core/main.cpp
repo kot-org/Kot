@@ -110,7 +110,7 @@ void drawLotLogo() {
 
 extern "C" int main(int argc, char* argv[], bootbuffer_t* fb){
 
-    Printlog("[Orb] Initialization ...");
+    Printlog("[ORB] Initialization ...");
     
     Sys_GetProcessKey(&self);
 
@@ -119,7 +119,7 @@ extern "C" int main(int argc, char* argv[], bootbuffer_t* fb){
 
     drawLotLogo();
 
-    Printlog("[Orb] Service initialized successfully");
+    Printlog("[ORB] Service initialized successfully");
 
     // ## test ##
 

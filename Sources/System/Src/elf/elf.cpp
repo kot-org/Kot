@@ -104,7 +104,7 @@ namespace ELF {
                     KotSpecificDataClient->MMapPageSize = KotSpecificData.MMapPageSize;
                     KotSpecificDataClient->HeapLocation = HeapLocation;
                     KotSpecificDataClient->FreeMemorySpace = KotSpecificData.FreeMemorySpace;
-                    KotSpecificDataClient->IPCHandler = KotSpecificData.IPCHandler;
+                    KotSpecificDataClient->UISDHandler = KotSpecificData.UISDHandler;
                 }
             }
         }
