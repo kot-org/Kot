@@ -7,6 +7,7 @@ cd "../"
 echo -e "\e[32mCreating compilation dirs...\e[0m"
 
 mkdir -m 777 -p "Sysroot/Include/kot/"
+mkdir -m 777 -p "Sysroot/Include/kot++/"
 mkdir -m 777 -p "Sysroot/Lib/"
 mkdir -m 777 -p $BINDIR"/Modules/"
 
@@ -18,6 +19,7 @@ cd "Sources/"
 echo -e "\e[32mCompiling kot libraries...\e[0m"
 
 sudo make -C "Libs/libc/Build"
+sudo make -C "Libs/libc++/Build"
 sudo make -C "Libs/abi/Build"
 
 # System
