@@ -38,12 +38,7 @@ struct PCIDeviceHeader{
 
 struct PCIHeader0{
     PCIDeviceHeader Header;
-    uint32_t BAR0;
-    uint32_t BAR1;
-    uint32_t BAR2;
-    uint32_t BAR3;
-    uint32_t BAR4;
-    uint32_t BAR5;
+    uint32_t BAR[6];
     uint32_t CardBusCISPtr;
     uint16_t SubsystemVendorID;
     uint16_t SubsystemID;

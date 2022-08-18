@@ -58,6 +58,7 @@ uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
     uint8_t VendorID = PCIRead8(Addr + PCI_VENDOR_ID_OFFSET);
     if(VendorID == 0xffff) return NULL;
     uint8_t HeaderType = PCIRead8(Addr + PCI_HEADER_TYPE_OFFSET);
+    HeaderType &= ~(1 << 7);
     uintptr_t Header = NULL;
     switch (HeaderType){
     case 0x0:
