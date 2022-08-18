@@ -39,8 +39,7 @@ void initBuffers(bootbuffer_t* fb) {
 
 vector_t* windows = NULL;
 
-thread renderThread1 = NULL;
-thread renderThread2 = NULL;
+thread renderThread = NULL;
 
 void renderWindows() {
 
@@ -54,23 +53,16 @@ void renderWindows() {
 
 }
 
-void thread1() {
+void threadRender(){
     renderWindows();
-    Sys_Execthread(renderThread2, NULL);
-    SYS_Exit(NULL, KSUCCESS);
-}
-
-void thread2() {
-    renderWindows();
-    Sys_Execthread(renderThread1, NULL);
+    Sys_Execthread(renderThread, NULL, ExecutionTypeQueu, NULL);
     SYS_Exit(NULL, KSUCCESS);
 }
 
 void initWindowRender() {
     windows = vector_create();
-    Sys_Createthread(self, (uintptr_t) &thread1, PriviledgeService, NULL, &renderThread1);
-    Sys_Createthread(self, (uintptr_t) &thread2, PriviledgeService, NULL, &renderThread2);
-    Sys_Execthread(renderThread1, NULL);
+    Sys_Createthread(self, (uintptr_t)&threadRender, PriviledgeService, NULL, &renderThread);
+    Sys_Execthread(renderThread, NULL, ExecutionTypeQueu, NULL);
 }
 
 void drawLotLogo() {

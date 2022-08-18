@@ -1,17 +1,14 @@
-QEMUFLAGS =	-no-reboot 				\
-			-no-shutdown 			\
-			-M smm=off 				\
-			-serial stdio 			\
-			-machine q35 			\
-			-cpu qemu64 			\
-			-smp 8 					\
-			-cdrom ./Bin/kot.iso	\
-			-m 3G					\
-			-netdev user,id=n0 -device rtl8139,netdev=n0 \
-			-m 3G					\
-			-drive id=disk,file=Bin/kot.iso,if=none \
-			-device ahci,id=ahci \
-			-device ide-hd,drive=disk,bus=ahci.0
+QEMUFLAGS =	-no-reboot 										\
+			-no-shutdown 									\
+			-M smm=off 										\
+			-serial stdio 									\
+			-machine q35 									\
+			-cpu qemu64 									\
+			-smp 8 											\
+			-cdrom ./Bin/kot.iso							\
+			-m 3G											\
+			-netdev user,id=n0 -device rtl8139,netdev=n0 	\
+			-m 3G											\
 
 build:
 	sudo bash ./Build/build.sh
