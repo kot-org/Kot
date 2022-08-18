@@ -1,10 +1,5 @@
 #pragma once
 
-#define MAX_PCI_DEVICES		0xFFFE
-
-#define PCI_CONFIG_ADDR     0xCF8
-#define PCI_CONFIG_DATA     0xCFC
-
 #define PCI_VENDOR_ID_OFFSET 		0x0
 #define PCI_DEVICE_ID_OFFSET 		0x2
 #define PCI_COMMAND_OFFSET 			0x4
@@ -59,3 +54,7 @@ struct PCIHeader1{
     PCIDeviceHeader Header;
     /* TODO */
 }__attribute__((packed));
+
+struct PCIBar{
+    uint64_t size;
+};
