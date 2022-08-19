@@ -26,6 +26,11 @@ KResult InitializeUISD(){
     UISDKeyFlags = NULL;
     Sys_Createthread(Proc, &CallbackUISD, PriviledgeApp, NULL, &UISDthreadKeyCallback);
     Sys_Keyhole_CloneModify(UISDthreadKeyCallback, &CallBackUISDThread, KotSpecificData.UISDHandlerProcess, UISDKeyFlags);
+
+    UISDKeyFlags = NULL;
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeProcessMemoryAccessible, true);
+    Sys_Keyhole_CloneModify(Proc, &ProcessKeyForUISD, KotSpecificData.UISDHandlerProcess, UISDKeyFlags);
 }
 
 KResult CallbackUISD(uint64_t Task, KResult Statu, callbackInfo_t* Info, uint64_t GP0, uint64_t GP1){

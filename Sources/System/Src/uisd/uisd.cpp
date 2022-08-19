@@ -105,7 +105,7 @@ KResult UISDGet(enum ControllerTypeEnum Controller, thread_t Callback, uint64_t 
     process_t Target = NULL;
     uint64_t Flags = NULL;
     Printlog("ok");
-    if(Sys_Keyhole_Verify(Self, DataTypeSharedMemory, &Target, &Flags) != KSUCCESS) return NULL;
+    if(Sys_Keyhole_Verify(Self, DataTypeProcess, &Target, &Flags) != KSUCCESS) return NULL;
     Printlog("ok");
     if(!Keyhole_GetFlag(Flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return NULL;
     Printlog("ok");

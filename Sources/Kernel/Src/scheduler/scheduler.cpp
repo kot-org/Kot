@@ -33,7 +33,7 @@ void TaskManager::DestroySelf(ContextStack* Registers, uint64_t CoreID){
     /* Find & restore thread */
     kthread_t* threadStart = GetTread_WL();
     threadStart->CreateContext(Registers, CoreID);
-    Atomic::atomicUnlock(&MutexScheduler, 0);          
+    Atomic::atomicUnlock(&MutexScheduler, 0);     
 }
 
 void TaskManager::EnqueueTask(kthread_t* thread){
@@ -702,6 +702,7 @@ bool kthread_t::Pause(ContextStack* Registers, uint64_t CoreID){
 
 KResult kthread_t::Close(ContextStack* Registers, uint64_t CoreID){
     if(CloseQueu(Registers, CoreID) != KSUCCESS){
+        Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
         ForceSelfDestruction();
     }
     return KSUCCESS;

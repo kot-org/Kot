@@ -4,7 +4,7 @@ process_t self;
 
 PS2Port_t PS2Ports[2];
 
-thread InterruptthreadHandler = NULL;
+thread_t InterruptthreadHandler = NULL;
 
 IRQRedirections IRQRedirectionsArray[2];
 
