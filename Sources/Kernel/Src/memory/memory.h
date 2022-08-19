@@ -19,7 +19,8 @@ struct MemoryShareInfo{
     char signature0;
     bool Lock;
     enum MemoryFieldType Type;
-    size_t Size;
+    size_t InitialSize;
+    size_t RealSize;
     uint64_t PageNumber;
     //Parent
     pagetable_t PageTableParent;

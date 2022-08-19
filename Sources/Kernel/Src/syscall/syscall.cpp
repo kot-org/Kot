@@ -71,7 +71,7 @@ KResult Sys_GetInfoMemoryField(SyscallStack* Registers, kthread_t* thread){
     uint64_t* TypePointer = (uint64_t*)Registers->arg1;
     size_t* SizePointer = (size_t*)Registers->arg2;
     *TypePointer = (uint64_t)memoryKey->Type;
-    *SizePointer = (uint64_t)memoryKey->Size;
+    *SizePointer = (uint64_t)memoryKey->InitialSize;
     return KSUCCESS;
 }
 

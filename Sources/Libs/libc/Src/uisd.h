@@ -30,6 +30,7 @@ enum ControllerTypeEnum{
 
 
 typedef struct {
+    bool IsReadWrite;
     uint64_t Version;
     uint64_t VendorID;
     enum ControllerTypeEnum Type; 
@@ -86,6 +87,9 @@ typedef struct {
     uintptr_t Location;
     KResult Statu;
 } callbackInfo_t;
+
+callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t* Location, bool AwaitCallback);
+callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ksmem_t MemoryField, bool AwaitCallback);
 
 #if defined(__cplusplus)
 }

@@ -38,6 +38,7 @@ sudo make -C "Modules/Drivers/pcspeaker/Build"
 # Services
 echo -e "\e[32mCompiling kot services...\e[0m"
 
+sudo make -C "Modules/Services/test/Build"
 sudo make -C "Modules/Services/orb/Build"
 sudo make -C "Modules/Services/jvm/Build"
 

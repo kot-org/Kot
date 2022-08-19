@@ -4,6 +4,15 @@ thread UISDHandlerThread;
 
 controller_info_t** UISDControllers;
 
+size_t ControllerTypeSize[ControllerCount] = {
+    sizeof(graphics_t),
+    sizeof(audio_t),
+    sizeof(storage_t),
+    sizeof(vfs_t),
+    sizeof(usb_t),
+    sizeof(pci_t)
+};
+
 thread UISDInitialize(process_t* process) {
     thread UISDthreadKey;
     uint64_t UISDKeyFlags = NULL;
@@ -16,7 +25,7 @@ thread UISDInitialize(process_t* process) {
     Sys_Createthread(proc, (uintptr_t)UISDHandler, PriviledgeService, NULL, &UISDHandlerThread);
     Sys_Keyhole_CloneModify(UISDHandlerThread, &UISDthreadKey, NULL, UISDKeyFlags);
 
-    UISDControllers = (controller_info_t**)calloc(sizeof(controller_info_t) * UISDMaxController);
+    UISDControllers = (controller_info_t**)calloc(sizeof(controller_info_t*) * UISDMaxController);
 
     UISDKeyFlags = NULL;
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
@@ -65,25 +74,26 @@ void UISDAcceptAll(enum ControllerTypeEnum Controller){
 
 KResult UISDCreate(enum ControllerTypeEnum Controller, thread callback, uint64_t callbackarg, ksmem_t DataKey) {
     KResult Statu = KFAIL;
-    if(UISDControllers[Controller] == NULL || !UISDControllers[Controller]->IsLoad){
+    if(UISDControllers[Controller] == NULL || (UISDControllers[Controller] != NULL && !UISDControllers[Controller]->IsLoad)){
         enum MemoryFieldType Type;
         size_t Size = NULL;
         process_t Target = NULL;
         uint64_t Flags = NULL;
         if(Sys_Keyhole_Verify(DataKey, DataTypeSharedMemory, &Target, &Flags) != KSUCCESS) return KKEYVIOLATION;
-        
         if(Sys_GetInfoMemoryField(DataKey, (uint64_t*)&Type, &Size) == KSUCCESS){
-            if(Type == MemoryFieldTypeSendSpaceRO){
-                if(!UISDControllers[Controller]){
-                    UISDControllers[Controller] = (controller_info_t*)malloc(sizeof(controller_info_t));
-                    UISDControllers[Controller]->NumberOfWaitingTasks = NULL;
-                }
-                UISDControllers[Controller]->DataKey = DataKey;
-                UISDControllers[Controller]->Data = getFreeAlihnedSpace(Size);
-                if(Sys_AcceptMemoryField(proc, DataKey, (uintptr_t*)&UISDControllers[Controller])){
-                    UISDControllers[Controller]->IsLoad = true;
-                    UISDAcceptAll(Controller);
-                    Statu = KSUCCESS;
+            if(Type == MemoryFieldTypeShareSpaceRW || Type == MemoryFieldTypeShareSpaceRO){
+                if(Size == ControllerTypeSize[Controller]){
+                    if(!UISDControllers[Controller]){
+                        UISDControllers[Controller] = (controller_info_t*)malloc(sizeof(controller_info_t));
+                        UISDControllers[Controller]->NumberOfWaitingTasks = NULL;
+                    }
+                    UISDControllers[Controller]->DataKey = DataKey;
+                    UISDControllers[Controller]->Data = getFreeAlihnedSpace(Size);
+                    if(Sys_AcceptMemoryField(proc, DataKey, (uintptr_t*)&UISDControllers[Controller])){
+                        UISDControllers[Controller]->IsLoad = true;
+                        UISDAcceptAll(Controller);
+                        Statu = KSUCCESS;
+                    }                    
                 }
             }
         }
@@ -123,16 +133,18 @@ KResult UISDGet(enum ControllerTypeEnum Controller, thread Callback, uint64_t Ca
 }
 
 void UISDHandler(uint64_t IPCTask, enum ControllerTypeEnum Controller, thread Callback, uint64_t Callbackarg, uint64_t GP0, uint64_t GP1) {
-    uint64_t ReturnValue = NULL;
-    switch (IPCTask) {
-    case UISDCreateTask:
-        ReturnValue = (uint64_t)UISDCreate(Controller, Callback, Callbackarg, (ksmem_t)GP0);
-        break;
-    case UISDGetTask:
-        ReturnValue = (uint64_t)UISDGet(Controller, Callback, Callbackarg, (process_t)GP0, (uintptr_t)GP1);
-        break;
-    case UISDFreeTask:
-        break;
+    if(Controller <= 0xff){
+        KResult ReturnValue = KFAIL;
+        switch (IPCTask) {
+        case UISDCreateTask:
+            ReturnValue = (KResult)UISDCreate(Controller, Callback, Callbackarg, (ksmem_t)GP0);
+            break;
+        case UISDGetTask:
+            ReturnValue = (KResult)UISDGet(Controller, Callback, Callbackarg, (process_t)GP0, (uintptr_t)GP1);
+            break;
+        case UISDFreeTask:
+            break;
+        }
+        SYS_Exit(NULL, ReturnValue);
     }
-    SYS_Exit(NULL, ReturnValue);
 }

@@ -50,11 +50,13 @@ int memcmp(const void *aptr, const void *bptr, size_t n){
 uint64_t MemoryLock;
 
 uintptr_t getFreeAlihnedSpace(size_t size){
-    atomicAcquire(MemoryLock, 0);
+    atomicAcquire(&MemoryLock, 0);
     if(size % KotSpecificData.MMapPageSize){
         size -= size % KotSpecificData.MMapPageSize;
         size += KotSpecificData.MMapPageSize;
     }
     KotSpecificData.FreeMemorySpace -= size;
-    atomicUnlock(MemoryLock, 0);
+    uintptr_t ReturnValue = KotSpecificData.FreeMemorySpace;
+    atomicUnlock(&MemoryLock, 0);
+    return ReturnValue;
 }

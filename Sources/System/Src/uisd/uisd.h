@@ -6,7 +6,7 @@
 #include <kot/atomic.h>
 #include <kot/keyhole.h>
 #include <kot/utils/vector.h>
-#include <kot/uisd/uisd.h>
+#include <kot/uisd.h>
 #include <kot++/stack.h>
 
 thread UISDInitialize(process_t* process);
