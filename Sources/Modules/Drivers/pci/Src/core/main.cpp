@@ -3,27 +3,39 @@
 #include <tools/config.h>
 #include <tools/memory.h>
 
-PCIBar* PCIGetBaseAddressRegister(uint32_t deviceAddr) {
-    PCIBar* BaseAddrReg = (PCIBar*) malloc(sizeof(PCIBar));
-    uint32_t bar = PCIRead32(deviceAddr + PCIH0_BAR0_OFFSET);
-
-    if((bar & 0b0111) == 0b0110) { /* 64bits */
-        BaseAddrReg->Type = 0x3;
-        BaseAddrReg->Base = (bar & 0xFFFFFFF0);
-    } else if((bar & 0b0111) == 0b0001) { /* I/O */
+PCIBar* PCIGetBaseAddressRegister(uint32_t deviceAddr, uint8_t barID, PCIHeader0* header) {
+    PCIBar* BaseAddrReg = (PCIBar*)malloc(sizeof(PCIBar));
+    uint32_t barSizeLow = 0;
+    uint32_t barSizeHigh = 0xFFFFFFFF;
+    bool isMmio = false;
+    if(header->BAR[barID] & 0b1){
         BaseAddrReg->Type = 0x1;
-        BaseAddrReg->Base = (bar & 0xFFFFFFFC);
-    } else { /* 32bits */
-        BaseAddrReg->Type = 0x2;
-        BaseAddrReg->Base = (bar & 0xFFFFFFF0);
+        BaseAddrReg->Base = (header->BAR[barID] & 0xFFFFFFFC);
+    }else{
+        if(!(header->BAR[barID] & 0b110)){
+            BaseAddrReg->Type = 0x2;
+            BaseAddrReg->Base = (header->BAR[barID] & 0xFFFFFFF0);
+        }else if((header->BAR[barID] & 0b110) == 0b110){
+            BaseAddrReg->Type = 0x3;
+            BaseAddrReg->Base = ((header->BAR[barID] & 0xFFFFFFF0) + ((header->BAR[barID + 1] & 0xFFFFFFFF) << 32));
+        }
     }
 
-    /* Size */
-    PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET, 1);
+    /* Size low */
+    PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET + barID * 0x4, 1);
 
-    BaseAddrReg->Size = PCIRead32(deviceAddr + PCIH0_BAR0_OFFSET);
+    barSizeLow = PCIRead32(deviceAddr + PCIH0_BAR0_OFFSET + barID * 0x4);
 
-    PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET, bar);
+    PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET, header->BAR[barID]);
+
+    /* Size high */
+    PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET + (barID + 1) * 0x4, 1);
+
+    barSizeHigh = PCIRead32(deviceAddr + PCIH0_BAR0_OFFSET + (barID + 1) * 0x4);
+
+    PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET + (barID + 1) * 0x4, header->BAR[barID + 1]);
+
+    BaseAddrReg->Size = ~BaseAddrReg->Size + 1;
 
     char buffer[100], buffernum[20];
     *buffer = NULL;
@@ -65,7 +77,7 @@ uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
             char buffer[100], buffernum[33];
             *buffer = NULL;
 
-            BaseAddrReg = PCIGetBaseAddressRegister(Addr);
+            BaseAddrReg = PCIGetBaseAddressRegister(Addr, 0, (PCIHeader0*)Header);
 
             strcat(buffer, "[PCI] Vendor: 0x");
             itoa(((PCIHeader0*)Header)->Header.VendorID, buffernum, 16);
@@ -131,8 +143,6 @@ extern "C" int main(int argc, char* argv[]) {
     Printlog("[PCI] Initialization ...");
 
     EnumerateDevices();
-
-    Printlog("[ORB] Service initialized successfully");
 
     return KSUCCESS;
 }
