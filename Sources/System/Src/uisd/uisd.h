@@ -7,6 +7,7 @@
 #include <kot/keyhole.h>
 #include <kot/utils/vector.h>
 #include <kot/modules/uisd/uisd.h>
+#include <kot++/stack.h>
 
 thread UISDInitialize();
 
@@ -16,7 +17,8 @@ struct controller_info_t {
     bool IsLoad;
     uintptr_t Data;
     ksmem_t DataKey;
-    vector_t* WaitingTask;
+    std::Stack* WaitingTasks;
+    uint64_t NumberOfWaitingTasks;
 };
 
 struct callback_info_t{
