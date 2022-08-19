@@ -9,4 +9,8 @@ extern "C" int main(int argc, char* argv[]){
     Sys_CreateMemoryField(proc, sizeof(graphics_t), &address, &key, MemoryFieldTypeShareSpaceRW);
     CreateControllerUISD(ControllerTypeEnum_Graphics, key, true);
     Printlog("[Test] UISD response");
+
+    uintptr_t addressReceive = getFreeAlihnedSpace(sizeof(graphics_t));
+    GetControllerUISD(ControllerTypeEnum_Graphics, &addressReceive, true);
+    Printlog("[Test] UISD response");
 }

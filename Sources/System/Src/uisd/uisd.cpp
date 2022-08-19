@@ -97,23 +97,22 @@ KResult UISDCreate(enum ControllerTypeEnum Controller, thread callback, uint64_t
                 }
             }
         }
-    }
-    arguments_t parameters{
-        .arg[0] = UISDCreateTask,
-        .arg[1] = (uint64_t)Statu,
-        .arg[2] = callbackarg,
-    };
-    Sys_Execthread(callback, &parameters, ExecutionTypeQueu, NULL);    
+    }   
     return Statu;
 }
 
 KResult UISDGet(enum ControllerTypeEnum Controller, thread Callback, uint64_t Callbackarg, process_t Self, uintptr_t Address) {
     process_t Target = NULL;
     uint64_t Flags = NULL;
+    Printlog("ok");
     if(Sys_Keyhole_Verify(Self, DataTypeSharedMemory, &Target, &Flags) != KSUCCESS) return NULL;
+    Printlog("ok");
     if(!Keyhole_GetFlag(Flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return NULL;
+    Printlog("ok");
     if(UISDControllers[Controller] == NULL){
+        Printlog("ok");
         if(UISDControllers[Controller]->IsLoad){
+            Printlog("ok");
             struct callbackget_info_t info = (struct callbackget_info_t){
                 .Controller = Controller,
                 .Self = Self,
@@ -134,17 +133,23 @@ KResult UISDGet(enum ControllerTypeEnum Controller, thread Callback, uint64_t Ca
 
 void UISDHandler(uint64_t IPCTask, enum ControllerTypeEnum Controller, thread Callback, uint64_t Callbackarg, uint64_t GP0, uint64_t GP1) {
     if(Controller <= 0xff){
-        KResult ReturnValue = KFAIL;
+        KResult Statu = KFAIL;
         switch (IPCTask) {
         case UISDCreateTask:
-            ReturnValue = (KResult)UISDCreate(Controller, Callback, Callbackarg, (ksmem_t)GP0);
+            Statu = (KResult)UISDCreate(Controller, Callback, Callbackarg, (ksmem_t)GP0);
             break;
         case UISDGetTask:
-            ReturnValue = (KResult)UISDGet(Controller, Callback, Callbackarg, (process_t)GP0, (uintptr_t)GP1);
+            Statu = (KResult)UISDGet(Controller, Callback, Callbackarg, (process_t)GP0, (uintptr_t)GP1);
             break;
         case UISDFreeTask:
             break;
         }
-        SYS_Exit(NULL, ReturnValue);
+        arguments_t parameters{
+            .arg[0] = UISDCreateTask,
+            .arg[1] = (uint64_t)Statu,
+            .arg[2] = Callbackarg,
+        };
+        Sys_Execthread(Callback, &parameters, ExecutionTypeQueu, NULL); 
+        SYS_Exit(NULL, Statu);
     }
 }
