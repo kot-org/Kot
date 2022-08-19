@@ -11,7 +11,7 @@ size_t ControllerTypeSize[ControllerCount] = {
 
 thread CallBackUISDThread = NULL;
 
-KResult CallbackUISD(uint64_t Task, KResult Statu, callbackInfo_t* Info);
+KResult CallbackUISD(uint64_t Task, KResult Statu, callbackInfo_t* Info, uint64_t GP0, uint64_t GP1);
 
 KResult InitializeUISD(){
     thread UISDthreadKey;
@@ -31,8 +31,9 @@ KResult CallbackUISD(uint64_t Task, KResult Statu, callbackInfo_t* Info, uint64_
     if(Task == UISDGetTask) Info->Location = (uintptr_t)GP0;
     Info->Statu = Statu;
     if(Info->AwaitCallback){
-        KSys_UnPause(Info->Self);
+        Sys_UnPause(Info->Self);
     }
+    Sys_CloseThread(NULL, KSUCCESS);
 }
 
 callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t* Location, bool AwaitCallback){
@@ -69,7 +70,6 @@ callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ksmem_t
     callbackInfo_t* Info = malloc(sizeof(callbackInfo_t));
     Info->Self = Self;
     Info->AwaitCallback = AwaitCallback;
-    Info->Location = Location;
     Info->Statu = KFAIL;
 
     struct arguments_t parameters;

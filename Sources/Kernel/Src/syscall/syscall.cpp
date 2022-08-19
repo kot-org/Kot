@@ -112,6 +112,26 @@ KResult Sys_CloseProc(SyscallStack* Registers, kthread_t* thread){
     return KFAIL;
 }
 
+/* Sys_Close :
+    Arguments : 
+*/
+KResult Sys_Close(SyscallStack* Registers, kthread_t* thread){
+    kthread_t* threadkey;
+    uint64_t flags;
+    if(Registers->arg0 == NULL){
+        threadkey = thread;
+    }else{
+        if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+        if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsClosaable)) return KKEYVIOLATION;
+    }
+    CPU::DisableInterrupts();
+    globalTaskManager->IsSchedulerEnable[thread->CoreID] = false;
+    CPU::EnableInterrupts();
+    KResult statu = threadkey->Close((ContextStack*)Registers, thread->CoreID);
+    globalTaskManager->IsSchedulerEnable[thread->CoreID] = true;
+    return statu;
+}
+
 /* Sys_Exit :
     Arguments : 
 */
@@ -468,6 +488,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_ShareDataUsingStackSpace] = Sys_ShareDataUsingStackSpace,
     [KSys_CreateProc] = Sys_CreateProc,
     [KSys_CloseProc] = Sys_CloseProc,
+    [KSys_Close] = Sys_Close,
     [KSys_Exit] = Sys_Exit,
     [KSys_Pause] = Sys_Pause,
     [KSys_UnPause] = Sys_UnPause,

@@ -30,6 +30,10 @@ KResult Sys_CloseProc(){
     return Syscall_0(KSys_CloseProc);
 }
 
+KResult SYS_Close(thread self, uint64_t errorCode){
+    return Syscall_16(KSys_Close, self, errorCode);
+}
+
 KResult SYS_Exit(thread self, uint64_t errorCode){
     return Syscall_16(KSys_Exit, self, errorCode);
 }

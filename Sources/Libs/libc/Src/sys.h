@@ -88,6 +88,7 @@ KResult SYS_ShareDataUsingStackSpace(thread self, uint64_t address, size_t size,
 KResult Sys_CreateProc(process_t* key, enum Priviledge privilege, uint64_t data);
 KResult Sys_Fork(process_t* src, process_t* dst);
 KResult Sys_CloseProc();
+KResult SYS_Close(thread self, uint64_t errorCode);
 KResult SYS_Exit(thread self, uint64_t errorCode);
 KResult SYS_Pause(thread self);
 KResult SYS_Unpause(thread self);
