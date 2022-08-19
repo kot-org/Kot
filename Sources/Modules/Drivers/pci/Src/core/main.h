@@ -63,7 +63,11 @@ struct PCIHeader1{
 }__attribute__((packed));
 
 struct PCIBar{
-    uint32_t Base;
-    uint32_t Size;
+    uint64_t Base;
+    uint64_t Size;
     uint8_t Type;
+};
+
+struct PCIDevice{
+
 };
