@@ -59,6 +59,7 @@ void UISDAcceptAll(enum ControllerTypeEnum Controller){
 }
 
 KResult UISDCreate(enum ControllerTypeEnum Controller, thread callback, uint64_t callbackarg, ksmem_t DataKey) {
+    KResult Statu = KFAIL;
     if(UISDControllers[Controller] == NULL || !UISDControllers[Controller]->IsLoad){
         enum MemoryFieldType Type;
         size_t Size = NULL;
@@ -77,14 +78,17 @@ KResult UISDCreate(enum ControllerTypeEnum Controller, thread callback, uint64_t
                 if(Sys_AcceptMemoryField(proc, DataKey, (uintptr_t*)&UISDControllers[Controller])){
                     UISDControllers[Controller]->IsLoad = true;
                     UISDAcceptAll(Controller);
-                    return KSUCCESS;
-                }else{
-                    Printlog("[Error] Unknow error");
+                    Statu = KSUCCESS;
                 }
             }
         }
     }
-    return KFAIL;
+    arguments_t parameters{
+        .arg[0] = (uint64_t)Statu,
+        .arg[1] = callbackarg,
+    };
+    Sys_Execthread(callback, &parameters, ExecutionTypeQueu, NULL);    
+    return Statu;
 }
 
 KResult UISDGet(enum ControllerTypeEnum Controller, thread Callback, uint64_t Callbackarg, process_t Self, uintptr_t Address) {
