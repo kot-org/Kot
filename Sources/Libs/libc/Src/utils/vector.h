@@ -18,6 +18,7 @@ void vector_set(vector_t* vector, uint64_t index, uintptr_t item);
 void vector_expand(vector_t* vector, uint64_t len);
 uintptr_t vector_get(vector_t* vector, uint64_t index);
 void vector_clear(vector_t* vector);
+vector_t* vector_clone(vector_t* vector);
 
 #if defined(__cplusplus)
 }

@@ -4,21 +4,18 @@
 
 namespace SE8 {
 
-    class Class;
+    class ClassArea;
     class JavaVM;
 
     class Classes {
     private:
+        JavaVM* jvm;
         vector_t* areas;
     public:
-        Classes();
-        Class* getClass(char* name);
-        Method* getMethod(char* className, char* methodName, char* descriptor);
-        Method* getStaticMethod(char* className, char* methodName, char* descriptor);
-        void setStaticField(char* className, char* fieldName, Value* value);
-        Value* getStaticField(char* className, char* fieldName);
+        Classes(JavaVM* jvm);
+        ClassArea* getClass(char* name);
         void loadClassBytes(uintptr_t bytes);
-        void clinit(JavaVM* jvm);
+        void clinit();
     };
 
 }

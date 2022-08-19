@@ -4,29 +4,32 @@
 #include "../jvm.h"
 
 #include "../classes/class.h"
-#include "stack.h"
-#include "heap.h"
+
+#include <kot++/stack.h>
 
 namespace SE8 {
 
     class JavaVM;
-    class Class;
-    class Locals;
-    class Stack;
+    class ClassParser;
+    class ClassArea;
+    class ByteCodeMethod;
 
     struct Frame {
-        uint64_t pid;
+
+        Reader* reader;
+        JavaVM* jvm;
+        std::Stack* stack;
+        ByteCodeMethod* code;
         uint64_t code_length;
         uintptr_t* constant_pool;
-        Stack* stack;
-        Locals* locals;
-        Method* currentMethod;
-        Reader* reader;
-        Value* returnValue;
-        JavaVM* jvm;
+        uintptr_t locals;
+        uint64_t returnValue;
+        uint64_t pid;
         bool widened;
-        void init(JavaVM* jvm, Class* cl, Method* method);
-        void run(Value* args, uint32_t args_length);
+
+        void init(JavaVM* jvm, ClassArea* cl, ByteCodeMethod* code);
+        void run(uintptr_t args, uint32_t args_length);
+
     };
 
     typedef void (*OpCodeTable)(SE8::Frame*);

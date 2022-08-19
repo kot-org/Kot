@@ -1,31 +1,18 @@
 #include "frame.h"
 
-uint8_t getComputationalCategory(uint8_t type) {
-    switch (type) {
-        case SE8::Long:
-        case SE8::Double:
-            return 2;
-        default:
-            return 1;
-    }
-}
+// todo: implement float & double (IEEE 754)
 
 namespace SE8 {
 
-    void Frame::init(JavaVM* jvm, Class* cl, Method* method) {
+    void Frame::init(JavaVM* jvm, ClassArea* cl, ByteCodeMethod* code) {
         constant_pool = cl->getConstantPool();
-        currentMethod = method;
+        this->code = code;
         this->jvm = jvm;
         reader = (Reader*) malloc(sizeof(Reader));
-        for (uint16_t i = 0; i < currentMethod->attributes_count; i++) {
-            Attribute_Code* attr = (Attribute_Code*) currentMethod->attributes[i];
-            if (attr->attribute_type == AT_Code) {
-                stack = new Stack(attr->max_stack*5+1);
-                locals = new Locals(attr->max_locals);
-                reader->buffer = attr->code;
-                code_length = attr->code_length;
-            }
-        }
+        stack = new std::Stack(code->max_stack);
+        locals = malloc(code->max_locals);
+        reader->buffer = code->code;
+        code_length = code->code_length;
     }
 
     void Opc::aaload(Frame* frame) {
@@ -37,27 +24,29 @@ namespace SE8 {
     }
 
     void Opc::aconst_null(Frame* frame) {
-        frame->stack->pushNull();
+        frame->stack->push32(NULL);
     }
 
     void Opc::aload(Frame* frame) {
-
+        uint16_t idx = frame->widened ? frame->reader->u2B() : frame->reader->u1();
+        frame->stack->push32(*(uint32_t*)((uint64_t) frame->locals + idx * 4));
+        frame->widened = false;
     }
 
     void Opc::aload_0(Frame* frame) {
-
+        frame->stack->push32(*(uint32_t*)((uint64_t) frame->locals));
     }
 
     void Opc::aload_1(Frame* frame) {
-
+        frame->stack->push32(*(uint32_t*)((uint64_t) frame->locals + 1 * 4));
     }
 
     void Opc::aload_2(Frame* frame) {
-
+        frame->stack->push32(*(uint32_t*)((uint64_t) frame->locals + 2 * 4));
     }
 
     void Opc::aload_3(Frame* frame) {
-
+        frame->stack->push32(*(uint32_t*)((uint64_t) frame->locals + 3 * 4));
     }
 
     void Opc::anewarray(Frame* frame) { 
@@ -65,7 +54,8 @@ namespace SE8 {
     }
 
     void Opc::areturn(Frame* frame) {
-        frame->returnValue = frame->stack->pop();
+        frame->returnValue = frame->stack->pop64();
+        frame->code_length = 0;
     }
 
     void Opc::arraylength(Frame* frame) {
@@ -73,23 +63,25 @@ namespace SE8 {
     }
 
     void Opc::astore(Frame* frame) {
-
+        uint16_t idx = frame->widened ? frame->reader->u2B() : frame->reader->u1();
+        *(uint32_t*)((uint64_t) frame->locals + idx * 4) = frame->stack->pop32();
+        frame->widened = false;
     }
 
     void Opc::astore_0(Frame* frame) {
-
+        *(uint32_t*)((uint64_t) frame->locals) = frame->stack->pop32();
     }
 
     void Opc::astore_1(Frame* frame) {
-
+        *(uint32_t*)((uint64_t) frame->locals + 1 * 4) = frame->stack->pop32();
     }
 
     void Opc::astore_2(Frame* frame) {
-
+        *(uint32_t*)((uint64_t) frame->locals + 2 * 4) = frame->stack->pop32();
     }
 
     void Opc::astore_3(Frame* frame) {
-
+        *(uint32_t*)((uint64_t) frame->locals + 3 * 4) = frame->stack->pop32();
     }
 
     void Opc::athrow(Frame* frame) {
@@ -97,15 +89,24 @@ namespace SE8 {
     }
 
     void Opc::baload(Frame* frame) {
-
+        int32_t index = frame->stack->pop32();
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        frame->stack->push32(*(uint8_t*)((uint64_t) arr + index));
     }
 
     void Opc::bastore(Frame* frame) {
-
+        uint32_t value = frame->stack->pop32();
+        int32_t index = frame->stack->pop32();
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        *(uint8_t*)((uint64_t) arr + index) = (uint8_t) value;
     }
 
     void Opc::bipush(Frame* frame) {
-        frame->stack->pushByte(frame->reader->u1());
+        frame->stack->push32(frame->reader->u1());
     }
 
     void Opc::caload(Frame* frame) {
@@ -113,7 +114,12 @@ namespace SE8 {
     }
 
     void Opc::castore(Frame* frame) {
-
+        uint32_t value = frame->stack->pop32();
+        int32_t index = frame->stack->pop32();
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        *(uint16_t*)((uint64_t) arr + index * 2) = (uint16_t) value;
     }
 
     void Opc::checkcast(Frame* frame) {
@@ -121,26 +127,19 @@ namespace SE8 {
     }
 
     void Opc::d2f(Frame* frame) {
-        double val = *(uint64_t*)((uint64_t) frame->stack->pop() + 1);
-        frame->stack->pushFloat(static_cast<float>(val));
+
     }
 
     void Opc::d2i(Frame* frame) {
-        double val = *(uint64_t*)((uint64_t) frame->stack->pop() + 1);
-        frame->stack->pushInt(static_cast<int32_t>(val));
+ 
     }
 
     void Opc::d2l(Frame* frame) {
-        double val = *(uint64_t*)((uint64_t) frame->stack->pop() + 1);
-        frame->stack->pushLong(static_cast<int64_t>(val));
+
     }
 
     void Opc::dadd(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        double val1 = *(uint64_t*)((uint64_t) value1 + 1);
-        double val2 = *(uint64_t*)((uint64_t) value2 + 1);
-        frame->stack->pushDouble(val1 + val2);
+
     }
 
     void Opc::daload(Frame* frame) {
@@ -152,304 +151,143 @@ namespace SE8 {
     }
 
     void Opc::dcmpg(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::NaN || value2->type == SE8::NaN) {
-            frame->stack->pushInt(1);
-        } else if (value1->type == SE8::Double && value2->type == SE8::Double) {
-            double val1 = *(uint64_t*)((uint64_t) value1 + 1);
-            double val2 = *(uint64_t*)((uint64_t) value2 + 1);
-            if (val1 == val2) {
-                frame->stack->pushInt(0);
-            } else if (val1 > val2) {
-                frame->stack->pushInt(1);
-            } else if (val1 < val2) {
-                frame->stack->pushInt(-1);
-            }
-        }
+
     }
 
     void Opc::dcmpl(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::NaN || value2->type == SE8::NaN) {
-            frame->stack->pushInt(-1);
-        } else if (value1->type == SE8::Double && value2->type == SE8::Double) {
-            double val1 = *(uint64_t*)((uint64_t) value1 + 1);
-            double val2 = *(uint64_t*)((uint64_t) value2 + 1);
-            if (val1 == val2) {
-                frame->stack->pushInt(0);
-            } else if (val1 > val2) {
-                frame->stack->pushInt(1);
-            } else if (val1 < val2) {
-                frame->stack->pushInt(-1);
-            }
-        }
+        
     }
 
     void Opc::dconst_0(Frame* frame) {
-        frame->stack->pushDouble(0.0);
+        
     }
 
     void Opc::dconst_1(Frame* frame) {
-        frame->stack->pushDouble(1.0);
+        
     }
 
     void Opc::ddiv(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Double && value2->type == SE8::Double) {
-            double val2 = *(uint64_t*)((uint64_t) value2 + 1);
-            if (val2 == 0) {
-                // throw arithemic exception
-            } else {
-                double val1 = *(uint64_t*)((uint64_t) value1 + 1);
-                frame->stack->pushDouble(val1 / val2);
-            }
-        }
+        
     }
 
     void Opc::dload(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(frame->widened ? frame->reader->u2B() : frame->reader->u1());
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Double) {
-            frame->stack->pushDouble(frame->locals->get64(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+        
     }
 
     void Opc::dload_0(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(0);
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Double) {
-            frame->stack->pushDouble(frame->locals->get64(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+        
     }
 
     void Opc::dload_1(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(1);
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Double) {
-            frame->stack->pushDouble(frame->locals->get64(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+        
     }
 
     void Opc::dload_2(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(2);
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Double) {
-            frame->stack->pushDouble(frame->locals->get64(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+        
     }
 
     void Opc::dload_3(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(3);
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Double) {
-            frame->stack->pushDouble(frame->locals->get64(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+        
     }
 
     void Opc::dmul(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Double && value2->type == SE8::Double) {
-            double val1 = *(uint64_t*)((uint64_t) value1 + 1);
-            double val2 = *(uint64_t*)((uint64_t) value2 + 1);
-            frame->stack->pushDouble(val1 * val2);
-        }
+
     }
 
     void Opc::dneg(Frame* frame) {
-        double val = *(uint64_t*)((uint64_t) frame->stack->pop() + 1);
-        frame->stack->pushDouble(-val);
+
     }
 
     void Opc::drem(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Double && value2->type == SE8::Double) {
-            double val1 = *(uint64_t*)((uint64_t) value1 + 1);
-            double val2 = *(uint64_t*)((uint64_t) value2 + 1);
-            frame->stack->pushDouble(val1 * val2);
-        }
+
     }
 
     void Opc::dreturn(Frame* frame) {
-        frame->returnValue = frame->stack->pop();
+        frame->code_length = 0;
     }   
 
     void Opc::dstore(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(frame->widened ? frame->reader->u2B() : frame->reader->u1());
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Double) {
-            frame->locals->set64(ptr, *(uint64_t*)(&value->bytes));
-        }
-        frame->widened = false;
+
     }
 
     void Opc::dstore_0(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(0);
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Double) {
-            frame->locals->set64(ptr, *(uint64_t*)(&value->bytes));
-        }
-        frame->widened = false;
+
     }
 
     void Opc::dstore_1(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(1);
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Double) {
-            frame->locals->set64(ptr, *(uint64_t*)(&value->bytes));
-        }
-        frame->widened = false;
+
     }
 
     void Opc::dstore_2(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(2);
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Double) {
-            frame->locals->set64(ptr, *(uint64_t*)(&value->bytes));
-        }
-        frame->widened = false;
+
     }
 
     void Opc::dstore_3(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(3);
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Double) {
-            frame->locals->set64(ptr, *(uint64_t*)(&value->bytes));
-        }
-        frame->widened = false;
+
     }
 
     void Opc::dsub(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Double && value2->type == SE8::Double) {
-            double val1 = *(uint64_t*)((uint64_t) value1 + 1);
-            double val2 = *(uint64_t*)((uint64_t) value2 + 1);
-            frame->stack->pushDouble(val1 - val2);
-        }
+
     }
 
     void Opc::dup(Frame* frame) {
-        frame->stack->push(frame->stack->peek());
+        frame->stack->push32(frame->stack->peek32());
     }
 
     void Opc::dup_x1(Frame* frame) {
-        SE8::Value* val1 = frame->stack->pop();
-        SE8::Value* val2 = frame->stack->pop();
-        frame->stack->push(val1);
-        frame->stack->push(val2);
-        frame->stack->push(val1);
+        uint32_t val1 = frame->stack->pop32();
+        uint32_t val2 = frame->stack->pop32();
+        frame->stack->push32(val1);
+        frame->stack->push32(val2);
+        frame->stack->push32(val1);
     }
 
     void Opc::dup_x2(Frame* frame) {
-        SE8::Value* val1 = frame->stack->pop();
-        SE8::Value* val2 = frame->stack->pop();
-        SE8::Value* val3 = frame->stack->pop();
-        frame->stack->push(val1);
-        frame->stack->push(val3);
-        frame->stack->push(val2);
-        frame->stack->push(val1);
+        uint32_t val1 = frame->stack->pop32();
+        uint32_t val2 = frame->stack->pop32();
+        uint32_t val3 = frame->stack->pop32();
+        frame->stack->push32(val1);
+        frame->stack->push32(val3);
+        frame->stack->push32(val2);
+        frame->stack->push32(val1);
     }
 
     void Opc::dup2(Frame* frame) {
-        SE8::Value* val1 = frame->stack->pop();
-        SE8::Value* val2 = frame->stack->pop();
-        frame->stack->push(val2);
-        frame->stack->push(val1);
-        frame->stack->push(val2);
-        frame->stack->push(val1);
+        frame->stack->push64(frame->stack->peek64());
     }
 
     void Opc::dup2_x1(Frame* frame) {
-        SE8::Value* val1 = frame->stack->pop();
-        SE8::Value* val2 = frame->stack->pop();
-        SE8::Value* val3 = frame->stack->pop();
-        frame->stack->push(val2);
-        frame->stack->push(val1);
-        frame->stack->push(val3);
-        frame->stack->push(val2);
-        frame->stack->push(val1);
+        uint32_t val1 = frame->stack->pop64();
+        uint32_t val2 = frame->stack->pop64();
+        frame->stack->push64(val1);
+        frame->stack->push64(val2);
+        frame->stack->push64(val1);
     }
 
     void Opc::dup2_x2(Frame* frame) {
-        SE8::Value* val1 = frame->stack->pop();
-        SE8::Value* val2 = frame->stack->pop();
-        SE8::Value* val3 = frame->stack->pop();
-        SE8::Value* val4 = frame->stack->pop();
-        frame->stack->push(val2);
-        frame->stack->push(val1);
-        frame->stack->push(val4);
-        frame->stack->push(val3);
-        frame->stack->push(val2);
-        frame->stack->push(val1);
+        uint32_t val1 = frame->stack->pop64();
+        uint32_t val2 = frame->stack->pop64();
+        uint32_t val3 = frame->stack->pop64();
+        frame->stack->push64(val1);
+        frame->stack->push64(val3);
+        frame->stack->push64(val2);
+        frame->stack->push64(val1);
     }
 
     void Opc::f2d(Frame* frame) {
-        SE8::Value* value = frame->stack->pop();
-        if (value->type == SE8::Float) {
-            float val = *(uint32_t*)((uint64_t) value + 1);
-            frame->stack->pushDouble(static_cast<double>(val));
-        }
+
     }
 
     void Opc::f2i(Frame* frame) {
-        SE8::Value* value = frame->stack->pop();
-        if (value->type == SE8::Float) {
-            float val = *(uint32_t*)((uint64_t) value + 1);
-            frame->stack->pushInt(static_cast<int32_t>(val));
-        }
+
     }
 
     void Opc::f2l(Frame* frame) {
-        SE8::Value* value = frame->stack->pop();
-        if (value->type == SE8::Float) {
-            float val = *(uint32_t*)((uint64_t) value + 1);
-            frame->stack->pushLong(static_cast<int64_t>(val));
-        }
+
     }
 
     void Opc::fadd(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Float && value2->type == SE8::Float) {
-            float val1 = *(uint32_t*)((uint64_t) value1 + 1);
-            float val2 = *(uint32_t*)((uint64_t) value2 + 1);
-            frame->stack->pushFloat(val1 + val2);
-        }
+
     }
 
     void Opc::faload(Frame* frame) {
@@ -461,148 +299,55 @@ namespace SE8 {
     }
 
     void Opc::fcmpg(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::NaN || value2->type == SE8::NaN) {
-            frame->stack->pushInt(1);
-        } else if (value1->type == SE8::Float && value2->type == SE8::Float) {
-            float val1 = *(uint32_t*)((uint64_t) value1 + 1);
-            float val2 = *(uint32_t*)((uint64_t) value2 + 1);
-            if (val1 == val2) {
-                frame->stack->pushInt(0);
-            } else if (val1 > val2) {
-                frame->stack->pushInt(1);
-            } else if (val1 < val2) {
-                frame->stack->pushInt(-1);
-            }
-        }
+
     }
 
     void Opc::fcpml(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::NaN || value2->type == SE8::NaN) {
-            frame->stack->pushInt(-1);
-        } else if (value1->type == SE8::Float && value2->type == SE8::Float) {
-            float val1 = *(uint32_t*)((uint64_t) value1 + 1);
-            float val2 = *(uint32_t*)((uint64_t) value2 + 1);
-            if (val1 == val2) {
-                frame->stack->pushInt(0);
-            } else if (val1 > val2) {
-                frame->stack->pushInt(1);
-            } else if (val1 < val2) {
-                frame->stack->pushInt(-1);
-            }
-        }
+
     }
 
     void Opc::fconst_0(Frame* frame) {
-        frame->stack->pushFloat(0.0);
+
     }
 
     void Opc::fconst_1(Frame* frame) {
-        frame->stack->pushFloat(1.0);
+
     }
 
     void Opc::fconst_2(Frame* frame) {
-        frame->stack->pushFloat(2.0);
+
     }
 
     void Opc::fdiv(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Float && value2->type == SE8::Float) {
-            float val2 = *(uint32_t*)((uint64_t) value2 + 1);
-            if (val2 == 0) {
-                frame->stack->pushNaN();
-            } else {
-                float val1 = *(uint32_t*)((uint64_t) value1 + 1);
-                frame->stack->pushFloat(val1 / val2);
-            }
-        }
+
     }
 
     void Opc::fload(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(frame->widened ? frame->reader->u2B() : frame->reader->u1());
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Float) {
-            frame->stack->pushFloat(frame->locals->get32(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+
     }
 
     void Opc::fload_0(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(0);
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Float) {
-            frame->stack->pushFloat(frame->locals->get32(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+
     }
 
     void Opc::fload_1(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(1);
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Float) {
-            frame->stack->pushFloat(frame->locals->get32(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+
     }
 
     void Opc::fload_2(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(2);
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Float) {
-            frame->stack->pushFloat(frame->locals->get32(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+
     }
 
     void Opc::fload_3(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(3);
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Float) {
-            frame->stack->pushFloat(frame->locals->get32(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+
     }
 
     void Opc::fmul(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Float && value2->type == SE8::Float) {
-            float val1 = *(uint32_t*)((uint64_t) value1 + 1);
-            float val2 = *(uint32_t*)((uint64_t) value2 + 1);
-            frame->stack->pushFloat(val1 * val2);
-        }
+
     }
 
     void Opc::fneg(Frame* frame) {
-        SE8::Value* value = frame->stack->pop();
-        if (value->type == SE8::Float) {
-            float val = *(uint32_t*)((uint64_t) value + 1);
-            frame->stack->pushFloat(-val);
-        }
+
     }
 
     void Opc::frem(Frame* frame) {
@@ -610,67 +355,31 @@ namespace SE8 {
     }
 
     void Opc::freturn(Frame* frame) {
-        frame->returnValue = frame->stack->pop();
+        frame->code_length = 0;
     }
 
     void Opc::fstore(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(frame->widened ? frame->reader->u2B() : frame->reader->u1());
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Float) {
-            frame->locals->set32(ptr, *(uint32_t*)(&value->bytes));
-        }
-        frame->widened = false;
+
     }
 
     void Opc::fstore_0(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(0);
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Float) {
-            frame->locals->set32(ptr, *(uint32_t*)(&value->bytes));
-        }
-        frame->widened = false;
+
     }
 
     void Opc::fstore_1(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(1);
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Float) {
-            frame->locals->set32(ptr, *(uint32_t*)(&value->bytes));
-        }
-        frame->widened = false;
+
     }
 
     void Opc::fstore_2(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(2);
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Float) {
-            frame->locals->set32(ptr, *(uint32_t*)(&value->bytes));
-        }
-        frame->widened = false;
+
     }
 
     void Opc::fstore_3(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(3);
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Float) {
-            frame->locals->set32(ptr, *(uint32_t*)(&value->bytes));
-        }
-        frame->widened = false;
+
     }
 
     void Opc::fsub(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Float && value2->type == SE8::Float) {
-            float val1 = *(uint32_t*)((uint64_t) value1 + 1);
-            float val2 = *(uint32_t*)((uint64_t) value2 + 1);
-            frame->stack->pushFloat(val1 - val2);
-        }
+
     }
 
     void Opc::getfield(Frame* frame) {
@@ -682,10 +391,22 @@ namespace SE8 {
         Constant_RefInfo* field = (Constant_RefInfo*) frame->constant_pool[idx];
         char* className = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_ClassInfo*) frame->constant_pool[field->class_index])->name_index])->bytes;
         char* fieldName = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_NameAndType*) frame->constant_pool[field->name_and_type_index])->name_index])->bytes;
-        Printlog(className);
-        Printlog(fieldName);
-        frame->stack->pushNull();
-        //frame->stack->push(frame->jvm->getClasses()->getStaticField(className, fieldName));
+        ClassArea* cl = frame->jvm->getClasses()->getClass(className);
+        uint8_t fieldSize = cl->getStaticFieldSize(fieldName);
+        switch (fieldSize) {
+            case 1:
+                frame->stack->push32(cl->getStaticField8(fieldName));
+                break;
+            case 2:
+                frame->stack->push32(cl->getStaticField16(fieldName));
+                break;
+            case 4:
+                frame->stack->push32(cl->getStaticField32(fieldName));
+                break;
+            case 8:
+                frame->stack->push64(cl->getStaticField64(fieldName));
+                break;
+        }
     }
 
     void Opc::goto_(Frame* frame) {
@@ -697,161 +418,233 @@ namespace SE8 {
     }
 
     void Opc::i2b(Frame* frame) {
-        int32_t val = *(uint32_t*)((uint64_t) frame->stack->pop() + 1);
-        frame->stack->pushByte(static_cast<uint8_t>(val));
+        int32_t val = frame->stack->pop32();
+        frame->stack->push32(static_cast<uint8_t>(val));
     }
 
     void Opc::i2c(Frame* frame) {
-        int32_t val = *(uint32_t*)((uint64_t) frame->stack->pop() + 1);
-        frame->stack->pushChar(static_cast<uint16_t>(val));
+        int32_t val = frame->stack->pop32();
+        frame->stack->push32(static_cast<uint16_t>(val));
     }
 
     void Opc::i2d(Frame* frame) {
-        int32_t val = *(uint32_t*)((uint64_t) frame->stack->pop() + 1);
-        frame->stack->pushDouble(static_cast<double>(val));
+
     }
 
     void Opc::i2f(Frame* frame) {
-        int32_t val = *(uint32_t*)((uint64_t) frame->stack->pop() + 1);
-        frame->stack->pushFloat(static_cast<float>(val));
+
     }
 
     void Opc::i2l(Frame* frame) {
-        int32_t val = *(uint32_t*)((uint64_t) frame->stack->pop() + 1);
-        frame->stack->pushLong(static_cast<int64_t>(val));
+        int32_t val = frame->stack->pop32();
+        frame->stack->push64(static_cast<int64_t>(val));
     }
 
     void Opc::i2s(Frame* frame) {
-        int32_t val = *(uint32_t*)((uint64_t) frame->stack->pop() + 1);
-        frame->stack->pushShort(static_cast<int16_t>(val));
+        int32_t val = frame->stack->pop32();
+        frame->stack->push32(static_cast<int16_t>(val));
     }
 
     void Opc::iadd(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Int && value2->type == SE8::Int) {
-            int32_t val1 = *(uint32_t*)((uint64_t) value1 + 1);
-            int32_t val2 = *(uint32_t*)((uint64_t) value2 + 1);
-            frame->stack->pushInt(val1 + val2);
-        }
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        frame->stack->push32(value1 + value2);
     }
 
     void Opc::iaload(Frame* frame) {
-
+        int32_t index = frame->stack->pop32();
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        frame->stack->push32(*(uint32_t*)((uint64_t) arr + index * 4));
     }
 
     void Opc::iand(Frame* frame) {
-
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        frame->stack->push32(value1 & value2);
     }
 
     void Opc::iastore(Frame* frame) {
-
+        uint32_t value = frame->stack->pop32();
+        int32_t index = frame->stack->pop32();
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        *(uint32_t*)((uint64_t) arr + index * 4) = value;
     }
 
     void Opc::iconst_m1(Frame* frame) {
-        frame->stack->pushInt(-1);
+        frame->stack->push32(-1);
     }
 
     void Opc::iconst_0(Frame* frame) {
-        frame->stack->pushInt(0);
+        frame->stack->push32(0);
     }
 
     void Opc::iconst_1(Frame* frame) {
-        frame->stack->pushInt(1);
+        frame->stack->push32(1);
     }
 
     void Opc::iconst_2(Frame* frame) {
-        frame->stack->pushInt(2);
+        frame->stack->push32(2);
     }
 
     void Opc::iconst_3(Frame* frame) {
-        frame->stack->pushInt(3);
+        frame->stack->push32(3);
     }
 
     void Opc::iconst_4(Frame* frame) {
-        frame->stack->pushInt(4);
+        frame->stack->push32(4);
     }
 
     void Opc::iconst_5(Frame* frame) {
-        frame->stack->pushInt(5);
+        frame->stack->push32(5);
     }
 
     void Opc::idiv(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Int && value2->type == SE8::Int) {
-            int val2 = *(uint32_t*)((uint64_t) value2 + 1);
-            if (val2 == 0) {
-                frame->stack->pushNaN();
-            } else {
-                int val1 = *(uint32_t*)((uint64_t) value1 + 1);
-                frame->stack->pushInt(val1 / val2);
-            }
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        if (value2 == 0) {
+            // throw arithmetic exception
         }
+        frame->stack->push32(value1 / value2);
     }
 
     void Opc::if_acmpeq(Frame* frame) {
-
+        uint32_t idx = frame->reader->u2B();
+        uint32_t value2 = frame->stack->pop32();
+        uint32_t value1 = frame->stack->pop32();
+        if (value1 == value2) {
+            frame->reader->index += idx; 
+        }
     }
 
     void Opc::if_acmpne(Frame* frame) {
-
+        uint32_t idx = frame->reader->u2B();
+        uint32_t value2 = frame->stack->pop32();
+        uint32_t value1 = frame->stack->pop32();
+        if (value1 != value2) {
+            frame->reader->index += idx; 
+        }
     }
 
     void Opc::if_icmpeq(Frame* frame) {
-
+        uint32_t idx = frame->reader->u2B();
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        if (value1 == value2) {
+            frame->reader->index += idx; 
+        }
     }
 
     void Opc::if_icmpne(Frame* frame) {
-
+        uint32_t idx = frame->reader->u2B();
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        if (value1 != value2) {
+            frame->reader->index += idx; 
+        }
     }
 
     void Opc::if_icmplt(Frame* frame) {
-
+        uint32_t idx = frame->reader->u2B();
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        if (value1 < value2) {
+            frame->reader->index += idx; 
+        }
     }
 
     void Opc::if_icmpge(Frame* frame) {
-
+        uint32_t idx = frame->reader->u2B();
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        if (value1 >= value2) {
+            frame->reader->index += idx; 
+        }
     }
 
     void Opc::if_icmpgt(Frame* frame) {
-
+        uint32_t idx = frame->reader->u2B();
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        if (value1 > value2) {
+            frame->reader->index += idx; 
+        }
     }
 
     void Opc::if_icmple(Frame* frame) {
-
+        uint32_t idx = frame->reader->u2B();
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        if (value1 <= value2) {
+            frame->reader->index += idx; 
+        }
     }
 
     void Opc::ifeq(Frame* frame) {
-
+        uint32_t idx = frame->reader->u2B();
+        int32_t value = frame->stack->pop32();
+        if (value == 0) {
+            frame->reader->index += idx; 
+        }
     }
 
     void Opc::ifne(Frame* frame) {
-
+        uint32_t idx = frame->reader->u2B();
+        int32_t value = frame->stack->pop32();
+        if (value != 0) {
+            frame->reader->index += idx; 
+        }
     }
 
     void Opc::iflt(Frame* frame) {
-
+        uint32_t idx = frame->reader->u2B();
+        int32_t value = frame->stack->pop32();
+        if (value < 0) {
+            frame->reader->index += idx; 
+        }
     }
 
     void Opc::ifge(Frame* frame) {
-
+        uint32_t idx = frame->reader->u2B();
+        int32_t value = frame->stack->pop32();
+        if (value >= 0) {
+            frame->reader->index += idx; 
+        }
     }
 
     void Opc::ifgt(Frame* frame) {
-
+        uint32_t idx = frame->reader->u2B();
+        int32_t value = frame->stack->pop32();
+        if (value > 0) {
+            frame->reader->index += idx; 
+        }
     }
 
     void Opc::ifle(Frame* frame) {
-
+        uint32_t idx = frame->reader->u2B();
+        int32_t value = frame->stack->pop32();
+        if (value <= 0) {
+            frame->reader->index += idx; 
+        }
     }
 
     void Opc::ifnonnull(Frame* frame) {
-
+        uint32_t idx = frame->reader->u2B();
+        int32_t value = frame->stack->pop32();
+        if (value != NULL) {
+            frame->reader->index += idx; 
+        }
     }
 
     void Opc::ifnull(Frame* frame) {
-
+        uint32_t idx = frame->reader->u2B();
+        int32_t value = frame->stack->pop32();
+        if (value == NULL) {
+            frame->reader->index += idx; 
+        }
     }
 
     void Opc::iinc(Frame* frame) {
@@ -859,85 +652,36 @@ namespace SE8 {
     }
 
     void Opc::iload(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(frame->widened ? frame->reader->u2B() : frame->reader->u1());
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Float) {
-            frame->stack->pushInt(frame->locals->get32(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
+        uint16_t idx = frame->widened ? frame->reader->u2B() : frame->reader->u1();
+        frame->stack->push32(*(uint32_t*)((uint64_t) frame->locals + idx * 4));
         frame->widened = false;
     }
 
     void Opc::iload_0(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(0);
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Float) {
-            frame->stack->pushInt(frame->locals->get32(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        } else {
-            // throw type exception
-        }
-        frame->widened = false;
+        frame->stack->push32(*(uint32_t*)((uint64_t) frame->locals));
     }
 
     void Opc::iload_1(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(1);
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Float) {
-            frame->stack->pushInt(frame->locals->get32(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+        frame->stack->push32(*(uint32_t*)((uint64_t) frame->locals + 1 * 4));
     }
 
     void Opc::iload_2(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(2);
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Float) {
-            frame->stack->pushInt(frame->locals->get32(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+        frame->stack->push32(*(uint32_t*)((uint64_t) frame->locals + 2 * 4));
     }
 
     void Opc::iload_3(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(3);
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Float) {
-            frame->stack->pushInt(frame->locals->get32(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+        frame->stack->push32(*(uint32_t*)((uint64_t) frame->locals + 3 * 4));
     }
 
     void Opc::imul(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Int && value2->type == SE8::Int) {
-            int32_t val1 = *(uint32_t*)((uint64_t) value1 + 1);
-            int32_t val2 = *(uint32_t*)((uint64_t) value2 + 1);
-            frame->stack->pushInt(val1 * val2);
-        }
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        frame->stack->push32(value1 * value2);
     }
 
     void Opc::ineg(Frame* frame) {
-        int32_t val1 = *(uint32_t*)((uint64_t) frame->stack->pop() + 1);
-        frame->stack->pushInt(-val1);
+        int32_t value = frame->stack->pop32();
+        frame->stack->push32(-value);
     }
 
     void Opc::instanceof(Frame* frame) {
@@ -954,146 +698,167 @@ namespace SE8 {
 
     void Opc::invokespecial(Frame* frame) {
 
+        uint32_t idx = frame->reader->u2B();
+
+        Constant_RefInfo* mth = (Constant_RefInfo*) frame->constant_pool[idx];
+        char* className = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_ClassInfo*) frame->constant_pool[mth->class_index])->name_index])->bytes;
+        char* methodName = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_NameAndType*) frame->constant_pool[mth->name_and_type_index])->name_index])->bytes;
+        char* signature = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_NameAndType*) frame->constant_pool[mth->name_and_type_index])->descriptor_index])->bytes;
+        uint16_t signatureLength = ((Constant_Utf8*) frame->constant_pool[((Constant_NameAndType*) frame->constant_pool[mth->name_and_type_index])->descriptor_index])->length;
+
+        ClassArea* cl = frame->jvm->getClasses()->getClass(className);
+
+        if (cl->isMethodStatic(methodName, signature) == true) {
+            uint16_t args_length = cl->getStaticMethodArgsLength(methodName, signature); 
+            uint32_t* args = (uint32_t*) malloc(args_length);
+            frame->stack->sinkInto(args, args_length*4);
+            uintptr_t ret = cl->runStaticMethod(frame->jvm, methodName, signature, args, args_length);
+            if (signature[signatureLength-1] != 'V') {
+                // todo doesn't support long/double
+                frame->stack->push32(*(uint32_t*)(ret));
+            }
+        } else {
+            uint16_t args_length = cl->getMethodArgsLength(methodName, signature); 
+            uint32_t* args = (uint32_t*) malloc(args_length*4);
+            frame->stack->sinkInto((uintptr_t) args, args_length*4);
+            vector_t* rs = frame->jvm->getRefSys();
+            uintptr_t ret = cl->runMethod(frame->jvm, vector_get(rs, frame->stack->pop32()), methodName, signature, args, args_length);
+            if (signature[signatureLength-1] != 'V') {
+                // todo doesn't support long/double
+                frame->stack->push32(*(uint32_t*)(ret));
+            }
+        } 
+
     }
 
     void Opc::invokestatic(Frame* frame) {
+
+        uint32_t idx = frame->reader->u2B();
+
+        Constant_RefInfo* mth = (Constant_RefInfo*) frame->constant_pool[idx];
+        char* className = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_ClassInfo*) frame->constant_pool[mth->class_index])->name_index])->bytes;
+        char* methodName = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_NameAndType*) frame->constant_pool[mth->name_and_type_index])->name_index])->bytes;
+        char* signature = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_NameAndType*) frame->constant_pool[mth->name_and_type_index])->descriptor_index])->bytes;
+        uint16_t signatureLength = ((Constant_Utf8*) frame->constant_pool[((Constant_NameAndType*) frame->constant_pool[mth->name_and_type_index])->descriptor_index])->length;
+
+        ClassArea* cl = frame->jvm->getClasses()->getClass(className);
+
+        uint16_t args_length = cl->getStaticMethodArgsLength(methodName, signature); 
+        uint32_t* args = (uint32_t*) malloc(args_length);
+        frame->stack->sinkInto(args, args_length*4);
+        uintptr_t ret = cl->runStaticMethod(frame->jvm, methodName, signature, args, args_length);
+        if (signature[signatureLength-1] != 'V') {
+            // todo doesn't support long/double
+            frame->stack->push32(*(uint32_t*)(ret));
+        }
 
     }
 
     void Opc::invokevirtual(Frame* frame) {
 
+        uint32_t idx = frame->reader->u2B();
+
+        Constant_RefInfo* mth = (Constant_RefInfo*) frame->constant_pool[idx];
+        char* className = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_ClassInfo*) frame->constant_pool[mth->class_index])->name_index])->bytes;
+        char* methodName = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_NameAndType*) frame->constant_pool[mth->name_and_type_index])->name_index])->bytes;
+        char* signature = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_NameAndType*) frame->constant_pool[mth->name_and_type_index])->descriptor_index])->bytes;
+        uint16_t signatureLength = ((Constant_Utf8*) frame->constant_pool[((Constant_NameAndType*) frame->constant_pool[mth->name_and_type_index])->descriptor_index])->length;
+
+        ClassArea* cl = frame->jvm->getClasses()->getClass(className);
+
+        uint16_t args_length = cl->getMethodArgsLength(methodName, signature); 
+        uint32_t* args = (uint32_t*) malloc(args_length*4);
+        frame->stack->sinkInto((uintptr_t) args, args_length*4);
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t ret = cl->runMethod(frame->jvm, vector_get(rs, frame->stack->pop32()), methodName, signature, args, args_length);
+        if (signature[signatureLength-1] != 'V') {
+            // todo doesn't support long/double
+            frame->stack->push32(*(uint32_t*)(ret));
+        }
+
     }
 
     void Opc::ior(Frame* frame) {
-
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        frame->stack->push32(value1 | value2);
     }
 
     void Opc::irem(Frame* frame) {
-
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        frame->stack->push32(value1 % value2);
     }
 
     void Opc::ireturn(Frame* frame) {
-        frame->returnValue = frame->stack->pop();
+        frame->returnValue = frame->stack->pop32();
+        frame->code_length = 0;
     }
 
     void Opc::ishl(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Int && value2->type == SE8::Int) {
-            int32_t val1 = *(uint32_t*)((uint64_t) value1 + 1);
-            int64_t val2 = *(uint64_t*)((uint64_t) value2 + 1);
-            frame->stack->pushInt(val1 << val2);
-        } else if (value1->type == SE8::NaN || value2->type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (value1->type == SE8::Null || value2->type == SE8::Null) {
-            frame->stack->pushNull();
-        }
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        frame->stack->push32(value1 << value2);
     }
 
     void Opc::ishr(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Int && value2->type == SE8::Int) {
-            int32_t val1 = *(uint32_t*)((uint64_t) value1 + 1);
-            int64_t val2 = *(uint64_t*)((uint64_t) value2 + 1);
-            frame->stack->pushInt(val1 >> val2);
-        } else if (value1->type == SE8::NaN || value2->type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (value1->type == SE8::Null || value2->type == SE8::Null) {
-            frame->stack->pushNull();
-        }
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        frame->stack->push32(value1 >> value2);
     }
 
     void Opc::istore(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(frame->widened ? frame->reader->u2B() : frame->reader->u1());
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Int) {
-            frame->locals->set32(ptr, *(uint32_t*)(&value->bytes));
-        }
+        uint16_t idx = frame->widened ? frame->reader->u2B() : frame->reader->u1();
+        *(uint32_t*)((uint64_t) frame->locals + idx * 4) = frame->stack->pop32();
         frame->widened = false;
     }
 
     void Opc::istore_0(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(0);
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Int) {
-            frame->locals->set32(ptr, *(uint32_t*)(&value->bytes));
-        }
-        frame->widened = false;
+        *(uint32_t*)((uint64_t) frame->locals) = frame->stack->pop32();
     }
 
     void Opc::istore_1(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(1);
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Int) {
-            frame->locals->set32(ptr, *(uint32_t*)(&value->bytes));
-        }
-        frame->widened = false;
+        *(uint32_t*)((uint64_t) frame->locals + 1 * 4) = frame->stack->pop32();
     }
 
     void Opc::istore_2(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(2);
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Int) {
-            frame->locals->set32(ptr, *(uint32_t*)(&value->bytes));
-        }
-        frame->widened = false;
+        *(uint32_t*)((uint64_t) frame->locals + 2 * 4) = frame->stack->pop32();
     }
 
     void Opc::istore_3(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(3);
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Int) {
-            frame->locals->set32(ptr, *(uint32_t*)(&value->bytes));
-        }
-        frame->widened = false;
+        *(uint32_t*)((uint64_t) frame->locals + 3 * 4) = frame->stack->pop32();
     }
 
     void Opc::isub(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Int && value2->type == SE8::Int) {
-            int32_t val1 = *(uint32_t*)((uint64_t) value1 + 1);
-            int32_t val2 = *(uint32_t*)((uint64_t) value2 + 1);
-            frame->stack->pushInt(val1 - val2);
-        }
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        frame->stack->push32(value1 - value2);
     }
 
     void Opc::iushr(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Int && value2->type == SE8::Int) {
-            int32_t val1 = *(uint32_t*)((uint64_t) value1 + 1);
-            int64_t val2 = *(uint64_t*)((uint64_t) value2 + 1);
-            int32_t mask = 0x7fffffff;
-            mask = mask >> val2;
-            mask = (mask << 1) | 1;
-            frame->stack->pushLong((val1 >> val2) & mask);
-        } else if (value1->type == SE8::NaN || value2->type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (value1->type == SE8::Null || value2->type == SE8::Null) {
-            frame->stack->pushNull();
-        }
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        int32_t mask = 0x7fffffff;
+        mask = mask >> value2;
+        mask = (mask << 1) | 1;
+        frame->stack->push32((value1 >> value2) & mask);
     }
 
     void Opc::ixor(Frame* frame) {
-
+        int32_t value2 = frame->stack->pop32();
+        int32_t value1 = frame->stack->pop32();
+        frame->stack->push32(value1 ^ value2);
     }
 
     void Opc::jsr(Frame* frame) {
         uint16_t jmp = frame->reader->u2B();
-        frame->stack->pushInt(frame->reader->index);
+        frame->stack->push32(frame->reader->index);
         frame->reader->index += jmp;
     }
 
     void Opc::jsr_w(Frame* frame) {
         uint32_t jmp = frame->reader->u4B();
-        frame->stack->pushInt(frame->reader->index);
+        frame->stack->push32(frame->reader->index);
         frame->reader->index += jmp;
     }
 
@@ -1106,11 +871,14 @@ namespace SE8 {
     }
 
     void Opc::l2i(Frame* frame) {
-
+        int64_t val = frame->stack->pop64();
+        frame->stack->push32(static_cast<int32_t>(val));
     }
 
     void Opc::ladd(Frame* frame) {
-
+        int64_t value2 = frame->stack->pop64();
+        int64_t value1 = frame->stack->pop64();
+        frame->stack->push64(value1 + value2);
     }
 
     void Opc::laload(Frame* frame) {
@@ -1118,132 +886,115 @@ namespace SE8 {
     }
 
     void Opc::land(Frame* frame) {
-
+        int64_t value2 = frame->stack->pop64();
+        int64_t value1 = frame->stack->pop64();
+        frame->stack->push64(value1 & value2);
     }
 
     void Opc::lastore(Frame* frame) {
-
+        int64_t value = frame->stack->pop64();
+        int32_t index = frame->stack->pop32();
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        *(uint64_t*)((uint64_t) arr + index * 8) = value;
     }
 
     void Opc::lcmp(Frame* frame) {
-
+        int64_t value2 = frame->stack->pop64();
+        int64_t value1 = frame->stack->pop64();
+        if (value1 > value2) {
+            frame->stack->push32(1);
+        } else if (value1 == value2) {
+            frame->stack->push32(0);
+        } else {
+            frame->stack->push32(-1);
+        }
     }
 
     void Opc::lconst_0(Frame* frame) {
-        frame->stack->pushLong(0);
+        frame->stack->push64((int64_t) 0);
     }
 
     void Opc::lconst_1(Frame* frame) {
-        frame->stack->pushLong(1);
+        frame->stack->push64((int64_t) 1);
     }
 
     void Opc::ldc(Frame* frame) {
         uint8_t idx = frame->reader->u1();
         ConstantPoolEntry* entry = (ConstantPoolEntry*) frame->constant_pool[idx];
-        Printlog("tag:");
-        Printlog(itoa(entry->tag, "   ", 10));
+        vector_t* rs = frame->jvm->getRefSys();
+        if (entry->tag == CONSTANT_String) {
+            ClassArea* jlString = frame->jvm->getClasses()->getClass("java/lang/String");
+            uintptr_t object = jlString->newObject();
+            jlString->setField64(object, "<pointer>", (uint64_t) ((Constant_Utf8*) frame->constant_pool[((Constant_String*) entry)->string_index])->bytes);
+            jlString->setField32(object, "<length>", (uint32_t) ((Constant_Utf8*) frame->constant_pool[((Constant_String*) entry)->string_index])->length);
+            vector_push(rs, object);
+            frame->stack->push32(rs->length-1);
+        }
     }
 
     void Opc::ldc_w(Frame* frame) {
-
+        uint16_t idx = frame->reader->u2B();
+        ConstantPoolEntry* entry = (ConstantPoolEntry*) frame->constant_pool[idx];
+        vector_t* rs = frame->jvm->getRefSys();
+        if (entry->tag == CONSTANT_String) {
+            ClassArea* jlString = frame->jvm->getClasses()->getClass("java/lang/String");
+            uintptr_t object = jlString->newObject();
+            jlString->setField64(object, "<pointer>", (uint64_t) ((Constant_Utf8*) frame->constant_pool[((Constant_String*) entry)->string_index])->bytes);
+            jlString->setField32(object, "<length>", (uint32_t) ((Constant_Utf8*) frame->constant_pool[((Constant_String*) entry)->string_index])->length);
+            vector_push(rs, object);
+            frame->stack->push32(rs->length-1);
+        }
     }
 
     void Opc::ldc2_w(Frame* frame) {
-
+        uint16_t idx = frame->reader->u2B();
+        ConstantPoolEntry* entry = (ConstantPoolEntry*) frame->constant_pool[idx];
+        vector_t* rs = frame->jvm->getRefSys();
+        // implement long and int
     }
 
     void Opc::ldiv(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Long && value2->type == SE8::Long) {
-            int64_t val2 = *(uint64_t*)((uint64_t) value2 + 1);
-            if (val2 == 0) {
-                frame->stack->pushNaN();
-            } else {
-                int64_t val1 = *(uint64_t*)((uint64_t) value1 + 1);
-                frame->stack->pushLong(val1 / val2);
-            }
+        int64_t value2 = frame->stack->pop64();
+        int64_t value1 = frame->stack->pop64();
+        if (value2 == 0) {
+            // throw arithmetic exception
         }
+        frame->stack->push64(value1 / value2);
     }
 
     void Opc::lload(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(frame->widened ? frame->reader->u2B() : frame->reader->u1());
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Long) {
-            frame->stack->pushLong(frame->locals->get64(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
+        uint16_t idx = frame->widened ? frame->reader->u2B() : frame->reader->u1();
+        frame->stack->push64(*(uint64_t*)((uint64_t) frame->locals + idx * 4));
         frame->widened = false;
     }
 
     void Opc::lload_0(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(0);
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Long) {
-            frame->stack->pushLong(frame->locals->get64(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+        frame->stack->push64(*(uint64_t*)((uint64_t) frame->locals));
     }
 
     void Opc::lload_1(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(1);
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Long) {
-            frame->stack->pushLong(frame->locals->get64(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+        frame->stack->push64(*(uint64_t*)((uint64_t) frame->locals + 1 * 4));
     }
 
     void Opc::lload_2(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(2);
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Long) {
-            frame->stack->pushLong(frame->locals->get64(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+        frame->stack->push64(*(uint64_t*)((uint64_t) frame->locals + 2 * 4));
     }
 
     void Opc::lload_3(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(3);
-        uint8_t type = frame->locals->getType(ptr);
-        if (type == SE8::Long) {
-            frame->stack->pushLong(frame->locals->get64(ptr));
-        } else if (type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (type == SE8::Null) {
-            frame->stack->pushNull();
-        }
-        frame->widened = false;
+        frame->stack->push64(*(uint64_t*)((uint64_t) frame->locals + 3 * 4));
     }
 
     void Opc::lmul(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Long && value2->type == SE8::Long) {
-            int64_t val1 = *(uint64_t*)((uint64_t) value1 + 1);
-            int64_t val2 = *(uint64_t*)((uint64_t) value2 + 1);
-            frame->stack->pushLong(val1 * val2);
-        }
+        int64_t value2 = frame->stack->pop64();
+        int64_t value1 = frame->stack->pop64();
+        frame->stack->push64(value1 * value2);
     }
 
     void Opc::lneg(Frame* frame) {
-        int64_t val = *(uint64_t*)((uint64_t) frame->stack->pop() + 1);
-        frame->stack->pushLong(-val);
+        int64_t value = frame->stack->pop64();
+        frame->stack->push64(-value);
     }
 
     void Opc::lookupswitch(Frame* frame) {
@@ -1251,126 +1002,75 @@ namespace SE8 {
     }
 
     void Opc::lor(Frame* frame) {
-
+        int64_t value2 = frame->stack->pop64();
+        int64_t value1 = frame->stack->pop64();
+        frame->stack->push64(value1 | value2);
     }
 
     void Opc::lrem(Frame* frame) {
-
+        int64_t value2 = frame->stack->pop64();
+        int64_t value1 = frame->stack->pop64();
+        frame->stack->push64(value1 % value2);
     }
 
     void Opc::lreturn(Frame* frame) {
-        frame->returnValue = frame->stack->pop();
+        frame->returnValue = frame->stack->pop64();
+        frame->code_length = 0;
     }
 
     void Opc::lshl(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Long && value2->type == SE8::Int) {
-            int32_t val1 = *(uint32_t*)((uint64_t) value1 + 1);
-            int64_t val2 = *(uint64_t*)((uint64_t) value2 + 1);
-            frame->stack->pushLong(val1 << val2);
-        } else if (value1->type == SE8::NaN || value2->type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (value1->type == SE8::Null || value2->type == SE8::Null) {
-            frame->stack->pushNull();
-        }
+        int64_t value2 = frame->stack->pop64();
+        int32_t value1 = frame->stack->pop32();
+        frame->stack->push64(value1 << value2);
     }
 
     void Opc::lshr(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Long && value2->type == SE8::Int) {
-            int32_t val1 = *(uint32_t*)((uint64_t) value1 + 1);
-            int64_t val2 = *(uint64_t*)((uint64_t) value2 + 1);
-            frame->stack->pushLong(val1 >> val2);
-        } else if (value1->type == SE8::NaN || value2->type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (value1->type == SE8::Null || value2->type == SE8::Null) {
-            frame->stack->pushNull();
-        }
+        int64_t value2 = frame->stack->pop64();
+        int32_t value1 = frame->stack->pop32();
+        frame->stack->push64(value1 >> value2);
     }
 
     void Opc::lstore(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(frame->widened ? frame->reader->u2B() : frame->reader->u1());
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Long) {
-            frame->locals->set64(ptr, *(uint64_t*)(&value->bytes));
-        }
+        uint16_t idx = frame->widened ? frame->reader->u2B() : frame->reader->u1();
+        *(uint64_t*)((uint64_t) frame->locals + idx * 4) = frame->stack->pop64();
         frame->widened = false;
     }
 
     void Opc::lstore_0(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(0);
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Long) {
-            frame->locals->set64(ptr, *(uint64_t*)(&value->bytes));
-        }
-        frame->widened = false;
+        *(uint64_t*)((uint64_t) frame->locals) = frame->stack->pop64();
     }
 
     void Opc::lstore_1(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(1);
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Long) {
-            frame->locals->set64(ptr, *(uint64_t*)(&value->bytes));
-        }
-        frame->widened = false;
+        *(uint64_t*)((uint64_t) frame->locals + 1 * 4) = frame->stack->pop64();
     }
 
     void Opc::lstore_2(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(2);
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Long) {
-            frame->locals->set64(ptr, *(uint64_t*)(&value->bytes));
-        }
-        frame->widened = false;
+        *(uint64_t*)((uint64_t) frame->locals + 2 * 4) = frame->stack->pop64();
     }
 
     void Opc::lstore_3(Frame* frame) {
-        uint64_t ptr = frame->locals->getPtr(3);
-        SE8::Value* value = frame->stack->pop();
-        frame->locals->setType(ptr, value->type);
-        if (value->type == SE8::Long) {
-            frame->locals->set64(ptr, *(uint64_t*)(&value->bytes));
-        }
-        frame->widened = false;
+        *(uint64_t*)((uint64_t) frame->locals + 3 * 4) = frame->stack->pop64();
     }
 
     void Opc::lsub(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Long && value2->type == SE8::Long) {
-            int64_t val1 = *(uint64_t*)((uint64_t) value1 + 1);
-            int64_t val2 = *(uint64_t*)((uint64_t) value2 + 1);
-            frame->stack->pushDouble(val1 - val2);
-        }
+        int64_t value2 = frame->stack->pop64();
+        int64_t value1 = frame->stack->pop64();
+        frame->stack->push64(value1 - value2);
     }
 
     void Opc::lushr(Frame* frame) {
-        SE8::Value* value2 = frame->stack->pop();
-        SE8::Value* value1 = frame->stack->pop();
-        if (value1->type == SE8::Long && value2->type == SE8::Int) {
-            int64_t val1 = *(uint64_t*)((uint64_t) value1 + 1);
-            int64_t val2 = *(uint64_t*)((uint64_t) value2 + 1);
-            int64_t mask = 0x7fffffffffffffff;
-            mask = mask >> val2;
-            mask = (mask << 1) | 1;
-            frame->stack->pushLong((val1 >> val2) & mask);
-        } else if (value1->type == SE8::NaN || value2->type == SE8::NaN) {
-            frame->stack->pushNaN();
-        } else if (value1->type == SE8::Null || value2->type == SE8::Null) {
-            frame->stack->pushNull();
-        } else {
-            // type exception
-        }
+        int32_t value2 = frame->stack->pop32();
+        int64_t value1 = frame->stack->pop64();
+        int64_t mask = 0x7fffffffffffffff;
+        mask = mask >> value2;
+        mask = (mask << 1) | 1;
+        frame->stack->push64((value1 >> value2) & mask);
     }
 
     void Opc::lxor(Frame* frame) {
-
+        int64_t value2 = frame->stack->pop64();
+        int64_t value1 = frame->stack->pop64();
+        frame->stack->push64(value1 | value2);
     }
 
     void Opc::monitorenter(Frame* frame) {
@@ -1386,22 +1086,43 @@ namespace SE8 {
     }
 
     void Opc::new_(Frame* frame) {
+        uint16_t idx = frame->reader->u2B();
+        Constant_ClassInfo* classInfo = (Constant_ClassInfo*) frame->constant_pool[idx];
+        char* className = (char*) ((Constant_Utf8*) frame->constant_pool[classInfo->name_index])->bytes;
+        ClassArea* cl = frame->jvm->getClasses()->getClass(className);
+        vector_t* rs = frame->jvm->getRefSys();
+        vector_push(rs, cl->newObject());
+        frame->stack->push32(rs->length-1);
+    }
 
+    uint8_t getArrayTypeSize(uint8_t type) {
+        switch (type) {
+            case SE8::AT_BOOLEAN:
+            case SE8::AT_BYTE:
+                return 1;
+            case SE8::AT_CHAR:
+            case SE8::AT_SHORT:
+                return 2;
+            case SE8::AT_INT:
+            case SE8::AT_FLOAT:
+                return 4;
+            case SE8::AT_LONG:
+            case SE8::AT_DOUBLE:
+                return 8;
+        }
     }
 
     void Opc::newarray(Frame* frame) {
-        uint8_t arrayType = frame->reader->u1();
-        uint32_t count = *(uint32_t*)((uint64_t) frame->stack->pop() + 1);
+        uint8_t itemSize = getArrayTypeSize(frame->reader->u1());
+        int32_t count = frame->stack->pop32();
         if (count < 0) {
             // throw NegativeArraySizeException
         } else {
-            // todo : should use garbage collection to allocate array
-            uint8_t size = 1+getTypeSize(arrayType)*count;
-            SE8::Array* arr = (SE8::Array*) malloc(1+4+size);
-            arr->type = arrayType;
-            arr->count = count;
-            memset((uintptr_t)((uint64_t) arr + 5), 0x00, size);
-            frame->stack->pushArrayRef((uint64_t) arr);
+            // todo: should use garbage collection to allocate array
+            uintptr_t arr = malloc(itemSize*count);
+            vector_t* rs = frame->jvm->getRefSys();
+            vector_push(rs, arr);
+            frame->stack->push32(rs->length-1);
         }
     }
 
@@ -1410,11 +1131,11 @@ namespace SE8 {
     }
 
     void Opc::pop(Frame* frame) {
-        frame->stack->wpop();
+        frame->stack->pop32();
     }
 
     void Opc::pop2(Frame* frame) {
-        frame->stack->wpop();
+        frame->stack->pop64();
     }
 
     void Opc::putfield(Frame* frame) {
@@ -1426,15 +1147,33 @@ namespace SE8 {
         Constant_RefInfo* field = (Constant_RefInfo*) frame->constant_pool[idx];
         char* className = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_ClassInfo*) frame->constant_pool[field->class_index])->name_index])->bytes;
         char* fieldName = (char*) ((Constant_Utf8*) frame->constant_pool[((Constant_NameAndType*) frame->constant_pool[field->name_and_type_index])->name_index])->bytes;
-        frame->jvm->getClasses()->setStaticField(className, fieldName, frame->stack->pop());
+        ClassArea* cl = frame->jvm->getClasses()->getClass(className);
+        uint8_t fieldSize = cl->getStaticFieldSize(fieldName);
+        switch (fieldSize) {
+            case 1:
+                cl->setStaticField8(fieldName, frame->stack->pop8());
+                break;
+            case 2:
+                cl->setStaticField16(fieldName, frame->stack->pop16());
+                break;
+            case 4:
+                cl->setStaticField32(fieldName, frame->stack->pop32());
+                break;
+            case 8:
+                cl->setStaticField64(fieldName, frame->stack->pop64());
+                break;
+        }
     }
 
     void Opc::ret(Frame* frame) {
-
+        uint16_t idx = frame->widened ? frame->reader->u2B() : frame->reader->u1();
+        frame->reader->index = *(uint32_t*)((uint64_t) frame->locals + idx * 4);
+        frame->widened = false;
     }
 
     void Opc::return_(Frame* frame) {
         frame->returnValue = NULL;
+        frame->code_length = 0;
     }
 
     void Opc::saload(Frame* frame) {
@@ -1442,18 +1181,23 @@ namespace SE8 {
     }
 
     void Opc::sastore(Frame* frame) {
-
+        uint32_t value = frame->stack->pop32();
+        int32_t index = frame->stack->pop32();
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        *(uint16_t*)((uint64_t) arr + index * 2) = (uint16_t) value;
     }
 
     void Opc::sipush(Frame* frame) {
-        frame->stack->pushShort(frame->reader->u2B());
+        frame->stack->push32(frame->reader->u2B());
     }
 
     void Opc::swap(Frame* frame) {
-        SE8::Value* val1 = frame->stack->pop();
-        SE8::Value* val2 = frame->stack->pop();
-        frame->stack->push(val1);
-        frame->stack->push(val2);
+        int32_t value1 = frame->stack->pop32();
+        int32_t value2 = frame->stack->pop32();
+        frame->stack->push32(value1);
+        frame->stack->push32(value2);
     }
 
     void Opc::tableswitch(Frame* frame) {
@@ -1676,7 +1420,7 @@ namespace SE8 {
         oct[SE8::wide] = Opc::wide;
     }
 
-    void Frame::run(Value* args, uint32_t args_length) {
+    void Frame::run(uintptr_t args, uint32_t args_length) {
         widened = false;
         reader->index = 0;
         if (args_length > 0) {
@@ -1684,13 +1428,13 @@ namespace SE8 {
                 // todo
             }
         }
-        static bool hmm = false;
         while (reader->index < code_length) {
             uint8_t oc = reader->u1();
-            if (hmm) { Printlog(itoa(oc, "   ", 16)); }
+            //Printlog(itoa(oc, "   ", 16)); 
             oct[oc](this);
         }
-        hmm = true;
+        free(stack);
+        free(locals);
     }
 
 }

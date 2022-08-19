@@ -2,14 +2,17 @@
 
 #include "../types.h"
 #include "../frame/frame.h"
+#include "area.h"
 
 namespace SE8 {
 
     class Frame;
     class JavaVM;
 
-    class Class {
+    class ClassParser {
     private:
+        Attribute** parseAttributes(uint16_t attributes_count, Reader* reader);
+    public:
         uint32_t magic;
         uint16_t minorVersion;
         uint16_t majorVersion;
@@ -26,21 +29,9 @@ namespace SE8 {
         Method** methods;
         uint16_t attributes_count;
         Attribute** attributes;
-        Attribute** parseAttributes(uint16_t attributes_count, Reader* reader);
-        vector_t* runtime_static_fields;
-    public:
-        Class(uintptr_t bytes);
-        char* getSourceFileName();
-        char* getClassName();
-        char* getSuperClassName();
-        uint16_t getAccessFlags();
-        Method* getStaticMethod(char* name, char* descriptor);
-        Method* getMethod(char* name, char* descriptor);
-        Frame* getEntryPoint(JavaVM* jvm);
-        Method** getMethods();
-        uintptr_t* getConstantPool();
-        void setStaticField(char* fieldName, Value* value);
-        Value* getStaticField(char* fieldName);
+        ClassParser(uintptr_t bytes);
+        uint8_t getFieldSize(char* fieldName);
+        uint8_t getStaticFieldSize(char* fieldName);
     };
 
 }
