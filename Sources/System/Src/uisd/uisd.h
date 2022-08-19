@@ -9,7 +9,7 @@
 #include <kot/uisd.h>
 #include <kot++/stack.h>
 
-thread UISDInitialize(process_t* process);
+thread_t UISDInitialize(process_t* process);
 
 void UISDHandler(uint64_t IPCTask, enum ControllerTypeEnum Controller, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
@@ -25,6 +25,6 @@ struct callbackget_info_t{
     enum ControllerTypeEnum Controller;
     process_t Self;
     uintptr_t Address;
-    thread Callback; 
+    thread_t Callback; 
     uint64_t Callbackarg;
 };

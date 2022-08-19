@@ -9,12 +9,13 @@ size_t ControllerTypeSize[ControllerCount] = {
     sizeof(pci_t)
 };
 
-thread CallBackUISDThread = NULL;
+thread_t CallBackUISDThread = NULL;
+process_t ProcessKeyForUISD = NULL;
 
 KResult CallbackUISD(uint64_t Task, KResult Statu, callbackInfo_t* Info, uint64_t GP0, uint64_t GP1);
 
 KResult InitializeUISD(){
-    thread UISDthreadKeyCallback;
+    thread_t UISDthreadKeyCallback;
     uint64_t UISDKeyFlags = NULL;
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypethreadIsExecutableWithQueue, true);
@@ -38,7 +39,7 @@ KResult CallbackUISD(uint64_t Task, KResult Statu, callbackInfo_t* Info, uint64_
 
 callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t* Location, bool AwaitCallback){
     if(!CallBackUISDThread) InitializeUISD();
-    thread Self = NULL;
+    thread_t Self = NULL;
     Sys_GetthreadKey(&Self);
     callbackInfo_t* Info = malloc(sizeof(callbackInfo_t));
     Info->Self = Self;
@@ -66,7 +67,7 @@ callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t*
 
 callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ksmem_t MemoryField, bool AwaitCallback){
     if(!CallBackUISDThread) InitializeUISD();
-    thread Self = NULL;
+    thread_t Self = NULL;
     Sys_GetthreadKey(&Self);
     callbackInfo_t* Info = malloc(sizeof(callbackInfo_t));
     Info->Self = Self;

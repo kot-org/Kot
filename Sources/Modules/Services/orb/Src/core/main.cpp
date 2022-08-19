@@ -51,7 +51,7 @@ void renderWindows() {
 
 }
 
-thread renderThread = NULL;
+thread_t renderThread = NULL;
 
 void threadRender(){
     renderWindows();

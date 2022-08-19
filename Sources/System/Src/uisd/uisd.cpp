@@ -1,6 +1,6 @@
 #include <uisd/uisd.h>
 
-thread UISDHandlerThread;
+thread_t UISDHandlerThread;
 
 controller_info_t** UISDControllers;
 
@@ -13,8 +13,8 @@ size_t ControllerTypeSize[ControllerCount] = {
     sizeof(pci_t)
 };
 
-thread UISDInitialize(process_t* process) {
-    thread UISDthreadKey;
+thread_t UISDInitialize(process_t* process) {
+    thread_t UISDthreadKey;
     uint64_t UISDKeyFlags = NULL;
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypethreadIsExecutableWithQueue, true);
@@ -35,7 +35,7 @@ thread UISDInitialize(process_t* process) {
 
 }
 
-void UISDAddToQueu(enum ControllerTypeEnum Controller, thread Callback, uint64_t Callbackarg, process_t Self, uintptr_t Address){
+void UISDAddToQueu(enum ControllerTypeEnum Controller, thread_t Callback, uint64_t Callbackarg, process_t Self, uintptr_t Address){
     if(!UISDControllers[Controller]){
         UISDControllers[Controller] = (controller_info_t*)malloc(sizeof(controller_info_t));
         UISDControllers[Controller]->IsLoad = false;
@@ -72,7 +72,7 @@ void UISDAcceptAll(enum ControllerTypeEnum Controller){
     }
 }
 
-KResult UISDCreate(enum ControllerTypeEnum Controller, thread callback, uint64_t callbackarg, ksmem_t DataKey) {
+KResult UISDCreate(enum ControllerTypeEnum Controller, thread_t callback, uint64_t callbackarg, ksmem_t DataKey) {
     KResult Statu = KFAIL;
     if(UISDControllers[Controller] == NULL || (UISDControllers[Controller] != NULL && !UISDControllers[Controller]->IsLoad)){
         enum MemoryFieldType Type;
@@ -101,7 +101,7 @@ KResult UISDCreate(enum ControllerTypeEnum Controller, thread callback, uint64_t
     return Statu;
 }
 
-KResult UISDGet(enum ControllerTypeEnum Controller, thread Callback, uint64_t Callbackarg, process_t Self, uintptr_t Address) {
+KResult UISDGet(enum ControllerTypeEnum Controller, thread_t Callback, uint64_t Callbackarg, process_t Self, uintptr_t Address) {
     process_t Target = NULL;
     uint64_t Flags = NULL;
     Printlog("ok");
@@ -131,7 +131,7 @@ KResult UISDGet(enum ControllerTypeEnum Controller, thread Callback, uint64_t Ca
     return NULL;
 }
 
-void UISDHandler(uint64_t IPCTask, enum ControllerTypeEnum Controller, thread Callback, uint64_t Callbackarg, uint64_t GP0, uint64_t GP1) {
+void UISDHandler(uint64_t IPCTask, enum ControllerTypeEnum Controller, thread_t Callback, uint64_t Callbackarg, uint64_t GP0, uint64_t GP1) {
     if(Controller <= 0xff && IPCTask <= 0x2){
         KResult Statu = KFAIL;
         switch (IPCTask) {

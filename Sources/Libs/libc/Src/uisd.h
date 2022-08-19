@@ -48,41 +48,41 @@ typedef struct {
 
 typedef struct {
     controller_t ControllerHeader;
-    thread GetDiskInfo;
-    thread GetPartitionInfo;
+    thread_t GetDiskInfo;
+    thread_t GetPartitionInfo;
 
-    thread ReadDisk;
-    thread WriteDisk;
+    thread_t ReadDisk;
+    thread_t WriteDisk;
 
-    thread GetVendorID;
-    thread GetDeviceID;
+    thread_t GetVendorID;
+    thread_t GetDeviceID;
 } storage_t;
 
 typedef struct {
     controller_t ControllerHeader;
-    thread rename;
-    thread remove;
-    thread fopen;
-    thread mkdir;
-    thread readdir;
-    thread flist;
+    thread_t rename;
+    thread_t remove;
+    thread_t fopen;
+    thread_t mkdir;
+    thread_t readdir;
+    thread_t flist;
 } vfs_t;
 
 typedef struct {
     controller_t ControllerHeader;
-    thread GetUSBDevice;
-    thread SendUSBPacket;
-    thread ReceiveUSBPacket;
+    thread_t GetUSBDevice;
+    thread_t SendUSBPacket;
+    thread_t ReceiveUSBPacket;
 } usb_t;
 
 typedef struct {
     controller_t ControllerHeader;
-    thread GetPCIDevice;
-    thread SetupMSIX;
+    thread_t GetPCIDevice;
+    thread_t SetupMSIX;
 } pci_t;
 
 typedef struct {
-    thread Self;
+    thread_t Self;
     bool AwaitCallback;
     uintptr_t Location;
     KResult Statu;

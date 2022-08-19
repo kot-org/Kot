@@ -5,7 +5,7 @@
 
 process_t proc;
 
-void ShareString(thread self, char* str, uint64_t* clientAddress){
+void ShareString(thread_t self, char* str, uint64_t* clientAddress){
     SYS_ShareDataUsingStackSpace(self, (uint64_t)str, strlen(str) + 1, clientAddress);
 }
 
@@ -15,7 +15,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
 
     Sys_GetthreadKey(&proc);
     
-    thread self;
+    thread_t self;
     Sys_GetthreadKey(&self);
 
     ramfs::Parse(kernelInfo->ramfs.address, kernelInfo->ramfs.size);
@@ -52,7 +52,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
 
                 uintptr_t BufferServiceFile = calloc(ServiceFile->size);
                 ramfs::Read(ServiceFile, BufferServiceFile);
-                thread thread = NULL;
+                thread_t thread = NULL;
                 ELF::loadElf(BufferServiceFile, (enum Priviledge) atoi(ServiceInfo[1]), NULL, &thread);
                 free(BufferServiceFile);
 
