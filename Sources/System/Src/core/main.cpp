@@ -21,7 +21,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
     ramfs::Parse(kernelInfo->ramfs.address, kernelInfo->ramfs.size);
 
     // load IPC
-    KotSpecificData.UISDHandler = UISDInitialize();
+    KotSpecificData.UISDHandler = UISDInitialize(&KotSpecificData.UISDHandlerProcess);
     
     // load start file
     ramfs::File* InitFile = ramfs::Find("Starter.cfg");

@@ -25,6 +25,7 @@ struct KotSpecificData_t{
     uint64_t HeapLocation;
     /* UISD */
     thread UISDHandler;
+    process_t UISDHandlerProcess;
     /* FreeMemorySpace */
     uintptr_t FreeMemorySpace;
 }__attribute__((aligned(0x1000)));

@@ -5,9 +5,10 @@
 #include <kot/types.h>
 #include <kot/memory.h>
 #include <kot/cstring.h>
+#include <kot/keyhole.h>
 
-#define UISDCreateTask      0x0
 #define UISDGetTask         0x1
+#define UISDCreateTask      0x0
 #define UISDFreeTask        0x2
 #define UISDMaxController   0xff
 
@@ -15,14 +16,7 @@
 extern "C" {
 #endif
 
-static inline KResult CreateIPC(char* Name, thread thread){
-
-}
-
-static inline thread CallIPC(char* Name){
-
-}
-
+#define ControllerCount 0x5 + 1
 
 enum ControllerTypeEnum{
     ControllerTypeEnum_Graphics     = 0,
@@ -30,9 +24,10 @@ enum ControllerTypeEnum{
     ControllerTypeEnum_Storage      = 2,
     ControllerTypeEnum_VFS          = 3,
     ControllerTypeEnum_USB          = 4,
-    ControllerTypeEnum_Internet     = 5,
+    ControllerTypeEnum_PCI          = 5,
     ControllerTypeEnum_Other        = 255
 };
+
 
 typedef struct {
     uint64_t Version;
@@ -42,16 +37,13 @@ typedef struct {
 
 typedef struct {
     controller_t ControllerHeader;
-    thread GetUSBDevice;
-    thread SendUSBPacket;
-    thread ReceiveUSBPacket;
-} usb_t;
+    /* TODO */
+} graphics_t;
 
 typedef struct {
     controller_t ControllerHeader;
-    thread GetPCIDevice;
-    thread SetupMSIX;
-} pci_t;
+    /* TODO */
+} audio_t;
 
 typedef struct {
     controller_t ControllerHeader;
@@ -74,6 +66,26 @@ typedef struct {
     thread readdir;
     thread flist;
 } vfs_t;
+
+typedef struct {
+    controller_t ControllerHeader;
+    thread GetUSBDevice;
+    thread SendUSBPacket;
+    thread ReceiveUSBPacket;
+} usb_t;
+
+typedef struct {
+    controller_t ControllerHeader;
+    thread GetPCIDevice;
+    thread SetupMSIX;
+} pci_t;
+
+typedef struct {
+    thread Self;
+    bool AwaitCallback;
+    uintptr_t Location;
+    KResult Statu;
+} callbackInfo_t;
 
 #if defined(__cplusplus)
 }

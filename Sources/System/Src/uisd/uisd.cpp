@@ -1,24 +1,28 @@
 #include <uisd/uisd.h>
 
-thread threadIPC;
+thread UISDHandlerThread;
 
 controller_info_t** UISDControllers;
 
-thread UISDInitialize() {
+thread UISDInitialize(process_t* process) {
+    thread UISDthreadKey;
+    uint64_t UISDKeyFlags = NULL;
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypethreadIsExecutableWithQueue, true);
 
-    thread IPCthreadKey;
-    uint64_t IPCKeyFlags = NULL;
-    Keyhole_SetFlag(&IPCKeyFlags, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&IPCKeyFlags, KeyholeFlagDataTypethreadIsExecutableWithQueue, true);
+    process_t proc;
+    Sys_GetProcessKey(&proc);
 
-    process_t process;
-    Sys_GetProcessKey(&process);
-
-    Sys_Createthread(process, (uintptr_t)UISDHandler, PriviledgeService, NULL, &threadIPC);
-    Sys_Keyhole_CloneModify(threadIPC, &IPCthreadKey, NULL, IPCKeyFlags);
+    Sys_Createthread(proc, (uintptr_t)UISDHandler, PriviledgeService, NULL, &UISDHandlerThread);
+    Sys_Keyhole_CloneModify(UISDHandlerThread, &UISDthreadKey, NULL, UISDKeyFlags);
 
     UISDControllers = (controller_info_t**)calloc(sizeof(controller_info_t) * UISDMaxController);
-    return IPCthreadKey;
+
+    UISDKeyFlags = NULL;
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
+    Sys_Keyhole_CloneModify(proc, process, NULL, UISDKeyFlags);
+
+    return UISDthreadKey;
 
 }
 
@@ -30,7 +34,7 @@ void UISDAddToQueu(enum ControllerTypeEnum Controller, thread Callback, uint64_t
         UISDControllers[Controller]->NumberOfWaitingTasks = NULL;
     }
     
-    callback_info_t* callbackInfo = (callback_info_t*)malloc(sizeof(callback_info_t));
+    callbackget_info_t* callbackInfo = (callbackget_info_t*)malloc(sizeof(callbackget_info_t));
     callbackInfo->Controller = Controller;
     callbackInfo->Self = Self;
     callbackInfo->Address = Address;
@@ -40,19 +44,20 @@ void UISDAddToQueu(enum ControllerTypeEnum Controller, thread Callback, uint64_t
     UISDControllers[Controller]->NumberOfWaitingTasks++;
 }
 
-void UISDAccept(callback_info_t* callback){
+void UISDAccept(callbackget_info_t* callback){
     KResult Statu = Sys_AcceptMemoryField(callback->Self, UISDControllers[callback->Controller]->DataKey, &callback->Address);
     arguments_t parameters{
-        .arg[0] = (uint64_t)Statu,
-        .arg[1] = callback->Callbackarg,
-        .arg[2] = (uint64_t)callback->Address,
+        .arg[0] = UISDGetTask,
+        .arg[1] = (uint64_t)Statu,
+        .arg[2] = callback->Callbackarg,
+        .arg[3] = (uint64_t)callback->Address,
     };
     Sys_Execthread(callback->Callback, &parameters, ExecutionTypeQueu, NULL);        
 }
 
 void UISDAcceptAll(enum ControllerTypeEnum Controller){
     for(uint64_t i = 0; i < UISDControllers[Controller]->NumberOfWaitingTasks; i++){
-        callback_info_t* callback = (callback_info_t*)UISDControllers[Controller]->WaitingTasks->pop64();
+        callbackget_info_t* callback = (callbackget_info_t*)UISDControllers[Controller]->WaitingTasks->pop64();
         UISDAccept(callback);
         free(callback);
     }
@@ -84,8 +89,9 @@ KResult UISDCreate(enum ControllerTypeEnum Controller, thread callback, uint64_t
         }
     }
     arguments_t parameters{
-        .arg[0] = (uint64_t)Statu,
-        .arg[1] = callbackarg,
+        .arg[0] = UISDCreateTask,
+        .arg[1] = (uint64_t)Statu,
+        .arg[2] = callbackarg,
     };
     Sys_Execthread(callback, &parameters, ExecutionTypeQueu, NULL);    
     return Statu;
@@ -98,7 +104,7 @@ KResult UISDGet(enum ControllerTypeEnum Controller, thread Callback, uint64_t Ca
     if(!Keyhole_GetFlag(Flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return NULL;
     if(UISDControllers[Controller] == NULL){
         if(UISDControllers[Controller]->IsLoad){
-            struct callback_info_t info = (struct callback_info_t){
+            struct callbackget_info_t info = (struct callbackget_info_t){
                 .Controller = Controller,
                 .Self = Self,
                 .Address = Address,
