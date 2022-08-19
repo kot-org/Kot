@@ -132,7 +132,7 @@ KResult UISDGet(enum ControllerTypeEnum Controller, thread Callback, uint64_t Ca
 }
 
 void UISDHandler(uint64_t IPCTask, enum ControllerTypeEnum Controller, thread Callback, uint64_t Callbackarg, uint64_t GP0, uint64_t GP1) {
-    if(Controller <= 0xff){
+    if(Controller <= 0xff && IPCTask <= 0x2){
         KResult Statu = KFAIL;
         switch (IPCTask) {
         case UISDCreateTask:
@@ -145,7 +145,7 @@ void UISDHandler(uint64_t IPCTask, enum ControllerTypeEnum Controller, thread Ca
             break;
         }
         arguments_t parameters{
-            .arg[0] = UISDCreateTask,
+            .arg[0] = IPCTask,
             .arg[1] = (uint64_t)Statu,
             .arg[2] = Callbackarg,
         };
