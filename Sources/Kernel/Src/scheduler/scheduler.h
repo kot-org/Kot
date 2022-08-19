@@ -168,7 +168,8 @@ struct kthread_t{
     bool Launch();  
     bool Pause(ContextStack* Registers, uint64_t CoreID);   
     KResult Close(ContextStack* Registers, uint64_t CoreID);
-    KResult Close_WL(ContextStack* Registers, uint64_t CoreID);
+    KResult CloseQueu(ContextStack* Registers, uint64_t CoreID);
+    KResult CloseQueu_WL(ContextStack* Registers, uint64_t CoreID);
 }__attribute__((packed));  
 
 class TaskManager{
