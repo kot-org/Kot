@@ -150,6 +150,6 @@ void UISDHandler(uint64_t IPCTask, enum ControllerTypeEnum Controller, thread Ca
             .arg[2] = Callbackarg,
         };
         Sys_Execthread(Callback, &parameters, ExecutionTypeQueu, NULL); 
-        SYS_Exit(NULL, Statu);
+        SYS_Close(NULL, Statu);
     }
 }
