@@ -7,7 +7,7 @@ uint8_t MouseCycle = 0;
 MouseData_t* MouseData;
 PS2Port_t* MousePS2Port;
 arguments_t* MouseEventParameters;
-thread Mousethread = NULL;
+thread_t Mousethread = NULL;
 
 KResult MouseInitalize(){
     MouseData = (MouseData_t*)malloc(sizeof(MouseData_t));

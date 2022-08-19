@@ -39,6 +39,7 @@ struct ThreadQueu_t{
     struct ThreadQueuData_t* LastData;
     KResult SetThreadInQueu(kthread_t* Caller, kthread_t* Self, arguments_t* FunctionParameters, bool IsAwaitTask, struct ThreadShareData_t* Data);
     KResult ExecuteThreadInQueu();
+    KResult ExecuteThreadInQueuFromItself_WL(struct ContextStack* Registers, uint64_t CoreID);
     KResult NextThreadInQueu();
 }__attribute__((packed));
 
@@ -161,26 +162,29 @@ struct kthread_t{
 
     bool IPC(struct ContextStack* Registers, uint64_t CoreID, kthread_t* thread, arguments_t* FunctionParameters, bool IsAsync);
 
-    bool LaunchWithoutLock(arguments_t* FunctionParameters);  
+    bool Launch_WL(arguments_t* FunctionParameters);  
     bool Launch(arguments_t* FunctionParameters);  
-    bool LaunchWithoutLock();  
+    bool Launch_WL();  
     bool Launch();  
     bool Pause(ContextStack* Registers, uint64_t CoreID);   
     KResult Close(ContextStack* Registers, uint64_t CoreID);
+    KResult CloseQueu(ContextStack* Registers, uint64_t CoreID);
+    KResult CloseQueu_WL(ContextStack* Registers, uint64_t CoreID);
 }__attribute__((packed));  
 
 class TaskManager{
     public:
         void Scheduler(struct ContextStack* Registers, uint64_t CoreID);
+        void DestroySelf(struct ContextStack* Registers, uint64_t CoreID);
         void SwitchTask(struct ContextStack* Registers, uint64_t CoreID, kthread_t* task);
 
         void EnqueueTask(struct kthread_t* task);
-        void EnqueueTaskWithoutLock(struct kthread_t* thread);
+        void EnqueueTask_WL(struct kthread_t* thread);
         void DequeueTask(struct kthread_t* task);
-        void DequeueTaskWithoutLock(struct kthread_t* task);
+        void DequeueTask_WL(struct kthread_t* task);
 
         // threads
-        kthread_t* GetTreadWithoutLock();
+        kthread_t* GetTread_WL();
         uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint64_t externalData);
         uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint8_t privilege, uint64_t externalData);
         uint64_t Duplicatethread(kthread_t** self, kprocess_t* proc, kthread_t* source, uint64_t externalData);

@@ -2,8 +2,9 @@
 #define IO_APIC             256
 #define MAX_IRQ             256
 
-#define IPI_Schedule        0x40
-#define IPI_Stop            0x41
+#define INT_Schedule        0x40
+#define INT_DestroySelf     0x41
+#define INT_Stop            0x42
 
 #define PAGE_SIZE (uint64_t)0x1000
 #define KERNEL_STACK_SIZE PAGE_SIZE * 0x10 /* 10 mb */

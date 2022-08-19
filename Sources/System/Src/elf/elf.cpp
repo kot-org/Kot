@@ -46,7 +46,7 @@ namespace ELF {
         }
     }
 
-    KResult loadElf(uintptr_t buffer, enum Priviledge privilege, uint64_t identifier, thread* mainthread) {
+    KResult loadElf(uintptr_t buffer, enum Priviledge privilege, uint64_t identifier, thread_t* mainthread) {
         elf_t* self = (elf_t*)calloc(sizeof(elf_t));
         self->Buffer = buffer;
         self->Header = (Elf64_Ehdr*)buffer;
@@ -75,7 +75,7 @@ namespace ELF {
         self->symtab = GetSectionHeaderType(self, SHT_SYMTAB);
         self->KotSpecific = GetSectionHeaderName(self, ".KotSpecificData");
 
-        thread Runningthread = NULL;
+        thread_t Runningthread = NULL;
         Sys_GetthreadKey(&Runningthread);
 
         uint64_t HeapLocation = 0x0;

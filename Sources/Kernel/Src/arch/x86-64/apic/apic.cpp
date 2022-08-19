@@ -240,7 +240,7 @@ namespace APIC{
         LocalAPICInterruptRegister TimerRegisters;
 
         /* Don't forget to define all the struct because it can be corrupt by the stack */
-        TimerRegisters.vector = IPI_Schedule;
+        TimerRegisters.vector = INT_Schedule;
         TimerRegisters.messageType = LocalAPICInterruptRegisterMessageTypeFixed;
         TimerRegisters.deliveryStatus = LocalAPICInterruptRegisterMessageTypeIddle;
         TimerRegisters.remoteIrr = LocalAPICInterruptRegisterRemoteIRRCompleted;

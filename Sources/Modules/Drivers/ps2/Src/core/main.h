@@ -35,7 +35,7 @@
 
 extern process_t self;
 extern struct PS2Port_t PS2Ports[2];
-extern thread InterruptthreadHandler;
+extern thread_t InterruptthreadHandler;
 typedef KResult (*IRQRedirections)(uint8_t data);
 extern IRQRedirections IRQRedirectionsArray[2];
 

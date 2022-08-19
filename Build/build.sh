@@ -33,10 +33,12 @@ echo -e "\e[32mCompiling kot drivers...\e[0m"
 sudo make -C "Modules/Drivers/pci/Build"
 sudo make -C "Modules/Drivers/ps2/Build"
 sudo make -C "Modules/Drivers/vga/Build"
+sudo make -C "Modules/Drivers/pcspeaker/Build"
 
 # Services
 echo -e "\e[32mCompiling kot services...\e[0m"
 
+sudo make -C "Modules/Services/test/Build"
 sudo make -C "Modules/Services/orb/Build"
 sudo make -C "Modules/Services/jvm/Build"
 

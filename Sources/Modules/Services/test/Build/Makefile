@@ -1,4 +1,4 @@
-_HOME = ../../../
+_HOME = ../../../../../
 
 CC = clang-14
 ASMC = nasm
@@ -9,14 +9,13 @@ ASMFLAGS =
 
 SRCDIR := ../Src
 OBJDIR := ../Lib
-BUILDDIR = ../Bin
 BINDIR = $(_HOME)Bin/Modules
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
-SRCCPP = $(call rwildcard,$(SRCDIR),*.cpp)      
+SRCC = $(call rwildcard,$(SRCDIR),*.cpp)
 ASMSRC = $(call rwildcard,$(SRCDIR),*.asm)   
-OBJS += $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCCPP))
+OBJS += $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCC))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)         
 
@@ -34,4 +33,4 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 
 link:
 	@ echo !==== LINKING
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/System.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/Lib/libcpp.a $(_HOME)Sysroot/Lib/crt0.o
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Test.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/Lib/crt0.o

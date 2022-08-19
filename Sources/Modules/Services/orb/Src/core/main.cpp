@@ -51,26 +51,18 @@ void renderWindows() {
 
 }
 
-thread renderThread1 = NULL;
-thread renderThread2 = NULL;
+thread_t renderThread = NULL;
 
-void threadRender1(){
+void threadRender(){
     renderWindows();
-    Sys_Execthread(renderThread2, NULL, ExecutionTypeQueu, NULL);
-    SYS_Exit(NULL, KSUCCESS);
-}
-
-void threadRender2(){
-    renderWindows();
-    Sys_Execthread(renderThread1, NULL, ExecutionTypeQueu, NULL);
+    Sys_Execthread(renderThread, NULL, ExecutionTypeQueu, NULL);
     SYS_Exit(NULL, KSUCCESS);
 }
 
 void initWindowRender() {
     windows = vector_create();
-    Sys_Createthread(self, (uintptr_t)&threadRender1, PriviledgeService, NULL, &renderThread1);
-    Sys_Createthread(self, (uintptr_t)&threadRender2, PriviledgeService, NULL, &renderThread2);
-    Sys_Execthread(renderThread1, NULL, ExecutionTypeQueu, NULL);
+    Sys_Createthread(self, (uintptr_t)&threadRender, PriviledgeService, NULL, &renderThread);
+    Sys_Execthread(renderThread, NULL, ExecutionTypeQueu, NULL);
 }
 
 void drawLotLogo() {

@@ -109,7 +109,7 @@ KResult GetDataToStartService(ArchInfo_t* ArchInfo, kthread_t* thread, arguments
 
 void StopAllCPU(){
     for(uint8_t i = 0; i < APIC::ProcessorCount; i++){
-        APIC::GenerateInterruption(i, IPI_Stop);
+        APIC::GenerateInterruption(i, INT_Stop);
     }
 
     asm("int $0x41");

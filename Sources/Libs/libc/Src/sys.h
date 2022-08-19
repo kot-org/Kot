@@ -24,7 +24,8 @@ struct KotSpecificData_t{
     /* Heap */
     uint64_t HeapLocation;
     /* UISD */
-    thread UISDHandler;
+    thread_t UISDHandler;
+    process_t UISDHandlerProcess;
     /* FreeMemorySpace */
     uintptr_t FreeMemorySpace;
 }__attribute__((aligned(0x1000)));
@@ -83,29 +84,30 @@ KResult Sys_CreateMemoryField(process_t self, size_t size, uintptr_t* virtualAdd
 KResult Sys_AcceptMemoryField(process_t self, ksmem_t key, uintptr_t* virtualAddressPointer);
 KResult Sys_FreeMemoryField(process_t self, ksmem_t key, uintptr_t address);
 KResult Sys_GetInfoMemoryField(ksmem_t key, uint64_t* typePointer, size_t* sizePointer);
-KResult SYS_ShareDataUsingStackSpace(thread self, uint64_t address, size_t size, uint64_t* clientAddress);
+KResult SYS_ShareDataUsingStackSpace(thread_t self, uint64_t address, size_t size, uint64_t* clientAddress);
 KResult Sys_CreateProc(process_t* key, enum Priviledge privilege, uint64_t data);
 KResult Sys_Fork(process_t* src, process_t* dst);
 KResult Sys_CloseProc();
-KResult SYS_Exit(thread self, uint64_t errorCode);
-KResult SYS_Pause(thread self);
-KResult SYS_Unpause(thread self);
+KResult SYS_Close(thread_t self, uint64_t errorCode);
+KResult SYS_Exit(thread_t self, uint64_t errorCode);
+KResult SYS_Pause(thread_t self);
+KResult SYS_Unpause(thread_t self);
 KResult SYS_Map(process_t self, uint64_t* addressVirtual, bool isPhysical, uintptr_t* addressPhysical, size_t* size, bool findFree);
 KResult SYS_Unmap(process_t self, uintptr_t addressVirtual, size_t size);
 KResult Sys_Event_Create(kevent_t* self);
-KResult Sys_Event_Bind(kevent_t self, thread task, uint8_t vector, bool IgnoreMissedEvents);
-KResult Sys_Event_Unbind(kevent_t self, thread task, uint8_t vector);
+KResult Sys_Event_Bind(kevent_t self, thread_t task, uint8_t vector, bool IgnoreMissedEvents);
+KResult Sys_Event_Unbind(kevent_t self, thread_t task, uint8_t vector);
 KResult Sys_Event_Trigger(kevent_t self, struct arguments_t* parameters);
 KResult Sys_Event_Close();
-KResult Sys_Createthread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t data, thread* result);
-KResult Sys_Duplicatethread(process_t parent, thread source, uint64_t data, thread* self);
-KResult Sys_Execthread(thread self, struct arguments_t* parameters, enum ExecutionType type, struct ShareDataWithArguments_t* data);
+KResult Sys_Createthread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t data, thread_t* result);
+KResult Sys_Duplicatethread(process_t parent, thread_t source, uint64_t data, thread_t* self);
+KResult Sys_Execthread(thread_t self, struct arguments_t* parameters, enum ExecutionType type, struct ShareDataWithArguments_t* data);
 KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, process_t target, uint64_t flags);
 KResult Sys_Keyhole_Verify(key_t self, enum DataType type, process_t* target, uint64_t* flags);
 KResult Sys_Logs(char* message, size_t size);
 
 
-KResult Sys_GetthreadKey(thread* self);
+KResult Sys_GetthreadKey(thread_t* self);
 KResult Sys_GetProcessKey(process_t* self);
 
 

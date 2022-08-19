@@ -71,7 +71,7 @@ KResult Sys_GetInfoMemoryField(SyscallStack* Registers, kthread_t* thread){
     uint64_t* TypePointer = (uint64_t*)Registers->arg1;
     size_t* SizePointer = (size_t*)Registers->arg2;
     *TypePointer = (uint64_t)memoryKey->Type;
-    *SizePointer = (uint64_t)memoryKey->Size;
+    *SizePointer = (uint64_t)memoryKey->InitialSize;
     return KSUCCESS;
 }
 
@@ -110,6 +110,26 @@ KResult Sys_CreateProc(SyscallStack* Registers, kthread_t* thread){
 KResult Sys_CloseProc(SyscallStack* Registers, kthread_t* thread){
     //TODO
     return KFAIL;
+}
+
+/* Sys_Close :
+    Arguments : 
+*/
+KResult Sys_Close(SyscallStack* Registers, kthread_t* thread){
+    kthread_t* threadkey;
+    uint64_t flags;
+    if(Registers->arg0 == NULL){
+        threadkey = thread;
+    }else{
+        if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+        if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsClosaable)) return KKEYVIOLATION;
+    }
+    CPU::DisableInterrupts();
+    globalTaskManager->IsSchedulerEnable[thread->CoreID] = false;
+    CPU::EnableInterrupts();
+    KResult statu = threadkey->Close((ContextStack*)Registers, thread->CoreID);
+    globalTaskManager->IsSchedulerEnable[thread->CoreID] = true;
+    return statu;
 }
 
 /* Sys_Exit :
@@ -382,10 +402,7 @@ KResult Sys_ExecThread(SyscallStack* Registers, kthread_t* thread){
     kthread_t* threadkey;
     uint64_t flags;
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    enum ExecutionType Type = (enum ExecutionType)Registers->arg2;
-    if(Type > 0x3){
-        return KFAIL;
-    }
+    enum ExecutionType Type = (enum ExecutionType)(Registers->arg2 & 0b11); // only the two first bits can be handle
     if(Type == ExecutionTypeQueu || Type == ExecutionTypeQueuAwait){
         if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsExecutableWithQueue)){
             return KKEYVIOLATION;
@@ -471,6 +488,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_ShareDataUsingStackSpace] = Sys_ShareDataUsingStackSpace,
     [KSys_CreateProc] = Sys_CreateProc,
     [KSys_CloseProc] = Sys_CloseProc,
+    [KSys_Close] = Sys_Close,
     [KSys_Exit] = Sys_Exit,
     [KSys_Pause] = Sys_Pause,
     [KSys_UnPause] = Sys_UnPause,

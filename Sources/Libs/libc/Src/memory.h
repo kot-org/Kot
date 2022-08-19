@@ -3,6 +3,7 @@
 
 #include <kot/types.h>
 #include <kot/heap.h>
+#include <kot/atomic.h>
 
 #if defined(__cplusplus)
 extern "C" {

@@ -133,9 +133,10 @@ uint64_t CreateMemoryField(kprocess_t* process, size_t size, uint64_t* virtualAd
     }
 
     MemoryShareInfo* shareInfo = (MemoryShareInfo*)malloc(sizeof(MemoryShareInfo));
+    shareInfo->InitialSize = size;
     shareInfo->Lock = false;
     shareInfo->Type = type;
-    shareInfo->Size = realSize;
+    shareInfo->RealSize = realSize;
     shareInfo->PageNumber = numberOfPage;
     shareInfo->PageTableParent = pageTable;
     shareInfo->VirtualAddressParent = virtualAddress;
@@ -191,7 +192,7 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
             pagetable_t lastPageTable = vmm_GetPageTable();
             vmm_Swap(pageTable);
 
-            uint64_t size = shareInfo->Size;
+            uint64_t size = shareInfo->RealSize;
             uint64_t pages = DivideRoundUp(size, PAGE_SIZE);
 
             /* Allocate child memory */
