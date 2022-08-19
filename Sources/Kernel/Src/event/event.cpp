@@ -137,18 +137,15 @@ namespace Event{
 
     uint64_t Close(ContextStack* Registers, kthread_t* task){
         if(!task->IsEvent) return KFAIL;
-        Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
         Atomic::atomicAcquire(&task->EventLock, 0);
-        /* Reset task */
-        task->Regs->rsp = (uint64_t)StackTop;
-        task->Regs->rip = (uint64_t)task->EntryPoint;
-        task->Regs->cs = Registers->threadInfo->CS;
-        task->Regs->ss = Registers->threadInfo->SS;
+        Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
 
         if(task->EventDataNode->NumberOfMissedEvents){
             event_data_t* Next = task->EventDataNode->CurrentData->Next;
-            Registers->rsp = (uint64_t)task->Regs->rsp;
-            Registers->rip = (uint64_t)task->Regs->rip ;
+            Registers->rsp = (uint64_t)StackTop;
+            Registers->rip = (uint64_t)task->EntryPoint;
+            Registers->cs = (uint64_t)Registers->threadInfo->CS;
+            Registers->ss = (uint64_t)Registers->threadInfo->SS;
 
             free(task->EventDataNode->CurrentData);
             task->EventDataNode->CurrentData = Next;
@@ -157,12 +154,14 @@ namespace Event{
             Atomic::atomicUnlock(&task->EventLock, 0);
             Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
         }else{
-            globalTaskManager->threadExecutePerCore[task->CoreID] = NULL;
+            task->Regs->rsp = (uint64_t)StackTop;
+            task->Regs->rip = (uint64_t)task->EntryPoint;
+            task->Regs->cs = Registers->threadInfo->CS;
+            task->Regs->ss = Registers->threadInfo->SS;
             task->IsExit = true;
             task->IsBlock = true;
             Atomic::atomicUnlock(&task->EventLock, 0);
-            Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
-            ForceSchedule();
+            ForceSelfDestruction();
         }
 
         return KSUCCESS;

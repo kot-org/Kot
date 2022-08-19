@@ -56,7 +56,7 @@ thread renderThread2 = NULL;
 
 void threadRender1(){
     renderWindows();
-    Sys_Execthread(renderThread2, NULL, ExecutionTypeQueu, NULL);
+    Sys_Execthread(renderThread1, NULL, ExecutionTypeQueu, NULL);
     SYS_Exit(NULL, KSUCCESS);
 }
 

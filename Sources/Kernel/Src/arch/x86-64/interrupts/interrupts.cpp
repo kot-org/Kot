@@ -53,7 +53,7 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
 
     for(int i = 0; i < ArchInfo->IRQSize; i++){
         SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);
-        if(i != IPI_Schedule && i != IPI_Stop && i >= Exception_End){
+        if(i != INT_Schedule && i != INT_Stop && i >= Exception_End){
             if(i >= ArchInfo->IRQLineStart && i <= ArchInfo->IRQLineStart + ArchInfo->IRQLineSize){
                 Event::Create(&InterruptEventList[i], EventTypeIRQLines, i - ArchInfo->IRQLineStart);
             }else{
@@ -63,7 +63,7 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
     }
 
     /* Shedule */
-    SetIDTGate((uintptr_t)InterruptEntryList[IPI_Schedule], IPI_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
+    SetIDTGate((uintptr_t)InterruptEntryList[INT_Schedule], INT_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
 
     uint64_t stack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
     TSSSetIST(CPU::GetAPICID(), IST_Interrupts, stack);
@@ -80,10 +80,13 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
         globalTaskManager->IsSchedulerEnable[CoreID] = false;
         ExceptionHandler(Registers, CoreID);
         globalTaskManager->IsSchedulerEnable[CoreID] = true;
-    }else if(Registers->InterruptNumber == IPI_Schedule){
+    }else if(Registers->InterruptNumber == INT_Schedule){
         // APIC timer 
         globalTaskManager->Scheduler(Registers, CoreID); 
-    }else if(Registers->InterruptNumber == IPI_Stop){
+    }else if(Registers->InterruptNumber == INT_DestroySelf){
+        // Destroy
+        globalTaskManager->DestroySelf(Registers, CoreID);
+    }else if(Registers->InterruptNumber == INT_Stop){
         // Stop all
         while(true){
             asm("hlt");

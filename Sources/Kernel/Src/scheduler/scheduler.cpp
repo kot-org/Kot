@@ -5,34 +5,44 @@ TaskManager* globalTaskManager;
 void TaskManager::Scheduler(ContextStack* Registers, uint64_t CoreID){  
     if(Atomic::atomicLock(&MutexScheduler, 0)){
         if(IsSchedulerEnable[CoreID]){
-            uint64_t actualTime = HPET::GetTime();
-            kthread_t* threadEnd = threadExecutePerCore[CoreID];
-            if(threadExecutePerCore[CoreID] != NULL){
-                /* Save & enqueu thread */
-                threadEnd->SaveContext(Registers, CoreID);
-                EnqueueTaskWithoutLock(threadEnd);
-                //Warning("PID %x use %u% of cpu", threadEnd->Parent->PID, (threadEnd->TimeAllocate * 100 / (actualTime - threadEnd->CreationTime)) / NumberOfCPU);
-            }
-
             /* Update time */
+            uint64_t actualTime = HPET::GetTime();
             TimeByCore[CoreID] = actualTime;
 
-            /* Find & load new task */
-            kthread_t* threadStart = GetTreadWithoutLock();
+            /* Save thread */
+            kthread_t* threadEnd = threadExecutePerCore[CoreID];
+            if(threadExecutePerCore[CoreID] != NULL){
+                threadEnd->SaveContext(Registers, CoreID);
+                EnqueueTask_WL(threadEnd);
+            }
+
+            /* Find & restore thread */
+            kthread_t* threadStart = GetTread_WL();
             threadStart->CreateContext(Registers, CoreID);
         } 
         Atomic::atomicUnlock(&MutexScheduler, 0);       
     }
+}
 
+/* To call destroy self you should acuqire mutex sheduler before */
+void TaskManager::DestroySelf(ContextStack* Registers, uint64_t CoreID){
+    /* Update time */
+    uint64_t actualTime = HPET::GetTime();
+    TimeByCore[CoreID] = actualTime;
+
+    /* Find & restore thread */
+    kthread_t* threadStart = GetTread_WL();
+    threadStart->CreateContext(Registers, CoreID);
+    Atomic::atomicUnlock(&MutexScheduler, 0);          
 }
 
 void TaskManager::EnqueueTask(kthread_t* thread){
     Atomic::atomicAcquire(&MutexScheduler, 0);
-    EnqueueTaskWithoutLock(thread);
+    EnqueueTask_WL(thread);
     Atomic::atomicUnlock(&MutexScheduler, 0);
 }
 
-void TaskManager::EnqueueTaskWithoutLock(kthread_t* thread){
+void TaskManager::EnqueueTask_WL(kthread_t* thread){
     if(thread->IsInQueue) return;
     
     if(FirstNode == NULL){
@@ -52,11 +62,11 @@ void TaskManager::EnqueueTaskWithoutLock(kthread_t* thread){
 
 void TaskManager::DequeueTask(kthread_t* thread){
     Atomic::atomicAcquire(&MutexScheduler, 0);
-    DequeueTaskWithoutLock(thread);
+    DequeueTask_WL(thread);
     Atomic::atomicUnlock(&MutexScheduler, 0);
 }
 
-void TaskManager::DequeueTaskWithoutLock(kthread_t* thread){
+void TaskManager::DequeueTask_WL(kthread_t* thread){
     if(!thread->IsInQueue) return;
     if(FirstNode == thread){
         if(FirstNode != thread->Next){
@@ -90,9 +100,9 @@ void TaskManager::DequeueTaskWithoutLock(kthread_t* thread){
     thread->IsInQueue = false;
 }
 
-kthread_t* TaskManager::GetTreadWithoutLock(){
+kthread_t* TaskManager::GetTread_WL(){
     kthread_t* ReturnValue = FirstNode;
-    DequeueTaskWithoutLock(ReturnValue);
+    DequeueTask_WL(ReturnValue);
     return ReturnValue;
 }
 
@@ -138,11 +148,12 @@ KResult ThreadQueu_t::SetThreadInQueu(kthread_t* Caller, kthread_t* Self, argume
         LastData->AwaitTask = Caller;
     }
 
-    TasksInQueu++;
-    
-    if(!(TasksInQueu - 1)){
+    if(!TasksInQueu){
+        TasksInQueu++;
         CurrentData = LastData;
         ExecuteThreadInQueu();
+    }else{
+        TasksInQueu++;
     }
     return KSUCCESS;
 }
@@ -155,11 +166,29 @@ KResult ThreadQueu_t::ExecuteThreadInQueu(){
             free(CurrentData->Data->Data);
             free(CurrentData->Data);
         }
-        CurrentData->Task->LaunchWithoutLock(&CurrentData->Parameters);
+        CurrentData->Task->Launch_WL(&CurrentData->Parameters);
         Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
+        return KSUCCESS;
+    }else{
+        return KFAIL;
     }
+}
 
-    return KSUCCESS;
+KResult ThreadQueu_t::ExecuteThreadInQueuFromItself_WL(ContextStack* Registers, uint64_t CoreID){
+    if(TasksInQueu){
+        if(CurrentData->Data){
+            CurrentData->Task->ShareDataUsingStackSpace(CurrentData->Data->Data, CurrentData->Data->Size, &CurrentData->Parameters.arg[CurrentData->Data->ParameterPosition]);
+            free(CurrentData->Data->Data);
+            free(CurrentData->Data);
+        }
+        Registers->rsp = (uint64_t)CurrentData->Task->Regs->rsp;
+        Registers->rip = (uint64_t)CurrentData->Task->Regs->rip;
+        Registers->cs = (uint64_t)CurrentData->Task->Regs->cs;
+        Registers->ss = (uint64_t)CurrentData->Task->Regs->ss;
+        return KSUCCESS;
+    }else{
+        return KFAIL;
+    }
 }
 
 KResult ThreadQueu_t::NextThreadInQueu(){
@@ -213,10 +242,7 @@ uint64_t TaskManager::Pause(ContextStack* Registers, uint64_t CoreID, kthread_t*
     }else if(CoreID == task->CoreID){
         task->Pause(Registers, CoreID);
     }else{
-        Atomic::atomicAcquire(&MutexScheduler, 0);
-        threadExecutePerCore[task->CoreID] = NULL;
-        Atomic::atomicUnlock(&MutexScheduler, 0);
-        APIC::GenerateInterruption(task->CoreID, IPI_Schedule);
+        APIC::GenerateInterruption(task->CoreID, INT_DestroySelf);
     }
 
     Atomic::atomicAcquire(&MutexScheduler, 0);
@@ -227,20 +253,21 @@ uint64_t TaskManager::Pause(ContextStack* Registers, uint64_t CoreID, kthread_t*
 }
 
 uint64_t TaskManager::Unpause(kthread_t* task){
+    Atomic::atomicAcquire(&MutexScheduler, 0);
     task->IsBlock = false;
-    EnqueueTask(task);
+    EnqueueTask_WL(task);
+    Atomic::atomicUnlock(&MutexScheduler, 0);
     return KSUCCESS;
 } 
 
-uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* task){    
-    Atomic::atomicAcquire(&task->Queu->Lock, 0);
-    if((task->Queu->TasksInQueu - 1)){
-        task->Close(Registers, CoreID);
-        return KSUCCESS;
-    }
-    Atomic::atomicUnlock(&task->Queu->Lock, 0);
-
+uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* task){   
     Atomic::atomicAcquire(&MutexScheduler, 0);
+    Atomic::atomicAcquire(&task->Queu->Lock, 0); 
+    if(task->Close_WL(Registers, CoreID) == KSUCCESS){
+        Atomic::atomicUnlock(&MutexScheduler, 0);
+        Atomic::atomicUnlock(&task->Queu->Lock, 0);
+        return KSUCCESS;
+    } 
     if(task->IsEvent){
         // Clear event
     }
@@ -248,8 +275,8 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* 
     task->threadNode->Delete();
 
     /* TODO clear task data and stack */
-
     free(task->Regs);
+    task->Regs = (ContextStack*)0x42;
     free(task); 
     
 
@@ -257,11 +284,8 @@ uint64_t TaskManager::Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* 
         DequeueTask(task);
         Atomic::atomicUnlock(&MutexScheduler, 0);
     }else{
-        Atomic::atomicUnlock(&MutexScheduler, 0);
-        globalTaskManager->threadExecutePerCore[task->CoreID] = NULL;
         globalTaskManager->IsSchedulerEnable[task->CoreID] = true;
-        ForceSchedule();
-
+        ForceSelfDestruction();
         /* noreturn */
     }
 
@@ -632,45 +656,44 @@ KResult kthread_t::ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_
 
 bool kthread_t::Launch(arguments_t* FunctionParameters){
     Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
-    LaunchWithoutLock(FunctionParameters);
+    Launch_WL(FunctionParameters);
     Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
     return true;
 }
 
 bool kthread_t::Launch(){
     Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
-    LaunchWithoutLock();
+    Launch_WL();
     Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
     return true;
 }
 
-bool kthread_t::LaunchWithoutLock(arguments_t* FunctionParameters){
+bool kthread_t::Launch_WL(arguments_t* FunctionParameters){
     if(FunctionParameters != NULL){
         SetParameters(FunctionParameters);
     }
-    LaunchWithoutLock();
+    Launch_WL();
     return true;
 }
 
-bool kthread_t::LaunchWithoutLock(){
+bool kthread_t::Launch_WL(){
     IsBlock = false;
     IsExit = false;
-    Parent->TaskManagerParent->EnqueueTaskWithoutLock(this);
+    Parent->TaskManagerParent->EnqueueTask_WL(this);
     return true;
 }
 
 bool kthread_t::Pause(ContextStack* Registers, uint64_t CoreID){
+    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
     //Save context
     SaveContext(Registers, CoreID);
 
     //Update time
     Parent->TaskManagerParent->TimeByCore[CoreID] = HPET::GetTime();
 
-    Parent->TaskManagerParent->threadExecutePerCore[CoreID] = NULL;
-
     IsBlock = true;
     globalTaskManager->IsSchedulerEnable[CoreID] = true;
-    ForceSchedule();
+    ForceSelfDestruction();
 
     /* No return */
 
@@ -678,18 +701,28 @@ bool kthread_t::Pause(ContextStack* Registers, uint64_t CoreID){
 }
 
 KResult kthread_t::Close(ContextStack* Registers, uint64_t CoreID){
+    Atomic::atomicAcquire(&Queu->Lock, 0);
+    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
+    KResult statu = Close_WL(Registers, CoreID);
+    Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
+    Atomic::atomicUnlock(&Queu->Lock, 0);
+    return statu;
+}
+
+KResult kthread_t::Close_WL(ContextStack* Registers, uint64_t CoreID){
     Regs->rsp = (uint64_t)StackTop;
     Regs->rip = (uint64_t)EntryPoint;
     Regs->cs = Registers->threadInfo->CS;
     Regs->ss = Registers->threadInfo->SS;
     uint64_t ReturnValue = Registers->GlobalPurpose;
     ThreadQueuData_t* CurrentDataQueu = Queu->CurrentData;
-    Atomic::atomicAcquire(&Queu->Lock, 0);
     Queu->NextThreadInQueu();
-    Queu->ExecuteThreadInQueu();
-    Atomic::atomicUnlock(&Queu->Lock, 0);
+    KResult statu = Queu->ExecuteThreadInQueuFromItself_WL(Registers, CoreID);
     if(CurrentDataQueu->IsAwaitTask){
         CurrentDataQueu->AwaitTask->Regs->GlobalPurpose = ReturnValue;
+        Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
         globalTaskManager->Unpause(CurrentDataQueu->AwaitTask);
+        Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
     }
+    return statu;
 }
