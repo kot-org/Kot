@@ -175,8 +175,8 @@ void EnumerateDevices() {
     }    
 }
 
-uint32_t PCIDeviceSearcher(uint16_t vendorID, uint16_t deviceID, uint8_t subClassID, uint8_t classID) {
-    uint8_t checkNum = 0, checkRequired = 0;
+PCIDeviceHeader* PCISearcherGetDevice(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint64_t index) {
+    uint8_t checkRequired = 0;
     uint32_t deviceNum = 0;
 
     if(vendorID != 0xFFFF)
@@ -189,7 +189,47 @@ uint32_t PCIDeviceSearcher(uint16_t vendorID, uint16_t deviceID, uint8_t subClas
         checkRequired++;
 
     for(uint32_t i = 0; i < PCIDevicesIndex; i++) {
+        
         PCIDeviceHeader header = ((PCIHeader0*)PCIDevices[i])->Header;
+
+        uint8_t checkNum = 0;
+        
+        if(header.VendorID == vendorID)
+            checkNum++;
+        if(header.DeviceID == deviceID)
+            checkNum++;
+        if(header.Subclass == subClassID)
+            checkNum++;
+        if(header.Class == classID)
+            checkNum++;
+
+        if(checkRequired == checkNum) deviceNum++;
+
+        if(index == deviceNum)
+            return &header;
+
+    }
+    return NULL;
+}
+
+uint32_t PCIDeviceSearcher(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID) {
+    uint8_t checkRequired = 0;
+    uint32_t deviceNum = 0;
+
+    if(vendorID != 0xFFFF)
+        checkRequired++;
+    if(deviceID != 0xFFFF)
+        checkRequired++;
+    if(subClassID != 0xFFFF)
+        checkRequired++;
+    if(classID != 0xFFFF)
+        checkRequired++;
+
+    for(uint32_t i = 0; i < PCIDevicesIndex; i++) {
+
+        PCIDeviceHeader header = ((PCIHeader0*)PCIDevices[i])->Header;
+
+        uint8_t checkNum = 0;
         
         if(header.VendorID == vendorID)
             checkNum++;
@@ -203,9 +243,6 @@ uint32_t PCIDeviceSearcher(uint16_t vendorID, uint16_t deviceID, uint8_t subClas
         if(checkRequired == checkNum) deviceNum++;
 
     }
-    char buffer[100];
-    Printlog(itoa(deviceNum, buffer, 16));
-
     return deviceNum;
 }
 
@@ -214,7 +251,10 @@ extern "C" int main(int argc, char* argv[]) {
 
     EnumerateDevices();
 
-    uint32_t search = PCIDeviceSearcher(0xFFFF, 0x1111, 0xFFFF, 0xFFFF);
+    PCIDeviceHeader* device = PCISearcherGetDevice(0x8086, 0xFFFF, 0xFFFF, 0xFFFF, 0);
+
+    char buffer[50];
+    Printlog(itoa(device->VendorID, buffer, 16));
 
     Printlog("[PCI] Driver initialized successfully");
 
