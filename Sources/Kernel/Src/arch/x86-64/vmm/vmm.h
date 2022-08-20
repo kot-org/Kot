@@ -13,9 +13,9 @@ enum vmm_flag{
     vmm_CacheDisabled   = 4,
     vmm_Accessed        = 5,
     vmm_LargerPages     = 7,
-    vmm_Master         = 9, 
+    vmm_Master          = 9, 
     vmm_PhysicalStorage = 10,
-    vmm_Slave         = 11,
+    vmm_Slave           = 11,
 };
 
 struct vmm_index{
