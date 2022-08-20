@@ -85,6 +85,7 @@ uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
         case 0x0:
             Header = malloc(sizeof(PCIHeader0));
             PCIMemcpyToMemory32(Header, Addr, sizeof(PCIHeader0));
+            
             char buffer[100], buffernum[33];
             *buffer = NULL;
             BaseAddrReg = PCIGetBaseAddressRegister(Addr, 0, (PCIHeader0*)Header);
@@ -117,11 +118,14 @@ uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
             break;
         case 0x1:
             /* TODO */
+            Header = malloc(sizeof(PCIDeviceHeader));
+            PCIMemcpyToMemory32(Header, Addr, sizeof(PCIDeviceHeader));
             Printlog("[Error] PCI-to-PCI bridge not supported");
             break;
         default:
+            Header = malloc(sizeof(PCIDeviceHeader));
+            PCIMemcpyToMemory32(Header, Addr, sizeof(PCIDeviceHeader));
             Printlog("[Error] Unknow header type");
-            return 0;
             break;
     }
     return Header;
