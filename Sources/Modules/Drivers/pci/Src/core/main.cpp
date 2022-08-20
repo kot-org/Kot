@@ -3,11 +3,14 @@
 #include <tools/config.h>
 #include <tools/memory.h>
 
+uintptr_t* PCIDevices = NULL;
+uint32_t PCIDevicesIndex = 0;
+
 PCIBar* PCIGetBaseAddressRegister(uint32_t deviceAddr, uint8_t barID, PCIHeader0* header) {
     PCIBar* BaseAddrReg = (PCIBar*)malloc(sizeof(PCIBar));
-    uint32_t barSizeLow = 0;
-    uint32_t barSizeHigh = 0xFFFFFFFF;
+    uint32_t barSizeLow = 0, barSizeHigh = 0xFFFFFFFF;
     bool isMmio = false;
+
     if(header->BAR[barID] & 0b1){
         BaseAddrReg->Type = 0x1;
         BaseAddrReg->Base = (header->BAR[barID] & 0xFFFFFFFC);
@@ -59,11 +62,20 @@ uint32_t PCIDeviceBaseAddress(uint16_t bus, uint16_t device, uint16_t func){
     return (uint32_t) ((1 <<  31) | (bus << 16) | (device << 11) | (func << 8));
 }
 
+bool CheckDevice(uint32_t Addr){
+    uint16_t VendorID = PCIRead16(Addr + PCI_VENDOR_ID_OFFSET);
+    if(VendorID == 0xffff) return false;
+    return true;
+}
+
+bool CheckDevice(uint16_t bus, uint16_t device, uint16_t func){
+    uint32_t Addr = PCIDeviceBaseAddress(bus, device, func);
+    return CheckDevice(Addr);
+}
+
 uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
     uint32_t Addr = PCIDeviceBaseAddress(bus, device, func);
-    uint16_t VendorID = PCIRead16(Addr + PCI_VENDOR_ID_OFFSET);
-
-    if(VendorID == 0xffff) return NULL;
+    if(!CheckDevice(Addr)) return NULL;
 
     uint8_t HeaderType = PCIRead8(Addr + PCI_HEADER_TYPE_OFFSET);
     HeaderType &= ~(1 << 7);
@@ -76,7 +88,6 @@ uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
             PCIMemcpyToMemory32(Header, Addr, sizeof(PCIHeader0));
             char buffer[100], buffernum[33];
             *buffer = NULL;
-
             BaseAddrReg = PCIGetBaseAddressRegister(Addr, 0, (PCIHeader0*)Header);
 
             strcat(buffer, "[PCI] Vendor: 0x");
@@ -130,19 +141,53 @@ void EnumerateDevices() {
 
             if((headerType & 0x80) != 0){
                 for(uint32_t func = 0; func < 8; func++) {
-                    GetDevice(bus, device, func);
+                    if(CheckDevice(bus, device, func)) PCIDevicesIndex++;
                 }
             }else{
-                GetDevice(bus, device, NULL);
+                if(CheckDevice(bus, device, NULL)) PCIDevicesIndex++;
+            }
+        }
+    }  
+
+    PCIDevices = (uintptr_t*)malloc(sizeof(uintptr_t) * PCIDevicesIndex);
+
+    for(uint32_t bus = 0; bus < 256; bus++) {
+        for(uint32_t device = 0; device < 32; device++) {
+
+            uint32_t Addr = PCIDeviceBaseAddress(bus, device, NULL);
+            uint16_t vendorID = PCIRead16(Addr + PCI_VENDOR_ID_OFFSET);
+            
+            if(vendorID == 0xffff) continue;
+
+            uint8_t headerType = PCIRead8(Addr + PCI_HEADER_TYPE_OFFSET);
+
+            if((headerType & 0x80) != 0){
+                for(uint32_t func = 0; func < 8; func++) {
+                    PCIDevicesIndex++;
+                    PCIDevices[PCIDevicesIndex] = GetDevice(bus, device, func);
+                }
+            }else{
+                PCIDevicesIndex++;
+                PCIDevices[PCIDevicesIndex] = GetDevice(bus, device, NULL);
             }
         }
     }    
+}
+
+uint32_t PCIDeviceSearcher(uint16_t vendorID, uint16_t deviceID, uint8_t subClassID, uint8_t classID) {
+
+
+    return NULL;
 }
 
 extern "C" int main(int argc, char* argv[]) {
     Printlog("[PCI] Initialization ...");
 
     EnumerateDevices();
+
+    // uint32_t search = PCIDeviceSearcher(0x8086, 0xffff, 0xffff, 0xffff);
+
+    Printlog("[PCI] Service initialized successfully");
 
     return KSUCCESS;
 }
