@@ -7,6 +7,12 @@ vector_t* vector_create() {
     return vector;
 }
 
+vector_t* vector_clone(vector_t* vector) {
+    uintptr_t* new_vector = (uintptr_t*) malloc((size_t)(vector->length * 8));
+    memcpy(new_vector, vector->items, vector->length * 8);
+    return new_vector;
+}
+
 void vector_expand(vector_t* vector, uint64_t len) {
     uintptr_t* temp = (uintptr_t*) malloc((size_t)((vector->length + len) * 8));
     memcpy(temp, vector->items, vector->length * 8);

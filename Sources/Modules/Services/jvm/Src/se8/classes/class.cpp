@@ -2,7 +2,7 @@
 
 namespace SE8 {
 
-    Attribute** Class::parseAttributes(uint16_t __attributes_count, Reader* reader) {
+    Attribute** ClassParser::parseAttributes(uint16_t __attributes_count, Reader* reader) {
 
         if (__attributes_count == 0) return NULL;
 
@@ -146,7 +146,7 @@ namespace SE8 {
         return ret;
     }
 
-    Class::Class(uintptr_t bytes) {
+    ClassParser::ClassParser(uintptr_t bytes) {
 
         Reader* reader = (Reader*) malloc(sizeof(Reader));
         reader->buffer = bytes;
@@ -259,17 +259,10 @@ namespace SE8 {
         fields_count = reader->u2B();
         fields = (FieldInfo**) malloc(sizeof(FieldInfo*)*fields_count);
 
-        runtime_static_fields = map_create();
-
         for (uint16_t i = 0; i < fields_count; i++) {
             fields[i] = (FieldInfo*) malloc(sizeof(FieldInfo));
             fields[i]->access_flags = reader->u2B();
             fields[i]->name_index = reader->u2B();
-            if (AF_isStatic(fields[i]->access_flags)) {
-                char* name = (char*) ((Constant_Utf8*) constant_pool[fields[i]->name_index])->bytes;
-                Value* f = (Value*) malloc(SE8_VALUE_SIZE);
-                map_set(runtime_static_fields, name, f);
-            }
             fields[i]->descriptor_index = reader->u2B();
             fields[i]->attributes_count = reader->u2B();
             fields[i]->attributes = parseAttributes(attributes_count, reader);
@@ -298,85 +291,87 @@ namespace SE8 {
 
     }
 
-    char* Class::getClassName() {
-        return (char*) ((Constant_Utf8*) this->constant_pool[((Constant_ClassInfo*) this->constant_pool[this->this_class])->name_index])->bytes;
-    }
+    // char* ClassParser::getSourceFileName() {
+    //     for (uint16_t i = 0; i < attributes_count; i++) {
+    //         Attribute* attr = (Attribute*) attributes[i];
+    //         char* name = (char*) ((Constant_Utf8*) constant_pool[attr->attribute_name_index])->bytes;
+    //         if (strcmp(name, "SourceFile")) {
+    //             return (char*) ((Constant_Utf8*) constant_pool[((Attribute_SourceFile*) attr)->sourcefile_index])->bytes;
+    //         }
+    //     }
+    //     return NULL;
+    // }
 
-    char* Class::getSuperClassName() {
-        return (char*) ((Constant_Utf8*) this->constant_pool[((Constant_ClassInfo*) this->constant_pool[this->super_class])->name_index])->bytes;
-    }
+    // Frame* ClassParser::getEntryPoint(JavaVM* jvm) {
+    //     for (uint16_t i = 0; i < methods_count; i++) {
+    //         Method* method = methods[i];
+    //         if (AF_isStatic(method->access_flags) && AF_isPublic(method->access_flags)) {
+    //             if (strcmp((char*)((Constant_Utf8*)constant_pool[method->name_index])->bytes, "main")) {
+    //                 Frame* frame = (Frame*) malloc(sizeof(Frame));
+    //                 frame->init(jvm, this, method);
+    //                 return frame;
+    //             }
+    //         }
+    //     } 
+    //     return NULL;
+    // }
 
-    char* Class::getSourceFileName() {
-        for (uint16_t i = 0; i < attributes_count; i++) {
-            Attribute* attr = (Attribute*) attributes[i];
-            char* name = (char*) ((Constant_Utf8*) constant_pool[attr->attribute_name_index])->bytes;
-            if (strcmp(name, "SourceFile")) {
-                return (char*) ((Constant_Utf8*) constant_pool[((Attribute_SourceFile*) attr)->sourcefile_index])->bytes;
+    uint8_t ClassParser::getStaticFieldSize(char* fieldName) {
+        for (uint16_t i = 0; i < fields_count; i++) {
+            if (AF_isStatic(fields[i]->access_flags)) {
+                if (strcmp((char*)((Constant_Utf8*)constant_pool[fields[i]->name_index])->bytes, fieldName)) {
+                    char* desc = (char*) ((Constant_Utf8*) constant_pool[fields[i]->descriptor_index])->bytes;
+                    switch(desc[0]) {
+                        case 'B':
+                        case 'Z':
+                            return 1;
+                        case 'C':
+                        case 'S':
+                            return 2;
+                        case 'L':
+                        case '[':
+                        case 'I':
+                        case 'F':
+                            return 4;
+                        case 'D':
+                        case 'J':
+                            return 8;
+                        default:
+                            return 0;
+                    }
+                }
             }
         }
-        return NULL;
+        return 0;
     }
 
-    uint16_t Class::getAccessFlags() {
-        return access_flags;
-    }
-
-    Method** Class::getMethods() {
-        return methods;
-    }
-
-    Method* Class::getStaticMethod(char* name, char* descriptor) {
-        for (uint16_t i = 0; i < methods_count; i++) {
-            Method* method = methods[i];
-            if (AF_isStatic(method->access_flags)) {
-                if (strcmp((char*)((Constant_Utf8*)constant_pool[method->name_index])->bytes, name)) {
-                    if (strcmp((char*)((Constant_Utf8*)constant_pool[method->descriptor_index])->bytes, descriptor)) {
-                        return method;
+    uint8_t ClassParser::getFieldSize(char* fieldName) {
+        for (uint16_t i = 0; i < fields_count; i++) {
+            if (!AF_isStatic(fields[i]->access_flags)) {
+                if (strcmp((char*)((Constant_Utf8*)constant_pool[fields[i]->name_index])->bytes, fieldName)) {
+                    char* desc = (char*) ((Constant_Utf8*) constant_pool[fields[i]->descriptor_index])->bytes;
+                    switch(desc[0]) {
+                        case 'B':
+                        case 'Z':
+                            return 1;
+                        case 'C':
+                        case 'S':
+                            return 2;
+                        case 'L':
+                        case '[':
+                        case 'I':
+                        case 'F':
+                            return 4;
+                        case 'D':
+                        case 'J':
+                            return 8;
+                        default:
+                            return 0;
                     }
                 }
             }
-        } 
-        return NULL;
-    }
-
-    Method* Class::getMethod(char* name, char* descriptor) {
-        for (uint16_t i = 0; i < methods_count; i++) {
-            Method* method = methods[i];
-            if (!AF_isStatic(method->access_flags)) {
-                if (strcmp((char*)((Constant_Utf8*)constant_pool[method->name_index])->bytes, name)) {
-                    if (strcmp((char*)((Constant_Utf8*)constant_pool[method->descriptor_index])->bytes, descriptor)) {
-                        return method;
-                    }
-                }
-            }
-        } 
-        return NULL;
-    }
-
-    Frame* Class::getEntryPoint(JavaVM* jvm) {
-        for (uint16_t i = 0; i < methods_count; i++) {
-            Method* method = methods[i];
-            if (AF_isStatic(method->access_flags) && AF_isPublic(method->access_flags)) {
-                if (strcmp((char*)((Constant_Utf8*)constant_pool[method->name_index])->bytes, "main")) {
-                    Frame* frame = (Frame*) malloc(sizeof(Frame));
-                    frame->init(jvm, this, method);
-                    return frame;
-                }
-            }
-        } 
-        return NULL;
-    }
-
-    uintptr_t* Class::getConstantPool() {
-        return constant_pool;
-    }
-
-    void Class::setStaticField(char* fieldName, Value* value) {
-        memcpy(map_get(runtime_static_fields, fieldName), value, getTypeSize(value->type)+1);
-    }
-
-    Value* Class::getStaticField(char* fieldName) {
-        return (Value*) map_get(runtime_static_fields, fieldName);
+        }
+        return 0;
     }
 
 }

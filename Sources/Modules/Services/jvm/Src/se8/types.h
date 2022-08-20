@@ -1,12 +1,4 @@
-
-
-    
-
-    
-
-    
-
-    #pragma once
+#pragma once
 
 #include <kot/heap.h>
 #include <kot/cstring.h>
@@ -16,22 +8,8 @@
 namespace SE8 {
 
     class JavaVM;
-    
-    enum Types : uint8_t {
-        Null = 0,
-        NaN = 1,
-        Short = 2,
-        Int = 3,
-        Long = 4,
-        Float = 5,
-        Double = 6,
-        Char = 7,
-        Byte = 8,
-        ArrayRef = 9,
-        ObjectRef = 10,
-    };
 
-    enum ArrayTypes : uint8_t {
+    enum ArrayType : uint8_t {
         AT_BOOLEAN = 4,
         AT_CHAR	= 5,
         AT_FLOAT = 6,
@@ -587,29 +565,6 @@ namespace SE8 {
         tableswitch = 0xaa,
         wide = 0xc4,
     };
-
-    inline uint8_t getTypeSize(uint8_t type) {
-        switch (type) {
-            case SE8::Null:
-            case SE8::NaN:
-                return 0;
-            case SE8::Byte:
-                return 1;
-            case SE8::Char:
-            case SE8::Short:
-                return 2;
-            case SE8::Int:
-            case SE8::Float:
-                return 4;
-            case SE8::Long:
-            case SE8::Double:
-            case SE8::ArrayRef:
-            case SE8::ObjectRef:
-                return 8;
-        }
-    }
-
-    #define SE8_VALUE_SIZE 9
 
     inline bool AF_check(uint16_t flags, AccessFlags flag) {
         return ((flags & flag) == flag);
