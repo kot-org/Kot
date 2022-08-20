@@ -9,5 +9,4 @@
 #define PIT_DATA_2      0x42
 #define PIT_COMMAND     0x43
 
-
 #include <kot/sys.h>

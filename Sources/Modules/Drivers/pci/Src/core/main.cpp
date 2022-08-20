@@ -67,7 +67,6 @@ bool CheckDevice(uint32_t Addr){
     if(VendorID == 0xffff) return false;
     return true;
 }
-
 bool CheckDevice(uint16_t bus, uint16_t device, uint16_t func){
     uint32_t Addr = PCIDeviceBaseAddress(bus, device, func);
     return CheckDevice(Addr);
@@ -187,7 +186,7 @@ extern "C" int main(int argc, char* argv[]) {
 
     // uint32_t search = PCIDeviceSearcher(0x8086, 0xffff, 0xffff, 0xffff);
 
-    Printlog("[PCI] Service initialized successfully");
+    Printlog("[PCI] Driver initialized successfully");
 
     return KSUCCESS;
 }
