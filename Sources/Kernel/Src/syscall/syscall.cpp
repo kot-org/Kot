@@ -242,7 +242,7 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* thread){
     if(*addressVirtual + pages * PAGE_SIZE < vmm_HHDMAdress){
         if(AllocatePhysicallPage){
             for(uint64_t i = 0; i < pages; i++){
-                if(vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage)){
+                if(vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage) && vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_Master)){
                     Pmm_FreePage(vmm_GetPhysical(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE)));
                 }
                 vmm_Unmap(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE));
@@ -260,8 +260,8 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* thread){
                     /* write only the first physicall page */
                     IsPhysicalAddress = false; 
                 }
-                vmm_Map(pageTable, virtualAddress, physicalAddressAllocated, true);
-                vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_PhysicalStorage, true); //set master state
+                vmm_Map(pageTable, virtualAddress, physicalAddressAllocated, true, true, true);
+                vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_Master, true); //set master state
                 processkey->MemoryAllocated += PAGE_SIZE;
             }
             *size += PAGE_SIZE;      
@@ -291,11 +291,13 @@ KResult Sys_Unmap(SyscallStack* Registers, kthread_t* thread){
     uint64_t pages = DivideRoundUp(size, PAGE_SIZE);
     if((uint64_t)addressVirtual + pages * PAGE_SIZE < vmm_HHDMAdress){
         for(uint64_t i = 0; i < pages; i += PAGE_SIZE){
-            if(vmm_GetFlags(pageTable, (uintptr_t)addressVirtual, vmm_flag::vmm_PhysicalStorage)){
-                Pmm_FreePage(vmm_GetPhysical(pageTable, addressVirtual));
-                processkey->MemoryAllocated -= PAGE_SIZE;
+            if(vmm_GetFlags(pageTable, (uintptr_t)addressVirtual, vmm_flag::vmm_Master)){
+                if(vmm_GetFlags(pageTable, (uintptr_t)addressVirtual, vmm_flag::vmm_PhysicalStorage)){
+                    Pmm_FreePage(vmm_GetPhysical(pageTable, addressVirtual));
+                    processkey->MemoryAllocated -= PAGE_SIZE;
+                }
+                vmm_Unmap(pageTable, addressVirtual);                
             }
-            vmm_Unmap(pageTable, addressVirtual);
         }
     }
     return KSUCCESS;
