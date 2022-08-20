@@ -119,7 +119,7 @@ KResult UISDGet(enum ControllerTypeEnum Controller, thread_t Callback, uint64_t 
                 .Callbackarg = Callbackarg,
             };
             UISDAccept(&info);
-            return UISDCallbackStatu(UISDGetTask, Callback, Callbackarg, KSUCCESS);
+            return KSUCCESS;
         }
     }
     UISDAddToQueu(Controller, Callback, Callbackarg, Self, Address);

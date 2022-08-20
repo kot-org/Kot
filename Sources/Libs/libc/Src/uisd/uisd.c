@@ -35,7 +35,6 @@ KResult InitializeUISD(){
 }
 
 KResult CallbackUISD(uint64_t Task, KResult Statu, callbackInfo_t* Info, uint64_t GP0, uint64_t GP1){
-    Printlog("oki");
     if(Task == UISDGetTask) Info->Location = (uintptr_t)GP0;
     Info->Statu = Statu;
     if(Info->AwaitCallback){
