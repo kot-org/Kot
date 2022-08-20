@@ -31,6 +31,7 @@ KResult InitializeUISD(){
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeProcessMemoryAccessible, true);
     Sys_Keyhole_CloneModify(Proc, &ProcessKeyForUISD, KotSpecificData.UISDHandlerProcess, UISDKeyFlags);
+    return KSUCCESS;
 }
 
 KResult CallbackUISD(uint64_t Task, KResult Statu, callbackInfo_t* Info, uint64_t GP0, uint64_t GP1){
@@ -46,20 +47,18 @@ callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t*
     if(!CallBackUISDThread) InitializeUISD();
     thread_t Self = NULL;
     Sys_GetthreadKey(&Self);
-    callbackInfo_t* Info = malloc(sizeof(callbackInfo_t));
+    callbackInfo_t* Info = (callbackInfo_t*)malloc(sizeof(callbackInfo_t));
     Info->Self = Self;
     Info->AwaitCallback = AwaitCallback;
     Info->Location = NULL;
     Info->Statu = KFAIL;
 
-    process_t Proc = NULL;
-    Sys_GetProcessKey(&Proc);
     struct arguments_t parameters;
     parameters.arg[0] = UISDGetTask,
     parameters.arg[1] = Controller,
     parameters.arg[2] = CallBackUISDThread,
     parameters.arg[3] = Info,
-    parameters.arg[4] = Proc,
+    parameters.arg[4] = ProcessKeyForUISD,
     parameters.arg[5] = (uint64_t)*Location,
     Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
     if(AwaitCallback){

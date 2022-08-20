@@ -40,10 +40,13 @@ KResult Sys_AcceptMemoryField(SyscallStack* Registers, kthread_t* thread){
     kprocess_t* processkey;
     MemoryShareInfo* memoryKey;
     uint64_t flags;
+    if(CheckAddress((uintptr_t)Registers->arg2, sizeof(uint64_t)) != KSUCCESS) return KMEMORYVIOLATION;
+    uint64_t* virtualAddressPointer = (uint64_t*)Registers->arg2;
+
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
     if(Keyhole_Get(thread, (key_t)Registers->arg1, DataTypeSharedMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    return AcceptMemoryField(processkey, memoryKey, (uint64_t*)Registers->arg2);
+    return AcceptMemoryField(processkey, memoryKey, virtualAddressPointer);
 }
 
 /* Sys_FreeMemoryField :

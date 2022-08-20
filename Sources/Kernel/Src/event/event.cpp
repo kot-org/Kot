@@ -111,7 +111,7 @@ namespace Event{
         for(size_t i = 0; i < self->NumTask; i++){
             event_tasks_t* task = self->Tasks[i];
             Atomic::atomicAcquire(&task->thread->EventLock, 0);
-            if(task->thread->IsExit){
+            if(task->thread->IsClose){
                 task->DataNode->CurrentData->Task = task;
                 task->thread->Launch(parameters);
             }else{
@@ -146,6 +146,7 @@ namespace Event{
             Registers->rip = (uint64_t)task->EntryPoint;
             Registers->cs = (uint64_t)Registers->threadInfo->CS;
             Registers->ss = (uint64_t)Registers->threadInfo->SS;
+            SetParameters(Registers, &task->EventDataNode->CurrentData->Parameters);
 
             free(task->EventDataNode->CurrentData);
             task->EventDataNode->CurrentData = Next;
@@ -158,7 +159,7 @@ namespace Event{
             task->Regs->rip = (uint64_t)task->EntryPoint;
             task->Regs->cs = Registers->threadInfo->CS;
             task->Regs->ss = Registers->threadInfo->SS;
-            task->IsExit = true;
+            task->IsClose = true;
             task->IsBlock = true;
             Atomic::atomicUnlock(&task->EventLock, 0);
             ForceSelfDestruction();

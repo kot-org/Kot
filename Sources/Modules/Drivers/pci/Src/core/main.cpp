@@ -67,7 +67,6 @@ bool CheckDevice(uint32_t Addr){
     if(VendorID == 0xffff) return false;
     return true;
 }
-
 bool CheckDevice(uint16_t bus, uint16_t device, uint16_t func){
     uint32_t Addr = PCIDeviceBaseAddress(bus, device, func);
     return CheckDevice(Addr);
@@ -86,6 +85,7 @@ uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
         case 0x0:
             Header = malloc(sizeof(PCIHeader0));
             PCIMemcpyToMemory32(Header, Addr, sizeof(PCIHeader0));
+
             char buffer[100], buffernum[33];
             *buffer = NULL;
             BaseAddrReg = PCIGetBaseAddressRegister(Addr, 0, (PCIHeader0*)Header);
@@ -129,6 +129,7 @@ uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
 }
 
 void EnumerateDevices() {
+    uint64_t PCIDevicesIndexTmp = 0;
     for(uint32_t bus = 0; bus < 256; bus++) {
         for(uint32_t device = 0; device < 32; device++) {
 
@@ -141,15 +142,15 @@ void EnumerateDevices() {
 
             if((headerType & 0x80) != 0){
                 for(uint32_t func = 0; func < 8; func++) {
-                    if(CheckDevice(bus, device, func)) PCIDevicesIndex++;
+                    if(CheckDevice(bus, device, func)) PCIDevicesIndexTmp++;
                 }
             }else{
-                if(CheckDevice(bus, device, NULL)) PCIDevicesIndex++;
+                if(CheckDevice(bus, device, NULL)) PCIDevicesIndexTmp++;
             }
         }
     }  
 
-    PCIDevices = (uintptr_t*)malloc(sizeof(uintptr_t) * PCIDevicesIndex);
+    PCIDevices = (uintptr_t*)malloc(sizeof(uintptr_t) * PCIDevicesIndexTmp);
 
     for(uint32_t bus = 0; bus < 256; bus++) {
         for(uint32_t device = 0; device < 32; device++) {
@@ -163,21 +164,86 @@ void EnumerateDevices() {
 
             if((headerType & 0x80) != 0){
                 for(uint32_t func = 0; func < 8; func++) {
-                    PCIDevicesIndex++;
                     PCIDevices[PCIDevicesIndex] = GetDevice(bus, device, func);
+                    PCIDevicesIndex++;
                 }
             }else{
-                PCIDevicesIndex++;
                 PCIDevices[PCIDevicesIndex] = GetDevice(bus, device, NULL);
+                PCIDevicesIndex++;
             }
         }
     }    
 }
 
-uint32_t PCIDeviceSearcher(uint16_t vendorID, uint16_t deviceID, uint8_t subClassID, uint8_t classID) {
+PCIDeviceHeader* PCISearcherGetDevice(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint64_t index) {
+    uint8_t checkRequired = 0;
+    uint32_t deviceNum = 0;
 
+    if(vendorID != 0xFFFF)
+        checkRequired++;
+    if(deviceID != 0xFFFF)
+        checkRequired++;
+    if(subClassID != 0xFFFF)
+        checkRequired++;
+    if(classID != 0xFFFF)
+        checkRequired++;
 
+    for(uint32_t i = 0; i < PCIDevicesIndex; i++) {
+        
+        PCIDeviceHeader header = ((PCIHeader0*)PCIDevices[i])->Header;
+
+        uint8_t checkNum = 0;
+        
+        if(header.VendorID == vendorID)
+            checkNum++;
+        if(header.DeviceID == deviceID)
+            checkNum++;
+        if(header.Subclass == subClassID)
+            checkNum++;
+        if(header.Class == classID)
+            checkNum++;
+
+        if(checkRequired == checkNum) deviceNum++;
+
+        if(index == deviceNum)
+            return &header;
+
+    }
     return NULL;
+}
+
+uint32_t PCISearcher(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID) {
+    uint8_t checkRequired = 0;
+    uint32_t deviceNum = 0;
+
+    if(vendorID != 0xFFFF)
+        checkRequired++;
+    if(deviceID != 0xFFFF)
+        checkRequired++;
+    if(subClassID != 0xFFFF)
+        checkRequired++;
+    if(classID != 0xFFFF)
+        checkRequired++;
+
+    for(uint32_t i = 0; i < PCIDevicesIndex; i++) {
+
+        PCIDeviceHeader header = ((PCIHeader0*)PCIDevices[i])->Header;
+
+        uint8_t checkNum = 0;
+        
+        if(header.VendorID == vendorID)
+            checkNum++;
+        if(header.DeviceID == deviceID)
+            checkNum++;
+        if(header.Subclass == subClassID)
+            checkNum++;
+        if(header.Class == classID)
+            checkNum++;
+
+        if(checkRequired == checkNum) deviceNum++;
+
+    }
+    return deviceNum;
 }
 
 extern "C" int main(int argc, char* argv[]) {
@@ -185,9 +251,9 @@ extern "C" int main(int argc, char* argv[]) {
 
     EnumerateDevices();
 
-    // uint32_t search = PCIDeviceSearcher(0x8086, 0xffff, 0xffff, 0xffff);
+    PCIDeviceHeader* device = PCISearcherGetDevice(0x8086, 0xFFFF, 0xFFFF, 0xFFFF, 0);
 
-    Printlog("[PCI] Service initialized successfully");
+    Printlog("[PCI] Driver initialized successfully");
 
     return KSUCCESS;
 }

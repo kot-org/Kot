@@ -53,15 +53,18 @@ void UISDAddToQueu(enum ControllerTypeEnum Controller, thread_t Callback, uint64
     UISDControllers[Controller]->NumberOfWaitingTasks++;
 }
 
-void UISDAccept(callbackget_info_t* callback){
-    KResult Statu = Sys_AcceptMemoryField(callback->Self, UISDControllers[callback->Controller]->DataKey, &callback->Address);
+void UISDAccept(callbackget_info_t* Callback){
+    KResult Statu = Sys_AcceptMemoryField(Callback->Self, UISDControllers[Callback->Controller]->DataKey, &Callback->Address);
     arguments_t parameters{
         .arg[0] = UISDGetTask,
         .arg[1] = (uint64_t)Statu,
-        .arg[2] = callback->Callbackarg,
-        .arg[3] = (uint64_t)callback->Address,
+        .arg[2] = Callback->Callbackarg,
+        .arg[3] = (uint64_t)Callback->Address,
     };
-    Sys_Execthread(callback->Callback, &parameters, ExecutionTypeQueu, NULL);        
+    char buffer[33];
+    itoa(parameters.arg[2], buffer, 16);
+    Printlog(buffer);
+    Sys_Execthread(Callback->Callback, &parameters, ExecutionTypeQueu, NULL);        
 }
 
 void UISDAcceptAll(enum ControllerTypeEnum Controller){
@@ -72,7 +75,7 @@ void UISDAcceptAll(enum ControllerTypeEnum Controller){
     }
 }
 
-KResult UISDCreate(enum ControllerTypeEnum Controller, thread_t callback, uint64_t callbackarg, ksmem_t DataKey) {
+KResult UISDCreate(enum ControllerTypeEnum Controller, thread_t Callback, uint64_t Callbackarg, ksmem_t DataKey) {
     KResult Statu = KFAIL;
     if(UISDControllers[Controller] == NULL || (UISDControllers[Controller] != NULL && !UISDControllers[Controller]->IsLoad)){
         enum MemoryFieldType Type;
@@ -98,21 +101,16 @@ KResult UISDCreate(enum ControllerTypeEnum Controller, thread_t callback, uint64
             }
         }
     }   
-    return Statu;
+    return UISDCallbackStatu(UISDCreateTask, Callback, Callbackarg, Statu);
 }
 
 KResult UISDGet(enum ControllerTypeEnum Controller, thread_t Callback, uint64_t Callbackarg, process_t Self, uintptr_t Address) {
     process_t Target = NULL;
     uint64_t Flags = NULL;
-    Printlog("ok");
-    if(Sys_Keyhole_Verify(Self, DataTypeProcess, &Target, &Flags) != KSUCCESS) return NULL;
-    Printlog("ok");
-    if(!Keyhole_GetFlag(Flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return NULL;
-    Printlog("ok");
-    if(UISDControllers[Controller] == NULL){
-        Printlog("ok");
+    if(Sys_Keyhole_Verify(Self, DataTypeProcess, &Target, &Flags) != KSUCCESS) return UISDCallbackStatu(UISDGetTask, Callback, Callbackarg, KFAIL);
+    if(!Keyhole_GetFlag(Flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return UISDCallbackStatu(UISDGetTask, Callback, Callbackarg, KFAIL);
+    if(UISDControllers[Controller] != NULL){
         if(UISDControllers[Controller]->IsLoad){
-            Printlog("ok");
             struct callbackget_info_t info = (struct callbackget_info_t){
                 .Controller = Controller,
                 .Self = Self,
@@ -122,13 +120,20 @@ KResult UISDGet(enum ControllerTypeEnum Controller, thread_t Callback, uint64_t 
             };
             UISDAccept(&info);
             return KSUCCESS;
-        }else{
-            UISDAddToQueu(Controller, Callback, Callbackarg, Self, Address);
         }
-    }else{
-        UISDAddToQueu(Controller, Callback, Callbackarg, Self, Address);
     }
-    return NULL;
+    UISDAddToQueu(Controller, Callback, Callbackarg, Self, Address);
+    return UISDCallbackStatu(UISDGetTask, Callback, Callbackarg, KSUCCESS);
+}
+
+KResult UISDCallbackStatu(uint64_t IPCTask, thread_t Callback, uint64_t Callbackarg, KResult Statu){
+    arguments_t parameters{
+        .arg[0] = IPCTask,
+        .arg[1] = (uint64_t)Statu,
+        .arg[2] = Callbackarg,
+    };
+    Sys_Execthread(Callback, &parameters, ExecutionTypeQueu, NULL);  
+    return Statu;
 }
 
 void UISDHandler(uint64_t IPCTask, enum ControllerTypeEnum Controller, thread_t Callback, uint64_t Callbackarg, uint64_t GP0, uint64_t GP1) {
@@ -141,15 +146,11 @@ void UISDHandler(uint64_t IPCTask, enum ControllerTypeEnum Controller, thread_t 
         case UISDGetTask:
             Statu = (KResult)UISDGet(Controller, Callback, Callbackarg, (process_t)GP0, (uintptr_t)GP1);
             break;
-        case UISDFreeTask:
+        default: /* TODO add free task */
+            UISDCallbackStatu(IPCTask, Callback, Callbackarg, Statu);
             break;
         }
-        arguments_t parameters{
-            .arg[0] = IPCTask,
-            .arg[1] = (uint64_t)Statu,
-            .arg[2] = Callbackarg,
-        };
-        Sys_Execthread(Callback, &parameters, ExecutionTypeQueu, NULL); 
+
         SYS_Close(NULL, Statu);
     }
 }
