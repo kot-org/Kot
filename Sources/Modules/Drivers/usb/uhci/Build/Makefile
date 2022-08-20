@@ -1,4 +1,4 @@
-_HOME = ../../../../../
+_HOME = ../../../../../../
 
 CC = clang-14
 ASMC = nasm
@@ -34,4 +34,4 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 
 link:
 	@ echo !==== LINKING
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Pcspeaker.elf $(OBJS) $(_HOME)Sysroot/Lib/crt0.o
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Uhci.elf $(OBJS) $(_HOME)Sysroot/Lib/crt0.o
