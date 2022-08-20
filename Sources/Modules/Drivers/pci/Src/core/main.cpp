@@ -212,7 +212,7 @@ PCIDeviceHeader* PCISearcherGetDevice(uint16_t vendorID, uint16_t deviceID, uint
     return NULL;
 }
 
-uint32_t PCIDeviceSearcher(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID) {
+uint32_t PCISearcher(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID) {
     uint8_t checkRequired = 0;
     uint32_t deviceNum = 0;
 
@@ -252,9 +252,6 @@ extern "C" int main(int argc, char* argv[]) {
     EnumerateDevices();
 
     PCIDeviceHeader* device = PCISearcherGetDevice(0x8086, 0xFFFF, 0xFFFF, 0xFFFF, 0);
-
-    char buffer[50];
-    Printlog(itoa(device->VendorID, buffer, 16));
 
     Printlog("[PCI] Driver initialized successfully");
 
