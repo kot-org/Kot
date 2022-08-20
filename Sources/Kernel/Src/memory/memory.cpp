@@ -77,7 +77,7 @@ bool CheckAddress(uintptr_t address, size_t size){
 
 /* _____________________________Share Memory_____________________________ */
 //vmm_flag::vmm_Custom1 master share
-//vmm_flag::vmm_Custom2 slave share
+//vmm_flag::vmm_Slave slave share
 
 uint64_t CreateMemoryField(kprocess_t* process, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, enum MemoryFieldType type){
     if(CheckAddress(virtualAddressPointer, sizeof(uint64_t)) != KSUCCESS) return KFAIL;
@@ -95,8 +95,8 @@ uint64_t CreateMemoryField(kprocess_t* process, size_t size, uint64_t* virtualAd
             for(int i = 0; i < numberOfPage; i++){
                 uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
                 if(!vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Present)){
-                    vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, Pmm_RequestPage(), true);
-                    vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_PhysicalStorage, true); //set master state
+                    vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, Pmm_RequestPage(), true, true, true);
+                    vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Master, true); //set master state
                     process->MemoryAllocated += PAGE_SIZE;  
                 }
             }  
@@ -110,8 +110,8 @@ uint64_t CreateMemoryField(kprocess_t* process, size_t size, uint64_t* virtualAd
             for(int i = 0; i < numberOfPage; i++){
                 uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
                 if(!vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Present)){
-                    vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, Pmm_RequestPage(), true);
-                    vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_PhysicalStorage, true); //set master state
+                    vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, Pmm_RequestPage(), true, true, true); // the master can write into memory even if it's read only for slave
+                    vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Master, true); //set master state
                     process->MemoryAllocated += PAGE_SIZE;  
                 }
             }  
@@ -150,8 +150,6 @@ uint64_t CreateMemoryField(kprocess_t* process, size_t size, uint64_t* virtualAd
 }
 
 uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint64_t* virtualAddressPointer){
-    if(CheckAddress(virtualAddressPointer, sizeof(uint64_t)) != KSUCCESS) return KFAIL;
-
     pagetable_t pageTable = process->SharedPaging;
     
     if(shareInfo->signature0 != 'S' || shareInfo->signature1 != 'M') return KFAIL;
@@ -168,8 +166,8 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
                 uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
                 uint64_t virtualAddressParentIterator = (uint64_t)shareInfo->VirtualAddressParent + i * PAGE_SIZE;
                 uintptr_t physicalAddressParentIterator = vmm_GetPhysical(shareInfo->PageTableParent, (uintptr_t)virtualAddressParentIterator);
-                vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, physicalAddressParentIterator, true);
-                vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Custom2, true); //set slave state
+                vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, physicalAddressParentIterator, true, true, true);
+                vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Slave, true); //set slave state
             }
             break;
         }
@@ -182,9 +180,8 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
                 uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
                 uint64_t virtualAddressParentIterator = (uint64_t)shareInfo->VirtualAddressParent + i * PAGE_SIZE;
                 uintptr_t physicalAddressParentIterator = vmm_GetPhysical(shareInfo->PageTableParent, (uintptr_t)virtualAddressParentIterator);
-                vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, physicalAddressParentIterator, true);
-                vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Custom2, true); //set slave state
-                vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_ReadWrite, false); //read only
+                vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, physicalAddressParentIterator, true, false, true);
+                vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Slave, true); //set slave state
             }            
             break;
         }
@@ -205,8 +202,8 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
                 
                 for(uint64_t i = 0; i < pages; i++){
                     if(!vmm_GetFlags(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Present)){
-                        vmm_Map(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), Pmm_RequestPage(), true);
-                        vmm_SetFlags(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage, true); //set master state
+                        vmm_Map(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), Pmm_RequestPage(), true, true, true);
+                        vmm_SetFlags(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Master, true); //set master state
                         process->MemoryAllocated += PAGE_SIZE;                    
                     }
                 } 
@@ -266,7 +263,7 @@ uint64_t FreeMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uintpt
             size_t NumberOfPage = shareInfo->PageNumber;
             for(uint64_t i = 0; i < NumberOfPage; i++){
                 uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
-                if(vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_PhysicalStorage)){ // is master
+                if(vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Master)){ // is master
                     uintptr_t physcialAddress = vmm_GetPhysical(pageTable, (uintptr_t)virtualAddressIterator);
                     Pmm_FreePage(physcialAddress);  
                     process->MemoryAllocated -= PAGE_SIZE;      
@@ -280,7 +277,7 @@ uint64_t FreeMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uintpt
             size_t NumberOfPage = shareInfo->PageNumber;
             for(uint64_t i = 0; i < NumberOfPage; i++){
                 uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
-                if(vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_PhysicalStorage)){ // is master
+                if(vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Master)){ // is master
                     uintptr_t physcialAddress = vmm_GetPhysical(pageTable, (uintptr_t)virtualAddressIterator);
                     Pmm_FreePage(physcialAddress);  
                     process->MemoryAllocated -= PAGE_SIZE;      
