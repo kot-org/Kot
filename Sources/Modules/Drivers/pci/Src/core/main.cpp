@@ -162,19 +162,22 @@ void EnumerateDevices() {
 
             if((headerType & 0x80) != 0){
                 for(uint32_t func = 0; func < 8; func++) {
-                    PCIDevicesIndex++;
                     PCIDevices[PCIDevicesIndex] = GetDevice(bus, device, func);
+                    PCIDevicesIndex++;
                 }
             }else{
-                PCIDevicesIndex++;
                 PCIDevices[PCIDevicesIndex] = GetDevice(bus, device, NULL);
+                PCIDevicesIndex++;
             }
         }
     }    
 }
 
 uint32_t PCIDeviceSearcher(uint16_t vendorID, uint16_t deviceID, uint8_t subClassID, uint8_t classID) {
-
+    char buffer[100];
+    for(uint32_t i = 0; i < PCIDevicesIndex; i++) {
+        Printlog(itoa(((PCIHeader0*)PCIDevices[i])->Header.VendorID, buffer, 16));
+    }
 
     return NULL;
 }
@@ -184,7 +187,7 @@ extern "C" int main(int argc, char* argv[]) {
 
     EnumerateDevices();
 
-    // uint32_t search = PCIDeviceSearcher(0x8086, 0xffff, 0xffff, 0xffff);
+    uint32_t search = PCIDeviceSearcher(0x8086, 0xffff, 0xff, 0xff);
 
     Printlog("[PCI] Driver initialized successfully");
 
