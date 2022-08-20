@@ -128,6 +128,7 @@ uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
 }
 
 void EnumerateDevices() {
+    uint64_t PCIDevicesIndexTmp = 0;
     for(uint32_t bus = 0; bus < 256; bus++) {
         for(uint32_t device = 0; device < 32; device++) {
 
@@ -140,15 +141,15 @@ void EnumerateDevices() {
 
             if((headerType & 0x80) != 0){
                 for(uint32_t func = 0; func < 8; func++) {
-                    if(CheckDevice(bus, device, func)) PCIDevicesIndex++;
+                    if(CheckDevice(bus, device, func)) PCIDevicesIndexTmp++;
                 }
             }else{
-                if(CheckDevice(bus, device, NULL)) PCIDevicesIndex++;
+                if(CheckDevice(bus, device, NULL)) PCIDevicesIndexTmp++;
             }
         }
     }  
 
-    PCIDevices = (uintptr_t*)malloc(sizeof(uintptr_t) * PCIDevicesIndex);
+    PCIDevices = (uintptr_t*)malloc(sizeof(uintptr_t) * PCIDevicesIndexTmp);
 
     for(uint32_t bus = 0; bus < 256; bus++) {
         for(uint32_t device = 0; device < 32; device++) {
