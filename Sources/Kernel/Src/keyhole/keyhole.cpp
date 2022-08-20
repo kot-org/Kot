@@ -80,7 +80,7 @@ KResult Keyhole_Verify(kthread_t* caller, key_t key, enum DataType type){
     
     uint64_t VirtualAddress = (uint64_t)vmm_GetVirtualAddress(lock->Parent->SharedPaging);
     
-    if(!vmm_GetFlags(lock->Parent->SharedPaging, (uintptr_t)VirtualAddress, vmm_flag::vmm_Custom0) || vmm_GetFlags(lock->Parent->SharedPaging, (uintptr_t)VirtualAddress, vmm_flag::vmm_PhysicalStorage) || !vmm_GetFlags(lock->Parent->SharedPaging, (uintptr_t)VirtualAddress, vmm_flag::vmm_Custom2)) return KFAIL;
+    if(!vmm_GetFlags(lock->Parent->SharedPaging, (uintptr_t)VirtualAddress, vmm_flag::vmm_Master) || vmm_GetFlags(lock->Parent->SharedPaging, (uintptr_t)VirtualAddress, vmm_flag::vmm_PhysicalStorage) || !vmm_GetFlags(lock->Parent->SharedPaging, (uintptr_t)VirtualAddress, vmm_flag::vmm_Slave)) return KFAIL;
     
     uint64_t PageAddress = lock->Address - (lock->Address % PAGE_SIZE);
     uint64_t Offset = (lock->Address % PAGE_SIZE) / sizeof(uint64_t);
