@@ -117,28 +117,28 @@ namespace SE8 {
         map_set(signature_map, name, interface);
     }
 
-    uintptr_t ClassArea::runMethod(JavaVM* jvm, uintptr_t object, char* name, char* signature, uint32_t* args, uint16_t args_length) {
+    uint32_t ClassArea::runMethod(JavaVM* jvm, uint32_t object, char* name, char* signature, uint32_t* args, uint16_t args_length) {
         vector_t* signature_map = (vector_t*) map_get(methods_map, signature);
         MethodInterface* interface = (MethodInterface*) map_get(signature_map, name);
         if (interface->type == 0) {
             Frame* frame = (Frame*) malloc(sizeof(Frame));
             frame->init(jvm, this, (ByteCodeMethod*) interface->method);
             frame->run(NULL, 0);
-            return &frame->returnValue;
+            return frame->returnValue;
         } else if (interface->type == 1) {
             return ((NativeMethod*) interface->method)->fn(jvm, object, args, args_length);
         }
         return NULL;
     }
 
-    uintptr_t ClassArea::runStaticMethod(JavaVM* jvm, char* name, char* signature, uint32_t* args, uint16_t args_length) {
+    uint32_t ClassArea::runStaticMethod(JavaVM* jvm, char* name, char* signature, uint32_t* args, uint16_t args_length) {
         vector_t* signature_map = (vector_t*) map_get(static_methods_map, signature);
         MethodInterface* interface = (MethodInterface*) map_get(signature_map, name);
         if (interface->type == 0) {
             Frame* frame = (Frame*) malloc(sizeof(Frame));
             frame->init(jvm, this, (ByteCodeMethod*) interface->method);
             frame->run(NULL, 0);
-            return &frame->returnValue;
+            return frame->returnValue;
         } else if (interface->type == 1) {
             return ((NativeMethod*) interface->method)->fn(jvm, NULL, args, args_length);
         }

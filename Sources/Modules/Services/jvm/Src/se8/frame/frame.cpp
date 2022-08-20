@@ -708,26 +708,17 @@ namespace SE8 {
 
         ClassArea* cl = frame->jvm->getClasses()->getClass(className);
 
-        if (cl->isMethodStatic(methodName, signature) == true) {
-            uint16_t args_length = cl->getStaticMethodArgsLength(methodName, signature); 
-            uint32_t* args = (uint32_t*) malloc(args_length);
-            frame->stack->sinkInto(args, args_length*4);
-            uintptr_t ret = cl->runStaticMethod(frame->jvm, methodName, signature, args, args_length);
-            if (signature[signatureLength-1] != 'V') {
-                // todo doesn't support long/double
-                frame->stack->push32(*(uint32_t*)(ret));
-            }
-        } else {
-            uint16_t args_length = cl->getMethodArgsLength(methodName, signature); 
-            uint32_t* args = (uint32_t*) malloc(args_length*4);
+        uint16_t args_length = cl->getMethodArgsLength(methodName, signature); 
+        uint32_t* args = NULL;
+        if (args_length > 0) {
+            args = (uint32_t*) malloc(args_length*4);
             frame->stack->sinkInto((uintptr_t) args, args_length*4);
-            vector_t* rs = frame->jvm->getRefSys();
-            uintptr_t ret = cl->runMethod(frame->jvm, vector_get(rs, frame->stack->pop32()), methodName, signature, args, args_length);
-            if (signature[signatureLength-1] != 'V') {
-                // todo doesn't support long/double
-                frame->stack->push32(*(uint32_t*)(ret));
-            }
-        } 
+        }
+        uint32_t ret = cl->runMethod(frame->jvm, frame->stack->pop32(), methodName, signature, args, args_length);
+        if (signature[signatureLength-1] != 'V') {
+            // todo doesn't support long/double
+            frame->stack->push32(ret);
+        }
 
     }
 
@@ -743,13 +734,16 @@ namespace SE8 {
 
         ClassArea* cl = frame->jvm->getClasses()->getClass(className);
 
-        uint16_t args_length = cl->getStaticMethodArgsLength(methodName, signature); 
-        uint32_t* args = (uint32_t*) malloc(args_length);
-        frame->stack->sinkInto(args, args_length*4);
-        uintptr_t ret = cl->runStaticMethod(frame->jvm, methodName, signature, args, args_length);
+        uint16_t args_length = cl->getMethodArgsLength(methodName, signature); 
+        uint32_t* args = NULL;
+        if (args_length > 0) {
+            args = (uint32_t*) malloc(args_length*4);
+            frame->stack->sinkInto((uintptr_t) args, args_length*4);
+        }
+        uint32_t ret = cl->runStaticMethod(frame->jvm, methodName, signature, args, args_length);
         if (signature[signatureLength-1] != 'V') {
             // todo doesn't support long/double
-            frame->stack->push32(*(uint32_t*)(ret));
+            frame->stack->push32(ret);
         }
 
     }
@@ -767,13 +761,16 @@ namespace SE8 {
         ClassArea* cl = frame->jvm->getClasses()->getClass(className);
 
         uint16_t args_length = cl->getMethodArgsLength(methodName, signature); 
-        uint32_t* args = (uint32_t*) malloc(args_length*4);
-        frame->stack->sinkInto((uintptr_t) args, args_length*4);
+        uint32_t* args = NULL;
+        if (args_length > 0) {
+            args = (uint32_t*) malloc(args_length*4);
+            frame->stack->sinkInto((uintptr_t) args, args_length*4);
+        }
         vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t ret = cl->runMethod(frame->jvm, vector_get(rs, frame->stack->pop32()), methodName, signature, args, args_length);
+        uint32_t ret = cl->runMethod(frame->jvm, frame->stack->pop32(), methodName, signature, args, args_length);
         if (signature[signatureLength-1] != 'V') {
             // todo doesn't support long/double
-            frame->stack->push32(*(uint32_t*)(ret));
+            frame->stack->push32(ret);
         }
 
     }
@@ -1091,7 +1088,8 @@ namespace SE8 {
         char* className = (char*) ((Constant_Utf8*) frame->constant_pool[classInfo->name_index])->bytes;
         ClassArea* cl = frame->jvm->getClasses()->getClass(className);
         vector_t* rs = frame->jvm->getRefSys();
-        vector_push(rs, cl->newObject());
+        uintptr_t obj = cl->newObject();
+        vector_push(rs, obj);
         frame->stack->push32(rs->length-1);
     }
 
@@ -1429,9 +1427,7 @@ namespace SE8 {
             }
         }
         while (reader->index < code_length) {
-            uint8_t oc = reader->u1();
-            //Printlog(itoa(oc, "   ", 16)); 
-            oct[oc](this);
+            oct[reader->u1()](this);
         }
         free(stack);
         free(locals);

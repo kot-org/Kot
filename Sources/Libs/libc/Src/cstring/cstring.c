@@ -1,5 +1,14 @@
 #include <kot/cstring.h>
 
+// alpha size of int
+int64_t asi(int64_t n, int basenumber){
+    int64_t i = 0;
+    do {
+        i++;
+    } while(n /= basenumber);
+    return i;
+}
+
 int strlen(char* p){
     int count = 0;
     while (*p != '\0') {

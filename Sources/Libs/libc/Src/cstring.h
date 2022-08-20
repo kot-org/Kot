@@ -8,6 +8,7 @@
 extern "C" {
 #endif
 
+int64_t asi(int64_t n, int basenumber);
 int strlen(char* p);
 int strcmp(char* a, char* b);
 int strncmp(char* a, char* b, size_t len);

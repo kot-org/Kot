@@ -21,7 +21,7 @@ namespace SE8 {
     };
 
     struct NativeMethod {
-        uintptr_t (*fn)(JavaVM* jvm, uintptr_t object, uint32_t* args, uint16_t args_length);
+        uint32_t (*fn)(JavaVM* jvm, uint32_t object, uint32_t* args, uint16_t args_length);
     };
 
     struct MethodInterface {
@@ -69,8 +69,8 @@ namespace SE8 {
         void registerMethod(char* name, char* signature, MethodInterface* interface);
         void registerStaticMethod(char* name, char* signature, MethodInterface* interface);
         
-        uintptr_t runMethod(JavaVM* jvm, uintptr_t object, char* name, char* signature, uint32_t* args, uint16_t args_length);
-        uintptr_t runStaticMethod(JavaVM* jvm, char* name, char* signature, uint32_t* args, uint16_t args_length);
+        uint32_t runMethod(JavaVM* jvm, uint32_t object, char* name, char* signature, uint32_t* args, uint16_t args_length);
+        uint32_t runStaticMethod(JavaVM* jvm, char* name, char* signature, uint32_t* args, uint16_t args_length);
 
         void registerField(char* name, uint8_t size);
 
