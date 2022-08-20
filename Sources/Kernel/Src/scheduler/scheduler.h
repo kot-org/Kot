@@ -117,7 +117,8 @@ struct kthread_t{
     StackInfo* Stack; 
     uint64_t CoreID;
     bool IsBlock;
-    bool IsExit;
+    bool IsClose;
+    bool IsPause;
 
     /* Time info */
     uint64_t TimeAllocate;
@@ -151,6 +152,7 @@ struct kthread_t{
     void SaveContext(struct ContextStack* Registers, uint64_t CoreID);
     void SaveContext(struct ContextStack* Registers);
     void CreateContext(struct ContextStack* Registers, uint64_t CoreID);
+    void ResetContext(ContextStack* Registers);
 
     void SetParameters(arguments_t* FunctionParameters);
 
@@ -167,6 +169,7 @@ struct kthread_t{
     bool Launch_WL();  
     bool Launch();  
     bool Pause(ContextStack* Registers, uint64_t CoreID);   
+    bool Pause_WL(ContextStack* Registers, uint64_t CoreID);   
     KResult Close(ContextStack* Registers, uint64_t CoreID);
     KResult CloseQueu(ContextStack* Registers, uint64_t CoreID);
     KResult CloseQueu_WL(ContextStack* Registers, uint64_t CoreID);
@@ -191,6 +194,7 @@ class TaskManager{
         KResult Execthread(kthread_t* Caller, kthread_t* Self, enum ExecutionType Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers, uint64_t CoreID);
         uint64_t Pause(ContextStack* Registers, uint64_t CoreID, kthread_t* task); 
         uint64_t Unpause(kthread_t* task); 
+        uint64_t Unpause_WL(kthread_t* task); 
         uint64_t Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* task); 
         uint64_t ShareDataUsingStackSpace(kthread_t* self, uintptr_t data, size_t size, uint64_t* location);
         // process
@@ -229,6 +233,6 @@ class TaskManager{
         uintptr_t globalAddressForStackSpaceSharing;
 };
 
-
+void SetParameters(ContextStack* Registers, arguments_t* FunctionParameters);
 
 extern TaskManager* globalTaskManager;
