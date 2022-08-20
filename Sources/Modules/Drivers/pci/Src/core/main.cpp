@@ -179,8 +179,10 @@ void EnumerateDevices() {
 }
 
 uint32_t PCIDeviceSearcher(uint16_t vendorID, uint16_t deviceID, uint8_t subClassID, uint8_t classID) {
-    char buffer[100];
     for(uint32_t i = 0; i < PCIDevicesIndex; i++) {
+
+        
+        char buffer[100];
         Printlog(itoa(((PCIHeader0*)PCIDevices[i])->Header.VendorID, buffer, 16));
     }
 
