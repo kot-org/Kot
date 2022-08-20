@@ -928,6 +928,8 @@ namespace SE8 {
             jlString->setField32(object, "<length>", (uint32_t) ((Constant_Utf8*) frame->constant_pool[((Constant_String*) entry)->string_index])->length);
             vector_push(rs, object);
             frame->stack->push32(rs->length-1);
+        } else if (entry->tag == CONSTANT_Integer || entry->tag == CONSTANT_Float) {
+            frame->stack->push32(((Constant_Integer_Float*) entry)->bytes);
         }
     }
 
@@ -942,6 +944,8 @@ namespace SE8 {
             jlString->setField32(object, "<length>", (uint32_t) ((Constant_Utf8*) frame->constant_pool[((Constant_String*) entry)->string_index])->length);
             vector_push(rs, object);
             frame->stack->push32(rs->length-1);
+        } else if (entry->tag == CONSTANT_Integer || entry->tag == CONSTANT_Float) {
+            frame->stack->push32(((Constant_Integer_Float*) entry)->bytes);
         }
     }
 
@@ -949,7 +953,7 @@ namespace SE8 {
         uint16_t idx = frame->reader->u2B();
         ConstantPoolEntry* entry = (ConstantPoolEntry*) frame->constant_pool[idx];
         vector_t* rs = frame->jvm->getRefSys();
-        // implement long and int
+        // implement long and double
     }
 
     void Opc::ldiv(Frame* frame) {
@@ -1427,7 +1431,9 @@ namespace SE8 {
             }
         }
         while (reader->index < code_length) {
-            oct[reader->u1()](this);
+            uint8_t oc = reader->u1();
+            //Printlog(itoa(oc, "    ", 16));
+            oct[oc](this);
         }
         free(stack);
         free(locals);
