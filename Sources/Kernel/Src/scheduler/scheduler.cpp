@@ -123,8 +123,9 @@ uint64_t TaskManager::Duplicatethread(kthread_t** self, kprocess_t* proc, kthrea
 }
 
 KResult ThreadQueu_t::SetThreadInQueu(kthread_t* Caller, kthread_t* Self, arguments_t* FunctionParameters, bool IsAwaitTask, ThreadShareData_t* Data){
-    LastData->Next = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
     LastData = LastData->Next;
+    LastData->Next = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
+    Message("%x", LastData->Next);
     LastData->IsAwaitTask = IsAwaitTask;
     LastData->Data = NULL;
     LastData->Task = Self;
@@ -166,6 +167,7 @@ KResult ThreadQueu_t::ExecuteThreadInQueu(){
             free(CurrentData->Data->Data);
             free(CurrentData->Data);
         }
+        CurrentData->Task->ResetContext(CurrentData->Task->Regs);
         CurrentData->Task->Launch_WL(&CurrentData->Parameters);
         Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
         return KSUCCESS;
