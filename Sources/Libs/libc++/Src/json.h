@@ -97,6 +97,8 @@ namespace std {
         char* serealize();
         JsonTypes getType();
         JsonParsingCode getCode();
+        JsonValue* get(char* key);
+        void set(char* key, JsonValue* value);
         ~JsonObject() {}
     };
 

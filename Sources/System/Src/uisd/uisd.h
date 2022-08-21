@@ -2,7 +2,7 @@
 
 #include <kot/sys.h>
 #include <kot/types.h>
-#include <core/main.h>
+#include "../core/main.h"
 #include <kot/atomic.h>
 #include <kot/keyhole.h>
 #include <kot/utils/vector.h>

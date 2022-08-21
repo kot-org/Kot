@@ -3,7 +3,7 @@ _HOME = ../../../../../
 CC = clang-14
 ASMC = nasm
 
-CFLAGS = -O3 --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I$(_HOME)Sysroot/Include
+CFLAGS = -O3 --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I$(_HOME)Sysroot/Include
 LINKERFLAGS = -nostartfiles -Wall -static -L$(_HOME)Sysroot/Lib/ -lc
 ASMFLAGS = 
 
@@ -33,4 +33,4 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 
 link:
 	@ echo !==== LINKING
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Orb.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/Lib/crt0.o
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Orb.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/Lib/libcpp.a $(_HOME)Sysroot/Lib/crt0.o

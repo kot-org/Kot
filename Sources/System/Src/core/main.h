@@ -1,8 +1,9 @@
 #pragma once
-#include <elf/elf.h>
-#include <uisd/uisd.h>
+
+#include "../elf/elf.h"
+#include "../uisd/uisd.h"
 #include <kot/types.h>
-#include <ramfs/ramfs.h>
+#include "../ramfs/ramfs.h"
 
 struct framebuffer_t {
     uint64_t identifier;

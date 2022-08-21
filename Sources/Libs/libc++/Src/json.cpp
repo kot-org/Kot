@@ -340,6 +340,14 @@ namespace std {
         return builder->toString();
     }
 
+    JsonValue* JsonObject::get(char* key) {
+        return (JsonValue*) map_get(obj, key);
+    }
+
+    void JsonObject::set(char* key, JsonValue* value) {
+        map_set(obj, key, value);
+    }
+
     JsonParsingCode JsonObject::getCode() {
         return this->code;
     }
