@@ -127,11 +127,7 @@ KResult Sys_Close(SyscallStack* Registers, kthread_t* thread){
         if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
         if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsClosaable)) return KKEYVIOLATION;
     }
-    CPU::DisableInterrupts();
-    globalTaskManager->IsSchedulerEnable[thread->CoreID] = false;
-    CPU::EnableInterrupts();
-    KResult statu = threadkey->Close((ContextStack*)Registers, thread->CoreID);
-    globalTaskManager->IsSchedulerEnable[thread->CoreID] = true;
+    KResult statu = threadkey->Close((ContextStack*)Registers);
     return statu;
 }
 
@@ -147,11 +143,7 @@ KResult Sys_Exit(SyscallStack* Registers, kthread_t* thread){
         if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
         if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsExitable)) return KKEYVIOLATION;
     }
-    CPU::DisableInterrupts();
-    globalTaskManager->IsSchedulerEnable[thread->CoreID] = false;
-    CPU::EnableInterrupts();
-    KResult statu = globalTaskManager->Exit((ContextStack*)Registers, thread->CoreID, threadkey);
-    globalTaskManager->IsSchedulerEnable[thread->CoreID] = true;
+    KResult statu = globalTaskManager->Exit((ContextStack*)Registers, threadkey);
     return statu;
 }
 
@@ -163,11 +155,7 @@ KResult Sys_Pause(SyscallStack* Registers, kthread_t* thread){
     uint64_t flags;
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsPauseable)) return KKEYVIOLATION;
-    CPU::DisableInterrupts();
-    globalTaskManager->IsSchedulerEnable[thread->CoreID] = false;
-    CPU::EnableInterrupts();
-    KResult statu = globalTaskManager->Pause((ContextStack*)Registers, thread->CoreID, threadkey);
-    globalTaskManager->IsSchedulerEnable[thread->CoreID] = true;
+    KResult statu = globalTaskManager->Pause((ContextStack*)Registers, threadkey);
     return statu;
     /* No return */
 }
@@ -427,11 +415,7 @@ KResult Sys_ExecThread(SyscallStack* Registers, kthread_t* thread){
         if(CheckAddress((uintptr_t)Data, sizeof(ThreadShareData_t)) != KSUCCESS) return KMEMORYVIOLATION;    
         if(CheckAddress((uintptr_t)Data->Data, Data->Size) != KSUCCESS) return KMEMORYVIOLATION;    
     }
-    CPU::DisableInterrupts();
-    globalTaskManager->IsSchedulerEnable[thread->CoreID] = false;
-    CPU::EnableInterrupts();
-    KResult statu = globalTaskManager->Execthread(thread, threadkey, Type, (arguments_t*)Registers->arg1, Data, (ContextStack*)Registers, thread->CoreID);
-    globalTaskManager->IsSchedulerEnable[thread->CoreID] = true;
+    KResult statu = globalTaskManager->Execthread(thread, threadkey, Type, (arguments_t*)Registers->arg1, Data, (ContextStack*)Registers);
     return statu;
 }
 

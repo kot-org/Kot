@@ -112,7 +112,7 @@ void StopAllCPU(){
         APIC::GenerateInterruption(i, INT_Stop);
     }
 
-    asm("int $0x41");
+    asm("int $0x42");
 }
 
 void SetupRegistersForTask(kthread_t* self){

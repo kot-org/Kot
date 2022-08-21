@@ -16,7 +16,7 @@ extern "C" void main(uintptr_t boot){
         ThreadShareData_t DataInfo;
         GetDataToStartService(ArchInfo, mainthread, InitParameters, &DataInfo.Data, &DataInfo.Size);
         DataInfo.ParameterPosition = 0x0; 
-        globalTaskManager->Execthread(mainthread, mainthread, ExecutionTypeQueu, InitParameters, &DataInfo, NULL, NULL);
+        globalTaskManager->Execthread(mainthread, mainthread, ExecutionTypeQueu, InitParameters, &DataInfo, NULL);
         free(InitParameters);
     }else{
         Error("Can't load initialization file");

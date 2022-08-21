@@ -39,7 +39,7 @@ struct ThreadQueu_t{
     struct ThreadQueuData_t* LastData;
     KResult SetThreadInQueu(kthread_t* Caller, kthread_t* Self, arguments_t* FunctionParameters, bool IsAwaitTask, struct ThreadShareData_t* Data);
     KResult ExecuteThreadInQueu();
-    KResult ExecuteThreadInQueuFromItself_WL(struct ContextStack* Registers, uint64_t CoreID);
+    KResult ExecuteThreadInQueuFromItself_WL(struct ContextStack* Registers);
     KResult NextThreadInQueu();
 }__attribute__((packed));
 
@@ -162,17 +162,15 @@ struct kthread_t{
     bool ExtendStack(uint64_t address, size_t size);
     KResult ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t* location);
 
-    bool IPC(struct ContextStack* Registers, uint64_t CoreID, kthread_t* thread, arguments_t* FunctionParameters, bool IsAsync);
-
     bool Launch_WL(arguments_t* FunctionParameters);  
     bool Launch(arguments_t* FunctionParameters);  
     bool Launch_WL();  
     bool Launch();  
-    bool Pause(ContextStack* Registers, uint64_t CoreID);   
-    bool Pause_WL(ContextStack* Registers, uint64_t CoreID);   
-    KResult Close(ContextStack* Registers, uint64_t CoreID);
-    KResult CloseQueu(ContextStack* Registers, uint64_t CoreID);
-    KResult CloseQueu_WL(ContextStack* Registers, uint64_t CoreID);
+    bool Pause(ContextStack* Registers);   
+    bool Pause_WL(ContextStack* Registers);   
+    KResult Close(ContextStack* Registers);
+    KResult CloseQueu(ContextStack* Registers);
+    KResult CloseQueu_WL(ContextStack* Registers);
 }__attribute__((packed));  
 
 class TaskManager{
@@ -191,11 +189,11 @@ class TaskManager{
         uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint64_t externalData);
         uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint8_t privilege, uint64_t externalData);
         uint64_t Duplicatethread(kthread_t** self, kprocess_t* proc, kthread_t* source, uint64_t externalData);
-        KResult Execthread(kthread_t* Caller, kthread_t* Self, enum ExecutionType Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers, uint64_t CoreID);
-        uint64_t Pause(ContextStack* Registers, uint64_t CoreID, kthread_t* task); 
+        KResult Execthread(kthread_t* Caller, kthread_t* Self, enum ExecutionType Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers);
+        uint64_t Pause(ContextStack* Registers, kthread_t* task); 
         uint64_t Unpause(kthread_t* task); 
         uint64_t Unpause_WL(kthread_t* task); 
-        uint64_t Exit(ContextStack* Registers, uint64_t CoreID, kthread_t* task); 
+        uint64_t Exit(ContextStack* Registers, kthread_t* task); 
         uint64_t ShareDataUsingStackSpace(kthread_t* self, uintptr_t data, size_t size, uint64_t* location);
         // process
         uint64_t CreateProcess(kprocess_t** key, uint8_t priviledge, uint64_t externalData);

@@ -116,7 +116,7 @@ void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
 
         Error("Thread error, PID : %x | TID : %x \nWith exception : '%s' | Error code : %x", Registers->threadInfo->thread->Parent->PID, Registers->threadInfo->thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
         PrintRegisters(Registers);
-        globalTaskManager->Exit(Registers, CoreID, Registers->threadInfo->thread); 
+        globalTaskManager->Exit(Registers, Registers->threadInfo->thread); 
         globalTaskManager->IsSchedulerEnable[CoreID] = true;
         globalTaskManager->Scheduler(Registers, CoreID); 
     }
