@@ -7,5 +7,5 @@ extern "C" int main(int argc, char* argv[]){
     GetControllerUISD(ControllerTypeEnum_Graphics, &addressReceive, true);
 
     Printlog((char*)addressReceive);
-    Printlog("[Test] UISD response");
+    Printlog("[Test1] UISD response");
 }

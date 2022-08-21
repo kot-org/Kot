@@ -86,6 +86,7 @@ typedef struct {
     bool AwaitCallback;
     uintptr_t Location;
     KResult Statu;
+    uint64_t Lock;
 } callbackInfo_t;
 
 callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t* Location, bool AwaitCallback);

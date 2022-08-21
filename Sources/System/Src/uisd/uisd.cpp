@@ -61,9 +61,6 @@ void UISDAccept(callbackget_info_t* Callback){
         .arg[2] = Callback->Callbackarg,
         .arg[3] = (uint64_t)Callback->Address,
     };
-    char buffer[33];
-    itoa(parameters.arg[2], buffer, 16);
-    Printlog(buffer);
     Sys_Execthread(Callback->Callback, &parameters, ExecutionTypeQueu, NULL);        
 }
 
