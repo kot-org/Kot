@@ -69,5 +69,7 @@ struct PCIBar{
 };
 
 struct PCIDevice{
-
+    PCIDeviceHeader Header;
+    PCIBar* bar;
+    uint32_t index;
 };

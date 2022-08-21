@@ -77,8 +77,11 @@ typedef struct {
 
 typedef struct {
     controller_t ControllerHeader;
-    thread_t GetPCIDevice;
-    thread_t SetupMSIX;
+    thread_t GetBARNum;
+    thread_t GetBARType;
+    thread_t GetBARSize;
+    thread_t PCISearcherGetDevice;
+    thread_t PCISearcher;
 } pci_t;
 
 typedef struct {
