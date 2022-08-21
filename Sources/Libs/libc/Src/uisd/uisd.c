@@ -38,7 +38,10 @@ KResult CallbackUISD(uint64_t Task, KResult Statu, callbackInfo_t* Info, uint64_
     if(Task == UISDGetTask) Info->Location = (uintptr_t)GP0;
     Info->Statu = Statu;
     if(Info->AwaitCallback){
-        SYS_Unpause(Info->Self);
+        if(!atomicLock(&Info->Lock, 0)){
+            SYS_Unpause(Info->Self);
+            atomicUnlock(&Info->Lock, 0);
+        }
     }
     SYS_Close(NULL, KSUCCESS);
 }
@@ -62,7 +65,10 @@ callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t*
     parameters.arg[5] = (uint64_t)*Location,
     Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
     if(AwaitCallback){
-        SYS_Pause(Self);
+        if(atomicLock(&Info->Lock, 0)){
+            SYS_Pause(Self);
+            atomicUnlock(&Info->Lock, 0);
+        }
         *Location = Info->Location;
         return Info;
     }
@@ -91,7 +97,10 @@ callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ksmem_t
     parameters.arg[4] = MemoryFieldKey,
     Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
     if(AwaitCallback){
-        SYS_Pause(Self);
+        if(atomicLock(&Info->Lock, 0)){
+            SYS_Pause(Self);
+            atomicUnlock(&Info->Lock, 0);
+        }
         return Info;
     }
     return Info;
