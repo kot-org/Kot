@@ -7,11 +7,8 @@ extern "C" int main(int argc, char* argv[]){
     uintptr_t address = getFreeAlihnedSpace(sizeof(graphics_t));
     ksmem_t key = NULL;
     Sys_CreateMemoryField(proc, sizeof(graphics_t), &address, &key, MemoryFieldTypeShareSpaceRW);
-    char* test = "test ipc";
+
+    char* test = "Hello from test";
     memcpy(address, test, strlen(test));
     CreateControllerUISD(ControllerTypeEnum_Graphics, key, true);
-
-
-    Printlog((char*)address);
-    Printlog("[Test] UISD response");
 }
