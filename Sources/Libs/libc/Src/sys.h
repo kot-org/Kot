@@ -84,7 +84,6 @@ KResult Sys_CreateMemoryField(process_t self, size64_t size, uintptr_t* virtualA
 KResult Sys_AcceptMemoryField(process_t self, ksmem_t key, uintptr_t* virtualAddressPointer);
 KResult Sys_FreeMemoryField(process_t self, ksmem_t key, uintptr_t address);
 KResult Sys_GetInfoMemoryField(ksmem_t key, uint64_t* typePointer, size64_t* sizePointer);
-KResult SYS_ShareDataUsingStackSpace(thread_t self, uint64_t address, size64_t size, uint64_t* clientAddress);
 KResult Sys_CreateProc(process_t* key, enum Priviledge privilege, uint64_t data);
 KResult Sys_Fork(process_t* src, process_t* dst);
 KResult Sys_CloseProc();

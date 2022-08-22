@@ -4,10 +4,6 @@ using namespace std;
 
 process_t proc;
 
-void ShareString(thread_t self, char* str, uint64_t* clientAddress){
-    SYS_ShareDataUsingStackSpace(self, (uint64_t)str, strlen(str) + 1, clientAddress);
-}
-
 extern "C" int main(struct KernelInfo* kernelInfo) {
 
     Printlog("[System] Initialization ...");
@@ -72,13 +68,19 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
                         }
                         ELF::loadElf(bufferServiceFile, (enum Priviledge) servicePriledge, NULL, &thread);
                         free(bufferServiceFile);
-                        char** Parameters = (char**) calloc(sizeof(char*));
+
+                        size_t filenamelen = strlen(file->get());
+                        char** CharArray = (char**)malloc((sizeof(char*) * 0x1) + (sizeof(char) * filenamelen));
+                        CharArray[0] = (char*)&CharArray[1];
+                        memcpy(CharArray[0], file->get(), filenamelen);
+
                         InitParameters->arg[0] = 1;
-                        ShareString(thread, file->get(), (uint64_t*) &Parameters[0]);
-                        SYS_ShareDataUsingStackSpace(thread, (uint64_t) Parameters, sizeof(char*), &InitParameters->arg[1]);
-                        SYS_ShareDataUsingStackSpace(thread, (uint64_t) &kernelInfo->framebuffer, sizeof(framebuffer_t), &InitParameters->arg[2]);
-                        SYS_ShareDataUsingStackSpace(thread, (uint64_t) testClassBuffer, testClass->size + 1, &InitParameters->arg[3]);
-                        Sys_Execthread(thread, InitParameters, ExecutionTypeQueu, NULL);
+                        ShareDataWithArguments_t Data{
+                            .Data = &CharArray,
+                            .Size = sizeof(char*),
+                            .ParameterPosition = 0x1,
+                        };
+                        Sys_Execthread(thread, InitParameters, ExecutionTypeQueu, &Data);
                     }
                 }
             }

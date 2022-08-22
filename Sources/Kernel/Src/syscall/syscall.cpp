@@ -78,26 +78,6 @@ KResult Sys_GetInfoMemoryField(SyscallStack* Registers, kthread_t* thread){
     return KSUCCESS;
 }
 
-/* Sys_ShareDataUsingStackSpace :
-    Arguments :
-    0 -> thread taget                   > key thread
-    1 -> data address                   > uint64_t
-    2 -> size of data                   > size64_t
-    3 -> location of data for client    > uint64_t*
-    4 -> reserved                       > none
-    5 -> reserved                       > none
-
-*/
-KResult Sys_ShareDataUsingStackSpace(SyscallStack* Registers, kthread_t* thread){
-    kthread_t* threadkey;
-    uint64_t flags;
-    if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadMemoryAccessible)) return KKEYVIOLATION;
-    if(CheckAddress((uintptr_t)Registers->arg1, Registers->arg2) != KSUCCESS) return KMEMORYVIOLATION;
-    if(CheckAddress((uintptr_t)Registers->arg3, sizeof(uintptr_t)) != KSUCCESS) return KMEMORYVIOLATION;
-    return globalTaskManager->ShareDataUsingStackSpace(threadkey, (uintptr_t)Registers->arg1, Registers->arg2, (uintptr_t*)Registers->arg3);
-}
-
 /* Sys_CreateProc :
     Arguments : 
 */
@@ -474,7 +454,6 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_AcceptMemoryField] = Sys_AcceptMemoryField,
     [KSys_FreeMemoryField] = Sys_FreeMemoryField,
     [KSys_GetTypeMemoryField] = Sys_GetInfoMemoryField,
-    [KSys_ShareDataUsingStackSpace] = Sys_ShareDataUsingStackSpace,
     [KSys_CreateProc] = Sys_CreateProc,
     [KSys_CloseProc] = Sys_CloseProc,
     [KSys_Close] = Sys_Close,

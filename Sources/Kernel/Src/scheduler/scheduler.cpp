@@ -123,9 +123,13 @@ uint64_t TaskManager::Duplicatethread(kthread_t** self, kprocess_t* proc, kthrea
 }
 
 KResult ThreadQueu_t::SetThreadInQueu(kthread_t* Caller, kthread_t* Self, arguments_t* FunctionParameters, bool IsAwaitTask, ThreadShareData_t* Data){
-    LastData = LastData->Next;
-    LastData->Next = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
-    Message("%x", LastData->Next);
+    if(TasksInQueu && LastData != NULL){
+        LastData->Next = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
+        LastData = LastData->Next;
+    }else{
+        LastData = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
+        CurrentData = LastData;
+    }
     LastData->IsAwaitTask = IsAwaitTask;
     LastData->Data = NULL;
     LastData->Task = Self;
@@ -149,12 +153,11 @@ KResult ThreadQueu_t::SetThreadInQueu(kthread_t* Caller, kthread_t* Self, argume
         LastData->AwaitTask = Caller;
     }
 
-    if(!TasksInQueu){
+    if(TasksInQueu){
         TasksInQueu++;
-        CurrentData = LastData;
-        ExecuteThreadInQueu();
     }else{
         TasksInQueu++;
+        ExecuteThreadInQueu();
     }
     return KSUCCESS;
 }
@@ -395,9 +398,6 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, uint8_t priviledge, ui
     thread->IsClose = true;
     thread->Parent = this;
     thread->Queu = (ThreadQueu_t*)calloc(sizeof(ThreadQueu_t));
-    thread->Queu->LastData = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
-    thread->Queu->LastData->Next = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
-    thread->Queu->CurrentData = thread->Queu->LastData;    
 
     /* ID */
     thread->TID = TID; 
@@ -464,10 +464,7 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source, uint64_t externalData)
     thread->IsBlock = true;
     thread->IsClose = true;
     thread->Parent = this;
-    thread->Queu = (ThreadQueu_t*)calloc(sizeof(ThreadQueu_t));
-    thread->Queu->LastData = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
-    thread->Queu->LastData->Next = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
-    thread->Queu->CurrentData = thread->Queu->LastData;  
+    thread->Queu = (ThreadQueu_t*)calloc(sizeof(ThreadQueu_t)); 
     
     /* ID */
     thread->TID = TID; 

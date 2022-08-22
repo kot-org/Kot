@@ -18,10 +18,6 @@ KResult Sys_GetInfoMemoryField(ksmem_t key, uint64_t* typePointer, size64_t* siz
     return Syscall_24(KSys_GetTypeMemoryField, key, typePointer, sizePointer);
 }
 
-KResult SYS_ShareDataUsingStackSpace(thread_t self, uint64_t address, size64_t size, uint64_t* clientAddress){
-    return Syscall_32(KSys_ShareDataUsingStackSpace, self, address, size, clientAddress);
-}
-
 KResult Sys_CreateProc(process_t* key, enum Priviledge privilege, uint64_t data){
     return Syscall_24(KSys_CreateProc, key, privilege, data);
 }
