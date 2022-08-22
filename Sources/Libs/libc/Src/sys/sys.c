@@ -26,20 +26,20 @@ KResult Sys_CloseProc(){
     return Syscall_0(KSys_CloseProc);
 }
 
-KResult SYS_Close(thread_t self, uint64_t errorCode){
-    return Syscall_16(KSys_Close, self, errorCode);
+KResult SYS_Close(uint64_t errorCode){
+    return Syscall_8(KSys_Close, errorCode);
 }
 
-KResult SYS_Exit(thread_t self, uint64_t errorCode){
-    return Syscall_16(KSys_Exit, self, errorCode);
+KResult SYS_Exit(uint64_t errorCode){
+    return Syscall_8(KSys_Exit, errorCode);
 }
 
-KResult SYS_Pause(thread_t self){
-    return Syscall_8(KSys_Pause, self);
+KResult SYS_Pause(){
+    return Syscall_0(KSys_Pause);
 }
 
-KResult SYS_Unpause(process_t self){
-    return Syscall_8(KSys_UnPause, self);
+KResult SYS_Unpause(){
+    return Syscall_0(KSys_UnPause);
 }
 
 KResult SYS_Map(process_t self, uint64_t* addressVirtual, bool isPhysical, uintptr_t* addressPhysical, size64_t* size, bool findFree){

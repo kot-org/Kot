@@ -87,10 +87,10 @@ KResult Sys_GetInfoMemoryField(ksmem_t key, uint64_t* typePointer, size64_t* siz
 KResult Sys_CreateProc(process_t* key, enum Priviledge privilege, uint64_t data);
 KResult Sys_Fork(process_t* src, process_t* dst);
 KResult Sys_CloseProc();
-KResult SYS_Close(thread_t self, uint64_t errorCode);
-KResult SYS_Exit(thread_t self, uint64_t errorCode);
-KResult SYS_Pause(thread_t self);
-KResult SYS_Unpause(thread_t self);
+KResult SYS_Close(uint64_t errorCode);
+KResult SYS_Exit(uint64_t errorCode);
+KResult SYS_Pause();
+KResult SYS_Unpause();
 KResult SYS_Map(process_t self, uint64_t* addressVirtual, bool isPhysical, uintptr_t* addressPhysical, size64_t* size, bool findFree);
 KResult SYS_Unmap(process_t self, uintptr_t addressVirtual, size64_t size);
 KResult Sys_Event_Create(kevent_t* self);

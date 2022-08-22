@@ -102,15 +102,7 @@ KResult Sys_CloseProc(SyscallStack* Registers, kthread_t* thread){
     Arguments : 
 */
 KResult Sys_Close(SyscallStack* Registers, kthread_t* thread){
-    kthread_t* threadkey;
-    uint64_t flags;
-    if(Registers->arg0 == NULL){
-        threadkey = thread;
-    }else{
-        if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
-        if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsClosaable)) return KKEYVIOLATION;
-    }
-    KResult statu = threadkey->Close((ContextStack*)Registers);
+    KResult statu = thread->Close((ContextStack*)Registers);
     return statu;
 }
 
@@ -118,15 +110,7 @@ KResult Sys_Close(SyscallStack* Registers, kthread_t* thread){
     Arguments : 
 */
 KResult Sys_Exit(SyscallStack* Registers, kthread_t* thread){
-    kthread_t* threadkey;
-    uint64_t flags;
-    if(Registers->arg0 == NULL){
-        threadkey = thread;
-    }else{
-        if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
-        if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsExitable)) return KKEYVIOLATION;
-    }
-    KResult statu = globalTaskManager->Exit((ContextStack*)Registers, threadkey);
+    KResult statu = globalTaskManager->Exit((ContextStack*)Registers, thread);
     return statu;
 }
 
@@ -134,11 +118,7 @@ KResult Sys_Exit(SyscallStack* Registers, kthread_t* thread){
     Arguments : 
 */
 KResult Sys_Pause(SyscallStack* Registers, kthread_t* thread){
-    kthread_t* threadkey;
-    uint64_t flags;
-    if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsPauseable)) return KKEYVIOLATION;
-    KResult statu = globalTaskManager->Pause((ContextStack*)Registers, threadkey);
+    KResult statu = globalTaskManager->Pause((ContextStack*)Registers, thread);
     return statu;
     /* No return */
 }
@@ -147,11 +127,7 @@ KResult Sys_Pause(SyscallStack* Registers, kthread_t* thread){
     Arguments : 
 */
 KResult Sys_UnPause(SyscallStack* Registers, kthread_t* thread){
-    kthread_t* threadkey;
-    uint64_t flags;
-    if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsUnpauseable)) return KKEYVIOLATION;
-    return globalTaskManager->Unpause(threadkey);
+    return globalTaskManager->Unpause(thread);
 }
 
 /* Sys_Map :

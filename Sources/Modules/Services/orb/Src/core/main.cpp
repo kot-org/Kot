@@ -56,7 +56,7 @@ thread_t renderThread = NULL;
 void threadRender(){
     renderWindows();
     Sys_Execthread(renderThread, NULL, ExecutionTypeQueu, NULL);
-    SYS_Exit(NULL, KSUCCESS);
+    SYS_Close(KSUCCESS);
 }
 
 void initWindowRender() {

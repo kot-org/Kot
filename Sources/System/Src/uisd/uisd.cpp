@@ -152,6 +152,6 @@ void UISDHandler(uint64_t IPCTask, enum ControllerTypeEnum Controller, thread_t 
             break;
         }
 
-        SYS_Close(NULL, Statu);
+        SYS_Close(Statu);
     }
 }

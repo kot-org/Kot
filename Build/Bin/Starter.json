@@ -1,7 +1,7 @@
 [
     {"file":"Test.elf", "priviledge":1},
     {"file":"Test1.elf", "priviledge":1},
-    {"file":"Pci.elf", "priviledge":1},
+    {"file":"Pci.elf", "priviledge":1, "active":false},
     {"file":"Pcspk.elf", "priviledge":1, "active":false},
     {"file":"Ps2.elf", "priviledge":1, "active":false},
     {"file":"Uhci.elf", "priviledge":1, "active":false},

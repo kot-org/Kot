@@ -101,5 +101,4 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
     Printlog("[System] Service initialized successfully");
 
     return KSUCCESS;
-
 }

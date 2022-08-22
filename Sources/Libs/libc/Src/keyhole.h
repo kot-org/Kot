@@ -11,14 +11,10 @@
 
 /* DataTypethread */
 #define KeyholeFlagDataTypethreadMemoryAccessible           0x4
-#define KeyholeFlagDataTypethreadIsClosaable                0x5 
-#define KeyholeFlagDataTypethreadIsExitable                 0x6 
-#define KeyholeFlagDataTypethreadIsPauseable                0x7 
-#define KeyholeFlagDataTypethreadIsUnpauseable              0x8
-#define KeyholeFlagDataTypethreadIsEventable                0x9
-#define KeyholeFlagDataTypethreadIsDuplicable               0x10
-#define KeyholeFlagDataTypethreadIsExecutableWithQueue      0x11
-#define KeyholeFlagDataTypethreadIsExecutableOneshot        0x12
+#define KeyholeFlagDataTypethreadIsEventable                0x5
+#define KeyholeFlagDataTypethreadIsDuplicable               0x6
+#define KeyholeFlagDataTypethreadIsExecutableWithQueue      0x7
+#define KeyholeFlagDataTypethreadIsExecutableOneshot        0x8
 
 /* DataTypeProcess */
 #define KeyholeFlagDataTypeProcessMemoryAccessible          0x4
