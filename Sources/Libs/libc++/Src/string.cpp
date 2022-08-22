@@ -8,6 +8,23 @@ namespace std {
         set(origin);
     }
 
+    int64_t StringBuilder::indexOf(char* str, uint64_t startingAt) {
+        uint64_t len = length();
+        for (uint64_t i = startingAt; i < len; i++) {
+            char* sub = substr(i, len);
+            if (strcmp(sub, str)) {
+                free(sub);
+                return i;
+            }
+            free(sub);
+        }
+        return -1;
+    }
+
+    int64_t StringBuilder::indexOf(char* str) {
+        return indexOf(str, 0);
+    }
+
     void StringBuilder::set(char* str) {
         if (buffer != NULL) {
             free(buffer);
@@ -18,15 +35,19 @@ namespace std {
         buffer[fromSize] = '\0';
     }
 
-    char* StringBuilder::toString() {
-        if (buffer == NULL) {
+    char* StringBuilder::substr(uint64_t startingAt, uint64_t endingAt) {
+        if (buffer == NULL || (endingAt == startingAt) || length() <= startingAt) {
             return "";
         }
-        uint64_t size = strlen(this->buffer);
+        uint64_t size = endingAt - startingAt;
         char* temp = (char*) malloc(size+1);
-        memcpy(temp, buffer, size);
+        memcpy(temp, (uintptr_t)((uint64_t) buffer + startingAt), size);
         temp[size] = '\0';
         return temp;
+    }
+
+    char* StringBuilder::toString() {
+        return substr(0, length());
     }
 
     uint64_t StringBuilder::length() {

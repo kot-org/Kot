@@ -1,4 +1,6 @@
-#include <core/main.h>
+#include "main.h"
+
+#include <kot++/string.h>
 
 using namespace std;
 

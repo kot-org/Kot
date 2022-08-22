@@ -10,9 +10,12 @@ namespace std {
     public:
         StringBuilder() {}
         StringBuilder(char* origin);
+        char* substr(uint64_t startingAt, uint64_t endingAt);
         char* toString();
         void append(char* str);
         void set(char* str);
+        int64_t indexOf(char* str, uint64_t startingAt);
+        int64_t indexOf(char* str);
         uint64_t length();
         ~StringBuilder() {
             free(buffer);
