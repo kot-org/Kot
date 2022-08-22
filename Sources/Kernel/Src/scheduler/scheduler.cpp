@@ -162,13 +162,12 @@ KResult ThreadQueu_t::SetThreadInQueu(kthread_t* Caller, kthread_t* Self, argume
 KResult ThreadQueu_t::ExecuteThreadInQueu(){
     if(TasksInQueu){
         Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
+        CurrentData->Task->ResetContext(CurrentData->Task->Regs);
         if(CurrentData->Data){
             CurrentData->Task->ShareDataUsingStackSpace(CurrentData->Data->Data, CurrentData->Data->Size, (uintptr_t*)&CurrentData->Parameters.arg[CurrentData->Data->ParameterPosition]);
-            Message("%x", ((ArchInfo_t*)(CurrentData->Parameters.arg[CurrentData->Data->ParameterPosition]))->ramfs.Size);
             free(CurrentData->Data->Data);
             free(CurrentData->Data);
         }
-        CurrentData->Task->ResetContext(CurrentData->Task->Regs);
         CurrentData->Task->Launch_WL(&CurrentData->Parameters);
         Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
         return KSUCCESS;
@@ -179,14 +178,12 @@ KResult ThreadQueu_t::ExecuteThreadInQueu(){
 
 KResult ThreadQueu_t::ExecuteThreadInQueuFromItself_WL(ContextStack* Registers){
     if(TasksInQueu){
+        CurrentData->Task->ResetContext(Registers);
         if(CurrentData->Data){
             CurrentData->Task->ShareDataUsingStackSpace(CurrentData->Data->Data, CurrentData->Data->Size, (uintptr_t*)&CurrentData->Parameters.arg[CurrentData->Data->ParameterPosition]);
             free(CurrentData->Data->Data);
             free(CurrentData->Data);
         }
-
-        /* Load context and parameters */
-        CurrentData->Task->ResetContext(Registers);
         SetParameters(Registers, &CurrentData->Parameters);
         return KSUCCESS;
     }else{
@@ -682,9 +679,6 @@ KResult kthread_t::ShareDataUsingStackSpace(uintptr_t data, size64_t size, uintp
         }
         memcpy((uintptr_t)(vmm_GetVirtualAddress(physicalPage)), (uintptr_t)virtualAddressParentIterator, sizeToCopy);
 
-        Message("%x", (uintptr_t)vmm_GetPhysical(Paging, (uintptr_t)virtualAddressIterator));
-        Message("%x", &((ArchInfo_t*)(address))->ramfs.Size);
-        vmm_Swap(Paging);
         virtualAddressParentIterator += sizeToCopy;
         virtualAddressIterator += sizeToCopy;
         size -= sizeToCopy;
