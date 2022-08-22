@@ -1,11 +1,11 @@
 [
-    {"file":"Test.elf", "privilege":1},
-    {"file":"Test1.elf", "privilege":1},
-    {"file":"Pci.elf", "privilege":1},
-    {"file":"Pcspk.elf", "privilege":1},
-    {"file":"Ps2.elf", "privilege":1},
-    {"file":"Uhci.elf", "privilege":1},
-    {"file":"Vga.elf", "privilege":1},
-    {"file":"Orb.elf", "privilege":1},
-    {"file":"Jvm.elf", "privilege":3}
+    {"file":"Test.elf", "priviledge":1},
+    {"file":"Test1.elf", "priviledge":1},
+    {"file":"Pci.elf", "priviledge":1},
+    {"file":"Pcspk.elf", "priviledge":1},
+    {"file":"Ps2.elf", "priviledge":1},
+    {"file":"Uhci.elf", "priviledge":1},
+    {"file":"Vga.elf", "priviledge":1},
+    {"file":"Orb.elf", "priviledge":1},
+    {"file":"Jvm.elf", "priviledge":3}
 ]
