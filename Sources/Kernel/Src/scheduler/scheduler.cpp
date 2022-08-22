@@ -164,6 +164,7 @@ KResult ThreadQueu_t::ExecuteThreadInQueu(){
         Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
         if(CurrentData->Data){
             CurrentData->Task->ShareDataUsingStackSpace(CurrentData->Data->Data, CurrentData->Data->Size, (uintptr_t*)&CurrentData->Parameters.arg[CurrentData->Data->ParameterPosition]);
+            Message("%x", ((ArchInfo_t*)(CurrentData->Parameters.arg[CurrentData->Data->ParameterPosition]))->ramfs.Size);
             free(CurrentData->Data->Data);
             free(CurrentData->Data);
         }
@@ -664,16 +665,26 @@ KResult kthread_t::ShareDataUsingStackSpace(uintptr_t data, size64_t size, uintp
     uint64_t i = 0;
     if(virtualAddressIterator % PAGE_SIZE){
         uint64_t sizeToCopy = 0;
-        if(size > PAGE_SIZE - (virtualAddressParentIterator % PAGE_SIZE)){
-            sizeToCopy = PAGE_SIZE - (virtualAddressParentIterator % PAGE_SIZE);
+        uint64_t alignement = virtualAddressIterator % PAGE_SIZE;
+        if(size > PAGE_SIZE - alignement){
+            sizeToCopy = PAGE_SIZE - alignement;
         }else{
             sizeToCopy = size;
         }
 
-        uintptr_t physicalPage = Pmm_RequestPage();
-        vmm_Map(Paging, (uintptr_t)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
-        memcpy((uintptr_t)vmm_GetVirtualAddress(physicalPage) + alignement, (uintptr_t)virtualAddressParentIterator, sizeToCopy);
+        uintptr_t physicalPage = NULL;
+        if(!vmm_GetFlags(Paging, (uintptr_t)virtualAddressIterator, vmm_PhysicalStorage)){
+            physicalPage = Pmm_RequestPage();
+            vmm_Map(Paging, (uintptr_t)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
+            physicalPage = (uintptr_t)((uint64_t)physicalPage + alignement);
+        }else{
+            physicalPage = vmm_GetPhysical(Paging, (uintptr_t)virtualAddressIterator);
+        }
+        memcpy((uintptr_t)(vmm_GetVirtualAddress(physicalPage)), (uintptr_t)virtualAddressParentIterator, sizeToCopy);
 
+        Message("%x", (uintptr_t)vmm_GetPhysical(Paging, (uintptr_t)virtualAddressIterator));
+        Message("%x", &((ArchInfo_t*)(address))->ramfs.Size);
+        vmm_Swap(Paging);
         virtualAddressParentIterator += sizeToCopy;
         virtualAddressIterator += sizeToCopy;
         size -= sizeToCopy;
@@ -687,8 +698,13 @@ KResult kthread_t::ShareDataUsingStackSpace(uintptr_t data, size64_t size, uintp
             sizeToCopy = size;
         }
     
-        uintptr_t physicalPage = Pmm_RequestPage();
-        vmm_Map(Paging, (uintptr_t)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
+        uintptr_t physicalPage = NULL;
+        if(!vmm_GetFlags(Paging, (uintptr_t)virtualAddressIterator, vmm_PhysicalStorage)){
+            physicalPage = Pmm_RequestPage();
+            vmm_Map(Paging, (uintptr_t)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
+        }else{
+            physicalPage = vmm_GetPhysical(Paging, (uintptr_t)virtualAddressIterator);
+        }
         memcpy((uintptr_t)vmm_GetVirtualAddress(physicalPage), (uintptr_t)virtualAddressParentIterator, sizeToCopy);
         virtualAddressIterator += sizeToCopy;
         virtualAddressParentIterator += sizeToCopy;
@@ -696,7 +712,6 @@ KResult kthread_t::ShareDataUsingStackSpace(uintptr_t data, size64_t size, uintp
     }     
 
     *location = address;
-
     return KSUCCESS;
 }
 

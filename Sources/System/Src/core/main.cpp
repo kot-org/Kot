@@ -24,7 +24,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
     Sys_GetthreadKey(&self);
 
     char buffer[33];
-    itoa((int64_t)kernelInfo->IRQLineSize, buffer, 0x10);
+    itoa((int64_t)kernelInfo->ramfs.size, buffer, 0x10);
     Printlog(buffer);
 
     ramfs::Parse(kernelInfo->ramfs.address, kernelInfo->ramfs.size);
