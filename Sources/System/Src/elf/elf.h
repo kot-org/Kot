@@ -7,7 +7,7 @@
 #include <kot/cstring.h>
 #include <kot/utils.h>
 
-#include <core/main.h>
+#include "../core/main.h"
 
 namespace ELF {
     

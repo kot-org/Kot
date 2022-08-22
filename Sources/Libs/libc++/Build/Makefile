@@ -6,7 +6,7 @@ AR = llvm-ar-14
 INCDIR = $(_HOME)Sysroot/Include/
 BUILDDIR = $(_HOME)Sysroot/Lib/
 
-CFLAGS = -O3 --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I$(INCDIR)
+CFLAGS = -O3 --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I$(INCDIR)
 
 SRCDIR := ../Src
 OBJDIR := ../Lib
