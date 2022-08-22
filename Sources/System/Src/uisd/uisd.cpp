@@ -110,19 +110,17 @@ KResult UISDGet(enum ControllerTypeEnum Controller, thread_t Callback, uint64_t 
     if(!Keyhole_GetFlag(Flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return UISDCallbackStatu(UISDGetTask, Callback, Callbackarg, KFAIL);
     if(UISDControllers[Controller] != NULL){
         if(UISDControllers[Controller]->IsLoad){
-            struct callbackget_info_t info = (struct callbackget_info_t){
+            callbackget_info_t info{
                 .Controller = Controller,
                 .Self = Self,
                 .Address = Address,
                 .Callback = Callback,
                 .Callbackarg = Callbackarg,
             };
-            Printlog("0");
             UISDAccept(&info);
             return KSUCCESS;
         }
     }
-    Printlog("1");
     UISDAddToQueu(Controller, Callback, Callbackarg, Self, Address);
     return KSUCCESS;
 }
@@ -138,8 +136,8 @@ KResult UISDCallbackStatu(uint64_t IPCTask, thread_t Callback, uint64_t Callback
 }
 
 void UISDHandler(uint64_t IPCTask, enum ControllerTypeEnum Controller, thread_t Callback, uint64_t Callbackarg, uint64_t GP0, uint64_t GP1) {
+    KResult Statu = KFAIL;
     if(Controller <= 0xff && IPCTask <= 0x2){
-        KResult Statu = KFAIL;
         switch (IPCTask) {
         case UISDCreateTask:
             Statu = (KResult)UISDCreate(Controller, Callback, Callbackarg, (ksmem_t)GP0);
@@ -151,7 +149,7 @@ void UISDHandler(uint64_t IPCTask, enum ControllerTypeEnum Controller, thread_t 
             UISDCallbackStatu(IPCTask, Callback, Callbackarg, Statu);
             break;
         }
-
-        SYS_Close(Statu);
     }
+
+    SYS_Close(Statu);
 }

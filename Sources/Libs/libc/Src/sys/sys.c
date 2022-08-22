@@ -34,12 +34,12 @@ KResult SYS_Exit(uint64_t errorCode){
     return Syscall_8(KSys_Exit, errorCode);
 }
 
-KResult SYS_Pause(){
-    return Syscall_0(KSys_Pause);
+KResult SYS_Pause(bool force){
+    return Syscall_8(KSys_Pause, force);
 }
 
-KResult SYS_Unpause(){
-    return Syscall_0(KSys_UnPause);
+KResult SYS_Unpause(thread_t self){
+    return Syscall_8(KSys_UnPause, self);
 }
 
 KResult SYS_Map(process_t self, uint64_t* addressVirtual, bool isPhysical, uintptr_t* addressPhysical, size64_t* size, bool findFree){

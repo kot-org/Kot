@@ -38,8 +38,8 @@ struct ThreadQueu_t{
     struct ThreadQueuData_t* CurrentData;
     struct ThreadQueuData_t* LastData;
     KResult SetThreadInQueu(kthread_t* Caller, kthread_t* Self, arguments_t* FunctionParameters, bool IsAwaitTask, struct ThreadShareData_t* Data);
+    KResult ExecuteThreadInQueu_WL();
     KResult ExecuteThreadInQueu();
-    KResult ExecuteThreadInQueuFromItself_WL(struct ContextStack* Registers);
     KResult NextThreadInQueu();
 }__attribute__((packed));
 
@@ -119,6 +119,7 @@ struct kthread_t{
     bool IsBlock;
     bool IsClose;
     bool IsPause;
+    uint64_t UnpauseOverflowCounter;
 
     /* Time info */
     uint64_t TimeAllocate;
@@ -166,8 +167,8 @@ struct kthread_t{
     bool Launch(arguments_t* FunctionParameters);  
     bool Launch_WL();  
     bool Launch();  
-    bool Pause(ContextStack* Registers);   
-    bool Pause_WL(ContextStack* Registers);   
+    bool Pause(ContextStack* Registers, bool force);   
+    bool Pause_WL(ContextStack* Registers, bool force);   
     KResult Close(ContextStack* Registers);
     KResult CloseQueu(ContextStack* Registers);
     KResult CloseQueu_WL(ContextStack* Registers);
@@ -190,7 +191,6 @@ class TaskManager{
         uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint8_t privilege, uint64_t externalData);
         uint64_t Duplicatethread(kthread_t** self, kprocess_t* proc, kthread_t* source, uint64_t externalData);
         KResult Execthread(kthread_t* Caller, kthread_t* Self, enum ExecutionType Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers);
-        uint64_t Pause(ContextStack* Registers, kthread_t* task); 
         uint64_t Unpause(kthread_t* task); 
         uint64_t Unpause_WL(kthread_t* task); 
         uint64_t Exit(ContextStack* Registers, kthread_t* task); 

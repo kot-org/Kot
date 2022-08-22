@@ -72,7 +72,7 @@ SyscallEntry:
 	POP_REG
 
 	mov r11, [rsp + 0x20]
-	mov rcx, [rsp + 0x10]
+	mov rcx, [rsp + 0x10] ; here is the big bug
 	mov rsp, [rsp + 0x28]
 
 	cli

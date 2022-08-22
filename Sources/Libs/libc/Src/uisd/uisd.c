@@ -38,9 +38,7 @@ KResult CallbackUISD(uint64_t Task, KResult Statu, callbackInfo_t* Info, uint64_
     if(Task == UISDGetTask) Info->Location = (uintptr_t)GP0;
     Info->Statu = Statu;
     if(Info->AwaitCallback){
-        if(!atomicLock(&Info->Lock, 0)){
-            SYS_Unpause();
-        }
+        SYS_Unpause(Info->Self);
     }
     SYS_Close(KSUCCESS);
 }
@@ -56,18 +54,15 @@ callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t*
     Info->Statu = KFAIL;
 
     struct arguments_t parameters;
-    parameters.arg[0] = UISDGetTask,
-    parameters.arg[1] = Controller,
-    parameters.arg[2] = CallBackUISDThread,
-    parameters.arg[3] = Info,
-    parameters.arg[4] = ProcessKeyForUISD,
-    parameters.arg[5] = (uint64_t)*Location,
+    parameters.arg[0] = UISDGetTask;
+    parameters.arg[1] = Controller;
+    parameters.arg[2] = CallBackUISDThread;
+    parameters.arg[3] = Info;
+    parameters.arg[4] = ProcessKeyForUISD;
+    parameters.arg[5] = (uint64_t)*Location;
     Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
     if(AwaitCallback){
-        if(atomicLock(&Info->Lock, 0)){
-            SYS_Pause();
-            atomicUnlock(&Info->Lock, 0);
-        }
+        SYS_Pause(false);
         *Location = Info->Location;
         return Info;
     }
@@ -89,17 +84,14 @@ callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ksmem_t
     Sys_Keyhole_CloneModify(MemoryField, &MemoryFieldKey, KotSpecificData.UISDHandlerProcess, Flags, PriviledgeApp);
 
     struct arguments_t parameters;
-    parameters.arg[0] = UISDCreateTask,
-    parameters.arg[1] = Controller,
-    parameters.arg[2] = CallBackUISDThread,
-    parameters.arg[3] = Info,
-    parameters.arg[4] = MemoryFieldKey,
+    parameters.arg[0] = UISDCreateTask;
+    parameters.arg[1] = Controller;
+    parameters.arg[2] = CallBackUISDThread;
+    parameters.arg[3] = Info;
+    parameters.arg[4] = MemoryFieldKey;
     Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
     if(AwaitCallback){
-        if(atomicLock(&Info->Lock, 0)){
-            SYS_Pause();
-            atomicUnlock(&Info->Lock, 0);
-        }
+        SYS_Pause(false);
         return Info;
     }
     return Info;
