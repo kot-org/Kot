@@ -101,8 +101,8 @@ KResult Sys_Event_Close();
 KResult Sys_Createthread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t data, thread_t* result);
 KResult Sys_Duplicatethread(process_t parent, thread_t source, uint64_t data, thread_t* self);
 KResult Sys_Execthread(thread_t self, struct arguments_t* parameters, enum ExecutionType type, struct ShareDataWithArguments_t* data);
-KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, process_t target, uint64_t flags);
-KResult Sys_Keyhole_Verify(key_t self, enum DataType type, process_t* target, uint64_t* flags);
+KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, process_t target, uint64_t flags, enum Priviledge privilidge);
+KResult Sys_Keyhole_Verify(key_t self, enum DataType type, process_t* target, uint64_t* flags, uint64_t* priviledge);
 KResult Sys_Logs(char* message, size64_t size);
 
 

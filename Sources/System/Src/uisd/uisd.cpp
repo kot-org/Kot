@@ -23,13 +23,13 @@ thread_t UISDInitialize(process_t* process) {
     Sys_GetProcessKey(&proc);
 
     Sys_Createthread(proc, (uintptr_t)UISDHandler, PriviledgeService, NULL, &UISDHandlerThread);
-    Sys_Keyhole_CloneModify(UISDHandlerThread, &UISDthreadKey, NULL, UISDKeyFlags);
+    Sys_Keyhole_CloneModify(UISDHandlerThread, &UISDthreadKey, NULL, UISDKeyFlags, PriviledgeApp);
 
     UISDControllers = (controller_info_t**)calloc(sizeof(controller_info_t*) * UISDMaxController);
 
     UISDKeyFlags = NULL;
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
-    Sys_Keyhole_CloneModify(proc, process, NULL, UISDKeyFlags);
+    Sys_Keyhole_CloneModify(proc, process, NULL, UISDKeyFlags, PriviledgeApp);
 
     return UISDthreadKey;
 
@@ -79,7 +79,8 @@ KResult UISDCreate(enum ControllerTypeEnum Controller, thread_t Callback, uint64
         size64_t Size = NULL;
         process_t Target = NULL;
         uint64_t Flags = NULL;
-        if(Sys_Keyhole_Verify(DataKey, DataTypeSharedMemory, &Target, &Flags) != KSUCCESS) return KKEYVIOLATION;
+        uint64_t Priviledge = NULL;
+        if(Sys_Keyhole_Verify(DataKey, DataTypeSharedMemory, &Target, &Flags, &Priviledge) != KSUCCESS) return KKEYVIOLATION;
         if(Sys_GetInfoMemoryField(DataKey, (uint64_t*)&Type, &Size) == KSUCCESS){
             if(Type == MemoryFieldTypeShareSpaceRW || Type == MemoryFieldTypeShareSpaceRO){
                 if(Size == ControllerTypeSize[Controller]){
@@ -104,7 +105,8 @@ KResult UISDCreate(enum ControllerTypeEnum Controller, thread_t Callback, uint64
 KResult UISDGet(enum ControllerTypeEnum Controller, thread_t Callback, uint64_t Callbackarg, process_t Self, uintptr_t Address) {
     process_t Target = NULL;
     uint64_t Flags = NULL;
-    if(Sys_Keyhole_Verify(Self, DataTypeProcess, &Target, &Flags) != KSUCCESS) return UISDCallbackStatu(UISDGetTask, Callback, Callbackarg, KFAIL);
+    uint64_t Priviledge = NULL;
+    if(Sys_Keyhole_Verify(Self, DataTypeProcess, &Target, &Flags, &Priviledge) != KSUCCESS) return UISDCallbackStatu(UISDGetTask, Callback, Callbackarg, KFAIL);
     if(!Keyhole_GetFlag(Flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return UISDCallbackStatu(UISDGetTask, Callback, Callbackarg, KFAIL);
     if(UISDControllers[Controller] != NULL){
         if(UISDControllers[Controller]->IsLoad){
@@ -115,10 +117,12 @@ KResult UISDGet(enum ControllerTypeEnum Controller, thread_t Callback, uint64_t 
                 .Callback = Callback,
                 .Callbackarg = Callbackarg,
             };
+            Printlog("0");
             UISDAccept(&info);
             return KSUCCESS;
         }
     }
+    Printlog("1");
     UISDAddToQueu(Controller, Callback, Callbackarg, Self, Address);
     return KSUCCESS;
 }

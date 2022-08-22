@@ -44,7 +44,7 @@ namespace ELF{
     }
 
 
-    KResult loadElf(uintptr_t buffer, uint8_t ring, kthread_t** selfthread){
+    KResult loadElf(uintptr_t buffer, enum Priviledge ring, kthread_t** selfthread){
         elf_t* self = (elf_t*)calloc(sizeof(elf_t));
         self->Buffer = buffer;
         self->Header = (Elf64_Ehdr*)buffer;

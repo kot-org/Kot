@@ -25,12 +25,12 @@ KResult InitializeUISD(){
 
     UISDKeyFlags = NULL;
     Sys_Createthread(Proc, &CallbackUISD, PriviledgeApp, NULL, &UISDthreadKeyCallback);
-    Sys_Keyhole_CloneModify(UISDthreadKeyCallback, &CallBackUISDThread, KotSpecificData.UISDHandlerProcess, UISDKeyFlags);
+    Sys_Keyhole_CloneModify(UISDthreadKeyCallback, &CallBackUISDThread, KotSpecificData.UISDHandlerProcess, UISDKeyFlags, PriviledgeApp);
 
     UISDKeyFlags = NULL;
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeProcessMemoryAccessible, true);
-    Sys_Keyhole_CloneModify(Proc, &ProcessKeyForUISD, KotSpecificData.UISDHandlerProcess, UISDKeyFlags);
+    Sys_Keyhole_CloneModify(Proc, &ProcessKeyForUISD, KotSpecificData.UISDHandlerProcess, UISDKeyFlags, PriviledgeApp);
     return KSUCCESS;
 }
 
@@ -40,7 +40,6 @@ KResult CallbackUISD(uint64_t Task, KResult Statu, callbackInfo_t* Info, uint64_
     if(Info->AwaitCallback){
         if(!atomicLock(&Info->Lock, 0)){
             SYS_Unpause(Info->Self);
-            atomicUnlock(&Info->Lock, 0);
         }
     }
     SYS_Close(NULL, KSUCCESS);
@@ -87,7 +86,7 @@ callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ksmem_t
     uint64_t Flags = NULL;
     Keyhole_SetFlag(&Flags, KeyholeFlagPresent, true);
     ksmem_t MemoryFieldKey = NULL;
-    Sys_Keyhole_CloneModify(MemoryField, &MemoryFieldKey, KotSpecificData.UISDHandlerProcess, Flags);
+    Sys_Keyhole_CloneModify(MemoryField, &MemoryFieldKey, KotSpecificData.UISDHandlerProcess, Flags, PriviledgeApp);
 
     struct arguments_t parameters;
     parameters.arg[0] = UISDCreateTask,

@@ -11,4 +11,6 @@ extern "C" int main(int argc, char* argv[]){
     char* test = "Hello from test";
     memcpy(address, test, strlen(test));
     CreateControllerUISD(ControllerTypeEnum_Graphics, key, true);
+
+    Printlog("[Test] End");
 }

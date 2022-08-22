@@ -66,7 +66,7 @@ struct kprocess_t{
     uint64_t PID;
 
     /* Priviledge */
-    uint8_t DefaultPriviledge;
+    enum Priviledge DefaultPriviledge;
 
     /* Memory */
     pagetable_t SharedPaging;
@@ -94,7 +94,7 @@ struct kprocess_t{
     uint64_t externalData;
 
     kthread_t* Createthread(uintptr_t entryPoint, uint64_t externalData);
-    kthread_t* Createthread(uintptr_t entryPoint, uint8_t priviledge, uint64_t externalData);
+    kthread_t* Createthread(uintptr_t entryPoint, enum Priviledge priviledge, uint64_t externalData);
     kthread_t* Duplicatethread(kthread_t* source, uint64_t externalData);
 }__attribute__((packed));  
 
@@ -125,7 +125,7 @@ struct kthread_t{
     uint64_t CreationTime;
 
     /* Privledge */
-    uint8_t Priviledge;
+    enum Priviledge Priviledge;
     uint8_t RingPL:3;
     uint8_t IOPL:3;
 
@@ -196,7 +196,7 @@ class TaskManager{
         uint64_t Exit(ContextStack* Registers, kthread_t* task); 
         uint64_t ShareDataUsingStackSpace(kthread_t* self, uintptr_t data, size64_t size, uintptr_t* location);
         // process
-        uint64_t CreateProcess(kprocess_t** key, uint8_t priviledge, uint64_t externalData);
+        uint64_t CreateProcess(kprocess_t** key, enum Priviledge priviledge, uint64_t externalData);
 
         void CreateIddleTask();   
 
