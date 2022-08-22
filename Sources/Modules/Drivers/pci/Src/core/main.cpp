@@ -53,7 +53,7 @@ PCIBar* PCIGetBaseAddressRegister(uint32_t deviceAddr, uint8_t barID, PCIHeader0
 }
 
 bool checkDeviceIndex(uint32_t index) {
-    if(index < PCIDeviceIndex)
+    if(index < PCIDevicesIndex)
         return true;
     return false;
 }
@@ -61,11 +61,11 @@ bool checkDeviceIndex(uint32_t index) {
 uint8_t GetBARNum(uint32_t index) {
 
     if(checkDeviceIndex(index)) {
-        PCIDeviceHeader* header = PCIDevices[index]->Header;
+        PCIDeviceHeader header = ((PCIHeader0*)PCIDevices[index])->Header;
 
-        switch (header->HeaderType)
+        switch (header.HeaderType)
         {
-            case 0
+            case 0:
                 
                 break;
             
@@ -282,7 +282,7 @@ extern "C" int main(int argc, char* argv[]) {
 
     EnumerateDevices();
 
-    uint32_t device = PCISearcherGetDevice(0x8086, 0xFFFF, 0xFFFF, 0xFFFF, 0);
+    uint32_t device = PCISearcherGetDevice(0x8086, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0);
 
     Printlog("[PCI] Driver initialized successfully");
 
