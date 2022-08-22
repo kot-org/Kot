@@ -5,18 +5,35 @@
 namespace std {
 
     StringBuilder::StringBuilder(char* origin) {
-        uint64_t fromSize = strlen(origin);
+        set(origin);
+    }
+
+    void StringBuilder::set(char* str) {
+        if (buffer != NULL) {
+            free(buffer);
+        }
+        uint64_t fromSize = strlen(str);
         buffer = (char*) malloc(fromSize+1);
-        memcpy(buffer, origin, fromSize);
+        memcpy(buffer, str, fromSize);
         buffer[fromSize] = '\0';
     }
 
     char* StringBuilder::toString() {
+        if (buffer == NULL) {
+            return "";
+        }
         uint64_t size = strlen(this->buffer);
         char* temp = (char*) malloc(size+1);
         memcpy(temp, buffer, size);
         temp[size] = '\0';
         return temp;
+    }
+
+    uint64_t StringBuilder::length() {
+        if (buffer == NULL) {
+            return 0;
+        }
+        return strlen(this->buffer);
     }
 
     void StringBuilder::append(char* str) {

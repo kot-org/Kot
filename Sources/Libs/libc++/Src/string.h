@@ -12,6 +12,8 @@ namespace std {
         StringBuilder(char* origin);
         char* toString();
         void append(char* str);
+        void set(char* str);
+        uint64_t length();
         ~StringBuilder() {
             free(buffer);
         }

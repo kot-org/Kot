@@ -1,4 +1,4 @@
-There's two numbers that provide identification from a build to another, version system is designed to be used by all applications and the System itself, to manage retro-compatibility of a system without big modification of the internal structure while updating the system.
+There're two numbers that provide identification from a build to another, version system is designed to be used by all applications and the System itself, to manage retro-compatibility of a system without big modification of the internal structure while updating the system.
 
 The two numbers are splited by a dot.
 The second number represents the amount of commit when this specific build was released.
