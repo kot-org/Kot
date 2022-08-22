@@ -3,12 +3,14 @@
 #include <tools/config.h>
 #include <tools/memory.h>
 
-uintptr_t* PCIDevices = NULL;
+PCIDevice** PCIDevices = NULL;
 uint32_t PCIDevicesIndex = 0;
+
+/* PRIVATE */
 
 PCIBar* PCIGetBaseAddressRegister(uint32_t deviceAddr, uint8_t barID, PCIHeader0* header) {
     PCIBar* BaseAddrReg = (PCIBar*)malloc(sizeof(PCIBar));
-    uint32_t barSizeLow = 0, barSizeHigh = 0xFFFFFFFF;
+    uint64_t barSize;
     bool isMmio = false;
 
     if(header->BAR[barID] & 0b1){ /* i/o */
@@ -27,18 +29,20 @@ PCIBar* PCIGetBaseAddressRegister(uint32_t deviceAddr, uint8_t barID, PCIHeader0
     /* Size low */
     PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET + barID * 0x4, 1);
 
-    barSizeLow = PCIRead32(deviceAddr + PCIH0_BAR0_OFFSET + barID * 0x4);
+    barSize = PCIRead32(deviceAddr + PCIH0_BAR0_OFFSET + barID * 0x4);
 
     PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET, header->BAR[barID]);
 
-    /* Size high */
-    PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET + (barID + 1) * 0x4, 1);
+    if(BaseAddrReg->Type == 0x3) {
+        /* Size high */
+        PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET + (barID + 1) * 0x4, 1);
 
-    barSizeHigh = PCIRead32(deviceAddr + PCIH0_BAR0_OFFSET + (barID + 1) * 0x4);
+        barSize |= PCIRead32((deviceAddr + PCIH0_BAR0_OFFSET + (barID + 1) * 0x4) << 32);
 
-    PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET + (barID + 1) * 0x4, header->BAR[barID + 1]);
+        PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET + (barID + 1) * 0x4, header->BAR[barID + 1]);
+    }
 
-    BaseAddrReg->Size = ~BaseAddrReg->Size + 1;
+    BaseAddrReg->Size = ~barSize + 1;
 
     char buffer[100], buffernum[20];
     *buffer = NULL;
@@ -50,29 +54,6 @@ PCIBar* PCIGetBaseAddressRegister(uint32_t deviceAddr, uint8_t barID, PCIHeader0
     Printlog(buffer);
 
     return BaseAddrReg;
-}
-
-bool checkDeviceIndex(uint32_t index) {
-    if(index < PCIDevicesIndex)
-        return true;
-    return false;
-}
-
-uint8_t GetBARNum(uint32_t index) {
-
-    if(checkDeviceIndex(index)) {
-        PCIDeviceHeader header = ((PCIHeader0*)PCIDevices[index])->Header;
-
-        switch (header.HeaderType)
-        {
-            case 0:
-                
-                break;
-            
-            default:
-                break;
-        }
-    }
 }
 
 uint32_t PCIDeviceBaseAddress(uint16_t bus, uint16_t device, uint16_t func){
@@ -95,13 +76,14 @@ bool CheckDevice(uint16_t bus, uint16_t device, uint16_t func){
     return CheckDevice(Addr);
 }
 
-uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
+PCIDevice* GetDevice(uint16_t bus, uint16_t device, uint16_t func){
     uint32_t Addr = PCIDeviceBaseAddress(bus, device, func);
     if(!CheckDevice(Addr)) return NULL;
 
     uint8_t HeaderType = PCIRead8(Addr + PCI_HEADER_TYPE_OFFSET);
     HeaderType &= ~(1 << 7);
     uintptr_t Header = NULL;
+    PCIDevice* self;
     PCIBar* BaseAddrReg;
     
     switch (HeaderType){
@@ -112,6 +94,20 @@ uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
             char buffer[100], buffernum[33];
             *buffer = NULL;
             BaseAddrReg = PCIGetBaseAddressRegister(Addr, 0, (PCIHeader0*)Header);
+            self = (PCIDevice*) calloc(sizeof(PCIDevice*));
+
+            self->Header = (PCIDeviceHeader*)Header;
+            for(uint8_t i = 0; i <= 5; i++) {
+                PCIBar* BAR = PCIGetBaseAddressRegister(Addr, i, (PCIHeader0*)Header);
+
+                if(BAR->Type != 0x0) {
+                    self->BAR[self->BARNum] = BAR;
+                    self->BARNum++;
+
+                    if(BAR->Type == 0x3) i++;
+                }
+            }
+            self->Index = PCIDevicesIndex;
 
             strcat(buffer, "[PCI] Vendor: 0x");
             itoa(((PCIHeader0*)Header)->Header.VendorID, buffernum, 16);
@@ -148,7 +144,7 @@ uintptr_t GetDevice(uint16_t bus, uint16_t device, uint16_t func){
             return 0;
             break;
     }
-    return Header;
+    return self;
 }
 
 void EnumerateDevices() {
@@ -173,7 +169,7 @@ void EnumerateDevices() {
         }
     }  
 
-    PCIDevices = (uintptr_t*)malloc(sizeof(uintptr_t) * PCIDevicesIndexTmp);
+    PCIDevices = (PCIDevice**)malloc(sizeof(PCIDevice) * PCIDevicesIndexTmp);
 
     for(uint32_t bus = 0; bus < 256; bus++) {
         for(uint32_t device = 0; device < 32; device++) {
@@ -196,6 +192,35 @@ void EnumerateDevices() {
             }
         }
     }    
+}
+
+extern "C" int main(int argc, char* argv[]) {
+    Printlog("[PCI] Initialization ...");
+
+    EnumerateDevices();
+
+    Printlog("[PCI] Driver initialized successfully");
+
+    return KSUCCESS;
+}
+
+/* PUBLIC */
+
+bool checkDeviceIndex(uint32_t index) {
+    if(index < PCIDevicesIndex)
+        return true;
+    return false;
+}
+
+uint8_t GetBARNum(uint32_t index) {
+    if(checkDeviceIndex(index))
+        return PCIDevices[index]->BARNum;
+    return NULL;
+}
+uint64_t GetBARSize(uint32_t index, uint8_t barIndex) {
+    if(checkDeviceIndex(index) && barIndex < PCIDevices[index]->BARNum)
+        return PCIDevices[index]->BAR[barIndex]->Size;
+    return NULL;
 }
 
 uint32_t PCISearcherGetDevice(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIf, uint64_t index) {
@@ -275,16 +300,4 @@ uint32_t PCISearcher(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, 
 
     }
     return deviceNum;
-}
-
-extern "C" int main(int argc, char* argv[]) {
-    Printlog("[PCI] Initialization ...");
-
-    EnumerateDevices();
-
-    uint32_t device = PCISearcherGetDevice(0x8086, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0);
-
-    Printlog("[PCI] Driver initialized successfully");
-
-    return KSUCCESS;
 }
