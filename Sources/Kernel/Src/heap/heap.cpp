@@ -3,7 +3,7 @@
 
 Heap globalHeap;
 
-void InitializeHeap(uintptr_t heapAddress, size_t pageCount){
+void InitializeHeap(uintptr_t heapAddress, size64_t pageCount){
     globalHeap.heapEnd = heapAddress;
     uintptr_t NewPhysicalAddress = Pmm_RequestPage();
     globalHeap.heapEnd = (uintptr_t)((uint64_t)globalHeap.heapEnd - PAGE_SIZE);
@@ -26,13 +26,13 @@ void InitializeHeap(uintptr_t heapAddress, size_t pageCount){
     globalHeap.FreeSize += PAGE_SIZE;  
 }
 
-uintptr_t calloc(size_t size){
+uintptr_t calloc(size64_t size){
     uintptr_t address = malloc(size);
     memset(address, 0, size);
     return address;
 }
 
-uintptr_t malloc(size_t size){
+uintptr_t malloc(size64_t size){
     if (size == 0) return NULL;
 
     if(size % 0x10 > 0){ // it is not a multiple of 0x10
@@ -138,7 +138,7 @@ void free(uintptr_t address){
     }
 }
 
-uintptr_t realloc(uintptr_t buffer, size_t size){
+uintptr_t realloc(uintptr_t buffer, size64_t size){
     uintptr_t newBuffer = malloc(size);
 
     if(buffer != NULL){
@@ -154,7 +154,7 @@ uintptr_t realloc(uintptr_t buffer, size_t size){
     return newBuffer;
 }
 
-SegmentHeader* SplitSegment(SegmentHeader* segment, size_t size){
+SegmentHeader* SplitSegment(SegmentHeader* segment, size64_t size){
     if(segment->length > size + sizeof(SegmentHeader)){
         SegmentHeader* newSegment = (SegmentHeader*)(uintptr_t)((uint64_t)segment + segment->length - size);
         memset(newSegment, 0, sizeof(SegmentHeader));
@@ -178,17 +178,17 @@ SegmentHeader* SplitSegment(SegmentHeader* segment, size_t size){
     return NULL;
 }
 
-void ExpandHeap(size_t length){
+void ExpandHeap(size64_t length){
     length += sizeof(SegmentHeader);
     if(length % PAGE_SIZE){
         length -= length % PAGE_SIZE;
         length += PAGE_SIZE;
     }
 
-    size_t pageCount = length / PAGE_SIZE;
+    size64_t pageCount = length / PAGE_SIZE;
 
 
-    for (size_t i = 0; i < pageCount; i++){
+    for (size64_t i = 0; i < pageCount; i++){
         uintptr_t NewPhysicalAddress = Pmm_RequestPage();
         globalHeap.heapEnd = (uintptr_t)((uint64_t)globalHeap.heapEnd - (uint64_t)PAGE_SIZE);
         vmm_Map(vmm_PageTable, globalHeap.heapEnd, NewPhysicalAddress, false, true, true);

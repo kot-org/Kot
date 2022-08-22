@@ -121,7 +121,7 @@ namespace APIC{
 
         ArchInfo->IRQLineSize = MaxInterrupts;
 
-        for (size_t i = 0; i < MaxInterrupts; i++){
+        for (size64_t i = 0; i < MaxInterrupts; i++){
                 uint8_t IRQNumber = i + ArchInfo->IRQLineStart;
                 IoApicSetRedirectionEntry((uintptr_t)IOapicAddressVirtual, i - base, (IOAPICRedirectionEntry){
                     .vector = IRQNumber,
@@ -136,7 +136,7 @@ namespace APIC{
                 });
         }
 
-        for(size_t i = 0; i < IsoCount; i++) {
+        for(size64_t i = 0; i < IsoCount; i++) {
             InterruptSourceOverride* iso = Iso[i];
             uint8_t IRQNumber = iso->IRQSource + ArchInfo->IRQLineStart;
             IoApicSetRedirectionEntry((uintptr_t)IOapicAddressVirtual, iso->IRQSource, (IOAPICRedirectionEntry){
@@ -157,7 +157,7 @@ namespace APIC{
         IOAPIC* ioapic = IOapic[IOApicID];
         uint64_t IOapicAddressVirtual = vmm_Map((uintptr_t)(uint64_t)ioapic->APICAddress);
         uint32_t base = ioapic->GlobalSystemInterruptBase;
-        size_t index = irq - base;
+        size64_t index = irq - base;
         
         volatile uint32_t low = 0;
 
@@ -294,12 +294,12 @@ namespace APIC{
 
     /* APIC */
 
-    uint32_t localAPICReadRegister(size_t offset){
+    uint32_t localAPICReadRegister(size64_t offset){
         uintptr_t lapicAddress = GetLAPICAddress();
 	    return *((volatile uint32_t*)((uintptr_t)((uint64_t)lapicAddress + offset)));
     }
 
-    uint32_t localAPICReadRegister(uintptr_t lapicAddress, size_t offset){
+    uint32_t localAPICReadRegister(uintptr_t lapicAddress, size64_t offset){
 	    return *((volatile uint32_t*)((uintptr_t)((uint64_t)lapicAddress + offset)));
     }
 
@@ -313,12 +313,12 @@ namespace APIC{
         *(volatile uint32_t*)((uint64_t)apicPtr + 0x10) = value;
     }
     
-    void localAPICWriteRegister(size_t offset, uint32_t value){
+    void localAPICWriteRegister(size64_t offset, uint32_t value){
         uintptr_t lapicAddress = GetLAPICAddress();
         *((volatile uint32_t*)((uintptr_t)((uint64_t)lapicAddress + offset))) = value;
     }
 
-    void localAPICWriteRegister(uintptr_t lapicAddress, size_t offset, uint32_t value){
+    void localAPICWriteRegister(uintptr_t lapicAddress, size64_t offset, uint32_t value){
         *((volatile uint32_t*)((uintptr_t)((uint64_t)lapicAddress + offset))) = value;
     }
 
@@ -333,7 +333,7 @@ namespace APIC{
         );
     }
 
-    void IoApicSetRedirectionEntry(uintptr_t apicPtr, size_t index, IOAPICRedirectionEntry entry){
+    void IoApicSetRedirectionEntry(uintptr_t apicPtr, size64_t index, IOAPICRedirectionEntry entry){
         volatile uint32_t low = (
             (entry.vector << IOAPICRedirectionBitsLowVector) |
             (entry.delivery_mode << IOAPICRedirectionBitsLowDeliveryMode) |

@@ -2,8 +2,8 @@
 
 framebuffer_t* createWindowbuffer(framebuffer_t* screen, uint32_t width, uint32_t height) {
     framebuffer_t* buffer = (framebuffer_t *) malloc(sizeof(framebuffer_t));
-    size_t pitch = width * screen->btpp;
-    size_t fb_size = pitch * height;
+    size64_t pitch = width * screen->btpp;
+    size64_t fb_size = pitch * height;
     buffer->fb_addr = (uint64_t)((uint8_t*) malloc(fb_size));
     buffer->fb_size = fb_size;
     buffer->width = width;

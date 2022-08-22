@@ -24,11 +24,11 @@ namespace ramfs {
     
     struct Info {
         uintptr_t baseAddress;
-        size_t size;
+        size64_t size;
         Header* header;
     }__attribute__((packed));
 
-    void Parse(uintptr_t baseAddress, size_t size);
+    void Parse(uintptr_t baseAddress, size64_t size);
     File* Find(char* fileName);
     File* FindInitFile();
     bool Read(File* address, uintptr_t buffer);

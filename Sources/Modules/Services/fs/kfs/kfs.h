@@ -30,11 +30,11 @@ namespace FileSystem{
     }__attribute__((packed));
 
     struct KFSinfo{
-        size_t      BitmapSizeByte;
-        size_t      BitmapSizeCluster;
+        size64_t      BitmapSizeByte;
+        size64_t      BitmapSizeCluster;
         uint64_t    BitmapPosition;
-        size_t      ClusterSize;
-        size_t      NumberOfCluster;
+        size64_t      ClusterSize;
+        size64_t      NumberOfCluster;
         uint64_t    NumberOfClusterUsed;
         root        Root;
         uint64_t    IndexToAllocate;
@@ -62,8 +62,8 @@ namespace FileSystem{
         /* location info */
         uint64_t LastClusterOfTheFile;
         uint64_t ClusterHeaderPostition;
-        size_t BytesSize;  
-        size_t ClusterSize; //number of Cluster 
+        size64_t BytesSize;  
+        size64_t ClusterSize; //number of Cluster 
         char Path[MaxPath];
         char Name[MaxName];
 
@@ -81,8 +81,8 @@ namespace FileSystem{
         /* location info */
         uint64_t ClusterHeaderPostition;
         uint64_t FirstClusterData;
-        size_t BytesSize;   
-        size_t FileClusterSize; //number of Cluster 
+        size64_t BytesSize;   
+        size64_t FileClusterSize; //number of Cluster 
         char Path[MaxPath];
         char Name[MaxName];
 
@@ -116,7 +116,7 @@ namespace FileSystem{
 
         void InitKFS();
 
-        AllocatePartition* Allocate(size_t size, Folder* folder, uint64_t lastClusterRequested, bool GetAutoLastCluster);
+        AllocatePartition* Allocate(size64_t size, Folder* folder, uint64_t lastClusterRequested, bool GetAutoLastCluster);
         void Free(uint64_t Cluster);
         uint64_t RequestCluster();
         void LockCluster(uint64_t Cluster);  
@@ -163,8 +163,8 @@ namespace FileSystem{
         FileInfo fileInfo;
         char* Mode;            
         KFS* kfs;
-        uint64_t Read(uint64_t start, size_t size, uintptr_t buffer);
-        uint64_t Write(uint64_t start, size_t size, uintptr_t buffer);
+        uint64_t Read(uint64_t start, size64_t size, uintptr_t buffer);
+        uint64_t Write(uint64_t start, size64_t size, uintptr_t buffer);
         void Close();
     }__attribute__((packed));
 

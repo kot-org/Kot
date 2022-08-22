@@ -11,7 +11,7 @@ extern "C" {
 int64_t asi(int64_t n, int basenumber);
 int strlen(char* p);
 int strcmp(char* a, char* b);
-int strncmp(char* a, char* b, size_t len);
+int strncmp(char* a, char* b, size64_t len);
 char* strcat(char* dst, const char* src);
 char** strsplit(char* str, const char* delimiters);
 void freeSplit(char** splitData);

@@ -4,7 +4,7 @@ thread_t UISDHandlerThread;
 
 controller_info_t** UISDControllers;
 
-size_t ControllerTypeSize[ControllerCount] = {
+size64_t ControllerTypeSize[ControllerCount] = {
     sizeof(graphics_t),
     sizeof(audio_t),
     sizeof(storage_t),
@@ -76,7 +76,7 @@ KResult UISDCreate(enum ControllerTypeEnum Controller, thread_t Callback, uint64
     KResult Statu = KFAIL;
     if(UISDControllers[Controller] == NULL || (UISDControllers[Controller] != NULL && !UISDControllers[Controller]->IsLoad)){
         enum MemoryFieldType Type;
-        size_t Size = NULL;
+        size64_t Size = NULL;
         process_t Target = NULL;
         uint64_t Flags = NULL;
         if(Sys_Keyhole_Verify(DataKey, DataTypeSharedMemory, &Target, &Flags) != KSUCCESS) return KKEYVIOLATION;

@@ -15,7 +15,7 @@ uint64_t Pmm_GetFreeRAM();
 uint64_t Pmm_GetUsedRAM();
 uint64_t Pmm_GetReservedRAM();
 
-void Pmm_InitBitmap(size_t bitmapSize, uintptr_t bufferAddress);
+void Pmm_InitBitmap(size64_t bitmapSize, uintptr_t bufferAddress);
 
 void Pmm_ReservePage(uintptr_t address);
 void Pmm_ReservePages(uintptr_t address, uint64_t pageCount);

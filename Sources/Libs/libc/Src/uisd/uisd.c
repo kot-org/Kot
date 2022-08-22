@@ -1,6 +1,6 @@
 #include <kot/uisd.h>
 
-size_t ControllerTypeSize[ControllerCount] = {
+size64_t ControllerTypeSize[ControllerCount] = {
     sizeof(graphics_t),
     sizeof(audio_t),
     sizeof(storage_t),

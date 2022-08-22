@@ -2,7 +2,7 @@
 
 namespace ramfs{
     Info* info;
-    void Parse(uintptr_t baseAddress, size_t size){
+    void Parse(uintptr_t baseAddress, size64_t size){
         if(size == NULL) return;
         info = (Info*)malloc(sizeof(Info));
         info->baseAddress = baseAddress;

@@ -75,8 +75,8 @@ namespace ELF{
                 HeapLocation = phdr->p_vaddr + phdr->p_memsz;
             }
             if(phdr->p_type == PT_LOAD){
-                size_t align = phdr->p_vaddr & (PAGE_SIZE - 1); // get last 9 bits
-                size_t pageCount = DivideRoundUp(phdr->p_memsz + align, PAGE_SIZE);
+                size64_t align = phdr->p_vaddr & (PAGE_SIZE - 1); // get last 9 bits
+                size64_t pageCount = DivideRoundUp(phdr->p_memsz + align, PAGE_SIZE);
 
                 
                 for(uint64_t y = 0; y < pageCount * PAGE_SIZE; y += PAGE_SIZE){
@@ -91,7 +91,7 @@ namespace ELF{
                         DirectAddressToCopy = (uintptr_t)(vmm_GetVirtualAddress(vmm_GetPhysical(mainthread->Paging, VirtualAddress)) + (uint64_t)align);
                     }
                     if(y < phdr->p_filesz){
-                        size_t SizeToCopy = 0;
+                        size64_t SizeToCopy = 0;
                         if(phdr->p_filesz - y > PAGE_SIZE){
                             SizeToCopy = PAGE_SIZE;
                         }else{
@@ -99,7 +99,7 @@ namespace ELF{
                         }
                         memcpy((uintptr_t)DirectAddressToCopy, (uintptr_t)((uint64_t)buffer + phdr->p_offset + y), SizeToCopy);  
                     }else{
-                        size_t SizeToFill = 0;
+                        size64_t SizeToFill = 0;
                         if(phdr->p_memsz - y > PAGE_SIZE){
                             SizeToFill = PAGE_SIZE;
                         }else{

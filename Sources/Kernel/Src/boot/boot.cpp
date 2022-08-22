@@ -47,7 +47,7 @@ namespace Boot{
         for(uint64_t i = 0; i < Info.Modules->module_count; i++){
             if(strcmp(Info.Modules->modules[i].string, "ramfs.bin")){
                 Info.ramfs.ramfsBase = (uintptr_t)Info.Modules->modules[i].begin;
-                Info.ramfs.Size = (size_t)(Info.Modules->modules[i].end - Info.Modules->modules[i].begin);
+                Info.ramfs.Size = (size64_t)(Info.Modules->modules[i].end - Info.Modules->modules[i].begin);
             }
         }
 

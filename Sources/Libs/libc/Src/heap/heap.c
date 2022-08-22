@@ -11,13 +11,13 @@ void InitializeHeapUser(){
     heap.IsHeapEnabled = true;
 }
 
-uintptr_t calloc(size_t size){
+uintptr_t calloc(size64_t size){
     uintptr_t address = malloc(size);
     memset(address, 0, size);
     return address;
 }
 
-uintptr_t malloc(size_t size){
+uintptr_t malloc(size64_t size){
     if(!heap.IsHeapEnabled){
         InitializeHeapUser();
     }
@@ -141,7 +141,7 @@ void free(uintptr_t address){
     }
 }
 
-uintptr_t realloc(uintptr_t buffer, size_t size){
+uintptr_t realloc(uintptr_t buffer, size64_t size){
     uintptr_t newBuffer = malloc(size);
 
     if(size < GetSegmentHeaderUser(buffer)->length){
@@ -154,7 +154,7 @@ uintptr_t realloc(uintptr_t buffer, size_t size){
     return newBuffer;
 }
 
-void SplitSegmentUser(struct SegmentHeader* segment, size_t size){
+void SplitSegmentUser(struct SegmentHeader* segment, size64_t size){
     if(segment->length > size + sizeof(struct SegmentHeader)){
         struct SegmentHeader* newSegment = (struct SegmentHeader*)(uintptr_t)((uint64_t)segment + sizeof(struct SegmentHeader) + (uint64_t)size);
         newSegment->IsFree = true;   
@@ -171,7 +171,7 @@ void SplitSegmentUser(struct SegmentHeader* segment, size_t size){
     }
 }
 
-void ExpandHeapUser(size_t length){
+void ExpandHeapUser(size64_t length){
     length += sizeof(struct SegmentHeader);
     
     SYS_Map(heap.Process, &heap.EndAddress, false, 0, &length, false);

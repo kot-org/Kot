@@ -2,45 +2,45 @@
 #include <logs/logs.h>
 #include <memory/memory.h>
 
-void memset(uintptr_t start, uint8_t value, uint64_t num){
-    for (uint64_t i = 0; i < num; i++){
+void memset(uintptr_t start, uint8_t value, size64_t size){
+    for (uint64_t i = 0; i < size; i++){
         *(uint8_t*)((uint64_t)start + i) = value;
     }
 }       
 
-void memset16(uintptr_t start, uint16_t value, uint64_t num){
-    for (uint64_t i = 0; i < num; i++){
+void memset16(uintptr_t start, uint16_t value, size64_t size){
+    for (uint64_t i = 0; i < size; i++){
         *(uint16_t*)((uint64_t)start + i) = value;
     }
 }
 
-void memset32(uintptr_t start, uint32_t value, uint64_t num){
-    for (uint64_t i = 0; i < num; i++){
+void memset32(uintptr_t start, uint32_t value, size64_t size){
+    for (uint64_t i = 0; i < size; i++){
         *(uint32_t*)((uint64_t)start + i) = value;
     }
 }
 
-void memset64(uintptr_t start, uint64_t value, uint64_t num){
-    for (uint64_t i = 0; i < num; i++){
+void memset64(uintptr_t start, uint64_t value, size64_t size){
+    for (uint64_t i = 0; i < size; i++){
         *(uint64_t*)((uint64_t)start + i) = value;
     }
 }
 
-void memcpy(uintptr_t destination, uintptr_t source, uint64_t num){
+void memcpy(uintptr_t destination, uintptr_t source, size64_t size){
     long d0, d1, d2; 
     asm volatile(
             "rep ; movsq\n\t movq %4,%%rcx\n\t""rep ; movsb\n\t": "=&c" (d0),
             "=&D" (d1),
-            "=&S" (d2): "0" (num >> 3), 
-            "g" (num & 7), 
+            "=&S" (d2): "0" (size >> 3), 
+            "g" (size & 7), 
             "1" (destination),
             "2" (source): "memory"
     );  
 }
 
-int memcmp(const void *aptr, const void *bptr, size_t n){
+int memcmp(const void *aptr, const void *bptr, size64_t size){
 	const unsigned char *a = (const unsigned char*)aptr, *b = (const unsigned char*)bptr;
-	for (size_t i = 0; i < n; i++) {
+	for (size64_t i = 0; i < size; i++) {
 		if (a[i] < b[i])
 			return -1;
 		else if (a[i] > b[i])
@@ -49,7 +49,7 @@ int memcmp(const void *aptr, const void *bptr, size_t n){
 	return 0;
 }
 
-bool CheckAddress(uintptr_t address, size_t size, uintptr_t pagingEntry){
+bool CheckAddress(uintptr_t address, size64_t size, uintptr_t pagingEntry){
     if(address == NULL) return false;
     uint64_t NumberPage = DivideRoundUp(size, PAGE_SIZE);
     uint64_t AddressItinerator = (uint64_t)address;
@@ -67,7 +67,7 @@ bool CheckAddress(uintptr_t address, size_t size, uintptr_t pagingEntry){
     return true;
 }
 
-bool CheckAddress(uintptr_t address, size_t size){
+bool CheckAddress(uintptr_t address, size64_t size){
     uintptr_t PagingEntry = NULL;
     __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(PagingEntry));
 
@@ -79,7 +79,7 @@ bool CheckAddress(uintptr_t address, size_t size){
 //vmm_flag::vmm_Custom1 master share
 //vmm_flag::vmm_Slave slave share
 
-uint64_t CreateMemoryField(kprocess_t* process, size_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, enum MemoryFieldType type){
+uint64_t CreateMemoryField(kprocess_t* process, size64_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, enum MemoryFieldType type){
     if(CheckAddress(virtualAddressPointer, sizeof(uint64_t)) != KSUCCESS) return KFAIL;
     if(CheckAddress(keyPointer, sizeof(uint64_t)) != KSUCCESS) return KFAIL;
     uintptr_t virtualAddress = (uintptr_t)*virtualAddressPointer;
@@ -122,7 +122,7 @@ uint64_t CreateMemoryField(kprocess_t* process, size_t size, uint64_t* virtualAd
             if(lastPageTable != pageTable) vmm_Swap(pageTable);
             if(CheckAddress(virtualAddress, realSize, pageTable) != KSUCCESS) return KFAIL;
             if((uint64_t)virtualAddress % PAGE_SIZE){
-                size_t nonAlignedSize = PAGE_SIZE - ((uint64_t)virtualAddress % PAGE_SIZE);
+                size64_t nonAlignedSize = PAGE_SIZE - ((uint64_t)virtualAddress % PAGE_SIZE);
                 if(realSize > nonAlignedSize){
                     numberOfPage++;
                 }
@@ -260,7 +260,7 @@ uint64_t FreeMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uintpt
     switch(shareInfo->Type){
         case MemoryFieldTypeShareSpaceRW:{
             pagetable_t pageTableMaster = shareInfo->PageTableParent;
-            size_t NumberOfPage = shareInfo->PageNumber;
+            size64_t NumberOfPage = shareInfo->PageNumber;
             for(uint64_t i = 0; i < NumberOfPage; i++){
                 uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
                 if(vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Master)){ // is master
@@ -274,7 +274,7 @@ uint64_t FreeMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uintpt
         }
         case MemoryFieldTypeShareSpaceRO:{
             pagetable_t pageTableMaster = shareInfo->PageTableParent;
-            size_t NumberOfPage = shareInfo->PageNumber;
+            size64_t NumberOfPage = shareInfo->PageNumber;
             for(uint64_t i = 0; i < NumberOfPage; i++){
                 uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
                 if(vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Master)){ // is master

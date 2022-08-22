@@ -181,7 +181,7 @@ namespace GPT{
         return ReturnValue;
     }
 
-    bool CreatePartition(AHCI::Port* port, size_t size, char* PartitionName, GUID* PartitionTypeGUID, uint64_t flags){
+    bool CreatePartition(AHCI::Port* port, size64_t size, char* PartitionName, GUID* PartitionTypeGUID, uint64_t flags){
         GPTHeader* gptHeader = GetGPTHeader(port);
         Partitions* partitions = GetAllPartitions(port);
 
@@ -319,7 +319,7 @@ namespace GPT{
         this->port = port;
     }
 
-    bool Partition::Read(uint64_t firstByte, size_t size, uintptr_t buffer){
+    bool Partition::Read(uint64_t firstByte, size64_t size, uintptr_t buffer){
         uint64_t LBAFirstSector = this->partition->FirstLBA + (firstByte / SectorSizeLBA);        
         bool Check;
 
@@ -349,7 +349,7 @@ namespace GPT{
         return Check;
     }
 
-    bool Partition::Write(uint64_t firstByte, size_t size, uintptr_t buffer){
+    bool Partition::Write(uint64_t firstByte, size64_t size, uintptr_t buffer){
         uint64_t LBAFirstSector = (firstByte / SectorSizeLBA) + this->partition->FirstLBA;
 
         bool Check;

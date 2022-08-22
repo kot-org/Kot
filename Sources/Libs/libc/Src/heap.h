@@ -7,7 +7,7 @@
 
 struct SegmentHeader{
     bool IsFree;
-    size_t length;
+    size64_t length;
     struct SegmentHeader* next;
     struct SegmentHeader* last;
     uint32_t signature;
@@ -16,9 +16,9 @@ struct SegmentHeader{
 struct heap_t{
     struct SegmentHeader* lastSegment;
     struct SegmentHeader* mainSegment;
-    size_t TotalSize;
-    size_t FreeSize;
-    size_t UsedSize;
+    size64_t TotalSize;
+    size64_t FreeSize;
+    size64_t UsedSize;
     uint64_t EndAddress;
     process_t Process;
     bool IsHeapEnabled;
@@ -29,12 +29,12 @@ extern "C" {
 #endif
 
 void InitializeHeapUser();
-uintptr_t calloc(size_t size);
-uintptr_t malloc(size_t size);
-uintptr_t realloc(uintptr_t buffer, size_t size);
+uintptr_t calloc(size64_t size);
+uintptr_t malloc(size64_t size);
+uintptr_t realloc(uintptr_t buffer, size64_t size);
 void free(uintptr_t address);
-void SplitSegmentUser(struct SegmentHeader* segment, size_t size);
-void ExpandHeapUser(size_t lenght);
+void SplitSegmentUser(struct SegmentHeader* segment, size64_t size);
+void ExpandHeapUser(size64_t lenght);
 struct SegmentHeader* GetSegmentHeaderUser(uintptr_t address);
 
 void MergeNextAndThisToLastUser(struct SegmentHeader* header);

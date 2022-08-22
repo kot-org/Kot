@@ -33,7 +33,7 @@ int strcmp(char* a, char* b){
     }
 }
 
-int strncmp(char* a, char* b, size_t len){
+int strncmp(char* a, char* b, size64_t len){
     for(int i = 0 ; i < len; i++){
         if(a[i] != b[i]){
             return false;

@@ -53,7 +53,7 @@ struct ThreadQueuData_t{
 }__attribute__((packed));
 
 struct ThreadShareData_t{
-    size_t Size;
+    size64_t Size;
     uintptr_t Data;
     uint8_t ParameterPosition;
 }__attribute__((packed));
@@ -159,8 +159,8 @@ struct kthread_t{
     void SetupStack();
     void CopyStack(kthread_t* source);
     bool ExtendStack(uint64_t address);
-    bool ExtendStack(uint64_t address, size_t size);
-    KResult ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t* location);
+    bool ExtendStack(uint64_t address, size64_t size);
+    KResult ShareDataUsingStackSpace(uintptr_t data, size64_t size, uintptr_t* location);
 
     bool Launch_WL(arguments_t* FunctionParameters);  
     bool Launch(arguments_t* FunctionParameters);  
@@ -194,7 +194,7 @@ class TaskManager{
         uint64_t Unpause(kthread_t* task); 
         uint64_t Unpause_WL(kthread_t* task); 
         uint64_t Exit(ContextStack* Registers, kthread_t* task); 
-        uint64_t ShareDataUsingStackSpace(kthread_t* self, uintptr_t data, size_t size, uint64_t* location);
+        uint64_t ShareDataUsingStackSpace(kthread_t* self, uintptr_t data, size64_t size, uintptr_t* location);
         // process
         uint64_t CreateProcess(kprocess_t** key, uint8_t priviledge, uint64_t externalData);
 
@@ -226,9 +226,6 @@ class TaskManager{
         kprocess_t* IddleProc = NULL;
         kthread_t* IdleNode[MAX_PROCESSORS];    
         Node* GlobalProcessNode;
-
-        uint64_t lockglobalAddressForStackSpaceSharing;
-        uintptr_t globalAddressForStackSpaceSharing;
 };
 
 void SetParameters(ContextStack* Registers, arguments_t* FunctionParameters);

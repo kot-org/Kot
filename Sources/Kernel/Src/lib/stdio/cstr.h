@@ -19,7 +19,7 @@ const char* to_string(char c);
 
 int strlen(char*p);
 bool strcmp(char* a, char* b);
-bool strcmp(char* a, char* b, size_t size);
+bool strcmp(char* a, char* b, size64_t size);
 Node* split(char* tosplit, char* spliter);
 char* ConvertByte(uint64_t bytes);
 

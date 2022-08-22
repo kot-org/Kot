@@ -11,22 +11,22 @@ struct Heap{
     uintptr_t heapEnd = 0;
     SegmentHeader* lastSegment = NULL;
     SegmentHeader* mainSegment = NULL;
-    size_t TotalSize;
-    size_t FreeSize;
-    size_t UsedSize;
+    size64_t TotalSize;
+    size64_t FreeSize;
+    size64_t UsedSize;
     uint64_t lock;
 };
 
 extern Heap globalHeap;
 
-void InitializeHeap(uintptr_t heapAddress, size_t pageCount);
+void InitializeHeap(uintptr_t heapAddress, size64_t pageCount);
 
-uintptr_t calloc(size_t size);
-uintptr_t malloc(size_t size);
-uintptr_t realloc(uintptr_t buffer, size_t size);
+uintptr_t calloc(size64_t size);
+uintptr_t malloc(size64_t size);
+uintptr_t realloc(uintptr_t buffer, size64_t size);
 void free(uintptr_t address);
 
-SegmentHeader* SplitSegment(SegmentHeader* segment, size_t size);
-void  ExpandHeap(size_t lenght);
+SegmentHeader* SplitSegment(SegmentHeader* segment, size64_t size);
+void  ExpandHeap(size64_t lenght);
 
 SegmentHeader* GetSegmentHeader(uintptr_t address);

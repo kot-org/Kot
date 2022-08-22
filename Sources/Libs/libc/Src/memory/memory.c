@@ -1,44 +1,44 @@
 #include <kot/memory.h>
 
-void memset(uintptr_t start, uint8_t value, uint64_t num){
-    for (uint64_t i = 0; i < num; i++){
+void memset(uintptr_t start, uint8_t value, size64_t size){
+    for (uint64_t i = 0; i < size; i++){
         *(uint8_t*)((uint64_t)start + i) = value;
     }
 }
 
-void memset16(uintptr_t start, uint16_t value, uint64_t num){
-    for (uint64_t i = 0; i < num; i++){
+void memset16(uintptr_t start, uint16_t value, size64_t size){
+    for (uint64_t i = 0; i < size; i++){
         *(uint16_t*)((uint64_t)start + i) = value;
     }
 }
 
-void memset32(uintptr_t start, uint32_t value, uint64_t num){
-    for (uint64_t i = 0; i < num; i++){
+void memset32(uintptr_t start, uint32_t value, size64_t size){
+    for (uint64_t i = 0; i < size; i++){
         *(uint32_t*)((uint64_t)start + i) = value;
     }
 }
 
-void memset64(uintptr_t start, uint64_t value, uint64_t num){
-    for (uint64_t i = 0; i < num; i++){
+void memset64(uintptr_t start, uint64_t value, size64_t size){
+    for (uint64_t i = 0; i < size; i++){
         *(uint64_t*)((uint64_t)start + i) = value;
     }
 }
 
-void memcpy(uintptr_t destination, uintptr_t source, uint64_t num){
+void memcpy(uintptr_t destination, uintptr_t source, size64_t size){
     long d0, d1, d2; 
     __asm__ volatile(
             "rep ; movsq\n\t movq %4,%%rcx\n\t""rep ; movsb\n\t": "=&c" (d0),
             "=&D" (d1),
-            "=&S" (d2): "0" (num >> 3), 
-            "g" (num & 7), 
+            "=&S" (d2): "0" (size >> 3), 
+            "g" (size & 7), 
             "1" (destination),
             "2" (source): "memory"
     );  
 }
 
-int memcmp(const void *aptr, const void *bptr, size_t n){
+int memcmp(const void *aptr, const void *bptr, size64_t size){
 	const unsigned char *a = (const unsigned char*)aptr, *b = (const unsigned char*)bptr;
-	for (size_t i = 0; i < n; i++) {
+	for (size64_t i = 0; i < size; i++) {
 		if (a[i] < b[i])
 			return -1;
 		else if (a[i] > b[i])
@@ -49,7 +49,7 @@ int memcmp(const void *aptr, const void *bptr, size_t n){
 
 uint64_t MemoryLock;
 
-uintptr_t getFreeAlihnedSpace(size_t size){
+uintptr_t getFreeAlihnedSpace(size64_t size){
     atomicAcquire(&MemoryLock, 0);
     if(size % KotSpecificData.MMapPageSize){
         size -= size % KotSpecificData.MMapPageSize;

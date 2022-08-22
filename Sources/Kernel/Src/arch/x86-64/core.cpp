@@ -93,7 +93,7 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     return ArchInfo;
 }
 
-KResult GetDataToStartService(ArchInfo_t* ArchInfo, kthread_t* thread, arguments_t* Parameters, uintptr_t* Data, size_t* Size){
+KResult GetDataToStartService(ArchInfo_t* ArchInfo, kthread_t* thread, arguments_t* Parameters, uintptr_t* Data, size64_t* Size){
     KResult Statu = KFAIL;
     ArchInfo->IRQEvents = (kevent_t*)calloc(ArchInfo->IRQSize * sizeof(kevent_t));
     for(uint64_t i = 0; i < ArchInfo->IRQSize; i++){

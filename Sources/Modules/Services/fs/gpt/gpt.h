@@ -66,7 +66,7 @@ namespace GPT{
     uint64_t GetFirstFreeLBA(AHCI::Port* port);
 
     Partitions* GetAllPartitions(AHCI::Port* port);
-    bool CreatPartition(AHCI::Port* port, size_t size, char* PartitionName, GUID* PartitionTypeGUID, uint64_t flags);
+    bool CreatPartition(AHCI::Port* port, size64_t size, char* PartitionName, GUID* PartitionTypeGUID, uint64_t flags);
 
     uint64_t GetFreeSizePatition(AHCI::Port* port);
 
@@ -83,8 +83,8 @@ namespace GPT{
     class Partition{
         public:
             Partition(AHCI::Port* port, GUIDPartitionEntryFormat* partition);
-            bool Read(uint64_t firstByte, size_t size, uintptr_t buffer);
-            bool Write(uint64_t firstByte, size_t size, uintptr_t buffer);            
+            bool Read(uint64_t firstByte, size64_t size, uintptr_t buffer);
+            bool Write(uint64_t firstByte, size64_t size, uintptr_t buffer);            
             GUIDPartitionEntryFormat* partition;
             AHCI::Port* port;
     };    

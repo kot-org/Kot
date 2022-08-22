@@ -4,7 +4,7 @@
 
 class Bitmap{
     public:
-        size_t Size;
+        size64_t Size;
         uint8_t* Buffer;
         bool operator[](uint64_t index);
         bool Get(uint64_t index);
@@ -15,7 +15,7 @@ class BitmapHeap{
     private:
         Bitmap* bitmap;
     public:
-        BitmapHeap(size_t size);
+        BitmapHeap(size64_t size);
         void Free();
         bool operator[](uint64_t index);
         bool Get(uint64_t index);

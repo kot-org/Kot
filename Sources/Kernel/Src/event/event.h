@@ -10,7 +10,7 @@ struct event_t{
     uint64_t Lock;
 
     struct event_tasks_t** Tasks;
-    size_t NumTask;
+    size64_t NumTask;
 
     enum EventType Type;
 }__attribute__((packed));

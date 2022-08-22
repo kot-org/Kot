@@ -78,7 +78,7 @@ uint64_t Pmm_GetMemorySize(stivale2_struct_tag_memmap* Map){
     return memorySizeBytes;
 }
 
-void Pmm_InitBitmap(size_t bitmapSize, uintptr_t bufferAddress){
+void Pmm_InitBitmap(size64_t bitmapSize, uintptr_t bufferAddress){
     Pmm_PageBitmap.Size = bitmapSize;
     Pmm_PageBitmap.Buffer = (uint8_t*)bufferAddress;
     memset(Pmm_PageBitmap.Buffer, 0x0, Pmm_PageBitmap.Size);
@@ -105,7 +105,7 @@ uintptr_t Pmm_RequestPage(){
 uintptr_t Pmm_RequestPages(uint64_t pages){
     Atomic::atomicAcquire(&Pmm_Mutex, 0);
 	while(Pmm_PageBitmapIndex < memoryInfo.totalPageMemory) {
-		for(size_t j = 0; j < pages; j++) {
+		for(size64_t j = 0; j < pages; j++) {
 			if(Pmm_PageBitmap[Pmm_PageBitmapIndex + j] == true) {
 				Pmm_PageBitmapIndex += j + 1;
 				goto not_free;

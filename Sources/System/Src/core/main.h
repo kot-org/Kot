@@ -24,7 +24,7 @@ struct framebuffer_t {
 
 struct ramfs_t {
 	uintptr_t address;
-	size_t size;
+	size64_t size;
 }__attribute__((packed));
 
 struct memoryInfo_t{
@@ -46,12 +46,17 @@ struct KernelInfo {
     uintptr_t smbios;
     uintptr_t rsdp;
 
+    uint64_t ProcessorCount;
+
     uint8_t IRQLineStart;
     uint8_t IRQLineSize;
+
+    size64_t IRQSize;
+    kevent_t* IRQEvents;    
 }__attribute__((packed));
 
 struct InfoSlot {
-    size_t size;
+    size64_t size;
     uintptr_t address;
 }__attribute__((packed));
 

@@ -72,7 +72,7 @@ KResult Sys_GetInfoMemoryField(SyscallStack* Registers, kthread_t* thread){
     if(!CheckAddress((uintptr_t)Registers->arg1, sizeof(uint64_t))) return KMEMORYVIOLATION;
     if(!CheckAddress((uintptr_t)Registers->arg2, sizeof(uint64_t))) return KMEMORYVIOLATION;
     uint64_t* TypePointer = (uint64_t*)Registers->arg1;
-    size_t* SizePointer = (size_t*)Registers->arg2;
+    size64_t* SizePointer = (size64_t*)Registers->arg2;
     *TypePointer = (uint64_t)memoryKey->Type;
     *SizePointer = (uint64_t)memoryKey->InitialSize;
     return KSUCCESS;
@@ -82,7 +82,7 @@ KResult Sys_GetInfoMemoryField(SyscallStack* Registers, kthread_t* thread){
     Arguments :
     0 -> thread taget                   > key thread
     1 -> data address                   > uint64_t
-    2 -> size of data                   > size_t
+    2 -> size of data                   > size64_t
     3 -> location of data for client    > uint64_t*
     4 -> reserved                       > none
     5 -> reserved                       > none
@@ -94,8 +94,8 @@ KResult Sys_ShareDataUsingStackSpace(SyscallStack* Registers, kthread_t* thread)
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadMemoryAccessible)) return KKEYVIOLATION;
     if(CheckAddress((uintptr_t)Registers->arg1, Registers->arg2) != KSUCCESS) return KMEMORYVIOLATION;
-    if(CheckAddress((uintptr_t)Registers->arg3, sizeof(uint64_t)) != KSUCCESS) return KMEMORYVIOLATION;
-    return globalTaskManager->ShareDataUsingStackSpace(threadkey, (uintptr_t)Registers->arg1, Registers->arg2, (uint64_t*)Registers->arg3);
+    if(CheckAddress((uintptr_t)Registers->arg3, sizeof(uintptr_t)) != KSUCCESS) return KMEMORYVIOLATION;
+    return globalTaskManager->ShareDataUsingStackSpace(threadkey, (uintptr_t)Registers->arg1, Registers->arg2, (uintptr_t*)Registers->arg3);
 }
 
 /* Sys_CreateProc :
@@ -177,7 +177,7 @@ KResult Sys_UnPause(SyscallStack* Registers, kthread_t* thread){
     1 -> virtual address    > uint64_t*
     2 -> physicall or not   > bool
     3 -> physical address   > uintptr_t
-    4 -> size               > size_t
+    4 -> size               > size64_t
     5 -> find free address  > bool
 */
 KResult Sys_Map(SyscallStack* Registers, kthread_t* thread){
@@ -206,7 +206,7 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* thread){
         }
     }
 
-    size_t* size = (size_t*)Registers->arg4;
+    size64_t* size = (size64_t*)Registers->arg4;
     if(!CheckAddress((uintptr_t)size, sizeof(uint64_t))) return KMEMORYVIOLATION;
 
     bool IsNeedToBeFree = (bool)Registers->arg5; 
@@ -264,7 +264,7 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* thread){
     Arguments : 
     0 -> process            > key
     1 -> virtual address    > uint64_t*
-    4 -> size               > size_t
+    4 -> size               > size64_t
 */
 KResult Sys_Unmap(SyscallStack* Registers, kthread_t* thread){
     kprocess_t* processkey;
@@ -273,7 +273,7 @@ KResult Sys_Unmap(SyscallStack* Registers, kthread_t* thread){
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
     pagetable_t pageTable = processkey->SharedPaging;
     uintptr_t addressVirtual = (uintptr_t)Registers->arg1;
-    size_t size = Registers->arg2;
+    size64_t size = Registers->arg2;
 
     addressVirtual = (uintptr_t)((uint64_t)addressVirtual - (uint64_t)addressVirtual % PAGE_SIZE);
     uint64_t pages = DivideRoundUp(size, PAGE_SIZE);
@@ -422,7 +422,7 @@ KResult Sys_ExecThread(SyscallStack* Registers, kthread_t* thread){
 /* Sys_Keyhole_CloneModify :
     Arguments : 
     0 -> string             > char*
-    1 -> size               > size_t
+    1 -> size               > size64_t
 */
 KResult Sys_Keyhole_CloneModify(SyscallStack* Registers, kthread_t* thread){
     kprocess_t* processkey;
@@ -461,7 +461,7 @@ KResult Sys_Keyhole_Verify(SyscallStack* Registers, kthread_t* thread){
 /* Sys_Logs :
     Arguments : 
     0 -> string             > char*
-    1 -> size               > size_t
+    1 -> size               > size64_t
 */
 KResult Sys_Logs(SyscallStack* Registers, kthread_t* thread){
     if(CheckAddress((uintptr_t)Registers->arg0, Registers->arg1) != KSUCCESS) return KMEMORYVIOLATION;

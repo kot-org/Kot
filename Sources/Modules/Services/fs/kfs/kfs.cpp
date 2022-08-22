@@ -63,7 +63,7 @@ namespace FileSystem{
     }   
 
 
-    AllocatePartition* KFS::Allocate(size_t size, Folder* folder, uint64_t LastClusterRequested, bool GetAutoLastCluster){
+    AllocatePartition* KFS::Allocate(size64_t size, Folder* folder, uint64_t LastClusterRequested, bool GetAutoLastCluster){
         Successful("");
         uint64_t NumberClusterToAllocate = DivideRoundUp(size, KFSPartitionInfo->ClusterSize);
         uint64_t ClusterAllocate = 1;
@@ -1277,7 +1277,7 @@ namespace FileSystem{
         }
     }
 
-    uint64_t File::Read(uint64_t start, size_t size, uintptr_t buffer){
+    uint64_t File::Read(uint64_t start, size64_t size, uintptr_t buffer){
         uintptr_t Cluster = calloc(kfs->KFSPartitionInfo->ClusterSize);
 
         uint64_t ClusterStart = start / kfs->KFSPartitionInfo->ClusterSize;
@@ -1356,7 +1356,7 @@ namespace FileSystem{
         }
     }
 
-    uint64_t File::Write(uint64_t start, size_t size, uintptr_t buffer){
+    uint64_t File::Write(uint64_t start, size64_t size, uintptr_t buffer){
         //let's check if we need to enlarge the file or shrink it
         uintptr_t Cluster = calloc(kfs->KFSPartitionInfo->ClusterSize);
         
@@ -1380,7 +1380,7 @@ namespace FileSystem{
     
         if(ClusterTotal != fileInfo.ClusterSize && ClusterTotal != 0){
             if(ClusterTotal > fileInfo.ClusterSize){
-                size_t NewSize = (ClusterTotal - fileInfo.ClusterSize) * kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader);
+                size64_t NewSize = (ClusterTotal - fileInfo.ClusterSize) * kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader);
                 //Alloc new Clusters
                 AllocatePartition* allocatePartition;
                 if(fileInfo.NextCluster == 0){
@@ -1393,7 +1393,7 @@ namespace FileSystem{
                 free(allocatePartition);
                 if(fileInfo.ClusterSize == 0) fileInfo.ClusterSize++;
             }else{
-                size_t NewSize = ClusterTotal * kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader);
+                size64_t NewSize = ClusterTotal * kfs->KFSPartitionInfo->ClusterSize - sizeof(ClusterHeader);
                 //Free last Cluster
                 uint64_t ClusterToDelete = fileInfo.ClusterHeaderPostition;
                 //find the start Cluster

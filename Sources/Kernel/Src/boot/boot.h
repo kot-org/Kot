@@ -4,7 +4,7 @@
 /* ramfs */
 struct ramfs_t{
 	uintptr_t ramfsBase;
-	size_t Size;
+	size64_t Size;
 }__attribute__((packed));
 
 /* Boot info stuct */

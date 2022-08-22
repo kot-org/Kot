@@ -163,7 +163,7 @@ KResult ThreadQueu_t::ExecuteThreadInQueu(){
     if(TasksInQueu){
         Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
         if(CurrentData->Data){
-            CurrentData->Task->ShareDataUsingStackSpace(CurrentData->Data->Data, CurrentData->Data->Size, &CurrentData->Parameters.arg[CurrentData->Data->ParameterPosition]);
+            CurrentData->Task->ShareDataUsingStackSpace(CurrentData->Data->Data, CurrentData->Data->Size, (uintptr_t*)&CurrentData->Parameters.arg[CurrentData->Data->ParameterPosition]);
             free(CurrentData->Data->Data);
             free(CurrentData->Data);
         }
@@ -179,7 +179,7 @@ KResult ThreadQueu_t::ExecuteThreadInQueu(){
 KResult ThreadQueu_t::ExecuteThreadInQueuFromItself_WL(ContextStack* Registers){
     if(TasksInQueu){
         if(CurrentData->Data){
-            CurrentData->Task->ShareDataUsingStackSpace(CurrentData->Data->Data, CurrentData->Data->Size, &CurrentData->Parameters.arg[CurrentData->Data->ParameterPosition]);
+            CurrentData->Task->ShareDataUsingStackSpace(CurrentData->Data->Data, CurrentData->Data->Size, (uintptr_t*)&CurrentData->Parameters.arg[CurrentData->Data->ParameterPosition]);
             free(CurrentData->Data->Data);
             free(CurrentData->Data);
         }
@@ -303,7 +303,7 @@ uint64_t TaskManager::Exit(ContextStack* Registers, kthread_t* task){
 
     return KSUCCESS;
 }
-uint64_t TaskManager::ShareDataUsingStackSpace(kthread_t* self, uintptr_t data, size_t size, uint64_t* location){
+uint64_t TaskManager::ShareDataUsingStackSpace(kthread_t* self, uintptr_t data, size64_t size, uintptr_t* location){
     return self->ShareDataUsingStackSpace(data, size, location);
 }
 
@@ -543,7 +543,6 @@ void TaskManager::InitScheduler(uint8_t NumberOfCores, uintptr_t IddleTaskFuncti
 
     NumberOfCPU = NumberOfCores;
     TaskManagerInit = true;
-    globalAddressForStackSpaceSharing = malloc(ShareMaxIntoStackSpace);
 }
 
 void TaskManager::EnabledScheduler(uint64_t CoreID){ 
@@ -620,7 +619,7 @@ bool kthread_t::ExtendStack(uint64_t address){
     return false;
 }
 
-bool kthread_t::ExtendStack(uint64_t address, size_t size){
+bool kthread_t::ExtendStack(uint64_t address, size64_t size){
     if(this->Stack == NULL) return false;
 
     size += address % PAGE_SIZE;
@@ -639,7 +638,7 @@ bool kthread_t::ExtendStack(uint64_t address, size_t size){
     return true;
 }
 
-KResult kthread_t::ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_t* location){
+KResult kthread_t::ShareDataUsingStackSpace(uintptr_t data, size64_t size, uintptr_t* location){
     *location = 0;
     if(!IsClose){
         *location = NULL;
@@ -653,24 +652,52 @@ KResult kthread_t::ShareDataUsingStackSpace(uintptr_t data, size_t size, uint64_
         *location = NULL;
         return KFAIL;
     } 
-    uintptr_t address = (uintptr_t)(Regs->rsp - size);
-    if(ExtendStack((uint64_t)address, size)){
-        //store data in global memory
-        Atomic::atomicAcquire(&globalTaskManager->lockglobalAddressForStackSpaceSharing, 0);
-        memcpy(Parent->TaskManagerParent->globalAddressForStackSpaceSharing, (uintptr_t)data, size);
-        
-        pagetable_t lastPageTable = vmm_GetPageTable();
-        vmm_Swap(Paging);
-        // We consider that we have direct access to data but not to address
 
-        memcpy(address, Parent->TaskManagerParent->globalAddressForStackSpaceSharing, size);
-        Atomic::atomicUnlock(&globalTaskManager->lockglobalAddressForStackSpaceSharing, 0);
-        Regs->rsp -= size;
-        vmm_Swap(lastPageTable);
-        *location = (uint64_t)address;
+    Regs->rsp -= size;
+
+    uintptr_t address = (uintptr_t)Regs->rsp;
+
+    uint64_t pageCount = DivideRoundUp(size, PAGE_SIZE);
+
+    uint64_t virtualAddressParentIterator = (uint64_t)data;
+    uint64_t virtualAddressIterator = (uint64_t)address;
+    uint64_t i = 0;
+    if(virtualAddressIterator % PAGE_SIZE){
+        uint64_t sizeToCopy = 0;
+        if(size > PAGE_SIZE - (virtualAddressParentIterator % PAGE_SIZE)){
+            sizeToCopy = PAGE_SIZE - (virtualAddressParentIterator % PAGE_SIZE);
+        }else{
+            sizeToCopy = size;
+        }
+
+        uintptr_t physicalPage = Pmm_RequestPage();
+        vmm_Map(Paging, (uintptr_t)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
+        memcpy((uintptr_t)vmm_GetVirtualAddress(physicalPage) + alignement, (uintptr_t)virtualAddressParentIterator, sizeToCopy);
+
+        virtualAddressParentIterator += sizeToCopy;
+        virtualAddressIterator += sizeToCopy;
+        size -= sizeToCopy;
+        i++;
     }
+    for(; i < pageCount; i++){
+        uint64_t sizeToCopy;
+        if(size > PAGE_SIZE){
+            sizeToCopy = PAGE_SIZE;
+        }else{
+            sizeToCopy = size;
+        }
+    
+        uintptr_t physicalPage = Pmm_RequestPage();
+        vmm_Map(Paging, (uintptr_t)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
+        memcpy((uintptr_t)vmm_GetVirtualAddress(physicalPage), (uintptr_t)virtualAddressParentIterator, sizeToCopy);
+        virtualAddressIterator += sizeToCopy;
+        virtualAddressParentIterator += sizeToCopy;
+        size -= sizeToCopy;
+    }     
 
-    return KFAIL;
+    *location = address;
+
+    return KSUCCESS;
 }
 
 bool kthread_t::Launch(arguments_t* FunctionParameters){

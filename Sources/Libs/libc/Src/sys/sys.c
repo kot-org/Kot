@@ -2,7 +2,7 @@
 
 __attribute__((section(".KotSpecificData"))) struct KotSpecificData_t KotSpecificData;
 
-KResult Sys_CreateMemoryField(process_t self, size_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, enum MemoryFieldType type){
+KResult Sys_CreateMemoryField(process_t self, size64_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, enum MemoryFieldType type){
     return Syscall_40(KSys_CreateMemoryField, self, size, virtualAddressPointer, keyPointer, type);
 }
 
@@ -14,11 +14,11 @@ KResult Sys_FreeMemoryField(process_t self, ksmem_t key, uintptr_t address){
     return Syscall_24(KSys_FreeMemoryField, self, key, address);
 }
 
-KResult Sys_GetInfoMemoryField(ksmem_t key, uint64_t* typePointer, size_t* sizePointer){
+KResult Sys_GetInfoMemoryField(ksmem_t key, uint64_t* typePointer, size64_t* sizePointer){
     return Syscall_24(KSys_GetTypeMemoryField, key, typePointer, sizePointer);
 }
 
-KResult SYS_ShareDataUsingStackSpace(thread_t self, uint64_t address, size_t size, uint64_t* clientAddress){
+KResult SYS_ShareDataUsingStackSpace(thread_t self, uint64_t address, size64_t size, uint64_t* clientAddress){
     return Syscall_32(KSys_ShareDataUsingStackSpace, self, address, size, clientAddress);
 }
 
@@ -46,11 +46,11 @@ KResult SYS_Unpause(process_t self){
     return Syscall_8(KSys_UnPause, self);
 }
 
-KResult SYS_Map(process_t self, uint64_t* addressVirtual, bool isPhysical, uintptr_t* addressPhysical, size_t* size, bool findFree){
+KResult SYS_Map(process_t self, uint64_t* addressVirtual, bool isPhysical, uintptr_t* addressPhysical, size64_t* size, bool findFree){
     return Syscall_48(KSys_Map, self, addressVirtual, isPhysical, addressPhysical, size, findFree);
 }
 
-KResult SYS_Unmap(thread_t self, uintptr_t addressVirtual, size_t size){
+KResult SYS_Unmap(thread_t self, uintptr_t addressVirtual, size64_t size){
     return Syscall_24(KSys_Unmap, self, addressVirtual, size);
 }
 
@@ -94,7 +94,7 @@ KResult Sys_Keyhole_Verify(key_t self, enum DataType type, process_t* target, ui
     return Syscall_32(KSys_Keyhole_Verify, self, type, target, flags);
 }
 
-KResult Sys_Logs(char* message, size_t size){
+KResult Sys_Logs(char* message, size64_t size){
     return Syscall_16(KSys_Logs, message, size);
 }
 

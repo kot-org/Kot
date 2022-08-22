@@ -84,7 +84,7 @@ namespace Event{
         Atomic::atomicAcquire(&self->Lock, 0);
 
         self->NumTask--;
-        for(size_t i = 0; i < self->NumTask; i++){
+        for(size64_t i = 0; i < self->NumTask; i++){
             if(self->Tasks[i]->thread == task){
                 uintptr_t newPos = malloc(self->NumTask * sizeof(event_tasks_t));
                 memcpy(newPos, self->Tasks[i], sizeof(event_tasks_t) * i);
@@ -108,7 +108,7 @@ namespace Event{
     uint64_t Trigger(kthread_t* author, event_t* self, arguments_t* parameters){
         if(self == NULL) return KFAIL;
 
-        for(size_t i = 0; i < self->NumTask; i++){
+        for(size64_t i = 0; i < self->NumTask; i++){
             event_tasks_t* task = self->Tasks[i];
             Atomic::atomicAcquire(&task->thread->EventLock, 0);
             if(task->thread->IsClose){

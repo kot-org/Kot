@@ -15,12 +15,14 @@ extern "C" void main(uintptr_t boot){
         arguments_t* InitParameters = (arguments_t*)malloc(sizeof(arguments_t));
         ThreadShareData_t DataInfo;
         GetDataToStartService(ArchInfo, mainthread, InitParameters, &DataInfo.Data, &DataInfo.Size);
-        DataInfo.ParameterPosition = 0x0; 
+        DataInfo.ParameterPosition = 0x0;
         globalTaskManager->Execthread(mainthread, mainthread, ExecutionTypeQueu, InitParameters, &DataInfo, NULL);
         free(InitParameters);
     }else{
         Error("Can't load initialization file");
     }
+
+    free(ArchInfo);
 
     
     globalTaskManager->EnabledScheduler(CPU::GetAPICID());

@@ -38,6 +38,7 @@ typedef key_t ksmem_t;
 typedef void*                       uintptr_t;
 
 typedef long unsigned int           size_t;
+typedef uint64_t                    size64_t;
 
 #define KFAIL               0
 #define KSUCCESS            1

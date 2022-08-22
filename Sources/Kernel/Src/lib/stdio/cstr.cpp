@@ -193,7 +193,7 @@ bool strcmp(char* a, char* b){
     }
 }
 
-bool strcmp(char* a, char* b, size_t size){
+bool strcmp(char* a, char* b, size64_t size){
     for(int i = 0 ; i < size; i++){
         if(a[i] != b[i]){
             return false;
