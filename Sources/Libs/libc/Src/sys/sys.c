@@ -82,12 +82,12 @@ KResult Sys_Execthread(thread_t self, struct arguments_t* parameters, enum Execu
     return Syscall_32(KSys_ExecThread, self, parameters, type, data);
 }
 
-KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, process_t target, uint64_t flags){
-    return Syscall_32(KSys_Keyhole_CloneModify, source, destination, target, flags);
+KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, process_t target, uint64_t flags, enum Priviledge privilidge){
+    return Syscall_40(KSys_Keyhole_CloneModify, source, destination, target, flags, privilidge);
 }
 
-KResult Sys_Keyhole_Verify(key_t self, enum DataType type, process_t* target, uint64_t* flags){
-    return Syscall_32(KSys_Keyhole_Verify, self, type, target, flags);
+KResult Sys_Keyhole_Verify(key_t self, enum DataType type, process_t* target, uint64_t* flags, uint64_t* priviledge){
+    return Syscall_40(KSys_Keyhole_Verify, self, type, target, flags, priviledge);
 }
 
 KResult Sys_Logs(char* message, size64_t size){

@@ -3,7 +3,7 @@
 
 static uint64_t mutexKeyhole;
 
-KResult Keyhole_Create(key_t* key, kprocess_t* parent, kprocess_t* target, enum DataType type, uint64_t data, uint64_t flags){
+KResult Keyhole_Create(key_t* key, kprocess_t* parent, kprocess_t* target, enum DataType type, uint64_t data, uint64_t flags, enum Priviledge minpriviledge){
     if(!CheckAddress((uintptr_t)key, sizeof(key))) return KFAIL;
     
     Atomic::atomicAcquire(&mutexKeyhole, 0);
@@ -34,6 +34,7 @@ KResult Keyhole_Create(key_t* key, kprocess_t* parent, kprocess_t* target, enum 
     Lock->Data = data;
     Lock->Parent = parent;
     Lock->Flags = flags;
+    Lock->MinPriviledge = minpriviledge;
     
     // signature
     Lock->Signature0 = 'L';
@@ -45,7 +46,7 @@ KResult Keyhole_Create(key_t* key, kprocess_t* parent, kprocess_t* target, enum 
     return KSUCCESS;
 }
 
-KResult Keyhole_CloneModify(kthread_t* caller, key_t key, key_t* newKey, kprocess_t* target, uint64_t flags){
+KResult Keyhole_CloneModify(kthread_t* caller, key_t key, key_t* newKey, kprocess_t* target, uint64_t flags, enum Priviledge minpriviledge){
     lock_t* data;
     if(Keyhole_Get(caller, key, DataTypeUnknow, &data) != KSUCCESS) return KKEYVIOLATION;
     lock_t* lock = (lock_t*)key;
@@ -60,7 +61,7 @@ KResult Keyhole_CloneModify(kthread_t* caller, key_t key, key_t* newKey, kproces
 
     flags &= ~(1 << KeyholeFlagOriginal);
 
-    return Keyhole_Create(newKey, data->Parent, target, data->Type, data->Data, flags);
+    return Keyhole_Create(newKey, data->Parent, target, data->Type, data->Data, flags, minpriviledge);
 }
 
 KResult Keyhole_Verify(kthread_t* caller, key_t key, enum DataType type){
@@ -74,6 +75,9 @@ KResult Keyhole_Verify(kthread_t* caller, key_t key, enum DataType type){
     }
     if(type != DataTypeUnknow){
         if(lock->Type != type) return KFAIL;            
+    }
+    if(caller->Priviledge > lock->MinPriviledge){
+        return KFAIL;
     }
     // check parent
     if(!CheckAddress((uintptr_t)lock->Parent, sizeof(kprocess_t))) return KFAIL;

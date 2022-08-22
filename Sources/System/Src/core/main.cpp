@@ -66,7 +66,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
                                 }
                             }
                         }
-                        ELF::loadElf(bufferServiceFile, (enum Priviledge) servicePriledge, NULL, &thread);
+                        ELF::loadElf(bufferServiceFile, (enum Priviledge)servicePriledge, NULL, &thread);
                         free(bufferServiceFile);
 
                         size_t filenamelen = strlen(file->get());

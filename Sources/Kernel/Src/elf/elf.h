@@ -5,7 +5,7 @@
 
 namespace ELF{
     /* Function */
-    KResult loadElf(uintptr_t buffer, uint8_t ring, struct kthread_t** selfthread);
+    KResult loadElf(uintptr_t buffer, enum Priviledge ring, struct kthread_t** selfthread);
 
     bool Check(struct elf_t* self);
 

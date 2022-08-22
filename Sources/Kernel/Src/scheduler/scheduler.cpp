@@ -308,7 +308,7 @@ uint64_t TaskManager::ShareDataUsingStackSpace(kthread_t* self, uintptr_t data, 
     return self->ShareDataUsingStackSpace(data, size, location);
 }
 
-uint64_t TaskManager::CreateProcess(kprocess_t** key, uint8_t priviledge, uint64_t externalData){
+uint64_t TaskManager::CreateProcess(kprocess_t** key, enum Priviledge priviledge, uint64_t externalData){
     Atomic::atomicAcquire(&MutexScheduler, 1);
     kprocess_t* proc = (kprocess_t*)calloc(sizeof(kprocess_t));
 
@@ -335,7 +335,7 @@ uint64_t TaskManager::CreateProcess(kprocess_t** key, uint8_t priviledge, uint64
     proc->LockIndex = 0;
     proc->externalData = externalData;
 
-    Keyhole_Create(&proc->ProcessKey, proc, proc, DataTypeProcess, (uint64_t)proc, DefaultFlagsKey);
+    Keyhole_Create(&proc->ProcessKey, proc, proc, DataTypeProcess, (uint64_t)proc, DefaultFlagsKey, PriviledgeApp);
 
     proc->PID = PID; 
     PID++;
@@ -350,7 +350,7 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, uint64_t externalData)
     return Createthread(entryPoint, DefaultPriviledge, externalData);
 }
 
-kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, uint8_t priviledge, uint64_t externalData){
+kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge priviledge, uint64_t externalData){
     Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 1);
     kthread_t* thread = (kthread_t*)calloc(sizeof(kthread_t));
     if(Childs == NULL){
@@ -409,7 +409,7 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, uint8_t priviledge, ui
     thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
 
     thread->threadData->ProcessKey = ProcessKey;
-    Keyhole_Create(&thread->threadData->threadKey, this, this, DataTypethread, (uint64_t)thread, DefaultFlagsKey);
+    Keyhole_Create(&thread->threadData->threadKey, this, this, DataTypethread, (uint64_t)thread, DefaultFlagsKey, PriviledgeApp);
 
     vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
 
@@ -476,7 +476,7 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source, uint64_t externalData)
     thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
     thread->threadData->ProcessKey = ProcessKey;
-    Keyhole_Create(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, KeyholeFlagFullPermissions);
+    Keyhole_Create(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, KeyholeFlagFullPermissions, PriviledgeApp);
 
     vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, source->Regs->cs == GDTInfoSelectorsRing[UserAppRing].Code);
 
@@ -515,7 +515,7 @@ void TaskManager::SwitchTask(ContextStack* Registers, uint64_t CoreID, kthread_t
 
 void TaskManager::CreateIddleTask(){
     if(IddleProc == NULL){
-        CreateProcess(&IddleProc, 3, 0);
+        CreateProcess(&IddleProc, PriviledgeApp, 0);
     }
     kthread_t* thread = IddleProc->Createthread(IddleTaskPointer, 0);
 
