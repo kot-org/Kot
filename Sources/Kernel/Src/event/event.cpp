@@ -142,11 +142,8 @@ namespace Event{
 
         if(task->EventDataNode->NumberOfMissedEvents){
             event_data_t* Next = task->EventDataNode->CurrentData->Next;
-            Registers->rsp = (uint64_t)StackTop;
-            Registers->rip = (uint64_t)task->EntryPoint;
-            Registers->cs = (uint64_t)Registers->threadInfo->CS;
-            Registers->ss = (uint64_t)Registers->threadInfo->SS;
-            SetParameters(Registers, &task->EventDataNode->CurrentData->Parameters);
+            task->ResetContext(task->Regs);
+            task->Launch_WL(&task->EventDataNode->CurrentData->Parameters);
 
             free(task->EventDataNode->CurrentData);
             task->EventDataNode->CurrentData = Next;
@@ -154,6 +151,7 @@ namespace Event{
             task->EventDataNode->NumberOfMissedEvents--;
             Atomic::atomicUnlock(&task->EventLock, 0);
             Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
+            ForceSelfDestruction();
         }else{
             task->Regs->rsp = (uint64_t)StackTop;
             task->Regs->rip = (uint64_t)task->EntryPoint;
