@@ -1,9 +1,14 @@
 #pragma once
 
-#include "../elf/elf.h"
-#include "../uisd/uisd.h"
+#include <kot/sys.h>
+#include <kot/heap.h>
 #include <kot/types.h>
-#include "../ramfs/ramfs.h"
+#include <kot/memory.h>
+#include <kot++/json.h>
+
+#include <elf/elf.h>
+#include <uisd/uisd.h>
+#include <ramfs/ramfs.h>
 
 struct framebuffer_t {
     uint64_t identifier;
