@@ -172,7 +172,7 @@ KResult ThreadQueu_t::ExecuteThreadInQueu_WL(){
             free(CurrentData->Data);
         }
         CurrentData->Task->Launch_WL(&CurrentData->Parameters);
-        return KSUCCESS;statu
+        return KSUCCESS;
     }else{
         return KFAIL;
     }
@@ -739,15 +739,13 @@ bool kthread_t::Pause_WL(ContextStack* Registers, bool force){
 KResult kthread_t::Close(ContextStack* Registers){
     Atomic::atomicAcquire(&Queu->Lock, 0);
     Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
-    if(IsInQueue){
-        this->Parent->TaskManagerParent->DequeueTask(this);
-    }else{
-        CloseQueu_WL(Registers);
-        ForceSelfDestruction();
-    }
+
+    CloseQueu_WL(Registers);
 
     Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
     Atomic::atomicUnlock(&Queu->Lock, 0);
+    
+    ForceSelfDestruction();
     return KSUCCESS;
 }
 
