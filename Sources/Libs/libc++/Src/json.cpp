@@ -1,10 +1,6 @@
 #include "json.h"
 #include "string.h"
 
-// todo: implement back slash support on JsonString
-// todo: implement comments
-// todo: implement serealization of objects
-
 namespace std {
 
     JsonParser::JsonParser(JsonLexer* lex) {
