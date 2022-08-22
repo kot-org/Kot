@@ -42,11 +42,11 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
             arguments_t* InitParameters = (arguments_t*) calloc(sizeof(arguments_t));
 
             for (uint64_t i = 0; i < arr->length(); i++) {
-                JsonObject* service = (JsonObject*)arr->get(i);
-                JsonString* file = (JsonString*)service->get("file");
-                JsonNumber* priviledge = (JsonNumber*)service->get("priviledge"); // default: 3
-                JsonBoolean* active = (JsonBoolean*)service->get("active"); // default: true
-                if(active != NULL){
+                JsonObject* service = (JsonObject*) arr->get(i);
+                JsonString* file = (JsonString*) service->get("file");
+                JsonNumber* priviledge = (JsonNumber*) service->get("priviledge"); // default: 3
+                JsonBoolean* active = (JsonBoolean*) service->get("active"); // default: true
+                if (active != NULL) {
                     if (active->getType() == JSON_BOOLEAN) {
                         if (active->get() == false) {
                             continue;
@@ -61,9 +61,9 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
                         ramfs::Read(serviceFile, bufferServiceFile);
                         thread_t thread = NULL;
                         int32_t servicePriledge = 3;
-                        if (priviledge == NULL) {
-                            if(priviledge->getType() == JSON_NUMBER){
-                                if(priviledge->get() >= 1 && priviledge->get() <= 3){
+                        if (priviledge != NULL) {
+                            if (priviledge->getType() == JSON_NUMBER){ 
+                                if (priviledge->get() >= 1 && priviledge->get() <= 3){
                                     servicePriledge = priviledge->get();
                                 }
                             }
