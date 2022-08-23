@@ -32,11 +32,6 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
 
         if (parser->getCode() == JSON_SUCCESS && parser->getValue()->getType() == JSON_ARRAY) {
 
-            // todo delete testClass (for JVM)
-            ramfs::File* testClass = ramfs::Find("Test.class");
-            uintptr_t testClassBuffer = (uintptr_t) calloc(testClass->size);
-            ramfs::Read(testClass, testClassBuffer);
-
             JsonArray* arr = (JsonArray*) parser->getValue();
 
             arguments_t* InitParameters = (arguments_t*) calloc(sizeof(arguments_t));
