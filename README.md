@@ -7,7 +7,7 @@ A 64-bit x86 operating system written in C/C++
 
 <a href="https://discord.gg/XJzhM7uKkz">Discord server</a>
 
-# Screeshots
+# Screenshots
 
 <p align="center">
 	<img src="./Meta/Screenshots/1.png?raw=true" width="90%"/> 
