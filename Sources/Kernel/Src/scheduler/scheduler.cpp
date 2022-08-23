@@ -250,14 +250,14 @@ uint64_t TaskManager::Unpause_WL(kthread_t* task){
 } 
 
 uint64_t TaskManager::Exit(ContextStack* Registers, kthread_t* task){   
-    Atomic::atomicAcquire(&MutexScheduler, 0);
     Atomic::atomicAcquire(&task->Queu->Lock, 0); 
+    Atomic::atomicAcquire(&MutexScheduler, 0);
     if(task->CloseQueu_WL(Registers) == KSUCCESS){
-        Atomic::atomicUnlock(&MutexScheduler, 0);
         Atomic::atomicUnlock(&task->Queu->Lock, 0);
-        ForceSelfDestruction();
+        ForceSelfDestruction(); /* Unlock MutexScheduler */
+        /* noreturn */
         return KSUCCESS;
-    } 
+    }
     if(task->IsEvent){
         // Clear event
     }
@@ -274,7 +274,7 @@ uint64_t TaskManager::Exit(ContextStack* Registers, kthread_t* task){
         DequeueTask(task);
         Atomic::atomicUnlock(&MutexScheduler, 0);
     }else{
-        ForceSelfDestruction();
+        ForceSelfDestruction(); /* Unlock MutexScheduler */
         /* noreturn */
     }
 
@@ -713,7 +713,9 @@ bool kthread_t::Launch_WL(){
 
 bool kthread_t::Pause(ContextStack* Registers, bool force){
     Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
-    return Pause_WL(Registers, force);
+    KResult statu = Pause_WL(Registers, force);
+    Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
+    return statu;
 }
 
 bool kthread_t::Pause_WL(ContextStack* Registers, bool force){
@@ -729,7 +731,7 @@ bool kthread_t::Pause_WL(ContextStack* Registers, bool force){
     //Save context
     SaveContext(Registers);
     
-    ForceSelfDestruction();
+    ForceSelfDestruction(); /* Unlock MutexScheduler */
 
     /* No return */
 
@@ -740,12 +742,10 @@ KResult kthread_t::Close(ContextStack* Registers){
     Atomic::atomicAcquire(&Queu->Lock, 0);
     Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
 
-    CloseQueu_WL(Registers);
+    CloseQueu(Registers);
 
-    Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
     Atomic::atomicUnlock(&Queu->Lock, 0);
-    
-    ForceSelfDestruction();
+    ForceSelfDestruction(); /* Unlock MutexScheduler */
     return KSUCCESS;
 }
 
