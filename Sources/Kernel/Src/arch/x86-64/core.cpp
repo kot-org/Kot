@@ -77,7 +77,7 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     memcpy(&ArchInfo->ramfs, &bootInfo->ramfs, sizeof(ramfs_t));
 
     //memory info
-    ArchInfo->memoryInfo = (memoryInfo_t*)vmm_GetPhysical(vmm_PageTable, &memoryInfo);
+    ArchInfo->memoryInfo = (memoryInfo_t*)vmm_GetPhysical(vmm_PageTable, &Pmm_MemoryInfo);
 
     //smbios
     if(bootInfo->smbios->smbios_entry_32 != 0){

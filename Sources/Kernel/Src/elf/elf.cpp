@@ -75,40 +75,68 @@ namespace ELF{
                 HeapLocation = phdr->p_vaddr + phdr->p_memsz;
             }
             if(phdr->p_type == PT_LOAD){
-                size64_t align = phdr->p_vaddr & (PAGE_SIZE - 1); // get last 9 bits
+                size64_t align = phdr->p_vaddr & 0xFFF; // get last 9 bits
                 size64_t pageCount = DivideRoundUp(phdr->p_memsz + align, PAGE_SIZE);
+                size_t size = phdr->p_memsz;
+                uint64_t totalSizeCopy = NULL;
 
+                uint64_t virtualAddressParentIterator = (uint64_t)buffer + phdr->p_offset;
+                uint64_t virtualAddressIterator = (uint64_t)phdr->p_vaddr;
+                uint64_t i = 0;
+                if(virtualAddressIterator % PAGE_SIZE){
+                    uint64_t sizeToCopy = 0;
+                    uint64_t alignement = virtualAddressIterator % PAGE_SIZE;
+                    if(size > PAGE_SIZE - alignement){
+                        sizeToCopy = PAGE_SIZE - alignement;
+                    }else{
+                        sizeToCopy = size;
+                    }
+
+                    uintptr_t physicalPage = NULL;
+                    if(!vmm_GetFlags(mainthread->Paging, (uintptr_t)virtualAddressIterator, vmm_PhysicalStorage)){
+                        physicalPage = Pmm_RequestPage();
+                        vmm_Map(mainthread->Paging, (uintptr_t)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
+                        physicalPage = (uintptr_t)((uint64_t)physicalPage + alignement);
+                    }else{
+                        physicalPage = vmm_GetPhysical(mainthread->Paging, (uintptr_t)virtualAddressIterator);
+                    }
+                    if(totalSizeCopy < phdr->p_filesz){
+                        memcpy((uintptr_t)(vmm_GetVirtualAddress(physicalPage)), (uintptr_t)virtualAddressParentIterator, sizeToCopy);
+                    }else{
+                        memset((uintptr_t)(vmm_GetVirtualAddress(physicalPage)), NULL, sizeToCopy);
+                    }
+
+                    virtualAddressParentIterator += sizeToCopy;
+                    virtualAddressIterator += sizeToCopy;
+                    totalSizeCopy += sizeToCopy;
+                    size -= sizeToCopy;
+                    i++;
+                }
+                for(; i < pageCount; i++){
+                    uint64_t sizeToCopy;
+                    if(size > PAGE_SIZE){
+                        sizeToCopy = PAGE_SIZE;
+                    }else{
+                        sizeToCopy = size;
+                    }
                 
-                for(uint64_t y = 0; y < pageCount * PAGE_SIZE; y += PAGE_SIZE){
-                    uintptr_t DirectAddressToCopy = 0;
-                    uintptr_t VirtualAddress = (uintptr_t)(phdr->p_vaddr + y);
-                    uintptr_t PhysicalBuffer = 0;
-                    if(!vmm_GetFlags(mainthread->Paging, VirtualAddress, vmm_flag::vmm_Present)){
-                        PhysicalBuffer = Pmm_RequestPage();
-                        vmm_Map(mainthread->Paging, VirtualAddress, (uintptr_t)PhysicalBuffer, true);
-                        DirectAddressToCopy = (uintptr_t)(vmm_GetVirtualAddress(PhysicalBuffer) + (uint64_t)align);
+                    uintptr_t physicalPage = NULL;
+                    if(!vmm_GetFlags(mainthread->Paging, (uintptr_t)virtualAddressIterator, vmm_PhysicalStorage)){
+                        physicalPage = Pmm_RequestPage();
+                        vmm_Map(mainthread->Paging, (uintptr_t)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
                     }else{
-                        DirectAddressToCopy = (uintptr_t)(vmm_GetVirtualAddress(vmm_GetPhysical(mainthread->Paging, VirtualAddress)) + (uint64_t)align);
+                        physicalPage = vmm_GetPhysical(mainthread->Paging, (uintptr_t)virtualAddressIterator);
                     }
-                    if(y < phdr->p_filesz){
-                        size64_t SizeToCopy = 0;
-                        if(phdr->p_filesz - y > PAGE_SIZE){
-                            SizeToCopy = PAGE_SIZE;
-                        }else{
-                            SizeToCopy = phdr->p_filesz - y;
-                        }
-                        memcpy((uintptr_t)DirectAddressToCopy, (uintptr_t)((uint64_t)buffer + phdr->p_offset + y), SizeToCopy);  
+                    if(totalSizeCopy < phdr->p_filesz){
+                        memcpy((uintptr_t)(vmm_GetVirtualAddress(physicalPage)), (uintptr_t)virtualAddressParentIterator, sizeToCopy);
                     }else{
-                        size64_t SizeToFill = 0;
-                        if(phdr->p_memsz - y > PAGE_SIZE){
-                            SizeToFill = PAGE_SIZE;
-                        }else{
-                            SizeToFill = phdr->p_memsz - y;
-                        }
-                        memset((uintptr_t)DirectAddressToCopy, 0x0, SizeToFill);  
+                        memset((uintptr_t)(vmm_GetVirtualAddress(physicalPage)), NULL, sizeToCopy);
                     }
-                    vmm_SetFlags(mainthread->Paging, (uintptr_t)VirtualAddress, vmm_flag::vmm_PhysicalStorage, true);
-                    
+
+                    virtualAddressIterator += sizeToCopy;
+                    virtualAddressParentIterator += sizeToCopy;
+                    totalSizeCopy += sizeToCopy;
+                    size -= sizeToCopy;
                 }
             }
         }

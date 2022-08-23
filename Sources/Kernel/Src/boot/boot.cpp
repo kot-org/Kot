@@ -56,7 +56,8 @@ namespace Boot{
         Info.RSDP->rsdp -= Info.HHDM->addr;
         Info.smbios->smbios_entry_32 -= Info.HHDM->addr;
         Info.smbios->smbios_entry_64 -= Info.HHDM->addr;
-        
+
+        vmm_HHDMAdress = Info.HHDM->addr;
         return &Info;
     }    
 

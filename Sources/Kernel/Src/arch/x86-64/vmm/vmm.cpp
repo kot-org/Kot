@@ -460,7 +460,6 @@ uint64_t vmm_Init(BootInfo* bootInfo){
     }
 
     /* map all the memory */
-    vmm_HHDMAdress = bootInfo->HHDM->addr;
 
     for (uint64_t i = 0; i < bootInfo->Memory->entries; i++){
         uint64_t PageNumber = DivideRoundUp(bootInfo->Memory->memmap[i].length, PAGE_SIZE);
@@ -469,13 +468,6 @@ uint64_t vmm_Init(BootInfo* bootInfo){
             uint64_t virtualAddress = physicalAddress + vmm_HHDMAdress;
             vmm_Map(vmm_PageTable, (uintptr_t)virtualAddress, (uintptr_t)physicalAddress, false, true, bootInfo->Memory->memmap[i].type == STIVALE2_MMAP_USABLE);
         }
-    }
-
-    /* map framebuffer */
-    uint64_t FramebufferSize = bootInfo->Framebuffer->framebuffer_height * bootInfo->Framebuffer->framebuffer_width * bootInfo->Framebuffer->framebuffer_bpp;
-    bootInfo->Framebuffer->framebuffer_addr = vmm_GetVirtualAddress((bootInfo->Framebuffer->framebuffer_addr - vmm_HHDMAdress));
-    for(uint64_t i = 0; i < FramebufferSize; i += PAGE_SIZE){
-        vmm_Map(vmm_PageTable, (uintptr_t)(bootInfo->Framebuffer->framebuffer_addr + i), (uintptr_t)((bootInfo->Framebuffer->framebuffer_addr - vmm_HHDMAdress) + i), true);
     }
 
     /* map ramfs */
