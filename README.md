@@ -7,6 +7,12 @@ A 64-bit x86 operating system written in C/C++
 
 <a href="https://discord.gg/XJzhM7uKkz">Discord server</a>
 
+# Screeshots
+
+<p align="center">
+	<img src="./Meta/Screeshots/1.png?raw=true" width="90%"/> 
+</p>
+
 # Required Tools
 - Build Essential
 - Xorriso
