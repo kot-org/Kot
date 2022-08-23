@@ -49,7 +49,7 @@ int memcmp(const void *aptr, const void *bptr, size64_t size){
 
 uint64_t MemoryLock;
 
-uintptr_t getFreeAlihnedSpace(size64_t size){
+uintptr_t getFreeAlignedSpace(size64_t size){
     atomicAcquire(&MemoryLock, 0);
     if(size % KotSpecificData.MMapPageSize){
         size -= size % KotSpecificData.MMapPageSize;

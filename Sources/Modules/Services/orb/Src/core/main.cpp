@@ -100,59 +100,17 @@ void drawLotLogo() {
 
 }
 
-extern "C" int main(int argc, char* argv[], bootbuffer_t* fb){
-
-    Printlog("[ORB] Initialization ...");
+extern "C" int main() {
     
     Sys_GetProcessKey(&self);
 
-    initBuffers(fb);
-    initWindowRender();
+    // initBuffers(fb);
+    // initWindowRender();
 
-    drawLotLogo();
+    // drawLotLogo();
 
     Printlog("[ORB] Service initialized successfully");
 
-    // ## test ##
-
-    Window* w1 = new Window(backbuffer_ctx, 400, 400, 410, 410);
-    Window* w2 = new Window(backbuffer_ctx, 50, 50, 100, 50);
-
-    vector_push(windows, w1);
-    vector_push(windows, w2);
-
-    w1->getContext()->clear();
-    w2->getContext()->clear();
-
-    w1->getContext()->fillRect(0, 0, 10, 100, 0xff00ff);
-    w1->getContext()->fillRect(50, 10, 100, 10, 0x00ff00);
-
-    w1->getContext()->drawLine(200, 200, 250, 250, 0xffffff);
-    w1->getContext()->drawLine(250, 260, 200, 210, 0xffffff);
-
-    w1->getContext()->fillRect(10, 300, 70, 70, 0xffffff);
-    w1->getContext()->drawRect(10, 300, 70, 70, 0xff0000);
-
-    w1->getContext()->auto_pos(true);
-    w1->getContext()->abs_pos(150,150);
-    w1->getContext()->rel_pos(20, 0);
-    w1->getContext()->rel_pos(0, 20);
-    w1->getContext()->rel_pos(-20, 0);
-    w1->getContext()->rel_pos(-10, -10);
-    w1->getContext()->draw(0xff00ff);
-    w1->getContext()->reset();
-
-    w1->getContext()->fill(151, 151, 0xff00ff);
-
-    w1->getContext()->drawCircle(100, 100, 20, 0xffff00);
-    
-    w1->show();
-    w2->show();
-
-    for (uint32_t i = 0; i < 400; i++) {
-        w1->move(w1->getX()-1, w1->getY()-1);
-    }
- 
     return KSUCCESS;
 
 }
