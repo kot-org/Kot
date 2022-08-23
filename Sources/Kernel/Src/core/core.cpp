@@ -21,7 +21,9 @@ extern "C" void main(uintptr_t boot){
     }else{
         Error("Can't load initialization file");
     }
-
+    Message("%x", Pmm_RequestPages(42));
+    Message("%x", Pmm_RequestPages(50));
+    Message("%x", Pmm_RequestPages(10));
     free(ArchInfo);
 
     

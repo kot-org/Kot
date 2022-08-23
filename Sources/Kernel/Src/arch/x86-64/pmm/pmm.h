@@ -47,6 +47,7 @@ struct freelistinfomiddle_t{
 
 struct freelistinfo_t{
     struct freelistinfomiddle_t Header;
+    uint64_t IndexStart;
     uint64_t IndexEnd;
     uint64_t PageSize;
     struct freelistinfo_t* Last;

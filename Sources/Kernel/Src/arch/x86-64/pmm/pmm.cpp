@@ -95,16 +95,29 @@ void Pmm_RemovePagesToFreeList(uint64_t index, uint64_t pageCount){
         if(FreeListInfo->Next != NULL){
             FreeListInfo->Next->Last = FreeListInfo->Last;
         }
+        if(FreeListInfo == Pmm_LastFreeListInfo){
+            Pmm_LastFreeListInfo = NULL;
+            if(FreeListInfo->Last != NULL){
+                Pmm_LastFreeListInfo = FreeListInfo->Next;
+            }
+            if(FreeListInfo->Next != NULL){
+                Pmm_LastFreeListInfo = FreeListInfo->Last;
+            }
+        }
     }else{
-        freelistinfo_t* NewFreeListInfo = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + 1));
+        freelistinfo_t* NewFreeListInfo = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount));
         if(FreeListInfo->Last != NULL){
             FreeListInfo->Last->Next = NewFreeListInfo;
         }
         if(FreeListInfo->Next != NULL){
             FreeListInfo->Next->Last = NewFreeListInfo;
         }
+        if(FreeListInfo == Pmm_LastFreeListInfo){
+            Pmm_LastFreeListInfo = NewFreeListInfo;
+        }
         memcpy(NewFreeListInfo, FreeListInfo, sizeof(freelistinfo_t));
         NewFreeListInfo->PageSize -= pageCount;
+        NewFreeListInfo->IndexStart += pageCount;
         NewFreeListInfo->Header.End->Start = NewFreeListInfo;
     }
 }
@@ -130,6 +143,11 @@ void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
 
             FreeListInfoLast->Header.End = FreeListInfoNext->Header.End;
             FreeListInfoLast->Header.End->Start = FreeListInfoLast;
+
+            /* Relink */
+            if(FreeListInfoNext == Pmm_LastFreeListInfo){
+                Pmm_LastFreeListInfo = FreeListInfoLast;
+            }
         }else{
             freelistinfo_t* FreeListInfoNext = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount));
             freelistinfo_t* NewFreeListInfo = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index));
@@ -140,6 +158,9 @@ void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
             }
             if(FreeListInfoNext->Next != NULL){
                 FreeListInfoNext->Next->Last = NewFreeListInfo;
+            }
+            if(FreeListInfoNext == Pmm_LastFreeListInfo){
+                Pmm_LastFreeListInfo = NewFreeListInfo;
             }
 
             memcpy(NewFreeListInfo, FreeListInfoNext, sizeof(freelistinfo_t));
@@ -153,6 +174,7 @@ void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
         FreeListInfoEnd = (freelistinfomiddle_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount - 1));
         FreeListInfoLast->Header.End->End = FreeListInfoEnd;
         FreeListInfoLast->Header.End = FreeListInfoEnd;
+        FreeListInfoLast->IndexStart = FreeListInfoLast->IndexStart;
         FreeListInfoLast->IndexEnd = index + pageCount - 1;
         FreeListInfoLast->Header.End->Start = FreeListInfoLast;
     }else{
@@ -160,6 +182,7 @@ void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
         freelistinfo_t* FreeListInfo = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index));
         FreeListInfoEnd = (freelistinfomiddle_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount - 1));
         FreeListInfo->Header.End = FreeListInfoEnd;
+        FreeListInfo->IndexStart = index;
         FreeListInfo->IndexEnd = index + pageCount - 1;
         FreeListInfo->Last = Pmm_LastFreeListInfo;
         FreeListInfo->Next = NULL;
@@ -209,11 +232,23 @@ uintptr_t Pmm_RequestPage(){
     return NULL; 
 }
 
-uintptr_t Pmm_RequestPages(uint64_t pages){
+uintptr_t Pmm_RequestPages(uint64_t pageCount){
     Atomic::atomicAcquire(&Pmm_Mutex, 0);
-	/* free list */
+    freelistinfo_t* Pmm_FreeList = Pmm_LastFreeListInfo;
+	while(Pmm_FreeList->PageSize < pageCount){
+        if(Pmm_FreeList->Last != NULL){
+            Pmm_FreeList = Pmm_FreeList->Last;
+        }else{
+            Atomic::atomicUnlock(&Pmm_Mutex, 0);
+	        return NULL;
+        }
+    }
+
+    uint64_t index = Pmm_FreeList->IndexStart;
+    Pmm_RemovePagesToFreeList(index, pageCount);
+    Pmm_LockPages_WI(index, pageCount);
     Atomic::atomicUnlock(&Pmm_Mutex, 0);
-	return NULL;
+	return (uintptr_t)(index * PAGE_SIZE);
 }
 
 void Pmm_FreePage_WI(uint64_t index){
