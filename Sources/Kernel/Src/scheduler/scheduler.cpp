@@ -250,8 +250,8 @@ uint64_t TaskManager::Unpause_WL(kthread_t* task){
 } 
 
 uint64_t TaskManager::Exit(ContextStack* Registers, kthread_t* task){   
-    Atomic::atomicAcquire(&MutexScheduler, 0);
     Atomic::atomicAcquire(&task->Queu->Lock, 0); 
+    Atomic::atomicAcquire(&MutexScheduler, 0);
     if(task->CloseQueu_WL(Registers) == KSUCCESS){
         Atomic::atomicUnlock(&task->Queu->Lock, 0);
         ForceSelfDestruction(); /* Unlock MutexScheduler */
@@ -738,8 +738,8 @@ bool kthread_t::Pause_WL(ContextStack* Registers, bool force){
 }
 
 KResult kthread_t::Close(ContextStack* Registers){
-    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
     Atomic::atomicAcquire(&Queu->Lock, 0);
+    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
 
     CloseQueu_WL(Registers);
 
@@ -749,11 +749,11 @@ KResult kthread_t::Close(ContextStack* Registers){
 }
 
 KResult kthread_t::CloseQueu(ContextStack* Registers){
-    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
     Atomic::atomicAcquire(&Queu->Lock, 0);
+    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
     KResult statu = CloseQueu_WL(Registers);
-    Atomic::atomicUnlock(&Queu->Lock, 0);
     Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
+    Atomic::atomicUnlock(&Queu->Lock, 0);
     return statu;
 }
 

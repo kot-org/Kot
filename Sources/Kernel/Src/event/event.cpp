@@ -150,7 +150,6 @@ namespace Event{
             task->EventDataNode->CurrentData->Task->NumberOfMissedEvents--;
             task->EventDataNode->NumberOfMissedEvents--;
             Atomic::atomicUnlock(&task->EventLock, 0);
-            Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
             ForceSelfDestruction();
         }else{
             task->Regs->rsp = (uint64_t)StackTop;
