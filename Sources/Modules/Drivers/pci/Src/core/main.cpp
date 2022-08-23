@@ -10,8 +10,7 @@ uint32_t PCIDevicesIndex = 0;
 
 PCIBar* PCIGetBaseAddressRegister(uint32_t deviceAddr, uint8_t barID, PCIHeader0* header) {
     PCIBar* BaseAddrReg = (PCIBar*)malloc(sizeof(PCIBar));
-    uint64_t barSize = 0xFFFFFFFF << 32;
-    bool isMmio = false;
+    uint32_t barSizeLow = 0, barSizeHigh = ~0;
 
     if(header->BAR[barID] & 0b1){ /* i/o */
         BaseAddrReg->Type = 0x1;
@@ -29,23 +28,20 @@ PCIBar* PCIGetBaseAddressRegister(uint32_t deviceAddr, uint8_t barID, PCIHeader0
     /* Size low */
     PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET + barID * 0x4, ~0);
 
-    barSize = PCIRead32(deviceAddr + PCIH0_BAR0_OFFSET + barID * 0x4);
+    barSizeLow = PCIRead32(deviceAddr + PCIH0_BAR0_OFFSET + barID * 0x4);
 
-    PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET, header->BAR[barID]);
-
-    if(BaseAddrReg->Type == 0x1)
-        barSize &= ~0b11;
+    PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET + barID * 0x4, header->BAR[barID]);
 
     /* Size high */
     if(BaseAddrReg->Type == 0x3) {
         PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET + (barID + 1) * 0x4, ~0);
 
-        barSize |= PCIRead32(deviceAddr + PCIH0_BAR0_OFFSET + (barID + 1) * 0x4) << 32;
+        barSizeHigh = PCIRead32(deviceAddr + PCIH0_BAR0_OFFSET + (barID + 1) * 0x4);
 
         PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET + (barID + 1) * 0x4, header->BAR[barID + 1]);
     }
 
-    BaseAddrReg->Size = ~barSize + 1;
+    BaseAddrReg->Size = ~((barSizeHigh << 32 | barSizeLow) & ~((BaseAddrReg->Type == 0x1) ? (0b1111) : (0b11))) + 1;
 
     char buffer[100], buffernum[20];
     *buffer = NULL;
