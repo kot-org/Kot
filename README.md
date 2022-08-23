@@ -10,7 +10,7 @@ A 64-bit x86 operating system written in C/C++
 # Screeshots
 
 <p align="center">
-	<img src="./Meta/Screeshots/1.png?raw=true" width="90%"/> 
+	<img src="./Meta/Screenshots/1.png?raw=true" width="90%"/> 
 </p>
 
 # Required Tools
