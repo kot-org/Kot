@@ -260,6 +260,7 @@ void Pmm_FreePage_WI(uint64_t index){
 void Pmm_FreePages_WI(uint64_t index, uint64_t pageCount){
     Pmm_AddPageToFreeList(index, pageCount);
     for (int t = 0; t < pageCount; t++){
+        index++;
         if(!Pmm_PageBitmap.Get(index)) return;
         if(Pmm_PageBitmap.Set(index, false)){
             Pmm_MemoryInfo.freePageMemory++;
