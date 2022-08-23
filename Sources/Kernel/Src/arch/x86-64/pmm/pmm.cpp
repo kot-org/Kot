@@ -10,8 +10,6 @@ uint64_t Pmm_Mutex;
 uint64_t Pmm_FirstFreePageIndex = 0;
 freelistinfo_t* Pmm_LastFreeListInfo = NULL;
 
-bool Initialized = false;
-
 static inline uint64_t Pmm_ConvertAddressToIndex(uintptr_t address){
     return ((uint64_t)address) >> 12;
 }
@@ -21,10 +19,6 @@ static inline uintptr_t Pmm_ConvertIndexToAddress(uint64_t index){
 }
 
 void Pmm_Init(stivale2_struct_tag_memmap* Map){
-    if (Initialized) return;
-
-    Initialized = true;
-
     uintptr_t BitmapSegment = NULL;
 
     uint64_t memorySize = Pmm_GetMemorySize(Map);
