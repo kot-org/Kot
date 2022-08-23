@@ -9,6 +9,7 @@ class Bitmap{
         bool operator[](uint64_t index);
         bool Get(uint64_t index);
         bool Set(uint64_t index, bool value);
+        bool GetAndSet(uint64_t index, bool value);
 };
 
 class BitmapHeap{

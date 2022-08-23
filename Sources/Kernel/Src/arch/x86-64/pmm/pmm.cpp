@@ -260,8 +260,7 @@ void Pmm_FreePage_WI(uint64_t index){
 void Pmm_FreePages_WI(uint64_t index, uint64_t pageCount){
     Pmm_AddPageToFreeList(index, pageCount);
     for (int t = 0; t < pageCount; t++){
-        if(!Pmm_PageBitmap.Get(index)) return;
-        if(Pmm_PageBitmap.Set(index, false)){
+        if(Pmm_PageBitmap.GetAndSet(index, false)){
             Pmm_MemoryInfo.freePageMemory++;
             Pmm_MemoryInfo.usedPageMemory--;
             if(Pmm_FirstFreePageIndex > index){
@@ -272,8 +271,7 @@ void Pmm_FreePages_WI(uint64_t index, uint64_t pageCount){
 }
 
 void Pmm_LockPage_WI(uint64_t index){
-    if (Pmm_PageBitmap.Get(index)) return;
-    if (Pmm_PageBitmap.Set(index, true)){
+    if (Pmm_PageBitmap.GetAndSet(index, true)){
         Pmm_MemoryInfo.freePageMemory--;
         Pmm_MemoryInfo.usedPageMemory++;
     }
