@@ -354,7 +354,7 @@ void vmm_Unmap(pagetable_t table, uintptr_t Address){
         PTVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PT);    
     }
 
-    PTVirtualAddress->entries[indexer.P_i] = 0;  
+    PTVirtualAddress->entries[indexer.P_i] = NULL;  
 }
 
 uintptr_t vmm_GetPhysical(pagetable_t table, uintptr_t Address){

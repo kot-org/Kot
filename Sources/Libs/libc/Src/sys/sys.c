@@ -42,8 +42,8 @@ KResult SYS_Unpause(thread_t self){
     return Syscall_8(KSys_UnPause, self);
 }
 
-KResult SYS_Map(process_t self, uint64_t* addressVirtual, bool isPhysical, uintptr_t* addressPhysical, size64_t* size, bool findFree){
-    return Syscall_48(KSys_Map, self, addressVirtual, isPhysical, addressPhysical, size, findFree);
+KResult SYS_Map(process_t self, uint64_t* addressVirtual, enum AllocationType type, uintptr_t* addressPhysical, size64_t* size, bool findFree){
+    return Syscall_48(KSys_Map, self, addressVirtual, type, addressPhysical, size, findFree);
 }
 
 KResult SYS_Unmap(thread_t self, uintptr_t addressVirtual, size64_t size){

@@ -71,6 +71,12 @@ enum ExecutionType{
     ExecutionTypeOneshotAwait   = 0x3,
 };
 
+enum AllocationType{
+    AllocationTypeBasic         = 0x0,
+    AllocationTypePhysical      = 0x1,
+    AllocationTypeContiguous    = 0x2,
+};
+
 struct ShareDataWithArguments_t{
     size64_t Size;
     uintptr_t Data;
@@ -91,7 +97,7 @@ KResult SYS_Close(uint64_t errorCode);
 KResult SYS_Exit(uint64_t errorCode);
 KResult SYS_Pause(bool force);
 KResult SYS_Unpause(thread_t self);
-KResult SYS_Map(process_t self, uint64_t* addressVirtual, bool isPhysical, uintptr_t* addressPhysical, size64_t* size, bool findFree);
+KResult SYS_Map(process_t self, uint64_t* addressVirtual, enum AllocationType type, uintptr_t* addressPhysical, size64_t* size, bool findFree);
 KResult SYS_Unmap(process_t self, uintptr_t addressVirtual, size64_t size);
 KResult Sys_Event_Create(kevent_t* self);
 KResult Sys_Event_Bind(kevent_t self, thread_t task, uint8_t vector, bool IgnoreMissedEvents);

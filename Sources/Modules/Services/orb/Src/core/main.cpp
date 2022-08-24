@@ -11,7 +11,7 @@ void initBuffers(bootbuffer_t* fb) {
     screen->fb_size = fb->framebuffer_pitch * fb->framebuffer_height;
 
     uint64_t virtualAddress = (uint64_t) KotSpecificData.FreeMemorySpace - screen->fb_size;
-    SYS_Map(self, &virtualAddress, true, (uintptr_t *) &fb->framebuffer_addr, &screen->fb_size, false);
+    SYS_Map(self, &virtualAddress, AllocationTypePhysical, (uintptr_t *) &fb->framebuffer_addr, &screen->fb_size, false);
 
     screen->fb_addr = virtualAddress;
     screen->width = fb->framebuffer_width;

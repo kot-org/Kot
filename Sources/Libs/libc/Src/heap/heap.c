@@ -174,7 +174,7 @@ void SplitSegmentUser(struct SegmentHeader* segment, size64_t size){
 void ExpandHeapUser(size64_t length){
     length += sizeof(struct SegmentHeader);
     
-    SYS_Map(heap.Process, &heap.EndAddress, false, 0, &length, false);
+    SYS_Map(heap.Process, &heap.EndAddress, AllocationTypeBasic, 0, &length, false);
 
     struct SegmentHeader* newSegment = (struct SegmentHeader*)heap.EndAddress;
     heap.EndAddress += length;

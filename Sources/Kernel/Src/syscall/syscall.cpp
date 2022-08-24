@@ -153,28 +153,33 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* thread){
     pagetable_t pageTable = processkey->SharedPaging;
     
     /* Get arguments */
+    if(Registers->arg2 > AllocationTypeContiguous){
+        Registers->arg2 = AllocationTypeBasic;
+    }
+
     uint64_t* addressVirtual = (uint64_t*)Registers->arg1;
+    enum AllocationType type = (enum AllocationType)Registers->arg2;
+    uintptr_t* addressPhysical = (uintptr_t*)Registers->arg3;
+    size64_t* size = (size64_t*)Registers->arg4;
+    bool IsNeedToBeFree = (bool)Registers->arg5; 
+
     if(!CheckAddress((uintptr_t)addressVirtual, sizeof(uint64_t))) return KMEMORYVIOLATION;
     *addressVirtual = *addressVirtual - ((uint64_t)*addressVirtual % PAGE_SIZE);
 
-    bool AllocatePhysicallPage = (bool)Registers->arg2;
 
-    uintptr_t* addressPhysical = (uintptr_t*)Registers->arg3;
     bool IsPhysicalAddress = false;
     if(CheckAddress((uintptr_t)addressPhysical, sizeof(uint64_t))){
         IsPhysicalAddress = true;
     }else{
-        if(AllocatePhysicallPage){
+        if(type == AllocationTypePhysical){
             return KMEMORYVIOLATION;
         }
     }
 
-    size64_t* size = (size64_t*)Registers->arg4;
     if(!CheckAddress((uintptr_t)size, sizeof(uint64_t))) return KMEMORYVIOLATION;
 
-    bool IsNeedToBeFree = (bool)Registers->arg5; 
 
-    uint64_t pages = DivideRoundUp(*size, PAGE_SIZE);
+    uint64_t pageCount = DivideRoundUp(*size, PAGE_SIZE);
     /* find free page */
     if(IsNeedToBeFree){
         for(uint64_t FreeSize = 0; FreeSize < *size;){
@@ -190,9 +195,9 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* thread){
 
     *size = NULL;
 
-    if(*addressVirtual + pages * PAGE_SIZE < vmm_HHDMAdress){
-        if(AllocatePhysicallPage){
-            for(uint64_t i = 0; i < pages; i++){
+    if(*addressVirtual + pageCount * PAGE_SIZE < vmm_HHDMAdress){
+        if(type == AllocationTypePhysical){
+            for(uint64_t i = 0; i < pageCount; i++){
                 if(vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage) && vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_Master)){
                     Pmm_FreePage(vmm_GetPhysical(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE)));
                 }
@@ -200,24 +205,42 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* thread){
             }
         }
         
-        for(uint64_t i = 0; i < pages; i++){
-            uintptr_t virtualAddress = (uintptr_t)(*addressVirtual + i * PAGE_SIZE);
-            if(AllocatePhysicallPage){
-                vmm_Map(pageTable, virtualAddress, (uintptr_t)((uint64_t)*addressPhysical + i * PAGE_SIZE), true);
-            }else if(!vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage)){
-                uintptr_t physicalAddressAllocated = (uintptr_t)Pmm_RequestPage();
+        if(type == AllocationTypeContiguous){
+            uintptr_t physicalAddressAllocated = (uintptr_t)Pmm_RequestPages(pageCount);
+            if(physicalAddressAllocated != NULL){
                 if(IsPhysicalAddress){
                     *addressPhysical = physicalAddressAllocated;
                     /* write only the first physicall page */
                     IsPhysicalAddress = false; 
                 }
+                uintptr_t virtualAddress = (uintptr_t)(*addressVirtual);
                 vmm_Map(pageTable, virtualAddress, physicalAddressAllocated, true, true, true);
                 vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_Master, true); //set master state
-                processkey->MemoryAllocated += PAGE_SIZE;
+                processkey->MemoryAllocated += pageCount * PAGE_SIZE; 
+                *size = pageCount * PAGE_SIZE;
+                return KSUCCESS;               
             }
-            *size += PAGE_SIZE;      
-        } 
-
+            return KFAIL;
+        }else{
+            for(uint64_t i = 0; i < pageCount; i++){
+                uintptr_t virtualAddress = (uintptr_t)(*addressVirtual + i * PAGE_SIZE);
+                if(type == AllocationTypePhysical){
+                    vmm_Map(pageTable, virtualAddress, (uintptr_t)((uint64_t)*addressPhysical + i * PAGE_SIZE), true);
+                    vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_Master, true); //remove master state
+                }else if(!vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_Master)){
+                    uintptr_t physicalAddressAllocated = (uintptr_t)Pmm_RequestPage();
+                    if(IsPhysicalAddress){
+                        *addressPhysical = physicalAddressAllocated;
+                        /* write only the first physicall page */
+                        IsPhysicalAddress = false; 
+                    }
+                    vmm_Map(pageTable, virtualAddress, physicalAddressAllocated, true, true, true);
+                    vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_Master, true); //set master state
+                    processkey->MemoryAllocated += PAGE_SIZE;
+                }
+                *size += PAGE_SIZE;      
+            }             
+        }
         return KSUCCESS;
     }
     return KFAIL;
@@ -239,9 +262,9 @@ KResult Sys_Unmap(SyscallStack* Registers, kthread_t* thread){
     size64_t size = Registers->arg2;
 
     addressVirtual = (uintptr_t)((uint64_t)addressVirtual - (uint64_t)addressVirtual % PAGE_SIZE);
-    uint64_t pages = DivideRoundUp(size, PAGE_SIZE);
-    if((uint64_t)addressVirtual + pages * PAGE_SIZE < vmm_HHDMAdress){
-        for(uint64_t i = 0; i < pages; i += PAGE_SIZE){
+    uint64_t pageCount = DivideRoundUp(size, PAGE_SIZE);
+    if((uint64_t)addressVirtual + pageCount * PAGE_SIZE < vmm_HHDMAdress){
+        for(uint64_t i = 0; i < pageCount; i += PAGE_SIZE){
             if(vmm_GetFlags(pageTable, (uintptr_t)addressVirtual, vmm_flag::vmm_Master)){
                 if(vmm_GetFlags(pageTable, (uintptr_t)addressVirtual, vmm_flag::vmm_PhysicalStorage)){
                     Pmm_FreePage(vmm_GetPhysical(pageTable, addressVirtual));
