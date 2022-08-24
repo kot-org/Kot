@@ -99,3 +99,15 @@ uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ks
     return Info;
 }
 
+/* Useful functions */
+
+thread_t MakeThreadShareable(thread_t Thread, enum Priviledge priviledgeRequired){
+    thread_t ReturnValue;
+    uint64_t UISDKeyFlags = NULL;
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypethreadIsExecutableWithQueue, true);
+    Sys_Keyhole_CloneModify(Thread, &ReturnValue, NULL, UISDKeyFlags, PriviledgeApp);
+    return ReturnValue;
+}
+
+
