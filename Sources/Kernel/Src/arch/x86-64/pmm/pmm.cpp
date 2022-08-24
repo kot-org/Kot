@@ -205,10 +205,11 @@ void Pmm_InitBitmap(size64_t bitmapSize, uintptr_t bufferAddress){
 uintptr_t Pmm_RequestPage(){
     Atomic::atomicAcquire(&Pmm_Mutex, 0);
     for (uint64_t index = Pmm_FirstFreePageIndex; index < Pmm_MemoryInfo.totalPageMemory; index++){
-        if(!Pmm_PageBitmap.Get(index)){
+        if(!Pmm_PageBitmap.GetAndSet(index, true)){
             Pmm_FirstFreePageIndex = index;
+            Pmm_MemoryInfo.freePageMemory--;
+            Pmm_MemoryInfo.usedPageMemory++;
             Pmm_RemovePagesToFreeList(index, 1);
-            Pmm_LockPage_WI(index);
             Atomic::atomicUnlock(&Pmm_Mutex, 0);
             return (uintptr_t)(index * PAGE_SIZE);
         }
@@ -240,8 +241,7 @@ uintptr_t Pmm_RequestPages(uint64_t pageCount){
 }
 
 void Pmm_FreePage_WI(uint64_t index){
-    if(!Pmm_PageBitmap.Get(index)) return;
-    if(Pmm_PageBitmap.Set(index, false)){
+    if(Pmm_PageBitmap.GetAndSet(index, false)){
         Pmm_AddPageToFreeList(index, 1);
         Pmm_MemoryInfo.freePageMemory++;
         Pmm_MemoryInfo.usedPageMemory--;
@@ -253,21 +253,20 @@ void Pmm_FreePage_WI(uint64_t index){
 
 void Pmm_FreePages_WI(uint64_t index, uint64_t pageCount){
     Pmm_AddPageToFreeList(index, pageCount);
-    for (int t = 0; t < pageCount; t++){
-        if(!Pmm_PageBitmap.Get(index + t)) continue;
-        if(Pmm_PageBitmap.Set(index + t, false)){
+    uint64_t indexEnd = index + pageCount;
+    for (int t = index; t < indexEnd; t++){
+        if(Pmm_PageBitmap.GetAndSet(t, false)){
             Pmm_MemoryInfo.freePageMemory++;
             Pmm_MemoryInfo.usedPageMemory--;
-            if(Pmm_FirstFreePageIndex > index + t){
-                Pmm_FirstFreePageIndex = index + t;
+            if(Pmm_FirstFreePageIndex > t){
+                Pmm_FirstFreePageIndex = t;
             }
         }
     }
 }
 
 void Pmm_LockPage_WI(uint64_t index){
-    if(Pmm_PageBitmap.Get(index)) return;
-    if(Pmm_PageBitmap.Set(index, true)){
+    if(!Pmm_PageBitmap.GetAndSet(index, true)){
         Pmm_MemoryInfo.freePageMemory--;
         Pmm_MemoryInfo.usedPageMemory++;
     }
