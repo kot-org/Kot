@@ -5,6 +5,6 @@
     {"file":"Pcspk.elf", "priviledge":1},
     {"file":"Ps2.elf", "priviledge":1},
     {"file":"Uhci.elf", "priviledge":1},
-    {"file":"Orb.elf", "priviledge":1, "active":false},
-    {"file":"Jvm.elf", "priviledge":3, "active":false}
+    {"file":"Orb.elf", "priviledge":1},
+    {"file":"Jvm.elf", "priviledge":3}
 ]

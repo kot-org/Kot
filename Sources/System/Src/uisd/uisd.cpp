@@ -89,7 +89,7 @@ KResult UISDCreate(enum ControllerTypeEnum Controller, thread_t Callback, uint64
                         UISDControllers[Controller]->NumberOfWaitingTasks = NULL;
                     }
                     UISDControllers[Controller]->DataKey = DataKey;
-                    UISDControllers[Controller]->Data = getFreeAlihnedSpace(Size);
+                    UISDControllers[Controller]->Data = getFreeAlignedSpace(Size);
                     if(Sys_AcceptMemoryField(proc, DataKey, (uintptr_t*)&UISDControllers[Controller])){
                         UISDControllers[Controller]->IsLoad = true;
                         UISDAcceptAll(Controller);
