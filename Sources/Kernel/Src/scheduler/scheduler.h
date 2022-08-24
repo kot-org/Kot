@@ -169,9 +169,9 @@ struct kthread_t{
     bool Launch();  
     bool Pause(ContextStack* Registers, bool force);   
     bool Pause_WL(ContextStack* Registers, bool force);   
-    KResult Close(ContextStack* Registers);
-    KResult CloseQueu(ContextStack* Registers);
-    KResult CloseQueu_WL(ContextStack* Registers);
+    KResult Close(ContextStack* Registers, uint64_t ReturnValue);
+    KResult CloseQueu(ContextStack* Registers, uint64_t ReturnValue);
+    KResult CloseQueu_WL(ContextStack* Registers, uint64_t ReturnValue);
 }__attribute__((packed));  
 
 class TaskManager{
@@ -193,7 +193,7 @@ class TaskManager{
         KResult Execthread(kthread_t* Caller, kthread_t* Self, enum ExecutionType Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers);
         uint64_t Unpause(kthread_t* task); 
         uint64_t Unpause_WL(kthread_t* task); 
-        uint64_t Exit(ContextStack* Registers, kthread_t* task); 
+        uint64_t Exit(ContextStack* Registers, kthread_t* task, uint64_t ReturnValue); 
         uint64_t ShareDataUsingStackSpace(kthread_t* self, uintptr_t data, size64_t size, uintptr_t* location);
         // process
         uint64_t CreateProcess(kprocess_t** key, enum Priviledge priviledge, uint64_t externalData);

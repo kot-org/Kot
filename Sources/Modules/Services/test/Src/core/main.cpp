@@ -2,7 +2,19 @@
 
 void GetMemory(){
     Printlog("[Test] Call another function");
-    SYS_Close(KSUCCESS);
+    ksmem_t MemoryShare = NULL;
+    uintptr_t address = getFreeAlignedSpace(0x1000);
+    ksmem_t key = NULL;
+    process_t proc = NULL;
+    Sys_GetProcessKey(&proc);
+    Sys_CreateMemoryField(proc, 0x1000, &address, &key, MemoryFieldTypeShareSpaceRO);
+    char* testchar = "Share from another process\0";
+    memcpy(address, testchar, strlen(testchar) + 1);
+    ksmem_t KeyShare = NULL;
+    uint64_t Flags = NULL;
+    Keyhole_SetFlag(&Flags, KeyholeFlagPresent, true);
+    Sys_Keyhole_CloneModify(key, &KeyShare, NULL, Flags, PriviledgeApp);
+    SYS_Close(KeyShare);
 }
 
 extern "C" int main(int argc, char* argv[]){

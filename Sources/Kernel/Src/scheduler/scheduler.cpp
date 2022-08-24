@@ -249,10 +249,10 @@ uint64_t TaskManager::Unpause_WL(kthread_t* task){
     }
 } 
 
-uint64_t TaskManager::Exit(ContextStack* Registers, kthread_t* task){   
+uint64_t TaskManager::Exit(ContextStack* Registers, kthread_t* task, uint64_t ReturnValue){   
     Atomic::atomicAcquire(&task->Queu->Lock, 0); 
     Atomic::atomicAcquire(&MutexScheduler, 0);
-    if(task->CloseQueu_WL(Registers) == KSUCCESS){
+    if(task->CloseQueu_WL(Registers, ReturnValue) == KSUCCESS){
         Atomic::atomicUnlock(&task->Queu->Lock, 0);
         ForceSelfDestruction(); /* Unlock MutexScheduler */
         /* noreturn */
@@ -737,29 +737,28 @@ bool kthread_t::Pause_WL(ContextStack* Registers, bool force){
     return true;
 }
 
-KResult kthread_t::Close(ContextStack* Registers){
+KResult kthread_t::Close(ContextStack* Registers, uint64_t ReturnValue){
     Atomic::atomicAcquire(&Queu->Lock, 0);
     Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
 
-    CloseQueu_WL(Registers);
+    CloseQueu_WL(Registers, ReturnValue);
 
     Atomic::atomicUnlock(&Queu->Lock, 0);
     ForceSelfDestruction(); /* Unlock MutexScheduler */
     return KSUCCESS;
 }
 
-KResult kthread_t::CloseQueu(ContextStack* Registers){
+KResult kthread_t::CloseQueu(ContextStack* Registers, uint64_t ReturnValue){
     Atomic::atomicAcquire(&Queu->Lock, 0);
     Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
-    KResult statu = CloseQueu_WL(Registers);
+    KResult statu = CloseQueu_WL(Registers, ReturnValue);
     Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
     Atomic::atomicUnlock(&Queu->Lock, 0);
     return statu;
 }
 
-KResult kthread_t::CloseQueu_WL(ContextStack* Registers){
+KResult kthread_t::CloseQueu_WL(ContextStack* Registers, uint64_t ReturnValue){
     ResetContext(Regs);
-    uint64_t ReturnValue = Registers->GlobalPurpose;
     ThreadQueuData_t* CurrentDataQueu = Queu->CurrentData;
     Queu->NextThreadInQueu();
     KResult statu = Queu->ExecuteThreadInQueu_WL();

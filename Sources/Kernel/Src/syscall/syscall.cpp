@@ -102,7 +102,7 @@ KResult Sys_CloseProc(SyscallStack* Registers, kthread_t* thread){
     Arguments : 
 */
 KResult Sys_Close(SyscallStack* Registers, kthread_t* thread){
-    KResult statu = thread->Close((ContextStack*)Registers);
+    KResult statu = thread->Close((ContextStack*)Registers, Registers->arg0);
     return statu;
 }
 
@@ -110,7 +110,7 @@ KResult Sys_Close(SyscallStack* Registers, kthread_t* thread){
     Arguments : 
 */
 KResult Sys_Exit(SyscallStack* Registers, kthread_t* thread){
-    KResult statu = globalTaskManager->Exit((ContextStack*)Registers, thread);
+    KResult statu = globalTaskManager->Exit((ContextStack*)Registers, thread, Registers->arg0);
     return statu;
 }
 
