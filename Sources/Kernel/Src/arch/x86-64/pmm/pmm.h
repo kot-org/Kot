@@ -40,13 +40,13 @@ struct memoryInfo_t{
     uint64_t usedPageMemory;    
 }__attribute__((packed));
 
-struct freelistinfomiddle_t{
-    struct freelistinfomiddle_t* End;
+struct freelistinfoend_t{
+    struct freelistinfoend_t* End;
     struct freelistinfo_t* Start;
 }__attribute__((packed));
 
 struct freelistinfo_t{
-    struct freelistinfomiddle_t Header;
+    struct freelistinfoend_t Header;
     uint64_t IndexStart;
     uint64_t IndexEnd;
     uint64_t PageSize;

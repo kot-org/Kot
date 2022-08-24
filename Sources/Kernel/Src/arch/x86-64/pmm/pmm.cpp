@@ -22,16 +22,16 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
     uintptr_t BitmapSegment = NULL;
 
     uint64_t memorySize = Pmm_GetMemorySize(Map);
-    uint64_t PageCount = 0;
+    uint64_t PageCountTotal = 0;
     uint64_t LastBase = 0;
     for (uint64_t i = 0; i < Map->entries; i++){
         if(Map->memmap[i].base > LastBase){
             LastBase = Map->memmap[i].base;
-            PageCount = DivideRoundUp(Map->memmap[i].base + Map->memmap[i].length, PAGE_SIZE);
+            PageCountTotal = DivideRoundUp(Map->memmap[i].base + Map->memmap[i].length, PAGE_SIZE);
         }
     }
 
-    uint64_t bitmapSize = DivideRoundUp(PageCount, 8);
+    uint64_t bitmapSize = DivideRoundUp(PageCountTotal, 8);
 
     for (uint64_t i = 0; i < Map->entries; i++){
         if (Map->memmap[i].type == STIVALE2_MMAP_USABLE){
@@ -51,14 +51,14 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
         }
     }
 
-    Pmm_MemoryInfo.freePageMemory = PageCount;
+    Pmm_MemoryInfo.freePageMemory = PageCountTotal;
     Pmm_MemoryInfo.usedPageMemory = 0x0;
-    Pmm_MemoryInfo.totalPageMemory = PageCount;
+    Pmm_MemoryInfo.totalPageMemory = PageCountTotal;
     Pmm_MemoryInfo.reservedPageMemory = 0x0;
     Pmm_MemoryInfo.totalUsablePageMemory = Pmm_GetMemorySize(Map);
     Pmm_InitBitmap(bitmapSize, BitmapSegment);
 
-    Pmm_ReservePages(0x0, PageCount + 1);
+    Pmm_ReservePages(0x0, PageCountTotal + 1);
 
     /* Protect bitmap address */
     uint64_t ProtectedIndexStart = Pmm_ConvertAddressToIndex(BitmapSegment);
@@ -67,12 +67,19 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
         if (Map->memmap[i].type == STIVALE2_MMAP_USABLE){ 
             uint64_t indexstart = Pmm_ConvertAddressToIndex((uintptr_t)Map->memmap[i].base);
             uint64_t pageCount = Map->memmap[i].length / PAGE_SIZE;
-            for (uint64_t t = 0; t < pageCount; t++){
-                uint64_t index = indexstart + t;
-                if(index < ProtectedIndexStart || ProtectedIndexEnd < index){
-                    Pmm_UnreservePage_WI(index);
-                }
+            if(indexstart > ProtectedIndexEnd){
+                Pmm_UnreservePages_WI(indexstart, pageCount);
+            }else if(indexstart < ProtectedIndexStart && indexstart < ProtectedIndexStart + pageCount){
+                Pmm_UnreservePages_WI(indexstart, pageCount);
+            }else{
+                for (uint64_t t = 0; t < pageCount; t++){
+                    uint64_t index = indexstart + t;
+                    if(index < ProtectedIndexStart || ProtectedIndexEnd < index){
+                        Pmm_UnreservePage_WI(index);
+                    }
+                }                
             }
+
         }
     }
 
@@ -82,7 +89,7 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
 
 void Pmm_RemovePagesToFreeList(uint64_t index, uint64_t pageCount){
     freelistinfo_t* FreeListInfo = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index));
-    if(FreeListInfo->IndexEnd == index){
+    if(FreeListInfo->PageSize == pageCount){
         if(FreeListInfo->Last != NULL){
             FreeListInfo->Last->Next = FreeListInfo->Next;
         }
@@ -120,20 +127,14 @@ void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
     /* Merge with free list */
     bool IsNextFree = !Pmm_PageBitmap.Get(index + pageCount);
     bool IsLastFree = !Pmm_PageBitmap.Get(index - 1);
-
-    freelistinfomiddle_t* FreeListInfoEnd = NULL;
-
     if(IsNextFree){
         if(IsLastFree){
             freelistinfo_t* FreeListInfoNext = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount)); /* We can get start because we are at the start of the freelist segment */
-            FreeListInfoEnd = (freelistinfomiddle_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index - 1));
+            freelistinfoend_t* FreeListInfoEnd = (freelistinfoend_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index - 1));
             freelistinfo_t* FreeListInfoLast = FreeListInfoEnd->Start; /* We can get start because we are at the end of the freelist segment */
             
             FreeListInfoLast->Next = FreeListInfoNext->Next;
             FreeListInfoNext->PageSize += pageCount + FreeListInfoNext->PageSize;
-
-            /* Setup middle end as middle segment */
-            FreeListInfoLast->Header.End->End = FreeListInfoNext->Header.End;
 
             FreeListInfoLast->Header.End = FreeListInfoNext->Header.End;
             FreeListInfoLast->Header.End->Start = FreeListInfoLast;
@@ -162,19 +163,17 @@ void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
             NewFreeListInfo->Header.End->Start = NewFreeListInfo;
         }
     }else if(IsLastFree){
-        FreeListInfoEnd = (freelistinfomiddle_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index - 1));
+        freelistinfoend_t* FreeListInfoEnd = (freelistinfoend_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index - 1));
         freelistinfo_t* FreeListInfoLast = FreeListInfoEnd->Start; /* We can get start because we are at the end of the freelist segment */
+        FreeListInfoEnd = (freelistinfoend_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount - 1));
         FreeListInfoLast->PageSize += pageCount;
-        FreeListInfoEnd = (freelistinfomiddle_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount - 1));
-        FreeListInfoLast->Header.End->End = FreeListInfoEnd;
         FreeListInfoLast->Header.End = FreeListInfoEnd;
-        FreeListInfoLast->IndexStart = FreeListInfoLast->IndexStart;
+        FreeListInfoEnd->Start = FreeListInfoLast;
         FreeListInfoLast->IndexEnd = index + pageCount - 1;
-        FreeListInfoLast->Header.End->Start = FreeListInfoLast;
     }else{
         /* Create free list */
         freelistinfo_t* FreeListInfo = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index));
-        FreeListInfoEnd = (freelistinfomiddle_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount - 1));
+        freelistinfoend_t* FreeListInfoEnd = (freelistinfoend_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount - 1));
         FreeListInfo->Header.End = FreeListInfoEnd;
         FreeListInfo->IndexStart = index;
         FreeListInfo->IndexEnd = index + pageCount - 1;
@@ -183,11 +182,6 @@ void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
         FreeListInfo->PageSize = pageCount;
         FreeListInfoEnd->Start = FreeListInfo;
         Pmm_LastFreeListInfo = FreeListInfo;
-    }
-
-    for(uint64_t i = 1; i < pageCount - 1; i++){
-        freelistinfomiddle_t* FreeListInfoMiddle = (freelistinfomiddle_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + i));
-        FreeListInfoMiddle->End = FreeListInfoEnd;
     }
 }
 
@@ -260,18 +254,20 @@ void Pmm_FreePage_WI(uint64_t index){
 void Pmm_FreePages_WI(uint64_t index, uint64_t pageCount){
     Pmm_AddPageToFreeList(index, pageCount);
     for (int t = 0; t < pageCount; t++){
-        if(Pmm_PageBitmap.GetAndSet(index, false)){
+        if(!Pmm_PageBitmap.Get(index + t)) continue;
+        if(Pmm_PageBitmap.Set(index + t, false)){
             Pmm_MemoryInfo.freePageMemory++;
             Pmm_MemoryInfo.usedPageMemory--;
-            if(Pmm_FirstFreePageIndex > index){
-                Pmm_FirstFreePageIndex = index;
+            if(Pmm_FirstFreePageIndex > index + t){
+                Pmm_FirstFreePageIndex = index + t;
             }
         }
     }
 }
 
 void Pmm_LockPage_WI(uint64_t index){
-    if (Pmm_PageBitmap.GetAndSet(index, true)){
+    if(Pmm_PageBitmap.Get(index)) return;
+    if(Pmm_PageBitmap.Set(index, true)){
         Pmm_MemoryInfo.freePageMemory--;
         Pmm_MemoryInfo.usedPageMemory++;
     }
