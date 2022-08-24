@@ -55,48 +55,7 @@ PCIBar* PCIGetBaseAddressRegister(uint32_t deviceAddr, uint8_t barID, PCIHeader0
         BaseAddrReg->Size = ~barSize + 1;
         return BaseAddrReg;
     }
-<<<<<<< HEAD
     return NULL;
-=======
-
-    /* Size low */
-    PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET + barID * 0x4, ~0);
-
-    barSizeLow = PCIRead32(deviceAddr + PCIH0_BAR0_OFFSET + barID * 0x4);
-
-    PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET + barID * 0x4, header->BAR[barID]);
-
-    if(BaseAddrReg->Type == 0x1)
-        barSizeLow &= 0b1111;
-    else
-        barSizeLow &= 0b11;
-
-    /* Size high */
-    if(BaseAddrReg->Type == 0x3) {
-        PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET + (barID + 1) * 0x4, ~0);
-
-        barSizeHigh = PCIRead32(deviceAddr + PCIH0_BAR0_OFFSET + (barID + 1) * 0x4);
-
-        PCIWrite32(deviceAddr + PCIH0_BAR0_OFFSET + (barID + 1) * 0x4, header->BAR[barID + 1]);
-    }
-
-    uint64_t Size = barSizeHigh;
-    Size <<= 32;
-    Size |= barSizeLow;
-
-    BaseAddrReg->Size = ~Size + 1;
-
-    char buffer[100], buffernum[20];
-    *buffer = NULL;
-
-    strcat(buffer, "[PCI] Size: 0x");
-    itoa(BaseAddrReg->Size, buffernum, 16);
-    strcat(buffer, buffernum);
-
-    Printlog(buffer);
-
-    return BaseAddrReg;
->>>>>>> 5fd25064a (Update)
 }
 
 uint32_t PCIDeviceBaseAddress(uint16_t bus, uint16_t device, uint16_t func){
