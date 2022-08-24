@@ -22,6 +22,9 @@
 #define KeyholeFlagDataTypeProcessIsthreadCreateable        0x5
 
 /* DataTypeEvent */
+#define KeyholeFlagDataTypethreadIsBindable                0x4
+#define KeyholeFlagDataTypethreadIsTriggerable             0x5
+
 /* DataTypeSharedMemory */
 
 

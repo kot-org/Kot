@@ -324,6 +324,7 @@ KResult Sys_Event_Unbind(SyscallStack* Registers, kthread_t* thread){
         }
     }
     if(Keyhole_Get(thread, (key_t)Registers->arg1, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsBindable)) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsEventable)) return KKEYVIOLATION;
     return Event::Unbind(thread, event);
 }
@@ -335,6 +336,7 @@ KResult Sys_Event_Trigger(SyscallStack* Registers, kthread_t* thread){
     event_t* event; 
     uint64_t flags;
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsTriggerable)) return KKEYVIOLATION;
     if(CheckAddress((uintptr_t)Registers->arg1, sizeof(arguments_t))) return KMEMORYVIOLATION;
     return Event::Trigger(thread, event, (arguments_t*)Registers->arg1);
 }
