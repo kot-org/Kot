@@ -23,15 +23,13 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
     // load starter file
     ramfs::File* StarterFile = ramfs::Find("Starter.json");
 
-    if (StarterFile != NULL) {
-
+    if(StarterFile != NULL){
         char* BufferStarterFile = (char*) calloc(StarterFile->size);
         ramfs::Read(StarterFile, BufferStarterFile);
         
         JsonParser* parser = new JsonParser(BufferStarterFile);
 
-        if (parser->getCode() == JSON_SUCCESS && parser->getValue()->getType() == JSON_ARRAY) {
-
+        if(parser->getCode() == JSON_SUCCESS && parser->getValue()->getType() == JSON_ARRAY){
             JsonArray* arr = (JsonArray*) parser->getValue();
 
             arguments_t* InitParameters = (arguments_t*) calloc(sizeof(arguments_t));
@@ -81,15 +79,13 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
                     }
                 }
             }
-
             free(InitParameters);
-            
-        } else {
+        }else{
             Printlog("[System] Invalid Starter file's JSON body");
             return KFAIL;
         }
 
-    } else {
+    }else{
         Printlog("[System] 'Starter.json' file not found");
         return KFAIL;
     }
