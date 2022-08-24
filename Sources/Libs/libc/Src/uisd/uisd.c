@@ -1,18 +1,18 @@
 #include <kot/uisd.h>
 
 size64_t ControllerTypeSize[ControllerCount] = {
-    sizeof(graphics_t),
-    sizeof(audio_t),
-    sizeof(storage_t),
-    sizeof(vfs_t),
-    sizeof(usb_t),
-    sizeof(pci_t)
+    sizeof(uisd_graphics_t),
+    sizeof(uisd_audio_t),
+    sizeof(uisd_storage_t),
+    sizeof(uisd_vfs_t),
+    sizeof(uisd_usb_t),
+    sizeof(uisd_pci_t)
 };
 
 thread_t CallBackUISDThread = NULL;
 process_t ProcessKeyForUISD = NULL;
 
-KResult CallbackUISD(uint64_t Task, KResult Statu, callbackInfo_t* Info, uint64_t GP0, uint64_t GP1);
+KResult CallbackUISD(uint64_t Task, KResult Statu, uisd_callbackInfo_t* Info, uint64_t GP0, uint64_t GP1);
 
 KResult InitializeUISD(){
     thread_t UISDthreadKeyCallback;
@@ -34,7 +34,7 @@ KResult InitializeUISD(){
     return KSUCCESS;
 }
 
-KResult CallbackUISD(uint64_t Task, KResult Statu, callbackInfo_t* Info, uint64_t GP0, uint64_t GP1){
+KResult CallbackUISD(uint64_t Task, KResult Statu, uisd_callbackInfo_t* Info, uint64_t GP0, uint64_t GP1){
     if(Task == UISDGetTask) Info->Location = (uintptr_t)GP0;
     Info->Statu = Statu;
     if(Info->AwaitCallback){
@@ -43,11 +43,11 @@ KResult CallbackUISD(uint64_t Task, KResult Statu, callbackInfo_t* Info, uint64_
     SYS_Close(KSUCCESS);
 }
 
-callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t* Location, bool AwaitCallback){
+uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t* Location, bool AwaitCallback){
     if(!CallBackUISDThread) InitializeUISD();
     thread_t Self = NULL;
     Sys_GetthreadKey(&Self);
-    callbackInfo_t* Info = (callbackInfo_t*)malloc(sizeof(callbackInfo_t));
+    uisd_callbackInfo_t* Info = (uisd_callbackInfo_t*)malloc(sizeof(uisd_callbackInfo_t));
     Info->Self = Self;
     Info->AwaitCallback = AwaitCallback;
     Info->Location = NULL;
@@ -69,11 +69,11 @@ callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t*
     return Info;
 }
 
-callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ksmem_t MemoryField, bool AwaitCallback){
+uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ksmem_t MemoryField, bool AwaitCallback){
     if(!CallBackUISDThread) InitializeUISD();
     thread_t Self = NULL;
     Sys_GetthreadKey(&Self);
-    callbackInfo_t* Info = malloc(sizeof(callbackInfo_t));
+    uisd_callbackInfo_t* Info = malloc(sizeof(uisd_callbackInfo_t));
     Info->Self = Self;
     Info->AwaitCallback = AwaitCallback;
     Info->Statu = KFAIL;

@@ -9,6 +9,7 @@
 #include <elf/elf.h>
 #include <uisd/uisd.h>
 #include <ramfs/ramfs.h>
+#include <srv/srv.h>
 
 struct framebuffer_t {
     uint64_t identifier;

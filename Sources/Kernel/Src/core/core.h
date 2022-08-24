@@ -11,7 +11,6 @@
 #include <drivers/hpet/hpet.h>
 #include <heap/heap.h>
 #include <lib/limits.h>
-#include <drivers/rtc/rtc.h>
 #include <syscall/syscall.h>
 #include <boot/boot.h>
 #include <logs/logs.h>

@@ -34,20 +34,25 @@ typedef struct {
     uint64_t Version;
     uint64_t VendorID;
     enum ControllerTypeEnum Type; 
-} controller_t;
+} uisd_controller_t;
 
 typedef struct {
-    controller_t ControllerHeader;
+    uisd_controller_t ControllerHeader;
     /* TODO */
-} graphics_t;
+} uisd_system_t;
 
 typedef struct {
-    controller_t ControllerHeader;
+    uisd_controller_t ControllerHeader;
     /* TODO */
-} audio_t;
+} uisd_graphics_t;
 
 typedef struct {
-    controller_t ControllerHeader;
+    uisd_controller_t ControllerHeader;
+    /* TODO */
+} uisd_audio_t;
+
+typedef struct {
+    uisd_controller_t ControllerHeader;
     thread_t GetDiskInfo;
     thread_t GetPartitionInfo;
 
@@ -56,43 +61,43 @@ typedef struct {
 
     thread_t GetVendorID;
     thread_t GetDeviceID;
-} storage_t;
+} uisd_storage_t;
 
 typedef struct {
-    controller_t ControllerHeader;
+    uisd_controller_t ControllerHeader;
     thread_t rename;
     thread_t remove;
     thread_t fopen;
     thread_t mkdir;
     thread_t readdir;
     thread_t flist;
-} vfs_t;
+} uisd_vfs_t;
 
 typedef struct {
-    controller_t ControllerHeader;
+    uisd_controller_t ControllerHeader;
     thread_t GetUSBDevice;
     thread_t SendUSBPacket;
     thread_t ReceiveUSBPacket;
-} usb_t;
+} uisd_usb_t;
 
 typedef struct {
-    controller_t ControllerHeader;
+    uisd_controller_t ControllerHeader;
     thread_t GetBARNum;
     thread_t GetBARType;
     thread_t GetBARSize;
     thread_t PCISearcherGetDevice;
     thread_t PCISearcher;
-} pci_t;
+} uisd_pci_t;
 
 typedef struct {
     thread_t Self;
     bool AwaitCallback;
     uintptr_t Location;
     KResult Statu;
-} callbackInfo_t;
+} uisd_callbackInfo_t;
 
-callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t* Location, bool AwaitCallback);
-callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ksmem_t MemoryField, bool AwaitCallback);
+uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t* Location, bool AwaitCallback);
+uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ksmem_t MemoryField, bool AwaitCallback);
 
 #if defined(__cplusplus)
 }
