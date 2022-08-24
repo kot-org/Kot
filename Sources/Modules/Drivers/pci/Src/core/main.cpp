@@ -102,34 +102,6 @@ PCIDevice* GetDevice(uint16_t bus, uint16_t device, uint16_t func){
                 }
             }
             self->Index = PCIDevicesIndex;
-
-            char buffer[100], buffernum[33];
-            *buffer = NULL;
-            strcat(buffer, "[PCI] Vendor: 0x");
-            itoa(((PCIHeader0*)Header)->Header.VendorID, buffernum, 16);
-            strcat(buffer, buffernum);
-
-            strcat(buffer, " Device: 0x");
-            itoa(((PCIHeader0*)Header)->Header.DeviceID, buffernum, 16);
-            strcat(buffer, buffernum);
-
-            strcat(buffer, " Class: 0x");
-            itoa(((PCIHeader0*)Header)->Header.Class, buffernum, 16);
-            strcat(buffer, buffernum);
-            
-            strcat(buffer, " Subclass: 0x");
-            itoa(((PCIHeader0*)Header)->Header.Subclass, buffernum, 16);
-            strcat(buffer, buffernum);
-
-            strcat(buffer, " ProgIF: 0x");
-            itoa(((PCIHeader0*)Header)->Header.ProgIF, buffernum, 16);
-            strcat(buffer, buffernum);
-
-            strcat(buffer, " Bar0: 0x");
-            itoa(((PCIHeader0*)Header)->BAR[0], buffernum, 16);
-            strcat(buffer, buffernum);
-
-            Printlog(buffer);
             break;
         case 0x1:
             /* TODO */
