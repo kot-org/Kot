@@ -4,14 +4,7 @@ thread_t UISDHandlerThread;
 
 controller_info_t** UISDControllers;
 
-size64_t ControllerTypeSize[ControllerCount] = {
-    sizeof(graphics_t),
-    sizeof(audio_t),
-    sizeof(storage_t),
-    sizeof(vfs_t),
-    sizeof(usb_t),
-    sizeof(pci_t)
-};
+extern size64_t ControllerTypeSize[ControllerCount];
 
 thread_t UISDInitialize(process_t* process) {
     thread_t UISDthreadKey;

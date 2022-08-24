@@ -44,14 +44,14 @@ struct memoryInfo_t{
 #define KERNEL_INFO_SIZE 0x5
 
 struct KernelInfo {
-    uint64_t revision;
-    uint64_t architecture;
+    uint64_t Revision;
+    uint64_t Architecture;
 
-    struct framebuffer_t framebuffer;
-    struct ramfs_t ramfs;
-    struct memoryInfo_t* memoryInfo;
-    uintptr_t smbios;
-    uintptr_t rsdp;
+    struct framebuffer_t Framebuffer;
+    struct ramfs_t Ramfs;
+    struct memoryInfo_t* MemoryInfo;
+    uintptr_t Smbios;
+    uintptr_t Rsdp;
 
     uint64_t ProcessorCount;
 

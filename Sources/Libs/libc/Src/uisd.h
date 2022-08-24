@@ -16,16 +16,18 @@
 extern "C" {
 #endif
 
-#define ControllerCount 0x5 + 1
+#define ControllerCount 0x7 + 1
 
 enum ControllerTypeEnum{
-    ControllerTypeEnum_Graphics     = 0,
-    ControllerTypeEnum_Audio        = 1,
-    ControllerTypeEnum_Storage      = 2,
-    ControllerTypeEnum_VFS          = 3,
-    ControllerTypeEnum_USB          = 4,
-    ControllerTypeEnum_PCI          = 5,
-    ControllerTypeEnum_Other        = 255
+    ControllerTypeEnum_Test         = 0x0,
+    ControllerTypeEnum_System       = 0x1,
+    ControllerTypeEnum_Graphics     = 0x2,
+    ControllerTypeEnum_Audio        = 0x3,
+    ControllerTypeEnum_Storage      = 0x4,
+    ControllerTypeEnum_VFS          = 0x5,
+    ControllerTypeEnum_USB          = 0x6,
+    ControllerTypeEnum_PCI          = 0x7,
+    ControllerTypeEnum_Other        = 0xff
 };
 
 
@@ -37,7 +39,7 @@ typedef struct {
 } uisd_controller_t;
 
 typedef struct {
-    uisd_controller_t ControllerHeader;
+    uisd_controller_t ControllerHeader; 
     /* TODO */
 } uisd_system_t;
 
@@ -88,6 +90,11 @@ typedef struct {
     thread_t PCISearcherGetDevice;
     thread_t PCISearcher;
 } uisd_pci_t;
+
+typedef struct {
+    uisd_controller_t ControllerHeader;
+    thread_t GetMemory;
+} uisd_test_t;
 
 typedef struct {
     thread_t Self;

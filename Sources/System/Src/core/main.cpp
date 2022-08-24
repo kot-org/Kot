@@ -15,13 +15,13 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
     thread_t self;
     Sys_GetthreadKey(&self);
 
-    ramfs::Parse(kernelInfo->ramfs.address, kernelInfo->ramfs.size);
+    ramfs::Parse(kernelInfo->Ramfs.address, kernelInfo->Ramfs.size);
 
     // load IPC
     KotSpecificData.UISDHandler = UISDInitialize(&KotSpecificData.UISDHandlerProcess);
 
     // load server
-    InitializeSrv();
+    // InitializeSrv();
 
     // load starter file
     ramfs::File* StarterFile = ramfs::Find("Starter.json");
