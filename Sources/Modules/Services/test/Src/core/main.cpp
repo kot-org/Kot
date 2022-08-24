@@ -36,10 +36,7 @@ extern "C" int main(int argc, char* argv[]){
     TestSrv->ControllerHeader.VendorID = Kot_VendorID;
     TestSrv->ControllerHeader.Type = ControllerTypeEnum_Test;
 
-    uint64_t UISDKeyFlags = NULL;
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypethreadIsExecutableWithQueue, true);
-    Sys_Keyhole_CloneModify(GetMemoryThread, &TestSrv->GetMemory, NULL, UISDKeyFlags, PriviledgeApp);
+    TestSrv->GetMemory = MakeThreadShareable(GetMemoryThread, PriviledgeApp);
 
     CreateControllerUISD(ControllerTypeEnum_Test, key, true);
 
