@@ -11,7 +11,7 @@ void initBuffers(bootbuffer_t* fb) {
     screen->fb_size = fb->framebuffer_pitch * fb->framebuffer_height;
 
     uint64_t virtualAddress = (uint64_t) KotSpecificData.FreeMemorySpace - screen->fb_size;
-    SYS_Map(self, &virtualAddress, AllocationTypePhysical, (uintptr_t *) &fb->framebuffer_addr, &screen->fb_size, false);
+    SYS_Map(self, &virtualAddress, AllocationTypePhysical, (uintptr_t*) &fb->framebuffer_addr, &screen->fb_size, false);
 
     screen->fb_addr = virtualAddress;
     screen->width = fb->framebuffer_width;
@@ -100,14 +100,40 @@ void drawLotLogo() {
 
 }
 
+thread_t CreateWindowThread = NULL;
+
+/**
+ * Return WindowID
+ **/
+void CreateWindow(uint64_t width, uint64_t height) {
+    /* TODO */
+    SYS_Close(NULL);
+}
+
+void initUISD() {
+    Sys_Createthread(self, (uintptr_t) &CreateWindow, PriviledgeApp, NULL, &CreateWindowThread);
+    uintptr_t address = getFreeAlignedSpace(sizeof(uisd_graphics_t));
+    ksmem_t key = NULL;
+    Sys_CreateMemoryField(self, sizeof(uisd_graphics_t), &address, &key, MemoryFieldTypeShareSpaceRO);
+    uisd_graphics_t* OrbSrv = (uisd_graphics_t*) address;
+    OrbSrv->ControllerHeader.IsReadWrite = false;
+    OrbSrv->ControllerHeader.Version = Orb_Srv_Version;
+    OrbSrv->ControllerHeader.VendorID = Kot_VendorID;
+    OrbSrv->ControllerHeader.Type = ControllerTypeEnum_Graphics;
+    OrbSrv->CreateWindow = MakeThreadShareable(CreateWindowThread, PriviledgeApp);
+    CreateControllerUISD(ControllerTypeEnum_Graphics, key, true);
+}
+
 extern "C" int main() {
     
     Sys_GetProcessKey(&self);
 
-    // initBuffers(fb);
+    // initBuffers(bootbuffer);
     // initWindowRender();
 
     // drawLotLogo();
+
+    //initUISD();
 
     Printlog("[ORB] Service initialized successfully");
 

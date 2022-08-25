@@ -3,10 +3,14 @@
 #include <kot/math.h>
 #include <kot/sys.h>
 #include <kot/heap.h>
+#include <kot/uisd.h>
+#include <kot/utils.h>
 #include <kot/atomic.h>
 
 #include <graphics/context.h>
 #include <window/window.h>
+
+#define Orb_Srv_Version 0x1
 
 typedef struct {
     uint64_t identifier;

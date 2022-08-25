@@ -5,4 +5,4 @@
 #include <kot/utils.h>
 #include <kot/cstring.h>
 
-#define Test_Srv_Version 0x1
+#include <kot++/orb.h>
