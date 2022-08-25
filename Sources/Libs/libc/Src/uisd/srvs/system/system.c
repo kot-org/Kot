@@ -22,6 +22,7 @@ void Srv_System_Callback(KResult Statu, struct srv_system_callback_t* Callback, 
     if(Callback->IsAwait){
         Sys_Unpause(Callback->Self);
     }
+    Sys_Close(KSUCCESS);
 }
 
 KResult Srv_System_GetFrameBufer_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
@@ -42,11 +43,12 @@ struct srv_system_callback_t* Srv_System_GetFrameBufer(srv_system_framebuffer_t*
     callback->Data = framebuffer;
     callback->IsAwait = IsAwait;
     callback->Statu = KBUSY;
-    callback->Handler = Srv_System_GetFrameBufer_Callback;
+    callback->Handler = &Srv_System_GetFrameBufer_Callback;
 
     struct arguments_t parameters;
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
+    
 
     Sys_Execthread(SystemData->GetFramebuffer, &parameters, ExecutionTypeQueu, NULL);
     if(IsAwait){

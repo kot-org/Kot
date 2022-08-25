@@ -18,7 +18,7 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
     thread_t GetFrameBufferThread = NULL;
     Sys_Createthread(proc, (uintptr_t)&GetFrameBuffer, PriviledgeApp, &GetFrameBufferThread);
     SystemSrv->GetFramebuffer = MakeShareableThread(GetFrameBufferThread, PriviledgeService);
-    
+
     /* Setup data */
     SrvInfo = (SrvInfo_t*)malloc(sizeof(SrvInfo_t));
 
@@ -36,7 +36,7 @@ KResult GetFrameBuffer(thread_t Callback, uint64_t CallbackArg){
     ShareDataWithArguments_t data{
         .Data = SrvInfo->Framebuffer,
         .Size = sizeof(srv_system_framebuffer_t),
-        .ParameterPosition = 0x3, 
+        .ParameterPosition = 0x2, 
     };
 
     arguments_t arguments{
