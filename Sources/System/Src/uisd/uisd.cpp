@@ -65,7 +65,7 @@ void UISDAcceptAll(enum ControllerTypeEnum Controller){
     }
 }
 
-KResult UISDCreate(enum ControllerTypeEnum Controller, thread_t Callback, uint64_t Callbackarg, ksmem_t DataKey) {
+KResult UISDCreate(enum ControllerTypeEnum Controller, thread_t Callback, uint64_t Callbackarg, ksmem_t DataKey){
     KResult Statu = KFAIL;
     if(UISDControllers[Controller] == NULL || (UISDControllers[Controller] != NULL && !UISDControllers[Controller]->IsLoad)){
         enum MemoryFieldType Type;
@@ -83,7 +83,7 @@ KResult UISDCreate(enum ControllerTypeEnum Controller, thread_t Callback, uint64
                     }
                     UISDControllers[Controller]->DataKey = DataKey;
                     UISDControllers[Controller]->Data = getFreeAlignedSpace(Size);
-                    if(Sys_AcceptMemoryField(proc, DataKey, (uintptr_t*)&UISDControllers[Controller])){
+                    if(Sys_AcceptMemoryField(proc, DataKey, (uintptr_t*)&UISDControllers[Controller]->Data)){
                         UISDControllers[Controller]->IsLoad = true;
                         UISDAcceptAll(Controller);
                         Statu = KSUCCESS;
@@ -95,7 +95,7 @@ KResult UISDCreate(enum ControllerTypeEnum Controller, thread_t Callback, uint64
     return UISDCallbackStatu(UISDCreateTask, Callback, Callbackarg, Statu);
 }
 
-KResult UISDGet(enum ControllerTypeEnum Controller, thread_t Callback, uint64_t Callbackarg, process_t Self, uintptr_t Address) {
+KResult UISDGet(enum ControllerTypeEnum Controller, thread_t Callback, uint64_t Callbackarg, process_t Self, uintptr_t Address){
     process_t Target = NULL;
     uint64_t Flags = NULL;
     uint64_t Priviledge = NULL;

@@ -10,7 +10,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
 
     Printlog("[System] Initialization ...");
 
-    Sys_GetthreadKey(&proc);
+    Sys_GetProcessKey(&proc);
 
     thread_t self;
     Sys_GetthreadKey(&self);
@@ -21,7 +21,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
     KotSpecificData.UISDHandler = UISDInitialize(&KotSpecificData.UISDHandlerProcess);
 
     // load IPC server
-    // InitializeSrv();
+    InitializeSrv();
 
     // load starter file
     ramfs::File* StarterFile = ramfs::Find("Starter.json");
