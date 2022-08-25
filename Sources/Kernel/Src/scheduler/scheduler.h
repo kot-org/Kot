@@ -87,16 +87,22 @@ struct kprocess_t{
     uint64_t LockLimit;
     key_t ProcessKey;
 
-    /* parent */
+    /* Parent */
     Node* NodeParent;
     TaskManager* TaskManagerParent;
 
-    /* external data */
-    uint64_t externalData;
+    /* Process Creator Info */
+    uint64_t PID_PCI;
+    uint64_t TID_PCI;
+    uint64_t ExternalData_PCI;
+    uint64_t Priviledge_PCI;
 
-    kthread_t* Createthread(uintptr_t entryPoint, uint64_t externalData);
-    kthread_t* Createthread(uintptr_t entryPoint, enum Priviledge priviledge, uint64_t externalData);
-    kthread_t* Duplicatethread(kthread_t* source, uint64_t externalData);
+    /* External data */
+    uint64_t ExternalData;
+
+    kthread_t* Createthread(uintptr_t entryPoint);
+    kthread_t* Createthread(uintptr_t entryPoint, enum Priviledge priviledge);
+    kthread_t* Duplicatethread(kthread_t* source);
 }__attribute__((packed));  
 
 struct kthread_t{
@@ -148,9 +154,6 @@ struct kthread_t{
     kthread_t* Last;
     kthread_t* Next;
 
-    /* external data */
-    uint64_t externalData;
-
     void SaveContext(struct ContextStack* Registers, uint64_t CoreID);
     void SaveContext(struct ContextStack* Registers);
     void CreateContext(struct ContextStack* Registers, uint64_t CoreID);
@@ -188,9 +191,9 @@ class TaskManager{
 
         // threads
         kthread_t* GetTread_WL();
-        uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint64_t externalData);
-        uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint8_t privilege, uint64_t externalData);
-        uint64_t Duplicatethread(kthread_t** self, kprocess_t* proc, kthread_t* source, uint64_t externalData);
+        uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint);
+        uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint8_t privilege);
+        uint64_t Duplicatethread(kthread_t** self, kprocess_t* proc, kthread_t* source);
         KResult Execthread(kthread_t* Caller, kthread_t* Self, enum ExecutionType Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers);
         uint64_t Unpause(kthread_t* task); 
         uint64_t Unpause_WL(kthread_t* task); 
@@ -198,6 +201,7 @@ class TaskManager{
         uint64_t ShareDataUsingStackSpace(kthread_t* self, uintptr_t data, size64_t size, uintptr_t* location);
         // process
         uint64_t CreateProcess(kprocess_t** key, enum Priviledge priviledge, uint64_t externalData);
+        uint64_t CreateProcess(kthread_t* caller, kprocess_t** key, enum Priviledge priviledge, uint64_t externalData);
 
         void CreateIddleTask();   
 

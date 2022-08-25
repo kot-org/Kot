@@ -39,12 +39,19 @@ struct SelfData{
     uint64_t PID;
     uint64_t TID;
     uint64_t ExternalData;
+    uint64_t Priviledge; /* Thread priviledge */
+
+    /* Process Creator Info */
+    uint64_t PID_PCI;
+    uint64_t TID_PCI;
+    uint64_t ExternalData_PCI;
+    uint64_t Priviledge_PCI; /* Thread priviledge */
 
     /* Thread Launcher Info */
     uint64_t PID_TLI;
     uint64_t TID_TLI;
     uint64_t ExternalData_TLI;
-    uint64_t ProcessExternalData_TLI;
+    uint64_t Priviledge_TLI; /* Thread priviledge */
 }__attribute__((packed));
 
 enum DataType{
@@ -114,8 +121,8 @@ KResult Sys_Event_Bind(kevent_t self, thread_t task, uint8_t vector, bool Ignore
 KResult Sys_Event_Unbind(kevent_t self, thread_t task, uint8_t vector);
 KResult Sys_Event_Trigger(kevent_t self, struct arguments_t* parameters);
 KResult Sys_Event_Close();
-KResult Sys_Createthread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t data, thread_t* result);
-KResult Sys_Duplicatethread(process_t parent, thread_t source, uint64_t data, thread_t* self);
+KResult Sys_Createthread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, thread_t* result);
+KResult Sys_Duplicatethread(process_t parent, thread_t source, thread_t* self);
 KResult Sys_Execthread(thread_t self, struct arguments_t* parameters, enum ExecutionType type, struct ShareDataWithArguments_t* data);
 KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, process_t target, uint64_t flags, enum Priviledge privilidge);
 KResult Sys_Keyhole_Verify(key_t self, enum DataType type, process_t* target, uint64_t* flags, uint64_t* priviledge);
@@ -124,7 +131,20 @@ KResult Sys_Logs(char* message, size64_t size);
 
 KResult Sys_GetthreadKey(thread_t* self);
 KResult Sys_GetProcessKey(process_t* self);
+KResult Sys_GetPID(uint64_t* PID);
+KResult Sys_GetTID(uint64_t* TID);
+KResult Sys_GetExternalData(uint64_t* ExternalData);
+KResult Sys_GetPriviledge(uint64_t* Priviledge);
 
+KResult Sys_GetPIDCreator(uint64_t* PID);
+KResult Sys_GetTIDCreator(uint64_t* TID);
+KResult Sys_GetExternalDataCreator(uint64_t* ExternalData);
+KResult Sys_GetPriviledgeCreator(uint64_t* Priviledge);
+
+KResult Sys_GetPIDLauncher(uint64_t* PID);
+KResult Sys_GetTIDLauncher(uint64_t* TID);
+KResult Sys_GetExternalDataLauncher(uint64_t* ExternalData);
+KResult Sys_GetEPriviledgeLauncher(uint64_t* Priviledge);
 
 KResult Printlog(char* message);
 

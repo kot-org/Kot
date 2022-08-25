@@ -361,8 +361,8 @@ KResult Sys_CreateThread(SyscallStack* Registers, kthread_t* thread){
     kthread_t* threadData;
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeProcessIsthreadCreateable)) return KKEYVIOLATION;
-    if(globalTaskManager->Createthread(&threadData, processkey, (uintptr_t)Registers->arg1, Registers->arg2, Registers->arg3) != KSUCCESS) return KFAIL;
-    return Keyhole_Create((key_t*)Registers->arg4, thread->Parent, thread->Parent, DataTypethread, (uint64_t)threadData, KeyholeFlagFullPermissions, PriviledgeApp);
+    if(globalTaskManager->Createthread(&threadData, processkey, (uintptr_t)Registers->arg1, Registers->arg2) != KSUCCESS) return KFAIL;
+    return Keyhole_Create((key_t*)Registers->arg3, thread->Parent, thread->Parent, DataTypethread, (uint64_t)threadData, KeyholeFlagFullPermissions, PriviledgeApp);
 }
 
 /* Sys_Duplicatethread :
@@ -376,8 +376,8 @@ KResult Sys_DuplicateThread(SyscallStack* Registers, kthread_t* thread){
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeProcessIsthreadCreateable)) return KKEYVIOLATION;
     if(Keyhole_Get(thread, (key_t)Registers->arg1, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsDuplicable)) return KKEYVIOLATION;
-    if(globalTaskManager->Duplicatethread(&thread, processkey, threadkey, Registers->arg2) != KSUCCESS) return KFAIL;     
-    return Keyhole_Create((key_t*)Registers->arg3, thread->Parent, thread->Parent, DataTypethread, (uint64_t)thread, KeyholeFlagFullPermissions, PriviledgeApp);
+    if(globalTaskManager->Duplicatethread(&thread, processkey, threadkey) != KSUCCESS) return KFAIL;     
+    return Keyhole_Create((key_t*)Registers->arg2, thread->Parent, thread->Parent, DataTypethread, (uint64_t)thread, KeyholeFlagFullPermissions, PriviledgeApp);
 }
 
 /* Sys_Execthread :

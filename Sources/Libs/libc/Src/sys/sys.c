@@ -70,12 +70,12 @@ KResult Sys_Event_Close(){
     return Syscall_0(KSys_Event_Close);
 }
 
-KResult Sys_Createthread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t data, thread_t* result){
-    return Syscall_40(KSys_CreateThread, self, entryPoint, privilege, data, result);
+KResult Sys_Createthread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, thread_t* result){
+    return Syscall_32(KSys_CreateThread, self, entryPoint, privilege, result);
 }
 
-KResult Sys_Duplicatethread(process_t parent, thread_t source, uint64_t data, thread_t* self){
-    return Syscall_32(KSys_DuplicateThread, parent, source, data, self);
+KResult Sys_Duplicatethread(process_t parent, thread_t source, thread_t* self){
+    return Syscall_24(KSys_DuplicateThread, parent, source, self);
 }
 
 KResult Sys_Execthread(thread_t self, struct arguments_t* parameters, enum ExecutionType type, struct ShareDataWithArguments_t* data){
@@ -97,19 +97,88 @@ KResult Sys_Logs(char* message, size64_t size){
 
 KResult Sys_GetthreadKey(thread_t* self){
     /* Get Self Data */
-    thread_t key;
-    asm("mov %%gs:0, %0":"=r"(key));
-    *self = key; 
+    asm("mov %%gs:0x0, %0":"=r"(*self));
     return KSUCCESS;
 }
 
 KResult Sys_GetProcessKey(process_t* self){
     /* Get Self Data */
-    process_t key;
-    asm("mov %%gs:8, %0":"=r"(key));
-    *self = key; 
+    asm("mov %%gs:0x8, %0":"=r"(*self));
     return KSUCCESS;
 }
+
+KResult Sys_GetPID(uint64_t* PID){
+    /* Get Self Data */
+    asm("mov %%gs:0x10, %0":"=r"(*PID));
+    return KSUCCESS;
+}
+
+KResult Sys_GetTID(uint64_t* TID){
+    /* Get Self Data */
+    asm("mov %%gs:0x18, %0":"=r"(*TID));
+    return KSUCCESS;
+}
+
+KResult Sys_GetExternalData(uint64_t* ExternalData){
+    /* Get Self Data */
+    asm("mov %%gs:0x18, %0":"=r"(*ExternalData));
+    return KSUCCESS;
+}
+
+KResult Sys_GetPriviledge(uint64_t* Priviledge){
+    /* Get Self Data */
+    asm("mov %%gs:0x20, %0":"=r"(*Priviledge));
+    return KSUCCESS;
+}
+
+KResult Sys_GetPIDCreator(uint64_t* PID){
+    /* Get Self Data */
+    asm("mov %%gs:0x28, %0":"=r"(*PID));
+    return KSUCCESS;
+}
+
+KResult Sys_GetTIDCreator(uint64_t* TID){
+    /* Get Self Data */
+    asm("mov %%gs:0x30, %0":"=r"(*TID));
+    return KSUCCESS;
+}
+
+KResult Sys_GetExternalDataCreator(uint64_t* ExternalData){
+    /* Get Self Data */
+    asm("mov %%gs:0x38, %0":"=r"(*ExternalData));
+    return KSUCCESS;
+}
+
+KResult Sys_GetPriviledgeCreator(uint64_t* Priviledge){
+    /* Get Self Data */
+    asm("mov %%gs:0x40, %0":"=r"(*Priviledge));
+    return KSUCCESS;
+}
+
+KResult Sys_GetPIDLauncher(uint64_t* PID){
+    /* Get Self Data */
+    asm("mov %%gs:0x48, %0":"=r"(*PID));
+    return KSUCCESS;
+}
+
+KResult Sys_GetTIDLauncher(uint64_t* TID){
+    /* Get Self Data */
+    asm("mov %%gs:0x50, %0":"=r"(*TID));
+    return KSUCCESS;
+}
+
+KResult Sys_GetExternalDataLauncher(uint64_t* ExternalData){
+    /* Get Self Data */
+    asm("mov %%gs:0x58, %0":"=r"(*ExternalData));
+    return KSUCCESS;
+}
+
+KResult Sys_GetEPriviledgeLauncher(uint64_t* Priviledge){
+    /* Get Self Data */
+    asm("mov %%gs:0x60, %0":"=r"(*Priviledge));
+    return KSUCCESS;
+}
+
 
 KResult Printlog(char* message){
     return Sys_Logs(message, strlen(message));
