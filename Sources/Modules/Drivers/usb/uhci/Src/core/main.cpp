@@ -1,11 +1,11 @@
 #include <core/main.h>
 
 extern "C" int main(int argc, char* argv[]) {
-    Printlog("[UHCI] Initialization ...");
+    Printlog("[USB/UHCI] Initialization ...");
 
     
 
-    Printlog("[UHCI] Driver initialized successfully");
+    Printlog("[USB/UHCI] Driver initialized successfully");
 
     return KSUCCESS;
 }

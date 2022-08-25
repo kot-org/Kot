@@ -14,7 +14,7 @@ void playSound(uint32_t freq) {
     if(tmp != (tmp | 3))
         IoWrite8(PIT_PCS_OUTPUT, tmp | 3);
 
-    Printlog("[PCSPK] Beep!");
+    Printlog("[SOUND/PCSPK] Beep!");
 }
 
 void stopSound() {
@@ -26,11 +26,11 @@ void playMusic() {
 }
 
 extern "C" int main(int argc, char* argv[]) {
-    Printlog("[PCSPK] Initialization ...");
+    Printlog("[SOUND/PCSPK] Initialization ...");
 
     // playSound(1000);
 
-    Printlog("[PCSPK] Driver initialized successfully");
+    Printlog("[SOUND/PCSPK] Driver initialized successfully");
 
     return KSUCCESS;
 }
