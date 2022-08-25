@@ -120,7 +120,7 @@ void initUISD() {
     OrbSrv->ControllerHeader.Version = Orb_Srv_Version;
     OrbSrv->ControllerHeader.VendorID = Kot_VendorID;
     OrbSrv->ControllerHeader.Type = ControllerTypeEnum_Graphics;
-    OrbSrv->CreateWindow = MakeThreadShareable(CreateWindowThread, PriviledgeApp);
+    OrbSrv->CreateWindow = MakeShareableThread(CreateWindowThread, PriviledgeApp);
     CreateControllerUISD(ControllerTypeEnum_Graphics, key, true);
 }
 

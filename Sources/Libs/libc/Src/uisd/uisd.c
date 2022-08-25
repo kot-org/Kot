@@ -110,7 +110,7 @@ uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ks
 
 /* Useful functions */
 
-thread_t MakeThreadShareable(thread_t Thread, enum Priviledge priviledgeRequired){
+thread_t MakeShareableThread(thread_t Thread, enum Priviledge priviledgeRequired){
     thread_t ReturnValue;
     uint64_t UISDKeyFlags = NULL;
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
@@ -126,7 +126,8 @@ uintptr_t GetControllerLocationUISD(enum ControllerTypeEnum Controller){
 uintptr_t FindControllerUISD(enum ControllerTypeEnum Controller){
     uintptr_t ControllerData = GetControllerLocationUISD(Controller);
     if(!ControllerData){
-
+        ControllerData = getFreeAlignedSpace(ControllerTypeSize[Controller]);
+        GetControllerUISD(Controller, &ControllerData, true);
     }
     return ControllerData;
 }

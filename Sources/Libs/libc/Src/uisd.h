@@ -101,7 +101,9 @@ typedef struct {
 uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t* Location, bool AwaitCallback);
 uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ksmem_t MemoryField, bool AwaitCallback);
 
-thread_t MakeThreadShareable(thread_t Thread, enum Priviledge priviledgeRequired);
+thread_t MakeShareableThread(thread_t Thread, enum Priviledge priviledgeRequired);
+uintptr_t GetControllerLocationUISD(enum ControllerTypeEnum Controller);
+uintptr_t FindControllerUISD(enum ControllerTypeEnum Controller);
 
 #if defined(__cplusplus)
 }

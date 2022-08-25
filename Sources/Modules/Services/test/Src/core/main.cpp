@@ -36,7 +36,7 @@ extern "C" int main(int argc, char* argv[]){
     TestSrv->ControllerHeader.VendorID = Kot_VendorID;
     TestSrv->ControllerHeader.Type = ControllerTypeEnum_Test;
 
-    TestSrv->GetMemory = MakeThreadShareable(GetMemoryThread, PriviledgeApp);
+    TestSrv->GetMemory = MakeShareableThread(GetMemoryThread, PriviledgeApp);
 
     CreateControllerUISD(ControllerTypeEnum_Test, key, true);
 
