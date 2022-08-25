@@ -1,5 +1,7 @@
 #include <kot/uisd.h>
 
+uintptr_t ControllerList[ControllerCount];
+
 size64_t ControllerTypeSize[ControllerCount] = {
     sizeof(uisd_system_t),
     sizeof(uisd_graphics_t),
@@ -32,16 +34,22 @@ KResult InitializeUISD(){
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeProcessMemoryAccessible, true);
     Sys_Keyhole_CloneModify(Proc, &ProcessKeyForUISD, KotSpecificData.UISDHandlerProcess, UISDKeyFlags, PriviledgeApp);
+    
+    meset(&ControllerList, NULL, ControllerCount * sizeof(uinptr_t));
+    
     return KSUCCESS;
 }
 
 KResult CallbackUISD(uint64_t Task, KResult Statu, uisd_callbackInfo_t* Info, uint64_t GP0, uint64_t GP1){
-    if(Task == UISDGetTask) Info->Location = (uintptr_t)GP0;
+    if(Task == UISDGetTask){
+        ControllerList[Info->Controller] = (uintptr_t)GP0;
+        Info->Location = (uintptr_t)GP0;
+    } 
     Info->Statu = Statu;
     if(Info->AwaitCallback){
-        SYS_Unpause(Info->Self);
+        Sys_Unpause(Info->Self);
     }
-    SYS_Close(KSUCCESS);
+    Sys_Close(KSUCCESS);
 }
 
 uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t* Location, bool AwaitCallback){
@@ -50,6 +58,7 @@ uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintp
     Sys_GetthreadKey(&Self);
     uisd_callbackInfo_t* Info = (uisd_callbackInfo_t*)malloc(sizeof(uisd_callbackInfo_t));
     Info->Self = Self;
+    Info->Controller = Controller;
     Info->AwaitCallback = AwaitCallback;
     Info->Location = NULL;
     Info->Statu = KFAIL;
@@ -63,7 +72,7 @@ uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintp
     parameters.arg[5] = (uint64_t)*Location;
     Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
     if(AwaitCallback){
-        SYS_Pause(false);
+        Sys_Pause(false);
         *Location = Info->Location;
         return Info;
     }
@@ -76,6 +85,7 @@ uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ks
     Sys_GetthreadKey(&Self);
     uisd_callbackInfo_t* Info = malloc(sizeof(uisd_callbackInfo_t));
     Info->Self = Self;
+    Info->Controller = Controller;
     Info->AwaitCallback = AwaitCallback;
     Info->Statu = KFAIL;
 
@@ -92,7 +102,7 @@ uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ks
     parameters.arg[4] = MemoryFieldKey;
     Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
     if(AwaitCallback){
-        SYS_Pause(false);
+        Sys_Pause(false);
         return Info;
     }
     return Info;
@@ -109,4 +119,15 @@ thread_t MakeThreadShareable(thread_t Thread, enum Priviledge priviledgeRequired
     return ReturnValue;
 }
 
+uinptr_t GetControllerLocationUISD(enum ControllerTypeEnum Controller){
+    return ControllerList[Controller];
+}
+
+uinptr_t FindControllerUISD(enum ControllerTypeEnum Controller){
+    uinptr_t ControllerData = GetControllerLocationUISD(Controller);
+    if(!ControllerData){
+        
+    }
+    return ControllerData;
+}
 

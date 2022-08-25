@@ -21,7 +21,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
     KotSpecificData.UISDHandler = UISDInitialize(&KotSpecificData.UISDHandlerProcess);
 
     // load IPC server
-    InitializeSrv();
+    InitializeSrv(kernelInfo);
 
     // load starter file
     ramfs::File* StarterFile = ramfs::Find("Starter.json");

@@ -132,11 +132,11 @@ KResult PortsInitalize(){
 
     uint8_t status = PS2ConfigurationGet();
 
-    status = WriteBit(status, 0, PS2Ports[0].IsPresent);
-    status = WriteBit(status, 4, !PS2Ports[0].IsPresent); 
-
-    status = WriteBit(status, 1, PS2Ports[1].IsPresent);
-    status = WriteBit(status, 5, !PS2Ports[1].IsPresent); 
+    BIT_SETV(status, 0, PS2Ports[0].IsPresent);
+    BIT_SETV(status, 4, !PS2Ports[0].IsPresent);
+    
+    BIT_SETV(status, 1, PS2Ports[1].IsPresent);
+    BIT_SETV(status, 5, !PS2Ports[1].IsPresent);
     PS2ConfigurationSet(status); 
 
     return KSUCCESS;

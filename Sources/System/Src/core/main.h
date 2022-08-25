@@ -11,7 +11,7 @@
 #include <ramfs/ramfs.h>
 #include <srv/srv.h>
 
-struct framebuffer_t {
+struct bootframebuffer_t {
     uint64_t identifier;
     uint64_t NAME;
     uint64_t framebuffer_addr;
@@ -27,7 +27,7 @@ struct framebuffer_t {
     uint8_t  blue_mask_size;
     uint8_t  blue_mask_shift;
     uint8_t  unused;
-};
+}__attribute__((packed));
 
 struct ramfs_t {
 	uintptr_t address;
@@ -47,7 +47,7 @@ struct KernelInfo {
     uint64_t Revision;
     uint64_t Architecture;
 
-    struct framebuffer_t Framebuffer;
+    struct bootframebuffer_t Framebuffer;
     struct ramfs_t Ramfs;
     struct memoryInfo_t* MemoryInfo;
     uintptr_t Smbios;

@@ -110,11 +110,11 @@ KResult Sys_GetInfoMemoryField(ksmem_t key, uint64_t* typePointer, size64_t* siz
 KResult Sys_CreateProc(process_t* key, enum Priviledge privilege, uint64_t data);
 KResult Sys_Fork(process_t* src, process_t* dst);
 KResult Sys_CloseProc();
-KResult SYS_Close(uint64_t errorCode);
-KResult SYS_Exit(uint64_t errorCode);
-KResult SYS_Pause(bool force);
-KResult SYS_Unpause(thread_t self);
-KResult SYS_Map(process_t self, uint64_t* addressVirtual, enum AllocationType type, uintptr_t* addressPhysical, size64_t* size, bool findFree);
+KResult Sys_Close(uint64_t errorCode);
+KResult Sys_Exit(uint64_t errorCode);
+KResult Sys_Pause(bool force);
+KResult Sys_Unpause(thread_t self);
+KResult Sys_Map(process_t self, uint64_t* addressVirtual, enum AllocationType type, uintptr_t* addressPhysical, size64_t* size, bool findFree);
 KResult SYS_Unmap(process_t self, uintptr_t addressVirtual, size64_t size);
 KResult Sys_Event_Create(kevent_t* self);
 KResult Sys_Event_Bind(kevent_t self, thread_t task, uint8_t vector, bool IgnoreMissedEvents);

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <kot/sys.h>
-#include <kot/utils.h>
+#include <kot/bits.h>
 #include <kot/cstring.h>
 #include <mouse/mouse.h>
 #include <keyboard/keyboard.h>

@@ -26,27 +26,27 @@ KResult Sys_CloseProc(){
     return Syscall_0(KSys_CloseProc);
 }
 
-KResult SYS_Close(uint64_t errorCode){
+KResult Sys_Close(uint64_t errorCode){
     return Syscall_8(KSys_Close, errorCode);
 }
 
-KResult SYS_Exit(uint64_t errorCode){
+KResult Sys_Exit(uint64_t errorCode){
     return Syscall_8(KSys_Exit, errorCode);
 }
 
-KResult SYS_Pause(bool force){
+KResult Sys_Pause(bool force){
     return Syscall_8(KSys_Pause, force);
 }
 
-KResult SYS_Unpause(thread_t self){
+KResult Sys_Unpause(thread_t self){
     return Syscall_8(KSys_UnPause, self);
 }
 
-KResult SYS_Map(process_t self, uint64_t* addressVirtual, enum AllocationType type, uintptr_t* addressPhysical, size64_t* size, bool findFree){
+KResult Sys_Map(process_t self, uint64_t* addressVirtual, enum AllocationType type, uintptr_t* addressPhysical, size64_t* size, bool findFree){
     return Syscall_48(KSys_Map, self, addressVirtual, type, addressPhysical, size, findFree);
 }
 
-KResult SYS_Unmap(thread_t self, uintptr_t addressVirtual, size64_t size){
+KResult Sys_Unmap(thread_t self, uintptr_t addressVirtual, size64_t size){
     return Syscall_24(KSys_Unmap, self, addressVirtual, size);
 }
 

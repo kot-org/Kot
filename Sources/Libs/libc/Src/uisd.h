@@ -92,6 +92,7 @@ typedef struct {
 
 typedef struct {
     thread_t Self;
+    uint64_t Controller;
     bool AwaitCallback;
     uintptr_t Location;
     KResult Statu;

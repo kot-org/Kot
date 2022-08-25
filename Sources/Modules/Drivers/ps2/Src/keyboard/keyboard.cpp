@@ -42,7 +42,7 @@ KResult KeyboardHandler(uint8_t data){
 
 KResult KeyboardSetLedState(enum KeyboardLEDS LEDID, bool IsOn){
     atomicAcquire(&KeyboardLock, 0);
-    LedStateSaver = WriteBit(LedStateSaver, LEDID, IsOn);
+    BIT_SETV(LedStateSaver, LEDID, IsOn);
     KeyboardPS2Port->PS2SendDataPort(0xED);
     KeyboardPS2Port->PS2SendDataPort(LedStateSaver);
     atomicUnlock(&KeyboardLock, 0);
