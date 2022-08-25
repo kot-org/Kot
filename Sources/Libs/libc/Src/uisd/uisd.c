@@ -35,7 +35,7 @@ KResult InitializeUISD(){
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeProcessMemoryAccessible, true);
     Sys_Keyhole_CloneModify(Proc, &ProcessKeyForUISD, KotSpecificData.UISDHandlerProcess, UISDKeyFlags, PriviledgeApp);
     
-    meset(&ControllerList, NULL, ControllerCount * sizeof(uinptr_t));
+    memset(&ControllerList, NULL, ControllerCount * sizeof(uintptr_t));
     
     return KSUCCESS;
 }
@@ -119,14 +119,14 @@ thread_t MakeThreadShareable(thread_t Thread, enum Priviledge priviledgeRequired
     return ReturnValue;
 }
 
-uinptr_t GetControllerLocationUISD(enum ControllerTypeEnum Controller){
+uintptr_t GetControllerLocationUISD(enum ControllerTypeEnum Controller){
     return ControllerList[Controller];
 }
 
-uinptr_t FindControllerUISD(enum ControllerTypeEnum Controller){
-    uinptr_t ControllerData = GetControllerLocationUISD(Controller);
+uintptr_t FindControllerUISD(enum ControllerTypeEnum Controller){
+    uintptr_t ControllerData = GetControllerLocationUISD(Controller);
     if(!ControllerData){
-        
+
     }
     return ControllerData;
 }
