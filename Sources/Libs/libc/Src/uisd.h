@@ -34,7 +34,8 @@ typedef struct {
     bool IsReadWrite;
     uint64_t Version;
     uint64_t VendorID;
-    enum ControllerTypeEnum Type; 
+    enum ControllerTypeEnum Type;
+    process_t Process; 
 } uisd_controller_t;
 
 typedef struct {
@@ -102,6 +103,10 @@ uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintp
 uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ksmem_t MemoryField, bool AwaitCallback);
 
 thread_t MakeShareableThread(thread_t Thread, enum Priviledge priviledgeRequired);
+thread_t MakeShareableThreadUISDOnly(thread_t Thread);
+thread_t MakeShareableThreadToProcess(thread_t Thread, process_t Process);
+process_t ShareProcessKey(process_t Process);
+
 uintptr_t GetControllerLocationUISD(enum ControllerTypeEnum Controller);
 uintptr_t FindControllerUISD(enum ControllerTypeEnum Controller);
 

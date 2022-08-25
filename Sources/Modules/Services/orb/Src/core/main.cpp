@@ -5,19 +5,21 @@ process_t self;
 Context* screen_ctx = NULL;
 Context* backbuffer_ctx = NULL;
 
-void initBuffers(bootbuffer_t* fb) {
+void initBuffers() {
+    srv_system_framebuffer_t* bootframebuffer = (srv_system_framebuffer_t*)malloc(sizeof(srv_system_framebuffer_t));
+    Srv_System_GetFrameBufer(bootframebuffer, true);
 
     framebuffer_t* screen = (framebuffer_t*) malloc(sizeof(framebuffer_t));
-    screen->fb_size = fb->framebuffer_pitch * fb->framebuffer_height;
+    screen->fb_size = bootframebuffer->pitch * bootframebuffer->height;
 
     uint64_t virtualAddress = (uint64_t) KotSpecificData.FreeMemorySpace - screen->fb_size;
-    Sys_Map(self, &virtualAddress, AllocationTypePhysical, (uintptr_t*) &fb->framebuffer_addr, &screen->fb_size, false);
+    Sys_Map(self, &virtualAddress, AllocationTypePhysical, (uintptr_t*) &bootframebuffer->address, &screen->fb_size, false);
 
     screen->fb_addr = virtualAddress;
-    screen->width = fb->framebuffer_width;
-    screen->height = fb->framebuffer_height;
-    screen->pitch = fb->framebuffer_pitch;
-    screen->bpp = fb->framebuffer_bpp;
+    screen->width = bootframebuffer->width;
+    screen->height = bootframebuffer->height;
+    screen->pitch = bootframebuffer->pitch;
+    screen->bpp = bootframebuffer->bpp;
     screen->btpp = screen->bpp/8;
 
     screen_ctx = new Context(screen);
@@ -128,10 +130,10 @@ extern "C" int main() {
     
     Sys_GetProcessKey(&self);
 
-    // initBuffers(bootbuffer);
-    // initWindowRender();
+    initBuffers();
+    initWindowRender();
 
-    // drawLotLogo();
+    drawLotLogo();
 
     //initUISD();
 

@@ -6,6 +6,8 @@
 
 void InitializeSrv(struct KernelInfo* kernelInfo);
 
-struct SrvInfo{
+KResult GetFrameBuffer(thread_t Callback, uint64_t CallbackArg);
+
+struct SrvInfo_t{
     srv_system_framebuffer_t* Framebuffer;
 }__attribute__((packed));

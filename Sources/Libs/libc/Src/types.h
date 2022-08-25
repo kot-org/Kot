@@ -42,9 +42,10 @@ typedef uint64_t                    size64_t;
 
 #define KFAIL               0
 #define KSUCCESS            1
-#define KNOTALLOW           2
-#define KKEYVIOLATION       3
-#define KMEMORYVIOLATION    4
+#define KBUSY               2
+#define KNOTALLOW           3
+#define KKEYVIOLATION       4
+#define KMEMORYVIOLATION    5
 
 #if !defined(__cplusplus)
 #define bool uint8_t

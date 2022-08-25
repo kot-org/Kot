@@ -1,6 +1,6 @@
 #include <srv/srv.h>
 
-struct SrvInfo* SrvInfo;
+struct SrvInfo_t* SrvInfo;
 
 void InitializeSrv(struct KernelInfo* kernelInfo){
     uintptr_t address = getFreeAlignedSpace(sizeof(uisd_system_t));
@@ -12,6 +12,22 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
     SystemSrv->ControllerHeader.Version = System_Srv_Version;
     SystemSrv->ControllerHeader.VendorID = Kot_VendorID;
     SystemSrv->ControllerHeader.Type = ControllerTypeEnum_System;
+    SystemSrv->ControllerHeader.Process = ShareProcessKey(proc);
+
+    /* Setup threads */
+    thread_t GetFrameBufferThread = NULL;
+    Sys_Createthread(proc, (uintptr_t)&GetFrameBuffer, PriviledgeApp, &GetFrameBufferThread);
+    SystemSrv->GetFramebuffer = MakeShareableThread(GetFrameBufferThread, PriviledgeService);
+    
+    /* Setup data */
+    SrvInfo = (SrvInfo_t*)malloc(sizeof(SrvInfo_t));
+
+    SrvInfo->Framebuffer = (srv_system_framebuffer_t*)malloc(sizeof(srv_system_framebuffer_t));
+    SrvInfo->Framebuffer->address = kernelInfo->Framebuffer.framebuffer_addr;
+    SrvInfo->Framebuffer->width = kernelInfo->Framebuffer.framebuffer_width;
+    SrvInfo->Framebuffer->height = kernelInfo->Framebuffer.framebuffer_height;
+    SrvInfo->Framebuffer->pitch = kernelInfo->Framebuffer.framebuffer_pitch;
+    SrvInfo->Framebuffer->bpp = kernelInfo->Framebuffer.framebuffer_bpp;
 
     CreateControllerUISD(ControllerTypeEnum_System, key, true);
 }

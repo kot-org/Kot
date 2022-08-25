@@ -6,6 +6,7 @@
 #include <kot/uisd.h>
 #include <kot/utils.h>
 #include <kot/atomic.h>
+#include <kot/uisd/srvs/system.h>
 
 #include <graphics/context.h>
 #include <window/window.h>

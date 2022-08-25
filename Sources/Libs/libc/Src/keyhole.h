@@ -19,7 +19,7 @@
 
 /* DataTypeProcess */
 #define KeyholeFlagDataTypeProcessMemoryAccessible          0x4
-#define KeyholeFlagDataTypeProcessIsthreadCreateable        0x5
+#define KeyholeFlagDataTypeProcessIsThreadCreateable        0x5
 
 /* DataTypeEvent */
 #define KeyholeFlagDataTypethreadIsBindable                0x4
