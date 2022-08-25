@@ -45,6 +45,7 @@ struct ThreadQueu_t{
 
 struct ThreadQueuData_t{
     kthread_t* Task;
+    kthread_t* Caller;
     arguments_t Parameters;
     struct ThreadShareData_t* Data;
     bool IsAwaitTask;

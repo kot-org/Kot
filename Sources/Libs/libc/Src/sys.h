@@ -33,8 +33,18 @@ struct KotSpecificData_t{
 extern struct KotSpecificData_t KotSpecificData;
 
 struct SelfData{
-    process_t threadKey;
+    /* Self Info */
+    process_t ThreadKey;
     process_t ProcessKey;
+    uint64_t PID;
+    uint64_t TID;
+    uint64_t ExternalData;
+
+    /* Thread Launcher Info */
+    uint64_t PID_TLI;
+    uint64_t TID_TLI;
+    uint64_t ExternalData_TLI;
+    uint64_t ProcessExternalData_TLI;
 }__attribute__((packed));
 
 enum DataType{
@@ -74,7 +84,7 @@ enum ExecutionType{
 enum AllocationType{
     AllocationTypeBasic         = 0x0,
     AllocationTypePhysical      = 0x1,
-    AllocationTypeContiguous    = 0x2,
+    AllocationTypePhysicalContiguous    = 0x2,
 };
 
 struct ShareDataWithArguments_t{

@@ -130,9 +130,12 @@ KResult ThreadQueu_t::SetThreadInQueu(kthread_t* Caller, kthread_t* Self, argume
         LastData = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
         CurrentData = LastData;
     }
+
     LastData->IsAwaitTask = IsAwaitTask;
     LastData->Data = NULL;
     LastData->Task = Self;
+    LastData->Caller = Caller;
+
     if(FunctionParameters != NULL){
         memcpy(&LastData->Parameters, FunctionParameters, sizeof(arguments_t));
     }else{
@@ -171,6 +174,12 @@ KResult ThreadQueu_t::ExecuteThreadInQueu_WL(){
             free(CurrentData->Data->Data);
             free(CurrentData->Data);
         }
+
+        CurrentData->Task->threadData->PID_TLI = CurrentData->Caller->Parent->PID;
+        CurrentData->Task->threadData->TID_TLI = CurrentData->Caller->TID;
+        CurrentData->Task->threadData->ExternalData_TLI = CurrentData->Caller->externalData;
+        CurrentData->Task->threadData->ProcessExternalData_TLI = CurrentData->Caller->Parent->externalData;
+        
         CurrentData->Task->Launch_WL(&CurrentData->Parameters);
         return KSUCCESS;
     }else{
@@ -374,20 +383,22 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge privil
     thread->Parent = this;
     thread->Queu = (ThreadQueu_t*)calloc(sizeof(ThreadQueu_t));
 
+    /* Thread Data */
+    uintptr_t threadDataPA = Pmm_RequestPage();
+    thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
+    
+    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypethread, (uint64_t)thread, DefaultFlagsKey, PriviledgeApp);
+    vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
+    
+    thread->threadData->ProcessKey = ProcessKey;
+    thread->threadData->PID = PID;
+    thread->threadData->TID = TID;
+    thread->threadData->ExternalData = externalData;
+
     /* ID */
     thread->TID = TID; 
     TID++;
     NumberOfthread++;
-
-    /* thread data */
-    uintptr_t threadDataPA = Pmm_RequestPage();
-    thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
-
-    thread->threadData->ProcessKey = ProcessKey;
-    Keyhole_Create(&thread->threadData->threadKey, this, this, DataTypethread, (uint64_t)thread, DefaultFlagsKey, PriviledgeApp);
-
-    vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
-
 
     Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 1);
     return thread;
@@ -440,20 +451,23 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source, uint64_t externalData)
     thread->IsClose = true;
     thread->Parent = this;
     thread->Queu = (ThreadQueu_t*)calloc(sizeof(ThreadQueu_t)); 
+
+    /* Thread Data */
+    uintptr_t threadDataPA = Pmm_RequestPage();
+    thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
+    
+    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypethread, (uint64_t)thread, DefaultFlagsKey, PriviledgeApp);
+    vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
+    
+    thread->threadData->ProcessKey = ProcessKey;
+    thread->threadData->PID = PID;
+    thread->threadData->TID = TID;
+    thread->threadData->ExternalData = externalData;
     
     /* ID */
     thread->TID = TID; 
     TID++;
     NumberOfthread++;
-
-    /* thread data */
-    uintptr_t threadDataPA = Pmm_RequestPage();
-    thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
-    
-    thread->threadData->ProcessKey = ProcessKey;
-    Keyhole_Create(&thread->threadData->ProcessKey, this, this, DataTypeProcess, (uint64_t)this, KeyholeFlagFullPermissions, PriviledgeApp);
-
-    vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, source->Regs->cs == GDTInfoSelectorsRing[UserAppRing].Code);
 
     Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 1);
     return thread;

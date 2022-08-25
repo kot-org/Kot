@@ -153,7 +153,7 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* thread){
     pagetable_t pageTable = processkey->SharedPaging;
     
     /* Get arguments */
-    if(Registers->arg2 > AllocationTypeContiguous){
+    if(Registers->arg2 > AllocationTypePhysicalContiguous){
         Registers->arg2 = AllocationTypeBasic;
     }
 
@@ -205,7 +205,7 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* thread){
             }
         }
         
-        if(type == AllocationTypeContiguous){
+        if(type == AllocationTypePhysicalContiguous){
             uintptr_t physicalAddressAllocated = (uintptr_t)Pmm_RequestPages(pageCount);
             if(physicalAddressAllocated != NULL){
                 if(IsPhysicalAddress){
@@ -213,9 +213,13 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* thread){
                     /* write only the first physicall page */
                     IsPhysicalAddress = false; 
                 }
-                uintptr_t virtualAddress = (uintptr_t)(*addressVirtual);
-                vmm_Map(pageTable, virtualAddress, physicalAddressAllocated, true, true, true);
-                vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_Master, true); //set master state
+
+                for(uint64_t i = 0; i < pageCount; i++){
+                    uintptr_t virtualAddress = (uintptr_t)(*addressVirtual + i * PAGE_SIZE);
+                    uintptr_t physicalAddress = (uintptr_t)((uint64_t)physicalAddressAllocated + i * PAGE_SIZE);
+                    vmm_Map(pageTable, virtualAddress, physicalAddress, true, true, true);
+                    vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_Master, true); //set master state
+                }
                 processkey->MemoryAllocated += pageCount * PAGE_SIZE; 
                 *size = pageCount * PAGE_SIZE;
                 return KSUCCESS;               
