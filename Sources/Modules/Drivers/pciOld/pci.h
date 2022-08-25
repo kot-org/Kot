@@ -59,7 +59,7 @@ namespace PCI{
         PCIDeviceHeader* device;
         PCINode* next;
     };
-    
+
     void EnumeratePCI(ACPI::MCFGHeader* mcfg);
     void SavePCIDevice(PCIDeviceHeader* device);
     PCIDeviceHeader* GetPCIDevice(PCIDeviceHeaderSearcher* searcher);
@@ -70,4 +70,4 @@ namespace PCI{
     const char* GetDeviceName(uint16_t vendorID, uint16_t deviceID);
     const char* GetSubclassName(uint8_t classCode, uint8_t subclassCode);
     const char* GetProgIFName(uint8_t classCode, uint8_t subclassCode, uint8_t progIF);
-}
+} 

@@ -35,7 +35,11 @@ sudo make -C "Modules/Drivers/usb/uhci/Build"
 
 sudo make -C "Modules/Drivers/ps2/Build"
 
-sudo make -C "Modules/Drivers/pcspk/Build"
+#sudo make -C "Modules/Drivers/vga/Build"
+
+sudo make -C "Modules/Drivers/sound/pcspk/Build"
+
+sudo make -C "Modules/Drivers/timer/rtc/Build"
 
 # Services
 echo -e "\e[32mCompiling kot services...\e[0m"

@@ -29,7 +29,7 @@ namespace PCI{
                         }
                 }
         }
- 
+
     }
 
     void EnumerateDevice(uint64_t busAddress, uint64_t device){
@@ -76,12 +76,12 @@ namespace PCI{
     void SavePCIDevice(PCIDeviceHeader* device){
         static PCINode* PCINodeLast;
         static PCINode* PCINodeActual;
-        
+
         PCINodeActual = (PCINode*)malloc(sizeof(PCIDeviceHeader));
         memcpy(PCINodeActual, device, sizeof(PCIDeviceHeader));
         if(PCINodeLast != NULL) PCINodeLast->next = PCINodeActual;
         PCINodeLast = PCINodeActual;
-        
+
         if(PCINodeMain == NULL){
             PCINodeMain = PCINodeActual;
         }
@@ -134,4 +134,4 @@ namespace PCI{
             node = node->next;
         }
     }
-}
+} 

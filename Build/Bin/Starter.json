@@ -1,6 +1,7 @@
 [
     {"file":"Pci.elf", "priviledge":1},
     {"file":"Pcspk.elf", "priviledge":1},
+    {"file":"Rtc.elf", "priviledge":1},
     {"file":"Ps2.elf", "priviledge":1},
     {"file":"Uhci.elf", "priviledge":1},
     {"file":"Orb.elf", "priviledge":1},
