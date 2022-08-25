@@ -61,7 +61,7 @@ void threadRender(){
 
 void initWindowRender() {
     windows = vector_create();
-    Sys_Createthread(self, (uintptr_t)&threadRender, PriviledgeService, NULL, &renderThread);
+    Sys_Createthread(self, (uintptr_t)&threadRender, PriviledgeService, &renderThread);
     Sys_Execthread(renderThread, NULL, ExecutionTypeQueu, NULL);
 }
 
@@ -111,7 +111,7 @@ void CreateWindow(uint64_t width, uint64_t height) {
 }
 
 void initUISD() {
-    Sys_Createthread(self, (uintptr_t) &CreateWindow, PriviledgeApp, NULL, &CreateWindowThread);
+    Sys_Createthread(self, (uintptr_t) &CreateWindow, PriviledgeApp, &CreateWindowThread);
     uintptr_t address = getFreeAlignedSpace(sizeof(uisd_graphics_t));
     ksmem_t key = NULL;
     Sys_CreateMemoryField(self, sizeof(uisd_graphics_t), &address, &key, MemoryFieldTypeShareSpaceRO);

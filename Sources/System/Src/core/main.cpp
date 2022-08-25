@@ -11,7 +11,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
     Printlog("[System] Initialization ...");
 
     Sys_GetthreadKey(&proc);
-    
+
     thread_t self;
     Sys_GetthreadKey(&self);
 

@@ -15,7 +15,7 @@ thread_t UISDInitialize(process_t* process) {
     process_t proc;
     Sys_GetProcessKey(&proc);
 
-    Sys_Createthread(proc, (uintptr_t)UISDHandler, PriviledgeService, NULL, &UISDHandlerThread);
+    Sys_Createthread(proc, (uintptr_t)UISDHandler, PriviledgeService, &UISDHandlerThread);
     Sys_Keyhole_CloneModify(UISDHandlerThread, &UISDthreadKey, NULL, UISDKeyFlags, PriviledgeApp);
 
     UISDControllers = (controller_info_t**)calloc(sizeof(controller_info_t*) * UISDMaxController);
