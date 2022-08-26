@@ -34,4 +34,4 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 
 link:
 	@ echo !==== LINKING
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Rtc.elf $(OBJS) $(_HOME)Sysroot/Lib/crt0.o
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Rtc.elf $(OBJS) $(_HOME)Sysroot/Lib/libcpp.a $(_HOME)Sysroot/Lib/crt0.o

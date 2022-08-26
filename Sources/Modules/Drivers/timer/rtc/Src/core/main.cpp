@@ -1,5 +1,9 @@
 #include <core/main.h>
 
+#include <kot++/printf.h>
+
+using namespace std;
+
 /* PRIVATE */
 
 uint8_t GetRTCReg(int reg) {
@@ -24,7 +28,7 @@ int BCDToBIN(uint8_t value) {
 extern "C" int main(int argc, char* argv[]) {
     Printlog("[TIMER/RTC] Initialization ...");
 
-
+    std::printf("test %x test");
     
     Printlog("[TIMER/RTC] Driver initialized successfully");
 
