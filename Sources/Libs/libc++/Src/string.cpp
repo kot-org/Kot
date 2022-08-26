@@ -77,4 +77,21 @@ namespace std {
         }
     }
 
+    void StringBuilder::append(char c) {
+        uint64_t toSize = buffer != NULL ? strlen(this->buffer) : 0;
+        if (toSize > 0) {
+            uint64_t newSize = toSize+1;
+            char* temp = (char*) malloc(newSize+1);
+            memcpy(temp, buffer, toSize);
+            temp[toSize] = c;
+            temp[newSize] = '\0';
+            free(buffer);
+            buffer = temp;
+        } else {
+            free(this->buffer);
+            this->buffer = (char*) malloc(2);
+            this->buffer[0] = c;
+            this->buffer[1] = '\0';
+        }
+    }
 }
