@@ -162,7 +162,7 @@ void MouseParser(uint8_t data){
         MouseEventParameters->arg[4] |= button4Click << 3;
         MouseEventParameters->arg[4] |= button5Click << 4;
 
-        Sys_Event_Trigger(MouseData->onMouseStateChanged, MouseEventParameters);
+        Sys_kevent_trigger(MouseData->onMouseStateChanged, MouseEventParameters);
     }
 }
 

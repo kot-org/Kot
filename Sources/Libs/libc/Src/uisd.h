@@ -42,6 +42,10 @@ typedef struct {
     uisd_controller_t ControllerHeader; 
     thread_t GetFramebuffer;
     thread_t ReadFileInitrd;
+    thread_t GetTableInRootSystemDescription;
+    thread_t GetSystemManagementBIOSTable;
+    thread_t BindIRQLine;
+    thread_t BindFreeIRQ;
 } uisd_system_t;
 
 typedef struct {

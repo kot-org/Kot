@@ -28,7 +28,7 @@ struct MouseData_t{
     uint64_t xAxisOffset;
     uint64_t yAxisOffset;
 
-    kevent_t onMouseStateChanged;
+    event_t onMouseStateChanged;
 
     bool IsInitialized;
 }__attribute__((packed));

@@ -50,20 +50,20 @@ KResult Sys_Unmap(thread_t self, uintptr_t addressVirtual, size64_t size){
     return Syscall_24(KSys_Unmap, self, addressVirtual, size);
 }
 
-KResult Sys_Event_Create(kevent_t* self){
+KResult Sys_Event_Create(event_t* self){
     return Syscall_8(KSys_Event_Create, self);
 }
 
-KResult Sys_Event_Bind(kevent_t self, thread_t task, uint8_t vector, bool IgnoreMissedEvents){
-    return Syscall_32(KSys_Event_Bind, self, task, vector, IgnoreMissedEvents);
+KResult Sys_Event_Bind(event_t self, thread_t task, bool IgnoreMissedEvents){
+    return Syscall_24(KSys_Event_Bind, self, task, IgnoreMissedEvents);
 }
 
-KResult Sys_Event_Unbind(kevent_t self, thread_t task, uint8_t vector){
-    return Syscall_24(KSys_Event_Unbind, self, task, vector);
+KResult Sys_Event_Unbind(event_t self, thread_t task){
+    return Syscall_24(KSys_Event_Unbind, self, task);
 }
 
-KResult Sys_Event_Trigger(kevent_t self, struct arguments_t* parameters){
-    return Syscall_16(KSys_Event_Trigger, self, parameters);
+KResult Sys_kevent_trigger(event_t self, struct arguments_t* parameters){
+    return Syscall_16(KSys_kevent_trigger, self, parameters);
 }
 
 KResult Sys_Event_Close(){

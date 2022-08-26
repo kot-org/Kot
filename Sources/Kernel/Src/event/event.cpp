@@ -3,25 +3,25 @@
 namespace Event{
     static uint64_t mutexEvent;
 
-    uint64_t Create(event_t** event, enum EventType Type, uint64_t AdditionnalData){
-        event_t* self = NULL;
+    uint64_t Create(kevent_t** event, enum EventType Type, uint64_t AdditionnalData){
+        kevent_t* self = NULL;
 
         switch (Type){
             case EventTypeIRQLines: {
-                IRQLineEvent_t* event = (IRQLineEvent_t*)malloc(sizeof(IRQLineEvent_t));
+                IRQLinekevent_t* event = (IRQLinekevent_t*)malloc(sizeof(IRQLinekevent_t));
                 self = &event->header;
                 event->IRQLine = (uint8_t)AdditionnalData;
                 event->IsEnable = false;
                 break;
             }                
             case EventTypeIRQ: {
-                IRQEvent_t* event = (IRQEvent_t*)malloc(sizeof(IRQEvent_t));
+                IRQkevent_t* event = (IRQkevent_t*)malloc(sizeof(IRQkevent_t));
                 self = &event->header;
                 event->IRQ = (uint8_t)AdditionnalData;
                 break;                
             }
             case EventTypeIPC: {
-                IPCEvent_t* event = (IPCEvent_t*)malloc(sizeof(IPCEvent_t));
+                IPCkevent_t* event = (IPCkevent_t*)malloc(sizeof(IPCkevent_t));
                 self = &event->header;
                 event->master = (kthread_t*)AdditionnalData;
                 break;                
@@ -41,11 +41,11 @@ namespace Event{
         return KSUCCESS;
     }
 
-    uint64_t Bind(kthread_t* task, event_t* self, bool IgnoreMissedEvents){
+    uint64_t Bind(kthread_t* task, kevent_t* self, bool IgnoreMissedEvents){
         Atomic::atomicAcquire(&self->Lock, 0);
 
         if(self->Type == EventTypeIRQLines){
-            IRQLineEvent_t* event = (IRQLineEvent_t*)self;
+            IRQLinekevent_t* event = (IRQLinekevent_t*)self;
             if(!event->IsEnable){
                 event->IsEnable = true;
                 APIC::IoChangeIrqState(event->IRQLine, 0, event->IsEnable);
@@ -53,9 +53,9 @@ namespace Event{
         }
         
         self->NumTask++;
-        self->Tasks = (event_tasks_t**)realloc(self->Tasks, self->NumTask * sizeof(event_tasks_t*));
+        self->Tasks = (kevent_tasks_t**)realloc(self->Tasks, self->NumTask * sizeof(kevent_tasks_t*));
 
-        event_tasks_t* TasksEvent = (event_tasks_t*)calloc(sizeof(event_tasks_t));
+        kevent_tasks_t* TasksEvent = (kevent_tasks_t*)calloc(sizeof(kevent_tasks_t));
         TasksEvent->thread = task;
         TasksEvent->Event = self;
 
@@ -79,23 +79,23 @@ namespace Event{
         return KSUCCESS;
     }
 
-    uint64_t Unbind(kthread_t* task, event_t* self){
+    uint64_t Unbind(kthread_t* task, kevent_t* self){
         if(self->NumTask <= 0) return KFAIL;
         Atomic::atomicAcquire(&self->Lock, 0);
 
         self->NumTask--;
         for(size64_t i = 0; i < self->NumTask; i++){
             if(self->Tasks[i]->thread == task){
-                uintptr_t newPos = malloc(self->NumTask * sizeof(event_tasks_t));
-                memcpy(newPos, self->Tasks[i], sizeof(event_tasks_t) * i);
+                uintptr_t newPos = malloc(self->NumTask * sizeof(kevent_tasks_t));
+                memcpy(newPos, self->Tasks[i], sizeof(kevent_tasks_t) * i);
                 i++;
-                memcpy((uintptr_t)((uint64_t)newPos + sizeof(event_tasks_t) * (i - 1)), (uintptr_t)((uint64_t)self->Tasks[i] + sizeof(event_tasks_t) * i), sizeof(event_tasks_t) * i);
-                self->Tasks = (event_tasks_t**)newPos;
+                memcpy((uintptr_t)((uint64_t)newPos + sizeof(kevent_tasks_t) * (i - 1)), (uintptr_t)((uint64_t)self->Tasks[i] + sizeof(kevent_tasks_t) * i), sizeof(kevent_tasks_t) * i);
+                self->Tasks = (kevent_tasks_t**)newPos;
             }
         }
 
         if(self->Type == EventTypeIRQLines && self->NumTask == 0){
-            IRQLineEvent_t* event = (IRQLineEvent_t*)self;
+            IRQLinekevent_t* event = (IRQLinekevent_t*)self;
             if(event->IsEnable){
                 event->IsEnable = false;
                 APIC::IoChangeIrqState(event->IRQLine, 0, event->IsEnable);
@@ -105,11 +105,11 @@ namespace Event{
         return KSUCCESS;
     }
     
-    uint64_t Trigger(kthread_t* author, event_t* self, arguments_t* parameters){
+    uint64_t Trigger(kthread_t* author, kevent_t* self, arguments_t* parameters){
         if(self == NULL) return KFAIL;
 
         for(size64_t i = 0; i < self->NumTask; i++){
-            event_tasks_t* task = self->Tasks[i];
+            kevent_tasks_t* task = self->Tasks[i];
             Atomic::atomicAcquire(&task->thread->EventLock, 0);
             if(task->thread->IsClose){
                 task->DataNode->CurrentData->Task = task;

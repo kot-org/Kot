@@ -286,7 +286,7 @@ KResult Sys_Unmap(SyscallStack* Registers, kthread_t* thread){
 */
 KResult Sys_Event_Create(SyscallStack* Registers, kthread_t* thread){
     uint64_t data;
-    if(Event::Create((event_t**)&data, EventTypeIPC, Registers->arg0) != KSUCCESS) return KFAIL;
+    if(Event::Create((kevent_t**)&data, EventTypeIPC, Registers->arg0) != KSUCCESS) return KFAIL;
     return Keyhole_Create((key_t*)Registers->arg0, thread->Parent, thread->Parent, DataTypeEvent, data, KeyholeFlagFullPermissions, PriviledgeApp);
 }
 
@@ -294,50 +294,34 @@ KResult Sys_Event_Create(SyscallStack* Registers, kthread_t* thread){
     Arguments : 
 */
 KResult Sys_Event_Bind(SyscallStack* Registers, kthread_t* thread){
-    event_t* event; 
+    kevent_t* event; 
     kthread_t* threadkey;
     uint64_t flags;
-    if(Registers->arg0 != NULL){
-        if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
-    }else{
-        if(Registers->arg2 < 0xff){
-            event = InterruptEventList[Registers->arg2];
-        }else{
-            return KFAIL;
-        }
-    }
+    if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(Keyhole_Get(thread, (key_t)Registers->arg1, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsEventable)) return KKEYVIOLATION;
-    return Event::Bind(threadkey, event, (bool)Registers->arg3);
+    return Event::Bind(threadkey, event, (bool)Registers->arg2);
 }
 
 /* Sys_Event_Unbind :
     Arguments : 
 */
 KResult Sys_Event_Unbind(SyscallStack* Registers, kthread_t* thread){
-    event_t* event;
+    kevent_t* event;
     kthread_t* threadkey;
     uint64_t flags;
-    if(Registers->arg0 != NULL){
-        if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
-    }else{
-        if(Registers->arg2 < 0xff){
-            event = InterruptEventList[Registers->arg2];
-        }else{
-            return KFAIL;
-        }
-    }
+    if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(Keyhole_Get(thread, (key_t)Registers->arg1, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsBindable)) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsEventable)) return KKEYVIOLATION;
     return Event::Unbind(thread, event);
 }
 
-/* Sys_Event_Trigger :
+/* Sys_kevent_trigger :
     Arguments : 
 */
-KResult Sys_Event_Trigger(SyscallStack* Registers, kthread_t* thread){
-    event_t* event; 
+KResult Sys_kevent_trigger(SyscallStack* Registers, kthread_t* thread){
+    kevent_t* event; 
     uint64_t flags;
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypethreadIsTriggerable)) return KKEYVIOLATION;
@@ -486,7 +470,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_Event_Create] = Sys_Event_Create,
     [KSys_Event_Bind] = Sys_Event_Bind,
     [KSys_Event_Unbind] = Sys_Event_Unbind,
-    [KSys_Event_Trigger] = Sys_Event_Trigger,
+    [KSys_kevent_trigger] = Sys_kevent_trigger,
     [KSys_Event_Close] = Sys_Event_Close,
     [KSys_CreateThread] = Sys_CreateThread,
     [KSys_DuplicateThread] = Sys_DuplicateThread,

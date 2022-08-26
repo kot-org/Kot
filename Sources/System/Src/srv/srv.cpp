@@ -15,13 +15,36 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
     SystemSrv->ControllerHeader.Process = ShareProcessKey(proc);
 
     /* Setup threads */
+
+    /* GetFramebuffer */
     thread_t GetFrameBufferThread = NULL;
     Sys_Createthread(proc, (uintptr_t)&GetFrameBuffer, PriviledgeApp, &GetFrameBufferThread);
     SystemSrv->GetFramebuffer = MakeShareableThread(GetFrameBufferThread, PriviledgeService);
 
+    /* ReadFileInitrd */
     thread_t ReadFileFromInitrdThread = NULL;
     Sys_Createthread(proc, (uintptr_t)&ReadFileFromInitrd, PriviledgeApp, &ReadFileFromInitrdThread);
     SystemSrv->ReadFileInitrd = MakeShareableThread(ReadFileFromInitrdThread, PriviledgeService);
+
+    /* GetTableInRootSystemDescription */
+    thread_t GetTableInRootSystemDescriptionThread = NULL;
+    Sys_Createthread(proc, (uintptr_t)&GetTableInRootSystemDescription, PriviledgeApp, &GetTableInRootSystemDescriptionThread);
+    SystemSrv->GetTableInRootSystemDescription = MakeShareableThread(GetTableInRootSystemDescriptionThread, PriviledgeDriver);
+
+    /* GetSystemManagementBIOSTable */
+    thread_t GetSystemManagementBIOSTableThread = NULL;
+    Sys_Createthread(proc, (uintptr_t)&GetSystemManagementBIOSTable, PriviledgeApp, &GetSystemManagementBIOSTableThread);
+    SystemSrv->GetSystemManagementBIOSTable = MakeShareableThread(GetSystemManagementBIOSTableThread, PriviledgeDriver);
+
+    /* BindIRQLine */
+    thread_t BindIRQLineThread = NULL;
+    Sys_Createthread(proc, (uintptr_t)&BindIRQLine, PriviledgeApp, &BindIRQLineThread);
+    SystemSrv->BindIRQLine = MakeShareableThread(BindIRQLineThread, PriviledgeDriver);
+
+    /* BindFreeIRQ */
+    thread_t BindFreeIRQThread = NULL;
+    Sys_Createthread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, &BindFreeIRQThread);
+    SystemSrv->BindFreeIRQ = MakeShareableThread(BindFreeIRQThread, PriviledgeDriver);
 
     /* Setup data */
     SrvInfo = (SrvInfo_t*)malloc(sizeof(SrvInfo_t));
@@ -32,6 +55,16 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
     SrvInfo->Framebuffer->height = kernelInfo->Framebuffer.framebuffer_height;
     SrvInfo->Framebuffer->pitch = kernelInfo->Framebuffer.framebuffer_pitch;
     SrvInfo->Framebuffer->bpp = kernelInfo->Framebuffer.framebuffer_bpp;
+
+    SrvInfo->Smbios = kernelInfo->Smbios;
+
+    SrvInfo->Rsdp = kernelInfo->Rsdp;
+
+    SrvInfo->IRQLineStart = kernelInfo->IRQLineStart;
+    SrvInfo->IRQLineSize = kernelInfo->IRQLineSize;
+
+    SrvInfo->IRQSize = kernelInfo->IRQSize;
+    SrvInfo->IRQEvents = kernelInfo->IRQEvents;
 
     CreateControllerUISD(ControllerTypeEnum_System, key, true);
 }
@@ -90,5 +123,67 @@ KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name){
     };
     
     Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &data);
+    Sys_Close(KSUCCESS);
+}
+
+KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg, char* Name){
+    arguments_t arguments{
+        .arg[0] = KSUCCESS,         /* Statu */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = NULL,             /* GP0 */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_Close(KSUCCESS);
+}
+
+KResult GetSystemManagementBIOSTable(thread_t Callback, uint64_t CallbackArg){
+    arguments_t arguments{
+        .arg[0] = KSUCCESS,                     /* Statu */
+        .arg[1] = CallbackArg,                  /* CallbackArg */
+        .arg[2] = (uint64_t)SrvInfo->Smbios,    /* Smbios physical address */
+        .arg[3] = NULL,                         /* GP1 */
+        .arg[4] = NULL,                         /* GP2 */
+        .arg[5] = NULL,                         /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_Close(KSUCCESS);
+}
+
+KResult BindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumber, thread_t Target, bool IgnoreMissedEvents){
+    KResult Statu = KFAIL;
+    if(IRQLineNumber < SrvInfo->IRQLineSize){
+        uint8_t vector = IRQLineStart + IRQLineNumber;
+        Statu = Sys_Event_Bind(SrvInfo->IRQEvents[vector], Target, IgnoreMissedEvents);
+    }
+    
+    arguments_t arguments{
+        .arg[0] = Statu,            /* Statu */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = NULL,             /* GP0 */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_Close(KSUCCESS);
+}
+
+KResult BindFreeIRQ(thread_t Callback, uint64_t CallbackArg){
+    arguments_t arguments{
+        .arg[0] = KSUCCESS,         /* Statu */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = NULL,             /* GP0 */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }

@@ -21,7 +21,7 @@ struct KeyboardData_t{
     enum keyboardPortType keyboardPortType;
     enum keyboardType keyboardType;
 
-    kevent_t onKeyboardStateChanged;
+    event_t onKeyboardStateChanged;
 
     bool IsInitialized;
 }__attribute__((packed));

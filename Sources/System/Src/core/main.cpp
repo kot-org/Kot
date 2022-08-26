@@ -17,6 +17,8 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
 
     initrd::Parse(kernelInfo->initrd.address, kernelInfo->initrd.size);
 
+    kernelInfo->IsIRQEventsFree = (bool*)calloc(kernelInfo->IRQSize * sizeof(bool));
+
     // load IPC
     KotSpecificData.UISDHandler = UISDInitialize(&KotSpecificData.UISDHandlerProcess);
 

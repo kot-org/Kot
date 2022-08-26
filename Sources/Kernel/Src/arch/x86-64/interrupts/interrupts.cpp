@@ -4,7 +4,7 @@ IDTR idtr;
 
 uint8_t IDTData[PAGE_SIZE];
 
-event_t* InterruptEventList[MAX_IRQ];
+kevent_t* InterruptEventList[MAX_IRQ];
 
 arguments_t* InterruptParameters;
 
