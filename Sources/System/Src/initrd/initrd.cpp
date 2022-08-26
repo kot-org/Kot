@@ -1,6 +1,6 @@
-#include <ramfs/ramfs.h>
+#include <initrd/initrd.h>
 
-namespace ramfs {
+namespace initrd {
 
     Info* info;
 
@@ -33,9 +33,15 @@ namespace ramfs {
 
     bool Read(File* file, uintptr_t buffer) {
         if (info == NULL) return false;
-        uintptr_t fileData = (uintptr_t) ((uint64_t) file + sizeof(File));
+        uintptr_t fileData = (uintptr_t) ((uint64_t)file + sizeof(File));
         memcpy(buffer, fileData, file->size);
         return true;
+    }
+
+    uintptr_t Read(File* file) {
+        if (info == NULL) return NULL;
+        uintptr_t fileData = (uintptr_t) ((uint64_t)file + sizeof(File));
+        return fileData;
     }
 
 } 

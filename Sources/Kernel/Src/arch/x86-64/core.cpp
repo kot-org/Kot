@@ -73,8 +73,8 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     //frame buffer
     memcpy(&ArchInfo->framebuffer, bootInfo->Framebuffer, sizeof(stivale2_struct_tag_framebuffer));
 
-    //ramfs
-    memcpy(&ArchInfo->ramfs, &bootInfo->ramfs, sizeof(ramfs_t));
+    //initrd
+    memcpy(&ArchInfo->initrd, &bootInfo->initrd, sizeof(initrd_t));
 
     //memory info
     ArchInfo->memoryInfo = (memoryInfo_t*)vmm_GetPhysical(vmm_PageTable, &Pmm_MemoryInfo);
@@ -88,8 +88,8 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     
     ArchInfo->rsdp = (uintptr_t)bootInfo->RSDP->rsdp;
 
-    ramfs::Parse(ArchInfo->ramfs.ramfsBase, ArchInfo->ramfs.Size);
-    Successful("RAMFS initialized");
+    initrd::Parse(ArchInfo->initrd.initrdBase, ArchInfo->initrd.Size);
+    Successful("initrd initialized");
     return ArchInfo;
 }
 

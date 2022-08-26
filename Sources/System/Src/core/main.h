@@ -8,7 +8,7 @@
 
 #include <elf/elf.h>
 #include <uisd/uisd.h>
-#include <ramfs/ramfs.h>
+#include <initrd/initrd.h>
 #include <srv/srv.h>
 
 struct bootframebuffer_t {
@@ -29,7 +29,7 @@ struct bootframebuffer_t {
     uint8_t  unused;
 }__attribute__((packed));
 
-struct ramfs_t {
+struct initrd_t {
 	uintptr_t address;
 	size64_t size;
 }__attribute__((packed));
@@ -48,7 +48,7 @@ struct KernelInfo {
     uint64_t Architecture;
 
     struct bootframebuffer_t Framebuffer;
-    struct ramfs_t Ramfs;
+    struct initrd_t initrd;
     struct memoryInfo_t* MemoryInfo;
     uintptr_t Smbios;
     uintptr_t Rsdp;

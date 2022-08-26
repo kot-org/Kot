@@ -57,7 +57,7 @@ createISO:
 	mkdir -m 777 -p $(LIMINEBUILDDIR)
 	cp -v $(BINDIR)/Kernel.elf limine.cfg limine/limine.sys limine/limine-cd.bin limine/limine-cd-efi.bin $(LIMINEBUILDDIR)
 
-	bash $(_HOME)Tools/BuildRamFS.sh
+	bash $(_HOME)Tools/Buildinitrd.sh
 
 	xorriso -as mkisofs -b limine-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table \
         --efi-boot limine-cd-efi.bin -efi-boot-part --efi-boot-image --protective-msdos-label \
@@ -70,7 +70,7 @@ createISOEFI:
 	mkdir -m 777 -p $(LIMINEBUILDDIR)
 	cp -v $(BINDIR)/Kernel.elf limine/limine.sys limine/limine-cd-efi.bin $(LIMINEBUILDDIR)
 
-	bash $(_HOME)Tools/BuildRamFS.sh
+	bash $(_HOME)Tools/Buildinitrd.sh
 
 	xorriso -as mkisofs --efi-boot limine-cd-efi.bin -efi-boot-part --efi-boot-image -J -o $(BINDIR)/kotEFI.iso  $(LIMINEBUILDDIR)
 	./limine/limine-deploy $(BINDIR)/kotEFI.iso

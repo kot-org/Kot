@@ -22,6 +22,7 @@ typedef struct {
 struct srv_system_callback_t{
     thread_t Self;
     uintptr_t Data;
+    size64_t Size;
     bool IsAwait;
     KResult Statu;
     CallbackHandler Handler;
@@ -32,6 +33,7 @@ void Srv_System_Initialize();
 void Srv_System_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
 struct srv_system_callback_t* Srv_System_GetFrameBufer(srv_system_framebuffer_t* framebuffer, bool IsAwait);
+struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwait);
 
 #if defined(__cplusplus)
 }

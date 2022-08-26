@@ -8,7 +8,7 @@
 
 #define MaxName 36
 
-namespace ramfs {
+namespace initrd {
 
     struct Header {
         char signature[5];
@@ -32,5 +32,5 @@ namespace ramfs {
     File* Find(char* fileName);
     File* FindInitFile();
     bool Read(File* address, uintptr_t buffer);
-
+    uintptr_t Read(File* file);
 }

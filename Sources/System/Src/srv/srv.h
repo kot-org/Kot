@@ -7,6 +7,7 @@
 void InitializeSrv(struct KernelInfo* kernelInfo);
 
 KResult GetFrameBuffer(thread_t Callback, uint64_t CallbackArg);
+KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name);
 
 struct SrvInfo_t{
     srv_system_framebuffer_t* Framebuffer;

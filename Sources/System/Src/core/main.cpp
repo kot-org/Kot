@@ -15,7 +15,7 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
     thread_t self;
     Sys_GetthreadKey(&self);
 
-    ramfs::Parse(kernelInfo->Ramfs.address, kernelInfo->Ramfs.size);
+    initrd::Parse(kernelInfo->initrd.address, kernelInfo->initrd.size);
 
     // load IPC
     KotSpecificData.UISDHandler = UISDInitialize(&KotSpecificData.UISDHandlerProcess);
@@ -24,11 +24,11 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
     InitializeSrv(kernelInfo);
 
     // load starter file
-    ramfs::File* StarterFile = ramfs::Find("Starter.json");
+    initrd::File* StarterFile = initrd::Find("Starter.json");
 
     if (StarterFile != NULL) {
         char* BufferStarterFile = (char*) calloc(StarterFile->size);
-        ramfs::Read(StarterFile, BufferStarterFile);
+        initrd::Read(StarterFile, BufferStarterFile);
         
         JsonParser* parser = new JsonParser(BufferStarterFile);
 
@@ -51,10 +51,10 @@ extern "C" int main(struct KernelInfo* kernelInfo) {
                 }
                 if (file->getType() == JSON_STRING) {
                     if(strcmp(file->get(), "")) continue;
-                    ramfs::File* serviceFile = ramfs::Find(file->get());
+                    initrd::File* serviceFile = initrd::Find(file->get());
                     if (serviceFile != NULL) {
                         uintptr_t bufferServiceFile = calloc(serviceFile->size);
-                        ramfs::Read(serviceFile, bufferServiceFile);
+                        initrd::Read(serviceFile, bufferServiceFile);
                         thread_t thread = NULL;
                         int32_t servicePriledge = 3;
                         if (priviledge != NULL) {

@@ -54,6 +54,12 @@ struct SelfData{
     uint64_t Priviledge_TLI; /* Thread priviledge */
 }__attribute__((packed));
 
+struct ShareDataWithArguments_t{
+    size64_t Size;
+    uintptr_t Data;
+    uint8_t ParameterPosition;
+}__attribute__((packed));
+
 enum DataType{
     DataTypeUnknow              = 0x0,
     DataTypethread              = 0x1,
@@ -92,12 +98,6 @@ enum AllocationType{
     AllocationTypeBasic         = 0x0,
     AllocationTypePhysical      = 0x1,
     AllocationTypePhysicalContiguous    = 0x2,
-};
-
-struct ShareDataWithArguments_t{
-    size64_t Size;
-    uintptr_t Data;
-    uint8_t ParameterPosition;
 };
 
 uint64_t DoSyscall(uint64_t syscall, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);

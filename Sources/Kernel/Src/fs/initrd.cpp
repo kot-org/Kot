@@ -1,6 +1,6 @@
-#include <fs/ramfs.h>
+#include <fs/initrd.h>
 
-namespace ramfs{
+namespace initrd{
     Info* info;
     void Parse(uintptr_t baseAddress, size64_t size){
         if(size == NULL) return;

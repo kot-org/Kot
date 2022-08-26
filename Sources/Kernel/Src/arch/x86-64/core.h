@@ -6,7 +6,7 @@ struct ArchInfo_t{
     uint64_t architecture;
 
     struct stivale2_struct_tag_framebuffer framebuffer;
-    struct ramfs_t ramfs;
+    struct initrd_t initrd;
     struct memoryInfo_t* memoryInfo;
     uintptr_t smbios;
     uintptr_t rsdp;

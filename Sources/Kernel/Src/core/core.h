@@ -14,7 +14,7 @@
 #include <syscall/syscall.h>
 #include <boot/boot.h>
 #include <logs/logs.h>
-#include <fs/ramfs.h>
+#include <fs/initrd.h>
 #include <elf/elf.h>
 
 extern "C" void main(uintptr_t boot);

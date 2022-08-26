@@ -470,10 +470,10 @@ uint64_t vmm_Init(BootInfo* bootInfo){
         }
     }
 
-    /* map ramfs */
-    bootInfo->ramfs.ramfsBase = (uintptr_t)vmm_GetVirtualAddress(((uint64_t)bootInfo->ramfs.ramfsBase - vmm_HHDMAdress));
-    for(uint64_t i = 0; i < bootInfo->ramfs.Size; i += PAGE_SIZE){
-        vmm_Map(vmm_PageTable, (uintptr_t)((uint64_t)bootInfo->ramfs.ramfsBase + i), (uintptr_t)(((uint64_t)bootInfo->ramfs.ramfsBase - vmm_HHDMAdress) + i), true, false); /* App can't write into ramfs */
+    /* map initrd */
+    bootInfo->initrd.initrdBase = (uintptr_t)vmm_GetVirtualAddress(((uint64_t)bootInfo->initrd.initrdBase - vmm_HHDMAdress));
+    for(uint64_t i = 0; i < bootInfo->initrd.Size; i += PAGE_SIZE){
+        vmm_Map(vmm_PageTable, (uintptr_t)((uint64_t)bootInfo->initrd.initrdBase + i), (uintptr_t)(((uint64_t)bootInfo->initrd.initrdBase - vmm_HHDMAdress) + i), true, false); /* App can't write into initrd */
     }
 
     vmm_Fill(vmm_PageTable, VMM_LOWERHALF, VMM_HIGHERALF, false);

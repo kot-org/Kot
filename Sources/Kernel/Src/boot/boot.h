@@ -1,9 +1,9 @@
 #pragma once
 #include <boot/stivale2.h>
 
-/* ramfs */
-struct ramfs_t{
-	uintptr_t ramfsBase;
+/* initrd */
+struct initrd_t{
+	uintptr_t initrdBase;
 	size64_t Size;
 }__attribute__((packed));
 
@@ -20,8 +20,8 @@ struct BootInfo{
     struct stivale2_struct_tag_rsdp* RSDP;
     struct stivale2_struct_tag_smbios* smbios;
     
-    /* ramfs */
-    struct ramfs_t ramfs;
+    /* initrd */
+    struct initrd_t initrd;
 }__attribute__((packed));
 
 namespace Boot{

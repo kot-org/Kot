@@ -67,8 +67,8 @@ uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintp
     parameters.arg[3] = Info;
     parameters.arg[4] = ProcessKeyForUISD;
     parameters.arg[5] = (uint64_t)*Location;
-    Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
-    if(AwaitCallback){
+    KResult statu = Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
+    if(statu == KSUCCESS && AwaitCallback){
         Sys_Pause(false);
         *Location = Info->Location;
         return Info;
@@ -97,8 +97,8 @@ uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ks
     parameters.arg[2] = CallBackUISDThread;
     parameters.arg[3] = Info;
     parameters.arg[4] = MemoryFieldKey;
-    Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
-    if(AwaitCallback){
+    KResult statu = Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
+    if(statu == KSUCCESS && AwaitCallback){
         Sys_Pause(false);
         return Info;
     }

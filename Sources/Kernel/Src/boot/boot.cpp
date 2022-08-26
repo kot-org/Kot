@@ -43,11 +43,11 @@ namespace Boot{
         Info.RSDP = (stivale2_struct_tag_rsdp*)GetTag(stivale2_struct, STIVALE2_STRUCT_TAG_RSDP_ID);
         Info.smbios = (stivale2_struct_tag_smbios*)GetTag(stivale2_struct, STIVALE2_STRUCT_TAG_SMBIOS_ID);
         
-        /* Get ramfs */
+        /* Get initrd */
         for(uint64_t i = 0; i < Info.Modules->module_count; i++){
-            if(strcmp(Info.Modules->modules[i].string, "ramfs.bin")){
-                Info.ramfs.ramfsBase = (uintptr_t)Info.Modules->modules[i].begin;
-                Info.ramfs.Size = (size64_t)(Info.Modules->modules[i].end - Info.Modules->modules[i].begin);
+            if(strcmp(Info.Modules->modules[i].string, "initrd.bin")){
+                Info.initrd.initrdBase = (uintptr_t)Info.Modules->modules[i].begin;
+                Info.initrd.Size = (size64_t)(Info.Modules->modules[i].end - Info.Modules->modules[i].begin);
             }
         }
 
