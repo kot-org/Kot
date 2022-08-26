@@ -49,8 +49,14 @@ typedef struct {
 } uisd_system_t;
 
 typedef struct {
+
     uisd_controller_t ControllerHeader;
+
     thread_t CreateWindow;
+    thread_t GetFramebuffer;
+    thread_t GetWidth;
+    thread_t GetHeight;
+
 } uisd_graphics_t;
 
 typedef struct {

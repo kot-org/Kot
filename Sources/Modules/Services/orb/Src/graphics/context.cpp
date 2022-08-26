@@ -1,31 +1,35 @@
-#include <graphics/context.h>
+#include "context.h"
 
-Context::Context(framebuffer_t* framebuffer) {
-    this->framebuffer = framebuffer;
+Context::Context(uintptr_t fb_addr, uint32_t width, uint32_t height) {
+    this->fb_addr = fb_addr;
     this->poses = vector_create();
-    if (framebuffer->width >= framebuffer->height) {
-        this->scale = this->framebuffer->width/412;
+    this->width = width;
+    this->height = height;
+    this->pitch = this->width * this->btpp;
+    this->fb_size = this->pitch * this->height;
+    if (this->width >= this->height) {
+        this->scale = this->width/412;
     } else {
-        this->scale = this->framebuffer->height/412;
+        this->scale = this->height/412;
     }
 }
 
 void Context::putPixel(uint32_t x, uint32_t y, uint32_t colour) {
     if (this->pixelExist(x, y) == -1) return;
-    uint8_t* fb = (uint8_t*) this->framebuffer->fb_addr;
-    uint64_t index = x * this->framebuffer->btpp + y * this->framebuffer->pitch;
+    uint8_t* fb = (uint8_t*) this->fb_addr;
+    uint64_t index = x * this->btpp + y * this->pitch;
     *(uint32_t*)(fb + index) = colour;
 }
 
 int8_t Context::pixelExist(uint32_t x, uint32_t y) {
     if (x < 0 || y < 0) return -1;
-    if (x > this->framebuffer->width || y > this->framebuffer->height) return -1;
+    if (x > this->width || y > this->height) return -1;
     return 1;
 }
 
 uint32_t Context::getPixel(uint32_t x, uint32_t y) {
-    uint8_t* fb = (uint8_t*) this->framebuffer->fb_addr;
-    uint64_t index = x * this->framebuffer->btpp + y * this->framebuffer->pitch;
+    uint8_t* fb = (uint8_t*) this->fb_addr;
+    uint64_t index = x * this->btpp + y * this->pitch;
     return *(uint32_t*)(fb + index);
 }
 
@@ -120,23 +124,23 @@ void Context::fill(uint32_t x, uint32_t y, uint32_t colour, uint32_t border) {
 
 void Context::fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
 
-    uint8_t* fb = (uint8_t*) this->framebuffer->fb_addr;
+    uint8_t* fb = (uint8_t*) this->fb_addr;
 
     uint32_t _h = height+y;
     uint32_t _w = width+x;
 
-    if (_h > this->framebuffer->height) {
-        _h = this->framebuffer->height;
+    if (_h > this->height) {
+        _h = this->height;
     }
 
-    if (_w > this->framebuffer->width) {
-        _w = this->framebuffer->width;
+    if (_w > this->width) {
+        _w = this->width;
     }
 
     for (uint32_t h = y; h < _h; h++) {
-        uint64_t ypos = h * this->framebuffer->pitch;
+        uint64_t ypos = h * this->pitch;
         for (uint32_t w = x; w < _w; w++) {
-            uint64_t xpos = w * this->framebuffer->btpp;
+            uint64_t xpos = w * this->btpp;
             uint64_t index = ypos + xpos;
             *(uint32_t*)(fb + index) = colour;
         }
@@ -145,8 +149,8 @@ void Context::fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, 
 }
 
 void Context::subSeqCircle(uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour) {
-    uint32_t w = this->framebuffer->width;
-    uint32_t h = this->framebuffer->height;
+    uint32_t w = this->width;
+    uint32_t h = this->height;
     this->putPixel(xc+x+w/2, (h/2)-(yc+y), colour);
     this->putPixel(xc-x+w/2, (h/2)-(yc+y), colour);
     this->putPixel(xc+x+w/2, (h/2)-(yc-y), colour);
@@ -176,20 +180,20 @@ void Context::drawCircle(uint32_t xc, uint32_t yc, uint32_t r, uint32_t colour) 
 
 void Context::drawLine(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour) {
 
-    if (x1 > this->framebuffer->width) {
-        x1 = this->framebuffer->width;
+    if (x1 > this->width) {
+        x1 = this->width;
     }
 
-    if (y1 > this->framebuffer->height) {
-        y1 = this->framebuffer->height;
+    if (y1 > this->height) {
+        y1 = this->height;
     }
 
-    if (x2 > this->framebuffer->width) {
-        x2 = this->framebuffer->width;
+    if (x2 > this->width) {
+        x2 = this->width;
     }
 
-    if (y2 > this->framebuffer->height) {
-        y2 = this->framebuffer->height;
+    if (y2 > this->height) {
+        y2 = this->height;
     }
 
     if (x1 < 0) {
@@ -259,12 +263,12 @@ void Context::drawRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, 
 
 // ## frame buffer ##
 
-void Context::swapTo(framebuffer_t* to) {
-    memcpy((uintptr_t)to->fb_addr, (uintptr_t)this->framebuffer->fb_addr, this->framebuffer->fb_size);
+void Context::swapTo(uintptr_t to) {
+    memcpy(to, this->fb_addr, this->fb_size);
 }
 
-void Context::swapFrom(framebuffer_t* from) {
-    memcpy((uintptr_t)this->framebuffer->fb_addr, (uintptr_t)from->fb_addr, from->fb_size);
+void Context::swapFrom(uintptr_t from) {
+    memcpy(this->fb_addr, from, this->fb_size);
 }
 
 void Context::swapTo(Context* to) {
@@ -275,53 +279,14 @@ void Context::swapFrom(Context* from) {
     this->swapFrom(from->getFramebuffer());
 }
 
-void blitFramebuffer(framebuffer_t* s1, framebuffer_t* s2, uint32_t x, uint32_t y) {
-
-    uint64_t to = s1->fb_addr;
-    uint64_t from = s2->fb_addr;
-
-    to += x * s1->btpp + y * s1->pitch; // offset
-
-    uint64_t num;
-
-    if (s1->pitch < s2->pitch) {
-        num = (uint64_t) s1->pitch;
-    } else {
-        num = (uint64_t) s2->pitch;
-    } 
-
-    for (uint64_t h = 0; h < s2->height && h+y < s1->height; h++) {
-        memcpy((uintptr_t) to, (uintptr_t) from, num);
-        to += s1->pitch;
-        from += s2->pitch;
-    }
-
-}
-
-void Context::blitTo(framebuffer_t* to, uint32_t x, uint32_t y) {
-    blitFramebuffer(to, this->getFramebuffer(), x, y);
-}
-
-void Context::blitFrom(framebuffer_t* from, uint32_t x, uint32_t y) {
-    blitFramebuffer(this->getFramebuffer(), from, x, y);
-}
-
-void Context::blitTo(Context* to, uint32_t x, uint32_t y) {
-    this->blitTo(to->getFramebuffer(), x, y);
-}
-
-void Context::blitFrom(Context* from, uint32_t x, uint32_t y) {
-    this->blitFrom(from->getFramebuffer(), x, y);
-}
-
 void Context::clear() {
-    memset((uintptr_t) this->framebuffer->fb_addr, 0x00, this->framebuffer->fb_size);
+    memset(this->fb_addr, 0x00, this->fb_size);
 } 
 
 void Context::clear(uint32_t colour) {
-    memset32((uintptr_t) this->framebuffer->fb_addr, colour, this->framebuffer->fb_size);
+    memset32(this->fb_addr, colour, this->fb_size);
 } 
 
-framebuffer_t* Context::getFramebuffer() {
-    return this->framebuffer;
+uintptr_t Context::getFramebuffer() {
+    return this->fb_addr;
 }
