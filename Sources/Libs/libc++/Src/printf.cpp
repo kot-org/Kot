@@ -7,19 +7,43 @@ namespace std {
         __builtin_va_list args;
         __builtin_va_start(args, str);
 
-        char c;
+        char c, cnum[20];
         StringBuilder* strBuilder = new StringBuilder();
 
         while((c = *str++) != 0) {
             if(c == '%') {
-                c = *str++;
-                
-                switch (c)
+
+                switch (c = *str++)
                 {
-                    case 'x':
+                    case 's':
+                    {
+                        char* _str = __builtin_va_arg(args, char*);
+
+                        if( _str == "" || _str == NULL)
+                            _str = "(null)";
+
+                        strBuilder->append(_str);
 
                         break;
-                    
+                    }
+                    case 'u':
+                    case 'd':
+                        strBuilder->append(itoa(__builtin_va_arg(args, int), cnum, 10));
+
+                        break;
+
+                    case 'x':
+                        strBuilder->append("0");
+                        strBuilder->append("x");
+
+                        strBuilder->append(itoa(__builtin_va_arg(args, int), cnum, 16));
+
+                        break;
+
+                    case ' ':
+                        strBuilder->append("% ");
+                        break;
+
                     default:
                         break;
                 }
@@ -28,6 +52,8 @@ namespace std {
             }
         }
         Printlog(strBuilder->toString());
+
+        free(strBuilder);
 
         __builtin_va_end(args);
     }

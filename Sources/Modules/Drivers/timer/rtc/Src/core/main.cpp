@@ -28,7 +28,7 @@ int BCDToBIN(uint8_t value) {
 extern "C" int main(int argc, char* argv[]) {
     Printlog("[TIMER/RTC] Initialization ...");
 
-    std::printf("test %x test");
+    std::printf("test %s %s test", "string", "string2");
     
     Printlog("[TIMER/RTC] Driver initialized successfully");
 
