@@ -21,7 +21,7 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
 
     thread_t ReadFileFromInitrdThread = NULL;
     Sys_Createthread(proc, (uintptr_t)&ReadFileFromInitrd, PriviledgeApp, &ReadFileFromInitrdThread);
-    // TODO : SystemSrv->GetFramebuffer = MakeShareableThread(ReadFileFromInitrdThread, PriviledgeService);
+    SystemSrv->ReadFileInitrd = MakeShareableThread(ReadFileFromInitrdThread, PriviledgeService);
 
     /* Setup data */
     SrvInfo = (SrvInfo_t*)malloc(sizeof(SrvInfo_t));
@@ -88,7 +88,7 @@ KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name){
         .arg[4] = NULL,             /* GP2 */
         .arg[5] = NULL,             /* GP3 */
     };
-
+    
     Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &data);
     Sys_Close(KSUCCESS);
 }

@@ -384,6 +384,9 @@ KResult Sys_DuplicateThread(SyscallStack* Registers, kthread_t* thread){
     Arguments : 
 */
 KResult Sys_ExecThread(SyscallStack* Registers, kthread_t* thread){
+    if(thread->TID == 0x3){
+        asm("nop");
+    }
     kthread_t* threadkey;
     uint64_t flags;
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;

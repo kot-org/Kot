@@ -63,7 +63,7 @@ struct srv_system_callback_t* Srv_System_GetFrameBufer(srv_system_framebuffer_t*
 KResult Srv_System_ReadFileInitrd_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Statu == KSUCCESS){
         Callback->Data = malloc((size64_t)GP0);
-        memcpy(Callback->Data, (uintptr_t)GP0, (size64_t)GP0);
+        memcpy(Callback->Data, (uintptr_t)GP1, (size64_t)GP0);
         Callback->Size = (size64_t)GP0;
     }
     return Statu;
@@ -84,15 +84,14 @@ struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwai
 
     struct ShareDataWithArguments_t data;
     data.Data = Name;
-    data.Size = strlen(Name + 1); // add '\0' char
+    data.Size = strlen(Name) + 1; // add '\0' char
     data.ParameterPosition = 0x2; 
 
     struct arguments_t parameters;
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
-    
 
-    KResult statu = Sys_Execthread(SystemData->GetFramebuffer, &parameters, ExecutionTypeQueu, &data);
+    KResult statu = Sys_Execthread(SystemData->ReadFileInitrd, &parameters, ExecutionTypeQueu, &data);
     if(statu == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }

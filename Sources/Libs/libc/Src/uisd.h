@@ -41,6 +41,7 @@ typedef struct {
 typedef struct {
     uisd_controller_t ControllerHeader; 
     thread_t GetFramebuffer;
+    thread_t ReadFileInitrd;
 } uisd_system_t;
 
 typedef struct {

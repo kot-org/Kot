@@ -70,7 +70,6 @@ bool CheckAddress(uintptr_t address, size64_t size, uintptr_t pagingEntry){
 bool CheckAddress(uintptr_t address, size64_t size){
     uintptr_t PagingEntry = NULL;
     __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(PagingEntry));
-
     return CheckAddress(address, size, PagingEntry);
 }
 

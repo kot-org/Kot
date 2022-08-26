@@ -164,75 +164,7 @@ void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bo
 }
 
 void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bool user, bool readWrite){
-    vmm_index indexer = vmm_Index((uint64_t)Address);
-    uint64_t PDE;
-
-    vmm_page_table* PML4VirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(table);
-    PDE = PML4VirtualAddress->entries[indexer.PDP_i];
-    uintptr_t PDP;
-    vmm_page_table* PDPVirtualAddress;
-
-    if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
-        PDP = (uintptr_t)Pmm_RequestPage();
-        PDPVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PDP);  
-        memset(PDPVirtualAddress, 0, PAGE_SIZE);
-        vmm_SetAddress(&PDE, (uint64_t)PDP >> 12);
-        vmm_SetFlag(&PDE, vmm_flag::vmm_Present, true);
-        vmm_SetFlag(&PDE, vmm_flag::vmm_ReadWrite, true);
-    }else{
-        PDP = (uintptr_t)((uint64_t)vmm_GetAddress(&PDE) << 12);
-        PDPVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PDP);    
-    }
-
-    vmm_SetIfNotFlag(&PDE, vmm_flag::vmm_User, user);
-    PML4VirtualAddress->entries[indexer.PDP_i] = PDE;
-
-    
-    PDE = PDPVirtualAddress->entries[indexer.PD_i];
-
-    uintptr_t PD;
-    vmm_page_table* PDVirtualAddress;
-    if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
-        PD = (uintptr_t)Pmm_RequestPage();
-        PDVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PD); 
-        memset(PDVirtualAddress, 0, PAGE_SIZE);
-        vmm_SetAddress(&PDE, (uint64_t)PD >> 12);
-        vmm_SetFlag(&PDE, vmm_flag::vmm_Present, true);
-        vmm_SetFlag(&PDE, vmm_flag::vmm_ReadWrite, true);
-    }else{
-        PD = (uintptr_t)((uint64_t)vmm_GetAddress(&PDE) << 12);
-        PDVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PD);  
-    }
-    
-    vmm_SetIfNotFlag(&PDE, vmm_flag::vmm_User, user);
-    PDPVirtualAddress->entries[indexer.PD_i] = PDE;
-
-
-    PDE = PDVirtualAddress->entries[indexer.PT_i];
-    uintptr_t PT;
-    vmm_page_table* PTVirtualAddress;
-    if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
-        PT = (uintptr_t)Pmm_RequestPage();
-        PTVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PT);
-        memset(PTVirtualAddress, 0, PAGE_SIZE);
-        vmm_SetAddress(&PDE, (uint64_t)PT >> 12);
-        vmm_SetFlag(&PDE, vmm_flag::vmm_Present, true);
-        vmm_SetFlag(&PDE, vmm_flag::vmm_ReadWrite, true);
-    }else{
-        PT = (uintptr_t)((uint64_t)vmm_GetAddress(&PDE) << 12);
-        PTVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PT);  
-    }
-    
-    vmm_SetIfNotFlag(&PDE, vmm_flag::vmm_User, user);
-    PDVirtualAddress->entries[indexer.PT_i] = PDE;
-
-
-    PDE = PTVirtualAddress->entries[indexer.P_i];
-    vmm_SetAddress(&PDE, (uint64_t)physicalAddress >> 12);
-    vmm_SetFlag(&PDE, vmm_flag::vmm_Present, true);
-    vmm_SetFlag(&PDE, vmm_flag::vmm_ReadWrite, readWrite);
-    vmm_SetIfNotFlag(&PDE, vmm_flag::vmm_User, user);
-    PTVirtualAddress->entries[indexer.P_i] = PDE;
+    vmm_Map(table, Address, physicalAddress, user, readWrite, true);
 }
 
 void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bool user, bool readWrite, bool physicalStorage){
