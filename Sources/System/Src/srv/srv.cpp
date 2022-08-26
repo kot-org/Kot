@@ -157,7 +157,7 @@ KResult GetSystemManagementBIOSTable(thread_t Callback, uint64_t CallbackArg){
 KResult BindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumber, thread_t Target, bool IgnoreMissedEvents){
     KResult Statu = KFAIL;
     if(IRQLineNumber < SrvInfo->IRQLineSize){
-        uint8_t vector = IRQLineStart + IRQLineNumber;
+        uint8_t vector = SrvInfo->IRQLineStart + IRQLineNumber;
         Statu = Sys_Event_Bind(SrvInfo->IRQEvents[vector], Target, IgnoreMissedEvents);
     }
     

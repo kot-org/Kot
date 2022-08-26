@@ -32,7 +32,7 @@ KResult MouseInitalize(){
                 EnableMouse5Buttons(MousePS2Port);
 
                 MouseData->mousePortType = mousePortTypePS2;
-                Sys_Event_Bind(NULL, InterruptthreadHandler, 0x20 + MousePS2Port->IRQ, false);
+                // Sys_Event_Bind(NULL, InterruptthreadHandler, 0x20 + MousePS2Port->IRQ, false);
 
                 MouseData->IsInitialized = true;
 

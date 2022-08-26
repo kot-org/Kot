@@ -59,7 +59,7 @@ KResult Sys_Event_Bind(event_t self, thread_t task, bool IgnoreMissedEvents){
 }
 
 KResult Sys_Event_Unbind(event_t self, thread_t task){
-    return Syscall_24(KSys_Event_Unbind, self, task);
+    return Syscall_16(KSys_Event_Unbind, self, task);
 }
 
 KResult Sys_kevent_trigger(event_t self, struct arguments_t* parameters){
