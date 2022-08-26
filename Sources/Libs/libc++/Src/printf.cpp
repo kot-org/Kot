@@ -23,21 +23,23 @@ namespace std {
                             _str = "(null)";
 
                         strBuilder->append(_str);
-
                         break;
                     }
+
+                    case 'c':
+                        strBuilder->append(__builtin_va_arg(args, char));
+                        break;
+
                     case 'u':
                     case 'd':
-                        strBuilder->append(itoa(__builtin_va_arg(args, int), cnum, 10));
-
+                        strBuilder->append(itoa(__builtin_va_arg(args, int64_t), cnum, 10));
                         break;
 
                     case 'x':
                         strBuilder->append("0");
                         strBuilder->append("x");
 
-                        strBuilder->append(itoa(__builtin_va_arg(args, int), cnum, 16));
-
+                        strBuilder->append(itoa(__builtin_va_arg(args, int64_t), cnum, 16));
                         break;
 
                     case ' ':
