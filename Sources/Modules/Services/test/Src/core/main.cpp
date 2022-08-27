@@ -5,8 +5,7 @@ void GetMemory(){
     ksmem_t MemoryShare = NULL;
     uintptr_t address = getFreeAlignedSpace(0x1000);
     ksmem_t key = NULL;
-    process_t proc = NULL;
-    Sys_GetProcessKey(&proc);
+    process_t proc = Sys_GetProcess();
     Sys_CreateMemoryField(proc, 0x1000, &address, &key, MemoryFieldTypeShareSpaceRO);
     char* testchar = "Share from another process\0";
     memcpy(address, testchar, strlen(testchar) + 1);
@@ -20,8 +19,7 @@ void GetMemory(){
 extern "C" int main(int argc, char* argv[]){
     Printlog("[Test] Hello world");
 
-    process_t proc = NULL;
-    Sys_GetProcessKey(&proc);
+    process_t proc = Sys_GetProcess();
 
     thread_t GetMemoryThread = NULL;
     Sys_Createthread(proc, (uintptr_t)&GetMemory, PriviledgeApp, NULL, &GetMemoryThread);

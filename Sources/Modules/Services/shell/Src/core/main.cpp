@@ -2,8 +2,7 @@
 
 extern "C" int main() {
 
-    process_t self = NULL;
-    Sys_GetProcessKey(&self);
+    process_t self = Sys_GetProcess();
 
     uint64_t wid = orb::CreateWindow(300, 300);
 

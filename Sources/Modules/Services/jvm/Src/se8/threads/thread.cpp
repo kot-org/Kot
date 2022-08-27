@@ -6,7 +6,7 @@ namespace SE8 {
         this->pid = pid;
         setName("unamed");
         // process_t self;
-        // Sys_GetProcessKey(&self);
+        // self = Sys_GetProcess();
         // Sys_Createthread(self, (uintptr_t)&threadMain, PriviledgeService, &this->thr);
     }   
 

@@ -3,8 +3,7 @@
 extern "C" int main(int argc, char* argv[]){
     Printlog("[Test1] Hello world");
 
-    process_t proc = NULL;
-    Sys_GetProcessKey(&proc);
+    process_t proc = Sys_GetProcess();
 
     uintptr_t addressReceive = getFreeAlignedSpace(sizeof(uisd_test_t));
     GetControllerUISD(ControllerTypeEnum_Test, &addressReceive, true);

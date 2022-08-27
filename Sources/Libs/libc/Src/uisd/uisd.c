@@ -21,8 +21,7 @@ KResult InitializeUISD(){
     thread_t UISDthreadKeyCallback;
     uint64_t UISDKeyFlags = NULL;
 
-    process_t Proc = NULL;
-    Sys_GetProcessKey(&Proc);
+    process_t Proc = Sys_GetProcess();
 
     Sys_Createthread(Proc, &CallbackUISD, PriviledgeApp, &UISDthreadKeyCallback);
     CallBackUISDThread = MakeShareableThreadToProcess(UISDthreadKeyCallback, KotSpecificData.UISDHandlerProcess);
@@ -51,8 +50,7 @@ KResult CallbackUISD(uint64_t Task, KResult Statu, uisd_callbackInfo_t* Info, ui
 
 uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t* Location, bool AwaitCallback){
     if(!CallBackUISDThread) InitializeUISD();
-    thread_t Self = NULL;
-    Sys_GetthreadKey(&Self);
+    thread_t Self = Sys_Getthread();
     uisd_callbackInfo_t* Info = (uisd_callbackInfo_t*)malloc(sizeof(uisd_callbackInfo_t));
     Info->Self = Self;
     Info->Controller = Controller;
@@ -78,8 +76,7 @@ uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintp
 
 uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ksmem_t MemoryField, bool AwaitCallback){
     if(!CallBackUISDThread) InitializeUISD();
-    thread_t Self = NULL;
-    Sys_GetthreadKey(&Self);
+    thread_t Self = Sys_Getthread();
     uisd_callbackInfo_t* Info = malloc(sizeof(uisd_callbackInfo_t));
     Info->Self = Self;
     Info->Controller = Controller;

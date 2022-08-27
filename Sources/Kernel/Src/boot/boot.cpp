@@ -54,8 +54,12 @@ namespace Boot{
         /* set physicall address */
         Info.Framebuffer->framebuffer_addr -= Info.HHDM->addr;
         Info.RSDP->rsdp -= Info.HHDM->addr;
-        Info.smbios->smbios_entry_32 -= Info.HHDM->addr;
-        Info.smbios->smbios_entry_64 -= Info.HHDM->addr;
+        if(Info.smbios->smbios_entry_32 != NULL){
+            Info.smbios->smbios_entry_32 -= Info.HHDM->addr;
+        }
+        if(Info.smbios->smbios_entry_64 != NULL){
+            Info.smbios->smbios_entry_64 -= Info.HHDM->addr;
+        }
 
         vmm_HHDMAdress = Info.HHDM->addr;
         return &Info;

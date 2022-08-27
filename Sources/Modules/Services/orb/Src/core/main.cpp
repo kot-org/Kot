@@ -7,13 +7,11 @@ Context* backbuffer_ctx = NULL;
 
 void initBuffers() {
     srv_system_framebuffer_t* bootframebuffer = (srv_system_framebuffer_t*)malloc(sizeof(srv_system_framebuffer_t));
-    Srv_System_GetFrameBufer(bootframebuffer, true);
+    Srv_System_GetFrameBuffer(bootframebuffer, true);
 
     framebuffer_t* screen = (framebuffer_t*) malloc(sizeof(framebuffer_t));
     screen->fb_size = bootframebuffer->pitch * bootframebuffer->height;
-
-    uint64_t virtualAddress = (uint64_t) KotSpecificData.FreeMemorySpace - screen->fb_size;
-    Sys_Map(self, &virtualAddress, AllocationTypePhysical, (uintptr_t*) &bootframebuffer->address, &screen->fb_size, false);
+    uint64_t virtualAddress = (uint64_t)MapPhysical((uintptr_t)bootframebuffer->address, screen->fb_size);
 
     screen->fb_addr = virtualAddress;
     screen->width = bootframebuffer->width;
@@ -128,7 +126,7 @@ void initUISD() {
 
 extern "C" int main() {
     
-    Sys_GetProcessKey(&self);
+    self = Sys_GetProcess();
 
     initBuffers();
     initWindowRender();

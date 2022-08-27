@@ -129,22 +129,22 @@ KResult Sys_Keyhole_Verify(key_t self, enum DataType type, process_t* target, ui
 KResult Sys_Logs(char* message, size64_t size);
 
 
-KResult Sys_GetthreadKey(thread_t* self);
-KResult Sys_GetProcessKey(process_t* self);
-KResult Sys_GetPID(uint64_t* PID);
-KResult Sys_GetTID(uint64_t* TID);
-KResult Sys_GetExternalData(uint64_t* ExternalData);
-KResult Sys_GetPriviledge(uint64_t* Priviledge);
+thread_t Sys_Getthread();
+process_t Sys_GetProcess();
+uint64_t Sys_GetPID();
+uint64_t Sys_GetTID();
+uint64_t Sys_GetExternalData();
+uint64_t Sys_GetPriviledge();
 
-KResult Sys_GetPIDCreator(uint64_t* PID);
-KResult Sys_GetTIDCreator(uint64_t* TID);
-KResult Sys_GetExternalDataCreator(uint64_t* ExternalData);
-KResult Sys_GetPriviledgeCreator(uint64_t* Priviledge);
+uint64_t Sys_GetPIDCreator();
+uint64_t Sys_GetTIDCreator();
+uint64_t Sys_GetExternalDataCreator();
+uint64_t Sys_GetPriviledgeCreator();
 
-KResult Sys_GetPIDLauncher(uint64_t* PID);
-KResult Sys_GetTIDLauncher(uint64_t* TID);
-KResult Sys_GetExternalDataLauncher(uint64_t* ExternalData);
-KResult Sys_GetEPriviledgeLauncher(uint64_t* Priviledge);
+uint64_t Sys_GetPIDLauncher();
+uint64_t Sys_GetTIDLauncher();
+uint64_t Sys_GetExternalDataLauncher();
+uint64_t Sys_GetEPriviledgeLauncher();
 
 KResult Printlog(char* message);
 

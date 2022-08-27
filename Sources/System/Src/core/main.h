@@ -7,9 +7,11 @@
 #include <kot++/json.h>
 
 #include <elf/elf.h>
-#include <uisd/uisd.h>
-#include <initrd/initrd.h>
 #include <srv/srv.h>
+#include <uisd/uisd.h>
+#include <acpi/acpi.h>
+#include <initrd/initrd.h>
+#include <interrupts/interrupts.h>
 
 struct bootframebuffer_t {
     uint64_t identifier;
@@ -40,8 +42,6 @@ struct memoryInfo_t{
     uint64_t reservedPageMemory;
     uint64_t usedPageMemory;    
 }__attribute__((packed));
-
-#define KERNEL_INFO_SIZE 0x5
 
 struct KernelInfo {
     uint64_t Revision;

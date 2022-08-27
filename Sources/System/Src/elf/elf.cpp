@@ -63,8 +63,7 @@ namespace ELF {
         /* TODO : create thread identifier */
         if(Sys_Createthread(proc, (uintptr_t)self->Header->e_entry, privilege, mainthread) != KSUCCESS) return KFAIL;
         
-        process_t parentProcess = NULL;
-        Sys_GetProcessKey(&parentProcess);
+        process_t parentProcess = Sys_GetProcess();
         
         /* Load the elf */
         self->phdrs = (uintptr_t)((uint64_t)buffer + self->Header->e_phoff);
@@ -75,8 +74,7 @@ namespace ELF {
         self->symtab = GetSectionHeaderType(self, SHT_SYMTAB);
         self->KotSpecific = GetSectionHeaderName(self, ".KotSpecificData");
 
-        thread_t Runningthread = NULL;
-        Sys_GetthreadKey(&Runningthread);
+        thread_t Runningthread = Sys_Getthread();
 
         uint64_t HeapLocation = 0x0;
         for (int i = 0; i < self->Header->e_phnum; i++) {

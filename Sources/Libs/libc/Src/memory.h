@@ -1,8 +1,9 @@
 #ifndef _MEMORY_H
 #define _MEMORY_H 1
 
-#include <kot/types.h>
+#include <kot/sys.h>
 #include <kot/heap.h>
+#include <kot/types.h>
 #include <kot/atomic.h>
 
 #if defined(__cplusplus)
@@ -17,6 +18,7 @@ void memset64(uintptr_t start, uint64_t value, size64_t size);
 int memcmp(const void *aptr, const void *bptr, size64_t size);
 void memcpy(uintptr_t destination, uintptr_t source, size64_t size);
 uintptr_t getFreeAlignedSpace(size64_t size);
+uintptr_t MapPhysical(uintptr_t physicalAddress, size64_t size);
 
 #if defined(__cplusplus)
 }

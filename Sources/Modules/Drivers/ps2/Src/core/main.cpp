@@ -11,7 +11,7 @@ IRQRedirections IRQRedirectionsArray[2];
 extern "C" int main(int argc, char* argv[]){
     Printlog("[PS2] Initialization ...");
     /* Initialize PS2 drivers */
-    Sys_GetProcessKey(&self);
+    self = Sys_GetProcess();
     Sys_Createthread(self, (uintptr_t)&PS2InterruptHandler, PriviledgeDriver, &InterruptthreadHandler);
 
     KResult status = KSUCCESS;

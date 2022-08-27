@@ -12,8 +12,7 @@ thread_t UISDInitialize(process_t* process) {
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypethreadIsExecutableWithQueue, true);
 
-    process_t proc;
-    Sys_GetProcessKey(&proc);
+    process_t proc = Sys_GetProcess();
 
     Sys_Createthread(proc, (uintptr_t)UISDHandler, PriviledgeService, &UISDHandlerThread);
     Sys_Keyhole_CloneModify(UISDHandlerThread, &UISDthreadKey, NULL, UISDKeyFlags, PriviledgeApp);

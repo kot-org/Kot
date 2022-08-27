@@ -127,13 +127,14 @@ KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name){
 }
 
 KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg, char* Name){
+    uintptr_t physicalTableAddress = FindTable(Name);
     arguments_t arguments{
-        .arg[0] = KSUCCESS,         /* Statu */
-        .arg[1] = CallbackArg,      /* CallbackArg */
-        .arg[2] = NULL,             /* GP0 */
-        .arg[3] = NULL,             /* GP1 */
-        .arg[4] = NULL,             /* GP2 */
-        .arg[5] = NULL,             /* GP3 */
+        .arg[0] = KSUCCESS,                         /* Statu */
+        .arg[1] = CallbackArg,                      /* CallbackArg */
+        .arg[2] = (uint64_t)physicalTableAddress,   /* PhysicalTableAddress */
+        .arg[3] = NULL,                             /* GP1 */
+        .arg[4] = NULL,                             /* GP2 */
+        .arg[5] = NULL,                             /* GP3 */
     };
 
     Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
@@ -174,11 +175,22 @@ KResult BindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumb
     Sys_Close(KSUCCESS);
 }
 
-KResult BindFreeIRQ(thread_t Callback, uint64_t CallbackArg){
+KResult BindFreeIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, bool IgnoreMissedEvents){
+    event_t IRQ = NULL;
+    for(size64_t i = 0; i < SrvInfo->IRQSize; i++){
+        if(SrvInfo->IsIRQEventsFree[i]){
+            IRQ = SrvInfo->IsIRQEventsFree[i];
+            break;
+        }
+    }
+    KResult Statu = KFAIL;
+    if(IRQ != NULL){
+        Statu = Sys_Event_Bind(IRQ, Target, IgnoreMissedEvents);
+    }
     arguments_t arguments{
         .arg[0] = KSUCCESS,         /* Statu */
         .arg[1] = CallbackArg,      /* CallbackArg */
-        .arg[2] = NULL,             /* GP0 */
+        .arg[2] = IRQ,              /* IRQNumber */
         .arg[3] = NULL,             /* GP1 */
         .arg[4] = NULL,             /* GP2 */
         .arg[5] = NULL,             /* GP3 */

@@ -6,25 +6,23 @@ using namespace std;
 
 process_t proc;
 
-extern "C" int main(struct KernelInfo* kernelInfo) {
+extern "C" int main(KernelInfo* kernelInfo) {
 
     Printlog("[System] Initialization ...");
 
-    Sys_GetProcessKey(&proc);
+    proc = Sys_GetProcess();
 
-    thread_t self;
-    Sys_GetthreadKey(&self);
+    thread_t self = Sys_Getthread();
 
+    // parse file system
     initrd::Parse(kernelInfo->initrd.address, kernelInfo->initrd.size);
 
-    kernelInfo->IsIRQEventsFree = (bool*)calloc(kernelInfo->IRQSize * sizeof(bool));
-    for(size64_t i = 0; i < kernelInfo->IRQSize; i++){
-        if(kernelInfo->IRQEvents[i] != NULL){
-            if(i < kernelInfo->IRQLineStart || i > (kernelInfo->IRQLineStart + kernelInfo->IRQLineSize)){
-                kernelInfo->IsIRQEventsFree[i] = true;
-            }
-        }
-    }
+    // parse rsdp
+    ParseRSDP(kernelInfo->Rsdp);
+
+    // init interrupts
+    InitializeInterrupts(kernelInfo);
+
     // load IPC
     KotSpecificData.UISDHandler = UISDInitialize(&KotSpecificData.UISDHandlerProcess);
 
