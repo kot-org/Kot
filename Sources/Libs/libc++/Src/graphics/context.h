@@ -79,4 +79,8 @@ public:
 
     uintptr_t getFramebuffer();
 
+    uint32_t getPitch() {
+        return this->pitch;
+    }
+
 };

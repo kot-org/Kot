@@ -1,11 +1,11 @@
 #include <kot/heap.h>
 #include <kot/utils/vector.h>
+#include <kot++/graphics/context.h>
 
 #ifndef __ORB__MONITOR__
 #define __ORB__MONITOR__
 
 #include "window.h"
-#include "../graphics/context.h"
 
 class Window;
 class Context;

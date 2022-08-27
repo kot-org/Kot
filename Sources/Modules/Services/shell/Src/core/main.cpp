@@ -1,18 +1,29 @@
 #include "main.h"
 
+#include "psf1.h"
+
 extern "C" int main() {
 
     process_t self = Sys_GetProcess();
 
-    uint32_t wid = orb::Create(400, 300, 10, 10);
+    uint32_t wid = orb::Create(300, 300, 10, 10);
     uintptr_t fb = orb::GetFramebuffer(wid);
-    uint64_t pitch = 400 * 300 * 4;
-    
-    for (uint8_t x = 0; x < 100; x++) {
-        for (uint8_t y = 0; y < 100; y++) {
-            uint64_t index = x * 4 + y * pitch;
-            *(uint32_t*)((uint64_t) fb + index) = 0xffffff;
-        }
-    }
+
+    srv_system_callback_t* file = Srv_System_ReadFileInitrd("zap-light16.psf", true);
+    psf1_font* zap_light16 = psf1_parse(file->Data);
+
+    psf1_putchar(zap_light16, fb, 300 * 4, 'h', 8*0, 0, 0xffffffff);
+    psf1_putchar(zap_light16, fb, 300 * 4, 'e', 8*1, 0, 0xffffffff);
+    psf1_putchar(zap_light16, fb, 300 * 4, 'l', 8*2, 0, 0xffffffff);
+    psf1_putchar(zap_light16, fb, 300 * 4, 'l', 8*3, 0, 0xffffffff);
+    psf1_putchar(zap_light16, fb, 300 * 4, 'o', 8*4, 0, 0xffffffff);
+    // ' '
+    psf1_putchar(zap_light16, fb, 300 * 4, 'w', 8*6, 0, 0xffffffff);
+    psf1_putchar(zap_light16, fb, 300 * 4, 'o', 8*7, 0, 0xffffffff);
+    psf1_putchar(zap_light16, fb, 300 * 4, 'r', 8*8, 0, 0xffffffff);
+    psf1_putchar(zap_light16, fb, 300 * 4, 'l', 8*9, 0, 0xffffffff);
+    psf1_putchar(zap_light16, fb, 300 * 4, 'd', 8*10, 0, 0xffffffff);
+
+    return KSUCCESS;
 
 }

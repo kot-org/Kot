@@ -9,7 +9,7 @@
 #include <kot/uisd/srvs/system.h>
 #include <kot/utils/vector.h>
 
-#include "../graphics/context.h"
+#include <kot++/graphics/context.h>
 
 class Context;
 
