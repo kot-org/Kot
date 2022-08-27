@@ -31,16 +31,18 @@
 #ifndef _SSFN_H_
 #define _SSFN_H_
 
-#include <kot/memory.h>
 #include <kot/heap.h>
-
-#define SSFN_VERSION 0x0200
+#include <kot/types.h>
+#include <kot/memory.h>
 
 #define SSFN_memcmp  memcmp
 #define SSFN_memset  memset
 #define SSFN_realloc realloc
 #define SSFN_free    free
 #define SSFN_CONSOLEBITMAP_TRUECOLOR
+#define SSFN_IMPLEMENTATION 
+
+#define SSFN_VERSION 0x0200
 
 
 #ifdef  __cplusplus
@@ -52,16 +54,6 @@ extern "C" {
 # ifndef __THROW
 #  define __THROW
 # endif
-#endif
-/* if stdint.h was not included before us */
-#ifndef _STDINT_H
-typedef unsigned char       uint8_t;
-typedef unsigned short int  uint16_t;
-typedef short int           int16_t;
-typedef unsigned int        uint32_t;
-#ifndef _UINT64_T
-typedef unsigned long int   uint64_t;
-#endif
 #endif
 
 /***** file format *****/
@@ -306,11 +298,6 @@ uint32_t ssfn_utf8(char **s)
 # ifndef inline
 #  define inline __inline__
 # endif
-
-#ifndef _STRING_H_
-extern int memcmp (const void *__s1, const void *__s2, size_t __n) __THROW;
-extern void *memset (void *__s, int __c, size_t __n) __THROW;
-#endif
 
 /* Clang does not have built-ins */
 # ifndef SSFN_memcmp
@@ -1624,3 +1611,4 @@ namespace SSFN {
 #endif
 /*                                */
 #endif /* _SSFN_H_ */
+

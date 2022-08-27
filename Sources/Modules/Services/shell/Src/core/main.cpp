@@ -10,20 +10,16 @@ extern "C" int main() {
     uintptr_t fb = orb::GetFramebuffer(wid);
 
     srv_system_fileheader_t* File = (srv_system_fileheader_t*)malloc(sizeof(srv_system_fileheader_t));
-    srv_system_callback_t* Data = Srv_System_ReadFileInitrd("zap-light16.psf", File, true);
-    psf1_font* zap_light16 = psf1_parse(File->Data);
-
-    psf1_putchar(zap_light16, fb, 300 * 4, 'h', 8*0, 0, 0xffffffff);
-    psf1_putchar(zap_light16, fb, 300 * 4, 'e', 8*1, 0, 0xffffffff);
-    psf1_putchar(zap_light16, fb, 300 * 4, 'l', 8*2, 0, 0xffffffff);
-    psf1_putchar(zap_light16, fb, 300 * 4, 'l', 8*3, 0, 0xffffffff);
-    psf1_putchar(zap_light16, fb, 300 * 4, 'o', 8*4, 0, 0xffffffff);
-    // ' '
-    psf1_putchar(zap_light16, fb, 300 * 4, 'w', 8*6, 0, 0xffffffff);
-    psf1_putchar(zap_light16, fb, 300 * 4, 'o', 8*7, 0, 0xffffffff);
-    psf1_putchar(zap_light16, fb, 300 * 4, 'r', 8*8, 0, 0xffffffff);
-    psf1_putchar(zap_light16, fb, 300 * 4, 'l', 8*9, 0, 0xffffffff);
-    psf1_putchar(zap_light16, fb, 300 * 4, 'd', 8*10, 0, 0xffffffff);
+    srv_system_callback_t* Data = Srv_System_ReadFileInitrd("default-font.psf", File, true);
+    kfont_t* font = LoadFont(File->Data, font_family_serif, "default-font", NULL, 64);
+    
+    font_fb_t buffer;
+    buffer.address = fb;
+    buffer.width = 300;
+    buffer.height = 300;
+    buffer.pitch = 300 * 4;
+    PrintFont(font, "Hello", &buffer, 0, 0);
+    FreeFont(font);
 
     return KSUCCESS;
 

@@ -4,6 +4,7 @@
 #include <kot/uisd.h>
 #include <kot/utils.h>
 #include <kot/cstring.h>
+#include <kot-ui/font.h>
 
 #include <kot/uisd/srvs/system.h>
 
