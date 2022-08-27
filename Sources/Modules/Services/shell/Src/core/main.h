@@ -5,5 +5,7 @@
 #include <kot/utils.h>
 #include <kot/cstring.h>
 
+#include <kot/uisd/srvs/system.h>
+
 #include <kot++/orb.h>
 #include <kot++/graphics/context.h>
