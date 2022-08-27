@@ -40,6 +40,7 @@ KResult Sys_AcceptMemoryField(SyscallStack* Registers, kthread_t* thread){
     kprocess_t* processkey;
     MemoryShareInfo* memoryKey;
     uint64_t flags;
+
     if(CheckAddress((uintptr_t)Registers->arg2, sizeof(uint64_t)) != KSUCCESS) return KMEMORYVIOLATION;
     uint64_t* virtualAddressPointer = (uint64_t*)Registers->arg2;
 
@@ -368,9 +369,6 @@ KResult Sys_DuplicateThread(SyscallStack* Registers, kthread_t* thread){
     Arguments : 
 */
 KResult Sys_ExecThread(SyscallStack* Registers, kthread_t* thread){
-    if(thread->TID == 0x3){
-        asm("nop");
-    }
     kthread_t* threadkey;
     uint64_t flags;
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypethread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
@@ -487,5 +485,6 @@ extern "C" void SyscallDispatch(SyscallStack* Registers, kthread_t* Self){
     }
 
     Registers->GlobalPurpose = SyscallHandlers[Registers->GlobalPurpose](Registers, Self);
+
     return;
 }
