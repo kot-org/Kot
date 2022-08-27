@@ -89,7 +89,7 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     ArchInfo->rsdp = (uintptr_t)bootInfo->RSDP->rsdp;
 
     initrd::Parse(ArchInfo->initrd.initrdBase, ArchInfo->initrd.Size);
-    Successful("initrd initialized");
+    Successful("Initrd initialized");
     return ArchInfo;
 }
 
