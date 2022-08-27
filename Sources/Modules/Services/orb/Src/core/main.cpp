@@ -129,11 +129,11 @@ void initOrb() {
     srv_system_framebuffer_t* bootframebuffer = (srv_system_framebuffer_t*) malloc(sizeof(srv_system_framebuffer_t));
     Srv_System_GetFrameBuffer(bootframebuffer, true);
 
-    size64_t fb_size = bootframebuffer->pitch * bootframebuffer->height;
+    size64_t fb_size = bootframebuffer->Pitch * bootframebuffer->Height;
     
-    uint64_t virtualAddress = (uint64_t)MapPhysical((uintptr_t)bootframebuffer->address, fb_size);
+    uint64_t virtualAddress = (uint64_t)MapPhysical((uintptr_t)bootframebuffer->Address, fb_size);
 
-    Monitor* monitor0 = new Monitor((uintptr_t) virtualAddress, bootframebuffer->width, bootframebuffer->height, 0, 0);
+    Monitor* monitor0 = new Monitor((uintptr_t)virtualAddress, bootframebuffer->Width, bootframebuffer->Height, 0, 0);
 
     free(bootframebuffer);
     

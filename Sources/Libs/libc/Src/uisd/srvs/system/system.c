@@ -60,21 +60,23 @@ struct srv_system_callback_t* Srv_System_GetFrameBuffer(srv_system_framebuffer_t
 /* ReadFile */
 KResult Srv_System_ReadFileInitrd_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Statu == KSUCCESS){
-        Callback->Data = malloc((size64_t)GP0);
-        memcpy(Callback->Data, (uintptr_t)GP1, (size64_t)GP0);
-        Callback->Size = (size64_t)GP0;
+        srv_system_fileheader_t* FileHeader = (srv_system_fileheader_t*)Callback->Data;
+        FileHeader->Data = malloc((size64_t)GP0);
+        memcpy(FileHeader->Data, (uintptr_t)GP1, (size64_t)GP0);
+        FileHeader->Size = (size64_t)GP0;
     }
     return Statu;
 }
 
-struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwait){
+struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name, srv_system_fileheader_t* file,  bool IsAwait){
     if(!srv_system_callback_thread) Srv_System_Initialize();
     
     thread_t self = Sys_Getthread();
 
     struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
     callback->Self = self;
-    callback->Data = NULL;
+    callback->Data = (uintptr_t)file;
+    callback->Size = sizeof(srv_system_fileheader_t*);
     callback->IsAwait = IsAwait;
     callback->Statu = KBUSY;
     callback->Handler = &Srv_System_ReadFileInitrd_Callback;
@@ -94,3 +96,41 @@ struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwai
     }
     return callback;
 }
+
+/* GetTableInRootSystemDescription */
+KResult Srv_System_GetTableInRootSystemDescription_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    if(Statu == KSUCCESS){
+        *(srv_system_sdtheader_t**)Callback->Data = (srv_system_sdtheader_t*)MapPhysical(GP0, sizeof(srv_system_sdtheader_t));
+    }
+    return Statu;
+}
+
+struct srv_system_callback_t* Srv_System_GetTableInRootSystemDescription(char* Name, srv_system_sdtheader_t** SDTHeader, bool IsAwait){
+    if(!srv_system_callback_thread) Srv_System_Initialize();
+    
+    thread_t self = Sys_Getthread();
+
+    struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
+    callback->Self = self;
+    callback->Data = (uintptr_t)SDTHeader;
+    callback->Size = (size64_t)sizeof(srv_system_sdtheader_t*);
+    callback->IsAwait = IsAwait;
+    callback->Statu = KBUSY;
+    callback->Handler = &Srv_System_GetTableInRootSystemDescription_Callback;
+
+    struct ShareDataWithArguments_t data;
+    data.Data = Name;
+    data.Size = strlen(Name) + 1; // add '\0' char
+    data.ParameterPosition = 0x2; 
+
+    struct arguments_t parameters;
+    parameters.arg[0] = srv_system_callback_thread;
+    parameters.arg[1] = callback;
+
+    KResult statu = Sys_Execthread(SystemData->GetTableInRootSystemDescription, &parameters, ExecutionTypeQueu, &data);
+    if(statu == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}
+
