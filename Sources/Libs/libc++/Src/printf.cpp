@@ -4,11 +4,11 @@
 namespace std {
 
     void printf(const char* str, ...) {
-        __builtin_va_list args;
-        __builtin_va_start(args, str);
-
         char c, cnum[20];
         StringBuilder* strBuilder = new StringBuilder();
+        
+        __builtin_va_list args;
+        __builtin_va_start(args, str);
 
         while((c = *str++) != 0) {
             if(c == '%') {
@@ -53,11 +53,11 @@ namespace std {
                 strBuilder->append(&c);
             }
         }
-        Printlog(strBuilder->toString());
-
-        free(strBuilder);
 
         __builtin_va_end(args);
+
+        Printlog(strBuilder->toString());
+        free(strBuilder);
     }
 
 }

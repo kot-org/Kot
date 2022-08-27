@@ -3,6 +3,8 @@
 #include <tools/config.h>
 #include <tools/memory.h>
 
+process_t proc;
+
 PCIDevice** PCIDevices = NULL;
 uint32_t PCIDevicesIndex = 0;
 
@@ -162,36 +164,29 @@ void EnumerateDevices() {
     }    
 }
 
-extern "C" int main(int argc, char* argv[]) {
-    Printlog("[PCI] Initialization ...");
-
-    EnumerateDevices();
-
-    Printlog("[PCI] Driver initialized successfully");
-
-    return KSUCCESS;
-}
-
-/* PUBLIC */
-
 bool checkDeviceIndex(uint32_t index) {
     if(index < PCIDevicesIndex)
         return true;
     return false;
 }
 
-uint8_t GetBARNum(uint32_t index) {
+KResult GetBARNum(uint32_t index) {
     if(checkDeviceIndex(index))
-        return PCIDevices[index]->BARNum;
-    return NULL;
+        Sys_Close(PCIDevices[index]->BARNum);
+    Sys_Close(NULL);
 }
-uint64_t GetBARSize(uint32_t index, uint8_t barIndex) {
+KResult GetBARType(uint32_t index, uint8_t barIndex) {
     if(checkDeviceIndex(index) && barIndex < PCIDevices[index]->BARNum)
-        return PCIDevices[index]->BAR[barIndex]->Size;
-    return NULL;
+        Sys_Close(PCIDevices[index]->BAR[barIndex]->Type);
+    Sys_Close(NULL);
+}
+KResult GetBARSize(uint32_t index, uint8_t barIndex) {
+    if(checkDeviceIndex(index) && barIndex < PCIDevices[index]->BARNum)
+        Sys_Close(PCIDevices[index]->BAR[barIndex]->Size);
+    Sys_Close(NULL);
 }
 
-uint32_t PCISearcherGetDevice(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIf, uint64_t index) {
+KResult PCISearcherGetDevice(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIf, uint64_t index) {
     uint8_t checkRequired = 0;
     uint32_t deviceNum = 0;
 
@@ -226,13 +221,13 @@ uint32_t PCISearcherGetDevice(uint16_t vendorID, uint16_t deviceID, uint16_t sub
         if(checkRequired == checkNum) deviceNum++;
 
         if(index == deviceNum)
-            return i;
+            Sys_Close(i);
 
     }
-    return NULL;
+    Sys_Close(NULL);
 }
 
-uint32_t PCISearcher(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIf) {
+KResult PCISearcher(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIf) {
     uint8_t checkRequired = 0;
     uint32_t deviceNum = 0;
 
@@ -267,5 +262,61 @@ uint32_t PCISearcher(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, 
         if(checkRequired == checkNum) deviceNum++;
 
     }
-    return deviceNum;
+    Sys_Close(deviceNum);
+}
+
+void InitSrv() {
+    uintptr_t addr = getFreeAlignedSpace(sizeof(uisd_pci_t));
+    ksmem_t key = NULL;
+    
+    proc = Sys_GetProcess();
+
+    Sys_CreateMemoryField(proc, sizeof(uisd_pci_t), &addr, &key, MemoryFieldTypeShareSpaceRO);
+
+    uisd_pci_t* PciSrv = (uisd_pci_t*) addr;
+    PciSrv->ControllerHeader.IsReadWrite = false;
+    PciSrv->ControllerHeader.Version = Pci_Srv_Version;
+    PciSrv->ControllerHeader.VendorID = Kot_VendorID;
+    PciSrv->ControllerHeader.Type = ControllerTypeEnum_PCI;
+    PciSrv->ControllerHeader.Process = ShareProcessKey(proc);
+
+    /* Setup thread */
+    CreateControllerUISD(ControllerTypeEnum_PCI, key, true);
+
+    /* GetBARNum */
+    thread_t GetBARNumThread = NULL;
+    Sys_Createthread(proc, (uintptr_t) &GetBARNum, PriviledgeDriver, &GetBARNumThread);
+    PciSrv->GetBARNum = MakeShareableThread(GetBARNumThread, PriviledgeDriver);
+
+    /* GetBARType */
+    thread_t GetBARTypeThread = NULL;
+    Sys_Createthread(proc, (uintptr_t) &GetBARType, PriviledgeDriver, &GetBARTypeThread);
+    PciSrv->GetBARType = MakeShareableThread(GetBARTypeThread, PriviledgeDriver);
+
+    /* GetBARSize */
+    thread_t GetBARSizeThread = NULL;
+    Sys_Createthread(proc, (uintptr_t) &GetBARSize, PriviledgeDriver, &GetBARSizeThread);
+    PciSrv->GetBARSize = MakeShareableThread(GetBARSizeThread, PriviledgeDriver);
+
+    /* PCISearcherGetDevice */
+    thread_t PCISearcherGetDeviceThread = NULL;
+    Sys_Createthread(proc, (uintptr_t) &PCISearcherGetDevice, PriviledgeDriver, &PCISearcherGetDeviceThread);
+    PciSrv->PCISearcherGetDevice = MakeShareableThread(PCISearcherGetDeviceThread, PriviledgeDriver);
+    
+    /* PCISearcher */
+    thread_t PCISearcherThread = NULL;
+    Sys_Createthread(proc, (uintptr_t) &PCISearcher, PriviledgeDriver, &PCISearcherThread);
+    PciSrv->PCISearcher = MakeShareableThread(PCISearcherThread, PriviledgeDriver);
+}
+
+extern "C" int main(int argc, char* argv[]) {
+    Printlog("[PCI] Initialization ...");
+
+    InitSrv();
+
+    EnumerateDevices();
+
+    Printlog("[PCI] Driver initialized successfully");
+
+    return KSUCCESS;
 }

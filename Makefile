@@ -8,6 +8,8 @@ QEMUFLAGS =	-no-reboot 										\
 			-cdrom ./Bin/kot.iso							\
 			-m 3G											\
 			-netdev user,id=n0 -device rtl8139,netdev=n0 	\
+			-usb                                            \
+    		-device usb-ehci,id=ehci                        \
 			-soundhw pcspk
 
 build:

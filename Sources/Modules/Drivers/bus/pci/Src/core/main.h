@@ -1,5 +1,7 @@
 #pragma once
 
+#define Pci_Srv_Version 0x1
+
 #define PCI_VENDOR_ID_OFFSET 		0x0
 #define PCI_DEVICE_ID_OFFSET 		0x2
 #define PCI_COMMAND_OFFSET 			0x4
@@ -24,6 +26,9 @@
 #include <kot/arch.h>
 #include <kot/heap.h>
 #include <kot/cstring.h>
+#include <kot/utils.h>
+
+#include <kot/uisd/srvs/system.h>
 
 struct PCIDeviceHeader{
     uint16_t VendorID;
