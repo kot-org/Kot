@@ -6,3 +6,4 @@
 #include <kot/cstring.h>
 
 #include <kot++/orb.h>
+#include <kot++/graphics/context.h>
