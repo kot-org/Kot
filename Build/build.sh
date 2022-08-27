@@ -18,9 +18,10 @@ cd "Sources/"
 # Libraries
 echo -e "\e[32mCompiling kot libraries...\e[0m"
 
+sudo make -C "Libs/abi/Build"
 sudo make -C "Libs/libc/Build"
 sudo make -C "Libs/libc++/Build"
-sudo make -C "Libs/abi/Build"
+sudo make -C "Libs/kot-ui/Build"
 
 # System
 echo -e "\e[32mCompiling kot system...\e[0m"
