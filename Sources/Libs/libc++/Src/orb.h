@@ -6,54 +6,75 @@
 
 namespace orb {
 
+    size64_t fb_size(uint32_t width, uint32_t height) {
+        return width * 4 * height;
+    }
+
     uisd_graphics_t* OrbSrv = NULL; 
 
-    uint64_t CreateWindow(uint64_t width, uint64_t height) {
-        if (OrbSrv == NULL) {
-            uintptr_t addressReceived = getFreeAlignedSpace(sizeof(uisd_graphics_t));
-            GetControllerUISD(ControllerTypeEnum_Graphics, &addressReceived, true);
-            OrbSrv = (uisd_graphics_t*) addressReceived;
-        }
+    void GetOrbSrv() {
+        uintptr_t addressReceived = getFreeAlignedSpace(sizeof(uisd_graphics_t));
+        GetControllerUISD(ControllerTypeEnum_Graphics, &addressReceived, true);
+        OrbSrv = (uisd_graphics_t*) addressReceived;
+    }
+
+    uint32_t Create(uint32_t width, uint32_t height, int32_t xPos, int32_t yPos) {
+        if (OrbSrv == NULL) { GetOrbSrv(); }
         arguments_t* arguments = (arguments_t*) malloc(sizeof(arguments_t));
         arguments->arg[0] = width;
         arguments->arg[1] = height;
+        arguments->arg[2] = xPos;
+        arguments->arg[3] = yPos;
         ksmem_t result = Sys_Execthread(OrbSrv->CreateWindow, arguments, ExecutionTypeQueuAwait, NULL);
         return result;
     }
 
-    void DestroyWindow(uint64_t wid) {
+    void Destroy(uint32_t wid) {
+        if (OrbSrv == NULL) { GetOrbSrv(); }
         /* TODO */
     }
 
-    uintptr_t GetWindowbuffer(uint64_t wid) {
-        /* TODO */
-        return NULL;
+    uint32_t GetWidth(uint32_t wid) {
+        if (OrbSrv == NULL) { GetOrbSrv(); }
+        arguments_t* arguments = (arguments_t*) malloc(sizeof(arguments_t));
+        arguments->arg[0] = wid;
+        ksmem_t result = Sys_Execthread(OrbSrv->GetWidth, arguments, ExecutionTypeQueuAwait, NULL);
+        return result;
+    }
+
+    uint32_t GetHeight(uint32_t wid) {
+        if (OrbSrv == NULL) { GetOrbSrv(); }
+        arguments_t* arguments = (arguments_t*) malloc(sizeof(arguments_t));
+        arguments->arg[0] = wid;
+        ksmem_t result = Sys_Execthread(OrbSrv->GetHeight, arguments, ExecutionTypeQueuAwait, NULL);
+        return result;
+    }
+
+    uintptr_t GetFramebuffer(uint32_t wid) {
+        if (OrbSrv == NULL) { GetOrbSrv(); }
+        arguments_t* arguments = (arguments_t*) malloc(sizeof(arguments_t));
+        arguments->arg[0] = wid;
+        ksmem_t MemoryShare = Sys_Execthread(OrbSrv->GetFramebuffer, arguments, ExecutionTypeQueuAwait, NULL);
+        uintptr_t addressReceiveShare = getFreeAlignedSpace(fb_size(GetWidth(wid), GetHeight(wid)));
+        process_t proc;
+        Sys_GetProcessKey(&proc);
+        Sys_AcceptMemoryField(proc, MemoryShare, &addressReceiveShare);
+        return addressReceiveShare;
     } 
 
-    void HideWindow(uint64_t wid) {
+    void Hide(uint32_t wid) {
+        if (OrbSrv == NULL) { GetOrbSrv(); }
         /* TODO */
     }
 
-    void ShowWindow(uint64_t wid) {
+    void Show(uint32_t wid) {
+        if (OrbSrv == NULL) { GetOrbSrv(); }
         /* TODO */
     }
 
-    void SetWindowWidth(uint64_t wid) {
+    void Resize(uint32_t wid, uint32_t width, uint32_t height) {
+        if (OrbSrv == NULL) { GetOrbSrv(); }
         
-    }
-
-    void SetWindowHeight(uint64_t wid) {
-
-    }
-
-    uint64_t GetWindowWidth(uint64_t wid) {
-        /* TODO */
-        return NULL;
-    }
-
-    uint64_t GetWindowHeight(uint64_t wid) {
-        /* TODO */
-        return NULL;
     }
 
 }
