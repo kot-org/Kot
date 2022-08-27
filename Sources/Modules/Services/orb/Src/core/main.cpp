@@ -2,41 +2,6 @@
 
 process_t self;
 
-Context* screen_ctx = NULL;
-Context* backbuffer_ctx = NULL;
-
-void initBuffers() {
-    srv_system_framebuffer_t* bootframebuffer = (srv_system_framebuffer_t*)malloc(sizeof(srv_system_framebuffer_t));
-    Srv_System_GetFrameBuffer(bootframebuffer, true);
-
-    framebuffer_t* screen = (framebuffer_t*) malloc(sizeof(framebuffer_t));
-    screen->fb_size = bootframebuffer->pitch * bootframebuffer->height;
-    uint64_t virtualAddress = (uint64_t)MapPhysical((uintptr_t)bootframebuffer->address, screen->fb_size);
-
-    screen->fb_addr = virtualAddress;
-    screen->width = bootframebuffer->width;
-    screen->height = bootframebuffer->height;
-    screen->pitch = bootframebuffer->pitch;
-    screen->bpp = bootframebuffer->bpp;
-    screen->btpp = screen->bpp/8;
-
-    screen_ctx = new Context(screen);
-    atomicUnlock((uint64_t*) screen_ctx, 0);
-
-    framebuffer_t* backbuffer = (framebuffer_t *) malloc(sizeof(framebuffer_t));
-    backbuffer->fb_addr = (uint64_t)((uint8_t*) malloc(screen->fb_size));
-    backbuffer->fb_size = screen->fb_size;
-    backbuffer->width = screen->width;
-    backbuffer->height = screen->height;
-    backbuffer->bpp = screen->bpp;
-    backbuffer->btpp = screen->btpp;
-    backbuffer->pitch = screen->pitch;
-
-    backbuffer_ctx = new Context(backbuffer);
-    atomicUnlock((uint64_t*) backbuffer_ctx, 0);
-
-}
-
 vector_t* windows = NULL;
 vector_t* monitors = NULL;
 
@@ -157,18 +122,17 @@ void initUISD() {
 
 void initOrb() {
 
-    Sys_GetProcessKey(&self);
+    self = Sys_GetProcess();
 
     monitors = vector_create();
     windows = vector_create();
 
     srv_system_framebuffer_t* bootframebuffer = (srv_system_framebuffer_t*) malloc(sizeof(srv_system_framebuffer_t));
-    Srv_System_GetFrameBufer(bootframebuffer, true);
+    Srv_System_GetFrameBuffer(bootframebuffer, true);
 
     size64_t fb_size = bootframebuffer->pitch * bootframebuffer->height;
-
-    uint64_t virtualAddress = (uint64_t) KotSpecificData.FreeMemorySpace - fb_size;
-    Sys_Map(self, &virtualAddress, AllocationTypePhysical, (uintptr_t*) &bootframebuffer->address, &fb_size, false);
+    
+    uint64_t virtualAddress = (uint64_t)MapPhysical((uintptr_t)bootframebuffer->address, fb_size);
 
     Monitor* monitor0 = new Monitor((uintptr_t) virtualAddress, bootframebuffer->width, bootframebuffer->height, 0, 0);
 
@@ -184,8 +148,6 @@ void initOrb() {
 }
 
 extern "C" int main() {
-    
-    self = Sys_GetProcess();
 
     initOrb();
     initUISD();

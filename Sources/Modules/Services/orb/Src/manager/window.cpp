@@ -12,8 +12,7 @@ Window::Window(uint32_t width, uint32_t height, int32_t xPos, int32_t yPos) {
 
     uintptr_t address = getFreeAlignedSpace(this->fb_size);
     ksmem_t key = NULL;
-    process_t proc = NULL;
-    Sys_GetProcessKey(&proc);
+    process_t proc = Sys_GetProcess();
     Sys_CreateMemoryField(proc, this->fb_size, &address, &key, MemoryFieldTypeShareSpaceRW);
     ksmem_t KeyShare = NULL;
     uint64_t Flags = NULL;

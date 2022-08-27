@@ -56,8 +56,7 @@ namespace orb {
         arguments->arg[0] = wid;
         ksmem_t MemoryShare = Sys_Execthread(OrbSrv->GetFramebuffer, arguments, ExecutionTypeQueuAwait, NULL);
         uintptr_t addressReceiveShare = getFreeAlignedSpace(fb_size(GetWidth(wid), GetHeight(wid)));
-        process_t proc;
-        Sys_GetProcessKey(&proc);
+        process_t proc = Sys_GetProcess();
         Sys_AcceptMemoryField(proc, MemoryShare, &addressReceiveShare);
         return addressReceiveShare;
     } 
