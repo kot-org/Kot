@@ -9,7 +9,7 @@ bool CheckAddress(uintptr_t address, size64_t size, uintptr_t pagingEntry);
 bool CheckAddress(uintptr_t address, size64_t size);
 
 struct SlaveInfo_t{
-    kprocess_t* process;
+    struct kprocess_t* process;
     uintptr_t virtualAddress;
 }__attribute__((packed));
 
@@ -21,7 +21,7 @@ struct MemoryShareInfo{
     size64_t RealSize;
     uint64_t PageNumber;
     //Parent
-    kprocess_t* Parent;
+    struct kprocess_t* Parent;
     pagetable_t PageTableParent;
     uintptr_t VirtualAddressParent;
     class KStack* SlavesList;
