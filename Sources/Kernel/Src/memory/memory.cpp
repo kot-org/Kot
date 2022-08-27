@@ -251,7 +251,7 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
     return KSUCCESS;
 }
 
-uint64_t FreeMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uintptr_t virtualAddress){
+uint64_t CloseMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uintptr_t virtualAddress){
     pagetable_t pageTable = process->SharedPaging;
 
     if(CheckAddress(virtualAddress, shareInfo->PageNumber * PAGE_SIZE) != KSUCCESS) return KFAIL;

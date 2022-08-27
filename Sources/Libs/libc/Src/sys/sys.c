@@ -10,8 +10,8 @@ KResult Sys_AcceptMemoryField(process_t self, ksmem_t key, uintptr_t* virtualAdd
     return Syscall_24(KSys_AcceptMemoryField, self, key, virtualAddressPointer);
 }
 
-KResult Sys_FreeMemoryField(process_t self, ksmem_t key, uintptr_t address){
-    return Syscall_24(KSys_FreeMemoryField, self, key, address);
+KResult Sys_CloseMemoryField(process_t self, ksmem_t key, uintptr_t address){
+    return Syscall_24(KSys_CloseMemoryField, self, key, address);
 }
 
 KResult Sys_GetInfoMemoryField(ksmem_t key, uint64_t* typePointer, size64_t* sizePointer){

@@ -21,4 +21,4 @@ struct MemoryShareInfo{
 
 uint64_t CreateMemoryField(struct kprocess_t* process, size64_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, enum MemoryFieldType type);
 uint64_t AcceptMemoryField(struct kprocess_t* process, MemoryShareInfo* shareInfo, uint64_t* virtualAddressPointer);
-uint64_t FreeMemoryField(struct kprocess_t* process, MemoryShareInfo* shareInfo, uintptr_t virtualAddress);
+uint64_t CloseMemoryField(struct kprocess_t* process, MemoryShareInfo* shareInfo, uintptr_t virtualAddress);

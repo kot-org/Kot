@@ -2,7 +2,7 @@
 
 #define KSys_CreateMemoryField 0x0
 #define KSys_AcceptMemoryField 0x1
-#define KSys_FreeMemoryField 0x2
+#define KSys_CloseMemoryField 0x2
 #define KSys_GetTypeMemoryField 0x3
 
 #define KSys_CreateProc 0x4

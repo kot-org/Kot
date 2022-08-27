@@ -127,7 +127,7 @@ namespace ELF {
                 }
 
                 Sys_AcceptMemoryField(proc, SharedKey, &clientAddress);
-                Sys_FreeMemoryField(parentProcess, SharedKey, TmpAddress);
+                Sys_CloseMemoryField(parentProcess, SharedKey, TmpAddress);
                 free((uintptr_t)TmpAddress);
             }
         }
