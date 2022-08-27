@@ -56,5 +56,5 @@ namespace Event{
     uint64_t Bind(struct kthread_t* task, struct kevent_t* self, bool IgnoreMissedEvents);
     uint64_t Unbind(struct kthread_t* task, struct kevent_t* self);
     uint64_t Trigger(struct kthread_t* author, struct kevent_t* self, arguments_t* parameters);
-    uint64_t Close(ContextStack* Registers, kthread_t* task);
+    uint64_t Close(struct ContextStack* Registers, kthread_t* task);
 }

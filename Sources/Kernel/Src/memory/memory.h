@@ -2,20 +2,30 @@
 
 #include <lib/types.h>
 #include <kot/memory.h>
+#include <scheduler/scheduler.h>
+#include <lib/stack/stack.h>
 
 bool CheckAddress(uintptr_t address, size64_t size, uintptr_t pagingEntry);
 bool CheckAddress(uintptr_t address, size64_t size);
 
+struct SlaveInfo_t{
+    kprocess_t* process;
+    uintptr_t virtualAddress;
+}__attribute__((packed));
+
 struct MemoryShareInfo{
     char signature0;
-    bool Lock;
+    uint64_t Lock;
     enum MemoryFieldType Type;
     size64_t InitialSize;
     size64_t RealSize;
     uint64_t PageNumber;
     //Parent
+    kprocess_t* Parent;
     pagetable_t PageTableParent;
     uintptr_t VirtualAddressParent;
+    class KStack* SlavesList;
+    uint64_t SlavesNumber;
     char signature1;
 }__attribute__((packed));
 

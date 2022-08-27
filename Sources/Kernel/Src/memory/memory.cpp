@@ -133,12 +133,15 @@ uint64_t CreateMemoryField(kprocess_t* process, size64_t size, uint64_t* virtual
 
     MemoryShareInfo* shareInfo = (MemoryShareInfo*)malloc(sizeof(MemoryShareInfo));
     shareInfo->InitialSize = size;
-    shareInfo->Lock = false;
+    shareInfo->Lock = NULL;
     shareInfo->Type = type;
     shareInfo->RealSize = realSize;
     shareInfo->PageNumber = numberOfPage;
+    shareInfo->Parent = process;
     shareInfo->PageTableParent = pageTable;
     shareInfo->VirtualAddressParent = virtualAddress;
+    shareInfo->SlavesList = new KStack(0x50);;
+    shareInfo->SlavesNumber = NULL;
     shareInfo->signature0 = 'S';
     shareInfo->signature1 = 'M';
 
@@ -152,6 +155,8 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
     pagetable_t pageTable = process->SharedPaging;
     
     if(shareInfo->signature0 != 'S' || shareInfo->signature1 != 'M') return KFAIL;
+
+    Atomic::atomicAcquire(&shareInfo->Lock, 0);
 
     uintptr_t virtualAddress = (uintptr_t)*virtualAddressPointer;
     
@@ -247,14 +252,32 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
         }
     }
 
+    SlaveInfo_t* SlaveInfo = (SlaveInfo_t*)malloc(sizeof(SlaveInfo));
+    SlaveInfo->process = process;
+    SlaveInfo->virtualAddress = virtualAddress;
+    shareInfo->SlavesList->push64((uint64_t)SlaveInfo);
+    shareInfo->SlavesNumber++;
+
+    Atomic::atomicUnlock(&shareInfo->Lock, 0);
+    
     *virtualAddressPointer = (uint64_t)virtualAddress;
     return KSUCCESS;
 }
 
 uint64_t CloseMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uintptr_t virtualAddress){
     pagetable_t pageTable = process->SharedPaging;
+    bool IsParent = (process == shareInfo->Parent);
 
     if(CheckAddress(virtualAddress, shareInfo->PageNumber * PAGE_SIZE) != KSUCCESS) return KFAIL;
+
+    if(IsParent){
+        for(uint64_t i = 0; i < shareInfo->SlavesNumber; i++){
+            SlaveInfo_t* SlaveInfo = (SlaveInfo_t*)shareInfo->SlavesList->pop64();
+            CloseMemoryField(SlaveInfo->process, shareInfo, SlaveInfo->virtualAddress);
+        }        
+    }
+
+    Atomic::atomicAcquire(&shareInfo->Lock, 0);
 
     switch(shareInfo->Type){
         case MemoryFieldTypeShareSpaceRW:{
@@ -286,12 +309,17 @@ uint64_t CloseMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uintp
             break;
         }
         case MemoryFieldTypeSendSpaceRO:{
-            if(shareInfo->PageTableParent == pageTable){
+            if(IsParent){
                 free((uintptr_t)shareInfo);
             }  
             break;
         }
-    }   
+    }
+
+    if(IsParent){
+        free((uintptr_t)shareInfo);
+    } 
+    Atomic::atomicUnlock(&shareInfo->Lock, 0);
     
     return KSUCCESS;
 }
