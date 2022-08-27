@@ -63,7 +63,7 @@ thread_t GetHeightThread = NULL;
  * Return windowId
  **/
 void CreateWindow(uint32_t width, uint32_t height, int32_t x, int32_t y) {
-    Window* window = new Window(width, height, x, y);
+    Window* window = new Window(self, width, height, x, y);
     vector_push(windows, window);
     Sys_Close(windows->length-1);
 }
@@ -72,8 +72,8 @@ void CreateWindow(uint32_t width, uint32_t height, int32_t x, int32_t y) {
  * Return Framebuffer
  **/
 void GetFramebuffer(uint32_t windowId) {
-    // todo: check proc
     Window* window = (Window*) vector_get(windows, windowId);
+    if (window->getOwner() != Sys_GetProcess()) { Sys_Close(NULL); }
     Sys_Close(window->getFramebufferKey());
 }
 
@@ -81,7 +81,6 @@ void GetFramebuffer(uint32_t windowId) {
  * Return Framebuffer
  **/
 void GetHeight(uint32_t windowId) {
-    // todo: check proc
     Window* window = (Window*) vector_get(windows, windowId);
     Sys_Close(window->getHeight());
 }
@@ -90,7 +89,6 @@ void GetHeight(uint32_t windowId) {
  * Return Framebuffer
  **/
 void GetWidth(uint32_t windowId) {
-    // todo: check proc
     Window* window = (Window*) vector_get(windows, windowId);
     Sys_Close(window->getWidth());
 }
@@ -106,6 +104,7 @@ void initUISD() {
     ksmem_t key = NULL;
     Sys_CreateMemoryField(self, sizeof(uisd_graphics_t), &address, &key, MemoryFieldTypeShareSpaceRO);
     uisd_graphics_t* OrbSrv = (uisd_graphics_t*) address;
+    OrbSrv->ControllerHeader.Process = self;
     OrbSrv->ControllerHeader.IsReadWrite = false;
     OrbSrv->ControllerHeader.Version = Orb_Srv_Version;
     OrbSrv->ControllerHeader.VendorID = Kot_VendorID;
@@ -122,7 +121,7 @@ void initUISD() {
 
 void initOrb() {
 
-    self = Sys_GetProcess();
+    self = ShareProcessKey(Sys_GetProcess());
 
     monitors = vector_create();
     windows = vector_create();
@@ -136,7 +135,7 @@ void initOrb() {
 
     Monitor* monitor0 = new Monitor((uintptr_t) virtualAddress, bootframebuffer->width, bootframebuffer->height, 0, 0);
 
-    // free(bootframebuffer); // Don't know if I can free this bootframebuffer
+    free(bootframebuffer);
     
     vector_push(monitors, monitor0);
 

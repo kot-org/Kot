@@ -13,7 +13,7 @@ Monitor::Monitor(uintptr_t fb_addr, uint32_t width, uint32_t height, int32_t xPo
 
     this->bb_addr = calloc(this->fb_size);
 
-    this->background = new Window(this->width, this->height, this->xPos, this->yPos);
+    this->background = new Window(ShareProcessKey(Sys_GetProcess()), this->width, this->height, this->xPos, this->yPos);
 
 }
 

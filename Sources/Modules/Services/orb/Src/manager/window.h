@@ -21,8 +21,9 @@ private:
     uint8_t btpp = 4; // bpp / 8
     bool Sshow = false;
     bool Sborder = true;
+    process_t owner;
 public:
-    Window(uint32_t width, uint32_t height, int32_t xPos, int32_t yPos);
+    Window(process_t orb, uint32_t width, uint32_t height, int32_t xPos, int32_t yPos);
     uintptr_t getFramebuffer();
     ksmem_t getFramebufferKey();
     uint32_t getHeight();
@@ -34,6 +35,7 @@ public:
     void border(bool val);
     void resize(uint32_t width, uint32_t height);
     void move(int32_t xPos, int32_t yPos);
+    process_t getOwner();
     void destroy();
 };
 
