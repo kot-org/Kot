@@ -1,6 +1,6 @@
 #include "window.h"
 
-Window::Window(uint32_t width, uint32_t height, int32_t xPos, int32_t yPos) {
+Window::Window(process_t orb, uint32_t width, uint32_t height, int32_t xPos, int32_t yPos) {
 
     this->width = width;
     this->height = height;
@@ -12,8 +12,7 @@ Window::Window(uint32_t width, uint32_t height, int32_t xPos, int32_t yPos) {
 
     uintptr_t address = getFreeAlignedSpace(this->fb_size);
     ksmem_t key = NULL;
-    process_t proc = Sys_GetProcess();
-    Sys_CreateMemoryField(proc, this->fb_size, &address, &key, MemoryFieldTypeShareSpaceRW);
+    Sys_CreateMemoryField(orb, this->fb_size, &address, &key, MemoryFieldTypeShareSpaceRW);
     ksmem_t KeyShare = NULL;
     uint64_t Flags = NULL;
     Keyhole_SetFlag(&Flags, KeyholeFlagPresent, true);
@@ -21,6 +20,8 @@ Window::Window(uint32_t width, uint32_t height, int32_t xPos, int32_t yPos) {
 
     this->fb_addr = address;
     this->fb_key = KeyShare;
+
+    this->owner = Sys_GetProcess();
 
     // clear window buffer
     memset(address, 0x00, this->fb_size);
@@ -75,4 +76,8 @@ int32_t Window::getX() {
 
 int32_t Window::getY() {
     return this->yPos;
+}
+
+process_t Window::getOwner() {
+    return this->owner;
 }

@@ -6,10 +6,6 @@
 
 namespace orb {
 
-    size64_t fb_size(uint32_t width, uint32_t height) {
-        return width * 4 * height;
-    }
-
     uisd_graphics_t* OrbSrv = NULL; 
 
     void GetOrbSrv() {
@@ -20,12 +16,12 @@ namespace orb {
 
     uint32_t Create(uint32_t width, uint32_t height, int32_t xPos, int32_t yPos) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
-        arguments_t* arguments = (arguments_t*) malloc(sizeof(arguments_t));
-        arguments->arg[0] = width;
-        arguments->arg[1] = height;
-        arguments->arg[2] = xPos;
-        arguments->arg[3] = yPos;
-        ksmem_t result = Sys_Execthread(OrbSrv->CreateWindow, arguments, ExecutionTypeQueuAwait, NULL);
+        arguments_t arguments;
+        arguments.arg[0] = width;
+        arguments.arg[1] = height;
+        arguments.arg[2] = xPos;
+        arguments.arg[3] = yPos;
+        ksmem_t result = Sys_Execthread(OrbSrv->CreateWindow, &arguments, ExecutionTypeQueuAwait, NULL);
         return result;
     }
 
@@ -36,26 +32,26 @@ namespace orb {
 
     uint32_t GetWidth(uint32_t wid) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
-        arguments_t* arguments = (arguments_t*) malloc(sizeof(arguments_t));
-        arguments->arg[0] = wid;
-        ksmem_t result = Sys_Execthread(OrbSrv->GetWidth, arguments, ExecutionTypeQueuAwait, NULL);
+        arguments_t arguments;
+        arguments.arg[0] = wid;
+        ksmem_t result = Sys_Execthread(OrbSrv->GetWidth, &arguments, ExecutionTypeQueuAwait, NULL);
         return result;
     }
 
     uint32_t GetHeight(uint32_t wid) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
-        arguments_t* arguments = (arguments_t*) malloc(sizeof(arguments_t));
-        arguments->arg[0] = wid;
-        ksmem_t result = Sys_Execthread(OrbSrv->GetHeight, arguments, ExecutionTypeQueuAwait, NULL);
+        arguments_t arguments;
+        arguments.arg[0] = wid;
+        ksmem_t result = Sys_Execthread(OrbSrv->GetHeight, &arguments, ExecutionTypeQueuAwait, NULL);
         return result;
     }
 
     uintptr_t GetFramebuffer(uint32_t wid) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
-        arguments_t* arguments = (arguments_t*) malloc(sizeof(arguments_t));
-        arguments->arg[0] = wid;
-        ksmem_t MemoryShare = Sys_Execthread(OrbSrv->GetFramebuffer, arguments, ExecutionTypeQueuAwait, NULL);
-        uintptr_t addressReceiveShare = getFreeAlignedSpace(fb_size(GetWidth(wid), GetHeight(wid)));
+        arguments_t arguments;
+        arguments.arg[0] = wid;
+        ksmem_t MemoryShare = Sys_Execthread(OrbSrv->GetFramebuffer, &arguments, ExecutionTypeQueuAwait, NULL);
+        uintptr_t addressReceiveShare = getFreeAlignedSpace(GetWidth(wid) * GetHeight(wid) * 4);
         process_t proc = Sys_GetProcess();
         Sys_AcceptMemoryField(proc, MemoryShare, &addressReceiveShare);
         return addressReceiveShare;
