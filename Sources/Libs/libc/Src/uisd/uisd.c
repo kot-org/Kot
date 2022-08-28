@@ -15,7 +15,7 @@ size64_t ControllerTypeSize[ControllerCount] = {
 thread_t CallBackUISDThread = NULL;
 process_t ProcessKeyForUISD = NULL;
 
-KResult CallbackUISD(uint64_t Task, KResult Status, uisd_callbackInfo_t* Info, uint64_t GP0, uint64_t GP1);
+KResult CallbackUISD(uint64_t Task, KResult Statu, uisd_callbackInfo_t* Info, uint64_t GP0, uint64_t GP1);
 
 KResult InitializeUISD(){
     thread_t UISDthreadKeyCallback;
@@ -36,12 +36,12 @@ KResult InitializeUISD(){
     return KSUCCESS;
 }
 
-KResult CallbackUISD(uint64_t Task, KResult Status, uisd_callbackInfo_t* Info, uint64_t GP0, uint64_t GP1){
+KResult CallbackUISD(uint64_t Task, KResult Statu, uisd_callbackInfo_t* Info, uint64_t GP0, uint64_t GP1){
     if(Task == UISDGetTask){
         ControllerList[Info->Controller] = (uintptr_t)GP0;
         Info->Location = (uintptr_t)GP0;
     } 
-    Info->Status = Status;
+    Info->Statu = Statu;
     if(Info->AwaitCallback){
         Sys_Unpause(Info->Self);
     }
@@ -56,7 +56,7 @@ uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintp
     Info->Controller = Controller;
     Info->AwaitCallback = AwaitCallback;
     Info->Location = NULL;
-    Info->Status = KBUSY;
+    Info->Statu = KBUSY;
 
     struct arguments_t parameters;
     parameters.arg[0] = UISDGetTask;
@@ -65,8 +65,8 @@ uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintp
     parameters.arg[3] = Info;
     parameters.arg[4] = ProcessKeyForUISD;
     parameters.arg[5] = (uint64_t)*Location;
-    KResult Status = Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
-    if(Status == KSUCCESS && AwaitCallback){
+    KResult statu = Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
+    if(statu == KSUCCESS && AwaitCallback){
         Sys_Pause(false);
         *Location = Info->Location;
         return Info;
@@ -81,7 +81,7 @@ uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ks
     Info->Self = Self;
     Info->Controller = Controller;
     Info->AwaitCallback = AwaitCallback;
-    Info->Status = KBUSY;
+    Info->Statu = KBUSY;
 
     uint64_t Flags = NULL;
     Keyhole_SetFlag(&Flags, KeyholeFlagPresent, true);
@@ -94,8 +94,8 @@ uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ks
     parameters.arg[2] = CallBackUISDThread;
     parameters.arg[3] = Info;
     parameters.arg[4] = MemoryFieldKey;
-    KResult Status = Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
-    if(Status == KSUCCESS && AwaitCallback){
+    KResult statu = Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
+    if(statu == KSUCCESS && AwaitCallback){
         Sys_Pause(false);
         return Info;
     }

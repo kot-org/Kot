@@ -16,8 +16,8 @@ void Srv_System_Initialize(){
     }
 }
 
-void Srv_System_Callback(KResult Status, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
-    Callback->Status = Callback->Handler(Status, Callback, GP0, GP1, GP2, GP3);
+void Srv_System_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    Callback->Statu = Callback->Handler(Statu, Callback, GP0, GP1, GP2, GP3);
     if(Callback->IsAwait){
         Sys_Unpause(Callback->Self);
     }
@@ -25,12 +25,13 @@ void Srv_System_Callback(KResult Status, struct srv_system_callback_t* Callback,
 }
 
 /* GetFrameBufer */
-KResult Srv_System_GetFrameBuffer_Callback(KResult Status, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
-    if(Status == KSUCCESS){
+KResult Srv_System_GetFrameBuffer_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    if(Statu == KSUCCESS){
+        Callback->Data = malloc(sizeof(srv_system_framebuffer_t));
         memcpy(Callback->Data, (uintptr_t)GP0, sizeof(srv_system_framebuffer_t));
         Callback->Size = (size64_t)sizeof(srv_system_framebuffer_t);
     }
-    return Status;
+    return Statu;
 }
 
 struct srv_system_callback_t* Srv_System_GetFrameBuffer(bool IsAwait){
@@ -43,7 +44,7 @@ struct srv_system_callback_t* Srv_System_GetFrameBuffer(bool IsAwait){
     callback->Data = NULL;
     callback->Size = NULL;
     callback->IsAwait = IsAwait;
-    callback->Status = KBUSY;
+    callback->Statu = KBUSY;
     callback->Handler = &Srv_System_GetFrameBuffer_Callback;
 
     struct arguments_t parameters;
@@ -51,22 +52,21 @@ struct srv_system_callback_t* Srv_System_GetFrameBuffer(bool IsAwait){
     parameters.arg[1] = callback;
     
 
-    KResult Status = Sys_Execthread(SystemData->GetFramebuffer, &parameters, ExecutionTypeQueu, NULL);
-    if(Status == KSUCCESS && IsAwait){
+    KResult statu = Sys_Execthread(SystemData->GetFramebuffer, &parameters, ExecutionTypeQueu, NULL);
+    if(statu == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
     return callback;
 }
 
 /* ReadFile */
-KResult Srv_System_ReadFileInitrd_Callback(KResult Status, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
-    if(Status == KSUCCESS){
-        srv_system_fileheader_t* FileHeader = (srv_system_fileheader_t*)Callback->Data;
-        FileHeader->Data = malloc((size64_t)GP0);
-        memcpy(FileHeader->Data, (uintptr_t)GP1, (size64_t)GP0);
-        FileHeader->Size = (size64_t)GP0;
+KResult Srv_System_ReadFileInitrd_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    if(Statu == KSUCCESS){
+        Callback->Data = malloc((size64_t)GP0);
+        memcpy(Callback->Data, (uintptr_t)GP1, (size64_t)GP0);
+        Callback->Size = (size64_t)GP0;
     }
-    return Status;
+    return Statu;
 }
 
 struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwait){
@@ -79,7 +79,7 @@ struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwai
     callback->Data = NULL;
     callback->Size = NULL;
     callback->IsAwait = IsAwait;
-    callback->Status = KBUSY;
+    callback->Statu = KBUSY;
     callback->Handler = &Srv_System_ReadFileInitrd_Callback;
 
     struct ShareDataWithArguments_t data;
@@ -91,19 +91,20 @@ struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwai
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
 
-    KResult Status = Sys_Execthread(SystemData->ReadFileInitrd, &parameters, ExecutionTypeQueu, &data);
-    if(Status == KSUCCESS && IsAwait){
+    KResult statu = Sys_Execthread(SystemData->ReadFileInitrd, &parameters, ExecutionTypeQueu, &data);
+    if(statu == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
     return callback;
 }
 
 /* GetTableInRootSystemDescription */
-KResult Srv_System_GetTableInRootSystemDescription_Callback(KResult Status, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
-    if(Status == KSUCCESS){
-        *(srv_system_sdtheader_t**)Callback->Data = (srv_system_sdtheader_t*)MapPhysical(GP0, sizeof(srv_system_sdtheader_t));
+KResult Srv_System_GetTableInRootSystemDescription_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    if(Statu == KSUCCESS){
+        Callback->Data = (uintptr_t*)MapPhysical(GP0, sizeof(srv_system_sdtheader_t));
+        Callback->Size = (size64_t)sizeof(srv_system_sdtheader_t);
     }
-    return Status;
+    return Statu;
 }
 
 struct srv_system_callback_t* Srv_System_GetTableInRootSystemDescription(char* Name, bool IsAwait){
@@ -116,7 +117,7 @@ struct srv_system_callback_t* Srv_System_GetTableInRootSystemDescription(char* N
     callback->Data = NULL;
     callback->Size = NULL;
     callback->IsAwait = IsAwait;
-    callback->Status = KBUSY;
+    callback->Statu = KBUSY;
     callback->Handler = &Srv_System_GetTableInRootSystemDescription_Callback;
 
     struct ShareDataWithArguments_t data;
@@ -128,8 +129,8 @@ struct srv_system_callback_t* Srv_System_GetTableInRootSystemDescription(char* N
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
 
-    KResult Status = Sys_Execthread(SystemData->GetTableInRootSystemDescription, &parameters, ExecutionTypeQueu, &data);
-    if(Status == KSUCCESS && IsAwait){
+    KResult statu = Sys_Execthread(SystemData->GetTableInRootSystemDescription, &parameters, ExecutionTypeQueu, &data);
+    if(statu == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
     return callback;

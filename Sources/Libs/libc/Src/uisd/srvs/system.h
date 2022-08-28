@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-typedef KResult (*CallbackHandler)(KResult Status, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
+typedef KResult (*CallbackHandler)(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
 typedef struct {
     uint64_t Address;
@@ -36,13 +36,13 @@ struct srv_system_callback_t{
     uintptr_t Data;
     size64_t Size;
     bool IsAwait;
-    KResult Status;
+    KResult Statu;
     CallbackHandler Handler;
 };
 
 void Srv_System_Initialize();
 
-void Srv_System_Callback(KResult Status, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
+void Srv_System_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
 struct srv_system_callback_t* Srv_System_GetFrameBuffer(bool IsAwait);
 struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwait);
