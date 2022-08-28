@@ -95,8 +95,8 @@ KResult Keyhole_Verify(kthread_t* caller, key_t key, enum DataType type){
 }
 
 KResult Keyhole_Get(kthread_t* caller, key_t key, enum DataType type, uint64_t* data, uint64_t* flags){        
-    uint64_t Statu = Keyhole_Verify(caller, key, type);
-    if(Statu != KSUCCESS) return Statu;
+    uint64_t Status = Keyhole_Verify(caller, key, type);
+    if(Status != KSUCCESS) return Status;
     lock_t* lock = (lock_t*)key;
     *data = lock->Data;
     *flags = lock->Flags;
@@ -104,8 +104,8 @@ KResult Keyhole_Get(kthread_t* caller, key_t key, enum DataType type, uint64_t* 
 }
 
 KResult Keyhole_Get(kthread_t* caller, key_t key, enum DataType type, lock_t** lock){        
-    uint64_t Statu = Keyhole_Verify(caller, key, type);
-    if(Statu != KSUCCESS) return Statu;
+    uint64_t Status = Keyhole_Verify(caller, key, type);
+    if(Status != KSUCCESS) return Status;
     *lock = (lock_t*)key;
     return KSUCCESS;
 }

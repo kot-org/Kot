@@ -53,7 +53,7 @@ KResult GetBARNum(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Device)
     }
 
     arguments_t arguments{
-        .arg[0] = Status,           /* Statu */
+        .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = BARNum,           /* BARNum */
         .arg[3] = NULL,             /* GP1 */
@@ -76,7 +76,7 @@ KResult GetBARType(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Device
     }
 
     arguments_t arguments{
-        .arg[0] = Status,           /* Statu */
+        .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = BARType,          /* BARType */
         .arg[3] = NULL,             /* GP1 */
@@ -99,7 +99,7 @@ KResult GetBARSize(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Device
     }
 
     arguments_t arguments{
-        .arg[0] = Status,           /* Statu */
+        .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = BARSize,          /* BARSize */
         .arg[3] = NULL,             /* GP1 */
@@ -119,7 +119,7 @@ KResult PCISearcher(thread_t Callback, uint64_t CallbackArg, srv_pci_search_para
     }
 
     arguments_t arguments{
-        .arg[0] = Status,           /* Statu */
+        .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NumDeviceFound,   /* NumDeviceFound */
         .arg[3] = NULL,             /* GP1 */
@@ -139,7 +139,7 @@ KResult PCISearcherGetDevice(thread_t Callback, uint64_t CallbackArg, srv_pci_se
     }
 
     arguments_t arguments{
-        .arg[0] = Status,           /* Statu */
+        .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = Device,           /* Device */
         .arg[3] = NULL,             /* GP1 */

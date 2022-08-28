@@ -103,24 +103,24 @@ KResult Sys_CloseProc(SyscallStack* Registers, kthread_t* thread){
     Arguments : 
 */
 KResult Sys_Close(SyscallStack* Registers, kthread_t* thread){
-    KResult statu = thread->Close((ContextStack*)Registers, Registers->arg0);
-    return statu;
+    KResult Status = thread->Close((ContextStack*)Registers, Registers->arg0);
+    return Status;
 }
 
 /* Sys_Exit :
     Arguments : 
 */
 KResult Sys_Exit(SyscallStack* Registers, kthread_t* thread){
-    KResult statu = globalTaskManager->Exit((ContextStack*)Registers, thread, Registers->arg0);
-    return statu;
+    KResult Status = globalTaskManager->Exit((ContextStack*)Registers, thread, Registers->arg0);
+    return Status;
 }
 
 /* Sys_Pause :
     Arguments : 
 */
 KResult Sys_Pause(SyscallStack* Registers, kthread_t* thread){
-    KResult statu = thread->Pause((ContextStack*)Registers, Registers->arg0);
-    return statu;
+    KResult Status = thread->Pause((ContextStack*)Registers, Registers->arg0);
+    return Status;
     /* No return */
 }
 
@@ -392,8 +392,8 @@ KResult Sys_ExecThread(SyscallStack* Registers, kthread_t* thread){
         if(CheckAddress((uintptr_t)Data, sizeof(ThreadShareData_t)) != KSUCCESS) return KMEMORYVIOLATION;    
         if(CheckAddress((uintptr_t)Data->Data, Data->Size) != KSUCCESS) return KMEMORYVIOLATION;    
     }
-    KResult statu = globalTaskManager->Execthread(thread, threadkey, Type, (arguments_t*)Registers->arg1, Data, (ContextStack*)Registers);
-    return statu;
+    KResult Status = globalTaskManager->Execthread(thread, threadkey, Type, (arguments_t*)Registers->arg1, Data, (ContextStack*)Registers);
+    return Status;
 }
 
 /* Sys_Keyhole_CloneModify :
@@ -425,8 +425,8 @@ KResult Sys_Keyhole_Verify(SyscallStack* Registers, kthread_t* thread){
     if(CheckAddress((uintptr_t)Registers->arg3, sizeof(uint64_t)) != KSUCCESS) return KMEMORYVIOLATION;
     if(CheckAddress((uintptr_t)Registers->arg4, sizeof(uint64_t)) != KSUCCESS) return KMEMORYVIOLATION;
     key_t key = Registers->arg0;
-    uint64_t Statu = Keyhole_Verify(thread, key, (enum DataType)Registers->arg1);
-    if(Statu != KSUCCESS) return Statu;
+    uint64_t Status = Keyhole_Verify(thread, key, (enum DataType)Registers->arg1);
+    if(Status != KSUCCESS) return Status;
     lock_t* lock = (lock_t*)key;
     uint64_t* target = (uint64_t*)Registers->arg2;
     uint64_t* flags = (uint64_t*)Registers->arg3;

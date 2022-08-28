@@ -3,7 +3,7 @@
 thread_t SrvPciCallbackThread = NULL;
 uisd_pci_t* PciData = NULL;
 
-void SrvPciInitialize() {
+void Srv_Pci_Initialize() {
     PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
     
     if(PciData != NULL) {
@@ -17,7 +17,7 @@ void SrvPciInitialize() {
     }
 }
 
-void Srv_Pci_Callback(KResult Status, srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3) {
+void Srv_Pci_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3) {
     Callback->Status = Callback->Handler(Status, Callback, GP0, GP1, GP2, GP3);
 
     if(Callback->IsAwait){
@@ -28,7 +28,7 @@ void Srv_Pci_Callback(KResult Status, srv_pci_callback_t* Callback, uint64_t GP0
 }
 
 /* GetBARNum */
-KResult Srv_Pci_GetBARNum_Callback(KResult Status, srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3) {
+KResult Srv_Pci_GetBARNum_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3) {
     if(Status == KSUCCESS) {
         Callback->Data = GP0;
         Callback->Size = sizeof(uint64_t);
@@ -36,12 +36,12 @@ KResult Srv_Pci_GetBARNum_Callback(KResult Status, srv_pci_callback_t* Callback,
     return Status;
 }
 
-srv_pci_callback_t* Srv_Pci_GetBARNum(PCIDeviceID_t Device, bool IsAwait) {
+struct srv_pci_callback_t* Srv_Pci_GetBARNum(PCIDeviceID_t Device, bool IsAwait) {
     if(!SrvPciCallbackThread) SrvPciInitialize();
 
     thread_t self = Sys_Getthread();
 
-    srv_pci_callback_t* callback = (srv_pci_callback_t*)malloc(sizeof(srv_pci_callback_t));
+    struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
     callback->Self = self;
     callback->Data = NULL;
     callback->Size = NULL;
@@ -63,7 +63,7 @@ srv_pci_callback_t* Srv_Pci_GetBARNum(PCIDeviceID_t Device, bool IsAwait) {
 }
 
 /* GetBARType */
-KResult Srv_Pci_GetBARType_Callback(KResult Status, srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3) {
+KResult Srv_Pci_GetBARType_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3) {
     if(Status == KSUCCESS) {
         Callback->Data = GP0;
         Callback->Size = sizeof(uint64_t);
@@ -71,12 +71,12 @@ KResult Srv_Pci_GetBARType_Callback(KResult Status, srv_pci_callback_t* Callback
     return Status;
 }
 
-srv_pci_callback_t* Srv_Pci_GetBARType(PCIDeviceID_t Device, uint8_t BarIndex, bool IsAwait) {
+struct srv_pci_callback_t* Srv_Pci_GetBARType(PCIDeviceID_t Device, uint8_t BarIndex, bool IsAwait) {
     if(!SrvPciCallbackThread) SrvPciInitialize();
 
     thread_t self = Sys_Getthread();
 
-    srv_pci_callback_t* callback = (srv_pci_callback_t*)malloc(sizeof(srv_pci_callback_t));
+    struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
     callback->Self = self;
     callback->Data = NULL;
     callback->Size = NULL;
@@ -99,7 +99,7 @@ srv_pci_callback_t* Srv_Pci_GetBARType(PCIDeviceID_t Device, uint8_t BarIndex, b
 }
 
 /* GetBARSize */
-KResult Srv_Pci_GetBARSize_Callback(KResult Status, srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3) {
+KResult Srv_Pci_GetBARSize_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3) {
     if(Status == KSUCCESS) {
         Callback->Data = GP0;
         Callback->Size = sizeof(uint64_t);
@@ -107,12 +107,12 @@ KResult Srv_Pci_GetBARSize_Callback(KResult Status, srv_pci_callback_t* Callback
     return Status;
 }
 
-srv_pci_callback_t* Srv_Pci_GetBARSize(PCIDeviceID_t Device, uint8_t BarIndex, bool IsAwait) {
+struct srv_pci_callback_t* Srv_Pci_GetBARSize(PCIDeviceID_t Device, uint8_t BarIndex, bool IsAwait) {
     if(!SrvPciCallbackThread) SrvPciInitialize();
 
     thread_t self = Sys_Getthread();
 
-    srv_pci_callback_t* callback = (srv_pci_callback_t*)malloc(sizeof(srv_pci_callback_t));
+    struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
     callback->Self = self;
     callback->Data = NULL;
     callback->Size = NULL;

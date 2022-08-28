@@ -190,9 +190,9 @@ KResult ThreadQueu_t::ExecuteThreadInQueu_WL(){
 
 KResult ThreadQueu_t::ExecuteThreadInQueu(){
     Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
-    KResult statu = ExecuteThreadInQueu_WL();
+    KResult Status = ExecuteThreadInQueu_WL();
     Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
-    return statu;
+    return Status;
 }
 
 KResult ThreadQueu_t::NextThreadInQueu(){
@@ -743,9 +743,9 @@ bool kthread_t::Launch_WL(){
 
 bool kthread_t::Pause(ContextStack* Registers, bool force){
     Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
-    KResult statu = Pause_WL(Registers, force);
+    KResult Status = Pause_WL(Registers, force);
     Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
-    return statu;
+    return Status;
 }
 
 bool kthread_t::Pause_WL(ContextStack* Registers, bool force){
@@ -782,30 +782,30 @@ KResult kthread_t::Close(ContextStack* Registers, uint64_t ReturnValue){
 KResult kthread_t::CloseQueu(ContextStack* Registers, uint64_t ReturnValue){
     Atomic::atomicAcquire(&Queu->Lock, 0);
     Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
-    KResult statu = CloseQueu_WL(Registers, ReturnValue);
+    KResult Status = CloseQueu_WL(Registers, ReturnValue);
     Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
     Atomic::atomicUnlock(&Queu->Lock, 0);
-    return statu;
+    return Status;
 }
 
 KResult kthread_t::CloseQueu_WL(ContextStack* Registers, uint64_t ReturnValue){
     ResetContext(Regs);
     ThreadQueuData_t* CurrentDataQueu = Queu->CurrentData;
     Queu->NextThreadInQueu();
-    KResult statu = Queu->ExecuteThreadInQueu_WL();
+    KResult Status = Queu->ExecuteThreadInQueu_WL();
     if(CurrentDataQueu->IsAwaitTask){
         CurrentDataQueu->AwaitTask->Regs->GlobalPurpose = ReturnValue;
         globalTaskManager->Unpause_WL(CurrentDataQueu->AwaitTask);
     }
     
-    if(statu != KSUCCESS){
+    if(Status != KSUCCESS){
         Queu->LastData = NULL;
         IsBlock = true;
         IsClose = true;
         IsPause = false;
     }
 
-    return statu;
+    return Status;
 }
 
 void SetParameters(ContextStack* Registers, arguments_t* FunctionParameters){

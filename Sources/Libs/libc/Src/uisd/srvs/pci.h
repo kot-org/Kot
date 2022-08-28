@@ -30,9 +30,9 @@ struct srv_pci_callback_t{
     PCICallbackHandler Handler;
 };
 
-void SrvPciInitialize();
+void Srv_Pci_Initialize();
 
-void SrvPciCallback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
+void Srv_Pci_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
 #if defined(__cplusplus)
 }
