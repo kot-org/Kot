@@ -98,8 +98,8 @@ typedef struct {
     thread_t GetBARNum;
     thread_t GetBARType;
     thread_t GetBARSize;
-    thread_t PCISearcherGetDevice;
     thread_t PCISearcher;
+    thread_t PCISearcherGetDevice;
 } uisd_pci_t;
 
 typedef struct {

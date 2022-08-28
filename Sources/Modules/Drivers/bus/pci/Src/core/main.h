@@ -82,3 +82,5 @@ struct PCIDevice_t{
 
 bool CheckDevice(PCIDeviceID_t device);
 PCIDevice_t* GetDevice(PCIDeviceID_t device);
+uint64_t Search(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIF);
+PCIDeviceID_t GetDevice(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIF, uint64_t index);
