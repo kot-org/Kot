@@ -86,7 +86,7 @@ struct PCIDevice_t{
 
 extern process_t proc;
 
-extern PCIDevice_t** PCIDevices = NULL;
+extern PCIDevice_t** PCIDevices;
 extern PCIDeviceID_t PCIDevicesIndex;
 
 bool CheckDevice(PCIDeviceID_t device);

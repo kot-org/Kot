@@ -1,8 +1,5 @@
 #include <core/main.h>
 
-#include <tools/config.h>
-#include <tools/memory.h>
-
 process_t proc;
 
 PCIDevice_t** PCIDevices = NULL;
