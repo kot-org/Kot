@@ -31,7 +31,7 @@ uintptr_t ParseRSDP(uintptr_t rsdpPhysical){
         headerphysical[i] = (uintptr_t)header[i];
         header[i] = (SDTHeader*)MapPhysical((uintptr_t)header[i], sizeof(SDTHeader));
     }
-    return 0;
+    return NULL;
 } 
 
 uintptr_t FindTable(char* signature){
@@ -40,4 +40,5 @@ uintptr_t FindTable(char* signature){
             return headerphysical[i];
         }
     }
+    return NULL;
 }

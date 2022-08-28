@@ -128,8 +128,15 @@ KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name){
 
 KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg, char* Name){
     uintptr_t physicalTableAddress = FindTable(Name);
+
+    KResult status = KFAIL;
+
+    if(physicalTableAddress != NULL){
+        status = KSUCCESS;
+    }
+
     arguments_t arguments{
-        .arg[0] = KSUCCESS,                         /* Statu */
+        .arg[0] = status,                           /* Statu */
         .arg[1] = CallbackArg,                      /* CallbackArg */
         .arg[2] = (uint64_t)physicalTableAddress,   /* PhysicalTableAddress */
         .arg[3] = NULL,                             /* GP1 */
