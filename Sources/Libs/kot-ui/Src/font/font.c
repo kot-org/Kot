@@ -12,7 +12,6 @@
 #define SSFN_IMPLEMENTATION 
 
 #include <kot-ui/font.h>
-#include <kot-ui/font/ssfn.h>
 
 kfont_t* LoadFont(uintptr_t data){
     kfont_t* font = malloc(sizeof(kfont_t));

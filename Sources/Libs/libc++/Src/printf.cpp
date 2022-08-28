@@ -50,7 +50,7 @@ namespace std {
                         break;
                 }
             } else {
-                strBuilder->append(&c);
+                strBuilder->append(c);
             }
         }
 
