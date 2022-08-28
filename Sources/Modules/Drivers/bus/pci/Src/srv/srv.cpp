@@ -111,82 +111,11 @@ KResult GetBARSize(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Device
     Sys_Close(KSUCCESS);
 }
 
-/* TODO */
-KResult PCISearcherGetDevice(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIf, uint64_t index) {
-    uint8_t checkRequired = 0;
-    uint32_t deviceNum = 0;
 
-    if(vendorID != 0xFFFF)
-        checkRequired++;
-    if(deviceID != 0xFFFF)
-        checkRequired++;
-    if(subClassID != 0xFFFF)
-        checkRequired++;
-    if(classID != 0xFFFF)
-        checkRequired++;
-    if(progIf != 0xFFFF)
-        checkRequired++;
+KResult PCISearcherGetDevice(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters, uint64_t Index) {
 
-    for(uint32_t i = 0; i < PCIDevicesIndex; i++) {
-        
-        PCIDeviceHeader header = ((PCIHeader0*)PCIDevices[i])->Header;
-
-        uint8_t checkNum = 0;
-        
-        if(header.VendorID == vendorID)
-            checkNum++;
-        if(header.DeviceID == deviceID)
-            checkNum++;
-        if(header.Subclass == subClassID)
-            checkNum++;
-        if(header.Class == classID)
-            checkNum++;
-        if(header.ProgIF == progIf)
-            checkNum++;
-
-        if(checkRequired == checkNum) deviceNum++;
-
-        if(index == deviceNum)
-            Sys_Close(i);
-
-    }
-    Sys_Close(KSUCCESS);
 }
 
-KResult PCISearcher(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIf) {
-    uint8_t checkRequired = 0;
-    uint32_t deviceNum = 0;
+KResult PCISearcher(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters) {
 
-    if(vendorID != 0xFFFF)
-        checkRequired++;
-    if(deviceID != 0xFFFF)
-        checkRequired++;
-    if(subClassID != 0xFFFF)
-        checkRequired++;
-    if(classID != 0xFFFF)
-        checkRequired++;
-    if(progIf != 0xFFFF)
-        checkRequired++;
-
-    for(uint32_t i = 0; i < PCIDevicesIndex; i++) {
-
-        PCIDeviceHeader header = ((PCIHeader0*)PCIDevices[i])->Header;
-
-        uint8_t checkNum = 0;
-        
-        if(header.VendorID == vendorID)
-            checkNum++;
-        if(header.DeviceID == deviceID)
-            checkNum++;
-        if(header.Subclass == subClassID)
-            checkNum++;
-        if(header.Class == classID)
-            checkNum++;
-        if(header.ProgIF == progIf)
-            checkNum++;
-
-        if(checkRequired == checkNum) deviceNum++;
-
-    }
-    Sys_Close(deviceNum);
 }

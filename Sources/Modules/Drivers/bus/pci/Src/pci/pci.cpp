@@ -110,7 +110,8 @@ PCIDevice* GetDevice(uint16_t bus, uint16_t device, uint16_t func){
 }
 
 void EnumerateDevices() {
-    uint64_t PCIDevicesIndexTmp = 0;
+    uint64_t PCIDevicesIndexTmp = 1;
+    PCIDevicesIndex = 1;
     for(uint32_t bus = 0; bus < 256; bus++) {
         for(uint32_t device = 0; device < 32; device++) {
 
@@ -154,4 +155,84 @@ void EnumerateDevices() {
             }
         }
     }    
+}
+
+uint64_t PCISearcher(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIf) {
+    uint8_t checkRequired = 0;
+    uint32_t deviceNum = 0;
+
+    if(vendorID != 0xFFFF)
+        checkRequired++;
+    if(deviceID != 0xFFFF)
+        checkRequired++;
+    if(subClassID != 0xFFFF)
+        checkRequired++;
+    if(classID != 0xFFFF)
+        checkRequired++;
+    if(progIf != 0xFFFF)
+        checkRequired++;
+
+    for(uint32_t i = 1; i < PCIDevicesIndex; i++) {
+
+        PCIDeviceHeader header = ((PCIHeader0*)PCIDevices[i])->Header;
+
+        uint8_t checkNum = 0;
+        
+        if(header.VendorID == vendorID)
+            checkNum++;
+        if(header.DeviceID == deviceID)
+            checkNum++;
+        if(header.Subclass == subClassID)
+            checkNum++;
+        if(header.Class == classID)
+            checkNum++;
+        if(header.ProgIF == progIf)
+            checkNum++;
+
+        if(checkRequired == checkNum) deviceNum++;
+
+    }
+    return deviceNum;
+}
+
+PCIDeviceID_t PCISearcherGetDevice(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIf, uint64_t index) {
+    uint8_t checkRequired = 0;
+    uint32_t deviceNum = 0;
+
+    if(vendorID != 0xFFFF)
+        checkRequired++;
+    if(deviceID != 0xFFFF)
+        checkRequired++;
+    if(subClassID != 0xFFFF)
+        checkRequired++;
+    if(classID != 0xFFFF)
+        checkRequired++;
+    if(progIf != 0xFFFF)
+        checkRequired++;
+
+    for(uint32_t i = 1; i < PCIDevicesIndex; i++) {
+        
+        PCIDeviceHeader header = ((PCIHeader0*)PCIDevices[i])->Header;
+
+        uint8_t checkNum = 0;
+        
+        if(header.VendorID == vendorID)
+            checkNum++;
+        if(header.DeviceID == deviceID)
+            checkNum++;
+        if(header.Subclass == subClassID)
+            checkNum++;
+        if(header.Class == classID)
+            checkNum++;
+        if(header.ProgIF == progIf)
+            checkNum++;
+
+        if(checkRequired == checkNum) deviceNum++;
+
+        if(index == deviceNum){
+            return i;
+        }
+
+    }
+    return NULL;
 }

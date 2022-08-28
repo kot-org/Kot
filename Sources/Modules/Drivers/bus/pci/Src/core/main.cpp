@@ -9,7 +9,7 @@ PCIDevice_t** PCIDevices = NULL;
 PCIDeviceID_t PCIDevicesIndex = 0;
 
 bool CheckDevice(PCIDeviceID_t device){
-    if(device < PCIDevicesIndex){
+    if(PCIDevicesIndex != NULL && device < PCIDevicesIndex){
         return true;
     }
     return false;
