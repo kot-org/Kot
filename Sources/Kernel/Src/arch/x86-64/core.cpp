@@ -94,17 +94,17 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
 }
 
 KResult GetDataToStartService(ArchInfo_t* ArchInfo, kthread_t* thread, arguments_t* Parameters, uintptr_t* Data, size64_t* Size){
-    KResult Statu = KFAIL;
+    KResult Status = KFAIL;
     ArchInfo->IRQEvents = (event_t*)calloc(ArchInfo->IRQSize * sizeof(event_t));
     for(uint64_t i = 0; i < ArchInfo->IRQSize; i++){
         if(InterruptEventList[i] != NULL){
-            Statu = Keyhole_Create((key_t*)&ArchInfo->IRQEvents[i], thread->Parent, thread->Parent, DataTypeEvent, (uint64_t)InterruptEventList[i], KeyholeFlagFullPermissions, PriviledgeApp);
-            if(Statu != KSUCCESS) return Statu;
+            Status = Keyhole_Create((key_t*)&ArchInfo->IRQEvents[i], thread->Parent, thread->Parent, DataTypeEvent, (uint64_t)InterruptEventList[i], KeyholeFlagFullPermissions, PriviledgeApp);
+            if(Status != KSUCCESS) return Status;
         }
     }
     *Data = ArchInfo;
     *Size = sizeof(ArchInfo_t);
-    return Statu;
+    return Status;
 }
 
 void StopAllCPU(){
