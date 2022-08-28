@@ -16,8 +16,8 @@ typedef uint64_t PCIDeviceID_t;
 typedef struct {
     uint16_t vendorID;
     uint16_t deviceID;
-    uint16_t subClassID;
     uint16_t classID;
+    uint16_t subClassID;
     uint16_t progIF;
 } srv_pci_search_parameters_t;
 

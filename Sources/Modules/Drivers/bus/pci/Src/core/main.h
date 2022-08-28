@@ -25,10 +25,14 @@
 #include <kot/sys.h>
 #include <kot/arch.h>
 #include <kot/heap.h>
-#include <kot/cstring.h>
 #include <kot/utils.h>
-
+#include <kot/cstring.h>
+#include <kot/uisd/srvs/pci.h>
 #include <kot/uisd/srvs/system.h>
+
+#include <srv/srv.h>
+#include <pci/pci.h>
+#include <pcie/pcie.h>
 
 struct PCIDeviceHeader{
     uint16_t VendorID;
@@ -80,7 +84,12 @@ struct PCIDevice_t{
     PCIDeviceID_t Index;
 };
 
+extern process_t proc;
+
+extern PCIDevice_t** PCIDevices = NULL;
+extern PCIDeviceID_t PCIDevicesIndex;
+
 bool CheckDevice(PCIDeviceID_t device);
 PCIDevice_t* GetDevice(PCIDeviceID_t device);
 uint64_t Search(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIF);
-PCIDeviceID_t GetDevice(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIF, uint64_t index);
+PCIDeviceID_t GetDevice(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIF, PCIDeviceID_t index);

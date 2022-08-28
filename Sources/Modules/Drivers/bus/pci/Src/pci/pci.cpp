@@ -1,6 +1,53 @@
 #include <pci/pci.h>
 
-/* PRIVATE */
+void PCIWrite32(uint32_t addr, uint32_t data) {
+    addr &= ~(0b11);
+    /* Write address */
+    IoWrite32(PCI_CONFIG_ADDR, addr);
+    /* Write data */
+    IoWrite32(PCI_CONFIG_DATA, data);
+}
+
+uint32_t PCIRead32(uint32_t addr) {
+    addr &= ~(0b11);
+    /* Write address */
+    IoWrite32(PCI_CONFIG_ADDR, addr);
+    /* Read data */
+    return IoRead32(PCI_CONFIG_DATA);
+}
+
+uint16_t PCIRead16(uint32_t addr) {
+    uint8_t offset = addr & 0xff;
+    addr &= ~(0b11);
+    return (uint16_t) ((PCIRead32(addr) >> ((offset & 0b10) * 0x10)) & 0xffff);
+}
+
+uint8_t PCIRead8(uint32_t addr) {
+    uint8_t offset = addr & 0xff;
+    addr &= ~(0b11);
+    return (uint16_t) ((PCIRead16(addr) >> ((offset & 0b1) * 0x8)) & 0xff);
+}
+
+void PCIMemcpyToMemory8(uintptr_t dst, uint32_t src, size64_t size){
+    src &= ~(0b11);
+    for(size64_t i = 0; i < size; i += 0x1){
+        *(uint8_t*)((uint64_t)dst + i) = PCIRead8(src + i);
+    }
+}
+
+void PCIMemcpyToMemory16(uintptr_t dst, uint32_t src, size64_t size){
+    src &= ~(0b11);
+    for(size64_t i = 0; i < size; i += 0x2){
+        *(uint16_t*)((uint64_t)dst + i) = PCIRead16(src + i);
+    }
+}
+
+void PCIMemcpyToMemory32(uintptr_t dst, uint32_t src, size64_t size){
+    src &= ~(0b11);
+    for(size64_t i = 0; i < size; i += 0x4){
+        *(uint32_t*)((uint64_t)dst + i) = PCIRead32(src + i);
+    }
+}
 
 PCIBar* PCIGetBaseAddressRegister(uint32_t deviceAddr, uint8_t barID, PCIHeader0* header) {
     if(header->BAR[barID] != NULL){
@@ -66,14 +113,14 @@ bool CheckDevice(uint16_t bus, uint16_t device, uint16_t func){
     return CheckDevice(Addr);
 }
 
-PCIDevice* GetDevice(uint16_t bus, uint16_t device, uint16_t func){
+PCIDevice_t* GetDevice(uint16_t bus, uint16_t device, uint16_t func){
     uint32_t Addr = PCIDeviceBaseAddress(bus, device, func);
     if(!CheckDevice(Addr)) return NULL;
 
     uint8_t HeaderType = PCIRead8(Addr + PCI_HEADER_TYPE_OFFSET);
     HeaderType &= ~(1 << 7);
     uintptr_t Header = NULL;
-    PCIDevice* self;
+    PCIDevice_t* self;
     PCIBar* BaseAddrReg;
     
     switch (HeaderType){
@@ -81,7 +128,7 @@ PCIDevice* GetDevice(uint16_t bus, uint16_t device, uint16_t func){
             Header = malloc(sizeof(PCIHeader0));
             PCIMemcpyToMemory32(Header, Addr, sizeof(PCIHeader0));
 
-            self = (PCIDevice*)calloc(sizeof(PCIDevice));
+            self = (PCIDevice_t*)calloc(sizeof(PCIDevice_t));
 
             self->Header = (PCIDeviceHeader*)Header;
             for(uint8_t i = 0; i <= 5; i++) {
@@ -109,7 +156,7 @@ PCIDevice* GetDevice(uint16_t bus, uint16_t device, uint16_t func){
     return self;
 }
 
-void EnumerateDevices() {
+void EnumerateDevices(){
     uint64_t PCIDevicesIndexTmp = 1;
     for(uint32_t bus = 0; bus < 256; bus++) {
         for(uint32_t device = 0; device < 32; device++) {
@@ -131,7 +178,7 @@ void EnumerateDevices() {
         }
     }  
 
-    PCIDevices = (PCIDevice**)malloc(sizeof(PCIDevice) * PCIDevicesIndexTmp);
+    PCIDevices = (PCIDevice_t**)malloc(sizeof(PCIDevice_t) * PCIDevicesIndexTmp);
 
     for(uint32_t bus = 0; bus < 256; bus++) {
         for(uint32_t device = 0; device < 32; device++) {

@@ -44,8 +44,8 @@ void InitSrv(){
     PciSrv->PCISearcherGetDevice = MakeShareableThread(PCISearcherGetDeviceThread, PriviledgeDriver);
 }
 
-KResult GetBARNum(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Device) {
-    KResult Status = FAIL;
+KResult GetBARNum(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Device){
+    KResult Status = KFAIL;
     uint64_t BARNum = NULL;
     if(CheckDevice(Device)){
         BARNum = GetDevice(Device)->BARNum;
@@ -65,8 +65,8 @@ KResult GetBARNum(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Device)
     Sys_Close(KSUCCESS);
 }
 
-KResult GetBARType(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Device, uint8_t BarIndex) {
-    KResult Status = FAIL;
+KResult GetBARType(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Device, uint8_t BarIndex){
+    KResult Status = KFAIL;
     uint8_t BARType = NULL;
     if(CheckDevice(Device)){
         if(BarIndex < GetDevice(Device)->BARNum){
@@ -88,8 +88,8 @@ KResult GetBARType(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Device
     Sys_Close(KSUCCESS);
 }
 
-KResult GetBARSize(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Device, uint8_t BarIndex) {
-    KResult Status = FAIL;
+KResult GetBARSize(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Device, uint8_t BarIndex){
+    KResult Status = KFAIL;
     uint64_t BARSize = NULL;
     if(CheckDevice(Device)){
         if(BarIndex < GetDevice(Device)->BARNum){
@@ -111,13 +111,10 @@ KResult GetBARSize(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Device
     Sys_Close(KSUCCESS);
 }
 
-KResult PCISearcher(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters) {
-    KResult Status = FAIL;
-    uint64_t NumDeviceFound = NULL;
-    if(CheckDevice(Device)){
-        NumDeviceFound = Search(SearchParameters->vendorID, SearchParameters->deviceID, SearchParameters->subClassID, SearchParameters->profIF);
-    }
-
+KResult PCISearcher(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters){
+    KResult Status = KFAIL;
+    uint64_t NumDeviceFound = Search(SearchParameters->vendorID, SearchParameters->deviceID, SearchParameters->subClassID, SearchParameters->classID, SearchParameters->progIF);
+    
     arguments_t arguments{
         .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
@@ -129,13 +126,13 @@ KResult PCISearcher(thread_t Callback, uint64_t CallbackArg, srv_pci_search_para
 
     Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
+}
 
-
-KResult PCISearcherGetDevice(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters, uint64_t Index) {
-    KResult Status = FAIL;
+KResult PCISearcherGetDevice(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters, uint64_t Index){
+    KResult Status = KFAIL;
     PCIDeviceID_t Device = NULL;
     if(CheckDevice(Device)){
-        Device = Search(SearchParameters->vendorID, SearchParameters->deviceID, SearchParameters->subClassID, SearchParameters->profIF, Index);
+        Device = Search(SearchParameters->vendorID, SearchParameters->deviceID, SearchParameters->subClassID, SearchParameters->progIF, Index);
     }
 
     arguments_t arguments{
@@ -149,5 +146,4 @@ KResult PCISearcherGetDevice(thread_t Callback, uint64_t CallbackArg, srv_pci_se
 
     Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);    
-}
 }
