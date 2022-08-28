@@ -65,18 +65,53 @@ KResult GetBARNum(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t device)
     Sys_Close(KSUCCESS);
 }
 
-/* TODO */
-KResult GetBARType(uint32_t index, uint8_t barIndex) {
-    if(CheckDevice(index) && barIndex < PCIDevices[index]->BARNum)
-        Sys_Close(PCIDevices[index]->BAR[barIndex]->Type);
-    Sys_Close(KSUCCESS);
-}
-KResult GetBARSize(uint32_t index, uint8_t barIndex) {
-    if(CheckDevice(index) && barIndex < PCIDevices[index]->BARNum)
-        Sys_Close(PCIDevices[index]->BAR[barIndex]->Size);
+KResult GetBARType(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t device, uint8_t barIndex) {
+    KResult status = FAIL;
+    uint8_t BARType = NULL;
+    if(CheckDevice(device)){
+        if(barIndex < GetDevice(device)->BARNum){
+            BARType = GetDevice(device)->BAR[barIndex]->Type;
+            status = KSUCCESS;
+        }
+    }
+
+    arguments_t arguments{
+        .arg[0] = status,           /* Statu */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = BARType,          /* BARType */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
+KResult GetBARSize(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t device, uint8_t barIndex) {
+    KResult status = FAIL;
+    uint64_t BARSize = NULL;
+    if(CheckDevice(device)){
+        if(barIndex < GetDevice(device)->BARNum){
+            BARSize = GetDevice(device)->BAR[barIndex]->Size;
+            status = KSUCCESS;
+        }
+    }
+
+    arguments_t arguments{
+        .arg[0] = status,           /* Statu */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = BARSize,          /* BARSize */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_Close(KSUCCESS);
+}
+
+/* TODO */
 KResult PCISearcherGetDevice(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIf, uint64_t index) {
     uint8_t checkRequired = 0;
     uint32_t deviceNum = 0;
