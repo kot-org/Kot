@@ -44,24 +44,35 @@ void InitSrv(){
     PciSrv->PCISearcher = MakeShareableThread(PCISearcherThread, PriviledgeDriver);
 }
 
-bool checkDeviceIndex(uint32_t index) {
-    if(index < PCIDevicesIndex)
-        return true;
-    return false;
-}
+KResult GetBARNum(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t device) {
+    KResult status = FAIL;
+    uint64_t BARNum = NULL;
+    if(CheckDevice(device)){
+        BARNum = GetDevice(device)->BARNum;
+        status = KSUCCESS;
+    }
 
-KResult GetBARNum(uint32_t index) {
-    if(checkDeviceIndex(index))
-        Sys_Close(PCIDevices[index]->BARNum);
+    arguments_t arguments{
+        .arg[0] = status,           /* Statu */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = BARNum,           /* BARNum */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
+
+/* TODO */
 KResult GetBARType(uint32_t index, uint8_t barIndex) {
-    if(checkDeviceIndex(index) && barIndex < PCIDevices[index]->BARNum)
+    if(CheckDevice(index) && barIndex < PCIDevices[index]->BARNum)
         Sys_Close(PCIDevices[index]->BAR[barIndex]->Type);
     Sys_Close(KSUCCESS);
 }
 KResult GetBARSize(uint32_t index, uint8_t barIndex) {
-    if(checkDeviceIndex(index) && barIndex < PCIDevices[index]->BARNum)
+    if(CheckDevice(index) && barIndex < PCIDevices[index]->BARNum)
         Sys_Close(PCIDevices[index]->BAR[barIndex]->Size);
     Sys_Close(KSUCCESS);
 }

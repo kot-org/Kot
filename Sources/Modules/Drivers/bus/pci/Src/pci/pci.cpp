@@ -1,8 +1,5 @@
 #include <pci/pci.h>
 
-PCIDevice** PCIDevices = NULL;
-uint32_t PCIDevicesIndex = 0;
-
 /* PRIVATE */
 
 PCIBar* PCIGetBaseAddressRegister(uint32_t deviceAddr, uint8_t barID, PCIHeader0* header) {

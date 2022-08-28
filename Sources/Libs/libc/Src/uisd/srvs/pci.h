@@ -3,12 +3,15 @@
 
 #include <kot/sys.h>
 #include <kot/uisd.h>
+#include <kot/types.h>
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
 typedef KResult (*PCICallbackHandler)(KResult Status, struct srv_pci_callback* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
+
+typedef uint64_t PCIDeviceID_t;
 
 typedef struct {
     uint16_t VendorID;

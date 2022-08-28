@@ -4,7 +4,7 @@ thread_t SrvPciCallbackThread = NULL;
 uisd_pci_t* PciData = NULL;
 
 void SrvPciInitialize() {
-    PciData = (uisd_pci_t*) FindControllerUISD(ControllerTypeEnum_PCI);
+    PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
     
     if(PciData != NULL) {
         process_t proc = Sys_GetProcess();
@@ -35,7 +35,7 @@ KResult SrvPciGetBARNumCallback(KResult Status, srv_pci_callback_t* Callback, ui
     return Status;
 }
 
-srv_pci_callback_t* SrvPciGetBARNum(srv_pci_bar_t* bar, bool IsAwait) {
+srv_pci_callback_t* SrvPciGetBARNum(PCIDeviceID_t Device, bool IsAwait) {
     if(!SrvPciCallbackThread) SrvPciInitialize();
 
     thread_t self = Sys_Getthread();
@@ -50,10 +50,12 @@ srv_pci_callback_t* SrvPciGetBARNum(srv_pci_bar_t* bar, bool IsAwait) {
     struct arguments_t parameters;
     parameters.arg[0] = SrvPciCallbackThread;
     parameters.arg[1] = callback;
+    parameters.arg[2] = Device;
 
     KResult Status = Sys_Execthread(PciData->GetBARNum, &parameters, ExecutionTypeQueu, NULL);
 
-    if(Status == KSUCCESS && IsAwait)
+    if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
+    }
     return callback;
 }

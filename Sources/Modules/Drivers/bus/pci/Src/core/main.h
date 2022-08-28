@@ -73,9 +73,12 @@ struct PCIBar{
     uint8_t Type;
 };
 
-struct PCIDevice{
+struct PCIDevice_t{
     PCIDeviceHeader* Header;
     PCIBar* BAR[6];
-    uint8_t BARNum;
-    uint32_t Index;
+    uint64_t BARNum;
+    PCIDeviceID_t Index;
 };
+
+bool CheckDevice(PCIDeviceID_t device);
+PCIDevice_t* GetDevice(PCIDeviceID_t device);
