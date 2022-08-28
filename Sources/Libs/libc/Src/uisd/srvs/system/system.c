@@ -211,8 +211,10 @@ struct srv_system_callback_t* Srv_System_BindIRQLine(uint8_t IRQLineNumber, thre
 
 /* BindFreeIRQ */
 KResult Srv_System_BindFreeIRQ_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
-    Callback->Data = GP0;
-    Callback->Size = sizeof(uint64_t);
+    if(Status == KSUCCESS) {
+        Callback->Data = GP0;
+        Callback->Size = sizeof(uint64_t);
+    }
     return Statu;
 }
 
