@@ -6,6 +6,7 @@ kfont_t* LoadFont(uintptr_t data, enum font_family family, const char* name, int
     font->ctx = calloc(sizeof(ssfn_t));
     ssfn_load(font->ctx, data);
     ssfn_select(font->ctx, family, name, style, size);
+    return font;
 }
 
 void FreeFont(kfont_t* font){
@@ -21,5 +22,6 @@ void PrintFont(kfont_t* font, char* str, font_fb_t* buffer, uint64_t x, uint64_t
     ssnfBuffer.p = (uint16_t)buffer->pitch;
     ssnfBuffer.x = (int)x;
     ssnfBuffer.y = (int)y;
+    ssnfBuffer.fg = 0xFFFFFFFF;  
     ssfn_render(font->ctx, &ssnfBuffer, str);
 }

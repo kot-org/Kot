@@ -143,14 +143,16 @@ void free(uintptr_t address){
 
 uintptr_t realloc(uintptr_t buffer, size64_t size){
     uintptr_t newBuffer = malloc(size);
+    if(buffer != NULL){
+        if(size < GetSegmentHeaderUser(buffer)->length){
+            memcpy(newBuffer, buffer, size);
+        }else{
+            memcpy(newBuffer, buffer, GetSegmentHeaderUser(buffer)->length);
+        }
 
-    if(size < GetSegmentHeaderUser(buffer)->length){
-        memcpy(newBuffer, buffer, size);
-    }else{
-        memcpy(newBuffer, buffer, GetSegmentHeaderUser(buffer)->length);
+        free(buffer);        
     }
 
-    free(buffer);
     return newBuffer;
 }
 

@@ -179,7 +179,7 @@ KResult ThreadQueu_t::ExecuteThreadInQueu_WL(){
         Data->PID_TLI = CurrentData->Caller->Parent->PID;
         Data->TID_TLI = CurrentData->Caller->TID;
         Data->ExternalData_TLI = CurrentData->Caller->Parent->ExternalData;
-        Data->Priviledge = CurrentData->Caller->Priviledge;
+        Data->Priviledge_TLI = CurrentData->Caller->Priviledge;
         
         CurrentData->Task->Launch_WL(&CurrentData->Parameters);
         return KSUCCESS;
@@ -214,7 +214,7 @@ KResult TaskManager::Execthread(kthread_t* Caller, kthread_t* Self, enum Executi
         case ExecutionTypeQueuAwait:{
             queu->SetThreadInQueu(Caller, Self, FunctionParameters, true, Data);
             Atomic::atomicUnlock(&queu->Lock, 0);
-            Caller->Pause(Registers, true);
+            Caller->Pause(Registers, false);
             break;
         }        
         case ExecutionTypeOneshot:{
@@ -229,7 +229,7 @@ KResult TaskManager::Execthread(kthread_t* Caller, kthread_t* Self, enum Executi
             if(!queu->TasksInQueu){
                 queu->SetThreadInQueu(Caller, Self, FunctionParameters, true, Data);
                 Atomic::atomicUnlock(&queu->Lock, 0);
-                Caller->Pause(Registers, true);
+                Caller->Pause(Registers, false);
             }else{
                 return KFAIL;
             }
@@ -401,8 +401,12 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge privil
     thread->threadData->ProcessKey = ProcessKey;
     thread->threadData->PID = PID;
     thread->threadData->TID = TID;
-    thread->threadData->TID = TID;
-    thread->threadData->Priviledge = priviledge;
+    thread->threadData->ExternalData = ExternalData;
+    thread->threadData->Priviledge = thread->Priviledge;
+    thread->threadData->PID_PCI = PID_PCI;
+    thread->threadData->TID_PCI = TID_PCI;
+    thread->threadData->ExternalData_PCI = ExternalData_PCI;
+    thread->threadData->Priviledge_PCI = Priviledge_PCI;
 
     /* ID */
     thread->TID = TID; 
@@ -471,6 +475,11 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
     thread->threadData->PID = PID;
     thread->threadData->TID = TID;
     thread->threadData->ExternalData = ExternalData;
+    thread->threadData->Priviledge = thread->Priviledge;
+    thread->threadData->PID_PCI = PID_PCI;
+    thread->threadData->TID_PCI = TID_PCI;
+    thread->threadData->ExternalData_PCI = ExternalData_PCI;
+    thread->threadData->Priviledge_PCI = Priviledge_PCI;
     
     /* ID */
     thread->TID = TID; 

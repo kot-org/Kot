@@ -27,7 +27,7 @@ def InitializeFileSystem(Self, FileCount, InitFilePosition):
     print("Creating file system...\n")
 
 def AddFile(Self, Name, Size, Data):
-    print("Adding : " + Name)
+    print("Adding : " + Name + "Size : " + str(Size))
     Self.write(Name.encode())
     Self.write(Size.to_bytes(8, 'little'))
     Self.write(Data)
