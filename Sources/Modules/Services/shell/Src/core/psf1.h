@@ -30,13 +30,13 @@ psf1_font* psf1_parse(uintptr_t bytes) {
     return font;
 }
 
-void psf1_putchar(psf1_font* font, uintptr_t fb_addr, uint32_t fb_pitch, char chr, uint32_t xOff, uint32_t yOff, uint32_t colour) {
+void psf1_putchar(psf1_font* font, uintptr_t fb_addr, uint32_t fb_height, char chr, uint32_t xOff, uint32_t yOff, uint32_t colour) {
     uint32_t* pix_ptr = (uint32_t*) fb_addr;
     uint8_t* font_ptr = (uint8_t*) font->glyphBuffer + (chr * font->header->charsize);
     for (uint64_t y = yOff; y < yOff + 16; y++) {
         for (uint64_t x = xOff; x < xOff + 8; x++) {
             if ((*font_ptr & (0b10000000 >> (x - xOff))) > 0) {
-                *(uint32_t*)(pix_ptr + x + (y * fb_pitch)) = colour;
+                *(uint32_t*)(pix_ptr + (x + (y * fb_height))) = colour;
             }
         }
         font_ptr++;
