@@ -3,8 +3,6 @@
 #include <tools/config.h>
 #include <tools/memory.h>
 
-process_t proc;
-
 PCIDevice** PCIDevices = NULL;
 uint32_t PCIDevicesIndex = 0;
 
@@ -268,8 +266,8 @@ KResult PCISearcher(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, u
 void InitSrv() {
     uintptr_t addr = getFreeAlignedSpace(sizeof(uisd_pci_t));
     ksmem_t key = NULL;
-    
-    proc = Sys_GetProcess();
+
+    process_t proc = Sys_GetProcess();
 
     Sys_CreateMemoryField(proc, sizeof(uisd_pci_t), &addr, &key, MemoryFieldTypeShareSpaceRO);
 

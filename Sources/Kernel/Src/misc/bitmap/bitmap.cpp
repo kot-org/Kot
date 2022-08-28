@@ -30,12 +30,12 @@ bool Bitmap::GetAndSet(uint64_t index, bool value){
     uint64_t byteIndex = index / 8;
     uint8_t bitIndex = index % 8;
     uint8_t bitIndexer = 0b10000000 >> bitIndex;
-    bool statu = Buffer[byteIndex] & bitIndexer;
+    bool Status = Buffer[byteIndex] & bitIndexer;
     Buffer[byteIndex] &= ~bitIndexer;
     if (value){
         Buffer[byteIndex] |= bitIndexer;
     }
-    return statu;
+    return Status;
 }
 
 BitmapHeap::BitmapHeap(size64_t size){

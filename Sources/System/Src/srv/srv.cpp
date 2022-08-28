@@ -77,7 +77,7 @@ KResult GetFrameBuffer(thread_t Callback, uint64_t CallbackArg){
     };
 
     arguments_t arguments{
-        .arg[0] = KSUCCESS,         /* Statu */
+        .arg[0] = KSUCCESS,         /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
         .arg[3] = NULL,             /* GP1 */
@@ -96,7 +96,7 @@ KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name){
         fileData = initrd::Read(file);
     }else{
         arguments_t arguments{
-            .arg[0] = KFAIL,            /* Statu */
+            .arg[0] = KFAIL,            /* Status */
             .arg[1] = CallbackArg,      /* CallbackArg */
             .arg[2] = NULL,             /* Size */
             .arg[3] = NULL,             /* Data */
@@ -114,7 +114,7 @@ KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name){
     };
 
     arguments_t arguments{
-        .arg[0] = KSUCCESS,         /* Statu */
+        .arg[0] = KSUCCESS,         /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = file->size,       /* Size */
         .arg[3] = NULL,             /* Data */
@@ -136,7 +136,11 @@ KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg,
     }
 
     arguments_t arguments{
+<<<<<<< HEAD
         .arg[0] = status,                           /* Statu */
+=======
+        .arg[0] = KSUCCESS,                         /* Status */
+>>>>>>> 42d855ec2 ([PCI] Server not finished)
         .arg[1] = CallbackArg,                      /* CallbackArg */
         .arg[2] = (uint64_t)physicalTableAddress,   /* PhysicalTableAddress */
         .arg[3] = NULL,                             /* GP1 */
@@ -150,7 +154,7 @@ KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg,
 
 KResult GetSystemManagementBIOSTable(thread_t Callback, uint64_t CallbackArg){
     arguments_t arguments{
-        .arg[0] = KSUCCESS,                     /* Statu */
+        .arg[0] = KSUCCESS,                     /* Status */
         .arg[1] = CallbackArg,                  /* CallbackArg */
         .arg[2] = (uint64_t)SrvInfo->Smbios,    /* Smbios physical address */
         .arg[3] = NULL,                         /* GP1 */
@@ -163,14 +167,14 @@ KResult GetSystemManagementBIOSTable(thread_t Callback, uint64_t CallbackArg){
 }
 
 KResult BindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumber, thread_t Target, bool IgnoreMissedEvents){
-    KResult Statu = KFAIL;
+    KResult Status = KFAIL;
     if(IRQLineNumber < SrvInfo->IRQLineSize){
         uint8_t vector = SrvInfo->IRQLineStart + IRQLineNumber;
-        Statu = Sys_Event_Bind(SrvInfo->IRQEvents[vector], Target, IgnoreMissedEvents);
+        Status = Sys_Event_Bind(SrvInfo->IRQEvents[vector], Target, IgnoreMissedEvents);
     }
     
     arguments_t arguments{
-        .arg[0] = Statu,            /* Statu */
+        .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
         .arg[3] = NULL,             /* GP1 */
@@ -190,12 +194,12 @@ KResult BindFreeIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, bo
             break;
         }
     }
-    KResult Statu = KFAIL;
+    KResult Status = KFAIL;
     if(IRQ != NULL){
-        Statu = Sys_Event_Bind(IRQ, Target, IgnoreMissedEvents);
+        Status = Sys_Event_Bind(IRQ, Target, IgnoreMissedEvents);
     }
     arguments_t arguments{
-        .arg[0] = KSUCCESS,         /* Statu */
+        .arg[0] = KSUCCESS,         /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = IRQ,              /* IRQNumber */
         .arg[3] = NULL,             /* GP1 */
