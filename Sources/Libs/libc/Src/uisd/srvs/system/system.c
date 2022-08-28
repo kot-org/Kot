@@ -27,20 +27,22 @@ void Srv_System_Callback(KResult Statu, struct srv_system_callback_t* Callback, 
 /* GetFrameBufer */
 KResult Srv_System_GetFrameBuffer_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Statu == KSUCCESS){
+        Callback->Data = malloc(sizeof(srv_system_framebuffer_t));
         memcpy(Callback->Data, (uintptr_t)GP0, sizeof(srv_system_framebuffer_t));
         Callback->Size = (size64_t)sizeof(srv_system_framebuffer_t);
     }
     return Statu;
 }
 
-struct srv_system_callback_t* Srv_System_GetFrameBuffer(srv_system_framebuffer_t* framebuffer, bool IsAwait){
+struct srv_system_callback_t* Srv_System_GetFrameBuffer(bool IsAwait){
     if(!srv_system_callback_thread) Srv_System_Initialize();
     
     thread_t self = Sys_Getthread();
 
     struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
     callback->Self = self;
-    callback->Data = framebuffer;
+    callback->Data = NULL;
+    callback->Size = NULL;
     callback->IsAwait = IsAwait;
     callback->Statu = KBUSY;
     callback->Handler = &Srv_System_GetFrameBuffer_Callback;
@@ -60,23 +62,22 @@ struct srv_system_callback_t* Srv_System_GetFrameBuffer(srv_system_framebuffer_t
 /* ReadFile */
 KResult Srv_System_ReadFileInitrd_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Statu == KSUCCESS){
-        srv_system_fileheader_t* FileHeader = (srv_system_fileheader_t*)Callback->Data;
-        FileHeader->Data = malloc((size64_t)GP0);
-        memcpy(FileHeader->Data, (uintptr_t)GP1, (size64_t)GP0);
-        FileHeader->Size = (size64_t)GP0;
+        Callback->Data = malloc((size64_t)GP0);
+        memcpy(Callback->Data, (uintptr_t)GP1, (size64_t)GP0);
+        Callback->Size = (size64_t)GP0;
     }
     return Statu;
 }
 
-struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name, srv_system_fileheader_t* file,  bool IsAwait){
+struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwait){
     if(!srv_system_callback_thread) Srv_System_Initialize();
     
     thread_t self = Sys_Getthread();
 
     struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
     callback->Self = self;
-    callback->Data = (uintptr_t)file;
-    callback->Size = sizeof(srv_system_fileheader_t*);
+    callback->Data = NULL;
+    callback->Size = NULL;
     callback->IsAwait = IsAwait;
     callback->Statu = KBUSY;
     callback->Handler = &Srv_System_ReadFileInitrd_Callback;
@@ -100,20 +101,21 @@ struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name, srv_system_f
 /* GetTableInRootSystemDescription */
 KResult Srv_System_GetTableInRootSystemDescription_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Statu == KSUCCESS){
-        *(srv_system_sdtheader_t**)Callback->Data = (srv_system_sdtheader_t*)MapPhysical(GP0, sizeof(srv_system_sdtheader_t));
+        Callback->Data = (uintptr_t*)MapPhysical(GP0, sizeof(srv_system_sdtheader_t));
+        Callback->Size = (size64_t)sizeof(srv_system_sdtheader_t);
     }
     return Statu;
 }
 
-struct srv_system_callback_t* Srv_System_GetTableInRootSystemDescription(char* Name, srv_system_sdtheader_t** SDTHeader, bool IsAwait){
+struct srv_system_callback_t* Srv_System_GetTableInRootSystemDescription(char* Name, bool IsAwait){
     if(!srv_system_callback_thread) Srv_System_Initialize();
     
     thread_t self = Sys_Getthread();
 
     struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
     callback->Self = self;
-    callback->Data = (uintptr_t)SDTHeader;
-    callback->Size = (size64_t)sizeof(srv_system_sdtheader_t*);
+    callback->Data = NULL;
+    callback->Size = NULL;
     callback->IsAwait = IsAwait;
     callback->Statu = KBUSY;
     callback->Handler = &Srv_System_GetTableInRootSystemDescription_Callback;
@@ -134,3 +136,116 @@ struct srv_system_callback_t* Srv_System_GetTableInRootSystemDescription(char* N
     return callback;
 }
 
+/* GetSystemManagementBIOSTable */
+KResult Srv_System_GetSystemManagementBIOSTable_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    if(Statu == KSUCCESS){
+        Callback->Data = GP0;
+        Callback->Size = sizeof(uint64_t);
+    }
+    return Statu;
+}
+
+struct srv_system_callback_t* Srv_System_GetSystemManagementBIOSTable(bool IsAwait){
+    if(!srv_system_callback_thread) Srv_System_Initialize();
+    
+    thread_t self = Sys_Getthread();
+
+    struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Statu = KBUSY;
+    callback->Handler = &Srv_System_GetSystemManagementBIOSTable_Callback;
+
+    struct arguments_t parameters;
+    parameters.arg[0] = srv_system_callback_thread;
+    parameters.arg[1] = callback;
+    
+
+    KResult statu = Sys_Execthread(SystemData->GetSystemManagementBIOSTable, &parameters, ExecutionTypeQueu, NULL);
+    if(statu == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}
+
+/* BindIRQLine */
+KResult Srv_System_BindIRQLine_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    return Statu;
+}
+
+struct srv_system_callback_t* Srv_System_BindIRQLine(uint8_t IRQLineNumber, thread_t Target, bool IgnoreMissedEvents, bool IsAwait){
+    if(!srv_system_callback_thread) Srv_System_Initialize();
+    
+    thread_t self = Sys_Getthread();
+
+    uint64_t TargetShareKey = NULL;
+    uint64_t UISDKeyFlags = NULL;
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypethreadIsEventable, true);
+    Sys_Keyhole_CloneModify(Target, &TargetShareKey, SystemData->ControllerHeader.Process, UISDKeyFlags, PriviledgeApp);
+
+    struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Statu = KBUSY;
+    callback->Handler = &Srv_System_BindIRQLine_Callback;
+
+    struct arguments_t parameters;
+    parameters.arg[0] = srv_system_callback_thread;
+    parameters.arg[1] = callback;
+    parameters.arg[2] = IRQLineNumber;
+    parameters.arg[3] = TargetShareKey;
+    parameters.arg[4] = IgnoreMissedEvents;
+    
+
+    KResult statu = Sys_Execthread(SystemData->BindIRQLine, &parameters, ExecutionTypeQueu, NULL);
+    if(statu == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}
+
+/* BindFreeIRQ */
+KResult Srv_System_BindFreeIRQ_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    Callback->Data = GP0;
+    Callback->Size = sizeof(uint64_t);
+    return Statu;
+}
+
+struct srv_system_callback_t* Srv_System_BindFreeIRQ(uint8_t IRQLineNumber, thread_t Target, bool IgnoreMissedEvents, bool IsAwait){
+    if(!srv_system_callback_thread) Srv_System_Initialize();
+    
+    thread_t self = Sys_Getthread();
+
+    uint64_t TargetShareKey = NULL;
+    uint64_t UISDKeyFlags = NULL;
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypethreadIsEventable, true);
+    Sys_Keyhole_CloneModify(Target, &TargetShareKey, SystemData->ControllerHeader.Process, UISDKeyFlags, PriviledgeApp);
+
+    struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Statu = KBUSY;
+    callback->Handler = &Srv_System_BindFreeIRQ_Callback;
+
+    struct arguments_t parameters;
+    parameters.arg[0] = srv_system_callback_thread;
+    parameters.arg[1] = callback;
+    parameters.arg[2] = IRQLineNumber;
+    parameters.arg[3] = TargetShareKey;
+    parameters.arg[4] = IgnoreMissedEvents;
+    
+
+    KResult statu = Sys_Execthread(SystemData->BindFreeIRQ, &parameters, ExecutionTypeQueu, NULL);
+    if(statu == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}

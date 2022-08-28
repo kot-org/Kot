@@ -173,17 +173,17 @@ bool checkDeviceIndex(uint32_t index) {
 KResult GetBARNum(uint32_t index) {
     if(checkDeviceIndex(index))
         Sys_Close(PCIDevices[index]->BARNum);
-    Sys_Close(NULL);
+    Sys_Close(KSUCCESS);
 }
 KResult GetBARType(uint32_t index, uint8_t barIndex) {
     if(checkDeviceIndex(index) && barIndex < PCIDevices[index]->BARNum)
         Sys_Close(PCIDevices[index]->BAR[barIndex]->Type);
-    Sys_Close(NULL);
+    Sys_Close(KSUCCESS);
 }
 KResult GetBARSize(uint32_t index, uint8_t barIndex) {
     if(checkDeviceIndex(index) && barIndex < PCIDevices[index]->BARNum)
         Sys_Close(PCIDevices[index]->BAR[barIndex]->Size);
-    Sys_Close(NULL);
+    Sys_Close(KSUCCESS);
 }
 
 KResult PCISearcherGetDevice(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIf, uint64_t index) {
@@ -224,7 +224,7 @@ KResult PCISearcherGetDevice(uint16_t vendorID, uint16_t deviceID, uint16_t subC
             Sys_Close(i);
 
     }
-    Sys_Close(NULL);
+    Sys_Close(KSUCCESS);
 }
 
 KResult PCISearcher(uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIf) {

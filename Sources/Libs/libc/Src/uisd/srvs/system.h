@@ -20,11 +20,6 @@ typedef struct {
 } srv_system_framebuffer_t;
 
 typedef struct {
-    uintptr_t Data;
-    size64_t Size;
-} srv_system_fileheader_t;
-
-typedef struct {
     uint8_t Signature[4];
     uint32_t Length;
     uint8_t Revision;
@@ -49,9 +44,12 @@ void Srv_System_Initialize();
 
 void Srv_System_Callback(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
-struct srv_system_callback_t* Srv_System_GetFrameBuffer(srv_system_framebuffer_t* framebuffer, bool IsAwait);
-struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name, srv_system_fileheader_t* file, bool IsAwait);
-struct srv_system_callback_t* Srv_System_GetTableInRootSystemDescription(char* Name, srv_system_sdtheader_t** SDTHeader, bool IsAwait);
+struct srv_system_callback_t* Srv_System_GetFrameBuffer(bool IsAwait);
+struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwait);
+struct srv_system_callback_t* Srv_System_GetTableInRootSystemDescription(char* Name, bool IsAwait);
+struct srv_system_callback_t* Srv_System_GetSystemManagementBIOSTable(bool IsAwait);
+struct srv_system_callback_t* Srv_System_BindIRQLine(uint8_t IRQLineNumber, thread_t Target, bool IgnoreMissedEvents, bool IsAwait);
+struct srv_system_callback_t* Srv_System_BindFreeIRQ(uint8_t IRQLineNumber, thread_t Target, bool IgnoreMissedEvents, bool IsAwait);
 
 #if defined(__cplusplus)
 }

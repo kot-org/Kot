@@ -5,6 +5,7 @@
 #include <kot/cstring.h>
 #include <mouse/mouse.h>
 #include <keyboard/keyboard.h>
+#include <kot/uisd/srvs/system.h>
 
 #define PS2_PORT_NUMBER 0x2
 

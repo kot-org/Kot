@@ -126,8 +126,9 @@ void initOrb() {
     monitors = vector_create();
     windows = vector_create();
 
-    srv_system_framebuffer_t* bootframebuffer = (srv_system_framebuffer_t*) malloc(sizeof(srv_system_framebuffer_t));
-    Srv_System_GetFrameBuffer(bootframebuffer, true);
+    srv_system_callback_t* callback = Srv_System_GetFrameBuffer(true);
+    srv_system_framebuffer_t* bootframebuffer = (srv_system_framebuffer_t*)callback->Data;
+    free(callback);
 
     size64_t fb_size = bootframebuffer->Pitch * bootframebuffer->Height;
     
