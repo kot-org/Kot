@@ -20,8 +20,10 @@ void SrvPciInitialize() {
 void SrvPciCallback(KResult Status, srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3) {
     Callback->Status = Callback->Handler(Status, Callback, GP0, GP1, GP2, GP3);
 
-    if(Callback->IsAwait)
+    if(Callback->IsAwait){
         Sys_Unpause(Callback->Self);
+    }
+        
     Sys_Close(KSUCCESS);
 }
 

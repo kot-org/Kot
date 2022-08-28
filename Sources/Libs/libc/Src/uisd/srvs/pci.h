@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-typedef KResult (*CallbackHandler)(KResult Status, struct srv_pci_callback* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
+typedef KResult (*PCICallbackHandler)(KResult Status, struct srv_pci_callback* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
 typedef struct {
     uint16_t VendorID;
@@ -61,7 +61,7 @@ typedef struct srv_pci_callback {
     size64_t Size;
     bool IsAwait;
     KResult Status;
-    CallbackHandler Handler;
+    PCICallbackHandler Handler;
 } srv_pci_callback_t;
 
 void SrvPciInitialize();

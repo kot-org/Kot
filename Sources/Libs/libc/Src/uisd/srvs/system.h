@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-typedef KResult (*CallbackHandler)(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
+typedef KResult (*SystemCallbackHandler)(KResult Statu, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
 typedef struct {
     uint64_t Address;
@@ -37,7 +37,7 @@ struct srv_system_callback_t{
     size64_t Size;
     bool IsAwait;
     KResult Statu;
-    CallbackHandler Handler;
+    SystemCallbackHandler Handler;
 };
 
 void Srv_System_Initialize();
