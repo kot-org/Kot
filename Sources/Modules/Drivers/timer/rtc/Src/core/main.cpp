@@ -25,16 +25,6 @@ int BCDToBIN(uint8_t value) {
     return ((value & 0x0F) + ((value / 16) * 10));
 }
 
-extern "C" int main(int argc, char* argv[]) {
-    Printlog("[TIMER/RTC] Initialization ...");
-
-    std::printf("test %s %s test", "string", "string2");
-    
-    Printlog("[TIMER/RTC] Driver initialized successfully");
-
-    return KSUCCESS;
-}
-
 /* PUBLIC */
 
 uint8_t GetSecond() {
@@ -91,4 +81,14 @@ uint8_t GetCentury() {
     if(isHexRTC())
         return BCDToBIN(GetRTCReg(RTC_CENTURY));
     return GetRTCReg(RTC_CENTURY);
+}
+
+extern "C" int main(int argc, char* argv[]) {
+    Printlog("[TIMER/RTC] Initialization ...");
+
+    std::printf("[TIMER/RTC] Date: %d/%d/%d %d:%d:%d", GetDayOfMonth(), GetMonth(), GetYear(), GetHour(), GetMinute(), GetSecond());
+
+    Printlog("[TIMER/RTC] Driver initialized successfully");
+
+    return KSUCCESS;
 }
