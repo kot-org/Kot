@@ -3,7 +3,7 @@
 namespace std {
 
     Stack::Stack(uint64_t sector_size) {
-        // if (sector_size < 24) sector_size = 24;
+        if (sector_size < 24) sector_size = 24;
         this->sector_size = sector_size + 8 + 1;
         this->current_sector = malloc(this->sector_size); // last sector address: 8; recovery byte: 1;
         this->top = 9;
