@@ -231,7 +231,9 @@ namespace SE8 {
     }
 
     void Opc::dup(Frame* frame) {
-        frame->stack->push32(frame->stack->peek32());
+        uint32_t v = frame->stack->pop32();
+        frame->stack->push32(v);
+        frame->stack->push32(v);
     }
 
     void Opc::dup_x1(Frame* frame) {
@@ -253,7 +255,9 @@ namespace SE8 {
     }
 
     void Opc::dup2(Frame* frame) {
-        frame->stack->push64(frame->stack->peek64());
+        uint64_t v = frame->stack->pop64();
+        frame->stack->push64(v);
+        frame->stack->push64(v);
     }
 
     void Opc::dup2_x1(Frame* frame) {
