@@ -13,7 +13,7 @@ QEMUFLAGS =	-no-reboot 										\
 			-soundhw pcspk
 
 build:
-	sudo bash ./Build/build.sh
+	bash ./Build/build.sh 
 
 run:
 	sudo qemu-system-x86_64 $(QEMUFLAGS)

@@ -18,38 +18,38 @@ cd "Sources/"
 # Libraries
 echo -e "\e[32mCompiling kot libraries...\e[0m"
 
-sudo make -C "Libs/abi/Build"
-sudo make -C "Libs/libc/Build"
-sudo make -C "Libs/libc++/Build"
-sudo make -C "Libs/kot-ui/Build"
+make -C "Libs/abi/Build"
+make -C "Libs/libc/Build"
+make -C "Libs/libc++/Build"
+make -C "Libs/kot-ui/Build"
 
 # System
 echo -e "\e[32mCompiling kot system...\e[0m"
 
-sudo make -C "System/Build"
+make -C "System/Build"
 
 # Drivers
 echo -e "\e[32mCompiling kot drivers...\e[0m"
 
-sudo make -C "Modules/Drivers/bus/pci/Build"
-sudo make -C "Modules/Drivers/bus/ps2/Build"
-sudo make -C "Modules/Drivers/bus/usb/ehci/Build"
+make -C "Modules/Drivers/bus/pci/Build"
+make -C "Modules/Drivers/bus/ps2/Build"
+make -C "Modules/Drivers/bus/usb/ehci/Build"
 
 
-sudo make -C "Modules/Drivers/storage/ahci/Build"
+make -C "Modules/Drivers/storage/ahci/Build"
 
-sudo make -C "Modules/Drivers/sound/pcspk/Build"
+make -C "Modules/Drivers/sound/pcspk/Build"
 
-sudo make -C "Modules/Drivers/timer/rtc/Build"
+make -C "Modules/Drivers/timer/rtc/Build"
 
-sudo make -C "Modules/Drivers/graphics/orb/Build"
+make -C "Modules/Drivers/graphics/orb/Build"
 
 # Services
 echo -e "\e[32mCompiling kot services...\e[0m"
 
-sudo make -C "Modules/Services/shell/Build"
+make -C "Modules/Services/shell/Build"
 
-sudo make -C "Modules/Services/jvm/Build"
+make -C "Modules/Services/jvm/Build"
 
 # kernel
 cd "../Sources/Kernel/"
