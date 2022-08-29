@@ -44,11 +44,10 @@ void InitSrv(PCIDeviceArrayInfo_t* DevicesArray){
 }
 
 KResult CountDevices(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters){
-    KResult Status = KFAIL;
     uint64_t NumDeviceFound = Search(SrvDevicesArray, SearchParameters->vendorID, SearchParameters->deviceID, SearchParameters->classID, SearchParameters->subClassID, SearchParameters->progIF);
     
     arguments_t arguments{
-        .arg[0] = Status,           /* Status */
+        .arg[0] = KSUCCESS,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NumDeviceFound,   /* NumDeviceFound */
         .arg[3] = NULL,             /* GP1 */
@@ -61,14 +60,9 @@ KResult CountDevices(thread_t Callback, uint64_t CallbackArg, srv_pci_search_par
 }
 
 KResult FindDevice(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters, uint64_t Index){
-    KResult Status = KFAIL;
     PCIDeviceID_t Device = NULL;
     Device = GetDevice(SrvDevicesArray, SearchParameters->vendorID, SearchParameters->deviceID, SearchParameters->classID, SearchParameters->subClassID, SearchParameters->progIF, Index);
-
-    arguments_t arguments{
-        .arg[0] = Status,           /* Status */
-        .arg[1] = CallbackArg,      /* CallbackArg */
-        .arg[2] = Device,           /* Device */
+ €*/
         .arg[3] = NULL,             /* GP1 */
         .arg[4] = NULL,             /* GP2 */
         .arg[5] = NULL,             /* GP3 */
@@ -89,6 +83,7 @@ KResult GetInfoDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Dev
         DeviceInfo.classID = Header->Class;
         DeviceInfo.subClassID = Header->Subclass;
         DeviceInfo.progIF = Header->ProgIF;
+        Status = KSUCCESS;
     }
 
     ShareDataWithArguments_t data{

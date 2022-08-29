@@ -29,7 +29,7 @@ extern "C" int main(int argc, char* argv[]) {
 /* List functions */
 PCIDeviceListInfo_t* InitPCIList(){
     PCIDeviceListInfo_t* ReturnValue = (PCIDeviceListInfo_t*)malloc(sizeof(PCIDeviceListInfo_t));
-    ReturnValue->Devices = new std::Stack(NULL);
+    ReturnValue->Devices = new std::Stack(0x80);
     ReturnValue->DevicesNum = NULL;
     return ReturnValue;
 }
@@ -78,7 +78,7 @@ uint64_t Search(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, uint16_t 
         checkRequired++;
 
     for(uint32_t i = 1; i < DevicesArray->DevicesNum; i++){
-        PCIDeviceHeader_t* header = (PCIDeviceHeader_t*)DevicesArray->Devices[i];
+        PCIDeviceHeader_t* header = (PCIDeviceHeader_t*)DevicesArray->Devices[i]->ConfigurationSpace;
 
         uint8_t checkNum = 0;
         
@@ -94,7 +94,6 @@ uint64_t Search(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, uint16_t 
             checkNum++;
 
         if(checkRequired == checkNum) deviceNum++;
-
     }
     return deviceNum;
 }
@@ -115,7 +114,7 @@ PCIDeviceID_t GetDevice(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, u
         checkRequired++;
 
     for(uint32_t i = 1; i < DevicesArray->DevicesNum; i++){
-        PCIDeviceHeader_t* header = (PCIDeviceHeader_t*)DevicesArray->Devices[i];
+        PCIDeviceHeader_t* header = (PCIDeviceHeader_t*)DevicesArray->Devices[i]->ConfigurationSpace;
 
         uint8_t checkNum = 0;
         
@@ -182,8 +181,8 @@ uintptr_t PCIDevice_t::GetBarAddress(uint8_t index){
 }
 
 size64_t PCIDevice_t::GetBarSize(uintptr_t addresslow){
-    uint32_t BARValue = *(uint32_t*)addresslow;
-    uint8_t Type = GetBarType(BARValue);
+    uint32_t BARValueLow = *(uint32_t*)addresslow;
+    uint8_t Type = GetBarType(BARValueLow);
 
     if(Type != PCI_BAR_TYPE_NULL){
         /* Write into bar low */
@@ -203,15 +202,20 @@ size64_t PCIDevice_t::GetBarSize(uintptr_t addresslow){
         uint32_t SizeHigh = 0xFFFFFFFF;
 
         if(Type == PCI_BAR_TYPE_64){
-            uintptr_t addresslhigh = (uintptr_t)((uint64_t)addresslow + 0x4);
+            uintptr_t addresshigh = (uintptr_t)((uint64_t)addresslow + 0x4);
+
+            uint32_t BARValueHigh = *(uint32_t*)addresshigh;
             /* Write into bar high */
-            *(uint32_t*)addresslhigh = 0xFFFFFFFF;
+            *(uint32_t*)addresshigh = 0xFFFFFFFF;
             SendConfigurationSpace();
 
             /* Read bar high */
             ReceiveConfigurationSpace();
-            SizeHigh = *(uint32_t*)addresslhigh;            
+            SizeHigh = *(uint32_t*)addresshigh;
+            *(uint32_t*)addresshigh = BARValueHigh;       
         }
+
+        *(uint32_t*)addresslow = BARValueLow;
 
         uint64_t Size = SizeLow | (SizeHigh << 32);
         return (~Size + 1);
