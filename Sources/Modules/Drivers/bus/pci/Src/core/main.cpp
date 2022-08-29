@@ -34,14 +34,14 @@ PCIDeviceListInfo_t* InitPCIList(){
     return ReturnValue;
 }
 
-void AddPCIDevice(PCIDeviceListInfo_t* Devices, PCIDevice_t* Device){
-    Devices->Devices->push64((uint64_t)Device);
-    Devices->DevicesNum++;
+void AddPCIDevice(PCIDeviceListInfo_t* DevicesList, PCIDevice_t* Device){
+    DevicesList->Devices->push64((uint64_t)Device);
+    DevicesList->DevicesNum++;
 }
 
 void ConvertListToArray(PCIDeviceListInfo_t* DevicesList, PCIDeviceArrayInfo_t* DevicesArray){
     DevicesArray->DevicesNum = 1; // 0 is invalid index
-    DevicesArray->Devices = (PCIDevice_t**)malloc(DevicesList->DevicesNum * sizeof(PCIDevice_t*));
+    DevicesArray->Devices = (PCIDevice_t**)malloc((DevicesList->DevicesNum + 1) * sizeof(PCIDevice_t*));
     for(size64_t i = 0; i < DevicesList->DevicesNum; i++){
         DevicesArray->Devices[DevicesArray->DevicesNum] = (PCIDevice_t*)DevicesList->Devices->pop64();
         DevicesArray->DevicesNum++;
@@ -77,8 +77,7 @@ uint64_t Search(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, uint16_t 
     if(progIF != PCI_SEARCH_NO_PARAMETER)
         checkRequired++;
 
-    for(uint32_t i = 1; i < DevicesArray->DevicesNum; i++) {
-
+    for(uint32_t i = 1; i < DevicesArray->DevicesNum; i++){
         PCIDeviceHeader_t* header = (PCIDeviceHeader_t*)DevicesArray->Devices[i];
 
         uint8_t checkNum = 0;
@@ -115,8 +114,7 @@ PCIDeviceID_t GetDevice(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, u
     if(progIF != PCI_SEARCH_NO_PARAMETER)
         checkRequired++;
 
-    for(uint32_t i = 1; i < DevicesArray->DevicesNum; i++) {
-        
+    for(uint32_t i = 1; i < DevicesArray->DevicesNum; i++){
         PCIDeviceHeader_t* header = (PCIDeviceHeader_t*)DevicesArray->Devices[i];
 
         uint8_t checkNum = 0;

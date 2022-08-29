@@ -21,9 +21,10 @@
 #include <kot/utils.h>
 #include <kot/memory.h>
 #include <kot/cstring.h>
+#include <kot++/stack.h>
+#include <kot++/printf.h>
 #include <kot/uisd/srvs/pci.h>
 #include <kot/uisd/srvs/system.h>
-#include <kot++/stack.h>
 
 #include <srv/srv.h>
 #include <pci/pci.h>
@@ -105,7 +106,7 @@ struct PCIDevice_t{
 
 /* List functions */
 PCIDeviceListInfo_t* InitPCIList();
-void AddPCIDevice(PCIDeviceListInfo_t* Devices, struct PCIDevice_t* Device);
+void AddPCIDevice(PCIDeviceListInfo_t* DevicesList, struct PCIDevice_t* Device);
 void ConvertListToArray(PCIDeviceListInfo_t* DevicesList, PCIDeviceArrayInfo_t* DevicesArray);
 
 bool CheckDevice(PCIDeviceArrayInfo_t* DevicesArray, PCIDeviceID_t device);

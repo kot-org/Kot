@@ -70,6 +70,7 @@ namespace std {
             return pop64();
         } else {
             top-=8;
+            std::printf("%x %x %x", (uint64_t)current_sector + top, current_sector, top);
             return *(uint64_t*)((uint64_t) current_sector + top);
         }
     }
@@ -176,6 +177,7 @@ namespace std {
             top = 8;
             push64(item);
         } else {
+            std::printf("%x", (uint64_t)current_sector + top);
             *(uint64_t*)((uint64_t) current_sector + top) = item;
             top += 8;
         }

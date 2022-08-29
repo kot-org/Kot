@@ -1,4 +1,5 @@
 #include <kot/heap.h>
+#include <kot++/printf.h>
 
 #ifndef __LIBCPP__STACK__
 #define __LIBCPP__STACK__ 1
