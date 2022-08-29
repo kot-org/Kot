@@ -2,6 +2,9 @@
 
 #include "class.h"
 
+#ifndef __SE8_CLASSES_H__
+#define __SE8_CLASSES_H__
+
 namespace SE8 {
 
     class ClassArea;
@@ -19,3 +22,5 @@ namespace SE8 {
     };
 
 }
+
+#endif

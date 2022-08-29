@@ -12,6 +12,22 @@ namespace SE8 {
         }
     }
 
+    void __default_print(char* str) {
+        Printlog(str);
+    }
+    
+    print_native JavaVM::getOutput() {
+        return this->out;
+    }
+
+    void JavaVM::setOutput(print_native fn) {
+        this->out = fn;
+    }
+
+    void JavaVM::loadClassBytes(uintptr_t bytes) {
+        this->getClasses()->loadClassBytes(bytes);
+    }
+
     Classes* JavaVM::getClasses() {
         return classes;
     }
