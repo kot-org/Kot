@@ -66,15 +66,15 @@ uint64_t Search(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, uint16_t 
     uint8_t checkRequired = 0;
     uint32_t deviceNum = 0;
 
-    if(vendorID != 0xFFFF)
+    if(vendorID != PCI_SEARCH_NO_PARAMETER)
         checkRequired++;
-    if(deviceID != 0xFFFF)
+    if(deviceID != PCI_SEARCH_NO_PARAMETER)
         checkRequired++;
-    if(subClassID != 0xFFFF)
+    if(subClassID != PCI_SEARCH_NO_PARAMETER)
         checkRequired++;
-    if(classID != 0xFFFF)
+    if(classID != PCI_SEARCH_NO_PARAMETER)
         checkRequired++;
-    if(progIF != 0xFFFF)
+    if(progIF != PCI_SEARCH_NO_PARAMETER)
         checkRequired++;
 
     for(uint32_t i = 1; i < DevicesArray->DevicesNum; i++) {
@@ -104,15 +104,15 @@ PCIDeviceID_t GetDevice(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, u
     uint8_t checkRequired = 0;
     uint32_t deviceNum = 0;
 
-    if(vendorID != 0xFFFF)
+    if(vendorID != PCI_SEARCH_NO_PARAMETER)
         checkRequired++;
-    if(deviceID != 0xFFFF)
+    if(deviceID != PCI_SEARCH_NO_PARAMETER)
         checkRequired++;
-    if(subClassID != 0xFFFF)
+    if(subClassID != PCI_SEARCH_NO_PARAMETER)
         checkRequired++;
-    if(classID != 0xFFFF)
+    if(classID != PCI_SEARCH_NO_PARAMETER)
         checkRequired++;
-    if(progIF != 0xFFFF)
+    if(progIF != PCI_SEARCH_NO_PARAMETER)
         checkRequired++;
 
     for(uint32_t i = 1; i < DevicesArray->DevicesNum; i++) {

@@ -37,7 +37,7 @@ KResult Srv_Pci_CountDevices_Callback(KResult Status, struct srv_pci_callback_t*
 }
 
 struct srv_pci_callback_t* Srv_Pci_CountDevices(srv_pci_search_parameters_t* SearchParameters, bool IsAwait){
-    if(!SrvPciCallbackThread) SrvPciInitialize();
+    if(!SrvPciCallbackThread) Srv_Pci_Initialize();
 
     thread_t self = Sys_Getthread();
 
@@ -75,7 +75,7 @@ KResult Srv_Pci_FindDevice_Callback(KResult Status, struct srv_pci_callback_t* C
 }
 
 struct srv_pci_callback_t* Srv_Pci_FindDevice(srv_pci_search_parameters_t* SearchParameters, uint64_t Index, bool IsAwait){
-    if(!SrvPciCallbackThread) SrvPciInitialize();
+    if(!SrvPciCallbackThread) Srv_Pci_Initialize();
 
     thread_t self = Sys_Getthread();
 
@@ -116,7 +116,7 @@ KResult Srv_Pci_GetInfoDevice_Callback(KResult Status, struct srv_pci_callback_t
 }
 
 struct srv_pci_callback_t* Srv_Pci_GetInfoDevice(PCIDeviceID_t Device, bool IsAwait){
-    if(!SrvPciCallbackThread) SrvPciInitialize();
+    if(!SrvPciCallbackThread) Srv_Pci_Initialize();
 
     thread_t self = Sys_Getthread();
 
@@ -151,7 +151,7 @@ KResult Srv_Pci_GetBAR_Callback(KResult Status, struct srv_pci_callback_t* Callb
 }
 
 struct srv_pci_callback_t* Srv_Pci_GetBAR(PCIDeviceID_t Device, uint8_t BarIndex, bool IsAwait){
-    if(!SrvPciCallbackThread) SrvPciInitialize();
+    if(!SrvPciCallbackThread) Srv_Pci_Initialize();
 
     thread_t self = Sys_Getthread();
 

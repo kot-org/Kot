@@ -10,6 +10,8 @@
 #define PCI_BAR_TYPE_32             0x2
 #define PCI_BAR_TYPE_64             0x3
 
+#define PCI_SEARCH_NO_PARAMETER     0xFFFF
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
