@@ -12,19 +12,19 @@ extern "C" int main(int argc, char* argv[]) {
     };
 
     srv_pci_callback_t* Callback = Srv_Pci_CountDevices(&SearchParameters, true);
-    uint64_t DeivicesNumber = Callback->Data;
+    uint64_t DeivicesNumber = (uint64_t)Callback->Data;
     free(Callback);
 
     for(uint64_t i = 0; i < DeivicesNumber; i++){
-        Callback = Srv_Pci_FindDevice(&SearchParameters, true);
-        PCIDeviceID_t DeviceID = Callback->Data;
+        Callback = Srv_Pci_FindDevice(&SearchParameters, i, true);
+        PCIDeviceID_t DeviceID = (PCIDeviceID_t)Callback->Data;
         free(Callback);
 
-        Callback = Srv_Pci_GetBAR(DeviceID, 0x0, true);
-        srv_pci_bar_info_t* BarInfo = Callback->Data;
+        Callback = Srv_Pci_GetBAR(DeviceID, 0x5, true);
+        srv_pci_bar_info_t* BarInfo = (srv_pci_bar_info_t*)Callback->Data;
         free(Callback);
         
-        std::printf("[AHCI] %x", BarInfo->Size);
+        std::printf("[AHCI] %x", BarInfo->Type);
     }
 
     Printlog("[AHCI] Driver initialized successfully");

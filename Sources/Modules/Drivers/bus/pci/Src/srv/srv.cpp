@@ -62,7 +62,11 @@ KResult CountDevices(thread_t Callback, uint64_t CallbackArg, srv_pci_search_par
 KResult FindDevice(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters, uint64_t Index){
     PCIDeviceID_t Device = NULL;
     Device = GetDevice(SrvDevicesArray, SearchParameters->vendorID, SearchParameters->deviceID, SearchParameters->classID, SearchParameters->subClassID, SearchParameters->progIF, Index);
- €*/
+
+    arguments_t arguments{
+        .arg[0] = KSUCCESS,         /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = Device,           /* Device */
         .arg[3] = NULL,             /* GP1 */
         .arg[4] = NULL,             /* GP2 */
         .arg[5] = NULL,             /* GP3 */
@@ -76,7 +80,7 @@ KResult GetInfoDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Dev
     KResult Status = KFAIL;
     srv_pci_device_info_t DeviceInfo;
     if(CheckDevice(SrvDevicesArray, DeviceIndex)){
-        PCIDevice_t* Device = GetDevice(SrvDevicesArray, DeviceIndex);
+        PCIDevice_t* Device = GetDeviceFromIndex(SrvDevicesArray, DeviceIndex);
         PCIDeviceHeader_t* Header = (PCIDeviceHeader_t*)Device->ConfigurationSpace;
         DeviceInfo.vendorID = Header->VendorID;
         DeviceInfo.deviceID = Header->DeviceID;
@@ -109,11 +113,12 @@ KResult GetBARDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Devi
     KResult Status = KFAIL;
     srv_pci_bar_info_t BARInfo;
     if(CheckDevice(SrvDevicesArray, DeviceIndex)){
-        PCIDevice_t* Device = GetDevice(SrvDevicesArray, DeviceIndex);
+        PCIDevice_t* Device = GetDeviceFromIndex(SrvDevicesArray, DeviceIndex);
         BARInfo.Address = Device->GetBarAddress(BarIndex);
         BARInfo.Size = Device->GetBarSize(BarIndex);
         BARInfo.Type = Device->GetBarType(BarIndex);
         Status = KSUCCESS;
+        std::printf("ok %x", BARInfo.Address);
     }
 
     ShareDataWithArguments_t data{

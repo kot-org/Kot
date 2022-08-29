@@ -58,7 +58,7 @@ bool CheckDevice(PCIDeviceArrayInfo_t* DevicesArray, PCIDeviceID_t device){
     return false;
 }
 
-PCIDevice_t* GetDevice(PCIDeviceArrayInfo_t* DevicesArray, PCIDeviceID_t device){
+PCIDevice_t* GetDeviceFromIndex(PCIDeviceArrayInfo_t* DevicesArray, PCIDeviceID_t device){
     return DevicesArray->Devices[device];
 }
 
@@ -129,11 +129,13 @@ PCIDeviceID_t GetDevice(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, u
         if(header->ProgIF == progIF)
             checkNum++;
 
-        if(checkRequired == checkNum) deviceNum++;
+        if(checkRequired == checkNum){
+            if(index == deviceNum){
+                return i;
+            }
+            deviceNum++;
+        } 
 
-        if(index == deviceNum){
-            return i;
-        }
 
     }
     return NULL;
@@ -142,7 +144,7 @@ PCIDeviceID_t GetDevice(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, u
 
 /* Device function */
 
-uint8_t GetBarType(uint32_t Value){
+uint8_t GetBarTypeWithBARValue(uint32_t Value){
     if(Value & 0b1){ /* i/o */
         return PCI_BAR_TYPE_IO;
     }else{
@@ -157,11 +159,11 @@ uint8_t GetBarType(uint32_t Value){
 
 uintptr_t PCIDevice_t::GetBarAddress(uint8_t index){
     PCIDeviceHeader_t* Header = (PCIDeviceHeader_t*)ConfigurationSpace;
-    switch (Header->HeaderType){
+    switch (Header->HeaderType & 0x7F){
         case 0x0:{
             if(index < 6){
                 PCIHeader0_t* Header0 = (PCIHeader0_t*)Header;
-                switch (GetBarType(Header0->BAR[index])){
+                switch (GetBarTypeWithBARValue(Header0->BAR[index])){
                     case PCI_BAR_TYPE_IO:
                         return (uintptr_t)(Header0->BAR[index] & 0xFFFFFFFC);
                     case PCI_BAR_TYPE_32:
@@ -182,7 +184,7 @@ uintptr_t PCIDevice_t::GetBarAddress(uint8_t index){
 
 size64_t PCIDevice_t::GetBarSize(uintptr_t addresslow){
     uint32_t BARValueLow = *(uint32_t*)addresslow;
-    uint8_t Type = GetBarType(BARValueLow);
+    uint8_t Type = GetBarTypeWithBARValue(BARValueLow);
 
     if(Type != PCI_BAR_TYPE_NULL){
         /* Write into bar low */
@@ -226,7 +228,7 @@ size64_t PCIDevice_t::GetBarSize(uintptr_t addresslow){
 
 size64_t PCIDevice_t::GetBarSize(uint8_t index){
     PCIDeviceHeader_t* Header = (PCIDeviceHeader_t*)ConfigurationSpace;
-    switch (Header->HeaderType){
+    switch (Header->HeaderType & 0x7F){
         case 0x0:{
             if(index < 6){
                 PCIHeader0_t* Header0 = (PCIHeader0_t*)Header;
@@ -242,11 +244,11 @@ size64_t PCIDevice_t::GetBarSize(uint8_t index){
 
 uint8_t PCIDevice_t::GetBarType(uint8_t index){
     PCIDeviceHeader_t* Header = (PCIDeviceHeader_t*)ConfigurationSpace;
-    switch (Header->HeaderType){
+    switch (Header->HeaderType & 0x7F){
         case 0x0:{
             if(index < 6){
                 PCIHeader0_t* Header0 = (PCIHeader0_t*)Header;
-                return GetBarType(Header0->BAR[index]);
+                return GetBarTypeWithBARValue(Header0->BAR[index]);
             }
             break;
         }    
