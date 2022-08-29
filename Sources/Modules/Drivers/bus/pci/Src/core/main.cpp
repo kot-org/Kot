@@ -201,6 +201,7 @@ size64_t PCIDevice_t::GetBarSize(uintptr_t addresslow){
             SizeLow &= 0xFFFFFFF0;
         }
 
+
         uint32_t SizeHigh = 0xFFFFFFFF;
 
         if(Type == PCI_BAR_TYPE_64){
@@ -214,13 +215,19 @@ size64_t PCIDevice_t::GetBarSize(uintptr_t addresslow){
             /* Read bar high */
             ReceiveConfigurationSpace();
             SizeHigh = *(uint32_t*)addresshigh;
-            *(uint32_t*)addresshigh = BARValueHigh;       
+
+            /* Restore value */
+            *(uint32_t*)addresshigh = BARValueHigh;   
+            SendConfigurationSpace();    
         }
 
+        /* Restore value */
         *(uint32_t*)addresslow = BARValueLow;
+        SendConfigurationSpace();
 
-        uint64_t Size = SizeLow | (SizeHigh << 32);
-        return (~Size + 1);
+        uint64_t Size = ((uint64_t)(SizeHigh & 0xFFFFFFFF) << 32) | (SizeLow & 0xFFFFFFFF);
+        Size = ~Size + 1;
+        return Size;
     }
 
     return NULL;

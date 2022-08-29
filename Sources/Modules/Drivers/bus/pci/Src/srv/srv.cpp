@@ -118,7 +118,6 @@ KResult GetBARDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Devi
         BARInfo.Size = Device->GetBarSize(BarIndex);
         BARInfo.Type = Device->GetBarType(BarIndex);
         Status = KSUCCESS;
-        std::printf("ok %x", BARInfo.Address);
     }
 
     ShareDataWithArguments_t data{

@@ -24,7 +24,7 @@ extern "C" int main(int argc, char* argv[]) {
         srv_pci_bar_info_t* BarInfo = (srv_pci_bar_info_t*)Callback->Data;
         free(Callback);
         
-        std::printf("[AHCI] %x", BarInfo->Type);
+        std::printf("[AHCI] %x", BarInfo->Size);
     }
 
     Printlog("[AHCI] Driver initialized successfully");
