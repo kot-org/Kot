@@ -42,12 +42,12 @@ sudo make -C "Modules/Drivers/sound/pcspk/Build"
 
 sudo make -C "Modules/Drivers/timer/rtc/Build"
 
+sudo make -C "Modules/Drivers/graphics/orb/Build"
+
 # Services
 echo -e "\e[32mCompiling kot services...\e[0m"
 
 sudo make -C "Modules/Services/shell/Build"
-
-sudo make -C "Modules/Services/orb/Build"
 
 sudo make -C "Modules/Services/jvm/Build"
 
