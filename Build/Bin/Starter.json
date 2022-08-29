@@ -4,6 +4,7 @@
     {"file":"Rtc.elf", "priviledge":1},
     {"file":"Ps2.elf", "priviledge":1},
     {"file":"Uhci.elf", "priviledge":1},
+    {"file":"Ahci.elf", "priviledge":1},
     {"file":"Orb.elf", "priviledge":1},
     {"file":"Jvm.elf", "priviledge":3},
     {"file":"Shell.elf", "priviledge":3}
