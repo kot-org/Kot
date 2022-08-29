@@ -110,6 +110,6 @@ void AddPCIDevice(PCIDeviceListInfo_t* DevicesList, struct PCIDevice_t* Device);
 void ConvertListToArray(PCIDeviceListInfo_t* DevicesList, PCIDeviceArrayInfo_t* DevicesArray);
 
 bool CheckDevice(PCIDeviceArrayInfo_t* DevicesArray, PCIDeviceID_t device);
-struct PCIDevice_t* GetDevice(PCIDeviceArrayInfo_t* DevicesArray, PCIDeviceID_t device);
+struct PCIDevice_t* GetDeviceFromIndex(PCIDeviceArrayInfo_t* DevicesArray, PCIDeviceID_t device);
 uint64_t Search(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIF);
 PCIDeviceID_t GetDevice(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIF, PCIDeviceID_t index);
