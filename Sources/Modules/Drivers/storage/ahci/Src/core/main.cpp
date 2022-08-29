@@ -1,5 +1,7 @@
 #include <core/main.h>
 
+AHCIController** Controllers = NULL;
+
 extern "C" int main(int argc, char* argv[]) {
     Printlog("[AHCI] Initialization ...");
 
@@ -12,10 +14,12 @@ extern "C" int main(int argc, char* argv[]) {
     };
 
     srv_pci_callback_t* Callback = Srv_Pci_CountDevices(&SearchParameters, true);
-    uint64_t DeivicesNumber = (uint64_t)Callback->Data;
+    uint64_t DevicesNumber = (uint64_t)Callback->Data;
     free(Callback);
+    
+    Controllers = (AHCIController**)malloc(DevicesNumber * sizeof(AHCIController*));
 
-    for(uint64_t i = 0; i < DeivicesNumber; i++){
+    for(uint64_t i = 0; i < DevicesNumber; i++){
         Callback = Srv_Pci_FindDevice(&SearchParameters, i, true);
         PCIDeviceID_t DeviceID = (PCIDeviceID_t)Callback->Data;
         free(Callback);
@@ -24,7 +28,7 @@ extern "C" int main(int argc, char* argv[]) {
         srv_pci_bar_info_t* BarInfo = (srv_pci_bar_info_t*)Callback->Data;
         free(Callback);
         
-        std::printf("[AHCI] %x", BarInfo->Size);
+        Controllers[i] = new AHCIController(BarInfo);
     }
 
     Printlog("[AHCI] Driver initialized successfully");
