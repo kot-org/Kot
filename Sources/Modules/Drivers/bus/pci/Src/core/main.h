@@ -15,11 +15,6 @@
 #define PCI_HEADER_TYPE_OFFSET 		0xE
 #define PCI_BIST_OFFSET 			0xF
 
-#define PCI_BAR_TYPE_NULL           0x0
-#define PCI_BAR_TYPE_IO             0x1
-#define PCI_BAR_TYPE_32             0x2
-#define PCI_BAR_TYPE_64             0x3
-
 #include <kot/sys.h>
 #include <kot/arch.h>
 #include <kot/heap.h>

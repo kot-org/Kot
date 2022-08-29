@@ -3,21 +3,21 @@
 thread_t SrvPciCallbackThread = NULL;
 uisd_pci_t* PciData = NULL;
 
-void Srv_Pci_Initialize() {
+void Srv_Pci_Initialize(){
     PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
     
-    if(PciData != NULL) {
+    if(PciData != NULL){
         process_t proc = Sys_GetProcess();
 
         thread_t PciThreadKeyCallback = NULL;
         Sys_Createthread(proc, &Srv_Pci_Callback, PriviledgeDriver, &PciThreadKeyCallback);
         SrvPciCallbackThread = MakeShareableThreadToProcess(PciThreadKeyCallback, PciData->ControllerHeader.Process);
-    } else {
+    } else{
         Sys_Close(KFAIL);
     }
 }
 
-void Srv_Pci_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3) {
+void Srv_Pci_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     Callback->Status = Callback->Handler(Status, Callback, GP0, GP1, GP2, GP3);
 
     if(Callback->IsAwait){
@@ -27,16 +27,16 @@ void Srv_Pci_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint6
     Sys_Close(KSUCCESS);
 }
 
-/* GetBARNum */
-KResult Srv_Pci_GetBARNum_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3) {
-    if(Status == KSUCCESS) {
+/* DeviceSearcher */
+KResult Srv_Pci_DeviceSearcher_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    if(Status == KSUCCESS){
         Callback->Data = GP0;
-        Callback->Size = sizeof(uint64_t);
+        Callback->Size = sizeof(size64_t);
     }
     return Status;
 }
 
-struct srv_pci_callback_t* Srv_Pci_GetBARNum(PCIDeviceID_t Device, bool IsAwait) {
+struct srv_pci_callback_t* Srv_Pci_DeviceSearcher(srv_pci_search_parameters_t* SearchParameters, bool IsAwait){
     if(!SrvPciCallbackThread) SrvPciInitialize();
 
     thread_t self = Sys_Getthread();
@@ -47,31 +47,34 @@ struct srv_pci_callback_t* Srv_Pci_GetBARNum(PCIDeviceID_t Device, bool IsAwait)
     callback->Size = NULL;
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
-    callback->Handler = &Srv_Pci_GetBARNum_Callback; 
+    callback->Handler = &Srv_Pci_DeviceSearcher_Callback; 
+
+    struct ShareDataWithArguments_t data;
+    data.Data = SearchParameters;
+    data.Size = sizeof(srv_pci_search_parameters_t);
+    data.ParameterPosition = 0x2;
 
     struct arguments_t parameters;
     parameters.arg[0] = SrvPciCallbackThread;
     parameters.arg[1] = callback;
-    parameters.arg[2] = Device;
 
-    KResult Status = Sys_Execthread(PciData->GetBARNum, &parameters, ExecutionTypeQueu, NULL);
-
+    KResult Status = Sys_Execthread(PciData->DeviceSearcher, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
     return callback;
 }
 
-/* GetBARType */
-KResult Srv_Pci_GetBARType_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3) {
-    if(Status == KSUCCESS) {
+/* FindDevice */
+KResult Srv_Pci_FindDevice_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    if(Status == KSUCCESS){
         Callback->Data = GP0;
-        Callback->Size = sizeof(uint64_t);
+        Callback->Size = sizeof(size64_t);
     }
     return Status;
 }
 
-struct srv_pci_callback_t* Srv_Pci_GetBARType(PCIDeviceID_t Device, uint8_t BarIndex, bool IsAwait) {
+struct srv_pci_callback_t* Srv_Pci_FindDevice(srv_pci_search_parameters_t* SearchParameters, uint64_t Index, bool IsAwait){
     if(!SrvPciCallbackThread) SrvPciInitialize();
 
     thread_t self = Sys_Getthread();
@@ -82,32 +85,37 @@ struct srv_pci_callback_t* Srv_Pci_GetBARType(PCIDeviceID_t Device, uint8_t BarI
     callback->Size = NULL;
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
-    callback->Handler = &Srv_Pci_GetBARType_Callback; 
+    callback->Handler = &Srv_Pci_FindDevice_Callback; 
+
+    struct ShareDataWithArguments_t data;
+    data.Data = SearchParameters;
+    data.Size = sizeof(srv_pci_search_parameters_t);
+    data.ParameterPosition = 0x2;
 
     struct arguments_t parameters;
     parameters.arg[0] = SrvPciCallbackThread;
     parameters.arg[1] = callback;
-    parameters.arg[2] = Device;
-    parameters.arg[2] = BarIndex;
+    // arg  2 is reserved for srv_pci_search_parameters_t
+    parameters.arg[3] = Index;
 
-    KResult Status = Sys_Execthread(PciData->GetBARType, &parameters, ExecutionTypeQueu, NULL);
-
+    KResult Status = Sys_Execthread(PciData->FindDevice, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
     return callback;
 }
 
-/* GetBARSize */
-KResult Srv_Pci_GetBARSize_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3) {
-    if(Status == KSUCCESS) {
-        Callback->Data = GP0;
-        Callback->Size = sizeof(uint64_t);
+/* GetInfoDevice */
+KResult Srv_Pci_GetInfoDevice_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    if(Status == KSUCCESS){
+        Callback->Data = malloc(sizeof(srv_pci_device_info_t));
+        memcpy(Callback->Data, (uintptr_t)GP0, sizeof(srv_pci_device_info_t));
+        Callback->Size = sizeof(srv_pci_device_info_t);
     }
     return Status;
 }
 
-struct srv_pci_callback_t* Srv_Pci_GetBARSize(PCIDeviceID_t Device, uint8_t BarIndex, bool IsAwait) {
+struct srv_pci_callback_t* Srv_Pci_GetInfoDevice(PCIDeviceID_t Device, bool IsAwait){
     if(!SrvPciCallbackThread) SrvPciInitialize();
 
     thread_t self = Sys_Getthread();
@@ -118,15 +126,50 @@ struct srv_pci_callback_t* Srv_Pci_GetBARSize(PCIDeviceID_t Device, uint8_t BarI
     callback->Size = NULL;
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
-    callback->Handler = &Srv_Pci_GetBARSize_Callback; 
+    callback->Handler = &Srv_Pci_GetInfoDevice_Callback; 
 
     struct arguments_t parameters;
     parameters.arg[0] = SrvPciCallbackThread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Device;
-    parameters.arg[2] = BarIndex;
 
-    KResult Status = Sys_Execthread(PciData->GetBARSize, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_Execthread(PciData->GetInfoDevice, &parameters, ExecutionTypeQueu, NULL);
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}
+
+/* GetBAR */
+KResult Srv_Pci_GetBAR_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    if(Status == KSUCCESS){
+        Callback->Data = malloc(sizeof(srv_pci_bar_info_t));
+        memcpy(Callback->Data, (uintptr_t)GP0, sizeof(srv_pci_bar_info_t));
+        Callback->Size = sizeof(srv_pci_bar_info_t);
+    }
+    return Status;
+}
+
+struct srv_pci_callback_t* Srv_Pci_GetBAR(PCIDeviceID_t Device, uint8_t BarIndex, bool IsAwait){
+    if(!SrvPciCallbackThread) SrvPciInitialize();
+
+    thread_t self = Sys_Getthread();
+
+    struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Pci_GetBAR_Callback; 
+
+    struct arguments_t parameters;
+    parameters.arg[0] = SrvPciCallbackThread;
+    parameters.arg[1] = callback;
+    parameters.arg[2] = Device;
+    parameters.arg[3] = BarIndex;
+
+    KResult Status = Sys_Execthread(PciData->GetBARDevice, &parameters, ExecutionTypeQueu, NULL);
 
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
