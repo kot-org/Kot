@@ -95,7 +95,7 @@ typedef struct {
 
 typedef struct {
     uisd_controller_t ControllerHeader;
-    thread_t DeviceSearcher;
+    thread_t CountDevices;
     thread_t FindDevice;
     thread_t GetInfoDevice;
     thread_t GetBARDevice;

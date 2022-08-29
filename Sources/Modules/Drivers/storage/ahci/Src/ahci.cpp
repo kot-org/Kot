@@ -1,419 +1,419 @@
-#include "../../fileSystem/gpt/gpt.h"
-#include "../../fileSystem/kfs/kfs.h"
-#include "ahci.h"
-
-
-namespace AHCI{
-    AHCI::AHCIDriver* ahciDriver;
-
-
-    #define HBA_PORT_DEV_PRESENT 0x3
-    #define HBA_PORT_IPM_ACTIVE 0x1
-    #define SATA_SIG_ATAPI 0xEB140101
-    #define SATA_SIG_ATA 0x00000101
-    #define SATA_SIG_SEMB 0xC33C0101
-    #define SATA_SIG_PM 0x96690101
-
-    #define HBA_PxCMD_CR 0x8000
-    #define HBA_PxCMD_FRE 0x0010
-    #define HBA_PxCMD_ST 0x0001
-    #define HBA_PxCMD_FR 0x4000
-
-    PortType CheckPortType(HBAPort* port){
-        uint32_t sataStatus = port->SataStatus;
-
-        uint8_t interfacePowerManagement = (sataStatus >> 8) & 0b111;
-        uint8_t deviceDetection = sataStatus & 0b111;
-
-        if (deviceDetection != HBA_PORT_DEV_PRESENT) return PortType::None;
-        if (interfacePowerManagement != HBA_PORT_IPM_ACTIVE) return PortType::None;
-
-        switch (port->Signature){
-            case SATA_SIG_ATAPI:
-                return PortType::SATAPI;
-            case SATA_SIG_ATA:
-                return PortType::SATA;
-            case SATA_SIG_PM:
-                return PortType::PM;
-            case SATA_SIG_SEMB:
-                return PortType::SEMB;
-            default:
-                PortType::None;
-        }
-    }
-
-    void AHCIDriver::ProbePorts(){
-        uint32_t portsImplemented = ABAR->PortsImplemented;
-        for (int i = 0; i < 32; i++){
-            if (portsImplemented & (1 << i)){
-                PortType portType = CheckPortType(&ABAR->Ports[i]);
-
-                if (portType == PortType::SATA || portType == PortType::SATAPI){
-                    Ports[PortCount] = new Port();
-                    Ports[PortCount]->portType = portType;
-                    Ports[PortCount]->HbaPort = &ABAR->Ports[i];
-                    Ports[PortCount]->PortNumber = PortCount;
-                    PortCount++;
-                }
-            }
-        }
-    }
-
-    void Port::Configure(){
-        /*Create static buffer for the disk */
-        Buffer = Pmm_RequestPage();
-        BufferSize = PAGE_SIZE;
-
-        StopCMD();
-
-        uintptr_t newBase = Pmm_RequestPage();
-        HbaPort->CommandListBase = (uint32_t)(uint64_t)newBase;
-        HbaPort->CommandListBaseUpper = (uint32_t)((uint64_t)newBase >> 32);
-        memset(globalPageTableManager[0].GetVirtualAddress((uintptr_t)(HbaPort->CommandListBase)), 0, 1024);
-
-        uintptr_t fisBase = Pmm_RequestPage();
-        HbaPort->FisBaseAddress = (uint32_t)(uint64_t)fisBase;
-        HbaPort->FisBaseAddressUpper = (uint32_t)((uint64_t)fisBase >> 32);
-        memset(globalPageTableManager[0].GetVirtualAddress(fisBase), 0, 256);
-
-        HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)((uint64_t)HbaPort->CommandListBase + ((uint64_t)HbaPort->CommandListBaseUpper << 32)));
-
-        for (int i = 0; i < 32; i++){
-            cmdHeader[i].PrdtLength = 8;
-
-            uintptr_t cmdTableAddress = Pmm_RequestPage();
-            uint64_t address = (uint64_t)cmdTableAddress + (i << 8);
-            cmdHeader[i].CommandTableBaseAddress = (uint32_t)(uint64_t)address;
-            cmdHeader[i].CommandTableBaseAddressUpper = (uint32_t)((uint64_t)address >> 32);
-            memset(globalPageTableManager[0].GetVirtualAddress(cmdTableAddress), 0, 256);
-        }
-
-        StartCMD();
-        /* get disk info */
-        GetDiskInfo();
-
-        Successful("[AHCI] Configure port %u", PortNumber);
-        if(DiskInfo->SectorSize == 0){
-            Warning("[AHCI] No disk detected at port %u", PortNumber);
-        }
-    }
-
-    void Port::StopCMD(){
-        HbaPort->CommandStatus &= ~HBA_PxCMD_ST;
-        HbaPort->CommandStatus &= ~HBA_PxCMD_FRE;
+// #include "../../fileSystem/gpt/gpt.h"
+// #include "../../fileSystem/kfs/kfs.h"
+// #include "ahci.h"
+
+
+// namespace AHCI{
+//     AHCI::AHCIDriver* ahciDriver;
+
+
+//     #define HBA_PORT_DEV_PRESENT 0x3
+//     #define HBA_PORT_IPM_ACTIVE 0x1
+//     #define SATA_SIG_ATAPI 0xEB140101
+//     #define SATA_SIG_ATA 0x00000101
+//     #define SATA_SIG_SEMB 0xC33C0101
+//     #define SATA_SIG_PM 0x96690101
+
+//     #define HBA_PxCMD_CR 0x8000
+//     #define HBA_PxCMD_FRE 0x0010
+//     #define HBA_PxCMD_ST 0x0001
+//     #define HBA_PxCMD_FR 0x4000
+
+//     PortType CheckPortType(HBAPort* port){
+//         uint32_t sataStatus = port->SataStatus;
+
+//         uint8_t interfacePowerManagement = (sataStatus >> 8) & 0b111;
+//         uint8_t deviceDetection = sataStatus & 0b111;
+
+//         if (deviceDetection != HBA_PORT_DEV_PRESENT) return PortType::None;
+//         if (interfacePowerManagement != HBA_PORT_IPM_ACTIVE) return PortType::None;
+
+//         switch (port->Signature){
+//             case SATA_SIG_ATAPI:
+//                 return PortType::SATAPI;
+//             case SATA_SIG_ATA:
+//                 return PortType::SATA;
+//             case SATA_SIG_PM:
+//                 return PortType::PM;
+//             case SATA_SIG_SEMB:
+//                 return PortType::SEMB;
+//             default:
+//                 PortType::None;
+//         }
+//     }
+
+//     void AHCIDriver::ProbePorts(){
+//         uint32_t portsImplemented = ABAR->PortsImplemented;
+//         for (int i = 0; i < 32; i++){
+//             if (portsImplemented & (1 << i)){
+//                 PortType portType = CheckPortType(&ABAR->Ports[i]);
+
+//                 if (portType == PortType::SATA || portType == PortType::SATAPI){
+//                     Ports[PortCount] = new Port();
+//                     Ports[PortCount]->portType = portType;
+//                     Ports[PortCount]->HbaPort = &ABAR->Ports[i];
+//                     Ports[PortCount]->PortNumber = PortCount;
+//                     PortCount++;
+//                 }
+//             }
+//         }
+//     }
+
+//     void Port::Configure(){
+//         /*Create static buffer for the disk */
+//         Buffer = Pmm_RequestPage();
+//         BufferSize = PAGE_SIZE;
+
+//         StopCMD();
+
+//         uintptr_t newBase = Pmm_RequestPage();
+//         HbaPort->CommandListBase = (uint32_t)(uint64_t)newBase;
+//         HbaPort->CommandListBaseUpper = (uint32_t)((uint64_t)newBase >> 32);
+//         memset(globalPageTableManager[0].GetVirtualAddress((uintptr_t)(HbaPort->CommandListBase)), 0, 1024);
+
+//         uintptr_t fisBase = Pmm_RequestPage();
+//         HbaPort->FisBaseAddress = (uint32_t)(uint64_t)fisBase;
+//         HbaPort->FisBaseAddressUpper = (uint32_t)((uint64_t)fisBase >> 32);
+//         memset(globalPageTableManager[0].GetVirtualAddress(fisBase), 0, 256);
+
+//         HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)((uint64_t)HbaPort->CommandListBase + ((uint64_t)HbaPort->CommandListBaseUpper << 32)));
+
+//         for (int i = 0; i < 32; i++){
+//             cmdHeader[i].PrdtLength = 8;
+
+//             uintptr_t cmdTableAddress = Pmm_RequestPage();
+//             uint64_t address = (uint64_t)cmdTableAddress + (i << 8);
+//             cmdHeader[i].CommandTableBaseAddress = (uint32_t)(uint64_t)address;
+//             cmdHeader[i].CommandTableBaseAddressUpper = (uint32_t)((uint64_t)address >> 32);
+//             memset(globalPageTableManager[0].GetVirtualAddress(cmdTableAddress), 0, 256);
+//         }
+
+//         StartCMD();
+//         /* get disk info */
+//         GetDiskInfo();
+
+//         Successful("[AHCI] Configure port %u", PortNumber);
+//         if(DiskInfo->SectorSize == 0){
+//             Warning("[AHCI] No disk detected at port %u", PortNumber);
+//         }
+//     }
+
+//     void Port::StopCMD(){
+//         HbaPort->CommandStatus &= ~HBA_PxCMD_ST;
+//         HbaPort->CommandStatus &= ~HBA_PxCMD_FRE;
 
-        while(true){
-            if (HbaPort->CommandStatus & HBA_PxCMD_FR) continue;
-            if (HbaPort->CommandStatus & HBA_PxCMD_CR) continue;
+//         while(true){
+//             if (HbaPort->CommandStatus & HBA_PxCMD_FR) continue;
+//             if (HbaPort->CommandStatus & HBA_PxCMD_CR) continue;
 
-            break;
-        }
+//             break;
+//         }
 
-    }
+//     }
 
-    void Port::StartCMD(){
-        while (HbaPort->CommandStatus & HBA_PxCMD_CR);
+//     void Port::StartCMD(){
+//         while (HbaPort->CommandStatus & HBA_PxCMD_CR);
 
-        HbaPort->CommandStatus |= HBA_PxCMD_FRE;
-        HbaPort->CommandStatus |= HBA_PxCMD_ST;
-    }
+//         HbaPort->CommandStatus |= HBA_PxCMD_FRE;
+//         HbaPort->CommandStatus |= HBA_PxCMD_ST;
+//     }
 
-    bool Port::Read(uint64_t sector, uint16_t sectorCount, uintptr_t buffer){ //LBA so the sector size is 512 bytes
-        uint32_t sectorL = (uint32_t) sector;
-        uint32_t sectorH = (uint32_t) (sector >> 32);
+//     bool Port::Read(uint64_t sector, uint16_t sectorCount, uintptr_t buffer){ //LBA so the sector size is 512 bytes
+//         uint32_t sectorL = (uint32_t) sector;
+//         uint32_t sectorH = (uint32_t) (sector >> 32);
 
-        HbaPort->InterruptStatus = (uint32_t) - 1; // Clear pending interrupt bits
+//         HbaPort->InterruptStatus = (uint32_t) - 1; // Clear pending interrupt bits
 
-        HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)HbaPort->CommandListBase);
-        cmdHeader->CommandFISLength = sizeof(FIS_REG_H2D)/ sizeof(uint32_t); //command FIS size;
-        cmdHeader->Write = 0; //read mode
-        cmdHeader->PrdtLength = 1;
+//         HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)HbaPort->CommandListBase);
+//         cmdHeader->CommandFISLength = sizeof(FIS_REG_H2D)/ sizeof(uint32_t); //command FIS size;
+//         cmdHeader->Write = 0; //read mode
+//         cmdHeader->PrdtLength = 1;
 
-        HBACommandTable* commandTable = (HBACommandTable*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)cmdHeader->CommandTableBaseAddress);
-        memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry));
+//         HBACommandTable* commandTable = (HBACommandTable*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)cmdHeader->CommandTableBaseAddress);
+//         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry));
 
-        commandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)buffer;
-        commandTable->PrdtEntry[0].ByteCount = (sectorCount << 9) - 1; // 512 bytes per sector
-        commandTable->PrdtEntry[0].InterruptOnCompletion = 1;
+//         commandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)buffer;
+//         commandTable->PrdtEntry[0].ByteCount = (sectorCount << 9) - 1; // 512 bytes per sector
+//         commandTable->PrdtEntry[0].InterruptOnCompletion = 1;
 
-        FIS_REG_H2D* cmdFIS = (FIS_REG_H2D*)(&commandTable->CommandFIS);
+//         FIS_REG_H2D* cmdFIS = (FIS_REG_H2D*)(&commandTable->CommandFIS);
 
-        cmdFIS->FisType = FIS_TYPE_REG_H2D;
-        cmdFIS->CommandControl = 1; // command
-        cmdFIS->Command = ATA_CMD_READ_DMA_EX; //read command
+//         cmdFIS->FisType = FIS_TYPE_REG_H2D;
+//         cmdFIS->CommandControl = 1; // command
+//         cmdFIS->Command = ATA_CMD_READ_DMA_EX; //read command
 
-        cmdFIS->Lba0 = (uint8_t)sectorL;
-        cmdFIS->Lba1 = (uint8_t)(sectorL >> 8);
-        cmdFIS->Lba2 = (uint8_t)(sectorL >> 16);
-        cmdFIS->Lba3 = (uint8_t)sectorH;
-        cmdFIS->Lba4 = (uint8_t)(sectorH >> 8);
-        cmdFIS->Lba4 = (uint8_t)(sectorH >> 16);
-
-        cmdFIS->DeviceRegister = 1 << 6; //LBA mode
+//         cmdFIS->Lba0 = (uint8_t)sectorL;
+//         cmdFIS->Lba1 = (uint8_t)(sectorL >> 8);
+//         cmdFIS->Lba2 = (uint8_t)(sectorL >> 16);
+//         cmdFIS->Lba3 = (uint8_t)sectorH;
+//         cmdFIS->Lba4 = (uint8_t)(sectorH >> 8);
+//         cmdFIS->Lba4 = (uint8_t)(sectorH >> 16);
+
+//         cmdFIS->DeviceRegister = 1 << 6; //LBA mode
 
-        cmdFIS->CountLow = sectorCount & 0xFF;
-        cmdFIS->CountHigh = (sectorCount >> 8) & 0xFF;
+//         cmdFIS->CountLow = sectorCount & 0xFF;
+//         cmdFIS->CountHigh = (sectorCount >> 8) & 0xFF;
 
-        uint64_t spin = 0;
-        uint64_t timeOut = 1000000;
-        while ((HbaPort->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < timeOut){
-            spin ++;
-        }
-        if (spin >= timeOut) {
-            return false;
-        }
-
-        HbaPort->CommandIssue = 1;
-
-        while (true){
-
-            if((HbaPort->CommandIssue == 0)) break;
-            if(HbaPort->InterruptStatus & HBA_PxIS_TFES)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    bool Port::Write(uint64_t sector, uint16_t sectorCount, uintptr_t buffer){ //LBA so the sector size is 512 bytes
-        uint32_t sectorL = (uint32_t) sector;
-        uint32_t sectorH = (uint32_t) (sector >> 32);
-
-        HbaPort->InterruptStatus = (uint32_t) - 1; // Clear pending interrupt bits
-
-        HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)HbaPort->CommandListBase);
-        cmdHeader->CommandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t); //command FIS size;
-        cmdHeader->Write = 1; //write mode
-        cmdHeader->PrdtLength = 1;
-
-        HBACommandTable* commandTable = (HBACommandTable*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)cmdHeader->CommandTableBaseAddress);
-        memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry));
-
-        commandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)buffer;
-        commandTable->PrdtEntry[0].ByteCount = (sectorCount << 9) - 1;
-        commandTable->PrdtEntry[0].InterruptOnCompletion = 1;
-
-        FIS_REG_H2D* cmdFIS = (FIS_REG_H2D*)(&commandTable->CommandFIS);
-
-        cmdFIS->FisType = FIS_TYPE_REG_H2D;
-        cmdFIS->CommandControl = 1; // command
-        cmdFIS->Command = ATA_CMD_WRITE_DMA_EX; //write command
-
-        cmdFIS->Lba0 = (uint8_t)sectorL;
-        cmdFIS->Lba1 = (uint8_t)(sectorL >> 8);
-        cmdFIS->Lba2 = (uint8_t)(sectorL >> 16);
-        cmdFIS->Lba3 = (uint8_t)sectorH;
-        cmdFIS->Lba4 = (uint8_t)(sectorH >> 8);
-        cmdFIS->Lba4 = (uint8_t)(sectorH >> 16);
-
-        cmdFIS->DeviceRegister = 1 << 6; //LBA mode
-
-        cmdFIS->CountLow = sectorCount & 0xFF;
-        cmdFIS->CountHigh = (sectorCount >> 8) & 0xFF;
-
-        uint64_t spin = 0;
-        uint64_t timeOut = 1000000;
-        while ((HbaPort->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < timeOut){
-            spin ++;
-        }
-        if (spin >= timeOut) {
-            return false;
-        }
-
-        HbaPort->CommandIssue = 1;
-
-        while (true){
-
-            if((HbaPort->CommandIssue == 0)) break;
-            if(HbaPort->InterruptStatus & HBA_PxIS_TFES)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-    bool Port::GetDiskInfo(){
-        HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)HbaPort->CommandListBase);
-        cmdHeader->CommandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t); //command FIS size;
-        cmdHeader->Write = 0;
-        cmdHeader->PrdtLength = 1;
-
-        HBACommandTable* commandTable = (HBACommandTable*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)cmdHeader->CommandTableBaseAddress);
-        memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry));
-        commandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)Buffer;
-        commandTable->PrdtEntry[0].ByteCount = sizeof(ATACommandIdentify);
-        commandTable->PrdtEntry[0].InterruptOnCompletion = 1;
-
-        FIS_REG_H2D* cmdFIS = (FIS_REG_H2D*)(&commandTable->CommandFIS);
-
-        cmdFIS->FisType = FIS_TYPE_REG_H2D;
-        cmdFIS->CommandControl = 1; // command
-        cmdFIS->Command = ATA_CMD_IDENTIFY; //identify command
-
-        uint64_t spin = 0;
-        uint64_t timeOut = 1000000;
-        while ((HbaPort->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < timeOut){
-            spin++;
-        }
-        if (spin >= timeOut) {
-            return false;
-        }
-
-        HbaPort->CommandIssue = 1; //execute the command
-
-        while (true){
-            if((HbaPort->CommandIssue == 0)) break; //verify if the command is finished
-            if(HbaPort->InterruptStatus & HBA_PxIS_TFES)
-            {
-                return false;
-            }
-        }
-        DiskInfo = (ATACommandIdentify*)malloc(sizeof(ATACommandIdentify));
-        memcpy(DiskInfo, globalPageTableManager[0].GetVirtualAddress(Buffer), sizeof(ATACommandIdentify));
-        return true;
-    }
-
-    uint64_t Port::GetNumberSectorsLBA(){ //this function get the size / 512 to get the number of sectors it only specify as 512 bytes secotrs
-        return DiskInfo->TotalNumberUserAddressableLBASectorsAvailable; //LBA always specify sectors as 512 
-    }
-
-    uint64_t Port::GetSectorNumberPhysical(){
-        uint64_t ReturnValue = GetSize() / GetSectorSizePhysical();
-        return ReturnValue;
-    }
-
-    uint16_t Port::GetSectorSizeLBA(){
-        return 512; //512 is the size of sector in lba
-    }
-
-    uint16_t Port::GetSectorSizePhysical(){
-        return DiskInfo->SectorSize;
-    }
-
-    uint64_t Port::GetSize(){
-        uint64_t ReturnValue = GetNumberSectorsLBA() * GetSectorSizeLBA(); //512 is the size of a sector in lba because we get lba number of sectors
-        return ReturnValue;
-    }
-
-    uint16_t* Port::GetModelNumber(){       
-        return DiskInfo->DriveModelNumber;
-    }
-
-    uint16_t* Port::GetSerialNumber(){
-        return DiskInfo->SerialNumber;
-    }
-
-    void Port::ResetDisk(){
-        memset(globalPageTableManager[0].GetVirtualAddress(Buffer), 0, BufferSize);
-        uint64_t sectorReset = 0;
-        uint64_t sectorToReset = GetNumberSectorsLBA();
-        uint64_t sectorResetByWrite = BufferSize / GetSectorSizeLBA();
-        Warning("Reset start ... : %u", sectorToReset);
-        for(sectorReset; sectorReset < sectorToReset; sectorReset++){
-            if(sectorToReset - sectorReset > sectorResetByWrite){
-                Write(sectorReset, sectorResetByWrite, Buffer);  
-            }else{
-                Write(sectorReset, sectorToReset - sectorReset, Buffer); 
-            }
-        }
-    }
-
-    bool Port::IsPortInit(GUID* GUIDOfInitPartition){  
-        GPT::Partitions* AllPartitions = GPT::GetAllPartitions(this);
-        for(int i = 0; i < AllPartitions->NumberPartitionsCreated; i++){
-            if(AllPartitions->AllParitions[i]->PartitionTypeGUID.Data1 == GUIDOfInitPartition->Data1 &&
-               AllPartitions->AllParitions[i]->PartitionTypeGUID.Data2 == GUIDOfInitPartition->Data2 &&
-               AllPartitions->AllParitions[i]->PartitionTypeGUID.Data3 == GUIDOfInitPartition->Data3 &&
-               AllPartitions->AllParitions[i]->PartitionTypeGUID.Data4 == GUIDOfInitPartition->Data4){
-                   return true;
-            }
-        } 
-        return false;
-    }
+//         uint64_t spin = 0;
+//         uint64_t timeOut = 1000000;
+//         while ((HbaPort->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < timeOut){
+//             spin ++;
+//         }
+//         if (spin >= timeOut) {
+//             return false;
+//         }
+
+//         HbaPort->CommandIssue = 1;
+
+//         while (true){
+
+//             if((HbaPort->CommandIssue == 0)) break;
+//             if(HbaPort->InterruptStatus & HBA_PxIS_TFES)
+//             {
+//                 return false;
+//             }
+//         }
+
+//         return true;
+//     }
+
+//     bool Port::Write(uint64_t sector, uint16_t sectorCount, uintptr_t buffer){ //LBA so the sector size is 512 bytes
+//         uint32_t sectorL = (uint32_t) sector;
+//         uint32_t sectorH = (uint32_t) (sector >> 32);
+
+//         HbaPort->InterruptStatus = (uint32_t) - 1; // Clear pending interrupt bits
+
+//         HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)HbaPort->CommandListBase);
+//         cmdHeader->CommandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t); //command FIS size;
+//         cmdHeader->Write = 1; //write mode
+//         cmdHeader->PrdtLength = 1;
+
+//         HBACommandTable* commandTable = (HBACommandTable*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)cmdHeader->CommandTableBaseAddress);
+//         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry));
+
+//         commandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)buffer;
+//         commandTable->PrdtEntry[0].ByteCount = (sectorCount << 9) - 1;
+//         commandTable->PrdtEntry[0].InterruptOnCompletion = 1;
+
+//         FIS_REG_H2D* cmdFIS = (FIS_REG_H2D*)(&commandTable->CommandFIS);
+
+//         cmdFIS->FisType = FIS_TYPE_REG_H2D;
+//         cmdFIS->CommandControl = 1; // command
+//         cmdFIS->Command = ATA_CMD_WRITE_DMA_EX; //write command
+
+//         cmdFIS->Lba0 = (uint8_t)sectorL;
+//         cmdFIS->Lba1 = (uint8_t)(sectorL >> 8);
+//         cmdFIS->Lba2 = (uint8_t)(sectorL >> 16);
+//         cmdFIS->Lba3 = (uint8_t)sectorH;
+//         cmdFIS->Lba4 = (uint8_t)(sectorH >> 8);
+//         cmdFIS->Lba4 = (uint8_t)(sectorH >> 16);
+
+//         cmdFIS->DeviceRegister = 1 << 6; //LBA mode
+
+//         cmdFIS->CountLow = sectorCount & 0xFF;
+//         cmdFIS->CountHigh = (sectorCount >> 8) & 0xFF;
+
+//         uint64_t spin = 0;
+//         uint64_t timeOut = 1000000;
+//         while ((HbaPort->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < timeOut){
+//             spin ++;
+//         }
+//         if (spin >= timeOut) {
+//             return false;
+//         }
+
+//         HbaPort->CommandIssue = 1;
+
+//         while (true){
+
+//             if((HbaPort->CommandIssue == 0)) break;
+//             if(HbaPort->InterruptStatus & HBA_PxIS_TFES)
+//             {
+//                 return false;
+//             }
+//         }
+
+//         return true;
+//     }
+//     bool Port::GetDiskInfo(){
+//         HBACommandHeader* cmdHeader = (HBACommandHeader*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)HbaPort->CommandListBase);
+//         cmdHeader->CommandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t); //command FIS size;
+//         cmdHeader->Write = 0;
+//         cmdHeader->PrdtLength = 1;
+
+//         HBACommandTable* commandTable = (HBACommandTable*)globalPageTableManager[0].GetVirtualAddress((uintptr_t)cmdHeader->CommandTableBaseAddress);
+//         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry));
+//         commandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)Buffer;
+//         commandTable->PrdtEntry[0].ByteCount = sizeof(ATACommandIdentify);
+//         commandTable->PrdtEntry[0].InterruptOnCompletion = 1;
+
+//         FIS_REG_H2D* cmdFIS = (FIS_REG_H2D*)(&commandTable->CommandFIS);
+
+//         cmdFIS->FisType = FIS_TYPE_REG_H2D;
+//         cmdFIS->CommandControl = 1; // command
+//         cmdFIS->Command = ATA_CMD_IDENTIFY; //identify command
+
+//         uint64_t spin = 0;
+//         uint64_t timeOut = 1000000;
+//         while ((HbaPort->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < timeOut){
+//             spin++;
+//         }
+//         if (spin >= timeOut) {
+//             return false;
+//         }
+
+//         HbaPort->CommandIssue = 1; //execute the command
+
+//         while (true){
+//             if((HbaPort->CommandIssue == 0)) break; //verify if the command is finished
+//             if(HbaPort->InterruptStatus & HBA_PxIS_TFES)
+//             {
+//                 return false;
+//             }
+//         }
+//         DiskInfo = (ATACommandIdentify*)malloc(sizeof(ATACommandIdentify));
+//         memcpy(DiskInfo, globalPageTableManager[0].GetVirtualAddress(Buffer), sizeof(ATACommandIdentify));
+//         return true;
+//     }
+
+//     uint64_t Port::GetNumberSectorsLBA(){ //this function get the size / 512 to get the number of sectors it only specify as 512 bytes secotrs
+//         return DiskInfo->TotalNumberUserAddressableLBASectorsAvailable; //LBA always specify sectors as 512 
+//     }
+
+//     uint64_t Port::GetSectorNumberPhysical(){
+//         uint64_t ReturnValue = GetSize() / GetSectorSizePhysical();
+//         return ReturnValue;
+//     }
+
+//     uint16_t Port::GetSectorSizeLBA(){
+//         return 512; //512 is the size of sector in lba
+//     }
+
+//     uint16_t Port::GetSectorSizePhysical(){
+//         return DiskInfo->SectorSize;
+//     }
+
+//     uint64_t Port::GetSize(){
+//         uint64_t ReturnValue = GetNumberSectorsLBA() * GetSectorSizeLBA(); //512 is the size of a sector in lba because we get lba number of sectors
+//         return ReturnValue;
+//     }
+
+//     uint16_t* Port::GetModelNumber(){       
+//         return DiskInfo->DriveModelNumber;
+//     }
+
+//     uint16_t* Port::GetSerialNumber(){
+//         return DiskInfo->SerialNumber;
+//     }
+
+//     void Port::ResetDisk(){
+//         memset(globalPageTableManager[0].GetVirtualAddress(Buffer), 0, BufferSize);
+//         uint64_t sectorReset = 0;
+//         uint64_t sectorToReset = GetNumberSectorsLBA();
+//         uint64_t sectorResetByWrite = BufferSize / GetSectorSizeLBA();
+//         Warning("Reset start ... : %u", sectorToReset);
+//         for(sectorReset; sectorReset < sectorToReset; sectorReset++){
+//             if(sectorToReset - sectorReset > sectorResetByWrite){
+//                 Write(sectorReset, sectorResetByWrite, Buffer);  
+//             }else{
+//                 Write(sectorReset, sectorToReset - sectorReset, Buffer); 
+//             }
+//         }
+//     }
+
+//     bool Port::IsPortInit(GUID* GUIDOfInitPartition){  
+//         GPT::Partitions* AllPartitions = GPT::GetAllPartitions(this);
+//         for(int i = 0; i < AllPartitions->NumberPartitionsCreated; i++){
+//             if(AllPartitions->AllParitions[i]->PartitionTypeGUID.Data1 == GUIDOfInitPartition->Data1 &&
+//                AllPartitions->AllParitions[i]->PartitionTypeGUID.Data2 == GUIDOfInitPartition->Data2 &&
+//                AllPartitions->AllParitions[i]->PartitionTypeGUID.Data3 == GUIDOfInitPartition->Data3 &&
+//                AllPartitions->AllParitions[i]->PartitionTypeGUID.Data4 == GUIDOfInitPartition->Data4){
+//                    return true;
+//             }
+//         } 
+//         return false;
+//     }
     
-    bool Port::IsPortSystem(GUID* GUIDOfSystemPartition){
-        GPT::Partitions* AllPartitions = GPT::GetAllPartitions(this);
-        for(int i = 0; i < AllPartitions->NumberPartitionsCreated; i++){
-            if(AllPartitions->AllParitions[i]->PartitionTypeGUID.Data1 == GUIDOfSystemPartition->Data1 &&
-               AllPartitions->AllParitions[i]->PartitionTypeGUID.Data2 == GUIDOfSystemPartition->Data2 &&
-               AllPartitions->AllParitions[i]->PartitionTypeGUID.Data3 == GUIDOfSystemPartition->Data3 &&
-               AllPartitions->AllParitions[i]->PartitionTypeGUID.Data4 == GUIDOfSystemPartition->Data4){
-                   return true;
-            }
-        } 
-        return false;
-    }
+//     bool Port::IsPortSystem(GUID* GUIDOfSystemPartition){
+//         GPT::Partitions* AllPartitions = GPT::GetAllPartitions(this);
+//         for(int i = 0; i < AllPartitions->NumberPartitionsCreated; i++){
+//             if(AllPartitions->AllParitions[i]->PartitionTypeGUID.Data1 == GUIDOfSystemPartition->Data1 &&
+//                AllPartitions->AllParitions[i]->PartitionTypeGUID.Data2 == GUIDOfSystemPartition->Data2 &&
+//                AllPartitions->AllParitions[i]->PartitionTypeGUID.Data3 == GUIDOfSystemPartition->Data3 &&
+//                AllPartitions->AllParitions[i]->PartitionTypeGUID.Data4 == GUIDOfSystemPartition->Data4){
+//                    return true;
+//             }
+//         } 
+//         return false;
+//     }
 
-    AHCIDriver::AHCIDriver(PCI::PCIDeviceHeader* pciBaseAddress){
-        PartitionNode* LastNode = NULL;
-        PartitionNode* CurrentNode;
-        ahciDriver = this;
-        Warning("[AHCI] Driver is loading"); 
-        this->PCIBaseAddress = pciBaseAddress;
+//     AHCIDriver::AHCIDriver(PCI::PCIDeviceHeader* pciBaseAddress){
+//         PartitionNode* LastNode = NULL;
+//         PartitionNode* CurrentNode;
+//         ahciDriver = this;
+//         Warning("[AHCI] Driver is loading"); 
+//         this->PCIBaseAddress = pciBaseAddress;
 
-        ABAR = (HBAMemory*)((PCI::PCIHeader0*)pciBaseAddress)->BAR5;
-        ABAR = (HBAMemory*)globalPageTableManager[0].MapMemory((uintptr_t)ABAR, 1);
+//         ABAR = (HBAMemory*)((PCI::PCIHeader0*)pciBaseAddress)->BAR5;
+//         ABAR = (HBAMemory*)globalPageTableManager[0].MapMemory((uintptr_t)ABAR, 1);
 
-        ProbePorts();
-        for (int i = 0; i < PortCount; i++){
-            Port* port = Ports[i];
+//         ProbePorts();
+//         for (int i = 0; i < PortCount; i++){
+//             Port* port = Ports[i];
 
-            port->Configure();
+//             port->Configure();
 
-            if(port->PortNumber == 1){
-                GPT::GPTHeader* GptHeader = GPT::GetGPTHeader(port);             
-                if(!port->IsPortInit(GPT::GetSystemGUIDPartitionType())){   
-                    Warning("[AHCI] Disk at port %u not initialize yet", port->PortNumber); 
+//             if(port->PortNumber == 1){
+//                 GPT::GPTHeader* GptHeader = GPT::GetGPTHeader(port);             
+//                 if(!port->IsPortInit(GPT::GetSystemGUIDPartitionType())){   
+//                     Warning("[AHCI] Disk at port %u not initialize yet", port->PortNumber); 
                     
-                    GPT::InitGPTHeader(port);
+//                     GPT::InitGPTHeader(port);
                 
-                    GPT::CreatPartition(port, GPT::GetFreeSizePatition(port), "KotData", GPT::GetSystemGUIDPartitionType(), 0);        
-                }
-            }                 
+//                     GPT::CreatPartition(port, GPT::GetFreeSizePatition(port), "KotData", GPT::GetSystemGUIDPartitionType(), 0);        
+//                 }
+//             }                 
             
-            GPT::Partitions* Partitons = GPT::GetAllPartitions(port);  
-            for(int y = 0; y < Partitons->NumberPartitionsCreated; y++){
-                CurrentNode = (PartitionNode*)malloc(sizeof(PartitionNode));
-                if(PartitionsList == NULL) PartitionsList = CurrentNode;
-                CurrentNode->Content.PartitionInfo = (GUIDPartitionEntryFormat*)Partitons->AllParitions[y];
-                CurrentNode->Content.port = port;
+//             GPT::Partitions* Partitons = GPT::GetAllPartitions(port);  
+//             for(int y = 0; y < Partitons->NumberPartitionsCreated; y++){
+//                 CurrentNode = (PartitionNode*)malloc(sizeof(PartitionNode));
+//                 if(PartitionsList == NULL) PartitionsList = CurrentNode;
+//                 CurrentNode->Content.PartitionInfo = (GUIDPartitionEntryFormat*)Partitons->AllParitions[y];
+//                 CurrentNode->Content.port = port;
 
-                //Setup KotFS
-                if(CompareGUID(&CurrentNode->Content.PartitionInfo->PartitionTypeGUID, GPT::GetSystemGUIDPartitionType()) || CompareGUID(&CurrentNode->Content.PartitionInfo->PartitionTypeGUID, GPT::GetDataGUIDPartitionType())){
-                    CurrentNode->Content.FSSignature = "KOTFS";
-                    GPT::Partition* KotPartition = new GPT::Partition(CurrentNode->Content.port, (GPT::GUIDPartitionEntryFormat*)CurrentNode->Content.PartitionInfo);  
-                    FileSystem::KFS* Fs = new FileSystem::KFS(KotPartition);
-                    CurrentNode->Content.FSData = (uintptr_t)Fs;
-                }
+//                 //Setup KotFS
+//                 if(CompareGUID(&CurrentNode->Content.PartitionInfo->PartitionTypeGUID, GPT::GetSystemGUIDPartitionType()) || CompareGUID(&CurrentNode->Content.PartitionInfo->PartitionTypeGUID, GPT::GetDataGUIDPartitionType())){
+//                     CurrentNode->Content.FSSignature = "KOTFS";
+//                     GPT::Partition* KotPartition = new GPT::Partition(CurrentNode->Content.port, (GPT::GUIDPartitionEntryFormat*)CurrentNode->Content.PartitionInfo);  
+//                     FileSystem::KFS* Fs = new FileSystem::KFS(KotPartition);
+//                     CurrentNode->Content.FSData = (uintptr_t)Fs;
+//                 }
                
-                CurrentNode->Last = LastNode;
-                if(LastNode != NULL){
-                    LastNode->Next = CurrentNode;
-                }
-                LastNode = CurrentNode;
-            }    
+//                 CurrentNode->Last = LastNode;
+//                 if(LastNode != NULL){
+//                     LastNode->Next = CurrentNode;
+//                 }
+//                 LastNode = CurrentNode;
+//             }    
 
-        }
-    }
+//         }
+//     }
 
-    AHCIDriver::~AHCIDriver(){
+//     AHCIDriver::~AHCIDriver(){
  
-    }
+//     }
 
-    PartitionInfo* AHCIDriver::GetSystemPartition(){
-        PartitionNode* list = PartitionsList;
-        GUID* guid = GPT::GetSystemGUIDPartitionType();
-        while(list != NULL){
-            if(list->Content.PartitionInfo->PartitionTypeGUID.Data1 == guid->Data1 &&
-                list->Content.PartitionInfo->PartitionTypeGUID.Data2 == guid->Data2 &&
-                list->Content.PartitionInfo->PartitionTypeGUID.Data3 == guid->Data3 &&
-                list->Content.PartitionInfo->PartitionTypeGUID.Data4 == guid->Data4){
-                return &list->Content;
-            }
-            list = list->Next;
-        }
-    }
-}
+//     PartitionInfo* AHCIDriver::GetSystemPartition(){
+//         PartitionNode* list = PartitionsList;
+//         GUID* guid = GPT::GetSystemGUIDPartitionType();
+//         while(list != NULL){
+//             if(list->Content.PartitionInfo->PartitionTypeGUID.Data1 == guid->Data1 &&
+//                 list->Content.PartitionInfo->PartitionTypeGUID.Data2 == guid->Data2 &&
+//                 list->Content.PartitionInfo->PartitionTypeGUID.Data3 == guid->Data3 &&
+//                 list->Content.PartitionInfo->PartitionTypeGUID.Data4 == guid->Data4){
+//                 return &list->Content;
+//             }
+//             list = list->Next;
+//         }
+//     }
+// }

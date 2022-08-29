@@ -3,7 +3,7 @@
 
 void InitSrv(struct PCIDeviceArrayInfo_t* DevicesArray);
 
-KResult DeviceSearcher(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters);
+KResult CountDevices(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters);
 KResult FindDevice(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters, uint64_t Index);
 
 KResult GetInfoDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Device);

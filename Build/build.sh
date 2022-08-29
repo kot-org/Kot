@@ -36,7 +36,7 @@ sudo make -C "Modules/Drivers/bus/ps2/Build"
 sudo make -C "Modules/Drivers/bus/usb/ehci/Build"
 
 
-#sudo make -C "Modules/Drivers/vga/Build"
+sudo make -C "Modules/Drivers/storage/ahci/Build"
 
 sudo make -C "Modules/Drivers/sound/pcspk/Build"
 

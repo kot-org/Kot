@@ -22,10 +22,10 @@ void InitSrv(PCIDeviceArrayInfo_t* DevicesArray){
     /* Setup thread */
     CreateControllerUISD(ControllerTypeEnum_PCI, key, true);
     
-    /* DeviceSearcher */
-    thread_t DeviceSearcherThread = NULL;
-    Sys_Createthread(proc, (uintptr_t) &DeviceSearcher, PriviledgeDriver, &DeviceSearcherThread);
-    PciSrv->DeviceSearcher = MakeShareableThread(DeviceSearcherThread, PriviledgeDriver);
+    /* CountDevices */
+    thread_t CountDevicesThread = NULL;
+    Sys_Createthread(proc, (uintptr_t) &CountDevices, PriviledgeDriver, &CountDevicesThread);
+    PciSrv->CountDevices = MakeShareableThread(CountDevicesThread, PriviledgeDriver);
 
     /* FindDevice */
     thread_t FindDeviceThread = NULL;
@@ -43,7 +43,7 @@ void InitSrv(PCIDeviceArrayInfo_t* DevicesArray){
     PciSrv->GetBARDevice = MakeShareableThread(GetBARDeviceThread, PriviledgeDriver);
 }
 
-KResult DeviceSearcher(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters){
+KResult CountDevices(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters){
     KResult Status = KFAIL;
     uint64_t NumDeviceFound = Search(SrvDevicesArray, SearchParameters->vendorID, SearchParameters->deviceID, SearchParameters->classID, SearchParameters->subClassID, SearchParameters->progIF);
     

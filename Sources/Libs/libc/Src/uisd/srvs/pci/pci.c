@@ -27,8 +27,8 @@ void Srv_Pci_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint6
     Sys_Close(KSUCCESS);
 }
 
-/* DeviceSearcher */
-KResult Srv_Pci_DeviceSearcher_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+/* CountDevices */
+KResult Srv_Pci_CountDevices_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
         Callback->Data = GP0;
         Callback->Size = sizeof(size64_t);
@@ -36,7 +36,7 @@ KResult Srv_Pci_DeviceSearcher_Callback(KResult Status, struct srv_pci_callback_
     return Status;
 }
 
-struct srv_pci_callback_t* Srv_Pci_DeviceSearcher(srv_pci_search_parameters_t* SearchParameters, bool IsAwait){
+struct srv_pci_callback_t* Srv_Pci_CountDevices(srv_pci_search_parameters_t* SearchParameters, bool IsAwait){
     if(!SrvPciCallbackThread) SrvPciInitialize();
 
     thread_t self = Sys_Getthread();
@@ -47,7 +47,7 @@ struct srv_pci_callback_t* Srv_Pci_DeviceSearcher(srv_pci_search_parameters_t* S
     callback->Size = NULL;
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
-    callback->Handler = &Srv_Pci_DeviceSearcher_Callback; 
+    callback->Handler = &Srv_Pci_CountDevices_Callback; 
 
     struct ShareDataWithArguments_t data;
     data.Data = SearchParameters;
@@ -58,7 +58,7 @@ struct srv_pci_callback_t* Srv_Pci_DeviceSearcher(srv_pci_search_parameters_t* S
     parameters.arg[0] = SrvPciCallbackThread;
     parameters.arg[1] = callback;
 
-    KResult Status = Sys_Execthread(PciData->DeviceSearcher, &parameters, ExecutionTypeQueu, &data);
+    KResult Status = Sys_Execthread(PciData->CountDevices, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
