@@ -12,9 +12,25 @@ namespace SE8 {
         return interface;
     }
 
+    uint32_t jips_print_str_fn(JavaVM* jvm, uint32_t object, uint32_t* args, uint16_t args_length) {
+        vector_t* rs = jvm->getRefSys();
+        jvm->getOutput()((char*) jvm->getClasses()->getClass("java/lang/String")->getField64(vector_get(rs, args[0]), "<pointer>"));
+        return NULL;
+    }
+
+    uint32_t jips_print_int_fn(JavaVM* jvm, uint32_t object, uint32_t* args, uint16_t args_length) {
+        vector_t* rs = jvm->getRefSys();
+        int32_t value = args[0];
+        char* temp = (char*) malloc(asi(value, 10));
+        jvm->getOutput()(itoa(value, temp, 10));
+        free(temp);
+        return NULL;
+    }
+
     uint32_t jips_println_str_fn(JavaVM* jvm, uint32_t object, uint32_t* args, uint16_t args_length) {
         vector_t* rs = jvm->getRefSys();
-        Printlog((char*) jvm->getClasses()->getClass("java/lang/String")->getField64(vector_get(rs, args[0]), "<pointer>"));
+        jvm->getOutput()((char*) jvm->getClasses()->getClass("java/lang/String")->getField64(vector_get(rs, args[0]), "<pointer>"));
+        jvm->getOutput()("\n\0");
         return NULL;
     }
 
@@ -22,7 +38,8 @@ namespace SE8 {
         vector_t* rs = jvm->getRefSys();
         int32_t value = args[0];
         char* temp = (char*) malloc(asi(value, 10));
-        Printlog(itoa(value, temp, 10));
+        jvm->getOutput()(itoa(value, temp, 10));
+        jvm->getOutput()("\n\0");
         free(temp);
         return NULL;
     }
@@ -129,6 +146,8 @@ namespace SE8 {
 
         ClassArea* java_io_PrintStream = new ClassArea(java_io_FilterOutputStream, "java/io/PrintStream");
         map_set(areas, "java/io/PrintStream", java_io_PrintStream);
+        java_io_PrintStream->registerMethod("print", "(Ljava/lang/String;)V", createBinding(1, &jips_print_str_fn));
+        java_io_PrintStream->registerMethod("print", "(I)V", createBinding(1, &jips_print_int_fn));
         java_io_PrintStream->registerMethod("println", "(Ljava/lang/String;)V", createBinding(1, &jips_println_str_fn));
         java_io_PrintStream->registerMethod("println", "(I)V", createBinding(1, &jips_println_int_fn));
         java_io_PrintStream->clinit(jvm);
