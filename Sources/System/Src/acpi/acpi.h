@@ -3,6 +3,7 @@
 #include <kot/types.h>
 #include <kot/memory.h>
 #include <kot/cstring.h>
+#include <kot/uisd/srvs/system.h>
 
 struct RSDP2{
     uint8_t Signature[8];
@@ -16,27 +17,18 @@ struct RSDP2{
     uint8_t Reserved[3];
 }__attribute__((packed));
 
-struct SDTHeader{
-    uint8_t Signature[4];
-    uint32_t Length;
-    uint8_t Revision;
-    uint8_t Checksum;
-    uint8_t OEMID[6];
-    uint8_t OEMTableID[8];
-    uint32_t OEMRevision;
-    uint32_t CreatorID;
-    uint32_t CreatorRevision;
-}__attribute__((packed));
-
 struct RSDT{
-    struct SDTHeader header;
+    struct srv_system_sdtheader_t header;
     uint32_t SDTPointer[];
 }__attribute__((packed));
 
 struct XSDT{
-    struct SDTHeader header;
+    struct srv_system_sdtheader_t header;
     uint64_t SDTPointer[];
 }__attribute__((packed));
 
 uintptr_t ParseRSDP(uintptr_t rsdpPhysical);
-uintptr_t FindTable(char* signature);
+
+uint64_t FindTableIndex(char* signature);
+uintptr_t GetTablePhysicalAddress(uint64_t index);
+size64_t GetTableSize(uint64_t index);

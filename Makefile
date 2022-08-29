@@ -32,7 +32,7 @@ deps-debian: deps-llvm
 	sudo apt install nasm xorriso build-essential qemu-system-x86 -y
 
 clean:
-	sudo rm -rf ./Bin ./Sysroot ./Sources/Kernel/Lib ./Sources/*/*/Lib ./Sources/Modules/Drivers/*/Lib ./Sources/Modules/Drivers/*/*/Lib ./Sources/Modules/Services/*/Lib ./Sources/System/Lib
+	sudo rm -rf ./Bin ./Sysroot ./Sources/*/*/Lib
 
 deps-github-action: deps-llvm
 	sudo apt update

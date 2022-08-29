@@ -95,11 +95,10 @@ typedef struct {
 
 typedef struct {
     uisd_controller_t ControllerHeader;
-    thread_t GetBARNum;
-    thread_t GetBARType;
-    thread_t GetBARSize;
     thread_t PCISearcher;
-    thread_t PCISearcherGetDevice;
+    thread_t PCIGetDevice;
+    thread_t GetInfo;
+    thread_t GetBAR;
 } uisd_pci_t;
 
 typedef struct {

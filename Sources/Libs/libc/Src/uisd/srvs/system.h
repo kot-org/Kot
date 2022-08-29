@@ -19,7 +19,7 @@ typedef struct {
     uint64_t Bpp;
 } srv_system_framebuffer_t;
 
-typedef struct {
+struct srv_system_sdtheader_t {
     uint8_t Signature[4];
     uint32_t Length;
     uint8_t Revision;
@@ -29,7 +29,7 @@ typedef struct {
     uint32_t OEMRevision;
     uint32_t CreatorID;
     uint32_t CreatorRevision;
-} srv_system_sdtheader_t;
+}__attribute__((packed));
 
 struct srv_system_callback_t{
     thread_t Self;

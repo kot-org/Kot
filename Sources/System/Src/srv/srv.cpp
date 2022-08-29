@@ -127,19 +127,23 @@ KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name){
 }
 
 KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg, char* Name){
-    uintptr_t physicalTableAddress = FindTable(Name);
+    uint64_t tableIndex = FindTableIndex(Name);
+    uintptr_t tableAddress = NULL;
+    size64_t tableSize = NULL;
 
     KResult status = KFAIL;
 
-    if(physicalTableAddress != NULL){
+    if(tableIndex != NULL){
         status = KSUCCESS;
+        tableAddress = GetTablePhysicalAddress(tableIndex);
+        tableSize = GetTableSize(tableIndex);
     }
 
     arguments_t arguments{
         .arg[0] = status,                           /* Status */
         .arg[1] = CallbackArg,                      /* CallbackArg */
-        .arg[2] = (uint64_t)physicalTableAddress,   /* PhysicalTableAddress */
-        .arg[3] = NULL,                             /* GP1 */
+        .arg[2] = (uint64_t)tableAddress,           /* TableAddress */
+        .arg[3] = (uint64_t)tableSize,              /* TableSize */
         .arg[4] = NULL,                             /* GP2 */
         .arg[5] = NULL,                             /* GP3 */
     };

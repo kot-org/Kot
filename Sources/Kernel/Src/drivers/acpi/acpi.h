@@ -44,17 +44,11 @@ namespace ACPI{
         uint64_t Address;
     }__attribute__((packed));
 
-    struct MCFGHeader{
-        SDTHeader Header;
-        uint64_t Reserved;
-    }__attribute__((packed));
-
     struct MADTHeader{
         SDTHeader   Header;
         uint32_t    APICAddress;
         uint32_t    Flags;
     }__attribute__((packed));
-
 
     struct HPETHeader{
         SDTHeader Header;
@@ -71,14 +65,6 @@ namespace ACPI{
         uint8_t HPETNumber;
         uint16_t MinimumTick;
         uint8_t PageProtection;
-    }__attribute__((packed));
-
-    struct DeviceConfig{
-        uint64_t BaseAddress;
-        uint16_t PCISegGroup;
-        uint8_t StartBus;
-        uint8_t EndBus;
-        uint32_t Reserved;
     }__attribute__((packed));
 
     uintptr_t FindTable(RSDP2* rsdp, char* signature);
