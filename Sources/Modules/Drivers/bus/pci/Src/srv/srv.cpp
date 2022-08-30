@@ -41,6 +41,11 @@ void InitSrv(PCIDeviceArrayInfo_t* DevicesArray){
     thread_t GetBARDeviceThread = NULL;
     Sys_Createthread(proc, (uintptr_t) &GetBARDevice, PriviledgeDriver, &GetBARDeviceThread);
     PciSrv->GetBARDevice = MakeShareableThread(GetBARDeviceThread, PriviledgeDriver);
+
+    /* SetupMSI */
+    thread_t SetupMSIThread = NULL;
+    Sys_Createthread(proc, (uintptr_t) &SetupMSI, PriviledgeDriver, &SetupMSIThread);
+    PciSrv->SetupMSI = MakeShareableThread(SetupMSIThread, PriviledgeDriver);
 }
 
 KResult CountDevices(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters){
@@ -136,5 +141,26 @@ KResult GetBARDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Devi
     };
 
     Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &data);
+    Sys_Close(KSUCCESS);
+}
+
+KResult SetupMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex, uint8_t IRQVector, uint16_t LocalDeviceVector){
+    KResult Status = KFAIL;
+    srv_pci_bar_info_t BARInfo;
+    if(CheckDevice(SrvDevicesArray, DeviceIndex)){
+        PCIDevice_t* Device = GetDeviceFromIndex(SrvDevicesArray, DeviceIndex);
+        Status = Device->SetupMSI(IRQVector, LocalDeviceVector);
+    }
+
+    arguments_t arguments{
+        .arg[0] = Status,           /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = NULL,             /* GP0 */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }

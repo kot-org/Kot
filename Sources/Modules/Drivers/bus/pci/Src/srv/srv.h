@@ -8,3 +8,4 @@ KResult FindDevice(thread_t Callback, uint64_t CallbackArg, srv_pci_search_param
 
 KResult GetInfoDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Device);
 KResult GetBARDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Device, uint8_t BarIndex);
+KResult SetupMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex, uint8_t IRQVector, uint16_t LocalDeviceVector);

@@ -176,3 +176,36 @@ struct srv_pci_callback_t* Srv_Pci_GetBAR(PCIDeviceID_t Device, uint8_t BarIndex
     }
     return callback;
 }
+
+/* SetupMSI */
+KResult Srv_Pci_GetBAR_SetupMSI(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    return Status;
+}
+
+struct srv_pci_callback_t* Srv_Pci_SetupMSI(PCIDeviceID_t Device, uint8_t IRQVector, uint16_t LocalDeviceVector, bool IsAwait){
+    if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+
+    thread_t self = Sys_Getthread();
+
+    struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Pci_GetBAR_SetupMSI; 
+
+    struct arguments_t parameters;
+    parameters.arg[0] = SrvPciCallbackThread;
+    parameters.arg[1] = callback;
+    parameters.arg[2] = Device;
+    parameters.arg[3] = IRQVector;
+    parameters.arg[4] = LocalDeviceVector;
+
+    KResult Status = Sys_Execthread(PciData->SetupMSI, &parameters, ExecutionTypeQueu, NULL);
+
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}

@@ -69,6 +69,46 @@ struct PCIHeader1_t{
     /* TODO */
 }__attribute__((packed));
 
+/* Capabilities */
+
+enum PCICapabilities{
+    PCICapabilitiesMSI = 0x5,
+    PCICapabilitiesMSIX = 0x11,
+};
+
+struct PCICapabilityMSI_t{
+    uint16_t Control;
+    uint64_t Address;
+    uint16_t Data;
+    uint16_t Reserved;
+    uint32_t Mask;
+    uint32_t Pending;
+}__attribute__((packed));
+
+struct PCIMSIXTable_t{
+    uint64_t Address;
+    uint32_t Data;
+    uint32_t Control;
+}__attribute__((packed));
+
+struct PCICapabilityMSIX_t{
+    uint16_t Control;
+    uint8_t BIR:2;
+    uint32_t TableOffset:30;
+    uint8_t PendingBitBIR:2;
+    uint32_t PendingBitOffset:30;
+}__attribute__((packed));
+
+struct PCICapability_t{
+    uint8_t CapabilityID;
+    uint8_t CapabilityNext;
+
+    union{
+        PCICapabilityMSI_t MSI;
+        PCICapabilityMSIX_t MSIX;
+    };
+}__attribute__((packed));
+
 /* Internal driver headers */
 
 struct PCIDeviceListInfo_t{
@@ -95,9 +135,10 @@ struct PCIDevice_t{
 
     /* Device functions */
     uintptr_t GetBarAddress(uint8_t index);
-    size64_t GetBarSize(uintptr_t address);
+    size64_t GetBarSizeWithAddress(uintptr_t address);
     size64_t GetBarSize(uint8_t index);
     uint8_t GetBarType(uint8_t index);
+    KResult SetupMSI(uint8_t IRQVector, uint16_t localDeviceVector);
 
     /* Version specific */
     void ReceiveConfigurationSpace();
