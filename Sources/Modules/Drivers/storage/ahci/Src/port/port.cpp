@@ -8,7 +8,6 @@ Port::Port(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8_t I
 
     // Rebase port
     StopCMD();
-    
     CommandHeader = (HBACommandHeader_t*)GetPhysical((uintptr_t*)&HbaPort->CommandListBase, 1024);
     memset((uintptr_t)CommandHeader, 0, 1024);
 
@@ -18,18 +17,18 @@ Port::Port(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8_t I
     for (int i = 0; i < HBA_COMMAND_LIST_MAX_ENTRIES; i++){
         CommandHeader[i].PrdtLength = 8;
         CommandAddressTable[i] = (HBACommandTable_t*)GetPhysical((uintptr_t*)&CommandHeader[i].CommandTableBaseAddress, 256);
-        memset(CommandAddressTable, 0, 256);
+        memset(CommandAddressTable[i], 0, 256);
     }
+
+    StartCMD();
 
     // allocate buffer
     BufferSize = 0x1000;
     BufferVirtual = GetPhysical((uintptr_t*)&BufferPhysical, BufferSize);
 
-    StartCMD();
-
     char* buffer = (char*)malloc(0x1000);
-    Read(0x0, 0x8, buffer);
-    std::printf("%s", buffer);
+    KResult status = Read(0x0, 0x8, buffer);
+    std::printf("%x %x %s", PortType, status, buffer);
 }
 
 Port::~Port(){
@@ -65,18 +64,35 @@ KResult Port::Read(uint64_t Sector, uint16_t SectorCount, uintptr_t Buffer){
     HbaPort->InterruptStatus = NULL; // Clear pending interrupt bits
 
     CommandHeader->CommandFISLength = sizeof(FisHostToDeviceRegisters_t) / sizeof(uint32_t); //command FIS size;
+    CommandHeader->Atapi = (PortType == PortTypeEnum::SATAPI);
     CommandHeader->Write = 0; //read mode
     CommandHeader->PrdtLength = 1;
 
-    CommandAddressTable[0]->PrdtEntry[0].DataBaseAddress = (uint64_t)BufferPhysical;
-    CommandAddressTable[0]->PrdtEntry[0].ByteCount = (SectorCount << 9) - 1; // 512 bytes per sector
-    CommandAddressTable[0]->PrdtEntry[0].InterruptOnCompletion = 1;
+    HBACommandTable_t* CommandTable = CommandAddressTable[0];
 
-    FisHostToDeviceRegisters_t* CommandFIS = (FisHostToDeviceRegisters_t*)(&CommandAddressTable[0]->CommandFIS);
+    CommandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)BufferPhysical;
+    CommandTable->PrdtEntry[0].ByteCount = (SectorCount << 9) - 1; // 512 bytes per sector
+
+    if(PortType == PortTypeEnum::SATAPI){
+        CommandTable->AtapiCommand[0] = 0xA8;
+        CommandTable->AtapiCommand[9] = SectorCount;
+        CommandTable->AtapiCommand[2] = (Sector >> 0x18) & 0xFF;
+        CommandTable->AtapiCommand[3] = (Sector >> 0x10) & 0xFF;
+        CommandTable->AtapiCommand[4] = (Sector >> 0x08) & 0xFF;
+        CommandTable->AtapiCommand[5] = (Sector >> 0x00) & 0xFF; 
+    }
+    
+
+    FisHostToDeviceRegisters_t* CommandFIS = (FisHostToDeviceRegisters_t*)(&CommandTable->CommandFIS);
 
     CommandFIS->FisType = FISTypeEnum::HostToDevice;
     CommandFIS->CommandControl = 1; // command
-    CommandFIS->Command = ATACommandEnum::ReadDMA; //read command
+
+    if(PortType == PortTypeEnum::SATA){
+        CommandFIS->Command = ATACommandEnum::ReadDMA; //read command
+    }else if(PortType == PortTypeEnum::SATAPI){
+        CommandFIS->Command = ATACommandEnum::Packet; //read command
+    }
 
     CommandFIS->Lba0 = (uint8_t)SectorLow;
     CommandFIS->Lba1 = (uint8_t)(SectorLow >> 8);
@@ -101,7 +117,6 @@ KResult Port::Read(uint64_t Sector, uint16_t SectorCount, uintptr_t Buffer){
     HbaPort->CommandIssue = 1;
 
     while (true){
-
         if((HbaPort->CommandIssue == 0)) break;
         if(HbaPort->InterruptStatus & HBA_INTERRUPT_STATU_TFE){
             return KFAIL;

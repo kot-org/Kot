@@ -24,7 +24,7 @@ enum ATACommandEnum{
     ReadDMA         = 0x25,
     WritePIO        = 0x30,
     WriteDMA        = 0x35,
-    Packet          = 0xA1,
+    Packet          = 0xA0,
     Flush           = 0xE7,
     Identify        = 0xEC
 };
