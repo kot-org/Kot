@@ -26,10 +26,10 @@ Port::Port(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8_t I
     BufferSize = 0x1000;
     BufferVirtual = GetPhysical((uintptr_t*)&BufferPhysical, BufferSize);
 
-    char* buffer = (char*)calloc(0x1000);
-    KResult status = Read(0x0, 0x8, buffer);
-    for(uint64_t i = 0; i < 0x1000; i++){
-        std::printf("%c", *buffer++);
+    uint8_t* buffer = (uint8_t*)calloc(0x1000);
+    KResult status = Read(0x0, 0x1, buffer);
+    for(uint64_t i = 0; i < 0x20; i++){
+        std::printf("%x", *buffer++);
     }
     std::printf("%x %x", PortType, status);
 }
@@ -59,13 +59,14 @@ void Port::StartCMD(){
 }
 
 KResult Port::Read(uint64_t Sector, uint16_t SectorCount, uintptr_t Buffer){
+    memset(BufferVirtual, 0x0, SectorCount * 512);
     uint32_t SectorLow = (uint32_t)Sector & 0xFFFFFFFF;
     uint32_t sectorHigh = (uint32_t)(Sector >> 32) & 0xFFFFFFFF;
 
     HbaPort->InterruptStatus = (uint32_t)-1; // Clear pending interrupt bits
 
     CommandHeader->CommandFISLength = sizeof(FisHostToDeviceRegisters_t) / sizeof(uint32_t); //command FIS size;
-    CommandHeader->Atapi = (PortType == PortTypeEnum::SATAPI);
+    CommandHeader->Atapi = 0;
     CommandHeader->Write = 0; //read mode
     CommandHeader->PrdtLength = 1;
 
@@ -75,26 +76,11 @@ KResult Port::Read(uint64_t Sector, uint16_t SectorCount, uintptr_t Buffer){
     CommandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)BufferPhysical;
     CommandTable->PrdtEntry[0].ByteCount = (SectorCount << 9) - 1; // 512 bytes per sector
 
-    if(PortType == PortTypeEnum::SATAPI){
-        CommandTable->AtapiCommand[0] = 0xA8;
-        CommandTable->AtapiCommand[9] = SectorCount;
-        CommandTable->AtapiCommand[2] = (Sector >> 0x18) & 0xFF;
-        CommandTable->AtapiCommand[3] = (Sector >> 0x10) & 0xFF;
-        CommandTable->AtapiCommand[4] = (Sector >> 0x08) & 0xFF;
-        CommandTable->AtapiCommand[5] = (Sector >> 0x00) & 0xFF; 
-    }
-    
-
     FisHostToDeviceRegisters_t* CommandFIS = (FisHostToDeviceRegisters_t*)(&CommandTable->CommandFIS);
 
     CommandFIS->FisType = FISTypeEnum::HostToDevice;
     CommandFIS->CommandControl = 1; // command
-
-    if(PortType == PortTypeEnum::SATA){
-        CommandFIS->Command = ATACommandEnum::ReadDMA; //read command
-    }else if(PortType == PortTypeEnum::SATAPI){
-        CommandFIS->Command = ATACommandEnum::Packet; //read command
-    }
+    CommandFIS->Command = ATACommandEnum::ReadDMA; //read command
 
     CommandFIS->Lba0 = (uint8_t)SectorLow;
     CommandFIS->Lba1 = (uint8_t)(SectorLow >> 8);
@@ -125,6 +111,6 @@ KResult Port::Read(uint64_t Sector, uint16_t SectorCount, uintptr_t Buffer){
         }
     }
 
-    memcpy(Buffer, BufferVirtual, SectorCount * 512); // copy data to DMA buffer
+    memcpy(Buffer, BufferVirtual, SectorCount << 9); // copy data to DMA buffer
     return KSUCCESS;
 }
