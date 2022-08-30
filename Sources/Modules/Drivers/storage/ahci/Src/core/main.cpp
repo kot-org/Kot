@@ -1,9 +1,13 @@
 #include <core/main.h>
 
+process_t Proc = NULL;
+
 AHCIController** Controllers = NULL;
 
 extern "C" int main(int argc, char* argv[]) {
     Printlog("[AHCI] Initialization ...");
+
+    Proc = Sys_GetProcess();
 
     srv_pci_search_parameters_t SearchParameters{
         .vendorID = PCI_SEARCH_NO_PARAMETER,

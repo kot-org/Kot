@@ -19,6 +19,7 @@ int memcmp(const void *aptr, const void *bptr, size64_t size);
 void memcpy(uintptr_t destination, uintptr_t source, size64_t size);
 uintptr_t getFreeAlignedSpace(size64_t size);
 uintptr_t MapPhysical(uintptr_t physicalAddress, size64_t size);
+uintptr_t GetPhysical(uintptr_t* physicalAddress, size64_t size);
 
 #if defined(__cplusplus)
 }
