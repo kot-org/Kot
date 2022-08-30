@@ -2,6 +2,7 @@
 #include <core/main.h>
 #include <controller/controller.h>
 
+#define ATA_SECTOR_SIZE                 0x200
 #define ATA_FIS_DRQ                     1 << 3 // Data transfert resquested
 #define ATA_DEV_BUSY                    1 << 7  // Port busy
 
@@ -192,16 +193,12 @@ class Port{
 
         int8_t FindCommandSlot();
 
-        KResult ReadSectors(uint64_t Sector, uint16_t SectorCount, uintptr_t Buffer);
-        KResult WriteSectors(uint64_t Sector, uint16_t SectorCount, uintptr_t Buffer);
+        KResult Read(uint64_t Start, size64_t Size, uintptr_t Buffer);
+        KResult Write(uint64_t Start, size64_t Size, uintptr_t Buffer);
 
-        KResult GetIdentifyInfo();
         uint64_t GetSize();
         uint16_t* GetModelNumber();
         uint16_t* GetSerialNumber();
-
-        KResult Read(uint64_t Start, size64_t Size, uintptr_t Buffer);
-        KResult Write(uint64_t Start, size64_t Size, uintptr_t Buffer);
 
         class AHCIController* Controller;
         struct HBAPort_t* HbaPort;
@@ -212,10 +209,11 @@ class Port{
         struct HBACommandTable_t* CommandAddressTable[HBA_COMMAND_LIST_MAX_ENTRIES];
 
         uintptr_t BufferVirtual;
-        uintptr_t BufferPhysical;
         size64_t BufferSize;
 
         IdentifyInfo_t* IdentifyInfo;
 
         uint64_t Lock;
+    private:
+        KResult GetIdentifyInfo();
 };

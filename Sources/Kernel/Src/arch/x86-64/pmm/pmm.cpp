@@ -160,6 +160,7 @@ void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
 
             memcpy(NewFreeListInfo, FreeListInfoNext, sizeof(freelistinfo_t));
             NewFreeListInfo->PageSize += pageCount;
+            NewFreeListInfo->IndexStart = index;
             NewFreeListInfo->Header.End->Start = NewFreeListInfo;
         }
     }else if(IsLastFree){

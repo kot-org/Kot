@@ -426,7 +426,7 @@ pagetable_t vmm_SetupProcess(){
     
     uint64_t VirtualAddress = (uint64_t)vmm_GetVirtualAddress(PageTable);
     vmm_SetFlags(vmm_PageTable, (uintptr_t)VirtualAddress, vmm_flag::vmm_Master, true);
-    vmm_SetFlags(vmm_PageTable, (uintptr_t)VirtualAddress, vmm_flag::vmm_PhysicalStorage, false);
+    vmm_SetFlags(vmm_PageTable, (uintptr_t)VirtualAddress, vmm_flag::vmm_PhysicalStorage, true);
     vmm_SetFlags(vmm_PageTable, (uintptr_t)VirtualAddress, vmm_flag::vmm_Slave, true);
     return PageTable;   
 }
@@ -442,7 +442,7 @@ pagetable_t vmm_Setupthread(pagetable_t parent){
 
     /* identify this address as paging entry */
     vmm_SetFlags(vmm_PageTable, (uintptr_t)VirtualAddress, vmm_flag::vmm_Master, true);
-    vmm_SetFlags(vmm_PageTable, (uintptr_t)VirtualAddress, vmm_flag::vmm_PhysicalStorage, false);
+    vmm_SetFlags(vmm_PageTable, (uintptr_t)VirtualAddress, vmm_flag::vmm_PhysicalStorage, true);
     vmm_SetFlags(vmm_PageTable, (uintptr_t)VirtualAddress, vmm_flag::vmm_Slave, true);
     return PageTable;      
 }

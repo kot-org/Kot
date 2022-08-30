@@ -58,9 +58,6 @@ bool CheckAddress(uintptr_t address, size64_t size, uintptr_t pagingEntry){
         if(!vmm_GetFlags(pagingEntry, (uintptr_t)AddressItinerator, vmm_flag::vmm_Present)){
             return false;
         } 
-        if(!vmm_GetFlags(pagingEntry, (uintptr_t)AddressItinerator, vmm_flag::vmm_PhysicalStorage)){
-            return false;
-        } 
         AddressItinerator += PAGE_SIZE;
     }
 
