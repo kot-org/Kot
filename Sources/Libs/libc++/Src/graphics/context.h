@@ -4,83 +4,86 @@
 #include <kot/utils/map.h>
 #include <kot/cstring.h>
 
-typedef struct {
-    uint32_t x;
-    uint32_t y;
-} pos_t;
+namespace std {
 
-class Context {
-private:
+    typedef struct {
+        uint32_t x;
+        uint32_t y;
+    } pos_t;
 
-    uint32_t x = 0;
-    uint32_t y = 0;
-    
-    vector_t* poses;
-    bool _auto = false;
-    bool _scaling = false;
+    class Context {
+    private:
 
-    uint16_t scale;
+        uint32_t x = 0;
+        uint32_t y = 0;
+        
+        vector_t* poses;
+        bool _auto = false;
+        bool _scaling = false;
 
-    uintptr_t fb_addr;
-    size64_t fb_size;
-    uint32_t width;
-    uint32_t height;
-    uint32_t pitch;
-    uint8_t bpp = 32;
-    uint8_t btpp = 4; // bpp / 8
+        uint16_t scale;
 
-    void subSeqCircle(uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour);
+        uintptr_t fb_addr;
+        size64_t fb_size;
+        uint32_t width;
+        uint32_t height;
+        uint32_t pitch;
+        uint8_t bpp = 32;
+        uint8_t btpp = 4; // bpp / 8
 
-public:
+        void subSeqCircle(uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour);
 
-    Context(uintptr_t fb_addr, uint32_t width, uint32_t height);
+    public:
 
-    void putPixel(uint32_t x, uint32_t y, uint32_t colour);
-    int8_t pixelExist(uint32_t x, uint32_t y);
-    uint32_t getPixel(uint32_t x, uint32_t y);
+        Context(uintptr_t fb_addr, uint32_t width, uint32_t height);
 
-    void fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);
-    void fillGradientRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t fromColor, uint32_t toColor);
-    void drawRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);
-    void drawLine(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour);
+        void putPixel(uint32_t x, uint32_t y, uint32_t colour);
+        int8_t pixelExist(uint32_t x, uint32_t y);
+        uint32_t getPixel(uint32_t x, uint32_t y);
 
-    void drawCircle(uint32_t xc, uint32_t yc, uint32_t radius, uint32_t colour);
+        void fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);
+        void drawRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);
+        void drawLine(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour);
 
-    void fill(uint32_t x, uint32_t y, uint32_t colour);
-    void fill(uint32_t x, uint32_t y, uint32_t colour, uint32_t border);
+        void drawCircle(uint32_t xc, uint32_t yc, uint32_t radius, uint32_t colour);
 
-    // path function
+        void fill(uint32_t x, uint32_t y, uint32_t colour);
+        void fill(uint32_t x, uint32_t y, uint32_t colour, uint32_t border);
 
-    void draw(uint32_t colour);
+        // path function
 
-    void abs_pos(uint32_t x, uint32_t y);
-    void rel_pos(uint32_t x, uint32_t y);
+        void draw(uint32_t colour);
 
-    void add_pos();
-    void end_path();
-    void reset();
+        void abs_pos(uint32_t x, uint32_t y);
+        void rel_pos(uint32_t x, uint32_t y);
 
-    pos_t* get_pos(uint16_t index);
+        void add_pos();
+        void end_path();
+        void reset();
 
-    void auto_pos(bool _auto);
-    void scale_pos(bool _scaling);
+        pos_t* get_pos(uint16_t index);
 
-    uint16_t get_scale();
+        void auto_pos(bool _auto);
+        void scale_pos(bool _scaling);
 
-    // framebuffer function
+        uint16_t get_scale();
 
-    void swapTo(uintptr_t to);
-    void swapFrom(uintptr_t from);
-    void swapTo(Context* to);
-    void swapFrom(Context* from);
-    
-    void clear();
-    void clear(uint32_t colour);
+        // framebuffer function
 
-    uintptr_t getFramebuffer();
+        void swapTo(uintptr_t to);
+        void swapFrom(uintptr_t from);
+        void swapTo(Context* to);
+        void swapFrom(Context* from);
+        
+        void clear();
+        void clear(uint32_t colour);
 
-    uint32_t getPitch() {
-        return this->pitch;
-    }
+        uintptr_t getFramebuffer();
 
-};
+        uint32_t getPitch() {
+            return this->pitch;
+        }
+
+    };
+
+}

@@ -2,34 +2,36 @@
 
 Window::Window(process_t orb, uint32_t width, uint32_t height, int32_t xPos, int32_t yPos) {
 
-    this->width = width;
-    this->height = height;
+    this->fb = (framebuffer_t*) calloc(sizeof(framebuffer_t));
+
+    this->fb->width = width;
+    this->fb->height = height;
     this->xPos = xPos;
     this->yPos = yPos;
 
-    this->pitch = width * this->btpp;
-    this->fb_size = this->pitch * height;
+    this->fb->pitch = width * 4;
+    this->fb->size = fb->pitch * height;
 
-    uintptr_t address = getFreeAlignedSpace(this->fb_size);
+    uintptr_t address = getFreeAlignedSpace(this->fb->size);
     ksmem_t key = NULL;
-    Sys_CreateMemoryField(orb, this->fb_size, &address, &key, MemoryFieldTypeShareSpaceRW);
+    Sys_CreateMemoryField(orb, this->fb->size, &address, &key, MemoryFieldTypeShareSpaceRW);
     ksmem_t KeyShare = NULL;
     uint64_t Flags = NULL;
     Keyhole_SetFlag(&Flags, KeyholeFlagPresent, true);
     Sys_Keyhole_CloneModify(key, &KeyShare, NULL, Flags, PriviledgeApp);
 
-    this->fb_addr = address;
+    this->fb->addr = address;
     this->fb_key = KeyShare;
 
     this->owner = Sys_GetProcess();
 
     // clear window buffer
-    memset(address, 0x00, this->fb_size);
+    memset(address, 0x00, this->fb->size);
 
 }
 
-uintptr_t Window::getFramebuffer() {
-    return this->fb_addr;
+framebuffer_t* Window::getFramebuffer() {
+    return this->fb;
 }
 
 ksmem_t Window::getFramebufferKey() {
@@ -44,8 +46,16 @@ void Window::border(bool val) {
     this->Sborder = val;
 }
 
+bool Window::hasBorder() {
+    return this->Sborder;
+}
+
+bool Window::isVisible() {
+    return Sshow;
+}
+
 void Window::destroy() {
-    this->Sshow = false;
+    Sshow = false;
     // todo: free shared framebuffer
 }
 
@@ -59,25 +69,29 @@ void Window::move(int32_t xPos, int32_t yPos) {
 }
 
 uint32_t Window::getHeight() {
-    return this->height;
+    return fb->height;
 }
 
 uint32_t Window::getWidth() {
-    return this->width;
-}
-
-uint32_t Window::getPitch() {
-    return this->pitch;
+    return fb->width;
 }
 
 int32_t Window::getX() {
-    return this->xPos;
+    return xPos;
 }
 
 int32_t Window::getY() {
-    return this->yPos;
+    return yPos;
 }
 
 process_t Window::getOwner() {
-    return this->owner;
+    return owner;
+}
+
+FocusState Window::getFocusState() {
+    return focus_state;
+}
+
+void Window::setFocusState(FocusState focus_state) {
+    this->focus_state = focus_state;
 }

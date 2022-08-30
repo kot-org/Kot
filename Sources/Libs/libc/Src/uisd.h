@@ -53,9 +53,12 @@ typedef struct {
     uisd_controller_t ControllerHeader;
 
     thread_t CreateWindow;
+    thread_t DestroyWindow;
     thread_t GetFramebuffer;
     thread_t GetWidth;
     thread_t GetHeight;
+    thread_t Show;
+    thread_t Hide;
 
 } uisd_graphics_t;
 

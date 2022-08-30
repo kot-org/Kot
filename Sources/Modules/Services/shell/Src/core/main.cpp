@@ -3,21 +3,26 @@
 #include <kot++/java/se8/jvm.h>
 using namespace SE8;
 
-uintptr_t fb;
-uint32_t fb_height;
+std::framebuffer_t* fb;
 psf1_font* zap_light16;
 
 void shell_print(char* str) {
     static uint32_t x = 0;
     static uint32_t y = 10;
-    psf1_print(zap_light16, fb, fb_height, str, &x, &y, 0xffffffff);
+    psf1_print(zap_light16, fb->addr, fb->height, str, &x, &y, 0xffffff);
 }
 
 extern "C" int main() {
 
     uint32_t wid = orb::Create(300, 300, 10, 10);
     fb = orb::GetFramebuffer(wid);
-    fb_height = 300;
+    orb::Show(wid);
+
+    // _ [] X buttons
+    std::drawLine(fb, fb->width-17, 17, fb->width-7, 7, 0xffffff);
+    std::drawLine(fb, fb->width-7, 17, fb->width-17, 7, 0xffffff);
+    std::drawRect(fb, fb->width-35, 7, 10, 10, 0xffffff);
+    std::drawLine(fb, fb->width-53, 17, fb->width-43, 17, 0xffffff);
 
     srv_system_callback_t* callback1 = Srv_System_ReadFileInitrd("zap-light16.psf", true);
     zap_light16 = psf1_parse(callback1->Data);

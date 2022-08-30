@@ -4,6 +4,8 @@
 #include <kot/utils.h>
 #include <kot/types.h>
 
+#include <kot++/graphics/utils.h>
+
 namespace orb {
 
     uisd_graphics_t* OrbSrv = NULL; 
@@ -27,7 +29,9 @@ namespace orb {
 
     void Destroy(uint32_t wid) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
-        /* TODO */
+        arguments_t arguments;
+        arguments.arg[0] = wid;
+        Sys_Execthread(OrbSrv->DestroyWindow, &arguments, ExecutionTypeQueuAwait, NULL);
     }
 
     uint32_t GetWidth(uint32_t wid) {
@@ -46,25 +50,35 @@ namespace orb {
         return result;
     }
 
-    uintptr_t GetFramebuffer(uint32_t wid) {
+    std::framebuffer_t* GetFramebuffer(uint32_t wid) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
+        std::framebuffer_t* fb = (std::framebuffer_t*) calloc(sizeof(std::framebuffer_t));
+        fb->height = GetHeight(wid);
+        fb->width = GetWidth(wid);
+        fb->pitch = fb->width * 4;
+        fb->size = fb->pitch * fb->height;
         arguments_t arguments;
         arguments.arg[0] = wid;
         ksmem_t MemoryShare = Sys_Execthread(OrbSrv->GetFramebuffer, &arguments, ExecutionTypeQueuAwait, NULL);
-        uintptr_t addressReceiveShare = getFreeAlignedSpace(GetWidth(wid) * GetHeight(wid) * 4);
+        uintptr_t addressReceiveShare = getFreeAlignedSpace(fb->size);
         process_t proc = Sys_GetProcess();
         Sys_AcceptMemoryField(proc, MemoryShare, &addressReceiveShare);
-        return addressReceiveShare;
+        fb->addr = addressReceiveShare;
+        return fb;
     } 
 
     void Hide(uint32_t wid) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
-        /* TODO */
+        arguments_t arguments;
+        arguments.arg[0] = wid;
+        Sys_Execthread(OrbSrv->Hide, &arguments, ExecutionTypeQueuAwait, NULL);
     }
 
     void Show(uint32_t wid) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
-        /* TODO */
+        arguments_t arguments;
+        arguments.arg[0] = wid;
+        Sys_Execthread(OrbSrv->Show, &arguments, ExecutionTypeQueuAwait, NULL);
     }
 
     void Resize(uint32_t wid, uint32_t width, uint32_t height) {
