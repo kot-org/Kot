@@ -293,22 +293,25 @@ KResult PCIDevice_t::SetupMSI(uint8_t IRQVector, uint16_t localDeviceVector){
                     Table->Control &= ~(1 << 0); // clear first to unmasked MSI
                     Table->Address = 0xFEE00000; // processor is null here
                     Table->Data = IRQVector; 
+                    SendConfigurationSpace();
+                    return KSUCCESS;
                 }
-                return KSUCCESS;
             }else if(CapabilityMSI){
                 if(CapabilityMSI->MSI.Control & (1 << 7)){ // check if support 64 bits
                     CapabilityMSI->MSI.Address = 0xFEE00000; // processor is null here
                     CapabilityMSI->MSI.Data = IRQVector; 
                     CapabilityMSI->MSI.Control |= 1 << 0;                   
                     CapabilityMSI->MSI.Control &= ~(0b111 << 4); // set 0 for MME
+                    SendConfigurationSpace();
+                    return KSUCCESS;
                 }
-                return KSUCCESS;
             }
             break;
         }    
         default:
             break;
     }
+    return KFAIL;
 }
 
 /* Version specific */
