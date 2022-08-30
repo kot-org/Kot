@@ -182,7 +182,7 @@ uintptr_t PCIDevice_t::GetBarAddress(uint8_t index){
     return NULL;
 }
 
-size64_t PCIDevice_t::GetBarSize(uintptr_t addresslow){
+size64_t PCIDevice_t::GetBarSizeWithAddress(uintptr_t addresslow){
     uint32_t BARValueLow = *(uint32_t*)addresslow;
     uint8_t Type = GetBarTypeWithBARValue(BARValueLow);
 
@@ -201,6 +201,7 @@ size64_t PCIDevice_t::GetBarSize(uintptr_t addresslow){
             SizeLow &= 0xFFFFFFF0;
         }
 
+
         uint32_t SizeHigh = 0xFFFFFFFF;
 
         if(Type == PCI_BAR_TYPE_64){
@@ -214,13 +215,19 @@ size64_t PCIDevice_t::GetBarSize(uintptr_t addresslow){
             /* Read bar high */
             ReceiveConfigurationSpace();
             SizeHigh = *(uint32_t*)addresshigh;
-            *(uint32_t*)addresshigh = BARValueHigh;       
+
+            /* Restore value */
+            *(uint32_t*)addresshigh = BARValueHigh;   
+            SendConfigurationSpace();    
         }
 
+        /* Restore value */
         *(uint32_t*)addresslow = BARValueLow;
+        SendConfigurationSpace();
 
-        uint64_t Size = SizeLow | (SizeHigh << 32);
-        return (~Size + 1);
+        uint64_t Size = ((uint64_t)(SizeHigh & 0xFFFFFFFF) << 32) | (SizeLow & 0xFFFFFFFF);
+        Size = ~Size + 1;
+        return Size;
     }
 
     return NULL;
@@ -232,7 +239,7 @@ size64_t PCIDevice_t::GetBarSize(uint8_t index){
         case 0x0:{
             if(index < 6){
                 PCIHeader0_t* Header0 = (PCIHeader0_t*)Header;
-                return GetBarSize(&Header0->BAR[index]);
+                return GetBarSizeWithAddress(&Header0->BAR[index]);
             }
             break;
         }    
@@ -256,6 +263,55 @@ uint8_t PCIDevice_t::GetBarType(uint8_t index){
             break;
     }
     return NULL;
+}
+
+KResult PCIDevice_t::SetupMSI(uint8_t IRQVector, uint16_t localDeviceVector){
+    PCIDeviceHeader_t* Header = (PCIDeviceHeader_t*)ConfigurationSpace;
+    switch (Header->HeaderType & 0x7F){
+        case 0x0:{
+            PCIHeader0_t* Header0 = (PCIHeader0_t*)Header;
+            uint8_t CapabilityOffset = Header0->CapabilitiesPtr;
+            PCICapability_t* Capability = (PCICapability_t*)((uint64_t)Header + (uint64_t)CapabilityOffset);
+            PCICapability_t* CapabilityMSI = NULL;
+            PCICapability_t* CapabilityMSIX = NULL;
+            while(CapabilityOffset){
+                CapabilityOffset = Capability->CapabilityNext;
+                if(Capability->CapabilityID == PCICapabilitiesMSI){
+                    CapabilityMSI = Capability;
+                } else if(Capability->CapabilityID == PCICapabilitiesMSIX){
+                    CapabilityMSIX = Capability;
+                    break;
+                }
+                Capability = (PCICapability_t*)((uint64_t)Header + (uint64_t)CapabilityOffset);
+            }
+            if(CapabilityMSIX){
+                CapabilityMSI->MSIX.Control |= 1 << 15; // enable MsiX
+                uint64_t TableAddress = ((uint64_t)MapPhysical(GetBarAddress(CapabilityMSIX->MSIX.BIR), GetBarSize(CapabilityMSIX->MSIX.BIR)) + (uint64_t)CapabilityMSIX->MSIX.TableOffset);
+                uint16_t Entries = CapabilityMSI->MSIX.Control & 0x7FF;
+                if(Entries <= localDeviceVector){
+                    PCIMSIXTable_t* Table = (PCIMSIXTable_t*)(TableAddress + sizeof(PCIMSIXTable_t) * localDeviceVector);
+                    Table->Control &= ~(1 << 0); // clear first to unmasked MSI
+                    Table->Address = 0xFEE00000; // processor is null here
+                    Table->Data = IRQVector; 
+                    SendConfigurationSpace();
+                    return KSUCCESS;
+                }
+            }else if(CapabilityMSI){
+                if(CapabilityMSI->MSI.Control & (1 << 7)){ // check if support 64 bits
+                    CapabilityMSI->MSI.Address = 0xFEE00000; // processor is null here
+                    CapabilityMSI->MSI.Data = IRQVector; 
+                    CapabilityMSI->MSI.Control |= 1 << 0;                   
+                    CapabilityMSI->MSI.Control &= ~(0b111 << 4); // set 0 for MME
+                    SendConfigurationSpace();
+                    return KSUCCESS;
+                }
+            }
+            break;
+        }    
+        default:
+            break;
+    }
+    return KFAIL;
 }
 
 /* Version specific */

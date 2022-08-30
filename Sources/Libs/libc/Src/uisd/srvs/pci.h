@@ -59,6 +59,7 @@ struct srv_pci_callback_t* Srv_Pci_CountDevices(srv_pci_search_parameters_t* Sea
 struct srv_pci_callback_t* Srv_Pci_FindDevice(srv_pci_search_parameters_t* SearchParameters, uint64_t Index, bool IsAwait);
 struct srv_pci_callback_t* Srv_Pci_GetInfoDevice(PCIDeviceID_t Device, bool IsAwait);
 struct srv_pci_callback_t* Srv_Pci_GetBAR(PCIDeviceID_t Device, uint8_t BarIndex, bool IsAwait);
+struct srv_pci_callback_t* Srv_Pci_SetupMSI(PCIDeviceID_t Device, uint8_t IRQVector, uint16_t LocalDeviceVector, bool IsAwait);
 
 
 #if defined(__cplusplus)

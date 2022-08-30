@@ -6,6 +6,7 @@ QEMUFLAGS =	-no-reboot 										\
 			-cpu qemu64 									\
 			-smp 8 											\
 			-cdrom ./Bin/kot.iso							\
+			-drive file=./Bin/hdd.img						\
 			-m 3G											\
 			-netdev user,id=n0 -device rtl8139,netdev=n0 	\
 			-usb                                            \

@@ -67,3 +67,17 @@ uintptr_t MapPhysical(uintptr_t physicalAddress, size64_t size){
     ReturnValue |= (uint64_t)physicalAddress & 0xFFF;
     return ReturnValue;
 }
+
+void MapPhysicalToVirtual(uintptr_t virtualAddress, uintptr_t* physicalAddress, size64_t size){
+    Sys_Map(Sys_GetProcess(), (uintptr_t*)&virtualAddress, AllocationTypePhysicalContiguous, physicalAddress, &size, false);
+}
+
+uintptr_t GetPhysical(uintptr_t* physicalAddress, size64_t size){
+    uint64_t ReturnValue = (uint64_t)getFreeAlignedSpace(size);
+    Sys_Map(Sys_GetProcess(), (uintptr_t*)&ReturnValue, AllocationTypePhysicalContiguous, physicalAddress, &size, false);
+    return ReturnValue;
+}
+
+void FreeAddress(uintptr_t virtualAddress, size64_t size){
+    Sys_Unmap(Sys_GetProcess(), virtualAddress, size);
+}
