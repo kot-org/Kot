@@ -1,6 +1,7 @@
 #pragma once
 
 #include <kot/sys.h>
+#include <kot/atomic.h>
 #include <kot++/printf.h>
 #include <kot/uisd/srvs/pci.h>
 #include <controller/controller.h>

@@ -218,9 +218,7 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
             uint64_t virtualAddressParentIterator = (uint64_t)shareInfo->VirtualAddressParent;
             uint64_t virtualAddressIterator = (uint64_t)virtualAddress;
             uint64_t i = 0;
-            if(pageTable == (uintptr_t)0x1265000 && size == 8184){
-                asm("nop");
-            }
+
             if(virtualAddressParentIterator % PAGE_SIZE){
                 uint64_t sizeToCopy = 0;
                 if(size > PAGE_SIZE - (virtualAddressParentIterator % PAGE_SIZE)){
