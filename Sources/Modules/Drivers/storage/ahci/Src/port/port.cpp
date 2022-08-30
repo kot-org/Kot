@@ -26,9 +26,12 @@ Port::Port(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8_t I
     BufferSize = 0x1000;
     BufferVirtual = GetPhysical((uintptr_t*)&BufferPhysical, BufferSize);
 
-    char* buffer = (char*)malloc(0x1000);
+    char* buffer = (char*)calloc(0x1000);
     KResult status = Read(0x0, 0x8, buffer);
-    std::printf("%x %x %s", PortType, status, buffer);
+    for(uint64_t i = 0; i < 0x1000; i++){
+        std::printf("%c", *buffer++);
+    }
+    std::printf("%x %x", PortType, status);
 }
 
 Port::~Port(){
@@ -56,12 +59,10 @@ void Port::StartCMD(){
 }
 
 KResult Port::Read(uint64_t Sector, uint16_t SectorCount, uintptr_t Buffer){
-    memcpy(BufferVirtual, Buffer, SectorCount * 512); // copy data to DMA buffer
-
     uint32_t SectorLow = (uint32_t)Sector & 0xFFFFFFFF;
     uint32_t sectorHigh = (uint32_t)(Sector >> 32) & 0xFFFFFFFF;
 
-    HbaPort->InterruptStatus = NULL; // Clear pending interrupt bits
+    HbaPort->InterruptStatus = (uint32_t)-1; // Clear pending interrupt bits
 
     CommandHeader->CommandFISLength = sizeof(FisHostToDeviceRegisters_t) / sizeof(uint32_t); //command FIS size;
     CommandHeader->Atapi = (PortType == PortTypeEnum::SATAPI);
@@ -69,6 +70,7 @@ KResult Port::Read(uint64_t Sector, uint16_t SectorCount, uintptr_t Buffer){
     CommandHeader->PrdtLength = 1;
 
     HBACommandTable_t* CommandTable = CommandAddressTable[0];
+    memset(CommandTable, 0, sizeof(HBACommandTable_t) + (CommandHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry_t));
 
     CommandTable->PrdtEntry[0].DataBaseAddress = (uint64_t)BufferPhysical;
     CommandTable->PrdtEntry[0].ByteCount = (SectorCount << 9) - 1; // 512 bytes per sector
@@ -107,21 +109,22 @@ KResult Port::Read(uint64_t Sector, uint16_t SectorCount, uintptr_t Buffer){
     CommandFIS->CountHigh = (SectorCount >> 8) & 0xFF;
 
     uint64_t spin = 0;
-    while ((HbaPort->TaskFileData & (ATA_DEV_BUSY | ATA_FIS_DRQ)) && spin < ATA_CMD_TIMEOUT){
+    while((HbaPort->TaskFileData & (ATA_DEV_BUSY | ATA_FIS_DRQ)) && spin < ATA_CMD_TIMEOUT){
         spin++;
     }
-    if (spin == ATA_CMD_TIMEOUT){
+    if(spin == ATA_CMD_TIMEOUT){
         return KFAIL;
     }
 
     HbaPort->CommandIssue = 1;
 
     while (true){
-        if((HbaPort->CommandIssue == 0)) break;
+        if(HbaPort->CommandIssue == 0) break;
         if(HbaPort->InterruptStatus & HBA_INTERRUPT_STATU_TFE){
             return KFAIL;
         }
     }
 
+    memcpy(Buffer, BufferVirtual, SectorCount * 512); // copy data to DMA buffer
     return KSUCCESS;
 }
