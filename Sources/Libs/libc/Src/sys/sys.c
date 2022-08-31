@@ -50,6 +50,10 @@ KResult Sys_Unmap(thread_t self, uintptr_t addressVirtual, size64_t size){
     return Syscall_24(KSys_Unmap, self, addressVirtual, size);
 }
 
+uintptr_t Sys_GetPhysical(uintptr_t addressVirtual){
+    return Syscall_8(KSys_GetPhysical, addressVirtual);
+}
+
 KResult Sys_Event_Create(event_t* self){
     return Syscall_8(KSys_Event_Create, self);
 }

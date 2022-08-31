@@ -62,7 +62,7 @@ struct ShareDataWithArguments_t{
 
 enum DataType{
     DataTypeUnknow              = 0x0,
-    DataTypethread              = 0x1,
+    DataTypeThread              = 0x1,
     DataTypeProcess             = 0x2,
     DataTypeEvent               = 0x3,
     DataTypeSharedMemory        = 0x4,
@@ -116,6 +116,7 @@ KResult Sys_Pause(bool force);
 KResult Sys_Unpause(thread_t self);
 KResult Sys_Map(process_t self, uint64_t* addressVirtual, enum AllocationType type, uintptr_t* addressPhysical, size64_t* size, bool findFree);
 KResult SYS_Unmap(process_t self, uintptr_t addressVirtual, size64_t size);
+uintptr_t Sys_GetPhysical(uintptr_t addressVirtual);
 KResult Sys_Event_Create(event_t* self);
 KResult Sys_Event_Bind(event_t self, thread_t task, bool IgnoreMissedEvents);
 KResult Sys_Event_Unbind(event_t self, thread_t task);

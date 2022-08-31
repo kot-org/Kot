@@ -108,7 +108,7 @@ thread_t MakeShareableThread(thread_t Thread, enum Priviledge priviledgeRequired
     thread_t ReturnValue;
     uint64_t UISDKeyFlags = NULL;
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypethreadIsExecutableWithQueue, true);
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeThreadIsExecutableWithQueue, true);
     Sys_Keyhole_CloneModify(Thread, &ReturnValue, NULL, UISDKeyFlags, PriviledgeApp);
     return ReturnValue;
 }
@@ -117,7 +117,7 @@ thread_t MakeShareableThreadUISDOnly(thread_t Thread){
     thread_t ReturnValue;
     uint64_t UISDKeyFlags = NULL;
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypethreadIsExecutableWithQueue, true);
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeThreadIsExecutableWithQueue, true);
     Sys_Keyhole_CloneModify(Thread, &ReturnValue, KotSpecificData.UISDHandlerProcess, UISDKeyFlags, PriviledgeApp);
     return ReturnValue;
 }
@@ -126,7 +126,7 @@ thread_t MakeShareableThreadToProcess(thread_t Thread, process_t Process){
     thread_t ReturnValue;
     uint64_t UISDKeyFlags = NULL;
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypethreadIsExecutableWithQueue, true);
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeThreadIsExecutableWithQueue, true);
     Sys_Keyhole_CloneModify(Thread, &ReturnValue, Process, UISDKeyFlags, PriviledgeApp);
     return ReturnValue;
 }

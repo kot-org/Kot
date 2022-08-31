@@ -1,4 +1,4 @@
-#define Syscall_Count 0x16 + 1
+#define Syscall_Count 0x17 + 1
 
 #define KSys_CreateMemoryField 0x0
 #define KSys_AcceptMemoryField 0x1
@@ -15,18 +15,19 @@
 
 #define KSys_Map 0xA
 #define KSys_Unmap 0xB
+#define KSys_GetPhysical 0xC
 
-#define KSys_Event_Create 0xC
-#define KSys_Event_Bind 0xD
-#define KSys_Event_Unbind 0xE
-#define KSys_kevent_trigger 0xF
-#define KSys_Event_Close 0x10
+#define KSys_Event_Create 0xD
+#define KSys_Event_Bind 0xE
+#define KSys_Event_Unbind 0xF
+#define KSys_kevent_trigger 0x10
+#define KSys_Event_Close 0x11
 
-#define KSys_CreateThread 0x11
-#define KSys_DuplicateThread 0x12
-#define KSys_ExecThread 0x13
+#define KSys_CreateThread 0x12
+#define KSys_DuplicateThread 0x13
+#define KSys_ExecThread 0x14
 
-#define KSys_Keyhole_CloneModify 0x14
-#define KSys_Keyhole_Verify 0x15
+#define KSys_Keyhole_CloneModify 0x15
+#define KSys_Keyhole_Verify 0x16
 
-#define KSys_Logs 0x16
+#define KSys_Logs 0x17

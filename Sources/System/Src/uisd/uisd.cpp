@@ -10,7 +10,7 @@ thread_t UISDInitialize(process_t* process) {
     thread_t UISDthreadKey;
     uint64_t UISDKeyFlags = NULL;
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypethreadIsExecutableWithQueue, true);
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeThreadIsExecutableWithQueue, true);
 
     process_t proc = Sys_GetProcess();
 

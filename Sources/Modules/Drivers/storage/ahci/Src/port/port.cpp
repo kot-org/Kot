@@ -9,22 +9,27 @@ Port::Port(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8_t I
     // Rebase port
     StopCMD();
     CommandHeader = (HBACommandHeader_t*)GetPhysical((uintptr_t*)&HbaPort->CommandListBase, 1024);
-    memset((uintptr_t)CommandHeader, 0, 1024);
+    memset((uintptr_t)CommandHeader, NULL, 1024);
 
     uintptr_t FISBaseVirtual = GetPhysical((uintptr_t*)&HbaPort->FisBaseAddress, 256);
-    memset(FISBaseVirtual, 0, 256);
-
-    for (int i = 0; i < HBA_COMMAND_LIST_MAX_ENTRIES; i++){
-        CommandHeader[i].PrdtLength = 8;
-        CommandAddressTable[i] = (HBACommandTable_t*)GetPhysical((uintptr_t*)&CommandHeader[i].CommandTableBaseAddress, 256);
-        memset(CommandAddressTable[i], 0, 256);
-    }
-
-    StartCMD();
+    memset(FISBaseVirtual, NULL, 256);
 
     // Allocate buffer
-    BufferSize = 0x1000 * 0x100; // 1 mo
-    BufferVirtual = getFreeAlignedSpace(BufferSize);
+    BufferSize = HBA_PRDT_MAX_ENTRIES * HBA_PRDT_ENTRY_ADDRESS_SIZE;
+    Sys_CreateMemoryField(Proc, BufferSize, &BufferVirtual, &BufferKey, MemoryFieldTypeShareSpaceRW);
+
+    // Load command header 0
+    CommandAddressTable[0] = (HBACommandTable_t*)GetPhysical((uintptr_t*)&CommandHeader[0].CommandTableBaseAddress, HBA_COMMAND_TABLE_SIZE);
+
+    uint64_t BufferInteration = (uint64_t)BufferVirtual;
+    for(size64_t y = 0; y < HBA_PRDT_MAX_ENTRIES; y++){
+        CommandAddressTable[0]->PrdtEntry[y].DataBaseAddress = (uint64_t)Sys_GetPhysical((uintptr_t)BufferInteration);
+        BufferInteration = (uint64_t)BufferVirtual + HBA_PRDT_ENTRY_ADDRESS_SIZE;
+    }
+
+    memset(CommandAddressTable[0], NULL, HBA_COMMAND_TABLE_SIZE);
+
+    StartCMD();
 
     // Be sur to unlock the locker
     atomicUnlock(&Lock, 0);
@@ -36,8 +41,10 @@ Port::Port(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8_t I
     std::printf("%x", GetSize());
 
     uint8_t* buffer = (uint8_t*)malloc(0x10);
-    Read(0x0, 0x10, buffer);
-    
+    Read(0x0, 0x10);
+    for(size64_t i = 0; i < 0x10; i++){
+        std::printf("%d", *buffer++);
+    } 
 }
 
 Port::~Port(){
@@ -64,166 +71,89 @@ void Port::StartCMD(){
     HbaPort->CommandStatus |= HBA_PxCMD_ST;
 }
 
-int8_t Port::FindCommandSlot(){
-	uint32_t slots = (HbaPort->SataActive | HbaPort->CommandIssue);
-	for(int8_t i = 0; i < HBA_COMMAND_LIST_MAX_ENTRIES; i++){
-		if ((slots & 1) == 0){
-			return i;
-        }
-		slots >>= 1;
-	}
-	return -1;
-}
+KResult Port::Read(uint64_t Start, size64_t Size){
+    uint64_t StartAlignement = Start & 0x1FF;
+    uint64_t Sector = Start >> 9;
+    uint64_t SectorCount = DivideRoundUp(Size + StartAlignement, ATA_SECTOR_SIZE);
+    uint64_t PRDTCount = DivideRoundUp(SectorCount, HBA_PRDT_ENTRY_SECTOR_SIZE);
 
-KResult Port::Read(uint64_t Start, size64_t Size, uintptr_t Buffer){
-    uint64_t StaterByteIteration = Start;
-    uint64_t SizeByte = Size;
-    uint64_t EndByte = StaterByteIteration + SizeByte;
-    uint64_t BufferInteration = (uint64_t)Buffer;
-    uint16_t AlignementStart = Start & 0x1FF;
-    uint16_t AlignementStartFill = 0x200 - AlignementStart;
-    uint16_t AlignementEnd = EndByte & 0x1FF;
-    uint16_t AlignementEndFill = 0x200 - AlignementEnd;
-
-    uint64_t SectorIteration = Start & ~((uint64_t)0x1FF);
-
-    uint64_t BlockCount = divideRoundUp(Size + AlignementStart, BufferSize);
-
-    uint64_t SectorToRead = divideRoundUp(BlockCount, ATA_SECTOR_SIZE);
-
-    for(size64_t i = 0; i < BlockCount; i++){
-        uint64_t SizeToRead = Size;
-        uint64_t SectorCount = SectorToRead;
-        uint64_t SectorCountSize = SectorCount << 9;
-        if(SectorCountSize > BufferSize){
-            uint64_t BufferSectorCount = BufferSize >> 9;
-            SectorCount = BufferSectorCount;
-            SizeToRead = BufferSize;
-        }
-
-        atomicAcquire(&Lock, 0);
-
-        uint32_t SectorLow = (uint32_t)SectorIteration & 0xFFFFFFFF;
-        uint32_t sectorHigh = (uint32_t)(SectorIteration >> 32) & 0xFFFFFFFF;
-
-        HbaPort->InterruptStatus = NULL; // Clear pending interrupt bits
-
-        int8_t slot = FindCommandSlot();
-        if(slot == -1){
-            atomicUnlock(&Lock, 0);
-            return KFAIL;
-        }
-
-        CommandHeader->CommandFISLength = sizeof(FisHostToDeviceRegisters_t) / sizeof(uint32_t); // Command FIS size;
-        CommandHeader += slot;
-        CommandHeader->Atapi = 0;
-        CommandHeader->Write = 0; // Read mode
-        CommandHeader->PrdtLength = (uint16_t)((SectorCount - 1) >> 4) + 1;
-
-        HBACommandTable_t* CommandTable = CommandAddressTable[0];
-        memset(CommandTable, 0, sizeof(HBACommandTable_t) + (CommandHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry_t));
-        // Give buffer
-        size64_t SizeToLoad = SizeToRead;
-        for(uint16_t y = 0; y < CommandHeader->PrdtLength; y++){
-            size64_t SizeToLoadInPrdt = SizeToLoad;
-            if(SizeToLoadInPrdt > HBA_PRDT_ENTRY_MAX_SIZE){
-                SizeToLoadInPrdt = HBA_PRDT_ENTRY_MAX_SIZE;
-            }
-            uintptr_t BufferDst = (uintptr_t)((uint64_t)BufferVirtual + y * HBA_PRDT_ENTRY_MAX_SIZE);
-            MapPhysicalToVirtual(BufferDst, (uintptr_t*)&CommandTable->PrdtEntry[i].DataBaseAddress, HBA_PRDT_ENTRY_MAX_SIZE);
-            CommandTable->PrdtEntry[i].ByteCount = SizeToLoadInPrdt - 1; // 512 bytes per sector
-            CommandTable->PrdtEntry[i].InterruptOnCompletion = 1; 
-            if(SizeToLoad == SizeToLoadInPrdt){
-                break;
-            }else{
-                SizeToLoad -= SizeToLoadInPrdt;	
-            }
-        }
-
-        FisHostToDeviceRegisters_t* CommandFIS = (FisHostToDeviceRegisters_t*)(&CommandTable->CommandFIS);
-
-        CommandFIS->FisType = FISTypeEnum::HostToDevice;
-        CommandFIS->CommandControl = 1; // Command
-        CommandFIS->Command = ATACommandEnum::ReadDMA; // Read command
-
-        CommandFIS->Lba0 = (uint8_t)SectorLow;
-        CommandFIS->Lba1 = (uint8_t)(SectorLow >> 8);
-        CommandFIS->Lba2 = (uint8_t)(SectorLow >> 16);
-        CommandFIS->Lba3 = (uint8_t)sectorHigh;
-        CommandFIS->Lba4 = (uint8_t)(sectorHigh >> 8);
-        CommandFIS->Lba4 = (uint8_t)(sectorHigh >> 16);
-
-        CommandFIS->DeviceRegister = 1 << 6; // LBA mode
-
-        CommandFIS->CountLow = SectorCount & 0xFF;
-        CommandFIS->CountHigh = (SectorCount >> 8) & 0xFF;
-
-        uint64_t spin = 0;
-        while((HbaPort->TaskFileData & (ATA_DEV_BUSY | ATA_FIS_DRQ)) && spin < ATA_CMD_TIMEOUT){
-            spin++;
-        }
-        if(spin == ATA_CMD_TIMEOUT){
-            atomicUnlock(&Lock, 0);
-            return KFAIL;
-        }
-
-        HbaPort->CommandIssue = 1 << slot;
-
-        while (true){
-            if((HbaPort->CommandIssue & (1 << slot)) == 0) break;
-            if(HbaPort->InterruptStatus & HBA_INTERRUPT_STATU_TFE){
-                // Free buffer
-                size64_t SizeToFree = SectorCount << 9;
-                for(uint16_t y = 0; y < CommandHeader->PrdtLength; y++){
-                    size64_t SizeInPrdt = SizeToFree;
-                    SizeInPrdt -= AlignementStart;
-                    if(SizeInPrdt > HBA_PRDT_ENTRY_MAX_SIZE){
-                        SizeInPrdt = HBA_PRDT_ENTRY_MAX_SIZE;
-                    }
-                    uintptr_t BufferSrc = (uintptr_t)((uint64_t)BufferVirtual + y * HBA_PRDT_ENTRY_MAX_SIZE);
-                    FreeAddress(BufferSrc, SizeInPrdt);
-                    if(SizeToFree == SizeInPrdt){
-                        break;
-                    }else{
-                        SizeToFree -= SizeInPrdt;	
-                    }
-                }
-                atomicUnlock(&Lock, 0);
-                return KFAIL;
-            }
-        }
-
-        // Get buffer and free
-        size64_t SizeToCopy = SizeToRead;
-        for(uint16_t y = 0; y < CommandHeader->PrdtLength; y++){
-            size64_t SizeInPrdt = SizeToCopy;
-            SizeInPrdt -= AlignementStart;
-            if(SizeInPrdt > HBA_PRDT_ENTRY_MAX_SIZE){
-                SizeInPrdt = HBA_PRDT_ENTRY_MAX_SIZE;
-            }
-            uintptr_t BufferSrc = (uintptr_t)((uint64_t)BufferVirtual + y * HBA_PRDT_ENTRY_MAX_SIZE);
-            uintptr_t BufferDst = (uintptr_t)((uint64_t)BufferInteration + y * HBA_PRDT_ENTRY_MAX_SIZE);
-            memcpy(BufferDst, (uintptr_t)((uint64_t)BufferSrc + (uint64_t)AlignementStart), SizeInPrdt);
-            FreeAddress(BufferSrc, SizeInPrdt);
-            if(SizeToCopy == SizeInPrdt){
-                break;
-            }else{
-                SizeToCopy -= SizeInPrdt;	
-            }
-        }
-
-        atomicUnlock(&Lock, 0);
-
-        SectorToRead -= SectorCount;
-        SectorIteration += SectorCount;
-        BufferInteration += (SectorCount << 9);
+    if(PRDTCount > HBA_PRDT_MAX_ENTRIES){
+        return KFAIL;
     }
 
+    atomicAcquire(&Lock, 0);
+
+    uint32_t SectorLow = (uint32_t)Sector & 0xFFFFFFFF;
+    uint32_t sectorHigh = (uint32_t)(Sector >> 32) & 0xFFFFFFFF;
+
+    HbaPort->InterruptStatus = NULL; // Clear pending interrupt bits
+
+    CommandHeader->CommandFISLength = sizeof(FisHostToDeviceRegisters_t) / sizeof(uint32_t); // Command FIS size;
+    CommandHeader->Atapi = 0;
+    CommandHeader->Write = 0; // Read mode
+    CommandHeader->PrdtLength = PRDTCount;
+
+    HBACommandTable_t* CommandTable = CommandAddressTable[0];
+
+    // Load PRDT
+
+    uint64_t SectorCountIteration = SectorCount;
+
+    for(uint16_t i = 0; i < CommandHeader->PrdtLength; i++){
+        uint64_t SectorCountToLoad = SectorCountIteration;
+        if(SectorCountToLoad > HBA_PRDT_ENTRY_SECTOR_SIZE){
+            SectorCountToLoad = HBA_PRDT_ENTRY_SECTOR_SIZE;
+        }
+
+        CommandTable->PrdtEntry[i].ByteCount = (SectorCountToLoad << 9) - 1; // 512 bytes per sector
+        CommandTable->PrdtEntry[i].InterruptOnCompletion = 1; 
+
+        SectorCountIteration -= SectorCountToLoad;
+	}
+
+    FisHostToDeviceRegisters_t* CommandFIS = (FisHostToDeviceRegisters_t*)(&CommandTable->CommandFIS);
+
+    CommandFIS->FisType = FISTypeEnum::HostToDevice;
+    CommandFIS->CommandControl = 1; // Command
+    CommandFIS->Command = ATACommandEnum::ReadDMA; // Read command
+
+    CommandFIS->Lba0 = (uint8_t)SectorLow;
+    CommandFIS->Lba1 = (uint8_t)(SectorLow >> 8);
+    CommandFIS->Lba2 = (uint8_t)(SectorLow >> 16);
+    CommandFIS->Lba3 = (uint8_t)sectorHigh;
+    CommandFIS->Lba4 = (uint8_t)(sectorHigh >> 8);
+    CommandFIS->Lba4 = (uint8_t)(sectorHigh >> 16);
+
+    CommandFIS->DeviceRegister = 1 << 6; // LBA mode
+
+    CommandFIS->CountLow = SectorCount & 0xFF;
+    CommandFIS->CountHigh = (SectorCount >> 8) & 0xFF;
+
+    uint64_t spin = 0;
+    while((HbaPort->TaskFileData & (ATA_DEV_BUSY | ATA_FIS_DRQ)) && spin < ATA_CMD_TIMEOUT){
+        spin++;
+    }
+    if(spin == ATA_CMD_TIMEOUT){
+        atomicUnlock(&Lock, 0);
+        return KFAIL;
+    }
+
+    HbaPort->CommandIssue = 1;
+
+    while (true){
+        if((HbaPort->CommandIssue & 1) == 0) break;
+        if(HbaPort->InterruptStatus & HBA_INTERRUPT_STATU_TFE){
+            atomicUnlock(&Lock, 0);
+            return KFAIL;
+        }
+    }
+
+    atomicUnlock(&Lock, 0);   
 
     return KSUCCESS;
 }
 
-KResult Port::Write(uint64_t Start, size64_t Size, uintptr_t Buffer){
+KResult Port::Write(uint64_t Start, size64_t Size){
     // atomicAcquire(&Lock, 0);
 
     // memcpy(BufferVirtual, Buffer, SectorCount << 9); // Copy data to DMA buffer
@@ -311,13 +241,7 @@ KResult Port::GetIdentifyInfo(){
 
     HbaPort->InterruptStatus = NULL; // Clear pending interrupt bits
 
-    int8_t slot = FindCommandSlot();
-    if(slot == -1){
-        return KFAIL;
-    }
-
     CommandHeader->CommandFISLength = sizeof(FisHostToDeviceRegisters_t) / sizeof(uint32_t); // Command FIS size;
-    CommandHeader += slot;
     CommandHeader->Atapi = 0;
     CommandHeader->Write = 0; // Read mode
     CommandHeader->PrdtLength = 1;
@@ -344,10 +268,10 @@ KResult Port::GetIdentifyInfo(){
         return KFAIL;
     }
 
-    HbaPort->CommandIssue = 1 << slot;
+    HbaPort->CommandIssue = 1;
 
     while (true){
-        if((HbaPort->CommandIssue & (1 << slot)) == 0) break;
+        if((HbaPort->CommandIssue & 1) == 0) break;
         if(HbaPort->InterruptStatus & HBA_INTERRUPT_STATU_TFE){
             atomicUnlock(&Lock, 0);
             return KFAIL;

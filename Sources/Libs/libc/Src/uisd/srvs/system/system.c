@@ -183,7 +183,7 @@ struct srv_system_callback_t* Srv_System_BindIRQLine(uint8_t IRQLineNumber, thre
     uint64_t TargetShareKey = NULL;
     uint64_t UISDKeyFlags = NULL;
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypethreadIsEventable, true);
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeThreadIsEventable, true);
     Sys_Keyhole_CloneModify(Target, &TargetShareKey, SystemData->ControllerHeader.Process, UISDKeyFlags, PriviledgeApp);
 
     struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
@@ -226,7 +226,7 @@ struct srv_system_callback_t* Srv_System_BindFreeIRQ(uint8_t IRQLineNumber, thre
     uint64_t TargetShareKey = NULL;
     uint64_t UISDKeyFlags = NULL;
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypethreadIsEventable, true);
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeThreadIsEventable, true);
     Sys_Keyhole_CloneModify(Target, &TargetShareKey, SystemData->ControllerHeader.Process, UISDKeyFlags, PriviledgeApp);
 
     struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));

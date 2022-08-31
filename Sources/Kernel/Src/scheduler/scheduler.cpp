@@ -449,7 +449,7 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge privil
     uintptr_t threadDataPA = Pmm_RequestPage();
     thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
-    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypethread, (uint64_t)thread, DefaultFlagsKey, PriviledgeApp);
+    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey, PriviledgeApp);
     vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
     
     thread->threadData->ProcessKey = ProcessKey;
@@ -522,7 +522,7 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
     uintptr_t threadDataPA = Pmm_RequestPage();
     thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
-    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypethread, (uint64_t)thread, DefaultFlagsKey, PriviledgeApp);
+    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey, PriviledgeApp);
     vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
     
     thread->threadData->ProcessKey = ProcessKey;
