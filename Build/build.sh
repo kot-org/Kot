@@ -35,6 +35,7 @@ make -C "Modules/Drivers/bus/pci/Build"
 make -C "Modules/Drivers/bus/ps2/Build"
 make -C "Modules/Drivers/bus/usb/ehci/Build"
 
+make -C "Modules/Drivers/net/e1000/Build"
 
 make -C "Modules/Drivers/storage/ahci/Build"
 
