@@ -28,7 +28,7 @@ void drawKotLogo() {
     Monitor* monitor0 = (Monitor*) vector_get(monitors, 0);
     Window* kotLogo = monitor0->getBackground();
 
-    Context* ctx = new Context(kotLogo->getFramebuffer(), kotLogo->getWidth(), kotLogo->getHeight());
+    std::Context* ctx = new std::Context(kotLogo->getFramebuffer()->addr, kotLogo->getWidth(), kotLogo->getHeight());
 
     ctx->clear();
 
@@ -55,9 +55,12 @@ void drawKotLogo() {
 }
 
 thread_t CreateWindowThread = NULL;
+thread_t DestroyWindowThread = NULL;
 thread_t GetFramebufferThread = NULL;
 thread_t GetWidthThread = NULL;
 thread_t GetHeightThread = NULL;
+thread_t ShowThread = NULL;
+thread_t HideThread = NULL;
 
 /**
  * Return windowId
@@ -69,12 +72,44 @@ void CreateWindow(uint32_t width, uint32_t height, int32_t x, int32_t y) {
 }
 
 /**
+ * Return KCODE
+ **/
+void DestroyWindow(uint32_t windowId) {
+    Window* window = (Window*) vector_get(windows, windowId);
+    if (window->getOwner() != Sys_GetProcess()) { Sys_Close(KFAIL); }
+    window->destroy();
+    free(window);
+    vector_set(windows, windowId, NULL);
+    Sys_Close(KSUCCESS);
+}
+
+/**
  * Return Framebuffer
  **/
 void GetFramebuffer(uint32_t windowId) {
     Window* window = (Window*) vector_get(windows, windowId);
-    if (window->getOwner() != Sys_GetProcess()) { Sys_Close(NULL); }
+    if (window->getOwner() != Sys_GetProcess()) { Sys_Close(KFAIL); }
     Sys_Close(window->getFramebufferKey());
+}
+
+/**
+ * Return KCODE
+ **/
+void Show(uint32_t windowId) {
+    Window* window = (Window*) vector_get(windows, windowId);
+    if (window->getOwner() != Sys_GetProcess()) { Sys_Close(KFAIL); }
+    window->show(true);
+    Sys_Close(KSUCCESS);
+}
+
+/**
+ * Return KCODE
+ **/
+void Hide(uint32_t windowId) {
+    Window* window = (Window*) vector_get(windows, windowId);
+    if (window->getOwner() != Sys_GetProcess()) { Sys_Close(KFAIL); }
+    window->show(false);
+    Sys_Close(KSUCCESS);
 }
 
 /**
@@ -96,9 +131,12 @@ void GetWidth(uint32_t windowId) {
 void initUISD() {
 
     Sys_Createthread(self, (uintptr_t) &CreateWindow, PriviledgeApp, &CreateWindowThread);
+    Sys_Createthread(self, (uintptr_t) &DestroyWindow, PriviledgeApp, &DestroyWindowThread);
     Sys_Createthread(self, (uintptr_t) &GetFramebuffer, PriviledgeApp, &GetFramebufferThread);
     Sys_Createthread(self, (uintptr_t) &GetWidth, PriviledgeApp, &GetWidthThread);
     Sys_Createthread(self, (uintptr_t) &GetHeight, PriviledgeApp, &GetHeightThread);
+    Sys_Createthread(self, (uintptr_t) &Show, PriviledgeApp, &ShowThread);
+    Sys_Createthread(self, (uintptr_t) &Hide, PriviledgeApp, &HideThread);
 
     uintptr_t address = getFreeAlignedSpace(sizeof(uisd_graphics_t));
     ksmem_t key = NULL;
@@ -111,11 +149,20 @@ void initUISD() {
     OrbSrv->ControllerHeader.Type = ControllerTypeEnum_Graphics;
 
     OrbSrv->CreateWindow = MakeShareableThread(CreateWindowThread, PriviledgeApp);
+    OrbSrv->DestroyWindow = MakeShareableThread(DestroyWindowThread, PriviledgeApp);
     OrbSrv->GetFramebuffer = MakeShareableThread(GetFramebufferThread, PriviledgeApp);
     OrbSrv->GetWidth = MakeShareableThread(GetWidthThread, PriviledgeApp);
     OrbSrv->GetHeight = MakeShareableThread(GetHeightThread, PriviledgeApp);
+    OrbSrv->Show = MakeShareableThread(ShowThread, PriviledgeApp);
+    OrbSrv->Hide = MakeShareableThread(HideThread, PriviledgeApp);
 
     CreateControllerUISD(ControllerTypeEnum_Graphics, key, true);
+
+}
+
+void initCursor() {
+    
+
 
 }
 
@@ -134,7 +181,7 @@ void initOrb() {
     
     uint64_t virtualAddress = (uint64_t)MapPhysical((uintptr_t)bootframebuffer->Address, fb_size);
 
-    Monitor* monitor0 = new Monitor((uintptr_t)virtualAddress, bootframebuffer->Width, bootframebuffer->Height, 0, 0);
+    Monitor* monitor0 = new Monitor(self, (uintptr_t) virtualAddress, bootframebuffer->Width, bootframebuffer->Height, 0, 0);
 
     free(bootframebuffer);
     
@@ -142,7 +189,9 @@ void initOrb() {
 
     drawKotLogo();
 
-    Sys_Createthread(self, (uintptr_t) &threadRender, PriviledgeService, &renderThread);
+    initCursor();
+
+    Sys_Createthread(self, (uintptr_t) &threadRender, PriviledgeDriver, &renderThread);
     Sys_Execthread(renderThread, NULL, ExecutionTypeQueu, NULL);
 
 }
