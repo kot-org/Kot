@@ -35,7 +35,7 @@ Port::Port(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8_t I
 
     std::printf("%x", GetSize());
 
-    uint8_t* buffer = (uint8_t*)malloc(0x10);
+    uint8_t* buffer = (uint8_t*)malloc(0x200);
     Read(0x0, 0x10, buffer);
 
 }
