@@ -35,9 +35,9 @@ Port::Port(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8_t I
 
     std::printf("%x", GetSize());
 
-    uint8_t* buffer = (uint8_t*)malloc(0x200);
+    uint8_t* buffer = (uint8_t*)malloc(0x10);
     Read(0x0, 0x10, buffer);
-
+    
 }
 
 Port::~Port(){
@@ -92,9 +92,13 @@ KResult Port::Read(uint64_t Start, size64_t Size, uintptr_t Buffer){
     uint64_t SectorToRead = divideRoundUp(BlockCount, ATA_SECTOR_SIZE);
 
     for(size64_t i = 0; i < BlockCount; i++){
+        uint64_t SizeToRead = Size;
         uint64_t SectorCount = SectorToRead;
-        if((SectorCount << 9) > BufferSize){
-            SectorCount = BufferSize >> 9;
+        uint64_t SectorCountSize = SectorCount << 9;
+        if(SectorCountSize > BufferSize){
+            uint64_t BufferSectorCount = BufferSize >> 9;
+            SectorCount = BufferSectorCount;
+            SizeToRead = BufferSize;
         }
 
         atomicAcquire(&Lock, 0);
@@ -119,9 +123,9 @@ KResult Port::Read(uint64_t Start, size64_t Size, uintptr_t Buffer){
         HBACommandTable_t* CommandTable = CommandAddressTable[0];
         memset(CommandTable, 0, sizeof(HBACommandTable_t) + (CommandHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry_t));
         // Give buffer
-        size64_t Size = SectorCount << 9;
+        size64_t SizeToLoad = SizeToRead;
         for(uint16_t y = 0; y < CommandHeader->PrdtLength; y++){
-            size64_t SizeToLoadInPrdt = Size;
+            size64_t SizeToLoadInPrdt = SizeToLoad;
             if(SizeToLoadInPrdt > HBA_PRDT_ENTRY_MAX_SIZE){
                 SizeToLoadInPrdt = HBA_PRDT_ENTRY_MAX_SIZE;
             }
@@ -129,10 +133,10 @@ KResult Port::Read(uint64_t Start, size64_t Size, uintptr_t Buffer){
             MapPhysicalToVirtual(BufferDst, (uintptr_t*)&CommandTable->PrdtEntry[i].DataBaseAddress, HBA_PRDT_ENTRY_MAX_SIZE);
             CommandTable->PrdtEntry[i].ByteCount = SizeToLoadInPrdt - 1; // 512 bytes per sector
             CommandTable->PrdtEntry[i].InterruptOnCompletion = 1; 
-            if(Size == SizeToLoadInPrdt){
+            if(SizeToLoad == SizeToLoadInPrdt){
                 break;
             }else{
-                Size -= SizeToLoadInPrdt;	
+                SizeToLoad -= SizeToLoadInPrdt;	
             }
         }
 
@@ -190,7 +194,7 @@ KResult Port::Read(uint64_t Start, size64_t Size, uintptr_t Buffer){
         }
 
         // Get buffer and free
-        size64_t SizeToCopy = SectorCount << 9;
+        size64_t SizeToCopy = SizeToRead;
         for(uint16_t y = 0; y < CommandHeader->PrdtLength; y++){
             size64_t SizeInPrdt = SizeToCopy;
             SizeInPrdt -= AlignementStart;
