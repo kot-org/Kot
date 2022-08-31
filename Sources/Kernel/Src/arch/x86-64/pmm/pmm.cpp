@@ -168,9 +168,9 @@ void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
         freelistinfo_t* FreeListInfoLast = FreeListInfoEnd->Start; /* We can get start because we are at the end of the freelist segment */
         FreeListInfoEnd = (freelistinfoend_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount - 1));
         FreeListInfoLast->PageSize += pageCount;
+        FreeListInfoLast->IndexEnd = index + pageCount - 1;
         FreeListInfoLast->Header.End = FreeListInfoEnd;
         FreeListInfoEnd->Start = FreeListInfoLast;
-        FreeListInfoLast->IndexEnd = index + pageCount - 1;
     }else{
         /* Create free list */
         freelistinfo_t* FreeListInfo = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index));

@@ -191,8 +191,8 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
             vmm_Swap(pageTable);
 
             uint64_t alignement = (uint64_t)virtualAddress & 0xFFF;
-            uint64_t size = shareInfo->RealSize + alignement;
-            uint64_t pages = DivideRoundUp(size, PAGE_SIZE);
+            uint64_t size = shareInfo->RealSize;
+            uint64_t pages = DivideRoundUp(size + alignement, PAGE_SIZE);
 
             /* Allocate child memory */
             if((uint64_t)virtualAddress + pages * PAGE_SIZE < vmm_HHDMAdress){
@@ -233,13 +233,12 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
                 i++;
             }
 
-            for(; i < shareInfo->PageNumber; i++){
-                uint64_t sizeToCopy;
+            while(size != 0){
+                uint64_t sizeToCopy = size;
                 if(size > PAGE_SIZE){
                     sizeToCopy = PAGE_SIZE;
-                }else{
-                    sizeToCopy = size;
                 }
+
                 uintptr_t physicalAddressParentIterator = vmm_GetPhysical(shareInfo->PageTableParent, (uintptr_t)virtualAddressParentIterator);
 
                 memcpy((uintptr_t)virtualAddressIterator, (uintptr_t)vmm_GetVirtualAddress(physicalAddressParentIterator), sizeToCopy);

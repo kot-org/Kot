@@ -118,22 +118,21 @@ KResult Port::Read(uint64_t Start, size64_t Size, uintptr_t Buffer){
 
         HBACommandTable_t* CommandTable = CommandAddressTable[0];
         memset(CommandTable, 0, sizeof(HBACommandTable_t) + (CommandHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry_t));
-
         // Give buffer
         size64_t Size = SectorCount << 9;
         for(uint16_t y = 0; y < CommandHeader->PrdtLength; y++){
-            size64_t SizeInPrdt = Size;
-            if(SizeInPrdt > HBA_PRDT_ENTRY_MAX_SIZE){
-                SizeInPrdt = HBA_PRDT_ENTRY_MAX_SIZE;
+            size64_t SizeToLoadInPrdt = Size;
+            if(SizeToLoadInPrdt > HBA_PRDT_ENTRY_MAX_SIZE){
+                SizeToLoadInPrdt = HBA_PRDT_ENTRY_MAX_SIZE;
             }
-            uintptr_t Buffer = (uintptr_t)((uint64_t)BufferVirtual + y * HBA_PRDT_ENTRY_MAX_SIZE);
-            MapPhysicalToVirtual(Buffer, (uintptr_t*)&CommandTable->PrdtEntry[i].DataBaseAddress, HBA_PRDT_ENTRY_MAX_SIZE);
-            CommandTable->PrdtEntry[i].ByteCount = SizeInPrdt - 1; // 512 bytes per sector
+            uintptr_t BufferDst = (uintptr_t)((uint64_t)BufferVirtual + y * HBA_PRDT_ENTRY_MAX_SIZE);
+            MapPhysicalToVirtual(BufferDst, (uintptr_t*)&CommandTable->PrdtEntry[i].DataBaseAddress, HBA_PRDT_ENTRY_MAX_SIZE);
+            CommandTable->PrdtEntry[i].ByteCount = SizeToLoadInPrdt - 1; // 512 bytes per sector
             CommandTable->PrdtEntry[i].InterruptOnCompletion = 1; 
-            if(Size == SizeInPrdt){
+            if(Size == SizeToLoadInPrdt){
                 break;
             }else{
-                Size -= SizeInPrdt;	
+                Size -= SizeToLoadInPrdt;	
             }
         }
 
@@ -169,27 +168,43 @@ KResult Port::Read(uint64_t Start, size64_t Size, uintptr_t Buffer){
         while (true){
             if((HbaPort->CommandIssue & (1 << slot)) == 0) break;
             if(HbaPort->InterruptStatus & HBA_INTERRUPT_STATU_TFE){
+                // Free buffer
+                size64_t SizeToFree = SectorCount << 9;
+                for(uint16_t y = 0; y < CommandHeader->PrdtLength; y++){
+                    size64_t SizeInPrdt = SizeToFree;
+                    SizeInPrdt -= AlignementStart;
+                    if(SizeInPrdt > HBA_PRDT_ENTRY_MAX_SIZE){
+                        SizeInPrdt = HBA_PRDT_ENTRY_MAX_SIZE;
+                    }
+                    uintptr_t BufferSrc = (uintptr_t)((uint64_t)BufferVirtual + y * HBA_PRDT_ENTRY_MAX_SIZE);
+                    FreeAddress(BufferSrc, SizeInPrdt);
+                    if(SizeToFree == SizeInPrdt){
+                        break;
+                    }else{
+                        SizeToFree -= SizeInPrdt;	
+                    }
+                }
                 atomicUnlock(&Lock, 0);
                 return KFAIL;
             }
         }
 
         // Get buffer and free
-        Size = SectorCount << 9;
+        size64_t SizeToCopy = SectorCount << 9;
         for(uint16_t y = 0; y < CommandHeader->PrdtLength; y++){
-            size64_t SizeInPrdt = Size;
+            size64_t SizeInPrdt = SizeToCopy;
             SizeInPrdt -= AlignementStart;
             if(SizeInPrdt > HBA_PRDT_ENTRY_MAX_SIZE){
                 SizeInPrdt = HBA_PRDT_ENTRY_MAX_SIZE;
             }
-            uintptr_t Buffer = (uintptr_t)((uint64_t)BufferVirtual + y * HBA_PRDT_ENTRY_MAX_SIZE);
+            uintptr_t BufferSrc = (uintptr_t)((uint64_t)BufferVirtual + y * HBA_PRDT_ENTRY_MAX_SIZE);
             uintptr_t BufferDst = (uintptr_t)((uint64_t)BufferInteration + y * HBA_PRDT_ENTRY_MAX_SIZE);
-            memcpy(BufferDst, (uintptr_t)((uint64_t)Buffer + (uint64_t)AlignementStart), SizeInPrdt);
-            FreeAddress(Buffer, HBA_PRDT_ENTRY_MAX_SIZE);
-            if(Size == SizeInPrdt){
+            memcpy(BufferDst, (uintptr_t)((uint64_t)BufferSrc + (uint64_t)AlignementStart), SizeInPrdt);
+            FreeAddress(BufferSrc, SizeInPrdt);
+            if(SizeToCopy == SizeInPrdt){
                 break;
             }else{
-                Size -= SizeInPrdt;	
+                SizeToCopy -= SizeInPrdt;	
             }
         }
 
