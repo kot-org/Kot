@@ -16,6 +16,7 @@ Port::Port(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8_t I
 
     // Allocate buffer
     BufferSize = HBA_PRDT_MAX_ENTRIES * HBA_PRDT_ENTRY_ADDRESS_SIZE;
+    BufferVirtual = getFreeAlignedSpace(BufferSize);
     Sys_CreateMemoryField(Proc, BufferSize, &BufferVirtual, &BufferKey, MemoryFieldTypeShareSpaceRW);
 
     // Load command header 0
@@ -24,7 +25,7 @@ Port::Port(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8_t I
     uint64_t BufferInteration = (uint64_t)BufferVirtual;
     for(size64_t y = 0; y < HBA_PRDT_MAX_ENTRIES; y++){
         CommandAddressTable[0]->PrdtEntry[y].DataBaseAddress = (uint64_t)Sys_GetPhysical((uintptr_t)BufferInteration);
-        BufferInteration = (uint64_t)BufferVirtual + HBA_PRDT_ENTRY_ADDRESS_SIZE;
+        BufferInteration = (uint64_t)BufferInteration + HBA_PRDT_ENTRY_ADDRESS_SIZE;
     }
 
     memset(CommandAddressTable[0], NULL, HBA_COMMAND_TABLE_SIZE);
@@ -42,7 +43,7 @@ Port::Port(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8_t I
 
     Read(0x0, 0x10);
     for(size64_t i = 0; i < 0x10; i++){
-        std::printf("%d", *((uint8_t*)BufferVirtual)++);
+        std::printf("%x", *(uint8_t*)BufferVirtual);
     } 
 }
 
@@ -248,7 +249,6 @@ KResult Port::GetIdentifyInfo(){
     HBACommandTable_t* CommandTable = CommandAddressTable[0];
     memset(CommandTable, 0, sizeof(HBACommandTable_t) + (CommandHeader->PrdtLength - 1) * sizeof(HBAPRDTEntry_t));
 
-    MapPhysicalToVirtual(BufferVirtual, (uintptr_t*)&CommandTable->PrdtEntry[0].DataBaseAddress, sizeof(IdentifyInfo_t));
     CommandTable->PrdtEntry[0].ByteCount = sizeof(IdentifyInfo_t) - 1; // 512 bytes per sector
     CommandTable->PrdtEntry[0].InterruptOnCompletion = 1; 
 
@@ -278,7 +278,6 @@ KResult Port::GetIdentifyInfo(){
     }
 
     memcpy(IdentifyInfo, BufferVirtual, sizeof(IdentifyInfo_t)); // copy data to DMA buffer
-    FreeAddress(BufferVirtual, sizeof(IdentifyInfo_t));
 
     atomicUnlock(&Lock, 0);
 
