@@ -242,6 +242,7 @@ uintptr_t Pmm_RequestPages(uint64_t pageCount){
 }
 
 void Pmm_FreePage_WI(uint64_t index){
+    Atomic::atomicAcquire(&Pmm_Mutex, 0);
     if(Pmm_PageBitmap.GetAndSet(index, false)){
         Pmm_AddPageToFreeList(index, 1);
         Pmm_MemoryInfo.freePageMemory++;
@@ -250,9 +251,11 @@ void Pmm_FreePage_WI(uint64_t index){
             Pmm_FirstFreePageIndex = index;
         }
     }
+    Atomic::atomicUnlock(&Pmm_Mutex, 0);
 }
 
 void Pmm_FreePages_WI(uint64_t index, uint64_t pageCount){
+    Atomic::atomicAcquire(&Pmm_Mutex, 0);
     Pmm_AddPageToFreeList(index, pageCount);
     uint64_t indexEnd = index + pageCount;
     for (int t = index; t < indexEnd; t++){
@@ -264,6 +267,7 @@ void Pmm_FreePages_WI(uint64_t index, uint64_t pageCount){
             }
         }
     }
+    Atomic::atomicUnlock(&Pmm_Mutex, 0);
 }
 
 void Pmm_LockPage_WI(uint64_t index){
