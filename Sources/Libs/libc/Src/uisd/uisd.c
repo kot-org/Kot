@@ -50,6 +50,10 @@ KResult CallbackUISD(uint64_t Task, KResult Status, uisd_callbackInfo_t* Info, u
 
 uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t* Location, bool AwaitCallback){
     if(!CallBackUISDThread) InitializeUISD();
+    if(ControllerList[Controller]){
+        *Location = ControllerList[Controller];
+        return NULL;
+    }
     thread_t Self = Sys_Getthread();
     uisd_callbackInfo_t* Info = (uisd_callbackInfo_t*)malloc(sizeof(uisd_callbackInfo_t));
     Info->Self = Self;
