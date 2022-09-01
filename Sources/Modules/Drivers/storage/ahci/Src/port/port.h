@@ -195,9 +195,11 @@ class Port{
 
         void StopCMD();
         void StartCMD();
+        int8_t FindSlot();
 
         KResult Read(uint64_t Start, size64_t Size);
         KResult Write(uint64_t Start, size64_t Size);
+
 
         uint64_t GetSize();
         uint16_t* GetModelNumber();
@@ -207,13 +209,15 @@ class Port{
         struct HBAPort_t* HbaPort;
         PortTypeEnum PortType;
         uint8_t PortIndex;
+        int8_t MainSlot;
 
         struct HBACommandHeader_t* CommandHeader;
         struct HBACommandTable_t* CommandAddressTable[HBA_COMMAND_LIST_MAX_ENTRIES];
 
         ksmem_t BufferKey;
         uintptr_t BufferVirtual;
-        size64_t BufferSize;
+        size64_t BufferRealSize;
+        size64_t BufferUsableSize;
 
         IdentifyInfo_t* IdentifyInfo;
 
