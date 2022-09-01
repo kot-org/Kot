@@ -46,17 +46,6 @@ Port::Port(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8_t I
     // Identify disk
     IdentifyInfo = (IdentifyInfo_t*)calloc(sizeof(IdentifyInfo_t));
     GetIdentifyInfo();
-
-    std::printf("Size %x", GetSize());
-    std::printf("%x", HBA_PRDT_MAX_ENTRIES);
-
-    memset(BufferVirtual, 0x0, 0x7F7000);
-    //Write(0x0, 0x10);
-    Read(0x0, 0x400 * 0x1000);
-    for(size64_t i = 0; i < 0x10; i++){
-        std::printf("%x", *(uint8_t*)BufferVirtual);
-        BufferVirtual = (uintptr_t)((uint64_t)BufferVirtual + 1);
-    } 
 }
 
 Port::~Port(){
@@ -68,8 +57,8 @@ void Port::StopCMD(){
     HbaPort->CommandStatus &= ~HBA_PxCMD_FRE;
 
     while(true){
-        if (HbaPort->CommandStatus & HBA_PxCMD_FR) continue;
-        if (HbaPort->CommandStatus & HBA_PxCMD_CR) continue;
+        if(HbaPort->CommandStatus & HBA_PxCMD_FR) continue;
+        if(HbaPort->CommandStatus & HBA_PxCMD_CR) continue;
 
         break;
     }
@@ -77,7 +66,7 @@ void Port::StopCMD(){
 }
 
 void Port::StartCMD(){
-    while (HbaPort->CommandStatus & HBA_PxCMD_CR);
+    while(HbaPort->CommandStatus & HBA_PxCMD_CR);
 
     HbaPort->CommandStatus |= HBA_PxCMD_FRE;
     HbaPort->CommandStatus |= HBA_PxCMD_ST;
@@ -124,8 +113,7 @@ KResult Port::Read(uint64_t Start, size64_t Size){
 
     uint64_t SectorCountIteration = SectorCount;
 
-    std::printf("%x", CommandHeader->PrdtLength);
-    for(uint16_t i = 0; i < CommandHeader->PrdtLength; i++){
+    for(uint16_t i = 0; i < PRDTCount; i++){
         uint64_t SectorCountToLoad = SectorCountIteration;
         if(SectorCountToLoad > HBA_PRDT_ENTRY_SECTOR_SIZE){
             SectorCountToLoad = HBA_PRDT_ENTRY_SECTOR_SIZE;
@@ -152,6 +140,7 @@ KResult Port::Read(uint64_t Start, size64_t Size){
 
     CommandFIS->CountLow = SectorCount & 0xFF;
     CommandFIS->CountHigh = (SectorCount >> 8) & 0xFF;
+    SectorCount = CommandFIS->CountLow | CommandFIS->CountHigh << 8;
 
     uint64_t spin = 0;
     while((HbaPort->TaskFileData & (ATA_DEV_BUSY | ATA_FIS_DRQ)) && spin < ATA_CMD_TIMEOUT){

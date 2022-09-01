@@ -9,7 +9,7 @@
 #define HBA_INTERRUPT_STATU_TFE         1 << 30 // Task File Error
 #define HBA_COMMAND_LIST_MAX_ENTRIES    0x20
 #define HBA_PRDT_ENTRY_MAX_SIZE         0x2000
-#define HBA_COMMAND_TABLE_SIZE          0x8000
+#define HBA_COMMAND_TABLE_SIZE          0x4000
 #define HBA_PRDT_MAX_ENTRIES            (HBA_COMMAND_TABLE_SIZE - sizeof(HBACommandTable_t)) / sizeof(HBAPRDTEntry_t)
 #define HBA_PRDT_ENTRY_ADDRESS_SIZE     0x1000
 #define HBA_PRDT_ENTRY_SECTOR_SIZE      HBA_PRDT_ENTRY_ADDRESS_SIZE / ATA_SECTOR_SIZE
