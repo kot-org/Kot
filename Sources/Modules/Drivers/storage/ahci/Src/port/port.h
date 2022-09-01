@@ -108,6 +108,32 @@ struct FisHostToDeviceRegisters_t{
     uint8_t Reserved1[4];
 }__attribute__((packed));
 
+struct FisDeviceToHostRegisters_t{
+    uint8_t FisType;
+
+    uint8_t PortMultiplier:4;
+
+    uint8_t Reserved0:2;
+    uint8_t Interrupt:1;
+    uint8_t Reserved1:1;
+    uint8_t Status;
+    uint8_t Error;
+
+    uint8_t Lba0;
+    uint8_t Lba1;
+    uint8_t Lba2;
+    uint8_t DeviceRegister;
+
+    uint8_t Lba3;
+    uint8_t Lba4;
+    uint8_t Lba5;
+    uint8_t Reserved2;
+
+    uint8_t CountLow;
+    uint8_t CountHigh;
+    uint8_t Reserved3[4];
+}__attribute__((packed));
+
 /* https://www.seagate.com/www-content/product-content/seagate-laptop-fam/barracuda_25/en-us/docs/100804767b.pdf 4.3.1 */
 struct IdentifyInfo_t{
     uint16_t ConfigInfo;

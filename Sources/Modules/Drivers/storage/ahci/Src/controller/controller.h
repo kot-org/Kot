@@ -48,9 +48,9 @@ struct HBAMemory_t{
     uint32_t EnclosureManagementLocation;
     uint32_t EnclosureManagementControl;
     uint32_t HostCapabilitiesExtended;
-    uint32_t BiosHandoffCtrlSts;
-    uint8_t Reserved0[(0xA0 - 0x2C)];
-    uint8_t Vendor[(0x100 - 0xA0)];
+    uint32_t BiosHandoffCtrlStatus;
+    uint8_t Reserved0[0x74];
+    uint8_t Vendor[0x60];
     struct HBAPort_t Ports[];
 }__attribute__((packed));
 

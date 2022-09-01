@@ -33,7 +33,7 @@ PortTypeEnum GetPortType(HBAPort_t* port){
 }
 
 void AHCIController::FindPorts(){
-    // set port find to 0
+    // Set port find to 0
     PortCount = 0;
     uint32_t PortsImplemented = ABAR->PortsImplemented;
     for (uint8_t i = 0; i < PORT_MAX_COUNT; i++){
