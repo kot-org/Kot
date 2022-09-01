@@ -90,6 +90,8 @@
 
 #include <kot/sys.h>
 
+#include <kot/uisd/srvs/pci.h>
+
 struct e1000RxDescriptor {
     volatile uint64_t Addr;
     volatile uint16_t Length;

@@ -8,7 +8,8 @@ QEMUFLAGS =	-no-reboot 										\
 			-cdrom ./Bin/kot.iso							\
 			-drive file=./Bin/hdd.img						\
 			-m 3G											\
-			-netdev user,id=n0 -device rtl8139,netdev=n0 	\
+			-netdev user,id=n0 								\
+			-device e1000,netdev=n0							\
 			-usb                                            \
     		-device usb-ehci,id=ehci                        \
 			-soundhw pcspk
