@@ -15,6 +15,10 @@
 #define PCI_HEADER_TYPE_OFFSET 		0xE
 #define PCI_BIST_OFFSET 			0xF
 
+#define PCI_COMMAND_IO_SPACE        1 << 0x0
+#define PCI_COMMAND_MEMORY_SPACE    1 << 0x1
+#define PCI_COMMAND_BUS_MASTERING   1 << 0x2
+
 #include <kot/sys.h>
 #include <kot/arch.h>
 #include <kot/heap.h>
@@ -138,7 +142,8 @@ struct PCIDevice_t{
     size64_t GetBarSizeWithAddress(uintptr_t address);
     size64_t GetBarSize(uint8_t index);
     uint8_t GetBarType(uint8_t index);
-    KResult SetupMSI(uint8_t IRQVector, uint16_t localDeviceVector);
+    KResult BindMSI(uint8_t IRQVector, uint8_t processor, uint16_t localDeviceVector, uint64_t* version);
+    KResult UnbindMSI(uint16_t localDeviceVector);
 
     /* Version specific */
     void ReceiveConfigurationSpace();

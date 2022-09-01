@@ -12,6 +12,9 @@
 
 #define PCI_SEARCH_NO_PARAMETER     0xFFFF
 
+#define PCI_MSI_VERSION             0x1
+#define PCI_MSIX_VERSION            0x2
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -59,7 +62,8 @@ struct srv_pci_callback_t* Srv_Pci_CountDevices(srv_pci_search_parameters_t* Sea
 struct srv_pci_callback_t* Srv_Pci_FindDevice(srv_pci_search_parameters_t* SearchParameters, uint64_t Index, bool IsAwait);
 struct srv_pci_callback_t* Srv_Pci_GetInfoDevice(PCIDeviceID_t Device, bool IsAwait);
 struct srv_pci_callback_t* Srv_Pci_GetBAR(PCIDeviceID_t Device, uint8_t BarIndex, bool IsAwait);
-struct srv_pci_callback_t* Srv_Pci_SetupMSI(PCIDeviceID_t Device, uint8_t IRQVector, uint16_t LocalDeviceVector, bool IsAwait);
+struct srv_pci_callback_t* Srv_Pci_BindMSI(PCIDeviceID_t Device, uint8_t IRQVector, uint8_t Processor, uint16_t LocalDeviceVector, bool IsAwait);
+struct srv_pci_callback_t* Srv_Pci_UnbindMSI(PCIDeviceID_t Device, uint16_t LocalDeviceVector, bool IsAwait);
 
 
 #if defined(__cplusplus)

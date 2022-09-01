@@ -102,7 +102,8 @@ typedef struct {
     thread_t FindDevice;
     thread_t GetInfoDevice;
     thread_t GetBARDevice;
-    thread_t SetupMSI;
+    thread_t BindMSI;
+    thread_t UnbindMSI;
 } uisd_pci_t;
 
 typedef struct {

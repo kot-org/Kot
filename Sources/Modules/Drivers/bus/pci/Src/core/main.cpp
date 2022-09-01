@@ -35,6 +35,14 @@ PCIDeviceListInfo_t* InitPCIList(){
 }
 
 void AddPCIDevice(PCIDeviceListInfo_t* DevicesList, PCIDevice_t* Device){
+    // Setup command register
+    PCIDeviceHeader_t* Header = (PCIDeviceHeader_t*)Device->ConfigurationSpace;
+    Header->Command |= PCI_COMMAND_IO_SPACE;
+    Header->Command |= PCI_COMMAND_MEMORY_SPACE;
+    Header->Command |= PCI_COMMAND_BUS_MASTERING;
+    Device->SendConfigurationSpace();
+
+    // Add device to list
     DevicesList->Devices->push64((uint64_t)Device);
     DevicesList->DevicesNum++;
 }
@@ -265,7 +273,7 @@ uint8_t PCIDevice_t::GetBarType(uint8_t index){
     return NULL;
 }
 
-KResult PCIDevice_t::SetupMSI(uint8_t IRQVector, uint16_t localDeviceVector){
+KResult PCIDevice_t::BindMSI(uint8_t IRQVector, uint8_t processor, uint16_t localDeviceVector, uint64_t* version){
     PCIDeviceHeader_t* Header = (PCIDeviceHeader_t*)ConfigurationSpace;
     switch (Header->HeaderType & 0x7F){
         case 0x0:{
@@ -290,21 +298,69 @@ KResult PCIDevice_t::SetupMSI(uint8_t IRQVector, uint16_t localDeviceVector){
                 uint16_t Entries = CapabilityMSI->MSIX.Control & 0x7FF;
                 if(Entries <= localDeviceVector){
                     PCIMSIXTable_t* Table = (PCIMSIXTable_t*)(TableAddress + sizeof(PCIMSIXTable_t) * localDeviceVector);
-                    Table->Control &= ~(1 << 0); // clear first to unmasked MSI
-                    Table->Address = 0xFEE00000; // processor is null here
+                    Table->Address = 0xFEE00000 | (processor << 12);
                     Table->Data = IRQVector; 
+                    Table->Control &= ~(1 << 0); // clear first to unmasked MSI
                     SendConfigurationSpace();
+                    *version = PCI_MSIX_VERSION;
                     return KSUCCESS;
                 }
             }else if(CapabilityMSI){
                 if(CapabilityMSI->MSI.Control & (1 << 7)){ // check if support 64 bits
-                    CapabilityMSI->MSI.Address = 0xFEE00000; // processor is null here
+                    CapabilityMSI->MSI.Address = 0xFEE00000 | (processor << 12);
                     CapabilityMSI->MSI.Data = IRQVector; 
                     CapabilityMSI->MSI.Control |= 1 << 0;                   
                     CapabilityMSI->MSI.Control &= ~(0b111 << 4); // set 0 for MME
                     SendConfigurationSpace();
+                    *version = PCI_MSI_VERSION;
                     return KSUCCESS;
                 }
+            }
+            break;
+        }    
+        default:
+            break;
+    }
+    return KFAIL;
+}
+
+KResult PCIDevice_t::UnbindMSI(uint16_t localDeviceVector){
+    PCIDeviceHeader_t* Header = (PCIDeviceHeader_t*)ConfigurationSpace;
+    switch (Header->HeaderType & 0x7F){
+        case 0x0:{
+            PCIHeader0_t* Header0 = (PCIHeader0_t*)Header;
+            uint8_t CapabilityOffset = Header0->CapabilitiesPtr;
+            PCICapability_t* Capability = (PCICapability_t*)((uint64_t)Header + (uint64_t)CapabilityOffset);
+            PCICapability_t* CapabilityMSI = NULL;
+            PCICapability_t* CapabilityMSIX = NULL;
+            while(CapabilityOffset){
+                CapabilityOffset = Capability->CapabilityNext;
+                if(Capability->CapabilityID == PCICapabilitiesMSI){
+                    CapabilityMSI = Capability;
+                } else if(Capability->CapabilityID == PCICapabilitiesMSIX){
+                    CapabilityMSIX = Capability;
+                    break;
+                }
+                Capability = (PCICapability_t*)((uint64_t)Header + (uint64_t)CapabilityOffset);
+            }
+            if(CapabilityMSIX){
+                CapabilityMSI->MSIX.Control |= 1 << 15; // enable MsiX
+                uint64_t TableAddress = ((uint64_t)MapPhysical(GetBarAddress(CapabilityMSIX->MSIX.BIR), GetBarSize(CapabilityMSIX->MSIX.BIR)) + (uint64_t)CapabilityMSIX->MSIX.TableOffset);
+                uint16_t Entries = CapabilityMSI->MSIX.Control & 0x7FF;
+                if(Entries <= localDeviceVector){
+                    PCIMSIXTable_t* Table = (PCIMSIXTable_t*)(TableAddress + sizeof(PCIMSIXTable_t) * localDeviceVector);
+                    Table->Control |= 1 << 0; // masked MSI
+                    Table->Address = NULL;
+                    Table->Data = NULL; 
+                    SendConfigurationSpace();
+                    return KSUCCESS;
+                }
+            }else if(CapabilityMSI){
+                CapabilityMSI->MSI.Control &= ~(1 << 0);  // disable MSI
+                CapabilityMSI->MSI.Address = NULL;
+                CapabilityMSI->MSI.Data = NULL; 
+                SendConfigurationSpace();
+                return KSUCCESS;
             }
             break;
         }    
