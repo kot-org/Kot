@@ -1,6 +1,6 @@
 #include <port/port.h>
 
-Port::Port(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8_t Index){
+Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8_t Index){
     Controller = Parent;
     HbaPort = Port;
     PortType = Type;
@@ -28,16 +28,13 @@ Port::Port(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8_t I
 
     // Load command header main
     CommandAddressTable[MainSlot] = (HBACommandTable_t*)GetPhysical((uintptr_t*)&CommandHeader[0].CommandTableBaseAddress, HBA_COMMAND_TABLE_SIZE);
-    
-    // Clear command header
-    memset(CommandAddressTable[MainSlot], NULL, HBA_COMMAND_TABLE_SIZE);
 
     uint64_t BufferInteration = (uint64_t)BufferVirtual;
     for(size64_t i = 0; i < HBA_PRDT_MAX_ENTRIES; i++){
         CommandAddressTable[MainSlot]->PrdtEntry[i].DataBaseAddress = (uint64_t)Sys_GetPhysical((uintptr_t)BufferInteration);
         BufferInteration = (uint64_t)BufferInteration + HBA_PRDT_ENTRY_ADDRESS_SIZE;
     }
-
+    std::printf("%x", HBA_PRDT_MAX_ENTRIES);
     StartCMD();
 
     // Be sur to unlock the locker
@@ -46,13 +43,24 @@ Port::Port(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8_t I
     // Identify disk
     IdentifyInfo = (IdentifyInfo_t*)calloc(sizeof(IdentifyInfo_t));
     GetIdentifyInfo();
+
+    std::printf("Size : %d", GetSize());
+    memset(BufferVirtual, 0x90, BufferUsableSize);
+    Write(0x0, 0x10);
+    memset(BufferVirtual, 0x0, BufferUsableSize);
+    Read(0x0, 0x10);
+    uint64_t Buffer = (uint64_t)BufferVirtual;
+    for(uint64_t i = 0; i < 0x10; i++){
+        std::printf("Read : %x", *(uint8_t*)Buffer);
+        Buffer  += ATA_SECTOR_SIZE;
+    }
 }
 
-Port::~Port(){
+Device::~Device(){
 
 }
 
-void Port::StopCMD(){
+void Device::StopCMD(){
     HbaPort->CommandStatus &= ~HBA_PxCMD_ST;
     HbaPort->CommandStatus &= ~HBA_PxCMD_FRE;
 
@@ -65,14 +73,14 @@ void Port::StopCMD(){
 
 }
 
-void Port::StartCMD(){
+void Device::StartCMD(){
     while(HbaPort->CommandStatus & HBA_PxCMD_CR);
 
     HbaPort->CommandStatus |= HBA_PxCMD_FRE;
     HbaPort->CommandStatus |= HBA_PxCMD_ST;
 }
 
-int8_t Port::FindSlot(){
+int8_t Device::FindSlot(){
     uint32_t Slot = HbaPort->SataActive;
     for(uint8_t i = 0; i < HBA_COMMAND_LIST_MAX_ENTRIES; i++){
         if((Slot & 1) == 0){
@@ -83,13 +91,13 @@ int8_t Port::FindSlot(){
     return -1;
 }
 
-KResult Port::Read(uint64_t Start, size64_t Size){
+KResult Device::Read(uint64_t Start, size64_t Size){
     uint64_t StartAlignement = Start & 0x1FF;
     uint64_t Sector = Start >> 9;
     uint64_t SectorCount = DivideRoundUp(Size + StartAlignement, ATA_SECTOR_SIZE);
-    uint64_t PRDTCount = DivideRoundUp(SectorCount, HBA_PRDT_ENTRY_SECTOR_SIZE);
+    uint64_t PRDTLength = ((SectorCount - 1) / 8) + 1;
 
-    if(PRDTCount > HBA_PRDT_MAX_ENTRIES){
+    if(PRDTLength > HBA_PRDT_MAX_ENTRIES){
         return KFAIL;
     }
     
@@ -104,7 +112,7 @@ KResult Port::Read(uint64_t Start, size64_t Size){
     CommandHeader->CommandFISLength = sizeof(FisHostToDeviceRegisters_t) / sizeof(uint32_t); // Command FIS size;
     CommandHeader->Atapi = 0;
     CommandHeader->Write = 0; // Read mode
-    CommandHeader->PrdtLength = PRDTCount;
+    CommandHeader->PrdtLength = PRDTLength;
 
     HBACommandTable_t* CommandTable = CommandAddressTable[MainSlot];
     FisHostToDeviceRegisters_t* CommandFIS = (FisHostToDeviceRegisters_t*)(&CommandTable->CommandFIS);
@@ -113,7 +121,7 @@ KResult Port::Read(uint64_t Start, size64_t Size){
 
     uint64_t SectorCountIteration = SectorCount;
 
-    for(uint16_t i = 0; i < PRDTCount; i++){
+    for(uint16_t i = 0; i < PRDTLength; i++){
         uint64_t SectorCountToLoad = SectorCountIteration;
         if(SectorCountToLoad > HBA_PRDT_ENTRY_SECTOR_SIZE){
             SectorCountToLoad = HBA_PRDT_ENTRY_SECTOR_SIZE;
@@ -121,7 +129,6 @@ KResult Port::Read(uint64_t Start, size64_t Size){
 
         CommandTable->PrdtEntry[i].ByteCount = (SectorCountToLoad << 9) - 1; // 512 bytes per sector
         CommandTable->PrdtEntry[i].InterruptOnCompletion = 1; 
-
         SectorCountIteration -= SectorCountToLoad;
 	}
 
@@ -140,7 +147,6 @@ KResult Port::Read(uint64_t Start, size64_t Size){
 
     CommandFIS->CountLow = SectorCount & 0xFF;
     CommandFIS->CountHigh = (SectorCount >> 8) & 0xFF;
-    SectorCount = CommandFIS->CountLow | CommandFIS->CountHigh << 8;
 
     uint64_t spin = 0;
     while((HbaPort->TaskFileData & (ATA_DEV_BUSY | ATA_FIS_DRQ)) && spin < ATA_CMD_TIMEOUT){
@@ -156,21 +162,23 @@ KResult Port::Read(uint64_t Start, size64_t Size){
     while (true){
         if((HbaPort->CommandIssue & (1 << MainSlot)) == 0) break;
         if(HbaPort->InterruptStatus & HBA_INTERRUPT_STATU_TFE){
+            std::printf("Error %x", HbaPort->InterruptStatus);
             atomicUnlock(&Lock, 0);
             return KFAIL;
         }
     }
+    std::printf("Statu %x", HbaPort->InterruptStatus);
 
     atomicUnlock(&Lock, 0);   
 
     return KSUCCESS;
 }
 
-KResult Port::Write(uint64_t Start, size64_t Size){
+KResult Device::Write(uint64_t Start, size64_t Size){
     uint64_t StartAlignement = Start & 0x1FF;
     uint64_t Sector = Start >> 9;
     uint64_t SectorCount = DivideRoundUp(Size + StartAlignement, ATA_SECTOR_SIZE);
-    uint64_t PRDTCount = DivideRoundUp(SectorCount, HBA_PRDT_ENTRY_SECTOR_SIZE);
+    uint64_t PRDTCount = ((SectorCount - 1) / 8) + 1;
 
     if(PRDTCount > HBA_PRDT_MAX_ENTRIES){
         return KFAIL;
@@ -247,7 +255,7 @@ KResult Port::Write(uint64_t Start, size64_t Size){
     return KSUCCESS;
 }
 
-KResult Port::GetIdentifyInfo(){
+KResult Device::GetIdentifyInfo(){
     atomicAcquire(&Lock, 0);
 
     HbaPort->InterruptStatus = NULL; // Clear pending interrupt bits
@@ -287,22 +295,27 @@ KResult Port::GetIdentifyInfo(){
             return KFAIL;
         }
     }
-
     memcpy(IdentifyInfo, BufferVirtual, sizeof(IdentifyInfo_t)); // copy data to DMA buffer
 
     atomicUnlock(&Lock, 0);
 
-    return KSUCCESS;
+    return KSUCCESS; 
 }
 
-uint64_t Port::GetSize(){
-    return (IdentifyInfo->TotalNumberUserAddressableLBASectorsAvailable << 9);
+uint64_t Device::GetSize(){
+    uint64_t Size = IdentifyInfo->UserAddressableSectors;
+    if(IdentifyInfo->ExtendedNumberOfUserAddressableSectors){
+        Size = (((uint64_t)IdentifyInfo->ExtendedNumberOfUserAddressableSectors << 32) | (uint64_t)IdentifyInfo->UserAddressableSectors) << 9;
+    }else{
+        Size = (uint64_t)IdentifyInfo->UserAddressableSectors << 9;
+    }
+    return Size;
 }
 
-uint16_t* Port::GetModelNumber(){
+uint8_t* Device::GetModelNumber(){
     return IdentifyInfo->DriveModelNumber;
 }
 
-uint16_t* Port::GetSerialNumber(){
+uint8_t* Device::GetSerialNumber(){
     return IdentifyInfo->SerialNumber;
 }

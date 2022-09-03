@@ -61,5 +61,5 @@ class AHCIController{
         void FindPorts();
         HBAMemory_t* ABAR;
         uint8_t PortCount;
-        class Port* Ports[PORT_MAX_COUNT];
+        class Device* Ports[PORT_MAX_COUNT];
 };

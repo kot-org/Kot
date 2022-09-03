@@ -40,7 +40,7 @@ void AHCIController::FindPorts(){
         if (PortsImplemented & (1 << i)){ // check if port is implemented
             PortTypeEnum PortType = GetPortType(&ABAR->Ports[i]);
             if (PortType == PortTypeEnum::SATA){
-                Ports[PortCount] = new Port(this, &ABAR->Ports[i], PortType, PortCount);
+                Ports[PortCount] = new Device(this, &ABAR->Ports[i], PortType, PortCount);
                 PortCount++;
             }
         }
