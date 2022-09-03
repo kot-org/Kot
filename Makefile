@@ -9,7 +9,7 @@ QEMUFLAGS =	-no-reboot 										\
 			-drive file=./Bin/hdd.img						\
 			-m 3G											\
 			-netdev user,id=n0 								\
-			-device e1000,netdev=n0							\
+			-device e1000,netdev=n0,mac=00:00:00:11:11:11	\
 			-usb                                            \
     		-device usb-ehci,id=ehci                        \
 			-soundhw pcspk

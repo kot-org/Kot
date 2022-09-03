@@ -36,6 +36,7 @@ namespace std {
                         break;
 
                     case 'x':
+                        strBuilder->append("0x");
                         strBuilder->append((char*)itoa(__builtin_va_arg(args, int64_t), cnum, 16));
                         break;
 
