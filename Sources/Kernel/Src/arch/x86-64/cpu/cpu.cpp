@@ -19,6 +19,7 @@ namespace CPU{
     }
 
     void InitCPU(ArchInfo_t* ArchInfo){
+        ArchInfo->architecture = 808664;
         ArchInfo->IRQLineStart = IRQ_START;
         ArchInfo->IRQSize = MAX_IRQ;
         return;

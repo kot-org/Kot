@@ -13,6 +13,7 @@
 
 class Context;
 
+#include "../boot/boot.h"
 #include "../manager/monitor.h"
 #include "../manager/window.h"
 

@@ -3,6 +3,7 @@
 extern "C" void main(uintptr_t boot){   
     /* load arch */
     ArchInfo_t* ArchInfo = arch_initialize(boot);
+    ArchInfo->revision = 1;
 
     /* load init file */
     initrd::File* InitFile = initrd::FindInitFile();

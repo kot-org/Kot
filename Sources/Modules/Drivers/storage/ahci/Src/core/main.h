@@ -9,3 +9,5 @@
 #include <controller/controller.h>
 
 extern process_t Proc;
+
+void AddDevice(Device* Device);

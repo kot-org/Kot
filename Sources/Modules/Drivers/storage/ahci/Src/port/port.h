@@ -9,7 +9,7 @@
 #define HBA_INTERRUPT_STATU_TFE         1 << 30 // Task File Error
 #define HBA_COMMAND_LIST_MAX_ENTRIES    0x20
 #define HBA_PRDT_ENTRY_MAX_SIZE         0x1000
-#define HBA_MAX_BLOCK_SIZE              0x40000
+#define HBA_MAX_BLOCK_SIZE              0x10000
 #define HBA_PRDT_MAX_ENTRIES            HBA_MAX_BLOCK_SIZE / HBA_PRDT_ENTRY_MAX_SIZE
 #define HBA_COMMAND_TABLE_SIZE          HBA_PRDT_MAX_ENTRIES * sizeof(HBAPRDTEntry_t) + sizeof(HBACommandTable_t)
 #define HBA_PRDT_ENTRY_ADDRESS_SIZE     0x1000
@@ -580,6 +580,10 @@ class Device{
         uintptr_t BufferVirtual;
         size64_t BufferRealSize;
         size64_t BufferUsableSize;
+        uint64_t BufferAlignement;
+
+        uintptr_t BufferAlignementBottom;
+        uintptr_t BufferAlignementTop;
 
         IdentifyInfo_t* IdentifyInfo;
 

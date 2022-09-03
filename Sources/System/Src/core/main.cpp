@@ -33,7 +33,7 @@ extern "C" int main(KernelInfo* kernelInfo) {
     initrd::File* StarterFile = initrd::Find("Starter.json");
 
     if (StarterFile != NULL) {
-        char* BufferStarterFile = (char*) calloc(StarterFile->size);
+        char* BufferStarterFile = (char*)calloc(StarterFile->size);
         initrd::Read(StarterFile, BufferStarterFile);
         
         JsonParser* parser = new JsonParser(BufferStarterFile);
@@ -41,7 +41,7 @@ extern "C" int main(KernelInfo* kernelInfo) {
         if (parser->getCode() == JSON_SUCCESS && parser->getValue()->getType() == JSON_ARRAY) {
             JsonArray* arr = (JsonArray*) parser->getValue();
 
-            arguments_t* InitParameters = (arguments_t*) calloc(sizeof(arguments_t));
+            arguments_t* InitParameters = (arguments_t*)calloc(sizeof(arguments_t));
 
             for (uint64_t i = 0; i < arr->length(); i++) {
                 JsonObject* service = (JsonObject*) arr->get(i);
@@ -55,6 +55,7 @@ extern "C" int main(KernelInfo* kernelInfo) {
                         }
                     }
                 }
+                
                 if (file->getType() == JSON_STRING) {
                     if(strcmp(file->get(), "")) continue;
                     initrd::File* serviceFile = initrd::Find(file->get());

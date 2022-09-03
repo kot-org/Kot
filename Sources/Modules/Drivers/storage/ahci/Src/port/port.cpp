@@ -20,6 +20,9 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
     BufferVirtual = getFreeAlignedSpace(BufferRealSize);
     Sys_CreateMemoryField(Proc, BufferRealSize, &BufferVirtual, &BufferKey, MemoryFieldTypeShareSpaceRW);
 
+    BufferAlignementBottom = malloc(ATA_SECTOR_SIZE);
+    BufferAlignementTop = malloc(ATA_SECTOR_SIZE);
+
     MainSlot = FindSlot();
     if(MainSlot == -1){
         atomicUnlock(&Lock, 0);
@@ -34,7 +37,6 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
         CommandAddressTable[MainSlot]->PrdtEntry[i].DataBaseAddress = (uint64_t)Sys_GetPhysical((uintptr_t)BufferInteration);
         BufferInteration = (uint64_t)BufferInteration + HBA_PRDT_ENTRY_ADDRESS_SIZE;
     }
-    std::printf("%x", HBA_PRDT_MAX_ENTRIES);
     StartCMD();
 
     // Be sur to unlock the locker
@@ -43,6 +45,11 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
     // Identify disk
     IdentifyInfo = (IdentifyInfo_t*)calloc(sizeof(IdentifyInfo_t));
     GetIdentifyInfo();
+
+    AddDevice(this);
+
+    memset((uintptr_t)((uint64_t)BufferVirtual), 0xff, 0x200);
+    Write(0x0, 0x20);
 }
 
 Device::~Device(){
@@ -81,10 +88,13 @@ int8_t Device::FindSlot(){
 }
 
 KResult Device::Read(uint64_t Start, size64_t Size){
+    if((Start + (uint64_t)Size) > GetSize()) return KNOTALLOW;
+    if(Size > BufferUsableSize) return KMEMORYVIOLATION;
+
     uint64_t StartAlignement = Start & 0x1FF;
     uint64_t Sector = Start >> 9;
     uint64_t SectorCount = DivideRoundUp(Size + StartAlignement, ATA_SECTOR_SIZE);
-    uint64_t PRDTLength = DivideRoundUp(SectorCount, HBA_PRDT_ENTRY_MAX_SIZE / ATA_SECTOR_SIZE);
+    uint64_t PRDTLength = DivideRoundUp(SectorCount, HBA_PRDT_ENTRY_SECTOR_SIZE);
 
     if(PRDTLength > HBA_PRDT_MAX_ENTRIES){
         return KFAIL;
@@ -161,16 +171,38 @@ KResult Device::Read(uint64_t Start, size64_t Size){
 }
 
 KResult Device::Write(uint64_t Start, size64_t Size){
+    if((Start + (uint64_t)Size) > GetSize()) return KNOTALLOW;
+    if(Size > BufferUsableSize) return KMEMORYVIOLATION;
+
     uint64_t StartAlignement = Start & 0x1FF;
+    uint64_t StartAlignementFill = ATA_SECTOR_SIZE - Start;
+
+    uint64_t EndAlignement = (Start + Size) & 0x1FF;
+    uint64_t EndAlignementFill = ATA_SECTOR_SIZE - EndAlignement;
+    
     uint64_t Sector = Start >> 9;
     uint64_t SectorCount = DivideRoundUp(Size + StartAlignement, ATA_SECTOR_SIZE);
-    uint64_t PRDTLength = DivideRoundUp(SectorCount, HBA_PRDT_ENTRY_MAX_SIZE / ATA_SECTOR_SIZE);
+    uint64_t PRDTLength = DivideRoundUp(SectorCount, HBA_PRDT_ENTRY_SECTOR_SIZE);
 
     if(PRDTLength > HBA_PRDT_MAX_ENTRIES){
         return KFAIL;
     }
 
     atomicAcquire(&Lock, 0);
+    
+    if(StartAlignement){
+        uintptr_t BufferTmp = (uintptr_t)((uint64_t)BufferVirtual + StartAlignement);
+        memcpy(BufferAlignementBottom, BufferTmp, StartAlignementFill);
+        Read(Start, StartAlignement);
+        memcpy(BufferTmp, BufferAlignementBottom, StartAlignementFill);
+    }
+
+    if(EndAlignement){
+        uintptr_t BufferTmp = (uintptr_t)((uint64_t)BufferVirtual + Size + EndAlignement);
+        memcpy(BufferAlignementBottom, BufferTmp, EndAlignement);
+        Read(Start + Size + EndAlignement, EndAlignementFill);
+        memcpy(BufferTmp, BufferAlignementBottom, EndAlignement);        
+    }
 
     uint32_t SectorLow = (uint32_t)Sector & 0xFFFFFFFF;
     uint32_t sectorHigh = (uint32_t)(Sector >> 32) & 0xFFFFFFFF;

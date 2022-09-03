@@ -23,37 +23,6 @@ void threadRender(){
     Sys_Close(KSUCCESS);
 }
 
-void drawKotLogo() {
-
-    Monitor* monitor0 = (Monitor*) vector_get(monitors, 0);
-    Window* kotLogo = monitor0->getBackground();
-
-    std::Context* ctx = new std::Context(kotLogo->getFramebuffer()->addr, kotLogo->getWidth(), kotLogo->getHeight());
-
-    ctx->clear();
-
-    ctx->auto_pos(true);
-    ctx->scale_pos(true);
-
-    ctx->abs_pos(kotLogo->getWidth()/2 - 15 * ctx->get_scale(), kotLogo->getHeight()/2 - 50 * ctx->get_scale());
-    ctx->rel_pos(0, 75);
-    ctx->rel_pos(10, -5);
-    ctx->rel_pos(0, -25);
-    ctx->rel_pos(13, 0);
-    ctx->rel_pos(0, 33);
-    ctx->rel_pos(10, -5);
-    ctx->rel_pos(0, -38);
-    ctx->rel_pos(-13, 0);
-    ctx->rel_pos(15, -17);
-    ctx->rel_pos(-10, -3);
-    ctx->rel_pos(-15, 17);
-    ctx->rel_pos(0, -37);
-
-    ctx->draw(0xffffff);
-    ctx->fill(ctx->get_pos(0)->x+1, ctx->get_pos(0)->y+1, 0xffffff);
-
-}
-
 thread_t CreateWindowThread = NULL;
 thread_t DestroyWindowThread = NULL;
 thread_t GetFramebufferThread = NULL;
@@ -187,7 +156,7 @@ void initOrb() {
     
     vector_push(monitors, monitor0);
 
-    drawKotLogo();
+    loadBootGraphics();
 
     initCursor();
 
