@@ -43,17 +43,6 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
     // Identify disk
     IdentifyInfo = (IdentifyInfo_t*)calloc(sizeof(IdentifyInfo_t));
     GetIdentifyInfo();
-
-    std::printf("Size : %d", GetSize());
-    memset(BufferVirtual, 0x90, BufferUsableSize);
-    Write(0x0, 0x10);
-    memset(BufferVirtual, 0x0, BufferUsableSize);
-    Read(0x0, 0x10);
-    uint64_t Buffer = (uint64_t)BufferVirtual;
-    for(uint64_t i = 0; i < 0x10; i++){
-        std::printf("Read : %x", *(uint8_t*)Buffer);
-        Buffer  += ATA_SECTOR_SIZE;
-    }
 }
 
 Device::~Device(){
@@ -95,7 +84,7 @@ KResult Device::Read(uint64_t Start, size64_t Size){
     uint64_t StartAlignement = Start & 0x1FF;
     uint64_t Sector = Start >> 9;
     uint64_t SectorCount = DivideRoundUp(Size + StartAlignement, ATA_SECTOR_SIZE);
-    uint64_t PRDTLength = ((SectorCount - 1) / 8) + 1;
+    uint64_t PRDTLength = DivideRoundUp(SectorCount, HBA_PRDT_ENTRY_MAX_SIZE / ATA_SECTOR_SIZE);
 
     if(PRDTLength > HBA_PRDT_MAX_ENTRIES){
         return KFAIL;
@@ -107,7 +96,7 @@ KResult Device::Read(uint64_t Start, size64_t Size){
     uint32_t SectorLow = (uint32_t)Sector & 0xFFFFFFFF;
     uint32_t sectorHigh = (uint32_t)(Sector >> 32) & 0xFFFFFFFF;
 
-    HbaPort->InterruptStatus = NULL; // Clear pending interrupt bits
+    HbaPort->InterruptStatus = (uint32_t)-1; // Clear pending interrupt bits
 
     CommandHeader->CommandFISLength = sizeof(FisHostToDeviceRegisters_t) / sizeof(uint32_t); // Command FIS size;
     CommandHeader->Atapi = 0;
@@ -162,13 +151,10 @@ KResult Device::Read(uint64_t Start, size64_t Size){
     while (true){
         if((HbaPort->CommandIssue & (1 << MainSlot)) == 0) break;
         if(HbaPort->InterruptStatus & HBA_INTERRUPT_STATU_TFE){
-            std::printf("Error %x", HbaPort->InterruptStatus);
             atomicUnlock(&Lock, 0);
             return KFAIL;
         }
     }
-    std::printf("Statu %x", HbaPort->InterruptStatus);
-
     atomicUnlock(&Lock, 0);   
 
     return KSUCCESS;
@@ -178,9 +164,9 @@ KResult Device::Write(uint64_t Start, size64_t Size){
     uint64_t StartAlignement = Start & 0x1FF;
     uint64_t Sector = Start >> 9;
     uint64_t SectorCount = DivideRoundUp(Size + StartAlignement, ATA_SECTOR_SIZE);
-    uint64_t PRDTCount = ((SectorCount - 1) / 8) + 1;
+    uint64_t PRDTLength = DivideRoundUp(SectorCount, HBA_PRDT_ENTRY_MAX_SIZE / ATA_SECTOR_SIZE);
 
-    if(PRDTCount > HBA_PRDT_MAX_ENTRIES){
+    if(PRDTLength > HBA_PRDT_MAX_ENTRIES){
         return KFAIL;
     }
 
@@ -189,12 +175,12 @@ KResult Device::Write(uint64_t Start, size64_t Size){
     uint32_t SectorLow = (uint32_t)Sector & 0xFFFFFFFF;
     uint32_t sectorHigh = (uint32_t)(Sector >> 32) & 0xFFFFFFFF;
 
-    HbaPort->InterruptStatus = NULL; // Clear pending interrupt bits
+    HbaPort->InterruptStatus = (uint32_t)-1; // Clear pending interrupt bits
 
     CommandHeader->CommandFISLength = sizeof(FisHostToDeviceRegisters_t) / sizeof(uint32_t); // Command FIS size;
     CommandHeader->Atapi = 0;
     CommandHeader->Write = 1; // Read mode
-    CommandHeader->PrdtLength = PRDTCount;
+    CommandHeader->PrdtLength = PRDTLength;
 
     HBACommandTable_t* CommandTable = CommandAddressTable[MainSlot];
     FisHostToDeviceRegisters_t* CommandFIS = (FisHostToDeviceRegisters_t*)(&CommandTable->CommandFIS);
@@ -303,7 +289,6 @@ KResult Device::GetIdentifyInfo(){
 }
 
 uint64_t Device::GetSize(){
-    std::printf("%d", (uint64_t)&IdentifyInfo->StreamingTransferTime - (uint64_t)IdentifyInfo);
     uint64_t Size = NULL;
     if(IdentifyInfo->ExtendedNumberOfUserAddressableSectors){
         Size = (uint64_t)IdentifyInfo->ExtendedNumberOfUserAddressableSectors << 9;

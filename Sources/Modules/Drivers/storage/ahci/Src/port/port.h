@@ -8,9 +8,10 @@
 
 #define HBA_INTERRUPT_STATU_TFE         1 << 30 // Task File Error
 #define HBA_COMMAND_LIST_MAX_ENTRIES    0x20
-#define HBA_PRDT_ENTRY_MAX_SIZE         0x2000
-#define HBA_COMMAND_TABLE_SIZE          0x8000
-#define HBA_PRDT_MAX_ENTRIES            (HBA_COMMAND_TABLE_SIZE - sizeof(HBACommandTable_t)) / sizeof(HBAPRDTEntry_t)
+#define HBA_PRDT_ENTRY_MAX_SIZE         0x1000
+#define HBA_MAX_BLOCK_SIZE              0x40000
+#define HBA_PRDT_MAX_ENTRIES            HBA_MAX_BLOCK_SIZE / HBA_PRDT_ENTRY_MAX_SIZE
+#define HBA_COMMAND_TABLE_SIZE          HBA_PRDT_MAX_ENTRIES * sizeof(HBAPRDTEntry_t) + sizeof(HBACommandTable_t)
 #define HBA_PRDT_ENTRY_ADDRESS_SIZE     0x1000
 #define HBA_PRDT_ENTRY_SECTOR_SIZE      HBA_PRDT_ENTRY_ADDRESS_SIZE / ATA_SECTOR_SIZE
 
@@ -160,7 +161,7 @@ struct IdentifyInfo_Capabilities_t{
     uint8_t Reserved1:1;
     uint8_t StandybyTimerSupport:1;
     uint8_t Reserved2:2;
-    uint16_t Reserved3;
+    uint16_t Reserved3:16;
 }__attribute__((packed));
 
 struct IdentifyInfo_AdditionalSupported_t{
