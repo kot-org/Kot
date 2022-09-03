@@ -69,7 +69,7 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
             uint64_t pageCount = Map->memmap[i].length / PAGE_SIZE;
             if(indexstart > ProtectedIndexEnd){
                 Pmm_UnreservePages_WI(indexstart, pageCount);
-            }else if(indexstart < ProtectedIndexStart && (indexstart + pageCount) < ProtectedIndexStart){
+            }else if(indexstart + pageCount < ProtectedIndexStart){
                 Pmm_UnreservePages_WI(indexstart, pageCount);
             }else{
                 for(uint64_t t = 0; t < pageCount; t++){
