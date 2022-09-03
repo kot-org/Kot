@@ -303,11 +303,12 @@ KResult Device::GetIdentifyInfo(){
 }
 
 uint64_t Device::GetSize(){
-    uint64_t Size = IdentifyInfo->UserAddressableSectors;
+    std::printf("%d", (uint64_t)&IdentifyInfo->StreamingTransferTime - (uint64_t)IdentifyInfo);
+    uint64_t Size = NULL;
     if(IdentifyInfo->ExtendedNumberOfUserAddressableSectors){
-        Size = (((uint64_t)IdentifyInfo->ExtendedNumberOfUserAddressableSectors << 32) | (uint64_t)IdentifyInfo->UserAddressableSectors) << 9;
+        Size = (uint64_t)IdentifyInfo->ExtendedNumberOfUserAddressableSectors << 9;
     }else{
-        Size = (uint64_t)IdentifyInfo->UserAddressableSectors << 9;
+        Size = (uint64_t)IdentifyInfo->TotalUserAddressableSectors << 9;
     }
     return Size;
 }
