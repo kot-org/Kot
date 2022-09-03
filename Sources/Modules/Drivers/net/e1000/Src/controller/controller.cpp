@@ -7,21 +7,21 @@
 
 using namespace std;
 
-void E1000Controller::writeCmd(uint16_t addr, uint32_t value) {
+void E1000Controller::writeCmd(uint16_t reg, uint32_t value) {
     if(barType == PCI_BAR_TYPE_IO) {
-        IoWrite32(ioBase, addr);
+        IoWrite32(ioBase, reg);
         IoWrite32(ioBase + 4, value);
     } else {
-        MMIOWrite32((uint64_t) memoryBase + addr, value);
+        MMIOWrite32(memoryBase, reg, value);
     }
 }
 
-uint32_t E1000Controller::readCmd(uint16_t addr) {
+uint32_t E1000Controller::readCmd(uint16_t reg) {
     if(barType == PCI_BAR_TYPE_IO) {
-        IoWrite32(ioBase, addr);
+        IoWrite32(ioBase, reg);
         return IoRead32(ioBase + 4);
     } else {
-        return MMIORead32((uint64_t) memoryBase + addr);
+        return MMIORead32(memoryBase, reg);
     }
 }
 
@@ -56,10 +56,9 @@ uint32_t E1000Controller::EEPromRead(uint8_t addr) {
 
 bool E1000Controller::CheckMAC() {
     if(!eePromExists) {
-        uint32_t* memoryBaseMAC32 = (uint32_t*) memoryBase + 0x5400;
-        
-        if(memoryBaseMAC32[0] == 0)
+        if(MMIORead32(memoryBase, REG_MAC) == 0){
             return false;
+        }
     }
     return true;
 }
@@ -80,12 +79,10 @@ void E1000Controller::InitMAC() {
         MediaAccCtrl[4] = tmp & 0xFF;
         MediaAccCtrl[5] = tmp >> 8;
     }else{
-        if(CheckMAC()) {
-            uint8_t* memoryBaseMAC8 = (uint8_t*)memoryBase + 0x5400;
-            
-            if(memoryBaseMAC8[0] != 0) {
+        if(CheckMAC()) {            
+            if(MMIORead32(memoryBase, REG_MAC) != 0) {
                 for(int i = 0; i < 6; i++) {
-                    MediaAccCtrl[i] = memoryBaseMAC8[i]; 
+                    MediaAccCtrl[i] = MMIORead8(memoryBase, REG_MAC + i); 
                 }
             }
         }

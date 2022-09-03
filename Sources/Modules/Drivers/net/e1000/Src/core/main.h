@@ -31,6 +31,7 @@
 #define REG_RXDCTL       0x3828 // RX Descriptor Control
 #define REG_RADV         0x282C // RX Int. Absolute Delay Timer
 #define REG_RSRPD        0x2C00 // RX Small Packet Detect Interrupt
+#define REG_MAC          0x5400
  
 #define REG_TIPG         0x0410      // Transmit Inter Packet Gap
 #define ECTRL_SLU        0x40        //set link up
