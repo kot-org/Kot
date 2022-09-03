@@ -55,7 +55,7 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
     Pmm_MemoryInfo.usedPageMemory = 0x0;
     Pmm_MemoryInfo.totalPageMemory = PageCountTotal;
     Pmm_MemoryInfo.reservedPageMemory = 0x0;
-    Pmm_MemoryInfo.totalUsablePageMemory = Pmm_GetMemorySize(Map);
+    Pmm_MemoryInfo.totalUsablePageMemory = PageCountTotal;
     Pmm_InitBitmap(bitmapSize, BitmapSegment);
 
     Pmm_ReservePages(0x0, PageCountTotal + 1);
@@ -69,10 +69,10 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
             uint64_t pageCount = Map->memmap[i].length / PAGE_SIZE;
             if(indexstart > ProtectedIndexEnd){
                 Pmm_UnreservePages_WI(indexstart, pageCount);
-            }else if(indexstart < ProtectedIndexStart && indexstart < ProtectedIndexStart + pageCount){
+            }else if(indexstart < ProtectedIndexStart && (indexstart + pageCount) < ProtectedIndexStart){
                 Pmm_UnreservePages_WI(indexstart, pageCount);
             }else{
-                for (uint64_t t = 0; t < pageCount; t++){
+                for(uint64_t t = 0; t < pageCount; t++){
                     uint64_t index = indexstart + t;
                     if(index < ProtectedIndexStart || ProtectedIndexEnd < index){
                         Pmm_UnreservePage_WI(index);
