@@ -79,13 +79,12 @@ void E1000Controller::InitMAC() {
         tmp = EEPromRead(2);
         MediaAccCtrl[4] = tmp & 0xFF;
         MediaAccCtrl[5] = tmp >> 8;
-    } else {
+    }else{
         if(CheckMAC()) {
-            uint8_t* memoryBaseMAC8 = (uint8_t*) memoryBase + 0x5400;
-            uint32_t* memoryBaseMAC32 = (uint32_t*) memoryBase + 0x5400;
+            uint8_t* memoryBaseMAC8 = (uint8_t*)memoryBase + 0x5400;
             
-            if(memoryBaseMAC32[0] != 0) {
-                for(int i = 0; i <= 5; i++) {
+            if(memoryBaseMAC8[0] != 0) {
+                for(int i = 0; i < 6; i++) {
                     MediaAccCtrl[i] = memoryBaseMAC8[i]; 
                 }
             }
