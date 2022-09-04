@@ -4,6 +4,8 @@
 #include <kot/cstring.h>
 #include <kot/utils/map.h>
 
+#include <kot++/printf.h>
+
 namespace std {
 
     enum JsonTypes : uint8_t {

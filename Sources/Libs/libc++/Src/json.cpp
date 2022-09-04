@@ -199,8 +199,9 @@ namespace std {
             lexer->index++;
         }
         uint16_t size = lexer->index - start;
-        char* temp = (char*) malloc(size);
+        char* temp = (char*) malloc(size + 1);
         memcpy(temp, (uintptr_t)((uint64_t) lexer->buffer + start), size);
+        temp[size] = '\0';
         this->number = atoi(temp);
         free(temp);
     }
@@ -241,8 +242,9 @@ namespace std {
             lexer->index++;
         }
         uint64_t size = lexer->index - start;
-        this->buffer = (char*) malloc(size);
+        this->buffer = (char*) malloc(size + 1);
         memcpy(this->buffer, (uintptr_t)((uint64_t) lexer->buffer + start), size);
+        this->buffer[size] = '\0';
         lexer->index++;
     }
 
