@@ -1,5 +1,4 @@
-QEMUFLAGS =	-bios /usr/share/ovmf/OVMF.fd					\
-			-no-reboot 										\
+QEMUFLAGS =	-no-reboot 										\
 			-no-shutdown 									\
 			-M smm=off 										\
 			-serial stdio 									\

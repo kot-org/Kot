@@ -156,7 +156,7 @@ void initOrb() {
     
     vector_push(monitors, monitor0);
 
-    loadBootGraphics();
+    loadBootGraphics(monitor0->getBackground()->getFramebuffer());
 
     initCursor();
 

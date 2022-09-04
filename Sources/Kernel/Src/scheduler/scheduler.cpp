@@ -702,11 +702,7 @@ KResult kthread_t::ShareDataUsingStackSpace(uintptr_t data, size64_t size, uintp
     if(size == 0){
         *location = NULL;
         return KFAIL;
-    } 
-    if(size > ShareMaxIntoStackSpace){
-        *location = NULL;
-        return KFAIL;
-    } 
+    }
 
     Regs->rsp -= size;
 

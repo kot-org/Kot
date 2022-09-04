@@ -17,7 +17,6 @@ class TaskManager;
 #define LockAddress vmm_MapAddress(0xfe, 0, 0, 0) 
 #define FreeMemorySpaceAddress vmm_MapAddress(0xfe, 0, 0, 0) 
 #define DefaultFlagsKey 0xff
-#define ShareMaxIntoStackSpace PAGE_SIZE * 0x10
 
 struct threadInfo_t{
     uint64_t SyscallStack;

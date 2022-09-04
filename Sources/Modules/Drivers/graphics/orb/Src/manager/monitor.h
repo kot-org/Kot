@@ -1,7 +1,7 @@
 #include <kot/heap.h>
 #include <kot/utils/vector.h>
-#include <kot++/graphics/context.h>
 #include <kot++/graphics/utils.h>
+#include <kot++/graphics/context.h>
 
 using namespace std;
 
