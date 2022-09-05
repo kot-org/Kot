@@ -47,9 +47,14 @@ void loadBootGraphics(framebuffer_t* Framebuffer){
 
 void parseBootImage(framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width, uint32_t Height, uint8_t Bpp, uint32_t XPos, uint32_t YPos){
     uint8_t BytePerPixel = Bpp / 8;
+    uint32_t RowSize = Width * BytePerPixel;
+    if(RowSize % 4){
+        RowSize -= RowSize % 4;
+        RowSize += 4;
+    }
     for(uint32_t i = Height; 0 < i; i--){ 
         for(uint32_t j = 0; j < Width; j++){
-            uint32_t Position = (j + (Height - i) * Width) * BytePerPixel;
+            uint32_t Position = (j * (uint32_t)BytePerPixel) + ((Height - i) * RowSize);
             uint32_t Data = ((uint32_t)IGA[Position + 1] << 8) | ((uint32_t)IGA[Position + 2] << 16) | (uint32_t)IGA[Position];
             putPixel(Framebuffer, j + XPos, i + YPos, Data);
         }
