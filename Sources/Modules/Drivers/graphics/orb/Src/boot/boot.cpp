@@ -26,8 +26,8 @@ void loadBootGraphics(framebuffer_t* Framebuffer){
         BMPImageHeader_t* BGRTBMPImageHeader = (BMPImageHeader_t*)MapPhysical((uintptr_t)BGRTTable->ImageAddress, sizeof(BMPImageHeader_t)); // map the header only
         if(BGRTBMPImageHeader->ImageOffset != NULL){
             IsBGRT = true;
-            uint32_t PosY = (Framebuffer->width - BGRTBMPImageHeader->Width) / 2;
-            uint32_t PosX = (Framebuffer->height - (BGRTBMPImageHeader->Height + LogoHeight)) / 2 ;
+            uint32_t PosX = (Framebuffer->width - BGRTBMPImageHeader->Width) / 2;
+            uint32_t PosY = (Framebuffer->height - (BGRTBMPImageHeader->Height + LogoHeight)) / 2 ;
             uint8_t* Buffer = (uint8_t*)((uint64_t)MapPhysical((uintptr_t)BGRTTable->ImageAddress, BGRTBMPImageHeader->Size) + (uint64_t)BGRTBMPImageHeader->ImageOffset); // map all the image
             parseBootImage(Framebuffer, Buffer, BGRTBMPImageHeader->Width, BGRTBMPImageHeader->Height, BGRTBMPImageHeader->Bpp, PosX, PosY);
         }
