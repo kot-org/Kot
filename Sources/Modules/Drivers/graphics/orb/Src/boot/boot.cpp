@@ -48,6 +48,7 @@ void loadBootGraphics(framebuffer_t* Framebuffer){
 void parseBootImage(framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width, uint32_t Height, uint8_t Bpp, uint32_t XPos, uint32_t YPos){
     uint8_t BytePerPixel = Bpp / 8;
     uint32_t RowSize = Width * BytePerPixel;
+    // Add padding
     if(RowSize % 4){
         RowSize -= RowSize % 4;
         RowSize += 4;
