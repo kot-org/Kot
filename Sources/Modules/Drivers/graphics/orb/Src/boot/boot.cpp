@@ -11,10 +11,10 @@ void loadBootGraphics(framebuffer_t* Framebuffer){
     
     // Get kot logo informations
     srv_system_callback_t* CallbackLogo = Srv_System_ReadFileInitrd("bootlogo.bmp", true);
-    BMPImageHeader_t* BGRTBMPImageHeader = (BMPImageHeader_t*)CallbackLogo->Data;
+    BMPImageHeader_t* LogoImageHeader = (BMPImageHeader_t*)CallbackLogo->Data;
     if(CallbackLogo->Data != NULL){
-        if(BGRTBMPImageHeader->ImageOffset != NULL){
-            LogoHeight = BGRTBMPImageHeader->Height;
+        if(LogoImageHeader->ImageOffset != NULL){
+            LogoHeight = LogoImageHeader->Height;
             IsLogo = true;
         }        
     } 
@@ -27,21 +27,21 @@ void loadBootGraphics(framebuffer_t* Framebuffer){
         if(BGRTBMPImageHeader->ImageOffset != NULL){
             IsBGRT = true;
             uint32_t PosY = (Framebuffer->width - BGRTBMPImageHeader->Width) / 2;
-            uint32_t PosX = (Framebuffer->height - BGRTBMPImageHeader->Height - LogoHeight) / 2 ;
+            uint32_t PosX = (Framebuffer->height - (BGRTBMPImageHeader->Height + LogoHeight)) / 2 ;
             uint8_t* Buffer = (uint8_t*)((uint64_t)MapPhysical((uintptr_t)BGRTTable->ImageAddress, BGRTBMPImageHeader->Size) + (uint64_t)BGRTBMPImageHeader->ImageOffset); // map all the image
             parseBootImage(Framebuffer, Buffer, BGRTBMPImageHeader->Width, BGRTBMPImageHeader->Height, BGRTBMPImageHeader->Bpp, PosX, PosY);
-        }        
+        }
     }
 
     // Draw kot logo
     if(IsLogo){
-        uint8_t* Buffer = (uint8_t*)((uint64_t)BGRTBMPImageHeader + (uint64_t)BGRTBMPImageHeader->ImageOffset); // map all the image
-        uint32_t PosX = (Framebuffer->width - BGRTBMPImageHeader->Width) / 2;
-        uint32_t PosY = (Framebuffer->height - BGRTBMPImageHeader->Height) / 2;
+        uint8_t* Buffer = (uint8_t*)((uint64_t)LogoImageHeader + (uint64_t)LogoImageHeader->ImageOffset); // map all the image
+        uint32_t PosX = (Framebuffer->width - LogoImageHeader->Width) / 2;
+        uint32_t PosY = (Framebuffer->height - LogoImageHeader->Height) / 2;
         if(IsBGRT){
-            PosY = Framebuffer->height - (BGRTBMPImageHeader->Height + BootLogoBottomMargin);
+            PosY = Framebuffer->height - (LogoImageHeader->Height + BootLogoBottomMargin);
         }
-        parseBootImage(Framebuffer, Buffer, BGRTBMPImageHeader->Width, BGRTBMPImageHeader->Height, BGRTBMPImageHeader->Bpp, PosX, PosY);
+        parseBootImage(Framebuffer, Buffer, LogoImageHeader->Width, LogoImageHeader->Height, LogoImageHeader->Bpp, PosX, PosY);
     }
 }
 
