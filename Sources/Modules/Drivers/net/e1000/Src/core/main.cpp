@@ -1,9 +1,5 @@
 #include <controller/controller.h>
 
-#include <kot++/printf.h>
-
-using namespace std;
-
 E1000Controller** Controllers = NULL;
 
 extern "C" int main(int argc, char* argv[]) {
@@ -37,7 +33,7 @@ extern "C" int main(int argc, char* argv[]) {
             srv_pci_bar_info_t* BarInfo = (srv_pci_bar_info_t*)Callback->Data;
             free(Callback);
 
-            Controllers[i] = new E1000Controller(BarInfo);
+            Controllers[i] = new E1000Controller(BarInfo, DeviceInfo);
         } else {
             Printlog("[NET/E1000] Intel network cards not found");
         }
