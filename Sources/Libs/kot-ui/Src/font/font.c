@@ -4,18 +4,23 @@
 #include <kot-ui/font/ssfn.h>
 
 kfont_t* LoadFont(uintptr_t data){
-    kfont_t* font = malloc(sizeof(kfont_t));
-    font->ctx = malloc(sizeof(ssfn_t));
+    if(data != NULL) {
+        kfont_t* font = malloc(sizeof(kfont_t));
 
-    ssfn_load(font->ctx, data);
-    ssfn_select(font->ctx, SSFN_FAMILY_ANY, NULL, SSFN_STYLE_REGULAR, 64);
-    
-    return font;
+        font->ctx = malloc(sizeof(ssfn_t));
+        ssfn_load(font->ctx, data);
+        ssfn_select(font->ctx, SSFN_FAMILY_ANY, NULL, SSFN_STYLE_REGULAR, 64);
+        
+        return font;
+    } else {
+        Printlog("Font file doesn't exist.");
+        return NULL;
+    }
 }
 
 void FreeFont(kfont_t* font){
     ssfn_free(font->ctx);
-    free(font->ctx);
+    free(font);
 }
 
 void PrintFont(kfont_t* font, char* str, font_fb_t* buffer, uint64_t x, uint64_t y, uint32_t color){
@@ -29,9 +34,7 @@ void PrintFont(kfont_t* font, char* str, font_fb_t* buffer, uint64_t x, uint64_t
     ssfnBuff.y = y;
     ssfnBuff.fg = 0xffffffff;
     ssfnBuff.bg = 0x0;
-    int64_t test = ssfn_render(font->ctx, &ssfnBuff, str);
-    char buff[33];
-    itoa(test, buff, 0x10);
-    Printlog(buff);
+
+    ssfn_render(font->ctx, &ssfnBuff, str);
     Printlog("ok");
 }
