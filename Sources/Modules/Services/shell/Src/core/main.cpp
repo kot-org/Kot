@@ -3,9 +3,6 @@
 #include <kot++/java/se8/jvm.h>
 using namespace SE8;
 
-#include <kot++/printf.h>
-using namespace std;
-
 std::framebuffer_t* fb;
 psf1_font* zap_light16;
 

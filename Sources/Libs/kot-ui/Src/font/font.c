@@ -4,15 +4,15 @@
 
 #define _STRING_H_
 #define _UINT64_T
-#define SSFN_memcmp  memcmp
-#define SSFN_memset  memset
-#define SSFN_realloc realloc
-#define SSFN_free free
+#define SSFN_memcmp     memcmp
+#define SSFN_memset     memset
+#define SSFN_realloc    realloc
+#define SSFN_free       free
 #define SSFN_CONSOLEBITMAP_TRUECOLOR
 #define SSFN_IMPLEMENTATION 
 
 #include <kot-ui/font.h>
-#include <kot-ui/ssfn.h>
+#include <kot-ui/font/ssfn.h>
 
 kfont_t* LoadFont(uintptr_t data){
     kfont_t* font = malloc(sizeof(kfont_t));
@@ -29,16 +29,16 @@ void FreeFont(kfont_t* font){
 }
 
 void PrintFont(kfont_t* font, char* str, font_fb_t* buffer, uint64_t x, uint64_t y, uint32_t color){
-    ssfn_buf_t* ssfnBuff;
+    ssfn_buf_t ssfnBuff;
 
-    ssfnBuff->ptr = buffer->address;
-    ssfnBuff->w = buffer->width;
-    ssfnBuff->h = buffer->height;
-    ssfnBuff->p = buffer->pitch;
-    ssfnBuff->x = x;
-    ssfnBuff->y = y;
-    ssfnBuff->fg = color;
-    ssfnBuff->bg = 0x0;
+    ssfnBuff.ptr = buffer->address;
+    ssfnBuff.w = buffer->width;
+    ssfnBuff.h = buffer->height;
+    ssfnBuff.p = buffer->pitch;
+    ssfnBuff.x = x;
+    ssfnBuff.y = y;
+    ssfnBuff.fg = color;
+    ssfnBuff.bg = 0x0;
 
-    ssfn_render(font->ctx, ssfnBuff, str);
+    ssfn_render(font->ctx, &ssfnBuff, str);
 }
