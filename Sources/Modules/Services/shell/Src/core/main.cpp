@@ -1,7 +1,10 @@
-#include "main.h"
+#include <core/main.h>
 
 #include <kot++/java/se8/jvm.h>
 using namespace SE8;
+
+#include <kot++/printf.h>
+using namespace std;
 
 std::framebuffer_t* fb;
 psf1_font* zap_light16;
@@ -35,6 +38,18 @@ extern "C" int main() {
     free(callback2);
     vm->setEntryPoint("Test");
     vm->run(NULL, 0);
+
+    srv_system_callback_t* callback3 = Srv_System_ReadFileInitrd("UbuntuBold.sfn", true);
+    kfont_t* font = LoadFont(callback3->Data);
+    free(callback3);
+    font_fb_t* fontBuff = (font_fb_t*) malloc(sizeof(font_fb_t));
+    fontBuff->address = fb->addr;
+    fontBuff->width = fb->width;
+    fontBuff->height = fb->height;
+    fontBuff->pitch = fb->pitch;
+    PrintFont(font, "hello tout le monde.", fontBuff, 0, 0, 0xFFFFFF);
+    free(fontBuff);
+    FreeFont(font);
 
     return KSUCCESS;
 

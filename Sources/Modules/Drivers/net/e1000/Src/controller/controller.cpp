@@ -154,12 +154,10 @@ void E1000Controller::sendPacket(const void* Data, uint16_t Length) {
     txDescBuff[txIndex]->Length = Length;
     txDescBuff[txIndex]->Cmd = CMD_EOP | CMD_IFCS | CMD_RS;
 
-    uint16_t oldTxIndex = txIndex;
+    uint16_t newTxIndex = (txIndex + 1) % E1000_NUM_TX_DESC;
+    writeCmd(REG_TXDESC_TAIL, newTxIndex);
 
-    txIndex = (txIndex + 1) % E1000_NUM_TX_DESC;
-    writeCmd(REG_TXDESC_TAIL, txIndex);
-
-    while(!(txDescBuff[oldTxIndex]->Status & 0xFF))
+    while(!(txDescBuff[txIndex]->Status & 0xFF));
     Printlog("Packet send");
 }
 
@@ -182,5 +180,5 @@ E1000Controller::E1000Controller(srv_pci_bar_info_t* BarInfo, srv_pci_device_inf
 
     std::printf("[NET/E1000] DeviceID: %x EEProm: %d BarType: %d \n \t\t\t MAC0: %x MAC1: %x MAC2: %x MAC3: %x MAC4: %x MAC5: %x", deviceID, eePromExists, barType, MediaAccCtrl[0], MediaAccCtrl[1], MediaAccCtrl[2], MediaAccCtrl[3], MediaAccCtrl[4], MediaAccCtrl[5]);
 
-    // sendPacket(malloc(0x1000), 0x1000);
+    sendPacket(malloc(0x1000), 0x1000);
 }
