@@ -1,6 +1,20 @@
 #include "frame.h"
 
-// todo: implement float & double (IEEE 754)
+#define NaN 0x7FF00000U
+
+int isnan(double x)
+{
+    union { uint64_t u; double f; } ieee754;
+    ieee754.f = x;
+    return ieee754.u == NaN;
+}
+
+int isnan(float x)
+{
+    union { uint64_t u; float f; } ieee754;
+    ieee754.f = x;
+    return ieee754.u == NaN;
+}
 
 namespace SE8 {
 
@@ -16,11 +30,20 @@ namespace SE8 {
     }
 
     void Opc::aaload(Frame* frame) {
-
+        int32_t index = frame->stack->pop32();
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        frame->stack->push32(*(uint32_t*)((uint64_t) arr + index * 4));
     }
 
     void Opc::aastore(Frame* frame) {
-
+        uint32_t value = frame->stack->pop32();
+        int32_t index = frame->stack->pop32();
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        *(uint32_t*)((uint64_t) arr + index * 4) = value;
     }
 
     void Opc::aconst_null(Frame* frame) {
@@ -50,7 +73,19 @@ namespace SE8 {
     }
 
     void Opc::anewarray(Frame* frame) { 
-
+        uint16_t index = frame->reader->u2B();
+        frame->constant_pool[index];
+        int32_t count = frame->stack->pop32();
+        if (count < 0) {
+            // throw NegativeArraySizeException
+        } else {
+            // todo: should use garbage collection to allocate array
+            uintptr_t arr = calloc(4*count+4);
+            *(uint32_t*)(arr) = count;
+            vector_t* rs = frame->jvm->getRefSys();
+            vector_push(rs, (uintptr_t)((uint64_t) arr+4));
+            frame->stack->push32(rs->length-1);
+        }
     }
 
     void Opc::areturn(Frame* frame) {
@@ -59,7 +94,10 @@ namespace SE8 {
     }
 
     void Opc::arraylength(Frame* frame) {
-
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        frame->stack->push32(*(uint32_t*)((uint64_t) arr - 4));
     }
 
     void Opc::astore(Frame* frame) {
@@ -110,7 +148,11 @@ namespace SE8 {
     }
 
     void Opc::caload(Frame* frame) {
-
+        int32_t index = frame->stack->pop32();
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        frame->stack->push32(*(uint16_t*)((uint64_t) arr + index * 2));
     }
 
     void Opc::castore(Frame* frame) {
@@ -123,83 +165,125 @@ namespace SE8 {
     }
 
     void Opc::checkcast(Frame* frame) {
-
+        frame->reader->u2L();
+        // todo
     }
 
     void Opc::d2f(Frame* frame) {
-
+        double val = frame->stack->pop64();
+        frame->stack->push32(static_cast<float>(val));
     }
 
     void Opc::d2i(Frame* frame) {
- 
+        double val = frame->stack->pop64();
+        frame->stack->push32(static_cast<int32_t>(val));
     }
 
     void Opc::d2l(Frame* frame) {
-
+        double val = frame->stack->pop64();
+        frame->stack->push64(static_cast<int64_t>(val));
     }
 
     void Opc::dadd(Frame* frame) {
-
+        double value2 = frame->stack->pop64();
+        double value1 = frame->stack->pop64();
+        frame->stack->push64(value1 + value2);
     }
 
     void Opc::daload(Frame* frame) {
-
+        int32_t index = frame->stack->pop32();
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        frame->stack->push64(*(uint64_t*)((uint64_t) arr + index * 8));
     }
 
     void Opc::dastore(Frame* frame) {
-        
+        uint64_t value = frame->stack->pop64();
+        int32_t index = frame->stack->pop32();
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        *(uint64_t*)((uint64_t) arr + index * 8) = value;
     }
 
     void Opc::dcmpg(Frame* frame) {
-
+        double value2 = frame->stack->pop64();
+        double value1 = frame->stack->pop64();
+        if (isnan(value1) || isnan(value2) || value1 > value2) {
+            frame->stack->push32(1);
+        } else if (value1 == value2) {
+            frame->stack->push32(0);
+        } else {
+            frame->stack->push32(-1);
+        }
     }
 
     void Opc::dcmpl(Frame* frame) {
-        
+        double value2 = frame->stack->pop64();
+        double value1 = frame->stack->pop64();
+        if (isnan(value1) || isnan(value2) || value1 < value2) {
+            frame->stack->push32(-1);
+        } else if (value1 == value2) {
+            frame->stack->push32(0);
+        } else {
+            frame->stack->push32(1);
+        }
     }
 
     void Opc::dconst_0(Frame* frame) {
-        
+        frame->stack->push64((double) 0.0);
     }
 
     void Opc::dconst_1(Frame* frame) {
-        
+        frame->stack->push64((double) 1.0);
     }
 
     void Opc::ddiv(Frame* frame) {
-        
+        double value2 = frame->stack->pop64();
+        double value1 = frame->stack->pop64();
+        if (value2 == 0) {
+            frame->stack->push64(NaN);
+        } else {
+            frame->stack->push64(value1 / value2);
+        }
     }
 
     void Opc::dload(Frame* frame) {
-        
+        uint16_t idx = frame->widened ? frame->reader->u2B() : frame->reader->u1();
+        frame->stack->push64(*(uint64_t*)((uint64_t) frame->locals + idx * 4));
+        frame->widened = false;
     }
 
     void Opc::dload_0(Frame* frame) {
-        
+        frame->stack->push64(*(uint64_t*)((uint64_t) frame->locals));
     }
 
     void Opc::dload_1(Frame* frame) {
-        
+        frame->stack->push64(*(uint64_t*)((uint64_t) frame->locals + 4));
     }
 
     void Opc::dload_2(Frame* frame) {
-        
+        frame->stack->push64(*(uint64_t*)((uint64_t) frame->locals + 2 * 4));
     }
 
     void Opc::dload_3(Frame* frame) {
-        
+        frame->stack->push64(*(uint64_t*)((uint64_t) frame->locals + 3 * 4));
     }
 
     void Opc::dmul(Frame* frame) {
-
+        double value2 = frame->stack->pop64();
+        double value1 = frame->stack->pop64();
+        frame->stack->push64(value1 * value2);
     }
 
     void Opc::dneg(Frame* frame) {
-
+        double value = frame->stack->pop64();
+        frame->stack->push64(-value);
     }
 
     void Opc::drem(Frame* frame) {
-
+        // todo
     }
 
     void Opc::dreturn(Frame* frame) {
@@ -207,27 +291,31 @@ namespace SE8 {
     }   
 
     void Opc::dstore(Frame* frame) {
-
+        uint16_t idx = frame->widened ? frame->reader->u2B() : frame->reader->u1();
+        *(uint64_t*)((uint64_t) frame->locals + idx * 4) = frame->stack->pop64();
+        frame->widened = false;
     }
 
     void Opc::dstore_0(Frame* frame) {
-
+        *(uint64_t*)((uint64_t) frame->locals) = frame->stack->pop64();
     }
 
     void Opc::dstore_1(Frame* frame) {
-
+        *(uint64_t*)((uint64_t) frame->locals + 4) = frame->stack->pop64();
     }
 
     void Opc::dstore_2(Frame* frame) {
-
+        *(uint64_t*)((uint64_t) frame->locals + 2 * 4) = frame->stack->pop64();
     }
 
     void Opc::dstore_3(Frame* frame) {
-
+        *(uint64_t*)((uint64_t) frame->locals + 3 * 4) = frame->stack->pop64();
     }
 
     void Opc::dsub(Frame* frame) {
-
+        double value2 = frame->stack->pop64();
+        double value1 = frame->stack->pop64();
+        frame->stack->push64(value1 - value2);
     }
 
     void Opc::dup(Frame* frame) {
@@ -279,83 +367,124 @@ namespace SE8 {
     }
 
     void Opc::f2d(Frame* frame) {
-
+        float val = frame->stack->pop32();
+        frame->stack->push32(static_cast<double>(val));
     }
 
     void Opc::f2i(Frame* frame) {
-
+        float val = frame->stack->pop32();
+        frame->stack->push32(static_cast<int32_t>(val));
     }
 
     void Opc::f2l(Frame* frame) {
-
+        float val = frame->stack->pop32();
+        frame->stack->push64(static_cast<int64_t>(val));
     }
 
     void Opc::fadd(Frame* frame) {
-
+        float value2 = frame->stack->pop32();
+        float value1 = frame->stack->pop32();
+        frame->stack->push32(value1 + value2);
     }
 
     void Opc::faload(Frame* frame) {
-
+        int32_t index = frame->stack->pop32();
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        frame->stack->push32(*(uint32_t*)((uint64_t) arr + index * 4));
     }
 
     void Opc::fastore(Frame* frame) {
-
+        uint64_t value = frame->stack->pop64();
+        int32_t index = frame->stack->pop32();
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        *(uint64_t*)((uint64_t) arr + index * 4) = value;
     }
 
     void Opc::fcmpg(Frame* frame) {
-
+        float value2 = frame->stack->pop32();
+        float value1 = frame->stack->pop32();
+        if (isnan(value1) || isnan(value2) || value1 > value2) {
+            frame->stack->push32(1);
+        } else if (value1 == value2) {
+            frame->stack->push32(0);
+        } else {
+            frame->stack->push32(-1);
+        }
     }
 
     void Opc::fcpml(Frame* frame) {
-
+        float value2 = frame->stack->pop32();
+        float value1 = frame->stack->pop32();
+        if (isnan(value1) || isnan(value2) || value1 < value2) {
+            frame->stack->push32(-1);
+        } else if (value1 == value2) {
+            frame->stack->push32(0);
+        } else {
+            frame->stack->push32(1);
+        }
     }
 
     void Opc::fconst_0(Frame* frame) {
-
+        frame->stack->push32((float) 0.0);
     }
 
     void Opc::fconst_1(Frame* frame) {
-
+        frame->stack->push32((float) 1.0);
     }
 
     void Opc::fconst_2(Frame* frame) {
-
+        frame->stack->push32((float) 2.0);
     }
 
     void Opc::fdiv(Frame* frame) {
-
+        float value2 = frame->stack->pop32();
+        float value1 = frame->stack->pop32();
+        if (value2 == 0) {
+            frame->stack->push32(NaN);
+        } else {
+            frame->stack->push32(value1 / value2);
+        }
     }
 
     void Opc::fload(Frame* frame) {
-
+        uint16_t idx = frame->widened ? frame->reader->u2B() : frame->reader->u1();
+        frame->stack->push32(*(uint32_t*)((uint64_t) frame->locals + idx * 4));
+        frame->widened = false;
     }
 
     void Opc::fload_0(Frame* frame) {
-
+        frame->stack->push32(*(uint32_t*)((uint64_t) frame->locals));
     }
 
     void Opc::fload_1(Frame* frame) {
-
+        frame->stack->push32(*(uint32_t*)((uint64_t) frame->locals + 1 * 4));
     }
 
     void Opc::fload_2(Frame* frame) {
-
+        frame->stack->push32(*(uint32_t*)((uint64_t) frame->locals + 2 * 4));
     }
 
     void Opc::fload_3(Frame* frame) {
-
+        frame->stack->push32(*(uint32_t*)((uint64_t) frame->locals + 3 * 4));
     }
 
     void Opc::fmul(Frame* frame) {
-
+        float value2 = frame->stack->pop32();
+        float value1 = frame->stack->pop32();
+        frame->stack->push32(value1 * value2);
     }
 
     void Opc::fneg(Frame* frame) {
-
+        float value = frame->stack->pop32();
+        frame->stack->push32(-value);
     }
 
     void Opc::frem(Frame* frame) {
-
+        // todo
     }
 
     void Opc::freturn(Frame* frame) {
@@ -363,27 +492,31 @@ namespace SE8 {
     }
 
     void Opc::fstore(Frame* frame) {
-
+        uint16_t idx = frame->widened ? frame->reader->u2B() : frame->reader->u1();
+        *(uint32_t*)((uint64_t) frame->locals + idx * 4) = frame->stack->pop32();
+        frame->widened = false;
     }
 
     void Opc::fstore_0(Frame* frame) {
-
+        *(uint32_t*)((uint64_t) frame->locals) = frame->stack->pop32();
     }
 
     void Opc::fstore_1(Frame* frame) {
-
+        *(uint32_t*)((uint64_t) frame->locals + 1 * 4) = frame->stack->pop32();
     }
 
     void Opc::fstore_2(Frame* frame) {
-
+        *(uint32_t*)((uint64_t) frame->locals + 2 * 4) = frame->stack->pop32();
     }
 
     void Opc::fstore_3(Frame* frame) {
-
+        *(uint32_t*)((uint64_t) frame->locals + 3 * 4) = frame->stack->pop32();
     }
 
     void Opc::fsub(Frame* frame) {
-
+        float value2 = frame->stack->pop32();
+        float value1 = frame->stack->pop32();
+        frame->stack->push32(value1 - value2);
     }
 
     void Opc::getfield(Frame* frame) {
@@ -432,11 +565,13 @@ namespace SE8 {
     }
 
     void Opc::i2d(Frame* frame) {
-
+        int32_t val = frame->stack->pop32();
+        frame->stack->push64(static_cast<double>(val));
     }
 
     void Opc::i2f(Frame* frame) {
-
+        int32_t val = frame->stack->pop32();
+        frame->stack->push32(static_cast<double>(val));
     }
 
     void Opc::i2l(Frame* frame) {
@@ -652,7 +787,9 @@ namespace SE8 {
     }
 
     void Opc::iinc(Frame* frame) {
-
+        uint16_t idx = frame->widened ? frame->reader->u2B() : frame->reader->u1();
+        
+        frame->widened = false;
     }
 
     void Opc::iload(Frame* frame) {
@@ -864,11 +1001,13 @@ namespace SE8 {
     }
 
     void Opc::l2d(Frame* frame) {
-
+        int64_t val = frame->stack->pop64();
+        frame->stack->push64(static_cast<double>(val));
     }
 
     void Opc::l2f(Frame* frame) {
-
+        int64_t val = frame->stack->pop64();
+        frame->stack->push32(static_cast<float>(val));
     }
 
     void Opc::l2i(Frame* frame) {
@@ -883,7 +1022,11 @@ namespace SE8 {
     }
 
     void Opc::laload(Frame* frame) {
-
+        int32_t index = frame->stack->pop32();
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        frame->stack->push64(*(uint64_t*)((uint64_t) arr + index * 4));
     }
 
     void Opc::land(Frame* frame) {
@@ -957,7 +1100,10 @@ namespace SE8 {
         uint16_t idx = frame->reader->u2B();
         ConstantPoolEntry* entry = (ConstantPoolEntry*) frame->constant_pool[idx];
         vector_t* rs = frame->jvm->getRefSys();
-        // implement long and double
+        if (entry->tag == CONSTANT_Long || entry->tag == CONSTANT_Double) {
+            Constant_Double_Long* l = (Constant_Double_Long*) entry;
+            frame->stack->push64(((long) l->high_bytes << 32) + l->low_bytes);
+        }
     }
 
     void Opc::ldiv(Frame* frame) {
@@ -1125,9 +1271,10 @@ namespace SE8 {
             // throw NegativeArraySizeException
         } else {
             // todo: should use garbage collection to allocate array
-            uintptr_t arr = malloc(itemSize*count);
+            uintptr_t arr = malloc(itemSize*count+4);
+            *(uint32_t*)(arr) = count;
             vector_t* rs = frame->jvm->getRefSys();
-            vector_push(rs, arr);
+            vector_push(rs, (uintptr_t)((uint64_t) arr+4));
             frame->stack->push32(rs->length-1);
         }
     }
@@ -1183,7 +1330,12 @@ namespace SE8 {
     }
 
     void Opc::saload(Frame* frame) {
-
+        int32_t index = frame->stack->pop32();
+        uint32_t arrayref = frame->stack->pop32();
+        vector_t* rs = frame->jvm->getRefSys();
+        uintptr_t arr = vector_get(rs, arrayref);
+        frame->stack->push32(*(uint32_t*)((uint64_t) arr + index * 4));
+        // throws null pointer exception if arrayref is null
     }
 
     void Opc::sastore(Frame* frame) {
