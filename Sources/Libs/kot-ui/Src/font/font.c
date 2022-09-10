@@ -32,9 +32,12 @@ void PrintFont(kfont_t* font, char* str, font_fb_t* buffer, uint64_t x, uint64_t
     ssfnBuff.p = buffer->pitch;
     ssfnBuff.x = x;
     ssfnBuff.y = y;
-    ssfnBuff.fg = 0xffffffff;
+    ssfnBuff.fg = color;
     ssfnBuff.bg = 0x0;
 
-    ssfn_render(font->ctx, &ssfnBuff, str);
+    while(*str) {
+        ssfn_render(font->ctx, &ssfnBuff, str);
+        str++;
+    }
     Printlog("ok");
 }

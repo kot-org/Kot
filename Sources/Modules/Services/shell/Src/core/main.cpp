@@ -51,7 +51,7 @@ extern "C" int main() {
     std::printf("height: %x", fontBuff->height);
     fontBuff->pitch = fb->pitch;
     std::printf("pitch: %x", fontBuff->pitch);
-    PrintFont(font, "hi im seb.", fontBuff, 0, 50, 0xFFFFFF);
+    PrintFont(font, "hi im seb.", fontBuff, 0, 50, 0xFFFFFFFF);
     free(fontBuff);
     FreeFont(font);
 
