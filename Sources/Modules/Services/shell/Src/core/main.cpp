@@ -37,6 +37,7 @@ extern "C" int main() {
     vm->run(NULL, 0);
 
     srv_system_callback_t* callback3 = Srv_System_ReadFileInitrd("UbuntuBold.sfn", true);
+
     kfont_t* font = LoadFont(callback3->Data);
     free(callback3);
     font_fb_t* fontBuff = (font_fb_t*) malloc(sizeof(font_fb_t));

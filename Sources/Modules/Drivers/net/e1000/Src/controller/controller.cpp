@@ -178,7 +178,7 @@ E1000Controller::E1000Controller(srv_pci_bar_info_t* BarInfo, srv_pci_device_inf
     InitRX();
     InitTX();
 
-    std::printf("[NET/E1000] DeviceID: %x EEProm: %d BarType: %d \n \t\t\t MAC0: %x MAC1: %x MAC2: %x MAC3: %x MAC4: %x MAC5: %x", deviceID, eePromExists, barType, MediaAccCtrl[0], MediaAccCtrl[1], MediaAccCtrl[2], MediaAccCtrl[3], MediaAccCtrl[4], MediaAccCtrl[5]);
+    std::printf("[NET/E1000] DeviceID: %x EEProm: %d BarType: %d MAC0: %x MAC1: %x MAC2: %x MAC3: %x MAC4: %x MAC5: %x", deviceID, eePromExists, barType, MediaAccCtrl[0], MediaAccCtrl[1], MediaAccCtrl[2], MediaAccCtrl[3], MediaAccCtrl[4], MediaAccCtrl[5]);
 
     sendPacket(malloc(0x1000), 0x1000);
 }

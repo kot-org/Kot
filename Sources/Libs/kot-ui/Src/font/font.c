@@ -8,7 +8,7 @@ kfont_t* LoadFont(uintptr_t data){
     font->ctx = malloc(sizeof(ssfn_t));
 
     ssfn_load(font->ctx, data);
-    ssfn_select(font->ctx, SSFN_FAMILY_SERIF, NULL, SSFN_STYLE_REGULAR | SSFN_STYLE_UNDERLINE, 64);
+    ssfn_select(font->ctx, SSFN_FAMILY_ANY, NULL, SSFN_STYLE_REGULAR, 64);
     
     return font;
 }
@@ -27,8 +27,11 @@ void PrintFont(kfont_t* font, char* str, font_fb_t* buffer, uint64_t x, uint64_t
     ssfnBuff.p = buffer->pitch;
     ssfnBuff.x = x;
     ssfnBuff.y = y;
-    ssfnBuff.fg = color;
+    ssfnBuff.fg = 0xffffffff;
     ssfnBuff.bg = 0x0;
-
-    ssfn_render(font->ctx, &ssfnBuff, str);
+    int64_t test = ssfn_render(font->ctx, &ssfnBuff, str);
+    char buff[33];
+    itoa(test, buff, 0x10);
+    Printlog(buff);
+    Printlog("ok");
 }

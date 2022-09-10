@@ -39,8 +39,11 @@
 
 #define _STRING_H_
 #define _UINT64_T
+#define SSFN_memcmp     memcmp
+#define SSFN_memset     memset
 #define SSFN_realloc    realloc
 #define SSFN_free       free
+
 #define SSFN_CONSOLEBITMAP_TRUECOLOR
 #define SSFN_IMPLEMENTATION 
 
@@ -1090,7 +1093,7 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
             if(!ctx->c[unicode >> 16][(unicode >> 8) & 0xFF][unicode & 0xFF]) return SSFN_ERR_ALLOC;
         } else
 #endif
-            ctx->g = &ctx->ga;
+        ctx->g = &ctx->ga;
         x = (ctx->rc->x > 0 && ci ? (ctx->f->height - ctx->f->baseline) * h / SSFN_ITALIC_DIV / ctx->f->height : 0);
         ctx->g->p = p;
         ctx->g->h = h;
@@ -1100,6 +1103,7 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
         SSFN_memset(&ctx->g->data, 0xFF, p * h);
         color = 0xFE; ctx->g->a = ctx->g->d = 0;
         for(n = 0; n < ctx->rc->n; n++) {
+            Printlog("glypth");
             if(ptr[0] == 255 && ptr[1] == 255) { color = ptr[2]; ptr += ctx->rc->t & 0x40 ? 6 : 5; continue; }
             x = ((ptr[0] + cb) << SSFN_PREC) * h / ctx->f->height; y = (ptr[1] << SSFN_PREC) * h / ctx->f->height;
             if(ctx->rc->t & 0x40) { m = (ptr[5] << 24) | (ptr[4] << 16) | (ptr[3] << 8) | ptr[2]; ptr += 6; }
