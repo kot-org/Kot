@@ -27,7 +27,7 @@ namespace std {
                     }
 
                     case 'c':
-                        strBuilder->append(__builtin_va_arg(args, char));
+                        strBuilder->append((char)__builtin_va_arg(args, char));
                         break;
 
                     case 'u':
