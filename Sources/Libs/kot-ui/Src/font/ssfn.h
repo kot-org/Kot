@@ -31,7 +31,18 @@
 #ifndef _SSFN_H_
 #define _SSFN_H_
 
-#define SSFN_VERSION 0x0200
+#include <kot/heap.h>
+#include <kot/types.h>
+#include <kot/memory.h>
+
+#define SSFN_VERSION    0x0200
+
+#define _STRING_H_
+#define _UINT64_T
+#define SSFN_realloc    realloc
+#define SSFN_free       free
+#define SSFN_CONSOLEBITMAP_TRUECOLOR
+#define SSFN_IMPLEMENTATION 
 
 #ifdef  __cplusplus
 extern "C" {
@@ -44,7 +55,6 @@ extern "C" {
 # endif
 #endif
 
-#include <kot/types.h>
 
 /***** file format *****/
 
