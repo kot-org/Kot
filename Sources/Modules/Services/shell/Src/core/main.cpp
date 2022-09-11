@@ -41,11 +41,7 @@ extern "C" int main() {
     fontBuff->width = fb->width;
     fontBuff->height = fb->height;
     fontBuff->pitch = fb->pitch;
-<<<<<<< HEAD
-    PrintFont(font, "hello world.\ntest", fontBuff, 0, 0, 64, 0xFFFFFFFF);
-=======
-    PrintFont(font, "shell", fontBuff, 0, 0, NULL, 0xFFFFFFFF);
->>>>>>> fb2e04053 (Add appTest)
+    PrintFont(font, "hello world.\ntest", fontBuff, 0, 0, 14, 0xFFFFFFFF);
     free(fontBuff);
     FreeFont(font);
 
