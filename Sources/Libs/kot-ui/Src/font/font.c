@@ -6,7 +6,7 @@
 kfont_t* LoadFont(uintptr_t data){
     kfont_t* font = malloc(sizeof(kfont_t));
 
-    font->Context = malloc(sizeof(ssfn_t));
+    font->Context = calloc(sizeof(ssfn_t));
     font->FrameBuffer = malloc(sizeof(ssfn_buf_t));
 
     ssfn_load(font->Context, data);
