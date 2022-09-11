@@ -8,7 +8,9 @@ extern "C" {
 #endif
 
 typedef struct {
-    uintptr_t ctx;
+    uintptr_t Context;
+    uintptr_t FrameBuffer;
+    bool IsSet;
 } kfont_t;
 
 typedef struct {
@@ -21,7 +23,8 @@ typedef struct {
 kfont_t* LoadFont(uintptr_t data);
 void FreeFont(kfont_t* font);
 
-void PrintFont(kfont_t* font, char* str, font_fb_t* buffer, uint64_t x, uint64_t y, uint8_t fontSize, uint32_t color);
+void SetFont(kfont_t* font, font_fb_t* buffer, uint64_t x, uint64_t y, uint32_t foregroundcolor, uint32_t backgroundcolor, uint8_t fontSize, int style);
+void DrawFont(kfont_t* font, char* str);
 
 #if defined(__cplusplus)
 }
