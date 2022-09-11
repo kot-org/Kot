@@ -17,9 +17,6 @@ void FreeFont(kfont_t* font){
     free(font);
 }
 
-/** 
- * @param fontSize Set null to have the default value
- */
 void PrintFont(kfont_t* font, char* str, font_fb_t* buffer, uint64_t x, uint64_t y, uint8_t fontSize, uint32_t color){
     ssfn_buf_t ssfnBuff;
 
