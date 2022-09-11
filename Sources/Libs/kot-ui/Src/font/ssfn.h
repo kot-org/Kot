@@ -31,11 +31,7 @@
 #ifndef _SSFN_H_
 #define _SSFN_H_
 
-#include <kot/heap.h>
-#include <kot/types.h>
-#include <kot/memory.h>
-
-#define SSFN_VERSION    0x0200
+#define SSFN_VERSION 0x0200
 
 #define _STRING_H_
 #define _UINT64_T
@@ -57,7 +53,16 @@ extern "C" {
 #  define __THROW
 # endif
 #endif
-
+/* if stdint.h was not included before us */
+#ifndef _STDINT_H
+typedef unsigned char       uint8_t;
+typedef unsigned short int  uint16_t;
+typedef short int           int16_t;
+typedef unsigned int        uint32_t;
+#ifndef _UINT64_T
+typedef unsigned long int   uint64_t;
+#endif
+#endif
 
 /***** file format *****/
 
@@ -193,7 +198,7 @@ typedef struct {
 } ssfn_chr_t;
 
 #ifdef SSFN_PROFILING
-#include <kot/cstring.h>
+#include <string.h>
 #include <sys/time.h>
 #endif
 
@@ -316,14 +321,8 @@ extern void *memset (void *__s, int __c, size_t __n) __THROW;
 #    define SSFN_memcmp memcmp
 #   else
 static int SSFN_memcmp(const void *__s1, const void *__s2, size_t __n)
-{   const unsigned char *a = (const unsigned char*)aptr, *b = (const unsigned char*)bptr;
-	for (size64_t i = 0; i < size; i++) {
-		if (a[i] < b[i])
-			return -1;
-		else if (a[i] > b[i])
-			return 1;
-	}
-	return 0; }
+{   unsigned char *a = (unsigned char *)__s1, *b = (unsigned char *)__s2;
+    if(__n > 0) { while(__n-- > 0) { if(*a != *b) { return *a - *b; } a++; b++; } } return 0; }
 #   endif
 #  endif
 # endif
@@ -1093,7 +1092,7 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
             if(!ctx->c[unicode >> 16][(unicode >> 8) & 0xFF][unicode & 0xFF]) return SSFN_ERR_ALLOC;
         } else
 #endif
-        ctx->g = &ctx->ga;
+            ctx->g = &ctx->ga;
         x = (ctx->rc->x > 0 && ci ? (ctx->f->height - ctx->f->baseline) * h / SSFN_ITALIC_DIV / ctx->f->height : 0);
         ctx->g->p = p;
         ctx->g->h = h;
@@ -1103,7 +1102,6 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
         SSFN_memset(&ctx->g->data, 0xFF, p * h);
         color = 0xFE; ctx->g->a = ctx->g->d = 0;
         for(n = 0; n < ctx->rc->n; n++) {
-            Printlog("glypth");
             if(ptr[0] == 255 && ptr[1] == 255) { color = ptr[2]; ptr += ctx->rc->t & 0x40 ? 6 : 5; continue; }
             x = ((ptr[0] + cb) << SSFN_PREC) * h / ctx->f->height; y = (ptr[1] << SSFN_PREC) * h / ctx->f->height;
             if(ctx->rc->t & 0x40) { m = (ptr[5] << 24) | (ptr[4] << 16) | (ptr[3] << 8) | ptr[2]; ptr += 6; }
