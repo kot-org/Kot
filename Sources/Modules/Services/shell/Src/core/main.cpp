@@ -39,19 +39,15 @@ extern "C" int main() {
     vm->setEntryPoint("Test");
     vm->run(NULL, 0);
 
-    srv_system_callback_t* callback3 = Srv_System_ReadFileInitrd("UbuntuBold.sfn", true);
+    srv_system_callback_t* callback3 = Srv_System_ReadFileInitrd("default-font.sfn", true);
     kfont_t* font = LoadFont(callback3->Data);
     free(callback3);
     font_fb_t* fontBuff = (font_fb_t*) malloc(sizeof(font_fb_t));
     fontBuff->address = fb->addr;
-    std::printf("fb: %x", fontBuff->address);
     fontBuff->width = fb->width;
-    std::printf("width: %x", fontBuff->width);
     fontBuff->height = fb->height;
-    std::printf("height: %x", fontBuff->height);
     fontBuff->pitch = fb->pitch;
-    std::printf("pitch: %x", fontBuff->pitch);
-    PrintFont(font, "hi im seb.", fontBuff, 0, 50, 0xFFFFFFFF);
+    PrintFont(font, "hi im seb.\ntest", fontBuff, 0, 0, NULL, 0xFFFFFFFF);
     free(fontBuff);
     FreeFont(font);
 

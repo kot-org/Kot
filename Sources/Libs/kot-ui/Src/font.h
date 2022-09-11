@@ -21,7 +21,7 @@ typedef struct {
 kfont_t* LoadFont(uintptr_t data);
 void FreeFont(kfont_t* font);
 
-void PrintFont(kfont_t* font, char* str, font_fb_t* buffer, uint64_t x, uint64_t y, uint32_t color);
+void PrintFont(kfont_t* font, char* str, font_fb_t* buffer, uint64_t x, uint64_t y, uint8_t fontSize, uint32_t color);
 
 #if defined(__cplusplus)
 }
