@@ -240,6 +240,7 @@ uint32_t ssfn_utf8(char **str);                                                 
 /* normal renderer */
 int ssfn_load(ssfn_t *ctx, const void *data);                                     /* add an SSFN to context */
 int ssfn_select(ssfn_t *ctx, int family, const char *name, int style, int size);  /* select font to use */
+int ssfn_newline(ssfn_t *ctx, ssfn_buf_t *dst);
 int ssfn_render(ssfn_t *ctx, ssfn_buf_t *dst, const char *str);                   /* render a glyph to a pixel buffer */
 int ssfn_bbox(ssfn_t *ctx, const char *str, int *w, int *h, int *left, int *top); /* get bounding box */
 ssfn_buf_t *ssfn_text(ssfn_t *ctx, const char *str, unsigned int fg);             /* renders text to a newly allocated buffer */
@@ -857,7 +858,7 @@ int ssfn_load(ssfn_t *ctx, const void *data)
                 return SSFN_ERR_ALLOC;
             } else
 #endif
-                ctx->fnt[family][ctx->len[family]-1] = font;
+            ctx->font = font;
         }
 #ifndef SSFN_MAXLINES
         _ssfn_fc(ctx);
@@ -967,6 +968,13 @@ familyfound:
     ctx->size = size;
     ctx->line = 0;
     return SSFN_OK;
+}
+
+int ssfn_newline(ssfn_t *ctx, ssfn_buf_t *dst)
+{
+    dst->x = 0; 
+    dst->y += ctx->line ? ctx->line : ctx->size; 
+    return 1;
 }
 
 /**
