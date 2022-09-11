@@ -15,7 +15,7 @@ extern "C" int main() {
     fontBuff->width = fb->width;
     fontBuff->height = fb->height;
     fontBuff->pitch = fb->pitch;
-    PrintFont(font, "demo", fontBuff, 0, 0, NULL, 0xFFFFFFFF);
+    PrintFont(font, "demo", fontBuff, 0, 0, 16, 0xFFFFFFFF);
     free(fontBuff);
     FreeFont(font);
 
