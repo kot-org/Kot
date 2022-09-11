@@ -52,6 +52,8 @@ make -C "Modules/Services/shell/Build"
 
 make -C "Modules/Services/jvm/Build"
 
+make -C "Modules/Services/appTest/Build"
+
 # kernel
 cd "../Sources/Kernel/"
 echo -e "\e[32mBuilding kernel...\e[0m"
