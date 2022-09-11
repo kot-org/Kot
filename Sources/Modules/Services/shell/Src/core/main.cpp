@@ -47,7 +47,7 @@ extern "C" int main() {
     fontBuff->width = fb->width;
     fontBuff->height = fb->height;
     fontBuff->pitch = fb->pitch;
-    PrintFont(font, "hi im seb.\ntest", fontBuff, 0, 0, NULL, 0xFFFFFFFF);
+    PrintFont(font, "hello world.\ntest", fontBuff, 0, 0, NULL, 0xFFFFFFFF);
     free(fontBuff);
     FreeFont(font);
 
