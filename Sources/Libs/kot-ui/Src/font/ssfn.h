@@ -204,11 +204,6 @@ typedef struct {
 
 /* renderer context */
 typedef struct {
-#ifdef SSFN_MAXLINES
-    const ssfn_font_t *fnt[5][16];    /* static font registry */
-#else
-    const ssfn_font_t **fnt[5];       /* dynamic font registry */
-#endif
     const ssfn_font_t *font;             /* font selected by best match */
     ssfn_glyph_t ga;                  /* glyph sketch area */
     ssfn_glyph_t *g;                  /* current glyph pointer */
@@ -222,7 +217,6 @@ typedef struct {
     ssfn_chr_t *rc;                   /* pointer to current character */
     int numbuf, lenbuf, np, ap, ox, oy, ax;
     int mx, my, lx, ly;               /* move to coordinates, last coordinates */
-    int len[5];                       /* number of fonts in registry */
     int family;                       /* required family */
     int style;                        /* required style */
     int size;                         /* required size */
@@ -847,16 +841,6 @@ int ssfn_load(ssfn_t *ctx, const void *data)
             font->fragments_offs >= font->characters_offs) {
                 return SSFN_ERR_BADFILE;
         } else {
-            ctx->len[family]++;
-#ifdef SSFN_MAXLINES
-            if(ctx->len[family] > 15) return SSFN_ERR_ALLOC;
-#else
-            ctx->fnt[family] = (const ssfn_font_t**)SSFN_realloc(ctx->fnt[family], ctx->len[family]*sizeof(void*));
-            if(!ctx->fnt[family]) {
-                ctx->len[family] = 0;
-                return SSFN_ERR_ALLOC;
-            } else
-#endif
             ctx->font = font;
         }
 #ifndef SSFN_MAXLINES
@@ -884,8 +868,6 @@ void ssfn_free(ssfn_t *ctx)
             if(ctx->bufs[i]) SSFN_free(ctx->bufs[i]);
         SSFN_free(ctx->bufs);
     }
-    for(i = 0; i < 5; i++)
-        if(ctx->fnt[i]) SSFN_free(ctx->fnt[i]);
     if(ctx->p) SSFN_free(ctx->p);
 #endif
     SSFN_memset(ctx, 0, sizeof(ssfn_t));
@@ -902,10 +884,9 @@ int ssfn_mem(ssfn_t *ctx)
 #ifdef SSFN_MAXLINES
     return ctx ? sizeof(ssfn_t) : 0;
 #else
-    int i, j, k, ret = sizeof(ssfn_t);
+    int i, j, k, ret = sizeof(ssfn_t) + sizeof(ssfn_font_t*);
 
     if(!ctx) return 0;
-    for(i = 0; i < 5; i++) ret += ctx->len[i] * sizeof(ssfn_font_t*);
     ret += ctx->lenbuf;
     for(k = 0; k <= 16; k++) {
         if(ctx->c[k]) {
@@ -963,7 +944,7 @@ int ssfn_render(ssfn_t *ctx, ssfn_buf_t *dst, const char *str)
 
     ptr = _ssfn_c(ctx->font, str, &ret, &unicode);
 
-    //if(!ctx->font || !ctx->font->height || !ctx->size) return SSFN_ERR_NOFACE;
+    if(!ctx->font || !ctx->font->height || !ctx->size) return SSFN_ERR_NOFACE;
     if((unicode >> 16) > 0x10) return SSFN_ERR_INVINP;
     ctx->rc = (ssfn_chr_t*)ptr; ptr += sizeof(ssfn_chr_t);
     H = (ctx->style & SSFN_STYLE_ABS_SIZE) || SSFN_TYPE_FAMILY(ctx->font->type) == SSFN_FAMILY_MONOSPACE || !ctx->font->baseline ?
@@ -1006,7 +987,7 @@ int ssfn_render(ssfn_t *ctx, ssfn_buf_t *dst, const char *str)
             if(!ctx->c[unicode >> 16][(unicode >> 8) & 0xFF][unicode & 0xFF]) return SSFN_ERR_ALLOC;
         } else
 #endif
-            ctx->g = &ctx->ga;
+        ctx->g = &ctx->ga;
         x = (ctx->rc->x > 0 && ci ? (ctx->font->height - ctx->font->baseline) * h / SSFN_ITALIC_DIV / ctx->font->height : 0);
         ctx->g->p = p;
         ctx->g->h = h;
