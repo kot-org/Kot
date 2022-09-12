@@ -25,7 +25,7 @@ extern "C" int main() {
     fontBuff.width = fb->width;
     fontBuff.height = fb->height;
     fontBuff.pitch = fb->pitch;
-    PrintFont(font, "hello world.\ntest", &fontBuff, 0, 0, 64, 0xFFFFFFFF);
+    PrintFont(font, "hello world.\ntest", &fontBuff, 0, 0, 16, 0xFFFFFFFF);
 
     // _ [] X buttons
     std::drawLine(fb, fb->width-17, 17, fb->width-7, 7, 0xffffff);
