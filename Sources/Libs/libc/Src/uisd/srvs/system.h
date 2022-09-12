@@ -49,7 +49,9 @@ struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwai
 struct srv_system_callback_t* Srv_System_GetTableInRootSystemDescription(char* Name, bool IsAwait);
 struct srv_system_callback_t* Srv_System_GetSystemManagementBIOSTable(bool IsAwait);
 struct srv_system_callback_t* Srv_System_BindIRQLine(uint8_t IRQLineNumber, thread_t Target, bool IgnoreMissedEvents, bool IsAwait);
+struct srv_system_callback_t* Srv_System_UnbindIRQLine(uint8_t IRQLineNumber, thread_t Target, bool IsAwait);
 struct srv_system_callback_t* Srv_System_BindFreeIRQ(uint8_t IRQLineNumber, thread_t Target, bool IgnoreMissedEvents, bool IsAwait);
+struct srv_system_callback_t* Srv_System_UnbindIRQ(uint8_t IRQLineNumber, thread_t Target, bool IsAwait);
 
 #if defined(__cplusplus)
 }
