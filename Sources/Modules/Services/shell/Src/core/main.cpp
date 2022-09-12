@@ -20,14 +20,12 @@ extern "C" int main() {
     srv_system_callback_t* callback0 = Srv_System_ReadFileInitrd("default-font.sfn", true);
     kfont_t* font = LoadFont(callback0->Data);
     free(callback0);
-    font_fb_t* fontBuff = (font_fb_t*) malloc(sizeof(font_fb_t));
-    fontBuff->address = fb->addr;
-    fontBuff->width = fb->width;
-    fontBuff->height = fb->height;
-    fontBuff->pitch = fb->pitch;
-    PrintFont(font, "hello world.\ntest", fontBuff, 0, 0, 64, 0xFFFFFFFF);
-    free(fontBuff);
-    FreeFont(font);
+    font_fb_t fontBuff;
+    fontBuff.address = fb->addr;
+    fontBuff.width = fb->width;
+    fontBuff.height = fb->height;
+    fontBuff.pitch = fb->pitch;
+    PrintFont(font, "hello world.\ntest", &fontBuff, 0, 0, 64, 0xFFFFFFFF);
 
     // _ [] X buttons
     std::drawLine(fb, fb->width-17, 17, fb->width-7, 7, 0xffffff);
