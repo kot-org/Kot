@@ -858,7 +858,7 @@ int ssfn_load(ssfn_t *ctx, const void *data)
                 return SSFN_ERR_ALLOC;
             } else
 #endif
-            ctx->font = font;
+            ctx->fnt[family][ctx->len[family] - 1] = font;
         }
 #ifndef SSFN_MAXLINES
         _ssfn_fc(ctx);
