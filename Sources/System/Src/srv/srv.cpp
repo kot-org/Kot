@@ -40,11 +40,21 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
     thread_t BindIRQLineThread = NULL;
     Sys_Createthread(proc, (uintptr_t)&BindIRQLine, PriviledgeApp, &BindIRQLineThread);
     SystemSrv->BindIRQLine = MakeShareableThread(BindIRQLineThread, PriviledgeDriver);
+    
+    /* UnbindIRQLine */
+    thread_t UnbindIRQLineThread = NULL;
+    Sys_Createthread(proc, (uintptr_t)&UnbindIRQLine, PriviledgeApp, &UnbindIRQLineThread);
+    SystemSrv->UnbindIRQLine = MakeShareableThread(UnbindIRQLineThread, PriviledgeDriver);
 
     /* BindFreeIRQ */
     thread_t BindFreeIRQThread = NULL;
     Sys_Createthread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, &BindFreeIRQThread);
     SystemSrv->BindFreeIRQ = MakeShareableThread(BindFreeIRQThread, PriviledgeDriver);
+
+    /* UnbindIRQ */
+    thread_t UnbindIRQThread = NULL;
+    Sys_Createthread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, &UnbindIRQThread);
+    SystemSrv->UnbindIRQ = MakeShareableThread(UnbindIRQThread, PriviledgeDriver);
 
     /* Setup data */
     SrvInfo = (SrvInfo_t*)malloc(sizeof(SrvInfo_t));
