@@ -6,22 +6,24 @@
 kfont_t* LoadFont(uintptr_t data){
     kfont_t* font = malloc(sizeof(kfont_t));
 
-    font->Context = calloc(sizeof(ssfn_t));
-
-    ssfn_load(font->Context, data);
+    font->ctx = malloc(sizeof(ssfn_t));
+    ssfn_load(font->ctx, data);
     
     return font;
 }
 
 void FreeFont(kfont_t* font){
-    ssfn_free(font->Context);
+    ssfn_free(font->ctx);
     free(font);
 }
 
+/** 
+ * @param fontSize Set null to have the default value
+ */
 void PrintFont(kfont_t* font, char* str, font_fb_t* buffer, uint64_t x, uint64_t y, uint8_t fontSize, uint32_t color){
     ssfn_buf_t ssfnBuff;
 
-    ssfn_t* context = (ssfn_t*)font->Context;
+    ssfn_t* context = (ssfn_t*)font->ctx;
 
     context->size = fontSize;
 
@@ -30,12 +32,13 @@ void PrintFont(kfont_t* font, char* str, font_fb_t* buffer, uint64_t x, uint64_t
     ssfnBuff.h = buffer->height;
     ssfnBuff.p = buffer->pitch;
     ssfnBuff.x = x;
-    ssfnBuff.y = y + context->size;
+    ssfnBuff.y = y;
     ssfnBuff.fg = color;
     ssfnBuff.bg = 0x0;
 
+    ssfn_newline(font->ctx, &ssfnBuff);
 
     while(*str) {
-        ssfn_render(font->Context, &ssfnBuff, str++);
+        ssfn_render(font->ctx, &ssfnBuff, str++);
     }
 }

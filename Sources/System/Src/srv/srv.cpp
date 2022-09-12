@@ -90,10 +90,80 @@ KResult GetFrameBuffer(thread_t Callback, uint64_t CallbackArg){
 }
 
 KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name){
-    initrd::File* file = initrd::Find(Name);
-    uintptr_t fileData = NULL; 
-    if(file != NULL){
-        fileData = initrd::Read(file);
+    if(Name != NULL){
+        initrd::File* file = initrd::Find(Name);
+        uintptr_t fileData = NULL; 
+        if(file != NULL){
+            fileData = initrd::Read(file);
+        }else{
+            arguments_t arguments{
+                .arg[0] = KFAIL,            /* Status */
+                .arg[1] = CallbackArg,      /* CallbackArg */
+                .arg[2] = NULL,             /* Size */
+                .arg[3] = NULL,             /* Data */
+                .arg[4] = NULL,             /* GP2 */
+                .arg[5] = NULL,             /* GP3 */
+            };
+            Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+            Sys_Close(KFAIL);
+        }
+
+        ShareDataWithArguments_t data{
+            .Data = fileData,
+            .Size = file->size,
+            .ParameterPosition = 0x3, 
+        };
+
+        arguments_t arguments{
+            .arg[0] = KSUCCESS,         /* Status */
+            .arg[1] = CallbackArg,      /* CallbackArg */
+            .arg[2] = file->size,       /* Size */
+            .arg[3] = NULL,             /* Data */
+            .arg[4] = NULL,             /* GP2 */
+            .arg[5] = NULL,             /* GP3 */
+        };
+        
+        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &data);
+        Sys_Close(KSUCCESS);
+    }else{
+        arguments_t arguments{
+            .arg[0] = KFAIL,            /* Status */
+            .arg[1] = CallbackArg,      /* CallbackArg */
+            .arg[2] = NULL,             /* Size */
+            .arg[3] = NULL,             /* Data */
+            .arg[4] = NULL,             /* GP2 */
+            .arg[5] = NULL,             /* GP3 */
+        };
+        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_Close(KFAIL);        
+    }
+}
+
+KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg, char* Name){
+    if(Name != NULL){
+        uint64_t tableIndex = FindTableIndex(Name);
+        uintptr_t tableAddress = NULL;
+        size64_t tableSize = NULL;
+
+        KResult status = KFAIL;
+
+        if(tableIndex != NULL){
+            status = KSUCCESS;
+            tableAddress = GetTablePhysicalAddress(tableIndex);
+            tableSize = GetTableSize(tableIndex);
+        }
+
+        arguments_t arguments{
+            .arg[0] = status,                           /* Status */
+            .arg[1] = CallbackArg,                      /* CallbackArg */
+            .arg[2] = (uint64_t)tableAddress,           /* TableAddress */
+            .arg[3] = (uint64_t)tableSize,              /* TableSize */
+            .arg[4] = NULL,                             /* GP2 */
+            .arg[5] = NULL,                             /* GP3 */
+        };
+
+        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_Close(KSUCCESS);
     }else{
         arguments_t arguments{
             .arg[0] = KFAIL,            /* Status */
@@ -106,50 +176,6 @@ KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name){
         Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
         Sys_Close(KFAIL);
     }
-
-    ShareDataWithArguments_t data{
-        .Data = fileData,
-        .Size = file->size,
-        .ParameterPosition = 0x3, 
-    };
-
-    arguments_t arguments{
-        .arg[0] = KSUCCESS,         /* Status */
-        .arg[1] = CallbackArg,      /* CallbackArg */
-        .arg[2] = file->size,       /* Size */
-        .arg[3] = NULL,             /* Data */
-        .arg[4] = NULL,             /* GP2 */
-        .arg[5] = NULL,             /* GP3 */
-    };
-    
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &data);
-    Sys_Close(KSUCCESS);
-}
-
-KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg, char* Name){
-    uint64_t tableIndex = FindTableIndex(Name);
-    uintptr_t tableAddress = NULL;
-    size64_t tableSize = NULL;
-
-    KResult status = KFAIL;
-
-    if(tableIndex != NULL){
-        status = KSUCCESS;
-        tableAddress = GetTablePhysicalAddress(tableIndex);
-        tableSize = GetTableSize(tableIndex);
-    }
-
-    arguments_t arguments{
-        .arg[0] = status,                           /* Status */
-        .arg[1] = CallbackArg,                      /* CallbackArg */
-        .arg[2] = (uint64_t)tableAddress,           /* TableAddress */
-        .arg[3] = (uint64_t)tableSize,              /* TableSize */
-        .arg[4] = NULL,                             /* GP2 */
-        .arg[5] = NULL,                             /* GP3 */
-    };
-
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
 }
 
 KResult GetSystemManagementBIOSTable(thread_t Callback, uint64_t CallbackArg){
@@ -186,22 +212,60 @@ KResult BindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumb
     Sys_Close(KSUCCESS);
 }
 
+KResult UnbindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumber, thread_t Target){
+    KResult Status = KFAIL;
+    if(IRQLineNumber < SrvInfo->IRQLineSize){
+        uint8_t vector = SrvInfo->IRQLineStart + IRQLineNumber;
+        Status = Sys_Event_Unbind(SrvInfo->IRQEvents[vector], Target);
+    }
+    
+    arguments_t arguments{
+        .arg[0] = Status,            /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = NULL,             /* GP0 */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_Close(KSUCCESS);
+}
+
 KResult BindFreeIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, bool IgnoreMissedEvents){
-    event_t IRQ = NULL;
+    event_t Vector = NULL;
     for(size64_t i = 0; i < SrvInfo->IRQSize; i++){
         if(SrvInfo->IsIRQEventsFree[i]){
-            IRQ = SrvInfo->IsIRQEventsFree[i];
+            Vector = SrvInfo->IsIRQEventsFree[i];
             break;
         }
     }
     KResult Status = KFAIL;
-    if(IRQ != NULL){
-        Status = Sys_Event_Bind(IRQ, Target, IgnoreMissedEvents);
+    if(Vector != NULL){
+        Status = Sys_Event_Bind(SrvInfo->IRQEvents[Vector], Target, IgnoreMissedEvents);
     }
     arguments_t arguments{
         .arg[0] = KSUCCESS,         /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
-        .arg[2] = IRQ,              /* IRQNumber */
+        .arg[2] = Vector,              /* IRQNumber */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_Close(KSUCCESS);
+}
+
+KResult UnbindIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, uint8_t Vector){
+    KResult Status = KFAIL;
+    if(Vector > SrvInfo->IRQLineStart + SrvInfo->IRQLineSize && Vector < SrvInfo->IRQSize){
+        Status = Sys_Event_Unbind(SrvInfo->IRQEvents[Vector], Target);
+    }
+    arguments_t arguments{
+        .arg[0] = KSUCCESS,         /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = NULL,             /* GP0 */
         .arg[3] = NULL,             /* GP1 */
         .arg[4] = NULL,             /* GP2 */
         .arg[5] = NULL,             /* GP3 */
