@@ -174,12 +174,6 @@ typedef struct {
     uint32_t bg;                      /* background color */
 } ssfn_buf_t;
 
-typedef struct {
-    ssfn_buf_t Framebuffer;
-    uint64_t CharacterHeight;
-    uint64_t CharacterWidth;
-} ssfn_pen_t;
-
 /* cached bitmap struct */
 #define SSFN_DATA_MAX       ((SSFN_SIZE_MAX + 4 + (SSFN_SIZE_MAX + 4) / SSFN_ITALIC_DIV) << 8)
 typedef struct {

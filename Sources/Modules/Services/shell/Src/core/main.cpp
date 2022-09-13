@@ -8,11 +8,10 @@ using namespace std;
 
 std::framebuffer_t* fb;
 kfont_t* font;
-font_fb_t* fontBuff;
-uint64_t line;
+uint64_t line = 16;
 
-void shell_print(char* str) {
-    line = PrintFont(font, str, fontBuff, 0, line, 16, 0xFFFFFFFF);
+void shell_print(char* str){
+    DrawFont(font, str);
 }
 
 extern "C" int main() {
@@ -23,11 +22,12 @@ extern "C" int main() {
     srv_system_callback_t* callback0 = Srv_System_ReadFileInitrd("default-font.sfn", true);
     font = LoadFont(callback0->Data);
     free(callback0);
-    fontBuff = (font_fb_t*)malloc(sizeof(font_fb_t));
-    fontBuff->address = fb->addr;
-    fontBuff->width = fb->width;
-    fontBuff->height = fb->height;
-    fontBuff->pitch = fb->pitch;
+    font_fb_t fontBuff;
+    fontBuff.address = fb->addr;
+    fontBuff.width = fb->width;
+    fontBuff.height = fb->height;
+    fontBuff.pitch = fb->pitch;
+    LoadPen(font, &fontBuff, 0, 0, 16, 0, 0xFFFFFFFF);
 
     // _ [] X buttons
     std::drawLine(fb, fb->width-17, 17, fb->width-7, 7, 0xffffff);
