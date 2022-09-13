@@ -17,9 +17,9 @@ void shell_print(char* str) {
 
 extern "C" int main() {
 
-    uint32_t wid = orb::Create(300, 300, 10, 10);
-    fb = orb::GetFramebuffer(wid);
-    orb::Show(wid);
+    uint32_t wid = orb::create(300, 300, 10, 10);
+    fb = orb::getFramebuffer(wid);
+    orb::show(wid);
 
     srv_system_callback_t* callback1 = Srv_System_ReadFileInitrd("zap-light16.psf", true);
     zap_light16 = psf1_parse(callback1->Data);
@@ -41,11 +41,7 @@ extern "C" int main() {
     fontBuff->width = fb->width;
     fontBuff->height = fb->height;
     fontBuff->pitch = fb->pitch;
-<<<<<<< HEAD
-    PrintFont(font, "hello world.\ntest", fontBuff, 0, 0, 64, 0xFFFFFFFF);
-=======
     PrintFont(font, "shell", fontBuff, 0, 0, NULL, 0xFFFFFFFF);
->>>>>>> fb2e04053 (Add appTest)
     free(fontBuff);
     FreeFont(font);
 

@@ -23,25 +23,27 @@ class Window {
 private:
     framebuffer_t* fb;
     ksmem_t fb_key;
-    int32_t xPos;
-    int32_t yPos;
+    uint32_t xPos;
+    uint32_t yPos;
     bool Sshow = false;
     bool Sborder = true;
+    process_t orb;
     process_t owner;
     FocusState focus_state = INACTIVE;
+    void newBuffer();
 public:
-    Window(process_t orb, uint32_t width, uint32_t height, int32_t xPos, int32_t yPos);
+    Window(process_t orb, uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos);
     framebuffer_t* getFramebuffer();
     ksmem_t getFramebufferKey();
     uint32_t getHeight();
     uint32_t getWidth();
     uint32_t getPitch();
-    int32_t getX();
-    int32_t getY();
+    uint32_t getX();
+    uint32_t getY();
     void show(bool val);
     void border(bool val);
     void resize(uint32_t width, uint32_t height);
-    void move(int32_t xPos, int32_t yPos);
+    void move(uint32_t xPos, uint32_t yPos);
     process_t getOwner();
     FocusState getFocusState();
     void setFocusState(FocusState focus_state);

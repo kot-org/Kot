@@ -23,18 +23,20 @@ void threadRender(){
     Sys_Close(KSUCCESS);
 }
 
-thread_t CreateWindowThread = NULL;
-thread_t DestroyWindowThread = NULL;
-thread_t GetFramebufferThread = NULL;
-thread_t GetWidthThread = NULL;
-thread_t GetHeightThread = NULL;
-thread_t ShowThread = NULL;
-thread_t HideThread = NULL;
+thread_t createThread = NULL;
+thread_t destroyThread = NULL;
+thread_t getFramebufferThread = NULL;
+thread_t getWidthThread = NULL;
+thread_t getHeightThread = NULL;
+thread_t showThread = NULL;
+thread_t hideThread = NULL;
+thread_t resizeThread = NULL;
+thread_t moveThread = NULL;
 
 /**
  * Return windowId
  **/
-void CreateWindow(uint32_t width, uint32_t height, int32_t x, int32_t y) {
+void create(uint32_t width, uint32_t height, uint32_t x, uint32_t y) {
     Window* window = new Window(self, width, height, x, y);
     vector_push(windows, window);
     Sys_Close(windows->length-1);
@@ -43,7 +45,7 @@ void CreateWindow(uint32_t width, uint32_t height, int32_t x, int32_t y) {
 /**
  * Return KCODE
  **/
-void DestroyWindow(uint32_t windowId) {
+void destroy(uint32_t windowId) {
     Window* window = (Window*) vector_get(windows, windowId);
     if (window->getOwner() != Sys_GetProcess()) { Sys_Close(KFAIL); }
     window->destroy();
@@ -55,7 +57,7 @@ void DestroyWindow(uint32_t windowId) {
 /**
  * Return Framebuffer
  **/
-void GetFramebuffer(uint32_t windowId) {
+void getFramebuffer(uint32_t windowId) {
     Window* window = (Window*) vector_get(windows, windowId);
     if (window->getOwner() != Sys_GetProcess()) { Sys_Close(KFAIL); }
     Sys_Close(window->getFramebufferKey());
@@ -64,17 +66,31 @@ void GetFramebuffer(uint32_t windowId) {
 /**
  * Return KCODE
  **/
-void Show(uint32_t windowId) {
+void show(uint32_t windowId) {
     Window* window = (Window*) vector_get(windows, windowId);
     if (window->getOwner() != Sys_GetProcess()) { Sys_Close(KFAIL); }
     window->show(true);
     Sys_Close(KSUCCESS);
 }
 
+void resize(uint32_t windowId, uint32_t width, uint32_t height) {
+    Window* window = (Window*) vector_get(windows, windowId);
+    if (window->getOwner() != Sys_GetProcess()) { Sys_Close(KFAIL); }
+    window->resize(width, height);
+    Sys_Close(window->getFramebufferKey());
+}
+
+void move(uint32_t windowId, uint32_t x, uint32_t y) {
+    Window* window = (Window*) vector_get(windows, windowId);
+    if (window->getOwner() != Sys_GetProcess()) { Sys_Close(KFAIL); }
+    window->move(x, y);
+    Sys_Close(KSUCCESS);
+}
+
 /**
  * Return KCODE
  **/
-void Hide(uint32_t windowId) {
+void hide(uint32_t windowId) {
     Window* window = (Window*) vector_get(windows, windowId);
     if (window->getOwner() != Sys_GetProcess()) { Sys_Close(KFAIL); }
     window->show(false);
@@ -84,7 +100,7 @@ void Hide(uint32_t windowId) {
 /**
  * Return Framebuffer
  **/
-void GetHeight(uint32_t windowId) {
+void getHeight(uint32_t windowId) {
     Window* window = (Window*) vector_get(windows, windowId);
     Sys_Close(window->getHeight());
 }
@@ -92,20 +108,24 @@ void GetHeight(uint32_t windowId) {
 /**
  * Return Framebuffer
  **/
-void GetWidth(uint32_t windowId) {
+void getWidth(uint32_t windowId) {
     Window* window = (Window*) vector_get(windows, windowId);
     Sys_Close(window->getWidth());
 }
 
+
+
 void initUISD() {
 
-    Sys_Createthread(self, (uintptr_t) &CreateWindow, PriviledgeApp, &CreateWindowThread);
-    Sys_Createthread(self, (uintptr_t) &DestroyWindow, PriviledgeApp, &DestroyWindowThread);
-    Sys_Createthread(self, (uintptr_t) &GetFramebuffer, PriviledgeApp, &GetFramebufferThread);
-    Sys_Createthread(self, (uintptr_t) &GetWidth, PriviledgeApp, &GetWidthThread);
-    Sys_Createthread(self, (uintptr_t) &GetHeight, PriviledgeApp, &GetHeightThread);
-    Sys_Createthread(self, (uintptr_t) &Show, PriviledgeApp, &ShowThread);
-    Sys_Createthread(self, (uintptr_t) &Hide, PriviledgeApp, &HideThread);
+    Sys_Createthread(self, (uintptr_t) &create, PriviledgeApp, &createThread);
+    Sys_Createthread(self, (uintptr_t) &destroy, PriviledgeApp, &destroyThread);
+    Sys_Createthread(self, (uintptr_t) &getFramebuffer, PriviledgeApp, &getFramebufferThread);
+    Sys_Createthread(self, (uintptr_t) &getWidth, PriviledgeApp, &getWidthThread);
+    Sys_Createthread(self, (uintptr_t) &getHeight, PriviledgeApp, &getHeightThread);
+    Sys_Createthread(self, (uintptr_t) &show, PriviledgeApp, &showThread);
+    Sys_Createthread(self, (uintptr_t) &hide, PriviledgeApp, &hideThread);
+    Sys_Createthread(self, (uintptr_t) &resize, PriviledgeApp, &resizeThread);
+    Sys_Createthread(self, (uintptr_t) &move, PriviledgeApp, &moveThread);
 
     uintptr_t address = getFreeAlignedSpace(sizeof(uisd_graphics_t));
     ksmem_t key = NULL;
@@ -117,13 +137,15 @@ void initUISD() {
     OrbSrv->ControllerHeader.VendorID = Kot_VendorID;
     OrbSrv->ControllerHeader.Type = ControllerTypeEnum_Graphics;
 
-    OrbSrv->CreateWindow = MakeShareableThread(CreateWindowThread, PriviledgeApp);
-    OrbSrv->DestroyWindow = MakeShareableThread(DestroyWindowThread, PriviledgeApp);
-    OrbSrv->GetFramebuffer = MakeShareableThread(GetFramebufferThread, PriviledgeApp);
-    OrbSrv->GetWidth = MakeShareableThread(GetWidthThread, PriviledgeApp);
-    OrbSrv->GetHeight = MakeShareableThread(GetHeightThread, PriviledgeApp);
-    OrbSrv->Show = MakeShareableThread(ShowThread, PriviledgeApp);
-    OrbSrv->Hide = MakeShareableThread(HideThread, PriviledgeApp);
+    OrbSrv->create = MakeShareableThread(createThread, PriviledgeApp);
+    OrbSrv->destroy = MakeShareableThread(destroyThread, PriviledgeApp);
+    OrbSrv->getFramebuffer = MakeShareableThread(getFramebufferThread, PriviledgeApp);
+    OrbSrv->getWidth = MakeShareableThread(getWidthThread, PriviledgeApp);
+    OrbSrv->getHeight = MakeShareableThread(getHeightThread, PriviledgeApp);
+    OrbSrv->show = MakeShareableThread(showThread, PriviledgeApp);
+    OrbSrv->hide = MakeShareableThread(hideThread, PriviledgeApp);
+    OrbSrv->resize = MakeShareableThread(resizeThread, PriviledgeApp);
+    OrbSrv->move = MakeShareableThread(moveThread, PriviledgeApp);
 
     CreateControllerUISD(ControllerTypeEnum_Graphics, key, true);
 

@@ -16,50 +16,50 @@ namespace orb {
         OrbSrv = (uisd_graphics_t*) addressReceived;
     }
 
-    uint32_t Create(uint32_t width, uint32_t height, int32_t xPos, int32_t yPos) {
+    uint32_t create(uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
         arguments_t arguments;
         arguments.arg[0] = width;
         arguments.arg[1] = height;
         arguments.arg[2] = xPos;
         arguments.arg[3] = yPos;
-        ksmem_t result = Sys_Execthread(OrbSrv->CreateWindow, &arguments, ExecutionTypeQueuAwait, NULL);
+        ksmem_t result = Sys_Execthread(OrbSrv->create, &arguments, ExecutionTypeQueuAwait, NULL);
         return result;
     }
 
-    void Destroy(uint32_t wid) {
+    void destroy(uint32_t wid) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
         arguments_t arguments;
         arguments.arg[0] = wid;
-        Sys_Execthread(OrbSrv->DestroyWindow, &arguments, ExecutionTypeQueuAwait, NULL);
+        Sys_Execthread(OrbSrv->destroy, &arguments, ExecutionTypeQueuAwait, NULL);
     }
 
-    uint32_t GetWidth(uint32_t wid) {
+    uint32_t getWidth(uint32_t wid) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
         arguments_t arguments;
         arguments.arg[0] = wid;
-        ksmem_t result = Sys_Execthread(OrbSrv->GetWidth, &arguments, ExecutionTypeQueuAwait, NULL);
+        ksmem_t result = Sys_Execthread(OrbSrv->getWidth, &arguments, ExecutionTypeQueuAwait, NULL);
         return result;
     }
 
-    uint32_t GetHeight(uint32_t wid) {
+    uint32_t getHeight(uint32_t wid) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
         arguments_t arguments;
         arguments.arg[0] = wid;
-        ksmem_t result = Sys_Execthread(OrbSrv->GetHeight, &arguments, ExecutionTypeQueuAwait, NULL);
+        ksmem_t result = Sys_Execthread(OrbSrv->getHeight, &arguments, ExecutionTypeQueuAwait, NULL);
         return result;
     }
 
-    std::framebuffer_t* GetFramebuffer(uint32_t wid) {
+    std::framebuffer_t* getFramebuffer(uint32_t wid) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
         std::framebuffer_t* fb = (std::framebuffer_t*) calloc(sizeof(std::framebuffer_t));
-        fb->height = GetHeight(wid);
-        fb->width = GetWidth(wid);
+        fb->height = getHeight(wid);
+        fb->width = getWidth(wid);
         fb->pitch = fb->width * 4;
         fb->size = fb->pitch * fb->height;
         arguments_t arguments;
         arguments.arg[0] = wid;
-        ksmem_t MemoryShare = Sys_Execthread(OrbSrv->GetFramebuffer, &arguments, ExecutionTypeQueuAwait, NULL);
+        ksmem_t MemoryShare = Sys_Execthread(OrbSrv->getFramebuffer, &arguments, ExecutionTypeQueuAwait, NULL);
         uintptr_t addressReceiveShare = getFreeAlignedSpace(fb->size);
         process_t proc = Sys_GetProcess();
         Sys_AcceptMemoryField(proc, MemoryShare, &addressReceiveShare);
@@ -67,23 +67,47 @@ namespace orb {
         return fb;
     } 
 
-    void Hide(uint32_t wid) {
+    void hide(uint32_t wid) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
         arguments_t arguments;
         arguments.arg[0] = wid;
-        Sys_Execthread(OrbSrv->Hide, &arguments, ExecutionTypeQueuAwait, NULL);
+        Sys_Execthread(OrbSrv->hide, &arguments, ExecutionTypeQueuAwait, NULL);
     }
 
-    void Show(uint32_t wid) {
+    void show(uint32_t wid) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
         arguments_t arguments;
         arguments.arg[0] = wid;
-        Sys_Execthread(OrbSrv->Show, &arguments, ExecutionTypeQueuAwait, NULL);
+        Sys_Execthread(OrbSrv->show, &arguments, ExecutionTypeQueuAwait, NULL);
     }
 
-    void Resize(uint32_t wid, uint32_t width, uint32_t height) {
+    std::framebuffer_t* resize(uint32_t wid, uint32_t width, uint32_t height) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
+        std::framebuffer_t* fb = (std::framebuffer_t*) calloc(sizeof(std::framebuffer_t));
+        fb->width = width;
+        fb->height = height;
+        fb->pitch = fb->width * 4;
+        fb->size = fb->pitch * fb->height;
+        arguments_t arguments;
+        arguments.arg[0] = wid;
+        arguments.arg[1] = width;
+        arguments.arg[2] = height;
+        ksmem_t MemoryShare = Sys_Execthread(OrbSrv->resize, &arguments, ExecutionTypeQueuAwait, NULL);
+        uintptr_t addressReceiveShare = getFreeAlignedSpace(fb->size);
+        process_t proc = Sys_GetProcess();
+        Sys_AcceptMemoryField(proc, MemoryShare, &addressReceiveShare);
+        fb->addr = addressReceiveShare;
+        return fb;
         
+    }
+
+    void move(uint32_t wid, uint32_t x, uint32_t y) {
+        if (OrbSrv == NULL) { GetOrbSrv(); }
+        arguments_t arguments;
+        arguments.arg[0] = wid;
+        arguments.arg[1] = x;
+        arguments.arg[2] = y;
+        Sys_Execthread(OrbSrv->move, &arguments, ExecutionTypeQueuAwait, NULL);
     }
 
 }

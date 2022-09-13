@@ -1,7 +1,6 @@
 #include "monitor.h"
 
-Monitor::Monitor(process_t orb, uintptr_t fb_addr, uint32_t width, uint32_t height, int32_t xPos, int32_t yPos) {
-    
+Monitor::Monitor(process_t orb, uintptr_t fb_addr, uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos) {
     
     this->xPos = xPos;
     this->yPos = yPos;
@@ -46,13 +45,13 @@ void Monitor::setBackground(Window* w) {
     this->background = w;
 }
 
-void Monitor::move(int32_t xPos, int32_t yPos) {
+void Monitor::move(uint32_t xPos, uint32_t yPos) {
     this->xPos = xPos;
     this->yPos = yPos;
     this->background->move(xPos, yPos);
 }
 
-void dynamicBlit(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y, int32_t monitorXoffset, int32_t monitorYoffset) {
+void dynamicBlit(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y, uint32_t monitorXoffset, uint32_t monitorYoffset) {
     blitFramebuffer(to, from, x, y);
 }
 
