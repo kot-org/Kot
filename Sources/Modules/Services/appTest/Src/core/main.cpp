@@ -17,7 +17,7 @@ extern "C" int main() {
     fontBuff.pitch = fb->pitch;
     LoadPen(font, &fontBuff, 0, 0, 16, 0, 0xFFFFFFFF);
     DrawFont(font, "demo");
-    EditPen(font, NULL, -1, -1, 64, -1, -1);
+    EditPen(font, NULL, -1, 64, 64, -1, -1);
     DrawFont(font, "demo");
     FreeFont(font);
 
