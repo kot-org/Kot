@@ -1,4 +1,4 @@
-_HOME = ../../../../../
+_HOME = ../../../../
 
 CC = clang-14
 ASMC = nasm
@@ -33,4 +33,4 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 
 link:
 	@ echo !==== LINKING
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Apptest.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/Lib/libcpp.a $(_HOME)Sysroot/Lib/kot-ui.a $(_HOME)Sysroot/Lib/crt0.o
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Apptest.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/Lib/libcpp.a $(_HOME)Sysroot/Lib/kot-ui.a $(_HOME)Sysroot/Lib/kot-graphics.a $(_HOME)Sysroot/Lib/crt0.o

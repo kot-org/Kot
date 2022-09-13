@@ -22,6 +22,7 @@ make -C "Libs/abi/Build"
 make -C "Libs/libc/Build"
 make -C "Libs/libc++/Build"
 make -C "Libs/kot-ui/Build"
+make -C "Libs/kot-graphics/Build"
 
 # System
 echo -e "\e[32mCompiling kot system...\e[0m"
@@ -50,9 +51,10 @@ echo -e "\e[32mCompiling kot services...\e[0m"
 
 make -C "Modules/Services/shell/Build"
 
-make -C "Modules/Services/jvm/Build"
+# Apps
+echo -e "\e[32mCompiling kot apps...\e[0m"
 
-make -C "Modules/Services/appTest/Build"
+make -C "Apps/test/Build"
 
 # kernel
 cd "../Sources/Kernel/"

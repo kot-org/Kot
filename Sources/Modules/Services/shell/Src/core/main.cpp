@@ -45,5 +45,4 @@ extern "C" int main() {
     vm->run(NULL, 0);
 
     return KSUCCESS;
-
 }

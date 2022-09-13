@@ -11,6 +11,7 @@ CC = clang-14
 AR = llvm-ar-14
 
 CFLAGS = -I$(INCDIR) --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -O3
+ASMFLAGS = 
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
    
@@ -18,7 +19,7 @@ INC = $(call rwildcard,$(SRCDIR),*.h)
 SRCC = $(call rwildcard,$(SRCDIR),*.c)
 OBJS += $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCC))
 
-OBJINC += $(patsubst $(SRCDIR)/%.h, $(INCDIR)/kot-ui/%.h, $(INC))
+OBJINC += $(patsubst $(SRCDIR)/%.h, $(INCDIR)/kot-graphics/%.h, $(INC))
 
 DIRS = $(wildcard $(SRCDIR)/*)         
 	
@@ -31,12 +32,11 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 
 copy: $(OBJINC)
 
-$(INCDIR)/kot-ui/%.h : $(SRCDIR)/%.h
+$(INCDIR)/kot-graphics/%.h : $(SRCDIR)/%.h
 	@ mkdir -p $(@D)
 	cp -p $^ $(@D)
 
 link:
 	@ echo !==== LINKING
 	@ mkdir -p $(BUILDDIR)
-	$(AR) rcs $(BUILDDIR)/kot-ui.a $(OBJS)
-
+	$(AR) rcs $(BUILDDIR)/kot-graphics.a $(OBJS)

@@ -4,7 +4,7 @@
 #include <kot/utils.h>
 #include <kot/types.h>
 
-#include <kot++/graphics/utils.h>
+#include <kot++/graphics/utils.h> 
 
 namespace orb {
 
@@ -23,7 +23,7 @@ namespace orb {
         arguments.arg[1] = height;
         arguments.arg[2] = xPos;
         arguments.arg[3] = yPos;
-        ksmem_t result = Sys_Execthread(OrbSrv->create, &arguments, ExecutionTypeQueuAwait, NULL);
+        ksmem_t result = Sys_Execthread(OrbSrv->CreateWindow, &arguments, ExecutionTypeQueuAwait, NULL); 
         return result;
     }
 
