@@ -10,4 +10,4 @@
 
 extern process_t Proc;
 
-void AddDevice(Device* Device);
+void AddDevice(class Device* Device);

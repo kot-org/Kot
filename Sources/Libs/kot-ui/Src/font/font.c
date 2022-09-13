@@ -6,36 +6,107 @@
 kfont_t* LoadFont(uintptr_t data){
     kfont_t* font = malloc(sizeof(kfont_t));
 
-    font->ctx = malloc(sizeof(ssfn_t));
-    ssfn_load(font->ctx, data);
+    font->FontContext = calloc(sizeof(ssfn_t));
+    font->PenContext = calloc(sizeof(ssfn_buf_t));
+    font->IsPen = false;
+
+    ssfn_load(font->FontContext, data);
     
     return font;
 }
 
 void FreeFont(kfont_t* font){
-    ssfn_free(font->ctx);
-    free(font);
+    ssfn_free(font->FontContext);
+    free(font->FontContext);
+    free(font->PenContext);
 }
 
-void PrintFont(kfont_t* font, char* str, font_fb_t* buffer, uint64_t x, uint64_t y, uint8_t fontSize, uint32_t color){
-    ssfn_buf_t ssfnBuff;
+void LoadPen(kfont_t* font, font_fb_t* buffer, int64_t x, int64_t y, int16_t size, int32_t style, int64_t color){
+    if(font->IsPen) return;
+    if(buffer != NULL){
+        if(x < 0){
+            x = 0;
+        }
+        if(y < 0){
+            y = 0;
+        }
+        if(size < 0){
+            size = 8;
+        }else if(size < 8 || size > SSFN_SIZE_MAX){
+            size = 8;
+        }
+        if(style < 0){
+            style = 0;
+        }
+        if(color < 0){
+            color = 0x0;
+        }
 
-    ssfn_t* context = (ssfn_t*)font->ctx;
+        ssfn_buf_t* Pen = (ssfn_buf_t*)font->PenContext;
+        Pen->ptr = buffer->address;
+        Pen->w = buffer->width;
+        Pen->h = buffer->height;
+        Pen->p = buffer->pitch;
+        Pen->x = x;
+        Pen->y = y;
+        Pen->fg = color;
+        Pen->bg = 0x0;
 
-    context->size = fontSize;
+        ssfn_select(font->FontContext, SSFN_FAMILY_ANY, NULL, style, size);
+        ssfn_newline(font->FontContext, font->PenContext);
+        font->IsPen = true;
+    }
+}
 
-    ssfnBuff.ptr = buffer->address;
-    ssfnBuff.w = buffer->width;
-    ssfnBuff.h = buffer->height;
-    ssfnBuff.p = buffer->pitch;
-    ssfnBuff.x = x;
-    ssfnBuff.y = y;
-    ssfnBuff.fg = color;
-    ssfnBuff.bg = 0x0;
+void EditPen(kfont_t* font, font_fb_t* buffer, int64_t x, int64_t y, int16_t size, int32_t style, int64_t color){
+    ssfn_t* Font = (ssfn_t*)font->FontContext; 
+    ssfn_buf_t* Pen = (ssfn_buf_t*)font->PenContext;
+    if(buffer != NULL){
+        Pen->ptr = buffer->address;
+        Pen->w = buffer->width;
+        Pen->h = buffer->height;
+        Pen->p = buffer->pitch;
+    }
+    if(x >= 0){
+        Pen->x = x;
+    }
+    if(y >= 0){
+        Pen->y = y;
+    }
+    if(size >= 0){
+        if(size < 8 || size > SSFN_SIZE_MAX){
+            size = 8;
+        }
+        Font->size = size;
+    }
+    if(style >= 0){
+        Font->style = style;
+    }
+    if(color >= 0){
+        Pen->fg = color;
+    }
 
-    ssfn_newline(font->ctx, &ssfnBuff);
+    ssfn_newline(font->FontContext, font->PenContext);
+    font->IsPen = true;
+}
 
-    while(*str) {
-        ssfn_render(font->ctx, &ssfnBuff, str++);
+void DrawFontGetPos(kfont_t* font, char* str, int64_t* x, int64_t* y){
+    if(font->IsPen){
+        ssfn_buf_t* Pen = (ssfn_buf_t*)font->PenContext;
+        while(*str) {
+            ssfn_render(font->FontContext, font->PenContext, str++);
+        }
+
+        *x = Pen->x;
+        *y = Pen->y;
+    }
+}
+
+void DrawFont(kfont_t* font, char* str){
+    if(font->IsPen){
+        ssfn_buf_t* Pen = (ssfn_buf_t*)font->PenContext;
+        while(*str) {
+            ssfn_render(font->FontContext, font->PenContext, str++);
+        }
     }
 }

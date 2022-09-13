@@ -11,7 +11,9 @@ KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name);
 KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg, char* Name);
 KResult GetSystemManagementBIOSTable(thread_t Callback, uint64_t CallbackArg);
 KResult BindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumber, thread_t Target, bool IgnoreMissedEvents);
+KResult UnbindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumber, thread_t Target);
 KResult BindFreeIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, bool IgnoreMissedEvents);
+KResult UnbindIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, uint8_t Vector);
 
 struct SrvInfo_t{
     srv_system_framebuffer_t* Framebuffer;

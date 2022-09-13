@@ -45,7 +45,9 @@ typedef struct {
     thread_t GetTableInRootSystemDescription;
     thread_t GetSystemManagementBIOSTable;
     thread_t BindIRQLine;
+    thread_t UnbindIRQLine;
     thread_t BindFreeIRQ;
+    thread_t UnbindIRQ;
 } uisd_system_t;
 
 typedef struct {

@@ -83,9 +83,11 @@ struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwai
     callback->Handler = &Srv_System_ReadFileInitrd_Callback;
 
     struct ShareDataWithArguments_t data;
-    data.Data = Name;
-    data.Size = strlen(Name) + 1; // add '\0' char
-    data.ParameterPosition = 0x2; 
+    if(Name != NULL){
+        data.Data = Name;
+        data.Size = strlen(Name) + 1; // add '\0' char
+        data.ParameterPosition = 0x2; 
+    }
 
     struct arguments_t parameters;
     parameters.arg[0] = srv_system_callback_thread;
@@ -121,9 +123,11 @@ struct srv_system_callback_t* Srv_System_GetTableInRootSystemDescription(char* N
     callback->Handler = &Srv_System_GetTableInRootSystemDescription_Callback;
 
     struct ShareDataWithArguments_t data;
-    data.Data = Name;
-    data.Size = strlen(Name) + 1; // add '\0' char
-    data.ParameterPosition = 0x2; 
+    if(Name != NULL){
+        data.Data = Name;
+        data.Size = strlen(Name) + 1; // add '\0' char
+        data.ParameterPosition = 0x2; 
+    }
 
     struct arguments_t parameters;
     parameters.arg[0] = srv_system_callback_thread;
@@ -209,6 +213,44 @@ struct srv_system_callback_t* Srv_System_BindIRQLine(uint8_t IRQLineNumber, thre
     return callback;
 }
 
+/* UnbindIRQLine */
+KResult Srv_System_UnbindIRQLine_Callback(KResult Status, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    return Status;
+}
+
+struct srv_system_callback_t* Srv_System_UnbindIRQLine(uint8_t IRQLineNumber, thread_t Target, bool IsAwait){
+    if(!srv_system_callback_thread) Srv_System_Initialize();
+    
+    thread_t self = Sys_Getthread();
+
+    uint64_t TargetShareKey = NULL;
+    uint64_t UISDKeyFlags = NULL;
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeThreadIsEventable, true);
+    Sys_Keyhole_CloneModify(Target, &TargetShareKey, SystemData->ControllerHeader.Process, UISDKeyFlags, PriviledgeApp);
+
+    struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_System_UnbindIRQLine_Callback;
+
+    struct arguments_t parameters;
+    parameters.arg[0] = srv_system_callback_thread;
+    parameters.arg[1] = callback;
+    parameters.arg[2] = IRQLineNumber;
+    parameters.arg[3] = TargetShareKey;
+    
+
+    KResult Status = Sys_Execthread(SystemData->UnbindIRQLine, &parameters, ExecutionTypeQueu, NULL);
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}
+
 /* BindFreeIRQ */
 KResult Srv_System_BindFreeIRQ_Callback(KResult Status, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS) {
@@ -246,6 +288,48 @@ struct srv_system_callback_t* Srv_System_BindFreeIRQ(uint8_t IRQLineNumber, thre
     
 
     KResult Status = Sys_Execthread(SystemData->BindFreeIRQ, &parameters, ExecutionTypeQueu, NULL);
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}
+
+/* UnbindIRQ */
+KResult Srv_System_UnbindIRQ_Callback(KResult Status, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    if(Status == KSUCCESS) {
+        Callback->Data = GP0;
+        Callback->Size = sizeof(uint64_t);
+    }
+    return Status;
+}
+
+struct srv_system_callback_t* Srv_System_UnbindIRQ(uint8_t IRQLineNumber, thread_t Target, bool IsAwait){
+    if(!srv_system_callback_thread) Srv_System_Initialize();
+    
+    thread_t self = Sys_Getthread();
+
+    uint64_t TargetShareKey = NULL;
+    uint64_t UISDKeyFlags = NULL;
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeThreadIsEventable, true);
+    Sys_Keyhole_CloneModify(Target, &TargetShareKey, SystemData->ControllerHeader.Process, UISDKeyFlags, PriviledgeApp);
+
+    struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_System_BindFreeIRQ_Callback;
+
+    struct arguments_t parameters;
+    parameters.arg[0] = srv_system_callback_thread;
+    parameters.arg[1] = callback;
+    parameters.arg[2] = IRQLineNumber;
+    parameters.arg[3] = TargetShareKey;
+    
+
+    KResult Status = Sys_Execthread(SystemData->UnbindIRQ, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }

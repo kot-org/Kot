@@ -142,7 +142,7 @@ KResult ThreadQueu_t::SetThreadInQueu(kthread_t* Caller, kthread_t* Self, argume
         memset(&LastData->Parameters, 0, sizeof(arguments_t));
     }
 
-    if(Data != NULL){
+    if(Data != NULL && Data->Size != NULL){
         LastData->Data = (ThreadShareData_t*)malloc(sizeof(ThreadShareData_t));
         LastData->Data->Size = Data->Size;
         LastData->Data->ParameterPosition = Data->ParameterPosition;
@@ -214,6 +214,7 @@ KResult ThreadQueu_t::ExecuteThreadInQueu_WL(){
     if(TasksInQueu){
         CurrentData->Task->ResetContext(CurrentData->Task->Regs);
         if(CurrentData->Data){
+            // We can use share stack space here because we already reset rsp with context
             CurrentData->Task->ShareDataUsingStackSpace(CurrentData->Data->Data, CurrentData->Data->Size, (uintptr_t*)&CurrentData->Parameters.arg[CurrentData->Data->ParameterPosition]);
             free(CurrentData->Data->Data);
             free(CurrentData->Data);
@@ -667,7 +668,8 @@ bool kthread_t::ExtendStack(uint64_t address){
     if(address <= this->Stack->StackEndMax) return false;
     
     if(!vmm_GetFlags(Paging, (uintptr_t)address, vmm_PhysicalStorage)){
-        vmm_Map(Paging, (uintptr_t)address, Pmm_RequestPage(), true, true, true);
+        uintptr_t PhysicalAddress = Pmm_RequestPage();
+        vmm_Map(Paging, (uintptr_t)address, PhysicalAddress, true, true, true);
         return true;
     }
 
@@ -686,7 +688,8 @@ bool kthread_t::ExtendStack(uint64_t address, size64_t size){
     
     for(uint64_t i = 0; i < pageCount; i++){
         if(!vmm_GetFlags(Paging, (uintptr_t)(address + i * PAGE_SIZE), vmm_PhysicalStorage) || !vmm_GetFlags(Paging, (uintptr_t)(address + i * PAGE_SIZE), vmm_Present)){
-            vmm_Map(Paging, (uintptr_t)(address + i * PAGE_SIZE), Pmm_RequestPage(), true, true, true);
+            uintptr_t PhysicalAddress = Pmm_RequestPage();
+            vmm_Map(Paging, (uintptr_t)(address + i * PAGE_SIZE), PhysicalAddress, true, true, true);
         }        
     }
 
@@ -694,16 +697,6 @@ bool kthread_t::ExtendStack(uint64_t address, size64_t size){
 }
 
 KResult kthread_t::ShareDataUsingStackSpace(uintptr_t data, size64_t size, uintptr_t* location){
-    *location = 0;
-    if(!IsClose){
-        *location = NULL;
-        return KFAIL;
-    }
-    if(size == 0){
-        *location = NULL;
-        return KFAIL;
-    }
-
     Regs->rsp -= size;
 
     uintptr_t address = (uintptr_t)Regs->rsp;

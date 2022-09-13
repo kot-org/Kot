@@ -11,5 +11,3 @@
 #include <kot++/orb.h>
 #include <kot++/graphics/context.h>
 #include <kot++/graphics/utils.h>
-
-#include "psf1.h"
