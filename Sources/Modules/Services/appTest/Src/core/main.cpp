@@ -15,9 +15,15 @@ extern "C" int main() {
     fontBuff.width = fb->width;
     fontBuff.height = fb->height;
     fontBuff.pitch = fb->pitch;
-    LoadPen(font, &fontBuff, 0, 0, 16, 0, 0xFFFFFFFF);
+    LoadPen(font, &fontBuff, 0, 0, 8, 0, 0xFFFFFFFF);
     DrawFont(font, "demo");
-    EditPen(font, NULL, -1, 64, 64, -1, -1);
+    EditPen(font, NULL, -1, 8, 16, -1, -1);
+    DrawFont(font, "demo");
+    EditPen(font, NULL, -1, 24, 32, -1, -1);
+    DrawFont(font, "demo");
+    EditPen(font, NULL, -1, 56, 64, -1, -1);
+    DrawFont(font, "demo");
+    EditPen(font, NULL, -1, 120, 128, -1, -1);
     DrawFont(font, "demo");
     FreeFont(font);
 
