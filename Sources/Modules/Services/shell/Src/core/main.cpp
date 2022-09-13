@@ -7,9 +7,12 @@ using namespace SE8;
 using namespace std;
 
 std::framebuffer_t* fb;
+kfont_t* font;
+font_fb_t* fontBuff;
+uint64_t line;
 
 void shell_print(char* str) {
-
+    line = PrintFont(font, str, fontBuff, 0, line, 16, 0xFFFFFFFF);
 }
 
 extern "C" int main() {
@@ -18,14 +21,13 @@ extern "C" int main() {
     orb::Show(wid);
 
     srv_system_callback_t* callback0 = Srv_System_ReadFileInitrd("default-font.sfn", true);
-    kfont_t* font = LoadFont(callback0->Data);
+    font = LoadFont(callback0->Data);
     free(callback0);
-    font_fb_t fontBuff;
-    fontBuff.address = fb->addr;
-    fontBuff.width = fb->width;
-    fontBuff.height = fb->height;
-    fontBuff.pitch = fb->pitch;
-    PrintFont(font, "hello world.\ntest", &fontBuff, 0, 0, 16, 0xFFFFFFFF);
+    fontBuff = (font_fb_t*)malloc(sizeof(font_fb_t));
+    fontBuff->address = fb->addr;
+    fontBuff->width = fb->width;
+    fontBuff->height = fb->height;
+    fontBuff->pitch = fb->pitch;
 
     // _ [] X buttons
     std::drawLine(fb, fb->width-17, 17, fb->width-7, 7, 0xffffff);

@@ -9,6 +9,8 @@ extern "C" {
 
 typedef struct {
     uintptr_t Context;
+    uintptr_t Pen;
+    bool IsFontPen;
 } kfont_t;
 
 typedef struct {
@@ -21,7 +23,10 @@ typedef struct {
 kfont_t* LoadFont(uintptr_t data);
 void FreeFont(kfont_t* font);
 
-void PrintFont(kfont_t* font, char* str, font_fb_t* buffer, uint64_t x, uint64_t y, uint8_t fontSize, uint32_t color);
+void CreateFontPen(kfont_t* font, char* str);
+void DrawFont(kfont_t* font, char* str);
+
+uint64_t PrintFont(kfont_t* font, char* str, font_fb_t* buffer, uint64_t x, uint64_t y, uint8_t fontSize, uint32_t color);
 
 #if defined(__cplusplus)
 }
