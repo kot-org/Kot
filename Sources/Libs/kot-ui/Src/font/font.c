@@ -22,6 +22,7 @@ void FreeFont(kfont_t* font){
 }
 
 void LoadPen(kfont_t* font, font_fb_t* buffer, int64_t x, int64_t y, int16_t size, int32_t style, int64_t color){
+    if(font->IsPen) return;
     if(buffer != NULL){
         if(x < 0){
             x = 0;
