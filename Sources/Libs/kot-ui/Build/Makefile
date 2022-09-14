@@ -39,4 +39,3 @@ link:
 	@ echo !==== LINKING
 	@ mkdir -p $(BUILDDIR)
 	$(AR) rcs $(BUILDDIR)/kot-ui.a $(OBJS)
-

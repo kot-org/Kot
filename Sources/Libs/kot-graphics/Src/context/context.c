@@ -2,7 +2,7 @@
 
 void subSeqCircle(gctx_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour);
 
-gctx_t* Context(uintptr_t fb_addr, uint32_t width, uint32_t height) {
+gctx_t* CreateContext(uintptr_t fb_addr, uint32_t width, uint32_t height) {
     gctx_t* ctx = malloc(sizeof(gctx_t));
     ctx->fb_addr = fb_addr;
     ctx->poses = vector_create();

@@ -3,13 +3,13 @@
 
 #include <kot/types.h>
 
-#include <kot-graphics/utils.h>
+#include <kot-graphics/context.h>
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-void CreateTitleBar(framebuffer_t* fb);
+void CreateTitleBar(gctx_t* ctx);
 
 #if defined(__cplusplus)
 }

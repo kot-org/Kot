@@ -25,7 +25,7 @@ typedef struct {
     uint8_t btpp; // bpp / 8
 } gctx_t;
 
-gctx_t* Context(uintptr_t fb_addr, uint32_t width, uint32_t height);
+gctx_t* CreateContext(uintptr_t fb_addr, uint32_t width, uint32_t height);
 
 void putPixel(gctx_t* ctx, uint32_t x, uint32_t y, uint32_t colour);
 int8_t pixelExist(gctx_t* ctx, uint32_t x, uint32_t y);
@@ -69,6 +69,6 @@ void clearColor(gctx_t* ctx, uint32_t colour);
 
 uintptr_t getFramebuffer(gctx_t* ctx);
 
-uint32_t getPitch(gctx_t* ctx) {
+/* uint32_t getPitch(gctx_t* ctx) {
     return ctx->pitch;
-}
+} */

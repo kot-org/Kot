@@ -21,8 +21,8 @@ echo -e "\e[32mCompiling kot libraries...\e[0m"
 make -C "Libs/abi/Build"
 make -C "Libs/libc/Build"
 make -C "Libs/libc++/Build"
-make -C "Libs/kot-ui/Build"
 make -C "Libs/kot-graphics/Build"
+make -C "Libs/kot-ui/Build"
 
 # System
 echo -e "\e[32mCompiling kot system...\e[0m"
