@@ -4,21 +4,20 @@ uint8_t MouseMaxCycles = 0;
 uint8_t MousePacket[4];
 uint8_t MouseCycle = 0;
 
-MouseData_t* MouseData;
 PS2Port_t* MousePS2Port;
+uint8_t MouseType;
 arguments_t* MouseEventParameters;
 thread_t Mousethread = NULL;
 
+event_t MouseRelativeEvent; // We don't use absolute for ps2
+
 KResult MouseInitalize(){
-    MouseData = (MouseData_t*)malloc(sizeof(MouseData_t));
     for(int i = 0; i < PS2_PORT_NUMBER; i++){
         if(PS2Ports[i].IsPresent){
             if(PS2Ports[i].Type == PS2_TYPE_MOUSE
             || PS2Ports[i].Type == PS2_TYPE_MOUSE_SCROLL
             || PS2Ports[i].Type == PS2_TYPE_MOUSE_5BUTTONS){
                 Printlog("[PS2] Mouse device found");
-
-                Sys_Event_Create(&MouseData->onMouseStateChanged);
                 
                 MouseEventParameters = (arguments_t*)malloc(sizeof(arguments_t));
 
@@ -26,16 +25,15 @@ KResult MouseInitalize(){
                 MousePS2Port = &PS2Ports[i];
                 IRQRedirectionsArray[MousePS2Port->PortNumber] = MouseHandler;
                 
+                MouseRelativeEvent = GetMouseRelativeEvent();
 
                 // Identify mouse type
                 EnableMouseScroll(MousePS2Port);
                 EnableMouse5Buttons(MousePS2Port);
 
-                MouseData->mousePortType = mousePortTypePS2;
+                MouseType = mousePortTypePS2;
                 
                 Srv_System_BindIRQLine(MousePS2Port->IRQ, InterruptthreadHandler, false, true);
-
-                MouseData->IsInitialized = true;
 
                 break; // Enable only one mouse
             }            
@@ -66,26 +64,26 @@ void EnableMouseScroll(PS2Port_t* Self){
     MouseSetRate(80, Self);
     if(MouseGetID(Self) == 3){
         MouseMaxCycles = 4;
-        MouseData->mouseType = mouseTypeScroll;
+        MouseType = mouseTypeScroll;
         Printlog("[PS2][Mouse] Scroll enabled");
     }else{
         MouseMaxCycles = 3;
-        MouseData->mouseType = mouseTypeGeneric;
+        MouseType = mouseTypeGeneric;
     }
 }
 
 void EnableMouse5Buttons(PS2Port_t* Self){
     EnableMouseScroll(Self);
-    if(MouseData->mouseType != mouseTypeScroll) return;
+    if(MouseType != mouseTypeScroll) return;
     MouseSetRate(200, Self);
     MouseSetRate(200, Self);
     MouseSetRate(80, Self);
     if(MouseGetID(Self) == 4){
         MouseMaxCycles = 4;
-        MouseData->mouseType = mouseTypeScroll5Buttons;
+        MouseType = mouseTypeScroll5Buttons;
         Printlog("[PS2][Mouse] 5 buttons enabled");
     }else{
-        MouseData->mouseType = mouseTypeScroll;
+        MouseType = mouseTypeScroll;
     }
 }
 
@@ -106,32 +104,7 @@ void MouseParser(uint8_t data){
 
         if(MousePacket[PacketGlobalInfo] & (1 << 7)){
             MousePacket[PacketYPosition] = 0xff;
-        }
-
-        if(MousePacket[PacketGlobalInfo] & (1 << 4)){
-            if(MouseData->xAxisOffset < MousePacket[PacketXPosition]){
-                MouseData->xAxisOffset = 0;
-            }
-            MouseData->xAxisOffset -= MousePacket[PacketXPosition];      
-        }else{
-            MouseData->xAxisOffset += MousePacket[PacketXPosition];  
-        }
-        if(MousePacket[PacketGlobalInfo] & (1 << 5)){
-            if(MouseData->yAxisOffset < MousePacket[PacketYPosition]){
-                MouseData->yAxisOffset = 0;
-            }
-            MouseData->yAxisOffset -= MousePacket[PacketYPosition];
-        }else{
-            MouseData->yAxisOffset += MousePacket[PacketYPosition];
-        }
-
-        if(MouseData->xAxisOffset < MouseData->xAxisOffsetMax){
-            MouseData->xAxisOffset = MouseData->xAxisOffsetMax;
-        }
-
-        if(MouseData->yAxisOffset < MouseData->yAxisOffsetMax){
-            MouseData->yAxisOffset = MouseData->yAxisOffsetMax;
-        }       
+        }   
 
         bool leftClick    = MousePacket[PacketGlobalInfo] & (1 << 0);
         bool rightClick   = MousePacket[PacketGlobalInfo] & (1 << 1);
@@ -140,30 +113,26 @@ void MouseParser(uint8_t data){
         bool button5Click = false;
         int8_t zAxisOffset = 0;
 
-        if(MouseData->mouseType == mouseTypeScroll){
+        if(MouseType == mouseTypeScroll){
             zAxisOffset = MousePacket[ExtendedInfos];
-        }else if(MouseData->mouseType == mouseTypeScroll5Buttons){
+        }else if(MouseType == mouseTypeScroll5Buttons){
             zAxisOffset = (MousePacket[ExtendedInfos] & 0b1111);
             button4Click = MousePacket[PacketGlobalInfo] & (1 << 4);
             button5Click = MousePacket[PacketGlobalInfo] & (1 << 5);
         }
 
-        /* Absolute position */
-        MouseEventParameters->arg[0] = MouseData->xAxisOffset;
-        MouseEventParameters->arg[1] = MouseData->yAxisOffset;
-
         /* Relative position */
-        MouseEventParameters->arg[2] = (int64_t)MousePacket[PacketXPosition] | ((1 & (MousePacket[PacketGlobalInfo] & (1 << 4))) << 63);
-        MouseEventParameters->arg[3] = (int64_t)MousePacket[PacketYPosition] | ((1 & (MousePacket[PacketGlobalInfo] & (1 << 5))) << 63);
+        MouseEventParameters->arg[0] = (int64_t)MousePacket[PacketXPosition] | ((1 & (MousePacket[PacketGlobalInfo] & (1 << 4))) << 63); // add signed bit
+        MouseEventParameters->arg[1] = (int64_t)MousePacket[PacketYPosition] | ((1 & (MousePacket[PacketGlobalInfo] & (1 << 5))) << 63); // add signed bit
 
         /* Buttons status */
-        MouseEventParameters->arg[4] |= leftClick << 0;
-        MouseEventParameters->arg[4] |= rightClick << 1;
-        MouseEventParameters->arg[4] |= middleClick << 2;
-        MouseEventParameters->arg[4] |= button4Click << 3;
-        MouseEventParameters->arg[4] |= button5Click << 4;
+        MouseEventParameters->arg[2] |= leftClick << 0;
+        MouseEventParameters->arg[2] |= rightClick << 1;
+        MouseEventParameters->arg[2] |= middleClick << 2;
+        MouseEventParameters->arg[2] |= button4Click << 3;
+        MouseEventParameters->arg[2] |= button5Click << 4;
 
-        Sys_kevent_trigger(MouseData->onMouseStateChanged, MouseEventParameters);
+        Sys_kevent_trigger(MouseRelativeEvent, MouseEventParameters);
     }
 }
 

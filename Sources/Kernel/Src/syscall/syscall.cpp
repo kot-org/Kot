@@ -103,24 +103,25 @@ KResult Sys_CloseProc(SyscallStack* Registers, kthread_t* thread){
     Arguments : 
 */
 KResult Sys_Close(SyscallStack* Registers, kthread_t* thread){
-    KResult Status = thread->Close((ContextStack*)Registers, Registers->arg0);
-    return Status;
+    if(thread->IsEvent){
+        return KFAIL;
+    }else{
+        return thread->Close((ContextStack*)Registers, Registers->arg0);
+    }
 }
 
 /* Sys_Exit :
     Arguments : 
 */
 KResult Sys_Exit(SyscallStack* Registers, kthread_t* thread){
-    KResult Status = globalTaskManager->Exit((ContextStack*)Registers, thread, Registers->arg0);
-    return Status;
+    return globalTaskManager->Exit((ContextStack*)Registers, thread, Registers->arg0);
 }
 
 /* Sys_Pause :
     Arguments : 
 */
 KResult Sys_Pause(SyscallStack* Registers, kthread_t* thread){
-    KResult Status = thread->Pause((ContextStack*)Registers, Registers->arg0);
-    return Status;
+    return thread->Pause((ContextStack*)Registers, Registers->arg0);
     /* No return */
 }
 
@@ -337,7 +338,7 @@ KResult Sys_kevent_trigger(SyscallStack* Registers, kthread_t* thread){
     uint64_t flags;
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeEventIsTriggerable)) return KKEYVIOLATION;
-    if(CheckAddress((uintptr_t)Registers->arg1, sizeof(arguments_t))) return KMEMORYVIOLATION;
+    if(!CheckAddress((uintptr_t)Registers->arg1, sizeof(arguments_t))) return KMEMORYVIOLATION;
     return Event::Trigger(thread, event, (arguments_t*)Registers->arg1);
 }
 

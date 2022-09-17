@@ -151,9 +151,16 @@ void initUISD() {
 
 }
 
-void initCursor() {
-    
+thread_t MouseRelativeInterrupt;
 
+void CursorInterrupt(){
+    Printlog("Mouse from orb");
+    Sys_Event_Close();
+}
+
+void initCursor() {
+    Sys_Createthread(Sys_GetProcess(), (uintptr_t)&CursorInterrupt, PriviledgeApp, &MouseRelativeInterrupt);
+    BindMouseRelative(MouseRelativeInterrupt, false);
 
 }
 

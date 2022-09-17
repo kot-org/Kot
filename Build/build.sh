@@ -50,6 +50,7 @@ make -C "Modules/Drivers/graphics/orb/Build"
 echo -e "\e[32mCompiling kot services...\e[0m"
 
 make -C "Modules/Services/shell/Build"
+make -C "Modules/Services/hid/Build"
 
 # Apps
 echo -e "\e[32mCompiling kot apps...\e[0m"
