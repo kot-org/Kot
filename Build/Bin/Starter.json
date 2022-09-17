@@ -7,6 +7,7 @@
     {"file":"Ahci.elf", "priviledge":1},
     {"file":"E1000.elf", "priviledge":1},
     {"file":"Orb.elf", "priviledge":1},
+    {"file":"Hid.elf", "priviledge":2},
     {"file":"Shell.elf", "priviledge":3},
     {"file":"Apptest.elf", "priviledge":3}
 ]
