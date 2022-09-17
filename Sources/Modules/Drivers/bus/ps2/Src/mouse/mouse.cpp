@@ -137,7 +137,6 @@ void MouseParser(uint8_t data){
 }
 
 KResult MouseHandler(uint8_t data){
-    Printlog("Mouse");
     MouseParser(data);
     
     return KSUCCESS;
