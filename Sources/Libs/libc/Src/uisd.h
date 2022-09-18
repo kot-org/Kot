@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-#define ControllerCount 0x7
+#define ControllerCount 0x8
 
 enum ControllerTypeEnum {
     ControllerTypeEnum_System       = 0x0,
