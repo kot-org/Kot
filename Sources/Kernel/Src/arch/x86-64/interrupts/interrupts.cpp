@@ -116,7 +116,11 @@ void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
 
         Error("Thread error, PID : %x | TID : %x \nWith exception : '%s' | Error code : %x", Registers->threadInfo->thread->Parent->PID, Registers->threadInfo->thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
         PrintRegisters(Registers);
-        Registers->threadInfo->thread->Close(Registers, NULL); 
+        if(Registers->threadInfo->thread->IsEvent){
+            Event::Close(Registers, Registers->threadInfo->thread);
+        }else{
+            Registers->threadInfo->thread->Close(Registers, NULL); 
+        }
         globalTaskManager->IsSchedulerEnable[CoreID] = true;
         globalTaskManager->Scheduler(Registers, CoreID); 
     }

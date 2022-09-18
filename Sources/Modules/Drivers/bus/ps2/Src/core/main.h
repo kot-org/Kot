@@ -4,6 +4,7 @@
 #include <kot/bits.h>
 #include <kot/cstring.h>
 #include <mouse/mouse.h>
+#include <kot++/printf.h>
 #include <keyboard/keyboard.h>
 #include <kot/uisd/srvs/hid.h>
 #include <kot/uisd/srvs/system.h>

@@ -153,8 +153,8 @@ void initUISD() {
 
 thread_t MouseRelativeInterrupt;
 
-void CursorInterrupt(){
-    Printlog("Mouse from orb");
+void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
+    printf("Mouse from orb %x %x %x %x", x, y, z, status);
     Sys_Event_Close();
 }
 
