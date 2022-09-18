@@ -2,9 +2,9 @@
 
 
 extern "C" int main(int argc, char* argv[]){
-    Printlog("[HID] Loading device");
+    Printlog("[HID] Loading service");
     InitialiseServer();
-    Printlog("[HID] Device loaded");
+    Printlog("[HID] Service loaded");
 
     return KSUCCESS;
 }
