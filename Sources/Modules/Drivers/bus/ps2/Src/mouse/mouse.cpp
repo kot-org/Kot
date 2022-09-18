@@ -115,11 +115,20 @@ void MouseParser(uint8_t data){
         /* Relative position */
         bool IsXNegative = ((MousePacket[PacketGlobalInfo] & (1 << 4)) >> 4) & 1;
         bool IsYNegative = ((MousePacket[PacketGlobalInfo] & (1 << 5)) >> 5) & 1;
-        MouseEventParameters->arg[0] = (int64_t)((uint64_t)MousePacket[PacketXPosition] | ((uint64_t)IsXNegative << 63)); // add signed bit
-        MouseEventParameters->arg[1] = (int64_t)((uint64_t)MousePacket[PacketYPosition] | ((uint64_t)IsYNegative << 63)); // add signed bit
-
         bool IsZNegative = ((MousePacket[ExtendedInfos] & (1 << 3)) >> 3) & 1;
-        MouseEventParameters->arg[2] = (int64_t)(((uint64_t)MousePacket[ExtendedInfos] & 0b111) | ((uint64_t)IsZNegative << 63)); // add signed bit
+
+        MouseEventParameters->arg[0] = (int64_t)MousePacket[PacketXPosition]; // add signed bit
+        MouseEventParameters->arg[1] = (int64_t)MousePacket[PacketYPosition]; // add signed bit
+        MouseEventParameters->arg[2] = (int64_t)(MousePacket[ExtendedInfos] & 0b111); // add signed bit
+        if(IsXNegative){
+            MouseEventParameters->arg[0] = -MouseEventParameters->arg[0];
+        }
+        if(IsYNegative){
+            MouseEventParameters->arg[1] = -MouseEventParameters->arg[1];
+        }
+        if(IsZNegative){
+            MouseEventParameters->arg[2] = -MouseEventParameters->arg[2];
+        }
 
         /* Buttons status */
         MouseEventParameters->arg[3] = NULL;

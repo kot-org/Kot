@@ -161,7 +161,6 @@ void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
 void initCursor() {
     Sys_Createthread(Sys_GetProcess(), (uintptr_t)&CursorInterrupt, PriviledgeApp, &MouseRelativeInterrupt);
     BindMouseRelative(MouseRelativeInterrupt, false);
-
 }
 
 void initOrb() {

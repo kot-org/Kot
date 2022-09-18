@@ -20,6 +20,8 @@ extern "C" int main(int argc, char* argv[]){
     status = PortsInitalize();
     if(status != KSUCCESS) return status;
 
+    DisablePorts();
+    
     /* Initialize keyboard */
     status = KeyboardInitialize();
     if(status != KSUCCESS) return status;
@@ -30,13 +32,25 @@ extern "C" int main(int argc, char* argv[]){
     
     /* Clear buffer */
     PS2GetData();
+
+    EnablePorts();
+    
     Printlog("[PS2] Driver initialized successfully");
     return KSUCCESS;
 }
 
-KResult PortsInitalize(){
+void DisablePorts(){
     PS2SendCommand(0xAD); // disable port 1
     PS2SendCommand(0xA7); // disable port 2
+}
+
+void EnablePorts(){
+    PS2SendCommand(0xAE); // disable port 1
+    PS2SendCommand(0xA8); // disable port 2
+}
+
+KResult PortsInitalize(){
+    DisablePorts();
 
     /* Test PS2 controller */
     PS2SendCommand(0xAA);

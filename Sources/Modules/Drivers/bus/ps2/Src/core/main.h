@@ -56,6 +56,9 @@ extern "C" int main(int argc, char* argv[]);
 
 KResult PortsInitalize();
 
+void DisablePorts();
+void EnablePorts();
+
 void PS2InterruptHandler(uint8_t interrupt);
 
 void PS2SendCommand(uint8_t command);
