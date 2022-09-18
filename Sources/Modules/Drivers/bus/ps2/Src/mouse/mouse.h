@@ -2,7 +2,6 @@
 
 #include <core/main.h>
 #include <kot/heap.h>
-#include <kot/modules/uisd/hid/mouse.h>
 
 #define PacketGlobalInfo    0x0
 #define PacketXPosition     0x1

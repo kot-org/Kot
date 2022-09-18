@@ -5,7 +5,6 @@ uint8_t MousePacket[4];
 uint8_t MouseCycle = 0;
 
 PS2Port_t* MousePS2Port;
-uint8_t MouseType;
 arguments_t* MouseEventParameters;
 thread_t Mousethread = NULL;
 
@@ -26,8 +25,6 @@ KResult MouseInitalize(){
                 IRQRedirectionsArray[MousePS2Port->PortNumber] = MouseHandler;
                 
                 MouseRelativeEvent = GetMouseRelativeEvent();
-
-                MouseType = mousePortTypePS2;
 
                 MouseMaxCycles = 3;
 

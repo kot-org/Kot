@@ -1,10 +1,11 @@
 #include <core/main.h>
 
 extern "C" int main(int argc, char* argv[]){
-    Printlog("[Storage] Loading device");
+    Printlog("[Storage Manager] Loading device");
     InitialiseStorageSrv();
+    Printlog("[Storage Manager] Storage loaded");
     InitialiseVFSSrv();
-    Printlog("[Storage] Device loaded");
+    Printlog("[Storage Manager] VFS loaded");
 
     return KSUCCESS;
 }
