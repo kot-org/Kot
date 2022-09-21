@@ -1,61 +1,61 @@
 #include <kot-graphics/context.h>
 
-void subSeqCircle(gctx_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour);
+void subSeqCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour);
 
-gctx_t* CreateContext(uintptr_t fb_addr, uint32_t width, uint32_t height) {
-    gctx_t* ctx = malloc(sizeof(gctx_t));
+ctxg_t* CreateContextGraphic(uintptr_t fb_addr, uint32_t width, uint32_t height) {
+    ctxg_t* ctx = malloc(sizeof(ctxg_t));
     ctx->fb_addr = fb_addr;
     ctx->poses = vector_create();
     ctx->width = width;
     ctx->height = height;
-    ctx->pitch = width * ctx->btpp;
-    ctx->fb_size = ctx->pitch * height;
+    ctx->bpp = 32;
+    ctx->btpp = 4;
+    ctx->pitch = ctx->width * ctx->btpp;
+    ctx->fb_size = ctx->pitch * ctx->height;
     if (ctx->width >= ctx->height) {
         ctx->scale = ctx->width/412;
     } else {
         ctx->scale = ctx->height/412;
     }
-    ctx->bpp = 32;
-    ctx->btpp = 4;
     return ctx;
 }
 
-void putPixel(gctx_t* ctx, uint32_t x, uint32_t y, uint32_t colour) {
+void putPixel(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t colour) {
     if (pixelExist(ctx, x, y) == -1) return;
     uint64_t index = x * ctx->btpp + y * ctx->pitch;
     *(uint32_t*)((uint64_t) ctx->fb_addr + index) = colour;
 }
 
-int8_t pixelExist(gctx_t* ctx, uint32_t x, uint32_t y) {
+int8_t pixelExist(ctxg_t* ctx, uint32_t x, uint32_t y) {
     if (x < 0 || y < 0) return -1;
     if (x > ctx->width || y > ctx->height) return -1;
     return 1;
 }
 
-uint32_t getPixel(gctx_t* ctx, uint32_t x, uint32_t y) {
+uint32_t getPixel(ctxg_t* ctx, uint32_t x, uint32_t y) {
     uint64_t index = x * ctx->btpp + y * ctx->pitch;
     return *(uint32_t*)((uint64_t) ctx->fb_addr + index);
 }
 
 // ## path ##
 
-void auto_pos(gctx_t* ctx, bool _auto) {
+void auto_pos(ctxg_t* ctx, bool _auto) {
     ctx->_auto = _auto;
 }
 
-pos_t* get_pos(gctx_t* ctx, uint16_t index) {
+pos_t* get_pos(ctxg_t* ctx, uint16_t index) {
     return (pos_t*) vector_get(ctx->poses, index);
 }
 
-void scale_pos(gctx_t* ctx, bool _scaling) {
+void scale_pos(ctxg_t* ctx, bool _scaling) {
     ctx->_scaling = _scaling;
 } 
 
-uint16_t get_scale(gctx_t* ctx) {
+uint16_t get_scale(ctxg_t* ctx) {
     return ctx->scale;
 }
 
-void abs_pos(gctx_t* ctx, uint32_t x, uint32_t y) {
+void abs_pos(ctxg_t* ctx, uint32_t x, uint32_t y) {
     ctx->x = x;
     ctx->y = y;
     if (ctx->_auto == true) {
@@ -63,7 +63,7 @@ void abs_pos(gctx_t* ctx, uint32_t x, uint32_t y) {
     }
 }
 
-void rel_pos(gctx_t* ctx, uint32_t x, uint32_t y) {
+void rel_pos(ctxg_t* ctx, uint32_t x, uint32_t y) {
     if (ctx->_scaling == true) {
         x = x * ctx->scale;
         y = y * ctx->scale;
@@ -75,14 +75,14 @@ void rel_pos(gctx_t* ctx, uint32_t x, uint32_t y) {
     }
 }
 
-void add_pos(gctx_t* ctx) {
+void add_pos(ctxg_t* ctx) {
     pos_t* pos = (pos_t*) malloc(sizeof(pos_t));
     pos->x = ctx->x;
     pos->y = ctx->y;
     vector_push(ctx->poses, pos);
 }
 
-void end_path(gctx_t* ctx) {
+void end_path(ctxg_t* ctx) {
     if (ctx->poses->length > 0) {
         pos_t* to = (pos_t*) malloc(sizeof(pos_t));
         pos_t* from = (pos_t*) vector_get(ctx->poses, 0);
@@ -92,7 +92,7 @@ void end_path(gctx_t* ctx) {
     }
 }
 
-void draw(gctx_t* ctx, uint32_t colour) {
+void draw(ctxg_t* ctx, uint32_t colour) {
     if (ctx->_auto == true) {
         end_path(ctx);
     }
@@ -103,7 +103,7 @@ void draw(gctx_t* ctx, uint32_t colour) {
     }
 }
 
-void reset(gctx_t* ctx) {
+void reset(ctxg_t* ctx) {
     ctx->x = 0;
     ctx->y = 0;
     vector_clear(ctx->poses);
@@ -111,7 +111,7 @@ void reset(gctx_t* ctx) {
 
 // ## absolute ##
 
-void fill(gctx_t* ctx, uint32_t x, uint32_t y, uint32_t colour, uint32_t border) {
+void fill(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t colour, uint32_t border) {
     uint32_t pixel = getPixel(ctx, x, y);
     if (pixel != colour && pixel != border && pixelExist(ctx, x, y) == 1) {
         putPixel(ctx, x, y, colour);
@@ -122,7 +122,7 @@ void fill(gctx_t* ctx, uint32_t x, uint32_t y, uint32_t colour, uint32_t border)
     }
 } 
 
-void fillRect(gctx_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
+void fillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
 
     uint8_t* fb = (uint8_t*) ctx->fb_addr;
 
@@ -148,7 +148,7 @@ void fillRect(gctx_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t heig
 
 }
 
-void subSeqCircle(gctx_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour) {
+void subSeqCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour) {
     uint32_t w = ctx->width;
     uint32_t h = ctx->height;
     putPixel(ctx, xc+x+w/2, (h/2)-(yc+y), colour);
@@ -161,7 +161,7 @@ void subSeqCircle(gctx_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y,
     putPixel(ctx, xc-y+w/2, (h/2)-(yc-x), colour);
 }
 
-void drawCircle(gctx_t* ctx, uint32_t xc, uint32_t yc, uint32_t r, uint32_t colour) {
+void drawCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t r, uint32_t colour) {
     int x = 0, y = r;
     int d = 3 - 2 * r;
     subSeqCircle(ctx, xc, yc, x, y, colour);
@@ -178,7 +178,7 @@ void drawCircle(gctx_t* ctx, uint32_t xc, uint32_t yc, uint32_t r, uint32_t colo
     }
 }
 
-void drawLine(gctx_t* ctx, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour) {
+void drawLine(ctxg_t* ctx, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour) {
 
     if (x1 > ctx->width) {
         x1 = ctx->width;
@@ -254,7 +254,7 @@ void drawLine(gctx_t* ctx, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, u
 
 }
 
-void drawRect(gctx_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
+void drawRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
     drawLine(ctx, x, y, x+width, y, colour); // top
     drawLine(ctx, x, y+height, x+width, y+height, colour); // bottom
     drawLine(ctx, x, y, x, y+height, colour); // left
@@ -263,30 +263,30 @@ void drawRect(gctx_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t heig
 
 // ## frame buffer ##
 
-void swapTo(gctx_t* ctx, uintptr_t to) {
+void swapTo(ctxg_t* ctx, uintptr_t to) {
     memcpy(to, ctx->fb_addr, ctx->fb_size);
 }
 
-void swapFrom(gctx_t* ctx, uintptr_t from) {
+void swapFrom(ctxg_t* ctx, uintptr_t from) {
     memcpy(ctx->fb_addr, from, ctx->fb_size);
 }
 
-void swapToCtx(gctx_t* ctx) {
+void swapToCtx(ctxg_t* ctx) {
     swapTo(ctx, getFramebuffer(ctx));
 }
 
-void swapFromCtx(gctx_t* ctx) {
+void swapFromCtx(ctxg_t* ctx) {
     swapFrom(ctx, getFramebuffer(ctx));
 }
 
-void clear(gctx_t* ctx) {
+void clear(ctxg_t* ctx) {
     memset(ctx->fb_addr, 0x00, ctx->fb_size);
 } 
 
-void clearColor(gctx_t* ctx, uint32_t colour) {
+void clearColor(ctxg_t* ctx, uint32_t colour) {
     memset32(ctx->fb_addr, colour, ctx->fb_size);
 } 
 
-uintptr_t getFramebuffer(gctx_t* ctx) {
+uintptr_t getFramebuffer(ctxg_t* ctx) {
     return ctx->fb_addr;
 }

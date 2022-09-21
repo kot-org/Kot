@@ -73,9 +73,9 @@ void Monitor::update(vector_t* windows) {
                 uint32_t x = window->getX();
                 uint32_t y = window->getY();
                 if (window->getFocusState() == ACTIVE) {
-                    drawRect(this->back, x-1, y-1, w+1, h+1, 0x525252);
+                    drawRect(this->back, x-1, y-1, w+1, h+1, 0x2B2B2B);
                 } else {
-                    drawRect(this->back, x-1, y-1, w+1, h+1, 0x323232);
+                    drawRect(this->back, x-1, y-1, w+1, h+1, 0x4B4B4B);
                 }
             }
         }
