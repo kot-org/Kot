@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-#define ControllerCount 0x8
+#define ControllerCount 0x7
 
 enum ControllerTypeEnum {
     ControllerTypeEnum_System       = 0x0,
@@ -24,9 +24,8 @@ enum ControllerTypeEnum {
     ControllerTypeEnum_Storage      = 0x2,
     ControllerTypeEnum_Hid          = 0x3,
     ControllerTypeEnum_Audio        = 0x4,
-    ControllerTypeEnum_VFS          = 0x5,
-    ControllerTypeEnum_USB          = 0x6,
-    ControllerTypeEnum_PCI          = 0x7,
+    ControllerTypeEnum_USB          = 0x5,
+    ControllerTypeEnum_PCI          = 0x6,
     ControllerTypeEnum_Other        = 0xff
 };
 
@@ -83,25 +82,16 @@ typedef struct {
 
 typedef struct {
     uisd_controller_t ControllerHeader;
-    thread_t GetDiskInfo;
-    thread_t GetPartitionInfo;
+    thread_t AddDevice;
+    thread_t RemoveDevice;
 
-    thread_t ReadDisk;
-    thread_t WriteDisk;
-
-    thread_t GetVendorID;
-    thread_t GetDeviceID;
+    thread_t Rename;
+    thread_t Remove;
+    thread_t Fopen;
+    thread_t Mkdir;
+    thread_t Readdir;
+    thread_t Flist;
 } uisd_storage_t;
-
-typedef struct {
-    uisd_controller_t ControllerHeader;
-    thread_t rename;
-    thread_t remove;
-    thread_t fopen;
-    thread_t mkdir;
-    thread_t readdir;
-    thread_t flist;
-} uisd_vfs_t;
 
 typedef struct {
     uisd_controller_t ControllerHeader;

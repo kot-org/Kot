@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 vector_t* vector_create();
-void vector_push(vector_t* vector, uintptr_t item);
+uint64_t vector_push(vector_t* vector, uintptr_t item);
 void vector_remove(vector_t* vector, uint64_t index);
 void vector_set(vector_t* vector, uint64_t index, uintptr_t item);
 void vector_expand(vector_t* vector, uint64_t len);

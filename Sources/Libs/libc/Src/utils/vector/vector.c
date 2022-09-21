@@ -21,7 +21,7 @@ void vector_expand(vector_t* vector, uint64_t len) {
     vector->length+=len;
 }
 
-void vector_push(vector_t* vector, uintptr_t item) {
+uint64_t vector_push(vector_t* vector, uintptr_t item) {
     if (vector->items == NULL) {
         vector->items = (uintptr_t*) malloc(8);
         vector->length = 1;
@@ -30,6 +30,7 @@ void vector_push(vector_t* vector, uintptr_t item) {
         vector_expand(vector, 1);
         *(vector->items + vector->length - 1) = item;
     }
+    return vector->length - 1;
 }
 
 uintptr_t vector_get(vector_t* vector, uint64_t index) {

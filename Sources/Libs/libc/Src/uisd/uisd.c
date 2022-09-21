@@ -8,7 +8,6 @@ size64_t ControllerTypeSize[ControllerCount] = {
     sizeof(uisd_storage_t),
     sizeof(uisd_hid_t),
     sizeof(uisd_audio_t),
-    sizeof(uisd_vfs_t),
     sizeof(uisd_usb_t),
     sizeof(uisd_pci_t)
 };

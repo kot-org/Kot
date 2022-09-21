@@ -20,7 +20,7 @@
 #define KSys_Event_Create 0xD
 #define KSys_Event_Bind 0xE
 #define KSys_Event_Unbind 0xF
-#define KSys_kevent_trigger 0x10
+#define KSys_Event_trigger 0x10
 #define KSys_Event_Close 0x11
 
 #define KSys_CreateThread 0x12
