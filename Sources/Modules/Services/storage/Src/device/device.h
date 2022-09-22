@@ -1,4 +1,5 @@
 #pragma once
+#include <kot/math.h>
 #include <core/main.h>
 #include <kot/uisd/srvs/storage.h>
 
