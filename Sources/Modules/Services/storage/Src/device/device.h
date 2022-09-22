@@ -1,23 +1,17 @@
 #pragma once
 #include <core/main.h>
+#include <kot/uisd/srvs/storage.h>
 
-
-struct storage_device_info_t{
-    uint64_t DeviceSize;
-    uint16_t SerialNumber[10];
-    uint8_t DriveModelNumber[40];
-};
 struct storage_device_t{
-    thread_t ReadWriteThread;
-    uint64_t ReadWriteArg;
-    ksmem_t BufferRWKey;
     uintptr_t BufferRWBase;
     size_t BufferRWSize;
-    uint64_t BufferRWAlignement;
-    storage_device_info_t Info;
+    srv_storage_device_info_t Info;
+
+    KResult ReadDevice(uint64_t Start, size64_t Size);
+    KResult WriteDevice(uint64_t Start, size64_t Size);
 };
 
 KResult InitializeDeviceHandling();
 
-uint64_t AddDevice(thread_t ReadWriteThread, uint64_t ReadWriteArg, ksmem_t BufferRW, uint64_t BufferRWAlignement, storage_device_info_t* Info);
-void RemoveDevice(uint64_t Index);
+KResult AddDevice(srv_storage_device_info_t* Info, uint64_t* DeviceIndex);
+KResult RemoveDevice(uint64_t Index);

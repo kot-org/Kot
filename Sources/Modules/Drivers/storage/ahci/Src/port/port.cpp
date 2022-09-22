@@ -16,12 +16,13 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
 
     // Allocate buffer
     BufferRealSize = HBA_PRDT_MAX_ENTRIES * HBA_PRDT_ENTRY_ADDRESS_SIZE;
-    BufferUsableSize = BufferRealSize - ATA_SECTOR_SIZE; // Remove one sector for alignement
+    BufferAlignement = ATA_SECTOR_SIZE;
+    BufferUsableSize = BufferRealSize - BufferAlignement; // Remove one sector for alignement
     BufferVirtual = getFreeAlignedSpace(BufferRealSize);
     Sys_CreateMemoryField(Proc, BufferRealSize, &BufferVirtual, &BufferKey, MemoryFieldTypeShareSpaceRW);
 
-    BufferAlignementBottom = malloc(ATA_SECTOR_SIZE);
-    BufferAlignementTop = malloc(ATA_SECTOR_SIZE);
+    BufferAlignementBottom = malloc(BufferAlignement);
+    BufferAlignementTop = malloc(BufferAlignement);
 
     MainSlot = FindSlot();
     if(MainSlot == -1){
@@ -46,10 +47,7 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
     IdentifyInfo = (IdentifyInfo_t*)calloc(sizeof(IdentifyInfo_t));
     GetIdentifyInfo();
 
-    AddDevice(this);
-
-    memset((uintptr_t)((uint64_t)BufferVirtual), 0xff, 0x200);
-    Write(0x0, 0x20);
+    SrvAddDevice(this);
 }
 
 Device::~Device(){

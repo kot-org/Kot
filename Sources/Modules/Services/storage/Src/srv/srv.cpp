@@ -14,6 +14,10 @@ KResult InitialiseSrv(){
     SrvData->ControllerHeader.Version = Storage_Srv_Version;
     SrvData->ControllerHeader.VendorID = Kot_VendorID;
     SrvData->ControllerHeader.Type = ControllerTypeEnum_Storage;
+    SrvData->ControllerHeader.Process = ShareProcessKey(proc);
+
+    /* Initialize device handling */
+    InitializeDeviceHandling();
 
     /* AddDevice */
     thread_t AddDeviceThread = NULL;
@@ -31,16 +35,39 @@ KResult InitialiseSrv(){
     return KSUCCESS;
 }
 
-KResult AddDeviceSrv(thread_t ReadWriteThread, uint64_t ReadWriteArg, ksmem_t BufferRW, uint64_t BufferRWAlignement, storage_device_info_t* Info){
+KResult AddDeviceSrv(thread_t Callback, uint64_t CallbackArg, srv_storage_device_info_t* Info){
+    KResult Statu = KFAIL;
+    uint64_t DeviceIndex = 0;
+
     if(Info){
-        AddDevice(ReadWriteThread, ReadWriteArg, BufferRW, BufferRWAlignement, Info);
-        Sys_Close(KSUCCESS);
+        Statu = AddDevice(Info, &DeviceIndex);
     }
     
-    Sys_Close(KFAIL);
+    arguments_t arguments{
+        .arg[0] = Statu,            /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = DeviceIndex,      /* DeviceIndex */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_Close(KSUCCESS);
 }
 
-KResult RemoveDeviceSrv(uint64_t Index){
-    RemoveDevice(Index);
+KResult RemoveDeviceSrv(thread_t Callback, uint64_t CallbackArg, uint64_t Index){
+    KResult Statu = RemoveDevice(Index);
+    
+    arguments_t arguments{
+        .arg[0] = Statu,            /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = NULL,             /* GP0 */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }

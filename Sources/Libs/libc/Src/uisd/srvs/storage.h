@@ -9,9 +9,40 @@
 extern "C" {
 #endif
 
+#define SerialNumberSize        0x14
+#define DriveModelNumberSize    0x28
+
+typedef KResult (*StorageCallbackHandler)(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
+
+struct srv_storage_device_info_t{
+    thread_t ReadWriteThread; 
+    uint64_t ReadWriteArg; 
+    ksmem_t BufferRWKey;
+    uint64_t BufferRWAlignement;
+    uint64_t BufferRWUsableSize;
+    uint64_t DeviceSize;
+    uint8_t SerialNumber[SerialNumberSize];
+    uint8_t DriveModelNumber[DriveModelNumberSize];
+};
+
+struct srv_storage_callback_t{
+    thread_t Self;
+    uintptr_t Data;
+    size64_t Size;
+    bool IsAwait;
+    KResult Status;
+    StorageCallbackHandler Handler;
+};
+
+void Srv_Storage_Initialize();
+
+void Srv_Storage_Callback(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
+
+struct srv_storage_callback_t* Srv_Storage_AddDevice(struct srv_storage_device_info_t* Info, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_RemoveDevice(uint64_t Index, bool IsAwait);
+
 #if defined(__cplusplus)
 }
 #endif
-
 
 #endif

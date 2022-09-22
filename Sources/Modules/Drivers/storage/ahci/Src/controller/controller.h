@@ -1,6 +1,7 @@
 #pragma once
 #include <core/main.h>
 #include <port/port.h>
+#include <kot/uisd/srvs/pci.h>
 
 #define SATA_SIG_ATAPI 0xEB140101
 #define SATA_SIG_ATA 0x00000101

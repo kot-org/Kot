@@ -1,5 +1,6 @@
 #pragma once
 #include <core/main.h>
+#include <kot/types.h>
 #include <controller/controller.h>
 
 #define ATA_SECTOR_SIZE                 0x200
@@ -586,6 +587,9 @@ class Device{
         uintptr_t BufferAlignementTop;
 
         IdentifyInfo_t* IdentifyInfo;
+
+        uint64_t InternalID;
+        uint64_t ExternalID;
 
         uint64_t Lock;
     private:

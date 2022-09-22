@@ -4,9 +4,6 @@ process_t Proc = NULL;
 
 AHCIController** Controllers = NULL;
 
-Device** Devices = NULL;
-uint64_t DevicesIndex = 0;
-
 extern "C" int main(int argc, char* argv[]) {
     Printlog("[AHCI] Initialization ...");
 
@@ -44,30 +41,4 @@ extern "C" int main(int argc, char* argv[]) {
     Printlog("[AHCI] Driver initialized successfully");
 
     return KSUCCESS;
-}
-
-void AddDevice(Device* Device){
-    Devices[DevicesIndex] = Device;
-    DevicesIndex++;
-}
-
-Device* GetDevice(uint64_t Index){
-    if(Index >= DevicesIndex) return NULL;
-    return Devices[Index];
-}
-
-KResult Read(uint64_t Index, uint64_t Start, size64_t Size){
-    Device* self = GetDevice(Index);
-    if(self){
-        return self->Read(Start, Size);
-    }
-    return KFAIL;
-}
-
-KResult Write(uint64_t Index, uint64_t Start, size64_t Size){
-    Device* self = GetDevice(Index);
-    if(self){
-        return self->Write(Start, Size);
-    }
-    return KFAIL;
 }

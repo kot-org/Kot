@@ -131,7 +131,7 @@ void initUISD() {
     ksmem_t key = NULL;
     Sys_CreateMemoryField(self, sizeof(uisd_graphics_t), &address, &key, MemoryFieldTypeShareSpaceRO);
     uisd_graphics_t* OrbSrv = (uisd_graphics_t*) address;
-    OrbSrv->ControllerHeader.Process = self;
+    OrbSrv->ControllerHeader.Process = ShareProcessKey(self);
     OrbSrv->ControllerHeader.IsReadWrite = false;
     OrbSrv->ControllerHeader.Version = Orb_Srv_Version;
     OrbSrv->ControllerHeader.VendorID = Kot_VendorID;
