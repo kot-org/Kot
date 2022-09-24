@@ -18,9 +18,7 @@ struct storage_device_t{
     KResult WriteDevice(uintptr_t Buffer, uint64_t Start, size64_t Size);
 };
 
-KResult InitializeDeviceHandling();
-
 KResult CallbackRequestHandler(KResult Statu, thread_t Caller);
 
-KResult AddDevice(srv_storage_device_info_t* Info, uint64_t* DeviceIndex);
-KResult RemoveDevice(uint64_t Index);
+KResult AddDevice(srv_storage_device_info_t* Info, storage_device_t** DevicePointer);
+KResult RemoveDevice(storage_device_t* Device);

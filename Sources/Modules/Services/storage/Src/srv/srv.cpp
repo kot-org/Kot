@@ -16,9 +16,6 @@ KResult InitialiseSrv(){
     SrvData->ControllerHeader.Type = ControllerTypeEnum_Storage;
     SrvData->ControllerHeader.Process = ShareProcessKey(proc);
 
-    /* Initialize device handling */
-    InitializeDeviceHandling();
-
     /* AddDevice */
     thread_t AddDeviceThread = NULL;
     Sys_Createthread(proc, (uintptr_t)&AddDeviceSrv, PriviledgeApp, &AddDeviceThread);
@@ -37,16 +34,16 @@ KResult InitialiseSrv(){
 
 KResult AddDeviceSrv(thread_t Callback, uint64_t CallbackArg, srv_storage_device_info_t* Info){
     KResult Statu = KFAIL;
-    uint64_t DeviceIndex = 0;
+    storage_device_t* Device = NULL;
 
     if(Info){
-        Statu = AddDevice(Info, &DeviceIndex);
+        Statu = AddDevice(Info, &Device);
     }
     
     arguments_t arguments{
         .arg[0] = Statu,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
-        .arg[2] = DeviceIndex,      /* DeviceIndex */
+        .arg[2] = (uint64_t)Device, /* DeviceIndex */
         .arg[3] = NULL,             /* GP1 */
         .arg[4] = NULL,             /* GP2 */
         .arg[5] = NULL,             /* GP3 */
@@ -56,8 +53,8 @@ KResult AddDeviceSrv(thread_t Callback, uint64_t CallbackArg, srv_storage_device
     Sys_Close(KSUCCESS);
 }
 
-KResult RemoveDeviceSrv(thread_t Callback, uint64_t CallbackArg, uint64_t Index){
-    KResult Statu = RemoveDevice(Index);
+KResult RemoveDeviceSrv(thread_t Callback, uint64_t CallbackArg, storage_device_t* Device){
+    KResult Statu = RemoveDevice(Device);
     
     arguments_t arguments{
         .arg[0] = Statu,            /* Status */

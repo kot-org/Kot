@@ -1,14 +1,6 @@
 #include <device/device.h>
 
-vector_t* DeviceList;
-
-KResult InitializeDeviceHandling(){
-    DeviceList = vector_create();
-    return KSUCCESS;
-}
-
-// no need to verify if devicelist is create because this function can't be call before so we'll call InitializeDeviceHandling before initialising the server
-KResult AddDevice(srv_storage_device_info_t* Info, uint64_t* DeviceIndex){
+KResult AddDevice(srv_storage_device_info_t* Info, storage_device_t** DevicePointer){
     uint64_t BufferType = NULL;
     uint64_t BufferSize = NULL;
 
@@ -21,7 +13,7 @@ KResult AddDevice(srv_storage_device_info_t* Info, uint64_t* DeviceIndex){
         Sys_AcceptMemoryField(Sys_GetProcess(), Info->BufferRWKey, &Device->BufferRWBase);
 
         memcpy(&Device->Info, Info, sizeof(srv_storage_device_info_t));
-        *DeviceIndex = vector_push(DeviceList, Device);
+        *DevicePointer = Device;
 
         thread_t CallbackRequestHandlerThread = NULL;
         Sys_Createthread(Sys_GetProcess(), (uintptr_t)&CallbackRequestHandler, PriviledgeApp, &CallbackRequestHandlerThread);
@@ -31,10 +23,8 @@ KResult AddDevice(srv_storage_device_info_t* Info, uint64_t* DeviceIndex){
     return KFAIL;
 }
 
-KResult RemoveDevice(uint64_t Index){
-    storage_device_t* Device = (storage_device_t*)vector_get(DeviceList, Index);
+KResult RemoveDevice(storage_device_t* Device){
     Sys_CloseMemoryField(Sys_GetProcess(), Device->Info.BufferRWKey, Device->BufferRWBase);
-    vector_remove(DeviceList, Index);
     return KSUCCESS;
 }
 

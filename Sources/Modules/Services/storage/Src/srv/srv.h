@@ -10,4 +10,4 @@
 KResult InitialiseSrv();
 
 KResult AddDeviceSrv(thread_t Callback, uint64_t CallbackArg, srv_storage_device_info_t* Info);
-KResult RemoveDeviceSrv(thread_t Callback, uint64_t CallbackArg, uint64_t Index);
+KResult RemoveDeviceSrv(thread_t Callback, uint64_t CallbackArg, storage_device_t* Device);
