@@ -23,9 +23,6 @@ extern "C" int main(int argc, char* argv[]) {
     
     Controllers = (AHCIController**)malloc(DevicesNumber * sizeof(AHCIController*));
 
-    Devices = (Device**)malloc(DevicesNumber * PORT_MAX_COUNT * sizeof(Device*));
-    DevicesIndex = 0;
-
     for(uint64_t i = 0; i < DevicesNumber; i++){
         Callback = Srv_Pci_FindDevice(&SearchParameters, i, true);
         PCIDeviceID_t DeviceID = (PCIDeviceID_t)Callback->Data;

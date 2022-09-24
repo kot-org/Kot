@@ -26,7 +26,6 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
 
     MainSlot = FindSlot();
     if(MainSlot == -1){
-        atomicUnlock(&Lock, 0);
         return;
     }
 
@@ -39,9 +38,6 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
         BufferInteration = (uint64_t)BufferInteration + HBA_PRDT_ENTRY_ADDRESS_SIZE;
     }
     StartCMD();
-
-    // Be sur to unlock the locker
-    atomicUnlock(&Lock, 0);
 
     // Identify disk
     IdentifyInfo = (IdentifyInfo_t*)calloc(sizeof(IdentifyInfo_t));
@@ -87,7 +83,6 @@ int8_t Device::FindSlot(){
 
 KResult Device::Read(uint64_t Start, size64_t Size){
     if((Start + (uint64_t)Size) > GetSize()) return KNOTALLOW;
-    if(Size > BufferUsableSize) return KMEMORYVIOLATION;
 
     uint64_t StartAlignement = Start & 0x1FF;
     uint64_t Sector = Start >> 9;
@@ -97,9 +92,6 @@ KResult Device::Read(uint64_t Start, size64_t Size){
     if(PRDTLength > HBA_PRDT_MAX_ENTRIES){
         return KFAIL;
     }
-    
-
-    atomicAcquire(&Lock, 0);
 
     uint32_t SectorLow = (uint32_t)Sector & 0xFFFFFFFF;
     uint32_t sectorHigh = (uint32_t)(Sector >> 32) & 0xFFFFFFFF;
@@ -150,7 +142,6 @@ KResult Device::Read(uint64_t Start, size64_t Size){
         spin++;
     }
     if(spin == ATA_CMD_TIMEOUT){
-        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
 
@@ -159,47 +150,48 @@ KResult Device::Read(uint64_t Start, size64_t Size){
     while (true){
         if((HbaPort->CommandIssue & (1 << MainSlot)) == 0) break;
         if(HbaPort->InterruptStatus & HBA_INTERRUPT_STATU_TFE){
-            atomicUnlock(&Lock, 0);
             return KFAIL;
         }
-    }
-    atomicUnlock(&Lock, 0);   
+    } 
 
     return KSUCCESS;
 }
 
 KResult Device::Write(uint64_t Start, size64_t Size){
     if((Start + (uint64_t)Size) > GetSize()) return KNOTALLOW;
-    if(Size > BufferUsableSize) return KMEMORYVIOLATION;
 
     uint64_t StartAlignement = Start & 0x1FF;
     uint64_t StartAlignementFill = ATA_SECTOR_SIZE - Start;
 
     uint64_t EndAlignement = (Start + Size) & 0x1FF;
     uint64_t EndAlignementFill = ATA_SECTOR_SIZE - EndAlignement;
+
+    uint64_t BufferSizeUsed = Size + StartAlignement;
     
     uint64_t Sector = Start >> 9;
-    uint64_t SectorCount = DivideRoundUp(Size + StartAlignement, ATA_SECTOR_SIZE);
+    uint64_t SectorCount = DivideRoundUp(BufferSizeUsed, ATA_SECTOR_SIZE);
     uint64_t PRDTLength = DivideRoundUp(SectorCount, HBA_PRDT_ENTRY_SECTOR_SIZE);
 
     if(PRDTLength > HBA_PRDT_MAX_ENTRIES){
         return KFAIL;
     }
-
-    atomicAcquire(&Lock, 0);
     
+
     if(StartAlignement){
         uintptr_t BufferTmp = (uintptr_t)((uint64_t)BufferVirtual + StartAlignement);
         memcpy(BufferAlignementBottom, BufferTmp, StartAlignementFill);
-        Read(Start, StartAlignement);
+        Read(Start, StartAlignementFill);
         memcpy(BufferTmp, BufferAlignementBottom, StartAlignementFill);
     }
-
-    if(EndAlignement){
-        uintptr_t BufferTmp = (uintptr_t)((uint64_t)BufferVirtual + Size + EndAlignement);
-        memcpy(BufferAlignementBottom, BufferTmp, EndAlignement);
-        Read(Start + Size + EndAlignement, EndAlignementFill);
-        memcpy(BufferTmp, BufferAlignementBottom, EndAlignement);        
+    if(!StartAlignement || (Start + Size) > ATA_SECTOR_SIZE){
+        if(EndAlignement){
+            memcpy(BufferAlignementBottom, BufferVirtual, ATA_SECTOR_SIZE); // Save the first sector in which we will read
+            uintptr_t BufferDst = (uintptr_t)((uint64_t)BufferVirtual + BufferSizeUsed);
+            uintptr_t BufferSrc = (uintptr_t)((uint64_t)BufferVirtual + EndAlignement);
+            Read(Start + Size, EndAlignementFill);
+            memcpy(BufferDst, BufferSrc, EndAlignementFill);  
+            memcpy(BufferVirtual, BufferAlignementBottom, ATA_SECTOR_SIZE); // Restore the first sector
+        }
     }
 
     uint32_t SectorLow = (uint32_t)Sector & 0xFFFFFFFF;
@@ -216,7 +208,6 @@ KResult Device::Write(uint64_t Start, size64_t Size){
     FisHostToDeviceRegisters_t* CommandFIS = (FisHostToDeviceRegisters_t*)(&CommandTable->CommandFIS);
 
     // Load PRDT
-
     uint64_t SectorCountIteration = SectorCount;
 
     for(uint16_t i = 0; i < CommandHeader->PrdtLength; i++){
@@ -252,7 +243,6 @@ KResult Device::Write(uint64_t Start, size64_t Size){
         spin++;
     }
     if(spin == ATA_CMD_TIMEOUT){
-        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
 
@@ -261,19 +251,14 @@ KResult Device::Write(uint64_t Start, size64_t Size){
     while (true){
         if((HbaPort->CommandIssue & (1 << MainSlot)) == 0) break;
         if(HbaPort->InterruptStatus & HBA_INTERRUPT_STATU_TFE){
-            atomicUnlock(&Lock, 0);
             return KFAIL;
         }
     }
-
-    atomicUnlock(&Lock, 0);   
 
     return KSUCCESS;
 }
 
 KResult Device::GetIdentifyInfo(){
-    atomicAcquire(&Lock, 0);
-
     HbaPort->InterruptStatus = NULL; // Clear pending interrupt bits
 
     CommandHeader->CommandFISLength = sizeof(FisHostToDeviceRegisters_t) / sizeof(uint32_t); // Command FIS size;
@@ -298,7 +283,6 @@ KResult Device::GetIdentifyInfo(){
         spin++;
     }
     if(spin == ATA_CMD_TIMEOUT){
-        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
 
@@ -307,13 +291,10 @@ KResult Device::GetIdentifyInfo(){
     while (true){
         if((HbaPort->CommandIssue & (1 << MainSlot)) == 0) break;
         if(HbaPort->InterruptStatus & HBA_INTERRUPT_STATU_TFE){
-            atomicUnlock(&Lock, 0);
             return KFAIL;
         }
     }
     memcpy(IdentifyInfo, BufferVirtual, sizeof(IdentifyInfo_t)); // copy data to DMA buffer
-
-    atomicUnlock(&Lock, 0);
 
     return KSUCCESS; 
 }

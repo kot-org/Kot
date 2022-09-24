@@ -588,10 +588,7 @@ class Device{
 
         IdentifyInfo_t* IdentifyInfo;
 
-        uint64_t InternalID;
         uint64_t ExternalID;
-
-        uint64_t Lock;
     private:
         KResult GetIdentifyInfo();
 };

@@ -23,6 +23,7 @@ struct srv_storage_device_info_t{
     uint64_t DeviceSize;
     uint8_t SerialNumber[SerialNumberSize];
     uint8_t DriveModelNumber[DriveModelNumberSize];
+    process_t DriverProc;
 };
 
 struct srv_storage_callback_t{
