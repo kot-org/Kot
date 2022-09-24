@@ -25,15 +25,7 @@ KResult AddDevice(srv_storage_device_info_t* Info, uint64_t* DeviceIndex){
 
         thread_t CallbackRequestHandlerThread = NULL;
         Sys_Createthread(Sys_GetProcess(), (uintptr_t)&CallbackRequestHandler, PriviledgeApp, &CallbackRequestHandlerThread);
-        Device->CallbackRequestHandlerThread = MakeShareableThreadToProcess(CallbackRequestHandlerThread, Device->Info.DriverProc);
-        // test
-        uintptr_t buffer = malloc(0x1000);
-        memset(buffer, 0xff, 0x203);
-        Device->WriteDevice(buffer, 0x102, 0x203);
-        Device->ReadDevice(buffer, 0x0, 0x1000);
-        for(uint64_t i = 0x200; i < 0x210; i++){
-            std::printf("%x", ((uint8_t*)buffer)[i]);
-        }            
+        Device->CallbackRequestHandlerThread = MakeShareableThreadToProcess(CallbackRequestHandlerThread, Device->Info.DriverProc);        
         return KSUCCESS;
     }
     return KFAIL;
