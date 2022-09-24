@@ -14,7 +14,7 @@ extern "C" {
 
 enum ComponentType {
     ButtonComponent = 0,
-    Checkbox = 1,
+    CheckboxComponent = 1,
     TextboxComponent = 2,
     PictureboxComponent = 3,
 };
@@ -24,9 +24,20 @@ typedef struct component_s {
     struct component_s* parent;
     vector_t* childs;
     uint32_t childCounter;
+    uint32_t width;
+    uint32_t height;
 } component_t;
 
 /* Components */
+typedef struct {
+    component_t* cpnt;
+} canva_t;
+typedef struct {
+    uint32_t width;
+    uint32_t height;
+    component_t* parent;
+} canvaparam_t;
+
 typedef struct {
     char* title;
     // todo: icon
@@ -42,7 +53,7 @@ typedef struct {
     component_t* parent;
 } titlebarparam_t;
 
-component_t* AddComponent(component_t* parent);
+component_t* AddComponent(uint32_t width, uint32_t height, component_t* parent);
 void RemoveComponent(component_t* cpnt);
 
 void UpdateContext(ctxg_t* ctx);
@@ -50,9 +61,8 @@ void UpdateComponent(component_t* component);
 
 component_t* GetMainParent(ctxui_t* ctx);
 
+canva_t* CreateCanva(canvaparam_t param);
 titlebar_t* CreateTitleBar(titlebarparam_t param);
-
-void test(component_t* parent);
 
 #if defined(__cplusplus)
 }

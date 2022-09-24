@@ -141,8 +141,6 @@ void fillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t heig
     uint32_t _h = height+y;
     uint32_t _w = width+x;
 
-    uint32_t oldPixel = 0;
-
     if (_h > ctx->height) {
         _h = ctx->height;
     }

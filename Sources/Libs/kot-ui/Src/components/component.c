@@ -14,11 +14,13 @@ void UpdateComponent(component_t* component) {
     Printlog("ok");
 }
 
-component_t* AddComponent(component_t* parent) {
+component_t* AddComponent(uint32_t width, uint32_t height, component_t* parent) {
     component_t* cpnt = malloc(sizeof(component_t));
 
     cpnt->context = parent->context;
     cpnt->parent = parent;
+    cpnt->width = width;
+    cpnt->height = height;
 
     parent->childs = vector_create();
     vector_push(parent->childs, cpnt);
@@ -39,6 +41,14 @@ component_t* GetMainParent(ctxui_t* ctx) {
     return parent;
 }
 
+canva_t* CreateCanva(canvaparam_t param) {
+    canva_t* canva = malloc(sizeof(canva_t));
+
+    canva->cpnt = AddComponent(param.width, param.height, param.parent); 
+
+    return canva;
+}
+
 void DrawTitleBar(ctxg_t* ctx, uint32_t width, uint32_t height, uint32_t colour) {
     fillRect(ctx, 0, 0, width, height, colour);
 
@@ -54,18 +64,15 @@ void DrawTitleBar(ctxg_t* ctx, uint32_t width, uint32_t height, uint32_t colour)
 titlebar_t* CreateTitleBar(titlebarparam_t param) {
     titlebar_t* tb = malloc(sizeof(titlebar_t));
 
+    uint32_t width = param.parent->context->ctxg->width;
+    uint32_t height = 40;
+
     tb->title = param.title;
     tb->color = param.color;
     tb->visible = param.visible;
-    tb->cpnt = AddComponent(param.parent);
+    tb->cpnt = AddComponent(width, height, param.parent);
     
-    DrawTitleBar(param.parent->context->ctxg, param.parent->context->ctxg->width, 40, tb->color);
+    DrawTitleBar(param.parent->context->ctxg, width, height, tb->color);
 
     return tb;
-}
- 
-void test(component_t* parent) {
-    AddComponent(parent);
-
-    fillRect(parent->context->ctxg, 0, 0, 50, 20, 0x80ff0000);
 }
