@@ -75,6 +75,8 @@ void clearColor(ctxg_t* ctx, uint32_t colour);
 
 uintptr_t getFramebuffer(ctxg_t* ctx);
 
+void blendAlpha(uintptr_t Pixel, uint32_t color);
+
 /* uint32_t getPitch(ctxg_t* ctx) {
     return ctx->pitch;
 } */

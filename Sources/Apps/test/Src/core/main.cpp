@@ -10,9 +10,9 @@ extern "C" int main() {
     orb::show(wid);
     ctxg_t* ctxGraphic = CreateContextGraphic(fb->addr, fb->width, fb->height);
     ctxui_t* ctxUi = CreateContextUi(ctxGraphic);
-    titlebar_t* titlebar = CreateTitleBar({ .title = "test", .color = 0x333333, .visible = true, .parent = GetMainParent(ctxUi) });
-    // test(titlebar->cpnt);
-    // UpdateContext(ctxUi);
+    titlebar_t* titlebar = CreateTitleBar({ .title = "test", .color = 0xff000050, .visible = true, .parent = GetMainParent(ctxUi) });
+    test(titlebar->cpnt);
+    //UpdateContext(ctxUi);
 
     srv_system_callback_t* callback1 = Srv_System_ReadFileInitrd("default-font.sfn", true);
     kfont_t* font = LoadFont(callback1->Data);

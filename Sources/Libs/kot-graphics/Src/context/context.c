@@ -23,7 +23,7 @@ ctxg_t* CreateContextGraphic(uintptr_t fb_addr, uint32_t width, uint32_t height)
 void putPixel(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t colour) {
     if (pixelExist(ctx, x, y) == -1) return;
     uint64_t index = x * ctx->btpp + y * ctx->pitch;
-    *(uint32_t*)((uint64_t) ctx->fb_addr + index) = colour;
+    blendAlpha(((uint64_t)ctx->fb_addr + index), colour);
 }
 
 int8_t pixelExist(ctxg_t* ctx, uint32_t x, uint32_t y) {
@@ -156,11 +156,7 @@ void fillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t heig
         for (uint32_t w = x; w < _w; w++) {
             uint64_t xpos = w * ctx->btpp;
             uint64_t index = ypos + xpos;
-
-            if(colour > 0xFFFFFF)
-                colour = blend(getPixel(ctx, w, h), (colour >> 8), (colour & 255));
-
-            *(uint32_t*)(fb + index) = colour;
+            blendAlpha(((uint64_t)ctx->fb_addr + index), colour);
         }
     }
 

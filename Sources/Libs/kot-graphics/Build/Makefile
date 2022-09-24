@@ -1,6 +1,7 @@
 _HOME = ../../../../
 
 CC = clang-14
+ASMC = nasm
 AR = llvm-ar-14
 
 INCDIR = $(_HOME)Sysroot/Include/
@@ -15,7 +16,9 @@ rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(su
 
 INC = $(call rwildcard,$(SRCDIR),*.h)    
 SRCC = $(call rwildcard,$(SRCDIR),*.c)
+ASSRC = $(call rwildcard,$(SRCDIR),*.asm)   
 OBJS += $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCC))
+OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASSRC))
 
 OBJINC += $(patsubst $(SRCDIR)/%.h, $(INCDIR)/kot-graphics/%.h, $(INC))
 
@@ -27,7 +30,12 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@ echo !==== COMPILING $^
 	@ mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $^ -o $@
-	
+
+$(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
+	@ echo !==== COMPILING $^
+	@ mkdir -p $(@D)
+	$(ASMC) $(ASMFLAGS) $^ -f elf64 -o $@
+
 copy: $(OBJINC)
 
 $(INCDIR)/kot-graphics/%.h : $(SRCDIR)/%.h
