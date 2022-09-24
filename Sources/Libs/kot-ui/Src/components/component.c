@@ -67,5 +67,5 @@ titlebar_t* CreateTitleBar(titlebarparam_t param) {
 void test(component_t* parent) {
     AddComponent(parent);
 
-    fillRect(parent->context->ctxg, 0, 0, 50, 20, 0xFF000050);
+    fillRect(parent->context->ctxg, 0, 0, 50, 20, 0x50ff0000);
 }
