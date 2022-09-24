@@ -12,6 +12,13 @@
 extern "C" {
 #endif
 
+enum ComponentType {
+    ButtonComponent = 0,
+    Checkbox = 1,
+    TextboxComponent = 2,
+    PictureboxComponent = 3,
+};
+
 typedef struct component_s {
     ctxui_t* context;
     struct component_s* parent;
@@ -22,12 +29,14 @@ typedef struct component_s {
 /* Components */
 typedef struct {
     char* title;
+    // todo: icon
     uint32_t color;
     bool visible;
     component_t* cpnt;
 } titlebar_t;
 typedef struct {
     char* title;
+    // todo: icon
     uint32_t color;
     bool visible;
     component_t* parent;

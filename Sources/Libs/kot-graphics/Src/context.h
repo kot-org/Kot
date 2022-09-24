@@ -35,6 +35,8 @@ void putPixel(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t colour);
 int8_t pixelExist(ctxg_t* ctx, uint32_t x, uint32_t y);
 uint32_t getPixel(ctxg_t* ctx, uint32_t x, uint32_t y);
 
+uint32_t blend(uint32_t colour1, uint32_t colour2, uint8_t alpha);
+
 void fillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);
 void drawRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);
 void drawLine(ctxg_t* ctx, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour);

@@ -2,8 +2,6 @@
 
 #include <kot/sys.h>
 
-vector_t* componentsList = NULL;
-
 void UpdateContext(ctxg_t* ctx) {
 /*     for(int i = 0; i < componentsList->length; i++) {
         component_t* cpnt = vector_get(componentsList, i);
@@ -41,6 +39,18 @@ component_t* GetMainParent(ctxui_t* ctx) {
     return parent;
 }
 
+void DrawTitleBar(ctxg_t* ctx, uint32_t width, uint32_t height, uint32_t colour) {
+    fillRect(ctx, 0, 0, width, height, colour);
+
+    uint8_t tmpWidthIcon = 10;
+
+    // _ [] X buttons (test)
+    drawLine(ctx, ctx->width-(height+tmpWidthIcon)/2, (height+tmpWidthIcon)/2, ctx->width-(height-tmpWidthIcon)/2, (height-tmpWidthIcon)/2, 0xFFFFFF);
+    drawLine(ctx, ctx->width-(height-tmpWidthIcon)/2, (height+tmpWidthIcon)/2, ctx->width-(height+tmpWidthIcon)/2, (height-tmpWidthIcon)/2, 0xFFFFFF);
+    drawRect(ctx, (ctx->width-(height+tmpWidthIcon)/2)-25, (height-tmpWidthIcon)/2, tmpWidthIcon, tmpWidthIcon, 0xFFFFFF);
+    drawLine(ctx, (ctx->width-(height+tmpWidthIcon)/2)-50, height/2, (ctx->width-(height+tmpWidthIcon)/2)-40, height/2, 0xFFFFFF);
+}
+
 titlebar_t* CreateTitleBar(titlebarparam_t param) {
     titlebar_t* tb = malloc(sizeof(titlebar_t));
 
@@ -49,13 +59,13 @@ titlebar_t* CreateTitleBar(titlebarparam_t param) {
     tb->visible = param.visible;
     tb->cpnt = AddComponent(param.parent);
     
-    fillRect(param.parent->context->ctxg, 0, 0, param.parent->context->ctxg->width, 30, tb->color);
+    DrawTitleBar(param.parent->context->ctxg, param.parent->context->ctxg->width, 40, tb->color);
 
     return tb;
 }
-
+ 
 void test(component_t* parent) {
     AddComponent(parent);
 
-    fillRect(parent->context->ctxg, 0, 0, 50, 20, 0xFF0000);
+    fillRect(parent->context->ctxg, 0, 0, 50, 20, 0xFF000030);
 }
