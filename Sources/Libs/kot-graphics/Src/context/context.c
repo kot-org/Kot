@@ -32,7 +32,7 @@ int8_t pixelExist(ctxg_t* ctx, uint32_t x, uint32_t y) {
     return 1;
 }
 
-uint32_t getPixel(ctxg_t* ctx, uint32_t x, uint32_t y) {
+inline uint32_t getPixel(ctxg_t* ctx, uint32_t x, uint32_t y) {
     uint64_t index = x * ctx->btpp + y * ctx->pitch;
     return *(uint32_t*)((uint64_t) ctx->fb_addr + index);
 }
@@ -111,6 +111,18 @@ void reset(ctxg_t* ctx) {
 
 // ## absolute ##
 
+uint32_t blend(uint32_t colour1, uint32_t colour2, uint8_t alpha) {
+	uint32_t r = colour1 & 0xFF0000;
+	uint32_t g = colour1 & 0x00FF00;
+    uint32_t b = colour1 & 0x0000FF;
+
+	r += ((colour2 & 0xFF0000) - r) * alpha >> 8;
+	g += ((colour2 & 0x00FF00) - g) * alpha >> 8;
+    b += ((colour2 & 0x0000FF) - b) * alpha >> 8;
+
+	return (r & 0xFF0000) | (g & 0x00FF00) | (b & 0x0000FF);
+}
+
 void fill(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t colour, uint32_t border) {
     uint32_t pixel = getPixel(ctx, x, y);
     if (pixel != colour && pixel != border && pixelExist(ctx, x, y) == 1) {
@@ -129,6 +141,8 @@ void fillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t heig
     uint32_t _h = height+y;
     uint32_t _w = width+x;
 
+    uint32_t oldPixel = 0;
+
     if (_h > ctx->height) {
         _h = ctx->height;
     }
@@ -142,6 +156,10 @@ void fillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t heig
         for (uint32_t w = x; w < _w; w++) {
             uint64_t xpos = w * ctx->btpp;
             uint64_t index = ypos + xpos;
+
+            if(colour > 0xFFFFFF)
+                colour = blend(getPixel(ctx, w, h), (colour >> 8), (colour & 255));
+
             *(uint32_t*)(fb + index) = colour;
         }
     }
