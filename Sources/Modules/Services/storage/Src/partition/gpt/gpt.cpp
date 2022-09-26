@@ -61,13 +61,22 @@ KResult device_partitions_t::LoadGPTHeader(){
 }
 
 uint64_t device_partitions_t::CheckPartitions(){
-    size64_t SizeOfCRC32PartitionArray = sizeof(GPTPartitionEntry_t) * GPTHeader->NumberOfPartitionEntries;
+    size64_t SizeOfPartitionList = sizeof(GPTPartitionEntry_t) * GPTHeader->NumberOfPartitionEntries;
 
-    uint32_t crc32HeaderCompute = crc32(NULL, (char*)GPTPartitionEntries, SizeOfCRC32PartitionArray);
+    uint32_t crc32HeaderCompute = crc32(NULL, (char*)GPTPartitionEntries, SizeOfPartitionList);
 
-    std::printf("%x %x", GPTHeader->PartitionEntryArrayCRC32, crc32HeaderCompute);
     if(GPTHeader->PartitionEntryArrayCRC32 == crc32HeaderCompute){
         return KSUCCESS;
+    }else{
+        GPTPartitionEntry_t* GPTPartitionEntriesRecovery = (GPTPartitionEntry_t*)malloc(SizeOfPartitionList);
+        uint64_t PGTPartitionEntriesRevoryLocation = ConvertLBAToBytes(GPTHeader->AlternateLBA) - SizeOfPartitionList;
+        Device->ReadDevice(GPTPartitionEntriesRecovery, PGTPartitionEntriesRevoryLocation, SizeOfPartitionList);
+        crc32HeaderCompute = crc32(NULL, (char*)GPTPartitionEntries, SizeOfPartitionList);
+        if(GPTHeader->PartitionEntryArrayCRC32 == crc32HeaderCompute){
+            Device->WriteDevice(GPTPartitionEntriesRecovery, ConvertLBAToBytes(GPTHeader->PartitionEntryLBA), SizeOfPartitionList);
+            Device->ReadDevice(GPTPartitionEntries, ConvertLBAToBytes(GPTHeader->PartitionEntryLBA), SizeOfPartitionList);
+            return KSUCCESS;
+        }
     }
 
     return KFAIL;
