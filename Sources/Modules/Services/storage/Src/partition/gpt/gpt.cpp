@@ -61,7 +61,7 @@ KResult device_partitions_t::LoadGPTHeader(){
 }
 
 uint64_t device_partitions_t::CheckPartitions(){
-    size64_t SizeOfCRC32PartitionArray = sizeof(uint32_t) * GPTHeader->NumberOfPartitionEntries;
+    size64_t SizeOfCRC32PartitionArray = sizeof(GPTPartitionEntry_t) * GPTHeader->NumberOfPartitionEntries;
 
     uint32_t crc32HeaderCompute = crc32(NULL, (char*)GPTPartitionEntries, SizeOfCRC32PartitionArray);
 
