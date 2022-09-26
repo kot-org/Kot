@@ -1,7 +1,12 @@
 #pragma once
 
 #include <core/main.h>
+#include <kot/utils.h>
 #include <partition/partition.h>
+
+#define GPT_MAX_PARTITIONS 0x80
+#define GPT_SIGNATURE 0x5452415020494645
+#define GPT_PARTITION_NAME_LEN   (72 / sizeof(uint16_t))
 
 struct GPTHeader_t{
     uint64_t Signature;
@@ -26,5 +31,5 @@ struct GPTPartitionEntry_t{
     uint64_t StartingLBA;
     uint64_t EndingLBA;
     uint64_t Attributes;
-    char PartitionName[72];
+    uint16_t PartitionName[GPT_PARTITION_NAME_LEN];
 }__attribute__((packed));

@@ -1,6 +1,7 @@
 #pragma once
 #include <kot/math.h>
 #include <core/main.h>
+#include <partition/partition.h>
 #include <kot/uisd/srvs/storage.h>
 
 struct storage_device_t{
