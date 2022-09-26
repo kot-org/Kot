@@ -2,20 +2,22 @@
 
 #include <kot-ui/component.h>
 
+#include <kot++/printf.h>
+
 extern "C" int main() {
     std::framebuffer_t* fb;
 
     uint32_t wid = orb::create(500, 300, 10, 400);
     fb = orb::getFramebuffer(wid);
     orb::show(wid);
+
     ctxg_t* ctxGraphic = CreateContextGraphic(fb->addr, fb->width, fb->height);
-    ctxui_t* ctxUi = CreateContextUi(ctxGraphic);
-    canva_t* canva1 = CreateCanva({ .width = 200, .height = 100, .parent = GetMainParent(ctxUi) });
-    titlebar_t* titlebar = CreateTitleBar({ .title = "test", .color = 0xff000050, .visible = true, .parent = GetMainParent(ctxUi) });
-    //test(titlebar->cpnt);
+    ctxui_t* ctxUi = CreateContextUi((framebuffer_t*)fb);
+    // canva_t* canva1 = CreateCanva(200, 100, GetMainParent((framebuffer_t*)fb));
+    titlebar_t* titlebar = CreateTitleBar("test", 0xFF1B1B1B, true, GetMainParent((framebuffer_t*)fb));
     //UpdateContext(ctxUi);
 
-    srv_system_callback_t* callback1 = Srv_System_ReadFileInitrd("default-font.sfn", true);
+/*     srv_system_callback_t* callback1 = Srv_System_ReadFileInitrd("default-font.sfn", true);
     kfont_t* font = LoadFont(callback1->Data);
     free(callback1);
     font_fb_t fontBuff;
@@ -31,7 +33,7 @@ extern "C" int main() {
     DrawFont(font, "demo");
     EditPen(font, NULL, -1, 128, 64, -1, -1);
     DrawFont(font, "demo");
-    FreeFont(font);
+    FreeFont(font); */
 
     return KSUCCESS;
 }

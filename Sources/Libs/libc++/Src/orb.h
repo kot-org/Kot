@@ -55,7 +55,9 @@ namespace orb {
         std::framebuffer_t* fb = (std::framebuffer_t*) calloc(sizeof(std::framebuffer_t));
         fb->height = getHeight(wid);
         fb->width = getWidth(wid);
-        fb->pitch = fb->width * 4;
+        fb->bpp = 32;
+        fb->btpp = fb->bpp / 8;
+        fb->pitch = fb->width * fb->btpp;
         fb->size = fb->pitch * fb->height;
         arguments_t arguments;
         arguments.arg[0] = wid;

@@ -10,6 +10,8 @@ typedef struct {
     uint64_t pitch;
     uint32_t width;
     uint32_t height;
+    uint32_t bpp;
+    uint32_t btpp;
 } framebuffer_t;
 
 int8_t pixelExist(framebuffer_t* fb, uint32_t x, uint32_t y);
