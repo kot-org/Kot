@@ -2,7 +2,7 @@
 
 #include <kot/sys.h>
 
-void UpdateContext(ctxg_t* ctx) {
+void UpdateContext(ctxui_t* ctx) {
 /*     for(int i = 0; i < componentsList->length; i++) {
         component_t* cpnt = vector_get(componentsList, i);
 
@@ -15,15 +15,34 @@ void UpdateComponent(component_t* component) {
 }
 
 component_t* AddComponent(uint32_t width, uint32_t height, component_t* parent) {
+    /* framebuffer */
+    framebuffer_t* fb = malloc(sizeof(framebuffer_t));
+
+    uint32_t pitch = width * parent->fb->btpp;
+
+    fb->size = height * pitch;
+    fb->addr = malloc(fb->size);
+    fb->pitch = pitch;
+    fb->width = width;
+    fb->height = height;
+    fb->bpp = parent->fb->bpp;
+    fb->btpp = parent->fb->btpp;
+
+    /* component */
     component_t* cpnt = malloc(sizeof(component_t));
 
-    cpnt->context = parent->context;
+    cpnt->fb = fb;
     cpnt->parent = parent;
-    cpnt->width = width;
-    cpnt->height = height;
-
+    
     parent->childs = vector_create();
     vector_push(parent->childs, cpnt);
+    parent->childCounter = parent->childs->length;
+
+    /* char* buff[50];
+    itoa(cpnt->fb->addr, buff, 16);
+    Printlog(buff); */
+
+    blitFramebuffer(cpnt->parent->fb, cpnt->fb, 0, 0);
 
     return cpnt;
 }
@@ -33,46 +52,74 @@ void RemoveComponent(component_t* cpnt) {
     free(cpnt);
 }
 
-component_t* GetMainParent(ctxui_t* ctx) {
+component_t* GetMainParent(framebuffer_t* fb) {
     component_t* parent = malloc(sizeof(component_t));
 
-    parent->context = ctx;
+    parent->fb = fb;
 
     return parent;
 }
 
-canva_t* CreateCanva(canvaparam_t param) {
+/* Components */
+
+canva_t* CreateCanva(uint32_t width, uint32_t height, component_t* parent) {
     canva_t* canva = malloc(sizeof(canva_t));
 
-    canva->cpnt = AddComponent(param.width, param.height, param.parent); 
+    canva->cpnt = AddComponent(width, height, parent); 
 
     return canva;
 }
 
-void DrawTitleBar(ctxg_t* ctx, uint32_t width, uint32_t height, uint32_t colour) {
-    fillRect(ctx, 0, 0, width, height, colour);
+void DrawTitleBar(framebuffer_t* fb, uint32_t width, uint32_t height, uint32_t color) {
+    fillRect(fb, 0, 0, width, height, color);
 
-    uint8_t tmpWidthIcon = 10;
+/*     uint8_t tmpWidthIcon = 10;
 
     // _ [] X buttons (test)
     drawLine(ctx, ctx->width-(height+tmpWidthIcon)/2, (height+tmpWidthIcon)/2, ctx->width-(height-tmpWidthIcon)/2, (height-tmpWidthIcon)/2, 0xFFFFFF);
     drawLine(ctx, ctx->width-(height-tmpWidthIcon)/2, (height+tmpWidthIcon)/2, ctx->width-(height+tmpWidthIcon)/2, (height-tmpWidthIcon)/2, 0xFFFFFF);
     drawRect(ctx, (ctx->width-(height+tmpWidthIcon)/2)-25, (height-tmpWidthIcon)/2, tmpWidthIcon, tmpWidthIcon, 0xFFFFFF);
-    drawLine(ctx, (ctx->width-(height+tmpWidthIcon)/2)-50, height/2, (ctx->width-(height+tmpWidthIcon)/2)-40, height/2, 0xFFFFFF);
+    drawLine(ctx, (ctx->width-(height+tmpWidthIcon)/2)-50, height/2, (ctx->width-(height+tmpWidthIcon)/2)-40, height/2, 0xFFFFFF);  */
 }
 
-titlebar_t* CreateTitleBar(titlebarparam_t param) {
+titlebar_t* CreateTitleBar(char* title, uint32_t color, bool visible, component_t* parent) {
     titlebar_t* tb = malloc(sizeof(titlebar_t));
 
-    uint32_t width = param.parent->context->ctxg->width;
-    uint32_t height = 40;
+    uint32_t titleBarWidth = parent->fb->width;
+    uint32_t titleBarHeight = 40;
 
-    tb->title = param.title;
-    tb->color = param.color;
-    tb->visible = param.visible;
-    tb->cpnt = AddComponent(width, height, param.parent);
+    tb->title = title;
+    tb->color = color;
+    tb->visible = visible;
+    tb->cpnt = AddComponent(titleBarWidth, titleBarHeight, parent);
     
-    DrawTitleBar(param.parent->context->ctxg, width, height, tb->color);
+    DrawTitleBar(tb->cpnt->parent->fb, titleBarWidth, titleBarHeight, tb->color);
+
+    uint32_t btnWidth = 20;
+    uint32_t btnHeight = titleBarHeight;
+    uint32_t btnColor = 0xFFFFFFFF;
+
+    button_t* minbtn = CreateButton(btnWidth, btnHeight, 0x6000FF00, btnColor, tb->cpnt);
+/*     button_t* resizebtn = CreateButton((buttonparam_t){ .width = btnWidth, .height = btnHeight, .bkgColor = 0xFF00FF00, .color = btnColor, .parent = tb->cpnt });
+    button_t* closebtn = CreateButton(); */
 
     return tb;
+}
+
+void DrawButton(framebuffer_t* fb, uint32_t width, uint32_t height, uint32_t bkgColor, uint32_t color) {
+    /* color: icon color */
+    fillRect(fb, 0, 0, width, height, bkgColor);
+}
+
+button_t* CreateButton(uint32_t width, uint32_t height, uint32_t bkgColor, uint32_t color, component_t* parent) {
+    button_t* btn = malloc(sizeof(button_t));
+
+    btn->bkgColor = bkgColor;
+    btn->color = color;
+    // todo: event
+    btn->cpnt = AddComponent(width, height, parent);
+
+    DrawButton(btn->cpnt->parent->fb, width, height, btn->bkgColor, btn->color);
+
+    return btn;
 }

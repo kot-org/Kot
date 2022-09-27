@@ -53,7 +53,9 @@ framebuffer_t* getFramebuffer(uint32_t wid) {
     framebuffer_t* fb = (framebuffer_t*) calloc(sizeof(framebuffer_t));
     fb->height = GetHeight(wid);
     fb->width = GetWidth(wid);
-    fb->pitch = fb->width * 4;
+    fb->bpp = 32;
+    fb->btpp = fb->bpp / 8;
+    fb->pitch = fb->width * fb->btpp;
     fb->size = fb->pitch * fb->height;
     arguments_t arguments;
     arguments.arg[0] = wid;

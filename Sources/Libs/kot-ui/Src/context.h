@@ -3,17 +3,17 @@
 
 #include <kot/types.h>
 
-#include <kot-graphics/context.h>
+#include <kot-graphics/utils.h>
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
 typedef struct ctxui_s {
-    ctxg_t* ctxg;
+    framebuffer_t* fb;
 } ctxui_t;
 
-ctxui_t* CreateContextUi(ctxg_t* ctxGraphic);
+ctxui_t* CreateContextUi(framebuffer_t* fb);
 
 #if defined(__cplusplus)
 }

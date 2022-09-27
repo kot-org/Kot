@@ -29,7 +29,7 @@ namespace std {
         uint32_t height;
         uint32_t pitch;
         uint8_t bpp = 32;
-        uint8_t btpp = 4; // bpp / 8
+        uint8_t btpp = bpp / 8;
 
         void subSeqCircle(uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour);
 

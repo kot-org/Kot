@@ -9,7 +9,7 @@ ctxg_t* CreateContextGraphic(uintptr_t fb_addr, uint32_t width, uint32_t height)
     ctx->width = width;
     ctx->height = height;
     ctx->bpp = 32;
-    ctx->btpp = 4;
+    ctx->btpp = ctx->bpp / 8;
     ctx->pitch = ctx->width * ctx->btpp;
     ctx->fb_size = ctx->pitch * ctx->height;
     if (ctx->width >= ctx->height) {
@@ -20,19 +20,19 @@ ctxg_t* CreateContextGraphic(uintptr_t fb_addr, uint32_t width, uint32_t height)
     return ctx;
 }
 
-void putPixel(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t colour) {
-    if (pixelExist(ctx, x, y) == -1) return;
+void ctxPutPixel(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t colour) {
+    if (ctxPixelExist(ctx, x, y) == -1) return;
     uint64_t index = x * ctx->btpp + y * ctx->pitch;
     blendAlpha(((uint64_t)ctx->fb_addr + index), colour);
 }
 
-int8_t pixelExist(ctxg_t* ctx, uint32_t x, uint32_t y) {
+int8_t ctxPixelExist(ctxg_t* ctx, uint32_t x, uint32_t y) {
     if (x < 0 || y < 0) return -1;
     if (x > ctx->width || y > ctx->height) return -1;
     return 1;
 }
 
-inline uint32_t getPixel(ctxg_t* ctx, uint32_t x, uint32_t y) {
+inline uint32_t ctxGetPixel(ctxg_t* ctx, uint32_t x, uint32_t y) {
     uint64_t index = x * ctx->btpp + y * ctx->pitch;
     return *(uint32_t*)((uint64_t) ctx->fb_addr + index);
 }
@@ -99,11 +99,11 @@ void draw(ctxg_t* ctx, uint32_t colour) {
     for (uint64_t i = 0; i < ctx->poses->length-1; i++) {
         pos_t* pos1 = (pos_t*) vector_get(ctx->poses, i);
         pos_t* pos2 = (pos_t*) vector_get(ctx->poses, i+1);
-        drawLine(ctx, pos1->x, pos1->y, pos2->x, pos2->y, colour);
+        ctxDrawLine(ctx, pos1->x, pos1->y, pos2->x, pos2->y, colour);
     }
 }
 
-void reset(ctxg_t* ctx) {
+void resetCtx(ctxg_t* ctx) {
     ctx->x = 0;
     ctx->y = 0;
     vector_clear(ctx->poses);
@@ -111,30 +111,18 @@ void reset(ctxg_t* ctx) {
 
 // ## absolute ##
 
-uint32_t blend(uint32_t colour1, uint32_t colour2, uint8_t alpha) {
-	uint32_t r = colour1 & 0xFF0000;
-	uint32_t g = colour1 & 0x00FF00;
-    uint32_t b = colour1 & 0x0000FF;
-
-	r += ((colour2 & 0xFF0000) - r) * alpha >> 8;
-	g += ((colour2 & 0x00FF00) - g) * alpha >> 8;
-    b += ((colour2 & 0x0000FF) - b) * alpha >> 8;
-
-	return (r & 0xFF0000) | (g & 0x00FF00) | (b & 0x0000FF);
-}
-
-void fill(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t colour, uint32_t border) {
+void ctxFill(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t colour, uint32_t border) {
     uint32_t pixel = getPixel(ctx, x, y);
-    if (pixel != colour && pixel != border && pixelExist(ctx, x, y) == 1) {
+    if (pixel != colour && pixel != border && ctxPixelExist(ctx, x, y) == 1) {
         putPixel(ctx, x, y, colour);
-        fill(ctx, x+1, y, colour, border);
-        fill(ctx, x, y+1, colour, border);
-        fill(ctx, x-1, y, colour, border);
-        fill(ctx, x, y-1, colour, border);
+        ctxFill(ctx, x+1, y, colour, border);
+        ctxFill(ctx, x, y+1, colour, border);
+        ctxFill(ctx, x-1, y, colour, border);
+        ctxFill(ctx, x, y-1, colour, border);
     }
 } 
 
-void fillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
+void ctxFillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
 
     uint8_t* fb = (uint8_t*) ctx->fb_addr;
 
@@ -163,17 +151,17 @@ void fillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t heig
 void subSeqCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour) {
     uint32_t w = ctx->width;
     uint32_t h = ctx->height;
-    putPixel(ctx, xc+x+w/2, (h/2)-(yc+y), colour);
-    putPixel(ctx, xc-x+w/2, (h/2)-(yc+y), colour);
-    putPixel(ctx, xc+x+w/2, (h/2)-(yc-y), colour);
-    putPixel(ctx, xc-x+w/2, (h/2)-(yc-y), colour);
-    putPixel(ctx, xc+y+w/2, (h/2)-(yc+x), colour);
-    putPixel(ctx, xc-y+w/2, (h/2)-(yc+x), colour);
-    putPixel(ctx, xc+y+w/2, (h/2)-(yc-x), colour);
-    putPixel(ctx, xc-y+w/2, (h/2)-(yc-x), colour);
+    ctxPutPixel(ctx, xc+x+w/2, (h/2)-(yc+y), colour);
+    ctxPutPixel(ctx, xc-x+w/2, (h/2)-(yc+y), colour);
+    ctxPutPixel(ctx, xc+x+w/2, (h/2)-(yc-y), colour);
+    ctxPutPixel(ctx, xc-x+w/2, (h/2)-(yc-y), colour);
+    ctxPutPixel(ctx, xc+y+w/2, (h/2)-(yc+x), colour);
+    ctxPutPixel(ctx, xc-y+w/2, (h/2)-(yc+x), colour);
+    ctxPutPixel(ctx, xc+y+w/2, (h/2)-(yc-x), colour);
+    ctxPutPixel(ctx, xc-y+w/2, (h/2)-(yc-x), colour);
 }
 
-void drawCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t r, uint32_t colour) {
+void ctxDrawCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t r, uint32_t colour) {
     int x = 0, y = r;
     int d = 3 - 2 * r;
     subSeqCircle(ctx, xc, yc, x, y, colour);
@@ -190,7 +178,7 @@ void drawCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t r, uint32_t colo
     }
 }
 
-void drawLine(ctxg_t* ctx, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour) {
+void ctxDrawLine(ctxg_t* ctx, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour) {
 
     if (x1 > ctx->width) {
         x1 = ctx->width;
@@ -244,33 +232,33 @@ void drawLine(ctxg_t* ctx, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, u
 
     int32_t p = 2*(abs(dy)) - abs(dx);
 
-    putPixel(ctx, x, y, colour);
+    ctxPutPixel(ctx, x, y, colour);
 
     for (int32_t i = 0; i < abs(dx); i++) {
         if (p < 0) {
             if (isSwaped == 0) {
                 x = x + sx;
-                putPixel(ctx, x, y, colour);
+                ctxPutPixel(ctx, x, y, colour);
             } else {
                 y = y+sy;
-                putPixel(ctx, x, y, colour);
+                ctxPutPixel(ctx, x, y, colour);
             }
             p = p + 2*abs(dy);
         } else {
             x = x+sx;
             y = y+sy;
-            putPixel(ctx, x, y, colour);
+            ctxPutPixel(ctx, x, y, colour);
             p = p + 2*abs(dy) - 2*abs(dx);
         }
     }
 
 }
 
-void drawRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
-    drawLine(ctx, x, y, x+width, y, colour); // top
-    drawLine(ctx, x, y+height, x+width, y+height, colour); // bottom
-    drawLine(ctx, x, y, x, y+height, colour); // left
-    drawLine(ctx, x+width, y, x+width, y+height, colour); // right
+void ctxDrawRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
+    ctxDrawLine(ctx, x, y, x+width, y, colour); // top
+    ctxDrawLine(ctx, x, y+height, x+width, y+height, colour); // bottom
+    ctxDrawLine(ctx, x, y, x, y+height, colour); // left
+    ctxDrawLine(ctx, x+width, y, x+width, y+height, colour); // right
 }
 
 // ## frame buffer ##

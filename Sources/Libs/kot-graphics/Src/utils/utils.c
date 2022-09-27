@@ -1,4 +1,5 @@
 #include <kot-graphics/utils.h>
+#include <kot-graphics/context.h>
 
 int8_t pixelExist(framebuffer_t* fb, uint32_t x, uint32_t y) {
     if (x < 0 || y < 0) return -1;
@@ -9,7 +10,7 @@ int8_t pixelExist(framebuffer_t* fb, uint32_t x, uint32_t y) {
 void putPixel(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t colour) {
     if (pixelExist(fb, x, y) == -1) return;
     uint64_t index = x * 4 + y * fb->pitch;
-    *(uint32_t*)((uint64_t) fb->addr + index) = colour;
+    blendAlpha(((uint64_t)fb->addr + index), colour);
 }
 
 uint32_t getPixel(framebuffer_t* fb, uint32_t x, uint32_t y) {
@@ -22,7 +23,7 @@ void blitFramebuffer(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_
     uint64_t to_addr = (uint64_t) to->addr;
     uint64_t from_addr = (uint64_t) from->addr;
 
-    to_addr += x * 4 + y * to->pitch; // offset
+    to_addr += x * to->btpp + y * to->pitch; // offset
 
     uint64_t num;
 
@@ -53,7 +54,7 @@ void fillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t width, uint32_
         for (uint32_t w = x; w < _w; w++) {
             uint64_t xpos = w * 4;
             uint64_t index = ypos + xpos;
-            *(uint32_t*)((uint64_t) fb->addr + index) = colour;
+            blendAlpha(((uint64_t)fb->addr + index), colour);
         }
     }
 
