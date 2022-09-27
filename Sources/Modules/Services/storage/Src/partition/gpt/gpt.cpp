@@ -30,11 +30,14 @@ KResult device_partitions_t::LoadGPTHeader(){
         }
 
         KResult GPTHeaderStatu = CheckGPTHeader(GPTHeader);
+
+        // Load recovery header
+        GPTHeader_t* RecoveryGPTHeader = (GPTHeader_t*)malloc(sizeof(GPTHeader_t));
+        Device->ReadDevice(RecoveryGPTHeader, ConvertLBAToBytes(GPTHeader->AlternateLBA), sizeof(GPTHeader_t));
+        KResult GPTRecoveryHeaderStatu = CheckGPTHeader(RecoveryGPTHeader);
+
         if(GPTHeaderStatu != KSUCCESS){
-            GPTHeader_t* RecoveryGPTHeader = (GPTHeader_t*)malloc(sizeof(GPTHeader_t));
-            Device->ReadDevice(RecoveryGPTHeader, ConvertLBAToBytes(GPTHeader->AlternateLBA), sizeof(GPTHeader_t));
-            GPTHeaderStatu = CheckGPTHeader(RecoveryGPTHeader);
-            if(GPTHeaderStatu == KSUCCESS){
+            if(GPTRecoveryHeaderStatu == KSUCCESS){
                 // Update my lba
                 RecoveryGPTHeader->MyLBA = GPTHeaderLBAStart; 
 
@@ -42,20 +45,33 @@ KResult device_partitions_t::LoadGPTHeader(){
                 RecoveryGPTHeader->HeaderCRC32 = 0;
                 RecoveryGPTHeader->HeaderCRC32 = crc32(NULL, (char*)RecoveryGPTHeader, sizeof(GPTHeader_t));
 
-
+                // Update GPT Header into the disk
                 Device->WriteDevice(RecoveryGPTHeader, ConvertLBAToBytes(GPTHeaderLBAStart), sizeof(GPTHeader_t));
+
+                // Update GPT Header
                 Device->ReadDevice(GPTHeader, ConvertLBAToBytes(GPTHeaderLBAStart), sizeof(GPTHeader_t));
-                free(RecoveryGPTHeader);
             }else{
                 free(RecoveryGPTHeader);
                 return KMEMORYVIOLATION;
             }
+        }else if(GPTRecoveryHeaderStatu != KSUCCESS){
+            // Update my lba
+            RecoveryGPTHeader->MyLBA = GPTHeader->AlternateLBA; 
+
+            // Update checksum
+            RecoveryGPTHeader->HeaderCRC32 = 0;
+            RecoveryGPTHeader->HeaderCRC32 = crc32(NULL, (char*)RecoveryGPTHeader, sizeof(GPTHeader_t));
+
+            // Update GPT Recovery Header into the disk
+            Device->WriteDevice(RecoveryGPTHeader, ConvertLBAToBytes(GPTHeader->AlternateLBA), sizeof(GPTHeader_t));
         }
 
         if(GPTHeaderStatu == KSUCCESS){
             IsGPTHeaderLoaded = true;
+            free(RecoveryGPTHeader);
             return KSUCCESS;
-        }        
+        }
+        free(RecoveryGPTHeader);      
     }
     return KFAIL;
 }
@@ -65,16 +81,28 @@ uint64_t device_partitions_t::CheckPartitions(){
 
     uint32_t crc32HeaderCompute = crc32(NULL, (char*)GPTPartitionEntries, SizeOfPartitionList);
 
+    // Check recovery 
+    GPTPartitionEntry_t* GPTPartitionEntriesRecovery = (GPTPartitionEntry_t*)malloc(SizeOfPartitionList);
+    uint64_t PGTPartitionEntriesRevoryLocation = ConvertLBAToBytes(GPTHeader->AlternateLBA) - SizeOfPartitionList;
+    Device->ReadDevice(GPTPartitionEntriesRecovery, PGTPartitionEntriesRevoryLocation, SizeOfPartitionList);
+    uint32_t crc32RecoveryHeaderCompute = crc32(NULL, (char*)GPTPartitionEntriesRecovery, SizeOfPartitionList);
+
     if(GPTHeader->PartitionEntryArrayCRC32 == crc32HeaderCompute){
+        if(GPTHeader->PartitionEntryArrayCRC32 != crc32RecoveryHeaderCompute){
+            // Update GPT Recovery partition entries into the disk
+            Device->WriteDevice(GPTPartitionEntries, PGTPartitionEntriesRevoryLocation, SizeOfPartitionList);
+        }
+        free(GPTPartitionEntriesRecovery);
         return KSUCCESS;
     }else{
-        GPTPartitionEntry_t* GPTPartitionEntriesRecovery = (GPTPartitionEntry_t*)malloc(SizeOfPartitionList);
-        uint64_t PGTPartitionEntriesRevoryLocation = ConvertLBAToBytes(GPTHeader->AlternateLBA) - SizeOfPartitionList;
-        Device->ReadDevice(GPTPartitionEntriesRecovery, PGTPartitionEntriesRevoryLocation, SizeOfPartitionList);
-        crc32HeaderCompute = crc32(NULL, (char*)GPTPartitionEntries, SizeOfPartitionList);
-        if(GPTHeader->PartitionEntryArrayCRC32 == crc32HeaderCompute){
+        if(GPTHeader->PartitionEntryArrayCRC32 == crc32RecoveryHeaderCompute){
+            // Update GPT partition entries into the disk
             Device->WriteDevice(GPTPartitionEntriesRecovery, ConvertLBAToBytes(GPTHeader->PartitionEntryLBA), SizeOfPartitionList);
+
+            // Update entries
             Device->ReadDevice(GPTPartitionEntries, ConvertLBAToBytes(GPTHeader->PartitionEntryLBA), SizeOfPartitionList);
+
+            free(GPTPartitionEntriesRecovery);
             return KSUCCESS;
         }
     }
