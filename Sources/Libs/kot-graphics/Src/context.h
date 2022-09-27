@@ -29,7 +29,7 @@ typedef struct {
     uint16_t scale;
 } ctxg_t;
 
-ctxg_t* CreateContextGraphic(uintptr_t fb_addr, uint32_t width, uint32_t height);
+ctxg_t* CreateGraphicContext(uintptr_t fb_addr, uint32_t width, uint32_t height);
 
 void ctxPutPixel(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t colour);
 int8_t ctxPixelExist(ctxg_t* ctx, uint32_t x, uint32_t y);

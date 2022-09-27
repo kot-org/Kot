@@ -2,7 +2,7 @@
 
 void subSeqCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour);
 
-ctxg_t* CreateContextGraphic(uintptr_t fb_addr, uint32_t width, uint32_t height) {
+ctxg_t* CreateGraphicContext(uintptr_t fb_addr, uint32_t width, uint32_t height) {
     ctxg_t* ctx = malloc(sizeof(ctxg_t));
     ctx->fb_addr = fb_addr;
     ctx->poses = vector_create();

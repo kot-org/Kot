@@ -13,7 +13,7 @@ typedef struct ctxui_s {
     framebuffer_t* fb;
 } ctxui_t;
 
-ctxui_t* CreateContextUi(framebuffer_t* fb);
+ctxui_t* CreateUiContext(framebuffer_t* fb);
 
 #if defined(__cplusplus)
 }

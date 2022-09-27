@@ -11,10 +11,10 @@ extern "C" int main() {
     fb = orb::getFramebuffer(wid);
     orb::show(wid);
 
-    ctxg_t* ctxGraphic = CreateContextGraphic(fb->addr, fb->width, fb->height);
-    ctxui_t* ctxUi = CreateContextUi((framebuffer_t*)fb);
+    ctxg_t* ctxGraphic = CreateGraphicContext(fb->addr, fb->width, fb->height);
+    ctxui_t* ctxUi = CreateUiContext((framebuffer_t*)fb);
     // canva_t* canva1 = CreateCanva(200, 100, GetMainParent((framebuffer_t*)fb));
-    titlebar_t* titlebar = CreateTitleBar("test", 0xFF1B1B1B, true, GetMainParent((framebuffer_t*)fb));
+    titlebar_t* titlebar = CreateTitleBar("test", 0, 0, 0xFF1B1B1B, true, GetMainParent((framebuffer_t*)fb));
     //UpdateContext(ctxUi);
 
 /*     srv_system_callback_t* callback1 = Srv_System_ReadFileInitrd("default-font.sfn", true);

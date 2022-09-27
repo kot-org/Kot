@@ -25,7 +25,8 @@ typedef struct component_s {
     ctxui_t* ctx;
     struct component_s* parent;
     vector_t* childs;
-    uint32_t childCounter;
+    uint32_t x;
+    uint32_t y;
 } component_t;
 
 typedef struct {
@@ -52,7 +53,7 @@ typedef struct {
     component_t* cpnt;
 } button_t;
 
-component_t* AddComponent(uint32_t width, uint32_t height, component_t* parent);
+component_t* AddComponent(uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos, component_t* parent);
 void RemoveComponent(component_t* cpnt);
 
 void UpdateContext(ctxui_t* ctx);
@@ -62,13 +63,13 @@ component_t* GetMainParent(framebuffer_t* fb);
 
 /* Components */
 
-canva_t* CreateCanva(uint32_t width, uint32_t height, component_t* parent);
+canva_t* CreateCanva(uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos, component_t* parent);
 
-void DrawTitleBar(framebuffer_t* fb, uint32_t width, uint32_t height, uint32_t color);
-titlebar_t* CreateTitleBar(char* title, uint32_t color, bool visible, component_t* parent);
+void DrawTitleBar(component_t* cpnt, uint32_t color);
+titlebar_t* CreateTitleBar(char* title, uint32_t xPos, uint32_t yPos, uint32_t color, bool visible, component_t* parent);
 
-void DrawButton(framebuffer_t* fb, uint32_t width, uint32_t height, uint32_t bkgColor, uint32_t color);
-button_t* CreateButton(uint32_t width, uint32_t height, uint32_t bkgColor, uint32_t color, component_t* parent);
+void DrawButton(component_t* cpnt, uint32_t bkgColor, uint32_t color);
+button_t* CreateButton(uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos, uint32_t bkgColor, uint32_t color, component_t* parent);
 
 #if defined(__cplusplus)
 }
