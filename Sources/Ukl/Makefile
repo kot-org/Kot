@@ -1,6 +1,6 @@
 _HOME = ../../
 
-LDS = kernel.ld
+LDS = ukl.ld
 CC = clang-14
 LD = ld.lld-14
 ASMC = nasm
@@ -18,15 +18,15 @@ rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(su
 
 SRCC = $(call rwildcard,$(SRCDIR),*.c)
 SRCCPP = $(call rwildcard,$(SRCDIR),*.cpp)    
-ASMSRC = $(call rwildcard,$(SRCDIR),*.asm)  
+ASMSRC = $(call rwildcard,$(SRCDIR),*.asm)       
 OBJS = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCC))
 OBJS += $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCCPP))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)
 
-all: createbuildir kernel
+all: ukl
 
-kernel: $(OBJS) link
+ukl: $(OBJS) link createISO
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@ echo !==== COMPILING $^
@@ -45,10 +45,12 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 	
 link:
 	@ echo !==== LINKING
-	$(LD) $(LDFLAGS) -o $(BUILDDIR)/boot/kernel.elf $(OBJS) $(OBJSCPP)
+	$(LD) $(LDFLAGS) -o $(BUILDDIR)/boot/ukl.elf $(OBJS) $(OBJSCPP)
 
+createISO:
+	@ echo !==== ISO
 
-createbuildir:
-	mkdir -m 777 -p $(BUILDDIR)
-	mkdir -m 777 -p $(BUILDDIR)/boot
-	mkdir -m 777 -p $(BUILDDIR)/boot/grub
+	bash $(_HOME)Tools/Buildinitrd.sh
+
+	cp grub.cfg $(BUILDDIR)/boot/grub/grub.cfg
+	grub-mkrescue --xorriso=xorriso -o $(BINDIR)/kot.iso $(BUILDDIR)

@@ -59,7 +59,9 @@ echo -e "\e[32mCompiling kot apps...\e[0m"
 make -C "Apps/test/Build"
 
 # kernel
-cd "../Sources/Kernel/"
 echo -e "\e[32mBuilding kernel...\e[0m"
+make -C  "../Sources/Kernel/"
 
-sudo make all
+# Ukl
+echo -e "\e[32mBuilding UKL...\e[0m"
+make -C "../Sources/Ukl"
