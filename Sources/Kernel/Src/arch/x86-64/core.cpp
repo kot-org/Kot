@@ -1,11 +1,11 @@
 #include <arch/x86-64.h>
 
-void InitializeACPI(BootInfo* bootInfo, ArchInfo_t* ArchInfo){
-    if(bootInfo->RSDP == NULL){
+void InitializeACPI(ukl_boot_structure_t* BootData, ArchInfo_t* ArchInfo){
+    if(BootData->RSDP == NULL){
         KernelPanic("RSDP not found");
     }
 
-    ACPI::RSDP2* RSDP = (ACPI::RSDP2*)vmm_Map((uintptr_t)bootInfo->RSDP->rsdp);
+    ACPI::RSDP2* RSDP = (ACPI::RSDP2*)vmm_Map((uintptr_t)BootData->RSDP);
 
     ACPI::MADTHeader* madt = (ACPI::MADTHeader*)ACPI::FindTable(RSDP, (char*)"APIC");
 
@@ -25,11 +25,8 @@ void InitializeACPI(BootInfo* bootInfo, ArchInfo_t* ArchInfo){
     Successful("HPET intialize");
 }
 
-ArchInfo_t* arch_initialize(uintptr_t boot){
+ArchInfo_t* arch_initialize(ukl_boot_structure_t* BootData){
     asm("cli");
-    stivale2_struct* BootStruct = (stivale2_struct*)boot;
-
-    BootInfo* bootInfo = Boot::Init(BootStruct);
 
     SerialPort::Initialize();
     SerialPort::ClearMonitor();
@@ -38,10 +35,10 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     gdtInit();
     Successful("GDT initialized");
 
-    Pmm_Init(bootInfo->Memory);
+    Pmm_Init(BootData->Memory);
     Successful("PMM initialized");
 
-    uint64_t LastAddressUsed = vmm_Init(bootInfo);
+    uint64_t LastAddressUsed = vmm_Init(BootData);
     Successful("VMM initialized");
     
     InitializeHeap((uintptr_t)LastAddressUsed, 0x10);
@@ -51,7 +48,7 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     CPU::InitCPU(ArchInfo);
     CPU::InitCore();
 
-    InitializeACPI(bootInfo, ArchInfo);
+    InitializeACPI(BootData, ArchInfo);
     Successful("ACPI initialized");
 
     InitializeInterrupts(ArchInfo);  
@@ -71,24 +68,20 @@ ArchInfo_t* arch_initialize(uintptr_t boot){
     APIC::LoadCores();
 
     //frame buffer
-    memcpy(&ArchInfo->framebuffer, bootInfo->Framebuffer, sizeof(stivale2_struct_tag_framebuffer));
+    memcpy(&ArchInfo->framebuffer, BootData->Framebuffer, sizeof(ukl_framebuffer_t));
 
     //initrd
-    memcpy(&ArchInfo->initrd, &bootInfo->initrd, sizeof(initrd_t));
+    memcpy(&ArchInfo->initrd, &BootData->Initrd, sizeof(ukl_initrd_t));
 
     //memory info
     ArchInfo->memoryInfo = (memoryInfo_t*)vmm_GetPhysical(vmm_PageTable, &Pmm_MemoryInfo);
 
     //smbios
-    if(bootInfo->smbios->smbios_entry_32 != 0){
-        ArchInfo->smbios = (uintptr_t)bootInfo->smbios->smbios_entry_32;
-    }else if(bootInfo->smbios->smbios_entry_64 != 0){
-        ArchInfo->smbios = (uintptr_t)bootInfo->smbios->smbios_entry_64;
-    }
+    ArchInfo->smbios = (uintptr_t)BootData->SMBIOS;
     
-    ArchInfo->rsdp = (uintptr_t)bootInfo->RSDP->rsdp;
+    ArchInfo->rsdp = (uintptr_t)BootData->RSDP;
 
-    initrd::Parse(ArchInfo->initrd.initrdBase, ArchInfo->initrd.Size);
+    initrd::Parse((uintptr_t)ArchInfo->initrd->base, ArchInfo->initrd->size);
     Successful("Initrd initialized");
     return ArchInfo;
 }

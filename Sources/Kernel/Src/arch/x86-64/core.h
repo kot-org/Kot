@@ -1,12 +1,12 @@
 #pragma once
-#include <boot/boot.h>
+#include <boot/ukl.h>
 
 struct ArchInfo_t{
     uint64_t revision;
     uint64_t architecture;
 
-    struct stivale2_struct_tag_framebuffer framebuffer;
-    struct initrd_t initrd;
+    struct ukl_framebuffer_t framebuffer;
+    struct ukl_initrd_t* initrd;
     struct memoryInfo_t* memoryInfo;
     uintptr_t smbios;
     uintptr_t rsdp;

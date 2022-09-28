@@ -18,7 +18,7 @@ static inline uintptr_t Pmm_ConvertIndexToAddress(uint64_t index){
     return (uintptr_t)(index << 12);
 }
 
-void Pmm_Init(stivale2_struct_tag_memmap* Map){
+void Pmm_Init(ukl_memmap_t* Map){
     uintptr_t BitmapSegment = NULL;
 
     uint64_t memorySize = Pmm_GetMemorySize(Map);
@@ -34,7 +34,7 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
     uint64_t bitmapSize = DivideRoundUp(PageCountTotal, 8);
 
     for (uint64_t i = 0; i < Map->entries; i++){
-        if (Map->memmap[i].type == STIVALE2_MMAP_USABLE){
+        if (Map->memmap[i].type == UKL_MMAP_USABLE){
             uint64_t lenght = Map->memmap[i].length;
             uint64_t base = Map->memmap[i].base;
 
@@ -64,7 +64,7 @@ void Pmm_Init(stivale2_struct_tag_memmap* Map){
     uint64_t ProtectedIndexStart = Pmm_ConvertAddressToIndex(BitmapSegment);
     uint64_t ProtectedIndexEnd = ProtectedIndexStart + DivideRoundUp(Pmm_PageBitmap.Size, PAGE_SIZE);
     for (uint64_t i = 0; i < Map->entries; i++){
-        if (Map->memmap[i].type == STIVALE2_MMAP_USABLE){ 
+        if (Map->memmap[i].type == UKL_MMAP_USABLE){ 
             uint64_t indexstart = Pmm_ConvertAddressToIndex((uintptr_t)Map->memmap[i].base);
             uint64_t pageCount = Map->memmap[i].length / PAGE_SIZE;
             if(indexstart > ProtectedIndexEnd){
@@ -186,7 +186,7 @@ void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
     }
 }
 
-uint64_t Pmm_GetMemorySize(stivale2_struct_tag_memmap* Map){
+uint64_t Pmm_GetMemorySize(ukl_memmap_t* Map){
     static uint64_t memorySizeBytes = 0;
     if (memorySizeBytes > 0) return memorySizeBytes;
 
@@ -258,7 +258,7 @@ void Pmm_FreePages_WI(uint64_t index, uint64_t pageCount){
     Atomic::atomicAcquire(&Pmm_Mutex, 0);
     Pmm_AddPageToFreeList(index, pageCount);
     uint64_t indexEnd = index + pageCount;
-    for (int t = index; t < indexEnd; t++){
+    for (uint64_t t = index; t < indexEnd; t++){
         if(Pmm_PageBitmap.GetAndSet(t, false)){
             Pmm_MemoryInfo.freePageMemory++;
             Pmm_MemoryInfo.usedPageMemory--;

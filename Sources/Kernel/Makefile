@@ -7,28 +7,26 @@ ASMC = nasm
 
 CFLAGS = -I$(_HOME)Sysroot/Include/ -ISrc --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fno-builtin -nostdlib -nostdinc -nostdinc++ -fshort-wchar -g -mno-red-zone -fno-exceptions -fPIC
 ASMFLAGS = 
-LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib --no-relax
+LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib --no-relax -z max-page-size=0x1000
 
 SRCDIR := Src
 OBJDIR := Lib
 BINDIR = $(_HOME)Bin
-LIMINEBUILDDIR = $(_HOME)Bin/Limine
+BUILDDIR = $(_HOME)Bin/BuildDir
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
 SRCC = $(call rwildcard,$(SRCDIR),*.c)
 SRCCPP = $(call rwildcard,$(SRCDIR),*.cpp)    
 ASMSRC = $(call rwildcard,$(SRCDIR),*.asm)     
+SSRC = $(call rwildcard,$(SRCDIR),*.s)     
 OBJS = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCC))
 OBJS += $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCCPP))
+OBJS += $(patsubst $(SRCDIR)/%.s, $(OBJDIR)/%_s.o, $(SSRC))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)
 
-all: limine kernel
-
-limine:
-	git clone https://github.com/limine-bootloader/limine.git --branch=v3.0-branch-binary --depth=1
-	make -C limine
+all: createbuildir kernel
 
 kernel: $(OBJS) link createISO
 
@@ -42,6 +40,11 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@ mkdir -m 777 -p $(@D)
 	$(CC) $(CFLAGS) -c $^ -o $@
 
+$(OBJDIR)/%_s.o: $(SRCDIR)/%.s
+	@ echo !==== COMPILING $^
+	@ mkdir -m 777 -p $(@D)
+	$(CC) $(CFLAGS) -c $^ -o $@
+
 $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 	@ echo !==== COMPILING $^
 	@ mkdir -m 777 -p $(@D)
@@ -49,28 +52,19 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 	
 link:
 	@ echo !==== LINKING
-	$(LD) $(LDFLAGS) -o $(BINDIR)/Kernel.elf $(OBJS) $(OBJSCPP)
+	$(LD) $(LDFLAGS) -o $(BUILDDIR)/boot/kernel.elf $(OBJS) $(OBJSCPP)
+
+
+createbuildir:
+	mkdir -m 777 -p $(BUILDDIR)
+	mkdir -m 777 -p $(BUILDDIR)/boot
+	mkdir -m 777 -p $(BUILDDIR)/boot/grub
+	cp grub.cfg $(BUILDDIR)/boot/grub/grub.cfg
 
 createISO:
 	@ echo !==== ISO
 
-	mkdir -m 777 -p $(LIMINEBUILDDIR)
-	cp -v $(BINDIR)/Kernel.elf limine.cfg limine/limine.sys limine/limine-cd.bin limine/limine-cd-efi.bin $(LIMINEBUILDDIR)
-
 	bash $(_HOME)Tools/Buildinitrd.sh
 
-	xorriso -as mkisofs -b limine-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table \
-        --efi-boot limine-cd-efi.bin -efi-boot-part --efi-boot-image --protective-msdos-label \
-        $(LIMINEBUILDDIR) -o $(BINDIR)/kot.iso
-	./limine/limine-deploy $(BINDIR)/kot.iso
 
-createISOEFI:
-	@ echo !==== ISO EFI
-
-	mkdir -m 777 -p $(LIMINEBUILDDIR)
-	cp -v $(BINDIR)/Kernel.elf limine/limine.sys limine/limine-cd-efi.bin $(LIMINEBUILDDIR)
-
-	bash $(_HOME)Tools/Buildinitrd.sh
-
-	xorriso -as mkisofs --efi-boot limine-cd-efi.bin -efi-boot-part --efi-boot-image -J -o $(BINDIR)/kotEFI.iso  $(LIMINEBUILDDIR)
-	./limine/limine-deploy $(BINDIR)/kotEFI.iso
+	grub-mkrescue --xorriso=xorriso -o $(BINDIR)/kot.iso $(BUILDDIR)

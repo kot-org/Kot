@@ -2,9 +2,9 @@
 #include <misc/bitmap/bitmap.h>
 
 extern Bitmap Pmm_PageBitmap;
-void Pmm_Init(struct stivale2_struct_tag_memmap* Map);
+void Pmm_Init(struct ukl_memmap_t* Map);
 
-uint64_t Pmm_GetMemorySize(struct stivale2_struct_tag_memmap* Map);
+uint64_t Pmm_GetMemorySize(struct ukl_memmap_t* Map);
 void Pmm_FreePage(uintptr_t address);
 void Pmm_FreePages(uintptr_t address, uint64_t pageCount);
 void Pmm_LockPage(uintptr_t address);
