@@ -5,7 +5,7 @@ CC = clang-14
 LD = ld.lld-14
 ASMC = nasm
 
-CFLAGS = -I$(_HOME)Sysroot/Include/ -ISrc -arch=x86_32 -fno-rtti -ffreestanding -fno-builtin -nostdlib -nostdinc -nostdinc++ -fshort-wchar -g -mno-red-zone -fno-exceptions -fPIC
+CFLAGS = -I$(_HOME)Sysroot/Include/ -ISrc -m32 -fno-rtti -ffreestanding -fno-builtin -nostdlib -nostdinc -nostdinc++ -fshort-wchar -g -mno-red-zone -fno-exceptions -fPIC
 ASMFLAGS = 
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib --no-relax -z max-page-size=0x1000
 
@@ -41,7 +41,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 	@ echo !==== COMPILING $^
 	@ mkdir -m 777 -p $(@D)
-	$(ASMC) $(ASMFLAGS) $^ -f elf64 -o $@
+	$(ASMC) $(ASMFLAGS) $^ -f elf32 -o $@
 	
 link:
 	@ echo !==== LINKING

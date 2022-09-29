@@ -62,9 +62,8 @@ _start:
     push 0
     popf
 
-
-    mov edi, eax
-    mov esi, ebx
+    push ebx
+    push eax
     call multiboot_entry
     
 .loop:

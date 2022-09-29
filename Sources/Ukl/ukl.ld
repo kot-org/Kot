@@ -1,5 +1,4 @@
-OUTPUT_FORMAT(elf64-x86-64)
-OUTPUT_ARCH(i386:x86-64)
+OUTPUT_ARCH(i386:x86-32)
 
 ENTRY(_start)
 
@@ -14,6 +13,7 @@ PHDRS
 
 SECTIONS
 {
+    . = 0x00100000;
     .multiboot : {
         *(.multiboot .multiboot.*)
     } :multiboot
