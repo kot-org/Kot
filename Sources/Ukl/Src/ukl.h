@@ -28,10 +28,10 @@ struct ukl_kernel_address_t{
 
 struct ukl_framebuffer_t{
     uint64_t framebuffer_base;
-    uint16_t framebuffer_width;
-    uint16_t framebuffer_height;
-    uint16_t framebuffer_pitch;
-    uint16_t framebuffer_bpp;
+    uint64_t framebuffer_width;
+    uint64_t framebuffer_height;
+    uint64_t framebuffer_pitch;
+    uint64_t framebuffer_bpp;
 }__attribute__((packed));
 
 
@@ -46,16 +46,11 @@ struct ukl_modules_t{
     struct ukl_module_t modules[];
 }__attribute__((packed));
 
+struct ukl_memmory_info_t{
+    uint64_t BitmapAddress;
+    size64_t BitmapSize;
 
-struct ukl_mmap_entry_t{
-    uint32_t type;
-    uint64_t base;
-    size64_t size;
-}__attribute__((packed));
-
-struct ukl_memmap_t{
-    uint64_t entries;
-    struct ukl_mmap_entry_t memmap[];
+    uint64_t HHDM;
 }__attribute__((packed));
 
 
@@ -78,7 +73,7 @@ struct ukl_boot_structure_t{
 	struct ukl_kernel_address_t KernelAddress;
     struct ukl_framebuffer_t Framebuffer;
     struct ukl_modules_t Modules;
-    struct ukl_memmap_t* Memory;
+    struct ukl_memmory_info_t Memory;
     uint64_t HHDMBase;
     uint64_t BootloaderSignature;
     struct ukl_rsdp_t RSDP;

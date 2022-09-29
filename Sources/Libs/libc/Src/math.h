@@ -23,7 +23,6 @@ int8_t sgn(int64_t value);
 int64_t abs(int64_t value);
 int64_t min(int64_t a, int64_t b);
 int64_t max(int64_t a, int64_t b);
-uint64_t divideRoundUp(uint64_t value, uint64_t divider);
 
 #if defined(__cplusplus)
 }

@@ -1,6 +1,6 @@
 [BITS 32]
 
-%include "Src/multiboot/multiboot2.inc"
+%include "Src/multiboot/core/multiboot2.inc"
 %define STACK_SIZE 0x4000
 
 GLOBAL _start
