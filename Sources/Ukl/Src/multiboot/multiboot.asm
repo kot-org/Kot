@@ -1,9 +1,10 @@
 [BITS 32]
 
-%include "Src/multiboot2.inc"
+%include "Src/multiboot/multiboot2.inc"
+%define STACK_SIZE 0x4000
 
 GLOBAL _start
-EXTERN multiboot_kernel_entry
+EXTERN multiboot_entry
 
 SECTION .multiboot
 
@@ -32,6 +33,19 @@ multiboot_header:
         uint32 0
         uint32 32
     framebuffer_tag_end:
+
+    mbi_tag_start:  
+        ALIGN MULTIBOOT_HEADER_ALIGN
+        uint16 MULTIBOOT_HEADER_TAG_INFORMATION_REQUEST
+        uint16 MULTIBOOT_HEADER_TAG_OPTIONAL
+        uint32 mbi_tag_end - mbi_tag_start
+        uint32 MULTIBOOT_TAG_TYPE_MODULE
+        uint32 MULTIBOOT_TAG_TYPE_MMAP
+        uint32 MULTIBOOT_TAG_TYPE_FRAMEBUFFER
+        uint32 MULTIBOOT_TAG_TYPE_SMBIOS
+        uint32 MULTIBOOT_TAG_TYPE_ACPI_OLD
+        uint32 MULTIBOOT_TAG_TYPE_ACPI_NEW
+    mbi_tag_end:
     
     ; required header end
     ALIGN MULTIBOOT_HEADER_ALIGN
@@ -43,5 +57,19 @@ multiboot_header_end:
 SECTION .text
 
 _start:
-    call multiboot_kernel_entry
-	hlt
+    mov esp, stack + STACK_SIZE
+
+    push 0
+    popf
+
+
+    mov edi, eax
+    mov esi, ebx
+    call multiboot_entry
+    
+.loop:
+    hlt
+    jmp .loop
+
+stack times STACK_SIZE db 0
+    

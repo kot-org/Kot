@@ -14,7 +14,6 @@ PHDRS
 
 SECTIONS
 {
-    . = 0x00100000;
     .multiboot : {
         *(.multiboot .multiboot.*)
     } :multiboot
