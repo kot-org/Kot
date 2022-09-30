@@ -1,4 +1,4 @@
-#include <math/math.h>
+#include <lib/math.h>
 
 uint32_t DivideRoundUp(uint32_t value, uint32_t divider){
     uint32_t returnValue = value / divider;

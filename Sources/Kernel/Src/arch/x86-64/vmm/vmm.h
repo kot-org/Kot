@@ -1,5 +1,5 @@
 #pragma once
-#include <kot/types.h>
+#include <lib/types.h>
 #include <arch/x86-64.h>
 
 extern pagetable_t vmm_PageTable;

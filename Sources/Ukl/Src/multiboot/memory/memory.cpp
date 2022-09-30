@@ -2,6 +2,7 @@
 
 void InitializeMemory(struct multiboot_tag_mmap* Map){
     Pmm_Init(Map);
+    vmm_Init(Map);
 }
 
 void memset(uintptr_t start, uint8_t value, size64_t size){
