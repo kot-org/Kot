@@ -70,4 +70,4 @@ void vmm_Init(struct multiboot_tag_mmap* Map);
 #define VMM_HIGHERALF 0x200
 #define VMM_MAXLEVEL 0x4
 #define VMM_LEVELENTRY 0x200
-#define vmm_GetVirtualAddress(PhysicalAddress)((uint64_t)PhysicalAddress + vmm_HHDMAdress)
+#define vmm_GetVirtualAddress(PhysicalAddress)((uint64_t)PhysicalAddress)

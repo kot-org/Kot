@@ -396,3 +396,7 @@ void vmm_Init(struct multiboot_tag_mmap* Map){
 
     vmm_Fill(vmm_PageTable, VMM_LOWERHALF, VMM_HIGHERALF, false);
 }
+
+void Vmm_ExtractsInfo(){
+    // TODO
+}
