@@ -81,5 +81,6 @@ KResult loadElf(uintptr_t buffer, uint64_t* entrypoint){
         }
     }
 
+    *entrypoint = Header->e_entry;
     return KSUCCESS;
 }
