@@ -42,6 +42,7 @@ bool vmm_GetFlags(pagetable_t table, uintptr_t Address, vmm_flag flags);
 void vmm_SetFlags(pagetable_t table, uintptr_t Address, vmm_flag flags, bool enabled);
 
 uint64_t vmm_Map(uintptr_t physicalAddress);
+uint64_t vmm_Map(uintptr_t physicalAddress, size64_t size);
 void vmm_Map(uintptr_t Address, uintptr_t physicalAddress);
 void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress);
 void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bool user);

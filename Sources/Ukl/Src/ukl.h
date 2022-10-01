@@ -35,22 +35,21 @@ struct ukl_framebuffer_t{
 }__attribute__((packed));
 
 
-struct ukl_module_t{
+struct ukl_mmap_info_t{
     uint64_t base;
-    size64_t size;
-    char string[UKL_MODULE_STRING_SIZE];
+    uint64_t type;
+    size64_t length;
+    struct ukl_mmap_info_t* map_next_entry;
 }__attribute__((packed));
 
-struct ukl_modules_t{
-    uint64_t module_count;
-    struct ukl_module_t modules[];
-}__attribute__((packed));
 
 struct ukl_memmory_info_t{
-    uint64_t BitmapAddress;
-    size64_t BitmapSize;
-
+    uint64_t bitmap_address;
+    size64_t bitmap_size;
     uint64_t HHDM;
+    uint64_t page_count_total;
+    uint64_t entries;
+    struct ukl_mmap_info_t* map_entry;
 }__attribute__((packed));
 
 
@@ -70,13 +69,12 @@ struct ukl_smbios_t{
 
 /* Boot structure */
 struct ukl_boot_structure_t{
-	struct ukl_kernel_address_t KernelAddress;
-    struct ukl_framebuffer_t Framebuffer;
-    struct ukl_modules_t Modules;
-    struct ukl_memmory_info_t Memory;
+	struct ukl_kernel_address_t kernel_address;
+    struct ukl_framebuffer_t framebuffer;
+    struct ukl_memmory_info_t memory_info;
     uint64_t HHDMBase;
-    uint64_t BootloaderSignature;
+    uint64_t bootloader_signature;
     struct ukl_rsdp_t RSDP;
     struct ukl_smbios_t SMBIOS;
-    struct ukl_initrd_t* Initrd;
+    struct ukl_initrd_t initrd;
 }__attribute__((packed));

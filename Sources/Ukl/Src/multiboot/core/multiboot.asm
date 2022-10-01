@@ -39,12 +39,12 @@ multiboot_header:
         uint16 MULTIBOOT_HEADER_TAG_INFORMATION_REQUEST
         uint16 MULTIBOOT_HEADER_TAG_OPTIONAL
         uint32 mbi_tag_end - mbi_tag_start
-        uint32 MULTIBOOT_TAG_TYPE_MODULE
         uint32 MULTIBOOT_TAG_TYPE_MMAP
         uint32 MULTIBOOT_TAG_TYPE_FRAMEBUFFER
         uint32 MULTIBOOT_TAG_TYPE_SMBIOS
         uint32 MULTIBOOT_TAG_TYPE_ACPI_OLD
         uint32 MULTIBOOT_TAG_TYPE_ACPI_NEW
+        uint32 MULTIBOOT_TAG_TYPE_MODULE
     mbi_tag_end:
     
     ; required header end

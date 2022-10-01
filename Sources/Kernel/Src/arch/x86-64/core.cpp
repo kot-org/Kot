@@ -1,11 +1,11 @@
 #include <arch/x86-64.h>
 
 void InitializeACPI(ukl_boot_structure_t* BootData, ArchInfo_t* ArchInfo){
-    if(BootData->RSDP == NULL){
+    if(BootData->RSDP.base == NULL){
         KernelPanic("RSDP not found");
     }
 
-    ACPI::RSDP2* RSDP = (ACPI::RSDP2*)vmm_Map((uintptr_t)BootData->RSDP);
+    ACPI::RSDP2* RSDP = (ACPI::RSDP2*)vmm_Map((uintptr_t)BootData->RSDP.base, BootData->RSDP.size);
 
     ACPI::MADTHeader* madt = (ACPI::MADTHeader*)ACPI::FindTable(RSDP, (char*)"APIC");
 
@@ -35,7 +35,7 @@ ArchInfo_t* arch_initialize(ukl_boot_structure_t* BootData){
     gdtInit();
     Successful("GDT initialized");
 
-    Pmm_Init(BootData->Memory);
+    Pmm_Init(&BootData->memory_info);
     Successful("PMM initialized");
 
     uint64_t LastAddressUsed = vmm_Init(BootData);
@@ -68,18 +68,18 @@ ArchInfo_t* arch_initialize(ukl_boot_structure_t* BootData){
     APIC::LoadCores();
 
     //frame buffer
-    memcpy(&ArchInfo->framebuffer, BootData->Framebuffer, sizeof(ukl_framebuffer_t));
+    memcpy(&ArchInfo->framebuffer, &BootData->framebuffer, sizeof(ukl_framebuffer_t));
 
     //initrd
-    memcpy(&ArchInfo->initrd, &BootData->Initrd, sizeof(ukl_initrd_t));
+    memcpy(&ArchInfo->initrd, &BootData->initrd, sizeof(ukl_initrd_t));
 
     //memory info
     ArchInfo->memoryInfo = (memoryInfo_t*)vmm_GetPhysical(vmm_PageTable, &Pmm_MemoryInfo);
 
     //smbios
-    ArchInfo->smbios = (uintptr_t)BootData->SMBIOS;
+    ArchInfo->smbios = (uintptr_t)BootData->SMBIOS.base;
     
-    ArchInfo->rsdp = (uintptr_t)BootData->RSDP;
+    ArchInfo->rsdp = (uintptr_t)BootData->RSDP.base;
 
     initrd::Parse((uintptr_t)ArchInfo->initrd->base, ArchInfo->initrd->size);
     Successful("Initrd initialized");

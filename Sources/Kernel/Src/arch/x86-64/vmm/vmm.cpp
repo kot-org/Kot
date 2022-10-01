@@ -152,6 +152,15 @@ uint64_t vmm_Map(uintptr_t physicalAddress){
     return virtualAddress;
 }
 
+uint64_t vmm_Map(uintptr_t physicalAddress, size64_t size){
+    uint64_t virtualAddress = vmm_GetVirtualAddress(physicalAddress);
+    uint64_t pageSize = DivideRoundUp(size, PAGE_SIZE);
+    for(uint64_t i = 0; i < pageSize; i++){
+        vmm_Map(vmm_PageTable, (uintptr_t)(virtualAddress + i * PAGE_SIZE), (uintptr_t)((uint64_t)physicalAddress + i * PAGE_SIZE));
+    }
+    return virtualAddress;
+}
+
 void vmm_Map(uintptr_t Address, uintptr_t physicalAddress){
     vmm_Map(vmm_PageTable, Address, physicalAddress);
 }
@@ -374,23 +383,13 @@ uint64_t vmm_Init(ukl_boot_structure_t* bootInfo){
     vmm_PageTable = Pmm_RequestPage();
     memset(vmm_PageTable, 0, PAGE_SIZE);
 
-    uint64_t HeapAddress = bootInfo->KernelAddress->virtual_base_address;
-
-    /* map all the memory */
-
-    for (uint64_t i = 0; i < bootInfo->Memory->entries; i++){
-        uint64_t PageNumber = DivideRoundUp(bootInfo->Memory->memmap[i].length, PAGE_SIZE);
-        for(uint64_t y = 0; y < PageNumber; y++){
-            uint64_t physicalAddress = bootInfo->Memory->memmap[i].base + y * PAGE_SIZE;
-            uint64_t virtualAddress = physicalAddress + vmm_HHDMAdress;
-            vmm_Map(vmm_PageTable, (uintptr_t)virtualAddress, (uintptr_t)physicalAddress, false, true, bootInfo->Memory->memmap[i].type == UKL_MMAP_USABLE);
-        }
-    }
+    vmm_HHDMAdress = bootInfo->memory_info.HHDM;
+    uint64_t HeapAddress = bootInfo->kernel_address.virtual_base_address;
 
     /* map initrd */
-    bootInfo->Initrd->base = (uint64_t)vmm_GetVirtualAddress((bootInfo->Initrd->base - vmm_HHDMAdress));
-    for(uint64_t i = 0; i < bootInfo->Initrd->size; i += PAGE_SIZE){
-        vmm_Map(vmm_PageTable, (uintptr_t)((uint64_t)bootInfo->Initrd->base + i), (uintptr_t)(((uint64_t)bootInfo->Initrd->base - vmm_HHDMAdress) + i), true, false); /* App can't write into initrd */
+    bootInfo->initrd.base = (uint64_t)vmm_GetVirtualAddress((bootInfo->initrd.base - vmm_HHDMAdress));
+    for(uint64_t i = 0; i < bootInfo->initrd.size; i += PAGE_SIZE){
+        vmm_Map(vmm_PageTable, (uintptr_t)((uint64_t)bootInfo->initrd.base + i), (uintptr_t)(((uint64_t)bootInfo->initrd.base - vmm_HHDMAdress) + i), true, false); /* App can't write into initrd */
     }
 
     vmm_Fill(vmm_PageTable, VMM_LOWERHALF, VMM_HIGHERALF, false);

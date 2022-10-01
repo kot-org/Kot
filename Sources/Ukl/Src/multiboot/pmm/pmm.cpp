@@ -4,12 +4,12 @@ multiboot_tag_mmap* Pmm_Map;
 uint64_t Pmm_LastIndexAllocated;
 uint64_t Pmm_LastAddressAllocated;
 
-static inline uint64_t Pmm_ConvertAddressToIndex(uintptr_t address){
+static inline uint64_t Pmm_ConvertAddressToIndex(uint64_t address){
     return ((uint64_t)address) >> 12;
 }
 
-static inline uintptr_t Pmm_ConvertIndexToAddress(uint64_t index){
-    return (uintptr_t)(index << 12);
+static inline uint64_t Pmm_ConvertIndexToAddress(uint64_t index){
+    return (uint64_t)(index << 12);
 }
 
 void Pmm_Init(multiboot_tag_mmap* Map){
@@ -39,7 +39,7 @@ uint64_t Pmm_GetMemorySize(multiboot_tag_mmap* Map){
     return memorySizeBytes;
 }
 
-uintptr_t Pmm_RequestPage(){
+uint64_t Pmm_RequestPage(){
     for(uint64_t i = Pmm_LastIndexAllocated; i < Pmm_Map->entry_size; i++){
         multiboot_mmap_entry* entry = &Pmm_Map->entries[i];
         if(entry->type == MULTIBOOT_MEMORY_AVAILABLE){
@@ -51,7 +51,11 @@ uintptr_t Pmm_RequestPage(){
                 if(SizeAvailable < PAGE_SIZE){
                     Pmm_LastIndexAllocated++; // go to the next segment
                 }
-                return (uintptr_t)AddressAllocated;
+                char buf[33];
+                itoa(AddressAllocated, (char*)&buf, 0x10);
+                //Print(buf);
+                //Print("\n");
+                return (uint64_t)AddressAllocated;
             }
         }
     }

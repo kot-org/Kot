@@ -32,13 +32,13 @@ KResult loadElf(uintptr_t buffer, uint64_t* entrypoint){
                     sizeToCopy = size;
                 }
 
-                uintptr_t physicalPage = NULL;
-                if(!vmm_GetFlags(vmm_PageTable, (uintptr_t)virtualAddressIterator, vmm_PhysicalStorage)){
+                uint64_t physicalPage = NULL;
+                if(!vmm_GetFlags(vmm_PageTable, virtualAddressIterator, vmm_PhysicalStorage)){
                     physicalPage = Pmm_RequestPage();
-                    vmm_Map(vmm_PageTable, (uintptr_t)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
-                    physicalPage = (uintptr_t)((uint64_t)physicalPage + alignement);
+                    vmm_Map(vmm_PageTable, ((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
+                    physicalPage = ((uint64_t)physicalPage + alignement);
                 }else{
-                    physicalPage = vmm_GetPhysical(vmm_PageTable, (uintptr_t)virtualAddressIterator);
+                    physicalPage = vmm_GetPhysical(vmm_PageTable, virtualAddressIterator);
                 }
                 if(totalSizeCopy < phdr->p_filesz){
                     memcpy((uintptr_t)(vmm_GetVirtualAddress(physicalPage)), (uintptr_t)virtualAddressParentIterator, sizeToCopy);
@@ -60,12 +60,12 @@ KResult loadElf(uintptr_t buffer, uint64_t* entrypoint){
                     sizeToCopy = size;
                 }
             
-                uintptr_t physicalPage = NULL;
-                if(!vmm_GetFlags(vmm_PageTable, (uintptr_t)virtualAddressIterator, vmm_PhysicalStorage)){
+                uint64_t physicalPage = NULL;
+                if(!vmm_GetFlags(vmm_PageTable, virtualAddressIterator, vmm_PhysicalStorage)){
                     physicalPage = Pmm_RequestPage();
-                    vmm_Map(vmm_PageTable, (uintptr_t)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
+                    vmm_Map(vmm_PageTable, (uint64_t)virtualAddressIterator, (uint64_t)physicalPage, true, true, true);
                 }else{
-                    physicalPage = vmm_GetPhysical(vmm_PageTable, (uintptr_t)virtualAddressIterator);
+                    physicalPage = vmm_GetPhysical(vmm_PageTable, virtualAddressIterator);
                 }
                 if(totalSizeCopy < phdr->p_filesz){
                     memcpy((uintptr_t)(vmm_GetVirtualAddress(physicalPage)), (uintptr_t)virtualAddressParentIterator, sizeToCopy);

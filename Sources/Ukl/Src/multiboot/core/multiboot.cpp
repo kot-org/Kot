@@ -28,39 +28,85 @@ void Print(const char* chr) {
     }
 }
 
+char* itoa(int32_t n, char* buffer, int basenumber){
+	int32_t hold;
+	int32_t i, j;
+	hold = n;
+	i = 0;
+
+    bool IsNegative = (n < 0);
+
+    if(IsNegative){
+        n = -n;
+    }
+	
+	do{
+		hold = n % basenumber;
+		buffer[i++] = (hold < 10) ? (hold + '0') : (hold + 'a' - 10);
+	} while(n /= basenumber);
+
+    if(IsNegative){
+        buffer[i++] = '-';
+    }
+
+	buffer[i--] = NULL;
+	
+	for(j = 0; j < i; j++, i--)
+	{
+		hold = buffer[j];
+		buffer[j] = buffer[i];
+		buffer[i] = hold;
+	}
+
+
+    return buffer;
+}
+
 extern "C" void multiboot_entry(uint32_t Magic, uint32_t BootDataBase){
     struct ukl_boot_structure_t BootData;
+    uint64_t KernelEntryPoint = NULL;
+    uint64_t Stack = NULL;
+    uint64_t KernelBuffer = NULL;
     for(struct multiboot_tag* tag = (struct multiboot_tag*)(BootDataBase + 8); tag->type != MULTIBOOT_TAG_TYPE_END; tag = (struct multiboot_tag*) ((multiboot_uint8_t*) tag + ((tag->size + 7) & ~7))){
         switch (tag->type){
-            case MULTIBOOT_TAG_TYPE_MODULE:
-                Print("5\n");
-                
+            case MULTIBOOT_TAG_TYPE_MODULE:{
+                Print("5");
+                struct multiboot_tag_module* module_header = (struct multiboot_tag_module*)tag; 
+                uint8_t* module_buffer = (uint8_t*)module_header->mod_start;
+                bool IsElf = (module_buffer[0] == EI_MAG0 && module_buffer[1] == EI_MAG1 && module_buffer[2] == EI_MAG2 && module_buffer[3] == EI_MAG3);
+                if(IsElf){
+                    KernelBuffer = module_header->mod_start;
+                }else{
+                    BootData.initrd.base = module_header->mod_start;
+                    BootData.initrd.size = module_header->mod_end - module_header->mod_start;
+                }
                 break;
+            }
             case MULTIBOOT_TAG_TYPE_MMAP:
-                Print("4\n");
-                InitializeMemory(((struct multiboot_tag_mmap*)tag));
+                Print("4");
+                InitializeMemory(((struct multiboot_tag_mmap*)tag), &Stack);
                 break;
             case MULTIBOOT_TAG_TYPE_FRAMEBUFFER:
-                Print("0\n");
-                BootData.Framebuffer.framebuffer_base = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr;
-                BootData.Framebuffer.framebuffer_width = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_width;
-                BootData.Framebuffer.framebuffer_height = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_height;
-                BootData.Framebuffer.framebuffer_pitch = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_pitch;
-                BootData.Framebuffer.framebuffer_bpp = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_bpp;
+                Print("3");
+                BootData.framebuffer.framebuffer_base = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr;
+                BootData.framebuffer.framebuffer_width = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_width;
+                BootData.framebuffer.framebuffer_height = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_height;
+                BootData.framebuffer.framebuffer_pitch = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_pitch;
+                BootData.framebuffer.framebuffer_bpp = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_bpp;
                 break;
             case MULTIBOOT_TAG_TYPE_SMBIOS:
-                Print("1\n");
+                Print("2");
                 BootData.SMBIOS.base = (uint64_t)&((struct multiboot_tag_smbios*)tag)->tables[0];
                 BootData.SMBIOS.size = (uint64_t)((struct multiboot_tag_smbios*)tag)->size - (sizeof(struct multiboot_tag_smbios) - 1);
                 break;
             case MULTIBOOT_TAG_TYPE_ACPI_OLD:
-                Print("2\n");
+                Print("1");
                 BootData.RSDP.type = UKL_OLD_ACPI;
                 BootData.RSDP.base = (uint64_t)&((struct multiboot_tag_old_acpi*)tag)->rsdp[0];
                 BootData.RSDP.size = (uint64_t)((struct multiboot_tag_old_acpi*)tag)->size - (sizeof(struct multiboot_tag_old_acpi) - 1);
                 break;
             case MULTIBOOT_TAG_TYPE_ACPI_NEW:
-                Print("3\n");
+                Print("0");
                 BootData.RSDP.type = UKL_NEW_ACPI;
                 BootData.RSDP.base = (uint64_t)&((struct multiboot_tag_new_acpi*)tag)->rsdp[0];
                 BootData.RSDP.size = (uint64_t)((struct multiboot_tag_new_acpi*)tag)->size - (sizeof(struct multiboot_tag_new_acpi) - 1);
@@ -69,4 +115,7 @@ extern "C" void multiboot_entry(uint32_t Magic, uint32_t BootDataBase){
                 break;
         }
     }
+
+    loadElf((uintptr_t)KernelBuffer, &KernelEntryPoint);
+    boot_kernel((uint32_t)vmm_PageTable, KernelEntryPoint, Stack, (uint64_t)&BootData);
 }

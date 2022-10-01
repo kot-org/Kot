@@ -45,7 +45,7 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 	
 link:
 	@ echo !==== LINKING
-	$(LD) $(LDFLAGS) -o $(BUILDDIR)/boot/kernel.elf $(OBJS) $(OBJSCPP)
+	$(LD) $(LDFLAGS) -o $(BUILDDIR)/kernel.elf $(OBJS) $(OBJSCPP)
 
 
 createbuildir:
