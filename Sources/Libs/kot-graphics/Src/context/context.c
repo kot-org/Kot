@@ -1,6 +1,6 @@
 #include <kot-graphics/context.h>
 
-void subSeqCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour);
+void ctxSubSeqCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour);
 
 ctxg_t* CreateGraphicContext(uintptr_t fb_addr, uint32_t width, uint32_t height) {
     ctxg_t* ctx = malloc(sizeof(ctxg_t));
@@ -148,7 +148,7 @@ void ctxFillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t width, uint32_t h
 
 }
 
-void subSeqCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour) {
+void ctxSubSeqCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour) {
     uint32_t w = ctx->width;
     uint32_t h = ctx->height;
     ctxPutPixel(ctx, xc+x+w/2, (h/2)-(yc+y), colour);
@@ -164,9 +164,9 @@ void subSeqCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y,
 void ctxDrawCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t r, uint32_t colour) {
     int x = 0, y = r;
     int d = 3 - 2 * r;
-    subSeqCircle(ctx, xc, yc, x, y, colour);
+    ctxSubSeqCircle(ctx, xc, yc, x, y, colour);
     while (y >= x) {
-        subSeqCircle(ctx, xc, yc, x, y, colour);
+        ctxSubSeqCircle(ctx, xc, yc, x, y, colour);
         x++;
         if (d > 0) {
             y--;
@@ -174,7 +174,7 @@ void ctxDrawCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t r, uint32_t c
         } else {
             d = d + 4 * x + 6;
         }
-        subSeqCircle(ctx, xc, yc, x, y, colour);
+        ctxSubSeqCircle(ctx, xc, yc, x, y, colour);
     }
 }
 

@@ -19,6 +19,7 @@ void putPixel(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t colour);
 uint32_t getPixel(framebuffer_t* fb, uint32_t x, uint32_t y);
 
 void blitFramebuffer(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y);
+void blitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y, uint16_t borderRadius);
 
 void fillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);
 void drawRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);

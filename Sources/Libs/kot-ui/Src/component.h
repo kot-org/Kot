@@ -14,17 +14,34 @@ extern "C" {
 #endif
 
 enum ComponentType {
-    ButtonComponent = 0,
-    CheckboxComponent = 1,
-    TextboxComponent = 2,
-    PictureboxComponent = 3,
+    CanvaComponent = 0,
+    TitlebarComponent = 1,
+    LabelComponent = 2,
+    ButtonComponent = 3,
+    CheckboxComponent = 4,
+    TextboxComponent = 5,
+    PictureboxComponent = 6,
 };
+
+typedef struct {
+    uint32_t width;
+    uint32_t height;
+    uint16_t fontSize;
+    uint16_t borderRadius;
+    uint32_t bgColor;
+    uint32_t fbColor;
+    bool visible;
+    uint32_t x;
+    uint32_t y;
+} componentViewParam_t;
 
 typedef struct component_s {
     framebuffer_t* fb;
     ctxui_t* ctx;
+    componentViewParam_t* param;
     struct component_s* parent;
     vector_t* childs;
+    uint16_t type;
     uint32_t x;
     uint32_t y;
 } component_t;
@@ -41,19 +58,37 @@ typedef struct {
 typedef struct {
     char* title;
     // todo: icon
-    uint32_t color;
-    bool visible;
     component_t* cpnt;
 } titlebar_t;
 
 typedef struct {
-    uint32_t bkgColor;
-    uint32_t color;
+    char* string;
+    component_t* cpnt;
+} label_t;
+
+typedef struct {
     // todo: event
     component_t* cpnt;
 } button_t;
 
-component_t* AddComponent(uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos, component_t* parent);
+typedef struct {
+    // todo: event
+    component_t* cpnt;
+} checkbox_t;
+
+typedef struct {
+    char* placeholder;
+    // todo: event
+    component_t* cpnt;
+} textbox_t;
+
+typedef struct {
+    // todo: img
+    // todo: event
+    component_t* cpnt;
+} picturebox_t;
+
+component_t* AddComponent(component_t* parent, componentViewParam_t param);
 void RemoveComponent(component_t* cpnt);
 
 void UpdateContext(ctxui_t* ctx);
@@ -63,13 +98,25 @@ component_t* GetMainParent(framebuffer_t* fb);
 
 /* Components */
 
-canva_t* CreateCanva(uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos, component_t* parent);
+canva_t* CreateCanva(component_t* parent, componentViewParam_t param);
 
-void DrawTitleBar(component_t* cpnt, uint32_t color);
-titlebar_t* CreateTitleBar(char* title, uint32_t xPos, uint32_t yPos, uint32_t color, bool visible, component_t* parent);
+void DrawTitleBar(component_t* cpnt);
+titlebar_t* CreateTitleBar(char* title, component_t* parent, componentViewParam_t param);
+ 
+void PrintLabel(component_t* cpnt);
+label_t* CreateLabel(char* string, component_t* parent, componentViewParam_t param);
 
-void DrawButton(component_t* cpnt, uint32_t bkgColor, uint32_t color);
-button_t* CreateButton(uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos, uint32_t bkgColor, uint32_t color, component_t* parent);
+void DrawButton(component_t* cpnt);
+button_t* CreateButton(component_t* parent, componentViewParam_t param);
+
+void DrawCheckbox(component_t* cpnt);
+checkbox_t* CreateCheckbox(component_t* parent, componentViewParam_t param);
+
+void DrawTextbox(component_t* cpnt);
+textbox_t* CreateTextbox(char* placeholder, component_t* parent, componentViewParam_t param);
+
+void DrawPicturebox(component_t* cpnt);
+picturebox_t* CreatePicturebox(component_t* parent, componentViewParam_t param);
 
 #if defined(__cplusplus)
 }

@@ -16,68 +16,83 @@ void UpdateComponent(component_t* component) {
 
 void blitComponentFramebuffer(component_t* component) {
     while(component->parent != NULL) {
-        blitFramebuffer(component->parent->fb, component->fb, component->x, component->y);
+        if(component->param->borderRadius)
+            blitFramebufferRadius(component->parent->fb, component->fb, component->param->x, component->param->y, component->param->borderRadius);
+        else
+            blitFramebuffer(component->parent->fb, component->fb, component->param->x, component->param->y);
         component = component->parent;
     }
 }
 
-component_t* AddComponent(uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos, component_t* parent) {
+component_t* AddComponent(component_t* parent, componentViewParam_t param) {
     /* framebuffer */
     framebuffer_t* fb = malloc(sizeof(framebuffer_t));
 
-    uint32_t pitch = width * parent->fb->btpp;
+    uint32_t pitch = param.width * parent->fb->btpp;
 
-    fb->size = height * pitch;
+    fb->size = param.height * pitch;
     fb->addr = calloc(fb->size);
     fb->pitch = pitch;
-    fb->width = width;
-    fb->height = height;
+    fb->width = param.width;
+    fb->height = param.height;
     fb->bpp = parent->fb->bpp;
     fb->btpp = parent->fb->btpp;
+
+    /* parameters */
+    componentViewParam_t* cpntParam = malloc(sizeof(componentViewParam_t));
+
+    *cpntParam = param;
 
     /* component */
     component_t* cpnt = malloc(sizeof(component_t));
 
     cpnt->fb = fb;
+    cpnt->param = cpntParam;
     cpnt->parent = parent;
-    cpnt->x = xPos;
-    cpnt->y = yPos;
     
     parent->childs = vector_create();
     vector_push(parent->childs, cpnt);
-
-    /* char* buff[50];
-    itoa(cpnt->fb->addr, buff, 16);
-    Printlog(buff); */
 
     return cpnt;
 }
 
 void RemoveComponent(component_t* cpnt) {
-    // vector_remove(cpnt->componentsList, cpnt->index);
+    for(int i = 0; i < cpnt->childs->length; i++) {
+        vector_remove(cpnt->childs, i);
+    }
+
+    free(cpnt->fb);
+    free(cpnt->param);
     free(cpnt);
 }
 
 component_t* GetMainParent(framebuffer_t* fb) {
     component_t* parent = malloc(sizeof(component_t));
+    componentViewParam_t* param = malloc(sizeof(componentViewParam_t));
+
+    param->width = fb->width;
+    param->height = fb->height;
 
     parent->fb = fb;
+    parent->param = param;
 
     return parent;
 }
 
 /* Components */
 
-canva_t* CreateCanva(uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos, component_t* parent) {
+/* canva_t* CreateCanva(uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos, component_t* parent) {
     canva_t* canva = malloc(sizeof(canva_t));
 
     canva->cpnt = AddComponent(width, height, xPos, yPos, parent); 
+    canva->cpnt->type = CanvaComponent;
 
     return canva;
-}
+} */
 
-void DrawTitleBar(component_t* cpnt, uint32_t color) {
-    fillRect(cpnt->fb, cpnt->x, cpnt->y, cpnt->fb->width, cpnt->fb->height, color);
+void DrawTitleBar(component_t* cpnt) {
+    /* color: text color */
+    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->width, cpnt->param->height, cpnt->param->bgColor);
 
 /*     uint8_t tmpWidthIcon = 10;
 
@@ -89,46 +104,132 @@ void DrawTitleBar(component_t* cpnt, uint32_t color) {
     blitComponentFramebuffer(cpnt);
 }
 
-titlebar_t* CreateTitleBar(char* title, uint32_t xPos, uint32_t yPos, uint32_t color, bool visible, component_t* parent) {
+titlebar_t* CreateTitleBar(char* title, component_t* parent, componentViewParam_t param) {
     titlebar_t* tb = malloc(sizeof(titlebar_t));
-
-    uint32_t titleBarWidth = parent->fb->width;
-    uint32_t titleBarHeight = 40;
+    
+    param.width = parent->param->width;
+    param.height = 40;
 
     tb->title = title;
-    tb->color = color;
-    tb->visible = visible;
-    tb->cpnt = AddComponent(titleBarWidth, titleBarHeight, xPos, yPos, parent);
+    tb->cpnt = AddComponent(parent, param);
+    tb->cpnt->type = TitlebarComponent;
     
-    DrawTitleBar(tb->cpnt, tb->color);
+    DrawTitleBar(tb->cpnt);
 
     uint32_t btnWidth = 20;
-    uint32_t btnHeight = titleBarHeight;
-    uint32_t btnColor = 0xFFFFFFFF;
+    uint32_t btnHeight = 20;
+    uint32_t btnTextColor = 0xFFFFFFFF;
 
-    button_t* minbtn = CreateButton(btnWidth, btnHeight, 0, 0, 0x6000FF00, btnColor, tb->cpnt);
-/*     button_t* resizebtn = CreateButton((buttonparam_t){ .width = btnWidth, .height = btnHeight, .bkgColor = 0xFF00FF00, .color = btnColor, .parent = tb->cpnt });
-    button_t* closebtn = CreateButton(); */
+    /* button_t* minbtn = CreateButton(tb->cpnt, (componentViewParam_t){ .width = btnWidth, .height = btnHeight, .x = 0, .y = 0, .bgColor = 0xFF00FF00, .fbColor = btnTextColor, .borderRadius = 10 }); */
+    /* button_t* resizebtn = CreateButton(btnWidth, btnHeight, 0, 0, 0xFFFF0000, btnColor, tb->cpnt); */
+    /* button_t* closebtn = CreateButton(); */
 
     return tb;
 }
 
-void DrawButton(component_t* cpnt, uint32_t bkgColor, uint32_t color) {
-    /* color: icon color */
-    fillRect(cpnt->fb, cpnt->x, cpnt->y, cpnt->fb->width, cpnt->fb->height, bkgColor);
+void PrintLabel(component_t* cpnt) {
+    // todo: print
 
     blitComponentFramebuffer(cpnt);
 }
 
-button_t* CreateButton(uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos, uint32_t bkgColor, uint32_t color, component_t* parent) {
+label_t* CreateLabel(char* string, component_t* parent, componentViewParam_t param) {
+    label_t* lbl = malloc(sizeof(label_t));
+
+    if(!param.fontSize)
+        param.fontSize = 16;
+
+    lbl->string = string;
+
+    param.width = strlen(string) * param.fontSize;
+    param.height = param.fontSize;
+
+    lbl->cpnt = AddComponent(parent, param);
+    lbl->cpnt->type = LabelComponent;
+
+    PrintLabel(lbl->cpnt);
+
+    return lbl;
+}
+
+void DrawButton(component_t* cpnt) {
+    /* color: icon color */
+    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->width, cpnt->param->height, cpnt->param->bgColor);
+
+    blitComponentFramebuffer(cpnt);
+    // use blitComponentFramebuffer (blitRadius)
+}
+
+button_t* CreateButton(component_t* parent, componentViewParam_t param) {
     button_t* btn = malloc(sizeof(button_t));
 
-    btn->bkgColor = bkgColor;
-    btn->color = color;
     // todo: event
-    btn->cpnt = AddComponent(width, height, xPos, yPos, parent);
+    btn->cpnt = AddComponent(parent, param);
+    btn->cpnt->type = ButtonComponent;
 
-    DrawButton(btn->cpnt, btn->bkgColor, btn->color);
+    DrawButton(btn->cpnt);
 
     return btn;
+}
+
+void DrawCheckbox(component_t* cpnt) {
+    /* color: icon color */
+    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->width, cpnt->param->height, cpnt->param->bgColor);
+
+    blitComponentFramebuffer(cpnt);
+}
+
+checkbox_t* CreateCheckbox(component_t* parent, componentViewParam_t param) {
+    checkbox_t* checkb = malloc(sizeof(checkbox_t));
+
+    param.width = 30;
+    param.height = 15;
+
+    // todo: event
+    checkb->cpnt = AddComponent(parent, param);
+    checkb->cpnt->type = CheckboxComponent;
+
+    DrawCheckbox(checkb->cpnt);
+
+    return checkb;
+}
+
+void DrawTextbox(component_t* cpnt) {
+    /* color: text color */
+    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->width, cpnt->param->height, cpnt->param->bgColor);
+
+    /* todo: placeholder */
+
+    blitComponentFramebuffer(cpnt);
+}
+
+textbox_t* CreateTextbox(char* placeholder, component_t* parent, componentViewParam_t param) {
+    textbox_t* textb = malloc(sizeof(textbox_t));
+
+    // todo: event
+    textb->cpnt = AddComponent(parent, param);
+    textb->cpnt->type = TextboxComponent;
+
+    DrawTextbox(textb->cpnt);
+
+    return textb;
+}
+
+void DrawPicturebox(component_t* cpnt) {
+    /* todo: draw img */
+
+    blitComponentFramebuffer(cpnt);
+}
+
+picturebox_t* CreatePicturebox(component_t* parent, componentViewParam_t param) {
+    picturebox_t* pictureb = malloc(sizeof(picturebox_t));
+
+    // todo: img
+    // todo: event
+    pictureb->cpnt = AddComponent(parent, param);
+    pictureb->cpnt->type = PictureboxComponent;
+
+    DrawPicturebox(pictureb->cpnt);
+
+    return pictureb;
 }

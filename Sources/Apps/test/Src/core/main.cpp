@@ -14,7 +14,9 @@ extern "C" int main() {
     ctxg_t* ctxGraphic = CreateGraphicContext(fb->addr, fb->width, fb->height);
     ctxui_t* ctxUi = CreateUiContext((framebuffer_t*)fb);
     // canva_t* canva1 = CreateCanva(200, 100, GetMainParent((framebuffer_t*)fb));
-    titlebar_t* titlebar = CreateTitleBar("test", 0, 0, 0xFF1B1B1B, true, GetMainParent((framebuffer_t*)fb));
+
+    titlebar_t* titlebar = CreateTitleBar("test", GetMainParent((framebuffer_t*)fb), { .bgColor = 0xFF1B1B1B, .visible = true });
+    button_t* minbtn = CreateButton(GetMainParent((framebuffer_t*)fb), (componentViewParam_t){ .width = 200, .height = 200, .x = 0, .y = 0, .bgColor = 0xFF00FF00, .fbColor = 0xFFFFFFFF, .borderRadius = 10 });
     //UpdateContext(ctxUi);
 
 /*     srv_system_callback_t* callback1 = Srv_System_ReadFileInitrd("default-font.sfn", true);

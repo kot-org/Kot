@@ -41,6 +41,27 @@ void blitFramebuffer(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_
 
 }
 
+void blitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y, uint16_t borderRadius) {
+    uint64_t to_addr = (uint64_t) to->addr;
+    uint64_t from_addr = (uint64_t) from->addr;
+
+    to_addr += x * to->btpp + y * to->pitch; // offset
+
+    uint64_t num;
+
+    if (to->pitch < from->pitch) {
+        num = to->pitch;
+    } else {
+        num = from->pitch;
+    }
+
+    for (uint32_t h = 0; h < from->height && h + y < to->height; h++) {
+        memcpy((uintptr_t) to_addr, (uintptr_t) from_addr, num);
+        to_addr += to->pitch;
+        from_addr += from->pitch;
+    }
+}
+
 void fillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
 
     uint32_t _h = height+y;
@@ -52,7 +73,7 @@ void fillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t width, uint32_
     for (uint32_t h = y; h < _h; h++) {
         uint64_t ypos = h * fb->pitch;
         for (uint32_t w = x; w < _w; w++) {
-            uint64_t xpos = w * 4;
+            uint64_t xpos = w * fb->btpp;
             uint64_t index = ypos + xpos;
             blendAlpha(((uint64_t)fb->addr + index), colour);
         }
