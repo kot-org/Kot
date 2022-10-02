@@ -3,11 +3,9 @@
 
 #define UKL_MODULE_STRING_SIZE 128
 
-#define UKL_MMAP_USABLE                 1
-#define UKL_MMAP_RESERVED               2
-#define UKL_MMAP_KERNEL                 3
-#define UKL_MMAP_MODULES                4
-#define UKL_MMAP_FRAMEBUFFER            5
+#define UKL_MMAP_AVAILABLE              1
+#define UKL_MMAP_USED                   2
+#define UKL_MMAP_RESERVED               3
 
 #define UKL_OLD_ACPI 0
 #define UKL_NEW_ACPI 1
@@ -48,8 +46,8 @@ struct ukl_memmory_info_t{
     size64_t bitmap_size;
     uint64_t HHDM;
     uint64_t page_count_total;
-    uint64_t entries;
-    struct ukl_mmap_info_t* map_entry;
+    uint64_t map_entries_count;
+    struct ukl_mmap_info_t* map_main_entry;
 }__attribute__((packed));
 
 
@@ -72,7 +70,6 @@ struct ukl_boot_structure_t{
 	struct ukl_kernel_address_t kernel_address;
     struct ukl_framebuffer_t framebuffer;
     struct ukl_memmory_info_t memory_info;
-    uint64_t HHDMBase;
     uint64_t bootloader_signature;
     struct ukl_rsdp_t RSDP;
     struct ukl_smbios_t SMBIOS;

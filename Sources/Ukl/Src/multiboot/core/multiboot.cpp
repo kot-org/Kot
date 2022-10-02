@@ -110,6 +110,11 @@ extern "C" void multiboot_entry(uint32_t Magic, uint32_t BootDataBase){
         }
     }
 
+
     loadElf((uintptr_t)KernelBuffer, &KernelEntryPoint);
+
+    //Pmm_ExtractsInfo(&BootData);
+    Vmm_ExtractsInfo(&BootData);
+
     boot_kernel((uint32_t)vmm_PageTable, KernelEntryPoint, Stack, (uint64_t)&BootData);
 }

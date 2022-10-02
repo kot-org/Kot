@@ -35,7 +35,7 @@ KResult loadElf(uintptr_t buffer, uint64_t* entrypoint){
                 uint64_t physicalPage = NULL;
                 if(!vmm_GetFlags(vmm_PageTable, virtualAddressIterator, vmm_PhysicalStorage)){
                     physicalPage = Pmm_RequestPage();
-                    vmm_Map(vmm_PageTable, ((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
+                    vmm_Map(vmm_PageTable, ((uint64_t)virtualAddressIterator), physicalPage, false, true, true);
                     physicalPage = ((uint64_t)physicalPage + alignement);
                 }else{
                     physicalPage = vmm_GetPhysical(vmm_PageTable, virtualAddressIterator);
@@ -63,7 +63,7 @@ KResult loadElf(uintptr_t buffer, uint64_t* entrypoint){
                 uint64_t physicalPage = NULL;
                 if(!vmm_GetFlags(vmm_PageTable, virtualAddressIterator, vmm_PhysicalStorage)){
                     physicalPage = Pmm_RequestPage();
-                    vmm_Map(vmm_PageTable, (uint64_t)virtualAddressIterator, (uint64_t)physicalPage, true, true, true);
+                    vmm_Map(vmm_PageTable, (uint64_t)virtualAddressIterator, (uint64_t)physicalPage, false, true, true);
                 }else{
                     physicalPage = vmm_GetPhysical(vmm_PageTable, virtualAddressIterator);
                 }

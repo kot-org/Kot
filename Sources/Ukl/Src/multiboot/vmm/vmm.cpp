@@ -3,6 +3,7 @@
 pagetable_t vmm_PageTable;
 uint64_t vmm_HHDMAdress = 0;
 uint64_t vmm_BitmapAddress = 0;
+size64_t vmm_BitmapSize = 0;
 
 bool vmm_GetFlag(uint64_t* entry, uint8_t flag){
     return *entry & (1 << flag); 
@@ -336,33 +337,6 @@ uint64_t vmm_GetPhysical(pagetable_t table, uint64_t Address){
     return (uint64_t)((uint64_t)vmm_GetAddress(&PDE) * PAGE_SIZE + (uint64_t)Address % PAGE_SIZE);
 }
 
-void vmm_CopyPageTable(pagetable_t tableSource, pagetable_t tableDestination, uint64_t from, uint64_t to){
-    vmm_page_table* PML4VirtualAddressDestination = (vmm_page_table*)vmm_GetVirtualAddress(tableDestination);
-    vmm_page_table* PML4VirtualAddressSource = (vmm_page_table*)vmm_GetVirtualAddress(tableSource);
-    for(uint16_t i = from; i < to; i++){
-        PML4VirtualAddressDestination->entries[i] = PML4VirtualAddressSource->entries[i];
-    }
-}
-
-void vmm_Fill(pagetable_t table, uint64_t from, uint64_t to, bool user){
-    vmm_page_table* PML4VirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(table);
-    for(uint16_t i = from; i < to; i++){
-        uint64_t PDE = PML4VirtualAddress->entries[i];
-        vmm_page_table* PDP;
-        vmm_page_table* PDPVirtualAddress;
-        if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
-            PDP = (vmm_page_table*)Pmm_RequestPage();
-            PDPVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PDP);
-            memset(PDPVirtualAddress, 0, PAGE_SIZE);
-            vmm_SetAddress(&PDE, (uint64_t)PDP >> 12);
-            vmm_SetFlag(&PDE, vmm_flag::vmm_Present, true);
-            vmm_SetFlag(&PDE, vmm_flag::vmm_ReadWrite, true);
-            vmm_SetFlag(&PDE, vmm_flag::vmm_User, user);
-            PML4VirtualAddress->entries[i] = PDE;
-        }
-    }
-}
-
 void vmm_Init(struct multiboot_tag_mmap* Map, uint64_t* Stack){
     vmm_PageTable = Pmm_RequestPage();
     memset((uintptr_t)vmm_PageTable, 0, PAGE_SIZE);
@@ -370,9 +344,10 @@ void vmm_Init(struct multiboot_tag_mmap* Map, uint64_t* Stack){
     vmm_HHDMAdress = PML4_HIGHER_HALF_ADDRESS;
 
     /* allocate stack into higher half address*/
-    uint64_t StackPageNumber = DivideRoundUp(STACK_SIZE, PAGE_SIZE);
+    uint64_t StackSize = STACK_SIZE;
     uint64_t StackVirtualAddressEnd = vmm_HHDMAdress;
-    for(uint64_t y = 0; y < StackPageNumber; y++){
+
+    for(uint64_t i = 0; i < StackSize; i += PAGE_SIZE){
         uint64_t PhysicalAddress = (uint64_t)Pmm_RequestPage();
         vmm_Map(vmm_PageTable, (uint64_t)StackVirtualAddressEnd, (uint64_t)PhysicalAddress, false, true, true);
         StackVirtualAddressEnd += PAGE_SIZE;
@@ -381,33 +356,35 @@ void vmm_Init(struct multiboot_tag_mmap* Map, uint64_t* Stack){
     vmm_HHDMAdress = StackVirtualAddressEnd;
 
     /* allocate bitmap into higher half address */
-    uint64_t MemoryPageNumber = DivideRoundUp(Pmm_GetMemorySize(Map), PAGE_SIZE);
-    uint64_t BitmapSize = DivideRoundUp(MemoryPageNumber, BYTE_SIZE);
-    uint64_t BitmapPageNumber = DivideRoundUp(BitmapSize, PAGE_SIZE);
+    uint64_t MemoryPageNumber = Pmm_PageNumber;
 
     vmm_BitmapAddress = vmm_HHDMAdress;
     uint64_t BitmapVirtualAddressEnd = vmm_BitmapAddress;
-    for(uint64_t y = 0; y < BitmapPageNumber; y++){
+
+    for(uint64_t i = 0; i < MemoryPageNumber; i += PAGE_SIZE * BYTE_SIZE){
         uint64_t PhysicalAddress = (uint64_t)Pmm_RequestPage();
         vmm_Map(vmm_PageTable, BitmapVirtualAddressEnd, PhysicalAddress, false, true, true);
         BitmapVirtualAddressEnd += PAGE_SIZE;
+        vmm_BitmapSize += PAGE_SIZE;
     }
     vmm_HHDMAdress = BitmapVirtualAddressEnd;
 
     /* allocate bitmap into higher half address */
-    for (uint64_t i = 0; i < Map->entry_size; i++){
-        uint64_t PageNumber = DivideRoundUp(Map->entries[i].len, PAGE_SIZE);
-        for(uint64_t y = 0; y < PageNumber; y++){
-            uint64_t physicalAddress = Map->entries[i].addr + y * PAGE_SIZE;
+    uint64_t NumberOfEntry = (Pmm_Map->size - sizeof(multiboot_tag_mmap)) / Pmm_Map->entry_size;
+    for(uint64_t i = 0; i < NumberOfEntry; i++){
+        for(uint64_t y = 0; y < Map->entries[i].len; y += PAGE_SIZE){
+            uint64_t physicalAddress = Map->entries[i].addr + y;
             uint64_t virtualAddress = physicalAddress + vmm_HHDMAdress;
-            vmm_Map(vmm_PageTable, physicalAddress, physicalAddress, false, true, true);
             vmm_Map(vmm_PageTable, virtualAddress, physicalAddress, false, true, true);
         }
     }
-
-    vmm_Fill(vmm_PageTable, VMM_LOWERHALF, VMM_HIGHERALF, false);
+    for(uint64_t y = (uint64_t)&Pmm_Ukl_Start; y < (uint64_t)&Pmm_Ukl_End; y += PAGE_SIZE){
+        vmm_Map(vmm_PageTable, y, y, false, true, true);
+    }
 }
 
-void Vmm_ExtractsInfo(){
-    // TODO
+void Vmm_ExtractsInfo(struct ukl_boot_structure_t* BootData){
+    BootData->memory_info.HHDM = vmm_HHDMAdress;
+    BootData->memory_info.bitmap_address = vmm_BitmapAddress;
+    BootData->memory_info.bitmap_size = vmm_BitmapSize;
 }

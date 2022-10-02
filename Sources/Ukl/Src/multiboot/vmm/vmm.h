@@ -61,10 +61,9 @@ void vmm_Unmap(uint64_t Address);
 void vmm_Unmap(pagetable_t table, uint64_t Address);
 uint64_t vmm_GetPhysical(pagetable_t table, uint64_t Address);
 
-void vmm_CopyPageTable(pagetable_t tableSource, pagetable_t tableDestination, uint64_t from, uint64_t to);
-void vmm_Fill(pagetable_t table, uint64_t from, uint64_t to, bool user);
-
 void vmm_Init(struct multiboot_tag_mmap* Map, uint64_t* Stack);
+
+void Vmm_ExtractsInfo(struct ukl_boot_structure_t* BootData);
 
 #define VMM_STARTRHALF 0x0
 #define VMM_LOWERHALF 0x100

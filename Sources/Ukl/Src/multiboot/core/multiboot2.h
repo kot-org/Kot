@@ -197,7 +197,7 @@ struct multiboot_mmap_entry
 #define MULTIBOOT_MEMORY_BADRAM                 5
   multiboot_uint32_t type;
   multiboot_uint32_t zero;
-};
+}__attribute__((packed));
 typedef struct multiboot_mmap_entry multiboot_memory_map_t;
 
 struct multiboot_tag
@@ -245,8 +245,8 @@ struct multiboot_tag_mmap
   multiboot_uint32_t size;
   multiboot_uint32_t entry_size;
   multiboot_uint32_t entry_version;
-  struct multiboot_mmap_entry entries[0];  
-};
+  struct multiboot_mmap_entry entries[];  
+}__attribute__((packed));
 
 struct multiboot_vbe_info_block
 {
