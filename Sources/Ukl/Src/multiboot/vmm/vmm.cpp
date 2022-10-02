@@ -237,7 +237,7 @@ void vmm_Map(pagetable_t table, uint64_t Address, uint64_t physicalAddress, bool
     vmm_SetFlag(&PDE, vmm_flag::vmm_Present, true);
     vmm_SetFlag(&PDE, vmm_flag::vmm_ReadWrite, readWrite);
     vmm_SetFlag(&PDE, vmm_flag::vmm_PhysicalStorage, physicalStorage);
-    vmm_SetIfNotFlag(&PDE, vmm_flag::vmm_User, user);
+    vmm_SetFlag(&PDE, vmm_flag::vmm_User, user);
     PTVirtualAddress->entries[indexer.P_i] = PDE;
 }
 
@@ -377,6 +377,7 @@ void vmm_Init(struct multiboot_tag_mmap* Map, uint64_t* Stack){
         vmm_Map(vmm_PageTable, (uint64_t)StackVirtualAddressEnd, (uint64_t)PhysicalAddress, false, true, true);
         StackVirtualAddressEnd += PAGE_SIZE;
     }
+    *Stack = StackVirtualAddressEnd;
     vmm_HHDMAdress = StackVirtualAddressEnd;
 
     /* allocate bitmap into higher half address */

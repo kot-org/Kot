@@ -4,7 +4,7 @@
 #include <multiboot/pmm/pmm.h>
 #include <multiboot/vmm/vmm.h>
 
-void InitializeMemory(struct multiboot_tag_mmap* Map, uint64_t* Stack);
+void InitializeMemory(uint32_t MbHeader, struct multiboot_tag_mmap* Map, uint64_t* Stack);
 
 void memcpy(uintptr_t destination, uintptr_t source, size64_t size);
 

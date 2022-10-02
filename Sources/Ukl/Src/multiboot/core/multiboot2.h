@@ -287,7 +287,7 @@ struct multiboot_tag_framebuffer_common
 #define MULTIBOOT_FRAMEBUFFER_TYPE_EGA_TEXT     2
   multiboot_uint8_t framebuffer_type;
   multiboot_uint16_t reserved;
-};
+}__attribute__((packed));
 
 struct multiboot_tag_framebuffer
 {

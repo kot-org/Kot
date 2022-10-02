@@ -1,5 +1,7 @@
 #define MULTIBOOT_2
 
+#include <lib/types.h>
+
 
 #ifdef MULTIBOOT_2
 

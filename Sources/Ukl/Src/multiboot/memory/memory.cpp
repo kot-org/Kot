@@ -1,7 +1,7 @@
 #include <multiboot/memory/memory.h>
 
-void InitializeMemory(struct multiboot_tag_mmap* Map, uint64_t* Stack){
-    Pmm_Init(Map);
+void InitializeMemory(uint32_t MbHeader, struct multiboot_tag_mmap* Map, uint64_t* Stack){
+    Pmm_Init(MbHeader, Map);
     vmm_Init(Map, Stack);
 }
 

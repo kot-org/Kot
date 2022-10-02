@@ -14,6 +14,11 @@ PHDRS
 SECTIONS
 {
     . = 0x00100000;
+
+    .start : {
+        *(.start)
+    }
+    
     .multiboot : {
         *(.multiboot .multiboot.*)
     } :multiboot
@@ -40,4 +45,8 @@ SECTIONS
         *(COMMON)
         *(.bss .bss.*)
     } :data
+    
+    .end :{
+        *(.end)
+    }
 }
