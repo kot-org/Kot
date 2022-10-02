@@ -380,8 +380,7 @@ pagetable_t vmm_GetPageTable(){
 }
 
 uint64_t vmm_Init(ukl_boot_structure_t* bootInfo){
-    vmm_PageTable = Pmm_RequestPage();
-    memset(vmm_PageTable, 0, PAGE_SIZE);
+    vmm_PageTable = (pagetable_t)bootInfo->memory_info.page_table;
 
     vmm_HHDMAdress = bootInfo->memory_info.HHDM;
     uint64_t HeapAddress = bootInfo->kernel_address.virtual_base_address;
@@ -396,8 +395,6 @@ uint64_t vmm_Init(ukl_boot_structure_t* bootInfo){
 
     /* Update variable in the lower half */
     Pmm_PageBitmap.Buffer = (uint8_t*)vmm_GetVirtualAddress(Pmm_PageBitmap.Buffer);
-
-    vmm_Swap(vmm_PageTable);
 
     return HeapAddress;
 }

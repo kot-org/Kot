@@ -19,8 +19,6 @@ static inline uintptr_t Pmm_ConvertIndexToAddress(uint64_t index){
 }
 
 void Pmm_Init(ukl_memmory_info_t* MemoryInfo){
-    uintptr_t BitmapSegment = NULL;
-
     uint64_t memorySize = Pmm_GetMemorySize(MemoryInfo);
     uint64_t LastBase = 0;
 
@@ -33,29 +31,14 @@ void Pmm_Init(ukl_memmory_info_t* MemoryInfo){
 
     Pmm_ReservePages(0x0, MemoryInfo->page_count_total);
 
-    /* Protect bitmap address */
-    uint64_t ProtectedIndexStart = Pmm_ConvertAddressToIndex(BitmapSegment);
-    uint64_t ProtectedIndexEnd = ProtectedIndexStart + DivideRoundUp(Pmm_PageBitmap.Size, PAGE_SIZE);
-
-    ukl_mmap_info_t* MapEntry = MemoryInfo->map_entry;
-    for (uint64_t i = 0; i < MemoryInfo->entries; i++){
-        if (MapEntry->type == UKL_MMAP_USABLE){ 
+    ukl_mmap_info_t* MapEntry = (ukl_mmap_info_t*)vmm_GetVirtualAddress(MemoryInfo->map_main_entry);
+    for (uint64_t i = 0; i < MemoryInfo->map_entries_count; i++){
+        if (MapEntry->type == UKL_MMAP_AVAILABLE){ 
             uint64_t indexstart = Pmm_ConvertAddressToIndex((uintptr_t)MapEntry->base);
             uint64_t pageCount = MapEntry->length / PAGE_SIZE;
-            if(indexstart > ProtectedIndexEnd){
-                Pmm_UnreservePages_WI(indexstart, pageCount);
-            }else if(indexstart + pageCount < ProtectedIndexStart){
-                Pmm_UnreservePages_WI(indexstart, pageCount);
-            }else{
-                for(uint64_t t = 0; t < pageCount; t++){
-                    uint64_t index = indexstart + t;
-                    if(index < ProtectedIndexStart || ProtectedIndexEnd < index){
-                        Pmm_UnreservePage_WI(index);
-                    }
-                }                
-            }
+            Pmm_UnreservePages_WI(indexstart, pageCount);
         }
-        MapEntry = MapEntry->map_next_entry;
+        MapEntry = (ukl_mmap_info_t*)vmm_GetVirtualAddress(MapEntry->map_next_entry);
     }
 
     /* Lock trampoline address */

@@ -45,6 +45,7 @@ struct ukl_memmory_info_t{
     uint64_t bitmap_address;
     size64_t bitmap_size;
     uint64_t HHDM;
+    uint64_t page_table;
     uint64_t page_count_total;
     uint64_t map_entries_count;
     struct ukl_mmap_info_t* map_main_entry;

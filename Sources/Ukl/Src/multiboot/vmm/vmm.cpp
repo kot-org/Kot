@@ -387,4 +387,5 @@ void Vmm_ExtractsInfo(struct ukl_boot_structure_t* BootData){
     BootData->memory_info.HHDM = vmm_HHDMAdress;
     BootData->memory_info.bitmap_address = vmm_BitmapAddress;
     BootData->memory_info.bitmap_size = vmm_BitmapSize;
+    BootData->memory_info.page_table = vmm_PageTable;
 }

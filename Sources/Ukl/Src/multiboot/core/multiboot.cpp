@@ -62,8 +62,9 @@ char* itoa(int32_t n, char* buffer, int basenumber){
     return buffer;
 }
 
+struct ukl_boot_structure_t BootData;
+
 extern "C" void multiboot_entry(uint32_t Magic, uint32_t BootDataBase){
-    struct ukl_boot_structure_t BootData;
     uint64_t KernelEntryPoint = NULL;
     uint64_t Stack = NULL;
     uint64_t KernelBuffer = NULL;
@@ -113,7 +114,7 @@ extern "C" void multiboot_entry(uint32_t Magic, uint32_t BootDataBase){
 
     loadElf((uintptr_t)KernelBuffer, &KernelEntryPoint);
 
-    //Pmm_ExtractsInfo(&BootData);
+    Pmm_ExtractsInfo(&BootData);
     Vmm_ExtractsInfo(&BootData);
 
     boot_kernel((uint32_t)vmm_PageTable, KernelEntryPoint, Stack, (uint64_t)&BootData);

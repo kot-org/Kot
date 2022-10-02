@@ -28,6 +28,8 @@ void InitializeACPI(ukl_boot_structure_t* BootData, ArchInfo_t* ArchInfo){
 ArchInfo_t* arch_initialize(ukl_boot_structure_t* BootData){
     asm("cli");
 
+    vmm_HHDMAdress = BootData->memory_info.HHDM;
+
     SerialPort::Initialize();
     SerialPort::ClearMonitor();
     Message("Welcome to Kot kernel");
