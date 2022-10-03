@@ -72,6 +72,9 @@ ArchInfo_t* arch_initialize(ukl_boot_structure_t* BootData){
     //frame buffer
     memcpy(&ArchInfo->framebuffer, &BootData->framebuffer, sizeof(ukl_framebuffer_t));
 
+    //initrd physical base address to virtual one
+    BootData->initrd.base = vmm_GetVirtualAddress(BootData->initrd.base);
+
     //initrd
     memcpy(&ArchInfo->initrd, &BootData->initrd, sizeof(ukl_initrd_t));
 
@@ -83,7 +86,8 @@ ArchInfo_t* arch_initialize(ukl_boot_structure_t* BootData){
     
     ArchInfo->rsdp = (uintptr_t)BootData->RSDP.base;
 
-    initrd::Parse((uintptr_t)ArchInfo->initrd->base, ArchInfo->initrd->size);
+
+    initrd::Parse((uintptr_t)ArchInfo->initrd.base, ArchInfo->initrd.size);
     Successful("Initrd initialized");
     return ArchInfo;
 }

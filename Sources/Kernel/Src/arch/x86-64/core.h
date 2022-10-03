@@ -6,7 +6,7 @@ struct ArchInfo_t{
     uint64_t architecture;
 
     struct ukl_framebuffer_t framebuffer;
-    struct ukl_initrd_t* initrd;
+    struct ukl_initrd_t initrd;
     struct memoryInfo_t* memoryInfo;
     uintptr_t smbios;
     uintptr_t rsdp;
