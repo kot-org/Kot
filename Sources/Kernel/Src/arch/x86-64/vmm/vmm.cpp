@@ -386,6 +386,19 @@ uint64_t vmm_Init(ukl_boot_structure_t* bootInfo){
 
     vmm_Fill(vmm_PageTable, VMM_LOWERHALF, VMM_HIGHERALF, false);
 
+    uint64_t initrdphysicaladdress = bootInfo->initrd.base;
+    uint64_t initrdvirtualaddress = vmm_GetVirtualAddress(((uint64_t)bootInfo->initrd.base));
+
+    // Update INITRD address
+    bootInfo->initrd.base = initrdvirtualaddress;
+
+    // Map new INITRD address
+    for(uint64_t i = 0; i < bootInfo->initrd.size; i += PAGE_SIZE){
+        vmm_Map(vmm_PageTable, (uintptr_t)initrdvirtualaddress, (uintptr_t)initrdphysicaladdress, true, false); /* App can't write into initrd */
+        initrdphysicaladdress += PAGE_SIZE;
+        initrdvirtualaddress += PAGE_SIZE;
+    }
+
     return HeapAddress;
 }
 
