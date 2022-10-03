@@ -71,23 +71,26 @@ bool Pmm_CheckPage(uint64_t Address){
 }
 
 uint64_t Pmm_RequestPage(){
-    for(uint64_t i = Pmm_LastIndexAllocated; i < Pmm_MapNumberEntry; i++){
-        multiboot_mmap_entry* entry = &Pmm_Map->entries[i];
+    while(Pmm_LastIndexAllocated <= Pmm_MapNumberEntry){
+        multiboot_mmap_entry* entry = &Pmm_Map->entries[Pmm_LastIndexAllocated];
         if(entry->type == MULTIBOOT_MEMORY_AVAILABLE){
             for(uint64_t y = 0; y < entry->len; y += PAGE_SIZE){
                 uint64_t AddressAllocated = Pmm_LastAddressAllocated;
                 Pmm_LastAddressAllocated += PAGE_SIZE;
-                if(Pmm_CheckPage(Pmm_LastAddressAllocated)){
+                if(Pmm_CheckPage(AddressAllocated)){
                     size64_t SizeAvailable = (entry->addr + entry->len) - AddressAllocated;
                     if(SizeAvailable < PAGE_SIZE){
                         Pmm_LastIndexAllocated++; // go to the next segment
-                        Pmm_LastAddressAllocated = Pmm_Map->entries[i + 1].addr;
+                        Pmm_LastAddressAllocated = Pmm_Map->entries[Pmm_LastIndexAllocated].addr;
                         break;
                     }else{
                         return (uint64_t)AddressAllocated;
                     }
                 }
             }
+        }else{
+            Pmm_LastIndexAllocated++;
+            Pmm_LastAddressAllocated = Pmm_Map->entries[Pmm_LastIndexAllocated].addr;
         }
     }
     return NULL; 
@@ -103,12 +106,10 @@ void Pmm_AddEntry(struct ukl_mmap_info_t** entry, uint64_t* index, uint64_t base
             uint64_t LowerHalfSegmentAddress = base;
             uint64_t MiddleHalfSegmentAddress = Pmm_MbHeader;
             uint64_t HigherHalfSegmentAddress = Pmm_MbHeader + Pmm_SizeMbHeader;
+
             Pmm_AddEntry(entry, index, LowerHalfSegmentAddress, LowerHalfSegmentLength, UKL_MMAP_AVAILABLE);
-            Pmm_MapEntryCount++;
             Pmm_AddEntry(entry, index, MiddleHalfSegmentAddress, MiddleHalfSegmentLength, UKL_MMAP_USED);
-            Pmm_MapEntryCount++;
             Pmm_AddEntry(entry, index, HigherHalfSegmentAddress, HigherHalfSegmentLength, UKL_MMAP_AVAILABLE);
-            Pmm_MapEntryCount++;
             return;
         }
         if(base + length > (uint64_t)&Pmm_Ukl_Start && base < (uint64_t)&Pmm_Ukl_End){
@@ -119,12 +120,10 @@ void Pmm_AddEntry(struct ukl_mmap_info_t** entry, uint64_t* index, uint64_t base
             uint64_t LowerHalfSegmentAddress = base;
             uint64_t MiddleHalfSegmentAddress = (uint64_t)&Pmm_Ukl_Start;
             uint64_t HigherHalfSegmentAddress = (uint64_t)&Pmm_Ukl_End;
+
             Pmm_AddEntry(entry, index, LowerHalfSegmentAddress, LowerHalfSegmentLength, UKL_MMAP_AVAILABLE);
-            Pmm_MapEntryCount++;
             Pmm_AddEntry(entry, index, MiddleHalfSegmentAddress, MiddleHalfSegmentLength, UKL_MMAP_USED);
-            Pmm_MapEntryCount++;
             Pmm_AddEntry(entry, index, HigherHalfSegmentAddress, HigherHalfSegmentLength, UKL_MMAP_AVAILABLE);
-            Pmm_MapEntryCount++;
             return;          
         }
         for(struct multiboot_tag* tag = (struct multiboot_tag*)(Pmm_MbHeader + 8); tag->type != MULTIBOOT_TAG_TYPE_END; tag = (struct multiboot_tag*) ((multiboot_uint8_t*) tag + ((tag->size + 7) & ~7))){
@@ -138,12 +137,10 @@ void Pmm_AddEntry(struct ukl_mmap_info_t** entry, uint64_t* index, uint64_t base
                         uint64_t LowerHalfSegmentAddress = base;
                         uint64_t MiddleHalfSegmentAddress = ((struct multiboot_tag_module*)tag)->mod_start;
                         uint64_t HigherHalfSegmentAddress = ((struct multiboot_tag_module*)tag)->mod_end;
+                        
                         Pmm_AddEntry(entry, index, LowerHalfSegmentAddress, LowerHalfSegmentLength, UKL_MMAP_AVAILABLE);
-                        Pmm_MapEntryCount++;
                         Pmm_AddEntry(entry, index, MiddleHalfSegmentAddress, MiddleHalfSegmentLength, UKL_MMAP_USED);
-                        Pmm_MapEntryCount++;
                         Pmm_AddEntry(entry, index, HigherHalfSegmentAddress, HigherHalfSegmentLength, UKL_MMAP_AVAILABLE);
-                        Pmm_MapEntryCount++;
                         return;        
                     }
                     break;
@@ -157,12 +154,10 @@ void Pmm_AddEntry(struct ukl_mmap_info_t** entry, uint64_t* index, uint64_t base
                         uint64_t LowerHalfSegmentAddress = base;
                         uint64_t MiddleHalfSegmentAddress = ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr;
                         uint64_t HigherHalfSegmentAddress = ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr + fb_size;
+                        
                         Pmm_AddEntry(entry, index, LowerHalfSegmentAddress, LowerHalfSegmentLength, UKL_MMAP_AVAILABLE);
-                        Pmm_MapEntryCount++;
                         Pmm_AddEntry(entry, index, MiddleHalfSegmentAddress, MiddleHalfSegmentLength, UKL_MMAP_USED);
-                        Pmm_MapEntryCount++;
                         Pmm_AddEntry(entry, index, HigherHalfSegmentAddress, HigherHalfSegmentLength, UKL_MMAP_AVAILABLE);
-                        Pmm_MapEntryCount++;
                         return;
                     }
                     break;
@@ -173,57 +168,52 @@ void Pmm_AddEntry(struct ukl_mmap_info_t** entry, uint64_t* index, uint64_t base
         }
     }
 
-    if(type == UKL_MMAP_AVAILABLE){
-        char buf[33];
-        itoa(base, buf, 0x10);
-        Print(buf);
-        Print("\n");
-    }
     struct ukl_mmap_info_t* entries = (*entry);
     entries[*index].base = base;
     entries[*index].length = length;
     entries[*index].type = type;
-    *index++;
+    (*index)++;
+    entries[(*index) - 1].map_next_entry = (uint64_t)&entries[(*index)];
 
-    if(*index > MAX_ENTRY_IN_PAGE_UKL){
+    if((*index) > MAX_ENTRY_IN_PAGE_UKL){
         *entry = (struct ukl_mmap_info_t*)Pmm_RequestPage();
-        entries[*index - 1].map_next_entry = *entry;
-        *index = 0;
+        entries[(*index) - 1].map_next_entry = (uint64_t)(*entry);
+        (*index) = 0;
     }else{
-        entries[*index - 1].map_next_entry = &entries[*index];
+        entries[(*index) - 1].map_next_entry = (uint64_t)&entries[(*index)];
     }
+
+    Pmm_MapEntryCount++;
 }
 
 void Pmm_ExtractsInfo(struct ukl_boot_structure_t* BootData){
+    uint64_t LastIndexAllocated = Pmm_LastIndexAllocated; // We will NOT map the memory map
+    uint64_t LastAddressAllocated = Pmm_LastAddressAllocated; // We will NOT map the memory map
     BootData->memory_info.page_count_total = Pmm_PageNumber;
 
     struct ukl_mmap_info_t* MainEntry = (struct ukl_mmap_info_t*)Pmm_RequestPage();
     uint64_t EntryIndex = 0;
-    BootData->memory_info.map_main_entry = MainEntry;
+    BootData->memory_info.map_main_entry = (uint64_t)MainEntry;
 
     for(uint64_t i = 0; i < Pmm_MapNumberEntry; i++){
         multiboot_mmap_entry* entry = &Pmm_Map->entries[i];
         if(entry->type == MULTIBOOT_MEMORY_AVAILABLE){
-            if(i > Pmm_LastIndexAllocated){
+            if(i > LastIndexAllocated){
                 Pmm_AddEntry(&MainEntry, &EntryIndex, entry->addr, entry->len, UKL_MMAP_AVAILABLE);
-                Pmm_MapEntryCount++;
-            }else if(i < Pmm_LastIndexAllocated){
+            }else if(i < LastIndexAllocated){
                 Pmm_AddEntry(&MainEntry, &EntryIndex, entry->addr, entry->len, UKL_MMAP_USED);
-                Pmm_MapEntryCount++;
             }else{
-                uint64_t LowerHalfSegmentLength = Pmm_LastAddressAllocated - entry->addr;
+                uint64_t LowerHalfSegmentLength = LastAddressAllocated - entry->addr;
                 uint64_t HigherHalfSegmentLength = entry->len - LowerHalfSegmentLength;
 
                 uint64_t LowerHalfSegmentAddress = entry->addr;
-                uint64_t HigherHalfSegmentAddress = Pmm_LastAddressAllocated;
+                uint64_t HigherHalfSegmentAddress = LastAddressAllocated;
+                
                 Pmm_AddEntry(&MainEntry, &EntryIndex, LowerHalfSegmentAddress, LowerHalfSegmentLength, UKL_MMAP_USED);
-                Pmm_MapEntryCount++;
                 Pmm_AddEntry(&MainEntry, &EntryIndex, HigherHalfSegmentAddress, HigherHalfSegmentLength, UKL_MMAP_AVAILABLE);
-                Pmm_MapEntryCount++;
             }
         }else{
             Pmm_AddEntry(&MainEntry, &EntryIndex, entry->addr, entry->len, UKL_MMAP_RESERVED);
-            Pmm_MapEntryCount++;
         }
 
         BootData->memory_info.map_entries_count = Pmm_MapEntryCount;

@@ -37,7 +37,7 @@ struct ukl_mmap_info_t{
     uint64_t base;
     uint64_t type;
     size64_t length;
-    struct ukl_mmap_info_t* map_next_entry;
+    uint64_t map_next_entry;
 }__attribute__((packed));
 
 
@@ -48,7 +48,7 @@ struct ukl_memmory_info_t{
     uint64_t page_table;
     uint64_t page_count_total;
     uint64_t map_entries_count;
-    struct ukl_mmap_info_t* map_main_entry;
+    uint64_t map_main_entry;
 }__attribute__((packed));
 
 
