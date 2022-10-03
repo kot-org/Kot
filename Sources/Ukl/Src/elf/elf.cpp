@@ -1,6 +1,10 @@
 #include <elf/elf.h>
 
-KResult loadElf(uintptr_t buffer, uint64_t* entrypoint){
+KResult loadElf(uintptr_t buffer, uint64_t* entrypoint, ukl_kernel_address_t* kernelinfo){
+    /* Set kernel info to NULL */
+    kernelinfo->virtual_base_address = NULL;
+    kernelinfo->virtual_end_address = NULL;
+    
     Elf64_Ehdr* Header = (Elf64_Ehdr*)buffer;
     
     /* Check elf */
@@ -15,6 +19,14 @@ KResult loadElf(uintptr_t buffer, uint64_t* entrypoint){
     for(Elf64_Half i = 0; i < Header->e_phnum; i++){
         Elf64_Phdr* phdr = (Elf64_Phdr*)((uint64_t)phdrs + (i * Header->e_phentsize));
         if(phdr->p_type == PT_LOAD){
+            if(phdr->p_vaddr > kernelinfo->virtual_end_address){
+                kernelinfo->virtual_end_address = phdr->p_vaddr;
+            }
+
+            if(phdr->p_vaddr < kernelinfo->virtual_base_address || kernelinfo->virtual_base_address == NULL){
+                kernelinfo->virtual_base_address = phdr->p_vaddr;
+            }
+
             size64_t align = phdr->p_vaddr & 0xFFF; // get last 9 bits
             size64_t pageCount = DivideRoundUp(phdr->p_memsz + align, PAGE_SIZE);
             size_t size = phdr->p_memsz;

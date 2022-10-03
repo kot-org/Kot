@@ -382,19 +382,9 @@ pagetable_t vmm_GetPageTable(){
 uint64_t vmm_Init(ukl_boot_structure_t* bootInfo){
     vmm_PageTable = (pagetable_t)bootInfo->memory_info.page_table;
 
-    vmm_HHDMAdress = bootInfo->memory_info.HHDM;
     uint64_t HeapAddress = bootInfo->kernel_address.virtual_base_address;
 
-    /* map initrd */
-    bootInfo->initrd.base = (uint64_t)vmm_GetVirtualAddress((bootInfo->initrd.base - vmm_HHDMAdress));
-    for(uint64_t i = 0; i < bootInfo->initrd.size; i += PAGE_SIZE){
-        vmm_Map(vmm_PageTable, (uintptr_t)((uint64_t)bootInfo->initrd.base + i), (uintptr_t)(((uint64_t)bootInfo->initrd.base - vmm_HHDMAdress) + i), true, false); /* App can't write into initrd */
-    }
-
     vmm_Fill(vmm_PageTable, VMM_LOWERHALF, VMM_HIGHERALF, false);
-
-    /* Update variable in the lower half */
-    Pmm_PageBitmap.Buffer = (uint8_t*)vmm_GetVirtualAddress(Pmm_PageBitmap.Buffer);
 
     return HeapAddress;
 }
