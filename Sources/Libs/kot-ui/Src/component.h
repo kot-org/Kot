@@ -14,13 +14,14 @@ extern "C" {
 #endif
 
 enum ComponentType {
-    CanvaComponent = 0,
-    TitlebarComponent = 1,
-    LabelComponent = 2,
-    ButtonComponent = 3,
-    CheckboxComponent = 4,
-    TextboxComponent = 5,
-    PictureboxComponent = 6,
+    CanvaComponent      = 0,
+    BoxComponent        = 1,
+    TitlebarComponent   = 2,
+    LabelComponent      = 3,
+    ButtonComponent     = 4,
+    CheckboxComponent   = 5,
+    TextboxComponent    = 6,
+    PictureboxComponent = 7,
 };
 
 typedef struct {
@@ -42,8 +43,6 @@ typedef struct component_s {
     struct component_s* parent;
     vector_t* childs;
     uint16_t type;
-    uint32_t x;
-    uint32_t y;
 } component_t;
 
 typedef struct {
@@ -54,6 +53,10 @@ typedef struct {
 typedef struct {
     component_t* cpnt;
 } canva_t;
+
+typedef struct {
+    component_t* cpnt;
+} box_t;
 
 typedef struct {
     char* title;
@@ -88,17 +91,21 @@ typedef struct {
     component_t* cpnt;
 } picturebox_t;
 
-component_t* AddComponent(component_t* parent, componentViewParam_t param);
-void RemoveComponent(component_t* cpnt);
-
 void UpdateContext(ctxui_t* ctx);
 void UpdateComponent(component_t* component);
+
+void blitComponentFramebuffer(component_t* component);
+
+component_t* AddComponent(component_t* parent, componentViewParam_t param);
+void EditComponent(component_t* cpnt, componentViewParam_t param);
+void RemoveComponent(component_t* cpnt);
 
 component_t* GetMainParent(framebuffer_t* fb);
 
 /* Components */
 
 canva_t* CreateCanva(component_t* parent, componentViewParam_t param);
+box_t* CreateBox(component_t* parent, componentViewParam_t param);
 
 void DrawTitleBar(component_t* cpnt);
 titlebar_t* CreateTitleBar(char* title, component_t* parent, componentViewParam_t param);

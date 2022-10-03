@@ -41,7 +41,15 @@ component_t* AddComponent(component_t* parent, componentViewParam_t param) {
     /* parameters */
     componentViewParam_t* cpntParam = malloc(sizeof(componentViewParam_t));
 
-    *cpntParam = param;
+    cpntParam->width = param.width;
+    cpntParam->height = param.height;
+    cpntParam->fontSize = param.fontSize;
+    cpntParam->borderRadius = param.borderRadius;
+    cpntParam->bgColor = param.bgColor;
+    cpntParam->fbColor = param.fbColor;
+    cpntParam->visible = param.visible;
+    cpntParam->x = param.x;
+    cpntParam->y = param.y;
 
     /* component */
     component_t* cpnt = malloc(sizeof(component_t));
@@ -50,10 +58,28 @@ component_t* AddComponent(component_t* parent, componentViewParam_t param) {
     cpnt->param = cpntParam;
     cpnt->parent = parent;
     
-    parent->childs = vector_create();
+    if(!parent->childs)
+        parent->childs = vector_create();
     vector_push(parent->childs, cpnt);
 
     return cpnt;
+}
+
+void EditComponent(component_t* cpnt, componentViewParam_t param) {
+    cpnt->fb->width = param.width;
+    cpnt->fb->height = param.height;
+
+    cpnt->param->width = param.width;
+    cpnt->param->height = param.height;
+    cpnt->param->fontSize = param.fontSize;
+    cpnt->param->borderRadius = param.borderRadius;
+    cpnt->param->bgColor = param.bgColor;
+    cpnt->param->fbColor = param.fbColor;
+    cpnt->param->visible = param.visible;
+    cpnt->param->x = param.x;
+    cpnt->param->y = param.y;
+
+    blitComponentFramebuffer(cpnt);
 }
 
 void RemoveComponent(component_t* cpnt) {
@@ -81,14 +107,23 @@ component_t* GetMainParent(framebuffer_t* fb) {
 
 /* Components */
 
-/* canva_t* CreateCanva(uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos, component_t* parent) {
+canva_t* CreateCanva(component_t* parent, componentViewParam_t param) {
     canva_t* canva = malloc(sizeof(canva_t));
 
-    canva->cpnt = AddComponent(width, height, xPos, yPos, parent); 
+    canva->cpnt = AddComponent(parent, param); 
     canva->cpnt->type = CanvaComponent;
 
     return canva;
-} */
+}
+
+box_t* CreateBox(component_t* parent, componentViewParam_t param) {
+    box_t* box = malloc(sizeof(box_t));
+
+    box->cpnt = AddComponent(parent, param); 
+    box->cpnt->type = BoxComponent;
+
+    return box;
+}
 
 void DrawTitleBar(component_t* cpnt) {
     /* color: text color */
@@ -120,7 +155,10 @@ titlebar_t* CreateTitleBar(char* title, component_t* parent, componentViewParam_
     uint32_t btnHeight = 20;
     uint32_t btnTextColor = 0xFFFFFFFF;
 
-    /* button_t* minbtn = CreateButton(tb->cpnt, (componentViewParam_t){ .width = btnWidth, .height = btnHeight, .x = 0, .y = 0, .bgColor = 0xFF00FF00, .fbColor = btnTextColor, .borderRadius = 10 }); */
+    box_t* div = CreateBox(tb->cpnt, (componentViewParam_t){ });
+
+    button_t* minbtn = CreateButton(div->cpnt, (componentViewParam_t){ .width = btnWidth, .height = btnHeight, .bgColor = 0xFF00FF00, .fbColor = btnTextColor, .borderRadius = 10 });
+    //button_t* testbtn = CreateButton(div->cpnt, (componentViewParam_t){ .width = btnWidth, .height = btnHeight, .bgColor = 0xFFFF0000, .fbColor = btnTextColor });
     /* button_t* resizebtn = CreateButton(btnWidth, btnHeight, 0, 0, 0xFFFF0000, btnColor, tb->cpnt); */
     /* button_t* closebtn = CreateButton(); */
 
@@ -154,14 +192,19 @@ label_t* CreateLabel(char* string, component_t* parent, componentViewParam_t par
 
 void DrawButton(component_t* cpnt) {
     /* color: icon color */
-    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->width, cpnt->param->height, cpnt->param->bgColor);
+    fillRect(cpnt->fb, 0, 0, cpnt->param->width, cpnt->param->height, cpnt->param->bgColor);
 
     blitComponentFramebuffer(cpnt);
-    // use blitComponentFramebuffer (blitRadius)
 }
 
 button_t* CreateButton(component_t* parent, componentViewParam_t param) {
     button_t* btn = malloc(sizeof(button_t));
+
+/*     char* buff[50];
+    itoa(parent->type, buff, 10);
+    Printlog(buff); */
+
+    EditComponent(parent, (componentViewParam_t){ .width = 40, .height = 20 });
 
     // todo: event
     btn->cpnt = AddComponent(parent, param);
