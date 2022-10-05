@@ -93,6 +93,10 @@ uint32_t Window::getWidth() {
     return fb->width;
 }
 
+uint32_t Window::getBpp() {
+    return fb->bpp;
+}
+
 uint32_t Window::getX() {
     return xPos;
 }

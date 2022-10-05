@@ -50,12 +50,20 @@ namespace orb {
         return result;
     }
 
+    uint32_t getBpp(uint32_t wid) {
+        if (OrbSrv == NULL) { GetOrbSrv(); }
+        arguments_t arguments;
+        arguments.arg[0] = wid;
+        ksmem_t result = Sys_Execthread(OrbSrv->getBpp, &arguments, ExecutionTypeQueuAwait, NULL);
+        return result;
+    }
+
     std::framebuffer_t* getFramebuffer(uint32_t wid) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
         std::framebuffer_t* fb = (std::framebuffer_t*) calloc(sizeof(std::framebuffer_t));
         fb->height = getHeight(wid);
         fb->width = getWidth(wid);
-        fb->bpp = 32;
+        fb->bpp = getBpp(wid);
         fb->btpp = fb->bpp / 8;
         fb->pitch = fb->width * fb->btpp;
         fb->size = fb->pitch * fb->height;

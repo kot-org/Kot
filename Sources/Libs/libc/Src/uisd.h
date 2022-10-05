@@ -68,6 +68,7 @@ typedef struct {
     thread_t getFramebuffer;
     thread_t getWidth;
     thread_t getHeight;
+    thread_t getBpp;
     thread_t show;
     thread_t hide;
     thread_t resize;

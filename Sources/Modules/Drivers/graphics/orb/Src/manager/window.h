@@ -37,6 +37,7 @@ public:
     ksmem_t getFramebufferKey();
     uint32_t getHeight();
     uint32_t getWidth();
+    uint32_t getBpp();
     uint32_t getPitch();
     uint32_t getX();
     uint32_t getY();

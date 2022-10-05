@@ -30,6 +30,7 @@ thread_t destroyThread = NULL;
 thread_t getFramebufferThread = NULL;
 thread_t getWidthThread = NULL;
 thread_t getHeightThread = NULL;
+thread_t getBppThread = NULL;
 thread_t showThread = NULL;
 thread_t hideThread = NULL;
 thread_t resizeThread = NULL;
@@ -115,6 +116,11 @@ void getWidth(uint32_t windowId) {
     Sys_Close(window->getWidth());
 }
 
+void getBpp(uint32_t windowId) {
+    Window* window = (Window*) vector_get(windows, windowId);
+    Sys_Close(window->getBpp());
+}
+
 
 
 void initUISD() {
@@ -124,6 +130,7 @@ void initUISD() {
     Sys_Createthread(self, (uintptr_t) &getFramebuffer, PriviledgeApp, &getFramebufferThread);
     Sys_Createthread(self, (uintptr_t) &getWidth, PriviledgeApp, &getWidthThread);
     Sys_Createthread(self, (uintptr_t) &getHeight, PriviledgeApp, &getHeightThread);
+    Sys_Createthread(self, (uintptr_t) &getBpp, PriviledgeApp, &getBppThread);
     Sys_Createthread(self, (uintptr_t) &show, PriviledgeApp, &showThread);
     Sys_Createthread(self, (uintptr_t) &hide, PriviledgeApp, &hideThread);
     Sys_Createthread(self, (uintptr_t) &resize, PriviledgeApp, &resizeThread);
@@ -144,6 +151,7 @@ void initUISD() {
     OrbSrv->getFramebuffer = MakeShareableThread(getFramebufferThread, PriviledgeApp);
     OrbSrv->getWidth = MakeShareableThread(getWidthThread, PriviledgeApp);
     OrbSrv->getHeight = MakeShareableThread(getHeightThread, PriviledgeApp);
+    OrbSrv->getBpp = MakeShareableThread(getBppThread, PriviledgeApp);
     OrbSrv->show = MakeShareableThread(showThread, PriviledgeApp);
     OrbSrv->hide = MakeShareableThread(hideThread, PriviledgeApp);
     OrbSrv->resize = MakeShareableThread(resizeThread, PriviledgeApp);
