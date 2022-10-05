@@ -1,6 +1,6 @@
 #include "monitor.h"
 
-Monitor::Monitor(process_t orb, uintptr_t fb_addr, uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos) {
+Monitor::Monitor(process_t orb, uintptr_t fb_addr, uint64_t width, uint64_t height, uint64_t pitch, uint64_t bpp, uint32_t xPos, uint32_t yPos) {
     
     this->xPos = xPos;
     this->yPos = yPos;
@@ -11,19 +11,23 @@ Monitor::Monitor(process_t orb, uintptr_t fb_addr, uint32_t width, uint32_t heig
     _main->addr = fb_addr;
     _main->width = width;
     _main->height = height;
-    _main->pitch = width * 4;
+    _main->pitch = pitch;
+    _main->bpp = bpp;
+    _main->btpp = bpp / 8;
     _main->size = _main->pitch * height;
 
     _back->addr = calloc(_main->size);
     _back->width = width;
     _back->height = height;
     _back->pitch = _main->pitch;
+    _back->bpp = _main->bpp;
+    _back->btpp = _main->btpp;
     _back->size = _main->size;    
 
     main = _main;
     back = _back;
 
-    this->background = new Window(orb, width, height, this->xPos, this->yPos);
+    this->background = new Window(orb, width, height, bpp, this->xPos, this->yPos);
 
 }
 

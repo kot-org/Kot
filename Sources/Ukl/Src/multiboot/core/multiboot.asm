@@ -29,8 +29,8 @@ multiboot_header:
         uint16 MULTIBOOT_HEADER_TAG_FRAMEBUFFER
         uint16 MULTIBOOT_HEADER_TAG_OPTIONAL
         uint32 framebuffer_tag_end - framebuffer_tag_start
-        uint32 0
-        uint32 0
+        uint32 1280
+        uint32 720
         uint32 32
     framebuffer_tag_end:
 

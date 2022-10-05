@@ -21,7 +21,7 @@ private:
     uint32_t yPos;
     Window* background;
 public:
-    Monitor(process_t orb, uintptr_t framebuffer, uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos);
+    Monitor(process_t orb, uintptr_t fb_addr, uint64_t width, uint64_t height, uint64_t pitch, uint64_t bpp, uint32_t xPos, uint32_t yPos);
     uint32_t getWidth();
     uint32_t getHeight();
     Window* getBackground();

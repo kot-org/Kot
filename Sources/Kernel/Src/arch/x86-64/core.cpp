@@ -72,6 +72,7 @@ ArchInfo_t* arch_initialize(ukl_boot_structure_t* BootData){
     //framebuffer
     memcpy(&ArchInfo->framebuffer, &BootData->framebuffer, sizeof(ukl_framebuffer_t));
 
+
     //initrd
     memcpy(&ArchInfo->initrd, &BootData->initrd, sizeof(ukl_initrd_t));
 

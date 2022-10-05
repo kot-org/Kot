@@ -2,6 +2,8 @@
 
 process_t self;
 
+uint64_t main_monitor_bpp;
+
 vector_t* windows = NULL;
 vector_t* monitors = NULL;
 
@@ -36,8 +38,8 @@ thread_t moveThread = NULL;
 /**
  * Return windowId
  **/
-void create(uint32_t width, uint32_t height, uint32_t x, uint32_t y) {
-    Window* window = new Window(self, width, height, x, y);
+void create(uint64_t width, uint64_t height, uint32_t x, uint32_t y) {
+    Window* window = new Window(self, width, height, main_monitor_bpp, x, y);
     vector_push(windows, window);
     Sys_Close(windows->length-1);
 }
@@ -174,11 +176,13 @@ void initOrb() {
     srv_system_framebuffer_t* bootframebuffer = (srv_system_framebuffer_t*)callback->Data;
     free(callback);
 
+    main_monitor_bpp = bootframebuffer->Bpp;
+
     size64_t fb_size = bootframebuffer->Pitch * bootframebuffer->Height;
     
     uint64_t virtualAddress = (uint64_t)MapPhysical((uintptr_t)bootframebuffer->Address, fb_size);
 
-    Monitor* monitor0 = new Monitor(self, (uintptr_t) virtualAddress, bootframebuffer->Width, bootframebuffer->Height, 0, 0);
+    Monitor* monitor0 = new Monitor(self, (uintptr_t) virtualAddress, bootframebuffer->Width, bootframebuffer->Height, bootframebuffer->Pitch, bootframebuffer->Bpp, 0, 0);
 
     free(bootframebuffer);
     
