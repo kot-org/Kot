@@ -60,7 +60,7 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
     SrvInfo = (SrvInfo_t*)malloc(sizeof(SrvInfo_t));
 
     SrvInfo->Framebuffer = (srv_system_framebuffer_t*)malloc(sizeof(srv_system_framebuffer_t));
-    SrvInfo->Framebuffer->Address = kernelInfo->Framebuffer.framebuffer_addr;
+    SrvInfo->Framebuffer->Address = kernelInfo->Framebuffer.framebuffer_base;
     SrvInfo->Framebuffer->Width = kernelInfo->Framebuffer.framebuffer_width;
     SrvInfo->Framebuffer->Height = kernelInfo->Framebuffer.framebuffer_height;
     SrvInfo->Framebuffer->Pitch = kernelInfo->Framebuffer.framebuffer_pitch;

@@ -15,7 +15,7 @@ extern "C" int main(KernelInfo* kernelInfo) {
     thread_t self = Sys_Getthread();
 
     // parse file system
-    initrd::Parse(kernelInfo->initrd.address, kernelInfo->initrd.size);
+    initrd::Parse((uintptr_t)kernelInfo->initrd.base, kernelInfo->initrd.size);
 
     // parse rsdp
     ParseRSDP(kernelInfo->Rsdp);

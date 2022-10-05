@@ -32,11 +32,12 @@ private:
     FocusState focus_state = INACTIVE;
     void newBuffer();
 public:
-    Window(process_t orb, uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos);
+    Window(process_t orb, uint64_t width, uint64_t height, uint64_t bpp, uint32_t xPos, uint32_t yPos);
     framebuffer_t* getFramebuffer();
     ksmem_t getFramebufferKey();
     uint32_t getHeight();
     uint32_t getWidth();
+    uint32_t getBpp();
     uint32_t getPitch();
     uint32_t getX();
     uint32_t getY();

@@ -48,12 +48,20 @@ uint32_t getHeight(uint32_t wid) {
     return result;
 }
 
+uint32_t getBpp(uint32_t wid) {
+    if (OrbSrv == NULL) { GetOrbSrv(); }
+    arguments_t arguments;
+    arguments.arg[0] = wid;
+    ksmem_t result = Sys_Execthread(OrbSrv->getBpp, &arguments, ExecutionTypeQueuAwait, NULL);
+    return result;
+}
+
 framebuffer_t* getFramebuffer(uint32_t wid) {
     if (OrbSrv == NULL) { GetOrbSrv(); }
     framebuffer_t* fb = (framebuffer_t*) calloc(sizeof(framebuffer_t));
     fb->height = GetHeight(wid);
     fb->width = GetWidth(wid);
-    fb->bpp = 32;
+    fb->bpp = GetBpp(wid);
     fb->btpp = fb->bpp / 8;
     fb->pitch = fb->width * fb->btpp;
     fb->size = fb->pitch * fb->height;

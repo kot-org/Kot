@@ -1,8 +1,8 @@
 #include <core/core.h>
 
-extern "C" void main(uintptr_t boot){   
+extern "C" void main(ukl_boot_structure_t* BootData){   
     /* load arch */
-    ArchInfo_t* ArchInfo = arch_initialize(boot);
+    ArchInfo_t* ArchInfo = arch_initialize(BootData);
     ArchInfo->revision = 1;
 
     /* load init file */

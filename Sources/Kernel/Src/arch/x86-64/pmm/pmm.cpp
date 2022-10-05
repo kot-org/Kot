@@ -18,69 +18,27 @@ static inline uintptr_t Pmm_ConvertIndexToAddress(uint64_t index){
     return (uintptr_t)(index << 12);
 }
 
-void Pmm_Init(stivale2_struct_tag_memmap* Map){
-    uintptr_t BitmapSegment = NULL;
-
-    uint64_t memorySize = Pmm_GetMemorySize(Map);
-    uint64_t PageCountTotal = 0;
+void Pmm_Init(ukl_memmory_info_t* MemoryInfo){
+    uint64_t memorySize = Pmm_GetMemorySize(MemoryInfo);
     uint64_t LastBase = 0;
-    for (uint64_t i = 0; i < Map->entries; i++){
-        if(Map->memmap[i].base > LastBase){
-            LastBase = Map->memmap[i].base;
-            PageCountTotal = DivideRoundUp(Map->memmap[i].base + Map->memmap[i].length, PAGE_SIZE);
-        }
-    }
 
-    uint64_t bitmapSize = DivideRoundUp(PageCountTotal, 8);
-
-    for (uint64_t i = 0; i < Map->entries; i++){
-        if (Map->memmap[i].type == STIVALE2_MMAP_USABLE){
-            uint64_t lenght = Map->memmap[i].length;
-            uint64_t base = Map->memmap[i].base;
-
-            /* Do not earase trampoline with bitmap */
-            if(Map->memmap[i].base <= (TRAMPOLINE_ADDRESS + TRAMPOLINE_SIZE)){
-                lenght -= (TRAMPOLINE_ADDRESS + TRAMPOLINE_SIZE - Map->memmap[i].base);
-                base = TRAMPOLINE_ADDRESS + TRAMPOLINE_SIZE;
-            }
-
-            if (lenght > bitmapSize){
-                BitmapSegment = (uintptr_t)base;
-                break;
-            }
-        }
-    }
-
-    Pmm_MemoryInfo.freePageMemory = PageCountTotal;
+    Pmm_MemoryInfo.freePageMemory = MemoryInfo->page_count_total;
     Pmm_MemoryInfo.usedPageMemory = 0x0;
-    Pmm_MemoryInfo.totalPageMemory = PageCountTotal;
+    Pmm_MemoryInfo.totalPageMemory = MemoryInfo->page_count_total;
     Pmm_MemoryInfo.reservedPageMemory = 0x0;
-    Pmm_MemoryInfo.totalUsablePageMemory = PageCountTotal;
-    Pmm_InitBitmap(bitmapSize, BitmapSegment);
+    Pmm_MemoryInfo.totalUsablePageMemory = MemoryInfo->page_count_total;
+    Pmm_InitBitmap((uintptr_t)MemoryInfo->bitmap_address, MemoryInfo->bitmap_size);
 
-    Pmm_ReservePages(0x0, PageCountTotal + 1);
+    Pmm_ReservePages(0x0, MemoryInfo->page_count_total);
 
-    /* Protect bitmap address */
-    uint64_t ProtectedIndexStart = Pmm_ConvertAddressToIndex(BitmapSegment);
-    uint64_t ProtectedIndexEnd = ProtectedIndexStart + DivideRoundUp(Pmm_PageBitmap.Size, PAGE_SIZE);
-    for (uint64_t i = 0; i < Map->entries; i++){
-        if (Map->memmap[i].type == STIVALE2_MMAP_USABLE){ 
-            uint64_t indexstart = Pmm_ConvertAddressToIndex((uintptr_t)Map->memmap[i].base);
-            uint64_t pageCount = Map->memmap[i].length / PAGE_SIZE;
-            if(indexstart > ProtectedIndexEnd){
-                Pmm_UnreservePages_WI(indexstart, pageCount);
-            }else if(indexstart + pageCount < ProtectedIndexStart){
-                Pmm_UnreservePages_WI(indexstart, pageCount);
-            }else{
-                for(uint64_t t = 0; t < pageCount; t++){
-                    uint64_t index = indexstart + t;
-                    if(index < ProtectedIndexStart || ProtectedIndexEnd < index){
-                        Pmm_UnreservePage_WI(index);
-                    }
-                }                
-            }
-
+    ukl_mmap_info_t* MapEntry = (ukl_mmap_info_t*)vmm_GetVirtualAddress(MemoryInfo->map_main_entry);
+    for (uint64_t i = 0; i < MemoryInfo->map_entries_count; i++){
+        if (MapEntry->type == UKL_MMAP_AVAILABLE){ 
+            uint64_t indexstart = Pmm_ConvertAddressToIndex((uintptr_t)MapEntry->base);
+            uint64_t pageCount = MapEntry->length / PAGE_SIZE;
+            Pmm_UnreservePages_WI(indexstart, pageCount);
         }
+        MapEntry = (ukl_mmap_info_t*)vmm_GetVirtualAddress(MapEntry->map_next_entry);
     }
 
     /* Lock trampoline address */
@@ -186,18 +144,11 @@ void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
     }
 }
 
-uint64_t Pmm_GetMemorySize(stivale2_struct_tag_memmap* Map){
-    static uint64_t memorySizeBytes = 0;
-    if (memorySizeBytes > 0) return memorySizeBytes;
-
-    for (uint64_t i = 0; i < Map->entries; i++){
-        memorySizeBytes += Map->memmap[i].length;
-    }
-
-    return memorySizeBytes;
+uint64_t Pmm_GetMemorySize(ukl_memmory_info_t* MemInfo){
+    return MemInfo->page_count_total * PAGE_SIZE;
 }
 
-void Pmm_InitBitmap(size64_t bitmapSize, uintptr_t bufferAddress){
+void Pmm_InitBitmap(uintptr_t bufferAddress, size64_t bitmapSize){
     Pmm_PageBitmap.Size = bitmapSize;
     Pmm_PageBitmap.Buffer = (uint8_t*)bufferAddress;
     memset(Pmm_PageBitmap.Buffer, 0x0, Pmm_PageBitmap.Size);
@@ -258,7 +209,7 @@ void Pmm_FreePages_WI(uint64_t index, uint64_t pageCount){
     Atomic::atomicAcquire(&Pmm_Mutex, 0);
     Pmm_AddPageToFreeList(index, pageCount);
     uint64_t indexEnd = index + pageCount;
-    for (int t = index; t < indexEnd; t++){
+    for (uint64_t t = index; t < indexEnd; t++){
         if(Pmm_PageBitmap.GetAndSet(t, false)){
             Pmm_MemoryInfo.freePageMemory++;
             Pmm_MemoryInfo.usedPageMemory--;

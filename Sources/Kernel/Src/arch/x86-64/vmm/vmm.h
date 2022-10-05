@@ -1,5 +1,5 @@
 #pragma once
-#include <kot/types.h>
+#include <lib/types.h>
 #include <arch/x86-64.h>
 
 extern pagetable_t vmm_PageTable;
@@ -42,6 +42,7 @@ bool vmm_GetFlags(pagetable_t table, uintptr_t Address, vmm_flag flags);
 void vmm_SetFlags(pagetable_t table, uintptr_t Address, vmm_flag flags, bool enabled);
 
 uint64_t vmm_Map(uintptr_t physicalAddress);
+uint64_t vmm_Map(uintptr_t physicalAddress, size64_t size);
 void vmm_Map(uintptr_t Address, uintptr_t physicalAddress);
 void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress);
 void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bool user);
@@ -57,7 +58,7 @@ void vmm_Fill(pagetable_t table, uint64_t from, uint64_t to, bool user);
 
 void vmm_Swap(pagetable_t table);
 pagetable_t vmm_GetPageTable();
-uint64_t vmm_Init(struct BootInfo* bootInfo);
+uint64_t vmm_Init(struct ukl_boot_structure_t* bootInfo);
 
 pagetable_t vmm_SetupProcess();
 pagetable_t vmm_Setupthread(pagetable_t parent);

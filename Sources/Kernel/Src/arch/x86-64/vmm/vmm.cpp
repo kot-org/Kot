@@ -152,6 +152,15 @@ uint64_t vmm_Map(uintptr_t physicalAddress){
     return virtualAddress;
 }
 
+uint64_t vmm_Map(uintptr_t physicalAddress, size64_t size){
+    uint64_t virtualAddress = vmm_GetVirtualAddress(physicalAddress);
+    uint64_t pageSize = DivideRoundUp(size, PAGE_SIZE);
+    for(uint64_t i = 0; i < pageSize; i++){
+        vmm_Map(vmm_PageTable, (uintptr_t)(virtualAddress + i * PAGE_SIZE), (uintptr_t)((uint64_t)physicalAddress + i * PAGE_SIZE));
+    }
+    return virtualAddress;
+}
+
 void vmm_Map(uintptr_t Address, uintptr_t physicalAddress){
     vmm_Map(vmm_PageTable, Address, physicalAddress);
 }
@@ -370,50 +379,25 @@ pagetable_t vmm_GetPageTable(){
     return (pagetable_t)ASMReadCr3();
 }
 
-uint64_t vmm_Init(BootInfo* bootInfo){
-    vmm_PageTable = Pmm_RequestPage();
-    memset(vmm_PageTable, 0, PAGE_SIZE);
+uint64_t vmm_Init(ukl_boot_structure_t* bootInfo){
+    vmm_PageTable = (pagetable_t)bootInfo->memory_info.page_table;
 
-    /* map pmrs */
-    uint64_t HeapAddress = bootInfo->PMRs->pmrs[0].base;
-    for(uint64_t i = 0; i < bootInfo->PMRs->entries; i++){
-        stivale2_pmr* entry = &bootInfo->PMRs->pmrs[i];
-        for(uint64_t y = 0; y < entry->length; y += PAGE_SIZE){
-            uint64_t virtualAddress = entry->base + y;
-            uint64_t physicalAddress;
-            if(bootInfo->KernelAddress != NULL){
-                physicalAddress = bootInfo->KernelAddress->physical_base_address + (entry->base - bootInfo->KernelAddress->virtual_base_address) + y;
-            }else{
-                physicalAddress = virtualAddress - bootInfo->HHDM->addr;
-            }
-
-            vmm_Map(vmm_PageTable, (uintptr_t)virtualAddress, (uintptr_t)physicalAddress, false, true, true);
-        }
-    }
-
-    /* map all the memory */
-
-    for (uint64_t i = 0; i < bootInfo->Memory->entries; i++){
-        uint64_t PageNumber = DivideRoundUp(bootInfo->Memory->memmap[i].length, PAGE_SIZE);
-        for(uint64_t y = 0; y < PageNumber; y++){
-            uint64_t physicalAddress = bootInfo->Memory->memmap[i].base + y * PAGE_SIZE;
-            uint64_t virtualAddress = physicalAddress + vmm_HHDMAdress;
-            vmm_Map(vmm_PageTable, (uintptr_t)virtualAddress, (uintptr_t)physicalAddress, false, true, bootInfo->Memory->memmap[i].type == STIVALE2_MMAP_USABLE);
-        }
-    }
-
-    /* map initrd */
-    bootInfo->initrd.initrdBase = (uintptr_t)vmm_GetVirtualAddress(((uint64_t)bootInfo->initrd.initrdBase - vmm_HHDMAdress));
-    for(uint64_t i = 0; i < bootInfo->initrd.Size; i += PAGE_SIZE){
-        vmm_Map(vmm_PageTable, (uintptr_t)((uint64_t)bootInfo->initrd.initrdBase + i), (uintptr_t)(((uint64_t)bootInfo->initrd.initrdBase - vmm_HHDMAdress) + i), true, false); /* App can't write into initrd */
-    }
+    uint64_t HeapAddress = bootInfo->kernel_address.virtual_base_address;
 
     vmm_Fill(vmm_PageTable, VMM_LOWERHALF, VMM_HIGHERALF, false);
 
-    /* Update variable in the lower half */
-    Pmm_PageBitmap.Buffer = (uint8_t*)vmm_GetVirtualAddress(Pmm_PageBitmap.Buffer);
+    uint64_t initrdphysicaladdress = bootInfo->initrd.base;
+    uint64_t initrdvirtualaddress = vmm_GetVirtualAddress(((uint64_t)bootInfo->initrd.base));
 
-    vmm_Swap(vmm_PageTable);
+    // Update INITRD address
+    bootInfo->initrd.base = initrdvirtualaddress;
+
+    // Map new INITRD address
+    for(uint64_t i = 0; i < bootInfo->initrd.size; i += PAGE_SIZE){
+        vmm_Map(vmm_PageTable, (uintptr_t)initrdvirtualaddress, (uintptr_t)initrdphysicaladdress, true, false); /* App can't write into initrd */
+        initrdphysicaladdress += PAGE_SIZE;
+        initrdvirtualaddress += PAGE_SIZE;
+    }
 
     return HeapAddress;
 }

@@ -2,6 +2,8 @@
 
 process_t self;
 
+uint64_t main_monitor_bpp;
+
 vector_t* windows = NULL;
 vector_t* monitors = NULL;
 
@@ -28,6 +30,7 @@ thread_t destroyThread = NULL;
 thread_t getFramebufferThread = NULL;
 thread_t getWidthThread = NULL;
 thread_t getHeightThread = NULL;
+thread_t getBppThread = NULL;
 thread_t showThread = NULL;
 thread_t hideThread = NULL;
 thread_t resizeThread = NULL;
@@ -36,8 +39,8 @@ thread_t moveThread = NULL;
 /**
  * Return windowId
  **/
-void create(uint32_t width, uint32_t height, uint32_t x, uint32_t y) {
-    Window* window = new Window(self, width, height, x, y);
+void create(uint64_t width, uint64_t height, uint32_t x, uint32_t y) {
+    Window* window = new Window(self, width, height, main_monitor_bpp, x, y);
     vector_push(windows, window);
     Sys_Close(windows->length-1);
 }
@@ -113,6 +116,11 @@ void getWidth(uint32_t windowId) {
     Sys_Close(window->getWidth());
 }
 
+void getBpp(uint32_t windowId) {
+    Window* window = (Window*) vector_get(windows, windowId);
+    Sys_Close(window->getBpp());
+}
+
 
 
 void initUISD() {
@@ -122,6 +130,7 @@ void initUISD() {
     Sys_Createthread(self, (uintptr_t) &getFramebuffer, PriviledgeApp, &getFramebufferThread);
     Sys_Createthread(self, (uintptr_t) &getWidth, PriviledgeApp, &getWidthThread);
     Sys_Createthread(self, (uintptr_t) &getHeight, PriviledgeApp, &getHeightThread);
+    Sys_Createthread(self, (uintptr_t) &getBpp, PriviledgeApp, &getBppThread);
     Sys_Createthread(self, (uintptr_t) &show, PriviledgeApp, &showThread);
     Sys_Createthread(self, (uintptr_t) &hide, PriviledgeApp, &hideThread);
     Sys_Createthread(self, (uintptr_t) &resize, PriviledgeApp, &resizeThread);
@@ -142,6 +151,7 @@ void initUISD() {
     OrbSrv->getFramebuffer = MakeShareableThread(getFramebufferThread, PriviledgeApp);
     OrbSrv->getWidth = MakeShareableThread(getWidthThread, PriviledgeApp);
     OrbSrv->getHeight = MakeShareableThread(getHeightThread, PriviledgeApp);
+    OrbSrv->getBpp = MakeShareableThread(getBppThread, PriviledgeApp);
     OrbSrv->show = MakeShareableThread(showThread, PriviledgeApp);
     OrbSrv->hide = MakeShareableThread(hideThread, PriviledgeApp);
     OrbSrv->resize = MakeShareableThread(resizeThread, PriviledgeApp);
@@ -174,11 +184,13 @@ void initOrb() {
     srv_system_framebuffer_t* bootframebuffer = (srv_system_framebuffer_t*)callback->Data;
     free(callback);
 
+    main_monitor_bpp = bootframebuffer->Bpp;
+
     size64_t fb_size = bootframebuffer->Pitch * bootframebuffer->Height;
     
     uint64_t virtualAddress = (uint64_t)MapPhysical((uintptr_t)bootframebuffer->Address, fb_size);
 
-    Monitor* monitor0 = new Monitor(self, (uintptr_t) virtualAddress, bootframebuffer->Width, bootframebuffer->Height, 0, 0);
+    Monitor* monitor0 = new Monitor(self, (uintptr_t) virtualAddress, bootframebuffer->Width, bootframebuffer->Height, bootframebuffer->Pitch, bootframebuffer->Bpp, 0, 0);
 
     free(bootframebuffer);
     

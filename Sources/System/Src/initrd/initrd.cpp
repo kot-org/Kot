@@ -15,7 +15,7 @@ namespace initrd {
     File* Find(char* fileName) {
         if (info == NULL) return NULL;
         uint64_t cursor = sizeof(Header);
-        for (int i = 0; i < info->header->filenumber; i++) {
+        for (uint64_t i = 0; i < info->header->filenumber; i++){
             File* file = (File*) (cursor + (uint64_t)info->baseAddress);
             if (strcmp(fileName, file->name)) {
                 return file;

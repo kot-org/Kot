@@ -6,7 +6,7 @@ void Window::newBuffer() {
         Sys_CloseMemoryField(this->orb, this->fb_key, this->fb->addr);
     }
 
-    this->fb->pitch = this->fb->width * 4;
+    this->fb->pitch = this->fb->width * this->fb->btpp;
     this->fb->size = fb->pitch * this->fb->height;
 
     uintptr_t address = getFreeAlignedSpace(this->fb->size);
@@ -25,7 +25,7 @@ void Window::newBuffer() {
 
 }
 
-Window::Window(process_t orb, uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos) {
+Window::Window(process_t orb, uint64_t width, uint64_t height, uint64_t bpp, uint32_t xPos, uint32_t yPos) {
 
     this->xPos = xPos;
     this->yPos = yPos;
@@ -34,6 +34,9 @@ Window::Window(process_t orb, uint32_t width, uint32_t height, uint32_t xPos, ui
 
     this->fb->width = width;
     this->fb->height = height;
+
+    this->fb->bpp = bpp;
+    this->fb->btpp = bpp / 8;
 
     this->orb = orb;
     this->owner = Sys_GetProcess();
@@ -88,6 +91,10 @@ uint32_t Window::getHeight() {
 
 uint32_t Window::getWidth() {
     return fb->width;
+}
+
+uint32_t Window::getBpp() {
+    return fb->bpp;
 }
 
 uint32_t Window::getX() {
