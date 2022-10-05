@@ -5,7 +5,7 @@
 
 
 memoryInfo_t Pmm_MemoryInfo;
-Bitmap Pmm_PageBitmap;
+Bitmap Pmm_Bitmap;
 uint64_t Pmm_Mutex;
 uint64_t Pmm_FirstFreePageIndex = 0;
 freelistinfo_t* Pmm_LastFreeListInfo = NULL;
@@ -83,8 +83,8 @@ void Pmm_RemovePagesToFreeList(uint64_t index, uint64_t pageCount){
 
 void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
     /* Merge with free list */
-    bool IsNextFree = !Pmm_PageBitmap.Get(index + pageCount);
-    bool IsLastFree = !Pmm_PageBitmap.Get(index - 1);
+    bool IsNextFree = !Pmm_Bitmap.Get(index + pageCount);
+    bool IsLastFree = !Pmm_Bitmap.Get(index - 1);
     if(IsNextFree){
         if(IsLastFree){
             freelistinfo_t* FreeListInfoNext = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount)); /* We can get start because we are at the start of the freelist segment */
@@ -149,15 +149,15 @@ uint64_t Pmm_GetMemorySize(ukl_memmory_info_t* MemInfo){
 }
 
 void Pmm_InitBitmap(uintptr_t bufferAddress, size64_t bitmapSize){
-    Pmm_PageBitmap.Size = bitmapSize;
-    Pmm_PageBitmap.Buffer = (uint8_t*)bufferAddress;
-    memset(Pmm_PageBitmap.Buffer, 0x0, Pmm_PageBitmap.Size);
+    Pmm_Bitmap.Size = bitmapSize;
+    Pmm_Bitmap.Buffer = (uint8_t*)bufferAddress;
+    memset(Pmm_Bitmap.Buffer, 0x0, Pmm_Bitmap.Size);
 }
 
 uintptr_t Pmm_RequestPage(){
     Atomic::atomicAcquire(&Pmm_Mutex, 0);
     for (uint64_t index = Pmm_FirstFreePageIndex; index < Pmm_MemoryInfo.totalPageMemory; index++){
-        if(!Pmm_PageBitmap.GetAndSet(index, true)){
+        if(!Pmm_Bitmap.GetAndSet(index, true)){
             Pmm_FirstFreePageIndex = index;
             Pmm_MemoryInfo.freePageMemory--;
             Pmm_MemoryInfo.usedPageMemory++;
@@ -194,7 +194,7 @@ uintptr_t Pmm_RequestPages(uint64_t pageCount){
 
 void Pmm_FreePage_WI(uint64_t index){
     Atomic::atomicAcquire(&Pmm_Mutex, 0);
-    if(Pmm_PageBitmap.GetAndSet(index, false)){
+    if(Pmm_Bitmap.GetAndSet(index, false)){
         Pmm_AddPageToFreeList(index, 1);
         Pmm_MemoryInfo.freePageMemory++;
         Pmm_MemoryInfo.usedPageMemory--;
@@ -210,7 +210,7 @@ void Pmm_FreePages_WI(uint64_t index, uint64_t pageCount){
     Pmm_AddPageToFreeList(index, pageCount);
     uint64_t indexEnd = index + pageCount;
     for (uint64_t t = index; t < indexEnd; t++){
-        if(Pmm_PageBitmap.GetAndSet(t, false)){
+        if(Pmm_Bitmap.GetAndSet(t, false)){
             Pmm_MemoryInfo.freePageMemory++;
             Pmm_MemoryInfo.usedPageMemory--;
             if(Pmm_FirstFreePageIndex > t){
@@ -222,7 +222,7 @@ void Pmm_FreePages_WI(uint64_t index, uint64_t pageCount){
 }
 
 void Pmm_LockPage_WI(uint64_t index){
-    if(!Pmm_PageBitmap.GetAndSet(index, true)){
+    if(!Pmm_Bitmap.GetAndSet(index, true)){
         Pmm_MemoryInfo.freePageMemory--;
         Pmm_MemoryInfo.usedPageMemory++;
     }

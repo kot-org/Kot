@@ -1,7 +1,7 @@
 #pragma once
 #include <misc/bitmap/bitmap.h>
 
-extern Bitmap Pmm_PageBitmap;
+extern Bitmap Pmm_Bitmap;
 void Pmm_Init(struct ukl_memmory_info_t* Map);
 
 uint64_t Pmm_GetMemorySize(struct ukl_memmory_info_t* Map);

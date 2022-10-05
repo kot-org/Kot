@@ -1,5 +1,15 @@
 #include <arch/x86-64.h>
 
+struct BGRTHeader_t{
+    ACPI::SDTHeader Header;
+    uint16_t VendorID;
+    uint8_t Status;
+    uint8_t ImageType;
+    uint64_t ImageAddress;
+    uint32_t ImageOffsetX;
+    uint32_t ImageOffsetY;
+}__attribute__((packed));
+
 void InitializeACPI(ukl_boot_structure_t* BootData, ArchInfo_t* ArchInfo){
     if(BootData->RSDP.base == NULL){
         KernelPanic("RSDP not found");
