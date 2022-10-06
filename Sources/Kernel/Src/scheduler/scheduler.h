@@ -94,14 +94,14 @@ struct kprocess_t{
     /* Process Creator Info */
     uint64_t PID_PCI;
     uint64_t TID_PCI;
-    uint64_t ExternalData_PCI;
+    uint64_t ExternalData_P_PCI;
     uint64_t Priviledge_PCI;
 
     /* External data */
-    uint64_t ExternalData;
+    uint64_t ExternalData_P;
 
-    kthread_t* Createthread(uintptr_t entryPoint);
-    kthread_t* Createthread(uintptr_t entryPoint, enum Priviledge priviledge);
+    kthread_t* Createthread(uintptr_t entryPoint, uint64_t externalData);
+    kthread_t* Createthread(uintptr_t entryPoint, enum Priviledge priviledge, uint64_t externalData);
     kthread_t* Duplicatethread(kthread_t* source);
 }__attribute__((packed));  
 
@@ -154,6 +154,9 @@ struct kthread_t{
     kthread_t* Last;
     kthread_t* Next;
 
+    /* External data */
+    uint64_t ExternalData_T;
+
     void SaveContext(struct ContextStack* Registers, uint64_t CoreID);
     void SaveContext(struct ContextStack* Registers);
     void CreateContext(struct ContextStack* Registers, uint64_t CoreID);
@@ -191,8 +194,8 @@ class TaskManager{
 
         // threads
         kthread_t* GetTread_WL();
-        uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint);
-        uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint8_t privilege);
+        uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint64_t externalData);
+        uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, enum Priviledge priviledge, uint64_t externalData);
         uint64_t Duplicatethread(kthread_t** self, kprocess_t* proc, kthread_t* source);
         KResult Execthread(kthread_t* Caller, kthread_t* Self, enum ExecutionType Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers);
         uint64_t Unpause(kthread_t* task); 

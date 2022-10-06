@@ -16,7 +16,7 @@ KResult AddDevice(srv_storage_device_info_t* Info, storage_device_t** DevicePoin
         *DevicePointer = Device;
 
         thread_t CallbackRequestHandlerThread = NULL;
-        Sys_Createthread(Sys_GetProcess(), (uintptr_t)&CallbackRequestHandler, PriviledgeApp, &CallbackRequestHandlerThread);
+        Sys_Createthread(Sys_GetProcess(), (uintptr_t)&CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
         Device->CallbackRequestHandlerThread = MakeShareableThreadToProcess(CallbackRequestHandlerThread, Device->Info.DriverProc);      
         LoadPartitionSystem(Device);
         return KSUCCESS;

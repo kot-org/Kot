@@ -146,7 +146,10 @@ KResult Sys_UnPause(SyscallStack* Registers, kthread_t* thread){
     5 -> find free address  > bool
 */
 KResult Sys_Map(SyscallStack* Registers, kthread_t* thread){
-    if(Registers->arg2 && thread->Priviledge != PriviledgeDriver) return KNOTALLOW;
+    // Check priviledge
+    if(Registers->arg2 > AllocationTypeBasic && thread->Priviledge != PriviledgeDriver){
+        return KNOTALLOW;
+    } 
     kprocess_t* processkey;
     uint64_t flags;
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
@@ -358,8 +361,11 @@ KResult Sys_CreateThread(SyscallStack* Registers, kthread_t* thread){
     kthread_t* threadData;
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeProcessIsThreadCreateable)) return KKEYVIOLATION;
-    if(globalTaskManager->Createthread(&threadData, processkey, (uintptr_t)Registers->arg1, Registers->arg2) != KSUCCESS) return KFAIL;
-    return Keyhole_Create((key_t*)Registers->arg3, thread->Parent, thread->Parent, DataTypeThread, (uint64_t)threadData, KeyholeFlagFullPermissions, PriviledgeApp);
+    if(Registers->arg2 > PriviledgeApp){
+        Registers->arg2 = thread->Parent->DefaultPriviledge;
+    }
+    if(globalTaskManager->Createthread(&threadData, processkey, (uintptr_t)Registers->arg1, (enum Priviledge)Registers->arg2, Registers->arg3) != KSUCCESS) return KFAIL;
+    return Keyhole_Create((key_t*)Registers->arg4, thread->Parent, thread->Parent, DataTypeThread, (uint64_t)threadData, KeyholeFlagFullPermissions, PriviledgeApp);
 }
 
 /* Sys_Duplicatethread :

@@ -24,32 +24,32 @@ void InitSrv(PCIDeviceArrayInfo_t* DevicesArray){
     
     /* CountDevices */
     thread_t CountDevicesThread = NULL;
-    Sys_Createthread(proc, (uintptr_t) &CountDevices, PriviledgeDriver, &CountDevicesThread);
+    Sys_Createthread(proc, (uintptr_t) &CountDevices, PriviledgeDriver, NULL, &CountDevicesThread);
     PciSrv->CountDevices = MakeShareableThread(CountDevicesThread, PriviledgeDriver);
 
     /* FindDevice */
     thread_t FindDeviceThread = NULL;
-    Sys_Createthread(proc, (uintptr_t) &FindDevice, PriviledgeDriver, &FindDeviceThread);
+    Sys_Createthread(proc, (uintptr_t) &FindDevice, PriviledgeDriver, NULL, &FindDeviceThread);
     PciSrv->FindDevice = MakeShareableThread(FindDeviceThread, PriviledgeDriver);
 
     /* GetInfo */
     thread_t GetInfoDeviceThread = NULL;
-    Sys_Createthread(proc, (uintptr_t) &GetInfoDevice, PriviledgeDriver, &GetInfoDeviceThread);
+    Sys_Createthread(proc, (uintptr_t) &GetInfoDevice, PriviledgeDriver, NULL, &GetInfoDeviceThread);
     PciSrv->GetInfoDevice = MakeShareableThread(GetInfoDeviceThread, PriviledgeDriver);
 
     /* GetBAR */
     thread_t GetBARDeviceThread = NULL;
-    Sys_Createthread(proc, (uintptr_t) &GetBARDevice, PriviledgeDriver, &GetBARDeviceThread);
+    Sys_Createthread(proc, (uintptr_t) &GetBARDevice, PriviledgeDriver, NULL, &GetBARDeviceThread);
     PciSrv->GetBARDevice = MakeShareableThread(GetBARDeviceThread, PriviledgeDriver);
 
     /* BindMSI */
     thread_t BindMSIThread = NULL;
-    Sys_Createthread(proc, (uintptr_t) &BindMSI, PriviledgeDriver, &BindMSIThread);
+    Sys_Createthread(proc, (uintptr_t) &BindMSI, PriviledgeDriver, NULL, &BindMSIThread);
     PciSrv->BindMSI = MakeShareableThread(BindMSIThread, PriviledgeDriver);
 
     /* UnbindMSI */
     thread_t UnbindMSIThread = NULL;
-    Sys_Createthread(proc, (uintptr_t) &UnbindMSI, PriviledgeDriver, &UnbindMSIThread);
+    Sys_Createthread(proc, (uintptr_t) &UnbindMSI, PriviledgeDriver, NULL, &UnbindMSIThread);
     PciSrv->UnbindMSI = MakeShareableThread(UnbindMSIThread, PriviledgeDriver);
 }
 

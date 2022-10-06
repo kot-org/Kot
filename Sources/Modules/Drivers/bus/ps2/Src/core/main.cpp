@@ -12,7 +12,7 @@ extern "C" int main(int argc, char* argv[]){
     Printlog("[PS2] Initialization ...");
     /* Initialize PS2 drivers */
     self = Sys_GetProcess();
-    Sys_Createthread(self, (uintptr_t)&PS2InterruptHandler, PriviledgeDriver, &InterruptthreadHandler);
+    Sys_Createthread(self, (uintptr_t)&PS2InterruptHandler, PriviledgeDriver, NULL, &InterruptthreadHandler);
 
     KResult status = KSUCCESS;
 

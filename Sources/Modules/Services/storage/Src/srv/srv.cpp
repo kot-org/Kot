@@ -18,12 +18,12 @@ KResult InitialiseSrv(){
 
     /* AddDevice */
     thread_t AddDeviceThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&AddDeviceSrv, PriviledgeApp, &AddDeviceThread);
+    Sys_Createthread(proc, (uintptr_t)&AddDeviceSrv, PriviledgeApp, NULL, &AddDeviceThread);
     SrvData->AddDevice = MakeShareableThread(AddDeviceThread, PriviledgeDriver);
 
     /* RemoveDevice */
     thread_t RemoveDeviceThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&RemoveDeviceSrv, PriviledgeApp, &RemoveDeviceThread);
+    Sys_Createthread(proc, (uintptr_t)&RemoveDeviceSrv, PriviledgeApp, NULL, &RemoveDeviceThread);
     SrvData->RemoveDevice = MakeShareableThread(RemoveDeviceThread, PriviledgeDriver);
     
     uisd_callbackInfo_t* info = CreateControllerUISD(ControllerTypeEnum_Storage, key, true);   

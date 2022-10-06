@@ -125,16 +125,16 @@ void getBpp(uint32_t windowId) {
 
 void initUISD() {
 
-    Sys_Createthread(self, (uintptr_t) &create, PriviledgeApp, &createThread);
-    Sys_Createthread(self, (uintptr_t) &destroy, PriviledgeApp, &destroyThread);
-    Sys_Createthread(self, (uintptr_t) &getFramebuffer, PriviledgeApp, &getFramebufferThread);
-    Sys_Createthread(self, (uintptr_t) &getWidth, PriviledgeApp, &getWidthThread);
-    Sys_Createthread(self, (uintptr_t) &getHeight, PriviledgeApp, &getHeightThread);
-    Sys_Createthread(self, (uintptr_t) &getBpp, PriviledgeApp, &getBppThread);
-    Sys_Createthread(self, (uintptr_t) &show, PriviledgeApp, &showThread);
-    Sys_Createthread(self, (uintptr_t) &hide, PriviledgeApp, &hideThread);
-    Sys_Createthread(self, (uintptr_t) &resize, PriviledgeApp, &resizeThread);
-    Sys_Createthread(self, (uintptr_t) &move, PriviledgeApp, &moveThread);
+    Sys_Createthread(self, (uintptr_t) &create, PriviledgeApp, NULL, &createThread);
+    Sys_Createthread(self, (uintptr_t) &destroy, PriviledgeApp, NULL, &destroyThread);
+    Sys_Createthread(self, (uintptr_t) &getFramebuffer, PriviledgeApp, NULL, &getFramebufferThread);
+    Sys_Createthread(self, (uintptr_t) &getWidth, PriviledgeApp, NULL, &getWidthThread);
+    Sys_Createthread(self, (uintptr_t) &getHeight, PriviledgeApp, NULL, &getHeightThread);
+    Sys_Createthread(self, (uintptr_t) &getBpp, PriviledgeApp, NULL, &getBppThread);
+    Sys_Createthread(self, (uintptr_t) &show, PriviledgeApp, NULL, &showThread);
+    Sys_Createthread(self, (uintptr_t) &hide, PriviledgeApp, NULL, &hideThread);
+    Sys_Createthread(self, (uintptr_t) &resize, PriviledgeApp, NULL, &resizeThread);
+    Sys_Createthread(self, (uintptr_t) &move, PriviledgeApp, NULL, &moveThread);
 
     uintptr_t address = getFreeAlignedSpace(sizeof(uisd_graphics_t));
     ksmem_t key = NULL;
@@ -169,7 +169,7 @@ void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
 }
 
 void initCursor() {
-    Sys_Createthread(Sys_GetProcess(), (uintptr_t)&CursorInterrupt, PriviledgeApp, &MouseRelativeInterrupt);
+    Sys_Createthread(Sys_GetProcess(), (uintptr_t)&CursorInterrupt, PriviledgeApp, NULL, &MouseRelativeInterrupt);
     BindMouseRelative(MouseRelativeInterrupt, false);
 }
 
@@ -200,7 +200,7 @@ void initOrb() {
 
     initCursor();
 
-    Sys_Createthread(self, (uintptr_t) &threadRender, PriviledgeDriver, &renderThread);
+    Sys_Createthread(self, (uintptr_t) &threadRender, PriviledgeDriver, NULL, &renderThread);
     Sys_Execthread(renderThread, NULL, ExecutionTypeQueu, NULL);
 
 }

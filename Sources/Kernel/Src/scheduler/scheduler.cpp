@@ -106,13 +106,13 @@ kthread_t* TaskManager::GetTread_WL(){
     return ReturnValue;
 }
 
-uint64_t TaskManager::Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint){
-    *self = proc->Createthread(entryPoint);
+uint64_t TaskManager::Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint64_t externalData){
+    *self = proc->Createthread(entryPoint, externalData);
     return KSUCCESS;
 }
 
-uint64_t TaskManager::Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint8_t privilege){
-    *self = proc->Createthread(entryPoint);
+uint64_t TaskManager::Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, enum Priviledge priviledge, uint64_t externalData){
+    *self = proc->Createthread(entryPoint, priviledge, externalData);
     return KSUCCESS;
 }
 
@@ -223,7 +223,7 @@ KResult ThreadQueu_t::ExecuteThreadInQueu_WL(){
         SelfData* Data = CurrentData->Task->threadData;
         Data->PID_TLI = CurrentData->Caller->Parent->PID;
         Data->TID_TLI = CurrentData->Caller->TID;
-        Data->ExternalData_TLI = CurrentData->Caller->Parent->ExternalData;
+        Data->ExternalData_P_TLI = CurrentData->Caller->Parent->ExternalData_P;
         Data->Priviledge_TLI = CurrentData->Caller->Priviledge;
         
         CurrentData->Task->Launch_WL(&CurrentData->Parameters);
@@ -373,7 +373,7 @@ uint64_t TaskManager::CreateProcess(kprocess_t** key, enum Priviledge priviledge
     proc->Locks = (lock_t*)LockAddress;
     proc->LockLimit = StackBottom;
     proc->LockIndex = 0;
-    proc->ExternalData = externalData;
+    proc->ExternalData_P = externalData;
 
     Keyhole_Create(&proc->ProcessKey, proc, proc, DataTypeProcess, (uint64_t)proc, DefaultFlagsKey, PriviledgeApp);
 
@@ -387,18 +387,20 @@ uint64_t TaskManager::CreateProcess(kprocess_t** key, enum Priviledge priviledge
 }
 
 uint64_t TaskManager::CreateProcess(kthread_t* caller, kprocess_t** key, enum Priviledge priviledge, uint64_t externalData){
-    CreateProcess(key, priviledge, externalData);
-    (*key)->PID_PCI = caller->Parent->PID;
-    (*key)->TID_PCI = caller->TID;
-    (*key)->ExternalData_PCI = caller->Parent->ExternalData;
-    (*key)->Priviledge_PCI = caller->Priviledge;
+    KResult statu = CreateProcess(key, priviledge, externalData);
+    kprocess_t* proc = *key;
+    proc->PID_PCI = caller->Parent->PID;
+    proc->TID_PCI = caller->TID;
+    proc->ExternalData_P_PCI = caller->Parent->ExternalData_P;
+    proc->Priviledge_PCI = caller->Priviledge;
+    return statu;
 }
 
-kthread_t* kprocess_t::Createthread(uintptr_t entryPoint){
-    return Createthread(entryPoint, DefaultPriviledge);
+kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, uint64_t externalData){
+    return Createthread(entryPoint, DefaultPriviledge, externalData);
 }
 
-kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge priviledge){
+kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge priviledge, uint64_t externalData){
     Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 1);
     kthread_t* thread = (kthread_t*)calloc(sizeof(kthread_t));
     if(Childs == NULL){
@@ -445,6 +447,7 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge privil
     thread->IsClose = true;
     thread->Parent = this;
     thread->Queu = (ThreadQueu_t*)calloc(sizeof(ThreadQueu_t));
+    thread->ExternalData_T = externalData;
 
     /* Thread Data */
     uintptr_t threadDataPA = Pmm_RequestPage();
@@ -453,20 +456,22 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge privil
     Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey, PriviledgeApp);
     vmm_Map(thread->Paging, (uintptr_t)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
     
-    thread->threadData->ProcessKey = ProcessKey;
-    thread->threadData->PID = PID;
-    thread->threadData->TID = TID;
-    thread->threadData->ExternalData = ExternalData;
-    thread->threadData->Priviledge = thread->Priviledge;
-    thread->threadData->PID_PCI = PID_PCI;
-    thread->threadData->TID_PCI = TID_PCI;
-    thread->threadData->ExternalData_PCI = ExternalData_PCI;
-    thread->threadData->Priviledge_PCI = Priviledge_PCI;
-
     /* ID */
-    thread->TID = TID; 
+    thread->TID = this->TID; 
     TID++;
     NumberOfthread++;
+    
+    thread->threadData->ProcessKey = this->ProcessKey;
+    thread->threadData->PID = this->PID;
+    thread->threadData->TID = thread->TID;
+    thread->threadData->ExternalData_T = thread->ExternalData_T;
+    thread->threadData->ExternalData_P = this->ExternalData_P;
+    thread->threadData->Priviledge = thread->Priviledge;
+    thread->threadData->PID_PCI = this->PID_PCI;
+    thread->threadData->TID_PCI = this->TID_PCI;
+    thread->threadData->ExternalData_P_PCI = this->ExternalData_P_PCI;
+    thread->threadData->Priviledge_PCI = this->Priviledge_PCI;
+
 
     Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 1);
     return thread;
@@ -529,11 +534,11 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
     thread->threadData->ProcessKey = ProcessKey;
     thread->threadData->PID = PID;
     thread->threadData->TID = TID;
-    thread->threadData->ExternalData = ExternalData;
+    thread->threadData->ExternalData_P = ExternalData_P;
     thread->threadData->Priviledge = thread->Priviledge;
     thread->threadData->PID_PCI = PID_PCI;
     thread->threadData->TID_PCI = TID_PCI;
-    thread->threadData->ExternalData_PCI = ExternalData_PCI;
+    thread->threadData->ExternalData_P_PCI = ExternalData_P_PCI;
     thread->threadData->Priviledge_PCI = Priviledge_PCI;
     
     /* ID */
@@ -578,7 +583,7 @@ void TaskManager::CreateIddleTask(){
     if(IddleProc == NULL){
         CreateProcess(&IddleProc, PriviledgeApp, 0);
     }
-    kthread_t* thread = IddleProc->Createthread(IddleTaskPointer);
+    kthread_t* thread = IddleProc->Createthread(IddleTaskPointer, NULL);
 
     IdleNode[IddleTaskNumber] = thread;
     IddleTaskNumber++;

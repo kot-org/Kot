@@ -7,7 +7,7 @@ namespace SE8 {
         setName("unamed");
         // process_t self;
         // self = Sys_GetProcess();
-        // Sys_Createthread(self, (uintptr_t)&threadMain, PriviledgeService, &this->thr);
+        // Sys_Createthread(self, (uintptr_t)&threadMain, PriviledgeService, NULL, &this->thr);
     }   
 
     void Thread::run(JavaVM* jvm, char* className, char* methodName, char* signature, uint32_t* args, uint16_t args_length) {

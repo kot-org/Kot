@@ -9,7 +9,7 @@ void Srv_Storage_Initialize(){
         process_t Proc = Sys_GetProcess();
 
         thread_t StoragethreadKeyCallback = NULL;
-        Sys_Createthread(Proc, &Srv_Storage_Callback, PriviledgeApp, &StoragethreadKeyCallback);
+        Sys_Createthread(Proc, &Srv_Storage_Callback, PriviledgeApp, NULL, &StoragethreadKeyCallback);
         srv_storage_callback_thread = MakeShareableThreadToProcess(StoragethreadKeyCallback, StorageData->ControllerHeader.Process);
     }else{
         Sys_Close(KFAIL);

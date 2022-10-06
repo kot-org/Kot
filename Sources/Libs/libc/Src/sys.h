@@ -38,19 +38,20 @@ struct SelfData{
     process_t ProcessKey;
     uint64_t PID;
     uint64_t TID;
-    uint64_t ExternalData;
+    uint64_t ExternalData_T; /* Thread external data */
+    uint64_t ExternalData_P; /* Process external data */
     uint64_t Priviledge; /* Thread priviledge */
 
     /* Process Creator Info */
     uint64_t PID_PCI;
     uint64_t TID_PCI;
-    uint64_t ExternalData_PCI;
+    uint64_t ExternalData_P_PCI; /* Process external data */
     uint64_t Priviledge_PCI; /* Thread priviledge */
 
     /* Thread Launcher Info */
     uint64_t PID_TLI;
     uint64_t TID_TLI;
-    uint64_t ExternalData_TLI;
+    uint64_t ExternalData_P_TLI; /* Process external data */
     uint64_t Priviledge_TLI; /* Thread priviledge */
 }__attribute__((packed));
 
@@ -78,6 +79,7 @@ enum Priviledge{
     PriviledgeDriver            = 0x1,
     PriviledgeService           = 0x2,
     PriviledgeApp               = 0x3,
+    PriviledgeMax              = 0x4,
 };
 
 enum MemoryFieldType{
@@ -122,7 +124,7 @@ KResult Sys_Event_Bind(event_t self, thread_t task, bool IgnoreMissedEvents);
 KResult Sys_Event_Unbind(event_t self, thread_t task);
 KResult Sys_Event_trigger(event_t self, struct arguments_t* parameters);
 KResult Sys_Event_Close();
-KResult Sys_Createthread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, thread_t* result); // TODO make external data field
+KResult Sys_Createthread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t externalData, thread_t* result); // TODO make external data field
 KResult Sys_Duplicatethread(process_t parent, thread_t source, thread_t* self);
 KResult Sys_Execthread(thread_t self, struct arguments_t* parameters, enum ExecutionType type, struct ShareDataWithArguments_t* data);
 KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, process_t target, uint64_t flags, enum Priviledge privilidge);

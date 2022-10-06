@@ -74,8 +74,8 @@ KResult Sys_Event_Close(){
     return Syscall_0(KSys_Event_Close);
 }
 
-KResult Sys_Createthread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, thread_t* result){
-    return Syscall_32(KSys_CreateThread, self, entryPoint, privilege, result);
+KResult Sys_Createthread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t externalData, thread_t* result){
+    return Syscall_40(KSys_CreateThread, self, entryPoint, privilege, externalData, result);
 }
 
 KResult Sys_Duplicatethread(process_t parent, thread_t source, thread_t* self){

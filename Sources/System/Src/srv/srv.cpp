@@ -18,42 +18,42 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
 
     /* GetFramebuffer */
     thread_t GetFrameBufferThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&GetFrameBuffer, PriviledgeApp, &GetFrameBufferThread);
+    Sys_Createthread(proc, (uintptr_t)&GetFrameBuffer, PriviledgeApp, NULL, &GetFrameBufferThread);
     SystemSrv->GetFramebuffer = MakeShareableThread(GetFrameBufferThread, PriviledgeService);
 
     /* ReadFileInitrd */
     thread_t ReadFileFromInitrdThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&ReadFileFromInitrd, PriviledgeApp, &ReadFileFromInitrdThread);
+    Sys_Createthread(proc, (uintptr_t)&ReadFileFromInitrd, PriviledgeApp, NULL, &ReadFileFromInitrdThread);
     SystemSrv->ReadFileInitrd = MakeShareableThread(ReadFileFromInitrdThread, PriviledgeService);
 
     /* GetTableInRootSystemDescription */
     thread_t GetTableInRootSystemDescriptionThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&GetTableInRootSystemDescription, PriviledgeApp, &GetTableInRootSystemDescriptionThread);
+    Sys_Createthread(proc, (uintptr_t)&GetTableInRootSystemDescription, PriviledgeApp, NULL, &GetTableInRootSystemDescriptionThread);
     SystemSrv->GetTableInRootSystemDescription = MakeShareableThread(GetTableInRootSystemDescriptionThread, PriviledgeDriver);
 
     /* GetSystemManagementBIOSTable */
     thread_t GetSystemManagementBIOSTableThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&GetSystemManagementBIOSTable, PriviledgeApp, &GetSystemManagementBIOSTableThread);
+    Sys_Createthread(proc, (uintptr_t)&GetSystemManagementBIOSTable, PriviledgeApp, NULL, &GetSystemManagementBIOSTableThread);
     SystemSrv->GetSystemManagementBIOSTable = MakeShareableThread(GetSystemManagementBIOSTableThread, PriviledgeDriver);
 
     /* BindIRQLine */
     thread_t BindIRQLineThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&BindIRQLine, PriviledgeApp, &BindIRQLineThread);
+    Sys_Createthread(proc, (uintptr_t)&BindIRQLine, PriviledgeApp, NULL, &BindIRQLineThread);
     SystemSrv->BindIRQLine = MakeShareableThread(BindIRQLineThread, PriviledgeDriver);
     
     /* UnbindIRQLine */
     thread_t UnbindIRQLineThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&UnbindIRQLine, PriviledgeApp, &UnbindIRQLineThread);
+    Sys_Createthread(proc, (uintptr_t)&UnbindIRQLine, PriviledgeApp, NULL, &UnbindIRQLineThread);
     SystemSrv->UnbindIRQLine = MakeShareableThread(UnbindIRQLineThread, PriviledgeDriver);
 
     /* BindFreeIRQ */
     thread_t BindFreeIRQThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, &BindFreeIRQThread);
+    Sys_Createthread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, NULL, &BindFreeIRQThread);
     SystemSrv->BindFreeIRQ = MakeShareableThread(BindFreeIRQThread, PriviledgeDriver);
 
     /* UnbindIRQ */
     thread_t UnbindIRQThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, &UnbindIRQThread);
+    Sys_Createthread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, NULL, &UnbindIRQThread);
     SystemSrv->UnbindIRQ = MakeShareableThread(UnbindIRQThread, PriviledgeDriver);
 
     /* Setup data */

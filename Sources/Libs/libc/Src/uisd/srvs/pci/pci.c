@@ -7,7 +7,7 @@ void Srv_Pci_Initialize(){
     process_t proc = Sys_GetProcess();
 
     thread_t PciThreadKeyCallback = NULL;
-    Sys_Createthread(proc, &Srv_Pci_Callback, PriviledgeDriver, &PciThreadKeyCallback);
+    Sys_Createthread(proc, &Srv_Pci_Callback, PriviledgeDriver, NULL, &PciThreadKeyCallback);
     SrvPciCallbackThread = MakeShareableThreadToProcess(PciThreadKeyCallback, PciData->ControllerHeader.Process);
 }
 

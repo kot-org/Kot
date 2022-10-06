@@ -14,7 +14,7 @@ void SrvAddDevice(Device* Device){
     process_t Proc = Sys_GetProcess();
 
     thread_t SrvReadWriteHandlerThread = NULL;
-    Sys_Createthread(Proc, (uintptr_t)&SrvReadWriteHandler, PriviledgeApp, &SrvReadWriteHandlerThread);
+    Sys_Createthread(Proc, (uintptr_t)&SrvReadWriteHandler, PriviledgeApp, NULL, &SrvReadWriteHandlerThread);
     Info.ReadWriteThread = MakeShareableThreadToProcess(SrvReadWriteHandlerThread, StorageData->ControllerHeader.Process);
     Info.ReadWriteArg = (uint64_t)Device;
 

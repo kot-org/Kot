@@ -57,7 +57,7 @@ namespace ELF{
         
         kprocess_t* proc = NULL;
         globalTaskManager->CreateProcess(&proc, ring, 0);
-        kthread_t* mainthread = proc->Createthread((uintptr_t)self->Header->e_entry);
+        kthread_t* mainthread = proc->Createthread((uintptr_t)self->Header->e_entry, NULL);
         
         /* Load the elf */
         self->phdrs = (uintptr_t)((uint64_t)buffer + self->Header->e_phoff);

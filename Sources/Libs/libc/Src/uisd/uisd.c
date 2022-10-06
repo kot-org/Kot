@@ -23,7 +23,7 @@ KResult InitializeUISD(){
 
     process_t Proc = Sys_GetProcess();
 
-    Sys_Createthread(Proc, &CallbackUISD, PriviledgeApp, &UISDthreadKeyCallback);
+    Sys_Createthread(Proc, &CallbackUISD, PriviledgeApp, NULL, &UISDthreadKeyCallback);
     CallBackUISDThread = MakeShareableThreadToProcess(UISDthreadKeyCallback, KotSpecificData.UISDHandlerProcess);
 
     UISDKeyFlags = NULL;

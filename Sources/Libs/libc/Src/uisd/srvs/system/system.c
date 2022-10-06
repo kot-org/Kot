@@ -9,7 +9,7 @@ void Srv_System_Initialize(){
         process_t Proc = Sys_GetProcess();
 
         thread_t SystemthreadKeyCallback = NULL;
-        Sys_Createthread(Proc, &Srv_System_Callback, PriviledgeApp, &SystemthreadKeyCallback);
+        Sys_Createthread(Proc, &Srv_System_Callback, PriviledgeMax, NULL, &SystemthreadKeyCallback);
         srv_system_callback_thread = MakeShareableThreadToProcess(SystemthreadKeyCallback, SystemData->ControllerHeader.Process);
     }else{
         Sys_Close(KFAIL);
