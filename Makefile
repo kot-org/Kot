@@ -39,7 +39,7 @@ clean:
 
 deps-github-action: deps-llvm
 	sudo apt update
-	sudo apt install nasm xorriso
+	sudo apt install nasm xorriso grub mtools
 
 github-action: deps-github-action build
 
