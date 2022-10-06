@@ -32,14 +32,14 @@ deps-llvm:
 
 deps-debian: deps-llvm
 	sudo apt update
-	sudo apt install nasm xorriso build-essential qemu-system-x86 ovmf grub mtools -y
+	sudo apt install nasm xorriso build-essential qemu-system-x86 ovmf mtools -y
 
 clean:
 	sudo rm -rf ./Bin ./Sysroot ./Sources/*/*/*/*/*/Lib ./Sources/*/*/*/*/Lib ./Sources/*/*/*/Lib ./Sources/*/*/Lib ./Sources/*/Lib
 
 deps-github-action: deps-llvm
 	sudo apt update
-	sudo apt install nasm xorriso grub mtools
+	sudo apt install nasm xorriso mtools
 
 github-action: deps-github-action build
 
