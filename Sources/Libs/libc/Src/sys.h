@@ -136,18 +136,19 @@ thread_t Sys_Getthread();
 process_t Sys_GetProcess();
 uint64_t Sys_GetPID();
 uint64_t Sys_GetTID();
-uint64_t Sys_GetExternalData();
-uint64_t Sys_GetPriviledge();
+uint64_t Sys_GetExternalDataThread();
+uint64_t Sys_GetExternalDataProcess();
+uint64_t Sys_GetPriviledgeThread();
 
-uint64_t Sys_GetPIDCreator();
-uint64_t Sys_GetTIDCreator();
-uint64_t Sys_GetExternalDataCreator();
-uint64_t Sys_GetPriviledgeCreator();
+uint64_t Sys_GetPIDThreadCreator();
+uint64_t Sys_GetTIDThreadCreator();
+uint64_t Sys_GetExternalDataProcessCreator();
+uint64_t Sys_GetPriviledgeThreadCreator();
 
-uint64_t Sys_GetPIDLauncher();
-uint64_t Sys_GetTIDLauncher();
-uint64_t Sys_GetExternalDataLauncher();
-uint64_t Sys_GetEPriviledgeLauncher();
+uint64_t Sys_GetPIDThreadLauncher();
+uint64_t Sys_GetTIDThreadLauncher();
+uint64_t Sys_GetExternalDataProcessLauncher();
+uint64_t Sys_GetPriviledgeThreadLauncher();
 
 KResult Printlog(char* message);
 

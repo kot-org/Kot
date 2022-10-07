@@ -127,73 +127,80 @@ uint64_t Sys_GetTID(){
     return TID;
 }
 
-uint64_t Sys_GetExternalData(){
+uint64_t Sys_GetExternalDataThread(){
     /* Get Self Data */
     uint64_t ExternalData = NULL;
-    asm("mov %%gs:0x18, %0":"=r"(ExternalData));
+    asm("mov %%gs:0x20, %0":"=r"(ExternalData));
     return ExternalData;
 }
 
-uint64_t Sys_GetPriviledge(){
+uint64_t Sys_GetExternalDataProcess(){
+    /* Get Self Data */
+    uint64_t ExternalData = NULL;
+    asm("mov %%gs:0x28, %0":"=r"(ExternalData));
+    return ExternalData;
+}
+
+uint64_t Sys_GetPriviledgeThread(){
     /* Get Self Data */
     uint64_t Priviledge = NULL;
-    asm("mov %%gs:0x20, %0":"=r"(Priviledge));
+    asm("mov %%gs:0x30, %0":"=r"(Priviledge));
     return Priviledge;
 }
 
-uint64_t Sys_GetPIDCreator(){
+uint64_t Sys_GetPIDThreadCreator(){
     /* Get Self Data */
     uint64_t PID = NULL;
-    asm("mov %%gs:0x28, %0":"=r"(PID));
+    asm("mov %%gs:0x38, %0":"=r"(PID));
     return PID;
 }
 
-uint64_t Sys_GetTIDCreator(){
+uint64_t Sys_GetTIDThreadCreator(){
     /* Get Self Data */
     uint64_t TID = NULL;
-    asm("mov %%gs:0x30, %0":"=r"(TID));
+    asm("mov %%gs:0x40, %0":"=r"(TID));
     return TID;
 }
 
-uint64_t Sys_GetExternalDataCreator(){
+uint64_t Sys_GetExternalDataProcessCreator(){
     /* Get Self Data */
     uint64_t ExternalData = NULL;
-    asm("mov %%gs:0x38, %0":"=r"(ExternalData));
+    asm("mov %%gs:0x48, %0":"=r"(ExternalData));
     return ExternalData;
 }
 
-uint64_t Sys_GetPriviledgeCreator(){
+uint64_t Sys_GetPriviledgeThreadCreator(){
     /* Get Self Data */
     uint64_t Priviledge = NULL;
-    asm("mov %%gs:0x40, %0":"=r"(Priviledge));
+    asm("mov %%gs:0x50, %0":"=r"(Priviledge));
     return Priviledge;
 }
 
-uint64_t Sys_GetPIDLauncher(){
+uint64_t Sys_GetPIDThreadLauncher(){
     /* Get Self Data */
     uint64_t PID = NULL;
-    asm("mov %%gs:0x48, %0":"=r"(PID));
+    asm("mov %%gs:0x58, %0":"=r"(PID));
     return PID;
 }
 
-uint64_t Sys_GetTIDLauncher(){
+uint64_t Sys_GetTIDThreadLauncher(){
     /* Get Self Data */
     uint64_t TID = NULL;
-    asm("mov %%gs:0x50, %0":"=r"(TID));
+    asm("mov %%gs:0x60, %0":"=r"(TID));
     return TID;
 }
 
-uint64_t Sys_GetExternalDataLauncher(){
+uint64_t Sys_GetExternalDataProcessLauncher(){
     /* Get Self Data */
     uint64_t ExternalData = NULL;
-    asm("mov %%gs:0x58, %0":"=r"(ExternalData));
+    asm("mov %%gs:0x68, %0":"=r"(ExternalData));
     return ExternalData;
 }
 
-uint64_t Sys_GetEPriviledgeLauncher(){
+uint64_t Sys_GetPriviledgeThreadLauncher(){
     /* Get Self Data */
     uint64_t Priviledge = NULL;
-    asm("mov %%gs:0x60, %0":"=r"(Priviledge));
+    asm("mov %%gs:0x70, %0":"=r"(Priviledge));
     return Priviledge;
 }
 

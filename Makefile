@@ -32,7 +32,7 @@ deps-llvm:
 
 deps-debian: deps-llvm
 	sudo apt update
-	sudo apt install nasm xorriso build-essential qemu-system-x86 ovmf mtools -y
+	sudo apt install nasm xorriso mtools build-essential qemu-system-x86 ovmf  -y
 
 clean:
 	sudo rm -rf ./Bin ./Sysroot ./Sources/*/*/*/*/*/Lib ./Sources/*/*/*/*/Lib ./Sources/*/*/*/Lib ./Sources/*/*/Lib ./Sources/*/Lib
