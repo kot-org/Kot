@@ -15,8 +15,7 @@ extern "C" {
 typedef KResult (*StorageCallbackHandler)(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
 struct srv_storage_device_info_t{
-    thread_t ReadWriteThread; 
-    uint64_t ReadWriteArg; 
+    thread_t ReadWriteThread;
     ksmem_t BufferRWKey;
     uint64_t BufferRWAlignement;
     uint64_t BufferRWUsableSize;

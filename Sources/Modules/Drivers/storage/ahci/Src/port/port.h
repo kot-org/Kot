@@ -560,8 +560,11 @@ class Device{
         void StartCMD();
         int8_t FindSlot();
 
-        KResult Read(uint64_t Start, size64_t Size);
-        KResult Write(uint64_t Start, size64_t Size);
+        struct Space_t* CreateSpace(uint64_t Start, uint64_t Size);
+        void LoadSpace(struct Space_t* Self);
+
+        KResult Read(struct Space_t* Self, uint64_t Start, size64_t Size);
+        KResult Write(struct Space_t* Self, uint64_t Start, size64_t Size);
 
 
         uint64_t GetSize();
@@ -577,18 +580,18 @@ class Device{
         struct HBACommandHeader_t* CommandHeader;
         struct HBACommandTable_t* CommandAddressTable[HBA_COMMAND_LIST_MAX_ENTRIES];
 
-        ksmem_t BufferKey;
-        uintptr_t BufferVirtual;
         size64_t BufferRealSize;
         size64_t BufferUsableSize;
-        uint64_t BufferAlignement;
+        uint64_t BufferAlignement;        
 
         uintptr_t BufferAlignementBottom;
         uintptr_t BufferAlignementTop;
+
+        Space_t* DefaultSpace;
 
         IdentifyInfo_t* IdentifyInfo;
 
         uint64_t ExternalID;
     private:
-        KResult GetIdentifyInfo();
+        KResult GetIdentifyInfo(struct Space_t* Self);
 };

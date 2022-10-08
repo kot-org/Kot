@@ -39,10 +39,9 @@ KResult storage_device_t::SendRequest(uint64_t Start, size64_t Size, bool IsWrit
     arguments_t parameters;
     parameters.arg[0] = CallbackRequestHandlerThread;
     parameters.arg[1] = Sys_Getthread();
-    parameters.arg[2] = Info.ReadWriteArg;
-    parameters.arg[3] = Start;
-    parameters.arg[4] = Size;
-    parameters.arg[5] = IsWrite;
+    parameters.arg[2] = Start;
+    parameters.arg[3] = Size;
+    parameters.arg[4] = IsWrite;
     Sys_Execthread(Info.ReadWriteThread, &parameters, ExecutionTypeQueu, NULL);
     Sys_Pause(false);
     return KSUCCESS;

@@ -14,11 +14,10 @@ void SrvAddDevice(Device* Device){
     process_t Proc = Sys_GetProcess();
 
     thread_t SrvReadWriteHandlerThread = NULL;
-    Sys_Createthread(Proc, (uintptr_t)&SrvReadWriteHandler, PriviledgeApp, NULL, &SrvReadWriteHandlerThread);
+    Sys_Createthread(Proc, (uintptr_t)&SrvReadWriteHandler, PriviledgeApp, (uint64_t)Device->DefaultSpace, &SrvReadWriteHandlerThread);
     Info.ReadWriteThread = MakeShareableThreadToProcess(SrvReadWriteHandlerThread, StorageData->ControllerHeader.Process);
-    Info.ReadWriteArg = (uint64_t)Device;
 
-    Info.BufferRWKey = Device->BufferKey;
+    Info.BufferRWKey = Device->DefaultSpace->BufferKey;
     Info.BufferRWAlignement = Device->BufferAlignement;
     Info.BufferRWUsableSize = Device->BufferUsableSize;
     Info.DeviceSize = Device->GetSize();
@@ -43,14 +42,14 @@ void SrvRemoveDevice(Device* Device){
     atomicUnlock(&SrvLock, 0);
 }
 
-void SrvReadWriteHandler(thread_t Callback, uint64_t CallbackArg, Device* Device, uint64_t Start, size64_t Size, bool IsWrite){
+void SrvReadWriteHandler(thread_t Callback, uint64_t CallbackArg, uint64_t Start, size64_t Size, bool IsWrite){
     KResult Statu = KFAIL;
-    if(Device){
-        if(IsWrite){
-            Statu = SrvWrite(Device, Start, Size);
-        }else{
-            Statu = SrvRead(Device, Start, Size);
-        }
+
+    Space_t* Space = (Space_t*)Sys_GetExternalDataThread();
+    if(IsWrite){
+        Statu = SrvWrite(Space, Space->StorageDevice, Start, Size);
+    }else{
+        Statu = SrvRead(Space, Space->StorageDevice, Start, Size);
     }
 
     arguments_t arguments{
@@ -66,16 +65,16 @@ void SrvReadWriteHandler(thread_t Callback, uint64_t CallbackArg, Device* Device
     Sys_Close(KSUCCESS);
 }
 
-KResult SrvRead(Device* Device, uint64_t Start, size64_t Size){
+KResult SrvRead(Space_t* Space, Device* Device, uint64_t Start, size64_t Size){
     if(Size <= Device->BufferUsableSize){
-        return Device->Read(Start, Size);
+        return Device->Read(Space, Start, Size);
     }
     return KFAIL;
 }
 
-KResult SrvWrite(Device* Device, uint64_t Start, size64_t Size){;
+KResult SrvWrite(Space_t* Space, Device* Device, uint64_t Start, size64_t Size){
     if(Size <= Device->BufferUsableSize){
-        return Device->Write(Start, Size);
+        return Device->Write(Space, Start, Size);
     }
     return KFAIL;
 }
