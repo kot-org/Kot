@@ -63,7 +63,7 @@ struct srv_storage_callback_t* Srv_Storage_AddDevice(struct srv_storage_device_i
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
-    return callback;    
+    return callback;
 }
 
 
@@ -97,4 +97,76 @@ struct srv_storage_callback_t* Srv_Storage_RemoveDevice(uint64_t Index, bool IsA
         Sys_Pause(false);
     }
     return callback;        
+}
+
+
+/* Get partition to mount number */
+
+KResult Srv_Storage_GetPartitionToMountNumber_Callback(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    if(Status == KSUCCESS){
+        Callback->Data = GP0;
+        Callback->Size = (size64_t)sizeof(uint64_t);
+    }
+    return Status;
+}
+
+struct srv_storage_callback_t* Srv_StorageGetPartitionToMountNumber(bool IsAwait){
+    if(!srv_storage_callback_thread) Srv_Storage_Initialize();
+    
+    thread_t self = Sys_Getthread();
+
+    struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Storage_GetPartitionToMountNumber_Callback;
+
+    struct arguments_t parameters;
+    parameters.arg[0] = srv_storage_callback_thread;
+    parameters.arg[1] = callback;
+    
+
+    KResult Status = Sys_Execthread(StorageData->GetPartitionToMountNumber, &parameters, ExecutionTypeQueu, NULL);
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}
+
+
+/* Get partition to mount access */
+
+KResult Srv_Storage_GetPartitionToMountAccess_Callback(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    if(Status == KSUCCESS){
+        Callback->Data = GP0;
+        Callback->Size = (size64_t)sizeof(uint64_t);
+    }
+    return Status;
+}
+
+struct srv_storage_callback_t* Srv_Storage_GetPartitionToMountAccess(struct srv_storage_device_info_t* Info, bool IsAwait){
+    if(!srv_storage_callback_thread) Srv_Storage_Initialize();
+    
+    thread_t self = Sys_Getthread();
+
+    struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Storage_GetPartitionToMountAccess_Callback;
+
+    struct arguments_t parameters;
+    parameters.arg[0] = srv_storage_callback_thread;
+    parameters.arg[1] = callback;
+    
+
+    KResult Status = Sys_Execthread(StorageData->GetPartitionToMountAccess, &parameters, ExecutionTypeQueu, NULL);
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
 }

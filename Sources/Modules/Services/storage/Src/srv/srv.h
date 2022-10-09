@@ -11,3 +11,6 @@ KResult InitialiseSrv();
 
 KResult AddDeviceSrv(thread_t Callback, uint64_t CallbackArg, struct srv_storage_device_info_t* Info);
 KResult RemoveDeviceSrv(thread_t Callback, uint64_t CallbackArg, struct storage_device_t* Device);
+
+KResult GetPartitionToMountNumberSrv(thread_t Callback, uint64_t CallbackArg);
+KResult GetPartitionToMountAccessSrv(thread_t Callback, uint64_t CallbackArg);

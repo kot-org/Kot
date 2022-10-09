@@ -37,6 +37,8 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
     // Update space size
     DefaultSpace->Size = GetSize();
 
+    atomicUnlock(&Lock, 0);
+
     SrvAddDevice(this);
 }
 
@@ -114,6 +116,8 @@ KResult Device::Read(Space_t* Self, uint64_t Start, size64_t Size){
         return KFAIL;
     }
 
+    atomicUnlock(&Lock, 0);
+
     uint32_t SectorLow = (uint32_t)Sector & 0xFFFFFFFF;
     uint32_t sectorHigh = (uint32_t)(Sector >> 32) & 0xFFFFFFFF;
 
@@ -163,6 +167,7 @@ KResult Device::Read(Space_t* Self, uint64_t Start, size64_t Size){
         spin++;
     }
     if(spin == ATA_CMD_TIMEOUT){
+        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
 
@@ -171,9 +176,12 @@ KResult Device::Read(Space_t* Self, uint64_t Start, size64_t Size){
     while (true){
         if((HbaPort->CommandIssue & (1 << MainSlot)) == 0) break;
         if(HbaPort->InterruptStatus & HBA_INTERRUPT_STATU_TFE){
+            atomicUnlock(&Lock, 0);
             return KFAIL;
         }
-    } 
+    }
+
+    atomicUnlock(&Lock, 0);
 
     return KSUCCESS;
 }
@@ -197,7 +205,8 @@ KResult Device::Write(Space_t* Self, uint64_t Start, size64_t Size){
         return KFAIL;
     }
     
-
+    atomicAcquire(&Lock, 0);
+    
     if(StartAlignement){
         uintptr_t BufferTmp = (uintptr_t)((uint64_t)Self->BufferVirtual + StartAlignement);
         memcpy(BufferAlignementBottom, BufferTmp, StartAlignementFill);
@@ -264,6 +273,7 @@ KResult Device::Write(Space_t* Self, uint64_t Start, size64_t Size){
         spin++;
     }
     if(spin == ATA_CMD_TIMEOUT){
+        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
 
@@ -272,14 +282,17 @@ KResult Device::Write(Space_t* Self, uint64_t Start, size64_t Size){
     while (true){
         if((HbaPort->CommandIssue & (1 << MainSlot)) == 0) break;
         if(HbaPort->InterruptStatus & HBA_INTERRUPT_STATU_TFE){
+            atomicUnlock(&Lock, 0);
             return KFAIL;
         }
     }
 
+    atomicUnlock(&Lock, 0);
     return KSUCCESS;
 }
 
 KResult Device::GetIdentifyInfo(Space_t* Self){
+    atomicAcquire(&Lock, 0);
     HbaPort->InterruptStatus = NULL; // Clear pending interrupt bits
 
     CommandHeader->CommandFISLength = sizeof(FisHostToDeviceRegisters_t) / sizeof(uint32_t); // Command FIS size;
@@ -304,6 +317,7 @@ KResult Device::GetIdentifyInfo(Space_t* Self){
         spin++;
     }
     if(spin == ATA_CMD_TIMEOUT){
+        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
 
@@ -312,10 +326,13 @@ KResult Device::GetIdentifyInfo(Space_t* Self){
     while (true){
         if((HbaPort->CommandIssue & (1 << MainSlot)) == 0) break;
         if(HbaPort->InterruptStatus & HBA_INTERRUPT_STATU_TFE){
+            atomicUnlock(&Lock, 0);
             return KFAIL;
         }
     }
     memcpy(IdentifyInfo, Self->BufferVirtual, sizeof(IdentifyInfo_t)); // copy data to DMA buffer
+
+    atomicUnlock(&Lock, 0);
 
     return KSUCCESS; 
 }

@@ -16,7 +16,9 @@ struct Space_t{
 }__attribute__((packed));
 
 void SrvAddDevice(class Device* Device);
-void SrvRemoveDevice(Device* Device);
+void SrvRemoveDevice(thread_t Callback, uint64_t CallbackArg);
+
+void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t Start, uint64_t Size);
 
 void SrvReadWriteHandler(thread_t Callback, uint64_t CallbackArg, uint64_t Start, size64_t Size, bool IsWrite);
 KResult SrvRead(struct Space_t* Space, class Device* Device, uint64_t Start, size64_t Size);

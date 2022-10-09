@@ -73,7 +73,6 @@ typedef struct {
     thread_t hide;
     thread_t resize;
     thread_t move;
-
 } uisd_graphics_t;
 
 typedef struct {
@@ -83,8 +82,12 @@ typedef struct {
 
 typedef struct {
     uisd_controller_t ControllerHeader;
+    
     thread_t AddDevice;
     thread_t RemoveDevice;
+
+    thread_t GetPartitionToMountNumber;
+    thread_t GetPartitionToMountAccess;
 
     thread_t Rename;
     thread_t Remove;
@@ -115,7 +118,7 @@ typedef struct {
     thread_t Self;
     uint64_t Controller;
     bool AwaitCallback;
-    uintptr_t Location;
+    uint64_t Location;
     KResult Status;
 } uisd_callbackInfo_t;
 

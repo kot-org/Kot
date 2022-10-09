@@ -39,7 +39,7 @@ KResult InitializeUISD(){
 KResult CallbackUISD(uint64_t Task, KResult Status, uisd_callbackInfo_t* Info, uint64_t GP0, uint64_t GP1){
     if(Task == UISDGetTask){
         ControllerList[Info->Controller] = (uintptr_t)GP0;
-        Info->Location = (uintptr_t)GP0;
+        Info->Location = GP0;
     } 
     Info->Status = Status;
     if(Info->AwaitCallback){

@@ -14,11 +14,18 @@ extern "C" {
 
 typedef KResult (*StorageCallbackHandler)(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
-struct srv_storage_device_info_t{
-    thread_t ReadWriteThread;
+struct srv_storage_space_info_t{
+    thread_t CreateProtectedDeviceSpaceThread;
+    thread_t ReadWriteDeviceThread;
     ksmem_t BufferRWKey;
     uint64_t BufferRWAlignement;
     uint64_t BufferRWUsableSize;
+    uint64_t SpaceSize;
+};
+
+struct srv_storage_device_info_t{
+    thread_t ReadWriteDeviceThread;
+    struct srv_storage_space_info_t MainSpace;
     uint64_t DeviceSize;
     uint8_t SerialNumber[SerialNumberSize];
     uint8_t DriveModelNumber[DriveModelNumberSize];
@@ -27,7 +34,7 @@ struct srv_storage_device_info_t{
 
 struct srv_storage_callback_t{
     thread_t Self;
-    uintptr_t Data;
+    uint64_t Data;
     size64_t Size;
     bool IsAwait;
     KResult Status;

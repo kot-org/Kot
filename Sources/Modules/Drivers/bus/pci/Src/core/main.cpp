@@ -4,7 +4,7 @@ extern "C" int main(int argc, char* argv[]) {
     Printlog("[PCI] Initialization ...");
 
     srv_system_callback_t* Callback = Srv_System_GetTableInRootSystemDescription("MCFG", true);
-    uintptr_t MCFGTable = Callback->Data;
+    uintptr_t MCFGTable = (uintptr_t)Callback->Data;
     free(Callback);
 
     PCIDeviceListInfo_t* PCIDeviceList = InitPCIList();

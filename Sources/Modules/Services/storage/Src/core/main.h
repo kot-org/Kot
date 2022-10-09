@@ -12,9 +12,9 @@
 #define LBA_SIZE 0x200
 
 static inline uint64_t ConvertBytesToLBA(uint64_t value){
-    return DivideRoundUp(value, LBA_SIZE);
+    return value >> 9;
 }
 
 static inline uint64_t ConvertLBAToBytes(uint64_t value){
-    return value * LBA_SIZE;
+    return value << 9;
 }

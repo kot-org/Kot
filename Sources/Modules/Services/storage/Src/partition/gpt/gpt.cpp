@@ -126,6 +126,13 @@ KResult device_partitions_t::LoadPartitions(){
     Device->ReadDevice(GPTPartitionEntries, ConvertLBAToBytes(GPTHeader->PartitionEntryLBA), SizeOfPartitionList);
     if(CheckPartitions() == KSUCCESS){
         IsGPTPartitionsLoaded = true;
+        for(uint64_t i = 0; i < GPT_MAX_PARTITIONS; i++){
+            uint64_t Start = ConvertLBAToBytes(GPTPartitionEntries[i].StartingLBA);
+            uint64_t Size = ConvertLBAToBytes(GPTPartitionEntries[i].EndingLBA - GPTPartitionEntries[i].StartingLBA);
+            if(Size != NULL){
+                NewPartition(Device, Start, Size);
+            }
+        }
         return KSUCCESS;
     }
     

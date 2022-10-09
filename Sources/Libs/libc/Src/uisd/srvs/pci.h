@@ -47,7 +47,7 @@ typedef struct {
 
 struct srv_pci_callback_t{
     thread_t Self;
-    uintptr_t Data;
+    uint64_t Data;
     size64_t Size;
     bool IsAwait;
     KResult Status;

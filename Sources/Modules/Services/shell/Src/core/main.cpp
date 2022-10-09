@@ -21,7 +21,7 @@ extern "C" int main() {
     orb::show(wid);
 
     srv_system_callback_t* callback0 = Srv_System_ReadFileInitrd("default-font.sfn", true);
-    font = LoadFont(callback0->Data);
+    font = LoadFont((uintptr_t)callback0->Data);
     free(callback0);
     font_fb_t fontBuff;
     fontBuff.address = fb->addr;
@@ -39,7 +39,7 @@ extern "C" int main() {
     JavaVM* vm = new JavaVM();
     vm->setOutput(&shell_print);
     srv_system_callback_t* callback1 = Srv_System_ReadFileInitrd("Test.class", true);
-    vm->loadClassBytes(callback1->Data);
+    vm->loadClassBytes((uintptr_t)callback1->Data);
     free(callback1);
     vm->setEntryPoint("Test");
     vm->run(NULL, 0);

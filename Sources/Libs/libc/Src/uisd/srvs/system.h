@@ -33,7 +33,7 @@ struct srv_system_sdtheader_t {
 
 struct srv_system_callback_t{
     thread_t Self;
-    uintptr_t Data;
+    uint64_t Data;
     size64_t Size;
     bool IsAwait;
     KResult Status;
