@@ -3,10 +3,9 @@
 KResult AddDevice(srv_storage_device_info_t* Info, storage_device_t** DevicePointer){
     uint64_t BufferType = NULL;
     uint64_t BufferSize = NULL;
-
+    
     Sys_GetInfoMemoryField(Info->MainSpace.BufferRWKey, &BufferType, &BufferSize);
     if(BufferType == MemoryFieldTypeShareSpaceRW){
-        Printlog("Storage found !!");
         storage_device_t* Device = (storage_device_t*)malloc(sizeof(storage_device_t));
         Device->BufferRWBase = getFreeAlignedSpace(BufferSize);
         Device->BufferRWSize = BufferSize;
@@ -20,8 +19,6 @@ KResult AddDevice(srv_storage_device_info_t* Info, storage_device_t** DevicePoin
         Sys_Createthread(Sys_GetProcess(), (uintptr_t)&CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
         Device->CallbackRequestHandlerThread = MakeShareableThreadToProcess(CallbackRequestHandlerThread, Device->Info.DriverProc);      
         LoadPartitionSystem(Device);
-
-
 
         return KSUCCESS;
     }
@@ -55,8 +52,8 @@ KResult storage_device_t::CreateSpace(uint64_t Start, size64_t Size, srv_storage
     return KSUCCESS;
 }
 
-KResult CallbackRequestHandler(KResult Statu, storage_callback_t* CallbackData){
-    Sys_Unpause(CallbackData->MainThread);
+KResult CallbackRequestHandler(KResult Statu, thread_t MainThread){
+    Sys_Unpause(MainThread);
     Sys_Close(KSUCCESS);
 }
 
@@ -66,11 +63,11 @@ KResult storage_device_t::SendRequest(uint64_t Start, size64_t Size, bool IsWrit
 
     arguments_t parameters;
     parameters.arg[0] = CallbackRequestHandlerThread;
-    parameters.arg[1] = (uint64_t)callbackData;
+    parameters.arg[1] = Sys_Getthread();
     parameters.arg[2] = Start;
     parameters.arg[3] = Size;
     parameters.arg[4] = IsWrite;
-    Sys_Execthread(Info.ReadWriteDeviceThread, &parameters, ExecutionTypeQueu, NULL);
+    Sys_Execthread(Info.MainSpace.ReadWriteDeviceThread, &parameters, ExecutionTypeQueu, NULL);
     Sys_Pause(false);
     return KSUCCESS;
 }

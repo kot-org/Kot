@@ -46,7 +46,6 @@ KResult InitialiseSrv(){
 KResult AddDeviceSrv(thread_t Callback, uint64_t CallbackArg, srv_storage_device_info_t* Info){
     KResult Statu = KFAIL;
     storage_device_t* Device = NULL;
-
     if(Info){
         Statu = AddDevice(Info, &Device);
     }

@@ -24,7 +24,6 @@ struct srv_storage_space_info_t{
 };
 
 struct srv_storage_device_info_t{
-    thread_t ReadWriteDeviceThread;
     struct srv_storage_space_info_t MainSpace;
     uint64_t DeviceSize;
     uint8_t SerialNumber[SerialNumberSize];

@@ -23,7 +23,7 @@ bool device_partitions_t::IsMBRDisk(){
 bool device_partitions_t::IsGPTDisk(){
     if(!IsMBRHeaderLoaded){
         if(LoadMBRHeader() != KSUCCESS){
-            return KFAIL;
+            return false;
         }
     }
 

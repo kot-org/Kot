@@ -28,9 +28,7 @@ KResult device_partitions_t::LoadGPTHeader(){
         if(GPTHeader->MyLBA != GPTHeaderLBAStart){
             return KNOTALLOW;
         }
-
         KResult GPTHeaderStatu = CheckGPTHeader(GPTHeader);
-
         // Load recovery header
         GPTHeader_t* RecoveryGPTHeader = (GPTHeader_t*)malloc(sizeof(GPTHeader_t));
         Device->ReadDevice(RecoveryGPTHeader, ConvertLBAToBytes(GPTHeader->AlternateLBA), sizeof(GPTHeader_t));

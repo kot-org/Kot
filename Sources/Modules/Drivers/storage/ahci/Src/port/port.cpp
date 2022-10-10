@@ -30,6 +30,8 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
     LoadSpace(DefaultSpace);
     StartCMD();
 
+    atomicUnlock(&Lock, 0);
+
     // Identify disk
     IdentifyInfo = (IdentifyInfo_t*)calloc(sizeof(IdentifyInfo_t));
     GetIdentifyInfo(DefaultSpace);
@@ -37,7 +39,6 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
     // Update space size
     DefaultSpace->Size = GetSize();
 
-    atomicUnlock(&Lock, 0);
 
     SrvAddDevice(this);
 }
