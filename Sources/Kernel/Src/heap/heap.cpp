@@ -32,15 +32,26 @@ uintptr_t calloc(size64_t size){
     return address;
 }
 
+uintptr_t calloc_WL(size64_t size){
+    uintptr_t address = malloc_WL(size);
+    memset(address, 0, size);
+    return address;
+}
+
 uintptr_t malloc(size64_t size){
+    Atomic::atomicAcquire(&globalHeap.lock, 0);
+    uintptr_t address = malloc_WL(size);
+    Atomic::atomicUnlock(&globalHeap.lock, 0);
+    return address;
+}
+
+uintptr_t malloc_WL(size64_t size){
     if (size == 0) return NULL;
 
     if(size % 0x10 > 0){ // it is not a multiple of 0x10
         size -= (size % 0x10);
         size += 0x10;
     }
-
-    Atomic::atomicAcquire(&globalHeap.lock, 0);
 
     SegmentHeader* currentSeg = (SegmentHeader*)globalHeap.mainSegment;
     uint64_t SizeWithHeader = size + sizeof(SegmentHeader);
@@ -67,8 +78,7 @@ uintptr_t malloc(size64_t size){
     }
     
     ExpandHeap(size);
-    Atomic::atomicUnlock(&globalHeap.lock, 0);
-    return malloc(size);
+    return malloc_WL(size);
 }
 
 void MergeThisToNext(SegmentHeader* header){
@@ -99,9 +109,13 @@ void MergeLastAndThisToNext(SegmentHeader* header){
 }
 
 void free(uintptr_t address){
-    if(address != NULL){
         Atomic::atomicAcquire(&globalHeap.lock, 0);
-        
+        free_WL(address);
+        Atomic::atomicUnlock(&globalHeap.lock, 0);
+}
+
+void free_WL(uintptr_t address){
+    if(address != NULL){        
         SegmentHeader* header = (SegmentHeader*)(uintptr_t)((uint64_t)address - sizeof(SegmentHeader));
         header->IsFree = true;
         globalHeap.FreeSize += header->length + sizeof(SegmentHeader);
@@ -111,7 +125,6 @@ void free(uintptr_t address){
             if(header->next->IsFree && header->last->IsFree){
                 // merge this segment and next segment into the last segment
                 MergeLastAndThisToNext(header);
-                Atomic::atomicUnlock(&globalHeap.lock, 0);
                 return;
             }
         }
@@ -120,7 +133,6 @@ void free(uintptr_t address){
             if(header->last->IsFree){
                 // merge this segment into the last segment
                 MergeLastToThis(header);  
-                Atomic::atomicUnlock(&globalHeap.lock, 0); 
                 return;  
             }         
         }
@@ -129,12 +141,9 @@ void free(uintptr_t address){
             if(header->next->IsFree){
                 // merge this segment into the next segment
                 MergeThisToNext(header);
-                Atomic::atomicUnlock(&globalHeap.lock, 0);
                 return; 
             }
         }
-
-        Atomic::atomicUnlock(&globalHeap.lock, 0);
     }
 }
 
@@ -149,6 +158,22 @@ uintptr_t realloc(uintptr_t buffer, size64_t size){
         }
 
         free(buffer);        
+    }
+
+    return newBuffer;
+}
+
+uintptr_t realloc_WL(uintptr_t buffer, size64_t size){
+    uintptr_t newBuffer = malloc_WL(size);
+
+    if(buffer != NULL){
+        if(size < GetSegmentHeader(buffer)->length){
+            memcpy(newBuffer, buffer, size);
+        }else{
+            memcpy(newBuffer, buffer, GetSegmentHeader(buffer)->length);
+        }
+
+        free_WL(buffer);        
     }
 
     return newBuffer;
@@ -223,4 +248,12 @@ void ExpandHeap(size64_t length){
 
 SegmentHeader* GetSegmentHeader(uintptr_t address){
     return (SegmentHeader*)(uintptr_t)((uint64_t)address - sizeof(SegmentHeader));
+}
+
+void AcquireHeap(){
+    Atomic::atomicAcquire(&globalHeap.lock, 0);
+}
+
+void ReleaseHeap(){
+    Atomic::atomicUnlock(&globalHeap.lock, 0);
 }

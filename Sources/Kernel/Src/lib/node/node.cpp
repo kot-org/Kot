@@ -9,6 +9,14 @@ Node* CreateNode(uintptr_t data){
     return node;
 }
 
+Node* CreateNode_WL(uintptr_t data){
+    Node* node = (Node*)malloc_WL(sizeof(Node));
+    node->data = data;
+    node->parent = node;
+    node->lastNodeCreate = node;
+    return node;
+}
+
 Node* Node::GetNode(uint64_t position){
     Node* node = this->parent;
     for(int i = 0; i < position; i++){
@@ -45,6 +53,17 @@ Node* Node::Add(uintptr_t data){
     return newNode;    
 }
 
+Node* Node::Add_WL(uintptr_t data){
+    Node* newNode = (Node*)malloc_WL(sizeof(Node));
+    newNode->data = data;
+    parent->lastNodeCreate->next = newNode;
+    newNode->last = newNode;
+    newNode->next = NULL;
+    newNode->parent = this->parent;
+    parent->lastNodeCreate = newNode;
+    return newNode;    
+}
+
 void Node::ModifyData(uintptr_t data){
     this->data = data;
 }
@@ -71,12 +90,46 @@ void Node::Delete(){
     free(this);
 }
 
+void Node::Delete_WL(){
+    if(parent->lastNodeCreate == this){
+        parent->lastNodeCreate = this->last;
+    }
+
+    if(last != NULL){
+        last->next = next;
+    }
+
+    if(next != NULL){
+        next->last = last;
+    }
+
+    if(this->parent = this){
+        if(next != NULL){
+            next->parent = next;
+        }        
+    }
+
+    free_WL(this);
+}
+
 void Node::FreeAllNode(){
     Node* node = this->parent;
     while(true){
         if(node->next != NULL){
             node = node->next;
             node->last->Delete();
+        }else{
+            return;
+        }
+    }
+}
+
+void Node::FreeAllNode_WL(){
+    Node* node = this->parent;
+    while(true){
+        if(node->next != NULL){
+            node = node->next;
+            node->last->Delete_WL();
         }else{
             return;
         }

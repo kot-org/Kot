@@ -6,6 +6,7 @@ KResult AddDevice(srv_storage_device_info_t* Info, storage_device_t** DevicePoin
 
     Sys_GetInfoMemoryField(Info->MainSpace.BufferRWKey, &BufferType, &BufferSize);
     if(BufferType == MemoryFieldTypeShareSpaceRW){
+        Printlog("Storage found !!");
         storage_device_t* Device = (storage_device_t*)malloc(sizeof(storage_device_t));
         Device->BufferRWBase = getFreeAlignedSpace(BufferSize);
         Device->BufferRWSize = BufferSize;

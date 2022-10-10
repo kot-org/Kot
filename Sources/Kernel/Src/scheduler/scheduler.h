@@ -40,7 +40,7 @@ struct ThreadQueu_t{
     KResult SetThreadInQueu_WL(kthread_t* Caller, kthread_t* Self, arguments_t* FunctionParameters, bool IsAwaitTask, struct ThreadShareData_t* Data);
     KResult ExecuteThreadInQueu_WL();
     KResult ExecuteThreadInQueu();
-    KResult NextThreadInQueu();
+    KResult NextThreadInQueu_WL();
 }__attribute__((packed));
 
 struct ThreadQueuData_t{

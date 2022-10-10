@@ -22,11 +22,18 @@ extern Heap globalHeap;
 void InitializeHeap(uintptr_t heapAddress, size64_t pageCount);
 
 uintptr_t calloc(size64_t size);
+uintptr_t calloc_WL(size64_t size);
 uintptr_t malloc(size64_t size);
+uintptr_t malloc_WL(size64_t size);
 uintptr_t realloc(uintptr_t buffer, size64_t size);
+uintptr_t realloc_WL(uintptr_t buffer, size64_t size);
 void free(uintptr_t address);
+void free_WL(uintptr_t address);
 
 SegmentHeader* SplitSegment(SegmentHeader* segment, size64_t size);
 void  ExpandHeap(size64_t lenght);
 
 SegmentHeader* GetSegmentHeader(uintptr_t address);
+
+void AcquireHeap();
+void ReleaseHeap();
