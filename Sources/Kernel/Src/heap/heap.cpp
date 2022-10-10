@@ -63,13 +63,11 @@ uintptr_t malloc_WL(size64_t size){
                 currentSeg->IsFree = false;
                 globalHeap.UsedSize += currentSeg->length + sizeof(SegmentHeader);
                 globalHeap.FreeSize -= currentSeg->length + sizeof(SegmentHeader);
-                Atomic::atomicUnlock(&globalHeap.lock, 0);
                 return (uintptr_t)((uint64_t)currentSeg + sizeof(SegmentHeader));
             }else if(currentSeg->length == size){
                 currentSeg->IsFree = false;
                 globalHeap.UsedSize += currentSeg->length + sizeof(SegmentHeader);
                 globalHeap.FreeSize -= currentSeg->length + sizeof(SegmentHeader);
-                Atomic::atomicUnlock(&globalHeap.lock, 0);
                 return (uintptr_t)((uint64_t)currentSeg + sizeof(SegmentHeader));
             }
         }
