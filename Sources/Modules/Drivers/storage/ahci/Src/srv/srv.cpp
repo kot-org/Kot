@@ -16,7 +16,7 @@ void SrvAddDevice(Device* Device){
 
     /* CreateProtectedDeviceSpaceThread */
     thread_t SrvCreateProtectedSpaceThread = NULL;
-    Sys_Createthread(Proc, (uintptr_t)&SrvCreateProtectedSpace, PriviledgeApp, (uint64_t)Device->DefaultSpace, &SrvCreateProtectedSpaceThread);
+    Sys_Createthread(Proc, (uintptr_t)&SrvCreateProtectedSpace, PriviledgeDriver, (uint64_t)Device->DefaultSpace, &SrvCreateProtectedSpaceThread);
     Info.MainSpace.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(SrvCreateProtectedSpaceThread, StorageHandler->ControllerHeader.Process);
 
     /* ReadWriteDeviceThread */
@@ -62,7 +62,6 @@ void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t S
     if(ActualSpaceLocalInfo->Size > Size){
         Size = ActualSpaceLocalInfo->Size;
     }
-
     Space_t* SpaceLocalInfo = ActualSpaceLocalInfo->StorageDevice->CreateSpace(Start, Size);
 
     srv_storage_space_info_t SpaceInfo;

@@ -15,6 +15,7 @@ struct storage_device_t{
     size_t BufferRWSize;
     srv_storage_device_info_t Info;
     thread_t CallbackRequestHandlerThread;
+    thread_t CallbackCreateSpaceHandlerThread;
     uint64_t Lock;
 
     KResult CreateSpace(uint64_t Start, size64_t Size, srv_storage_space_info_t** SpaceInfo);

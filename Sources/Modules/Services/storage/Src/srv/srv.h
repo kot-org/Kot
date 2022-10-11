@@ -12,5 +12,6 @@ KResult InitialiseSrv();
 KResult AddDeviceSrv(thread_t Callback, uint64_t CallbackArg, struct srv_storage_device_info_t* Info);
 KResult RemoveDeviceSrv(thread_t Callback, uint64_t CallbackArg, struct storage_device_t* Device);
 
-KResult GetPartitionToMountNumberSrv(thread_t Callback, uint64_t CallbackArg);
-KResult GetPartitionToMountAccessSrv(thread_t Callback, uint64_t CallbackArg);
+KResult CountPartitionByGUIDTypeSrv(thread_t Callback, uint64_t CallbackArg, struct GUID_t* PartitionTypeGUID);
+KResult MountPartitionSrv(thread_t Callback, uint64_t CallbackArg, uint64_t Index, struct GUID_t* PartitionTypeGUID, struct srv_storage_fs_server_functions_t* FSServerFunctions);
+KResult UnmountPartitionSrv(thread_t Callback, uint64_t CallbackArg, uint64_t Index, struct GUID_t* PartitionTypeGUID);

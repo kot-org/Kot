@@ -17,7 +17,11 @@ KResult AddDevice(srv_storage_device_info_t* Info, storage_device_t** DevicePoin
 
         thread_t CallbackRequestHandlerThread = NULL;
         Sys_Createthread(Sys_GetProcess(), (uintptr_t)&CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
-        Device->CallbackRequestHandlerThread = MakeShareableThreadToProcess(CallbackRequestHandlerThread, Device->Info.DriverProc);      
+        Device->CallbackRequestHandlerThread = MakeShareableThreadToProcess(CallbackRequestHandlerThread, Device->Info.DriverProc);
+
+        thread_t CallbackCreateSpaceHandlerThread = NULL;
+        Sys_Createthread(Sys_GetProcess(), (uintptr_t)&CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
+        Device->CallbackCreateSpaceHandlerThread = MakeShareableThreadToProcess(CallbackCreateSpaceHandlerThread, Device->Info.DriverProc);
         LoadPartitionSystem(Device);
 
         return KSUCCESS;
@@ -42,7 +46,7 @@ KResult storage_device_t::CreateSpace(uint64_t Start, size64_t Size, srv_storage
     callbackData->MainThread = Sys_Getthread();
 
     arguments_t parameters;
-    parameters.arg[0] = CallbackRequestHandlerThread;
+    parameters.arg[0] = CallbackCreateSpaceHandlerThread;
     parameters.arg[1] = (uint64_t)callbackData;
     parameters.arg[2] = Start;
     parameters.arg[3] = Size;

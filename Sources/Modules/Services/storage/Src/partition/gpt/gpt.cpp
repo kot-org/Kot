@@ -128,7 +128,7 @@ KResult device_partitions_t::LoadPartitions(){
             uint64_t Start = ConvertLBAToBytes(GPTPartitionEntries[i].StartingLBA);
             uint64_t Size = ConvertLBAToBytes(GPTPartitionEntries[i].EndingLBA - GPTPartitionEntries[i].StartingLBA);
             if(Size != NULL){
-                NewPartition(Device, Start, Size);
+                NewPartition(Device, Start, Size, &GPTPartitionEntries[i].PartitionTypeGUID);
             }
         }
         return KSUCCESS;

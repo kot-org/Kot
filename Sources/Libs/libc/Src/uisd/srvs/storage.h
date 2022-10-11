@@ -31,6 +31,15 @@ struct srv_storage_device_info_t{
     process_t DriverProc;
 };
 
+struct srv_storage_fs_server_functions_t{
+    thread_t Rename;
+    thread_t Remove;
+    thread_t Fopen;
+    thread_t Mkdir;
+    thread_t Readdir;
+    thread_t Flist;
+};
+
 struct srv_storage_callback_t{
     thread_t Self;
     uint64_t Data;

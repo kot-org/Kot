@@ -27,15 +27,20 @@ KResult InitialiseSrv(){
     SrvData->RemoveDevice = MakeShareableThread(RemoveDeviceThread, PriviledgeDriver);
 
 
-    /* GetPartitionToMountNumber */
-    thread_t GetPartitionToMountNumberThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&GetPartitionToMountNumberSrv, PriviledgeApp, NULL, &GetPartitionToMountNumberThread);
-    SrvData->GetPartitionToMountNumber = MakeShareableThread(GetPartitionToMountNumberThread, PriviledgeDriver);
+    /* CountPartitionByGUIDTypeSrv */
+    thread_t CountPartitionByGUIDTypeThread = NULL;
+    Sys_Createthread(proc, (uintptr_t)&CountPartitionByGUIDTypeSrv, PriviledgeApp, NULL, &CountPartitionByGUIDTypeThread);
+    SrvData->CountPartitionByGUIDTypeSrv = MakeShareableThread(CountPartitionByGUIDTypeThread, PriviledgeDriver);
 
-    /* GetPartitionToMountAccess */
-    thread_t GetPartitionToMountAccessThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&GetPartitionToMountAccessSrv, PriviledgeApp, NULL, &GetPartitionToMountAccessThread);
-    SrvData->GetPartitionToMountAccess = MakeShareableThread(GetPartitionToMountAccessThread, PriviledgeDriver);
+    /* MountPartition */
+    thread_t MountPartitionThread = NULL;
+    Sys_Createthread(proc, (uintptr_t)&MountPartitionSrv, PriviledgeApp, NULL, &MountPartitionThread);
+    SrvData->MountPartition = MakeShareableThread(MountPartitionThread, PriviledgeDriver);
+
+    /* UnmountPartition */
+    thread_t UnmountPartitionThread = NULL;
+    Sys_Createthread(proc, (uintptr_t)&UnmountPartitionSrv, PriviledgeApp, NULL, &UnmountPartitionThread);
+    SrvData->UnmountPartition = MakeShareableThread(UnmountPartitionThread, PriviledgeDriver);
     
     uisd_callbackInfo_t* info = CreateControllerUISD(ControllerTypeEnum_Storage, key, true);   
     free(info); 
@@ -79,8 +84,26 @@ KResult RemoveDeviceSrv(thread_t Callback, uint64_t CallbackArg, storage_device_
     Sys_Close(KSUCCESS);
 }
 
-KResult GetPartitionToMountNumberSrv(thread_t Callback, uint64_t CallbackArg){
+KResult CountPartitionByGUIDTypeSrv(thread_t Callback, uint64_t CallbackArg, GUID_t* PartitionTypeGUID){
     KResult Statu = KFAIL;
+
+    uint64_t PartitionCount = CountPartitionByGUIDType(PartitionTypeGUID);
+    
+    arguments_t arguments{
+        .arg[0] = Statu,            /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = PartitionCount,   /* PartitionCount */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_Close(KSUCCESS);
+}
+
+KResult MountPartitionSrv(thread_t Callback, uint64_t CallbackArg, uint64_t Index, GUID_t* PartitionTypeGUID, srv_storage_fs_server_functions_t* FSServerFunctions){
+    KResult Statu = MountPartition(Index, PartitionTypeGUID, FSServerFunctions);
     
     arguments_t arguments{
         .arg[0] = Statu,            /* Status */
@@ -95,8 +118,8 @@ KResult GetPartitionToMountNumberSrv(thread_t Callback, uint64_t CallbackArg){
     Sys_Close(KSUCCESS);
 }
 
-KResult GetPartitionToMountAccessSrv(thread_t Callback, uint64_t CallbackArg){
-    KResult Statu = KFAIL;
+KResult UnmountPartitionSrv(thread_t Callback, uint64_t CallbackArg, uint64_t Index, GUID_t* PartitionTypeGUID){
+    KResult Statu = UnmountPartition(Index, PartitionTypeGUID);
     
     arguments_t arguments{
         .arg[0] = Statu,            /* Status */
@@ -106,6 +129,7 @@ KResult GetPartitionToMountAccessSrv(thread_t Callback, uint64_t CallbackArg){
         .arg[4] = NULL,             /* GP2 */
         .arg[5] = NULL,             /* GP3 */
     };
+
 
     Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);

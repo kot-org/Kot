@@ -53,8 +53,17 @@ typedef uint64_t                    size64_t;
 #define false 0
 #endif
 
-struct arguments_t{
+typedef struct arguments_t{
     uint64_t arg[6];
 }__attribute__((packed));
+
+typedef struct GUID_t{
+    uint32_t Data0;
+
+    uint16_t Data1;
+    uint16_t Data2;
+
+    uint8_t Data4[8];
+};
 
 #endif

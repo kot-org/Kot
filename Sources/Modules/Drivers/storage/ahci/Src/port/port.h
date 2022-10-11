@@ -593,7 +593,7 @@ class Device{
 
         uint64_t ExternalID;
 
-        uint64_t Lock;
+        uint64_t DeviceLock;
     private:
         KResult GetIdentifyInfo(struct Space_t* Self);
 };

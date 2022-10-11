@@ -86,8 +86,9 @@ typedef struct {
     thread_t AddDevice;
     thread_t RemoveDevice;
 
-    thread_t GetPartitionToMountNumber;
-    thread_t GetPartitionToMountAccess;
+    thread_t CountPartitionByGUIDTypeSrv;
+    thread_t MountPartition;
+    thread_t UnmountPartition;
 
     thread_t Rename;
     thread_t Remove;

@@ -128,7 +128,7 @@ struct srv_storage_callback_t* Srv_StorageGetPartitionToMountNumber(bool IsAwait
     parameters.arg[1] = callback;
     
 
-    KResult Status = Sys_Execthread(StorageData->GetPartitionToMountNumber, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_Execthread(StorageData->CountPartitionByGUIDTypeSrv, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -164,7 +164,7 @@ struct srv_storage_callback_t* Srv_Storage_GetPartitionToMountAccess(struct srv_
     parameters.arg[1] = callback;
     
 
-    KResult Status = Sys_Execthread(StorageData->GetPartitionToMountAccess, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_Execthread(StorageData->MountPartition, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
