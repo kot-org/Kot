@@ -1,6 +1,6 @@
-QEMUFLAGS =	-bios /usr/share/ovmf/OVMF.fd					\
-			-no-reboot 										\
+QEMUFLAGS =	-no-reboot 										\
 			-no-shutdown 									\
+			-boot d 										\
 			-M smm=off 										\
 			-serial stdio 									\
 			-machine q35 									\
