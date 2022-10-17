@@ -33,7 +33,7 @@ partition_t* GetPartition(uint64_t Index){
     return Partition;
 }
 
-uint64_t CountPartitionByGUIDType(GUID_t* PartitionTypeGUID){
+uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* PartitionTypeGUID){
     atomicAcquire(&PartitionLock, 0);
 
     uint64_t Counter = 0;

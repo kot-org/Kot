@@ -10,15 +10,16 @@
 #define Exception_End       0x20
 
 #define IST_Null        0x0
-#define IST_Interrupts  0x1
+#define IST_Exceptions  0x1
 #define IST_Scheduler   0x2
+#define IST_Interrupts  0x3
 
 #define IRQ_START 0x20
 
 void InitializeInterrupts(ArchInfo_t* ArchInfo);
-void ExceptionHandler(ContextStack* Registers, uint64_t CoreID);
-bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID);
-void KernelUnrecovorable(ContextStack* Registers, uint64_t CoreID);
+void ExceptionHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID);
+bool PageFaultHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID);
+void KernelUnrecovorable(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID);
 
 extern struct IDTR idtr;
 extern uintptr_t InterruptEntryList[256];

@@ -24,6 +24,7 @@
 #include <arch/x86-64/apic/apic.h>
 #include <arch/x86-64/simd/simd.h>
 #include <arch/x86-64/io/msr/msr.h>
+#include <arch/x86-64/atomic/atomic.h>
 #include <arch/x86-64/interrupts/idt.h>
 #include <arch/x86-64/io/serial/serial.h>
 #include <arch/x86-64/userspace/userspace.h>

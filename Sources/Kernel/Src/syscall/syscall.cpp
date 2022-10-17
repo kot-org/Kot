@@ -342,7 +342,7 @@ KResult Sys_Event_trigger(SyscallStack* Registers, kthread_t* thread){
     if(Keyhole_Get(thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!Keyhole_GetFlag(flags, KeyholeFlagDataTypeEventIsTriggerable)) return KKEYVIOLATION;
     if(!CheckAddress((uintptr_t)Registers->arg1, sizeof(arguments_t))) return KMEMORYVIOLATION;
-    return Event::Trigger(thread, event, (arguments_t*)Registers->arg1);
+    return Event::Trigger(event, (arguments_t*)Registers->arg1);
 }
 
 /* Sys_Event_Close :

@@ -5,10 +5,13 @@ extern "C" void TrampolineMain(){
 
     gdtInitCores(CoreID);
 
+    TSSSetIST(CPU::GetAPICID(), IST_Scheduler, DataTrampoline.StackScheduler);
     asm ("lidt %0" : : "m" (idtr));
 
-    TSSSetIST(CoreID, IST_Interrupts, DataTrampoline.Stack);
-    TSSSetIST(CoreID, IST_Scheduler, DataTrampoline.StackScheduler);
+    uint64_t stackExceptions = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+    TSSSetIST(CPU::GetAPICID(), IST_Exceptions, stackExceptions);
+    uint64_t stackInterrupts = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+    TSSSetIST(CPU::GetAPICID(), IST_Interrupts, stackInterrupts);
 
     CPU::InitCore();
     simdInit();

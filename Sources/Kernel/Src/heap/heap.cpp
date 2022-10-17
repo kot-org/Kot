@@ -39,9 +39,9 @@ uintptr_t calloc_WL(size64_t size){
 }
 
 uintptr_t malloc(size64_t size){
-    Atomic::atomicAcquire(&globalHeap.lock, 0);
+    Aquire(&globalHeap.lock);
     uintptr_t address = malloc_WL(size);
-    Atomic::atomicUnlock(&globalHeap.lock, 0);
+    Release(&globalHeap.lock);
     return address;
 }
 
@@ -107,9 +107,9 @@ void MergeLastAndThisToNext(SegmentHeader* header){
 }
 
 void free(uintptr_t address){
-        Atomic::atomicAcquire(&globalHeap.lock, 0);
+        Aquire(&globalHeap.lock);
         free_WL(address);
-        Atomic::atomicUnlock(&globalHeap.lock, 0);
+        Release(&globalHeap.lock);
 }
 
 void free_WL(uintptr_t address){
@@ -249,9 +249,9 @@ SegmentHeader* GetSegmentHeader(uintptr_t address){
 }
 
 void AcquireHeap(){
-    Atomic::atomicAcquire(&globalHeap.lock, 0);
+    Aquire(&globalHeap.lock);
 }
 
 void ReleaseHeap(){
-    Atomic::atomicUnlock(&globalHeap.lock, 0);
+    Release(&globalHeap.lock);
 }

@@ -1,5 +1,9 @@
 [BITS 64]
-GLOBAL atomicLock, atomicUnlock, atomicAcquire
+
+%include "Src/arch/x86-64/cpu/cpu.inc"
+
+EXTERN SaveTask
+GLOBAL atomicLockAsm, atomicUnlockAsm, atomicAcquireAsm, JumpToKernelTaskAsm, SaveTaskAsm, RestoreTaskAsm
 
 %macro	CF_RESULT	0
 	mov		rcx, 1
@@ -7,17 +11,17 @@ GLOBAL atomicLock, atomicUnlock, atomicAcquire
 	cmovnc	rax, rcx
 %endmacro
 
-atomicLock:		; rdi = mutex location memory
+atomicLockAsm:		; rdi = mutex location memory
 	lock bts		QWORD [rdi], rsi
 	CF_RESULT		
 	ret
 
-atomicUnlock:	; rdi = mutex location memory , rsi = location of the bit where we store the statu
+atomicUnlockAsm:	; rdi = mutex location memory , rsi = location of the bit where we store the statu
 	lock btr		QWORD [rdi], rsi
 	CF_RESULT
 	ret
 
-atomicAcquire:		; rdi = mutex location memory , rsi = location of the bit where we store the statu
+atomicAcquireAsm:		; rdi = mutex location memory , rsi = location of the bit where we store the statu
 	.acquire:
 		lock bts	QWORD [rdi], rsi
 		jnc			.exit				; CF = 0 to begin with
@@ -29,3 +33,27 @@ atomicAcquire:		; rdi = mutex location memory , rsi = location of the bit where 
 	.exit:
 		ret
 
+JumpToKernelTaskAsm:
+	cli
+	mov rax, [rdi + 0x8]
+	mov rdi, qword [gs:0x8]
+	mov rdi, [rdi + 0x18]
+	mov [rax], rdi
+    mov rsp, rdi
+    POP_REG
+	iretq
+
+SaveTaskAsm:
+	mov rdi, qword [gs:0x8]
+	mov rdi, [rdi + 0x18]
+	mov rdi, [rdi + 0x56]
+
+	PUSH_REG
+	mov rdi, rsp
+	call SaveTask
+	ret
+
+RestoreTaskAsm:
+	mov rsp, rdi
+    POP_REG
+	iretq

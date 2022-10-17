@@ -87,7 +87,7 @@ KResult RemoveDeviceSrv(thread_t Callback, uint64_t CallbackArg, storage_device_
 KResult CountPartitionByGUIDTypeSrv(thread_t Callback, uint64_t CallbackArg, GUID_t* PartitionTypeGUID){
     KResult Statu = KFAIL;
 
-    uint64_t PartitionCount = CountPartitionByGUIDType(PartitionTypeGUID);
+    uint64_t PartitionCount = NotifyOnNewPartitionByGUIDType(PartitionTypeGUID);
     
     arguments_t arguments{
         .arg[0] = Statu,            /* Status */

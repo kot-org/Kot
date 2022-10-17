@@ -3,15 +3,15 @@
 TaskManager* globalTaskManager;
 
 void TaskManager::Scheduler(ContextStack* Registers, uint64_t CoreID){  
-    if(Atomic::atomicLock(&MutexScheduler, 0)){
-        if(IsSchedulerEnable[CoreID]){
+    if(IsSchedulerEnable[CoreID]){
+        if(Lock(&MutexScheduler)){
             /* Update time */
             uint64_t actualTime = HPET::GetTime();
             TimeByCore[CoreID] = actualTime;
 
             /* Save thread */
-            kthread_t* threadEnd = threadExecutePerCore[CoreID];
-            if(threadExecutePerCore[CoreID] != NULL){
+            kthread_t* threadEnd = ThreadExecutePerCore[CoreID];
+            if(ThreadExecutePerCore[CoreID] != NULL){
                 threadEnd->SaveContext(Registers, CoreID);
                 EnqueueTask_WL(threadEnd);
             }
@@ -19,8 +19,8 @@ void TaskManager::Scheduler(ContextStack* Registers, uint64_t CoreID){
             /* Find & restore thread */
             kthread_t* threadStart = GetTread_WL();
             threadStart->CreateContext(Registers, CoreID);
-        } 
-        Atomic::atomicUnlock(&MutexScheduler, 0);       
+            Release(&MutexScheduler);       
+        }
     }
 }
 
@@ -33,13 +33,13 @@ void TaskManager::DestroySelf(ContextStack* Registers, uint64_t CoreID){
     /* Find & restore thread */
     kthread_t* threadStart = GetTread_WL();
     threadStart->CreateContext(Registers, CoreID);
-    Atomic::atomicUnlock(&MutexScheduler, 0);     
+    Release(&MutexScheduler);     
 }
 
 void TaskManager::EnqueueTask(kthread_t* thread){
-    Atomic::atomicAcquire(&MutexScheduler, 0);
+    Aquire(&MutexScheduler);
     EnqueueTask_WL(thread);
-    Atomic::atomicUnlock(&MutexScheduler, 0);
+    Release(&MutexScheduler);
 }
 
 void TaskManager::EnqueueTask_WL(kthread_t* thread){
@@ -61,9 +61,9 @@ void TaskManager::EnqueueTask_WL(kthread_t* thread){
 }
 
 void TaskManager::DequeueTask(kthread_t* thread){
-    Atomic::atomicAcquire(&MutexScheduler, 0);
+    Aquire(&MutexScheduler);
     DequeueTask_WL(thread);
-    Atomic::atomicUnlock(&MutexScheduler, 0);
+    Release(&MutexScheduler);
 }
 
 void TaskManager::DequeueTask_WL(kthread_t* thread){
@@ -235,10 +235,10 @@ KResult ThreadQueu_t::ExecuteThreadInQueu_WL(){
 
 KResult ThreadQueu_t::ExecuteThreadInQueu(){
     AcquireHeap();
-    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
+    Aquire(&globalTaskManager->MutexScheduler);
     KResult Status = ExecuteThreadInQueu_WL();
     ReleaseHeap();
-    Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
+    Release(&globalTaskManager->MutexScheduler);
     return Status;
 }
 
@@ -252,7 +252,7 @@ KResult ThreadQueu_t::NextThreadInQueu_WL(){
 
 KResult TaskManager::Execthread(kthread_t* Caller, kthread_t* Self, enum ExecutionType Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers){
     ThreadQueu_t* queu = Self->Queu;
-    Atomic::atomicAcquire(&queu->Lock, 0);
+    Aquire(&queu->Lock);
     switch (Type){
         case ExecutionTypeQueu:{
             queu->SetThreadInQueu(Caller, Self, FunctionParameters, false, Data);
@@ -261,13 +261,13 @@ KResult TaskManager::Execthread(kthread_t* Caller, kthread_t* Self, enum Executi
         case ExecutionTypeQueuAwait:{
             // pause and save task context
             AcquireHeap();
-            Atomic::atomicAcquire(&MutexScheduler, 0);
+            Aquire(&MutexScheduler);
             Caller->SaveContext(Registers);
             Caller->IsBlock = true;
             Caller->IsPause = true;
             queu->SetThreadInQueu_WL(Caller, Self, FunctionParameters, true, Data);
             ReleaseHeap();
-            Atomic::atomicUnlock(&queu->Lock, 0);
+            Release(&queu->Lock);
             ForceSelfDestruction(); 
             break;
         }        
@@ -283,13 +283,13 @@ KResult TaskManager::Execthread(kthread_t* Caller, kthread_t* Self, enum Executi
             if(!queu->TasksInQueu){
                 // pause and save task context
                 AcquireHeap();
-                Atomic::atomicAcquire(&MutexScheduler, 0);
+                Aquire(&MutexScheduler);
                 Caller->SaveContext(Registers);
                 Caller->IsBlock = true;
                 Caller->IsPause = true;
                 queu->SetThreadInQueu_WL(Caller, Self, FunctionParameters, true, Data);
                 ReleaseHeap();
-                Atomic::atomicUnlock(&queu->Lock, 0);
+                Release(&queu->Lock);
                 ForceSelfDestruction(); 
             }else{
                 return KFAIL;
@@ -297,14 +297,14 @@ KResult TaskManager::Execthread(kthread_t* Caller, kthread_t* Self, enum Executi
             break;
         }        
     }
-    Atomic::atomicUnlock(&queu->Lock, 0);
+    Release(&queu->Lock);
     return KSUCCESS;
 }
 
 uint64_t TaskManager::Unpause(kthread_t* task){
-    Atomic::atomicAcquire(&MutexScheduler, 0);
+    Aquire(&MutexScheduler);
     Unpause_WL(task);
-    Atomic::atomicUnlock(&MutexScheduler, 0);
+    Release(&MutexScheduler);
     return KSUCCESS;
 } 
 
@@ -321,11 +321,11 @@ uint64_t TaskManager::Unpause_WL(kthread_t* task){
 } 
 
 uint64_t TaskManager::Exit(ContextStack* Registers, kthread_t* task, uint64_t ReturnValue){   
-    Atomic::atomicAcquire(&task->Queu->Lock, 0);
+    Aquire(&task->Queu->Lock);
     AcquireHeap();
-    Atomic::atomicAcquire(&MutexScheduler, 0);
+    Aquire(&MutexScheduler);
     if(task->CloseQueu_WL(Registers, ReturnValue) == KSUCCESS){
-        Atomic::atomicUnlock(&task->Queu->Lock, 0);
+        Release(&task->Queu->Lock);
         ReleaseHeap();
         ForceSelfDestruction(); /* Unlock MutexScheduler */
         /* noreturn */
@@ -335,7 +335,7 @@ uint64_t TaskManager::Exit(ContextStack* Registers, kthread_t* task, uint64_t Re
         // Clear event
     }
 
-    task->threadNode->Delete_WL();
+    task->ThreadNode->Delete_WL();
 
     /* TODO clear task data and stack */
     free_WL(task->Regs);
@@ -352,15 +352,18 @@ uint64_t TaskManager::ShareDataUsingStackSpace(kthread_t* self, uintptr_t data, 
 }
 
 uint64_t TaskManager::CreateProcess(kprocess_t** key, enum Priviledge priviledge, uint64_t externalData){
-    Atomic::atomicAcquire(&MutexScheduler, 1);
     kprocess_t* proc = (kprocess_t*)calloc(sizeof(kprocess_t));
 
+    AcquireHeap();
+    Aquire(&MutexScheduler);
     if(ProcessList == NULL){
-        ProcessList = CreateNode((uintptr_t)0);
-        proc->NodeParent = ProcessList->Add(proc);
+        ProcessList = CreateNode_WL((uintptr_t)0);
+        proc->NodeParent = ProcessList->Add_WL(proc);
     }else{
-        proc->NodeParent = ProcessList->Add(proc);
+        proc->NodeParent = ProcessList->Add_WL(proc);
     }
+    Release(&MutexScheduler);
+    ReleaseHeap();
 
     /* Setup default paging */
     proc->SharedPaging = vmm_SetupProcess();
@@ -385,7 +388,6 @@ uint64_t TaskManager::CreateProcess(kprocess_t** key, enum Priviledge priviledge
     NumberProcessTotal++;
 
     *key = proc;
-    Atomic::atomicUnlock(&MutexScheduler, 1);
     return KSUCCESS;
 }
 
@@ -404,14 +406,17 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, uint64_t externalData)
 }
 
 kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge priviledge, uint64_t externalData){
-    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 2);
     kthread_t* thread = (kthread_t*)calloc(sizeof(kthread_t));
+    AcquireHeap();
+    Aquire(&Locker);
     if(Childs == NULL){
-        Childs = CreateNode((uintptr_t)0);
-        thread->threadNode = Childs->Add(thread);
+        Childs = CreateNode_WL((uintptr_t)0);
+        thread->ThreadNode = Childs->Add_WL(thread);
     }else{
-        thread->threadNode = Childs->Add(thread);
+        thread->ThreadNode = Childs->Add_WL(thread);
     }
+    Release(&Locker);
+    ReleaseHeap();
 
     /* Allocate context */
     thread->Regs = (ContextStack*)calloc(sizeof(ContextStack));
@@ -476,19 +481,23 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge privil
     thread->threadData->Priviledge_PCI = this->Priviledge_PCI;
 
 
-    Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 2);
     return thread;
 }
 
 kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
-    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 2);
+    Aquire(&globalTaskManager->MutexScheduler);
     kthread_t* thread = (kthread_t*)calloc(sizeof(kthread_t));
+
+    AcquireHeap();
+    Aquire(&Locker);
     if(Childs == NULL){
-        Childs = CreateNode((uintptr_t)0);
-        thread->threadNode = Childs->Add(thread);
+        Childs = CreateNode_WL((uintptr_t)0);
+        thread->ThreadNode = Childs->Add_WL(thread);
     }else{
-        thread->threadNode = Childs->Add(thread);
+        thread->ThreadNode = Childs->Add_WL(thread);
     }
+    Release(&Locker);
+    ReleaseHeap();
 
     /* Allocate context */
     thread->Regs = (ContextStack*)calloc(sizeof(ContextStack));
@@ -549,7 +558,6 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
     TID++;
     NumberOfthread++;
 
-    Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 2);
     return thread;
 }
 
@@ -571,7 +579,7 @@ void kthread_t::SetupStack(){
 void TaskManager::SwitchTask(ContextStack* Registers, uint64_t CoreID, kthread_t* task){
     if(task == NULL) return;
 
-    Atomic::atomicAcquire(&MutexScheduler, 0);
+    Aquire(&MutexScheduler);
 
     //Update time
     TimeByCore[CoreID] = HPET::GetTime();
@@ -579,7 +587,7 @@ void TaskManager::SwitchTask(ContextStack* Registers, uint64_t CoreID, kthread_t
     //Load new task
     task->CreateContext(Registers, CoreID);
 
-    Atomic::atomicUnlock(&MutexScheduler, 0);
+    Release(&MutexScheduler);
 }
 
 void TaskManager::CreateIddleTask(){
@@ -611,7 +619,7 @@ void TaskManager::InitScheduler(uint8_t NumberOfCores, uintptr_t IddleTaskFuncti
 
 void TaskManager::EnabledScheduler(uint64_t CoreID){ 
     if(TaskManagerInit){
-        threadExecutePerCore[CoreID] = NULL;
+        ThreadExecutePerCore[CoreID] = NULL;
 
         CPU::SetCPUGSKernelBase((uint64_t)SelfDataStartAddress); // keys position
 
@@ -624,13 +632,13 @@ void TaskManager::EnabledScheduler(uint64_t CoreID){
 }
 
 kthread_t* TaskManager::GetCurrentthread(uint64_t CoreID){
-    return threadExecutePerCore[CoreID];
+    return ThreadExecutePerCore[CoreID];
 }
 
 void kthread_t::SaveContext(ContextStack* Registers, uint64_t CoreID){
     uint64_t actualTime = HPET::GetTime();
     TimeAllocate += actualTime - Parent->TaskManagerParent->TimeByCore[CoreID];
-    SaveContext(Registers);
+    this->SaveContext(Registers);
 }
 
 void kthread_t::SaveContext(ContextStack* Registers){
@@ -640,7 +648,7 @@ void kthread_t::SaveContext(ContextStack* Registers){
 
 void kthread_t::CreateContext(ContextStack* Registers, uint64_t CoreID){
     this->CoreID = CoreID;
-    Parent->TaskManagerParent->threadExecutePerCore[CoreID] = this;
+    Parent->TaskManagerParent->ThreadExecutePerCore[CoreID] = this;
     simdSave(SIMDSaver);
     memcpy(Registers, Regs, sizeof(ContextStack));
 }
@@ -764,16 +772,16 @@ KResult kthread_t::ShareDataUsingStackSpace(uintptr_t data, size64_t size, uintp
 }
 
 bool kthread_t::Launch(arguments_t* FunctionParameters){
-    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
+    Aquire(&globalTaskManager->MutexScheduler);
     Launch_WL(FunctionParameters);
-    Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
+    Release(&globalTaskManager->MutexScheduler);
     return true;
 }
 
 bool kthread_t::Launch(){
-    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
+    Aquire(&globalTaskManager->MutexScheduler);
     Launch_WL();
-    Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
+    Release(&globalTaskManager->MutexScheduler);
     return true;
 }
 
@@ -793,9 +801,9 @@ bool kthread_t::Launch_WL(){
 }
 
 bool kthread_t::Pause(ContextStack* Registers, bool force){
-    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
+    Aquire(&globalTaskManager->MutexScheduler);
     KResult Status = Pause_WL(Registers, force);
-    Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
+    Release(&globalTaskManager->MutexScheduler);
     return Status;
 }
 
@@ -820,32 +828,32 @@ bool kthread_t::Pause_WL(ContextStack* Registers, bool force){
 }
 
 KResult kthread_t::Close(ContextStack* Registers, uint64_t ReturnValue){
-    Atomic::atomicAcquire(&Queu->Lock, 0);
+    Aquire(&Queu->Lock);
 
     AcquireHeap();
 
-    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
+    Aquire(&globalTaskManager->MutexScheduler);
 
     KResult Status = CloseQueu_WL(Registers, ReturnValue);
 
     ReleaseHeap();
-    Atomic::atomicUnlock(&Queu->Lock, 0);
+    Release(&Queu->Lock);
     ForceSelfDestruction(); /* Unlock MutexScheduler */
     return Status;
 }
 
 KResult kthread_t::CloseQueu(ContextStack* Registers, uint64_t ReturnValue){
-    Atomic::atomicAcquire(&Queu->Lock, 0);
+    Aquire(&Queu->Lock);
 
     AcquireHeap();
 
-    Atomic::atomicAcquire(&globalTaskManager->MutexScheduler, 0);
+    Aquire(&globalTaskManager->MutexScheduler);
     KResult Status = CloseQueu_WL(Registers, ReturnValue);
 
     ReleaseHeap();
 
-    Atomic::atomicUnlock(&globalTaskManager->MutexScheduler, 0);
-    Atomic::atomicUnlock(&Queu->Lock, 0);
+    Release(&globalTaskManager->MutexScheduler);
+    Release(&Queu->Lock);
     return Status;
 }
 
@@ -867,6 +875,11 @@ KResult kthread_t::CloseQueu_WL(ContextStack* Registers, uint64_t ReturnValue){
     }
 
     return Status;
+}
+
+extern "C" void SaveTask(ContextStack* Registers, uint64_t CoreID){
+    kthread_t* threadEnd = Registers->threadInfo->thread;
+    threadEnd->SaveContext(Registers, CoreID);
 }
 
 void SetParameters(ContextStack* Registers, arguments_t* FunctionParameters){

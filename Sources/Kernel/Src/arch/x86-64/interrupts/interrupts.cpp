@@ -6,8 +6,6 @@ uint8_t IDTData[PAGE_SIZE];
 
 kevent_t* InterruptEventList[MAX_IRQ];
 
-arguments_t* InterruptParameters;
-
 char* ExceptionList[32] = {
     "DivisionByZero",
     "Debug",
@@ -48,27 +46,30 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
         idtr.Offset = (uint64_t)&IDTData[0];
     }
 
-    /* init interrupts */
-    InterruptParameters = (arguments_t*)malloc(sizeof(arguments_t));
-
     for(int i = 0; i < ArchInfo->IRQSize; i++){
-        SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);
         if(i != INT_Schedule && i != INT_Stop && i >= Exception_End){
+            SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);
             if(i >= ArchInfo->IRQLineStart && i <= ArchInfo->IRQLineStart + ArchInfo->IRQLineSize){
                 Event::Create(&InterruptEventList[i], EventTypeIRQLines, i - ArchInfo->IRQLineStart);
             }else{
                 Event::Create(&InterruptEventList[i], EventTypeIRQ, i);
             }
+        }else if(i < Exception_End){
+            SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Exceptions, idtr);
+        }else if(i == INT_Stop){
+            SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);
         }
     }
 
     /* Shedule */
     SetIDTGate((uintptr_t)InterruptEntryList[INT_Schedule], INT_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
 
-    uint64_t stack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
-    TSSSetIST(CPU::GetAPICID(), IST_Interrupts, stack);
+    uint64_t stackExceptions = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+    TSSSetIST(CPU::GetAPICID(), IST_Exceptions, stackExceptions);
     uint64_t stackScheduler = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
     TSSSetIST(CPU::GetAPICID(), IST_Scheduler, stackScheduler);
+    uint64_t stackInterrupts = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+    TSSSetIST(CPU::GetAPICID(), IST_Interrupts, stackInterrupts);
 
     asm("lidt %0" : : "m" (idtr));   
 }
@@ -77,9 +78,9 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
     // bug : styack corruptiom because it's schedule with exeception stack create ist
     if(Registers->InterruptNumber < Exception_End){
         // exceptions
-        globalTaskManager->IsSchedulerEnable[CoreID] = false;
-        ExceptionHandler(Registers, CoreID);
-        globalTaskManager->IsSchedulerEnable[CoreID] = true;
+        uint64_t Cr2 = 0;
+        asm("movq %%cr2, %0" : "=r"(Cr2));
+        ExceptionHandler(Cr2, Registers, CoreID);
     }else if(Registers->InterruptNumber == INT_Schedule){
         // APIC timer 
         globalTaskManager->Scheduler(Registers, CoreID); 
@@ -93,23 +94,22 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
         }
     }else{
         // Other IRQ & IVT
-        globalTaskManager->IsSchedulerEnable[CoreID] = false;
-        InterruptParameters->arg[0] = Registers->InterruptNumber;
-        Event::Trigger((kthread_t*)0x0, InterruptEventList[Registers->InterruptNumber], InterruptParameters);
-        globalTaskManager->IsSchedulerEnable[CoreID] = true;
+        arguments_t InterruptParameters{
+            .arg[0] = Registers->InterruptNumber,
+        };
+        Event::TriggerIRQ(InterruptEventList[Registers->InterruptNumber], &InterruptParameters);
     }
     APIC::localApicEOI(CoreID);
 }
 
-void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
+void ExceptionHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
     // If exception come from kernel we can't recover it
-    globalTaskManager->IsSchedulerEnable[CoreID] = false;
     if(CPU::GetCodeRing(Registers) == KernelRing){ 
-        KernelUnrecovorable(Registers, CoreID);
+        KernelUnrecovorable(Cr2, Registers, CoreID);
     }else{
         // Try to recover exception
         if(Registers->InterruptNumber == Exception_PageFault){
-            if(PageFaultHandler(Registers, CoreID)){
+            if(PageFaultHandler(Cr2, Registers, CoreID)){
                 return;
             }
         }
@@ -121,21 +121,18 @@ void ExceptionHandler(ContextStack* Registers, uint64_t CoreID){
         }else{
             Registers->threadInfo->thread->Close(Registers, NULL); 
         }
-        globalTaskManager->IsSchedulerEnable[CoreID] = true;
         globalTaskManager->Scheduler(Registers, CoreID); 
     }
 }
 
-bool PageFaultHandler(ContextStack* Registers, uint64_t CoreID){
-    if(globalTaskManager->threadExecutePerCore[CoreID] != NULL){
-        uint64_t Address = 0;
-        asm("movq %%cr2, %0" : "=r"(Address));
-        return globalTaskManager->threadExecutePerCore[CoreID]->ExtendStack((uint64_t)Address);
+bool PageFaultHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
+    if(globalTaskManager->ThreadExecutePerCore[CoreID] != NULL){
+        return globalTaskManager->ThreadExecutePerCore[CoreID]->ExtendStack((uint64_t)Cr2);
     }
     return false;
 }
 
-void KernelUnrecovorable(ContextStack* Registers, uint64_t CoreID){
+void KernelUnrecovorable(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
     Error("Kernel Panic CPU %x \nWith exception : '%s' | Error code : %x", CoreID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
     PrintRegisters(Registers);
     KernelPanic("Unrecoverable exception ;(");

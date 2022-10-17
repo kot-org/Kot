@@ -42,7 +42,7 @@ struct partition_t{
 void InitializePartition();
 struct partition_t* NewPartition(struct storage_device_t* Device, uint64_t Start, uint64_t Size, GUID_t* PartitionTypeGUID);
 struct partition_t* GetPartition(uint64_t Index);
-uint64_t CountPartitionByGUIDType(GUID_t* PartitionTypeGUID);
+uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* PartitionTypeGUID);
 struct partition_t* GetPartitionByGUIDType_WL(uint64_t Index, GUID_t* PartitionTypeGUID);
 KResult MountPartition(uint64_t Index, GUID_t* PartitionTypeGUID, struct srv_storage_fs_server_functions_t* FSServerFunctions);
 KResult UnmountPartition(uint64_t Index, GUID_t* PartitionTypeGUID);

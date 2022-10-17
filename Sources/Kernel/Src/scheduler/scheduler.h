@@ -32,7 +32,7 @@ struct StackInfo{
 }__attribute__((packed));
 
 struct ThreadQueu_t{
-    uint64_t Lock;
+    locker_t Lock;
     uint64_t TasksInQueu; /* The queued task includes the running task */
     struct ThreadQueuData_t* CurrentData;
     struct ThreadQueuData_t* LastData;
@@ -90,6 +90,7 @@ struct kprocess_t{
     /* Parent */
     Node* NodeParent;
     TaskManager* TaskManagerParent;
+    locker_t Locker;
 
     /* Process Creator Info */
     uint64_t PID_PCI;
@@ -106,6 +107,8 @@ struct kprocess_t{
 }__attribute__((packed));  
 
 struct kthread_t{
+    kthread_t* AtomicThreadToRestore;
+    
     /* ID infos */
     uint64_t TID;
     SelfData* threadData;
@@ -139,15 +142,14 @@ struct kthread_t{
 
     /* Process */
     kprocess_t* Parent;
-    Node* threadNode;
+    Node* ThreadNode;
     
     /* Queu */
     ThreadQueu_t* Queu;
 
     /* Event */
     bool IsEvent;
-    uint64_t EventLock;
-    struct event_data_node_t* EventDataNode;
+    struct kevent_tasks_t* EventTask;
 
     /* Schedule queue */
     bool IsInQueue;
@@ -214,10 +216,10 @@ class TaskManager{
 
         bool IsSchedulerEnable[MAX_PROCESSORS];
         uint64_t TimeByCore[MAX_PROCESSORS];
-        kthread_t* threadExecutePerCore[MAX_PROCESSORS];
+        kthread_t* ThreadExecutePerCore[MAX_PROCESSORS];
 
         bool TaskManagerInit;  
-        uint64_t MutexScheduler;  
+        locker_t MutexScheduler;  
 
         uint64_t NumberProcessTotal = 0;
         uint64_t NumberOfCPU = 0;
@@ -236,6 +238,7 @@ class TaskManager{
         Node* GlobalProcessNode;
 };
 
+extern "C" void SaveTask(ContextStack* Registers, uint64_t CoreID);
 void SetParameters(ContextStack* Registers, arguments_t* FunctionParameters);
 
 extern TaskManager* globalTaskManager;

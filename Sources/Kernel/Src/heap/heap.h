@@ -4,7 +4,6 @@
 #include <kot/heap.h>
 #include <lib/stdio.h>
 #include <logs/logs.h>
-#include <arch/x86-64/cpu/cpu.h>
 #include <arch/arch.h>
 
 struct Heap{
@@ -14,7 +13,7 @@ struct Heap{
     size64_t TotalSize;
     size64_t FreeSize;
     size64_t UsedSize;
-    uint64_t lock;
+    locker_t lock;
 };
 
 extern Heap globalHeap;

@@ -15,7 +15,7 @@ struct SlaveInfo_t{
 
 struct MemoryShareInfo{
     char signature0;
-    uint64_t Lock;
+    locker_t Lock;
     enum MemoryFieldType Type;
     size64_t InitialSize;
     size64_t RealSize;

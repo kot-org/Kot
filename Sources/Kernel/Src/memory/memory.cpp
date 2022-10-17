@@ -130,7 +130,6 @@ uint64_t CreateMemoryField(kprocess_t* process, size64_t size, uint64_t* virtual
 
     MemoryShareInfo* shareInfo = (MemoryShareInfo*)malloc(sizeof(MemoryShareInfo));
     shareInfo->InitialSize = size;
-    shareInfo->Lock = NULL;
     shareInfo->Type = type;
     shareInfo->RealSize = realSize;
     shareInfo->PageNumber = numberOfPage;
@@ -153,7 +152,7 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
     
     if(shareInfo->signature0 != 'S' || shareInfo->signature1 != 'M') return KFAIL;
 
-    Atomic::atomicAcquire(&shareInfo->Lock, 0);
+    Aquire(&shareInfo->Lock);
 
     uintptr_t virtualAddress = (uintptr_t)*virtualAddressPointer;
     
@@ -257,7 +256,7 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
     shareInfo->SlavesList->push64((uint64_t)SlaveInfo);
     shareInfo->SlavesNumber++;
 
-    Atomic::atomicUnlock(&shareInfo->Lock, 0);
+    Release(&shareInfo->Lock);
     
     *virtualAddressPointer = (uint64_t)virtualAddress;
     return KSUCCESS;
@@ -276,7 +275,7 @@ uint64_t CloseMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uintp
         }        
     }
 
-    Atomic::atomicAcquire(&shareInfo->Lock, 0);
+    Aquire(&shareInfo->Lock);
 
     switch(shareInfo->Type){
         case MemoryFieldTypeShareSpaceRW:{
@@ -318,7 +317,7 @@ uint64_t CloseMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uintp
     if(IsParent){
         free((uintptr_t)shareInfo);
     } 
-    Atomic::atomicUnlock(&shareInfo->Lock, 0);
+    Release(&shareInfo->Lock);
     
     return KSUCCESS;
 }

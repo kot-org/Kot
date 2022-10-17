@@ -224,10 +224,10 @@ namespace APIC{
 
 
 
-    static uint64_t mutexSLT;
+    static locker_t mutexSLT;
 
     void StartLapicTimer(){
-        Atomic::atomicAcquire(&mutexSLT, 0);
+        Aquire(&mutexSLT);
 
         // Setup Local APIC timer
         localAPICWriteRegister(LocalAPICRegisterOffsetDivide, 4);        
@@ -251,7 +251,7 @@ namespace APIC{
         uint32_t timer = localAPICReadRegister(LocalAPICRegisterOffsetLVTTimer);
         localAPICWriteRegister(LocalAPICRegisterOffsetLVTTimer, CreateRegisterValueInterrupts(TimerRegisters) | (timer & 0xfffcef00));    
         localAPICWriteRegister(LocalAPICRegisterOffsetInitialCount, (Tick10ms / 10)); 
-        Atomic::atomicUnlock(&mutexSLT, 0);
+        Release(&mutexSLT);
     }
 
     void localAPICSetTimerCount(uint32_t value){

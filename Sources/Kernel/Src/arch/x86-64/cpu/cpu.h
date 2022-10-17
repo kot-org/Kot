@@ -331,12 +331,8 @@ enum CPUContextIndex{
 namespace CPU{
     void InitCPU(struct ArchInfo_t* ArchInfo);
     void InitCore();
-    static inline void DisableInterrupts(){
-        asm("cli");
-    }
-    static inline void EnableInterrupts(){
-        asm("sti");
-    }
+    extern "C" void DisableInterrupts();
+    extern "C" void EnableInterrupts();
     extern "C" void ReloadGSFS();
     extern "C" void SetCPUGSBase(uint64_t Value);
     extern "C" void SetCPUGSKernelBase(uint64_t Value);
