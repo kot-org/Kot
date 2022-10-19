@@ -155,32 +155,32 @@ void Pmm_InitBitmap(uintptr_t bufferAddress, size64_t bitmapSize){
 }
 
 uintptr_t Pmm_RequestPage(){
-    Aquire(&Pmm_Mutex);
+    AtomicAquire(&Pmm_Mutex);
     for (uint64_t index = Pmm_FirstFreePageIndex; index < Pmm_MemoryInfo.totalPageMemory; index++){
         if(!Pmm_Bitmap.GetAndSet(index, true)){
             Pmm_FirstFreePageIndex = index;
             Pmm_MemoryInfo.freePageMemory--;
             Pmm_MemoryInfo.usedPageMemory++;
             Pmm_RemovePagesToFreeList(index, 1);
-            Release(&Pmm_Mutex);
+            AtomicRelease(&Pmm_Mutex);
             return (uintptr_t)(index * PAGE_SIZE);
         }
     }
     
     // Panic
-    Release(&Pmm_Mutex);
+    AtomicRelease(&Pmm_Mutex);
     KernelPanic("Not enought memory available");
     return NULL; 
 }
 
 uintptr_t Pmm_RequestPages(uint64_t pageCount){
-    Aquire(&Pmm_Mutex);
+    AtomicAquire(&Pmm_Mutex);
     freelistinfo_t* Pmm_FreeList = Pmm_LastFreeListInfo;
 	while(Pmm_FreeList->PageSize < pageCount){
         if(Pmm_FreeList->Last != NULL){
             Pmm_FreeList = Pmm_FreeList->Last;
         }else{
-            Release(&Pmm_Mutex);
+            AtomicRelease(&Pmm_Mutex);
 	        return NULL;
         }
     }
@@ -188,12 +188,12 @@ uintptr_t Pmm_RequestPages(uint64_t pageCount){
     uint64_t index = Pmm_FreeList->IndexStart;
     Pmm_RemovePagesToFreeList(index, pageCount);
     Pmm_LockPages_WI(index, pageCount);
-    Release(&Pmm_Mutex);
+    AtomicRelease(&Pmm_Mutex);
 	return (uintptr_t)(index * PAGE_SIZE);
 }
 
 void Pmm_FreePage_WI(uint64_t index){
-    Aquire(&Pmm_Mutex);
+    AtomicAquire(&Pmm_Mutex);
     if(Pmm_Bitmap.GetAndSet(index, false)){
         Pmm_AddPageToFreeList(index, 1);
         Pmm_MemoryInfo.freePageMemory++;
@@ -202,11 +202,11 @@ void Pmm_FreePage_WI(uint64_t index){
             Pmm_FirstFreePageIndex = index;
         }
     }
-    Release(&Pmm_Mutex);
+    AtomicRelease(&Pmm_Mutex);
 }
 
 void Pmm_FreePages_WI(uint64_t index, uint64_t pageCount){
-    Aquire(&Pmm_Mutex);
+    AtomicAquire(&Pmm_Mutex);
     Pmm_AddPageToFreeList(index, pageCount);
     uint64_t indexEnd = index + pageCount;
     for (uint64_t t = index; t < indexEnd; t++){
@@ -218,7 +218,7 @@ void Pmm_FreePages_WI(uint64_t index, uint64_t pageCount){
             }
         }
     }
-    Release(&Pmm_Mutex);
+    AtomicRelease(&Pmm_Mutex);
 }
 
 void Pmm_LockPage_WI(uint64_t index){

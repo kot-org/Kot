@@ -152,7 +152,7 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
     
     if(shareInfo->signature0 != 'S' || shareInfo->signature1 != 'M') return KFAIL;
 
-    Aquire(&shareInfo->Lock);
+    AtomicAquire(&shareInfo->Lock);
 
     uintptr_t virtualAddress = (uintptr_t)*virtualAddressPointer;
     
@@ -256,7 +256,7 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
     shareInfo->SlavesList->push64((uint64_t)SlaveInfo);
     shareInfo->SlavesNumber++;
 
-    Release(&shareInfo->Lock);
+    AtomicRelease(&shareInfo->Lock);
     
     *virtualAddressPointer = (uint64_t)virtualAddress;
     return KSUCCESS;
@@ -275,7 +275,7 @@ uint64_t CloseMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uintp
         }        
     }
 
-    Aquire(&shareInfo->Lock);
+    AtomicAquire(&shareInfo->Lock);
 
     switch(shareInfo->Type){
         case MemoryFieldTypeShareSpaceRW:{
@@ -317,7 +317,7 @@ uint64_t CloseMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uintp
     if(IsParent){
         free((uintptr_t)shareInfo);
     } 
-    Release(&shareInfo->Lock);
+    AtomicRelease(&shareInfo->Lock);
     
     return KSUCCESS;
 }

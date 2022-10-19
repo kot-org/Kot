@@ -3,7 +3,7 @@
 static locker_t MutexLog;
 
 void Message(const char* str, ...){
-    Aquire(&MutexLog);
+    AtomicAquire(&MutexLog);
     va_list args;
     va_start(args, str);
 
@@ -50,11 +50,11 @@ void Message(const char* str, ...){
 
     SerialPort::Print("\n");
     va_end(args);
-    Release(&MutexLog);
+    AtomicRelease(&MutexLog);
 }   
 
 void MessageProcess(const char* str, uint64_t charNum, uint64_t PID, uint64_t TID){
-    Aquire(&MutexLog);
+    AtomicAquire(&MutexLog);
 
     SerialPort::Print(SerialCYAN);
     SerialPort::Print("[*]");
@@ -64,11 +64,11 @@ void MessageProcess(const char* str, uint64_t charNum, uint64_t PID, uint64_t TI
     
 
     SerialPort::Print("\n");
-    Release(&MutexLog);
+    AtomicRelease(&MutexLog);
 }   
 
 void Successful(const char* str, ...){
-    Aquire(&MutexLog);
+    AtomicAquire(&MutexLog);
     va_list args;
     va_start(args, str);
     
@@ -115,11 +115,11 @@ void Successful(const char* str, ...){
 
     SerialPort::Print("\n");
     va_end(args);
-    Release(&MutexLog);
+    AtomicRelease(&MutexLog);
 }
 
 void Warning(const char* str, ...){
-    Aquire(&MutexLog);
+    AtomicAquire(&MutexLog);
     va_list args;
     va_start(args, str);
     
@@ -166,11 +166,11 @@ void Warning(const char* str, ...){
 
     SerialPort::Print("\n");
     va_end(args);
-    Release(&MutexLog);
+    AtomicRelease(&MutexLog);
 }
 
 void Error(const char * str, ...){
-    Aquire(&MutexLog);
+    AtomicAquire(&MutexLog);
     va_list args;
     va_start(args, str);
     SerialPort::Print(SerialRED);
@@ -216,7 +216,7 @@ void Error(const char * str, ...){
 
     SerialPort::Print("\n");
     va_end(args);
-    Release(&MutexLog);
+    AtomicRelease(&MutexLog);
 }
 
 void PrintRegisters(ContextStack* registers){

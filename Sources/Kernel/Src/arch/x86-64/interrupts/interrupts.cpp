@@ -47,25 +47,19 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
     }
 
     for(int i = 0; i < ArchInfo->IRQSize; i++){
+        SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);
         if(i != INT_Schedule && i != INT_Stop && i >= Exception_End){
-            SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);
             if(i >= ArchInfo->IRQLineStart && i <= ArchInfo->IRQLineStart + ArchInfo->IRQLineSize){
                 Event::Create(&InterruptEventList[i], EventTypeIRQLines, i - ArchInfo->IRQLineStart);
             }else{
                 Event::Create(&InterruptEventList[i], EventTypeIRQ, i);
             }
-        }else if(i < Exception_End){
-            SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Exceptions, idtr);
-        }else if(i == INT_Stop){
-            SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);
         }
     }
 
     /* Shedule */
     SetIDTGate((uintptr_t)InterruptEntryList[INT_Schedule], INT_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
 
-    uint64_t stackExceptions = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
-    TSSSetIST(CPU::GetAPICID(), IST_Exceptions, stackExceptions);
     uint64_t stackScheduler = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
     TSSSetIST(CPU::GetAPICID(), IST_Scheduler, stackScheduler);
     uint64_t stackInterrupts = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
@@ -97,7 +91,7 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
         arguments_t InterruptParameters{
             .arg[0] = Registers->InterruptNumber,
         };
-        Event::TriggerIRQ(InterruptEventList[Registers->InterruptNumber], &InterruptParameters);
+        Event::Trigger(InterruptEventList[Registers->InterruptNumber], &InterruptParameters);
     }
     APIC::localApicEOI(CoreID);
 }

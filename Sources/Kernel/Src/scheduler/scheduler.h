@@ -107,13 +107,14 @@ struct kprocess_t{
 }__attribute__((packed));  
 
 struct kthread_t{
-    kthread_t* AtomicThreadToRestore;
-    
     /* ID infos */
     uint64_t TID;
     SelfData* threadData;
 
-    /* thread infos */
+    /* KernelInternalStack */
+    uintptr_t KernelInternalStack;
+
+    /* Thread infos */
     threadInfo_t* Info;
     uintptr_t EntryPoint;
 
@@ -149,7 +150,8 @@ struct kthread_t{
 
     /* Event */
     bool IsEvent;
-    struct kevent_tasks_t* EventTask;
+    locker_t EventLock;
+    struct event_data_node_t* EventDataNode;
 
     /* Schedule queue */
     bool IsInQueue;

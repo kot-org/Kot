@@ -6,7 +6,7 @@ static locker_t mutexKeyhole;
 KResult Keyhole_Create(key_t* key, kprocess_t* parent, kprocess_t* target, enum DataType type, uint64_t data, uint64_t flags, enum Priviledge minpriviledge){
     if(!CheckAddress((uintptr_t)key, sizeof(key))) return KFAIL;
     
-    Aquire(&mutexKeyhole);
+    AtomicAquire(&mutexKeyhole);
     
     parent->LockIndex++;
     // alloc lock
@@ -42,7 +42,7 @@ KResult Keyhole_Create(key_t* key, kprocess_t* parent, kprocess_t* target, enum 
     Lock->Signature2 = 'K';
     // setup key data
     *key = (uint64_t)Lock;
-    Release(&mutexKeyhole);
+    AtomicRelease(&mutexKeyhole);
     return KSUCCESS;
 }
 

@@ -62,9 +62,5 @@ DisableInterrupts:
     ret
 
 EnableInterrupts:
-    mov ax, ss
-    cmp ax, 0x0
-    jnz ContinueEnableInterrupts
     sti
-ContinueEnableInterrupts:
     ret
