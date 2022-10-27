@@ -4,7 +4,7 @@
 #include <kot/utils.h>
 #include <kot/types.h>
 
-#include <kot++/graphics/utils.h> 
+#include <kot-graphics++/utils.h> 
 
 namespace orb {
 
@@ -58,9 +58,9 @@ namespace orb {
         return result;
     }
 
-    std::framebuffer_t* getFramebuffer(uint32_t wid) {
+    Graphic::framebuffer_t* getFramebuffer(uint32_t wid) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
-        std::framebuffer_t* fb = (std::framebuffer_t*) calloc(sizeof(std::framebuffer_t));
+        Graphic::framebuffer_t* fb = (Graphic::framebuffer_t*) calloc(sizeof(Graphic::framebuffer_t));
         fb->height = getHeight(wid);
         fb->width = getWidth(wid);
         fb->bpp = getBpp(wid);
@@ -91,9 +91,9 @@ namespace orb {
         Sys_Execthread(OrbSrv->show, &arguments, ExecutionTypeQueuAwait, NULL);
     }
 
-    std::framebuffer_t* resize(uint32_t wid, uint32_t width, uint32_t height) {
+    Graphic::framebuffer_t* resize(uint32_t wid, uint32_t width, uint32_t height) {
         if (OrbSrv == NULL) { GetOrbSrv(); }
-        std::framebuffer_t* fb = (std::framebuffer_t*) calloc(sizeof(std::framebuffer_t));
+        Graphic::framebuffer_t* fb = (Graphic::framebuffer_t*) calloc(sizeof(Graphic::framebuffer_t));
         fb->width = width;
         fb->height = height;
         fb->pitch = fb->width * 4;
@@ -118,6 +118,14 @@ namespace orb {
         arguments.arg[1] = x;
         arguments.arg[2] = y;
         Sys_Execthread(OrbSrv->move, &arguments, ExecutionTypeQueuAwait, NULL);
+    }
+
+    uint8_t getFocusState(uint32_t wid) {
+        if (OrbSrv == NULL) { GetOrbSrv(); }
+        arguments_t arguments;
+        arguments.arg[0] = wid;
+        ksmem_t result = Sys_Execthread(OrbSrv->getFocusState, &arguments, ExecutionTypeQueuAwait, NULL);
+        return result;
     }
 
 }

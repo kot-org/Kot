@@ -1,10 +1,9 @@
-#ifndef __KOTPP__GRAPHICS__UTILS__
-#define __KOTPP__GRAPHICS__UTILS__
+#pragma once
 
 #include <kot/heap.h>
 #include <kot/math.h>
 
-namespace std {
+namespace Graphic {
 
     typedef struct {
         uintptr_t addr;
@@ -26,7 +25,4 @@ namespace std {
     void drawRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour);
     void drawLine(framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour);
 
-} 
-
-
-#endif
+}

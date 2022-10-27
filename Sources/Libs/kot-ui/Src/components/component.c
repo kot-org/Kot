@@ -2,17 +2,13 @@
 
 #include <kot/sys.h>
 
-void UpdateContext(ctxui_t* ctx) {
-/*     for(int i = 0; i < componentsList->length; i++) {
-        component_t* cpnt = vector_get(componentsList, i);
+/* void UpdateContext(ContextUi_t* ctx) {
 
-        UpdateComponent(cpnt);
-    } */
 }
 
 void UpdateComponent(component_t* component) {
     
-}
+} */
 
 void blitComponentFramebuffer(component_t* component) {
     while(component->parent != NULL) {
@@ -68,6 +64,7 @@ component_t* AddComponent(component_t* parent, componentViewParam_t param) {
 void EditComponent(component_t* cpnt, componentViewParam_t param) {
     cpnt->fb->width = param.width;
     cpnt->fb->height = param.height;
+    cpnt->fb->pitch = cpnt->fb->btpp * param.width;
 
     cpnt->param->width = param.width;
     cpnt->param->height = param.height;
@@ -116,17 +113,27 @@ canva_t* CreateCanva(component_t* parent, componentViewParam_t param) {
     return canva;
 }
 
+void DrawBox(component_t* cpnt) {
+    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->width, cpnt->param->height, cpnt->param->bgColor);
+
+    blitComponentFramebuffer(cpnt);
+}
+
 box_t* CreateBox(component_t* parent, componentViewParam_t param) {
     box_t* box = malloc(sizeof(box_t));
 
-    box->cpnt = AddComponent(parent, param); 
+    if(!param.bgColor)
+        param.bgColor = parent->param->bgColor; // test
+
+    box->cpnt = AddComponent(parent, param);
     box->cpnt->type = BoxComponent;
+
+    DrawBox(box->cpnt);
 
     return box;
 }
 
 void DrawTitleBar(component_t* cpnt) {
-    /* color: text color */
     fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->width, cpnt->param->height, cpnt->param->bgColor);
 
 /*     uint8_t tmpWidthIcon = 10;
@@ -155,10 +162,10 @@ titlebar_t* CreateTitleBar(char* title, component_t* parent, componentViewParam_
     uint32_t btnHeight = 20;
     uint32_t btnTextColor = 0xFFFFFFFF;
 
-    box_t* div = CreateBox(tb->cpnt, (componentViewParam_t){ });
+    box_t* div = CreateBox(tb->cpnt, (componentViewParam_t){ .width = 100, .height = 20 });
 
     button_t* minbtn = CreateButton(div->cpnt, (componentViewParam_t){ .width = btnWidth, .height = btnHeight, .bgColor = 0xFF00FF00, .fbColor = btnTextColor, .borderRadius = 10 });
-    //button_t* testbtn = CreateButton(div->cpnt, (componentViewParam_t){ .width = btnWidth, .height = btnHeight, .bgColor = 0xFFFF0000, .fbColor = btnTextColor });
+    button_t* testbtn = CreateButton(div->cpnt, (componentViewParam_t){ .width = btnWidth, .height = btnHeight, .bgColor = 0xFFFF0000, .fbColor = btnTextColor });
     /* button_t* resizebtn = CreateButton(btnWidth, btnHeight, 0, 0, 0xFFFF0000, btnColor, tb->cpnt); */
     /* button_t* closebtn = CreateButton(); */
 
@@ -204,7 +211,9 @@ button_t* CreateButton(component_t* parent, componentViewParam_t param) {
     itoa(parent->type, buff, 10);
     Printlog(buff); */
 
-    EditComponent(parent, (componentViewParam_t){ .width = 40, .height = 20 });
+    uint32_t newWidth = parent->fb->width + param.width;
+    
+    //EditComponent(parent, (componentViewParam_t){ .width = newWidth, .height = 20 });
 
     // todo: event
     btn->cpnt = AddComponent(parent, param);

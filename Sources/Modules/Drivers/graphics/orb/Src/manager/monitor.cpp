@@ -1,5 +1,7 @@
 #include "monitor.h"
 
+#include <kot++/printf.h>
+
 Monitor::Monitor(process_t orb, uintptr_t fb_addr, uint64_t width, uint64_t height, uint64_t pitch, uint64_t bpp, uint32_t xPos, uint32_t yPos) {
     
     this->xPos = xPos;

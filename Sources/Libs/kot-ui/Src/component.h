@@ -3,7 +3,6 @@
 
 #include <kot/types.h>
 
-#include <kot-ui/context.h>
 #include <kot-graphics/utils.h>
 #include <kot-graphics/context.h>
 
@@ -38,7 +37,6 @@ typedef struct {
 
 typedef struct component_s {
     framebuffer_t* fb;
-    ctxui_t* ctx;
     componentViewParam_t* param;
     struct component_s* parent;
     vector_t* childs;
@@ -91,8 +89,8 @@ typedef struct {
     component_t* cpnt;
 } picturebox_t;
 
-void UpdateContext(ctxui_t* ctx);
-void UpdateComponent(component_t* component);
+/* void UpdateContext(ContextUi_t* ctx);
+void UpdateComponent(component_t* component); */
 
 void blitComponentFramebuffer(component_t* component);
 
@@ -105,6 +103,8 @@ component_t* GetMainParent(framebuffer_t* fb);
 /* Components */
 
 canva_t* CreateCanva(component_t* parent, componentViewParam_t param);
+
+void DrawBox(component_t* cpnt);
 box_t* CreateBox(component_t* parent, componentViewParam_t param);
 
 void DrawTitleBar(component_t* cpnt);

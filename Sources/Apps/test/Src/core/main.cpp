@@ -1,24 +1,13 @@
 #include <core/main.h>
 
-#include <kot-ui/component.h>
+#include <kot-ui++/window.h>
 
 #include <kot++/printf.h>
 
-#include <kot/math.h>
-
 extern "C" int main() {
-    std::framebuffer_t* fb;
+    WindowUi::Window("test", 500, 300, 10, 400);
 
-    uint32_t wid = orb::create(500, 300, 10, 400);
-    fb = orb::getFramebuffer(wid);
-    orb::show(wid);
-
-    ctxg_t* ctxGraphic = CreateGraphicContext(fb->addr, fb->width, fb->height);
-    ctxui_t* ctxUi = CreateUiContext((framebuffer_t*)fb);
-    // canva_t* canva1 = CreateCanva(200, 100, GetMainParent((framebuffer_t*)fb));
-
-    titlebar_t* titlebar = CreateTitleBar("test", GetMainParent((framebuffer_t*)fb), { .bgColor = 0xFF1B1B1B, .visible = true });
-    //UpdateContext(ctxUi);
+    // titlebar_t* titlebar = CreateTitleBar("test", GetMainParent(fb), { .bgColor = 0xFF1B1B1B, .visible = true });
 
 /*     srv_system_callback_t* callback1 = Srv_System_ReadFileInitrd("default-font.sfn", true);
     kfont_t* font = LoadFont(callback1->Data);

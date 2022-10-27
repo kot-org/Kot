@@ -1,57 +1,59 @@
-#include "context.h"
+#include <kot-graphics++/context.h>
 
-namespace std {
+namespace Graphic {
 
-    Context::Context(uintptr_t fb_addr, uint32_t width, uint32_t height) {
+    extern "C" void blendAlpha(uintptr_t Pixel, uint32_t color);
+
+    ContextGphc::ContextGphc(uintptr_t fb_addr, uint32_t width, uint32_t height) {
         this->fb_addr = fb_addr;
         this->poses = vector_create();
         this->width = width;
         this->height = height;
         this->pitch = this->width * this->btpp;
         this->fb_size = this->pitch * this->height;
-        if (this->width >= this->height) {
+
+        if (this->width >= this->height)
             this->scale = this->width/412;
-        } else {
+        else
             this->scale = this->height/412;
-        }
     }
 
-    void Context::putPixel(uint32_t x, uint32_t y, uint32_t colour) {
+    void ContextGphc::putPixel(uint32_t x, uint32_t y, uint32_t colour) {
         if (this->pixelExist(x, y) == -1) return;
         uint64_t index = x * this->btpp + y * this->pitch;
-        *(uint32_t*)((uint64_t) this->fb_addr + index) = colour;
+        blendAlpha((uintptr_t)((uint64_t)this->fb_addr + index), colour);
     }
 
-    int8_t Context::pixelExist(uint32_t x, uint32_t y) {
+    int8_t ContextGphc::pixelExist(uint32_t x, uint32_t y) {
         if (x < 0 || y < 0) return -1;
         if (x > this->width || y > this->height) return -1;
         return 1;
     }
 
-    uint32_t Context::getPixel(uint32_t x, uint32_t y) {
+    uint32_t ContextGphc::getPixel(uint32_t x, uint32_t y) {
         uint64_t index = x * this->btpp + y * this->pitch;
         return *(uint32_t*)((uint64_t) this->fb_addr + index);
     }
 
     // ## path ##
 
-    void Context::auto_pos(bool _auto) {
+    void ContextGphc::auto_pos(bool _auto) {
         this->_auto = _auto;
     }
 
-    pos_t* Context::get_pos(uint16_t index) {
+    pos_t* ContextGphc::get_pos(uint16_t index) {
         return (pos_t*) vector_get(this->poses, index);
     }
 
-    void Context::scale_pos(bool _scaling) {
+    void ContextGphc::scale_pos(bool _scaling) {
         this->_scaling = _scaling;
     } 
 
-    uint16_t Context::get_scale() {
+    uint16_t ContextGphc::get_scale() {
         return this->scale;
     }
 
-    void Context::abs_pos(uint32_t x, uint32_t y) {
+    void ContextGphc::abs_pos(uint32_t x, uint32_t y) {
         this->x = x;
         this->y = y;
         if (this->_auto == true) {
@@ -59,7 +61,7 @@ namespace std {
         }
     }
 
-    void Context::rel_pos(uint32_t x, uint32_t y) {
+    void ContextGphc::rel_pos(uint32_t x, uint32_t y) {
         if (this->_scaling == true) {
             x = x * this->scale;
             y = y * this->scale;
@@ -71,14 +73,14 @@ namespace std {
         }
     }
 
-    void Context::add_pos() {
+    void ContextGphc::add_pos() {
         pos_t* pos = (pos_t*) malloc(sizeof(pos_t));
         pos->x = this->x;
         pos->y = this->y;
         vector_push(this->poses, pos);
     }
 
-    void Context::end_path() {
+    void ContextGphc::end_path() {
         if (this->poses->length > 0) {
             pos_t* to = (pos_t*) malloc(sizeof(pos_t));
             pos_t* from = (pos_t*) vector_get(this->poses, 0);
@@ -88,7 +90,7 @@ namespace std {
         }
     }
 
-    void Context::draw(uint32_t colour) {
+    void ContextGphc::draw(uint32_t colour) {
         if (this->_auto == true) {
             this->end_path();
         }
@@ -99,7 +101,7 @@ namespace std {
         }
     }
 
-    void Context::reset() {
+    void ContextGphc::reset() {
         this->x = 0;
         this->y = 0;
         vector_clear(this->poses);
@@ -107,11 +109,11 @@ namespace std {
 
     // ## absolute ##
 
-    void Context::fill(uint32_t x, uint32_t y, uint32_t colour) {
+    void ContextGphc::fill(uint32_t x, uint32_t y, uint32_t colour) {
         this->fill(x, y, colour, colour);
     } 
 
-    void Context::fill(uint32_t x, uint32_t y, uint32_t colour, uint32_t border) {
+    void ContextGphc::fill(uint32_t x, uint32_t y, uint32_t colour, uint32_t border) {
         uint32_t pixel = this->getPixel(x, y);
         if (pixel != colour && pixel != border && this->pixelExist(x, y) == 1) {
             this->putPixel(x, y, colour);
@@ -122,7 +124,7 @@ namespace std {
         }
     } 
 
-    void Context::fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
+    void ContextGphc::fillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
 
         uint8_t* fb = (uint8_t*) this->fb_addr;
 
@@ -142,13 +144,13 @@ namespace std {
             for (uint32_t w = x; w < _w; w++) {
                 uint64_t xpos = w * this->btpp;
                 uint64_t index = ypos + xpos;
-                *(uint32_t*)(fb + index) = colour;
+                blendAlpha((uintptr_t)((uint64_t)this->fb_addr + index), colour);
             }
         }
 
     }
 
-    void Context::subSeqCircle(uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour) {
+    void ContextGphc::subSeqCircle(uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour) {
         uint32_t w = this->width;
         uint32_t h = this->height;
         this->putPixel(xc+x+w/2, (h/2)-(yc+y), colour);
@@ -161,7 +163,7 @@ namespace std {
         this->putPixel(xc-y+w/2, (h/2)-(yc-x), colour);
     }
 
-    void Context::drawCircle(uint32_t xc, uint32_t yc, uint32_t r, uint32_t colour) {
+    void ContextGphc::drawCircle(uint32_t xc, uint32_t yc, uint32_t r, uint32_t colour) {
         int x = 0, y = r;
         int d = 3 - 2 * r;
         this->subSeqCircle(xc, yc, x, y, colour);
@@ -178,7 +180,7 @@ namespace std {
         }
     }
 
-    void Context::drawLine(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour) {
+    void ContextGphc::drawLine(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour) {
 
         if (x1 > this->width) {
             x1 = this->width;
@@ -254,7 +256,7 @@ namespace std {
 
     }
 
-    void Context::drawRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
+    void ContextGphc::drawRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
         this->drawLine(x, y, x+width, y, colour); // top
         this->drawLine(x, y+height, x+width, y+height, colour); // bottom
         this->drawLine(x, y, x, y+height, colour); // left
@@ -263,31 +265,31 @@ namespace std {
 
     // ## frame buffer ##
 
-    void Context::swapTo(uintptr_t to) {
+    void ContextGphc::swapTo(uintptr_t to) {
         memcpy(to, this->fb_addr, this->fb_size);
     }
 
-    void Context::swapFrom(uintptr_t from) {
+    void ContextGphc::swapFrom(uintptr_t from) {
         memcpy(this->fb_addr, from, this->fb_size);
     }
 
-    void Context::swapTo(Context* to) {
+    void ContextGphc::swapTo(ContextGphc* to) {
         this->swapTo(to->getFramebuffer());
     }
 
-    void Context::swapFrom(Context* from) {
+    void ContextGphc::swapFrom(ContextGphc* from) {
         this->swapFrom(from->getFramebuffer());
     }
 
-    void Context::clear() {
+    void ContextGphc::clear() {
         memset(this->fb_addr, 0x00, this->fb_size);
     } 
 
-    void Context::clear(uint32_t colour) {
+    void ContextGphc::clear(uint32_t colour) {
         memset32(this->fb_addr, colour, this->fb_size);
     } 
 
-    uintptr_t Context::getFramebuffer() {
+    uintptr_t ContextGphc::getFramebuffer() {
         return this->fb_addr;
     }
 

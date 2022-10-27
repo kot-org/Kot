@@ -10,7 +10,7 @@
 #include <kot/uisd/srvs/hid.h>
 #include <kot/uisd/srvs/system.h>
 
-#include <kot++/graphics/context.h>
+#include <kot-graphics++/context.h>
 
 class Context;
 

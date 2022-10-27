@@ -29,7 +29,7 @@ private:
     bool Sborder = true;
     process_t orb;
     process_t owner;
-    FocusState focus_state = INACTIVE;
+    FocusState focus_state;
     void newBuffer();
 public:
     Window(process_t orb, uint64_t width, uint64_t height, uint64_t bpp, uint32_t xPos, uint32_t yPos);

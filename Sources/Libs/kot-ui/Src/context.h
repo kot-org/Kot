@@ -9,11 +9,11 @@
 extern "C" {
 #endif
 
-typedef struct ctxui_s {
+typedef struct {
     framebuffer_t* fb;
-} ctxui_t;
+} ContextUi_t;
 
-ctxui_t* CreateUiContext(framebuffer_t* fb);
+ContextUi_t* CreateUiContext(framebuffer_t* fb);
 
 #if defined(__cplusplus)
 }

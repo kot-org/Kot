@@ -2,11 +2,11 @@
 
 #include <kot++/printf.h>
 #include <kot/uisd/srvs/system.h>
-#include <kot++/graphics/utils.h>
+#include <kot-graphics++/utils.h>
 
 #include "../core/main.h"
 
-using namespace std;
+using namespace Graphic;
 
 struct BGRTHeader_t{
     srv_system_sdtheader_t Header;
@@ -35,8 +35,6 @@ struct BMPImageHeader_t{
     uint32_t NumberOfColors;
     uint32_t ImportantColors;
 }__attribute__((packed));
-
-
 
 void loadBootGraphics(framebuffer_t* Framebuffer);
 void parseBootImage(framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width, uint32_t Height, uint8_t Bpp, uint32_t XPos, uint32_t YPos);

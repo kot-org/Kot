@@ -4,14 +4,14 @@
 #include <kot/utils/map.h>
 #include <kot/cstring.h>
 
-namespace std {
+namespace Graphic {
 
     typedef struct {
         uint32_t x;
         uint32_t y;
     } pos_t;
 
-    class Context {
+    class ContextGphc {
     private:
 
         uint32_t x = 0;
@@ -35,8 +35,8 @@ namespace std {
 
     public:
 
-        Context(uintptr_t fb_addr, uint32_t width, uint32_t height);
-
+        ContextGphc(uintptr_t fb_addr, uint32_t width, uint32_t height);
+        
         void putPixel(uint32_t x, uint32_t y, uint32_t colour);
         int8_t pixelExist(uint32_t x, uint32_t y);
         uint32_t getPixel(uint32_t x, uint32_t y);
@@ -72,8 +72,8 @@ namespace std {
 
         void swapTo(uintptr_t to);
         void swapFrom(uintptr_t from);
-        void swapTo(Context* to);
-        void swapFrom(Context* from);
+        void swapTo(ContextGphc* to);
+        void swapFrom(ContextGphc* from);
         
         void clear();
         void clear(uint32_t colour);

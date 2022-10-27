@@ -1,5 +1,7 @@
 #include "main.h"
 
+using namespace std;
+
 process_t self;
 
 uint64_t main_monitor_bpp;
@@ -35,6 +37,7 @@ thread_t showThread = NULL;
 thread_t hideThread = NULL;
 thread_t resizeThread = NULL;
 thread_t moveThread = NULL;
+thread_t getFocusStateThread = NULL;
 
 /**
  * Return windowId
@@ -121,6 +124,13 @@ void getBpp(uint32_t windowId) {
     Sys_Close(window->getBpp());
 }
 
+/**
+ * Return FocusState
+ **/
+void getFocusState(uint32_t windowId) {
+    Window* window = (Window*) vector_get(windows, windowId);
+    Sys_Close(window->getFocusState());
+}
 
 
 void initUISD() {
@@ -135,6 +145,7 @@ void initUISD() {
     Sys_Createthread(self, (uintptr_t) &hide, PriviledgeApp, NULL, &hideThread);
     Sys_Createthread(self, (uintptr_t) &resize, PriviledgeApp, NULL, &resizeThread);
     Sys_Createthread(self, (uintptr_t) &move, PriviledgeApp, NULL, &moveThread);
+    Sys_Createthread(self, (uintptr_t) &getFocusState, PriviledgeApp, NULL, &getFocusStateThread);
 
     uintptr_t address = getFreeAlignedSpace(sizeof(uisd_graphics_t));
     ksmem_t key = NULL;
@@ -156,6 +167,7 @@ void initUISD() {
     OrbSrv->hide = MakeShareableThread(hideThread, PriviledgeApp);
     OrbSrv->resize = MakeShareableThread(resizeThread, PriviledgeApp);
     OrbSrv->move = MakeShareableThread(moveThread, PriviledgeApp);
+    OrbSrv->getFocusState = MakeShareableThread(getFocusStateThread, PriviledgeApp);
 
     CreateControllerUISD(ControllerTypeEnum_Graphics, key, true);
 

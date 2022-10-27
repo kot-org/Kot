@@ -1,6 +1,6 @@
 #include "boot.h"
 
-#define BootLogoBottomMargin 0x10
+#define BootLogoBottomMargin 0x20
 
 void loadBootGraphics(framebuffer_t* Framebuffer){
     bool IsBGRT = false;
