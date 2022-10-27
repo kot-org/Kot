@@ -17,7 +17,7 @@ EXTERN InterruptHandler
     %assign y %1*2
     SWAPGS_IF_NECESSARY y
     PUSH_REG
-
+    
     mov rdi, rsp
     mov rsi, [gs:0x0]
     
@@ -38,7 +38,6 @@ EXTERN InterruptHandler
 %macro INTERRUPT_WITHOUT_ERROR_CODE  1
 
 EntryInterruptHandler%1:
-    cli
     push 0  ; fill the stack
     push %1
     GLOBAL_INTERRUPT_HANDLER %1
@@ -48,7 +47,6 @@ EntryInterruptHandler%1:
 %macro INTERRUPT_WITH_ERROR_CODE  1
 
 EntryInterruptHandler%1:
-    cli
     push %1
     GLOBAL_INTERRUPT_HANDLER %1
 

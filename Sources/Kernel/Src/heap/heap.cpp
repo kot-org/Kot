@@ -32,20 +32,7 @@ uintptr_t calloc(size64_t size){
     return address;
 }
 
-uintptr_t calloc_WL(size64_t size){
-    uintptr_t address = malloc_WL(size);
-    memset(address, 0, size);
-    return address;
-}
-
 uintptr_t malloc(size64_t size){
-    AtomicAquire(&globalHeap.lock);
-    uintptr_t address = malloc_WL(size);
-    AtomicRelease(&globalHeap.lock);
-    return address;
-}
-
-uintptr_t malloc_WL(size64_t size){
     if (size == 0) return NULL;
 
     if(size % 0x10 > 0){ // it is not a multiple of 0x10
@@ -53,6 +40,7 @@ uintptr_t malloc_WL(size64_t size){
         size += 0x10;
     }
 
+    AtomicAquire(&globalHeap.lock);
     SegmentHeader* currentSeg = (SegmentHeader*)globalHeap.mainSegment;
     uint64_t SizeWithHeader = size + sizeof(SegmentHeader);
     while(true){
@@ -63,11 +51,13 @@ uintptr_t malloc_WL(size64_t size){
                 currentSeg->IsFree = false;
                 globalHeap.UsedSize += currentSeg->length + sizeof(SegmentHeader);
                 globalHeap.FreeSize -= currentSeg->length + sizeof(SegmentHeader);
+                AtomicRelease(&globalHeap.lock);
                 return (uintptr_t)((uint64_t)currentSeg + sizeof(SegmentHeader));
             }else if(currentSeg->length == size){
                 currentSeg->IsFree = false;
                 globalHeap.UsedSize += currentSeg->length + sizeof(SegmentHeader);
                 globalHeap.FreeSize -= currentSeg->length + sizeof(SegmentHeader);
+                AtomicRelease(&globalHeap.lock);
                 return (uintptr_t)((uint64_t)currentSeg + sizeof(SegmentHeader));
             }
         }
@@ -76,7 +66,8 @@ uintptr_t malloc_WL(size64_t size){
     }
     
     ExpandHeap(size);
-    return malloc_WL(size);
+    AtomicRelease(&globalHeap.lock);
+    return malloc(size);
 }
 
 void MergeThisToNext(SegmentHeader* header){
@@ -107,13 +98,8 @@ void MergeLastAndThisToNext(SegmentHeader* header){
 }
 
 void free(uintptr_t address){
-        AtomicAquire(&globalHeap.lock);
-        free_WL(address);
-        AtomicRelease(&globalHeap.lock);
-}
-
-void free_WL(uintptr_t address){
     if(address != NULL){        
+        AtomicAquire(&globalHeap.lock);
         SegmentHeader* header = (SegmentHeader*)(uintptr_t)((uint64_t)address - sizeof(SegmentHeader));
         header->IsFree = true;
         globalHeap.FreeSize += header->length + sizeof(SegmentHeader);
@@ -123,6 +109,7 @@ void free_WL(uintptr_t address){
             if(header->next->IsFree && header->last->IsFree){
                 // merge this segment and next segment into the last segment
                 MergeLastAndThisToNext(header);
+                AtomicRelease(&globalHeap.lock);
                 return;
             }
         }
@@ -130,7 +117,8 @@ void free_WL(uintptr_t address){
         if(header->last != NULL){
             if(header->last->IsFree){
                 // merge this segment into the last segment
-                MergeLastToThis(header);  
+                MergeLastToThis(header);
+                AtomicRelease(&globalHeap.lock);  
                 return;  
             }         
         }
@@ -139,9 +127,11 @@ void free_WL(uintptr_t address){
             if(header->next->IsFree){
                 // merge this segment into the next segment
                 MergeThisToNext(header);
+                AtomicRelease(&globalHeap.lock);
                 return; 
             }
         }
+        AtomicRelease(&globalHeap.lock);
     }
 }
 
@@ -156,22 +146,6 @@ uintptr_t realloc(uintptr_t buffer, size64_t size){
         }
 
         free(buffer);        
-    }
-
-    return newBuffer;
-}
-
-uintptr_t realloc_WL(uintptr_t buffer, size64_t size){
-    uintptr_t newBuffer = malloc_WL(size);
-
-    if(buffer != NULL){
-        if(size < GetSegmentHeader(buffer)->length){
-            memcpy(newBuffer, buffer, size);
-        }else{
-            memcpy(newBuffer, buffer, GetSegmentHeader(buffer)->length);
-        }
-
-        free_WL(buffer);        
     }
 
     return newBuffer;
@@ -246,12 +220,4 @@ void ExpandHeap(size64_t length){
 
 SegmentHeader* GetSegmentHeader(uintptr_t address){
     return (SegmentHeader*)(uintptr_t)((uint64_t)address - sizeof(SegmentHeader));
-}
-
-void AcquireHeap(){
-    AtomicAquire(&globalHeap.lock);
-}
-
-void ReleaseHeap(){
-    AtomicRelease(&globalHeap.lock);
 }

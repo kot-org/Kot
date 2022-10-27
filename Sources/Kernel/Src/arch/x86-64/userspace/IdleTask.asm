@@ -3,7 +3,7 @@
 GLOBAL IdleTask
 
 IdleTask:
-        int 0x40
+        int 0x41
         jmp IdleTask
 
 times 4096 - ($ - $$) db 0

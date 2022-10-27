@@ -9,7 +9,6 @@
 
 #define InterruptGateType               0xE
 #define TrapGateType                    0xF
-#define TaskGateType                    0x5
 
 
 struct IDTtypeStruct{

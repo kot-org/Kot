@@ -109,6 +109,8 @@ namespace APIC{
         // Disable PIC
         IoWrite8(0xa1, 0xff);
         IoWrite8(0x21, 0xff);
+        
+        EnableAPIC(CPU::GetAPICID());
 
         // Configure first IOAPIC
         IOAPIC* ioapic = IOapic[IOApicID];
@@ -240,7 +242,7 @@ namespace APIC{
         LocalAPICInterruptRegister TimerRegisters;
 
         /* Don't forget to define all the struct because it can be corrupt by the stack */
-        TimerRegisters.vector = INT_Schedule;
+        TimerRegisters.vector = INT_ScheduleAPIC;
         TimerRegisters.messageType = LocalAPICInterruptRegisterMessageTypeFixed;
         TimerRegisters.deliveryStatus = LocalAPICInterruptRegisterMessageTypeIddle;
         TimerRegisters.remoteIrr = LocalAPICInterruptRegisterRemoteIRRCompleted;

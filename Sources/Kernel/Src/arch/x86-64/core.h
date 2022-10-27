@@ -17,6 +17,5 @@ struct ArchInfo_t{
     uint8_t IRQLineSize;
 
     size64_t IRQSize;
-    event_t* IRQEvents; 
-    bool* IsIRQEventsFree;   
+    event_t IRQEvents[];
 }__attribute__((packed));

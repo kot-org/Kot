@@ -37,8 +37,7 @@ struct ThreadQueu_t{
     struct ThreadQueuData_t* CurrentData;
     struct ThreadQueuData_t* LastData;
     KResult SetThreadInQueu(kthread_t* Caller, kthread_t* Self, arguments_t* FunctionParameters, bool IsAwaitTask, struct ThreadShareData_t* Data);
-    KResult SetThreadInQueu_WL(kthread_t* Caller, kthread_t* Self, arguments_t* FunctionParameters, bool IsAwaitTask, struct ThreadShareData_t* Data);
-    KResult ExecuteThreadInQueu_WL();
+    KResult SetThreadInQueu_NSU(kthread_t* Caller, kthread_t* Self, arguments_t* FunctionParameters, bool IsAwaitTask, struct ThreadShareData_t* Data);
     KResult ExecuteThreadInQueu();
     KResult NextThreadInQueu_WL();
 }__attribute__((packed));
@@ -90,7 +89,7 @@ struct kprocess_t{
     /* Parent */
     Node* NodeParent;
     TaskManager* TaskManagerParent;
-    locker_t Locker;
+    locker_t CreateThreadLocker;
 
     /* Process Creator Info */
     uint64_t PID_PCI;
@@ -174,15 +173,14 @@ struct kthread_t{
     bool ExtendStack(uint64_t address, size64_t size);
     KResult ShareDataUsingStackSpace(uintptr_t data, size64_t size, uintptr_t* location);
 
-    bool Launch_WL(arguments_t* FunctionParameters);  
     bool Launch(arguments_t* FunctionParameters);  
+    bool Launch_WL(arguments_t* FunctionParameters);  
+    bool Launch();
     bool Launch_WL();  
-    bool Launch();  
     bool Pause(ContextStack* Registers, bool force);   
     bool Pause_WL(ContextStack* Registers, bool force);   
     KResult Close(ContextStack* Registers, uint64_t ReturnValue);
-    KResult CloseQueu(ContextStack* Registers, uint64_t ReturnValue);
-    KResult CloseQueu_WL(ContextStack* Registers, uint64_t ReturnValue);
+    KResult CloseQueu(uint64_t ReturnValue);
 }__attribute__((packed));  
 
 class TaskManager{
@@ -205,7 +203,6 @@ class TaskManager{
         uint64_t Unpause(kthread_t* task); 
         uint64_t Unpause_WL(kthread_t* task); 
         uint64_t Exit(ContextStack* Registers, kthread_t* task, uint64_t ReturnValue); 
-        uint64_t ShareDataUsingStackSpace(kthread_t* self, uintptr_t data, size64_t size, uintptr_t* location);
         // process
         uint64_t CreateProcess(kprocess_t** key, enum Priviledge priviledge, uint64_t externalData);
         uint64_t CreateProcess(kthread_t* caller, kprocess_t** key, enum Priviledge priviledge, uint64_t externalData);
@@ -216,12 +213,17 @@ class TaskManager{
         void EnabledScheduler(uint64_t CoreID);
         kthread_t* GetCurrentthread(uint64_t CoreID);
 
+        void AcquireScheduler();
+        void ReleaseScheduler();
+
         bool IsSchedulerEnable[MAX_PROCESSORS];
         uint64_t TimeByCore[MAX_PROCESSORS];
         kthread_t* ThreadExecutePerCore[MAX_PROCESSORS];
 
-        bool TaskManagerInit;  
-        locker_t MutexScheduler;  
+        bool TaskManagerInit;
+
+        locker_t SchedulerLock;  
+        locker_t CreateProcessLock;  
 
         uint64_t NumberProcessTotal = 0;
         uint64_t NumberOfCPU = 0;
@@ -240,7 +242,6 @@ class TaskManager{
         Node* GlobalProcessNode;
 };
 
-extern "C" void SaveTask(ContextStack* Registers, uint64_t CoreID);
 void SetParameters(ContextStack* Registers, arguments_t* FunctionParameters);
 
 extern TaskManager* globalTaskManager;

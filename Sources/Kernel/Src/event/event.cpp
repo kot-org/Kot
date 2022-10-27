@@ -138,20 +138,21 @@ namespace Event{
     uint64_t Close(ContextStack* Registers, kthread_t* task){
         if(!task->IsEvent) return KFAIL;
         AtomicAquire(&task->EventLock);
-        AtomicAquire(&globalTaskManager->MutexScheduler);
 
         if(task->EventDataNode->NumberOfMissedEvents){
             event_data_t* Next = task->EventDataNode->CurrentData->Next;
-            task->ResetContext(task->Regs);
-            task->Launch_WL(&task->EventDataNode->CurrentData->Parameters);
 
             free(task->EventDataNode->CurrentData);
             task->EventDataNode->CurrentData = Next;
             task->EventDataNode->CurrentData->Task->NumberOfMissedEvents--;
             task->EventDataNode->NumberOfMissedEvents--;
+            globalTaskManager->AcquireScheduler();
+            task->ResetContext(task->Regs);
+            task->Launch_WL(&task->EventDataNode->CurrentData->Parameters);
             AtomicRelease(&task->EventLock);
             ForceSelfDestruction();
         }else{
+            globalTaskManager->AcquireScheduler();
             task->Regs->rsp = (uint64_t)StackTop;
             task->Regs->rip = (uint64_t)task->EntryPoint;
             task->Regs->cs = Registers->threadInfo->CS;

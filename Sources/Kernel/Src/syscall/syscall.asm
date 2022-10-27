@@ -47,7 +47,7 @@ SyscallEntry:
 	mov	rsp, [rsp + 0x0]  		; setup the stack
 	mov [rsp + 0x0], rbp		; 
 	mov rbp, [gs:0x8]			; save rbp
-
+	
 	cld ; clear DF to push correctly to the stack
 
 	push qword [rbp + 0x10]    	; ss

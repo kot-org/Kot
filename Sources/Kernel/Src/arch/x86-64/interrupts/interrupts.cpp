@@ -58,25 +58,32 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
     }
 
     /* Shedule */
+    SetIDTGate((uintptr_t)InterruptEntryList[INT_ScheduleAPIC], INT_ScheduleAPIC, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_SchedulerAPIC, idtr);
     SetIDTGate((uintptr_t)InterruptEntryList[INT_Schedule], INT_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
+    SetIDTGate((uintptr_t)InterruptEntryList[INT_DestroySelf], INT_DestroySelf, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_DestroySelf, idtr); // Interrupt gate type because interrupt should be disable before
 
+    uint64_t stackSchedulerAPIC = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+    TSSSetIST(CPU::GetAPICID(), IST_SchedulerAPIC, stackSchedulerAPIC);
     uint64_t stackScheduler = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
     TSSSetIST(CPU::GetAPICID(), IST_Scheduler, stackScheduler);
-    uint64_t stackInterrupts = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
-    TSSSetIST(CPU::GetAPICID(), IST_Interrupts, stackInterrupts);
+    uint64_t stackDestroySelf = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+    TSSSetIST(CPU::GetAPICID(), IST_DestroySelf, stackDestroySelf);
 
     asm("lidt %0" : : "m" (idtr));   
 }
 
 extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
-    // bug : styack corruptiom because it's schedule with exeception stack create ist
     if(Registers->InterruptNumber < Exception_End){
-        // exceptions
+        // Exceptions
         uint64_t Cr2 = 0;
         asm("movq %%cr2, %0" : "=r"(Cr2));
         ExceptionHandler(Cr2, Registers, CoreID);
-    }else if(Registers->InterruptNumber == INT_Schedule){
+    }else if(Registers->InterruptNumber == INT_ScheduleAPIC){
         // APIC timer 
+        globalTaskManager->Scheduler(Registers, CoreID); 
+        APIC::localApicEOI(CoreID);
+    }else if(Registers->InterruptNumber == INT_Schedule){
+        // Scheduler
         globalTaskManager->Scheduler(Registers, CoreID); 
     }else if(Registers->InterruptNumber == INT_DestroySelf){
         // Destroy
@@ -92,8 +99,8 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
             .arg[0] = Registers->InterruptNumber,
         };
         Event::Trigger(InterruptEventList[Registers->InterruptNumber], &InterruptParameters);
+        APIC::localApicEOI(CoreID);
     }
-    APIC::localApicEOI(CoreID);
 }
 
 void ExceptionHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
@@ -115,7 +122,6 @@ void ExceptionHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
         }else{
             Registers->threadInfo->thread->Close(Registers, NULL); 
         }
-        globalTaskManager->Scheduler(Registers, CoreID); 
     }
 }
 

@@ -129,6 +129,7 @@ uint64_t CreateMemoryField(kprocess_t* process, size64_t size, uint64_t* virtual
     }
 
     MemoryShareInfo* shareInfo = (MemoryShareInfo*)malloc(sizeof(MemoryShareInfo));
+    AtomicClearLock(&shareInfo->Lock);
     shareInfo->InitialSize = size;
     shareInfo->Type = type;
     shareInfo->RealSize = realSize;
@@ -136,7 +137,7 @@ uint64_t CreateMemoryField(kprocess_t* process, size64_t size, uint64_t* virtual
     shareInfo->Parent = process;
     shareInfo->PageTableParent = pageTable;
     shareInfo->VirtualAddressParent = virtualAddress;
-    shareInfo->SlavesList = new KStack(0x50);;
+    shareInfo->SlavesList = new KStack(0x50);
     shareInfo->SlavesNumber = NULL;
     shareInfo->signature0 = 'S';
     shareInfo->signature1 = 'M';

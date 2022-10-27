@@ -8,8 +8,12 @@ extern "C" void TrampolineMain(){
     TSSSetIST(CPU::GetAPICID(), IST_Scheduler, DataTrampoline.StackScheduler);
     asm ("lidt %0" : : "m" (idtr));
 
-    uint64_t stackInterrupts = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
-    TSSSetIST(CPU::GetAPICID(), IST_Interrupts, stackInterrupts);
+    uint64_t stackSchedulerAPIC = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+    TSSSetIST(CPU::GetAPICID(), IST_SchedulerAPIC, stackSchedulerAPIC);
+    uint64_t stackScheduler = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+    TSSSetIST(CPU::GetAPICID(), IST_Scheduler, stackScheduler);
+    uint64_t stackDestroySelf = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+    TSSSetIST(CPU::GetAPICID(), IST_DestroySelf, stackDestroySelf);
 
     CPU::InitCore();
     simdInit();

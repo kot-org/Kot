@@ -245,7 +245,7 @@ void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bo
     vmm_SetFlag(&PDE, vmm_flag::vmm_Present, true);
     vmm_SetFlag(&PDE, vmm_flag::vmm_ReadWrite, readWrite);
     vmm_SetFlag(&PDE, vmm_flag::vmm_PhysicalStorage, physicalStorage);
-    vmm_SetIfNotFlag(&PDE, vmm_flag::vmm_User, user);
+    vmm_SetFlag(&PDE, vmm_flag::vmm_User, user);
     PTVirtualAddress->entries[indexer.P_i] = PDE;
 }
 
