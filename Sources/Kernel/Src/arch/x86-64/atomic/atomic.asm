@@ -43,7 +43,6 @@ AtomicAquireCli:		; rdi = mutex location memory , 0x0 = location of the bit wher
 		jnc			.exit				; CF = 0 to begin with
 	.spin:
 		int 		0x41
-		sti
 		bt			QWORD [rdi], 0x0
 		jc			.spin				; CF = 1 still
 		jmp			.acquire

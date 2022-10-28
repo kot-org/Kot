@@ -316,6 +316,9 @@ uint64_t TaskManager::Exit(ContextStack* Registers, kthread_t* task, uint64_t Re
         /* noreturn */
         return KSUCCESS;
     }
+
+    globalTaskManager->ReleaseScheduler();
+
     if(task->IsEvent){
         // Clear event
     }
@@ -324,6 +327,7 @@ uint64_t TaskManager::Exit(ContextStack* Registers, kthread_t* task, uint64_t Re
 
     /* TODO clear task data and stack */
     
+    globalTaskManager->AcquireScheduler();
     AtomicRelease(&task->Queu->Lock);
     ForceSelfDestruction(); /* Unlock MutexScheduler */
     /* No return */
