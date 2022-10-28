@@ -8,7 +8,7 @@ namespace Ui {
         this->cpnt = new Component(fb, {
                                     .width = fb->width,
                                     .height = fb->height,
-                                    .backgroundColor = 0x181818
+                                    .backgroundColor = WIN_BGCOLOR_ONFOCUS
                                 });
     }
 

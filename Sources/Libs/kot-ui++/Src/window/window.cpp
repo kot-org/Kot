@@ -17,17 +17,16 @@ namespace WindowUi {
         this->ctxGrph = new Graphic::ContextGphc(fb->addr, fb->width, fb->height);
         this->ctxUi = new Ui::ContextUi(fb);
 
-        auto titlebar = Ui::titlebar(title, { .backgroundColor = NULL, .foregroundColor = 0xFFDDDDDD });
-        auto box = Ui::box({ .width = 30, .height = 20, .color = 0xFFFF0000 });
+        auto titlebar = Ui::titlebar(title, { .backgroundColor = WIN_BGCOLOR_ONFOCUS, .foregroundColor = 0xDDDDDD });
+        auto box = Ui::box({ .width = 30, .height = 20, .color = 0xFF0000 });
         titlebar->addChild(box);
-        auto box2 = Ui::box({ .width = 30, .height = 20, .color = 0xFFFF00FF });
+        auto box2 = Ui::box({ .width = 30, .height = 20, .color = 0xFF00FF });
         titlebar->addChild(box2);
         this->setContent(titlebar);
  
-
         auto wrapper = (new Ui::FlexLayout(Ui::FlexLayout::VERTICAL))->cpnt; // <-- return the component of FlexLayout
 
-        auto box3 = Ui::box({ .width = 30, .height = 20, .color = 0xFFFFFF00 });
+        auto box3 = Ui::box({ .width = 30, .height = 20, .color = 0xFFFF00 });
         wrapper->addChild(box3);
 
         this->setContent(wrapper);

@@ -3,7 +3,7 @@
 namespace Ui {
 
     FlexLayout::FlexLayout(FlexDirection direction) {
-        Component* flexCpnt = new Component({});
+        Component* flexCpnt = new Component({ });
 
         this->cpnt = flexCpnt;
     }
