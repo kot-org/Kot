@@ -69,6 +69,7 @@ typedef struct {
     thread_t getWidth;
     thread_t getHeight;
     thread_t getBpp;
+    thread_t getFocusState;
     thread_t show;
     thread_t hide;
     thread_t resize;

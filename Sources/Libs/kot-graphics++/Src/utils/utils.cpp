@@ -1,6 +1,8 @@
-#include "utils.h"
+#include <kot-graphics++/utils.h>
 
-namespace std {
+namespace Graphic {
+
+    extern "C" void blendAlpha(uintptr_t Pixel, uint32_t color);
 
     int8_t pixelExist(framebuffer_t* fb, uint32_t x, uint32_t y) {
         if (x < 0 || y < 0) return -1;
@@ -11,7 +13,7 @@ namespace std {
     void putPixel(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t colour) {
         if (pixelExist(fb, x, y) == -1) return;
         uint64_t index = x * fb->btpp + y * fb->pitch;
-        *(uint32_t*)((uint64_t) fb->addr + index) = colour;
+        blendAlpha((uintptr_t)((uint64_t)fb->addr + index), colour);
     }
 
     uint32_t getPixel(framebuffer_t* fb, uint32_t x, uint32_t y) {
@@ -55,7 +57,7 @@ namespace std {
             for (uint32_t w = x; w < _w; w++) {
                 uint64_t xpos = w * fb->btpp;
                 uint64_t index = ypos + xpos;
-                *(uint32_t*)((uint64_t) fb->addr + index) = colour;
+                blendAlpha((uintptr_t)((uint64_t)fb->addr + index), colour);
             }
         }
 

@@ -6,7 +6,7 @@ using namespace SE8;
 #include <kot++/printf.h>
 using namespace std;
 
-std::framebuffer_t* fb;
+Graphic::framebuffer_t* fb;
 kfont_t* font;
 uint64_t line = 16;
 
@@ -31,10 +31,10 @@ extern "C" int main() {
     LoadPen(font, &fontBuff, 0, 0, 16, 0, 0xFFFFFFFF);
 
     // _ [] X buttons
-    std::drawLine(fb, fb->width-17, 17, fb->width-7, 7, 0xffffff);
-    std::drawLine(fb, fb->width-7, 17, fb->width-17, 7, 0xffffff);
-    std::drawRect(fb, fb->width-35, 7, 10, 10, 0xffffff);
-    std::drawLine(fb, fb->width-53, 17, fb->width-43, 17, 0xffffff);
+    Graphic::drawLine(fb, fb->width-17, 17, fb->width-7, 7, 0xffffff);
+    Graphic::drawLine(fb, fb->width-7, 17, fb->width-17, 7, 0xffffff);
+    Graphic::drawRect(fb, fb->width-35, 7, 10, 10, 0xffffff);
+    Graphic::drawLine(fb, fb->width-53, 17, fb->width-43, 17, 0xffffff);
 
     JavaVM* vm = new JavaVM();
     vm->setOutput(&shell_print);

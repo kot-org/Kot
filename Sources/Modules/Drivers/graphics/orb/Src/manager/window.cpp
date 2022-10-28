@@ -40,7 +40,8 @@ Window::Window(process_t orb, uint64_t width, uint64_t height, uint64_t bpp, uin
 
     this->orb = orb;
     this->owner = Sys_GetProcess();
-
+    
+    this->setFocusState(ACTIVE);
     newBuffer();
 
 }
