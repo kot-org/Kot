@@ -104,10 +104,10 @@ KResult GetDataToStartService(ArchInfo_t* ArchInfo, kthread_t* thread, arguments
     KResult Status = KFAIL;
     uint64_t IRQFlags = NULL;
     Keyhole_SetFlag(&IRQFlags, KeyholeFlagDataTypeEventIsBindable, true);
+    ArchInfo = (ArchInfo_t*)realloc(ArchInfo, sizeof(ArchInfo_t) + ArchInfo->IRQSize * sizeof(event_t));
     for(uint64_t i = 0; i < ArchInfo->IRQSize; i++){
         if(InterruptEventList[i] != NULL){
-            Status = Keyhole_Create((key_t*)&ArchInfo->IRQEvents[i], thread->Parent, thread->Parent, DataTypeEvent, (uint64_t)InterruptEventList[i], IRQFlags, PriviledgeApp);
-            if(Status != KSUCCESS) return Status;
+            Keyhole_Create((key_t*)&ArchInfo->IRQEvents[i], thread->Parent, thread->Parent, DataTypeEvent, (uint64_t)InterruptEventList[i], IRQFlags, PriviledgeApp);
         }
     }
     *Data = ArchInfo;

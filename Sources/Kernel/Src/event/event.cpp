@@ -111,7 +111,7 @@ namespace Event{
         for(size64_t i = 0; i < self->NumTask; i++){
             kevent_tasks_t* task = self->Tasks[i];
             AtomicAquire(&task->thread->EventLock);
-            if(task->thread->IsClose){
+            if(task->thread->IsBlock){
                 task->DataNode->CurrentData->Task = task;
                 task->thread->Launch(parameters);
             }else{
@@ -157,7 +157,6 @@ namespace Event{
             task->Regs->rip = (uint64_t)task->EntryPoint;
             task->Regs->cs = Registers->threadInfo->CS;
             task->Regs->ss = Registers->threadInfo->SS;
-            task->IsClose = true;
             task->IsBlock = true;
             AtomicRelease(&task->EventLock);
             ForceSelfDestruction();

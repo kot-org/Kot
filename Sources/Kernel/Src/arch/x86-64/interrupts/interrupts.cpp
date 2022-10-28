@@ -81,7 +81,6 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
     }else if(Registers->InterruptNumber == INT_ScheduleAPIC){
         // APIC timer 
         globalTaskManager->Scheduler(Registers, CoreID); 
-        APIC::localApicEOI(CoreID);
     }else if(Registers->InterruptNumber == INT_Schedule){
         // Scheduler
         globalTaskManager->Scheduler(Registers, CoreID); 
@@ -99,8 +98,8 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
             .arg[0] = Registers->InterruptNumber,
         };
         Event::Trigger(InterruptEventList[Registers->InterruptNumber], &InterruptParameters);
-        APIC::localApicEOI(CoreID);
     }
+    APIC::localApicEOI(CoreID);
 }
 
 void ExceptionHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){

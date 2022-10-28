@@ -74,7 +74,9 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
     SrvInfo->IRQLineSize = kernelInfo->IRQLineSize;
 
     SrvInfo->IRQSize = kernelInfo->IRQSize;
-    SrvInfo->IRQEvents = kernelInfo->IRQEvents;
+    SrvInfo->IRQEvents = (event_t*)malloc(sizeof(event_t) * kernelInfo->IRQSize);
+    memcpy(SrvInfo->IRQEvents, &kernelInfo->IRQEvents, sizeof(event_t) * kernelInfo->IRQSize);    
+    SrvInfo->IsIRQEventsFree = IsIRQEventsFree;
 
     CreateControllerUISD(ControllerTypeEnum_System, key, true);
 }
