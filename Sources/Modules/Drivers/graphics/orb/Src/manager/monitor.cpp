@@ -75,6 +75,8 @@ void Monitor::update(vector_t* windows) {
         }
     }
 
+    drawRect(this->back, CursorPosition.x, CursorPosition.y, 10, 10, 0xffffff);
+
     memcpy(this->main->addr, this->back->addr, this->main->size);
 
 }

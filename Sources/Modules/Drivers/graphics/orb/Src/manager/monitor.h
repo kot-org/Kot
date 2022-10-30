@@ -9,6 +9,7 @@ using namespace Graphic;
 #define __ORB__MONITOR__
 
 #include "window.h"
+#include "core/main.h"
 
 class Window;
 class Context;
