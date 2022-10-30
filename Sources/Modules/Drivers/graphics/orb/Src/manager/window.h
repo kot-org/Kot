@@ -26,7 +26,6 @@ private:
     uint32_t xPos;
     uint32_t yPos;
     bool Sshow = false;
-    bool Sborder = true;
     process_t orb;
     process_t owner;
     FocusState focus_state;

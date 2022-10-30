@@ -58,14 +58,6 @@ void Window::show(bool val) {
     this->Sshow = val;
 }
 
-void Window::border(bool val) {
-    this->Sborder = val;
-}
-
-bool Window::hasBorder() {
-    return this->Sborder;
-}
-
 bool Window::isVisible() {
     return Sshow;
 }

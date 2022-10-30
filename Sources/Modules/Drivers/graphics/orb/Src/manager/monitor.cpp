@@ -30,7 +30,6 @@ Monitor::Monitor(process_t orb, uintptr_t fb_addr, uint64_t width, uint64_t heig
     back = _back;
 
     this->background = new Window(orb, width, height, bpp, this->xPos, this->yPos);
-
 }
 
 uint32_t Monitor::getWidth() {
@@ -73,17 +72,6 @@ void Monitor::update(vector_t* windows) {
         Window* window = (Window*) vector_get(windows, i);
         if (window != NULL) if (window->isVisible()) {
             dynamicBlit(this->back, window->getFramebuffer(), window->getX(), window->getY(), this->xPos, this->yPos);
-            if (window->hasBorder()) {
-                uint32_t w = window->getWidth();
-                uint32_t h = window->getHeight();
-                uint32_t x = window->getX();
-                uint32_t y = window->getY();
-                if (window->getFocusState() == ACTIVE) {
-                    drawRect(this->back, x-1, y-1, w+1, h+1, 0x2B2B2B);
-                } else {
-                    drawRect(this->back, x-1, y-1, w+1, h+1, 0x4B4B4B);
-                }
-            }
         }
     }
 

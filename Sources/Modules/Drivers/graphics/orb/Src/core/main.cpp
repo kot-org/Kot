@@ -9,6 +9,9 @@ uint64_t main_monitor_bpp;
 vector_t* windows = NULL;
 vector_t* monitors = NULL;
 
+Point_t CursorPosition;
+Point_t CursorMaxPosition;
+
 void renderWindows() {
     // todo: multi threads monitor rendering
     for (uint32_t i = 0; i < monitors->length; i++) {
@@ -176,11 +179,32 @@ void initUISD() {
 thread_t MouseRelativeInterrupt;
 
 void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
-    printf("Mouse from orb %x %x %x %x", x, y, z, status);
+    /* Update X position */
+    int64_t NewXCursorPosition = CursorPosition.x + x;
+    if(NewXCursorPosition < 0){
+        CursorPosition.x = 0;
+    }else if(NewXCursorPosition > CursorMaxPosition.x){
+        CursorPosition.x = CursorMaxPosition.x;
+    }else{
+        CursorPosition.x = NewXCursorPosition;
+    }
+
+    /* Update Y position */
+    int64_t NewYCursorPosition = CursorPosition.y + y;
+    if(NewXCursorPosition < 0){
+        CursorPosition.y = 0;
+    }else if(NewXCursorPosition > CursorMaxPosition.y){
+        CursorPosition.y = CursorMaxPosition.y;
+    }else{
+        CursorPosition.y = NewXCursorPosition;
+    }
+    printf("Mouse from orb %x %x %x %x", CursorPosition.x, CursorPosition.y, z, status);
     Sys_Event_Close();
 }
 
-void initCursor() {
+void InitializeCursor(){
+    CursorPosition.x = 0;
+    CursorPosition.y = 0;
     Sys_Createthread(Sys_GetProcess(), (uintptr_t)&CursorInterrupt, PriviledgeApp, NULL, &MouseRelativeInterrupt);
     BindMouseRelative(MouseRelativeInterrupt, false);
 }
@@ -203,6 +227,8 @@ void initOrb() {
     uint64_t virtualAddress = (uint64_t)MapPhysical((uintptr_t)bootframebuffer->Address, fb_size);
 
     Monitor* monitor0 = new Monitor(self, (uintptr_t) virtualAddress, bootframebuffer->Width, bootframebuffer->Height, bootframebuffer->Pitch, bootframebuffer->Bpp, 0, 0);
+    CursorMaxPosition.x = monitor0->getWidth();
+    CursorMaxPosition.y = monitor0->getHeight();
 
     free(bootframebuffer);
     
@@ -210,11 +236,10 @@ void initOrb() {
 
     loadBootGraphics(monitor0->getBackground()->getFramebuffer());
 
-    initCursor();
+    InitializeCursor();
 
     Sys_Createthread(self, (uintptr_t) &threadRender, PriviledgeDriver, NULL, &renderThread);
     Sys_Execthread(renderThread, NULL, ExecutionTypeQueu, NULL);
-
 }
 
 extern "C" int main() {
