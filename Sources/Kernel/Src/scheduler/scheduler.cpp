@@ -411,7 +411,6 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge privil
     /* Setup priviledge */
     thread->Priviledge = priviledge;
 
-
     thread->EntryPoint = entryPoint;
 
     /* Setup registers */
@@ -480,7 +479,7 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
     thread->Regs = (ContextStack*)calloc(sizeof(ContextStack));
 
     /* Copy paging */
-    thread->Paging = vmm_Setupthread(SharedPaging);
+    thread->Paging = vmm_Setupthread(this->SharedPaging);
 
     /* Load new stack */
     thread->SetupStack();
@@ -570,10 +569,7 @@ void TaskManager::SwitchTask(ContextStack* Registers, uint64_t CoreID, kthread_t
 }
 
 void TaskManager::CreateIddleTask(){
-    if(IddleProc == NULL){
-        CreateProcess(&IddleProc, PriviledgeApp, 0);
-    }
-    kthread_t* thread = IddleProc->Createthread(IddleTaskPointer, NULL);
+    kthread_t* thread = KernelProc->Createthread(IddleTaskPointer, NULL);
 
     IdleNode[IddleTaskNumber] = thread;
     IddleTaskNumber++;
@@ -587,6 +583,8 @@ void TaskManager::InitScheduler(uint8_t NumberOfCores, uintptr_t IddleTaskFuncti
     memcpy(virtualMemory, IddleTaskFunction, PAGE_SIZE);
 
     IddleTaskPointer = virtualMemory; 
+
+    CreateProcess(&KernelProc, PriviledgeApp, 0);
 
     for(int i = 0; i < NumberOfCores; i++){
         CreateIddleTask();
@@ -647,6 +645,7 @@ void kthread_t::ResetContext(ContextStack* Registers){
     Registers->rip = (uint64_t)EntryPoint;
     Registers->cs = (uint64_t)Registers->threadInfo->CS;
     Registers->ss = (uint64_t)Registers->threadInfo->SS;
+    Registers->rflags.IF = true;
 }
 
 void kthread_t::SetParameters(arguments_t* FunctionParameters){

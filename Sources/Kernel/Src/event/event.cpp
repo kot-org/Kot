@@ -9,21 +9,24 @@ namespace Event{
         switch (Type){
             case EventTypeIRQLines: {
                 IRQLinekevent_t* event = (IRQLinekevent_t*)malloc(sizeof(IRQLinekevent_t));
-                self = &event->header;
+                self = &event->Header;
                 event->IRQLine = (uint8_t)AdditionnalData;
                 event->IsEnable = false;
+                self->Parameters.arg[0] = AdditionnalData;
                 break;
             }                
             case EventTypeIRQ: {
                 IRQkevent_t* event = (IRQkevent_t*)malloc(sizeof(IRQkevent_t));
                 self = &event->header;
                 event->IRQ = (uint8_t)AdditionnalData;
+                self->Parameters.arg[0] = AdditionnalData;
                 break;                
             }
             case EventTypeIPC: {
                 IPCkevent_t* event = (IPCkevent_t*)malloc(sizeof(IPCkevent_t));
                 self = &event->header;
                 event->master = (kthread_t*)AdditionnalData;
+                self->Parameters.arg[0] = NULL;
                 break;                
             }
 
@@ -42,6 +45,7 @@ namespace Event{
     }
 
     uint64_t Bind(kthread_t* task, kevent_t* self, bool IgnoreMissedEvents){
+        if(task->IsEvent) return KFAIL;
         AtomicAquire(&self->Lock);
 
         if(self->Type == EventTypeIRQLines){
@@ -59,10 +63,9 @@ namespace Event{
         TasksEvent->thread = task;
         TasksEvent->Event = self;
 
-        TasksEvent->NumberOfMissedEvents = NULL;
-
         if(!task->IsEvent){
             task->EventDataNode = (event_data_node_t*)calloc(sizeof(event_data_node_t));
+            task->EventDataNode->Event = self;
             task->EventDataNode->LastData = (event_data_t*)malloc(sizeof(event_data_t));
             task->EventDataNode->LastData->Next = (event_data_t*)malloc(sizeof(event_data_t));
             task->EventDataNode->CurrentData = task->EventDataNode->LastData;
@@ -106,8 +109,6 @@ namespace Event{
     }
     
     uint64_t Trigger(kevent_t* self, arguments_t* parameters){
-        if(self == NULL) return KFAIL;
-
         for(size64_t i = 0; i < self->NumTask; i++){
             kevent_tasks_t* task = self->Tasks[i];
             AtomicAquire(&task->thread->EventLock);
@@ -126,7 +127,25 @@ namespace Event{
                     }
 
                     task->DataNode->NumberOfMissedEvents++;
-                    task->NumberOfMissedEvents++;
+                }
+            }
+            AtomicRelease(&task->thread->EventLock);
+        }
+
+        return KSUCCESS;
+    } 
+    
+    uint64_t TriggerIRQ(kevent_t* self){
+        for(size64_t i = 0; i < self->NumTask; i++){
+            kevent_tasks_t* task = self->Tasks[i];
+            AtomicAquire(&task->thread->EventLock);
+            if(task->thread->IsBlock){
+                AtomicAquire(&globalTaskManager->SchedulerLock);
+                task->thread->Launch_WL(&task->DataNode->Event->Parameters);
+                AtomicRelease(&globalTaskManager->SchedulerLock);
+            }else{
+                if(!task->IgnoreMissedEvents){
+                    task->DataNode->IRQNumberOfMissedEvents++;
                 }
             }
             AtomicRelease(&task->thread->EventLock);
@@ -135,30 +154,32 @@ namespace Event{
         return KSUCCESS;
     } 
 
-    uint64_t Close(ContextStack* Registers, kthread_t* task){
-        if(!task->IsEvent) return KFAIL;
-        AtomicAquire(&task->EventLock);
+    uint64_t Close(ContextStack* Registers, kthread_t* Thread){
+        AtomicAquireCli(&Thread->EventLock);
 
-        if(task->EventDataNode->NumberOfMissedEvents){
-            event_data_t* Next = task->EventDataNode->CurrentData->Next;
-
-            free(task->EventDataNode->CurrentData);
-            task->EventDataNode->CurrentData = Next;
-            task->EventDataNode->CurrentData->Task->NumberOfMissedEvents--;
-            task->EventDataNode->NumberOfMissedEvents--;
+        if(Thread->EventDataNode->IRQNumberOfMissedEvents){
+            Thread->EventDataNode->IRQNumberOfMissedEvents--;
             globalTaskManager->AcquireScheduler();
-            task->ResetContext(task->Regs);
-            task->Launch_WL(&task->EventDataNode->CurrentData->Parameters);
-            AtomicRelease(&task->EventLock);
+            Thread->ResetContext(Thread->Regs);
+            Thread->Launch_WL(&Thread->EventDataNode->Event->Parameters);
+            AtomicRelease(&Thread->EventLock);
+            ForceSelfDestruction();
+        }else if(Thread->EventDataNode->NumberOfMissedEvents){
+            event_data_t* Next = Thread->EventDataNode->CurrentData->Next;
+
+            free(Thread->EventDataNode->CurrentData);
+            Thread->EventDataNode->CurrentData = Next;
+            Thread->EventDataNode->NumberOfMissedEvents--;
+            globalTaskManager->AcquireScheduler();
+            Thread->ResetContext(Thread->Regs);
+            Thread->Launch_WL(&Thread->EventDataNode->CurrentData->Parameters);
+            AtomicRelease(&Thread->EventLock);
             ForceSelfDestruction();
         }else{
             globalTaskManager->AcquireScheduler();
-            task->Regs->rsp = (uint64_t)StackTop;
-            task->Regs->rip = (uint64_t)task->EntryPoint;
-            task->Regs->cs = Registers->threadInfo->CS;
-            task->Regs->ss = Registers->threadInfo->SS;
-            task->IsBlock = true;
-            AtomicRelease(&task->EventLock);
+            Thread->ResetContext(Thread->Regs);
+            Thread->IsBlock = true;
+            AtomicRelease(&Thread->EventLock);
             ForceSelfDestruction();
         }
 

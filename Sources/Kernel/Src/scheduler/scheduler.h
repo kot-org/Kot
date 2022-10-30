@@ -237,7 +237,7 @@ class TaskManager{
 
         Node* ProcessList = NULL;
         //iddle
-        kprocess_t* IddleProc = NULL;
+        kprocess_t* KernelProc = NULL; 
         kthread_t* IdleNode[MAX_PROCESSORS];    
         Node* GlobalProcessNode;
 };

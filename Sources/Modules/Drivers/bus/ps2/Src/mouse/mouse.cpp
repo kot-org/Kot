@@ -11,7 +11,7 @@ thread_t Mousethread = NULL;
 event_t MouseRelativeEvent; // We don't use absolute for ps2
 
 KResult MouseInitalize(){
-    for(int i = 0; i < PS2_PORT_NUMBER; i++){
+    for(uint8_t i = 0; i < PS2_PORT_NUMBER; i++){
         if(PS2Ports[i].IsPresent){
             if(PS2Ports[i].Type == PS2_TYPE_MOUSE
             || PS2Ports[i].Type == PS2_TYPE_MOUSE_SCROLL
@@ -37,12 +37,12 @@ KResult MouseInitalize(){
                     MouseMaxCycles = 4;
                 }
 
-                MouseCycle = MouseMaxCycles - 2; // ignore the first packet and remove 1 because we add one before in the handler
+                MouseCycle = MouseMaxCycles - 3; // ignore the first packet and remove 1 because we add one before in the handler
                 
                 // clear mouse packet data
                 memset(MousePacket, NULL, sizeof(uint8_t) * 4);
 
-                Srv_System_BindIRQLine(MousePS2Port->IRQ, InterruptthreadHandler, false, true);
+                Srv_System_BindIRQLine(MousePS2Port->IRQ, InterruptThreadHandler[i], false, true);
 
                 break; // Enable only one mouse
             }            
@@ -118,13 +118,13 @@ void MouseParser(uint8_t data){
         MouseEventParameters->arg[1] = (int64_t)MousePacket[PacketYPosition]; // add signed bit
         MouseEventParameters->arg[2] = (int64_t)(MousePacket[ExtendedInfos] & 0b111); // add signed bit
         if(IsXNegative){
-            MouseEventParameters->arg[0] = -MouseEventParameters->arg[0];
+            MouseEventParameters->arg[0] = MouseEventParameters->arg[0] - 0xff;
         }
         if(IsYNegative){
-            MouseEventParameters->arg[1] = -MouseEventParameters->arg[1];
+            MouseEventParameters->arg[1] = MouseEventParameters->arg[1] - 0xff;
         }
         if(IsZNegative){
-            MouseEventParameters->arg[2] = -MouseEventParameters->arg[2];
+            MouseEventParameters->arg[2] = MouseEventParameters->arg[2] - 0xff;
         }
 
         /* Buttons status */

@@ -6,7 +6,7 @@
 #include <scheduler/scheduler.h>
 #include <arch/x86-64/interrupts/interrupts.h>
 
-typedef uint64_t (*SyscallHandler)(struct SyscallStack* Registers, struct kthread_t* thread);
+typedef uint64_t (*SyscallHandler)(struct SyscallStack* Registers, struct kthread_t* Thread);
 
 extern "C" void SyscallEnable(uint16_t KernelSegment, uint16_t UserSegment);
 

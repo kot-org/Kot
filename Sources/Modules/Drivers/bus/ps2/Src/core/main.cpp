@@ -4,7 +4,7 @@ process_t self;
 
 PS2Port_t PS2Ports[2];
 
-thread_t InterruptthreadHandler = NULL;
+thread_t InterruptThreadHandler[PS2_PORT_NUMBER];
 
 IRQRedirections IRQRedirectionsArray[2];
 
@@ -12,7 +12,10 @@ extern "C" int main(int argc, char* argv[]){
     Printlog("[PS2] Initialization ...");
     /* Initialize PS2 drivers */
     self = Sys_GetProcess();
-    Sys_Createthread(self, (uintptr_t)&PS2InterruptHandler, PriviledgeDriver, NULL, &InterruptthreadHandler);
+
+    for(uint8_t i = 0; i < PS2_PORT_NUMBER; i++){
+        Sys_Createthread(self, (uintptr_t)&PS2InterruptHandler, PriviledgeDriver, NULL, &InterruptThreadHandler[i]);
+    }
 
     KResult status = KSUCCESS;
 
@@ -158,10 +161,8 @@ KResult PortsInitalize(){
 
 void PS2InterruptHandler(uint8_t interrupt){
     if(PS2GetStatus() & 0b1){
-        uint8_t IRQ = interrupt - 0x20;
         uint8_t data = (uint8_t)PS2GetData();
-        
-        switch(IRQ){
+        switch(interrupt){
             case PS2_IRQ_PORT1:
                 IRQRedirectionsArray[0](data);
                 break;

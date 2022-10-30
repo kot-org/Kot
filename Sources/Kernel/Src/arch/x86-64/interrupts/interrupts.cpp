@@ -94,10 +94,7 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
         }
     }else{
         // Other IRQ & IVT
-        arguments_t InterruptParameters{
-            .arg[0] = Registers->InterruptNumber,
-        };
-        Event::Trigger(InterruptEventList[Registers->InterruptNumber], &InterruptParameters);
+        Event::TriggerIRQ(InterruptEventList[Registers->InterruptNumber]);
     }
     APIC::localApicEOI(CoreID);
 }
