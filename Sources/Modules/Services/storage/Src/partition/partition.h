@@ -31,13 +31,19 @@ struct partition_t{
     bool IsMount;
     uint64_t Start;
     uint64_t Size;
-    GUID_t PartitionTypeGUID;
+    struct GUID_t PartitionTypeGUID;
 
     struct srv_storage_fs_server_functions_t FSServerFunctions;
 
     storage_device_t* Device;
     struct srv_storage_space_info_t* Space;
 };
+
+struct notify_info_t{
+    struct GUID_t* GUIDTarget;
+    thread_t ThreadToNotify;
+};
+
 
 void InitializePartition();
 struct partition_t* NewPartition(struct storage_device_t* Device, uint64_t Start, uint64_t Size, GUID_t* PartitionTypeGUID);

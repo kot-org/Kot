@@ -29,7 +29,7 @@ KResult InitialiseSrv(){
 
     /* CountPartitionByGUIDTypeSrv */
     thread_t CountPartitionByGUIDTypeThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&CountPartitionByGUIDTypeSrv, PriviledgeApp, NULL, &CountPartitionByGUIDTypeThread);
+    Sys_Createthread(proc, (uintptr_t)&NotifyOnNewPartitionByGUIDTypeSrv, PriviledgeApp, NULL, &CountPartitionByGUIDTypeThread);
     SrvData->CountPartitionByGUIDTypeSrv = MakeShareableThread(CountPartitionByGUIDTypeThread, PriviledgeDriver);
 
     /* MountPartition */
@@ -84,15 +84,13 @@ KResult RemoveDeviceSrv(thread_t Callback, uint64_t CallbackArg, storage_device_
     Sys_Close(KSUCCESS);
 }
 
-KResult CountPartitionByGUIDTypeSrv(thread_t Callback, uint64_t CallbackArg, GUID_t* PartitionTypeGUID){
-    KResult Statu = KFAIL;
-
-    uint64_t PartitionCount = NotifyOnNewPartitionByGUIDType(PartitionTypeGUID);
+KResult NotifyOnNewPartitionByGUIDTypeSrv(thread_t Callback, uint64_t CallbackArg, GUID_t* PartitionTypeGUID, thread_t ThreadToNotify){
+    KResult Statu = NotifyOnNewPartitionByGUIDType(PartitionTypeGUID, ThreadToNotify);
     
     arguments_t arguments{
         .arg[0] = Statu,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
-        .arg[2] = PartitionCount,   /* PartitionCount */
+        .arg[2] = NULL,             /* GP0 */
         .arg[3] = NULL,             /* GP1 */
         .arg[4] = NULL,             /* GP2 */
         .arg[5] = NULL,             /* GP3 */
@@ -102,8 +100,8 @@ KResult CountPartitionByGUIDTypeSrv(thread_t Callback, uint64_t CallbackArg, GUI
     Sys_Close(KSUCCESS);
 }
 
-KResult MountPartitionSrv(thread_t Callback, uint64_t CallbackArg, uint64_t Index, GUID_t* PartitionTypeGUID, srv_storage_fs_server_functions_t* FSServerFunctions){
-    KResult Statu = MountPartition(Index, PartitionTypeGUID, FSServerFunctions);
+KResult MountPartitionSrv(thread_t Callback, uint64_t CallbackArg, uint64_t ID, srv_storage_fs_server_functions_t* FSServerFunctions){
+    KResult Statu = MountPartition(ID, FSServerFunctions);
     
     arguments_t arguments{
         .arg[0] = Statu,            /* Status */
