@@ -3,6 +3,9 @@
 Point_t CursorPosition;
 Point_t CursorMaxPosition;
 
+uint8_t Width;
+uint8_t Height;
+
 thread_t MouseRelativeInterrupt;
 
 void InitializeCursor(){
@@ -33,18 +36,29 @@ void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
         CursorPosition.y = NewYCursorPosition;
     }
 
+    Width = CursorMaxPosition.x - CursorPosition.x;
+    Height = CursorMaxPosition.y - CursorPosition.y;
+
+    if(Width > CursorWidth){
+        Width = CursorWidth;
+    }
+
+    if(Height > CursorHeight){
+        Height = CursorHeight;
+    }
+
     Sys_Event_Close();
 }
 
-void DrawCursor(Graphic::framebuffer_t* fb, Point_t position, uint8_t* Mask, uint32_t Color[CursorHeight][CursorWidth]) {
-    for(int y = 0; y < CursorHeight; y++) {
-        for(int x = 0; x < CursorWidth; x++) {
+void DrawCursor(Graphic::framebuffer_t* fb, uint8_t* Mask, uint32_t Color[CursorHeight][CursorWidth]) {    
+    for(uint8_t y = 0; y < Height; y++) {
+        for(uint8_t x = 0; x < Width; x++) {
             uint16_t bit = y * 16 + x;
             uint16_t byte = bit / 8;
 
-            if(Mask[byte] & (0b10000000 >> (x % 8)))
-                Graphic::putPixel(fb, position.x + x, position.y + y, Color[y][x]);
-
+            if(Mask[byte] & (0b10000000 >> (x % 8))){
+                Graphic::putPixel(fb, CursorPosition.x + x, CursorPosition.y + y, Color[y][x]);
+            }
         }
     }
 }

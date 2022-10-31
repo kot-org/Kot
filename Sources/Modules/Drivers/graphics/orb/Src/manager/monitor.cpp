@@ -63,7 +63,7 @@ Monitor::Monitor(process_t orb, uintptr_t fb_addr, uint64_t width, uint64_t heig
     _main->btpp = bpp / 8;
     _main->size = _main->pitch * height;
 
-    _back->addr = calloc(_main->size);
+    _back->addr = calloc(_main->pitch * height);
     _back->width = width;
     _back->height = height;
     _back->pitch = _main->pitch;
@@ -120,7 +120,7 @@ void Monitor::update(vector_t* windows) {
         }
     }
 
-    DrawCursor(this->back, CursorPosition, MouseMask, CursorColor);
+    DrawCursor(this->back, MouseMask, CursorColor);
 
     memcpy(this->main->addr, this->back->addr, this->main->size);
 

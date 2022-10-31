@@ -10,6 +10,7 @@ using namespace Graphic;
 
 #include "window.h"
 #include "core/main.h"
+#include "mouse/mouse.h"
 
 class Window;
 class Context;
