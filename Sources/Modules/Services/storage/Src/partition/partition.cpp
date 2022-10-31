@@ -47,6 +47,14 @@ partition_t* GetPartition(uint64_t Index){
 uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* GUIDTarget, thread_t ThreadToNotify){
     if(GUIDTarget != NULL){
         atomicAcquire(&PartitionLock, 0);
+        for(uint64_t i = 0; i < PartitionsListNotify->length; i++){
+            notify_info_t* NotifyInfo = (notify_info_t*)vector_get(PartitionsListNotify, i);
+            if(memcmp(&GUIDTarget, NotifyInfo->GUIDTarget, sizeof(GUID_t))){
+                atomicUnlock(&PartitionLock, 0);
+                return KFAIL;
+            }
+        }
+    
         notify_info_t* NotifyInfo = (notify_info_t*)malloc(sizeof(notify_info_t));
         NotifyInfo->GUIDTarget = GUIDTarget;
         NotifyInfo->ThreadToNotify = ThreadToNotify;
@@ -66,51 +74,36 @@ uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* GUIDTarget, thread_t ThreadToNot
     return KSUCCESS;
 }
 
-partition_t* GetPartitionByGUIDType_WL(uint64_t Index, GUID_t* PartitionTypeGUID){
-    uint64_t Counter = 0;
-    if(PartitionTypeGUID != NULL){
-        for(uint64_t i = 0; i < PartitionsList->length; i++){
-            partition_t* Partition = (partition_t*)vector_get(PartitionsList, i);
-            if(memcmp(&Partition->PartitionTypeGUID, PartitionTypeGUID, sizeof(GUID_t))){
-                if(Counter == Index){
-                    return Partition;
-                }
-                Counter++;
-            }
-        }
-    }else if(Index < PartitionsList->length){
-        partition_t* Partition = (partition_t*)vector_get(PartitionsList, Index);
-        return Partition;
-    }
-    return NULL;
-}
-
-KResult MountPartition(uint64_t Index, GUID_t* PartitionTypeGUID, srv_storage_fs_server_functions_t* FSServerFunctions){
+KResult MountPartition(uint64_t ID, srv_storage_fs_server_functions_t* FSServerFunctions){
     KResult Status = KFAIL;
 
     atomicAcquire(&PartitionLock, 0);
-    partition_t* Partition = GetPartitionByGUIDType_WL(Index, PartitionTypeGUID);
-    if(!Partition->IsMount){
-        // TODO: check keys
-        Partition->FSServerFunctions.Rename = FSServerFunctions->Rename;
-        Partition->FSServerFunctions.Remove = FSServerFunctions->Remove;
-        Partition->FSServerFunctions.Fopen = FSServerFunctions->Fopen;
-        Partition->FSServerFunctions.Mkdir = FSServerFunctions->Mkdir;
-        Partition->FSServerFunctions.Readdir = FSServerFunctions->Readdir;
-        Partition->FSServerFunctions.Flist = FSServerFunctions->Flist;
-        Partition->IsMount = true;
+    if(ID < PartitionsList->length){
+        partition_t* Partition = (partition_t*)vector_get(PartitionsList, ID);
+        if(!Partition->IsMount){
+            // TODO: check keys
+            Partition->FSServerFunctions.Rename = FSServerFunctions->Rename;
+            Partition->FSServerFunctions.Remove = FSServerFunctions->Remove;
+            Partition->FSServerFunctions.Fopen = FSServerFunctions->Fopen;
+            Partition->FSServerFunctions.Mkdir = FSServerFunctions->Mkdir;
+            Partition->FSServerFunctions.Readdir = FSServerFunctions->Readdir;
+            Partition->FSServerFunctions.Flist = FSServerFunctions->Flist;
+            Partition->IsMount = true;
+        }
     }
     atomicUnlock(&PartitionLock, 0);
     return Status;
 }
 
-KResult UnmountPartition(uint64_t Index, GUID_t* PartitionTypeGUID){
+KResult UnmountPartition(uint64_t ID){
     KResult Status = KFAIL;
 
     atomicAcquire(&PartitionLock, 0);
-    partition_t* Partition = GetPartitionByGUIDType_WL(Index, PartitionTypeGUID);
-    if(Partition->IsMount){
-        Partition->IsMount = false;
+    if(ID < PartitionsList->length){
+        partition_t* Partition = (partition_t*)vector_get(PartitionsList, ID);
+        if(Partition->IsMount){
+            Partition->IsMount = false;
+        }
     }
     atomicUnlock(&PartitionLock, 0);
     return Status;

@@ -116,8 +116,8 @@ KResult MountPartitionSrv(thread_t Callback, uint64_t CallbackArg, uint64_t ID, 
     Sys_Close(KSUCCESS);
 }
 
-KResult UnmountPartitionSrv(thread_t Callback, uint64_t CallbackArg, uint64_t Index, GUID_t* PartitionTypeGUID){
-    KResult Statu = UnmountPartition(Index, PartitionTypeGUID);
+KResult UnmountPartitionSrv(thread_t Callback, uint64_t CallbackArg, uint64_t ID){
+    KResult Statu = UnmountPartition(ID);
     
     arguments_t arguments{
         .arg[0] = Statu,            /* Status */
