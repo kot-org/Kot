@@ -7,6 +7,7 @@ uint64_t PartitionLock = NULL;
 
 void InitializePartition(){
     PartitionsList = vector_create();
+    PartitionsListNotify = vector_create();
 }
 
 partition_t* NewPartition(storage_device_t* Device, uint64_t Start, uint64_t Size, GUID_t* PartitionTypeGUID){
