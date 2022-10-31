@@ -98,11 +98,17 @@ namespace Ui {
 
         uint32_t childIndex = this->childs->length;
 
+        // calculate relative position
         if(childIndex != NULL && child->style->position == RELATIVE) {
             Component* cpntBeforeChild = (Component*) vector_get(this->childs, childIndex-1);
+            Component* firstChild = (Component*) vector_get(this->childs, 0);
 
-            // todo: jump to the next line
-            child->style->x += cpntBeforeChild->style->x + cpntBeforeChild->style->width;
+            if(cpntBeforeChild->style->x + cpntBeforeChild->style->width + child->style->width > this->style->width) {
+                child->style->x = 0;
+                child->style->y = firstChild->style->height;
+            } else {
+                child->style->x += cpntBeforeChild->style->x + cpntBeforeChild->style->width;
+            }
         }
 
         child->parent = this;

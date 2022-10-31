@@ -35,3 +35,16 @@ void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
 
     Sys_Event_Close();
 }
+
+void DrawCursor(Graphic::framebuffer_t* fb, Point_t position, uint8_t* Mask, uint32_t Color[CursorHeight][CursorWidth]) {
+    for(int y = 0; y < CursorHeight; y++) {
+        for(int x = 0; x < CursorWidth; x++) {
+            uint16_t bit = y * 16 + x;
+            uint16_t byte = bit / 8;
+
+            if(Mask[byte] & (0b10000000 >> (x % 8)))
+                Graphic::putPixel(fb, position.x + x, position.y + y, Color[y][x]);
+
+        }
+    }
+}

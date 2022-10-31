@@ -6,6 +6,9 @@
 
 #include <kot-ui++/component.h>
 
+#define WIN_BGCOLOR_ONFOCUS 0x181818
+#define WIN_BGCOLOR_ONBLUR 0x2B2B2B
+
 namespace Ui {
 
     class ContextUi {
