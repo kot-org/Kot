@@ -190,6 +190,7 @@ void initOrb(){
     uint64_t virtualAddress = (uint64_t)MapPhysical((uintptr_t)bootframebuffer->Address, fb_size);
 
     Monitor* monitor0 = new Monitor(self, (uintptr_t) virtualAddress, bootframebuffer->Width, bootframebuffer->Height, bootframebuffer->Pitch, bootframebuffer->Bpp, 0, 0);
+    
     CursorMaxPosition.x = (monitor0->getWidth() - CursorWidth) - 1;
     CursorMaxPosition.y = (monitor0->getHeight() - CursorHeight) - 1;
 

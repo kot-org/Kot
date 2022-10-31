@@ -18,10 +18,7 @@ namespace WindowUi {
         this->ctxUi = new Ui::ContextUi(fb);
 
         auto titlebar = Ui::titlebar(title, { .backgroundColor = WIN_BGCOLOR_ONFOCUS, .foregroundColor = 0xDDDDDD });
-        auto box = Ui::box({ .width = 30, .height = 20, .color = 0xFF0000 });
-        titlebar->addChild(box);
-        auto box2 = Ui::box({ .width = 30, .height = 20, .color = 0xFF00FF });
-        titlebar->addChild(box2);
+
         this->setContent(titlebar);
  
         auto wrapper = (new Ui::FlexLayout(Ui::FlexLayout::VERTICAL))->cpnt; // <-- return the component of FlexLayout

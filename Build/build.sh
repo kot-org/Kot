@@ -11,7 +11,7 @@ mkdir -m 777 -p "Sysroot/Include/kot++/"
 mkdir -m 777 -p "Sysroot/Lib/"
 mkdir -m 777 -p $BINDIR"/Modules/"
 
-cp -p ./Build/Bin/** $BINDIR"/Modules/"
+cp -p -R ./Build/Bin/** $BINDIR"/Modules/"
 
 cd "Sources/"
 
