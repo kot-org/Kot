@@ -92,9 +92,119 @@ struct srv_storage_callback_t* Srv_Storage_RemoveDevice(uint64_t Index, bool IsA
     parameters.arg[2] = Index;
     
 
-    KResult Status = Sys_Execthread(StorageData->AddDevice, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_Execthread(StorageData->RemoveDevice, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
-    return callback;        
+    return callback;
 }
+
+
+/* NotifyOnNewPartitionByGUIDType */
+
+KResult Srv_Storage_NotifyOnNewPartitionByGUIDType_Callback(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    return Status;
+}
+
+struct srv_storage_callback_t* Srv_Storage_NotifyOnNewPartitionByGUIDType(struct GUID_t* PartitionTypeGUID, thread_t ThreadToNotify, process_t ProcessToNotify, bool IsAwait){
+    if(!srv_storage_callback_thread) Srv_Storage_Initialize();
+    
+    thread_t self = Sys_Getthread();
+
+    thread_t shareabbleThreadToNotify = MakeShareableThreadToProcess(ThreadToNotify, StorageData->ControllerHeader.Process);
+
+    struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
+    callback->Self = self;
+    callback->Data = shareabbleThreadToNotify;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Storage_NotifyOnNewPartitionByGUIDType_Callback;
+
+    struct arguments_t parameters;
+    parameters.arg[0] = srv_storage_callback_thread;
+    parameters.arg[1] = callback;
+    parameters.arg[2] = shareabbleThreadToNotify;
+    parameters.arg[3] = ProcessToNotify;
+
+    struct ShareDataWithArguments_t data;
+    data.Data = PartitionTypeGUID;
+    data.Size = sizeof(struct GUID_t);
+    data.ParameterPosition = 0x4;
+
+    KResult Status = Sys_Execthread(StorageData->NotifyOnNewPartitionByGUIDType, &parameters, ExecutionTypeQueu, &data);
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}
+
+
+/* MountPartition */
+
+KResult Srv_Storage_MountPartition_Callback(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    return Status;
+}
+
+struct srv_storage_callback_t* Srv_Storage_MountPartition(uint64_t ID, struct srv_storage_fs_server_functions_t* FSServerFunctions, bool IsAwait){
+    if(!srv_storage_callback_thread) Srv_Storage_Initialize();
+    
+    thread_t self = Sys_Getthread();
+
+    struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Storage_MountPartition_Callback;
+
+    struct arguments_t parameters;
+    parameters.arg[0] = srv_storage_callback_thread;
+    parameters.arg[1] = callback;
+    parameters.arg[2] = ID;
+
+    struct ShareDataWithArguments_t data;
+    data.Data = FSServerFunctions;
+    data.Size = sizeof(struct srv_storage_fs_server_functions_t);
+    data.ParameterPosition = 0x3;
+
+    KResult Status = Sys_Execthread(StorageData->NotifyOnNewPartitionByGUIDType, &parameters, ExecutionTypeQueu, &data);
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}
+
+
+/* UnmountPartition */
+
+KResult Srv_Storage_UnmountPartition_Callback(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    return Status;
+}
+
+struct srv_storage_callback_t* Srv_Storage_UnmountPartition(uint64_t ID, bool IsAwait){
+    if(!srv_storage_callback_thread) Srv_Storage_Initialize();
+    
+    thread_t self = Sys_Getthread();
+
+    struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Storage_MountPartition_Callback;
+
+    struct arguments_t parameters;
+    parameters.arg[0] = srv_storage_callback_thread;
+    parameters.arg[1] = callback;
+    parameters.arg[2] = ID;
+
+    KResult Status = Sys_Execthread(StorageData->NotifyOnNewPartitionByGUIDType, &parameters, ExecutionTypeQueu, NULL);
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}
+

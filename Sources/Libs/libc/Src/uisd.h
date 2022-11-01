@@ -87,7 +87,7 @@ typedef struct {
     thread_t AddDevice;
     thread_t RemoveDevice;
 
-    thread_t CountPartitionByGUIDTypeSrv;
+    thread_t NotifyOnNewPartitionByGUIDType;
     thread_t MountPartition;
     thread_t UnmountPartition;
 
@@ -130,6 +130,7 @@ uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ks
 thread_t MakeShareableThread(thread_t Thread, enum Priviledge priviledgeRequired);
 thread_t MakeShareableThreadUISDOnly(thread_t Thread);
 thread_t MakeShareableThreadToProcess(thread_t Thread, process_t Process);
+thread_t MakeShareableSpreadThreadToProcess(thread_t Thread, process_t Process);
 process_t ShareProcessKey(process_t Process);
 
 uintptr_t GetControllerLocationUISD(enum ControllerTypeEnum Controller);

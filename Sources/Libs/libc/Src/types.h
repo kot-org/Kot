@@ -58,12 +58,13 @@ typedef struct arguments_t{
 }__attribute__((packed));
 
 typedef struct GUID_t{
-    uint32_t Data0;
+    uint32_t Data0:32;
 
-    uint16_t Data1;
-    uint16_t Data2;
+    uint16_t Data1:16;
+    uint16_t Data2:16;
+    uint16_t Data3:16;
 
-    uint8_t Data4[8];
+    uint64_t Data4:48;
 };
 
 #endif

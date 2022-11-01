@@ -27,10 +27,10 @@ KResult InitialiseSrv(){
     SrvData->RemoveDevice = MakeShareableThread(RemoveDeviceThread, PriviledgeDriver);
 
 
-    /* CountPartitionByGUIDTypeSrv */
+    /* NotifyOnNewPartitionByGUIDType */
     thread_t CountPartitionByGUIDTypeThread = NULL;
     Sys_Createthread(proc, (uintptr_t)&NotifyOnNewPartitionByGUIDTypeSrv, PriviledgeApp, NULL, &CountPartitionByGUIDTypeThread);
-    SrvData->CountPartitionByGUIDTypeSrv = MakeShareableThread(CountPartitionByGUIDTypeThread, PriviledgeDriver);
+    SrvData->NotifyOnNewPartitionByGUIDType = MakeShareableThread(CountPartitionByGUIDTypeThread, PriviledgeDriver);
 
     /* MountPartition */
     thread_t MountPartitionThread = NULL;
@@ -84,8 +84,8 @@ KResult RemoveDeviceSrv(thread_t Callback, uint64_t CallbackArg, storage_device_
     Sys_Close(KSUCCESS);
 }
 
-KResult NotifyOnNewPartitionByGUIDTypeSrv(thread_t Callback, uint64_t CallbackArg, GUID_t* PartitionTypeGUID, thread_t ThreadToNotify){
-    KResult Statu = NotifyOnNewPartitionByGUIDType(PartitionTypeGUID, ThreadToNotify);
+KResult NotifyOnNewPartitionByGUIDTypeSrv(thread_t Callback, uint64_t CallbackArg, thread_t ThreadToNotify, process_t ProcessToNotify, GUID_t* PartitionTypeGUID){
+    KResult Statu = NotifyOnNewPartitionByGUIDType(PartitionTypeGUID, ThreadToNotify, ProcessToNotify);
     
     arguments_t arguments{
         .arg[0] = Statu,            /* Status */
@@ -100,8 +100,8 @@ KResult NotifyOnNewPartitionByGUIDTypeSrv(thread_t Callback, uint64_t CallbackAr
     Sys_Close(KSUCCESS);
 }
 
-KResult MountPartitionSrv(thread_t Callback, uint64_t CallbackArg, uint64_t ID, srv_storage_fs_server_functions_t* FSServerFunctions){
-    KResult Statu = MountPartition(ID, FSServerFunctions);
+KResult MountPartitionSrv(thread_t Callback, uint64_t CallbackArg, uint64_t PartitonID, srv_storage_fs_server_functions_t* FSServerFunctions){
+    KResult Statu = MountPartition(PartitonID, FSServerFunctions);
     
     arguments_t arguments{
         .arg[0] = Statu,            /* Status */
@@ -116,8 +116,8 @@ KResult MountPartitionSrv(thread_t Callback, uint64_t CallbackArg, uint64_t ID, 
     Sys_Close(KSUCCESS);
 }
 
-KResult UnmountPartitionSrv(thread_t Callback, uint64_t CallbackArg, uint64_t ID){
-    KResult Statu = UnmountPartition(ID);
+KResult UnmountPartitionSrv(thread_t Callback, uint64_t CallbackArg, uint64_t PartitonID){
+    KResult Statu = UnmountPartition(PartitonID);
     
     arguments_t arguments{
         .arg[0] = Statu,            /* Status */

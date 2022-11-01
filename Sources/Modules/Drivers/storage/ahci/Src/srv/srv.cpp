@@ -71,12 +71,12 @@ void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t S
     /* CreateProtectedDeviceSpaceThread */
     thread_t SrvCreateProtectedSpaceThread = NULL;
     Sys_Createthread(Proc, (uintptr_t)&SrvCreateProtectedSpace, PriviledgeApp, (uint64_t)SpaceLocalInfo, &SrvCreateProtectedSpaceThread);
-    SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(SrvCreateProtectedSpaceThread, StorageHandler->ControllerHeader.Process);
+    SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableSpreadThreadToProcess(SrvCreateProtectedSpaceThread, StorageHandler->ControllerHeader.Process);
 
     /* ReadWriteDeviceThread */
     thread_t SrvReadWriteHandlerThread = NULL;
     Sys_Createthread(Proc, (uintptr_t)&SrvReadWriteHandler, PriviledgeApp, (uint64_t)SpaceLocalInfo, &SrvReadWriteHandlerThread);
-    SpaceInfo.ReadWriteDeviceThread = MakeShareableThreadToProcess(SrvReadWriteHandlerThread, StorageHandler->ControllerHeader.Process);
+    SpaceInfo.ReadWriteDeviceThread = MakeShareableSpreadThreadToProcess(SrvReadWriteHandlerThread, StorageHandler->ControllerHeader.Process);
 
     SpaceInfo.BufferRWKey = SpaceLocalInfo->BufferKey;
     SpaceInfo.BufferRWAlignement = ActualSpaceLocalInfo->StorageDevice->BufferAlignement;
@@ -86,7 +86,7 @@ void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t S
     ShareDataWithArguments_t data{
         .Data = &SpaceInfo,
         .Size = sizeof(srv_storage_space_info_t),
-        .ParameterPosition = 2,
+        .ParameterPosition = 0x2,
     };
     
     arguments_t arguments{

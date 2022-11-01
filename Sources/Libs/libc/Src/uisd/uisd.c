@@ -131,6 +131,16 @@ thread_t MakeShareableThreadToProcess(thread_t Thread, process_t Process){
     return ReturnValue;
 }
 
+thread_t MakeShareableSpreadThreadToProcess(thread_t Thread, process_t Process){
+    thread_t ReturnValue;
+    uint64_t UISDKeyFlags = NULL;
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagCloneable, true);
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeThreadIsExecutableWithQueue, true);
+    Sys_Keyhole_CloneModify(Thread, &ReturnValue, Process, UISDKeyFlags, PriviledgeApp);
+    return ReturnValue;
+}
+
 process_t ShareProcessKey(process_t Process){
     process_t ReturnValue;
     uint64_t UISDKeyFlags = NULL;

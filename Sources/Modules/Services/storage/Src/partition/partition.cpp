@@ -30,10 +30,21 @@ partition_t* NewPartition(storage_device_t* Device, uint64_t Start, uint64_t Siz
             arguments_t Parameters{
                 .arg[0] = i,
             };
-            Sys_Execthread(NotifyInfo->ThreadToNotify, &Parameters, ExecutionTypeQueu, NULL);
+            srv_storage_space_info_t SpaceInfo;
+            memcpy(&SpaceInfo, Self->Space, sizeof(srv_storage_space_info_t));
+
+            SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(Self->Space->CreateProtectedDeviceSpaceThread, NotifyInfo->ProcessToNotify);
+            SpaceInfo.ReadWriteDeviceThread = MakeShareableThreadToProcess(Self->Space->ReadWriteDeviceThread, NotifyInfo->ProcessToNotify);
+
+            ShareDataWithArguments_t Data{
+                .Data = &SpaceInfo,
+                .Size = sizeof(srv_storage_space_info_t),
+                .ParameterPosition = 0x1,
+            };
+
+            Sys_Execthread(NotifyInfo->ThreadToNotify, &Parameters, ExecutionTypeQueu, &Data);
         }
     }
-    Printlog("Partition");
     atomicUnlock(&PartitionLock, 0);
     return Self;
 }
@@ -45,7 +56,7 @@ partition_t* GetPartition(uint64_t Index){
     return Partition;
 }
 
-uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* GUIDTarget, thread_t ThreadToNotify){
+uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* GUIDTarget, thread_t ThreadToNotify, process_t ProcessToNotify){
     if(GUIDTarget != NULL){
         atomicAcquire(&PartitionLock, 0);
         for(uint64_t i = 0; i < PartitionsListNotify->length; i++){
@@ -59,6 +70,8 @@ uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* GUIDTarget, thread_t ThreadToNot
         notify_info_t* NotifyInfo = (notify_info_t*)malloc(sizeof(notify_info_t));
         NotifyInfo->GUIDTarget = GUIDTarget;
         NotifyInfo->ThreadToNotify = ThreadToNotify;
+        NotifyInfo->ProcessToNotify = ProcessToNotify;
+        vector_push(PartitionsListNotify, NotifyInfo);
 
         for(uint64_t i = 0; i < PartitionsList->length; i++){
             partition_t* Partition = (partition_t*)vector_get(PartitionsList, i);
@@ -66,7 +79,19 @@ uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* GUIDTarget, thread_t ThreadToNot
                 arguments_t Parameters{
                     .arg[0] = i,
                 };
-                Sys_Execthread(NotifyInfo->ThreadToNotify, &Parameters, ExecutionTypeQueu, NULL);
+                srv_storage_space_info_t SpaceInfo;
+                memcpy(&SpaceInfo, Partition->Space, sizeof(srv_storage_space_info_t));
+
+                SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(Partition->Space->CreateProtectedDeviceSpaceThread, NotifyInfo->ProcessToNotify);
+                SpaceInfo.ReadWriteDeviceThread = MakeShareableThreadToProcess(Partition->Space->ReadWriteDeviceThread, NotifyInfo->ProcessToNotify);
+
+                ShareDataWithArguments_t Data{
+                    .Data = &SpaceInfo,
+                    .Size = sizeof(srv_storage_space_info_t),
+                    .ParameterPosition = 0x1,
+                };
+
+                Sys_Execthread(NotifyInfo->ThreadToNotify, &Parameters, ExecutionTypeQueu, &Data);
             }
         }
         atomicUnlock(&PartitionLock, 0);
@@ -75,12 +100,12 @@ uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* GUIDTarget, thread_t ThreadToNot
     return KSUCCESS;
 }
 
-KResult MountPartition(uint64_t ID, srv_storage_fs_server_functions_t* FSServerFunctions){
+KResult MountPartition(uint64_t PartitonID, srv_storage_fs_server_functions_t* FSServerFunctions){
     KResult Status = KFAIL;
 
     atomicAcquire(&PartitionLock, 0);
-    if(ID < PartitionsList->length){
-        partition_t* Partition = (partition_t*)vector_get(PartitionsList, ID);
+    if(PartitonID < PartitionsList->length){
+        partition_t* Partition = (partition_t*)vector_get(PartitionsList, PartitonID);
         if(!Partition->IsMount){
             // TODO: check keys
             Partition->FSServerFunctions.Rename = FSServerFunctions->Rename;
@@ -96,17 +121,39 @@ KResult MountPartition(uint64_t ID, srv_storage_fs_server_functions_t* FSServerF
     return Status;
 }
 
-KResult UnmountPartition(uint64_t ID){
+KResult UnmountPartition(uint64_t PartitonID){
     KResult Status = KFAIL;
 
     atomicAcquire(&PartitionLock, 0);
-    if(ID < PartitionsList->length){
-        partition_t* Partition = (partition_t*)vector_get(PartitionsList, ID);
+    if(PartitonID < PartitionsList->length){
+        partition_t* Partition = (partition_t*)vector_get(PartitionsList, PartitonID);
         if(Partition->IsMount){
             Partition->IsMount = false;
+
+            for(uint64_t i = 0; i < PartitionsListNotify->length; i++){
+                notify_info_t* NotifyInfo = (notify_info_t*)vector_get(PartitionsListNotify, i);
+                if(memcmp(&Partition->PartitionTypeGUID, NotifyInfo->GUIDTarget, sizeof(GUID_t))){
+                    arguments_t Parameters{
+                        .arg[0] = i,
+                    };
+                    srv_storage_space_info_t SpaceInfo;
+                    memcpy(&SpaceInfo, Partition->Space, sizeof(srv_storage_space_info_t));
+
+                    SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(Partition->Space->CreateProtectedDeviceSpaceThread, NotifyInfo->ProcessToNotify);
+                    SpaceInfo.ReadWriteDeviceThread = MakeShareableThreadToProcess(Partition->Space->ReadWriteDeviceThread, NotifyInfo->ProcessToNotify);
+
+                    ShareDataWithArguments_t Data{
+                        .Data = &SpaceInfo,
+                        .Size = sizeof(srv_storage_space_info_t),
+                        .ParameterPosition = 0x1,
+                    };
+
+                    Sys_Execthread(NotifyInfo->ThreadToNotify, &Parameters, ExecutionTypeQueu, &Data);
+                }
+            }
+            atomicUnlock(&PartitionLock, 0);
         }
     }
-    atomicUnlock(&PartitionLock, 0);
     return Status;
 }
 
