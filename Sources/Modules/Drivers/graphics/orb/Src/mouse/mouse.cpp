@@ -64,9 +64,8 @@ void DrawCursor(Graphic::framebuffer_t* fb, uint8_t* Mask, uint32_t Color[Cursor
             uint16_t bit = y * 16 + x;
             uint16_t byte = bit / 8;
 
-            if(Mask[byte] & (0b10000000 >> (x % 8))){
+            if(Mask[byte] & (0b10000000 >> (x % 8)))
                 Graphic::putPixel(fb, CursorPosition.x + x, CursorPosition.y + y, Color[y][x]);
-            }
         }
     }
 }
