@@ -28,12 +28,12 @@ void SrvAddDevice(Device* Device){
     Info.MainSpace.SpaceSize = Device->DefaultSpace->Size;
     Info.MainSpace.BufferRWAlignement = Device->BufferAlignement;
     Info.MainSpace.BufferRWUsableSize = Device->BufferUsableSize;
+    Info.MainSpace.DriverProc = ShareProcessKey(Proc);
     Info.DeviceSize = Device->GetSize();
 
     memcpy(&Info.SerialNumber, Device->GetSerialNumber(), SerialNumberSize);
     memcpy(&Info.DriveModelNumber, Device->GetSerialNumber(), DriveModelNumberSize);
     
-    Info.DriverProc = ShareProcessKey(Proc);
 
     srv_storage_callback_t* callback = Srv_Storage_AddDevice(&Info, true);
     Device->ExternalID = (uint64_t)callback->Data;

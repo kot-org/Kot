@@ -20,6 +20,7 @@ struct srv_storage_space_info_t{
     ksmem_t BufferRWKey;
     uint64_t BufferRWAlignement;
     uint64_t BufferRWUsableSize;
+    process_t DriverProc;
     uint64_t SpaceSize;
 };
 
@@ -28,7 +29,6 @@ struct srv_storage_device_info_t{
     uint64_t DeviceSize;
     uint8_t SerialNumber[SerialNumberSize];
     uint8_t DriveModelNumber[DriveModelNumberSize];
-    process_t DriverProc;
 };
 
 struct srv_storage_fs_server_functions_t{

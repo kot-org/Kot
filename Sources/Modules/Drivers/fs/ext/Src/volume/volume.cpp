@@ -15,6 +15,13 @@ void InitializeVolumeListener(){
 }
 
 void ListenerEvent(uint64_t VolumeID, srv_storage_space_info_t* StorageSpace){
+    struct srv_storage_device_t* StorageDevice = NULL;
+    Srv_StorageInitializeDeviceAccess(StorageSpace, &StorageDevice);
+    uint8_t* Buffer = (uint8_t*)calloc(0x1000);
+    Srv_ReadDevice(StorageDevice, Buffer, 0x400, 0x1000);
+    for(uint16_t i = 0; i < 0x4; i++){
+        std::printf("%x", Buffer[i]);
+    }
     Printlog("Ok");
     Sys_Close(KSUCCESS);
 }

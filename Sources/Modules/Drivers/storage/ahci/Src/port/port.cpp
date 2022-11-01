@@ -108,6 +108,8 @@ void Device::LoadSpace(Space_t* Self){
 KResult Device::Read(Space_t* Self, uint64_t Start, size64_t Size){
     if((Start + (uint64_t)Size) > GetSize()) return KNOTALLOW;
 
+    Start += Self->Start;
+
     uint64_t StartAlignement = Start & 0x1FF;
     uint64_t Sector = Start >> 9;
     uint64_t SectorCount = DivideRoundUp(Size + StartAlignement, ATA_SECTOR_SIZE);
@@ -190,6 +192,8 @@ KResult Device::Read(Space_t* Self, uint64_t Start, size64_t Size){
 
 KResult Device::Write(Space_t* Self, uint64_t Start, size64_t Size){
     if((Start + (uint64_t)Size) > GetSize()) return KNOTALLOW;
+
+    Start += Self->Start;
 
     uint64_t StartAlignement = Start & 0x1FF;
     uint64_t StartAlignementFill = ATA_SECTOR_SIZE - Start;
