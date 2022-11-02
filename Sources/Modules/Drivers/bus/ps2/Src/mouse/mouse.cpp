@@ -120,13 +120,13 @@ void MouseParser(uint8_t data){
         MouseEventParameters->arg[1] = (int64_t)MousePacket[PacketYPosition]; // add signed bit
         MouseEventParameters->arg[2] = (int64_t)(MousePacket[ExtendedInfos] & 0b111); // add signed bit
         if(IsXNegative){
-            MouseEventParameters->arg[0] = MouseEventParameters->arg[0] - 0xff;
+            MouseEventParameters->arg[0] = MouseEventParameters->arg[0] - 0x100;
         }
         if(IsYNegative){
-            MouseEventParameters->arg[1] = MouseEventParameters->arg[1] - 0xff;
+            MouseEventParameters->arg[1] = MouseEventParameters->arg[1] - 0x100;
         }
         if(IsZNegative){
-            MouseEventParameters->arg[2] = MouseEventParameters->arg[2] - 0xff;
+            MouseEventParameters->arg[2] = MouseEventParameters->arg[2] - 0x100;
         }
 
         /* Buttons status */

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/main.h>
+#include <main/main.h>
 #include <kot/uisd/srvs/storage.h>
 #include <kot/uisd/srvs/storage/device.h>
 

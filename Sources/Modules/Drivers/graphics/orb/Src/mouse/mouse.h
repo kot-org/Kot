@@ -4,6 +4,7 @@
 
 #include <kot/uisd/srvs/hid.h>
 
+#include <kot++/printf.h>
 #include <kot-graphics++/utils.h>
 
 #define CursorWidth     16

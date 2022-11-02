@@ -1,4 +1,4 @@
-#include <core/main.h>
+#include <main/main.h>
 
 extern "C" int main(int argc, char* argv[]){
     Printlog("[FS-Ext] Initializing...");
