@@ -21,10 +21,8 @@ namespace Ui {
         /* style */
         ComponentStyle* cpntStyle = (ComponentStyle*) malloc(sizeof(ComponentStyle));
 
-        if(style.position)
-            cpntStyle->position = style.position;
-        else
-            cpntStyle->position = RELATIVE;
+        cpntStyle->position = style.position;
+        cpntStyle->layout = style.layout;
 
         cpntStyle->width = style.width;
         cpntStyle->height = style.height;
@@ -57,10 +55,8 @@ namespace Ui {
         /* style */
         ComponentStyle* cpntStyle = (ComponentStyle*) malloc(sizeof(ComponentStyle));
 
-        if(style.position)
-            cpntStyle->position = style.position;
-        else
-            cpntStyle->position = RELATIVE;
+        cpntStyle->position = style.position;
+        cpntStyle->layout = style.layout;
 
         cpntStyle->width = style.width;
         cpntStyle->height = style.height;
@@ -76,6 +72,14 @@ namespace Ui {
         /* component */
         this->fb = cpntFb;
         this->style = cpntStyle;
+    }
+
+    Component::ComponentStyle* Component::getStyle() {
+        return this->style;
+    }
+
+    vector_t* Component::getChilds() {
+        return this->childs;
     }
 
     void Component::draw() {
@@ -96,25 +100,19 @@ namespace Ui {
         if(!this->childs)
             this->childs = vector_create();
 
-        uint32_t childIndex = this->childs->length;
+        /* calculate */
 
-        // calculate relative position
-        if(childIndex != NULL && child->style->position == RELATIVE) {
-            Component* cpntBeforeChild = (Component*) vector_get(this->childs, childIndex-1);
-            Component* firstChild = (Component*) vector_get(this->childs, 0);
+        UiLayout::calculatePosition(this, child);
 
-            if(cpntBeforeChild->style->x + cpntBeforeChild->style->width + child->style->width > this->style->width) {
-                child->style->x = 0;
-                child->style->y = firstChild->style->height;
-            } else {
-                child->style->x += cpntBeforeChild->style->x + cpntBeforeChild->style->width;
-            }
-        }
+        // here i put the childs vector and the child to push the child into the vector after calculating
+        if(this->style->layout == Layout::FLEX)
+            UiLayout::calculateFlex(this, this->childs, child); 
 
         child->parent = this;
-        vector_push(this->childs, child);    
+        vector_push(this->childs, child); 
+
 
         child->draw();
-    }
+    }  
 
 }

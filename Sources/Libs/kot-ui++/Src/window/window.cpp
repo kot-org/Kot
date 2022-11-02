@@ -5,7 +5,6 @@
 #include <kot/uisd/srvs/system.h>
 
 #include <kot-ui++/component.h>
-#include <kot-ui++/components/layout/layout.h>
 
 namespace WindowUi {
 
@@ -18,15 +17,15 @@ namespace WindowUi {
         this->ctxUi = new Ui::ContextUi(fb);
 
         auto titlebar = Ui::titlebar(title, { .backgroundColor = WIN_BGCOLOR_ONFOCUS, .foregroundColor = 0xDDDDDD });
-
         this->setContent(titlebar);
  
-        auto wrapper = (new Ui::FlexLayout(Ui::FlexLayout::VERTICAL))->cpnt; // <-- return the component of FlexLayout
+/*         auto wrapper = UiLayout::Flexbox({}, UiLayout::Flex::VERTICAL);
 
         auto box3 = Ui::box({ .width = 30, .height = 20, .color = 0xFFFF00 });
         wrapper->addChild(box3);
 
-        this->setContent(wrapper);
+        this->setContent(wrapper); */
+
         orb::show(this->wid);
     }
 

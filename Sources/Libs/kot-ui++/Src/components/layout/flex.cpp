@@ -1,11 +1,11 @@
-#include "layout.h"
+#include <kot-ui++/component.h>
 
-namespace Ui {
+using namespace Ui;
 
-    FlexLayout::FlexLayout(FlexDirection direction) {
-        Component* flexCpnt = new Component({ .width = 500, .height = 40 }); // width 500 is a test (replace by 100%)
+namespace UiLayout {
 
-        this->cpnt = flexCpnt;
+    void calculateFlex(Component* parent, vector_t* childs, Component* child) {
+        
     }
 
 }
