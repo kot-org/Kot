@@ -67,4 +67,14 @@ typedef struct GUID_t{
     uint64_t Data4:48;
 };
 
+typedef struct UUID_t{
+    uint32_t Data0:32;
+
+    uint16_t Data1:16;
+    uint16_t Data2:16;
+    uint16_t Data3:16;
+
+    uint64_t Data4:48;
+};
+
 #endif

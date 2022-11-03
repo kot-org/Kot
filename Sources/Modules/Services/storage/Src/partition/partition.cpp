@@ -19,22 +19,28 @@ partition_t* NewPartition(storage_device_t* Device, uint64_t Start, uint64_t Siz
     memcpy(&Self->PartitionTypeGUID, PartitionTypeGUID, sizeof(GUID_t)); // Copy GUID
 
     Self->Device = Device;
-    Self->Device->CreateSpace(Start, Size, &Self->Space);
     
     Self->IsMount = false;
     Self->Index = vector_push(PartitionsList, Self);
 
+    Self->SpaceList = vector_create();
+
     for(uint64_t i = 0; i < PartitionsListNotify->length; i++){
         notify_info_t* NotifyInfo = (notify_info_t*)vector_get(PartitionsListNotify, i);
         if(memcmp(&Self->PartitionTypeGUID, NotifyInfo->GUIDTarget, sizeof(GUID_t))){
+            srv_storage_space_info_t* Space;
+            Self->Device->CreateSpace(Start, Size, &Space);
+            vector_push(Self->SpaceList, Space);
+
             arguments_t Parameters{
                 .arg[0] = i,
             };
             srv_storage_space_info_t SpaceInfo;
-            memcpy(&SpaceInfo, Self->Space, sizeof(srv_storage_space_info_t));
 
-            SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(Self->Space->CreateProtectedDeviceSpaceThread, NotifyInfo->ProcessToNotify);
-            SpaceInfo.ReadWriteDeviceThread = MakeShareableThreadToProcess(Self->Space->ReadWriteDeviceThread, NotifyInfo->ProcessToNotify);
+            memcpy(&SpaceInfo, Space, sizeof(srv_storage_space_info_t));
+
+            SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(Space->CreateProtectedDeviceSpaceThread, NotifyInfo->ProcessToNotify);
+            SpaceInfo.ReadWriteDeviceThread = MakeShareableThreadToProcess(Space->ReadWriteDeviceThread, NotifyInfo->ProcessToNotify);
 
             ShareDataWithArguments_t Data{
                 .Data = &SpaceInfo,
@@ -76,14 +82,18 @@ uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* GUIDTarget, thread_t ThreadToNot
         for(uint64_t i = 0; i < PartitionsList->length; i++){
             partition_t* Partition = (partition_t*)vector_get(PartitionsList, i);
             if(memcmp(&Partition->PartitionTypeGUID, NotifyInfo->GUIDTarget, sizeof(GUID_t))){
+                srv_storage_space_info_t* Space;
+                Partition->Device->CreateSpace(Partition->Start, Partition->Size, &Space);
+                vector_push(Partition->SpaceList, Space);
+
                 arguments_t Parameters{
                     .arg[0] = i,
                 };
                 srv_storage_space_info_t SpaceInfo;
-                memcpy(&SpaceInfo, Partition->Space, sizeof(srv_storage_space_info_t));
+                memcpy(&SpaceInfo, Space, sizeof(srv_storage_space_info_t));
 
-                SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(Partition->Space->CreateProtectedDeviceSpaceThread, NotifyInfo->ProcessToNotify);
-                SpaceInfo.ReadWriteDeviceThread = MakeShareableThreadToProcess(Partition->Space->ReadWriteDeviceThread, NotifyInfo->ProcessToNotify);
+                SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(Space->CreateProtectedDeviceSpaceThread, NotifyInfo->ProcessToNotify);
+                SpaceInfo.ReadWriteDeviceThread = MakeShareableThreadToProcess(Space->ReadWriteDeviceThread, NotifyInfo->ProcessToNotify);
 
                 ShareDataWithArguments_t Data{
                     .Data = &SpaceInfo,
@@ -129,28 +139,6 @@ KResult UnmountPartition(uint64_t PartitonID){
         partition_t* Partition = (partition_t*)vector_get(PartitionsList, PartitonID);
         if(Partition->IsMount){
             Partition->IsMount = false;
-
-            for(uint64_t i = 0; i < PartitionsListNotify->length; i++){
-                notify_info_t* NotifyInfo = (notify_info_t*)vector_get(PartitionsListNotify, i);
-                if(memcmp(&Partition->PartitionTypeGUID, NotifyInfo->GUIDTarget, sizeof(GUID_t))){
-                    arguments_t Parameters{
-                        .arg[0] = i,
-                    };
-                    srv_storage_space_info_t SpaceInfo;
-                    memcpy(&SpaceInfo, Partition->Space, sizeof(srv_storage_space_info_t));
-
-                    SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(Partition->Space->CreateProtectedDeviceSpaceThread, NotifyInfo->ProcessToNotify);
-                    SpaceInfo.ReadWriteDeviceThread = MakeShareableThreadToProcess(Partition->Space->ReadWriteDeviceThread, NotifyInfo->ProcessToNotify);
-
-                    ShareDataWithArguments_t Data{
-                        .Data = &SpaceInfo,
-                        .Size = sizeof(srv_storage_space_info_t),
-                        .ParameterPosition = 0x1,
-                    };
-
-                    Sys_Execthread(NotifyInfo->ThreadToNotify, &Parameters, ExecutionTypeQueu, &Data);
-                }
-            }
             atomicUnlock(&PartitionLock, 0);
         }
     }

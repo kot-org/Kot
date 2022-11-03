@@ -31,16 +31,17 @@ struct partition_t{
     bool IsMount;
     uint64_t Start;
     uint64_t Size;
-    struct GUID_t PartitionTypeGUID;
+    GUID_t PartitionTypeGUID;
 
     struct srv_storage_fs_server_functions_t FSServerFunctions;
 
-    storage_device_t* Device;
-    struct srv_storage_space_info_t* Space;
+    struct storage_device_t* Device;
+
+    vector_t* SpaceList;
 };
 
 struct notify_info_t{
-    struct GUID_t* GUIDTarget;
+    GUID_t* GUIDTarget;
     thread_t ThreadToNotify;
     process_t ProcessToNotify;
 };
