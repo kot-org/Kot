@@ -8,9 +8,12 @@
 
 #define EXT2_SUPER_MAGIC 0xEF53
 #define EXT2_SUPERBLOCK_START 0x400
+#define EXT2_SUPERBLOCK_SIZE 0x400
+#define EXT2_LEFT_VALUE_TO_SHIFT_LEFT 0x400
+#define EXT2_N_BLOCKS 15
 
 struct super_block_t{
-    uint32_t nodes_count;
+    uint32_t inodes_count;
     uint32_t blocks_count;
     uint32_t r_blocks_count;
     uint32_t free_blocks_count;
@@ -37,7 +40,7 @@ struct super_block_t{
     uint16_t def_resgid;
 }__attribute__((packed));
 
-struct super_block_ext4_dynamic{
+struct super_block_ext4_dynamic_t{
     uint32_t first_ino; /* First non-reserved inode in file system */
     uint16_t inode_size; /* Size of each inode structure in bytes */
     uint16_t block_group_nr; /*	Block group that this superblock is part of for backup copies */
@@ -149,13 +152,13 @@ struct super_block_ext4_dynamic{
 #define EXT4_FEATURE_COMPAT_FAST_COMMIT		0x0400
 #define EXT4_FEATURE_COMPAT_STABLE_INODES	0x0800
 
-struct ext4_flex_groups{
+struct ext4_flex_groups_t{
 	uint64_t free_clusters;
 	uint32_t free_inodes;
 	uint32_t used_dirs;
 }__attribute__((packed));
 
-struct ext4_group_descriptor{
+struct ext4_group_descriptor_t{  	/* block group which contain blocks*/
 	uint32_t block_bitmap_lo;	/* Low 32bits of block address of block usage bitmap */
 	uint32_t inode_bitmap_lo;	/* Low 32bits of block address of inode usage bitmap */
 	uint32_t inode_table_lo;	/* Low 32bits of starting block address of inode table */
@@ -186,8 +189,42 @@ struct ext4_group_descriptor{
 #define EXT4_BG_BLOCK_UNINIT	0x0002 /* Block bitmap not in use */
 #define EXT4_BG_INODE_ZEROED	0x0004 /* On-disk itable initialized to zero */
 
+struct ext4_inode_t{
+    uint16_t mode;
+    uint16_t uid;
+    uint32_t size;
+    uint32_t atime;
+    uint32_t ctime;
+    uint32_t mtime;
+    uint32_t dtime;
+    uint16_t gid;
+    uint16_t links_count;
+    uint32_t blocks;
+    uint32_t flags;
+    uint32_t osd1;
+    uint32_t block[EXT2_N_BLOCKS]; 
+	/* block[EXT2_N_BLOCKS] : 
+		- 0 to 11 : direct pointer to data block
+		- 12 : pointer to block table (with 4 bytes per entries) -> data
+		- 13 : pointer to block table (with 4 bytes per entries) -> pointer to block table (with 4 bytes per entries) -> data
+		- 14 : pointer to block table (with 4 bytes per entries) -> pointer to block table (with 4 bytes per entries) -> pointer to block table (with 4 bytes per entries) -> data
+	*/
+    uint32_t generation;
+    uint32_t file_acl;
+    uint32_t dir_acl;
+    uint32_t faddr;
+    uint32_t osd2[3];
+}__attribute__((packed));
 
-struct ext4_mmp_struct {
+struct ext4_directory_entry_t{
+    uint32_t inode;
+    uint16_t size;
+    uint8_t name_length;
+    uint8_t type_indicator;
+    char name[];
+}__attribute__((packed));
+
+struct ext4_mmp_t{
 	uint32_t mmp_magic;		/* Magic number for MMP */
 	uint32_t mmp_seq;		/* Sequence no. updated periodically */
 	uint64_t mmp_time;		/* Time last updated */
@@ -205,30 +242,18 @@ struct ext4_mmp_struct {
 #define EXT4_MMP_SEQ_FSCK  0xE24D4D50 /* mmp_seq value when being fscked */
 #define EXT4_MMP_SEQ_MAX   0xE24D4D4F /* maximum valid mmp_seq value */ 
 
-struct ext4_inode{
-    uint16_t mode;
-    uint16_t uid;
-    uint32_t size;
-    uint32_t atime;
-    uint32_t ctime;
-    uint32_t mtime;
-    uint32_t dtime;
-    uint16_t gid;
-    uint16_t links_count;
-    uint32_t blocks;
-    uint32_t flags;
-    uint32_t osd1;
-    uint32_t block[15];
-    uint32_t generation;
-    uint32_t file_acl;
-    uint32_t dir_acl;
-    uint32_t faddr;
-    uint32_t osd2[3];
-}__attribute__((packed));
-
 struct mount_info_t{
+	struct srv_storage_device_t* StorageDevice;
     struct super_block_t* SuperBlock;
-    struct srv_storage_device_t* StorageDevice;
+    struct super_block_ext4_dynamic_t* SuperBlockDynamic;
+    uint64_t BlockSize;
+    uint64_t FirstBlock;
+
+	uint64_t GetLocationFromBlock(uint64_t block);
+	uint64_t GetBlockGroupStartBlock(uint64_t group);
+	uint64_t GetBlockGroupFromInode(uint64_t inode);
+	uint64_t GetIndexInodeInsideBlockGroupFromInode(uint64_t inode);
+	uint64_t GetLocationFromInode(uint64_t inode);
 };
 
 
