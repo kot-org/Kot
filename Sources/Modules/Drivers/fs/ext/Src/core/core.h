@@ -37,32 +37,6 @@ struct super_block_t{
     uint16_t def_resgid;
 }__attribute__((packed));
 
-struct super_block_ext2_dynamic{
-    uint32_t first_ino;
-    uint16_t inode_size;
-    uint16_t block_group_nr;
-    uint32_t feature_compat;
-    uint32_t feature_incompat;
-    uint32_t feature_ro_compat;
-    UUID_t uuid;
-    char volume_name[16];
-    char last_mounted[64];
-    uint32_t algo_bitmap;
-    uint8_t prealloc_blocks;
-    uint8_t prealloc_dir_blocks;
-    uint16_t reserved0; // reserved for alignement
-    UUID_t journal_uuid;
-    uint32_t journal_inum;
-    uint32_t journal_dev;
-    uint32_t last_orphan;
-    uint32_t hash_seed[32];
-    uint8_t def_hash_version;
-    uint32_t reserved1:24; // reserved for future expansion
-    uint32_t default_mount_options;
-    uint32_t first_meta_bg;
-    uint8_t reserved2[760]; // reserved for future revisions
-}__attribute__((packed));
-
 struct super_block_ext4_dynamic{
     uint32_t first_ino;
     uint16_t inode_size;
