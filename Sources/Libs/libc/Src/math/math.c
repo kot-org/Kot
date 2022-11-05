@@ -33,3 +33,11 @@ uint64_t divideRoundUp(uint64_t value, uint64_t divider) {
     }
     return returnValue;
 }
+
+int exponentInt(const int base, int n) {
+    int i, p = base;
+    for (i = 1; i < n; ++i){
+        p *= base;
+    }        
+    return p;
+}

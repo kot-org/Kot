@@ -1,16 +1,33 @@
 #pragma once
 
+#include <kot/bits.h>
+#include <kot/math.h>
 #include <main/main.h>
 #include <kot/uisd/srvs/storage.h>
 #include <kot/uisd/srvs/storage/device.h>
 
 #include <kot++/printf.h>
 
-#define EXT2_SUPER_MAGIC 0xEF53
-#define EXT2_SUPERBLOCK_START 0x400
-#define EXT2_SUPERBLOCK_SIZE 0x400
-#define EXT2_LEFT_VALUE_TO_SHIFT_LEFT 0x400
-#define EXT2_N_BLOCKS 15
+#define EXT_SUPER_MAGIC 				0xEF53
+#define EXT_SUPERBLOCK_START 			0x400
+#define EXT_SUPERBLOCK_SIZE 			0x400
+#define EXT_LEFT_VALUE_TO_SHIFT_LEFT 	0x400
+#define EXT_N_BLOCKS 					0xF
+
+#define EXT_GOOD_OLD_REV				0x0
+#define EXT_DYNAMIC_REV					0x1 
+#define EXT_GOOD_OLD_INODE_SIZE 		0x80
+
+#define EXT_GOOD_OLD_FIRST_INO			0xB
+
+#define	EXT_BAD_INO		 				0x1	/* Bad blocks inode */
+#define EXT_ROOT_INO		 			0x2	/* Root inode */
+#define EXT_USR_QUOTA_INO	 			0x3	/* User quota inode */
+#define EXT_GRP_QUOTA_INO	 			0x4	/* Group quota inode */
+#define EXT_BOOT_LOADER_INO	 			0x5	/* Boot loader inode */
+#define EXT_UNDEL_DIR_INO	 			0x6	/* Undelete directory inode */
+#define EXT_RESIZE_INO		 			0x7	/* Reserved group descriptors inode */
+#define EXT_JOURNAL_INO	 				0x8	/* Journal inode */
 
 struct super_block_t{
     uint32_t inodes_count;
@@ -124,33 +141,33 @@ struct super_block_ext4_dynamic_t{
 }__attribute__((packed));
 
 /* Required features */
-#define EXT4_FEATURE_INCOMPAT_COMPRESSION	0x0001
-#define EXT4_FEATURE_INCOMPAT_FILETYPE		0x0002
-#define EXT4_FEATURE_INCOMPAT_RECOVER		0x0004
-#define EXT4_FEATURE_INCOMPAT_JOURNAL_DEV	0x0008
-#define EXT4_FEATURE_INCOMPAT_META_BG		0x0010
-#define EXT4_FEATURE_INCOMPAT_EXTENTS		0x0040
-#define EXT4_FEATURE_INCOMPAT_64BIT		    0x0080
-#define EXT4_FEATURE_INCOMPAT_MMP           0x0100
-#define EXT4_FEATURE_INCOMPAT_FLEX_BG		0x0200
-#define EXT4_FEATURE_INCOMPAT_EA_INODE		0x0400
-#define EXT4_FEATURE_INCOMPAT_DIRDATA		0x1000
-#define EXT4_FEATURE_INCOMPAT_CSUM_SEED		0x2000
-#define EXT4_FEATURE_INCOMPAT_LARGEDIR		0x4000
-#define EXT4_FEATURE_INCOMPAT_INLINE_DATA	0x8000
-#define EXT4_FEATURE_INCOMPAT_ENCRYPT		0x10000
-#define EXT4_FEATURE_INCOMPAT_CASEFOLD		0x20000
+#define EXT4_FEATURE_REQUIRED_COMPRESSION	0x0001
+#define EXT4_FEATURE_REQUIRED_FILETYPE		0x0002
+#define EXT4_FEATURE_REQUIRED_RECOVER		0x0004
+#define EXT4_FEATURE_REQUIRED_JOURNAL_DEV	0x0008
+#define EXT4_FEATURE_REQUIRED_META_BG		0x0010
+#define EXT4_FEATURE_REQUIRED_EXTENTS		0x0040
+#define EXT4_FEATURE_REQUIRED_64BIT		    0x0080
+#define EXT4_FEATURE_REQUIRED_MMP           0x0100
+#define EXT4_FEATURE_REQUIRED_FLEX_BG		0x0200
+#define EXT4_FEATURE_REQUIRED_EA_INODE		0x0400
+#define EXT4_FEATURE_REQUIRED_DIRDATA		0x1000
+#define EXT4_FEATURE_REQUIRED_CSUM_SEED		0x2000
+#define EXT4_FEATURE_REQUIRED_LARGEDIR		0x4000
+#define EXT4_FEATURE_REQUIRED_INLINE_DATA	0x8000
+#define EXT4_FEATURE_REQUIRED_ENCRYPT		0x10000
+#define EXT4_FEATURE_REQUIRED_CASEFOLD		0x20000
 
 /* Optional features */
-#define EXT4_FEATURE_COMPAT_DIR_PREALLOC	0x0001
-#define EXT4_FEATURE_COMPAT_IMAGIC_INODES	0x0002
-#define EXT4_FEATURE_COMPAT_HAS_JOURNAL		0x0004
-#define EXT4_FEATURE_COMPAT_EXT_ATTR		0x0008
-#define EXT4_FEATURE_COMPAT_RESIZE_INODE	0x0010
-#define EXT4_FEATURE_COMPAT_DIR_INDEX		0x0020
-#define EXT4_FEATURE_COMPAT_SPARSE_SUPER2	0x0200
-#define EXT4_FEATURE_COMPAT_FAST_COMMIT		0x0400
-#define EXT4_FEATURE_COMPAT_STABLE_INODES	0x0800
+#define EXT4_FEATURE_OPTIONAL_DIR_PREALLOC	0x0001
+#define EXT4_FEATURE_OPTIONAL_IMAGIC_INODES	0x0002
+#define EXT4_FEATURE_OPTIONAL_HAS_JOURNAL		0x0004
+#define EXT4_FEATURE_OPTIONAL_EXT_ATTR		0x0008
+#define EXT4_FEATURE_OPTIONAL_RESIZE_INODE	0x0010
+#define EXT4_FEATURE_OPTIONAL_DIR_INDEX		0x0020
+#define EXT4_FEATURE_OPTIONAL_SPARSE_SUPER2	0x0200
+#define EXT4_FEATURE_OPTIONAL_FAST_COMMIT		0x0400
+#define EXT4_FEATURE_OPTIONAL_STABLE_INODES	0x0800
 
 struct ext4_flex_groups_t{
 	uint64_t free_clusters;
@@ -192,7 +209,7 @@ struct ext4_group_descriptor_t{  	/* block group which contain blocks*/
 struct ext4_inode_t{
     uint16_t mode;
     uint16_t uid;
-    uint32_t size;
+    uint32_t size_lo;
     uint32_t atime;
     uint32_t ctime;
     uint32_t mtime;
@@ -202,8 +219,8 @@ struct ext4_inode_t{
     uint32_t blocks;
     uint32_t flags;
     uint32_t osd1;
-    uint32_t block[EXT2_N_BLOCKS]; 
-	/* block[EXT2_N_BLOCKS] : 
+    uint32_t block[EXT_N_BLOCKS]; 
+	/* block[EXT_N_BLOCKS] : 
 		- 0 to 11 : direct pointer to data block
 		- 12 : pointer to block table (with 4 bytes per entries) -> data
 		- 13 : pointer to block table (with 4 bytes per entries) -> pointer to block table (with 4 bytes per entries) -> data
@@ -211,10 +228,57 @@ struct ext4_inode_t{
 	*/
     uint32_t generation;
     uint32_t file_acl;
-    uint32_t dir_acl;
+    uint32_t size_hi;
     uint32_t faddr;
     uint32_t osd2[3];
 }__attribute__((packed));
+
+/* Inode block limit */
+#define INODE_BLOCK_POINTER_DIRECT_ACCESS   		0x0
+#define INODE_BLOCK_POINTER_SINGLY_INDIRECT_ACCESS  0xC
+#define INODE_BLOCK_POINTER_DOUBLY_INDIRECT_ACCESS  0xD
+#define INODE_BLOCK_POINTER_TRIPLY_INDIRECT_ACCESS	0xE
+
+#define INODE_BLOCK_MAX_INDIRECT_BLOCK 				0xB
+
+/* Inode Type and Permissions */
+#define INODE_TYPE_FIFO 				0x1000
+#define INODE_TYPE_CHARACTER_DEVICE 	0x2000
+#define INODE_TYPE_DIRECTORY 			0x4000
+#define INODE_TYPE_BLOCK_DEVICE 		0x6000
+#define INODE_TYPE_REGULAR_FILE 		0x8000
+#define INODE_TYPE_SYMBOLIC_LINK 		0xA000
+#define INODE_TYPE_UNIX_SOCKET 			0xC000
+
+
+#define INODE_PERMISSION_OTHER_EXECUTE 	0x001
+#define INODE_PERMISSION_OTHER_WRITE 	0x002
+#define INODE_PERMISSION_OTHER_READ 	0x004
+
+#define INODE_PERMISSION_GROUP_EXECUTE 	0x008
+#define INODE_PERMISSION_GROUP_WRITE 	0x010
+#define INODE_PERMISSION_GROUP_READ 	0x020
+
+#define INODE_PERMISSION_USER_EXECUTE 	0x040
+#define INODE_PERMISSION_USER_WRITE 	0x080
+#define INODE_PERMISSION_USER_READ 		0x100
+
+#define INODE_MODE_STICKY_BIT			0x200
+#define INODE_GROUP_ID					0x400
+#define INODE_USER_ID					0x800
+
+/* Inode Flags */
+#define INODE_FLAGS_SECURE_DELETION	 			0x00001
+#define INODE_FLAGS_KEEP_COPY	 				0x00002
+#define INODE_FLAGS_FILE_COMPRESSION			0x00004
+#define INODE_FLAGS_SYNCHRONOUS_UPDATE			0x00008
+#define INODE_FLAGS_IMMUTABLE_FILE				0x00010
+#define INODE_FLAGS_APPEND_ONLY					0x00020
+#define INODE_FLAGS_NOT_INCLUDE_DUMP			0x00040
+#define INODE_FLAGS_DONT_UPDATE_ACCESS_TIME		0x00080
+#define INODE_FLAGS_HASH_INDEX_DIRECTORY		0x10000
+#define INODE_FLAGS_AFS_DIRECTORY				0x20000
+#define INODE_FLAGS_JOURNAL_FILE_DATA			0x40000
 
 struct ext4_directory_entry_t{
     uint32_t inode;
@@ -245,14 +309,46 @@ struct ext4_mmp_t{
 struct mount_info_t{
 	struct srv_storage_device_t* StorageDevice;
     struct super_block_t* SuperBlock;
-    struct super_block_ext4_dynamic_t* SuperBlockDynamic;
+
+	uint32_t RequiredFeature;
+	uint32_t OptionalFeature;
+
     uint64_t BlockSize;
     uint64_t FirstBlock;
+	uint64_t InodeSize;
+	uint64_t FirstInode;
 
 	uint64_t GetLocationFromBlock(uint64_t block);
+	uint64_t GetBlockFromLocation(uint64_t location);
+	uint64_t GetLocationInBlock(uint64_t location);
+	uint64_t GetNextBlockLocation(uint64_t location);
 	uint64_t GetBlockGroupStartBlock(uint64_t group);
 	uint64_t GetBlockGroupFromInode(uint64_t inode);
 	uint64_t GetIndexInodeInsideBlockGroupFromInode(uint64_t inode);
+
+
+	struct ext4_inode_t* GetInode(uint64_t inode);
+
+	uint64_t GetSizeFromInode(struct ext4_inode_t* inode);
+
+
+	struct ext4_group_descriptor_t* GetDescriptorFromInode(uint64_t inode);
+
+	uint64_t GetBlockBitmap(struct ext4_group_descriptor_t* descriptor);
+	uint64_t GetInodeBitmap(struct ext4_group_descriptor_t* descriptor);
+	uint64_t GetInodeTable(struct ext4_group_descriptor_t* descriptor);
+	uint64_t GetFreeBlocksCount(struct ext4_group_descriptor_t* descriptor);
+	uint64_t GetFreeInodesCount(struct ext4_group_descriptor_t* descriptor);
+	uint64_t GetUsedDirCount(struct ext4_group_descriptor_t* descriptor);
+	uint64_t GetExcludeBitmap(struct ext4_group_descriptor_t* descriptor);
+	uint64_t GetBlockBitmapCsum(struct ext4_group_descriptor_t* descriptor);
+	uint64_t GetInodeBitmapCsum(struct ext4_group_descriptor_t* descriptor);
+	uint64_t GetItableUnused(struct ext4_group_descriptor_t* descriptor);
+
+	KResult ReadInode(ext4_inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size);
+	KResult ReadInodeBlock(ext4_inode_t* inode, uintptr_t buffer, uint64_t block, uint64_t start, size64_t size);
+	KResult ReadBlock(uintptr_t buffer, uint64_t block, uint64_t start, size64_t size);
+
 	uint64_t GetLocationFromInode(uint64_t inode);
 };
 

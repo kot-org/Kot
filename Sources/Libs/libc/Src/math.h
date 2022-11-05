@@ -23,6 +23,7 @@ int8_t sgn(int64_t value);
 int64_t abs(int64_t value);
 int64_t min(int64_t a, int64_t b);
 int64_t max(int64_t a, int64_t b);
+int exponentInt(const int base, int n);
 
 #if defined(__cplusplus)
 }
