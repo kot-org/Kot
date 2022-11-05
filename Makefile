@@ -32,7 +32,7 @@ deps-llvm:
 
 deps-debian: deps-llvm
 	sudo apt update
-	sudo apt install nasm xorriso mtools grub-common build-essential qemu-system-x86 ovmf  -y
+	sudo apt install nasm xorriso mtools grub-common grub-efi-amd64 grub-pc-bin build-essential qemu-system-x86 ovmf  -y
 
 clean:
 	sudo rm -rf ./Bin ./Sysroot ./Sources/*/*/*/*/*/Lib ./Sources/*/*/*/*/Lib ./Sources/*/*/*/Lib ./Sources/*/*/Lib ./Sources/*/Lib
