@@ -48,7 +48,7 @@ make -C "Modules/Drivers/timer/rtc/Build"
 
 make -C "Modules/Drivers/graphics/orb/Build"
 
-make -C "Modules/Drivers/fs/ext/Build"
+make -C "Modules/Drivers/fs/ext2/Build"
 
 # Services
 echo -e "\e[32mCompiling kot services...\e[0m"
