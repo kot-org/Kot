@@ -13,7 +13,7 @@ int strlen(char* p);
 int strcmp(char* a, char* b);
 int strncmp(char* a, char* b, size64_t len);
 char* strcat(char* dst, const char* src);
-char** strsplit(char* str, const char* delimiters);
+char** strsplit(char* str, const char* delimiters, uint64_t* count);
 void freeSplit(char** splitData);
 int atoi(const char* str);
 char* itoa(int64_t value, char* buffer, int base);

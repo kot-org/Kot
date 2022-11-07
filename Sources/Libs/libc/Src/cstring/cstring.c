@@ -51,7 +51,7 @@ char* strcat(char* dst, const char* src){
     return dst;
 }
 
-char** strsplit(char* str, const char* delimiters){
+char** strsplit(char* str, const char* delimiters, uint64_t* count){
     char* entry = str;
     char* strTmp = str;
     uint64_t len = strlen(str);
@@ -116,7 +116,8 @@ char** strsplit(char* str, const char* delimiters){
     memcpy((uintptr_t)ReturnValue[currentItemNumber], (uintptr_t)((uint64_t)entry + lastCharEnd), (len - lastCharEnd) * sizeof(char)); 
     ReturnValue[currentItemNumber][(len - lastCharEnd)] = (char*)NULL;
     ReturnValue[currentItemNumber + 1] = (char*)NULL;
-    
+    *count = currentItemNumber + 1;
+
     return ReturnValue;
 }
 

@@ -31,7 +31,11 @@ KResult InitializeMount(srv_storage_device_t* StorageDevice){
     MountInfo->BlockSize = EXT_LEFT_VALUE_TO_SHIFT_LEFT << MountInfo->SuperBlock->log_block_size;
     MountInfo->FirstBlock = (EXT_SUPERBLOCK_SIZE / MountInfo->BlockSize) + 1;
 
-    MountInfo->ReadRootDirectory();
+    ext2_inode_t* InodeTest = MountInfo->FindInodeDirectoryFromPath("home/tests/test1.txt");
+    size64_t Size = MountInfo->GetSizeFromInode(InodeTest);
+    uintptr_t Buffer = malloc(Size);
+    MountInfo->ReadInode(InodeTest, Buffer, NULL, Size);
+    std::printf("%s", Buffer);
 
     return KSUCCESS;
 }
@@ -80,8 +84,9 @@ ext2_inode_t* mount_info_t::GetInode(uint64_t inode){
     return Inode;
 }
 
-uint64_t mount_info_t::GetSizeFromInode(ext2_inode_t* inode){
+size64_t mount_info_t::GetSizeFromInode(ext2_inode_t* inode){
     uint64_t Size = (uint64_t)inode->size_lo;
+    Size |= ((uint64_t)inode->size_hi) << 32;
     return Size;
 }
 
@@ -135,16 +140,29 @@ KResult mount_info_t::ReadInode(ext2_inode_t* inode, uintptr_t buffer, uint64_t 
     uint64_t StartBlock = GetBlockFromLocation(start);
     uint64_t NumberOfBlockToRead = ReadLimitBlock - StartBlock;
     uint64_t BufferPosition = (uint64_t)buffer;
+    uint64_t SizeToRead = size;
     if(start % BlockSize){
-        ReadInodeBlock(inode, (uintptr_t)BufferPosition, StartBlock, start % BlockSize, BlockSize - (start % BlockSize));
+        uint64_t SizeRead = SizeToRead;
+        if(SizeRead > BlockSize){
+            SizeRead = BlockSize;
+        }
+        ReadInodeBlock(inode, (uintptr_t)BufferPosition, StartBlock, start % BlockSize, SizeRead - (start % SizeRead));
         BufferPosition += start % BlockSize;
+        SizeToRead -= SizeRead;
         NumberOfBlockToRead--;
         StartBlock++;
     }
+
     for(uint64_t i = 0; i < NumberOfBlockToRead; i++){
-        ReadInodeBlock(inode, (uintptr_t)BufferPosition, StartBlock + i, NULL, BlockSize);
+        uint64_t SizeRead = SizeToRead;
+        if(SizeRead > BlockSize){
+            SizeRead = BlockSize;
+        }
+        ReadInodeBlock(inode, (uintptr_t)BufferPosition, StartBlock + i, NULL, SizeRead);
         BufferPosition += BlockSize;
+        SizeToRead -= SizeRead;
     }
+    return KSUCCESS;
 }
 
 KResult mount_info_t::ReadInodeBlock(ext2_inode_t* inode, uintptr_t buffer, uint64_t block, uint64_t start, size64_t size){
@@ -231,19 +249,53 @@ uint64_t mount_info_t::GetLocationFromInode(uint64_t inode){
 }
 
 
+ext2_inode_t* mount_info_t::FindInodeDirectoryFromPath(char* path){
+    return FindInodeDirectoryFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), path);
+}
 
-KResult mount_info_t::ReadRootDirectory(){
-    ext2_inode_t* Inode = GetInode(EXT_ROOT_INO);
-    uint64_t Size = GetSizeFromInode(Inode);
-    uint64_t NumberOfEntries = Size / BlockSize;
-    for(uint64_t i = 0; i < NumberOfEntries; i++){
-        ext4_directory_entry_t* DirectoryMain = (ext4_directory_entry_t*)malloc(BlockSize);
-        ext4_directory_entry_t* Directory = DirectoryMain;
-        ReadInodeBlock(Inode, Directory, i, NULL, BlockSize);
-        while(Directory->type_indicator != 0 && ((uint64_t)Directory - (uint64_t)DirectoryMain) < BlockSize){
-            std::printf("%s", Directory->name);
-            Directory = (ext4_directory_entry_t*)((uint64_t)Directory + (uint64_t)Directory->size);
+ext2_inode_t* mount_info_t::FindInodeDirectoryFromInodeEntryAndPath(ext2_inode_t* inode, char* path){
+    uint64_t PathEntriesCount;
+    char** PathEntries = strsplit(path, "/", &PathEntriesCount);
+
+    ext2_inode_t* InodeIteration = inode;
+
+    for(uint64_t i = 0; i < PathEntriesCount; i++){
+        // Find the directory entry in this inode
+        ext2_inode_t* InodeFind = FindInodeDirectoryInodeAndEntryFromName(InodeIteration, PathEntries[i]);
+        if(InodeFind != NULL){
+            free(InodeIteration);
+            InodeIteration = InodeFind;
+        }else{
+            free(InodeIteration);
+            return NULL;
         }
     }
-    return KSUCCESS;
+    return InodeIteration;
 }
+
+ext2_inode_t* mount_info_t::FindInodeDirectoryInodeAndEntryFromName(ext2_inode_t* inode, char* name){
+    if(inode->mode & INODE_TYPE_DIRECTORY){
+        // Find the directory entry in this inode
+        uint64_t Size = GetSizeFromInode(inode);
+        uint64_t NumberOfEntries = Size / BlockSize;
+        uint64_t NameLenght = strlen(name);
+        ext4_directory_entry_t* DirectoryMain = (ext4_directory_entry_t*)malloc(BlockSize);
+        for(uint64_t y = 0; y < NumberOfEntries; y++){
+            ext4_directory_entry_t* Directory = DirectoryMain;
+            ReadInodeBlock(inode, Directory, y, NULL, BlockSize);
+            while(Directory->type_indicator != 0 && ((uint64_t)Directory - (uint64_t)DirectoryMain) < BlockSize){
+                if(NameLenght == Directory->name_length){
+                    if(strncmp(Directory->name, name, Directory->name_length)){
+                        free(DirectoryMain);
+                        return GetInode(Directory->inode);
+                    }
+                }
+                Directory = (ext4_directory_entry_t*)((uint64_t)Directory + (uint64_t)Directory->size);
+            }
+        } 
+        free(DirectoryMain);        
+    }
+
+    return NULL;
+}
+

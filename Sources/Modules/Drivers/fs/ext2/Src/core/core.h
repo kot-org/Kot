@@ -205,7 +205,7 @@ struct mount_info_t{
 
 	struct ext2_inode_t* GetInode(uint64_t inode);
 
-	uint64_t GetSizeFromInode(struct ext2_inode_t* inode);
+	size64_t GetSizeFromInode(struct ext2_inode_t* inode);
 
 
 	struct ext2_group_descriptor_t* GetDescriptorFromInode(uint64_t inode);
@@ -223,8 +223,9 @@ struct mount_info_t{
 
 	uint64_t GetLocationFromInode(uint64_t inode);
 
-
-	KResult ReadRootDirectory();
+    ext2_inode_t* FindInodeDirectoryFromPath(char* path);
+    ext2_inode_t* FindInodeDirectoryFromInodeEntryAndPath(ext2_inode_t* inode, char* path);
+    ext2_inode_t* FindInodeDirectoryInodeAndEntryFromName(ext2_inode_t* inode, char* name);
 };
 
 
