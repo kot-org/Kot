@@ -3,26 +3,13 @@
 namespace Ui {
 
     Component::Component(ComponentStyle style) {
-        /* framebuffer */
-        framebuffer_t* cpntFb = (framebuffer_t*) malloc(sizeof(framebuffer_t));
-
-        uint32_t bpp = 32, btpp = 4;
-
-        uint32_t pitch = style.width * btpp;
-
-        cpntFb->size = style.height * pitch;
-        cpntFb->addr = calloc(cpntFb->size);
-        cpntFb->pitch = pitch;
-        cpntFb->width = style.width;
-        cpntFb->height = style.height;
-        cpntFb->bpp = bpp;
-        cpntFb->btpp = btpp;
-
         /* style */
         ComponentStyle* cpntStyle = (ComponentStyle*) malloc(sizeof(ComponentStyle));
 
+        // layout
         cpntStyle->position = style.position;
-        cpntStyle->layout = style.layout;
+        cpntStyle->display = style.display;
+        cpntStyle->direction = style.direction;
 
         cpntStyle->width = style.width;
         cpntStyle->height = style.height;
@@ -36,11 +23,10 @@ namespace Ui {
         cpntStyle->y = style.y;
 
         /* component */
-        this->fb = cpntFb;
         this->style = cpntStyle;
     }
 
-    Component::Component(framebuffer_t* fb, ComponentStyle style) {
+    Component::Component(framebuffer_t* fb) {
         /* framebuffer */
         framebuffer_t* cpntFb = (framebuffer_t*) malloc(sizeof(framebuffer_t));
 
@@ -55,23 +41,56 @@ namespace Ui {
         /* style */
         ComponentStyle* cpntStyle = (ComponentStyle*) malloc(sizeof(ComponentStyle));
 
-        cpntStyle->position = style.position;
-        cpntStyle->layout = style.layout;
+        cpntStyle->width = fb->width;
+        cpntStyle->height = fb->height;
 
-        cpntStyle->width = style.width;
-        cpntStyle->height = style.height;
-        cpntStyle->fontSize = style.fontSize;
-        cpntStyle->borderRadius = style.borderRadius;
-
-        cpntStyle->backgroundColor = style.backgroundColor;
-        cpntStyle->foregroundColor = style.foregroundColor;
-
-        cpntStyle->x = style.x; 
-        cpntStyle->y = style.y;
+        cpntStyle->backgroundColor = 0x181818;
 
         /* component */
         this->fb = cpntFb;
         this->style = cpntStyle;
+    }
+
+    /* Component Framebuffer */
+    void Component::createFramebuffer(uint32_t width, uint32_t height) {
+        framebuffer_t* cpntFb = (framebuffer_t*) malloc(sizeof(framebuffer_t));
+
+        uint32_t bpp = 32, btpp = 4;
+
+        uint32_t pitch = width * btpp;
+
+        cpntFb->size = height * pitch;
+        cpntFb->addr = calloc(cpntFb->size);
+        cpntFb->pitch = pitch;
+        cpntFb->width = width;
+        cpntFb->height = height;
+        cpntFb->bpp = bpp;
+        cpntFb->btpp = btpp;
+
+        this->fb = cpntFb;
+    }
+
+/*     void Component::editFramebuffer(uint32_t width, uint32_t height) {
+        uint32_t pitch = width * fb->btpp;
+
+        fb->size = height * pitch;
+        fb->addr = realloc(fb->addr, fb->size);
+        fb->pitch = pitch;
+        fb->width = width;
+        fb->height = height;
+
+        style->width = width;
+        style->height = height;
+
+        this->draw();
+    } */
+
+    void Component::setWidth(uint32_t width) {
+        this->style->width = width;
+    }
+    
+    void Component::setHeight(uint32_t height) {
+        this->style->height = height;
     }
 
     Component::ComponentStyle* Component::getStyle() {
@@ -82,37 +101,46 @@ namespace Ui {
         return this->childs;
     }
 
-    void Component::draw() {
-        Component* cpnt = this;
+    Component* Component::getParent() {
+        return this->parent;
+    }
 
-        fillRect(cpnt->fb, 0, 0, cpnt->style->width, cpnt->style->height, cpnt->style->backgroundColor);
+    void Component::update() {
+        //UiLayout::calculatePosition(parent, this);
 
-        if(cpnt->childs) {
-            for(int i = cpnt->childs->length - 1; i >= 0; i--) {
-                Component* child = (Component*) vector_get(cpnt->childs, i);
+        this->draw();
+        
+        if(childs != NULL) {
+            for(int i = 0; i < childs->length; i++) {
+                Component* child = (Component*) vector_get(childs, i);
+
+                if(child->fb == NULL)
+                    child->draw();
                 
-                blitFramebuffer(cpnt->fb, child->fb, child->style->x, child->style->y);
+                blitFramebuffer(this->fb, child->fb, child->style->x, child->style->y);
             }
         }
+
+        if(parent != NULL)
+            parent->update();
+    }
+
+    void Component::draw() {
+        if(this->fb == NULL)
+            this->createFramebuffer(this->style->width, this->style->height);
+
+        fillRect(this->fb, 0, 0, this->style->width, this->style->height, this->style->backgroundColor);
     }
 
     void Component::addChild(Component* child) {
         if(!this->childs)
             this->childs = vector_create();
-
-        /* calculate */
-
-        UiLayout::calculatePosition(this, child);
-
-        // here i put the childs vector and the child to push the child into the vector after calculating
-        if(this->style->layout == Layout::FLEX)
-            UiLayout::calculateFlex(this, this->childs, child); 
-
+        
         child->parent = this;
-        vector_push(this->childs, child); 
+        vector_push(this->childs, child);
 
-
-        child->draw();
+        if(!child->childs)
+            vector_push(lastComponents, child);
     }  
 
 }

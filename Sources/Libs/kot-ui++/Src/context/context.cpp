@@ -2,14 +2,13 @@
 
 namespace Ui {
 
-    ContextUi::ContextUi(Graphic::framebuffer_t* fb) {
+    vector_t* lastComponents;
+
+    UiContext::UiContext(Graphic::framebuffer_t* fb) {
         this->fb = fb;
 
-        this->cpnt = new Component(fb, {
-                                    .width = fb->width,
-                                    .height = fb->height,
-                                    .backgroundColor = WIN_BGCOLOR_ONFOCUS
-                                });
+        this->cpnt = new Component(fb);
+        lastComponents = vector_create();
     }
 
 }
