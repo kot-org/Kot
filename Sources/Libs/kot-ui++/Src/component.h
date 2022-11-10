@@ -59,7 +59,6 @@ namespace Ui {
 
             /* Component Framebuffer */
             void createFramebuffer(uint32_t width, uint32_t height);
-            void editFramebuffer(uint32_t width, uint32_t height);
 
             void setWidth(uint32_t width);
             void setHeight(uint32_t height);
@@ -103,9 +102,8 @@ namespace Ui {
 
 namespace UiLayout {
 
-    void calculatePosition(Ui::Component* parent, Ui::Component* child);
+    void calculateLayout(Ui::Component* parent);
 
-    void calculateFlex(Ui::Component* parent, Ui::Component* child);
     Ui::Component* Flexbox(Ui::Component::ComponentStyle style);
 
 }

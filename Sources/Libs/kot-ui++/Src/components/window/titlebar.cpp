@@ -13,8 +13,11 @@ namespace Ui {
         
         titlebar->addChild(box);
 
-        /* auto box2 = Ui::box({ .width = 40, .height = 30, .color = 0x00FF00 });
-        titlebar->addChild(box2); */
+        auto box2 = Ui::box({ .width = 40, .height = 30, .color = 0x00FF00 });
+        titlebar->addChild(box2);
+
+        auto box3 = Ui::box({ .width = 40, .height = 25, .color = 0x0000FF });
+        titlebar->addChild(box3);
 
         return titlebar;
     }

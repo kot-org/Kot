@@ -18,7 +18,7 @@ KResult MouseInitalize(){
             if(PS2Ports[i].Type == PS2_TYPE_MOUSE
             || PS2Ports[i].Type == PS2_TYPE_MOUSE_SCROLL
             || PS2Ports[i].Type == PS2_TYPE_MOUSE_5BUTTONS){
-                Printlog("[PS2] Mouse device found");
+                Printlog("[BUS/PS2] Mouse device found");
                 
                 MouseEventParameters = (arguments_t*)malloc(sizeof(arguments_t));
 

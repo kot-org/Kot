@@ -70,21 +70,6 @@ namespace Ui {
         this->fb = cpntFb;
     }
 
-/*     void Component::editFramebuffer(uint32_t width, uint32_t height) {
-        uint32_t pitch = width * fb->btpp;
-
-        fb->size = height * pitch;
-        fb->addr = realloc(fb->addr, fb->size);
-        fb->pitch = pitch;
-        fb->width = width;
-        fb->height = height;
-
-        style->width = width;
-        style->height = height;
-
-        this->draw();
-    } */
-
     void Component::setWidth(uint32_t width) {
         this->style->width = width;
     }
@@ -106,8 +91,8 @@ namespace Ui {
     }
 
     void Component::update() {
-        //UiLayout::calculatePosition(parent, this);
-
+        UiLayout::calculateLayout(this);
+        
         this->draw();
         
         if(childs != NULL) {

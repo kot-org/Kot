@@ -1,4 +1,4 @@
-#include <kot-ui++/component.h>
+#include "layout.h"
 
 using namespace Ui;
 
@@ -9,6 +9,13 @@ namespace UiLayout {
         switch (parent->getStyle()->direction)
         {
             case Layout::HORIZONTAL:
+            {
+                
+
+                break;
+            }
+
+            case Layout::VERTICAL:
             {
                 
 
