@@ -585,7 +585,6 @@ class Device{
         uint64_t BufferAlignement;        
 
         uintptr_t BufferAlignementBottom;
-        uintptr_t BufferAlignementTop;
 
         Space_t* DefaultSpace;
 

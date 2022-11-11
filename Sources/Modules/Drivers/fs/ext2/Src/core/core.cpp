@@ -2,8 +2,9 @@
 
 KResult InitializeMount(srv_storage_device_t* StorageDevice){
     mount_info_t* MountInfo = (mount_info_t*)malloc(sizeof(mount_info_t));
-    MountInfo->SuperBlock = (super_block_t*)malloc(sizeof(super_block_t));
-    Srv_ReadDevice(StorageDevice, MountInfo->SuperBlock, EXT_SUPERBLOCK_START, sizeof(super_block_t));
+    MountInfo->StorageDevice = StorageDevice;
+
+    MountInfo->ReadSuperBlock();
 
     if(MountInfo->SuperBlock->magic != EXT_SUPER_MAGIC){
         free(MountInfo);
@@ -26,8 +27,6 @@ KResult InitializeMount(srv_storage_device_t* StorageDevice){
         MountInfo->OptionalFeature = NULL;
     }
 
-    MountInfo->StorageDevice = StorageDevice;
-
     MountInfo->BlockSize = EXT_LEFT_VALUE_TO_SHIFT_LEFT << MountInfo->SuperBlock->log_block_size;
     MountInfo->FirstBlock = (EXT_SUPERBLOCK_SIZE / MountInfo->BlockSize) + 1;
 
@@ -35,9 +34,21 @@ KResult InitializeMount(srv_storage_device_t* StorageDevice){
     size64_t Size = MountInfo->GetSizeFromInode(InodeTest);
     uintptr_t Buffer = malloc(Size);
     MountInfo->ReadInode(InodeTest, Buffer, NULL, Size);
-    std::printf("%s", Buffer);
+    uint64_t Block = NULL;
+    MountInfo->AllocateBlock(&Block);
+    std::printf("%s %x", Buffer, Block);
 
     return KSUCCESS;
+}
+
+
+KResult mount_info_t::ReadSuperBlock(){
+    SuperBlock = (super_block_t*)malloc(sizeof(super_block_t));
+    return Srv_ReadDevice(StorageDevice, SuperBlock, EXT_SUPERBLOCK_START, sizeof(super_block_t));
+}
+
+KResult mount_info_t::WriteSuperBlock(){
+    return Srv_WriteDevice(StorageDevice, SuperBlock, EXT_SUPERBLOCK_START, sizeof(super_block_t));
 }
 
 uint64_t mount_info_t::GetLocationFromBlock(uint64_t block){
@@ -81,6 +92,7 @@ ext2_inode_t* mount_info_t::GetInode(uint64_t inode){
     uint64_t InodeTableBlock = GetInodeTable(DescriptorGroup);
     uint64_t LocationOfInode = GetLocationFromBlock(InodeTableBlock) + GetIndexInodeInsideBlockGroupFromInode(inode) * InodeSize;
     Srv_ReadDevice(StorageDevice, Inode, LocationOfInode, InodeSize);
+    free(DescriptorGroup);
     return Inode;
 }
 
@@ -92,13 +104,25 @@ size64_t mount_info_t::GetSizeFromInode(ext2_inode_t* inode){
 
 
 /* Descriptor functions */
-ext2_group_descriptor_t* mount_info_t::GetDescriptorFromInode(uint64_t inode){
+ext2_group_descriptor_t* mount_info_t::GetDescriptorFromGroup(uint64_t group){
     ext2_group_descriptor_t* DescriptorGroup = (ext2_group_descriptor_t*)malloc(sizeof(ext2_group_descriptor_t));
-    uint64_t DescriptorGroupBlock = GetBlockGroupStartBlock(GetBlockGroupFromInode(inode)) + FirstBlock;
+    uint64_t DescriptorGroupBlock = GetBlockGroupStartBlock(group) + FirstBlock;
     uint64_t DescriptorGroupOffset = GetLocationFromBlock(DescriptorGroupBlock);
 
     Srv_ReadDevice(StorageDevice, DescriptorGroup, DescriptorGroupOffset, sizeof(ext2_group_descriptor_t));
     return DescriptorGroup;
+}
+
+ext2_group_descriptor_t* mount_info_t::GetDescriptorFromInode(uint64_t inode){
+    return GetDescriptorFromGroup(GetBlockGroupFromInode(inode)); 
+}
+
+KResult mount_info_t::SetDescriptorFromGroup(uint64_t group, ext2_group_descriptor_t* descriptor){
+    uint64_t DescriptorGroupBlock = GetBlockGroupStartBlock(group) + FirstBlock;
+    uint64_t DescriptorGroupOffset = GetLocationFromBlock(DescriptorGroupBlock);
+
+    Srv_WriteDevice(StorageDevice, descriptor, DescriptorGroupOffset, sizeof(ext2_group_descriptor_t));
+    return KSUCCESS;
 }
 
 uint64_t mount_info_t::GetBlockBitmap(ext2_group_descriptor_t* descriptor){
@@ -132,7 +156,7 @@ uint64_t mount_info_t::GetUsedDirCount(ext2_group_descriptor_t* descriptor){
 }
 
 
-/* Inode read */
+/* Inode function */
 KResult mount_info_t::ReadInode(ext2_inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size){
     uint64_t ReadLimit = start + size;
     uint64_t ReadLimitBlock = GetNextBlockLocation(ReadLimit);
@@ -228,11 +252,111 @@ KResult mount_info_t::ReadInodeBlock(ext2_inode_t* inode, uintptr_t buffer, uint
     return KFAIL;
 }
 
+KResult mount_info_t::WriteInode(ext2_inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size){
+    uint64_t WriteLimit = start + size;
+    uint64_t WriteLimitBlock = GetNextBlockLocation(WriteLimit);
+    
+    uint64_t StartBlock = GetBlockFromLocation(start);
+    uint64_t NumberOfBlockToWrite = WriteLimitBlock - StartBlock;
+    uint64_t BufferPosition = (uint64_t)buffer;
+    uint64_t SizeToWrite = size;
+    if(start % BlockSize){
+        uint64_t SizeWrite = SizeToWrite;
+        if(SizeWrite > BlockSize){
+            SizeWrite = BlockSize;
+        }
+        WriteInodeBlock(inode, (uintptr_t)BufferPosition, StartBlock, start % BlockSize, SizeWrite - (start % SizeWrite));
+        BufferPosition += start % BlockSize;
+        SizeToWrite -= SizeWrite;
+        NumberOfBlockToWrite--;
+        StartBlock++;
+    }
+
+    for(uint64_t i = 0; i < NumberOfBlockToWrite; i++){
+        uint64_t SizeWrite = SizeToWrite;
+        if(SizeWrite > BlockSize){
+            SizeWrite = BlockSize;
+        }
+        WriteInodeBlock(inode, (uintptr_t)BufferPosition, StartBlock + i, NULL, SizeWrite);
+        BufferPosition += BlockSize;
+        SizeToWrite -= SizeWrite;
+    }
+    return KSUCCESS;
+}
+
+KResult mount_info_t::WriteInodeBlock(ext2_inode_t* inode, uintptr_t buffer, uint64_t block, uint64_t start, size64_t size){
+    uint64_t EntryPerBlock = BlockSize / sizeof(uint32_t); 
+    if(block < INODE_BLOCK_POINTER_SINGLY_INDIRECT_ACCESS){
+        // No redirection
+        uint64_t BlockToWrite = inode->block[block];
+        WriteBlock(buffer, BlockToWrite, start, size);
+        return KSUCCESS;
+    }else{
+        block -= INODE_BLOCK_MAX_INDIRECT_BLOCK;
+        uint64_t SingleRedirectionLimit = EntryPerBlock;
+        if(block < SingleRedirectionLimit){
+            // Single redirection
+            uint32_t* BlockBuffer = (uint32_t*)malloc(BlockSize);
+            uint64_t BlockRedirection0ToRead = inode->block[INODE_BLOCK_POINTER_SINGLY_INDIRECT_ACCESS];
+            ReadBlock(BlockBuffer, BlockRedirection0ToRead, NULL, BlockSize);
+
+
+            uint64_t BlockToWrite = BlockBuffer[block];
+            WriteBlock(buffer, BlockToWrite, start, size);
+            return KSUCCESS;
+        }else{
+            block -= SingleRedirectionLimit;
+            uint64_t DoubleRedirectionLimit = exponentInt(EntryPerBlock, 2);
+
+            if(block < DoubleRedirectionLimit){
+                // Double redirection
+                uint32_t* BlockBuffer = (uint32_t*)malloc(BlockSize);
+                uint64_t BlockRedirection0ToRead = inode->block[INODE_BLOCK_POINTER_DOUBLY_INDIRECT_ACCESS];
+                ReadBlock(BlockBuffer, BlockRedirection0ToRead, NULL, BlockSize);
+
+                uint64_t BlockRedirection1ToRead = BlockBuffer[block / EntryPerBlock];
+                ReadBlock(BlockBuffer, BlockRedirection1ToRead, NULL, BlockSize);
+
+
+                uint64_t BlockToWrite = BlockBuffer[block % EntryPerBlock];
+                WriteBlock(buffer, BlockToWrite, start, size);
+                return KSUCCESS;
+            }else{
+                block -= DoubleRedirectionLimit;
+                uint64_t TripleRedirectionLimit = exponentInt(EntryPerBlock, 3);
+
+                if(block < TripleRedirectionLimit){
+                    // Triple redirection
+                    uint32_t* BlockBuffer = (uint32_t*)malloc(BlockSize);
+                    uint64_t BlockRedirection0ToRead = inode->block[INODE_BLOCK_POINTER_DOUBLY_INDIRECT_ACCESS];
+                    ReadBlock(BlockBuffer, BlockRedirection0ToRead, NULL, BlockSize);
+
+                    uint64_t BlockRedirection1ToRead = BlockBuffer[block / DoubleRedirectionLimit];
+                    ReadBlock(BlockBuffer, BlockRedirection1ToRead, NULL, BlockSize);
+
+                    uint64_t BlockRedirection2ToRead = BlockBuffer[(block % DoubleRedirectionLimit) / EntryPerBlock];
+                    ReadBlock(BlockBuffer, BlockRedirection2ToRead, NULL, BlockSize);
+
+                    uint64_t BlockToWrite = BlockBuffer[block % EntryPerBlock];
+                    WriteBlock(buffer, BlockToWrite, start, size);
+                    return KSUCCESS;
+                }                 
+            }
+        } 
+    } 
+    return KFAIL;
+}
+
 
 
 KResult mount_info_t::ReadBlock(uintptr_t buffer, uint64_t block, uint64_t start, size64_t size){
     uint64_t StartByte = GetLocationFromBlock(block) + start;
     return Srv_ReadDevice(StorageDevice, buffer, StartByte, size);
+}
+
+KResult mount_info_t::WriteBlock(uintptr_t buffer, uint64_t block, uint64_t start, size64_t size){
+    uint64_t StartByte = GetLocationFromBlock(block) + start;
+    return Srv_WriteDevice(StorageDevice, buffer, StartByte, size);
 }
 
 
@@ -299,3 +423,106 @@ ext2_inode_t* mount_info_t::FindInodeDirectoryInodeAndEntryFromName(ext2_inode_t
     return NULL;
 }
 
+
+KResult mount_info_t::AllocateBlock(uint64_t* block){
+    if(!SuperBlock->free_blocks_count) return KFAIL;
+
+    uint64_t NumberOfGroup = DivideRoundUp(SuperBlock->blocks_count, SuperBlock->blocks_per_group);
+
+    uint64_t BlockInBitmapBlock = SuperBlock->blocks_per_group;
+    uint8_t* BlockBitmap = (uint8_t*)malloc(BlockSize);
+
+    for(uint64_t i = 0; i < NumberOfGroup; i++){
+        ext2_group_descriptor_t* Descriptor = GetDescriptorFromGroup(i);
+        if(Descriptor->free_blocks_count){
+            uint64_t BitmapSize = DivideRoundUp(SuperBlock->blocks_per_group, 8);
+            uint64_t BitmapSizeInBlock = DivideRoundUp(BitmapSize, BlockSize);
+            for(uint64_t y = 0; y < BitmapSizeInBlock; y++){
+                // Load bitmap
+                ReadBlock(BlockBitmap, Descriptor->block_bitmap + y, NULL, BlockSize);
+                // Search free block
+                for(uint64_t z = 0; z < BlockInBitmapBlock; z++){
+                    uint64_t TargetByte = z / 8;
+                    uint64_t TargetBit = z % 8;
+                    if(!BIT_CHECK(BlockBitmap[TargetByte], TargetBit)){
+                        // Update bitmap
+                        BIT_SET(BlockBitmap[TargetByte], TargetBit);
+                        WriteBlock(&BlockBitmap[TargetByte], Descriptor->block_bitmap + y, TargetByte, 1);
+
+                        // Update descriptor
+                        Descriptor->free_blocks_count--;
+                        SetDescriptorFromGroup(i, Descriptor);
+
+                        // Update superblock
+                        SuperBlock->free_blocks_count--;
+                        WriteSuperBlock();
+
+                        *block = GetBlockGroupStartBlock(i) + z;
+                        free(Descriptor);
+                        free(BlockBitmap);
+                        return KSUCCESS;
+                    }
+                }
+            }
+        }
+        free(Descriptor);
+    }
+    free(BlockBitmap);
+    return KFAIL;
+}
+
+KResult mount_info_t::FreeBlock(uint64_t block){
+
+}
+
+
+KResult mount_info_t::AllocateInode(uint64_t* inode){
+    if(!SuperBlock->free_inodes_count) return KFAIL;
+
+    uint64_t NumberOfGroup = DivideRoundUp(SuperBlock->inodes_count, SuperBlock->inodes_per_group);
+
+    uint64_t InodeInBitmapBlock = SuperBlock->inodes_per_group;
+    uint8_t* BlockBitmap = (uint8_t*)malloc(BlockSize);
+
+    for(uint64_t i = 0; i < NumberOfGroup; i++){
+        ext2_group_descriptor_t* Descriptor = GetDescriptorFromGroup(i);
+        if(Descriptor->free_inodes_count){
+            uint64_t BitmapSize = DivideRoundUp(SuperBlock->inodes_per_group, 8);
+            uint64_t BitmapSizeInBlock = DivideRoundUp(BitmapSize, BlockSize);
+            for(uint64_t y = 0; y < BitmapSizeInBlock; y++){
+                // Load bitmap
+                ReadBlock(BlockBitmap, Descriptor->inode_bitmap + y, NULL, BlockSize);
+                // Search free block
+                for(uint64_t z = 0; z < InodeInBitmapBlock; z++){
+                    uint64_t TargetByte = z / 8;
+                    uint64_t TargetBit = z % 8;
+                    if(!BIT_CHECK(BlockBitmap[TargetByte], TargetBit)){
+                        // Update bitmap
+                        BIT_SET(BlockBitmap[TargetByte], TargetBit);
+                        WriteBlock(&BlockBitmap[TargetByte], Descriptor->block_bitmap + y, TargetByte, 1);
+
+                        // Update descriptor
+                        Descriptor->free_inodes_count--;
+                        SetDescriptorFromGroup(i, Descriptor);
+
+                        // Update superblock
+                        SuperBlock->free_inodes_count--;
+                        WriteSuperBlock();
+
+                        *inode = GetBlockGroupStartBlock(i) + z;
+                        free(Descriptor);
+                        free(BlockBitmap);
+                        return KSUCCESS;
+                    }
+                }
+            }
+        }
+        free(Descriptor);
+    }
+    free(BlockBitmap);
+    return KFAIL;
+}
+
+KResult mount_info_t::FreeInode(uint64_t inode){
+
+}

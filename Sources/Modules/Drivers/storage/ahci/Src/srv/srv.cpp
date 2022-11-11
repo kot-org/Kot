@@ -106,10 +106,19 @@ void SrvReadWriteHandler(thread_t Callback, uint64_t CallbackArg, uint64_t Start
     KResult Statu = KFAIL;
 
     Space_t* Space = (Space_t*)Sys_GetExternalDataThread();
-    if(IsWrite){
-        Statu = SrvWrite(Space, Space->StorageDevice, Start, Size);
-    }else{
-        Statu = SrvRead(Space, Space->StorageDevice, Start, Size);
+
+    if(Size <= Space->StorageDevice->BufferUsableSize){
+        if((Start + (uint64_t)Size) <= Space->StorageDevice->GetSize()){
+            Start += Space->Start;
+            atomicAcquire(&Space->StorageDevice->DeviceLock, 0);
+            Space->StorageDevice->LoadSpace(Space);
+            if(IsWrite){
+                Statu = Space->StorageDevice->Write(Space, Start, Size);
+            }else{
+                Statu = Space->StorageDevice->Read(Space, Start, Size);
+            }
+            atomicUnlock(&Space->StorageDevice->DeviceLock, 0);
+        }
     }
 
     arguments_t arguments{
@@ -123,18 +132,4 @@ void SrvReadWriteHandler(thread_t Callback, uint64_t CallbackArg, uint64_t Start
 
     Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
-}
-
-KResult SrvRead(Space_t* Space, Device* Device, uint64_t Start, size64_t Size){
-    if(Size <= Device->BufferUsableSize){
-        return Device->Read(Space, Start, Size);
-    }
-    return KFAIL;
-}
-
-KResult SrvWrite(Space_t* Space, Device* Device, uint64_t Start, size64_t Size){
-    if(Size <= Device->BufferUsableSize){
-        return Device->Write(Space, Start, Size);
-    }
-    return KFAIL;
 }

@@ -21,5 +21,3 @@ void SrvRemoveDevice(thread_t Callback, uint64_t CallbackArg);
 void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t Start, uint64_t Size);
 
 void SrvReadWriteHandler(thread_t Callback, uint64_t CallbackArg, uint64_t Start, size64_t Size, bool IsWrite);
-KResult SrvRead(struct Space_t* Space, class Device* Device, uint64_t Start, size64_t Size);
-KResult SrvWrite(struct Space_t* Space, class Device* Device, uint64_t Start, size64_t Size);

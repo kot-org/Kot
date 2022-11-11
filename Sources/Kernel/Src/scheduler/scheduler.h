@@ -73,7 +73,7 @@ struct kprocess_t{
     uint64_t MemoryAllocated;
 
     /* Childs */
-    Node* Childs;
+    struct Node* Childs;
     uint64_t TID;
     uint64_t NumberOfthread;
 
@@ -87,7 +87,7 @@ struct kprocess_t{
     key_t ProcessKey;
 
     /* Parent */
-    Node* NodeParent;
+    struct Node* NodeParent;
     TaskManager* TaskManagerParent;
     locker_t CreateThreadLocker;
 
@@ -142,7 +142,7 @@ struct kthread_t{
 
     /* Process */
     kprocess_t* Parent;
-    Node* ThreadNode;
+    struct Node* ThreadNode;
     
     /* Queu */
     ThreadQueu_t* Queu;
@@ -235,11 +235,11 @@ class TaskManager{
         kthread_t* FirstNode;
         kthread_t* LastNode;
 
-        Node* ProcessList = NULL;
+        struct Node* ProcessList = NULL;
         //iddle
         kprocess_t* KernelProc = NULL; 
         kthread_t* IdleNode[MAX_PROCESSORS];    
-        Node* GlobalProcessNode;
+        struct Node* GlobalProcessNode;
 };
 
 void SetParameters(ContextStack* Registers, arguments_t* FunctionParameters);
