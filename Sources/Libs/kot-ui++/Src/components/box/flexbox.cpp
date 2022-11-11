@@ -4,8 +4,8 @@ using namespace Ui;
 
 namespace UiLayout {
 
-    Component* Flexbox(Component::ComponentStyle style, Layout::FlexDirection direction) {
-        style.layout = Layout::FLEX;
+    Component* Flexbox(Component::ComponentStyle style) {
+        style.display = Layout::FLEX;
         Component* flexbox = new Component(style);
 
         return flexbox;

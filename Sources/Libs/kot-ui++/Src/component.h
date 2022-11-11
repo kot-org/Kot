@@ -17,8 +17,8 @@ namespace Ui {
             ABSOLUTE,
         };
 
-        enum FlexDirection {
-            HORIZONTAL,
+        enum Direction {
+            HORIZONTAL, // default
             VERTICAL
         };
     
@@ -27,15 +27,19 @@ namespace Ui {
             FLEX = 1,
             GRID = 2,
         };
+
     };
+
+    extern vector_t* lastComponents;
 
     class Component {
 
         public:
 
             struct ComponentStyle {
-                Layout::ComponentPosition position = Layout::RELATIVE;
-                Layout::ComponentLayout layout = Layout::BOX;
+                Layout::ComponentPosition position;
+                Layout::ComponentLayout display;
+                Layout::Direction direction; 
 
                 uint32_t width;
                 uint32_t height;
@@ -50,15 +54,23 @@ namespace Ui {
             };
 
             Component(ComponentStyle style);
-            Component(framebuffer_t* fb, ComponentStyle style);
+            /* for ui context */
+            Component(framebuffer_t* fb);
+
+            /* Component Framebuffer */
+            void createFramebuffer(uint32_t width, uint32_t height);
+
+            void setWidth(uint32_t width);
+            void setHeight(uint32_t height);
 
             ComponentStyle* getStyle();
             vector_t* getChilds();
+            Component* getParent();
 
+            void update();
             void draw();
             
-            void edit();
-            // todo: remove, edit
+            // todo: remove
 
             void addChild(Component* child);
             
@@ -90,9 +102,8 @@ namespace Ui {
 
 namespace UiLayout {
 
-    void calculatePosition(Ui::Component* parent, Ui::Component* child);
+    void calculateLayout(Ui::Component* parent);
 
-    void calculateFlex(Ui::Component* parent, vector_t* childs, Ui::Component* child);
-    Ui::Component* Flexbox(Ui::Component::ComponentStyle style, Ui::Layout::FlexDirection direction);
+    Ui::Component* Flexbox(Ui::Component::ComponentStyle style);
 
 }

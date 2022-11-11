@@ -11,14 +11,14 @@
 
 namespace Ui {
 
-    class ContextUi {
+    class UiContext {
         
         private:
         public:
             Graphic::framebuffer_t* fb;
             Component* cpnt;
 
-            ContextUi(Graphic::framebuffer_t* fb);
+            UiContext(Graphic::framebuffer_t* fb);
 
     };
 }

@@ -1,11 +1,28 @@
-#include <kot-ui++/component.h>
+#include "layout.h"
 
 using namespace Ui;
 
 namespace UiLayout {
 
-    void calculateFlex(Component* parent, vector_t* childs, Component* child) {
+    void calculateFlex(Component* parent, Component* child) {
         
+        switch (parent->getStyle()->direction)
+        {
+            case Layout::HORIZONTAL:
+            {
+                
+
+                break;
+            }
+
+            case Layout::VERTICAL:
+            {
+                
+
+                break;
+            }
+        }
+
     }
 
 }

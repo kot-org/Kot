@@ -1,24 +1,29 @@
-#include <kot-ui++/component.h>
+#include "layout.h"
 
 using namespace Ui;
 
 namespace UiLayout {
 
-    void calculatePosition(Component* parent, Component* child) {
-        uint32_t childIndex = parent->getChilds()->length;
+    void calculatePosition(Component* parent, uint32_t index) {
 
-        // calculate relative position
-        if(childIndex != NULL && child->getStyle()->position == Layout::RELATIVE) {
-            Component* cpntBeforeChild = (Component*) vector_get(parent->getChilds(), childIndex-1);
-            Component* firstChild = (Component*) vector_get(parent->getChilds(), 0);
+        Component* child = (Component*) vector_get(parent->getChilds(), index);
+        Component* beforeChild = (Component*) vector_get(parent->getChilds(), index-1);
 
-            if(cpntBeforeChild->getStyle()->x + cpntBeforeChild->getStyle()->width + child->getStyle()->width > parent->getStyle()->width) {
-                child->getStyle()->x = 0;
-                child->getStyle()->y = firstChild->getStyle()->height;
-            } else {
-                child->getStyle()->x += cpntBeforeChild->getStyle()->x + cpntBeforeChild->getStyle()->width;
+        switch(parent->getStyle()->position)
+        {
+            case Layout::RELATIVE:
+            {
+                child->getStyle()->x = beforeChild->getStyle()->x + beforeChild->getStyle()->width;
+
+                // todo: jump to the next line
+
+                break;
             }
+
+            case Layout::ABSOLUTE:
+                break;
         }
+
     }  
 
 }
