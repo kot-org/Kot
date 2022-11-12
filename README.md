@@ -27,7 +27,7 @@ A 64-bit x86 operating system written in C/C++
 		- IO (input, ouput)
 		- Atomic (lock system)
 	- arm : 
-		- WIP
+		- WIP (Work in process)
 - Architecture agnostic :
 	- Kernel : 
 		- Serial (console)
