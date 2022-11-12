@@ -10,6 +10,8 @@ namespace Ui {
         cpntStyle->position = style.position;
         cpntStyle->display = style.display;
         cpntStyle->direction = style.direction;
+        cpntStyle->horizontalAlign = style.horizontalAlign;
+        cpntStyle->verticalAlign = style.verticalAlign;
 
         cpntStyle->width = style.width;
         cpntStyle->height = style.height;
@@ -44,8 +46,6 @@ namespace Ui {
         cpntStyle->width = fb->width;
         cpntStyle->height = fb->height;
 
-        cpntStyle->backgroundColor = 0x181818;
-
         /* component */
         this->fb = cpntFb;
         this->style = cpntStyle;
@@ -70,14 +70,6 @@ namespace Ui {
         this->fb = cpntFb;
     }
 
-    void Component::setWidth(uint32_t width) {
-        this->style->width = width;
-    }
-    
-    void Component::setHeight(uint32_t height) {
-        this->style->height = height;
-    }
-
     Component::ComponentStyle* Component::getStyle() {
         return this->style;
     }
@@ -86,8 +78,12 @@ namespace Ui {
         return this->childs;
     }
 
-    Component* Component::getParent() {
-        return this->parent;
+    uint32_t Component::getTotalWidthChilds() {
+        return this->totalWidthChilds;
+    }
+
+    uint32_t Component::getTotalHeightChilds() {
+        return this->totalHeightChilds;
     }
 
     void Component::update() {
@@ -123,6 +119,9 @@ namespace Ui {
         
         child->parent = this;
         vector_push(this->childs, child);
+
+        this->totalWidthChilds += child->style->width;
+        // todo: if there is a new line, add the height to totalHeightChilds (this->totalHeightChilds += child->style->height;)
 
         if(!child->childs)
             vector_push(lastComponents, child);

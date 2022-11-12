@@ -17,15 +17,29 @@ namespace Ui {
             ABSOLUTE,
         };
 
-        enum Direction {
+        enum ComponentDirection {
             HORIZONTAL, // default
             VERTICAL
         };
+
+        /* Alignment */
+        enum ComponentHorizontalAlign {
+            LEFT    = 0,
+            CENTER  = 1,
+            RIGHT   = 2,
+        };
+
+        enum ComponentVerticalAlign {
+            TOP     = 0,
+            MIDDLE  = 1,
+            BOTTOM  = 2,
+        };
     
-        enum ComponentLayout {
-            BOX = 0, // default
-            FLEX = 1,
-            GRID = 2,
+        /* Display */
+        enum ComponentDisplay {
+            BOX     = 0, // default
+            FLEX    = 1,
+            GRID    = 2,
         };
 
     };
@@ -38,8 +52,10 @@ namespace Ui {
 
             struct ComponentStyle {
                 Layout::ComponentPosition position;
-                Layout::ComponentLayout display;
-                Layout::Direction direction; 
+                Layout::ComponentDisplay display;
+                Layout::ComponentDirection direction;
+                Layout::ComponentHorizontalAlign horizontalAlign;
+                Layout::ComponentVerticalAlign verticalAlign;
 
                 uint32_t width;
                 uint32_t height;
@@ -60,12 +76,10 @@ namespace Ui {
             /* Component Framebuffer */
             void createFramebuffer(uint32_t width, uint32_t height);
 
-            void setWidth(uint32_t width);
-            void setHeight(uint32_t height);
-
             ComponentStyle* getStyle();
             vector_t* getChilds();
-            Component* getParent();
+            uint32_t getTotalWidthChilds();
+            uint32_t getTotalHeightChilds();
 
             void update();
             void draw();
@@ -79,6 +93,8 @@ namespace Ui {
             ComponentStyle* style;
             Component* parent;
             vector_t* childs;
+            uint32_t totalWidthChilds;
+            uint32_t totalHeightChilds;
             uint16_t type;
 
     };
