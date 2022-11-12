@@ -7,13 +7,6 @@ A 64-bit x86 operating system written in C/C++
 
 <a href="https://discord.gg/XJzhM7uKkz">Discord server</a>
 
-# Screenshots
-
-<p align="center">
-	<img src="./Meta/Screenshots/1.png?raw=true" width="90%"/> 
-	<img src="./Meta/Screenshots/2.png?raw=true" width="90%"/> 
-</p>
-
 # Features
 - Architecture specific :
 	- x86-64 : 
@@ -76,6 +69,14 @@ A 64-bit x86 operating system written in C/C++
 			- Stack
 		- Kot-graphics and kot-ui : 
 			- For graphical apps
+
+# Screenshots
+
+<p align="center">
+	<img src="./Meta/Screenshots/1.png?raw=true" width="90%"/> 
+	<img src="./Meta/Screenshots/2.png?raw=true" width="90%"/> 
+</p>
+
 
 # Required Tools
 - Build Essential
