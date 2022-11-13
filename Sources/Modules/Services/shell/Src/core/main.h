@@ -6,6 +6,7 @@
 #include <kot/cstring.h>
 #include <kot-ui/font.h>
 
+#include <kot/uisd/srvs/time.h>
 #include <kot/uisd/srvs/system.h>
 
 #include <kot-graphics++/orb.h>

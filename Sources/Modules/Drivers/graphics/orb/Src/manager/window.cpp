@@ -9,7 +9,7 @@ void Window::newBuffer() {
     this->fb->pitch = this->fb->width * this->fb->btpp;
     this->fb->size = fb->pitch * this->fb->height;
 
-    uintptr_t address = getFreeAlignedSpace(this->fb->size);
+    uintptr_t address = GetFreeAlignedSpace(this->fb->size);
     ksmem_t key = NULL;
     Sys_CreateMemoryField(this->orb, this->fb->size, &address, &key, MemoryFieldTypeShareSpaceRW);
     ksmem_t KeyShare = NULL;

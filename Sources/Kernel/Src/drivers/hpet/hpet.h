@@ -1,6 +1,8 @@
 #pragma once
 #include <core/core.h>
 
+#define FEMOSECOND_IN_MILLISECOND     1000000000000 // femosecond 10E15 to millisecond 10E3
+
 namespace HPET{
     void InitialiseHPET(ACPI::HPETHeader* hpet);
     void ChangeMainTimerInterruptState(bool IsEnable);

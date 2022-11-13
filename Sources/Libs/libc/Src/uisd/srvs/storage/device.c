@@ -7,7 +7,7 @@ KResult Srv_StorageInitializeDeviceAccess(struct srv_storage_space_info_t* Stora
     Sys_GetInfoMemoryField(StorageSpace->BufferRWKey, &BufferType, &BufferSize);
     if(BufferType == MemoryFieldTypeShareSpaceRW){
         struct srv_storage_device_t* Device = (struct srv_storage_device_t*)malloc(sizeof(struct srv_storage_device_t));
-        Device->BufferRWBase = getFreeAlignedSpace(BufferSize);
+        Device->BufferRWBase = GetFreeAlignedSpace(BufferSize);
         Device->BufferRWSize = BufferSize;
         
         Sys_AcceptMemoryField(Sys_GetProcess(), StorageSpace->BufferRWKey, &Device->BufferRWBase);

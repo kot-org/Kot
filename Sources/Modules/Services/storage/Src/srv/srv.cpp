@@ -5,7 +5,7 @@ uisd_storage_t* SrvData;
 KResult InitialiseSrv(){
     process_t proc = Sys_GetProcess();
 
-    uintptr_t address = getFreeAlignedSpace(sizeof(uisd_storage_t));
+    uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_storage_t));
     ksmem_t key = NULL;
     Sys_CreateMemoryField(proc, sizeof(uisd_storage_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 

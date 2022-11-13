@@ -36,6 +36,7 @@ KResult InitializeMount(srv_storage_device_t* StorageDevice){
     MountInfo->ReadInode(InodeTest, Buffer, NULL, Size);
     uint64_t Block = NULL;
     MountInfo->AllocateBlock(&Block);
+    MountInfo->FreeBlock(Block);
     std::printf("%s %x", Buffer, Block);
 
     return KSUCCESS;
@@ -75,6 +76,14 @@ uint64_t mount_info_t::GetBlockGroupStartBlock(uint64_t group){
     return SuperBlock->blocks_per_group * group;
 }
 
+uint64_t mount_info_t::GetBlockGroupFromBlock(uint64_t block){
+    return block / SuperBlock->blocks_per_group;
+}
+
+uint64_t mount_info_t::GetIndexInodeInsideBlockGroupFromBlock(uint64_t block){
+    return block % SuperBlock->blocks_per_group;
+}
+
 uint64_t mount_info_t::GetBlockGroupFromInode(uint64_t inode){
     return (inode - 1) / SuperBlock->inodes_per_group;
 }
@@ -111,6 +120,10 @@ ext2_group_descriptor_t* mount_info_t::GetDescriptorFromGroup(uint64_t group){
 
     Srv_ReadDevice(StorageDevice, DescriptorGroup, DescriptorGroupOffset, sizeof(ext2_group_descriptor_t));
     return DescriptorGroup;
+}
+
+ext2_group_descriptor_t* mount_info_t::GetDescriptorFromBlock(uint64_t block){
+    return GetDescriptorFromGroup(GetBlockGroupFromBlock(block)); 
 }
 
 ext2_group_descriptor_t* mount_info_t::GetDescriptorFromInode(uint64_t inode){
@@ -442,8 +455,9 @@ KResult mount_info_t::AllocateBlock(uint64_t* block){
                 ReadBlock(BlockBitmap, Descriptor->block_bitmap + y, NULL, BlockSize);
                 // Search free block
                 for(uint64_t z = 0; z < BlockInBitmapBlock; z++){
-                    uint64_t TargetByte = z / 8;
-                    uint64_t TargetBit = z % 8;
+                    uint64_t Position = z + y * BlockSize;
+                    uint64_t TargetByte = Position / 8;
+                    uint64_t TargetBit = Position % 8;
                     if(!BIT_CHECK(BlockBitmap[TargetByte], TargetBit)){
                         // Update bitmap
                         BIT_SET(BlockBitmap[TargetByte], TargetBit);
@@ -457,7 +471,7 @@ KResult mount_info_t::AllocateBlock(uint64_t* block){
                         SuperBlock->free_blocks_count--;
                         WriteSuperBlock();
 
-                        *block = GetBlockGroupStartBlock(i) + z;
+                        *block = GetBlockGroupStartBlock(i) + Position;
                         free(Descriptor);
                         free(BlockBitmap);
                         return KSUCCESS;
@@ -472,7 +486,40 @@ KResult mount_info_t::AllocateBlock(uint64_t* block){
 }
 
 KResult mount_info_t::FreeBlock(uint64_t block){
+    uint8_t* BitmapBuffer = (uint8_t*)malloc(1);
 
+    uint64_t Group = GetBlockGroupFromBlock(block);
+    ext2_group_descriptor_t* Descriptor = GetDescriptorFromGroup(Group);
+
+    uint64_t Position = GetIndexInodeInsideBlockGroupFromBlock(block);
+    uint64_t TargetByte = Position / 8;
+    uint64_t TargetBit = Position % 8;
+    uint64_t BlockBitmapPosition = Descriptor->block_bitmap + (Position / BlockSize);
+
+    ReadBlock(BitmapBuffer, BlockBitmapPosition, TargetByte, 1);
+
+    if(BIT_CHECK(*BitmapBuffer, TargetBit)){
+        // Update bitmap
+        BIT_CLEAR(*BitmapBuffer, TargetBit);
+        WriteBlock(BitmapBuffer, BlockBitmapPosition, TargetByte, 1);
+
+        // Update descriptor
+        Descriptor->free_blocks_count++;
+        SetDescriptorFromGroup(Group, Descriptor);
+
+        // Update superblock
+        SuperBlock->free_blocks_count++;
+        WriteSuperBlock();
+
+        free(Descriptor);
+        free(BitmapBuffer);
+
+        return KSUCCESS;
+    }
+    free(Descriptor);
+    free(BitmapBuffer);
+
+    return KFAIL;
 }
 
 
@@ -494,12 +541,13 @@ KResult mount_info_t::AllocateInode(uint64_t* inode){
                 ReadBlock(BlockBitmap, Descriptor->inode_bitmap + y, NULL, BlockSize);
                 // Search free block
                 for(uint64_t z = 0; z < InodeInBitmapBlock; z++){
-                    uint64_t TargetByte = z / 8;
-                    uint64_t TargetBit = z % 8;
+                    uint64_t Position = z + y * BlockSize;
+                    uint64_t TargetByte = Position / 8;
+                    uint64_t TargetBit = Position % 8;
                     if(!BIT_CHECK(BlockBitmap[TargetByte], TargetBit)){
                         // Update bitmap
                         BIT_SET(BlockBitmap[TargetByte], TargetBit);
-                        WriteBlock(&BlockBitmap[TargetByte], Descriptor->block_bitmap + y, TargetByte, 1);
+                        WriteBlock(&BlockBitmap[TargetByte], Descriptor->inode_bitmap + y, TargetByte, 1);
 
                         // Update descriptor
                         Descriptor->free_inodes_count--;
@@ -509,7 +557,7 @@ KResult mount_info_t::AllocateInode(uint64_t* inode){
                         SuperBlock->free_inodes_count--;
                         WriteSuperBlock();
 
-                        *inode = GetBlockGroupStartBlock(i) + z;
+                        *inode = GetBlockGroupStartBlock(i) + Position + 1; // Inode position begin to 1
                         free(Descriptor);
                         free(BlockBitmap);
                         return KSUCCESS;
@@ -524,5 +572,38 @@ KResult mount_info_t::AllocateInode(uint64_t* inode){
 }
 
 KResult mount_info_t::FreeInode(uint64_t inode){
+    uint8_t* BitmapBuffer = (uint8_t*)malloc(1);
 
+    uint64_t Group = GetBlockGroupFromInode(inode);
+    ext2_group_descriptor_t* Descriptor = GetDescriptorFromGroup(Group);
+
+    uint64_t Position = GetIndexInodeInsideBlockGroupFromInode(inode);
+    uint64_t TargetByte = Position / 8;
+    uint64_t TargetBit = Position % 8;
+    uint64_t BlockBitmapPosition = Descriptor->inode_bitmap + (Position / BlockSize);
+
+    ReadBlock(BitmapBuffer, BlockBitmapPosition, TargetByte, 1);
+
+    if(BIT_CHECK(*BitmapBuffer, TargetBit)){
+        // Update bitmap
+        BIT_CLEAR(*BitmapBuffer, TargetBit);
+        WriteBlock(BitmapBuffer, BlockBitmapPosition, TargetByte, 1);
+
+        // Update descriptor
+        Descriptor->free_inodes_count++;
+        SetDescriptorFromGroup(Group, Descriptor);
+
+        // Update superblock
+        SuperBlock->free_inodes_count++;
+        WriteSuperBlock();
+
+        free(Descriptor);
+        free(BitmapBuffer);
+
+        return KSUCCESS;
+    }
+    free(Descriptor);
+    free(BitmapBuffer);
+
+    return KFAIL;
 }

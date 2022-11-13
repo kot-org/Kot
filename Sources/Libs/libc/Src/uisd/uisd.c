@@ -4,9 +4,10 @@ uintptr_t ControllerList[ControllerCount];
 
 size64_t ControllerTypeSize[ControllerCount] = {
     sizeof(uisd_system_t),
+    sizeof(uisd_time_t),
+    sizeof(uisd_hid_t),
     sizeof(uisd_graphics_t),
     sizeof(uisd_storage_t),
-    sizeof(uisd_hid_t),
     sizeof(uisd_audio_t),
     sizeof(uisd_usb_t),
     sizeof(uisd_pci_t)
@@ -156,7 +157,7 @@ uintptr_t GetControllerLocationUISD(enum ControllerTypeEnum Controller){
 uintptr_t FindControllerUISD(enum ControllerTypeEnum Controller){
     uintptr_t ControllerData = GetControllerLocationUISD(Controller);
     if(!ControllerData){
-        ControllerData = getFreeAlignedSpace(ControllerTypeSize[Controller]);
+        ControllerData = GetFreeAlignedSpace(ControllerTypeSize[Controller]);
         uisd_callbackInfo_t* Info = GetControllerUISD(Controller, &ControllerData, true);
         free(Info);
     }

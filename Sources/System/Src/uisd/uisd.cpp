@@ -81,7 +81,7 @@ KResult UISDCreate(enum ControllerTypeEnum Controller, thread_t Callback, uint64
                         UISDControllers[Controller]->NumberOfWaitingTasks = NULL;
                     }
                     UISDControllers[Controller]->DataKey = DataKey;
-                    UISDControllers[Controller]->Data = getFreeAlignedSpace(Size);
+                    UISDControllers[Controller]->Data = GetFreeAlignedSpace(Size);
                     if(Sys_AcceptMemoryField(proc, DataKey, (uintptr_t*)&UISDControllers[Controller]->Data)){
                         UISDControllers[Controller]->IsLoad = true;
                         UISDAcceptAll(Controller);
@@ -129,7 +129,7 @@ KResult UISDCallbackStatu(uint64_t IPCTask, thread_t Callback, uint64_t Callback
 
 void UISDHandler(uint64_t IPCTask, enum ControllerTypeEnum Controller, thread_t Callback, uint64_t Callbackarg, uint64_t GP0, uint64_t GP1) {
     KResult Status = KFAIL;
-    if(Controller <= 0xff && IPCTask <= 0x2){
+    if(Controller < ControllerCount && IPCTask <= 0x2){
         switch (IPCTask) {
         case UISDCreateTask:
             Status = (KResult)UISDCreate(Controller, Callback, Callbackarg, (ksmem_t)GP0);
@@ -142,6 +142,5 @@ void UISDHandler(uint64_t IPCTask, enum ControllerTypeEnum Controller, thread_t 
             break;
         }
     }
-
     Sys_Close(Status);
 }

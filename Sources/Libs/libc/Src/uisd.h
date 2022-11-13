@@ -16,16 +16,17 @@
 extern "C" {
 #endif
 
-#define ControllerCount 0x7
+#define ControllerCount 0x8
 
 enum ControllerTypeEnum {
     ControllerTypeEnum_System       = 0x0,
-    ControllerTypeEnum_Graphics     = 0x1,
-    ControllerTypeEnum_Storage      = 0x2,
-    ControllerTypeEnum_Hid          = 0x3,
-    ControllerTypeEnum_Audio        = 0x4,
-    ControllerTypeEnum_USB          = 0x5,
-    ControllerTypeEnum_PCI          = 0x6,
+    ControllerTypeEnum_Time         = 0x1,
+    ControllerTypeEnum_Hid          = 0x2,
+    ControllerTypeEnum_Graphics     = 0x3,
+    ControllerTypeEnum_Storage      = 0x4,
+    ControllerTypeEnum_Audio        = 0x5,
+    ControllerTypeEnum_USB          = 0x6,
+    ControllerTypeEnum_PCI          = 0x7,
     ControllerTypeEnum_Other        = 0xff
 };
 
@@ -53,6 +54,18 @@ typedef struct {
 typedef struct {
     uisd_controller_t ControllerHeader;
 
+    thread_t SetTimePointerKey;
+    thread_t SetTickPointerKey;
+
+    ksmem_t TimePointerKey;
+
+    uint64_t TickPeriod;
+    ksmem_t TickPointerKey;
+} uisd_time_t;
+
+typedef struct {
+    uisd_controller_t ControllerHeader;
+
     event_t MouseRelative;
     event_t MouseAbsolute;
     event_t KeyboardServer;
@@ -60,7 +73,6 @@ typedef struct {
 } uisd_hid_t;
 
 typedef struct {
-
     uisd_controller_t ControllerHeader;
 
     thread_t create;

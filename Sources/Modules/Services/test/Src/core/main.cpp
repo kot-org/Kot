@@ -3,7 +3,7 @@
 void GetMemory(){
     Printlog("[Test] Call another function");
     ksmem_t MemoryShare = NULL;
-    uintptr_t address = getFreeAlignedSpace(0x1000);
+    uintptr_t address = GetFreeAlignedSpace(0x1000);
     ksmem_t key = NULL;
     process_t proc = Sys_GetProcess();
     Sys_CreateMemoryField(proc, 0x1000, &address, &key, MemoryFieldTypeShareSpaceRO);
@@ -24,7 +24,7 @@ extern "C" int main(int argc, char* argv[]){
     thread_t GetMemoryThread = NULL;
     Sys_Createthread(proc, (uintptr_t)&GetMemory, PriviledgeApp, NULL, &GetMemoryThread);
 
-    uintptr_t address = getFreeAlignedSpace(sizeof(uisd_test_t));
+    uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_test_t));
     ksmem_t key = NULL;
     Sys_CreateMemoryField(proc, sizeof(uisd_test_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 

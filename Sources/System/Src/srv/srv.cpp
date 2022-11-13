@@ -3,7 +3,7 @@
 struct SrvInfo_t* SrvInfo;
 
 void InitializeSrv(struct KernelInfo* kernelInfo){
-    uintptr_t address = getFreeAlignedSpace(sizeof(uisd_system_t));
+    uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_system_t));
     ksmem_t key = NULL;
     Sys_CreateMemoryField(proc, sizeof(uisd_system_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 

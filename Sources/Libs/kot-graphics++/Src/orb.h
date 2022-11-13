@@ -11,7 +11,7 @@ namespace orb {
     uisd_graphics_t* OrbSrv = NULL; 
 
     void GetOrbSrv() {
-        uintptr_t addressReceived = getFreeAlignedSpace(sizeof(uisd_graphics_t));
+        uintptr_t addressReceived = GetFreeAlignedSpace(sizeof(uisd_graphics_t));
         GetControllerUISD(ControllerTypeEnum_Graphics, &addressReceived, true);
         OrbSrv = (uisd_graphics_t*) addressReceived;
     }
@@ -70,7 +70,7 @@ namespace orb {
         arguments_t arguments;
         arguments.arg[0] = wid;
         ksmem_t MemoryShare = Sys_Execthread(OrbSrv->getFramebuffer, &arguments, ExecutionTypeQueuAwait, NULL);
-        uintptr_t addressReceiveShare = getFreeAlignedSpace(fb->size);
+        uintptr_t addressReceiveShare = GetFreeAlignedSpace(fb->size);
         process_t proc = Sys_GetProcess();
         Sys_AcceptMemoryField(proc, MemoryShare, &addressReceiveShare);
         fb->addr = addressReceiveShare;
@@ -103,7 +103,7 @@ namespace orb {
         arguments.arg[1] = width;
         arguments.arg[2] = height;
         ksmem_t MemoryShare = Sys_Execthread(OrbSrv->resize, &arguments, ExecutionTypeQueuAwait, NULL);
-        uintptr_t addressReceiveShare = getFreeAlignedSpace(fb->size);
+        uintptr_t addressReceiveShare = GetFreeAlignedSpace(fb->size);
         process_t proc = Sys_GetProcess();
         Sys_AcceptMemoryField(proc, MemoryShare, &addressReceiveShare);
         fb->addr = addressReceiveShare;

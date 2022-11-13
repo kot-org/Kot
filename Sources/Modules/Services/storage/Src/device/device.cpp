@@ -7,7 +7,7 @@ KResult AddDevice(srv_storage_device_info_t* Info, storage_device_t** DevicePoin
     Sys_GetInfoMemoryField(Info->MainSpace.BufferRWKey, &BufferType, &BufferSize);
     if(BufferType == MemoryFieldTypeShareSpaceRW){
         storage_device_t* Device = (storage_device_t*)malloc(sizeof(storage_device_t));
-        Device->BufferRWBase = getFreeAlignedSpace(BufferSize);
+        Device->BufferRWBase = GetFreeAlignedSpace(BufferSize);
         Device->BufferRWSize = BufferSize;
         
         Sys_AcceptMemoryField(Sys_GetProcess(), Info->MainSpace.BufferRWKey, &Device->BufferRWBase);

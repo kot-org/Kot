@@ -36,13 +36,20 @@ extern "C" int main() {
     Graphic::drawRect(fb, fb->width-35, 7, 10, 10, 0xffffff);
     Graphic::drawLine(fb, fb->width-53, 17, fb->width-43, 17, 0xffffff);
 
-    JavaVM* vm = new JavaVM();
-    vm->setOutput(&shell_print);
-    srv_system_callback_t* callback1 = Srv_System_ReadFileInitrd("Test.class", true);
-    vm->loadClassBytes((uintptr_t)callback1->Data);
-    free(callback1);
-    vm->setEntryPoint("Test");
-    vm->run(NULL, 0);
+    uint64_t TimerState;
+    GetActualState(&TimerState);
+    while (true){
+        shell_print("ok");
+        SleepFromState(&TimerState, 1000);
+    }
+
+    // JavaVM* vm = new JavaVM();
+    // vm->setOutput(&shell_print);
+    // srv_system_callback_t* callback1 = Srv_System_ReadFileInitrd("Test.class", true);
+    // vm->loadClassBytes((uintptr_t)callback1->Data);
+    // free(callback1);
+    // vm->setEntryPoint("Test");
+    // vm->run(NULL, 0);
 
     return KSUCCESS;
 }

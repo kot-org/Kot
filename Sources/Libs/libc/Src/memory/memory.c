@@ -49,7 +49,7 @@ int memcmp(const void *aptr, const void *bptr, size64_t size){
 
 uint64_t MemoryLock;
 
-uintptr_t getFreeAlignedSpace(size64_t size){
+uintptr_t GetFreeAlignedSpace(size64_t size){
     atomicAcquire(&MemoryLock, 0);
     if(size % KotSpecificData.MMapPageSize){
         size -= size % KotSpecificData.MMapPageSize;
@@ -62,7 +62,7 @@ uintptr_t getFreeAlignedSpace(size64_t size){
 }
 
 uintptr_t MapPhysical(uintptr_t physicalAddress, size64_t size){
-    uint64_t ReturnValue = (uint64_t)getFreeAlignedSpace(size);
+    uint64_t ReturnValue = (uint64_t)GetFreeAlignedSpace(size);
     Sys_Map(Sys_GetProcess(), (uintptr_t*)&ReturnValue, AllocationTypePhysical, &physicalAddress, &size, false);
     ReturnValue |= (uint64_t)physicalAddress & 0xFFF;
     return ReturnValue;
@@ -73,7 +73,7 @@ void MapPhysicalToVirtual(uintptr_t virtualAddress, uintptr_t* physicalAddress, 
 }
 
 uintptr_t GetPhysical(uintptr_t* physicalAddress, size64_t size){
-    uint64_t ReturnValue = (uint64_t)getFreeAlignedSpace(size);
+    uint64_t ReturnValue = (uint64_t)GetFreeAlignedSpace(size);
     Sys_Map(Sys_GetProcess(), (uintptr_t*)&ReturnValue, AllocationTypePhysicalContiguous, physicalAddress, &size, false);
     return ReturnValue;
 }

@@ -26,6 +26,7 @@ struct MemoryShareInfo{
     uintptr_t VirtualAddressParent;
     class KStack* SlavesList;
     uint64_t SlavesNumber;
+    uint64_t Offset;
     char signature1;
 }__attribute__((packed));
 

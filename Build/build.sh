@@ -44,7 +44,8 @@ make -C "Modules/Drivers/storage/ahci/Build"
 
 make -C "Modules/Drivers/sound/pcspk/Build"
 
-make -C "Modules/Drivers/timer/rtc/Build"
+make -C "Modules/Drivers/time/hpet/Build"
+make -C "Modules/Drivers/time/rtc/Build"
 
 make -C "Modules/Drivers/graphics/orb/Build"
 
@@ -55,6 +56,7 @@ echo -e "\e[32mCompiling kot services...\e[0m"
 
 make -C "Modules/Services/shell/Build"
 make -C "Modules/Services/hid/Build"
+make -C "Modules/Services/time/Build"
 make -C "Modules/Services/storage/Build"
 
 # Apps

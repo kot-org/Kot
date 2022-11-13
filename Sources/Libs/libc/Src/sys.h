@@ -131,6 +131,8 @@ KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, process_t targ
 KResult Sys_Keyhole_Verify(key_t self, enum DataType type, process_t* target, uint64_t* flags, uint64_t* priviledge);
 KResult Sys_Logs(char* message, size64_t size);
 
+void Sys_Schedule();
+
 
 thread_t Sys_Getthread();
 process_t Sys_GetProcess();

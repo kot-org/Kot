@@ -41,7 +41,7 @@ namespace HPET{
     }
 
     void HPETSleep(uint64_t ms){
-        uint64_t end = HPETReadRegister(MainCounterValues) + (ms * 1000000000000) / timer.Frequency;
+        uint64_t end = HPETReadRegister(MainCounterValues) + (ms * FEMOSECOND_IN_MILLISECOND) / timer.Frequency;
         while(HPETReadRegister(MainCounterValues) <= end){
             __asm__ __volatile__ ("pause" : : : "memory");
         }

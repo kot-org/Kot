@@ -98,6 +98,10 @@ KResult Sys_Logs(char* message, size64_t size){
     return Syscall_16(KSys_Logs, message, size);
 }
 
+void Sys_Schedule(){
+    asm("int $0x41");
+}
+
 
 thread_t Sys_Getthread(){
     /* Get Self Data */

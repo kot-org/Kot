@@ -82,7 +82,7 @@ Space_t* Device::CreateSpace(uint64_t Start, uint64_t Size){
     Self->StorageDevice = this;
 
     // Allocate buffer
-    Self->BufferVirtual = getFreeAlignedSpace(BufferRealSize);
+    Self->BufferVirtual = GetFreeAlignedSpace(BufferRealSize);
     Sys_CreateMemoryField(Proc, BufferRealSize, &Self->BufferVirtual, &Self->BufferKey, MemoryFieldTypeShareSpaceRW);
 
     // Load command header main

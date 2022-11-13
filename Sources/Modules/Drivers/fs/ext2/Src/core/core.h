@@ -202,6 +202,8 @@ struct mount_info_t{
 	uint64_t GetLocationInBlock(uint64_t location);
 	uint64_t GetNextBlockLocation(uint64_t location);
 	uint64_t GetBlockGroupStartBlock(uint64_t group);
+    uint64_t GetBlockGroupFromBlock(uint64_t block);
+    uint64_t GetIndexInodeInsideBlockGroupFromBlock(uint64_t block);
 	uint64_t GetBlockGroupFromInode(uint64_t inode);
 	uint64_t GetIndexInodeInsideBlockGroupFromInode(uint64_t inode);
 
@@ -212,6 +214,7 @@ struct mount_info_t{
 
 
 	struct ext2_group_descriptor_t* GetDescriptorFromGroup(uint64_t group);
+	struct ext2_group_descriptor_t* GetDescriptorFromBlock(uint64_t block);
 	struct ext2_group_descriptor_t* GetDescriptorFromInode(uint64_t inode);
     KResult SetDescriptorFromGroup(uint64_t group, struct ext2_group_descriptor_t* descriptor);
 

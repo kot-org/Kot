@@ -9,7 +9,7 @@
 uisd_graphics_t* OrbSrv = NULL;
 
 void GetOrbSrv() {
-    uintptr_t addressReceived = getFreeAlignedSpace(sizeof(uisd_graphics_t));
+    uintptr_t addressReceived = GetFreeAlignedSpace(sizeof(uisd_graphics_t));
     GetControllerUISD(ControllerTypeEnum_Graphics, &addressReceived, true);
     OrbSrv = (uisd_graphics_t*) addressReceived;
 }
@@ -68,7 +68,7 @@ framebuffer_t* getFramebuffer(uint32_t wid) {
     arguments_t arguments;
     arguments.arg[0] = wid;
     ksmem_t MemoryShare = Sys_Execthread(OrbSrv->getFramebuffer, &arguments, ExecutionTypeQueuAwait, NULL);
-    uintptr_t addressReceiveShare = getFreeAlignedSpace(fb->size);
+    uintptr_t addressReceiveShare = GetFreeAlignedSpace(fb->size);
     process_t proc = Sys_GetProcess();
     Sys_AcceptMemoryField(proc, MemoryShare, &addressReceiveShare);
     fb->addr = addressReceiveShare;
@@ -101,7 +101,7 @@ framebuffer_t* resize(uint32_t wid, uint32_t width, uint32_t height) {
     arguments.arg[1] = width;
     arguments.arg[2] = height;
     ksmem_t MemoryShare = Sys_Execthread(OrbSrv->resize, &arguments, ExecutionTypeQueuAwait, NULL);
-    uintptr_t addressReceiveShare = getFreeAlignedSpace(fb->size);
+    uintptr_t addressReceiveShare = GetFreeAlignedSpace(fb->size);
     process_t proc = Sys_GetProcess();
     Sys_AcceptMemoryField(proc, MemoryShare, &addressReceiveShare);
     fb->addr = addressReceiveShare;

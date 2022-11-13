@@ -54,7 +54,7 @@ bool CheckAddress(uintptr_t address, size64_t size, uintptr_t pagingEntry){
     uint64_t NumberPage = DivideRoundUp(size, PAGE_SIZE);
     uint64_t AddressItinerator = (uint64_t)address;
 
-    for(int i = 0; i < NumberPage; i++){
+    for(uint64_t i = 0; i < NumberPage; i++){
         if(!vmm_GetFlags(pagingEntry, (uintptr_t)AddressItinerator, vmm_flag::vmm_Present)){
             return false;
         } 
@@ -79,16 +79,17 @@ uint64_t CreateMemoryField(kprocess_t* process, size64_t size, uint64_t* virtual
     if(CheckAddress(virtualAddressPointer, sizeof(uint64_t)) != KSUCCESS) return KFAIL;
     if(CheckAddress(keyPointer, sizeof(uint64_t)) != KSUCCESS) return KFAIL;
     uintptr_t virtualAddress = (uintptr_t)*virtualAddressPointer;
+    uint64_t offset = NULL;
     pagetable_t pageTable = process->SharedPaging;
     uint64_t realSize = size;
     uint64_t numberOfPage = DivideRoundUp(realSize, PAGE_SIZE);
     switch(type){
         case MemoryFieldTypeShareSpaceRW:{
+            offset = ((uint64_t)virtualAddress) % PAGE_SIZE;
             if((uint64_t)virtualAddress % PAGE_SIZE > 0){
                 virtualAddress = (uintptr_t)((uint64_t)virtualAddress - (uint64_t)virtualAddress % PAGE_SIZE);
-                virtualAddress = (uintptr_t)((uint64_t)virtualAddress + PAGE_SIZE);
             }
-            for(int i = 0; i < numberOfPage; i++){
+            for(uint64_t i = 0; i < numberOfPage; i++){
                 uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
                 if(!vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Present)){
                     vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, Pmm_RequestPage(), true, true, true);
@@ -99,11 +100,11 @@ uint64_t CreateMemoryField(kprocess_t* process, size64_t size, uint64_t* virtual
             break;
         }
         case MemoryFieldTypeShareSpaceRO:{
+            offset = ((uint64_t)virtualAddress) % PAGE_SIZE;
             if((uint64_t)virtualAddress % PAGE_SIZE > 0){
                 virtualAddress = (uintptr_t)((uint64_t)virtualAddress - (uint64_t)virtualAddress % PAGE_SIZE);
-                virtualAddress = (uintptr_t)((uint64_t)virtualAddress + PAGE_SIZE);
             }
-            for(int i = 0; i < numberOfPage; i++){
+            for(uint64_t i = 0; i < numberOfPage; i++){
                 uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
                 if(!vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Present)){
                     vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, Pmm_RequestPage(), true, true, true); // the master can write into memory even if it's read only for slave
@@ -139,6 +140,7 @@ uint64_t CreateMemoryField(kprocess_t* process, size64_t size, uint64_t* virtual
     shareInfo->VirtualAddressParent = virtualAddress;
     shareInfo->SlavesList = new KStack(0x50);
     shareInfo->SlavesNumber = NULL;
+    shareInfo->Offset = offset;
     shareInfo->signature0 = 'S';
     shareInfo->signature1 = 'M';
 
@@ -150,7 +152,7 @@ uint64_t CreateMemoryField(kprocess_t* process, size64_t size, uint64_t* virtual
 
 uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint64_t* virtualAddressPointer){
     pagetable_t pageTable = process->SharedPaging;
-    
+
     if(shareInfo->signature0 != 'S' || shareInfo->signature1 != 'M') return KFAIL;
 
     AtomicAquire(&shareInfo->Lock);
@@ -161,7 +163,6 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
         case MemoryFieldTypeShareSpaceRW:{
             if((uint64_t)virtualAddress % PAGE_SIZE > 0){
                 virtualAddress = (uintptr_t)((uint64_t)virtualAddress - (uint64_t)virtualAddress % PAGE_SIZE);
-                virtualAddress = (uintptr_t)((uint64_t)virtualAddress + PAGE_SIZE);
             }
             for(uint64_t i = 0; i < shareInfo->PageNumber; i++){
                 uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
@@ -175,7 +176,6 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
         case MemoryFieldTypeShareSpaceRO:{
             if((uint64_t)virtualAddress % PAGE_SIZE > 0){
                 virtualAddress = (uintptr_t)((uint64_t)virtualAddress - (uint64_t)virtualAddress % PAGE_SIZE);
-                virtualAddress = (uintptr_t)((uint64_t)virtualAddress + PAGE_SIZE);
             }
             for(uint64_t i = 0; i < shareInfo->PageNumber; i++){
                 uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
@@ -259,7 +259,7 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
 
     AtomicRelease(&shareInfo->Lock);
     
-    *virtualAddressPointer = (uint64_t)virtualAddress;
+    *virtualAddressPointer = (uint64_t)virtualAddress + shareInfo->Offset;
     return KSUCCESS;
 }
 

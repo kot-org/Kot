@@ -1,6 +1,7 @@
 [
     {"file":"Pci.elf", "priviledge":1},
     {"file":"Pcspk.elf", "priviledge":1},
+    {"file":"Hpet.elf", "priviledge":1},
     {"file":"Rtc.elf", "priviledge":1},
     {"file":"Ps2.elf", "priviledge":1},
     {"file":"Uhci.elf", "priviledge":1},
@@ -10,6 +11,7 @@
     {"file":"Ext.elf", "priviledge":1},
     {"file":"Hid.elf", "priviledge":2},
     {"file":"Storage.elf", "priviledge":2},
+    {"file":"Time.elf", "priviledge":2},
     {"file":"Shell.elf", "priviledge":3},
     {"file":"Apptest.elf", "priviledge":3}
 ]

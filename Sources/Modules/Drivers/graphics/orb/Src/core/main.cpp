@@ -147,7 +147,7 @@ void initUISD() {
     Sys_Createthread(self, (uintptr_t) &move, PriviledgeApp, NULL, &moveThread);
     Sys_Createthread(self, (uintptr_t) &getFocusState, PriviledgeApp, NULL, &getFocusStateThread);
 
-    uintptr_t address = getFreeAlignedSpace(sizeof(uisd_graphics_t));
+    uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_graphics_t));
     ksmem_t key = NULL;
     Sys_CreateMemoryField(self, sizeof(uisd_graphics_t), &address, &key, MemoryFieldTypeShareSpaceRO);
     uisd_graphics_t* OrbSrv = (uisd_graphics_t*) address;

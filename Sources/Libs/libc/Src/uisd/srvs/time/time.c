@@ -1,0 +1,243 @@
+#include <kot/uisd/srvs/time.h>
+
+thread_t SrvTimeCallbackThread = NULL;
+time_t* TimePointer = NULL;
+uint64_t* TickPointer = NULL;
+
+void Srv_Time_Initialize(){
+    uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
+    process_t proc = Sys_GetProcess();
+
+    thread_t TimeThreadKeyCallback = NULL;
+    Sys_Createthread(proc, &Srv_Time_Callback, PriviledgeApp, NULL, &TimeThreadKeyCallback);
+    SrvTimeCallbackThread = MakeShareableThreadToProcess(TimeThreadKeyCallback, TimeData->ControllerHeader.Process);
+}
+
+void Srv_Time_Callback(KResult Status, struct srv_time_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    Callback->Status = Callback->Handler(Status, Callback, GP0, GP1, GP2, GP3);
+
+    if(Callback->IsAwait){
+        Sys_Unpause(Callback->Self);
+    }
+        
+    Sys_Close(KSUCCESS);
+}
+
+
+/* SetTimePointerKey */
+KResult Srv_Time_SetTimePointerKey_Callback(KResult Status, struct srv_time_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    return Status;
+}
+
+struct srv_time_callback_t* Srv_Time_SetTimePointerKey(time_t** Time, bool IsAwait){
+    if(!SrvTimeCallbackThread) Srv_Time_Initialize();
+    uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
+
+    thread_t self = Sys_Getthread();
+
+    struct srv_time_callback_t* callback = (struct srv_time_callback_t*)malloc(sizeof(struct srv_time_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Time_SetTimePointerKey_Callback; 
+
+    *Time = GetFreeAlignedSpace(sizeof(time_t));
+
+    ksmem_t TimePointerKey;
+    Sys_CreateMemoryField(Sys_GetProcess(), sizeof(time_t), (uintptr_t*)Time, &TimePointerKey, MemoryFieldTypeShareSpaceRO);
+
+    ksmem_t TimePointerKeyShare;
+    uint64_t ShareMemoryKeyFlags = NULL;
+    Keyhole_SetFlag(&ShareMemoryKeyFlags, KeyholeFlagPresent, true);
+    Sys_Keyhole_CloneModify(TimePointerKey, &TimePointerKeyShare, NULL, ShareMemoryKeyFlags, PriviledgeApp);
+
+    struct arguments_t parameters;
+    parameters.arg[0] = SrvTimeCallbackThread;
+    parameters.arg[1] = callback;
+    parameters.arg[2] = TimePointerKeyShare;
+
+    KResult Status = Sys_Execthread(TimeData->SetTickPointerKey, &parameters, ExecutionTypeQueu, NULL);
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }else if(Status != KSUCCESS){
+        callback->Status = Status;
+    }
+    return callback;
+}
+
+
+/* SetTickPointerKey */
+KResult Srv_Time_SetTickPointerKey_Callback(KResult Status, struct srv_time_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    return Status;
+}
+
+struct srv_time_callback_t* Srv_Time_SetTickPointerKey(uint64_t* TimePointer, uint64_t TickPeriod, bool IsAwait){
+    if(!SrvTimeCallbackThread) Srv_Time_Initialize();
+    uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
+
+    thread_t self = Sys_Getthread();
+
+    struct srv_time_callback_t* callback = (struct srv_time_callback_t*)malloc(sizeof(struct srv_time_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Time_SetTickPointerKey_Callback; 
+
+    ksmem_t TickPointerKey;
+    Sys_CreateMemoryField(Sys_GetProcess(), sizeof(uint64_t), TimePointer, &TickPointerKey, MemoryFieldTypeShareSpaceRO);
+
+    ksmem_t TickPointerKeyShare;
+    uint64_t ShareMemoryKeyFlags = NULL;
+    Keyhole_SetFlag(&ShareMemoryKeyFlags, KeyholeFlagPresent, true);
+    Sys_Keyhole_CloneModify(TickPointerKey, &TickPointerKeyShare, NULL, ShareMemoryKeyFlags, PriviledgeApp);
+
+    struct arguments_t parameters;
+    parameters.arg[0] = SrvTimeCallbackThread;
+    parameters.arg[1] = callback;
+    parameters.arg[2] = TickPointerKeyShare;
+    parameters.arg[3] = TickPeriod;
+
+    KResult Status = Sys_Execthread(TimeData->SetTickPointerKey, &parameters, ExecutionTypeQueu, NULL);
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }else if(Status != KSUCCESS){
+        callback->Status = Status;
+    }
+    return callback;
+}
+
+
+/* Other functions without sever need */
+
+KResult Get_Time_Initialize(){
+    uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
+    while(!TimeData->TimePointerKey) Sys_Schedule(); // Wait dirver
+    
+    TimePointer = GetFreeAlignedSpace(sizeof(uint64_t));
+    Sys_AcceptMemoryField(Sys_GetProcess(), TimeData->TimePointerKey, &TimePointer);
+    return KSUCCESS;
+}
+
+KResult Get_Tick_Initialize(){
+    uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
+    while(!TimeData->TickPointerKey) Sys_Schedule(); // Wait driver
+
+    TickPointer = GetFreeAlignedSpace(sizeof(uint64_t));
+    Sys_AcceptMemoryField(Sys_GetProcess(), TimeData->TickPointerKey, &TickPointer);
+    return KSUCCESS;
+}
+
+uint64_t GetYear(){
+    if(!TimePointer){
+        KResult statu = Get_Time_Initialize();
+        if(statu != KSUCCESS){
+            return NULL;
+        }
+    }
+    return TimePointer->Year;
+}
+
+uint64_t GetMonth(){
+    if(!TimePointer){
+        KResult statu = Get_Time_Initialize();
+        if(statu != KSUCCESS){
+            return NULL;
+        }
+    }
+    return TimePointer->Month;
+}
+
+uint64_t GetDay(){
+    if(!TimePointer){
+        KResult statu = Get_Time_Initialize();
+        if(statu != KSUCCESS){
+            return NULL;
+        }
+    }
+    return TimePointer->Day;
+}
+
+uint64_t GetWeekDay(){
+    if(!TimePointer){
+        KResult statu = Get_Time_Initialize();
+        if(statu != KSUCCESS){
+            return NULL;
+        }
+    }
+    return TimePointer->WeekDay;
+}
+
+uint64_t GetMinute(){
+    if(!TimePointer){
+        KResult statu = Get_Time_Initialize();
+        if(statu != KSUCCESS){
+            return NULL;
+        }
+    }
+    return TimePointer->Minute;
+}
+
+uint64_t GetSecond(){
+    if(!TimePointer){
+        KResult statu = Get_Time_Initialize();
+        if(statu != KSUCCESS){
+            return NULL;
+        }
+    }
+    return TimePointer->Second;
+}
+
+KResult Sleep(uint64_t duration){ // duration in ms
+    uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
+
+    if(!TickPointer){
+        KResult statu = Get_Tick_Initialize();
+        if(statu != KSUCCESS){
+            return statu;
+        }
+    }
+
+    uint64_t Target = *TickPointer + (FEMOSECOND_IN_MILLISECOND * duration) / TimeData->TickPeriod;
+    while(*TickPointer < Target){
+        Sys_Schedule();
+    }
+
+    return KSUCCESS;
+}
+
+KResult SleepFromState(uint64_t* state, uint64_t duration){ // duration in ms
+    uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
+
+    if(!TickPointer){
+        KResult statu = Get_Tick_Initialize();
+        if(statu != KSUCCESS){
+            return statu;
+        }
+    }
+
+    uint64_t Target = *state + (FEMOSECOND_IN_MILLISECOND * duration) / TimeData->TickPeriod;
+    while(*TickPointer < Target){
+        Sys_Schedule();
+    }
+
+    *state = Target;
+    return KSUCCESS;
+}
+
+KResult GetActualState(uint64_t* state){
+    uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
+
+    if(!TickPointer){
+        KResult statu = Get_Tick_Initialize();
+        if(statu != KSUCCESS){
+            return statu;
+        }
+    }
+
+    *state = *TickPointer;
+    return KSUCCESS;
+}

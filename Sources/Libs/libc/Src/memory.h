@@ -17,7 +17,7 @@ void memset64(uintptr_t start, uint64_t value, size64_t size);
 
 int memcmp(const void *aptr, const void *bptr, size64_t size);
 void memcpy(uintptr_t destination, uintptr_t source, size64_t size);
-uintptr_t getFreeAlignedSpace(size64_t size);
+uintptr_t GetFreeAlignedSpace(size64_t size);
 uintptr_t MapPhysical(uintptr_t physicalAddress, size64_t size);
 void MapPhysicalToVirtual(uintptr_t virtualAddress, uintptr_t* physicalAddress, size64_t size);
 uintptr_t GetPhysical(uintptr_t* physicalAddress, size64_t size);
