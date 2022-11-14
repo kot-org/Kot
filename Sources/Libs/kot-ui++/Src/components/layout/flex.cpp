@@ -4,7 +4,9 @@ using namespace Ui;
 
 namespace UiLayout {
 
-    void calculateFlex(Component* parent, Component* child) {
+    void calculateFlex(Component* parent, uint32_t index) {
+
+        Component* child = (Component*) vector_get(parent->getChilds(), index);
 
         // todo: fill/normal mode
         
@@ -12,7 +14,8 @@ namespace UiLayout {
         {
             case Layout::HORIZONTAL:
             {
-                
+                if(parent->getStyle()->height < child->getStyle()->height)
+                    parent->getStyle()->height = child->getStyle()->height;
 
                 break;
             }

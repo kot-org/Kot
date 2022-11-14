@@ -4,7 +4,7 @@ namespace Ui {
 
     Component* titlebar(char* title, TitlebarStyle style) {
         /* todo: drag region */
-        Component* titlebar = UiLayout::Flexbox({ .direction = Layout::HORIZONTAL, .width = 500, .height = 40, .backgroundColor = style.backgroundColor, .foregroundColor = style.foregroundColor });
+        Component* titlebar = UiLayout::Flexbox({ .direction = Layout::HORIZONTAL, .width = 500, .backgroundColor = style.backgroundColor, .foregroundColor = style.foregroundColor });
 
         auto box = Ui::box({ .width = 40, .height = 20, .color = 0xFF0000 });
 

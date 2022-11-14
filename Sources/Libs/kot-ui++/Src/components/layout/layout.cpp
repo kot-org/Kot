@@ -11,7 +11,7 @@ namespace UiLayout {
 
                 calculateAlignment(parent, i);
 
-                // todo: flex
+                calculateFlex(parent, i);
 
                 // here we check if the child isnt the first because he must have a brother
                 if(i != 0)
