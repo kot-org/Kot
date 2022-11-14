@@ -96,13 +96,13 @@ extern "C" int main(int argc, char* argv[]) {
     GetActualState(&TimerState);
 
     time_t* Time;
-    //Srv_Time_SetTimePointerKey(&Time, true);
+    Srv_Time_SetTimePointerKey(&Time, true);
 
     while (true){
-        Printlog("ok");
         Time->Year = RTCGetYear();
         Time->Month = RTCGetMonth();
         Time->Day = RTCGetDayOfMonth();
+        Time->WeekDay = RTCGetDayOfWeek();
         Time->Hour = RTCGetHour();
         Time->Minute = RTCGetMinute();
         Time->Second = RTCGetSecond();

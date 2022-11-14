@@ -58,7 +58,7 @@ struct srv_time_callback_t* Srv_Time_SetTimePointerKey(time_t** Time, bool IsAwa
     parameters.arg[1] = callback;
     parameters.arg[2] = TimePointerKeyShare;
 
-    KResult Status = Sys_Execthread(TimeData->SetTickPointerKey, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_Execthread(TimeData->SetTimePointerKey, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }else if(Status != KSUCCESS){
@@ -169,6 +169,16 @@ uint64_t GetWeekDay(){
         }
     }
     return TimePointer->WeekDay;
+}
+
+uint64_t GetHour(){
+    if(!TimePointer){
+        KResult statu = Get_Time_Initialize();
+        if(statu != KSUCCESS){
+            return NULL;
+        }
+    }
+    return TimePointer->Hour;
 }
 
 uint64_t GetMinute(){

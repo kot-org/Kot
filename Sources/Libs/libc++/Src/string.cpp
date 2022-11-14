@@ -73,6 +73,7 @@ namespace std {
                 free(this->buffer);
                 this->buffer = (char*) malloc(fromSize);
                 memcpy(buffer, str, fromSize);
+                buffer[fromSize] = '\0';
             }
         }
     }

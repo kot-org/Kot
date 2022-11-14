@@ -44,6 +44,7 @@ uint64_t GetYear();
 uint64_t GetMonth();
 uint64_t GetDay();
 uint64_t GetWeekDay();
+uint64_t GetHour();
 uint64_t GetMinute();
 uint64_t GetSecond();
 KResult Sleep(uint64_t duration);
