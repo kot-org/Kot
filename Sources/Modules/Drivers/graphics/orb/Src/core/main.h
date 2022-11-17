@@ -7,6 +7,7 @@
 #include <kot/utils.h>
 #include <kot/atomic.h>
 #include <kot/utils/vector.h>
+#include <kot/uisd/srvs/time.h>
 #include <kot/uisd/srvs/system.h>
 
 #include <kot-graphics++/context.h>

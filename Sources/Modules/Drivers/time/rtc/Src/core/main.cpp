@@ -93,7 +93,7 @@ extern "C" int main(int argc, char* argv[]) {
     Printlog("[TIMER/RTC] Driver initialized successfully");
 
     uint64_t TimerState;
-    GetActualState(&TimerState);
+    GetActualTick(&TimerState);
 
     time_t* Time;
     Srv_Time_SetTimePointerKey(&Time, true);
@@ -106,7 +106,7 @@ extern "C" int main(int argc, char* argv[]) {
         Time->Hour = RTCGetHour();
         Time->Minute = RTCGetMinute();
         Time->Second = RTCGetSecond();
-        SleepFromState(&TimerState, 1000);
+        SleepFromTick(&TimerState, 1000);
     }
     return KSUCCESS;
 }

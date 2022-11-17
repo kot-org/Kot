@@ -37,4 +37,8 @@ struct BMPImageHeader_t{
 }__attribute__((packed));
 
 void loadBootGraphics(framebuffer_t* Framebuffer);
+
 void parseBootImage(framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width, uint32_t Height, uint8_t Bpp, uint32_t XPos, uint32_t YPos);
+
+void loadBootAnimation(framebuffer_t* Framebuffer, uint64_t XPos, uint64_t YPos, uint64_t Width, uint64_t Height);
+void bootAnimation(framebuffer_t* Framebuffer, uint64_t XPos, uint64_t YPos, uint64_t Width, uint64_t Height);

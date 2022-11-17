@@ -41,6 +41,7 @@ void loadBootGraphics(framebuffer_t* Framebuffer){
             PosY = Framebuffer->height - (LogoImageHeader->Height + BootLogoBottomMargin);
         }
         parseBootImage(Framebuffer, Buffer, LogoImageHeader->Width, LogoImageHeader->Height, LogoImageHeader->Bpp, PosX, PosY);
+        loadBootAnimation(Framebuffer, PosX, PosY + LogoImageHeader->Height, LogoImageHeader->Width, 10);
     }
 }
 
@@ -59,4 +60,51 @@ void parseBootImage(framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width, ui
             putPixel(Framebuffer, j + XPos, i + YPos, Data);
         }
     }
+}
+
+thread_t bootAnimationThread = NULL;
+
+void loadBootAnimation(framebuffer_t* Framebuffer, uint64_t XPos, uint64_t YPos, uint64_t Width, uint64_t Height){
+    Sys_Createthread(Sys_GetProcess(), (uintptr_t)&bootAnimation, PriviledgeDriver, NULL, &bootAnimationThread);
+    arguments_t parameters{
+        .arg[0] = (uint64_t)Framebuffer,
+        .arg[1] = XPos,
+        .arg[2] = YPos,
+        .arg[3] = Width,
+        .arg[4] = Height,
+    };
+    Sys_Execthread(bootAnimationThread, &parameters, ExecutionTypeQueu, NULL);
+}
+
+void bootAnimation(framebuffer_t* Framebuffer, uint64_t XPos, uint64_t YPos, uint64_t Width, uint64_t Height){
+    drawRect(Framebuffer, XPos, YPos, Width, Height, 0xffffff);
+
+    // Remove rectangle
+    XPos += 1;
+    YPos += 1;
+    Width -= 1;
+    Height -= 1;
+
+    framebuffer_t Backbuffer;
+    Backbuffer.size = Width * Framebuffer->btpp * Height;
+    Backbuffer.addr = calloc(Backbuffer.size);
+    Backbuffer.bpp = Framebuffer->bpp;
+    Backbuffer.btpp = Framebuffer->btpp;
+    Backbuffer.height = Height;
+    Backbuffer.width = Width;
+    Backbuffer.pitch = Width * Framebuffer->btpp;
+
+    uint64_t x = 0;
+    uint64_t tick;
+    GetTickFromTime(&tick, 1000);
+    uint64_t divider = tick / Width;
+    while(true){
+        GetActualTick(&tick);
+        fillRect(&Backbuffer, x, 0, x, Height, 0x0);
+        x = ((uint64_t)(tick / divider) % Width);
+        fillRect(&Backbuffer, x, 0, x, Height, 0xffffff);
+        blitFramebuffer(Framebuffer, &Backbuffer, XPos, YPos);
+    }
+    free(Backbuffer.addr);
+    Sys_Close(KSUCCESS);
 }

@@ -35,7 +35,7 @@ extern "C" int main() {
     LoadPen(font, &fontBuff, 0, 0, 16, 0, 0xFFFFFFFF);
 
     uint64_t TimerState;
-    GetActualState(&TimerState);
+    GetActualTick(&TimerState);
 
     char buffer[33];
     while (true){
@@ -56,7 +56,7 @@ extern "C" int main() {
         memcpy(fb->addr, backfb.addr, backfb.pitch * backfb.height);
         free(strBuilder);
         EditPen(font, NULL, 0, 0, -1, -1, -1);
-        SleepFromState(&TimerState, 1000);
+        SleepFromTick(&TimerState, 1000);
     }
 
     // // _ [] X buttons

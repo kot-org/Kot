@@ -48,8 +48,12 @@ uint64_t GetHour();
 uint64_t GetMinute();
 uint64_t GetSecond();
 KResult Sleep(uint64_t duration);
-KResult SleepFromState(uint64_t* state, uint64_t duration);
-KResult GetActualState(uint64_t* state);
+KResult SleepFromTick(uint64_t* tick, uint64_t duration);
+KResult GetActualTick(uint64_t* tick);
+KResult GetTimeFromTick(uint64_t* time, uint64_t tick);
+KResult GetTickFromTime(uint64_t* tick, uint64_t time);
+KResult GetTime(uint64_t* time);
+KResult CompareTime(uint64_t* compare, uint64_t time0, uint64_t time1);
 
 #if defined(__cplusplus)
 }

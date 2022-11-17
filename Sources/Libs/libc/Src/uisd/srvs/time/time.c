@@ -219,7 +219,7 @@ KResult Sleep(uint64_t duration){ // duration in ms
     return KSUCCESS;
 }
 
-KResult SleepFromState(uint64_t* state, uint64_t duration){ // duration in ms
+KResult SleepFromTick(uint64_t* tick, uint64_t duration){ // duration in ms
     uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
     if(!TickPointer){
@@ -229,16 +229,16 @@ KResult SleepFromState(uint64_t* state, uint64_t duration){ // duration in ms
         }
     }
 
-    uint64_t Target = *state + (FEMOSECOND_IN_MILLISECOND * duration) / TimeData->TickPeriod;
+    uint64_t Target = *tick + (FEMOSECOND_IN_MILLISECOND * duration) / TimeData->TickPeriod;
     while(*TickPointer < Target){
         Sys_Schedule();
     }
 
-    *state = Target;
+    *tick = Target;
     return KSUCCESS;
 }
 
-KResult GetActualState(uint64_t* state){
+KResult GetActualTick(uint64_t* tick){
     uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
     if(!TickPointer){
@@ -248,6 +248,46 @@ KResult GetActualState(uint64_t* state){
         }
     }
 
-    *state = *TickPointer;
+    *tick = *TickPointer;
+    return KSUCCESS;
+}
+
+KResult GetTimeFromTick(uint64_t* time, uint64_t tick){
+    uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
+
+    if(!TickPointer){
+        KResult statu = Get_Tick_Initialize();
+        if(statu != KSUCCESS){
+            return statu;
+        }
+    }
+
+    *time = (tick * TimeData->TickPeriod) / FEMOSECOND_IN_MILLISECOND;
+    return KSUCCESS;
+}
+
+KResult GetTickFromTime(uint64_t* tick, uint64_t time){
+    uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
+
+    if(!TickPointer){
+        KResult statu = Get_Tick_Initialize();
+        if(statu != KSUCCESS){
+            return statu;
+        }
+    }
+        
+    *tick = (FEMOSECOND_IN_MILLISECOND * time) / TimeData->TickPeriod;
+    return KSUCCESS;
+}
+
+KResult GetTime(uint64_t* time){
+    uint64_t tick;
+    GetActualTick(&tick);
+    GetTimeFromTick(time, tick);
+    return KSUCCESS;
+}
+
+KResult CompareTime(uint64_t* compare, uint64_t time0, uint64_t time1){
+    *compare = time1 - time0;
     return KSUCCESS;
 }
