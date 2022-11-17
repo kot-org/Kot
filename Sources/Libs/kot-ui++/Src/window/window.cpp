@@ -47,8 +47,6 @@ namespace UiWindow {
         windowCpnt->addChild(content);
 
         this->update();
-
-        //windowCpnt->draw();
     }
 
 }
