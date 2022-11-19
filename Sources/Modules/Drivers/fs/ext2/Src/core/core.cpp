@@ -416,9 +416,9 @@ ext2_inode_t* mount_info_t::FindInodeDirectoryInodeAndEntryFromName(ext2_inode_t
         uint64_t Size = GetSizeFromInode(inode);
         uint64_t NumberOfEntries = Size / BlockSize;
         uint64_t NameLenght = strlen(name);
-        ext4_directory_entry_t* DirectoryMain = (ext4_directory_entry_t*)malloc(BlockSize);
+        ext2_directory_entry_t* DirectoryMain = (ext2_directory_entry_t*)malloc(BlockSize);
         for(uint64_t y = 0; y < NumberOfEntries; y++){
-            ext4_directory_entry_t* Directory = DirectoryMain;
+            ext2_directory_entry_t* Directory = DirectoryMain;
             ReadInodeBlock(inode, Directory, y, NULL, BlockSize);
             while(Directory->type_indicator != 0 && ((uint64_t)Directory - (uint64_t)DirectoryMain) < BlockSize){
                 if(NameLenght == Directory->name_length){
@@ -427,7 +427,7 @@ ext2_inode_t* mount_info_t::FindInodeDirectoryInodeAndEntryFromName(ext2_inode_t
                         return GetInode(Directory->inode);
                     }
                 }
-                Directory = (ext4_directory_entry_t*)((uint64_t)Directory + (uint64_t)Directory->size);
+                Directory = (ext2_directory_entry_t*)((uint64_t)Directory + (uint64_t)Directory->size);
             }
         } 
         free(DirectoryMain);        
@@ -606,4 +606,23 @@ KResult mount_info_t::FreeInode(uint64_t inode){
     free(BitmapBuffer);
 
     return KFAIL;
+}
+
+
+
+directory_t* mount_info_t::OpenDir(char* path){
+    
+}
+
+directory_t* mount_info_t::OpenDir(struct ext2_inode_t* inode, char* path){
+    
+}
+
+char* directory_t::ReadDir(uint64_t index){
+    
+}
+
+KResult directory_t::CloseDir(){
+    free(this)
+    return KSUCCESS;
 }

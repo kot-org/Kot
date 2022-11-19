@@ -174,13 +174,23 @@ struct ext2_inode_t{
 #define INODE_FLAGS_AFS_DIRECTORY				0x20000
 #define INODE_FLAGS_JOURNAL_FILE_DATA			0x40000
 
-struct ext4_directory_entry_t{
+struct ext2_directory_entry_t{
     uint32_t inode;
     uint16_t size;
     uint8_t name_length;
     uint8_t type_indicator;
     char name[];
 }__attribute__((packed));
+
+struct directory_t{
+    struct mount_info_t MountInfo;
+    char* ReadDir(uint64_t index);
+    KResult CloseDir();
+};
+
+struct file_t{
+    struct mount_info_t MountInfo;
+};
 
 struct mount_info_t{
 	struct srv_storage_device_t* StorageDevice;

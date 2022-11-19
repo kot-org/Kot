@@ -262,7 +262,7 @@ KResult TaskManager::Execthread(kthread_t* Caller, kthread_t* Self, enum Executi
             queu->SetThreadInQueu_NSU(Caller, Self, FunctionParameters, true, Data);
             AtomicRelease(&queu->Lock);
             Caller->Pause_WL(Registers, true); // We can do this because we have already lock the scheduler
-            break;
+            return KSUCCESS;
         }        
         case ExecutionTypeOneshot:{
             if(!queu->TasksInQueu){
@@ -278,6 +278,7 @@ KResult TaskManager::Execthread(kthread_t* Caller, kthread_t* Self, enum Executi
                 queu->SetThreadInQueu_NSU(Caller, Self, FunctionParameters, true, Data);
                 AtomicRelease(&queu->Lock);
                 Caller->Pause_WL(Registers, true); // We can do this because we have already lock the scheduler
+                return KSUCCESS;
             }else{
                 AtomicRelease(&queu->Lock);
                 return KFAIL;
@@ -841,7 +842,6 @@ KResult kthread_t::CloseQueu(uint64_t ReturnValue){
     KResult Status = Queu->ExecuteThreadInQueu();
 
     if(Status != KSUCCESS){
-        Queu->LastData = NULL;
         IsBlock = true;
         IsClose = true;
         IsPause = false;

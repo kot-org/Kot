@@ -212,7 +212,6 @@ extern "C" int main() {
     initUISD();
 
     Printlog("[GRAPHICS/ORB] Service started");
-
+    
     return KSUCCESS;
-
 }

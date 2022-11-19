@@ -73,11 +73,12 @@ void loadBootAnimation(framebuffer_t* Framebuffer, uint64_t XPos, uint64_t YPos,
         .arg[3] = Width,
         .arg[4] = Height,
     };
+    drawRect(Framebuffer, XPos, YPos, Width, Height, 0xffffff);
+
     Sys_Execthread(bootAnimationThread, &parameters, ExecutionTypeQueu, NULL);
 }
 
 void bootAnimation(framebuffer_t* Framebuffer, uint64_t XPos, uint64_t YPos, uint64_t Width, uint64_t Height){
-    drawRect(Framebuffer, XPos, YPos, Width, Height, 0xffffff);
 
     // Remove rectangle
     XPos += 1;

@@ -308,16 +308,13 @@ uint64_t CloseMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uintp
             break;
         }
         case MemoryFieldTypeSendSpaceRO:{
-            if(IsParent){
-                free((uintptr_t)shareInfo);
-            }  
             break;
         }
     }
-
+    
     if(IsParent){
         free((uintptr_t)shareInfo);
-    } 
+    }
     AtomicRelease(&shareInfo->Lock);
     
     return KSUCCESS;
