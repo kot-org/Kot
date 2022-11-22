@@ -208,7 +208,7 @@ KResult Device::Write(Space_t* Self, uint64_t Start, size64_t Size){
             memcpy(BufferAlignementBottom, Self->BufferVirtual, ATA_SECTOR_SIZE);
             uint64_t EndLocation = Start + Size - EndAlignement;
             uintptr_t BufferTmp = (uintptr_t)((uint64_t)Self->BufferVirtual + EndAlignement);
-            uintptr_t BufferDst = (uintptr_t)((uint64_t)Self->BufferVirtual + Start + Size);
+            uintptr_t BufferDst = (uintptr_t)((uint64_t)Self->BufferVirtual + Size);
             Read(Self, EndLocation, ATA_SECTOR_SIZE);
             memcpy(BufferDst, BufferTmp, EndAlignementFill);
             memcpy(Self->BufferVirtual, BufferAlignementBottom, ATA_SECTOR_SIZE);

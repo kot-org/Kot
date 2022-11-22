@@ -182,14 +182,43 @@ struct ext2_directory_entry_t{
     char name[];
 }__attribute__((packed));
 
+
+/* Directory Type and Permissions */
+#define DIRECTORY_TYPE_REGULAR_FILE 		0x1
+#define DIRECTORY_TYPE_DIRECTORY 			0x2
+#define DIRECTORY_TYPE_CHARACTER_DEVICE 	0x3
+#define DIRECTORY_TYPE_BLOCK_DEVICE 		0x4
+#define DIRECTORY_TYPE_FIFO 				0x5
+#define DIRECTORY_TYPE_UNIX_SOCKET 			0x6
+#define DIRECTORY_TYPE_SYMBOLIC_LINK 		0x7
+
+
+struct inode_t{
+    uint64_t Position;
+    struct ext2_inode_t Inode;
+};
+
+#define INODE_EXTRA_SIZE sizeof(inode_t) - sizeof(ext2_inode_t)
+
 struct directory_t{
-    struct mount_info_t MountInfo;
-    char* ReadDir(uint64_t index);
+    struct mount_info_t* MountInfo;
+    struct inode_t* Inode;
+    struct read_dir_data* ReadDir(uint64_t index);
     KResult CloseDir();
 };
 
 struct file_t{
-    struct mount_info_t MountInfo;
+    struct mount_info_t* MountInfo;
+    struct inode_t* Inode;
+    size64_t Size;
+    KResult ReadFile(uintptr_t buffer, uint64_t start, size64_t size);
+    KResult WriteFile(uintptr_t buffer, uint64_t start, size64_t size, bool is_data_end);
+    KResult CloseFile();
+};
+
+struct read_dir_data{
+    char* Name;
+    bool IsFile;
 };
 
 struct mount_info_t{
@@ -213,14 +242,16 @@ struct mount_info_t{
 	uint64_t GetNextBlockLocation(uint64_t location);
 	uint64_t GetBlockGroupStartBlock(uint64_t group);
     uint64_t GetBlockGroupFromBlock(uint64_t block);
-    uint64_t GetIndexInodeInsideBlockGroupFromBlock(uint64_t block);
+    uint64_t GetBlockPositionInsideBlockGroupFromBlock(uint64_t block);
 	uint64_t GetBlockGroupFromInode(uint64_t inode);
 	uint64_t GetIndexInodeInsideBlockGroupFromInode(uint64_t inode);
 
 
-	struct ext2_inode_t* GetInode(uint64_t inode);
+	struct inode_t* GetInode(uint64_t position);
+	KResult SetInode(struct inode_t* inode);
 
-	size64_t GetSizeFromInode(struct ext2_inode_t* inode);
+	size64_t GetSizeFromInode(struct inode_t* inode);
+	KResult SetSizeFromInode(struct inode_t* inode, size64_t size);
 
 
 	struct ext2_group_descriptor_t* GetDescriptorFromGroup(uint64_t group);
@@ -235,25 +266,37 @@ struct mount_info_t{
 	uint64_t GetFreeInodesCount(struct ext2_group_descriptor_t* descriptor);
 	uint64_t GetUsedDirCount(struct ext2_group_descriptor_t* descriptor);
 
-	KResult ReadInode(struct ext2_inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size);
-	KResult ReadInodeBlock(struct ext2_inode_t* inode, uintptr_t buffer, uint64_t block, uint64_t start, size64_t size);
-	KResult WriteInode(struct ext2_inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size);
-	KResult WriteInodeBlock(struct ext2_inode_t* inode, uintptr_t buffer, uint64_t block, uint64_t start, size64_t size);
+	KResult ReadInode(struct inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size);
+	KResult ReadInodeBlock(struct inode_t* inode, uintptr_t buffer, uint64_t block, uint64_t start, size64_t size);
+	KResult WriteInode(struct inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size, bool is_data_end);
+	KResult WriteInodeBlock(struct inode_t* inode, uintptr_t buffer, uint64_t block, uint64_t start, size64_t size);
 
 	KResult ReadBlock(uintptr_t buffer, uint64_t block, uint64_t start, size64_t size);
 	KResult WriteBlock(uintptr_t buffer, uint64_t block, uint64_t start, size64_t size);
 
 	uint64_t GetLocationFromInode(uint64_t inode);
 
-    struct ext2_inode_t* FindInodeDirectoryFromPath(char* path);
-    struct ext2_inode_t* FindInodeDirectoryFromInodeEntryAndPath(struct ext2_inode_t* inode, char* path);
-    struct ext2_inode_t* FindInodeDirectoryInodeAndEntryFromName(struct ext2_inode_t* inode, char* name);
+    struct inode_t* FindInodeFromPath(char* path);
+    struct inode_t* FindInodeFromInodeEntryAndPath(struct inode_t* inode, char* path);
+    struct inode_t* FindInodeInodeAndEntryFromName(struct inode_t* inode, char* name);
 
     KResult AllocateBlock(uint64_t* block);
     KResult FreeBlock(uint64_t block);
 
     KResult AllocateInode(uint64_t* inode);
     KResult FreeInode(uint64_t inode);
+
+    KResult AllocateInodeBlocks(struct inode_t* inode, size64_t block_size, uint64_t block);
+    KResult FreeInodeBlocks(struct inode_t* inode, size64_t block_size, uint64_t block);
+
+    KResult AllocateInodeBlock(struct inode_t* inode, uint64_t block);
+    KResult FreeInodeBlock(struct inode_t* inode, uint64_t block);
+
+    struct directory_t* OpenDir(char* path);
+    struct directory_t* OpenDir(struct inode_t* inode, char* path);
+
+    struct file_t* OpenFile(char* path);
+    struct file_t* OpenFile(inode_t* inode, char* path);
 };
 
 

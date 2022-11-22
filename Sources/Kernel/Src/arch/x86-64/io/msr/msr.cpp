@@ -11,7 +11,7 @@ namespace msr{
         asm volatile("rdmsr" : "=a"(lower), "=d"(upper) : "c"(msr));
         return ((uint64_t) upper << 32) | lower;
     }
-
+    
     void wrmsr(uint32_t msr, uint64_t value){
         uint32_t lower = (uint32_t) value;
         uint32_t upper = (uint32_t) (value >> 32);

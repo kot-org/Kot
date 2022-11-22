@@ -20,7 +20,7 @@ Trampoline:
     mov cr4, eax
 
     ;long mode enable efer
-    mov ecx, 0xC0000080 
+    mov ecx, 0xC0000080
     rdmsr
     or eax, 1 << 8
     wrmsr
@@ -32,7 +32,7 @@ Trampoline:
     ;Cr0 protected mode enable and paging
     mov eax, cr0
     or eax, 0x80000001
-    mov cr0, eax    
+    mov cr0, eax
 
     lgdt [Target(GDT.Pointer)]
 
@@ -67,12 +67,12 @@ TrampolineLongMode:
     mov rsp, qword [Target(DataTrampoline.Stack)]
 
     mov rax, cr0
-    and ax, 0xFFFB      
+    and ax, 0xFFFB
     or ax, 0x2          
     mov cr0, rax
 
     mov rax, cr4
-    or ax, 3 << 9		
+    or ax, 3 << 9
     mov cr4, rax
 
     mov	byte [Target(DataTrampoline.Status)], 3

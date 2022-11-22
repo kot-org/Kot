@@ -36,7 +36,7 @@ typedef struct {
     uint64_t Version;
     uint64_t VendorID;
     enum ControllerTypeEnum Type;
-    process_t Process; 
+    process_t Process;
 } uisd_controller_t;
 
 typedef struct {
