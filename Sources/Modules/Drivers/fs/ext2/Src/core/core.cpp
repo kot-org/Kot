@@ -103,19 +103,15 @@ inode_t* mount_info_t::GetInode(uint64_t position){
 
     uint64_t InodeTableBlock = GetInodeTable(DescriptorGroup);
     uint64_t LocationOfInode = GetLocationFromBlock(InodeTableBlock) + GetIndexInodeInsideBlockGroupFromInode(position) * InodeSize;
+    Inode->InodeLocation = LocationOfInode;
+
     Srv_ReadDevice(StorageDevice, &Inode->Inode, LocationOfInode, InodeSize);
     free(DescriptorGroup);
     return Inode;
 }
 
 KResult mount_info_t::SetInode(inode_t* inode){
-    inode_t* Inode = (inode_t*)calloc(InodeSize + INODE_EXTRA_SIZE);
-    ext2_group_descriptor_t* DescriptorGroup = GetDescriptorFromInode(inode->Position);
-
-    uint64_t InodeTableBlock = GetInodeTable(DescriptorGroup);
-    uint64_t LocationOfInode = GetLocationFromBlock(InodeTableBlock) + GetIndexInodeInsideBlockGroupFromInode(inode->Position) * InodeSize;
-    Srv_WriteDevice(StorageDevice, &Inode->Inode, LocationOfInode, InodeSize);
-    free(DescriptorGroup);
+    Srv_WriteDevice(StorageDevice, &inode->Inode, inode->InodeLocation, InodeSize);
     return KSUCCESS;
 }
 
@@ -126,7 +122,8 @@ size64_t mount_info_t::GetSizeFromInode(inode_t* inode){
 }
 
 KResult mount_info_t::SetSizeFromInode(struct inode_t* inode, size64_t size){
-    // TODO
+    inode->Inode.size_lo = (uint32_t)(size & 0xffffffff);
+    inode->Inode.size_hi = (uint32_t)(size >> 32);
     return KSUCCESS;
 }
 
@@ -287,22 +284,25 @@ KResult mount_info_t::ReadInodeBlock(inode_t* inode, uintptr_t buffer, uint64_t 
 KResult mount_info_t::WriteInode(inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size, bool is_data_end){
     // Allocate or free if necessary
     uint64_t SizeRequested = start + size;
+    uint64_t InodeSize = GetSizeFromInode(inode);
     uint64_t SizeRequestedInBlock = DivideRoundUp(SizeRequested, BlockSize);
-    uint64_t SizeOfInodeInBlock = DivideRoundUp(GetSizeFromInode(inode), BlockSize);
+    uint64_t SizeOfInodeInBlock = DivideRoundUp(InodeSize, BlockSize);
     if(SizeRequestedInBlock > SizeOfInodeInBlock){
         // Allocate
         uint64_t BlockToAllocate = SizeRequestedInBlock - SizeOfInodeInBlock;
         KResult status = AllocateInodeBlocks(inode, SizeOfInodeInBlock, BlockToAllocate);
         if(status != KSUCCESS) return status;
-        SetSizeFromInode(inode, SizeRequested);
     }else if(is_data_end && SizeRequestedInBlock < SizeOfInodeInBlock){
         // Free
         uint64_t BlockToFree = SizeRequestedInBlock - SizeOfInodeInBlock;
         KResult status = FreeInodeBlocks(inode, SizeOfInodeInBlock, BlockToFree);
         if(status != KSUCCESS) return status;
-        SetSizeFromInode(inode, SizeRequested);
     }
-
+    std::printf("%x", InodeSize);
+    if(is_data_end || SizeRequested > InodeSize){
+        SetSizeFromInode(inode, SizeRequested);
+        SetInode(inode);
+    }
     
     uint64_t WriteLimit = start + size;
     uint64_t WriteLimitBlock = GetNextBlockLocation(WriteLimit);

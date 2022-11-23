@@ -194,7 +194,7 @@ struct ext2_directory_entry_t{
 
 
 struct inode_t{
-    uint64_t Position;
+    uint64_t InodeLocation;
     struct ext2_inode_t Inode;
 };
 
