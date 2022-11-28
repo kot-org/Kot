@@ -1,5 +1,7 @@
 #include <core/core.h>
 
+/* TODO text driver with : sudo e2fsck -f <partition> */
+
 KResult InitializeMount(srv_storage_device_t* StorageDevice){
     mount_info_t* MountInfo = (mount_info_t*)malloc(sizeof(mount_info_t));
     MountInfo->StorageDevice = StorageDevice;
@@ -30,12 +32,13 @@ KResult InitializeMount(srv_storage_device_t* StorageDevice){
     MountInfo->BlockSize = EXT_LEFT_VALUE_TO_SHIFT_LEFT << MountInfo->SuperBlock->log_block_size;
     MountInfo->FirstBlock = (EXT_SUPERBLOCK_SIZE / MountInfo->BlockSize) + 1;
 
-    file_t* File = MountInfo->OpenFile("home/tests/test1.txt");
-    uintptr_t Buffer = malloc(0x1000);
-    memset(Buffer, 'a', 0x1000);
-    File->WriteFile(Buffer, NULL, 0x1000, true);
-    std::printf("%s", Buffer);
-    directory_t* Dir = MountInfo->OpenDir(".");
+    MountInfo->CreateFile("", "kot.txt", 0xffff);
+    // file_t* File = MountInfo->OpenFile("kot.txt");
+    // uintptr_t Buffer = malloc(0x1000);
+    // memset(Buffer, 'a', 0x1000);
+    // File->WriteFile(Buffer, NULL, 0x1000, true);
+    // std::printf("%s", Buffer);
+    directory_t* Dir = MountInfo->OpenDir("");
     uint64_t i = 0;
     read_dir_data* entry = NULL;
     while((entry = Dir->ReadDir(i)) != NULL){
@@ -121,10 +124,38 @@ size64_t mount_info_t::GetSizeFromInode(inode_t* inode){
     return Size;
 }
 
-KResult mount_info_t::SetSizeFromInode(struct inode_t* inode, size64_t size){
+KResult mount_info_t::SetSizeFromInode(inode_t* inode, size64_t size){
     inode->Inode.size_lo = (uint32_t)(size & 0xffffffff);
     inode->Inode.size_hi = (uint32_t)(size >> 32);
     return KSUCCESS;
+}
+
+uint64_t mount_info_t::GetDirectoryIndicatorFromInode(inode_t* inode){
+    switch (inode->Inode.mode & 0xF000){
+        case INODE_TYPE_FIFO:
+            return DIRECTORY_TYPE_FIFO;
+
+        case INODE_TYPE_CHARACTER_DEVICE:
+            return DIRECTORY_TYPE_CHARACTER_DEVICE;
+
+        case INODE_TYPE_DIRECTORY:
+            return DIRECTORY_TYPE_DIRECTORY;
+
+        case INODE_TYPE_BLOCK_DEVICE:
+            return DIRECTORY_TYPE_BLOCK_DEVICE;
+
+        case INODE_TYPE_REGULAR_FILE:
+            return DIRECTORY_TYPE_REGULAR_FILE;
+
+        case INODE_TYPE_SYMBOLIC_LINK:
+            return DIRECTORY_TYPE_SYMBOLIC_LINK;
+
+        case INODE_TYPE_UNIX_SOCKET:
+            return DIRECTORY_TYPE_UNIX_SOCKET;
+
+        default:
+            return NULL;
+    }
 }
 
 
@@ -298,7 +329,7 @@ KResult mount_info_t::WriteInode(inode_t* inode, uintptr_t buffer, uint64_t star
         KResult status = FreeInodeBlocks(inode, SizeOfInodeInBlock, BlockToFree);
         if(status != KSUCCESS) return status;
     }
-    std::printf("%x", InodeSize);
+
     if(is_data_end || SizeRequested > InodeSize){
         SetSizeFromInode(inode, SizeRequested);
         SetInode(inode);
@@ -429,47 +460,158 @@ inode_t* mount_info_t::FindInodeFromPath(char* path){
 }
 
 inode_t* mount_info_t::FindInodeFromInodeEntryAndPath(inode_t* inode, char* path){
-    uint64_t PathEntriesCount;
-    char** PathEntries = strsplit(path, "/", &PathEntriesCount);
-
     inode_t* InodeIteration = inode;
+    if(*path != NULL){
+        uint64_t PathEntriesCount;
+        char** PathEntries = strsplit(path, "/", &PathEntriesCount);
 
-    for(uint64_t i = 0; i < PathEntriesCount; i++){
-        // Find the directory entry in this inode
-        inode_t* InodeFind = FindInodeInodeAndEntryFromName(InodeIteration, PathEntries[i]);
-        if(InodeFind != NULL){
-            free(InodeIteration);
-            InodeIteration = InodeFind;
-        }else{
-            free(InodeIteration);
-            return NULL;
+
+        for(uint64_t i = 0; i < PathEntriesCount; i++){
+            // Find the directory entry in this inode
+            inode_t* InodeFind = FindInodeInodeAndEntryFromName(InodeIteration, PathEntries[i]);
+            if(InodeFind != NULL){
+                free(InodeIteration);
+                InodeIteration = InodeFind;
+            }else{
+                free(InodeIteration);
+                return NULL;
+            }
         }
     }
     return InodeIteration;
 }
 
 inode_t* mount_info_t::FindInodeInodeAndEntryFromName(inode_t* inode, char* name){
-    if(inode->Inode.mode & INODE_TYPE_DIRECTORY){
-        // Find the directory entry in this inode
-        uint64_t Size = GetSizeFromInode(inode);
-        uint64_t NumberOfEntries = Size / BlockSize;
-        uint64_t NameLenght = strlen(name);
-        ext2_directory_entry_t* DirectoryMain = (ext2_directory_entry_t*)malloc(BlockSize);
-        for(uint64_t y = 0; y < NumberOfEntries; y++){
-            ext2_directory_entry_t* Directory = DirectoryMain;
-            ReadInodeBlock(inode, Directory, y, NULL, BlockSize);
-            while(Directory->type_indicator != 0 && ((uint64_t)Directory - (uint64_t)DirectoryMain) < BlockSize){
-                if(NameLenght == Directory->name_length){
-                    if(strncmp(Directory->name, name, Directory->name_length)){
-                        free(DirectoryMain);
-                        return GetInode(Directory->inode);
-                    }
+    // Find the directory entry in this inode
+    uint64_t Size = GetSizeFromInode(inode);
+    uint64_t NumberOfEntries = DivideRoundUp(Size, BlockSize);
+    uint64_t NameLenght = strlen(name);
+    ext2_directory_entry_t* DirectoryMain = (ext2_directory_entry_t*)malloc(BlockSize);
+    for(uint64_t y = 0; y < NumberOfEntries; y++){
+        ext2_directory_entry_t* Directory = DirectoryMain;
+        ReadInodeBlock(inode, Directory, y, NULL, BlockSize);
+        while(Directory->type_indicator != 0 && ((uint64_t)Directory - (uint64_t)DirectoryMain) < BlockSize){
+            if(NameLenght == Directory->name_length){
+                if(strncmp(Directory->name, name, Directory->name_length)){
+                    free(DirectoryMain);
+                    return GetInode(Directory->inode);
                 }
-                Directory = (ext2_directory_entry_t*)((uint64_t)Directory + (uint64_t)Directory->size);
             }
-        } 
-        free(DirectoryMain);        
+            Directory = (ext2_directory_entry_t*)((uint64_t)Directory + (uint64_t)Directory->size);
+        }
+    } 
+    free(DirectoryMain);     
+
+    return NULL;
+}
+
+KResult mount_info_t::LinkInodeToDirectory(inode_t* directory_inode, inode_t* inode, char* name){
+    // Find the directory entry in this inode
+    uint64_t NameLenght = strlen(name);
+    uint64_t SizeRequestByTheEntry = sizeof(ext2_directory_entry_t) + NameLenght;
+    if(SizeRequestByTheEntry % 4){
+        SizeRequestByTheEntry -= SizeRequestByTheEntry % 4;
+        SizeRequestByTheEntry += 4;
     }
+
+    uint64_t Size = GetSizeFromInode(directory_inode);
+    uint64_t NumberOfEntries = DivideRoundUp(Size, BlockSize);
+    ext2_directory_entry_t* DirectoryMain = (ext2_directory_entry_t*)malloc(BlockSize);
+    ext2_directory_entry_t* Directory;
+    for(uint64_t y = 0; y < NumberOfEntries; y++){
+        Directory = DirectoryMain;
+        ReadInodeBlock(directory_inode, DirectoryMain, y, NULL, BlockSize);
+        while(((uint64_t)Directory - (uint64_t)DirectoryMain) < BlockSize){
+            ext2_directory_entry_t* Entry = (ext2_directory_entry_t*)((uint64_t)Directory + (uint64_t)Directory->size);
+            if(Entry->type_indicator != 0){
+                Directory = (ext2_directory_entry_t*)((uint64_t)Directory + (uint64_t)Directory->size);
+            }else{
+                break;
+            }
+        }
+    }
+
+    if((uint64_t)Directory - (uint64_t)DirectoryMain >= SizeRequestByTheEntry){
+        uint64_t OldSize = Directory->size;
+        Directory->size = sizeof(ext2_directory_entry_t) + Directory->name_length;
+        if(Directory->size % 4){
+            Directory->size -= Directory->size % 4;
+            Directory->size += 4;
+        }
+
+        Directory = (ext2_directory_entry_t*)((uint64_t)Directory + (uint64_t)Directory->size);
+        Directory->inode = inode->InodeLocation;
+        Directory->size = OldSize - SizeRequestByTheEntry;
+        Directory->name_length = NameLenght;
+        Directory->type_indicator = GetDirectoryIndicatorFromInode(inode);
+        memcpy(&Directory->name, name, NameLenght);
+
+        ext2_directory_entry_t* NextNullEntry = (ext2_directory_entry_t*)((uint64_t)Directory + (uint64_t)SizeRequestByTheEntry);
+        NextNullEntry->type_indicator = 0;
+        
+        WriteInodeBlock(directory_inode, DirectoryMain, NumberOfEntries - 1, NULL, BlockSize);
+
+        Directory = DirectoryMain;
+        while(Directory->type_indicator != 0 && ((uint64_t)Directory - (uint64_t)DirectoryMain) < BlockSize){
+            Directory = (ext2_directory_entry_t*)((uint64_t)Directory + (uint64_t)Directory->size);
+        }
+    }else{
+        AllocateInodeBlock(directory_inode, NumberOfEntries);
+
+        uint64_t OldSize = Directory->size;
+        if(Directory->size % 4){
+            Directory->size -= Directory->size % 4;
+            Directory->size += 4;
+        }
+
+        Directory = (ext2_directory_entry_t*)((uint64_t)Directory + (uint64_t)Directory->size);
+        Directory->inode = inode->InodeLocation;
+        Directory->size = OldSize - SizeRequestByTheEntry;
+        Directory->name_length = NameLenght;
+        Directory->type_indicator = GetDirectoryIndicatorFromInode(inode);
+        memcpy(Directory->name, name, NameLenght);
+
+        ext2_directory_entry_t* NextNullEntry = (ext2_directory_entry_t*)((uint64_t)Directory + (uint64_t)SizeRequestByTheEntry);
+        NextNullEntry->type_indicator = 0;
+
+        WriteInodeBlock(directory_inode, Directory, NumberOfEntries, NULL, BlockSize);
+
+        SetSizeFromInode(directory_inode, Size + BlockSize);
+        SetInode(directory_inode);
+    }
+
+
+    free(DirectoryMain);     
+
+    return KSUCCESS;    
+}
+
+KResult mount_info_t::UnlinkInodeToDirectory(inode_t* inode, char* name){
+    // Find the directory entry in this inode
+    uint64_t NameLenght = strlen(name);
+    uint64_t SizeRequestByTheEntry = sizeof(ext2_directory_entry_t) + NameLenght;
+    uint64_t Size = GetSizeFromInode(inode);
+    uintptr_t Buffer = malloc(Size);
+    ext2_directory_entry_t* EntryToDelete = NULL;
+    ext2_directory_entry_t* Directory = (ext2_directory_entry_t*)Buffer;
+    ReadInode(inode, Directory, NULL, Size);
+
+    while(Directory->type_indicator != 0){
+        if(NameLenght == Directory->name_length){
+            if(strncmp(Directory->name, name, Directory->name_length)){
+                EntryToDelete = Directory;
+                Size -= EntryToDelete->size;
+            }
+        }
+        Directory = (ext2_directory_entry_t*)((uint64_t)Directory + (uint64_t)Directory->size);
+    }
+
+    ext2_directory_entry_t*  EntryToDeleteEnd = (ext2_directory_entry_t* )((uint64_t)EntryToDelete + EntryToDelete->size);
+    uint64_t NextSize = Size + (uint64_t)Buffer - (uint64_t)EntryToDeleteEnd;
+    memcpy(EntryToDelete, EntryToDeleteEnd, NextSize);
+    WriteInode(inode, Buffer, NULL, Size, true);
+
+    free(Buffer);     
 
     return NULL;
 }
@@ -909,6 +1051,63 @@ KResult mount_info_t::FreeInodeBlock(inode_t* inode, uint64_t block){
 
 
 
+KResult mount_info_t::CreateDir(char* path, char* name, uint64_t permissions){
+    uint64_t DirInode = NULL;
+    KResult Status = AllocateInode(&DirInode);
+    if(Status != KSUCCESS) return Status;
+
+    inode_t* Inode = GetInode(DirInode);
+    if(Inode == NULL) return KFAIL;
+
+    memset(&Inode->Inode, 0, sizeof(ext2_inode_t));
+
+    Inode->Inode.links_count = 1;
+    Inode->Inode.mode = INODE_TYPE_DIRECTORY;
+    Inode->Inode.mode |= 0xfff;
+
+    SetSizeFromInode(Inode, NULL);
+    SetInode(Inode);
+
+    LinkInodeToDirectory(FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), path), Inode, name);
+    return KSUCCESS;
+}
+
+KResult mount_info_t::RenameDir(char* old_path, char* new_path){
+    inode_t* Inode = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), old_path);
+    if(Inode->Inode.mode != INODE_TYPE_DIRECTORY){
+        free(Inode);
+        return KFAIL;
+    }
+
+    std::StringBuilder* OldPathSB = new std::StringBuilder(old_path);
+    char* OldPathDirectory = OldPathSB->substr(NULL, OldPathSB->indexOf("/", 0, true));
+    char* OldName = OldPathSB->substr(OldPathSB->indexOf("/", 0, true), OldPathSB->length());
+
+    std::StringBuilder* NewPathSB = new std::StringBuilder(old_path);
+    char* NewPathDirectory = NewPathSB->substr(NULL, NewPathSB->indexOf("/", 0, true));
+    char* NewName = OldPathSB->substr(OldPathSB->indexOf("/", 0, true), OldPathSB->length());
+
+    UnlinkInodeToDirectory(FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), OldPathDirectory), OldName);
+    LinkInodeToDirectory(FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), NewPathDirectory), Inode, NewName);
+    return KSUCCESS;
+}
+
+KResult mount_info_t::RemoveDir(char* path){
+    inode_t* Inode = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), path);
+    if(Inode->Inode.mode != INODE_TYPE_DIRECTORY){
+        free(Inode);
+        return KFAIL;
+    }
+
+    // TODO : delete inode
+
+    std::StringBuilder* OldPathSB = new std::StringBuilder(path);
+    char* OldPathDirectory = OldPathSB->substr(NULL, OldPathSB->indexOf("/", 0, true));
+    char* OldName = OldPathSB->substr(OldPathSB->indexOf("/", 0, true), OldPathSB->length());
+
+    return UnlinkInodeToDirectory(FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), OldPathDirectory), OldName); 
+}
+
 directory_t* mount_info_t::OpenDir(char* path){
     inode_t* RootInode = GetInode(EXT_ROOT_INO);
     directory_t* Target = OpenDir(GetInode(EXT_ROOT_INO), path);
@@ -961,6 +1160,63 @@ read_dir_data* directory_t::ReadDir(uint64_t index){
 KResult directory_t::CloseDir(){
     free(this);
     return KSUCCESS;
+}
+
+KResult mount_info_t::CreateFile(char* path, char* name, uint64_t permissions){
+    uint64_t FileInode = NULL;
+    KResult Status = AllocateInode(&FileInode);
+    if(Status != KSUCCESS) return Status;
+
+    inode_t* Inode = GetInode(FileInode);
+    if(Inode == NULL) return KFAIL;
+
+    memset(&Inode->Inode, 0, sizeof(ext2_inode_t));
+
+    Inode->Inode.links_count = 1;
+    Inode->Inode.mode = INODE_TYPE_REGULAR_FILE;
+    Inode->Inode.mode |= 0xfff;
+
+    SetSizeFromInode(Inode, NULL);
+    SetInode(Inode);
+
+    LinkInodeToDirectory(FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), path), Inode, name);
+    return KSUCCESS;
+}
+
+KResult mount_info_t::RenameFile(char* old_path, char* new_path){
+    inode_t* Inode = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), old_path);
+    if(Inode->Inode.mode != INODE_TYPE_REGULAR_FILE){
+        free(Inode);
+        return KFAIL;
+    }
+
+    std::StringBuilder* OldPathSB = new std::StringBuilder(old_path);
+    char* OldPathDirectory = OldPathSB->substr(NULL, OldPathSB->indexOf("/", 0, true));
+    char* OldName = OldPathSB->substr(OldPathSB->indexOf("/", 0, true), OldPathSB->length());
+
+    std::StringBuilder* NewPathSB = new std::StringBuilder(old_path);
+    char* NewPathDirectory = NewPathSB->substr(NULL, NewPathSB->indexOf("/", 0, true));
+    char* NewName = OldPathSB->substr(OldPathSB->indexOf("/", 0, true), OldPathSB->length());
+
+    UnlinkInodeToDirectory(FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), OldPathDirectory), OldName);
+    LinkInodeToDirectory(FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), NewPathDirectory), Inode, NewName);
+    return KSUCCESS;
+}
+
+KResult mount_info_t::RemoveFile(char* path){
+    inode_t* Inode = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), path);
+    if(Inode->Inode.mode != INODE_TYPE_REGULAR_FILE){
+        free(Inode);
+        return KFAIL;
+    }
+
+    // TODO : delete inode
+
+    std::StringBuilder* OldPathSB = new std::StringBuilder(path);
+    char* OldPathDirectory = OldPathSB->substr(NULL, OldPathSB->indexOf("/", 0, true));
+    char* OldName = OldPathSB->substr(OldPathSB->indexOf("/", 0, true), OldPathSB->length());
+
+    return UnlinkInodeToDirectory(FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), OldPathDirectory), OldName); 
 }
 
 file_t* mount_info_t::OpenFile(char* path){

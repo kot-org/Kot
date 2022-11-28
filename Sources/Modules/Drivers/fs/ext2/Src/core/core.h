@@ -7,6 +7,7 @@
 #include <kot/uisd/srvs/storage/device.h>
 
 #include <kot++/printf.h>
+#include <kot++/string.h>
 
 #define EXT_SUPER_MAGIC 				0xEF53
 #define EXT_SUPERBLOCK_START 			0x400
@@ -252,6 +253,7 @@ struct mount_info_t{
 
 	size64_t GetSizeFromInode(struct inode_t* inode);
 	KResult SetSizeFromInode(struct inode_t* inode, size64_t size);
+    uint64_t GetDirectoryIndicatorFromInode(struct inode_t* inode);
 
 
 	struct ext2_group_descriptor_t* GetDescriptorFromGroup(uint64_t group);
@@ -279,6 +281,8 @@ struct mount_info_t{
     struct inode_t* FindInodeFromPath(char* path);
     struct inode_t* FindInodeFromInodeEntryAndPath(struct inode_t* inode, char* path);
     struct inode_t* FindInodeInodeAndEntryFromName(struct inode_t* inode, char* name);
+    KResult LinkInodeToDirectory(struct inode_t* directory_inode, struct inode_t* inode, char* name);
+    KResult UnlinkInodeToDirectory(struct inode_t* inode, char* name);
 
     KResult AllocateBlock(uint64_t* block);
     KResult FreeBlock(uint64_t block);
@@ -292,9 +296,15 @@ struct mount_info_t{
     KResult AllocateInodeBlock(struct inode_t* inode, uint64_t block);
     KResult FreeInodeBlock(struct inode_t* inode, uint64_t block);
 
+    KResult CreateDir(char* path, char* name, uint64_t permissions);
+    KResult RenameDir(char* old_path, char* new_path);
+    KResult RemoveDir(char* path);
     struct directory_t* OpenDir(char* path);
     struct directory_t* OpenDir(struct inode_t* inode, char* path);
 
+    KResult CreateFile(char* path, char* name, uint64_t permissions);
+    KResult RenameFile(char* old_path, char* new_path);
+    KResult RemoveFile(char* path);
     struct file_t* OpenFile(char* path);
     struct file_t* OpenFile(inode_t* inode, char* path);
 };

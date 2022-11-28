@@ -8,17 +8,32 @@ namespace std {
         set(origin);
     }
 
-    int64_t StringBuilder::indexOf(char* str, uint64_t startingAt) {
+    int64_t StringBuilder::indexOf(char* str, uint64_t startingAt, bool isRightStart) {
         uint64_t len = length();
-        for (uint64_t i = startingAt; i < len; i++) {
-            char* sub = substr(i, len);
-            if (strcmp(sub, str)) {
+        if(isRightStart){
+            for (uint64_t i = startingAt; i != NULL; i--) {
+                char* sub = substr(i, startingAt);
+                if (strcmp(sub, str)) {
+                    free(sub);
+                    return i;
+                }
                 free(sub);
-                return i;
             }
-            free(sub);
+        }else{
+            for (uint64_t i = startingAt; i < len; i++) {
+                char* sub = substr(i, len);
+                if (strcmp(sub, str)) {
+                    free(sub);
+                    return i;
+                }
+                free(sub);
+            }
         }
         return -1;
+    }
+
+    int64_t StringBuilder::indexOf(char* str, uint64_t startingAt) {
+        return indexOf(str, 0, false);
     }
 
     int64_t StringBuilder::indexOf(char* str) {
