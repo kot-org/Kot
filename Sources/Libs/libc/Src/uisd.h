@@ -103,12 +103,19 @@ typedef struct {
     thread_t MountPartition;
     thread_t UnmountPartition;
 
+    /* VFS */
+    thread_t ChangeUserData;
+
+    thread_t Removefile;
+
+    thread_t Openfile;
+
     thread_t Rename;
-    thread_t Remove;
-    thread_t Fopen;
+
     thread_t Mkdir;
-    thread_t Readdir;
-    thread_t Flist;
+    thread_t Rmdir;
+
+    thread_t Opendir;
 } uisd_storage_t;
 
 typedef struct {
@@ -143,7 +150,8 @@ thread_t MakeShareableThread(thread_t Thread, enum Priviledge priviledgeRequired
 thread_t MakeShareableThreadUISDOnly(thread_t Thread);
 thread_t MakeShareableThreadToProcess(thread_t Thread, process_t Process);
 thread_t MakeShareableSpreadThreadToProcess(thread_t Thread, process_t Process);
-process_t ShareProcessKey(process_t Process);
+process_t ShareProcessKeyToProcess(process_t Process);
+process_t ShareProcessKey();
 
 uintptr_t GetControllerLocationUISD(enum ControllerTypeEnum Controller);
 uintptr_t FindControllerUISD(enum ControllerTypeEnum Controller);

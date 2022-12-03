@@ -17,7 +17,7 @@ void InitSrv(PCIDeviceArrayInfo_t* DevicesArray){
     PciSrv->ControllerHeader.Version = Pci_Srv_Version;
     PciSrv->ControllerHeader.VendorID = Kot_VendorID;
     PciSrv->ControllerHeader.Type = ControllerTypeEnum_PCI;
-    PciSrv->ControllerHeader.Process = ShareProcessKey(proc);
+    PciSrv->ControllerHeader.Process = ShareProcessKeyToProcess(proc);
 
     /* Setup thread */
     CreateControllerUISD(ControllerTypeEnum_PCI, key, true);

@@ -55,6 +55,8 @@ KResult GetTickFromTime(uint64_t* tick, uint64_t time);
 KResult GetTime(uint64_t* time);
 KResult CompareTime(uint64_t* compare, uint64_t time0, uint64_t time1);
 
+uint64_t GetPosixTime();
+
 #if defined(__cplusplus)
 }
 #endif

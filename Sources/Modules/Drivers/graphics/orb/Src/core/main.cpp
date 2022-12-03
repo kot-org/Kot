@@ -151,7 +151,7 @@ void initUISD() {
     ksmem_t key = NULL;
     Sys_CreateMemoryField(self, sizeof(uisd_graphics_t), &address, &key, MemoryFieldTypeShareSpaceRO);
     uisd_graphics_t* OrbSrv = (uisd_graphics_t*) address;
-    OrbSrv->ControllerHeader.Process = ShareProcessKey(self);
+    OrbSrv->ControllerHeader.Process = ShareProcessKeyToProcess(self);
     OrbSrv->ControllerHeader.IsReadWrite = false;
     OrbSrv->ControllerHeader.Version = Orb_Srv_Version;
     OrbSrv->ControllerHeader.VendorID = Kot_VendorID;
@@ -174,7 +174,7 @@ void initUISD() {
 }
 
 void initOrb(){
-    self = ShareProcessKey(Sys_GetProcess());
+    self = ShareProcessKeyToProcess(Sys_GetProcess());
 
     monitors = vector_create();
     windows = vector_create();

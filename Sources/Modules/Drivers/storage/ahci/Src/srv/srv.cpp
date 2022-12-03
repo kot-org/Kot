@@ -28,11 +28,11 @@ void SrvAddDevice(Device* Device){
     Info.MainSpace.SpaceSize = Device->DefaultSpace->Size;
     Info.MainSpace.BufferRWAlignement = Device->BufferAlignement;
     Info.MainSpace.BufferRWUsableSize = Device->BufferUsableSize;
-    Info.MainSpace.DriverProc = ShareProcessKey(Proc);
+    Info.MainSpace.DriverProc = ShareProcessKeyToProcess(Proc);
     Info.DeviceSize = Device->GetSize();
 
-    memcpy(&Info.SerialNumber, Device->GetSerialNumber(), SerialNumberSize);
-    memcpy(&Info.DriveModelNumber, Device->GetSerialNumber(), DriveModelNumberSize);
+    memcpy(&Info.SerialNumber, Device->GetSerialNumber(), Serial_Number_Size);
+    memcpy(&Info.DriveModelNumber, Device->GetSerialNumber(), Drive_Model_Number_Size);
     
 
     srv_storage_callback_t* callback = Srv_Storage_AddDevice(&Info, true);

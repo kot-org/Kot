@@ -291,3 +291,8 @@ KResult CompareTime(uint64_t* compare, uint64_t time0, uint64_t time1){
     *compare = time1 - time0;
     return KSUCCESS;
 }
+
+uint64_t GetPosixTime(){
+    // TODO
+    return NULL;
+}

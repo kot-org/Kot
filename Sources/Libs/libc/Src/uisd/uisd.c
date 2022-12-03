@@ -142,11 +142,19 @@ thread_t MakeShareableSpreadThreadToProcess(thread_t Thread, process_t Process){
     return ReturnValue;
 }
 
-process_t ShareProcessKey(process_t Process){
+process_t ShareProcessKeyToProcess(process_t Process){
     process_t ReturnValue;
     uint64_t UISDKeyFlags = NULL;
     Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
     Sys_Keyhole_CloneModify(Process, &ReturnValue, NULL, UISDKeyFlags, PriviledgeApp);
+    return ReturnValue;
+}
+
+process_t ShareProcessKey(){
+    process_t ReturnValue;
+    uint64_t UISDKeyFlags = NULL;
+    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
+    Sys_Keyhole_CloneModify(NULL, &ReturnValue, NULL, UISDKeyFlags, PriviledgeApp);
     return ReturnValue;
 }
 

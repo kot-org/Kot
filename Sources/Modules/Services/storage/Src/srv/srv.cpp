@@ -14,7 +14,7 @@ KResult InitialiseSrv(){
     SrvData->ControllerHeader.Version = Storage_Srv_Version;
     SrvData->ControllerHeader.VendorID = Kot_VendorID;
     SrvData->ControllerHeader.Type = ControllerTypeEnum_Storage;
-    SrvData->ControllerHeader.Process = ShareProcessKey(proc);
+    SrvData->ControllerHeader.Process = ShareProcessKeyToProcess(proc);
 
     /* AddDevice */
     thread_t AddDeviceThread = NULL;

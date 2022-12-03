@@ -3,6 +3,7 @@
 #include <kot/bits.h>
 #include <kot/math.h>
 #include <main/main.h>
+#include <kot/uisd/srvs/time.h>
 #include <kot/uisd/srvs/storage.h>
 #include <kot/uisd/srvs/storage/device.h>
 
@@ -204,6 +205,7 @@ struct inode_t{
 struct directory_t{
     struct mount_info_t* MountInfo;
     struct inode_t* Inode;
+    uint64_t Permissions;
     struct read_dir_data* ReadDir(uint64_t index);
     KResult CloseDir();
 };
@@ -212,6 +214,7 @@ struct file_t{
     struct mount_info_t* MountInfo;
     struct inode_t* Inode;
     size64_t Size;
+    uint64_t Permissions;
     KResult ReadFile(uintptr_t buffer, uint64_t start, size64_t size);
     KResult WriteFile(uintptr_t buffer, uint64_t start, size64_t size, bool is_data_end);
     KResult CloseFile();
@@ -233,6 +236,16 @@ struct mount_info_t{
     uint64_t FirstBlock;
 	uint64_t InodeSize;
 	uint64_t FirstInode;
+
+    uint64_t Lock;
+
+    /* Posix info */
+    char* UserName;
+    uint64_t UID;
+    uint64_t GID;
+
+    uint64_t GetSpace();
+    uint64_t GetSpaceFree();
 
     KResult ReadSuperBlock();
     KResult WriteSuperBlock();
@@ -289,6 +302,7 @@ struct mount_info_t{
 
     KResult AllocateInode(uint64_t* inode);
     KResult FreeInode(uint64_t inode);
+    KResult DeleteInode(struct inode_t* inode);
 
     KResult AllocateInodeBlocks(struct inode_t* inode, size64_t block_size, uint64_t block);
     KResult FreeInodeBlocks(struct inode_t* inode, size64_t block_size, uint64_t block);
@@ -297,17 +311,17 @@ struct mount_info_t{
     KResult FreeInodeBlock(struct inode_t* inode, uint64_t block);
 
     KResult CreateDir(char* path, char* name, uint64_t permissions);
-    KResult RenameDir(char* old_path, char* new_path);
-    KResult RemoveDir(char* path);
-    struct directory_t* OpenDir(char* path);
-    struct directory_t* OpenDir(struct inode_t* inode, char* path);
+    KResult RemoveDir(char* path, uint64_t permissions);
+    struct directory_t* OpenDir(char* path, uint64_t permissions);
+    struct directory_t* OpenDir(struct inode_t* inode, char* path, uint64_t permissions);
+    
+    KResult Rename(char* old_path, char* new_path, uint64_t permissions);
 
     KResult CreateFile(char* path, char* name, uint64_t permissions);
-    KResult RenameFile(char* old_path, char* new_path);
-    KResult RemoveFile(char* path);
-    struct file_t* OpenFile(char* path);
-    struct file_t* OpenFile(inode_t* inode, char* path);
+    KResult RemoveFile(char* path, uint64_t permissions);
+    struct file_t* OpenFile(char* path, uint64_t permissions);
+    struct file_t* OpenFile(inode_t* inode, char* path, uint64_t permissions);
 };
 
 
-KResult InitializeMount(struct srv_storage_device_t* StorageDevice);
+struct mount_info_t* InitializeMount(struct srv_storage_device_t* StorageDevice);

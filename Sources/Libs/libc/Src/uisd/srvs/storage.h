@@ -9,8 +9,12 @@
 extern "C" {
 #endif
 
-#define SerialNumberSize        0x14
-#define DriveModelNumberSize    0x28
+#define Serial_Number_Size          0x14
+#define Drive_Model_Number_Size     0x28
+
+#define File_Permissions_Super_User      0x0
+#define File_Permissions_Read            0x1
+#define File_Permissions_Write           0x2
 
 typedef KResult (*StorageCallbackHandler)(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
@@ -27,17 +31,33 @@ struct srv_storage_space_info_t{
 struct srv_storage_device_info_t{
     struct srv_storage_space_info_t MainSpace;
     uint64_t DeviceSize;
-    uint8_t SerialNumber[SerialNumberSize];
-    uint8_t DriveModelNumber[DriveModelNumberSize];
+    uint8_t SerialNumber[Serial_Number_Size];
+    uint8_t DriveModelNumber[Drive_Model_Number_Size];
 };
 
 struct srv_storage_fs_server_functions_t{
+    thread_t ChangeUserData;
+
+    thread_t Removefile;
+
+    thread_t Openfile;
+
     thread_t Rename;
-    thread_t Remove;
-    thread_t Fopen;
+
     thread_t Mkdir;
-    thread_t Readdir;
-    thread_t Flist;
+    thread_t Rmdir;
+
+    thread_t Opendir;
+};
+
+struct srv_storage_fs_server_open_file_data_t{
+    thread_t Dispatcher;
+    process_t FSDriverProc;
+};
+
+struct srv_storage_fs_server_open_dir_data_t{
+    thread_t Dispatcher;
+    process_t FSDriverProc;    
 };
 
 struct srv_storage_callback_t{
