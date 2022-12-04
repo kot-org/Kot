@@ -13,13 +13,19 @@ namespace Ui {
         uint8_t btpp = data->bpp/8;
         uint32_t pitch = data->width * (btpp);
 
-        cpnt->getFramebuffer()->size = data->height * pitch;
+        uint64_t Bpp = 32; 
+        uint64_t Btpp = Bpp / 4; 
+        uint64_t Height = data->height; // Todo user arguments
+        uint64_t Width = data->width; // Todo user arguments
+        uint64_t Pitch = Width * Btpp;
+
+        cpnt->getFramebuffer()->size = Pitch * Height;
         cpnt->getFramebuffer()->addr = calloc(cpnt->getFramebuffer()->size);
-        cpnt->getFramebuffer()->pitch = pitch;
+        cpnt->getFramebuffer()->pitch = Pitch;
         cpnt->getFramebuffer()->width = data->width;
         cpnt->getFramebuffer()->height = data->height;
-        cpnt->getFramebuffer()->bpp = data->bpp;
-        cpnt->getFramebuffer()->btpp = btpp;
+        cpnt->getFramebuffer()->bpp = Bpp;
+        cpnt->getFramebuffer()->btpp = Bpp / 8;
 
         cpnt->getStyle()->width = data->width;
         cpnt->getStyle()->height = data->height;
@@ -34,11 +40,13 @@ namespace Ui {
             {
                 uint64_t imageDataOffset = data->colorMapOrigin + data->colorMapLength;
 
-                for(int w = 0; w < data->width; w++) {
-                    for(int h = 0; h < data->height; h++) {
-
-                        putPixel(cpnt->getFramebuffer(), cpnt->getStyle()->x+w, cpnt->getStyle()->y+h, *(uint32_t*) ((uint64_t)data+imageDataOffset+w*btpp+pitch*h));
-                        
+                for(uint64_t h = 0; h < Height - 1; h++) {
+                    for(uint64_t w = 0; w < Width; w++) {
+                        uint8_t R = *(uint8_t*) ((uint64_t)data+imageDataOffset+w*btpp+pitch*h + 2);
+                        uint8_t G = *(uint8_t*) ((uint64_t)data+imageDataOffset+w*btpp+pitch*h + 1);
+                        uint8_t B = *(uint8_t*) ((uint64_t)data+imageDataOffset+w*btpp+pitch*h + 0);
+                        uint32_t Pixel = R | (G << 8) | (R << 16);
+                        putPixel(cpnt->getFramebuffer(), cpnt->getStyle()->x+w, cpnt->getStyle()->y+Height-h, Pixel);
                     }
                 }
 
