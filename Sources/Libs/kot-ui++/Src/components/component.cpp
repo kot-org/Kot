@@ -132,7 +132,7 @@ namespace Ui {
     void Component::update() {
         UiLayout::calculateLayout(this);
         
-        this->draw();
+        //this->draw();
 
         if(childs != NULL) {
 

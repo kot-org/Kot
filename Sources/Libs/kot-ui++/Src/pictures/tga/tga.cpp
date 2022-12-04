@@ -10,7 +10,19 @@ namespace Ui {
 
         if(!data) return;
 
-        framebuffer_t* fb = (framebuffer_t*) malloc(sizeof(framebuffer_t));
+        uint8_t btpp = data->bpp/8;
+        uint32_t pitch = data->width * (btpp);
+
+        cpnt->getFramebuffer()->size = data->height * pitch;
+        cpnt->getFramebuffer()->addr = calloc(cpnt->getFramebuffer()->size);
+        cpnt->getFramebuffer()->pitch = pitch;
+        cpnt->getFramebuffer()->width = data->width;
+        cpnt->getFramebuffer()->height = data->height;
+        cpnt->getFramebuffer()->bpp = data->bpp;
+        cpnt->getFramebuffer()->btpp = btpp;
+
+        cpnt->getStyle()->width = data->width;
+        cpnt->getStyle()->height = data->height;
 
         switch (data->imageType)
         {
@@ -22,23 +34,10 @@ namespace Ui {
             {
                 uint64_t imageDataOffset = data->colorMapOrigin + data->colorMapLength;
 
-                uint32_t pitch = data->width * (data->bpp/8);
-
-                cpnt->getFramebuffer()->size = data->height * pitch;
-                cpnt->getFramebuffer()->addr = calloc(cpnt->getFramebuffer()->size);
-                cpnt->getFramebuffer()->pitch = pitch;
-                cpnt->getFramebuffer()->width = data->width;
-                cpnt->getFramebuffer()->height = data->height;
-                cpnt->getFramebuffer()->bpp = data->bpp;
-                cpnt->getFramebuffer()->btpp = data->bpp/8;
-
-                cpnt->getStyle()->width = data->width;
-                cpnt->getStyle()->height = data->height;
-
                 for(int w = 0; w < data->width; w++) {
                     for(int h = 0; h < data->height; h++) {
 
-                        putPixel(cpnt->getFramebuffer(), 0, 0, *(uint32_t*) ((uint64_t)data+imageDataOffset+w+pitch*h));
+                        putPixel(cpnt->getFramebuffer(), cpnt->getStyle()->x+w, cpnt->getStyle()->y+h, *(uint32_t*) ((uint64_t)data+imageDataOffset+w*btpp+pitch*h));
                         
                     }
                 }
