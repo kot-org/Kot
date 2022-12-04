@@ -40,13 +40,13 @@ namespace Ui {
             {
                 uint64_t imageDataOffset = data->colorMapOrigin + data->colorMapLength;
 
-                for(uint64_t h = 0; h < Height - 1; h++) {
+                for(uint64_t h = 0; h < Height; h++) {
                     for(uint64_t w = 0; w < Width; w++) {
                         uint8_t R = *(uint8_t*) ((uint64_t)data+imageDataOffset+w*btpp+pitch*h + 2);
                         uint8_t G = *(uint8_t*) ((uint64_t)data+imageDataOffset+w*btpp+pitch*h + 1);
                         uint8_t B = *(uint8_t*) ((uint64_t)data+imageDataOffset+w*btpp+pitch*h + 0);
                         uint32_t Pixel = R | (G << 8) | (R << 16);
-                        putPixel(cpnt->getFramebuffer(), cpnt->getStyle()->x+w, cpnt->getStyle()->y+Height-h, Pixel);
+                        putPixel(cpnt->getFramebuffer(), cpnt->getStyle()->x+w, cpnt->getStyle()->y+Height-h+1, Pixel);
                     }
                 }
 
