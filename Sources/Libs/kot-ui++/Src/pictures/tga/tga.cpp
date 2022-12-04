@@ -9,9 +9,9 @@ namespace Ui {
         tgaHeader_t *data = (tgaHeader_t*) file->Data;
 
         if(!data) return;
-
+        
         uint8_t btpp = data->bpp/8;
-        uint32_t pitch = data->width * (btpp);
+        uint32_t pitch = data->width * btpp;
 
         uint64_t Bpp = 32; 
         uint64_t Btpp = Bpp / 4; 
@@ -19,7 +19,7 @@ namespace Ui {
         uint64_t Width = data->width; // Todo user arguments
         uint64_t Pitch = Width * Btpp;
 
-        cpnt->getFramebuffer()->size = Pitch * Height;
+        cpnt->getFramebuffer()->size = Pitch * (Height + 1);
         cpnt->getFramebuffer()->addr = calloc(cpnt->getFramebuffer()->size);
         cpnt->getFramebuffer()->pitch = Pitch;
         cpnt->getFramebuffer()->width = data->width;
@@ -38,15 +38,15 @@ namespace Ui {
             
             case 2:
             {
-                uint64_t imageDataOffset = data->colorMapOrigin + data->colorMapLength;
+                uint64_t imageDataOffset = data->colorMapOrigin + data->colorMapLength + 18;
 
-                for(uint64_t h = 0; h < Height; h++) {
-                    for(uint64_t w = 0; w < Width; w++) {
-                        uint8_t R = *(uint8_t*) ((uint64_t)data+imageDataOffset+w*btpp+pitch*h + 2);
-                        uint8_t G = *(uint8_t*) ((uint64_t)data+imageDataOffset+w*btpp+pitch*h + 1);
-                        uint8_t B = *(uint8_t*) ((uint64_t)data+imageDataOffset+w*btpp+pitch*h + 0);
-                        uint32_t Pixel = R | (G << 8) | (R << 16);
-                        putPixel(cpnt->getFramebuffer(), cpnt->getStyle()->x+w, cpnt->getStyle()->y+Height-h+1, Pixel);
+                for(uint64_t y = 0; y < Height; y++) {
+                    for(uint64_t x = 0; x < Width; x++) {
+                        uint8_t R = *(uint8_t*) ((uint64_t)data+imageDataOffset+x*btpp+pitch*y + 2);
+                        uint8_t G = *(uint8_t*) ((uint64_t)data+imageDataOffset+x*btpp+pitch*y + 1);
+                        uint8_t B = *(uint8_t*) ((uint64_t)data+imageDataOffset+x*btpp+pitch*y + 0);
+                        uint32_t Pixel = B | (G << 8) | (R << 16);
+                        putPixel(cpnt->getFramebuffer(), cpnt->getStyle()->x+x, cpnt->getStyle()->y+Height-y, Pixel);
                     }
                 }
 
