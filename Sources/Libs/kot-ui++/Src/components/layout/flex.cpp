@@ -14,8 +14,17 @@ namespace UiLayout {
         {
             case Layout::HORIZONTAL:
             {
+                // todo: parent -> width: 100%
+
                 if(parent->getStyle()->height < child->getStyle()->height)
                     parent->getStyle()->height = child->getStyle()->height;
+
+                /* space */
+                if(parent->getStyle()->space == Layout::BETWEEN) {
+                    
+                    
+
+                } // else around...
 
                 break;
             }
@@ -26,6 +35,22 @@ namespace UiLayout {
 
                 break;
             }
+        }
+
+        // if the child is the last
+        if(index+1 == parent->getChilds()->length)
+            recalculateFlexChilds(parent);
+
+    }
+
+    void recalculateFlexChilds(Component* parent) {
+
+        for(int i = 0; i < parent->getChilds()->length; i++) {
+
+            Component* child = (Component*) vector_get(parent->getChilds(), i);
+
+            child->getStyle()->height = parent->getStyle()->height;
+
         }
 
     }

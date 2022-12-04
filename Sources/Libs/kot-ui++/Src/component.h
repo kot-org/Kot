@@ -21,6 +21,13 @@ namespace Ui {
             HORIZONTAL, // default
             VERTICAL
         };
+    
+        /* Display */
+        enum ComponentDisplay {
+            BOX     = 0, // default
+            FLEX    = 1,
+            GRID    = 2,
+        };
 
         /* Alignment */
         enum ComponentHorizontalAlign {
@@ -34,28 +41,31 @@ namespace Ui {
             MIDDLE  = 1,
             BOTTOM  = 2,
         };
-    
-        /* Display */
-        enum ComponentDisplay {
-            BOX     = 0, // default
-            FLEX    = 1,
-            GRID    = 2,
+
+        struct ComponentAlign_t {
+            ComponentHorizontalAlign x;
+            ComponentVerticalAlign y;
+        };
+
+        /* Space */
+        enum ComponentSpace {
+            BETWEEN = 1,
+            AROUND = 2,
         };
 
     };
-
-    extern vector_t* lastComponents;
 
     class Component {
 
         public:
 
             struct ComponentStyle {
+                // todo: modifier ca
                 Layout::ComponentPosition position;
                 Layout::ComponentDisplay display;
                 Layout::ComponentDirection direction;
-                Layout::ComponentHorizontalAlign horizontalAlign;
-                Layout::ComponentVerticalAlign verticalAlign;
+                Layout::ComponentAlign_t align;
+                Layout::ComponentSpace space;
 
                 uint32_t width;
                 uint32_t height;
@@ -75,7 +85,9 @@ namespace Ui {
 
             /* Component Framebuffer */
             void createFramebuffer(uint32_t width, uint32_t height);
+            void updateFramebuffer(uint32_t width, uint32_t height);
 
+            framebuffer_t* getFramebuffer();
             ComponentStyle* getStyle();
             vector_t* getChilds();
             uint32_t getTotalWidthChilds();
@@ -96,10 +108,23 @@ namespace Ui {
             uint32_t totalWidthChilds;
             uint32_t totalHeightChilds;
             uint16_t type;
+            /* bool IsChildIsInLastComponent; */
+            bool ReadyToBlit;
 
     };
 
     /* components */
+
+    enum ImageType {
+        _TGA = 0,
+        _PNG = 1,
+        _JPG = 2,
+    };
+    typedef struct {
+        uint32_t width;
+        uint32_t height;
+    } ImageStyle;
+    Component* Picturebox(char* path, ImageType type, ImageStyle style);
 
     typedef struct {
         uint32_t width;

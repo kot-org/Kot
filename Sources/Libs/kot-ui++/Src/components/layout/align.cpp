@@ -7,7 +7,7 @@ namespace UiLayout {
         Component* child = (Component*) vector_get(parent->getChilds(), index);
 
         /* Horizontal */
-        switch(parent->getStyle()->horizontalAlign)
+        switch(parent->getStyle()->align.x)
         {
             case Layout::LEFT:
                 child->getStyle()->x = 0;
@@ -23,7 +23,7 @@ namespace UiLayout {
         }
 
         /* Vertical */
-        switch(parent->getStyle()->verticalAlign)
+        switch(parent->getStyle()->align.y)
         {
             case Layout::TOP:
                 child->getStyle()->y = 0;

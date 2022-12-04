@@ -16,8 +16,11 @@ namespace UiWindow {
         this->ctxGrph = new Graphic::ContextGphc(fb->addr, fb->width, fb->height);
         this->ctxUi = new Ui::UiContext(fb);
 
-        auto titlebar = Ui::titlebar(title, { .backgroundColor = WIN_BGCOLOR_ONFOCUS, .foregroundColor = 0xDDDDDD });
-        this->setContent(titlebar);
+        auto imgtest = Ui::Picturebox("sample.tga", Ui::ImageType::_TGA, { });
+        this->setContent(imgtest);
+
+        /* auto titlebar = Ui::titlebar(title, { .backgroundColor = WIN_BGCOLOR_ONFOCUS, .foregroundColor = 0xDDDDDD });
+        this->setContent(titlebar); */
  
 /*         auto wrapper = Ui::box({ .width = this->ctxUi->fb->width, .height = this->ctxUi->fb->height - titlebar->getStyle()->height, .color = WIN_BGCOLOR_ONFOCUS });
 
@@ -33,20 +36,20 @@ namespace UiWindow {
         orb::show(this->wid);
     }
 
-    void Window::update() {
+ /*    void Window::update() {
         for(int i = 0; i < Ui::lastComponents->length; i++) {
             Ui::Component* component = (Ui::Component*) vector_get(Ui::lastComponents, i);
-            Printlog("last child");
+            Printlog("todo: pas repeter last child");
             component->update();
         }
-    }
+    } */
 
     void Window::setContent(Ui::Component* content) {
         Ui::Component* windowCpnt = this->ctxUi->cpnt;
 
         windowCpnt->addChild(content);
 
-        this->update();
+        windowCpnt->update();
     }
 
 }

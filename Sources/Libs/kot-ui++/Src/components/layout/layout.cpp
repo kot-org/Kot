@@ -11,12 +11,12 @@ namespace UiLayout {
 
                 calculateAlignment(parent, i);
 
-                calculateFlex(parent, i);
-
+                if(parent->getStyle()->display == Layout::FLEX)
+                    calculateFlex(parent, i);
+                
                 // here we check if the child isnt the first because he must have a brother
                 if(i != 0)
                     calculatePosition(parent, i);
-                
             }
 
         }

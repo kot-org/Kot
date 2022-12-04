@@ -79,7 +79,6 @@ void loadBootAnimation(framebuffer_t* Framebuffer, uint64_t XPos, uint64_t YPos,
 }
 
 void bootAnimation(framebuffer_t* Framebuffer, uint64_t XPos, uint64_t YPos, uint64_t Width, uint64_t Height){
-
     // Remove rectangle
     XPos += 1;
     YPos += 1;
@@ -97,13 +96,15 @@ void bootAnimation(framebuffer_t* Framebuffer, uint64_t XPos, uint64_t YPos, uin
 
     uint64_t x = 0;
     uint64_t tick;
-    GetTickFromTime(&tick, 3000);
+    GetTickFromTime(&tick, 1500);
     uint64_t divider = tick / Width;
     while(true){
         GetActualTick(&tick);
+
         fillRect(&Backbuffer, x, 0, x, Height, 0x0);
         x = ((uint64_t)(tick / divider) % Width);
         fillRect(&Backbuffer, x, 0, x, Height, 0xffffff);
+
         blitFramebuffer(Framebuffer, &Backbuffer, XPos, YPos);
     }
     free(Backbuffer.addr);
