@@ -5,9 +5,11 @@
 #include <kot/types.h>
 #include <kot/utils.h>
 #include <kot/utils/vector.h>
+
 #include <kot++/printf.h>
 
 #include <srv/srv.h>
+#include <vfs/vfs.h>
 
 #define LBA_SIZE 0x200
 

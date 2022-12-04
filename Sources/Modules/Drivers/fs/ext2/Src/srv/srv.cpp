@@ -13,7 +13,7 @@ static dir_dispatch_t DirDispatcher[Dir_Function_Count] = {
 
 
 
-KResult ConnectToVFS(mount_info_t* MountInfo, process_t VFSProcess, thread_t VFSConnect){
+KResult MountToVFS(mount_info_t* MountInfo, process_t VFSProcess, thread_t VFSMountThread){
     srv_storage_fs_server_functions_t FSServerFunctions;
 
     process_t proc = Sys_GetProcess();
@@ -53,15 +53,8 @@ KResult ConnectToVFS(mount_info_t* MountInfo, process_t VFSProcess, thread_t VFS
     Sys_Createthread(proc, (uintptr_t)&Opendir, PriviledgeDriver, NULL, &OpendirThread);
     FSServerFunctions.Opendir = MakeShareableThreadToProcess(OpendirThread, VFSProcess);
 
-    arguments_t arguments;
+    Srv_Storage_MountPartition(VFSMountThread, &FSServerFunctions, true);
 
-    ShareDataWithArguments_t Data{
-        .Data = &FSServerFunctions,
-        .Size = sizeof(srv_storage_fs_server_functions_t),
-        .ParameterPosition = 0x0,
-    };
-
-    Sys_Execthread(VFSConnect, &arguments, ExecutionTypeQueu, &Data);
     return KSUCCESS;
 }
 

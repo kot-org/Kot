@@ -146,7 +146,7 @@ KResult Srv_Storage_MountPartition_Callback(KResult Status, struct srv_storage_c
     return Status;
 }
 
-struct srv_storage_callback_t* Srv_Storage_MountPartition(uint64_t ID, struct srv_storage_fs_server_functions_t* FSServerFunctions, bool IsAwait){
+struct srv_storage_callback_t* Srv_Storage_MountPartition(thread_t VFSMountThread, struct srv_storage_fs_server_functions_t* FSServerFunctions, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
     thread_t self = Sys_Getthread();
@@ -162,14 +162,14 @@ struct srv_storage_callback_t* Srv_Storage_MountPartition(uint64_t ID, struct sr
     struct arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
-    parameters.arg[2] = ID;
+    parameters.arg[2] = true;
 
     struct ShareDataWithArguments_t data;
     data.Data = FSServerFunctions;
     data.Size = sizeof(struct srv_storage_fs_server_functions_t);
     data.ParameterPosition = 0x3;
 
-    KResult Status = Sys_Execthread(StorageData->NotifyOnNewPartitionByGUIDType, &parameters, ExecutionTypeQueu, &data);
+    KResult Status = Sys_Execthread(VFSMountThread, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -183,7 +183,7 @@ KResult Srv_Storage_UnmountPartition_Callback(KResult Status, struct srv_storage
     return Status;
 }
 
-struct srv_storage_callback_t* Srv_Storage_UnmountPartition(uint64_t ID, bool IsAwait){
+struct srv_storage_callback_t* Srv_Storage_UnmountPartition(thread_t VFSUnmountThread, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
     thread_t self = Sys_Getthread();
@@ -199,9 +199,9 @@ struct srv_storage_callback_t* Srv_Storage_UnmountPartition(uint64_t ID, bool Is
     struct arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
-    parameters.arg[2] = ID;
+    parameters.arg[2] = false;
 
-    KResult Status = Sys_Execthread(StorageData->NotifyOnNewPartitionByGUIDType, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_Execthread(VFSUnmountThread, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }

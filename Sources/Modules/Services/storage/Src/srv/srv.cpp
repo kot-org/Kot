@@ -14,7 +14,7 @@ KResult InitialiseSrv(){
     SrvData->ControllerHeader.Version = Storage_Srv_Version;
     SrvData->ControllerHeader.VendorID = Kot_VendorID;
     SrvData->ControllerHeader.Type = ControllerTypeEnum_Storage;
-    SrvData->ControllerHeader.Process = ShareProcessKeyToProcess(proc);
+    SrvData->ControllerHeader.Process = ShareProcessKey(proc);
 
     /* AddDevice */
     thread_t AddDeviceThread = NULL;
@@ -31,16 +31,6 @@ KResult InitialiseSrv(){
     thread_t CountPartitionByGUIDTypeThread = NULL;
     Sys_Createthread(proc, (uintptr_t)&NotifyOnNewPartitionByGUIDTypeSrv, PriviledgeApp, NULL, &CountPartitionByGUIDTypeThread);
     SrvData->NotifyOnNewPartitionByGUIDType = MakeShareableThread(CountPartitionByGUIDTypeThread, PriviledgeDriver);
-
-    /* MountPartition */
-    thread_t MountPartitionThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&MountPartitionSrv, PriviledgeApp, NULL, &MountPartitionThread);
-    SrvData->MountPartition = MakeShareableThread(MountPartitionThread, PriviledgeDriver);
-
-    /* UnmountPartition */
-    thread_t UnmountPartitionThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&UnmountPartitionSrv, PriviledgeApp, NULL, &UnmountPartitionThread);
-    SrvData->UnmountPartition = MakeShareableThread(UnmountPartitionThread, PriviledgeDriver);
     
     uisd_callbackInfo_t* info = CreateControllerUISD(ControllerTypeEnum_Storage, key, true);   
     free(info); 
@@ -95,39 +85,6 @@ KResult NotifyOnNewPartitionByGUIDTypeSrv(thread_t Callback, uint64_t CallbackAr
         .arg[4] = NULL,             /* GP2 */
         .arg[5] = NULL,             /* GP3 */
     };
-
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
-}
-
-KResult MountPartitionSrv(thread_t Callback, uint64_t CallbackArg, uint64_t PartitonID, srv_storage_fs_server_functions_t* FSServerFunctions){
-    KResult Statu = MountPartition(PartitonID, FSServerFunctions);
-    
-    arguments_t arguments{
-        .arg[0] = Statu,            /* Status */
-        .arg[1] = CallbackArg,      /* CallbackArg */
-        .arg[2] = NULL,             /* GP0 */
-        .arg[3] = NULL,             /* GP1 */
-        .arg[4] = NULL,             /* GP2 */
-        .arg[5] = NULL,             /* GP3 */
-    };
-
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
-}
-
-KResult UnmountPartitionSrv(thread_t Callback, uint64_t CallbackArg, uint64_t PartitonID){
-    KResult Statu = UnmountPartition(PartitonID);
-    
-    arguments_t arguments{
-        .arg[0] = Statu,            /* Status */
-        .arg[1] = CallbackArg,      /* CallbackArg */
-        .arg[2] = NULL,             /* GP0 */
-        .arg[3] = NULL,             /* GP1 */
-        .arg[4] = NULL,             /* GP2 */
-        .arg[5] = NULL,             /* GP3 */
-    };
-
 
     Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);

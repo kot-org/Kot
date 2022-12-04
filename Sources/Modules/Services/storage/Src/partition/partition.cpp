@@ -32,8 +32,16 @@ partition_t* NewPartition(storage_device_t* Device, uint64_t Start, uint64_t Siz
             Self->Device->CreateSpace(Start, Size, &Space);
             vector_push(Self->SpaceList, Space);
 
+            thread_t VFSMountThread;
+            thread_t VFSMountThreadPrivate;
+
+            Sys_Createthread(Sys_GetProcess(), (uintptr_t)&VFSMount, PriviledgeDriver, (uint64_t)Self, &VFSMountThreadPrivate);
+            VFSMountThread = MakeShareableThreadToProcess(VFSMountThreadPrivate, NotifyInfo->ProcessToNotify);
+
             arguments_t Parameters{
                 .arg[0] = i,
+                .arg[2] = VFSProcess,
+                .arg[3] = VFSMountThread,
             };
             srv_storage_space_info_t SpaceInfo;
 
@@ -86,8 +94,16 @@ uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* GUIDTarget, thread_t ThreadToNot
                 Partition->Device->CreateSpace(Partition->Start, Partition->Size, &Space);
                 vector_push(Partition->SpaceList, Space);
 
+                thread_t VFSMountThread;
+                thread_t VFSMountThreadPrivate;
+
+                Sys_Createthread(Sys_GetProcess(), (uintptr_t)&VFSMount, PriviledgeDriver, (uint64_t)Partition, &VFSMountThreadPrivate);
+                VFSMountThread = MakeShareableThreadToProcess(VFSMountThreadPrivate, NotifyInfo->ProcessToNotify);
+
                 arguments_t Parameters{
                     .arg[0] = i,
+                    .arg[2] = VFSProcess,
+                    .arg[3] = VFSMountThread,
                 };
                 srv_storage_space_info_t SpaceInfo;
                 memcpy(&SpaceInfo, Space, sizeof(srv_storage_space_info_t));
@@ -110,21 +126,15 @@ uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* GUIDTarget, thread_t ThreadToNot
     return KSUCCESS;
 }
 
-KResult MountPartition(uint64_t PartitonID, srv_storage_fs_server_functions_t* FSServerFunctions){
+KResult MountPartition(uint64_t PartitonID){
     KResult Status = KFAIL;
 
     atomicAcquire(&PartitionLock, 0);
     if(PartitonID < PartitionsList->length){
         partition_t* Partition = (partition_t*)vector_get(PartitionsList, PartitonID);
         if(!Partition->IsMount){
-            // TODO: check keys
-            Partition->FSServerFunctions.Rename = FSServerFunctions->Rename;
-            Partition->FSServerFunctions.Remove = FSServerFunctions->Remove;
-            Partition->FSServerFunctions.Fopen = FSServerFunctions->Fopen;
-            Partition->FSServerFunctions.Mkdir = FSServerFunctions->Mkdir;
-            Partition->FSServerFunctions.Readdir = FSServerFunctions->Readdir;
-            Partition->FSServerFunctions.Flist = FSServerFunctions->Flist;
             Partition->IsMount = true;
+            Status = KSUCCESS;
         }
     }
     atomicUnlock(&PartitionLock, 0);
@@ -139,9 +149,10 @@ KResult UnmountPartition(uint64_t PartitonID){
         partition_t* Partition = (partition_t*)vector_get(PartitionsList, PartitonID);
         if(Partition->IsMount){
             Partition->IsMount = false;
-            atomicUnlock(&PartitionLock, 0);
+            Status = KSUCCESS;
         }
     }
+    atomicUnlock(&PartitionLock, 0);
     return Status;
 }
 

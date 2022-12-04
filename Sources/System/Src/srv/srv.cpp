@@ -12,7 +12,7 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
     SystemSrv->ControllerHeader.Version = System_Srv_Version;
     SystemSrv->ControllerHeader.VendorID = Kot_VendorID;
     SystemSrv->ControllerHeader.Type = ControllerTypeEnum_System;
-    SystemSrv->ControllerHeader.Process = ShareProcessKeyToProcess(proc);
+    SystemSrv->ControllerHeader.Process = ShareProcessKey(proc);
 
     /* Setup threads */
 

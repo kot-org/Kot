@@ -51,7 +51,7 @@ void InitializePartition();
 struct partition_t* NewPartition(struct storage_device_t* Device, uint64_t Start, uint64_t Size, GUID_t* PartitionTypeGUID);
 struct partition_t* GetPartition(uint64_t Index);
 uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* PartitionTypeGUID, thread_t ThreadToNotify, process_t ProcessToNotify);
-KResult MountPartition(uint64_t ID, struct srv_storage_fs_server_functions_t* FSServerFunctions);
-KResult UnmountPartition(uint64_t ID);
+KResult MountPartition(uint64_t PartitonID);
+KResult UnmountPartition(uint64_t PartitonID);
 
 void LoadPartitionSystem(storage_device_t* Device);

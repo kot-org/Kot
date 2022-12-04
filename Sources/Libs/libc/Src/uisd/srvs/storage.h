@@ -76,8 +76,8 @@ void Srv_Storage_Callback(KResult Status, struct srv_storage_callback_t* Callbac
 struct srv_storage_callback_t* Srv_Storage_AddDevice(struct srv_storage_device_info_t* Info, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_RemoveDevice(uint64_t Index, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_NotifyOnNewPartitionByGUIDType(struct GUID_t* PartitionTypeGUID, thread_t ThreadToNotify, process_t ProcessToNotify, bool IsAwait);
-struct srv_storage_callback_t* Srv_Storage_MountPartition(uint64_t ID, struct srv_storage_fs_server_functions_t* FSServerFunctions, bool IsAwait);
-struct srv_storage_callback_t* Srv_Storage_UnmountPartition(uint64_t ID, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_MountPartition(thread_t VFSMountThread, struct srv_storage_fs_server_functions_t* FSServerFunctions, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_UnmountPartition(thread_t VFSMountThread, bool IsAwait);
 
 #if defined(__cplusplus)
 }

@@ -14,11 +14,11 @@
 #define Dir_Function_Close 0x0
 #define Dir_Function_Read  0x1
 
-typedef KResult (*file_dispatch_t)(thread_t Callback, uint64_t CallbackArg, file_t* file, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3);
-typedef KResult (*dir_dispatch_t)(thread_t Callback, uint64_t CallbackArg, directory_t* directory, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3);
+typedef KResult (*file_dispatch_t)(thread_t Callback, uint64_t CallbackArg, struct file_t* file, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3);
+typedef KResult (*dir_dispatch_t)(thread_t Callback, uint64_t CallbackArg, struct directory_t* directory, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3);
 
 
-KResult ConnectToVFS(struct mount_info_t* MountInfo, process_t VFSProcess, thread_t VFSConnect);
+KResult MountToVFS(struct mount_info_t* MountInfo, process_t VFSProcess, thread_t VFSMountThread);
 
 KResult ChangeUserData(thread_t Callback, uint64_t CallbackArg, uint64_t UID, uint64_t GID, char* UserName);
 

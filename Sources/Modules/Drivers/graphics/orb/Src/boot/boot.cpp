@@ -96,7 +96,7 @@ void bootAnimation(framebuffer_t* Framebuffer, uint64_t XPos, uint64_t YPos, uin
 
     uint64_t x = 0;
     uint64_t tick;
-    GetTickFromTime(&tick, 1500);
+    GetTickFromTime(&tick, 3000);
     uint64_t divider = tick / Width;
     while(true){
         GetActualTick(&tick);

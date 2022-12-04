@@ -14,7 +14,7 @@ KResult InitialiseServer(){
     SrvData->ControllerHeader.Version = Time_Srv_Version;
     SrvData->ControllerHeader.VendorID = Kot_VendorID;
     SrvData->ControllerHeader.Type = ControllerTypeEnum_Time;
-    SrvData->ControllerHeader.Process = ShareProcessKeyToProcess(proc);
+    SrvData->ControllerHeader.Process = ShareProcessKey(proc);
 
 
     /* SetTimePointerKey */

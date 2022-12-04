@@ -100,8 +100,6 @@ typedef struct {
     thread_t RemoveDevice;
 
     thread_t NotifyOnNewPartitionByGUIDType;
-    thread_t MountPartition;
-    thread_t UnmountPartition;
 
     /* VFS */
     thread_t ChangeUserData;
@@ -150,8 +148,7 @@ thread_t MakeShareableThread(thread_t Thread, enum Priviledge priviledgeRequired
 thread_t MakeShareableThreadUISDOnly(thread_t Thread);
 thread_t MakeShareableThreadToProcess(thread_t Thread, process_t Process);
 thread_t MakeShareableSpreadThreadToProcess(thread_t Thread, process_t Process);
-process_t ShareProcessKeyToProcess(process_t Process);
-process_t ShareProcessKey();
+process_t ShareProcessKey(process_t Process);
 
 uintptr_t GetControllerLocationUISD(enum ControllerTypeEnum Controller);
 uintptr_t FindControllerUISD(enum ControllerTypeEnum Controller);

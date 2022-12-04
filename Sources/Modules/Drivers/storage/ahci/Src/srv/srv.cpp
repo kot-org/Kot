@@ -28,7 +28,7 @@ void SrvAddDevice(Device* Device){
     Info.MainSpace.SpaceSize = Device->DefaultSpace->Size;
     Info.MainSpace.BufferRWAlignement = Device->BufferAlignement;
     Info.MainSpace.BufferRWUsableSize = Device->BufferUsableSize;
-    Info.MainSpace.DriverProc = ShareProcessKeyToProcess(Proc);
+    Info.MainSpace.DriverProc = ShareProcessKey(Proc);
     Info.DeviceSize = Device->GetSize();
 
     memcpy(&Info.SerialNumber, Device->GetSerialNumber(), Serial_Number_Size);

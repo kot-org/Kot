@@ -9,18 +9,18 @@ GUID_t GUIDToListen[]{
 process_t ProcessKey;
 
 void InitializeVolumeListener(){
-    ProcessKey = ShareProcessKey();
+    ProcessKey = ShareProcessKey(Sys_GetProcess());
     Sys_Createthread(Sys_GetProcess(), (uintptr_t)&ListenerEvent, PriviledgeDriver, NULL, &ListenerEventThread);
-    process_t ShareProcess = ShareProcessKeyToProcess(Sys_GetProcess());
+    process_t ShareProcess = ShareProcessKey(Sys_GetProcess());
     for(uint64_t i = 0; i < GUIDToListenSize; i++){
         Srv_Storage_NotifyOnNewPartitionByGUIDType(&GUIDToListen[i], ListenerEventThread, ShareProcess, true);
     }
 }
 
-void ListenerEvent(uint64_t VolumeID, srv_storage_space_info_t* StorageSpace, process_t VFSProcess, thread_t VFSConnect){
+void ListenerEvent(uint64_t VolumeID, srv_storage_space_info_t* StorageSpace, process_t VFSProcess, thread_t VFSMountThread){
     srv_storage_device_t* StorageDevice;
     Srv_StorageInitializeDeviceAccess(StorageSpace, &StorageDevice);
     mount_info_t* MountInfo = InitializeMount(StorageDevice);
-    ConnectToVFS(MountInfo, VFSProcess, VFSConnect);
+    MountToVFS(MountInfo, VFSProcess, VFSMountThread);
     Sys_Close(KSUCCESS);
 }
