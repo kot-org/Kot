@@ -1074,9 +1074,19 @@ KResult mount_info_t::FreeInodeBlock(inode_t* inode, uint64_t block){
     return KFAIL;
 }
 
+KResult mount_info_t::CheckPermissions(inode_t* inode, permissions_t permissions, permissions_t permissions_requested){
+    // TODO
+    return KSUCCESS;
+}
 
 
-KResult mount_info_t::CreateDir(char* path, char* name, uint64_t permissions){
+KResult mount_info_t::CreateDir(char* path, char* name, permissions_t permissions){
+    inode_t* Directory = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), path);
+    if(CheckPermissions(Directory, permissions, File_Permissions_Write) != KSUCCESS){
+        free(Directory);
+        return KFAIL;
+    }
+    
     uint64_t DirInode = NULL;
     KResult Status = AllocateInode(&DirInode);
     if(Status != KSUCCESS) return Status;
@@ -1094,11 +1104,14 @@ KResult mount_info_t::CreateDir(char* path, char* name, uint64_t permissions){
     SetSizeFromInode(Inode, NULL);
     SetInode(Inode);
 
-    LinkInodeToDirectory(FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), path), Inode, name);
+    LinkInodeToDirectory(Directory, Inode, name);
+
+    free(Directory);
+    free(Inode);
     return KSUCCESS;
 }
 
-KResult mount_info_t::RemoveDir(char* path, uint64_t permissions){
+KResult mount_info_t::RemoveDir(char* path, permissions_t permissions){
     inode_t* Inode = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), path);
     if(Inode->Inode.mode != INODE_TYPE_DIRECTORY){
         free(Inode);
@@ -1108,24 +1121,33 @@ KResult mount_info_t::RemoveDir(char* path, uint64_t permissions){
     char* OldPathDirectory = OldPathSB->substr(NULL, OldPathSB->indexOf("/", 0, true));
     char* OldName = OldPathSB->substr(OldPathSB->indexOf("/", 0, true), OldPathSB->length());
 
-    UnlinkInodeToDirectory(FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), OldPathDirectory), OldName);
+    inode_t* DirectoryOld = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), OldPathDirectory);
+
+    if(CheckPermissions(DirectoryOld, permissions, File_Permissions_Write) != KSUCCESS){
+        free(DirectoryOld);
+        free(Inode);
+        return KSUCCESS; 
+    }
+
+    UnlinkInodeToDirectory(DirectoryOld, OldName);
     DeleteInode(Inode);
 
+    free(DirectoryOld);
     free(Inode);
     return KSUCCESS;  
 }
 
-directory_t* mount_info_t::OpenDir(char* path, uint64_t permissions){
+ext_directory_t* mount_info_t::OpenDir(char* path, permissions_t permissions){
     inode_t* RootInode = GetInode(EXT_ROOT_INO);
-    directory_t* Target = OpenDir(GetInode(EXT_ROOT_INO), path, permissions);
+    ext_directory_t* Target = OpenDir(GetInode(EXT_ROOT_INO), path, permissions);
     free(RootInode);
     return Target;
 }
 
-directory_t* mount_info_t::OpenDir(inode_t* inode, char* path, uint64_t permissions){
+ext_directory_t* mount_info_t::OpenDir(inode_t* inode, char* path, permissions_t permissions){
     inode_t* Target = FindInodeFromInodeEntryAndPath(inode, path);
-    if(Target->Inode.mode & INODE_TYPE_DIRECTORY){
-        directory_t* Directory = (directory_t*)malloc(sizeof(directory_t));
+    if(Target->Inode.mode & INODE_TYPE_DIRECTORY && CheckPermissions(Target, permissions, File_Permissions_Read) == KSUCCESS){
+        ext_directory_t* Directory = (ext_directory_t*)malloc(sizeof(ext_directory_t));
         Directory->Inode = Target;
         Directory->MountInfo = this;
         Directory->Permissions = permissions;
@@ -1136,7 +1158,7 @@ directory_t* mount_info_t::OpenDir(inode_t* inode, char* path, uint64_t permissi
     return NULL;
 }
 
-read_dir_data* directory_t::ReadDir(uint64_t index){
+read_dir_data* ext_directory_t::ReadDir(uint64_t index){
     Inode->Inode.atime = GetPosixTime();
     MountInfo->SetInode(Inode);
 
@@ -1168,13 +1190,13 @@ read_dir_data* directory_t::ReadDir(uint64_t index){
     return NULL;
 }
 
-KResult directory_t::CloseDir(){
+KResult ext_directory_t::CloseDir(){
     free(this);
     return KSUCCESS;
 }
 
 
-KResult mount_info_t::Rename(char* old_path, char* new_path, uint64_t permissions){
+KResult mount_info_t::Rename(char* old_path, char* new_path, permissions_t permissions){
     inode_t* Inode = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), old_path);
     if(Inode->Inode.mode != INODE_TYPE_DIRECTORY && Inode->Inode.mode != INODE_TYPE_REGULAR_FILE){
         free(Inode);
@@ -1189,12 +1211,52 @@ KResult mount_info_t::Rename(char* old_path, char* new_path, uint64_t permission
     char* NewPathDirectory = NewPathSB->substr(NULL, NewPathSB->indexOf("/", 0, true));
     char* NewName = OldPathSB->substr(OldPathSB->indexOf("/", 0, true), OldPathSB->length());
 
-    UnlinkInodeToDirectory(FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), OldPathDirectory), OldName);
-    LinkInodeToDirectory(FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), NewPathDirectory), Inode, NewName);
+    inode_t* DirectoryOld = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), OldPathDirectory);
+    if(CheckPermissions(DirectoryOld, permissions, File_Permissions_Write) != KSUCCESS){
+        free(Inode);
+        free(OldPathDirectory);
+        free(OldName);
+        free(NewPathDirectory);
+        free(NewName);
+        free(OldPathSB);
+        free(DirectoryOld);
+        return KFAIL;
+    } 
+
+    inode_t* DirectoryNew = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), NewPathDirectory);
+    if(CheckPermissions(DirectoryNew, permissions, File_Permissions_Write) != KSUCCESS){
+        free(Inode);
+        free(OldPathDirectory);
+        free(OldName);
+        free(NewPathDirectory);
+        free(NewName);
+        free(OldPathSB);
+        free(DirectoryOld);
+        free(DirectoryNew);
+        return KFAIL;
+    } 
+
+    UnlinkInodeToDirectory(DirectoryOld, OldName);
+    LinkInodeToDirectory(DirectoryNew, Inode, NewName);
+    
+    free(Inode);
+    free(OldPathDirectory);
+    free(OldName);
+    free(NewPathDirectory);
+    free(NewName);
+    free(OldPathSB);
+    free(DirectoryOld);
+    free(DirectoryNew);
     return KSUCCESS;
 }
 
-KResult mount_info_t::CreateFile(char* path, char* name, uint64_t permissions){
+KResult mount_info_t::CreateFile(char* path, char* name, permissions_t permissions){
+    inode_t* Directory = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), path);
+    if(CheckPermissions(Directory, permissions, File_Permissions_Create_File) != KSUCCESS){
+        free(Directory);
+        return KFAIL;
+    }
+
     uint64_t FileInode = NULL;
     KResult Status = AllocateInode(&FileInode);
     if(Status != KSUCCESS) return Status;
@@ -1212,13 +1274,16 @@ KResult mount_info_t::CreateFile(char* path, char* name, uint64_t permissions){
     SetSizeFromInode(Inode, NULL);
     SetInode(Inode);
 
-    LinkInodeToDirectory(FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), path), Inode, name);
+    LinkInodeToDirectory(Directory, Inode, name);
+
+    free(Directory);
+    free(Inode);
     return KSUCCESS;
 }
 
-KResult mount_info_t::RemoveFile(char* path, uint64_t permissions){
+KResult mount_info_t::RemoveFile(char* path, permissions_t permissions){
     inode_t* Inode = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), path);
-    if(Inode->Inode.mode != INODE_TYPE_REGULAR_FILE){
+    if(Inode->Inode.mode != INODE_TYPE_REGULAR_FILE || CheckPermissions(Inode, permissions, File_Permissions_Write)){
         free(Inode);
         return KFAIL;
     }
@@ -1226,24 +1291,45 @@ KResult mount_info_t::RemoveFile(char* path, uint64_t permissions){
     char* OldPathDirectory = OldPathSB->substr(NULL, OldPathSB->indexOf("/", 0, true));
     char* OldName = OldPathSB->substr(OldPathSB->indexOf("/", 0, true), OldPathSB->length());
 
-    UnlinkInodeToDirectory(FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), OldPathDirectory), OldName);
+    inode_t* Directory = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), OldPathDirectory);
+    if(CheckPermissions(Directory, permissions, File_Permissions_Write) != KSUCCESS){
+        free(Directory);
+        free(Inode);
+        return KFAIL;
+    }
+
+    UnlinkInodeToDirectory(Directory, OldName);
     DeleteInode(Inode);
 
+    free(Directory);
     free(Inode);
     return KSUCCESS; 
 }
 
-file_t* mount_info_t::OpenFile(char* path, uint64_t permissions){
+ext_file_t* mount_info_t::OpenFile(char* path, permissions_t permissions){
     inode_t* RootInode = GetInode(EXT_ROOT_INO);
-    file_t* Target = OpenFile(GetInode(EXT_ROOT_INO), path, permissions);
+    ext_file_t* Target = OpenFile(GetInode(EXT_ROOT_INO), path, permissions);
     free(RootInode);
     return Target;
 }
 
-file_t* mount_info_t::OpenFile(inode_t* inode, char* path, uint64_t permissions){
+ext_file_t* mount_info_t::OpenFile(inode_t* inode, char* path, permissions_t permissions){
     inode_t* Target = FindInodeFromInodeEntryAndPath(inode, path);
-    if(Target->Inode.mode & INODE_TYPE_REGULAR_FILE){
-        file_t* File = (file_t*)malloc(sizeof(file_t));
+    if(!Target){
+        if(permissions & File_Permissions_Write){
+            std::StringBuilder* CreatePathSB = new std::StringBuilder(path);
+            char* CreatePathDirectory = CreatePathSB->substr(NULL, CreatePathSB->indexOf("/", 0, true));
+            char* CreateName = CreatePathSB->substr(CreatePathSB->indexOf("/", 0, true), CreatePathSB->length());
+            CreateFile(CreatePathDirectory, CreateName, permissions);
+            Target = FindInodeFromInodeEntryAndPath(inode, path);
+            if(!Target) return NULL;
+        }else{
+            return NULL;
+        }
+    }
+
+    if(Target->Inode.mode & INODE_TYPE_REGULAR_FILE && CheckPermissions(Target, permissions, File_Permissions_Read) == KSUCCESS){
+        ext_file_t* File = (ext_file_t*)malloc(sizeof(ext_file_t));
         File->Inode = Target;
         File->MountInfo = this;
         File->Size = GetSizeFromInode(File->Inode);
@@ -1255,19 +1341,25 @@ file_t* mount_info_t::OpenFile(inode_t* inode, char* path, uint64_t permissions)
     return NULL;
 }
 
-KResult file_t::ReadFile(uintptr_t buffer, uint64_t start, size64_t size){
-    Inode->Inode.atime = GetPosixTime();
-    MountInfo->SetInode(Inode);
-    return MountInfo->ReadInode(Inode, buffer, start, size);
+KResult ext_file_t::ReadFile(uintptr_t buffer, uint64_t start, size64_t size){
+    if(Permissions & File_Permissions_Read){
+        Inode->Inode.atime = GetPosixTime();
+        MountInfo->SetInode(Inode);
+        return MountInfo->ReadInode(Inode, buffer, start, size);
+    }
+    return KFAIL;
 }
 
-KResult file_t::WriteFile(uintptr_t buffer, uint64_t start, size64_t size, bool is_data_end){
-    Inode->Inode.mtime = GetPosixTime();
-    MountInfo->SetInode(Inode);
-    return MountInfo->WriteInode(Inode, buffer, start, size, is_data_end);
+KResult ext_file_t::WriteFile(uintptr_t buffer, uint64_t start, size64_t size, bool is_data_end){
+    if(Permissions & File_Permissions_Write){
+        Inode->Inode.mtime = GetPosixTime();
+        MountInfo->SetInode(Inode);
+        return MountInfo->WriteInode(Inode, buffer, start, size, is_data_end);
+    }
+    return KFAIL;
 }
 
-KResult file_t::CloseFile(){
+KResult ext_file_t::CloseFile(){
     free(this);
     return KSUCCESS;
 }

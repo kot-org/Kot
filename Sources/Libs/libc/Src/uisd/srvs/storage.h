@@ -9,12 +9,24 @@
 extern "C" {
 #endif
 
-#define Serial_Number_Size          0x14
-#define Drive_Model_Number_Size     0x28
+#define Serial_Number_Size              0x14
+#define Drive_Model_Number_Size         0x28
 
-#define File_Permissions_Super_User      0x0
-#define File_Permissions_Read            0x1
-#define File_Permissions_Write           0x2
+#define File_Permissions_Super_User     0x0
+#define File_Permissions_Read           0x1
+#define File_Permissions_Write          0x2
+#define File_Permissions_Create_File    0x3
+
+
+#define Client_VFS_Function_Count       0x6
+
+#define Client_VFS_File_Remove          0x0
+#define Client_VFS_File_OPEN            0x1
+#define Client_VFS_Rename               0x2
+#define Client_VFS_Dir_Create           0x3
+#define Client_VFS_Dir_Remove           0x4
+#define Client_VFS_Dir_Open             0x5
+
 
 typedef KResult (*StorageCallbackHandler)(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
@@ -60,6 +72,11 @@ struct srv_storage_fs_server_open_dir_data_t{
     process_t FSDriverProc;    
 };
 
+struct srv_storage_fs_server_rename_t{
+    uint64_t OldPathPosition; 
+    uint64_t NewPathPosition; 
+};
+
 struct srv_storage_callback_t{
     thread_t Self;
     uint64_t Data;
@@ -68,6 +85,17 @@ struct srv_storage_callback_t{
     KResult Status;
     StorageCallbackHandler Handler;
 };
+
+typedef struct {
+
+} file_t;
+
+typedef struct {
+
+} directory_t;
+
+typedef uint64_t mode_t;
+typedef uint64_t permissions_t;
 
 void Srv_Storage_Initialize();
 

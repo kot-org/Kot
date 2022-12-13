@@ -208,3 +208,40 @@ struct srv_storage_callback_t* Srv_Storage_UnmountPartition(thread_t VFSUnmountT
     return callback;
 }
 
+
+/* VFS */
+
+
+// TODO Change user data
+
+
+/* Removefile */
+
+KResult Srv_Storage_Removefile_Callback(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    return Status;
+}
+
+struct srv_storage_callback_t* Srv_Storage_Removefile(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions, bool IsAwait){
+    if(!srv_storage_callback_thread) Srv_Storage_Initialize();
+    
+    thread_t self = Sys_Getthread();
+
+    struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Storage_MountPartition_Callback;
+
+    struct arguments_t parameters;
+    parameters.arg[0] = srv_storage_callback_thread;
+    parameters.arg[1] = callback;
+    parameters.arg[2] = false;
+
+    KResult Status = Sys_Execthread(StorageData->Removefile, &parameters, ExecutionTypeQueu, NULL);
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}

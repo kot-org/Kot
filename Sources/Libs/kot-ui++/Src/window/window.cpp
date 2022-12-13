@@ -48,8 +48,7 @@ namespace UiWindow {
         Ui::Component* windowCpnt = this->ctxUi->cpnt;
 
         windowCpnt->addChild(content);
-
-        windowCpnt->update();
+        content->update();
     }
 
 }

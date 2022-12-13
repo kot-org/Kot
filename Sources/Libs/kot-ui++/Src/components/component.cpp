@@ -134,23 +134,10 @@ namespace Ui {
         
         //this->draw();
 
-        if(childs != NULL) {
-
-            for(int i = 0; i < childs->length; i++) {
-                Component* child = (Component*) vector_get(childs, i);
-
-                if(child->ReadyToBlit == true)
-                    blitFramebuffer(this->fb, child->fb, child->style->x, child->style->y);
-                else 
-                    child->update();
-
-            }
-
-        }
-        this->ReadyToBlit = true;
-
-        if(parent != NULL)
+        if(parent != NULL){
+            blitFramebuffer(parent->fb, this->fb, this->style->x, this->style->y);
             parent->update();
+        }
 
     }
 

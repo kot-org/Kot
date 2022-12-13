@@ -202,19 +202,19 @@ struct inode_t{
 
 #define INODE_EXTRA_SIZE sizeof(inode_t) - sizeof(ext2_inode_t)
 
-struct directory_t{
+struct ext_directory_t{
     struct mount_info_t* MountInfo;
     struct inode_t* Inode;
-    uint64_t Permissions;
+    permissions_t Permissions;
     struct read_dir_data* ReadDir(uint64_t index);
     KResult CloseDir();
 };
 
-struct file_t{
+struct ext_file_t{
     struct mount_info_t* MountInfo;
     struct inode_t* Inode;
     size64_t Size;
-    uint64_t Permissions;
+    permissions_t Permissions;
     KResult ReadFile(uintptr_t buffer, uint64_t start, size64_t size);
     KResult WriteFile(uintptr_t buffer, uint64_t start, size64_t size, bool is_data_end);
     KResult CloseFile();
@@ -310,17 +310,19 @@ struct mount_info_t{
     KResult AllocateInodeBlock(struct inode_t* inode, uint64_t block);
     KResult FreeInodeBlock(struct inode_t* inode, uint64_t block);
 
-    KResult CreateDir(char* path, char* name, uint64_t permissions);
-    KResult RemoveDir(char* path, uint64_t permissions);
-    struct directory_t* OpenDir(char* path, uint64_t permissions);
-    struct directory_t* OpenDir(struct inode_t* inode, char* path, uint64_t permissions);
-    
-    KResult Rename(char* old_path, char* new_path, uint64_t permissions);
+    KResult CheckPermissions(inode_t* inode, permissions_t permissions, permissions_t permissions_requested);
 
-    KResult CreateFile(char* path, char* name, uint64_t permissions);
-    KResult RemoveFile(char* path, uint64_t permissions);
-    struct file_t* OpenFile(char* path, uint64_t permissions);
-    struct file_t* OpenFile(inode_t* inode, char* path, uint64_t permissions);
+    KResult CreateDir(char* path, char* name, permissions_t permissions);
+    KResult RemoveDir(char* path, permissions_t permissions);
+    struct ext_directory_t* OpenDir(char* path, permissions_t permissions);
+    struct ext_directory_t* OpenDir(struct inode_t* inode, char* path, permissions_t permissions);
+    
+    KResult Rename(char* old_path, char* new_path, permissions_t permissions);
+
+    KResult CreateFile(char* path, char* name, permissions_t permissions);
+    KResult RemoveFile(char* path, permissions_t permissions);
+    struct ext_file_t* OpenFile(char* path, permissions_t permissions);
+    struct ext_file_t* OpenFile(inode_t* inode, char* path, permissions_t permissions);
 };
 
 

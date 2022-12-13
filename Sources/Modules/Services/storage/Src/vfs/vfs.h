@@ -1,8 +1,20 @@
 #pragma once
 
 #include <core/main.h>
+#include <kot/uisd/srvs/storage.h>
+
+#include <kot++/string.h>
 
 extern process_t VFSProcess;
+
+
+struct ClientVFSContext{
+    permissions_t Permissions;
+    struct partition_t* Partition;
+    char* Path;
+};
+
+typedef KResult (*client_vfs_dispatch_t)(thread_t Callback, uint64_t CallbackArg, struct ClientVFSContext* Context, permissions_t Permissions, uint64_t GP0, uint64_t GP1, uint64_t GP2);
 
 KResult InitializeVFS();
 

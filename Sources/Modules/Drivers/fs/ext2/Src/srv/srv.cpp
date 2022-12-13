@@ -83,7 +83,7 @@ KResult ChangeUserData(thread_t Callback, uint64_t CallbackArg, uint64_t UID, ui
 /* Files */
 
 /* VFS access */
-KResult Removefile(thread_t Callback, uint64_t CallbackArg, char* Path, uint64_t Permissions){
+KResult Removefile(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions){
     mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
 
     KResult Statu = MountInfo->RemoveFile(Path, Permissions);
@@ -102,11 +102,11 @@ KResult Removefile(thread_t Callback, uint64_t CallbackArg, char* Path, uint64_t
 }
 
 /* VFS access */
-KResult Openfile(thread_t Callback, uint64_t CallbackArg, char* Path, uint64_t Permissions, process_t Target){
+KResult Openfile(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions, process_t Target){
     mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
     KResult Statu = KFAIL;
 
-    file_t* File = NULL;
+    ext_file_t* File = NULL;
 
     if(File = MountInfo->OpenFile(Path, Permissions)){
         Statu = KSUCCESS;
@@ -152,17 +152,27 @@ KResult FileDispatch(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint
     uint32_t Function = GP0 & 0xffffffff;
     uint32_t GP4 =  GP0 >> 32;
 
-    if(Function >= Syscall_Count){
-        return KFAIL;
+    if(Function >= File_Function_Count){
+        arguments_t arguments{
+            .arg[0] = KFAIL,            /* Status */
+            .arg[1] = CallbackArg,      /* CallbackArg */
+            .arg[2] = NULL,             /* GP0 */
+            .arg[3] = NULL,             /* GP1 */
+            .arg[4] = NULL,             /* GP2 */
+            .arg[5] = NULL,             /* GP3 */
+        };
+
+        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_Close(KSUCCESS);
     }
 
-    file_t* File = (file_t*)Sys_GetExternalDataThread();
+    ext_file_t* File = (ext_file_t*)Sys_GetExternalDataThread();
 
     Sys_Close(FileDispatcher[Function](Callback, CallbackArg, File, GP1, GP2, GP3, GP4));
 }
 
 /* Direct access */
-KResult Closefile(thread_t Callback, uint64_t CallbackArg, file_t* File, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
+KResult Closefile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
     KResult Statu = File->CloseFile();
     
     arguments_t arguments{
@@ -184,7 +194,7 @@ KResult Closefile(thread_t Callback, uint64_t CallbackArg, file_t* File, uint64_
 }
 
 /* Direct access */
-KResult Readfile(thread_t Callback, uint64_t CallbackArg, file_t* File, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
+KResult Readfile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
     size64_t Size = GP2;
 
     uintptr_t Buffer = malloc(Size);
@@ -220,7 +230,7 @@ KResult Readfile(thread_t Callback, uint64_t CallbackArg, file_t* File, uint64_t
 }
 
 /* Direct access */
-KResult Writefile(thread_t Callback, uint64_t CallbackArg, file_t* File, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
+KResult Writefile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
     KResult Statu = KFAIL;
     
     uint64_t TypePointer;
@@ -254,7 +264,10 @@ KResult Writefile(thread_t Callback, uint64_t CallbackArg, file_t* File, uint64_
 /* Files and directories */
 
 /* VFS access */
-KResult Rename(thread_t Callback, uint64_t CallbackArg, char* OldPath, char* NewPath, uint64_t Permissions){
+KResult Rename(thread_t Callback, uint64_t CallbackArg, srv_storage_fs_server_rename_t* RenameData, permissions_t Permissions){
+    char* OldPath = (char*)((uint64_t)RenameData + RenameData->OldPathPosition);
+    char* NewPath = (char*)((uint64_t)RenameData + RenameData->NewPathPosition);
+    
     mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
 
     KResult Statu = MountInfo->Rename(OldPath, NewPath, Permissions);
@@ -276,7 +289,7 @@ KResult Rename(thread_t Callback, uint64_t CallbackArg, char* OldPath, char* New
 /* Directories */
 
 /* VFS access */
-KResult Mkdir(thread_t Callback, uint64_t CallbackArg, char* Path, char* Name, uint64_t Permissions){
+KResult Mkdir(thread_t Callback, uint64_t CallbackArg, char* Path, char* Name, permissions_t Permissions){
     mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
 
     KResult Statu = MountInfo->CreateDir(Path, Name, Permissions);
@@ -295,7 +308,7 @@ KResult Mkdir(thread_t Callback, uint64_t CallbackArg, char* Path, char* Name, u
 }
 
 /* VFS access */
-KResult Rmdir(thread_t Callback, uint64_t CallbackArg, char* Path, uint64_t Permissions){
+KResult Rmdir(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions){
     mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
     KResult Statu = MountInfo->RemoveDir(Path, Permissions);
     
@@ -313,11 +326,11 @@ KResult Rmdir(thread_t Callback, uint64_t CallbackArg, char* Path, uint64_t Perm
 }
 
 /* VFS access */
-KResult Opendir(thread_t Callback, uint64_t CallbackArg, char* Path, uint64_t Permissions, process_t Target){
+KResult Opendir(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions, process_t Target){
     mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
     KResult Statu = KFAIL;
 
-    directory_t* Directory = NULL;
+    ext_directory_t* Directory = NULL;
 
     if(Directory = MountInfo->OpenDir(Path, Permissions)){
         Statu = KSUCCESS;
@@ -363,17 +376,27 @@ KResult DirDispatch(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint6
     uint32_t Function = GP0 & 0xffffffff;
     uint32_t GP4 =  GP0 >> 32;
 
-    if(Function >= Syscall_Count){
-        return KFAIL;
+    if(Function >= Dir_Function_Count){
+        arguments_t arguments{
+            .arg[0] = KFAIL,            /* Status */
+            .arg[1] = CallbackArg,      /* CallbackArg */
+            .arg[2] = NULL,             /* GP0 */
+            .arg[3] = NULL,             /* GP1 */
+            .arg[4] = NULL,             /* GP2 */
+            .arg[5] = NULL,             /* GP3 */
+        };
+
+        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_Close(KSUCCESS);
     }
 
-    directory_t* Directory = (directory_t*)Sys_GetExternalDataThread();
+    ext_directory_t* Directory = (ext_directory_t*)Sys_GetExternalDataThread();
 
     Sys_Close(DirDispatcher[Function](Callback, CallbackArg, Directory, GP1, GP2, GP3, GP4));
 }
 
 /* Direct access */
-KResult Readdir(thread_t Callback, uint64_t CallbackArg, directory_t* Directory, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
+KResult Readdir(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Directory, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
     KResult Statu = KFAIL;
     
     arguments_t arguments{
@@ -390,7 +413,7 @@ KResult Readdir(thread_t Callback, uint64_t CallbackArg, directory_t* Directory,
 }
 
 /* Direct access */
-KResult Closedir(thread_t Callback, uint64_t CallbackArg, directory_t* Directory, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
+KResult Closedir(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Directory, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
     KResult Statu = KFAIL;
     
     arguments_t arguments{
