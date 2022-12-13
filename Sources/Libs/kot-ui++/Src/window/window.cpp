@@ -16,7 +16,7 @@ namespace UiWindow {
         this->ctxGrph = new Graphic::ContextGphc(fb->addr, fb->width, fb->height);
         this->ctxUi = new Ui::UiContext(fb);
 
-        auto imgtest = Ui::Picturebox("sample.tga", Ui::ImageType::_TGA, { });
+        auto imgtest = Ui::Picturebox("kotlogo.tga", Ui::ImageType::_TGA, { .width = 256, .height = 256 });
         this->setContent(imgtest);
 
         /* auto titlebar = Ui::titlebar(title, { .backgroundColor = WIN_BGCOLOR_ONFOCUS, .foregroundColor = 0xDDDDDD });
