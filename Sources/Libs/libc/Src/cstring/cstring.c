@@ -42,12 +42,12 @@ int strncmp(char* a, char* b, size64_t len){
     return true;
 }
 
-char* strcat(char* dst, const char* src){
-    char* ptr = dst + strlen(dst);
-    while (*src != NULL){
-        *ptr++ = *src++;
-    }
-    *ptr = NULL;
+void strcpy(char* to, char* from){
+    while(*to++ = *from++);
+}
+
+char* strcat(char* dst, char* src){
+    strcpy((char*)((uint64_t)dst + strlen(dst)), src);
     return dst;
 }
 
@@ -183,8 +183,4 @@ char* itoa(int64_t n, char* buffer, int basenumber){
 
 
     return buffer;
-}
-
-void strcpy(char* to, char* from){
-    while(*to++ = *from++);
 }

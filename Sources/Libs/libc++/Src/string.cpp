@@ -41,9 +41,6 @@ namespace std {
     }
 
     void StringBuilder::set(char* str) {
-        if (buffer != NULL) {
-            free(buffer);
-        }
         uint64_t fromSize = strlen(str);
         buffer = (char*) malloc(fromSize+1);
         memcpy(buffer, str, fromSize);
@@ -81,6 +78,29 @@ namespace std {
                 char* temp = (char*) malloc(newSize+1);
                 memcpy(temp, buffer, toSize);
                 memcpy((uintptr_t)((uint64_t) temp + toSize), str, fromSize);
+                temp[newSize] = '\0';
+                free(buffer);
+                buffer = temp;
+            } else {
+                free(this->buffer);
+                this->buffer = (char*) malloc(fromSize);
+                memcpy(buffer, str, fromSize);
+                buffer[fromSize] = '\0';
+            }
+        }
+    }
+
+    void StringBuilder::append(char* str, uint64_t position) {
+        uint64_t toSize = buffer != NULL ? strlen(this->buffer) : 0;
+        uint64_t fromSize = str != NULL ? strlen(str) : 0;
+        if (fromSize > 0) {
+            if (toSize > 0) {
+                uint64_t newSize = toSize+fromSize;
+                assert(newSize <= position);
+                char* temp = (char*) malloc(newSize+1);
+                memcpy(temp, buffer, position);
+                memcpy((uintptr_t)((uint64_t) temp + position), str, fromSize);
+                memcpy((uintptr_t)((uint64_t) temp + position + fromSize), buffer, toSize - position);
                 temp[newSize] = '\0';
                 free(buffer);
                 buffer = temp;

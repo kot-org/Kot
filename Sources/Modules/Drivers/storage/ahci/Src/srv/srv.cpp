@@ -51,7 +51,7 @@ void SrvRemoveDevice(thread_t Callback, uint64_t CallbackArg){
 }
 
 void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t Start, uint64_t Size){
-    KResult Statu = KFAIL;
+    KResult Status = KFAIL;
 
     Space_t* ActualSpaceLocalInfo = (Space_t*)Sys_GetExternalDataThread();
 
@@ -90,7 +90,7 @@ void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t S
     };
     
     arguments_t arguments{
-        .arg[0] = Statu,            /* Status */
+        .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* SpaceInfo */
         .arg[3] = NULL,             /* GP1 */
@@ -103,7 +103,7 @@ void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t S
 }
 
 void SrvReadWriteHandler(thread_t Callback, uint64_t CallbackArg, uint64_t Start, size64_t Size, bool IsWrite){
-    KResult Statu = KFAIL;
+    KResult Status = KFAIL;
 
     Space_t* Space = (Space_t*)Sys_GetExternalDataThread();
 
@@ -113,16 +113,16 @@ void SrvReadWriteHandler(thread_t Callback, uint64_t CallbackArg, uint64_t Start
             atomicAcquire(&Space->StorageDevice->DeviceLock, 0);
             Space->StorageDevice->LoadSpace(Space);
             if(IsWrite){
-                Statu = Space->StorageDevice->Write(Space, Start, Size);
+                Status = Space->StorageDevice->Write(Space, Start, Size);
             }else{
-                Statu = Space->StorageDevice->Read(Space, Start, Size);
+                Status = Space->StorageDevice->Read(Space, Start, Size);
             }
             atomicUnlock(&Space->StorageDevice->DeviceLock, 0);
         }
     }
 
     arguments_t arguments{
-        .arg[0] = Statu,            /* Status */
+        .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
         .arg[3] = NULL,             /* GP1 */

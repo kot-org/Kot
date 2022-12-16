@@ -34,7 +34,7 @@ KResult RemoveDevice(storage_device_t* Device){
     return KSUCCESS;
 }
 
-KResult CallbackCreateSpaceHandler(KResult Statu, storage_callback_t* CallbackData, srv_storage_space_info_t* SpaceInfo){
+KResult CallbackCreateSpaceHandler(KResult Status, storage_callback_t* CallbackData, srv_storage_space_info_t* SpaceInfo){
     CallbackData->Data = malloc(sizeof(srv_storage_space_info_t));
     memcpy(CallbackData->Data, SpaceInfo, sizeof(srv_storage_space_info_t));
     Sys_Unpause(CallbackData->MainThread);
@@ -56,7 +56,7 @@ KResult storage_device_t::CreateSpace(uint64_t Start, size64_t Size, srv_storage
     return KSUCCESS;
 }
 
-KResult CallbackRequestHandler(KResult Statu, thread_t MainThread){
+KResult CallbackRequestHandler(KResult Status, thread_t MainThread){
     Sys_Unpause(MainThread);
     Sys_Close(KSUCCESS);
 }

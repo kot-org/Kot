@@ -28,14 +28,14 @@ KResult device_partitions_t::LoadGPTHeader(){
         if(GPTHeader->MyLBA != GPTHeaderLBAStart){
             return KNOTALLOW;
         }
-        KResult GPTHeaderStatu = CheckGPTHeader(GPTHeader);
+        KResult GPTHeaderStatus = CheckGPTHeader(GPTHeader);
         // Load recovery header
         GPTHeader_t* RecoveryGPTHeader = (GPTHeader_t*)malloc(sizeof(GPTHeader_t));
         Device->ReadDevice(RecoveryGPTHeader, ConvertLBAToBytes(GPTHeader->AlternateLBA), sizeof(GPTHeader_t));
-        KResult GPTRecoveryHeaderStatu = CheckGPTHeader(RecoveryGPTHeader);
+        KResult GPTRecoveryHeaderStatus = CheckGPTHeader(RecoveryGPTHeader);
 
-        if(GPTHeaderStatu != KSUCCESS){
-            if(GPTRecoveryHeaderStatu == KSUCCESS){
+        if(GPTHeaderStatus != KSUCCESS){
+            if(GPTRecoveryHeaderStatus == KSUCCESS){
                 // Update my lba
                 RecoveryGPTHeader->MyLBA = GPTHeaderLBAStart; 
 
@@ -52,7 +52,7 @@ KResult device_partitions_t::LoadGPTHeader(){
                 free(RecoveryGPTHeader);
                 return KMEMORYVIOLATION;
             }
-        }else if(GPTRecoveryHeaderStatu != KSUCCESS){
+        }else if(GPTRecoveryHeaderStatus != KSUCCESS){
             // Update my lba
             RecoveryGPTHeader->MyLBA = GPTHeader->AlternateLBA; 
 
@@ -64,7 +64,7 @@ KResult device_partitions_t::LoadGPTHeader(){
             Device->WriteDevice(RecoveryGPTHeader, ConvertLBAToBytes(GPTHeader->AlternateLBA), sizeof(GPTHeader_t));
         }
 
-        if(GPTHeaderStatu == KSUCCESS){
+        if(GPTHeaderStatus == KSUCCESS){
             IsGPTHeaderLoaded = true;
             free(RecoveryGPTHeader);
             return KSUCCESS;

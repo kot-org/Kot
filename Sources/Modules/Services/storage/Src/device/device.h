@@ -28,8 +28,8 @@ struct storage_device_t{
     KResult WriteDevice(uintptr_t Buffer, uint64_t Start, size64_t Size);
 };
 
-KResult CallbackCreateSpaceHandler(KResult Statu, storage_callback_t* CallbackData, srv_storage_space_info_t* SpaceInfo);
-KResult CallbackRequestHandler(KResult Statu, thread_t MainThread);
+KResult CallbackCreateSpaceHandler(KResult Status, storage_callback_t* CallbackData, srv_storage_space_info_t* SpaceInfo);
+KResult CallbackRequestHandler(KResult Status, thread_t MainThread);
 
 KResult AddDevice(srv_storage_device_info_t* Info, storage_device_t** DevicePointer);
 KResult RemoveDevice(storage_device_t* Device);

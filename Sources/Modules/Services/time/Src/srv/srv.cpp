@@ -32,12 +32,12 @@ KResult InitialiseServer(){
 }
 
 KResult SetTimePointerKeySrv(thread_t Callback, uint64_t CallbackArg, ksmem_t TimePointerKey){
-    KResult Statu = KFAIL;
+    KResult Status = KFAIL;
 
     SrvData->TimePointerKey = TimePointerKey;
     
     arguments_t arguments{
-        .arg[0] = Statu,            /* Status */
+        .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
         .arg[3] = NULL,             /* GP1 */
@@ -50,13 +50,13 @@ KResult SetTimePointerKeySrv(thread_t Callback, uint64_t CallbackArg, ksmem_t Ti
 }
 
 KResult SetTickPointerKeySrv(thread_t Callback, uint64_t CallbackArg, ksmem_t TickPointerKey, uint64_t TickPeriod){
-    KResult Statu = KFAIL;
+    KResult Status = KFAIL;
 
     SrvData->TickPointerKey = TickPointerKey;
     SrvData->TickPeriod = TickPeriod;
     
     arguments_t arguments{
-        .arg[0] = Statu,            /* Status */
+        .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
         .arg[3] = NULL,             /* GP1 */

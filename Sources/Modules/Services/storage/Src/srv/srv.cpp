@@ -39,14 +39,14 @@ KResult InitialiseSrv(){
 }
 
 KResult AddDeviceSrv(thread_t Callback, uint64_t CallbackArg, srv_storage_device_info_t* Info){
-    KResult Statu = KFAIL;
+    KResult Status = KFAIL;
     storage_device_t* Device = NULL;
     if(Info){
-        Statu = AddDevice(Info, &Device);
+        Status = AddDevice(Info, &Device);
     }
     
     arguments_t arguments{
-        .arg[0] = Statu,            /* Status */
+        .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = (uint64_t)Device, /* DeviceIndex */
         .arg[3] = NULL,             /* GP1 */
@@ -59,10 +59,10 @@ KResult AddDeviceSrv(thread_t Callback, uint64_t CallbackArg, srv_storage_device
 }
 
 KResult RemoveDeviceSrv(thread_t Callback, uint64_t CallbackArg, storage_device_t* Device){
-    KResult Statu = RemoveDevice(Device);
+    KResult Status = RemoveDevice(Device);
     
     arguments_t arguments{
-        .arg[0] = Statu,            /* Status */
+        .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
         .arg[3] = NULL,             /* GP1 */
@@ -75,10 +75,10 @@ KResult RemoveDeviceSrv(thread_t Callback, uint64_t CallbackArg, storage_device_
 }
 
 KResult NotifyOnNewPartitionByGUIDTypeSrv(thread_t Callback, uint64_t CallbackArg, thread_t ThreadToNotify, process_t ProcessToNotify, GUID_t* PartitionTypeGUID){
-    KResult Statu = NotifyOnNewPartitionByGUIDType(PartitionTypeGUID, ThreadToNotify, ProcessToNotify);
+    KResult Status = NotifyOnNewPartitionByGUIDType(PartitionTypeGUID, ThreadToNotify, ProcessToNotify);
     
     arguments_t arguments{
-        .arg[0] = Statu,            /* Status */
+        .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
         .arg[3] = NULL,             /* GP1 */

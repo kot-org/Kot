@@ -4,11 +4,11 @@ KResult device_partitions_t::LoadMBRHeader(){
     if(!MBRHeader){
         MBRHeader = (MBRHeader_t*)malloc(sizeof(MBRHeader_t));
     }
-    KResult statu = Device->ReadDevice(MBRHeader, NULL, sizeof(MBRHeader_t));
-    if(statu == KSUCCESS){
+    KResult status = Device->ReadDevice(MBRHeader, NULL, sizeof(MBRHeader_t));
+    if(status == KSUCCESS){
         IsMBRHeaderLoaded = true;
     }
-    return statu;
+    return status;
 }
 
 bool device_partitions_t::IsMBRDisk(){

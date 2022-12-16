@@ -133,8 +133,8 @@ KResult Get_Tick_Initialize(){
 
 uint64_t GetYear(){
     if(!TimePointer){
-        KResult statu = Get_Time_Initialize();
-        if(statu != KSUCCESS){
+        KResult status = Get_Time_Initialize();
+        if(status != KSUCCESS){
             return NULL;
         }
     }
@@ -143,8 +143,8 @@ uint64_t GetYear(){
 
 uint64_t GetMonth(){
     if(!TimePointer){
-        KResult statu = Get_Time_Initialize();
-        if(statu != KSUCCESS){
+        KResult status = Get_Time_Initialize();
+        if(status != KSUCCESS){
             return NULL;
         }
     }
@@ -153,8 +153,8 @@ uint64_t GetMonth(){
 
 uint64_t GetDay(){
     if(!TimePointer){
-        KResult statu = Get_Time_Initialize();
-        if(statu != KSUCCESS){
+        KResult status = Get_Time_Initialize();
+        if(status != KSUCCESS){
             return NULL;
         }
     }
@@ -163,8 +163,8 @@ uint64_t GetDay(){
 
 uint64_t GetWeekDay(){
     if(!TimePointer){
-        KResult statu = Get_Time_Initialize();
-        if(statu != KSUCCESS){
+        KResult status = Get_Time_Initialize();
+        if(status != KSUCCESS){
             return NULL;
         }
     }
@@ -173,8 +173,8 @@ uint64_t GetWeekDay(){
 
 uint64_t GetHour(){
     if(!TimePointer){
-        KResult statu = Get_Time_Initialize();
-        if(statu != KSUCCESS){
+        KResult status = Get_Time_Initialize();
+        if(status != KSUCCESS){
             return NULL;
         }
     }
@@ -183,8 +183,8 @@ uint64_t GetHour(){
 
 uint64_t GetMinute(){
     if(!TimePointer){
-        KResult statu = Get_Time_Initialize();
-        if(statu != KSUCCESS){
+        KResult status = Get_Time_Initialize();
+        if(status != KSUCCESS){
             return NULL;
         }
     }
@@ -193,8 +193,8 @@ uint64_t GetMinute(){
 
 uint64_t GetSecond(){
     if(!TimePointer){
-        KResult statu = Get_Time_Initialize();
-        if(statu != KSUCCESS){
+        KResult status = Get_Time_Initialize();
+        if(status != KSUCCESS){
             return NULL;
         }
     }
@@ -205,9 +205,9 @@ KResult Sleep(uint64_t duration){ // duration in ms
     uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
     if(!TickPointer){
-        KResult statu = Get_Tick_Initialize();
-        if(statu != KSUCCESS){
-            return statu;
+        KResult status = Get_Tick_Initialize();
+        if(status != KSUCCESS){
+            return status;
         }
     }
 
@@ -223,9 +223,9 @@ KResult SleepFromTick(uint64_t* tick, uint64_t duration){ // duration in ms
     uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
     if(!TickPointer){
-        KResult statu = Get_Tick_Initialize();
-        if(statu != KSUCCESS){
-            return statu;
+        KResult status = Get_Tick_Initialize();
+        if(status != KSUCCESS){
+            return status;
         }
     }
 
@@ -242,9 +242,9 @@ KResult GetActualTick(uint64_t* tick){
     uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
     if(!TickPointer){
-        KResult statu = Get_Tick_Initialize();
-        if(statu != KSUCCESS){
-            return statu;
+        KResult status = Get_Tick_Initialize();
+        if(status != KSUCCESS){
+            return status;
         }
     }
 
@@ -256,9 +256,9 @@ KResult GetTimeFromTick(uint64_t* time, uint64_t tick){
     uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
     if(!TickPointer){
-        KResult statu = Get_Tick_Initialize();
-        if(statu != KSUCCESS){
-            return statu;
+        KResult status = Get_Tick_Initialize();
+        if(status != KSUCCESS){
+            return status;
         }
     }
 
@@ -270,9 +270,9 @@ KResult GetTickFromTime(uint64_t* tick, uint64_t time){
     uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
     if(!TickPointer){
-        KResult statu = Get_Tick_Initialize();
-        if(statu != KSUCCESS){
-            return statu;
+        KResult status = Get_Tick_Initialize();
+        if(status != KSUCCESS){
+            return status;
         }
     }
         

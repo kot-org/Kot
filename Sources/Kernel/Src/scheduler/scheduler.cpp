@@ -375,13 +375,13 @@ uint64_t TaskManager::CreateProcess(kprocess_t** key, enum Priviledge priviledge
 }
 
 uint64_t TaskManager::CreateProcess(kthread_t* caller, kprocess_t** key, enum Priviledge priviledge, uint64_t externalData){
-    KResult statu = CreateProcess(key, priviledge, externalData);
+    KResult status = CreateProcess(key, priviledge, externalData);
     kprocess_t* proc = *key;
     proc->PID_PCI = caller->Parent->PID;
     proc->TID_PCI = caller->TID;
     proc->ExternalData_P_PCI = caller->Parent->ExternalData_P;
     proc->Priviledge_PCI = caller->Priviledge;
-    return statu;
+    return status;
 }
 
 kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, uint64_t externalData){

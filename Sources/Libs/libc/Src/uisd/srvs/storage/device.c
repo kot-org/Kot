@@ -28,14 +28,14 @@ KResult Srv_StorageInitializeDeviceAccess(struct srv_storage_space_info_t* Stora
     return KFAIL;
 }
 
-KResult Srv_CallbackCreateSpaceHandler(KResult Statu, struct srv_storage_device_callback_t* CallbackData, struct srv_storage_space_info_t* SpaceInfo){
+KResult Srv_CallbackCreateSpaceHandler(KResult Status, struct srv_storage_device_callback_t* CallbackData, struct srv_storage_space_info_t* SpaceInfo){
     CallbackData->Data = malloc(sizeof(struct srv_storage_space_info_t));
     memcpy(CallbackData->Data, SpaceInfo, sizeof(struct srv_storage_space_info_t));
     Sys_Unpause(CallbackData->MainThread);
     Sys_Close(KSUCCESS);
 }
 
-KResult Srv_CallbackRequestHandler(KResult Statu, thread_t MainThread){
+KResult Srv_CallbackRequestHandler(KResult Status, thread_t MainThread){
     Sys_Unpause(MainThread);
     Sys_Close(KSUCCESS);
 }

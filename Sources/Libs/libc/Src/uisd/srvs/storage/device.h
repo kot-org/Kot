@@ -26,11 +26,11 @@ struct srv_storage_device_callback_t{
 };
 
 KResult Srv_StorageInitializeDeviceAccess(struct srv_storage_space_info_t* StorageSpace, struct srv_storage_device_t** StorageDevice);
-KResult Srv_CallbackCreateSpaceHandler(KResult Statu, struct srv_storage_device_callback_t* CallbackData, struct srv_storage_space_info_t* SpaceInfo);
+KResult Srv_CallbackCreateSpaceHandler(KResult Status, struct srv_storage_device_callback_t* CallbackData, struct srv_storage_space_info_t* SpaceInfo);
 
 
-KResult Srv_CallbackCreateSpaceHandler(KResult Statu, struct srv_storage_device_callback_t* CallbackData, struct srv_storage_space_info_t* SpaceInfo);
-KResult Srv_CallbackRequestHandler(KResult Statu, thread_t MainThread);
+KResult Srv_CallbackCreateSpaceHandler(KResult Status, struct srv_storage_device_callback_t* CallbackData, struct srv_storage_space_info_t* SpaceInfo);
+KResult Srv_CallbackRequestHandler(KResult Status, thread_t MainThread);
 KResult Srv_SendRequest(struct srv_storage_device_t* StorageDevice, uint64_t Start, size64_t Size, bool IsWrite);
 uint64_t Srv_GetBufferStartingAddress(struct srv_storage_device_t* StorageDevice, uint64_t Start);
 KResult Srv_ReadDevice(struct srv_storage_device_t* StorageDevice, uintptr_t Buffer, uint64_t Start, size64_t Size);
