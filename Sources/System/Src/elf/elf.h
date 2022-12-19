@@ -4,14 +4,16 @@
 #include <kot/sys.h>
 #include <kot/heap.h>
 #include <kot/math.h>
-#include <kot/cstring.h>
 #include <kot/utils.h>
+#include <kot/cstring.h>
+#include <kot/authorization.h>
+#include <kot/uisd/srvs/storage.h>
 
 #include "../core/main.h"
 
 namespace ELF {
     
-    KResult loadElf(uintptr_t buffer, enum Priviledge ring, uint64_t identifier, thread_t* mainthread);
+    KResult loadElf(uintptr_t buffer, enum Priviledge ring, uint64_t identifier, thread_t* mainthread, bool isVFS);
     bool Check(struct elf_t* self);
 
     struct elf_t {

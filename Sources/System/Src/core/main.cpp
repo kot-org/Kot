@@ -48,11 +48,21 @@ extern "C" int main(KernelInfo* kernelInfo) {
                 JsonString* file = (JsonString*) service->get("file");
                 JsonNumber* priviledge = (JsonNumber*) service->get("priviledge"); // default: 3
                 JsonBoolean* active = (JsonBoolean*) service->get("active"); // default: true
+                JsonBoolean* vfs = (JsonBoolean*) service->get("vfs"); // default: true
+
+                bool IsVFS = true;
+
                 if (active != NULL) {
                     if (active->getType() == JSON_BOOLEAN) {
                         if (active->get() == false) {
                             continue;
                         }
+                    }
+                }
+
+                if (vfs != NULL) {
+                    if (vfs->getType() == JSON_BOOLEAN) {
+                        IsVFS = vfs->get();
                     }
                 }
                 
@@ -71,7 +81,7 @@ extern "C" int main(KernelInfo* kernelInfo) {
                                 }
                             }
                         }
-                        ELF::loadElf(bufferServiceFile, (enum Priviledge)servicePriledge, NULL, &thread);
+                        ELF::loadElf(bufferServiceFile, (enum Priviledge)servicePriledge, NULL, &thread, IsVFS);
                         free(bufferServiceFile);
 
                         size_t filenamelen = strlen(file->get());

@@ -65,11 +65,11 @@ KResult VFSAskForAuthorization(ClientVFSContext* Context, authorization_t author
 
     if(GetAuthorization(&AuthorizationField, true) == KSUCCESS){
         if(AuthorizationField.ValidationFields[0].IsValidate){
-            Context->Authorization = authorization;
+            Context->Permissions = authorization;
             WriteContextFile(Context);
             return KSUCCESS;
         }else if(AuthorizationField.ValidationFields[1].IsValidate){
-            Context->Authorization = authorization;
+            Context->Permissions = authorization;
             return KSUCCESS;
         }
     }
@@ -100,11 +100,11 @@ KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFS
         if(*AccessTypeBuffer == 's'){
             // TODO
         }else if(*AccessTypeBuffer == 'd'){
-            if(strncmp(*RelativePath, Context->Path, Context->PathLength)){
+            if(Context->PathLength != NULL && strncmp(*RelativePath, Context->Path, Context->PathLength)){
                 PartitionContext = Context->Partition;
             }else{
                 authorization_t AuthorizationNeed = (Volume == Context->StaticVolumeMountPoint) ? FS_AUTHORIZATION_MEDIUM : FS_AUTHORIZATION_HIGH;
-                if(AuthorizationNeed > Context->Authorization){
+                if(AuthorizationNeed > Context->Permissions){
                     if(Volume > PartitionsList->length) return KNOTALLOW;
 
                     if(VFSAskForAuthorization(Context, AuthorizationNeed) != KSUCCESS){
@@ -115,6 +115,12 @@ KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFS
                     }
                 }
                 PartitionContext = (partition_t*)vector_get(PartitionsList, Volume);
+                if(!PartitionContext->IsMount){
+                    free(Sb);
+                    free(*RelativePath);
+                    free(VolumeBuffer);
+                    return KFAIL;
+                }
             }
 
         }else{
@@ -157,17 +163,32 @@ KResult VFSMount(thread_t Callback, uint64_t CallbackArg, bool IsMount, srv_stor
     Sys_Close(KSUCCESS);
 }
 
-KResult VFSLoginApp(thread_t Callback, uint64_t CallbackArg){
-    // TODO read autorization into file
+KResult VFSLoginApp(thread_t Callback, uint64_t CallbackArg, process_t Process, permissions_t Permissions, uint64_t PID, char* Path){
     KResult Status = KFAIL;
+    Printlog("ok");
+    ClientVFSContext* Context = (ClientVFSContext*)malloc(sizeof(ClientVFSContext));
+    Context->Permissions = Permissions;
+    Context->PID = PID;
+    Context->PathLength = NULL;
+    GetVFSAccessData(&Context->Path, &Context->Partition, Context, Path);
+    Context->PathLength = strlen(Context->Path);
+    Context->StaticVolumeMountPoint = Context->Partition->StaticVolumeMountPoint;
+    Context->DynamicVolumeMountPoint = Context->Partition->DynamicVolumeMountPoint;
+    Printlog("ok");
+
+
+    /* VFSClientDispatcher */
+    thread_t VFSClientDispatcherThread = NULL;
+    Sys_Createthread(Sys_GetProcess(), (uintptr_t)&VFSClientDispatcher, PriviledgeApp, (uint64_t)Context, &VFSClientDispatcherThread);
+    thread_t VFSClientShareableDispatcherThread = MakeShareableThreadToProcess(VFSClientDispatcherThread, Process);
     
     arguments_t arguments{
-        .arg[0] = Status,            /* Status */
-        .arg[1] = CallbackArg,      /* CallbackArg */
-        .arg[2] = NULL,             /* GP0 */
-        .arg[3] = NULL,             /* GP1 */
-        .arg[4] = NULL,             /* GP2 */
-        .arg[5] = NULL,             /* GP3 */
+        .arg[0] = Status,                               /* Status */
+        .arg[1] = CallbackArg,                          /* CallbackArg */
+        .arg[2] = VFSClientShareableDispatcherThread,   /* VFSClientShareableDispatcherThread */
+        .arg[3] = NULL,                                 /* GP1 */
+        .arg[4] = NULL,                                 /* GP2 */
+        .arg[5] = NULL,                                 /* GP3 */
     };
 
     Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);

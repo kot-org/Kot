@@ -101,19 +101,7 @@ typedef struct {
 
     thread_t NotifyOnNewPartitionByGUIDType;
 
-    /* VFS */
-    thread_t ChangeUserData;
-
-    thread_t Removefile;
-
-    thread_t Openfile;
-
-    thread_t Rename;
-
-    thread_t Mkdir;
-    thread_t Rmdir;
-
-    thread_t Opendir;
+    thread_t VFSLoginApp;
 } uisd_storage_t;
 
 typedef struct {

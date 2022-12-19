@@ -21,7 +21,6 @@ struct ClientVFSContext{
     struct partition_t* Partition;
     char* Path;
     size64_t PathLength;
-    uint64_t Authorization;
     uint64_t StaticVolumeMountPoint;
     uint64_t DynamicVolumeMountPoint;
 };
@@ -31,6 +30,10 @@ typedef KResult (*client_vfs_dispatch_t)(thread_t Callback, uint64_t CallbackArg
 KResult InitializeVFS();
 
 KResult VFSMount(thread_t Callback, uint64_t CallbackArg, bool IsMount, struct srv_storage_fs_server_functions_t* StorageFSServerFunctions);
+
+KResult VFSLoginApp(thread_t Callback, uint64_t CallbackArg, process_t Process, permissions_t Permissions, uint64_t PID, char* Path);
+
+KResult VFSClientDispatcher(thread_t Callback, uint64_t CallbackArg, uint64_t Function, uint64_t GP0, uint64_t GP1, uint64_t GP2);
 
 KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFSContext* Context, char* Path);
 

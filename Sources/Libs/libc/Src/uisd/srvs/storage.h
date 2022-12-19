@@ -106,6 +106,7 @@ struct srv_storage_callback_t* Srv_Storage_RemoveDevice(uint64_t Index, bool IsA
 struct srv_storage_callback_t* Srv_Storage_NotifyOnNewPartitionByGUIDType(struct GUID_t* PartitionTypeGUID, thread_t ThreadToNotify, process_t ProcessToNotify, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_MountPartition(thread_t VFSMountThread, struct srv_storage_fs_server_functions_t* FSServerFunctions, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_UnmountPartition(thread_t VFSMountThread, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_VFSLoginApp(process_t Process, permissions_t Permissions, uint64_t PID, char* Path, bool IsAwait);
 
 #if defined(__cplusplus)
 }

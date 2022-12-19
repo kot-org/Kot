@@ -26,11 +26,15 @@ KResult InitialiseSrv(){
     Sys_Createthread(proc, (uintptr_t)&RemoveDeviceSrv, PriviledgeApp, NULL, &RemoveDeviceThread);
     SrvData->RemoveDevice = MakeShareableThread(RemoveDeviceThread, PriviledgeDriver);
 
-
     /* NotifyOnNewPartitionByGUIDType */
     thread_t CountPartitionByGUIDTypeThread = NULL;
     Sys_Createthread(proc, (uintptr_t)&NotifyOnNewPartitionByGUIDTypeSrv, PriviledgeApp, NULL, &CountPartitionByGUIDTypeThread);
     SrvData->NotifyOnNewPartitionByGUIDType = MakeShareableThread(CountPartitionByGUIDTypeThread, PriviledgeDriver);
+
+    /* NotifyOnNewPartitionByGUIDType */
+    thread_t VFSLoginAppThread = NULL;
+    Sys_Createthread(proc, (uintptr_t)&VFSLoginApp, PriviledgeApp, NULL, &VFSLoginAppThread);
+    SrvData->VFSLoginApp = MakeShareableThread(VFSLoginAppThread, PriviledgeDriver);
     
     uisd_callbackInfo_t* info = CreateControllerUISD(ControllerTypeEnum_Storage, key, true);   
     free(info); 

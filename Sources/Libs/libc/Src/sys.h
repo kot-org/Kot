@@ -28,6 +28,8 @@ struct KotSpecificData_t{
     process_t UISDHandlerProcess;
     /* FreeMemorySpace */
     uintptr_t FreeMemorySpace;
+    /* VFS */
+    thread_t VFSHandler;
 }__attribute__((aligned(0x1000)));
 
 extern struct KotSpecificData_t KotSpecificData;

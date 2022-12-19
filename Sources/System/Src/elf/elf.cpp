@@ -46,7 +46,7 @@ namespace ELF {
         }
     }
 
-    KResult loadElf(uintptr_t buffer, enum Priviledge privilege, uint64_t identifier, thread_t* mainthread) {
+    KResult loadElf(uintptr_t buffer, enum Priviledge privilege, uint64_t identifier, thread_t* mainthread, bool isVFS) {
         elf_t* self = (elf_t*)calloc(sizeof(elf_t));
         self->Buffer = buffer;
         self->Header = (Elf64_Ehdr*)buffer;
@@ -103,6 +103,12 @@ namespace ELF {
                     KotSpecificDataClient->HeapLocation = HeapLocation;
                     KotSpecificDataClient->FreeMemorySpace = KotSpecificData.FreeMemorySpace;
                     KotSpecificDataClient->UISDHandler = KotSpecificData.UISDHandler;
+
+                    if(isVFS){
+                        srv_storage_callback_t* Callback = Srv_Storage_VFSLoginApp(proc, FS_AUTHORIZATION_HIGH, NULL, "d0:", true);
+                        KotSpecificDataClient->VFSHandler = Callback->Data;
+                        free(Callback);
+                    }
                 }
             }
         }

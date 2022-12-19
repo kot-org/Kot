@@ -133,6 +133,7 @@ KResult MountPartition(uint64_t PartitonID){
     if(PartitonID < PartitionsList->length){
         partition_t* Partition = (partition_t*)vector_get(PartitionsList, PartitonID);
         if(!Partition->IsMount){
+            Partition->StaticVolumeMountPoint = Partition->Index;
             Partition->IsMount = true;
             Status = KSUCCESS;
         }

@@ -38,6 +38,9 @@ struct partition_t{
     struct storage_device_t* Device;
 
     vector_t* SpaceList;
+
+    uint64_t StaticVolumeMountPoint;
+    uint64_t DynamicVolumeMountPoint;
 };
 
 struct notify_info_t{
