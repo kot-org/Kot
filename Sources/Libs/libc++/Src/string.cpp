@@ -96,7 +96,7 @@ namespace std {
         if (fromSize > 0) {
             if (toSize > 0) {
                 uint64_t newSize = toSize+fromSize;
-                assert(newSize <= position);
+                assert(newSize >= position);
                 char* temp = (char*) malloc(newSize+1);
                 memcpy(temp, buffer, position);
                 memcpy((uintptr_t)((uint64_t) temp + position), str, fromSize);

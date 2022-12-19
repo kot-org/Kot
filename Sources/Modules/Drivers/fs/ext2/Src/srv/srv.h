@@ -34,7 +34,7 @@ KResult Writefile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uin
 
 KResult Rename(thread_t Callback, uint64_t CallbackArg, struct srv_storage_fs_server_rename_t* RenameData, permissions_t Permissions);
 
-KResult Mkdir(thread_t Callback, uint64_t CallbackArg, char* Path, char* Name, permissions_t Permissions);
+KResult Mkdir(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions);
 
 KResult Rmdir(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions);
 

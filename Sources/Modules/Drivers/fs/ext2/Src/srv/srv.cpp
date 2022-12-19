@@ -289,10 +289,10 @@ KResult Rename(thread_t Callback, uint64_t CallbackArg, srv_storage_fs_server_re
 /* Directories */
 
 /* VFS access */
-KResult Mkdir(thread_t Callback, uint64_t CallbackArg, char* Path, char* Name, permissions_t Permissions){
+KResult Mkdir(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions){
     mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
 
-    KResult Status = MountInfo->CreateDir(Path, Name, Permissions);
+    KResult Status = MountInfo->CreateDir(Path, Permissions);
     
     arguments_t arguments{
         .arg[0] = Status,            /* Status */

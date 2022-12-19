@@ -47,6 +47,8 @@ struct notify_info_t{
 };
 
 
+extern vector_t* PartitionsList;
+
 void InitializePartition();
 struct partition_t* NewPartition(struct storage_device_t* Device, uint64_t Start, uint64_t Size, GUID_t* PartitionTypeGUID);
 struct partition_t* GetPartition(uint64_t Index);

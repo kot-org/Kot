@@ -73,8 +73,8 @@ struct srv_storage_fs_server_open_dir_data_t{
 };
 
 struct srv_storage_fs_server_rename_t{
-    uint64_t OldPathPosition; 
-    uint64_t NewPathPosition; 
+    uint64_t OldPathPosition;
+    uint64_t NewPathPosition;
 };
 
 struct srv_storage_callback_t{

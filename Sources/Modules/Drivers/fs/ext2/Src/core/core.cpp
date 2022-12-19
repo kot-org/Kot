@@ -1080,7 +1080,11 @@ KResult mount_info_t::CheckPermissions(inode_t* inode, permissions_t permissions
 }
 
 
-KResult mount_info_t::CreateDir(char* path, char* name, permissions_t permissions){
+KResult mount_info_t::CreateDir(char* path, permissions_t permissions){
+    std::StringBuilder* CreatePathSB = new std::StringBuilder(path);
+    char* CreatePathDirectory = CreatePathSB->substr(NULL, CreatePathSB->indexOf("/", 0, true));
+    char* CreateName = CreatePathSB->substr(CreatePathSB->indexOf("/", 0, true), CreatePathSB->length());
+
     inode_t* Directory = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), path);
     if(CheckPermissions(Directory, permissions, File_Permissions_Write) != KSUCCESS){
         free(Directory);
@@ -1104,8 +1108,11 @@ KResult mount_info_t::CreateDir(char* path, char* name, permissions_t permission
     SetSizeFromInode(Inode, NULL);
     SetInode(Inode);
 
-    LinkInodeToDirectory(Directory, Inode, name);
+    LinkInodeToDirectory(Directory, Inode, CreateName);
 
+    free(CreatePathSB);
+    free(CreatePathDirectory);
+    free(CreateName);
     free(Directory);
     free(Inode);
     return KSUCCESS;
@@ -1316,12 +1323,15 @@ ext_file_t* mount_info_t::OpenFile(char* path, permissions_t permissions){
 ext_file_t* mount_info_t::OpenFile(inode_t* inode, char* path, permissions_t permissions){
     inode_t* Target = FindInodeFromInodeEntryAndPath(inode, path);
     if(!Target){
-        if(permissions & File_Permissions_Write){
+        if(permissions & File_Permissions_Create_File){
             std::StringBuilder* CreatePathSB = new std::StringBuilder(path);
             char* CreatePathDirectory = CreatePathSB->substr(NULL, CreatePathSB->indexOf("/", 0, true));
             char* CreateName = CreatePathSB->substr(CreatePathSB->indexOf("/", 0, true), CreatePathSB->length());
             CreateFile(CreatePathDirectory, CreateName, permissions);
             Target = FindInodeFromInodeEntryAndPath(inode, path);
+            free(CreatePathSB);
+            free(CreatePathDirectory);
+            free(CreateName);
             if(!Target) return NULL;
         }else{
             return NULL;
