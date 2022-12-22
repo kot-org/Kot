@@ -24,6 +24,7 @@ extern "C" int main() {
     backfb.height = fb->height;
     backfb.pitch = fb->pitch;
 
+    Srv_Storage_Removefile("d1:test.txt", NULL, true);
     srv_system_callback_t* callback0 = Srv_System_ReadFileInitrd("default-font.sfn", true);
     font = LoadFont((uintptr_t)callback0->Data);
     free(callback0);

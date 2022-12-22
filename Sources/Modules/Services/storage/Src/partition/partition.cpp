@@ -8,6 +8,16 @@ uint64_t PartitionLock = NULL;
 void InitializePartition(){
     PartitionsList = vector_create();
     PartitionsListNotify = vector_create();
+
+
+    // RootPartition is initrd
+    partition_t* RootPartition = (partition_t*)malloc(sizeof(partition_t));
+    RootPartition->IsMount = true;
+    RootPartition->StaticVolumeMountPoint = 0;
+    RootPartition->DynamicVolumeMountPoint = 0;
+    RootPartition->Index = 0;
+
+    vector_push(PartitionsList, RootPartition);
 }
 
 partition_t* NewPartition(storage_device_t* Device, uint64_t Start, uint64_t Size, GUID_t* PartitionTypeGUID){
@@ -87,7 +97,7 @@ uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* GUIDTarget, thread_t ThreadToNot
         NotifyInfo->ProcessToNotify = ProcessToNotify;
         vector_push(PartitionsListNotify, NotifyInfo);
 
-        for(uint64_t i = 0; i < PartitionsList->length; i++){
+        for(uint64_t i = 1; i < PartitionsList->length; i++){
             partition_t* Partition = (partition_t*)vector_get(PartitionsList, i);
             if(memcmp(&Partition->PartitionTypeGUID, NotifyInfo->GUIDTarget, sizeof(GUID_t))){
                 srv_storage_space_info_t* Space;

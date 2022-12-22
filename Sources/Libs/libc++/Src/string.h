@@ -3,6 +3,8 @@
 #include <kot/heap.h>
 #include <kot/assert.h>
 
+#include <kot++/printf.h>
+
 namespace std {
     
     class StringBuilder {

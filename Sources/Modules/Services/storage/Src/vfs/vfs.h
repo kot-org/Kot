@@ -5,6 +5,7 @@
 #include <kot/bits.h>
 #include <kot/stdio.h>
 #include <kot/authorization.h>
+#include <kot/uisd/srvs/system.h>
 #include <kot/uisd/srvs/storage.h>
 
 #include <kot++/string.h>
@@ -16,7 +17,7 @@ extern process_t VFSProcess;
 
 
 struct ClientVFSContext{
-    uint64_t PID;
+    authorization_t Authorization;
     permissions_t Permissions;
     struct partition_t* Partition;
     char* Path;
@@ -31,7 +32,7 @@ KResult InitializeVFS();
 
 KResult VFSMount(thread_t Callback, uint64_t CallbackArg, bool IsMount, struct srv_storage_fs_server_functions_t* StorageFSServerFunctions);
 
-KResult VFSLoginApp(thread_t Callback, uint64_t CallbackArg, process_t Process, permissions_t Permissions, uint64_t PID, char* Path);
+KResult VFSLoginApp(thread_t Callback, uint64_t CallbackArg, process_t Process, authorization_t Authorization, permissions_t Permissions, char* Path);
 
 KResult VFSClientDispatcher(thread_t Callback, uint64_t CallbackArg, uint64_t Function, uint64_t GP0, uint64_t GP1, uint64_t GP2);
 
@@ -43,3 +44,9 @@ KResult VFSRename(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Con
 KResult VFSDirCreate(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t Permissions, char* Path);
 KResult VFSDirRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t Permissions, char* Path);
 KResult VFSDirOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t Permissions, char* Path, process_t Target);
+
+
+typedef KResult (*file_dispatch_t)(thread_t Callback, uint64_t CallbackArg, char* FilePath, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3);
+
+KResult VFSfileReadInitrd(thread_t Callback, uint64_t CallbackArg, char* FilePath, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3);
+KResult VFSfileCloseInitrd(thread_t Callback, uint64_t CallbackArg, char* FilePath, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3);

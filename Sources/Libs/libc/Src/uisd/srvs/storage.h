@@ -4,6 +4,7 @@
 #include <kot/sys.h>
 #include <kot/uisd.h>
 #include <kot/types.h>
+#include <kot/authorization.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -26,6 +27,18 @@ extern "C" {
 #define Client_VFS_Dir_Create           0x3
 #define Client_VFS_Dir_Remove           0x4
 #define Client_VFS_Dir_Open             0x5
+
+#define File_Function_Count 0x3
+
+#define File_Function_Close 0x0
+#define File_Function_Read  0x1
+#define File_Function_Write 0x2
+
+
+#define Dir_Function_Count 0x2
+
+#define Dir_Function_Close 0x0
+#define Dir_Function_Read  0x1
 
 
 typedef KResult (*StorageCallbackHandler)(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
@@ -106,7 +119,8 @@ struct srv_storage_callback_t* Srv_Storage_RemoveDevice(uint64_t Index, bool IsA
 struct srv_storage_callback_t* Srv_Storage_NotifyOnNewPartitionByGUIDType(struct GUID_t* PartitionTypeGUID, thread_t ThreadToNotify, process_t ProcessToNotify, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_MountPartition(thread_t VFSMountThread, struct srv_storage_fs_server_functions_t* FSServerFunctions, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_UnmountPartition(thread_t VFSMountThread, bool IsAwait);
-struct srv_storage_callback_t* Srv_Storage_VFSLoginApp(process_t Process, permissions_t Permissions, uint64_t PID, char* Path, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_VFSLoginApp(process_t Process, authorization_t Authorization, permissions_t Permissions, char* Path, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_Removefile(char* Path, permissions_t Permissions, bool IsAwait);
 
 #if defined(__cplusplus)
 }

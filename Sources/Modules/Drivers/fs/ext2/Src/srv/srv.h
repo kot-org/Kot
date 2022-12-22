@@ -3,20 +3,8 @@
 #include <core/core.h>
 #include <kot/uisd/srvs/storage.h>
 
-#define File_Function_Count 0x3
-
-#define File_Function_Close 0x0
-#define File_Function_Read  0x1
-#define File_Function_Write 0x2
-
-
-#define Dir_Function_Count 0x2
-
-#define Dir_Function_Close 0x0
-#define Dir_Function_Read  0x1
-
-typedef KResult (*file_dispatch_t)(thread_t Callback, uint64_t CallbackArg, struct ext_file_t* file, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3);
-typedef KResult (*dir_dispatch_t)(thread_t Callback, uint64_t CallbackArg, struct ext_directory_t* directory, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3);
+typedef KResult (*file_dispatch_t)(thread_t Callback, uint64_t CallbackArg, struct ext_file_t* File, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3);
+typedef KResult (*dir_dispatch_t)(thread_t Callback, uint64_t CallbackArg, struct ext_directory_t* Directory, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3);
 
 
 KResult MountToVFS(struct mount_info_t* MountInfo, process_t VFSProcess, thread_t VFSMountThread);

@@ -13,13 +13,6 @@ static client_vfs_dispatch_t VFSClientDispatcherFunctions[Client_VFS_Function_Co
 
 KResult InitializeVFS(){
     VFSProcess = ShareProcessKey(Sys_GetProcess());
-    char* test0;
-    partition_t* test1;
-    ClientVFSContext test2{
-        .Partition = test1,
-        .Path = "hereitis/",
-    };
-    GetVFSAccessData(&test0, &test1, &test2, "folder0/folder1");
     return KSUCCESS;
 }
 
@@ -55,7 +48,7 @@ KResult VFSAskForAuthorization(ClientVFSContext* Context, authorization_t author
     };
 
     autorization_field_t AuthorizationField{
-        .PID = Context->PID,
+        .PID = Sys_GetPIDThreadLauncher(),
         .Title = "File system access",
         .Message = Message,
         .ValidationFieldsCount = VFSValidationFieldsCount,
@@ -65,15 +58,59 @@ KResult VFSAskForAuthorization(ClientVFSContext* Context, authorization_t author
 
     if(GetAuthorization(&AuthorizationField, true) == KSUCCESS){
         if(AuthorizationField.ValidationFields[0].IsValidate){
-            Context->Permissions = authorization;
+            Context->Authorization = authorization;
             WriteContextFile(Context);
             return KSUCCESS;
         }else if(AuthorizationField.ValidationFields[1].IsValidate){
-            Context->Permissions = authorization;
+            Context->Authorization = authorization;
             return KSUCCESS;
         }
     }
     return KFAIL;
+}
+
+KResult GetVFSAbsolutePath(char** AbsolutePath, partition_t** Partition, char* Path){
+    std::StringBuilder* Sb = new std::StringBuilder(Path);
+    int64_t RelativePathStart = Sb->indexOf(":");
+
+    partition_t* PartitionContext;
+
+    if(RelativePathStart == -1){
+        free(Sb);
+        return KFAIL;
+    }else{
+        char* AccessTypeBuffer = Sb->substr(0, 1);
+        char* VolumeBuffer = Sb->substr(1, RelativePathStart);
+        *AbsolutePath = Sb->substr(RelativePathStart + 1, Sb->length());
+
+        char AccessType = *AccessTypeBuffer;
+        uint64_t Volume = atoi(VolumeBuffer);
+
+        free(AccessTypeBuffer);
+        free(VolumeBuffer);
+
+        if(*AccessTypeBuffer == 's'){
+            // TODO
+            assert(0);
+        }else if(*AccessTypeBuffer == 'd'){
+            PartitionContext = (partition_t*)vector_get(PartitionsList, Volume);
+            if(!PartitionContext->IsMount){
+                free(Sb);
+                free(*AbsolutePath);
+                free(VolumeBuffer);
+                return KFAIL;
+            }
+        }else{
+            free(Sb);
+            free(*AbsolutePath);
+            free(VolumeBuffer);
+            return KFAIL;
+        }
+        free(VolumeBuffer);
+    }
+    *Partition = PartitionContext;
+    free(Sb);
+    return KSUCCESS;
 }
 
 KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFSContext* Context, char* Path){
@@ -81,7 +118,6 @@ KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFS
     int64_t RelativePathStart = Sb->indexOf(":");
 
     partition_t* PartitionContext;
-
     if(RelativePathStart == -1){
         PartitionContext = Context->Partition;
         Sb->append(Context->Path, 0);
@@ -99,12 +135,13 @@ KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFS
 
         if(*AccessTypeBuffer == 's'){
             // TODO
+            assert(0);
         }else if(*AccessTypeBuffer == 'd'){
-            if(Context->PathLength != NULL && strncmp(*RelativePath, Context->Path, Context->PathLength)){
+            if(Context->DynamicVolumeMountPoint == Volume && strncmp(*RelativePath, Context->Path, Context->PathLength)){
                 PartitionContext = Context->Partition;
             }else{
                 authorization_t AuthorizationNeed = (Volume == Context->StaticVolumeMountPoint) ? FS_AUTHORIZATION_MEDIUM : FS_AUTHORIZATION_HIGH;
-                if(AuthorizationNeed > Context->Permissions){
+                if(AuthorizationNeed > Context->Authorization){
                     if(Volume > PartitionsList->length) return KNOTALLOW;
 
                     if(VFSAskForAuthorization(Context, AuthorizationNeed) != KSUCCESS){
@@ -149,7 +186,6 @@ KResult VFSMount(thread_t Callback, uint64_t CallbackArg, bool IsMount, srv_stor
         Status = UnmountPartition(Partition->Index);
     }
     
-    
     arguments_t arguments{
         .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
@@ -163,18 +199,16 @@ KResult VFSMount(thread_t Callback, uint64_t CallbackArg, bool IsMount, srv_stor
     Sys_Close(KSUCCESS);
 }
 
-KResult VFSLoginApp(thread_t Callback, uint64_t CallbackArg, process_t Process, permissions_t Permissions, uint64_t PID, char* Path){
+KResult VFSLoginApp(thread_t Callback, uint64_t CallbackArg, process_t Process, authorization_t Authorization, permissions_t Permissions, char* Path){
     KResult Status = KFAIL;
-    Printlog("ok");
     ClientVFSContext* Context = (ClientVFSContext*)malloc(sizeof(ClientVFSContext));
+    Context->Authorization = Authorization;
     Context->Permissions = Permissions;
-    Context->PID = PID;
     Context->PathLength = NULL;
-    GetVFSAccessData(&Context->Path, &Context->Partition, Context, Path);
+    GetVFSAbsolutePath(&Context->Path, &Context->Partition, Path);
     Context->PathLength = strlen(Context->Path);
     Context->StaticVolumeMountPoint = Context->Partition->StaticVolumeMountPoint;
     Context->DynamicVolumeMountPoint = Context->Partition->DynamicVolumeMountPoint;
-    Printlog("ok");
 
 
     /* VFSClientDispatcher */
@@ -200,14 +234,25 @@ KResult VFSLoginApp(thread_t Callback, uint64_t CallbackArg, process_t Process, 
 
 KResult VFSClientDispatcher(thread_t Callback, uint64_t CallbackArg, uint64_t Function, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     if(Function >= Client_VFS_Function_Count){
+        arguments_t arguments{
+            .arg[0] = KFAIL,            /* Status */
+            .arg[1] = CallbackArg,      /* CallbackArg */
+            .arg[2] = NULL,             /* GP0 */
+            .arg[3] = NULL,             /* GP1 */
+            .arg[4] = NULL,             /* GP2 */
+            .arg[5] = NULL,             /* GP3 */
+        };
+
+        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+
         Sys_Close(KSUCCESS); 
     }
     
     ClientVFSContext* Context = (ClientVFSContext*)Sys_GetExternalDataThread();
 
     KResult Status = VFSClientDispatcherFunctions[Function](Callback, CallbackArg, Context, Context->Permissions, GP0, GP1, GP2);
-    if(Status != KSUCCESS){
 
+    if(Status != KSUCCESS){
         arguments_t arguments{
             .arg[0] = Status,           /* Status */
             .arg[1] = CallbackArg,      /* CallbackArg */
@@ -231,8 +276,6 @@ KResult VFSFileRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext*
     if(Status != KSUCCESS){
         return Status; 
     }
-
-    Permissions |= (1 << File_Permissions_Write);
     
     arguments_t arguments{
         .arg[0] = Callback,         /* Callback */
@@ -249,11 +292,11 @@ KResult VFSFileRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext*
         .ParameterPosition = 0x2,
     };
 
-    Sys_Execthread(Partition->FSServerFunctions.Removefile, &arguments, ExecutionTypeQueu, &Data);
+    Status = Sys_Execthread(Partition->FSServerFunctions.Removefile, &arguments, ExecutionTypeQueu, &Data);
 
     free(RelativePath);
     
-    return KSUCCESS; 
+    return Status; 
 }
 
 KResult VFSFileOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t PermissionsContext, permissions_t Permissions, char* Path, process_t Target){
@@ -271,6 +314,8 @@ KResult VFSFileOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* C
     }else{
         BIT_CLEAR(Permissions, 0);
     }
+
+    Permissions = Permissions & PermissionsContext;
     
     arguments_t arguments{
         .arg[0] = Callback,         /* Callback */
@@ -287,11 +332,11 @@ KResult VFSFileOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* C
         .ParameterPosition = 0x2,
     };
 
-    Sys_Execthread(Partition->FSServerFunctions.Openfile, &arguments, ExecutionTypeQueu, &Data);
+    Status = Sys_Execthread(Partition->FSServerFunctions.Openfile, &arguments, ExecutionTypeQueu, &Data);
 
     free(RelativePath);
     
-    return KSUCCESS; 
+    return Status; 
 }
 
 
@@ -329,8 +374,6 @@ KResult VFSRename(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Con
 
     memcpy((uintptr_t)((uint64_t)RelativeRenameData + RelativeRenameData->OldPathPosition), RelativePathOld, strlen(RelativePathOld));
     memcpy((uintptr_t)((uint64_t)RelativeRenameData + RelativeRenameData->NewPathPosition), RelativePathNew, strlen(RelativePathNew));
-
-    Permissions |= (1 << File_Permissions_Write);
     
     arguments_t arguments{
         .arg[0] = Callback,         /* Callback */
@@ -347,13 +390,13 @@ KResult VFSRename(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Con
         .ParameterPosition = 0x2,
     };
 
-    Sys_Execthread(PartitionOld->FSServerFunctions.Rename, &arguments, ExecutionTypeQueu, &Data);
+    Status = Sys_Execthread(PartitionOld->FSServerFunctions.Rename, &arguments, ExecutionTypeQueu, &Data);
 
     free(RelativePathOld);
     free(RelativePathNew);
     free(RelativeRenameData);
     
-    return KSUCCESS; 
+    return Status; 
 }
 
 KResult VFSDirCreate(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t Permissions, char* Path){
@@ -365,8 +408,6 @@ KResult VFSDirCreate(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* 
     if(Status != KSUCCESS){
         return Status; 
     }
-
-    Permissions |= (1 << File_Permissions_Write);
     
     arguments_t arguments{
         .arg[0] = Callback,         /* Callback */
@@ -383,11 +424,11 @@ KResult VFSDirCreate(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* 
         .ParameterPosition = 0x2,
     };
 
-    Sys_Execthread(Partition->FSServerFunctions.Mkdir, &arguments, ExecutionTypeQueu, &Data);
+    Status = Sys_Execthread(Partition->FSServerFunctions.Mkdir, &arguments, ExecutionTypeQueu, &Data);
 
     free(RelativePath);
     
-    return KSUCCESS; 
+    return Status; 
 }
 
 KResult VFSDirRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t Permissions, char* Path){
@@ -399,8 +440,6 @@ KResult VFSDirRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* 
     if(Status != KSUCCESS){
         return Status; 
     }
-
-    Permissions |= (1 << File_Permissions_Write);
     
     arguments_t arguments{
         .arg[0] = Callback,         /* Callback */
@@ -417,11 +456,11 @@ KResult VFSDirRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* 
         .ParameterPosition = 0x2,
     };
 
-    Sys_Execthread(Partition->FSServerFunctions.Rmdir, &arguments, ExecutionTypeQueu, &Data);
+    Status = Sys_Execthread(Partition->FSServerFunctions.Rmdir, &arguments, ExecutionTypeQueu, &Data);
 
     free(RelativePath);
     
-    return KSUCCESS; 
+    return Status; 
 }
 
 KResult VFSDirOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t Permissions, char* Path, process_t Target){
@@ -433,8 +472,6 @@ KResult VFSDirOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Co
     if(Status != KSUCCESS){
         return Status; 
     }
-
-    Permissions |= (1 << File_Permissions_Write);
     
     arguments_t arguments{
         .arg[0] = Callback,         /* Callback */
@@ -451,9 +488,132 @@ KResult VFSDirOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Co
         .ParameterPosition = 0x2,
     };
 
-    Sys_Execthread(Partition->FSServerFunctions.Rmdir, &arguments, ExecutionTypeQueu, &Data);
+    Status = Sys_Execthread(Partition->FSServerFunctions.Rmdir, &arguments, ExecutionTypeQueu, &Data);
 
     free(RelativePath);
     
-    return KSUCCESS; 
+    return Status; 
+}
+
+
+/* Initrd converter */
+
+
+static file_dispatch_t FileDispatcher[File_Function_Count] = { 
+    [File_Function_Close] = VFSfileCloseInitrd,
+    [File_Function_Read] = VFSfileReadInitrd,
+};
+
+KResult VFSfileDispatcherInitrd(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    uint32_t Function = GP0 & 0xffffffff;
+    uint32_t GP4 =  GP0 >> 32;
+
+    if(Function >= File_Function_Count || Function == File_Function_Write){
+        arguments_t arguments{
+            .arg[0] = KFAIL,            /* Status */
+            .arg[1] = CallbackArg,      /* CallbackArg */
+            .arg[2] = NULL,             /* GP0 */
+            .arg[3] = NULL,             /* GP1 */
+            .arg[4] = NULL,             /* GP2 */
+            .arg[5] = NULL,             /* GP3 */
+        };
+
+        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_Close(KSUCCESS);
+    }
+
+    char* FilePath = (char*)Sys_GetExternalDataThread();
+
+    Sys_Close(FileDispatcher[Function](Callback, CallbackArg, FilePath, GP1, GP2, GP3, GP4));
+}
+
+KResult VFSfileReadInitrd(thread_t Callback, uint64_t CallbackArg, char* FilePath, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
+    size64_t Size = GP2;
+
+    srv_system_callback_t* CallbackSys = Srv_System_ReadFileInitrd(FilePath, true);
+
+    KResult Status = CallbackSys->Status;
+
+    arguments_t arguments{
+        .arg[0] = Status,           /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = NULL,             /* GP0 */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    uintptr_t Buffer = (uintptr_t)(CallbackSys->Data + GP1);
+
+    ksmem_t MemoryKey;
+    Sys_CreateMemoryField(Sys_GetProcess(), Size, &Buffer, &MemoryKey, MemoryFieldTypeSendSpaceRO);
+
+    uint64_t KeyFlag = NULL;
+    Keyhole_SetFlag(&KeyFlag, KeyholeFlagPresent, true);
+    Keyhole_SetFlag(&KeyFlag, KeyholeFlagCloneable, true);
+    Keyhole_SetFlag(&KeyFlag, KeyholeFlagEditable, true);
+    Sys_Keyhole_CloneModify(MemoryKey, &arguments.arg[2], GP0, KeyFlag, PriviledgeApp);
+    
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueuAwait, NULL);
+    Sys_CloseMemoryField(Sys_GetProcess(), MemoryKey, Buffer);
+
+    free((uintptr_t)CallbackSys->Data);
+    free(CallbackSys);
+
+    return KSUCCESS;
+}
+
+KResult VFSfileCloseInitrd(thread_t Callback, uint64_t CallbackArg, char* FilePath, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
+    free(FilePath);
+
+    arguments_t arguments{
+        .arg[0] = KSUCCESS,            /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = NULL,             /* GP0 */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+
+    Sys_Exit(KSUCCESS);
+}
+
+KResult VFSfileOpenInitrd(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions, process_t Target){
+    KResult Status = KFAIL;
+
+    size64_t FilePathSize = strlen(Path);
+    char* FilePath = (char*)malloc(FilePathSize);
+    memcpy(FilePath, Path, FilePathSize);
+    
+    arguments_t arguments{
+        .arg[0] = Status,           /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = NULL,             /* Data */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    if(Status == KSUCCESS){
+        srv_storage_fs_server_open_file_data_t SrvOpenFileData;
+        thread_t DispatcherThread;
+
+        Sys_Createthread(Sys_GetProcess(), (uintptr_t)&VFSfileDispatcherInitrd, PriviledgeDriver, (uint64_t)FilePath, &DispatcherThread);
+
+        SrvOpenFileData.Dispatcher = MakeShareableThreadToProcess(DispatcherThread, Target);
+
+        SrvOpenFileData.FSDriverProc = VFSProcess;
+        
+        ShareDataWithArguments_t ShareDataWithArguments{
+            .Data = &SrvOpenFileData,
+            .Size = sizeof(srv_storage_fs_server_open_file_data_t),
+            .ParameterPosition = 0x2,
+        };
+        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &ShareDataWithArguments);
+    }else{
+        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    }
+    Sys_Close(KSUCCESS);
 }

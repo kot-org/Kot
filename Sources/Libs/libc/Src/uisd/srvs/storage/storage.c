@@ -219,7 +219,7 @@ KResult Srv_Storage_VFSLoginApp_Callback(KResult Status, struct srv_storage_call
     return Status;
 }
 
-struct srv_storage_callback_t* Srv_Storage_VFSLoginApp(process_t Process, permissions_t Permissions, uint64_t PID, char* Path, bool IsAwait){
+struct srv_storage_callback_t* Srv_Storage_VFSLoginApp(process_t Process, authorization_t Authorization, permissions_t Permissions, char* Path, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
     thread_t self = Sys_Getthread();
@@ -236,12 +236,12 @@ struct srv_storage_callback_t* Srv_Storage_VFSLoginApp(process_t Process, permis
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Process;
-    parameters.arg[3] = Permissions;
-    parameters.arg[4] = PID;
+    parameters.arg[3] = Authorization;
+    parameters.arg[4] = Permissions;
 
     struct ShareDataWithArguments_t Data;
     Data.Data = Path;
-    Data.Size = strlen(Path);
+    Data.Size = strlen(Path) + 1; // add '\0' char
     Data.ParameterPosition = 0x5;
 
     KResult Status = Sys_Execthread(StorageData->VFSLoginApp, &parameters, ExecutionTypeQueu, &Data);
@@ -260,7 +260,7 @@ KResult Srv_Storage_Removefile_Callback(KResult Status, struct srv_storage_callb
     return Status;
 }
 
-struct srv_storage_callback_t* Srv_Storage_Removefile(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions, bool IsAwait){
+struct srv_storage_callback_t* Srv_Storage_Removefile(char* Path, permissions_t Permissions, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
     thread_t self = Sys_Getthread();
@@ -276,9 +276,14 @@ struct srv_storage_callback_t* Srv_Storage_Removefile(thread_t Callback, uint64_
     struct arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
-    parameters.arg[2] = false;
+    parameters.arg[2] = Client_VFS_File_Remove;
 
-    KResult Status = Sys_Execthread(NULL, &parameters, ExecutionTypeQueu, NULL);
+    struct ShareDataWithArguments_t data;
+    data.Data = Path;
+    data.Size = strlen(Path) + 1; // add '\0' char
+    data.ParameterPosition = 0x3;
+
+    KResult Status = Sys_Execthread(KotSpecificData.VFSHandler, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }

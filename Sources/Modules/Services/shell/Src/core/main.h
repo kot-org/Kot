@@ -10,6 +10,7 @@
 
 #include <kot/uisd/srvs/time.h>
 #include <kot/uisd/srvs/system.h>
+#include <kot/uisd/srvs/storage.h>
 
 #include <kot-graphics++/orb.h>
 #include <kot-graphics++/context.h>

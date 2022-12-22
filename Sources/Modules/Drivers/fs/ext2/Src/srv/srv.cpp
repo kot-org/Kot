@@ -84,6 +84,7 @@ KResult ChangeUserData(thread_t Callback, uint64_t CallbackArg, uint64_t UID, ui
 
 /* VFS access */
 KResult Removefile(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions){
+    Printlog("ok");
     mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
 
     KResult Status = MountInfo->RemoveFile(Path, Permissions);
@@ -113,7 +114,7 @@ KResult Openfile(thread_t Callback, uint64_t CallbackArg, char* Path, permission
     }
     
     arguments_t arguments{
-        .arg[0] = Status,            /* Status */
+        .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* Data */
         .arg[3] = NULL,             /* GP1 */
@@ -124,14 +125,10 @@ KResult Openfile(thread_t Callback, uint64_t CallbackArg, char* Path, permission
     if(Status == KSUCCESS){
         srv_storage_fs_server_open_file_data_t SrvOpenFileData;
         thread_t DispatcherThread;
-        uint64_t ThreadFlags = NULL;
 
         Sys_Createthread(Sys_GetProcess(), (uintptr_t)&FileDispatch, PriviledgeDriver, (uint64_t)File, &DispatcherThread);
 
-        Keyhole_SetFlag(&ThreadFlags, KeyholeFlagPresent, true);
-        Keyhole_SetFlag(&ThreadFlags, KeyholeFlagDataTypeThreadIsExecutableWithQueue, true);
-
-        Sys_Keyhole_CloneModify(DispatcherThread, &SrvOpenFileData.Dispatcher, Target, ThreadFlags, PriviledgeApp);
+        SrvOpenFileData.Dispatcher = MakeShareableThreadToProcess(DispatcherThread, Target);
 
         SrvOpenFileData.FSDriverProc = ProcessKey;
         
@@ -167,8 +164,7 @@ KResult FileDispatch(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint
     }
 
     ext_file_t* File = (ext_file_t*)Sys_GetExternalDataThread();
-
-    Sys_Close(FileDispatcher[Function](Callback, CallbackArg, File, GP1, GP2, GP3, GP4));
+    Sys_Close(FileDispatcher[Function](Callback, CallbackArg, File, GP1, GP2, GP3, GP4)); // It'll call the callback in the function
 }
 
 /* Direct access */
@@ -176,7 +172,7 @@ KResult Closefile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uin
     KResult Status = File->CloseFile();
     
     arguments_t arguments{
-        .arg[0] = Status,            /* Status */
+        .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
         .arg[3] = NULL,             /* GP1 */
@@ -202,7 +198,7 @@ KResult Readfile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint
     KResult Status = File->ReadFile(Buffer, GP1, Size);
 
     arguments_t arguments{
-        .arg[0] = Status,            /* Status */
+        .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* Key to buffer */
         .arg[3] = NULL,             /* GP1 */
@@ -216,6 +212,8 @@ KResult Readfile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint
 
         uint64_t KeyFlag = NULL;
         Keyhole_SetFlag(&KeyFlag, KeyholeFlagPresent, true);
+        Keyhole_SetFlag(&KeyFlag, KeyholeFlagCloneable, true);
+        Keyhole_SetFlag(&KeyFlag, KeyholeFlagEditable, true);
         Sys_Keyhole_CloneModify(MemoryKey, &arguments.arg[2], GP0, KeyFlag, PriviledgeApp);
         
         Sys_Execthread(Callback, &arguments, ExecutionTypeQueuAwait, NULL);

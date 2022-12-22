@@ -9,10 +9,11 @@ namespace std {
     }
 
     int64_t StringBuilder::indexOf(char* str, uint64_t startingAt, bool isRightStart) {
-        uint64_t len = length();
+        uint64_t len = strlen(str);
+        uint64_t Sblenght = length();
         if(isRightStart){
-            for (uint64_t i = startingAt; i != NULL; i--) {
-                char* sub = substr(i, startingAt);
+            for (uint64_t i = startingAt - len; i != NULL; i--) {
+                char* sub = substr(i, i + len);
                 if (strcmp(sub, str)) {
                     free(sub);
                     return i;
@@ -20,8 +21,8 @@ namespace std {
                 free(sub);
             }
         }else{
-            for (uint64_t i = startingAt; i < len; i++) {
-                char* sub = substr(i, len);
+            for (uint64_t i = 0; i < Sblenght; i++) {
+                char* sub = substr(i, i + len);
                 if (strcmp(sub, str)) {
                     free(sub);
                     return i;
