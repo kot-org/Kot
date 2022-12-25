@@ -71,3 +71,5 @@ void vmm_ClearMemory(pagetable_t src);
 #define VMM_MAXLEVEL 0x4
 #define VMM_LEVELENTRY 0x200
 #define vmm_GetVirtualAddress(PhysicalAddress)((uint64_t)PhysicalAddress + vmm_HHDMAdress)
+
+#define VMM_HIGHER_HALF_ADDRESS 0xffff800000000000

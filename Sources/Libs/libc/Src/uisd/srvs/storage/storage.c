@@ -10,7 +10,7 @@ void Srv_Storage_Initialize(){
 
         thread_t StoragethreadKeyCallback = NULL;
         Sys_Createthread(Proc, &Srv_Storage_Callback, PriviledgeApp, NULL, &StoragethreadKeyCallback);
-        srv_storage_callback_thread = MakeShareableThreadToProcess(StoragethreadKeyCallback, StorageData->ControllerHeader.Process);
+        srv_storage_callback_thread = MakeShareableThread(StoragethreadKeyCallback, PriviledgeService);
     }else{
         Sys_Close(KFAIL);
     }
@@ -272,6 +272,43 @@ struct srv_storage_callback_t* Srv_Storage_Removefile(char* Path, permissions_t 
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_MountPartition_Callback;
+
+    struct arguments_t parameters;
+    parameters.arg[0] = srv_storage_callback_thread;
+    parameters.arg[1] = callback;
+    parameters.arg[2] = Client_VFS_File_Remove;
+
+    struct ShareDataWithArguments_t data;
+    data.Data = Path;
+    data.Size = strlen(Path) + 1; // add '\0' char
+    data.ParameterPosition = 0x3;
+
+    KResult Status = Sys_Execthread(KotSpecificData.VFSHandler, &parameters, ExecutionTypeQueu, &data);
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}
+
+
+/* Openfile */
+
+KResult Srv_Storage_Openfile_Callback(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    return Status;
+}
+
+struct srv_storage_callback_t* Srv_Storage_Openfile(char* Path, permissions_t Permissions, bool IsAwait){
+    if(!srv_storage_callback_thread) Srv_Storage_Initialize();
+    
+    thread_t self = Sys_Getthread();
+
+    struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Storage_Openfile_Callback;
 
     struct arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;

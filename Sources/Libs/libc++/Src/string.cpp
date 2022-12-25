@@ -12,7 +12,7 @@ namespace std {
         uint64_t len = strlen(str);
         uint64_t Sblenght = length();
         if(isRightStart){
-            for (uint64_t i = startingAt - len; i != NULL; i--) {
+            for (int64_t i = Sblenght - len; i != -1; i--) {
                 char* sub = substr(i, i + len);
                 if (strcmp(sub, str)) {
                     free(sub);
@@ -49,7 +49,7 @@ namespace std {
     }
 
     char* StringBuilder::substr(uint64_t startingAt, uint64_t endingAt) {
-        if (buffer == NULL || (endingAt == startingAt) || length() <= startingAt) {
+        if (buffer == NULL || (endingAt == startingAt) || length() <= startingAt || length() < endingAt) {
             return "";
         }
         uint64_t size = endingAt - startingAt;

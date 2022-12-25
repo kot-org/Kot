@@ -1,12 +1,16 @@
 #pragma once
 
+#include <arch/arch.h>
 #include <lib/types.h>
 #include <kot/memory.h>
-#include <scheduler/scheduler.h>
 #include <lib/stack/stack.h>
+#include <scheduler/scheduler.h>
 
 bool CheckAddress(uintptr_t address, size64_t size, uintptr_t pagingEntry);
 bool CheckAddress(uintptr_t address, size64_t size);
+
+bool CheckUserAddress(uintptr_t address, size64_t size, uintptr_t pagingEntry);
+bool CheckUserAddress(uintptr_t address, size64_t size);
 
 struct SlaveInfo_t{
     struct kprocess_t* process;

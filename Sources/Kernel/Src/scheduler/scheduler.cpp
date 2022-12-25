@@ -580,7 +580,7 @@ void TaskManager::CreateIddleTask(){
 void TaskManager::InitScheduler(uint8_t NumberOfCores, uintptr_t IddleTaskFunction){
     uintptr_t physcialMemory = Pmm_RequestPage();
     uintptr_t virtualMemory = (uintptr_t)vmm_GetVirtualAddress(physcialMemory);
-    vmm_Map(vmm_PageTable, virtualMemory, physcialMemory, true);
+    vmm_Map(vmm_PageTable, virtualMemory, physcialMemory, true, false);
     memcpy(virtualMemory, IddleTaskFunction, PAGE_SIZE);
 
     IddleTaskPointer = virtualMemory; 

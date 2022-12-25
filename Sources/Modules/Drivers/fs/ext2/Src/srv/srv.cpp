@@ -20,37 +20,37 @@ KResult MountToVFS(mount_info_t* MountInfo, process_t VFSProcess, thread_t VFSMo
 
     /* ChangeUserData */
     thread_t ChangeUserDataThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&ChangeUserData, PriviledgeDriver, NULL, &ChangeUserDataThread);
+    Sys_Createthread(proc, (uintptr_t)&ChangeUserData, PriviledgeDriver, (uint64_t)MountInfo, &ChangeUserDataThread);
     FSServerFunctions.ChangeUserData = MakeShareableThreadToProcess(ChangeUserDataThread, VFSProcess);
 
     /* Removefile */
     thread_t RemovefileThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&Removefile, PriviledgeDriver, NULL, &RemovefileThread);
+    Sys_Createthread(proc, (uintptr_t)&Removefile, PriviledgeDriver, (uint64_t)MountInfo, &RemovefileThread);
     FSServerFunctions.Removefile = MakeShareableThreadToProcess(RemovefileThread, VFSProcess);
 
     /* Openfile */
     thread_t OpenfileThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&Openfile, PriviledgeDriver, NULL, &OpenfileThread);
+    Sys_Createthread(proc, (uintptr_t)&Openfile, PriviledgeDriver, (uint64_t)MountInfo, &OpenfileThread);
     FSServerFunctions.Openfile = MakeShareableThreadToProcess(OpenfileThread, VFSProcess);
 
     /* Rename */
     thread_t RenameThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&Rename, PriviledgeDriver, NULL, &RenameThread);
+    Sys_Createthread(proc, (uintptr_t)&Rename, PriviledgeDriver, (uint64_t)MountInfo, &RenameThread);
     FSServerFunctions.Rename = MakeShareableThreadToProcess(RenameThread, VFSProcess);
 
     /* Mkdir */
     thread_t MkdirThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&Mkdir, PriviledgeDriver, NULL, &MkdirThread);
+    Sys_Createthread(proc, (uintptr_t)&Mkdir, PriviledgeDriver, (uint64_t)MountInfo, &MkdirThread);
     FSServerFunctions.Mkdir = MakeShareableThreadToProcess(MkdirThread, VFSProcess);
 
     /* Rmdir */
     thread_t RmdirThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&Rmdir, PriviledgeDriver, NULL, &RmdirThread);
+    Sys_Createthread(proc, (uintptr_t)&Rmdir, PriviledgeDriver, (uint64_t)MountInfo, &RmdirThread);
     FSServerFunctions.Rmdir = MakeShareableThreadToProcess(RmdirThread, VFSProcess);
 
     /* Opendir */
     thread_t OpendirThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&Opendir, PriviledgeDriver, NULL, &OpendirThread);
+    Sys_Createthread(proc, (uintptr_t)&Opendir, PriviledgeDriver, (uint64_t)MountInfo, &OpendirThread);
     FSServerFunctions.Opendir = MakeShareableThreadToProcess(OpendirThread, VFSProcess);
 
     Srv_Storage_MountPartition(VFSMountThread, &FSServerFunctions, true);
@@ -84,13 +84,11 @@ KResult ChangeUserData(thread_t Callback, uint64_t CallbackArg, uint64_t UID, ui
 
 /* VFS access */
 KResult Removefile(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions){
-    Printlog("ok");
     mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
-
     KResult Status = MountInfo->RemoveFile(Path, Permissions);
     
     arguments_t arguments{
-        .arg[0] = Status,            /* Status */
+        .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
         .arg[3] = NULL,             /* GP1 */

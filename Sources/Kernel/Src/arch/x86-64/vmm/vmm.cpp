@@ -84,8 +84,6 @@ bool vmm_GetFlags(pagetable_t table, uintptr_t Address, vmm_flag flags){
         PDVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PD);  
     }
 
-    PDPVirtualAddress->entries[indexer.PD_i] = PDE;
-
     PDE = PDVirtualAddress->entries[indexer.PT_i];
 
     vmm_page_table* PT;
@@ -94,10 +92,8 @@ bool vmm_GetFlags(pagetable_t table, uintptr_t Address, vmm_flag flags){
         return false;
     }else{
         PT = (vmm_page_table*)(vmm_GetAddress(&PDE) << 12);
-        PTVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PT) ;
+        PTVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PT);
     }
-
-    PDVirtualAddress->entries[indexer.PT_i] = PDE;
 
     PDE = PTVirtualAddress->entries[indexer.P_i];
     return vmm_GetFlag(&PDE, flags);   

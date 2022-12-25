@@ -287,8 +287,8 @@ KResult VFSFileRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext*
     };
 
     ShareDataWithArguments_t Data{
-        .Data = &RelativePath,
-        .Size = (uint64_t)strlen(RelativePath),
+        .Data = RelativePath,
+        .Size = (size64_t)strlen(RelativePath) + 1,
         .ParameterPosition = 0x2,
     };
 
@@ -327,8 +327,8 @@ KResult VFSFileOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* C
     };
 
     ShareDataWithArguments_t Data{
-        .Data = &RelativePath,
-        .Size = (uint64_t)strlen(RelativePath),
+        .Data = RelativePath,
+        .Size = (size64_t)strlen(RelativePath) + 1,
         .ParameterPosition = 0x2,
     };
 
@@ -366,14 +366,17 @@ KResult VFSRename(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Con
         return KFAIL;
     }
     
-    uint64_t RelativeRenameDataSize = sizeof(srv_storage_fs_server_rename_t) + strlen(RelativePathOld) + strlen(RelativePathNew);
+    size64_t RelativePathOldSize = strlen(RelativePathOld) + 1;
+    size64_t RelativePathNewSize = strlen(RelativePathNew) + 1;
+
+    uint64_t RelativeRenameDataSize = sizeof(srv_storage_fs_server_rename_t) + RelativePathOldSize + RelativePathNewSize;
     srv_storage_fs_server_rename_t* RelativeRenameData = (srv_storage_fs_server_rename_t*)malloc(RelativeRenameDataSize);
 
     RelativeRenameData->OldPathPosition = sizeof(srv_storage_fs_server_rename_t);
-    RelativeRenameData->NewPathPosition = sizeof(srv_storage_fs_server_rename_t) + strlen(RelativePathOld);
+    RelativeRenameData->NewPathPosition = sizeof(srv_storage_fs_server_rename_t) + RelativePathOldSize;
 
-    memcpy((uintptr_t)((uint64_t)RelativeRenameData + RelativeRenameData->OldPathPosition), RelativePathOld, strlen(RelativePathOld));
-    memcpy((uintptr_t)((uint64_t)RelativeRenameData + RelativeRenameData->NewPathPosition), RelativePathNew, strlen(RelativePathNew));
+    memcpy((uintptr_t)((uint64_t)RelativeRenameData + RelativeRenameData->OldPathPosition), RelativePathOld, RelativePathOldSize);
+    memcpy((uintptr_t)((uint64_t)RelativeRenameData + RelativeRenameData->NewPathPosition), RelativePathNew, RelativePathNewSize);
     
     arguments_t arguments{
         .arg[0] = Callback,         /* Callback */
@@ -389,6 +392,7 @@ KResult VFSRename(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Con
         .Size = (uint64_t)RelativeRenameDataSize,
         .ParameterPosition = 0x2,
     };
+    
 
     Status = Sys_Execthread(PartitionOld->FSServerFunctions.Rename, &arguments, ExecutionTypeQueu, &Data);
 
@@ -419,8 +423,8 @@ KResult VFSDirCreate(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* 
     };
 
     ShareDataWithArguments_t Data{
-        .Data = &RelativePath,
-        .Size = (uint64_t)strlen(RelativePath),
+        .Data = RelativePath,
+        .Size = (size64_t)strlen(RelativePath) + 1,
         .ParameterPosition = 0x2,
     };
 
@@ -451,8 +455,8 @@ KResult VFSDirRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* 
     };
 
     ShareDataWithArguments_t Data{
-        .Data = &RelativePath,
-        .Size = (uint64_t)strlen(RelativePath),
+        .Data = RelativePath,
+        .Size = (size64_t)strlen(RelativePath) + 1,
         .ParameterPosition = 0x2,
     };
 
@@ -483,8 +487,8 @@ KResult VFSDirOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Co
     };
 
     ShareDataWithArguments_t Data{
-        .Data = &RelativePath,
-        .Size = (uint64_t)strlen(RelativePath),
+        .Data = RelativePath,
+        .Size = (size64_t)strlen(RelativePath) + 1,
         .ParameterPosition = 0x2,
     };
 
@@ -583,7 +587,7 @@ KResult VFSfileCloseInitrd(thread_t Callback, uint64_t CallbackArg, char* FilePa
 KResult VFSfileOpenInitrd(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions, process_t Target){
     KResult Status = KFAIL;
 
-    size64_t FilePathSize = strlen(Path);
+    size64_t FilePathSize = strlen(Path) + 1;
     char* FilePath = (char*)malloc(FilePathSize);
     memcpy(FilePath, Path, FilePathSize);
     

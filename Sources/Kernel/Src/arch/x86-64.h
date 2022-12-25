@@ -8,7 +8,7 @@
 #define INT_Stop            0x43
 
 #define PAGE_SIZE (uint64_t)0x1000
-#define KERNEL_STACK_SIZE PAGE_SIZE * 0x10 /* 10 mb */
+#define KERNEL_STACK_SIZE PAGE_SIZE * 0x10 /* 10 MB */
 
 #pragma once
 

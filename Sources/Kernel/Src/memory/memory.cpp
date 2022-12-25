@@ -70,6 +70,30 @@ bool CheckAddress(uintptr_t address, size64_t size){
     return CheckAddress(address, size, PagingEntry);
 }
 
+bool CheckUserAddress(uintptr_t address, size64_t size, uintptr_t pagingEntry){
+    if(address == NULL) return false;
+    if((uint64_t)address >= VMM_HIGHER_HALF_ADDRESS){
+        return false;
+    }
+    uint64_t NumberPage = DivideRoundUp(size, PAGE_SIZE);
+    uint64_t AddressItinerator = (uint64_t)address;
+
+    for(uint64_t i = 0; i < NumberPage; i++){
+        if(!vmm_GetFlags(pagingEntry, (uintptr_t)AddressItinerator, vmm_flag::vmm_Present)){
+            return false;
+        } 
+        AddressItinerator += PAGE_SIZE;
+    }
+
+    return true;
+}
+
+bool CheckUserAddress(uintptr_t address, size64_t size){
+    uintptr_t PagingEntry = NULL;
+    __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(PagingEntry));
+    return CheckAddress(address, size, PagingEntry);
+}
+
 
 /* _____________________________Share Memory_____________________________ */
 //vmm_flag::vmm_Custom1 master share

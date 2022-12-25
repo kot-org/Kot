@@ -44,9 +44,9 @@ SyscallEntry:
 
 	mov [gs:0x10], rsp			; save userspace stack
 	mov	rsp, [gs:0x8]			; setup the syscall stack
-	mov	rsp, [rsp + 0x0]  		; setup the stack
-	mov [rsp + 0x0], rbp		; 
-	mov rbp, [gs:0x8]			; save rbp
+	mov	rsp, [rsp]  			; setup the stack
+	push qword rbp				; save rbp
+	mov rbp, [gs:0x8]			; 
 	
 	cld ; clear DF to push correctly to the stack
 
@@ -72,7 +72,7 @@ SyscallEntry:
 	POP_REG
 
 	mov r11, [rsp + 0x20]
-	mov rcx, [rsp + 0x10] ; here is the big bug
+	mov rcx, [rsp + 0x10]
 	mov rsp, [rsp + 0x28]
 
 	cli

@@ -101,7 +101,7 @@ void E1000Controller::InitRX() {
     
     for(int i = 0; i < E1000_NUM_RX_DESC; i++) {
         rxDescBuff[i] = (e1000RxDescriptor*)((uint8_t*) descBuff + i * 16);
-        ptrVirtual = GetPhysical((uintptr_t*) rxDescBuff[i]->Addr, 8192 + 16);
+        ptrVirtual = GetPhysical((uintptr_t*)&rxDescBuff[i]->Addr, 8192 + 16);
     }
 
     writeCmd(REG_RXDESC_LOW, ((uint64_t) ptrPhysical));

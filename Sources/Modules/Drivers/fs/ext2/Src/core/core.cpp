@@ -611,14 +611,20 @@ KResult mount_info_t::UnlinkInodeToDirectory(inode_t* inode, char* name){
         Directory = (ext2_directory_entry_t*)((uint64_t)Directory + (uint64_t)Directory->size);
     }
 
+    if(!EntryToDelete){
+        free(Buffer);
+        return KFAIL;
+    }
+
     ext2_directory_entry_t*  EntryToDeleteEnd = (ext2_directory_entry_t* )((uint64_t)EntryToDelete + EntryToDelete->size);
     uint64_t NextSize = Size + (uint64_t)Buffer - (uint64_t)EntryToDeleteEnd;
     memcpy(EntryToDelete, EntryToDeleteEnd, NextSize);
-    WriteInode(inode, Buffer, NULL, Size, true);
 
+    WriteInode(inode, Buffer, NULL, Size, true);
+     
     free(Buffer);     
 
-    return NULL;
+    return KSUCCESS;
 }
 
 
@@ -1085,7 +1091,7 @@ KResult mount_info_t::CreateDir(char* path, permissions_t permissions){
     char* CreatePathDirectory = CreatePathSB->substr(NULL, CreatePathSB->indexOf("/", 0, true));
     char* CreateName = CreatePathSB->substr(CreatePathSB->indexOf("/", 0, true), CreatePathSB->length());
 
-    inode_t* Directory = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), path);
+    inode_t* Directory = FindInodeFromPath(path);
     if(CheckPermissions(Directory, permissions, File_Permissions_Write) != KSUCCESS){
         free(Directory);
         return KFAIL;
@@ -1119,7 +1125,7 @@ KResult mount_info_t::CreateDir(char* path, permissions_t permissions){
 }
 
 KResult mount_info_t::RemoveDir(char* path, permissions_t permissions){
-    inode_t* Inode = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), path);
+    inode_t* Inode = FindInodeFromPath(path);
     if(Inode->Inode.mode != INODE_TYPE_DIRECTORY){
         free(Inode);
         return KFAIL;
@@ -1128,7 +1134,7 @@ KResult mount_info_t::RemoveDir(char* path, permissions_t permissions){
     char* OldPathDirectory = OldPathSB->substr(NULL, OldPathSB->indexOf("/", 0, true));
     char* OldName = OldPathSB->substr(OldPathSB->indexOf("/", 0, true), OldPathSB->length());
 
-    inode_t* DirectoryOld = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), OldPathDirectory);
+    inode_t* DirectoryOld = FindInodeFromPath(OldPathDirectory);
 
     if(CheckPermissions(DirectoryOld, permissions, File_Permissions_Write) != KSUCCESS){
         free(DirectoryOld);
@@ -1204,8 +1210,8 @@ KResult ext_directory_t::CloseDir(){
 
 
 KResult mount_info_t::Rename(char* old_path, char* new_path, permissions_t permissions){
-    inode_t* Inode = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), old_path);
-    if(Inode->Inode.mode != INODE_TYPE_DIRECTORY && Inode->Inode.mode != INODE_TYPE_REGULAR_FILE){
+    inode_t* Inode = FindInodeFromPath(old_path);
+    if(Inode->Inode.mode != INODE_TYPE_DIRECTORY && !(Inode->Inode.mode & INODE_TYPE_REGULAR_FILE)){
         free(Inode);
         return KFAIL;
     }
@@ -1218,7 +1224,7 @@ KResult mount_info_t::Rename(char* old_path, char* new_path, permissions_t permi
     char* NewPathDirectory = NewPathSB->substr(NULL, NewPathSB->indexOf("/", 0, true));
     char* NewName = OldPathSB->substr(OldPathSB->indexOf("/", 0, true), OldPathSB->length());
 
-    inode_t* DirectoryOld = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), OldPathDirectory);
+    inode_t* DirectoryOld = FindInodeFromPath(OldPathDirectory);
     if(CheckPermissions(DirectoryOld, permissions, File_Permissions_Write) != KSUCCESS){
         free(Inode);
         free(OldPathDirectory);
@@ -1230,7 +1236,7 @@ KResult mount_info_t::Rename(char* old_path, char* new_path, permissions_t permi
         return KFAIL;
     } 
 
-    inode_t* DirectoryNew = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), NewPathDirectory);
+    inode_t* DirectoryNew = FindInodeFromPath(NewPathDirectory);
     if(CheckPermissions(DirectoryNew, permissions, File_Permissions_Write) != KSUCCESS){
         free(Inode);
         free(OldPathDirectory);
@@ -1258,7 +1264,7 @@ KResult mount_info_t::Rename(char* old_path, char* new_path, permissions_t permi
 }
 
 KResult mount_info_t::CreateFile(char* path, char* name, permissions_t permissions){
-    inode_t* Directory = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), path);
+    inode_t* Directory = FindInodeFromPath(path);
     if(CheckPermissions(Directory, permissions, File_Permissions_Create_File) != KSUCCESS){
         free(Directory);
         return KFAIL;
@@ -1289,26 +1295,42 @@ KResult mount_info_t::CreateFile(char* path, char* name, permissions_t permissio
 }
 
 KResult mount_info_t::RemoveFile(char* path, permissions_t permissions){
-    inode_t* Inode = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), path);
-    if(Inode->Inode.mode != INODE_TYPE_REGULAR_FILE || CheckPermissions(Inode, permissions, File_Permissions_Write)){
+    inode_t* Inode = FindInodeFromPath(path);
+
+    if(!(Inode->Inode.mode & INODE_TYPE_REGULAR_FILE) || CheckPermissions(Inode, permissions, File_Permissions_Write) != KSUCCESS){
         free(Inode);
         return KFAIL;
     }
-    std::StringBuilder* OldPathSB = new std::StringBuilder(path);
-    char* OldPathDirectory = OldPathSB->substr(NULL, OldPathSB->indexOf("/", 0, true));
-    char* OldName = OldPathSB->substr(OldPathSB->indexOf("/", 0, true), OldPathSB->length());
 
-    inode_t* Directory = FindInodeFromInodeEntryAndPath(GetInode(EXT_ROOT_INO), OldPathDirectory);
+    std::StringBuilder* OldPathSB = new std::StringBuilder(path);
+    inode_t* Directory;
+    char* OldName;
+    int64_t OldPathDirectoryIndex = OldPathSB->indexOf("/", 0, true);
+    std::printf("%x", OldPathDirectoryIndex);
+    if(OldPathDirectoryIndex != -1){
+        char* OldPathDirectory = OldPathSB->substr(NULL, OldPathDirectoryIndex);
+        char* OldName = OldPathSB->substr(OldPathDirectoryIndex, OldPathSB->length());
+        Directory = FindInodeFromPath(OldPathDirectory);
+        free(OldPathDirectory);
+    }else{
+        Directory = GetInode(EXT_ROOT_INO);
+        OldName = OldPathSB->substr(NULL, OldPathSB->length());
+    }
+    free(OldPathSB);
+
+
     if(CheckPermissions(Directory, permissions, File_Permissions_Write) != KSUCCESS){
         free(Directory);
+        free(OldName);
         free(Inode);
         return KFAIL;
     }
 
-    UnlinkInodeToDirectory(Directory, OldName);
-    DeleteInode(Inode);
+    assert(UnlinkInodeToDirectory(Directory, OldName) == KSUCCESS);
+    assert(DeleteInode(Inode) == KSUCCESS);
 
     free(Directory);
+    free(OldName);
     free(Inode);
     return KSUCCESS; 
 }
