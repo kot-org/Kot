@@ -4,7 +4,7 @@ process_t VFSProcess;
 
 static client_vfs_dispatch_t VFSClientDispatcherFunctions[Client_VFS_Function_Count] = {
     [Client_VFS_File_Remove] = (client_vfs_dispatch_t)VFSFileRemove,
-    [Client_VFS_File_OPEN] = (client_vfs_dispatch_t)VFSFileOpen,
+    [Client_VFS_File_Open] = (client_vfs_dispatch_t)VFSFileOpen,
     [Client_VFS_Rename] = (client_vfs_dispatch_t)VFSRename,
     [Client_VFS_Dir_Create] = (client_vfs_dispatch_t)VFSDirCreate,
     [Client_VFS_Dir_Remove] = (client_vfs_dispatch_t)VFSDirRemove,

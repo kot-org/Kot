@@ -2,6 +2,7 @@
 
 static file_dispatch_t FileDispatcher[File_Function_Count] = { 
     [File_Function_Close] = Closefile,
+    [File_Function_GetSize] = Getfilesize,
     [File_Function_Read] = Readfile,
     [File_Function_Write] = Writefile,
 };
@@ -108,8 +109,10 @@ KResult Openfile(thread_t Callback, uint64_t CallbackArg, char* Path, permission
     ext_file_t* File = NULL;
 
     if(File = MountInfo->OpenFile(Path, Permissions)){
+        File->Target = Target;
         Status = KSUCCESS;
     }
+
     
     arguments_t arguments{
         .arg[0] = Status,           /* Status */
@@ -144,8 +147,7 @@ KResult Openfile(thread_t Callback, uint64_t CallbackArg, char* Path, permission
 
 /* Direct access */
 KResult FileDispatch(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
-    uint32_t Function = GP0 & 0xffffffff;
-    uint32_t GP4 =  GP0 >> 32;
+    uint32_t Function = GP0;
 
     if(Function >= File_Function_Count){
         arguments_t arguments{
@@ -162,11 +164,11 @@ KResult FileDispatch(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint
     }
 
     ext_file_t* File = (ext_file_t*)Sys_GetExternalDataThread();
-    Sys_Close(FileDispatcher[Function](Callback, CallbackArg, File, GP1, GP2, GP3, GP4)); // It'll call the callback in the function
+    Sys_Close(FileDispatcher[Function](Callback, CallbackArg, File, GP1, GP2, GP3)); // It'll call the callback in the function
 }
 
 /* Direct access */
-KResult Closefile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
+KResult Closefile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     KResult Status = File->CloseFile();
     
     arguments_t arguments{
@@ -188,12 +190,27 @@ KResult Closefile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uin
 }
 
 /* Direct access */
-KResult Readfile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
-    size64_t Size = GP2;
+KResult Getfilesize(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+    arguments_t arguments{
+        .arg[0] = KSUCCESS,             /* Status */
+        .arg[1] = CallbackArg,          /* CallbackArg */
+        .arg[2] = File->GetSize(),      /* FileSize */
+        .arg[3] = NULL,                 /* GP1 */
+        .arg[4] = NULL,                 /* GP2 */
+        .arg[5] = NULL,                 /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    return KSUCCESS;
+}
+
+/* Direct access */
+KResult Readfile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+    size64_t Size = GP1;
 
     uintptr_t Buffer = malloc(Size);
 
-    KResult Status = File->ReadFile(Buffer, GP1, Size);
+    KResult Status = File->ReadFile(Buffer, GP0, Size);
 
     arguments_t arguments{
         .arg[0] = Status,           /* Status */
@@ -212,7 +229,7 @@ KResult Readfile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint
         Keyhole_SetFlag(&KeyFlag, KeyholeFlagPresent, true);
         Keyhole_SetFlag(&KeyFlag, KeyholeFlagCloneable, true);
         Keyhole_SetFlag(&KeyFlag, KeyholeFlagEditable, true);
-        Sys_Keyhole_CloneModify(MemoryKey, &arguments.arg[2], GP0, KeyFlag, PriviledgeApp);
+        Sys_Keyhole_CloneModify(MemoryKey, &arguments.arg[2], File->Target, KeyFlag, PriviledgeApp);
         
         Sys_Execthread(Callback, &arguments, ExecutionTypeQueuAwait, NULL);
         Sys_CloseMemoryField(Sys_GetProcess(), MemoryKey, Buffer);
@@ -226,19 +243,17 @@ KResult Readfile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint
 }
 
 /* Direct access */
-KResult Writefile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
+KResult Writefile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     KResult Status = KFAIL;
     
     uint64_t TypePointer;
-    uint64_t SizePointer;
-    if(Sys_GetInfoMemoryField(GP0, &TypePointer, &SizePointer) == KSUCCESS){
-        if(TypePointer == MemoryFieldTypeSendSpaceRO){
-            size64_t Size = GP1;
-            
+    uint64_t Size;
+    if(Sys_GetInfoMemoryField(GP0, &TypePointer, &Size) == KSUCCESS){
+        if(TypePointer == MemoryFieldTypeSendSpaceRO){            
             uintptr_t Buffer = malloc(Size);
-            Sys_AcceptMemoryField(Sys_GetProcess(), GP0, &Buffer);
+            assert(Sys_AcceptMemoryField(Sys_GetProcess(), GP0, &Buffer) == KSUCCESS);
 
-            Status = File->WriteFile(Buffer, GP1, GP2, GP3);
+            Status = File->WriteFile(Buffer, GP1, Size, GP2);
         }
     }
     
@@ -369,8 +384,7 @@ KResult Opendir(thread_t Callback, uint64_t CallbackArg, char* Path, permissions
 
 /* Direct access */
 KResult DirDispatch(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
-    uint32_t Function = GP0 & 0xffffffff;
-    uint32_t GP4 =  GP0 >> 32;
+    uint32_t Function = GP0;
 
     if(Function >= Dir_Function_Count){
         arguments_t arguments{
@@ -388,12 +402,19 @@ KResult DirDispatch(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint6
 
     ext_directory_t* Directory = (ext_directory_t*)Sys_GetExternalDataThread();
 
-    Sys_Close(DirDispatcher[Function](Callback, CallbackArg, Directory, GP1, GP2, GP3, GP4));
+    Sys_Close(DirDispatcher[Function](Callback, CallbackArg, Directory, GP1, GP2, GP3));
 }
 
 /* Direct access */
-KResult Readdir(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Directory, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
+KResult Readdir(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Directory, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+    // TODO
     KResult Status = KFAIL;
+
+    uint64_t IndexEnd = GP0 + GP1;
+
+    for(uint64_t i = GP0; i < IndexEnd; i++){
+        Directory->ReadDir(i);
+    }
     
     arguments_t arguments{
         .arg[0] = Status,            /* Status */
@@ -409,8 +430,8 @@ KResult Readdir(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Direct
 }
 
 /* Direct access */
-KResult Closedir(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Directory, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
-    KResult Status = KFAIL;
+KResult Closedir(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Directory, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+    KResult Status = Directory->CloseDir();
     
     arguments_t arguments{
         .arg[0] = Status,            /* Status */

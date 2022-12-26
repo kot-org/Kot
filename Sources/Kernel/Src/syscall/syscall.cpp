@@ -70,12 +70,15 @@ KResult Sys_GetInfoMemoryField(SyscallStack* Registers, kthread_t* Thread){
     MemoryShareInfo* memoryKey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeSharedMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    if(!CheckUserAddress((uintptr_t)Registers->arg1, sizeof(uint64_t))) return KMEMORYVIOLATION;
-    if(!CheckUserAddress((uintptr_t)Registers->arg2, sizeof(uint64_t))) return KMEMORYVIOLATION;
-    uint64_t* TypePointer = (uint64_t*)Registers->arg1;
-    size64_t* SizePointer = (size64_t*)Registers->arg2;
-    *TypePointer = (uint64_t)memoryKey->Type;
-    *SizePointer = (uint64_t)memoryKey->InitialSize;
+    if(CheckUserAddress((uintptr_t)Registers->arg1, sizeof(uint64_t)) == KSUCCESS){
+        uint64_t* TypePointer = (uint64_t*)Registers->arg1;
+        *TypePointer = (uint64_t)memoryKey->Type;
+    }
+
+    if(CheckUserAddress((uintptr_t)Registers->arg2, sizeof(uint64_t)) == KSUCCESS){
+        size64_t* SizePointer = (size64_t*)Registers->arg2;
+        *SizePointer = (uint64_t)memoryKey->InitialSize;
+    }
     return KSUCCESS;
 }
 

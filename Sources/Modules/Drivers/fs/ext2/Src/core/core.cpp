@@ -1297,16 +1297,20 @@ KResult mount_info_t::CreateFile(char* path, char* name, permissions_t permissio
 KResult mount_info_t::RemoveFile(char* path, permissions_t permissions){
     inode_t* Inode = FindInodeFromPath(path);
 
+    if(!Inode){
+       return KFAIL; 
+    } 
+
     if(!(Inode->Inode.mode & INODE_TYPE_REGULAR_FILE) || CheckPermissions(Inode, permissions, File_Permissions_Write) != KSUCCESS){
         free(Inode);
-        return KFAIL;
+        return KNOTALLOW;
     }
 
     std::StringBuilder* OldPathSB = new std::StringBuilder(path);
     inode_t* Directory;
     char* OldName;
     int64_t OldPathDirectoryIndex = OldPathSB->indexOf("/", 0, true);
-    std::printf("%x", OldPathDirectoryIndex);
+
     if(OldPathDirectoryIndex != -1){
         char* OldPathDirectory = OldPathSB->substr(NULL, OldPathDirectoryIndex);
         char* OldName = OldPathSB->substr(OldPathDirectoryIndex, OldPathSB->length());
@@ -1337,7 +1341,7 @@ KResult mount_info_t::RemoveFile(char* path, permissions_t permissions){
 
 ext_file_t* mount_info_t::OpenFile(char* path, permissions_t permissions){
     inode_t* RootInode = GetInode(EXT_ROOT_INO);
-    ext_file_t* Target = OpenFile(GetInode(EXT_ROOT_INO), path, permissions);
+    ext_file_t* Target = OpenFile(RootInode, path, permissions);
     free(RootInode);
     return Target;
 }
@@ -1389,6 +1393,10 @@ KResult ext_file_t::WriteFile(uintptr_t buffer, uint64_t start, size64_t size, b
         return MountInfo->WriteInode(Inode, buffer, start, size, is_data_end);
     }
     return KFAIL;
+}
+
+size64_t ext_file_t::GetSize(){
+    return MountInfo->GetSizeFromInode(Inode);
 }
 
 KResult ext_file_t::CloseFile(){

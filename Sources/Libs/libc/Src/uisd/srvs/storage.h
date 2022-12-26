@@ -22,17 +22,18 @@ extern "C" {
 #define Client_VFS_Function_Count       0x6
 
 #define Client_VFS_File_Remove          0x0
-#define Client_VFS_File_OPEN            0x1
+#define Client_VFS_File_Open            0x1
 #define Client_VFS_Rename               0x2
 #define Client_VFS_Dir_Create           0x3
 #define Client_VFS_Dir_Remove           0x4
 #define Client_VFS_Dir_Open             0x5
 
-#define File_Function_Count 0x3
+#define File_Function_Count     0x4
 
-#define File_Function_Close 0x0
-#define File_Function_Read  0x1
-#define File_Function_Write 0x2
+#define File_Function_Close     0x0
+#define File_Function_GetSize   0x1
+#define File_Function_Read      0x2
+#define File_Function_Write     0x3
 
 
 #define Dir_Function_Count 0x2
@@ -99,12 +100,20 @@ struct srv_storage_callback_t{
     StorageCallbackHandler Handler;
 };
 
-typedef struct {
 
+struct srv_storage_fs_server_read_dir_t{
+    uint64_t OldPathPosition;
+    uint64_t NewPathPosition;
+};
+
+typedef struct {
+    process_t FileProcessHandler;
+    thread_t FileThreadHandler;
 } file_t;
 
 typedef struct {
-
+    process_t DirProcessHandler;
+    thread_t DirThreadHandler;
 } directory_t;
 
 typedef uint64_t mode_t;
@@ -119,8 +128,24 @@ struct srv_storage_callback_t* Srv_Storage_RemoveDevice(uint64_t Index, bool IsA
 struct srv_storage_callback_t* Srv_Storage_NotifyOnNewPartitionByGUIDType(struct GUID_t* PartitionTypeGUID, thread_t ThreadToNotify, process_t ProcessToNotify, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_MountPartition(thread_t VFSMountThread, struct srv_storage_fs_server_functions_t* FSServerFunctions, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_UnmountPartition(thread_t VFSMountThread, bool IsAwait);
+
 struct srv_storage_callback_t* Srv_Storage_VFSLoginApp(process_t Process, authorization_t Authorization, permissions_t Permissions, char* Path, bool IsAwait);
-struct srv_storage_callback_t* Srv_Storage_Removefile(char* Path, permissions_t Permissions, bool IsAwait);
+
+struct srv_storage_callback_t* Srv_Storage_Removefile(char* Path, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_Openfile(char* Path, permissions_t Permissions, process_t Target, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_Rename(char* OldPath, char* NewPath, bool IsAwait);
+
+struct srv_storage_callback_t* Srv_Storage_DirCreate(char* Path, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_DirRemove(char* Path, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_DirOpen(char* Path, process_t Target, bool IsAwait);
+
+struct srv_storage_callback_t* Srv_Storage_Closefile(file_t* File, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_Getfilesize(file_t* File, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_Readfile(file_t* File, uintptr_t Buffer, uint64_t Start, size64_t Size, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_Writefile(file_t* File, uintptr_t Buffer, uint64_t Start, size64_t Size, bool IsDataEnd, bool IsAwait);
+
+struct srv_storage_callback_t* Srv_Storage_Closedir(directory_t* Dir, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_Readdir(directory_t* Dir, uint64_t IndexStart, size64_t IndexNumber, bool IsAwait);
 
 #if defined(__cplusplus)
 }

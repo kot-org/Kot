@@ -24,7 +24,12 @@ extern "C" int main() {
     backfb.height = fb->height;
     backfb.pitch = fb->pitch;
 
-    Srv_Storage_Removefile("d1:test.txt", NULL, true);
+    srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile("d1:home/tests/test1.txt", 0xff, ShareProcessKey(Sys_GetProcess()), true);
+    size64_t FileSize = Srv_Storage_Getfilesize((file_t*)CallbackFile->Data, true)->Data;
+    uintptr_t Buffer = malloc(FileSize);
+    Srv_Storage_Readfile((file_t*)CallbackFile->Data, Buffer,0, FileSize, true);
+    Printlog((char*)Buffer);
+
     srv_system_callback_t* callback0 = Srv_System_ReadFileInitrd("default-font.sfn", true);
     font = LoadFont((uintptr_t)callback0->Data);
     free(callback0);

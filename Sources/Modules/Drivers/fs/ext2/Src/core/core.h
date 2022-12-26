@@ -215,8 +215,10 @@ struct ext_file_t{
     struct inode_t* Inode;
     size64_t Size;
     permissions_t Permissions;
+    process_t Target;
     KResult ReadFile(uintptr_t buffer, uint64_t start, size64_t size);
     KResult WriteFile(uintptr_t buffer, uint64_t start, size64_t size, bool is_data_end);
+    KResult GetSize();
     KResult CloseFile();
 };
 
