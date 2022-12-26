@@ -207,7 +207,6 @@ KResult Getfilesize(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, u
 /* Direct access */
 KResult Readfile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     size64_t Size = GP1;
-
     uintptr_t Buffer = malloc(Size);
 
     KResult Status = File->ReadFile(Buffer, GP0, Size);
@@ -225,11 +224,7 @@ KResult Readfile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint
         ksmem_t MemoryKey;
         Sys_CreateMemoryField(Sys_GetProcess(), Size, &Buffer, &MemoryKey, MemoryFieldTypeSendSpaceRO);
 
-        uint64_t KeyFlag = NULL;
-        Keyhole_SetFlag(&KeyFlag, KeyholeFlagPresent, true);
-        Keyhole_SetFlag(&KeyFlag, KeyholeFlagCloneable, true);
-        Keyhole_SetFlag(&KeyFlag, KeyholeFlagEditable, true);
-        Sys_Keyhole_CloneModify(MemoryKey, &arguments.arg[2], File->Target, KeyFlag, PriviledgeApp);
+        Sys_Keyhole_CloneModify(MemoryKey, &arguments.arg[2], File->Target, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
         
         Sys_Execthread(Callback, &arguments, ExecutionTypeQueuAwait, NULL);
         Sys_CloseMemoryField(Sys_GetProcess(), MemoryKey, Buffer);
@@ -359,14 +354,10 @@ KResult Opendir(thread_t Callback, uint64_t CallbackArg, char* Path, permissions
     if(Status == KSUCCESS){
         srv_storage_fs_server_open_dir_data_t SrvOpenDirData;
         thread_t DispatcherThread;
-        uint64_t ThreadFlags = NULL;
 
         Sys_Createthread(Sys_GetProcess(), (uintptr_t)&DirDispatch, PriviledgeDriver, (uint64_t)Directory, &DispatcherThread);
 
-        Keyhole_SetFlag(&ThreadFlags, KeyholeFlagPresent, true);
-        Keyhole_SetFlag(&ThreadFlags, KeyholeFlagDataTypeThreadIsExecutableWithQueue, true);
-
-        Sys_Keyhole_CloneModify(DispatcherThread, &SrvOpenDirData.Dispatcher, Target, ThreadFlags, PriviledgeApp);
+        Sys_Keyhole_CloneModify(DispatcherThread, &SrvOpenDirData.Dispatcher, Target, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsExecutableWithQueue, PriviledgeApp);
 
         SrvOpenDirData.FSDriverProc = ProcessKey;
         

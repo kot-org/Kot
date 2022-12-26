@@ -50,9 +50,9 @@ KResult Keyhole_CloneModify(kthread_t* caller, key_t key, key_t* newKey, kproces
     lock_t* data;
     if(Keyhole_Get(caller, key, DataTypeUnknow, &data) != KSUCCESS) return KKEYVIOLATION;
     lock_t* lock = (lock_t*)key;
-    if(!(Keyhole_GetFlag(data->Flags, KeyholeFlagCloneable))) return KKEYVIOLATION;
-    if(Keyhole_GetFlag(flags, KeyholeFlagPresent)){
-        if(!(Keyhole_GetFlag(data->Flags, KeyholeFlagEditable))){
+    if(!(data->Flags & KeyholeFlagCloneable)) return KKEYVIOLATION;
+    if(flags & KeyholeFlagPresent){
+        if(!(data->Flags & KeyholeFlagEditable)){
             return KKEYVIOLATION;
         }
     }else{

@@ -2,42 +2,29 @@
 #define _KEYHOLE_H 1
 
 #define KeyholeFlagFullPermissions                          0xFFFFFFFFFFFFFFFF
-#define KeyholeFlagPresent                                  0x0
-#define KeyholeFlagCloneable                                0x1
-#define KeyholeFlagEditable                                 0x2
-#define KeyholeFlagOriginal                                 0x3
+#define KeyholeFlagPresent                                  (1 << 0)
+#define KeyholeFlagCloneable                                (1 << 1)
+#define KeyholeFlagEditable                                 (1 << 2)
+#define KeyholeFlagOriginal                                 (1 << 3)
 
 /* Specific thread for types */
 
 /* DataTypeThread */
-#define KeyholeFlagDataTypeThreadIsUnpauseable              0x4
-#define KeyholeFlagDataTypeThreadIsEventable                0x5
-#define KeyholeFlagDataTypeThreadIsDuplicable               0x6
-#define KeyholeFlagDataTypeThreadIsExecutableWithQueue      0x7
-#define KeyholeFlagDataTypeThreadIsExecutableOneshot        0x8
+#define KeyholeFlagDataTypeThreadIsUnpauseable              (1 << 4)
+#define KeyholeFlagDataTypeThreadIsEventable                (1 << 5)
+#define KeyholeFlagDataTypeThreadIsDuplicable               (1 << 6)
+#define KeyholeFlagDataTypeThreadIsExecutableWithQueue      (1 << 7)
+#define KeyholeFlagDataTypeThreadIsExecutableOneshot        (1 << 8)
 
 /* DataTypeProcess */
-#define KeyholeFlagDataTypeProcessMemoryAccessible          0x4
-#define KeyholeFlagDataTypeProcessIsThreadCreateable        0x5
+#define KeyholeFlagDataTypeProcessMemoryAccessible          (1 << 4)
+#define KeyholeFlagDataTypeProcessIsThreadCreateable        (1 << 5)
 
 /* DataTypeEvent */
-#define KeyholeFlagDataTypeEventIsBindable                  0x4
-#define KeyholeFlagDataTypeEventIsTriggerable               0x5
+#define KeyholeFlagDataTypeEventIsBindable                  (1 << 4)
+#define KeyholeFlagDataTypeEventIsTriggerable               (1 << 5)
 
 /* DataTypeSharedMemory */
 
-
-static inline bool Keyhole_GetFlag(uint64_t Flags, uint8_t Flag){
-    return (Flags >> Flag) & 0x1;
-}
-
-static inline void Keyhole_SetFlag(uint64_t* Flags, uint8_t Flag, bool Status){
-    if(Status){
-        *Flags |= Flag;        
-    }else{
-        *Flags &= ~Flag;
-    }
-
-}
 
 #endif

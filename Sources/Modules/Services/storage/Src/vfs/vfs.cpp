@@ -552,11 +552,7 @@ KResult VFSfileReadInitrd(thread_t Callback, uint64_t CallbackArg, char* FilePat
     ksmem_t MemoryKey;
     Sys_CreateMemoryField(Sys_GetProcess(), Size, &Buffer, &MemoryKey, MemoryFieldTypeSendSpaceRO);
 
-    uint64_t KeyFlag = NULL;
-    Keyhole_SetFlag(&KeyFlag, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&KeyFlag, KeyholeFlagCloneable, true);
-    Keyhole_SetFlag(&KeyFlag, KeyholeFlagEditable, true);
-    Sys_Keyhole_CloneModify(MemoryKey, &arguments.arg[2], GP0, KeyFlag, PriviledgeApp);
+    Sys_Keyhole_CloneModify(MemoryKey, &arguments.arg[2], GP0, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
     
     Sys_Execthread(Callback, &arguments, ExecutionTypeQueuAwait, NULL);
     Sys_CloseMemoryField(Sys_GetProcess(), MemoryKey, Buffer);

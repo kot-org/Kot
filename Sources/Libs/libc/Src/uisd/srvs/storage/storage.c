@@ -613,10 +613,7 @@ struct srv_storage_callback_t* Srv_Storage_Readfile(file_t* File, uintptr_t Buff
 /* Writefile */
 
 KResult Srv_Storage_Writefile_Callback(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
-    if(Sys_GetInfoMemoryField((ksmem_t)GP0, NULL, &Callback->Size) == KSUCCESS){
-        return Sys_AcceptMemoryField(Sys_GetProcess(), (ksmem_t)GP0, &Callback->Data);
-    }
-    return KFAIL;
+    return Status;
 }
 
 struct srv_storage_callback_t* Srv_Storage_Writefile(file_t* File, uintptr_t Buffer, uint64_t Start, size64_t Size, bool IsDataEnd, bool IsAwait){
@@ -634,13 +631,10 @@ struct srv_storage_callback_t* Srv_Storage_Writefile(file_t* File, uintptr_t Buf
 
     ksmem_t BufferKey;
     ksmem_t BufferKeyShareable;
-    uint64_t BufferKeyFlags = NULL;
 
     Sys_CreateMemoryField(Sys_GetProcess(), Size, &Buffer, &BufferKey, MemoryFieldTypeSendSpaceRO);
     
-    Keyhole_SetFlag(&BufferKeyFlags, KeyholeFlagPresent, true);
-    
-    Sys_Keyhole_CloneModify(BufferKey, &BufferKeyShareable, Sys_GetProcess(), BufferKeyFlags, PriviledgeApp);
+    Sys_Keyhole_CloneModify(BufferKey, &BufferKeyShareable, File->FileProcessHandler, KeyholeFlagPresent, PriviledgeApp);
 
     struct arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;

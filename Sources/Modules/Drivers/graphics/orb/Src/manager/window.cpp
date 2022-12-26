@@ -13,9 +13,7 @@ void Window::newBuffer() {
     ksmem_t key = NULL;
     Sys_CreateMemoryField(this->orb, this->fb->size, &address, &key, MemoryFieldTypeShareSpaceRW);
     ksmem_t KeyShare = NULL;
-    uint64_t Flags = NULL;
-    Keyhole_SetFlag(&Flags, KeyholeFlagPresent, true);
-    Sys_Keyhole_CloneModify(key, &KeyShare, NULL, Flags, PriviledgeApp);
+    Sys_Keyhole_CloneModify(key, &KeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
 
     this->fb->addr = address;
     this->fb_key = KeyShare;

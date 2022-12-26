@@ -27,10 +27,7 @@ KResult InitializeUISD(){
     Sys_Createthread(Proc, &CallbackUISD, PriviledgeApp, NULL, &UISDthreadKeyCallback);
     CallBackUISDThread = MakeShareableThreadToProcess(UISDthreadKeyCallback, KotSpecificData.UISDHandlerProcess);
 
-    UISDKeyFlags = NULL;
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeProcessMemoryAccessible, true);
-    Sys_Keyhole_CloneModify(Proc, &ProcessKeyForUISD, KotSpecificData.UISDHandlerProcess, UISDKeyFlags, PriviledgeApp);
+    Sys_Keyhole_CloneModify(Proc, &ProcessKeyForUISD, KotSpecificData.UISDHandlerProcess, KeyholeFlagPresent | KeyholeFlagDataTypeProcessMemoryAccessible, PriviledgeApp);
     
     memset(&ControllerList, NULL, ControllerCount * sizeof(uintptr_t));
     
@@ -84,10 +81,8 @@ uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ks
     Info->AwaitCallback = AwaitCallback;
     Info->Status = KBUSY;
 
-    uint64_t Flags = NULL;
-    Keyhole_SetFlag(&Flags, KeyholeFlagPresent, true);
     ksmem_t MemoryFieldKey = NULL;
-    Sys_Keyhole_CloneModify(MemoryField, &MemoryFieldKey, KotSpecificData.UISDHandlerProcess, Flags, PriviledgeApp);
+    Sys_Keyhole_CloneModify(MemoryField, &MemoryFieldKey, KotSpecificData.UISDHandlerProcess, KeyholeFlagPresent, PriviledgeApp);
 
     struct arguments_t parameters;
     parameters.arg[0] = UISDCreateTask;
@@ -107,46 +102,31 @@ uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ks
 
 thread_t MakeShareableThread(thread_t Thread, enum Priviledge priviledgeRequired){
     thread_t ReturnValue;
-    uint64_t UISDKeyFlags = NULL;
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeThreadIsExecutableWithQueue, true);
-    Sys_Keyhole_CloneModify(Thread, &ReturnValue, NULL, UISDKeyFlags, PriviledgeApp);
+    Sys_Keyhole_CloneModify(Thread, &ReturnValue, NULL, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsExecutableWithQueue, PriviledgeApp);
     return ReturnValue;
 }
 
 thread_t MakeShareableThreadUISDOnly(thread_t Thread){
     thread_t ReturnValue;
-    uint64_t UISDKeyFlags = NULL;
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeThreadIsExecutableWithQueue, true);
-    Sys_Keyhole_CloneModify(Thread, &ReturnValue, KotSpecificData.UISDHandlerProcess, UISDKeyFlags, PriviledgeApp);
+    Sys_Keyhole_CloneModify(Thread, &ReturnValue, KotSpecificData.UISDHandlerProcess, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsExecutableWithQueue, PriviledgeApp);
     return ReturnValue;
 }
 
 thread_t MakeShareableThreadToProcess(thread_t Thread, process_t Process){
     thread_t ReturnValue;
-    uint64_t UISDKeyFlags = NULL;
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeThreadIsExecutableWithQueue, true);
-    Sys_Keyhole_CloneModify(Thread, &ReturnValue, Process, UISDKeyFlags, PriviledgeApp);
+    Sys_Keyhole_CloneModify(Thread, &ReturnValue, Process, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsExecutableWithQueue, PriviledgeApp);
     return ReturnValue;
 }
 
 thread_t MakeShareableSpreadThreadToProcess(thread_t Thread, process_t Process){
     thread_t ReturnValue;
-    uint64_t UISDKeyFlags = NULL;
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagCloneable, true);
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeThreadIsExecutableWithQueue, true);
-    Sys_Keyhole_CloneModify(Thread, &ReturnValue, Process, UISDKeyFlags, PriviledgeApp);
+    Sys_Keyhole_CloneModify(Thread, &ReturnValue, Process, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagDataTypeThreadIsExecutableWithQueue, PriviledgeApp);
     return ReturnValue;
 }
 
 process_t ShareProcessKey(process_t Process){
     process_t ReturnValue;
-    uint64_t UISDKeyFlags = NULL;
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
-    Sys_Keyhole_CloneModify(Process, &ReturnValue, NULL, UISDKeyFlags, PriviledgeApp);
+    Sys_Keyhole_CloneModify(Process, &ReturnValue, NULL, KeyholeFlagPresent, PriviledgeApp);
     return ReturnValue;
 }
 

@@ -49,9 +49,7 @@ struct srv_time_callback_t* Srv_Time_SetTimePointerKey(time_t** Time, bool IsAwa
     Sys_CreateMemoryField(Sys_GetProcess(), sizeof(time_t), (uintptr_t*)Time, &TimePointerKey, MemoryFieldTypeShareSpaceRO);
 
     ksmem_t TimePointerKeyShare;
-    uint64_t ShareMemoryKeyFlags = NULL;
-    Keyhole_SetFlag(&ShareMemoryKeyFlags, KeyholeFlagPresent, true);
-    Sys_Keyhole_CloneModify(TimePointerKey, &TimePointerKeyShare, NULL, ShareMemoryKeyFlags, PriviledgeApp);
+    Sys_Keyhole_CloneModify(TimePointerKey, &TimePointerKeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
 
     struct arguments_t parameters;
     parameters.arg[0] = SrvTimeCallbackThread;
@@ -91,9 +89,7 @@ struct srv_time_callback_t* Srv_Time_SetTickPointerKey(uint64_t* TimePointer, ui
     Sys_CreateMemoryField(Sys_GetProcess(), sizeof(uint64_t), TimePointer, &TickPointerKey, MemoryFieldTypeShareSpaceRO);
 
     ksmem_t TickPointerKeyShare;
-    uint64_t ShareMemoryKeyFlags = NULL;
-    Keyhole_SetFlag(&ShareMemoryKeyFlags, KeyholeFlagPresent, true);
-    Sys_Keyhole_CloneModify(TickPointerKey, &TickPointerKeyShare, NULL, ShareMemoryKeyFlags, PriviledgeApp);
+    Sys_Keyhole_CloneModify(TickPointerKey, &TickPointerKeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
 
     struct arguments_t parameters;
     parameters.arg[0] = SrvTimeCallbackThread;

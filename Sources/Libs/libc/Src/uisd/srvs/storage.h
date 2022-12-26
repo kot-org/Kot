@@ -13,10 +13,10 @@ extern "C" {
 #define Serial_Number_Size              0x14
 #define Drive_Model_Number_Size         0x28
 
-#define File_Permissions_Super_User     0x0
-#define File_Permissions_Read           0x1
-#define File_Permissions_Write          0x2
-#define File_Permissions_Create_File    0x3
+#define File_Permissions_Super_User     (1 << 0)
+#define File_Permissions_Read           (1 << 1)
+#define File_Permissions_Write          (1 << 2)
+#define File_Permissions_Create_File    (1 << 3)
 
 
 #define Client_VFS_Function_Count       0x6
@@ -28,18 +28,18 @@ extern "C" {
 #define Client_VFS_Dir_Remove           0x4
 #define Client_VFS_Dir_Open             0x5
 
-#define File_Function_Count     0x4
+#define File_Function_Count             0x4
 
-#define File_Function_Close     0x0
-#define File_Function_GetSize   0x1
-#define File_Function_Read      0x2
-#define File_Function_Write     0x3
+#define File_Function_Close             0x0
+#define File_Function_GetSize           0x1
+#define File_Function_Read              0x2
+#define File_Function_Write             0x3
 
 
-#define Dir_Function_Count 0x2
+#define Dir_Function_Count              0x2
 
-#define Dir_Function_Close 0x0
-#define Dir_Function_Read  0x1
+#define Dir_Function_Close              0x0
+#define Dir_Function_Read               0x1
 
 
 typedef KResult (*StorageCallbackHandler)(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);

@@ -8,20 +8,15 @@ extern size64_t ControllerTypeSize[ControllerCount];
 
 thread_t UISDInitialize(process_t* process) {
     thread_t UISDthreadKey;
-    uint64_t UISDKeyFlags = NULL;
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagDataTypeThreadIsExecutableWithQueue, true);
 
     process_t proc = Sys_GetProcess();
 
     Sys_Createthread(proc, (uintptr_t)UISDHandler, PriviledgeService, NULL, &UISDHandlerThread);
-    Sys_Keyhole_CloneModify(UISDHandlerThread, &UISDthreadKey, NULL, UISDKeyFlags, PriviledgeApp);
+    Sys_Keyhole_CloneModify(UISDHandlerThread, &UISDthreadKey, NULL, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsExecutableWithQueue, PriviledgeApp);
 
     UISDControllers = (controller_info_t**)calloc(sizeof(controller_info_t*) * UISDMaxController);
 
-    UISDKeyFlags = NULL;
-    Keyhole_SetFlag(&UISDKeyFlags, KeyholeFlagPresent, true);
-    Sys_Keyhole_CloneModify(proc, process, NULL, UISDKeyFlags, PriviledgeApp);
+    Sys_Keyhole_CloneModify(proc, process, NULL, KeyholeFlagPresent, PriviledgeApp);
 
     return UISDthreadKey;
 
@@ -99,7 +94,7 @@ KResult UISDGet(enum ControllerTypeEnum Controller, thread_t Callback, uint64_t 
     uint64_t Flags = NULL;
     uint64_t Priviledge = NULL;
     if(Sys_Keyhole_Verify(Self, DataTypeProcess, &Target, &Flags, &Priviledge) != KSUCCESS) return UISDCallbackStatu(UISDGetTask, Callback, Callbackarg, KFAIL);
-    if(!Keyhole_GetFlag(Flags, KeyholeFlagDataTypeProcessMemoryAccessible)) return UISDCallbackStatu(UISDGetTask, Callback, Callbackarg, KFAIL);
+    if(!(Flags & KeyholeFlagDataTypeProcessMemoryAccessible)) return UISDCallbackStatu(UISDGetTask, Callback, Callbackarg, KFAIL);
     if(UISDControllers[Controller] != NULL){
         if(UISDControllers[Controller]->IsLoad){
             callbackget_info_t info{

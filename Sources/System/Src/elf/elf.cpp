@@ -105,7 +105,7 @@ namespace ELF {
                     KotSpecificDataClient->UISDHandler = KotSpecificData.UISDHandler;
 
                     if(isVFS){
-                        srv_storage_callback_t* Callback = Srv_Storage_VFSLoginApp(ShareProcessKey(proc), FS_AUTHORIZATION_HIGH, true, "d0:", true);
+                        srv_storage_callback_t* Callback = Srv_Storage_VFSLoginApp(ShareProcessKey(proc), FS_AUTHORIZATION_HIGH, 0xff, "d0:", true);
                         KotSpecificDataClient->VFSHandler = Callback->Data;
                         free(Callback);
                     }

@@ -10,9 +10,7 @@ void GetMemory(){
     char* testchar = "Share from another process\0";
     memcpy(address, testchar, strlen(testchar) + 1);
     ksmem_t KeyShare = NULL;
-    uint64_t Flags = NULL;
-    Keyhole_SetFlag(&Flags, KeyholeFlagPresent, true);
-    Sys_Keyhole_CloneModify(key, &KeyShare, NULL, Flags, PriviledgeApp);
+    Sys_Keyhole_CloneModify(key, &KeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
     SYS_Close(KeyShare);
 }
 
