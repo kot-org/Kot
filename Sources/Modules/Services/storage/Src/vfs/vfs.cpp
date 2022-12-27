@@ -492,7 +492,7 @@ KResult VFSDirOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Co
         .ParameterPosition = 0x2,
     };
 
-    Status = Sys_Execthread(Partition->FSServerFunctions.Rmdir, &arguments, ExecutionTypeQueu, &Data);
+    Status = Sys_Execthread(Partition->FSServerFunctions.Opendir, &arguments, ExecutionTypeQueu, &Data);
 
     free(RelativePath);
     

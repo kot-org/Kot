@@ -208,6 +208,7 @@ struct ext_directory_t{
     permissions_t Permissions;
     struct read_dir_data* ReadDir(uint64_t index);
     KResult CloseDir();
+    size64_t GetDirCount();
 };
 
 struct ext_file_t{
@@ -223,6 +224,7 @@ struct ext_file_t{
 };
 
 struct read_dir_data{
+    size64_t NameLength;
     char* Name;
     bool IsFile;
 };

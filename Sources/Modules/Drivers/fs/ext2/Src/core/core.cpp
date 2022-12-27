@@ -9,8 +9,8 @@ mount_info_t* InitializeMount(srv_storage_device_t* StorageDevice){
     MountInfo->ReadSuperBlock();
 
     if(MountInfo->SuperBlock->magic != EXT_SUPER_MAGIC){
-        free(MountInfo);
         free(MountInfo->SuperBlock);
+        free(MountInfo);
         return NULL;
     }
 
@@ -605,7 +605,6 @@ KResult mount_info_t::UnlinkInodeToDirectory(inode_t* inode, char* name){
         if(NameLenght == Directory->name_length){
             if(strncmp(Directory->name, name, Directory->name_length)){
                 EntryToDelete = Directory;
-                Size -= EntryToDelete->size;
             }
         }
         Directory = (ext2_directory_entry_t*)((uint64_t)Directory + (uint64_t)Directory->size);
@@ -617,7 +616,7 @@ KResult mount_info_t::UnlinkInodeToDirectory(inode_t* inode, char* name){
     }
 
     ext2_directory_entry_t*  EntryToDeleteEnd = (ext2_directory_entry_t* )((uint64_t)EntryToDelete + EntryToDelete->size);
-    uint64_t NextSize = Size + (uint64_t)Buffer - (uint64_t)EntryToDeleteEnd;
+    uint64_t NextSize = Size - (uint64_t)EntryToDeleteEnd - (uint64_t)Buffer;
     memcpy(EntryToDelete, EntryToDeleteEnd, NextSize);
 
     WriteInode(inode, Buffer, NULL, Size, true);
@@ -729,23 +728,28 @@ KResult mount_info_t::AllocateInode(uint64_t* inode){
     uint64_t InodeInBitmapBlock = BlockSize * 8;
     uint8_t* BlockBitmap = (uint8_t*)malloc(BlockSize);
 
-    for(uint64_t i = 0; i < NumberOfGroup; i++){
+
+    for (uint64_t i = 0; i < NumberOfGroup; i++)
+    {
         ext2_group_descriptor_t* Descriptor = GetDescriptorFromGroup(i);
-        if(Descriptor->free_inodes_count){
+        if (Descriptor->free_inodes_count)
+        {
             uint64_t BitmapSize = DivideRoundUp(SuperBlock->inodes_per_group, 8);
             uint64_t BitmapSizeInBlock = DivideRoundUp(BitmapSize, BlockSize);
-            for(uint64_t y = 0; y < BitmapSizeInBlock; y++){
+            for (uint64_t y = 0; y < BitmapSizeInBlock; y++)
+            {
                 // Load bitmap
                 ReadBlock(BlockBitmap, Descriptor->inode_bitmap + y, NULL, BlockSize);
                 // Search free block
-                for(uint64_t z = 0; z < InodeInBitmapBlock; z++){
-                    uint64_t Position = z + y * InodeInBitmapBlock;
-                    uint64_t TargetByte = Position / 8;
-                    uint64_t TargetBit = Position % 8;
-                    if(!BIT_CHECK(BlockBitmap[TargetByte], TargetBit)){
+                for (uint64_t z = 0; z < BlockSize * 8; z++)
+                {
+                    uint64_t TargetByte = z / 8;
+                    uint64_t TargetBit = z % 8;
+                    if (!BIT_CHECK(BlockBitmap[TargetByte], TargetBit))
+                    {
                         // Update bitmap
                         BIT_SET(BlockBitmap[TargetByte], TargetBit);
-                        WriteBlock(&BlockBitmap[TargetByte], Descriptor->inode_bitmap + y, TargetByte, 1);
+                        Srv_WriteDevice(StorageDevice, &BlockBitmap[TargetByte], Descriptor->inode_bitmap + y + TargetByte, 1);
 
                         // Update descriptor
                         Descriptor->free_inodes_count--;
@@ -755,7 +759,7 @@ KResult mount_info_t::AllocateInode(uint64_t* inode){
                         SuperBlock->free_inodes_count--;
                         WriteSuperBlock();
 
-                        *inode = GetBlockGroupStartBlock(i) + Position + 1; // Inode position begin to 1
+                        *inode = GetBlockGroupStartBlock(i) + z;
                         free(Descriptor);
                         free(BlockBitmap);
                         return KSUCCESS;
@@ -1092,7 +1096,7 @@ KResult mount_info_t::CreateDir(char* path, permissions_t permissions){
     char* CreateName = CreatePathSB->substr(CreatePathSB->indexOf("/", 0, true), CreatePathSB->length());
 
     inode_t* Directory = FindInodeFromPath(path);
-    if(CheckPermissions(Directory, permissions, File_Permissions_Write) != KSUCCESS){
+    if(CheckPermissions(Directory, permissions, Storage_Permissions_Write) != KSUCCESS){
         free(Directory);
         return KFAIL;
     }
@@ -1136,7 +1140,7 @@ KResult mount_info_t::RemoveDir(char* path, permissions_t permissions){
 
     inode_t* DirectoryOld = FindInodeFromPath(OldPathDirectory);
 
-    if(CheckPermissions(DirectoryOld, permissions, File_Permissions_Write) != KSUCCESS){
+    if(CheckPermissions(DirectoryOld, permissions, Storage_Permissions_Write) != KSUCCESS){
         free(DirectoryOld);
         free(Inode);
         return KSUCCESS; 
@@ -1159,7 +1163,7 @@ ext_directory_t* mount_info_t::OpenDir(char* path, permissions_t permissions){
 
 ext_directory_t* mount_info_t::OpenDir(inode_t* inode, char* path, permissions_t permissions){
     inode_t* Target = FindInodeFromInodeEntryAndPath(inode, path);
-    if(Target->Inode.mode & INODE_TYPE_DIRECTORY && CheckPermissions(Target, permissions, File_Permissions_Read) == KSUCCESS){
+    if(Target->Inode.mode & INODE_TYPE_DIRECTORY && CheckPermissions(Target, permissions, Storage_Permissions_Read) == KSUCCESS){
         ext_directory_t* Directory = (ext_directory_t*)malloc(sizeof(ext_directory_t));
         Directory->Inode = Target;
         Directory->MountInfo = this;
@@ -1189,6 +1193,7 @@ read_dir_data* ext_directory_t::ReadDir(uint64_t index){
                     read_dir_data* ReadDirData = (read_dir_data*)malloc(sizeof(read_dir_data));
                     ReadDirData->Name = (char*)malloc(Directory->name_length + 1);
                     memcpy(ReadDirData->Name, Directory->name, Directory->name_length);
+                    ReadDirData->NameLength = Directory->name_length;
                     ReadDirData->Name[Directory->name_length] = NULL;
                     ReadDirData->IsFile = Directory->type_indicator == DIRECTORY_TYPE_REGULAR_FILE;
                     free(DirectoryMain);
@@ -1208,6 +1213,26 @@ KResult ext_directory_t::CloseDir(){
     return KSUCCESS;
 }
 
+size64_t ext_directory_t::GetDirCount(){
+    uint64_t DirCount = 0;
+    uint64_t Size = MountInfo->GetSizeFromInode(Inode);
+    uint64_t NumberOfEntries = Size / MountInfo->BlockSize;
+    ext2_directory_entry_t* DirectoryMain = (ext2_directory_entry_t*)malloc(MountInfo->BlockSize);
+    uint64_t IndexIterator = 0;
+    for(uint64_t y = 0; y < NumberOfEntries; y++){
+        ext2_directory_entry_t* Directory = DirectoryMain;
+        MountInfo->ReadInodeBlock(Inode, Directory, y, NULL, MountInfo->BlockSize);
+        while(Directory->type_indicator != 0 && ((uint64_t)Directory - (uint64_t)DirectoryMain) < MountInfo->BlockSize){
+            DirCount++;
+            Directory = (ext2_directory_entry_t*)((uint64_t)Directory + (uint64_t)Directory->size);
+        }
+    }
+    
+    free(DirectoryMain);
+
+    return DirCount;
+}
+
 
 KResult mount_info_t::Rename(char* old_path, char* new_path, permissions_t permissions){
     inode_t* Inode = FindInodeFromPath(old_path);
@@ -1225,7 +1250,7 @@ KResult mount_info_t::Rename(char* old_path, char* new_path, permissions_t permi
     char* NewName = OldPathSB->substr(OldPathSB->indexOf("/", 0, true), OldPathSB->length());
 
     inode_t* DirectoryOld = FindInodeFromPath(OldPathDirectory);
-    if(CheckPermissions(DirectoryOld, permissions, File_Permissions_Write) != KSUCCESS){
+    if(CheckPermissions(DirectoryOld, permissions, Storage_Permissions_Write) != KSUCCESS){
         free(Inode);
         free(OldPathDirectory);
         free(OldName);
@@ -1237,7 +1262,7 @@ KResult mount_info_t::Rename(char* old_path, char* new_path, permissions_t permi
     } 
 
     inode_t* DirectoryNew = FindInodeFromPath(NewPathDirectory);
-    if(CheckPermissions(DirectoryNew, permissions, File_Permissions_Write) != KSUCCESS){
+    if(CheckPermissions(DirectoryNew, permissions, Storage_Permissions_Write) != KSUCCESS){
         free(Inode);
         free(OldPathDirectory);
         free(OldName);
@@ -1265,7 +1290,7 @@ KResult mount_info_t::Rename(char* old_path, char* new_path, permissions_t permi
 
 KResult mount_info_t::CreateFile(char* path, char* name, permissions_t permissions){
     inode_t* Directory = FindInodeFromPath(path);
-    if(CheckPermissions(Directory, permissions, File_Permissions_Create_File) != KSUCCESS){
+    if(CheckPermissions(Directory, permissions, Storage_Permissions_Create_File) != KSUCCESS){
         free(Directory);
         return KFAIL;
     }
@@ -1301,7 +1326,7 @@ KResult mount_info_t::RemoveFile(char* path, permissions_t permissions){
        return KFAIL; 
     } 
 
-    if(!(Inode->Inode.mode & INODE_TYPE_REGULAR_FILE) || CheckPermissions(Inode, permissions, File_Permissions_Write) != KSUCCESS){
+    if(!(Inode->Inode.mode & INODE_TYPE_REGULAR_FILE) || CheckPermissions(Inode, permissions, Storage_Permissions_Write) != KSUCCESS){
         free(Inode);
         return KNOTALLOW;
     }
@@ -1323,7 +1348,7 @@ KResult mount_info_t::RemoveFile(char* path, permissions_t permissions){
     free(OldPathSB);
 
 
-    if(CheckPermissions(Directory, permissions, File_Permissions_Write) != KSUCCESS){
+    if(CheckPermissions(Directory, permissions, Storage_Permissions_Write) != KSUCCESS){
         free(Directory);
         free(OldName);
         free(Inode);
@@ -1349,7 +1374,7 @@ ext_file_t* mount_info_t::OpenFile(char* path, permissions_t permissions){
 ext_file_t* mount_info_t::OpenFile(inode_t* inode, char* path, permissions_t permissions){
     inode_t* Target = FindInodeFromInodeEntryAndPath(inode, path);
     if(!Target){
-        if(permissions & File_Permissions_Create_File){
+        if(permissions & Storage_Permissions_Create_File){
             std::StringBuilder* CreatePathSB = new std::StringBuilder(path);
             char* CreatePathDirectory = CreatePathSB->substr(NULL, CreatePathSB->indexOf("/", 0, true));
             char* CreateName = CreatePathSB->substr(CreatePathSB->indexOf("/", 0, true), CreatePathSB->length());
@@ -1364,7 +1389,7 @@ ext_file_t* mount_info_t::OpenFile(inode_t* inode, char* path, permissions_t per
         }
     }
 
-    if(Target->Inode.mode & INODE_TYPE_REGULAR_FILE && CheckPermissions(Target, permissions, File_Permissions_Read) == KSUCCESS){
+    if(Target->Inode.mode & INODE_TYPE_REGULAR_FILE && CheckPermissions(Target, permissions, Storage_Permissions_Read) == KSUCCESS){
         ext_file_t* File = (ext_file_t*)malloc(sizeof(ext_file_t));
         File->Inode = Target;
         File->MountInfo = this;
@@ -1378,7 +1403,7 @@ ext_file_t* mount_info_t::OpenFile(inode_t* inode, char* path, permissions_t per
 }
 
 KResult ext_file_t::ReadFile(uintptr_t buffer, uint64_t start, size64_t size){
-    if(Permissions & File_Permissions_Read){
+    if(Permissions & Storage_Permissions_Read){
         Inode->Inode.atime = GetPosixTime();
         MountInfo->SetInode(Inode);
         return MountInfo->ReadInode(Inode, buffer, start, size);
@@ -1387,7 +1412,7 @@ KResult ext_file_t::ReadFile(uintptr_t buffer, uint64_t start, size64_t size){
 }
 
 KResult ext_file_t::WriteFile(uintptr_t buffer, uint64_t start, size64_t size, bool is_data_end){
-    if(Permissions & File_Permissions_Write){
+    if(Permissions & Storage_Permissions_Write){
         Inode->Inode.mtime = GetPosixTime();
         MountInfo->SetInode(Inode);
         return MountInfo->WriteInode(Inode, buffer, start, size, is_data_end);

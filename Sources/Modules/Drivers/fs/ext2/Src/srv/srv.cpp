@@ -9,6 +9,7 @@ static file_dispatch_t FileDispatcher[File_Function_Count] = {
 
 static dir_dispatch_t DirDispatcher[Dir_Function_Count] = { 
     [Dir_Function_Close] = Closedir,
+    [Dir_Function_GetCount] = Getdircount,
     [Dir_Function_Read] = Readdir,
 };
 
@@ -337,7 +338,7 @@ KResult Opendir(thread_t Callback, uint64_t CallbackArg, char* Path, permissions
     KResult Status = KFAIL;
 
     ext_directory_t* Directory = NULL;
-
+    
     if(Directory = MountInfo->OpenDir(Path, Permissions)){
         Status = KSUCCESS;
     }
@@ -398,26 +399,73 @@ KResult DirDispatch(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint6
 
 /* Direct access */
 KResult Readdir(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Directory, uint64_t GP0, uint64_t GP1, uint64_t GP2){
-    // TODO
-    KResult Status = KFAIL;
+    uint64_t IndexCount = GP1;
+    uint64_t IndexStart = GP0;
 
-    uint64_t IndexEnd = GP0 + GP1;
+    read_dir_data** ReadirData = (read_dir_data**)malloc(sizeof(read_dir_data*) * IndexCount);
 
-    for(uint64_t i = GP0; i < IndexEnd; i++){
-        Directory->ReadDir(i);
+    uint64_t EntryCount = 0;
+    size64_t DataSize = sizeof(directory_entries_t);
+    for(uint64_t i = 0; i < IndexCount; i++){
+        ReadirData[i] = Directory->ReadDir(IndexStart + i);
+        if(ReadirData[i] == NULL) break;
+        DataSize += sizeof(directory_entriy_t);
+        DataSize += ReadirData[i]->NameLength + 1;
+        EntryCount++;
     }
+
+    directory_entries_t* Data = (directory_entries_t*)malloc(DataSize);
+    Data->EntryCount = EntryCount;
+
+    uint64_t NextEntryPosition = sizeof(directory_entries_t);
+    directory_entriy_t* Entry = &Data->FirstEntry;
+    for(uint64_t i = 0; i < EntryCount; i++){
+        NextEntryPosition += sizeof(directory_entriy_t) + ReadirData[i]->NameLength + 1;
+        Entry->NextEntryPosition = NextEntryPosition;
+        Entry->IsFile = ReadirData[i]->IsFile;
+        memcpy(&Entry->Name, ReadirData[i]->Name, ReadirData[i]->NameLength + 1);
+        free(ReadirData[i]->Name);
+        free(ReadirData[i]);
+        Entry = (directory_entriy_t*)((uint64_t)&Data->FirstEntry + (uint64_t)NextEntryPosition);
+    }
+
+    Entry->NextEntryPosition = NULL;
+
+    free(ReadirData);
+
     
     arguments_t arguments{
-        .arg[0] = Status,            /* Status */
+        .arg[0] = KSUCCESS,         /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
-        .arg[3] = NULL,             /* GP1 */
+        .arg[3] = DataSize,         /* GP1 */
         .arg[4] = NULL,             /* GP2 */
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    ShareDataWithArguments_t ShareDataWithArguments{
+        .Data = Data,
+        .Size = DataSize,
+        .ParameterPosition = 0x2,
+    };
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &ShareDataWithArguments);
+    free(Data);
     Sys_Close(KSUCCESS);
+}
+
+/* Direct access */
+KResult Getdircount(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Directory, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+    arguments_t arguments{
+        .arg[0] = KSUCCESS,                 /* Status */
+        .arg[1] = CallbackArg,              /* CallbackArg */
+        .arg[2] = Directory->GetDirCount(), /* DirCount */
+        .arg[3] = NULL,                     /* GP1 */
+        .arg[4] = NULL,                     /* GP2 */
+        .arg[5] = NULL,                     /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    return KSUCCESS;
 }
 
 /* Direct access */

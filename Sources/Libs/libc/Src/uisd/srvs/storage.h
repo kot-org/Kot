@@ -13,10 +13,10 @@ extern "C" {
 #define Serial_Number_Size              0x14
 #define Drive_Model_Number_Size         0x28
 
-#define File_Permissions_Super_User     (1 << 0)
-#define File_Permissions_Read           (1 << 1)
-#define File_Permissions_Write          (1 << 2)
-#define File_Permissions_Create_File    (1 << 3)
+#define Storage_Permissions_Admin          (1 << 0)
+#define Storage_Permissions_Read           (1 << 1)
+#define Storage_Permissions_Write          (1 << 2)
+#define Storage_Permissions_Create_File    (1 << 3)
 
 
 #define Client_VFS_Function_Count       0x6
@@ -36,10 +36,11 @@ extern "C" {
 #define File_Function_Write             0x3
 
 
-#define Dir_Function_Count              0x2
+#define Dir_Function_Count              0x3
 
 #define Dir_Function_Close              0x0
-#define Dir_Function_Read               0x1
+#define Dir_Function_GetCount          0x1
+#define Dir_Function_Read               0x2
 
 
 typedef KResult (*StorageCallbackHandler)(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
@@ -116,6 +117,17 @@ typedef struct {
     thread_t DirThreadHandler;
 } directory_t;
 
+typedef struct {
+    uint64_t NextEntryPosition;
+    bool IsFile;
+    char Name[];
+} directory_entriy_t;
+
+typedef struct {
+    uint64_t EntryCount;
+    directory_entriy_t FirstEntry;
+} directory_entries_t;
+
 typedef uint64_t mode_t;
 typedef uint64_t permissions_t;
 
@@ -145,6 +157,7 @@ struct srv_storage_callback_t* Srv_Storage_Readfile(file_t* File, uintptr_t Buff
 struct srv_storage_callback_t* Srv_Storage_Writefile(file_t* File, uintptr_t Buffer, uint64_t Start, size64_t Size, bool IsDataEnd, bool IsAwait);
 
 struct srv_storage_callback_t* Srv_Storage_Closedir(directory_t* Dir, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_Getdircount(directory_t* Dir, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_Readdir(directory_t* Dir, uint64_t IndexStart, size64_t IndexNumber, bool IsAwait);
 
 #if defined(__cplusplus)
