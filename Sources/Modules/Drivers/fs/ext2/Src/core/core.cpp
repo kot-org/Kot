@@ -1090,7 +1090,8 @@ KResult mount_info_t::CheckPermissions(inode_t* inode, permissions_t permissions
 }
 
 
-KResult mount_info_t::CreateDir(char* path, permissions_t permissions){
+KResult mount_info_t::CreateDir(char* path, mode_t mode, permissions_t permissions){
+    // TODO : mode
     std::StringBuilder* CreatePathSB = new std::StringBuilder(path);
     char* CreatePathDirectory = CreatePathSB->substr(NULL, CreatePathSB->indexOf("/", 0, true));
     char* CreateName = CreatePathSB->substr(CreatePathSB->indexOf("/", 0, true), CreatePathSB->length());

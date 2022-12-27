@@ -316,7 +316,7 @@ struct mount_info_t{
 
     KResult CheckPermissions(inode_t* inode, permissions_t permissions, permissions_t permissions_requested);
 
-    KResult CreateDir(char* path, permissions_t permissions);
+    KResult CreateDir(char* path, mode_t mode, permissions_t permissions);
     KResult RemoveDir(char* path, permissions_t permissions);
     struct ext_directory_t* OpenDir(char* path, permissions_t permissions);
     struct ext_directory_t* OpenDir(struct inode_t* inode, char* path, permissions_t permissions);

@@ -403,7 +403,7 @@ KResult VFSRename(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Con
     return Status; 
 }
 
-KResult VFSDirCreate(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t Permissions, char* Path){
+KResult VFSDirCreate(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t Permissions, char* Path, mode_t Mode){
     partition_t* Partition;
     char* RelativePath;
 
@@ -417,8 +417,8 @@ KResult VFSDirCreate(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* 
         .arg[0] = Callback,         /* Callback */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* Path */
-        .arg[3] = Permissions,      /* Permissions */
-        .arg[4] = NULL,             /* GP2 */
+        .arg[3] = Mode,             /* Mode */
+        .arg[4] = Permissions,      /* Permissions */
         .arg[5] = NULL,             /* GP3 */
     };
 

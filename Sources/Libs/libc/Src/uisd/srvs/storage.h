@@ -16,7 +16,7 @@ extern "C" {
 #define Storage_Permissions_Admin          (1 << 0)
 #define Storage_Permissions_Read           (1 << 1)
 #define Storage_Permissions_Write          (1 << 2)
-#define Storage_Permissions_Create    (1 << 3)
+#define Storage_Permissions_Create         (1 << 3)
 
 
 #define Client_VFS_Function_Count       0x6
@@ -126,17 +126,19 @@ typedef struct {
 typedef struct {
     process_t DirProcessHandler;
     thread_t DirThreadHandler;
+
+    uint64_t PositionRead;
 } directory_t;
 
 typedef struct {
     uint64_t NextEntryPosition;
     bool IsFile;
     char Name[];
-} directory_entriy_t;
+} directory_entry_t;
 
 typedef struct {
     uint64_t EntryCount;
-    directory_entriy_t FirstEntry;
+    directory_entry_t FirstEntry;
 } directory_entries_t;
 
 typedef uint64_t mode_t;
@@ -158,7 +160,7 @@ struct srv_storage_callback_t* Srv_Storage_Removefile(char* Path, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_Openfile(char* Path, permissions_t Permissions, process_t Target, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_Rename(char* OldPath, char* NewPath, bool IsAwait);
 
-struct srv_storage_callback_t* Srv_Storage_DirCreate(char* Path, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_DirCreate(char* Path, mode_t Mode, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_DirRemove(char* Path, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_DirOpen(char* Path, process_t Target, bool IsAwait);
 
@@ -178,6 +180,16 @@ KResult fwrite(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, file_t* Fi
 KResult fputs(char* String, file_t* File);
 KResult fseek(file_t* File, uint64_t Offset, int Whence);
 uint64_t ftell(file_t* File);
+
+directory_t* opendir(char* Path);
+KResult rewinddir(directory_t* Dir);
+directory_entries_t* mreaddir(directory_t* Dir, uint64_t Start, uint64_t Count);
+directory_entry_t* readdir(directory_t* Dir);
+KResult closedir(directory_t* Dir);
+KResult removefile(char* Path);
+KResult rename(char* OldName, char* NewName);
+KResult mkdir(char* Path, mode_t Mode);
+KResult rmdir(char* Path);
 
 #if defined(__cplusplus)
 }

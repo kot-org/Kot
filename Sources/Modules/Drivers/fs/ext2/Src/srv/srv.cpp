@@ -296,10 +296,10 @@ KResult Rename(thread_t Callback, uint64_t CallbackArg, srv_storage_fs_server_re
 /* Directories */
 
 /* VFS access */
-KResult Mkdir(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions){
+KResult Mkdir(thread_t Callback, uint64_t CallbackArg, char* Path, mode_t Mode, permissions_t Permissions){
     mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
 
-    KResult Status = MountInfo->CreateDir(Path, Permissions);
+    KResult Status = MountInfo->CreateDir(Path, Mode, Permissions);
     
     arguments_t arguments{
         .arg[0] = Status,            /* Status */
@@ -409,7 +409,7 @@ KResult Readdir(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Direct
     for(uint64_t i = 0; i < IndexCount; i++){
         ReadirData[i] = Directory->ReadDir(IndexStart + i);
         if(ReadirData[i] == NULL) break;
-        DataSize += sizeof(directory_entriy_t);
+        DataSize += sizeof(directory_entry_t);
         DataSize += ReadirData[i]->NameLength + 1;
         EntryCount++;
     }
@@ -418,15 +418,15 @@ KResult Readdir(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Direct
     Data->EntryCount = EntryCount;
 
     uint64_t NextEntryPosition = sizeof(directory_entries_t);
-    directory_entriy_t* Entry = &Data->FirstEntry;
+    directory_entry_t* Entry = &Data->FirstEntry;
     for(uint64_t i = 0; i < EntryCount; i++){
-        NextEntryPosition += sizeof(directory_entriy_t) + ReadirData[i]->NameLength + 1;
+        NextEntryPosition += sizeof(directory_entry_t) + ReadirData[i]->NameLength + 1;
         Entry->NextEntryPosition = NextEntryPosition;
         Entry->IsFile = ReadirData[i]->IsFile;
         memcpy(&Entry->Name, ReadirData[i]->Name, ReadirData[i]->NameLength + 1);
         free(ReadirData[i]->Name);
         free(ReadirData[i]);
-        Entry = (directory_entriy_t*)((uint64_t)&Data->FirstEntry + (uint64_t)NextEntryPosition);
+        Entry = (directory_entry_t*)((uint64_t)&Data->FirstEntry + (uint64_t)NextEntryPosition);
     }
 
     Entry->NextEntryPosition = NULL;

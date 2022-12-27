@@ -399,7 +399,7 @@ KResult Srv_Storage_DirCreate_Callback(KResult Status, struct srv_storage_callba
     return Status;
 }
 
-struct srv_storage_callback_t* Srv_Storage_DirCreate(char* Path, bool IsAwait){
+struct srv_storage_callback_t* Srv_Storage_DirCreate(char* Path, mode_t Mode, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
     thread_t self = Sys_Getthread();
@@ -416,6 +416,7 @@ struct srv_storage_callback_t* Srv_Storage_DirCreate(char* Path, bool IsAwait){
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Client_VFS_Dir_Create;
+    parameters.arg[4] = Mode;
 
     struct ShareDataWithArguments_t data;
     data.Data = Path;
