@@ -1290,7 +1290,7 @@ KResult mount_info_t::Rename(char* old_path, char* new_path, permissions_t permi
 
 KResult mount_info_t::CreateFile(char* path, char* name, permissions_t permissions){
     inode_t* Directory = FindInodeFromPath(path);
-    if(CheckPermissions(Directory, permissions, Storage_Permissions_Create_File) != KSUCCESS){
+    if(CheckPermissions(Directory, permissions, Storage_Permissions_Create) != KSUCCESS){
         free(Directory);
         return KFAIL;
     }
@@ -1374,7 +1374,7 @@ ext_file_t* mount_info_t::OpenFile(char* path, permissions_t permissions){
 ext_file_t* mount_info_t::OpenFile(inode_t* inode, char* path, permissions_t permissions){
     inode_t* Target = FindInodeFromInodeEntryAndPath(inode, path);
     if(!Target){
-        if(permissions & Storage_Permissions_Create_File){
+        if(permissions & Storage_Permissions_Create){
             std::StringBuilder* CreatePathSB = new std::StringBuilder(path);
             char* CreatePathDirectory = CreatePathSB->substr(NULL, CreatePathSB->indexOf("/", 0, true));
             char* CreateName = CreatePathSB->substr(CreatePathSB->indexOf("/", 0, true), CreatePathSB->length());

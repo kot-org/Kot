@@ -24,22 +24,28 @@ extern "C" int main() {
     backfb.height = fb->height;
     backfb.pitch = fb->pitch;
 
-    srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile("d1:home/tests/test1.txt", 0xff, ShareProcessKey(Sys_GetProcess()), true);
-    size64_t FileSize = Srv_Storage_Getfilesize((file_t*)CallbackFile->Data, true)->Data;
-    uintptr_t Buffer = malloc(FileSize);
-    memset(Buffer, 'd', FileSize);
-    Srv_Storage_Writefile((file_t*)CallbackFile->Data, Buffer, 0, FileSize, true, true);
-    Srv_Storage_Readfile((file_t*)CallbackFile->Data, Buffer, 0, FileSize, true);
-    //Printlog((char*)Buffer);
+    file_t* File = fopen("d1:home/tests/test1.txt", "r");
+    fseek(File, 0, SEEK_END);
+    size64_t Size = ftell(File);
+    uintptr_t Buffer = malloc(Size);
+    fseek(File, 0, SEEK_SET);
+    fread(Buffer, Size, 1, File);
+    Printlog((char*)Buffer);
+
+    // srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile("d1:home/tests/test1.txt", 0xff, ShareProcessKey(Sys_GetProcess()), true);
+    // size64_t FileSize = Srv_Storage_Getfilesize((file_t*)CallbackFile->Data, true)->Data;
+    // memset(Buffer, 'd', FileSize);
+    // Srv_Storage_Writefile((file_t*)CallbackFile->Data, Buffer, 0, FileSize, true, true);
+    // Srv_Storage_Readfile((file_t*)CallbackFile->Data, Buffer, 0, FileSize, true);
     
-    srv_storage_callback_t* CallbackDir = Srv_Storage_DirOpen("d1:home/wallpaper", ShareProcessKey(Sys_GetProcess()), true);
-    size64_t DirCount = Srv_Storage_Getdircount((directory_t*)CallbackDir->Data, true)->Data;
-    directory_entries_t* Entries = (directory_entries_t*)Srv_Storage_Readdir((directory_t*)CallbackDir->Data, 0, DirCount, true)->Data;
-    directory_entriy_t* Entry = &Entries->FirstEntry;
-    for(uint64_t i = 0; i < Entries->EntryCount; i++){
-        std::printf("%s %x", Entry->Name, Entry->IsFile);
-        Entry = (directory_entriy_t*)((uint64_t)&Entries->FirstEntry + (uint64_t)Entry->NextEntryPosition);
-    }
+    // srv_storage_callback_t* CallbackDir = Srv_Storage_DirOpen("d1:home/wallpaper", ShareProcessKey(Sys_GetProcess()), true);
+    // size64_t DirCount = Srv_Storage_Getdircount((directory_t*)CallbackDir->Data, true)->Data;
+    // directory_entries_t* Entries = (directory_entries_t*)Srv_Storage_Readdir((directory_t*)CallbackDir->Data, 0, DirCount, true)->Data;
+    // directory_entriy_t* Entry = &Entries->FirstEntry;
+    // for(uint64_t i = 0; i < Entries->EntryCount; i++){
+    //     std::printf("%s %x", Entry->Name, Entry->IsFile);
+    //     Entry = (directory_entriy_t*)((uint64_t)&Entries->FirstEntry + (uint64_t)Entry->NextEntryPosition);
+    // }
 
     srv_system_callback_t* callback0 = Srv_System_ReadFileInitrd("default-font.sfn", true);
     font = LoadFont((uintptr_t)callback0->Data);

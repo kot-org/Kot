@@ -16,7 +16,7 @@ extern "C" {
 #define Storage_Permissions_Admin          (1 << 0)
 #define Storage_Permissions_Read           (1 << 1)
 #define Storage_Permissions_Write          (1 << 2)
-#define Storage_Permissions_Create_File    (1 << 3)
+#define Storage_Permissions_Create    (1 << 3)
 
 
 #define Client_VFS_Function_Count       0x6
@@ -39,8 +39,12 @@ extern "C" {
 #define Dir_Function_Count              0x3
 
 #define Dir_Function_Close              0x0
-#define Dir_Function_GetCount          0x1
+#define Dir_Function_GetCount           0x1
 #define Dir_Function_Read               0x2
+
+#define SEEK_SET                        0x0
+#define SEEK_CUR                        0x1
+#define SEEK_END                        0x2
 
 
 typedef KResult (*StorageCallbackHandler)(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
@@ -110,6 +114,13 @@ struct srv_storage_fs_server_read_dir_t{
 typedef struct {
     process_t FileProcessHandler;
     thread_t FileThreadHandler;
+
+    bool IsBinary;
+
+    uint64_t PositionRead;
+    uint64_t PositionWrite;
+
+    bool IsDataEnd;
 } file_t;
 
 typedef struct {
@@ -159,6 +170,14 @@ struct srv_storage_callback_t* Srv_Storage_Writefile(file_t* File, uintptr_t Buf
 struct srv_storage_callback_t* Srv_Storage_Closedir(directory_t* Dir, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_Getdircount(directory_t* Dir, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_Readdir(directory_t* Dir, uint64_t IndexStart, size64_t IndexNumber, bool IsAwait);
+
+file_t* fopen(char* Path, char* Mode);
+KResult fclose(file_t* File);
+KResult fread(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, file_t* File);
+KResult fwrite(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, file_t* File);
+KResult fputs(char* String, file_t* File);
+KResult fseek(file_t* File, uint64_t Offset, int Whence);
+uint64_t ftell(file_t* File);
 
 #if defined(__cplusplus)
 }
