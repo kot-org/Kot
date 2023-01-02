@@ -25,7 +25,6 @@ extern "C" int main() {
     backfb.pitch = fb->pitch;
 
     file_t* File = fopen("d0:Starter.json", "r");
-    std::printf("%x", File);
     fseek(File, 0, SEEK_END);
     size64_t Size = ftell(File);
     uintptr_t Buffer = malloc(Size);

@@ -46,7 +46,9 @@ KResult VFSDirRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* 
 KResult VFSDirOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t Permissions, char* Path, process_t Target);
 
 
-typedef KResult (*file_dispatch_t)(thread_t Callback, uint64_t CallbackArg, char* FilePath, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3);
+typedef KResult (*file_dispatch_t)(thread_t Callback, uint64_t CallbackArg,  struct InitrdContext* Context, uint64_t GP0, uint64_t GP1, uint64_t GP2);
 
-KResult VFSfileReadInitrd(thread_t Callback, uint64_t CallbackArg, char* FilePath, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3);
-KResult VFSfileCloseInitrd(thread_t Callback, uint64_t CallbackArg, char* FilePath, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3);
+KResult VFSfileReadInitrd(thread_t Callback, uint64_t CallbackArg,  struct InitrdContext* Context, uint64_t GP0, uint64_t GP1, uint64_t GP2);
+KResult VFSGetfilesizeInitrd(thread_t Callback, uint64_t CallbackArg,  struct InitrdContext* Context, uint64_t GP0, uint64_t GP1, uint64_t GP2);
+KResult VFSfileCloseInitrd(thread_t Callback, uint64_t CallbackArg,  struct InitrdContext* Context, uint64_t GP0, uint64_t GP1, uint64_t GP2);
+KResult VFSfileOpenInitrd(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions, process_t Target);

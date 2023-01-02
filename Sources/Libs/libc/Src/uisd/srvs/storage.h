@@ -112,22 +112,25 @@ struct srv_storage_fs_server_read_dir_t{
 };
 
 typedef struct {
+    uint64_t Lock;
+
     process_t FileProcessHandler;
     thread_t FileThreadHandler;
 
     bool IsBinary;
 
-    uint64_t PositionRead;
-    uint64_t PositionWrite;
+    uint64_t Position;
 
     bool IsDataEnd;
 } file_t;
 
 typedef struct {
+    uint64_t Lock;
+    
     process_t DirProcessHandler;
     thread_t DirThreadHandler;
 
-    uint64_t PositionRead;
+    uint64_t Position;
 } directory_t;
 
 typedef struct {

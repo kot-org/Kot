@@ -13,6 +13,17 @@ static client_vfs_dispatch_t VFSClientDispatcherFunctions[Client_VFS_Function_Co
 
 KResult InitializeVFS(){
     VFSProcess = ShareProcessKey(Sys_GetProcess());
+
+    // RootPartition is initrd
+    partition_t* RootPartition = (partition_t*)malloc(sizeof(partition_t));
+    RootPartition->IsMount = true;
+    RootPartition->StaticVolumeMountPoint = 0;
+    RootPartition->DynamicVolumeMountPoint = 0;
+    RootPartition->Index = 0;
+    Sys_Createthread(Sys_GetProcess(), (uintptr_t)&VFSfileOpenInitrd, PriviledgeService, NULL, &RootPartition->FSServerFunctions.Openfile);
+    
+    vector_push(PartitionsList, RootPartition);
+
     return KSUCCESS;
 }
 
@@ -304,7 +315,6 @@ KResult VFSFileOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* C
     char* RelativePath;
 
     KResult Status = GetVFSAccessData(&RelativePath, &Partition, Context, Path);
-
     if(Status != KSUCCESS){
         return Status; 
     }
@@ -331,7 +341,6 @@ KResult VFSFileOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* C
         .Size = (size64_t)strlen(RelativePath) + 1,
         .ParameterPosition = 0x2,
     };
-
     Status = Sys_Execthread(Partition->FSServerFunctions.Openfile, &arguments, ExecutionTypeQueu, &Data);
 
     free(RelativePath);
@@ -505,12 +514,17 @@ KResult VFSDirOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Co
 
 static file_dispatch_t FileDispatcher[File_Function_Count] = { 
     [File_Function_Close] = VFSfileCloseInitrd,
+    [File_Function_GetSize] = VFSGetfilesizeInitrd,
     [File_Function_Read] = VFSfileReadInitrd,
 };
 
+struct InitrdContext{
+    process_t Target;
+    char* Path;
+};
+
 KResult VFSfileDispatcherInitrd(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
-    uint32_t Function = GP0 & 0xffffffff;
-    uint32_t GP4 =  GP0 >> 32;
+    uint32_t Function = GP0;
 
     if(Function >= File_Function_Count || Function == File_Function_Write){
         arguments_t arguments{
@@ -526,15 +540,14 @@ KResult VFSfileDispatcherInitrd(thread_t Callback, uint64_t CallbackArg, uint64_
         Sys_Close(KSUCCESS);
     }
 
-    char* FilePath = (char*)Sys_GetExternalDataThread();
-
-    Sys_Close(FileDispatcher[Function](Callback, CallbackArg, FilePath, GP1, GP2, GP3, GP4));
+    InitrdContext* Context = (InitrdContext*)Sys_GetExternalDataThread();
+    Sys_Close(FileDispatcher[Function](Callback, CallbackArg, Context, GP1, GP2, GP3));
 }
 
-KResult VFSfileReadInitrd(thread_t Callback, uint64_t CallbackArg, char* FilePath, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
-    size64_t Size = GP2;
+KResult VFSfileReadInitrd(thread_t Callback, uint64_t CallbackArg,  InitrdContext* Context, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+    size64_t Size = GP1;
 
-    srv_system_callback_t* CallbackSys = Srv_System_ReadFileInitrd(FilePath, true);
+    srv_system_callback_t* CallbackSys = Srv_System_ReadFileInitrd(Context->Path, true);
 
     KResult Status = CallbackSys->Status;
 
@@ -547,12 +560,12 @@ KResult VFSfileReadInitrd(thread_t Callback, uint64_t CallbackArg, char* FilePat
         .arg[5] = NULL,             /* GP3 */
     };
 
-    uintptr_t Buffer = (uintptr_t)(CallbackSys->Data + GP1);
+    uintptr_t Buffer = (uintptr_t)(CallbackSys->Data + GP0);
 
     ksmem_t MemoryKey;
     Sys_CreateMemoryField(Sys_GetProcess(), Size, &Buffer, &MemoryKey, MemoryFieldTypeSendSpaceRO);
 
-    Sys_Keyhole_CloneModify(MemoryKey, &arguments.arg[2], GP0, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
+    Sys_Keyhole_CloneModify(MemoryKey, &arguments.arg[2], Context->Target, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
     
     Sys_Execthread(Callback, &arguments, ExecutionTypeQueuAwait, NULL);
     Sys_CloseMemoryField(Sys_GetProcess(), MemoryKey, Buffer);
@@ -563,8 +576,31 @@ KResult VFSfileReadInitrd(thread_t Callback, uint64_t CallbackArg, char* FilePat
     return KSUCCESS;
 }
 
-KResult VFSfileCloseInitrd(thread_t Callback, uint64_t CallbackArg, char* FilePath, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint32_t GP3){
-    free(FilePath);
+KResult VFSGetfilesizeInitrd(thread_t Callback, uint64_t CallbackArg,  InitrdContext* Context, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+    srv_system_callback_t* CallbackSys = Srv_System_ReadFileInitrd(Context->Path, true);
+
+    KResult Status = CallbackSys->Status;
+
+    arguments_t arguments{
+        .arg[0] = Status,               /* Status */
+        .arg[1] = CallbackArg,          /* CallbackArg */
+        .arg[2] = CallbackSys->Size,    /* Fielsize */
+        .arg[3] = NULL,                 /* GP1 */
+        .arg[4] = NULL,                 /* GP2 */
+        .arg[5] = NULL,                 /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueuAwait, NULL);
+
+    free((uintptr_t)CallbackSys->Data);
+    free(CallbackSys);
+
+    return KSUCCESS;
+}
+
+KResult VFSfileCloseInitrd(thread_t Callback, uint64_t CallbackArg,  InitrdContext* Context, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+    free(Context->Path);
+    free(Context);
 
     arguments_t arguments{
         .arg[0] = KSUCCESS,            /* Status */
@@ -581,11 +617,13 @@ KResult VFSfileCloseInitrd(thread_t Callback, uint64_t CallbackArg, char* FilePa
 }
 
 KResult VFSfileOpenInitrd(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions, process_t Target){
-    KResult Status = KFAIL;
+    KResult Status = KSUCCESS; // TODO: verify if the file exists
 
     size64_t FilePathSize = strlen(Path) + 1;
-    char* FilePath = (char*)malloc(FilePathSize);
-    memcpy(FilePath, Path, FilePathSize);
+    InitrdContext* Context = (InitrdContext*)malloc(sizeof(InitrdContext));
+    Context->Target = Target;
+    Context->Path = (char*)malloc(FilePathSize);
+    memcpy(Context->Path, Path, FilePathSize);
     
     arguments_t arguments{
         .arg[0] = Status,           /* Status */
@@ -600,7 +638,7 @@ KResult VFSfileOpenInitrd(thread_t Callback, uint64_t CallbackArg, char* Path, p
         srv_storage_fs_server_open_file_data_t SrvOpenFileData;
         thread_t DispatcherThread;
 
-        Sys_Createthread(Sys_GetProcess(), (uintptr_t)&VFSfileDispatcherInitrd, PriviledgeDriver, (uint64_t)FilePath, &DispatcherThread);
+        Sys_Createthread(Sys_GetProcess(), (uintptr_t)&VFSfileDispatcherInitrd, PriviledgeDriver, (uint64_t)Context, &DispatcherThread);
 
         SrvOpenFileData.Dispatcher = MakeShareableThreadToProcess(DispatcherThread, Target);
 
@@ -613,6 +651,8 @@ KResult VFSfileOpenInitrd(thread_t Callback, uint64_t CallbackArg, char* Path, p
         };
         Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &ShareDataWithArguments);
     }else{
+        free(Context->Path);
+        free(Context);
         Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
     }
     Sys_Close(KSUCCESS);

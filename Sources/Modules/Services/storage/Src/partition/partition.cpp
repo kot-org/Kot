@@ -8,16 +8,6 @@ uint64_t PartitionLock = NULL;
 void InitializePartition(){
     PartitionsList = vector_create();
     PartitionsListNotify = vector_create();
-
-
-    // RootPartition is initrd
-    partition_t* RootPartition = (partition_t*)malloc(sizeof(partition_t));
-    RootPartition->IsMount = true;
-    RootPartition->StaticVolumeMountPoint = 0;
-    RootPartition->DynamicVolumeMountPoint = 0;
-    RootPartition->Index = 0;
-
-    vector_push(PartitionsList, RootPartition);
 }
 
 partition_t* NewPartition(storage_device_t* Device, uint64_t Start, uint64_t Size, GUID_t* PartitionTypeGUID){
