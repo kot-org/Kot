@@ -39,7 +39,6 @@ KResult VFSAskForAuthorization(ClientVFSContext* Context, authorization_t author
     char Message[1024];
 
     if(authorization == FS_AUTHORIZATION_MEDIUM){
-        char VolumeBuffer[33];
         sprintf(Message, " wants to access to file system with medium access : the software will be abble to read and write ALL FILES in the volume : s%x and d%x", Context->StaticVolumeMountPoint, Context->DynamicVolumeMountPoint);
     }else{
         sprintf(Message, " wants to access to file system with high access : the software will be abble to read and write ALL FILES in your PC");

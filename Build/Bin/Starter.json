@@ -12,6 +12,7 @@
     {"file":"Ext.elf", "priviledge":1},
     {"file":"Hid.elf", "priviledge":2},
     {"file":"Time.elf", "priviledge":2},
+    {"file":"Desktop.elf", "priviledge":3},
     {"file":"Shell.elf", "priviledge":3},
     {"file":"Apptest.elf", "priviledge":3}
 ]

@@ -52,27 +52,24 @@ Monitor::Monitor(process_t orb, uintptr_t fb_addr, uint64_t width, uint64_t heig
     this->xPos = xPos;
     this->yPos = yPos;
 
-    framebuffer_t* _main = (framebuffer_t*) calloc(sizeof(framebuffer_t));
-    framebuffer_t* _back = (framebuffer_t*) calloc(sizeof(framebuffer_t));
+    main = (framebuffer_t*) calloc(sizeof(framebuffer_t));
+    back = (framebuffer_t*) calloc(sizeof(framebuffer_t));
 
-    _main->addr = fb_addr;
-    _main->width = width;
-    _main->height = height;
-    _main->pitch = pitch;
-    _main->bpp = bpp;
-    _main->btpp = bpp / 8;
-    _main->size = _main->pitch * height;
+    main->addr = fb_addr;
+    main->width = width;
+    main->height = height;
+    main->pitch = pitch;
+    main->bpp = bpp;
+    main->btpp = bpp / 8;
+    main->size = main->pitch * height;
 
-    _back->addr = calloc(_main->pitch * height);
-    _back->width = width;
-    _back->height = height;
-    _back->pitch = _main->pitch;
-    _back->bpp = _main->bpp;
-    _back->btpp = _main->btpp;
-    _back->size = _main->size;    
-
-    main = _main;
-    back = _back;
+    back->addr = calloc(main->pitch * height);
+    back->width = width;
+    back->height = height;
+    back->pitch = main->pitch;
+    back->bpp = main->bpp;
+    back->btpp = main->btpp;
+    back->size = main->size;
 
     this->background = new Window(orb, width, height, bpp, this->xPos, this->yPos);
 }

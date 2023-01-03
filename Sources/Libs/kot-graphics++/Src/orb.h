@@ -124,7 +124,7 @@ namespace orb {
         if (OrbSrv == NULL) { GetOrbSrv(); }
         arguments_t arguments;
         arguments.arg[0] = wid;
-        ksmem_t result = Sys_Execthread(OrbSrv->getFocusState, &arguments, ExecutionTypeQueuAwait, NULL);
+        uint8_t result = Sys_Execthread(OrbSrv->getFocusState, &arguments, ExecutionTypeQueuAwait, NULL);
         return result;
     }
 
