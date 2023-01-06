@@ -2,8 +2,7 @@ GLOBAL _start
 EXTERN main
 
 exit:
-	mov rdi, [gs:0x0]
-	mov rsi, rax
+	mov rdi, rax
 	mov rax, 0x7
 	syscall
 	jmp iddle
