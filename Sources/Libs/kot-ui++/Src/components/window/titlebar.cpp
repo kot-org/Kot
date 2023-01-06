@@ -16,7 +16,7 @@ namespace Ui {
         
         titlebar->addChild(windowInfo);
 
-        auto buttons = Ui::box({ .width = 10, .color = 0x00FF00 });
+        auto buttons = Ui::box({ .width = 60, .color = 0x00FF00 });
 
         /* auto box2box = Ui::box({ .width = 10, .height = 10, .color = 0xFFFF00 });
         buttons->addChild(box2box);  */

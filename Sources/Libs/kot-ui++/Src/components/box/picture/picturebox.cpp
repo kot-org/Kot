@@ -14,8 +14,6 @@ namespace Ui {
 
                 break;
         }
-
-        picture->update();
         
         return picture;
     }

@@ -108,7 +108,6 @@ namespace Ui {
             uint32_t totalWidthChilds;
             uint32_t totalHeightChilds;
             uint16_t type;
-            /* bool IsChildIsInLastComponent; */
             bool ReadyToBlit;
 
     };

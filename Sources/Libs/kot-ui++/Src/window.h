@@ -19,8 +19,6 @@ namespace UiWindow {
             /* todo: add icon */
             Window(char* title, uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos);
 
-            void update();
-
             void setContent(Ui::Component* content);
     };
 

@@ -131,14 +131,26 @@ namespace Ui {
 
     void Component::update() {
         UiLayout::calculateLayout(this);
-        
+
         //this->draw();
 
-        if(parent != NULL){
-            blitFramebuffer(parent->fb, this->fb, this->style->x, this->style->y);
-            parent->update();
-        }
+        if(childs != NULL) {
 
+            for(int i = 0; i < childs->length; i++) {
+                Component* child = (Component*) vector_get(childs, i);
+
+                if(child->ReadyToBlit == true)
+                    blitFramebuffer(this->fb, child->fb, child->style->x, child->style->y);
+                else 
+                    child->update();
+
+            }
+
+        }
+        this->ReadyToBlit = true;
+
+        if(parent != NULL)
+            parent->update();
     }
 
     void Component::draw() {
@@ -157,11 +169,6 @@ namespace Ui {
 
         this->totalWidthChilds += child->style->width;
         // todo: if there is a new line, add the height to totalHeightChilds (this->totalHeightChilds += child->style->height;)
-
-        /* if(!child->childs && this->IsChildIsInLastComponent == false) {
-            vector_push(lastComponents, child);
-            this->IsChildIsInLastComponent = true;
-        } */
     }  
 
 }

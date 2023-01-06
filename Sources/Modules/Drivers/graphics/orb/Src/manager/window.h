@@ -13,12 +13,6 @@ enum FocusState : uint8_t {
     ACTIVE = 2,
 };
 
-struct Cursor {
-    int32_t x;
-    int32_t y;
-    bool show;
-};
-
 class Window {
 private:
     framebuffer_t* fb;

@@ -36,19 +36,11 @@ namespace UiWindow {
         orb::show(this->wid);
     }
 
- /*    void Window::update() {
-        for(int i = 0; i < Ui::lastComponents->length; i++) {
-            Ui::Component* component = (Ui::Component*) vector_get(Ui::lastComponents, i);
-            Printlog("todo: pas repeter last child");
-            component->update();
-        }
-    } */
-
     void Window::setContent(Ui::Component* content) {
         Ui::Component* windowCpnt = this->ctxUi->cpnt;
 
         windowCpnt->addChild(content);
-        content->update();
+        windowCpnt->update();
     }
 
 }

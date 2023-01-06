@@ -9,7 +9,10 @@ namespace Ui {
         tgaHeader_t *image = (tgaHeader_t*) file->Data;
 
         if(!image) return;
-        if(image->width == 0 || image->height == 0) return;
+        if(image->width <= 0 || image->height <= 0) { free(image); return; }
+
+        uintptr_t imageDataOffset = (uintptr_t) (image->colorMapOrigin + image->colorMapLength + 18),
+            imagePixelData = (uintptr_t) ((uint64_t)image + (uint64_t)imageDataOffset);
 
         uint8_t Bpp = image->bpp;
         uint8_t Btpp = image->bpp/8;
@@ -42,10 +45,6 @@ namespace Ui {
             
             case 2:
             {
-                Printlog("tga type 2");
-                uintptr_t imageDataOffset = (uintptr_t) (image->colorMapOrigin + image->colorMapLength + 18),
-                          imagePixelData = (uintptr_t) ((uint64_t)image + (uint64_t)imageDataOffset);
-
                 for(uint64_t y = 0; y < Height; y++) {
                     uint32_t YPos = ((isReversed) ? Height-y-1 : y) * image->height / Height;
 
@@ -55,8 +54,9 @@ namespace Ui {
                         uint8_t R = *(uint8_t*) ((uint64_t)imagePixelData+XPos*Btpp+Pitch*YPos + 2);
                         uint8_t G = *(uint8_t*) ((uint64_t)imagePixelData+XPos*Btpp+Pitch*YPos + 1);
                         uint8_t B = *(uint8_t*) ((uint64_t)imagePixelData+XPos*Btpp+Pitch*YPos + 0);
-                        uint32_t Pixel = B | (G << 8) | (R << 16);
-                        putPixel(cpnt->getFramebuffer(), cpnt->getStyle()->x+x, cpnt->getStyle()->y+y, Pixel);
+                        uint32_t PixelColor = B | (G << 8) | (R << 16);
+                        
+                        putPixel(cpnt->getFramebuffer(), cpnt->getStyle()->x+x, cpnt->getStyle()->y+y, PixelColor);
                     }
                 }
 
@@ -68,6 +68,10 @@ namespace Ui {
             
             case 10:
                 Printlog("tga type 10");
+                break;
+            
+            default:
+                free(image);
                 break;
         }
     }

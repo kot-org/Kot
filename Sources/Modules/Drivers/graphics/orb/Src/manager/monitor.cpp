@@ -117,7 +117,7 @@ void Monitor::update(vector_t* windows) {
         }
     }
 
-    DrawCursor(this->back, MouseMask, CursorColor);
+    DrawCursor(this->back, BitmapMask, PixelMap);
 
     memcpy(this->main->addr, this->back->addr, this->main->size);
 
