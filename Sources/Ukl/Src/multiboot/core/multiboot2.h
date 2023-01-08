@@ -156,8 +156,8 @@ struct multiboot_header_tag_framebuffer
   multiboot_uint16_t type;
   multiboot_uint16_t flags;
   multiboot_uint32_t size;
-  multiboot_uint32_t width;
-  multiboot_uint32_t height;
+  multiboot_uint32_t Width;
+  multiboot_uint32_t Height;
   multiboot_uint32_t depth;
 };
 
@@ -278,10 +278,10 @@ struct multiboot_tag_framebuffer_common
   multiboot_uint32_t size;
 
   multiboot_uint64_t framebuffer_addr;
-  multiboot_uint32_t framebuffer_pitch;
-  multiboot_uint32_t framebuffer_width;
-  multiboot_uint32_t framebuffer_height;
-  multiboot_uint8_t framebuffer_bpp;
+  multiboot_uint32_t framebuffer_Pitch;
+  multiboot_uint32_t framebuffer_Width;
+  multiboot_uint32_t framebuffer_Height;
+  multiboot_uint8_t framebuffer_Bpp;
 #define MULTIBOOT_FRAMEBUFFER_TYPE_INDEXED 0
 #define MULTIBOOT_FRAMEBUFFER_TYPE_RGB     1
 #define MULTIBOOT_FRAMEBUFFER_TYPE_EGA_TEXT     2

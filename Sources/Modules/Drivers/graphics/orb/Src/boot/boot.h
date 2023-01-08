@@ -1,12 +1,6 @@
 #pragma once
 
-#include <kot++/printf.h>
-#include <kot/uisd/srvs/system.h>
-#include <kot-graphics++/utils.h>
-
-#include "../core/main.h"
-
-using namespace Graphic;
+#include <core/main.h>
 
 struct BGRTHeader_t{
     srv_system_sdtheader_t Header;
@@ -38,7 +32,7 @@ struct BMPImageHeader_t{
 
 void loadBootGraphics(framebuffer_t* Framebuffer);
 
-void parseBootImage(framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width, uint32_t Height, uint8_t Bpp, uint32_t XPos, uint32_t YPos);
+void parseBootImage(framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width, uint32_t Height, uint8_t Bpp, uint32_t XPosition, uint32_t YPosition);
 
-void loadBootAnimation(framebuffer_t* Framebuffer, uint64_t XPos, uint64_t YPos, uint64_t Width, uint64_t Height);
-void bootAnimation(framebuffer_t* Framebuffer, uint64_t XPos, uint64_t YPos, uint64_t Width, uint64_t Height);
+void loadBootAnimation(framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPosition, uint64_t Width, uint64_t Height);
+void bootAnimation(framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPosition, uint64_t Width, uint64_t Height);

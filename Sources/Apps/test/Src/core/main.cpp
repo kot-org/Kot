@@ -16,9 +16,9 @@ extern "C" int main() {
     free(callback1);
     font_fb_t fontBuff;
     fontBuff.address = fb->addr;
-    fontBuff.width = fb->width;
-    fontBuff.height = fb->height;
-    fontBuff.pitch = fb->pitch;
+    fontBuff.Width = fb->Width;
+    fontBuff.Height = fb->Height;
+    fontBuff.Pitch = fb->Pitch;
     LoadPen(font, &fontBuff, 0, 0, 8, 0, 0xFFFFFFFF);
     DrawFont(font, "demo");
     EditPen(font, NULL, -1, 32, 16, -1, -1);

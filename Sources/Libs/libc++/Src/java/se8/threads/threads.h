@@ -12,7 +12,7 @@ namespace SE8 {
     public: 
         Threads();
         Thread* append();
-        Thread* get(uint64_t pid);
+        Thread* Get(uint64_t pid);
     };
 
 }

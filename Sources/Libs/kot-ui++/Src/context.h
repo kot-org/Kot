@@ -2,7 +2,7 @@
 
 #include <kot/types.h>
 
-#include <kot-graphics++/utils.h>
+#include <kot-graphics/utils.h>
 
 #include <kot-ui++/component.h>
 
@@ -15,10 +15,10 @@ namespace Ui {
         
         private:
         public:
-            Graphic::framebuffer_t* fb;
+            framebuffer_t* fb;
             Component* cpnt;
 
-            UiContext(Graphic::framebuffer_t* fb);
+            UiContext(framebuffer_t* fb);
 
     };
 }

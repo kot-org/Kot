@@ -53,7 +53,7 @@ namespace std {
         char* serealize();
         JsonTypes getType();
         JsonParsingCode getCode();
-        int32_t get();
+        int32_t Get();
         void set(int32_t num);
         ~JsonNumber() {}
     };
@@ -68,7 +68,7 @@ namespace std {
         char* serealize();
         JsonTypes getType();
         JsonParsingCode getCode();
-        char* get();
+        char* Get();
         void set(char* str);
         ~JsonString() {}
     };
@@ -83,7 +83,7 @@ namespace std {
         char* serealize();
         JsonTypes getType();
         JsonParsingCode getCode();
-        bool get();
+        bool Get();
         void set(bool val);
         ~JsonBoolean() {}
     };
@@ -97,7 +97,7 @@ namespace std {
         char* serealize();
         JsonTypes getType();
         JsonParsingCode getCode();
-        JsonValue* get(char* key);
+        JsonValue* Get(char* key);
         void set(char* key, JsonValue* value);
         ~JsonObject() {}
     };
@@ -122,7 +122,7 @@ namespace std {
         char* serealize();
         JsonTypes getType();
         JsonParsingCode getCode();
-        JsonValue* get(uint64_t index);
+        JsonValue* Get(uint64_t index);
         void set(uint64_t index, JsonValue* value);
         void push(JsonValue* value);
         uint64_t length();

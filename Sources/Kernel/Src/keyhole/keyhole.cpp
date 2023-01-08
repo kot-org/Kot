@@ -65,7 +65,7 @@ KResult Keyhole_CloneModify(kthread_t* caller, key_t key, key_t* newKey, kproces
 }
 
 KResult Keyhole_Verify(kthread_t* caller, key_t key, enum DataType type){
-    // get lock
+    // Get lock
     lock_t* lock = (lock_t*)key;
     // check lock
     if(!CheckAddress((uintptr_t)lock, sizeof(lock_t))) return KFAIL;

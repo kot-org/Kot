@@ -75,7 +75,7 @@ namespace ELF{
                 HeapLocation = phdr->p_vaddr + phdr->p_memsz;
             }
             if(phdr->p_type == PT_LOAD){
-                size64_t align = phdr->p_vaddr & 0xFFF; // get last 9 bits
+                size64_t align = phdr->p_vaddr & 0xFFF; // Get last 9 bits
                 size64_t pageCount = DivideRoundUp(phdr->p_memsz + align, PAGE_SIZE);
                 size_t size = phdr->p_memsz;
                 uint64_t totalSizeCopy = NULL;

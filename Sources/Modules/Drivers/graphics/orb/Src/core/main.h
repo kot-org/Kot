@@ -7,19 +7,26 @@
 #include <kot/utils.h>
 #include <kot/atomic.h>
 #include <kot/utils/vector.h>
+#include <kot/uisd/srvs/hid.h>
 #include <kot/uisd/srvs/time.h>
 #include <kot/uisd/srvs/system.h>
+#include <kot/uisd/srvs/graphics.h>
 
-#include <kot-graphics++/context.h>
+#include <kot++/printf.h>
+
+#include <kot-graphics/utils.h>
 
 class Context;
 
-#include "../boot/boot.h"
-#include "../manager/monitor.h"
-#include "../manager/window.h"
-#include "../mouse/mouse.h"
+#include <srv/srv.h>
+#include <boot/boot.h>
+#include <mouse/mouse.h>
+#include <monitor/monitor.h>
+#include <window/window.h>
 
 class Window;
 class Monitor;
 
-#define Orb_Srv_Version 0x1
+extern vector_t* Background;
+extern vector_t* Windows;
+extern vector_t* Foreground;

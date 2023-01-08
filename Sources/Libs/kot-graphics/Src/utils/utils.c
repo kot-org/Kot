@@ -3,79 +3,79 @@
 
 int8_t pixelExist(framebuffer_t* fb, uint32_t x, uint32_t y) {
     if (x < 0 || y < 0) return -1;
-    if (x > fb->width || y > fb->height) return -1;
+    if (x > fb->Width || y > fb->Height) return -1;
     return 1;
 }
 
 void putPixel(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t colour) {
     if (pixelExist(fb, x, y) == -1) return;
-    uint64_t index = x * 4 + y * fb->pitch;
-    blendAlpha(((uint64_t)fb->addr + index), colour);
+    uint64_t index = x * 4 + y * fb->Pitch;
+    blendAlpha(((uint64_t)fb->Buffer + index), colour);
 }
 
 uint32_t getPixel(framebuffer_t* fb, uint32_t x, uint32_t y) {
-    uint64_t index = x * 4 + y * fb->pitch;
-    return *(uint32_t*)((uint64_t) fb->addr + index);
+    uint64_t index = x * 4 + y * fb->Pitch;
+    return *(uint32_t*)((uint64_t) fb->Buffer + index);
 }
 
 void blitFramebuffer(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y) {
 
-    uint64_t to_addr = (uint64_t) to->addr;
-    uint64_t from_addr = (uint64_t) from->addr;
+    uint64_t to_addr = (uint64_t) to->Buffer;
+    uint64_t from_addr = (uint64_t) from->Buffer;
 
-    to_addr += x * to->btpp + y * to->pitch; // offset
+    to_addr += x * to->Btpp + y * to->Pitch; // offset
 
     uint64_t num;
 
-    if (to->pitch < from->pitch) {
-        num = to->pitch;
+    if (to->Pitch < from->Pitch) {
+        num = to->Pitch;
     } else {
-        num = from->pitch;
+        num = from->Pitch;
     } 
 
-    for (uint32_t h = 0; h < from->height && h + y < to->height; h++) {
+    for (uint32_t h = 0; h < from->Height && h + y < to->Height; h++) {
         memcpy((uintptr_t) to_addr, (uintptr_t) from_addr, num);
-        to_addr += to->pitch;
-        from_addr += from->pitch;
+        to_addr += to->Pitch;
+        from_addr += from->Pitch;
     }
 
 }
 
 void blitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y, uint16_t borderRadius) {
-    uint64_t to_addr = (uint64_t) to->addr;
-    uint64_t from_addr = (uint64_t) from->addr;
+    uint64_t to_addr = (uint64_t) to->Buffer;
+    uint64_t from_addr = (uint64_t) from->Buffer;
 
-    to_addr += x * to->btpp + y * to->pitch; // offset
+    to_addr += x * to->Btpp + y * to->Pitch; // offset
 
     uint64_t num;
 
-    if (to->pitch < from->pitch) {
-        num = to->pitch;
+    if (to->Pitch < from->Pitch) {
+        num = to->Pitch;
     } else {
-        num = from->pitch;
+        num = from->Pitch;
     }
 
-    for (uint32_t h = 0; h < from->height && h + y < to->height; h++) {
+    for (uint32_t h = 0; h < from->Height && h + y < to->Height; h++) {
         memcpy((uintptr_t) to_addr, (uintptr_t) from_addr, num);
-        to_addr += to->pitch;
-        from_addr += from->pitch;
+        to_addr += to->Pitch;
+        from_addr += from->Pitch;
     }
 }
 
-void fillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
+void fillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t colour) {
 
-    uint32_t _h = height+y;
-    uint32_t _w = width+x;
+    uint32_t _h = Height+y;
+    uint32_t _w = Width+x;
 
-    if (_h > fb->height) { _h = fb->height; }
-    if (_w > fb->width) { _w = fb->width; }
+    if (_h > fb->Height) { _h = fb->Height; }
+    if (_w > fb->Width) { _w = fb->Width; }
 
     for (uint32_t h = y; h < _h; h++) {
-        uint64_t ypos = h * fb->pitch;
+        uint64_t YPosition = h * fb->Pitch;
         for (uint32_t w = x; w < _w; w++) {
-            uint64_t xpos = w * fb->btpp;
-            uint64_t index = ypos + xpos;
-            blendAlpha(((uint64_t)fb->addr + index), colour);
+            uint64_t XPosition = w * fb->Btpp;
+            uint64_t index = YPosition + XPosition;
+            blendAlpha(((uint64_t)fb->Buffer + index), colour);
         }
     }
 
@@ -83,10 +83,10 @@ void fillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t width, uint32_
 
 void drawLine(framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour) {
 
-    if (x1 > fb->width) { x1 = fb->width; }
-    if (y1 > fb->height) { y1 = fb->height; }
-    if (x2 > fb->width) { x2 = fb->width; }
-    if (y2 > fb->height) { y2 = fb->height; }
+    if (x1 > fb->Width) { x1 = fb->Width; }
+    if (y1 > fb->Height) { y1 = fb->Height; }
+    if (x2 > fb->Width) { x2 = fb->Width; }
+    if (y2 > fb->Height) { y2 = fb->Height; }
 
     if (x1 < 0) { x1 = 0; }
     if (y1 < 0) { y1 = 0; }
@@ -135,9 +135,9 @@ void drawLine(framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t
 
 }
 
-void drawRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t colour) {
-    drawLine(fb, x, y, x+width, y, colour); // top
-    drawLine(fb, x, y+height, x+width, y+height, colour); // bottom
-    drawLine(fb, x, y, x, y+height, colour); // left
-    drawLine(fb, x+width, y, x+width, y+height, colour); // right
+void drawRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t colour) {
+    drawLine(fb, x, y, x+Width, y, colour); // top
+    drawLine(fb, x, y+Height, x+Width, y+Height, colour); // bottom
+    drawLine(fb, x, y, x, y+Height, colour); // left
+    drawLine(fb, x+Width, y, x+Width, y+Height, colour); // right
 }

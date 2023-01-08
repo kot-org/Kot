@@ -12,6 +12,6 @@
 #include <kot/uisd/srvs/system.h>
 #include <kot/uisd/srvs/storage.h>
 
-#include <kot-graphics++/orb.h>
-#include <kot-graphics++/context.h>
-#include <kot-graphics++/utils.h>
+#include <core/core.h>
+
+extern kfont_t* Font;

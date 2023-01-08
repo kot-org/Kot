@@ -13,7 +13,7 @@ namespace UiLayout {
         {
             case Layout::RELATIVE:
             {
-                child->getStyle()->x = beforeChild->getStyle()->x + beforeChild->getStyle()->width;
+                child->getStyle()->x = beforeChild->getStyle()->x + beforeChild->getStyle()->Width;
 
                 // todo: jump to the next line
 

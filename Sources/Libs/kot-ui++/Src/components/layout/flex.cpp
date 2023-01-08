@@ -14,10 +14,10 @@ namespace UiLayout {
         {
             case Layout::HORIZONTAL:
             {
-                // todo: parent -> width: 100%
+                // todo: parent -> Width: 100%
 
-                if(parent->getStyle()->height < child->getStyle()->height)
-                    parent->getStyle()->height = child->getStyle()->height;
+                if(parent->getStyle()->Height < child->getStyle()->Height)
+                    parent->getStyle()->Height = child->getStyle()->Height;
 
                 /* space */
                 if(parent->getStyle()->space == Layout::BETWEEN) {
@@ -49,7 +49,7 @@ namespace UiLayout {
 
             Component* child = (Component*) vector_get(parent->getChilds(), i);
 
-            child->getStyle()->height = parent->getStyle()->height;
+            child->getStyle()->Height = parent->getStyle()->Height;
 
         }
 

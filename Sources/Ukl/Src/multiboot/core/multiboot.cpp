@@ -25,10 +25,10 @@ extern "C" void multiboot_entry(uint32_t Magic, uint32_t BootDataBase){
                 break;
             case MULTIBOOT_TAG_TYPE_FRAMEBUFFER:
                 BootData.framebuffer.framebuffer_base = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr;
-                BootData.framebuffer.framebuffer_width = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_width;
-                BootData.framebuffer.framebuffer_height = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_height;
-                BootData.framebuffer.framebuffer_pitch = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_pitch;
-                BootData.framebuffer.framebuffer_bpp = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_bpp;
+                BootData.framebuffer.framebuffer_Width = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_Width;
+                BootData.framebuffer.framebuffer_Height = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_Height;
+                BootData.framebuffer.framebuffer_Pitch = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_Pitch;
+                BootData.framebuffer.framebuffer_Bpp = (uint64_t)((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_Bpp;
                 break;
             case MULTIBOOT_TAG_TYPE_SMBIOS:
                 BootData.SMBIOS.base = (uint64_t)&((struct multiboot_tag_smbios*)tag)->tables[0];

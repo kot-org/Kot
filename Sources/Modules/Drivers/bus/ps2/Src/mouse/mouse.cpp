@@ -98,11 +98,11 @@ void MouseParser(uint8_t data){
         MouseCycle = 0;
 
         if(MousePacket[PacketGlobalInfo] & (1 << 6)){
-            MousePacket[PacketXPosition] = 0xff;
+            MousePacket[PacketXPositionition] = 0xff;
         }
 
         if(MousePacket[PacketGlobalInfo] & (1 << 7)){
-            MousePacket[PacketYPosition] = 0xff;
+            MousePacket[PacketYPositionition] = 0xff;
         }   
 
         bool leftClick    = ((MousePacket[PacketGlobalInfo] & (1 << 0)) >> 0) & 1;
@@ -116,8 +116,8 @@ void MouseParser(uint8_t data){
         bool IsYNegative = ((MousePacket[PacketGlobalInfo] & (1 << 5)) >> 5) & 1;
         bool IsZNegative = ((MousePacket[ExtendedInfos] & (1 << 3)) >> 3) & 1;
 
-        MouseEventParameters->arg[0] = (int64_t)MousePacket[PacketXPosition]; // add signed bit
-        MouseEventParameters->arg[1] = (int64_t)MousePacket[PacketYPosition]; // add signed bit
+        MouseEventParameters->arg[0] = (int64_t)MousePacket[PacketXPositionition]; // add signed bit
+        MouseEventParameters->arg[1] = (int64_t)MousePacket[PacketYPositionition]; // add signed bit
         MouseEventParameters->arg[2] = (int64_t)(MousePacket[ExtendedInfos] & 0b111); // add signed bit
         if(IsXNegative){
             MouseEventParameters->arg[0] = MouseEventParameters->arg[0] - 0x100;

@@ -14,11 +14,11 @@ namespace UiLayout {
                 break;
 
             case Layout::CENTER:
-                child->getStyle()->x = parent->getStyle()->width / 2 - parent->getTotalWidthChilds() / 2;
+                child->getStyle()->x = parent->getStyle()->Width / 2 - parent->getTotalWidthChilds() / 2;
                 break;
 
             case Layout::RIGHT:
-                child->getStyle()->x = parent->getStyle()->width - parent->getTotalWidthChilds();
+                child->getStyle()->x = parent->getStyle()->Width - parent->getTotalWidthChilds();
                 break;
         }
 
@@ -30,13 +30,13 @@ namespace UiLayout {
                 break;
 
             case Layout::MIDDLE:
-                // todo: child->height   -->   getTotalHeightChilds
-                child->getStyle()->y = parent->getStyle()->height / 2 - child->getStyle()->height / 2;
+                // todo: child->Height   -->   getTotalHeightChilds
+                child->getStyle()->y = parent->getStyle()->Height / 2 - child->getStyle()->Height / 2;
                 break;
 
             case Layout::BOTTOM:
-                // todo: child->height   -->   getTotalHeightChilds
-                child->getStyle()->y = parent->getStyle()->height - child->getStyle()->height;
+                // todo: child->Height   -->   getTotalHeightChilds
+                child->getStyle()->y = parent->getStyle()->Height - child->getStyle()->Height;
                 break;
         }
 

@@ -6,7 +6,7 @@
 
 void InitializeSrv(struct KernelInfo* kernelInfo);
 
-KResult GetFrameBuffer(thread_t Callback, uint64_t CallbackArg);
+KResult GetFramebuffer(thread_t Callback, uint64_t CallbackArg);
 KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name);
 KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg, char* Name);
 KResult GetSystemManagementBIOSTable(thread_t Callback, uint64_t CallbackArg);

@@ -16,8 +16,8 @@ namespace Ui {
                 uint16_t colorMapOrigin, colorMapLength;
                 uint8_t colorMapEntSz;
                 uint16_t x, y;
-                uint16_t width, height;
-                uint8_t bpp;
+                uint16_t Width, Height;
+                uint8_t Bpp;
                 uint8_t imageDescriptor;
             } __attribute__((packed)) tgaHeader_t;
 

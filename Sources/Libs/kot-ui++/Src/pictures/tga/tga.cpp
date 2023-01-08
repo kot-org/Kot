@@ -1,6 +1,6 @@
 #include "../picture.h"
 
-#include <kot-graphics++/utils.h>
+#include <kot-graphics/utils.h>
 
 namespace Ui {
 
@@ -9,17 +9,17 @@ namespace Ui {
         tgaHeader_t *image = (tgaHeader_t*) file->Data;
 
         if(!image) return;
-        if(image->width <= 0 || image->height <= 0) { free(image); return; }
+        if(image->Width <= 0 || image->Height <= 0) { free(image); return; }
 
         uintptr_t imageDataOffset = (uintptr_t) (image->colorMapOrigin + image->colorMapLength + 18),
             imagePixelData = (uintptr_t) ((uint64_t)image + (uint64_t)imageDataOffset);
 
-        uint8_t Bpp = image->bpp;
-        uint8_t Btpp = image->bpp/8;
-        uint32_t Width = image->width,
-                 cpntWidth = cpnt->getStyle()->width;
-        uint32_t Height = image->height,
-                 cpntHeight = cpnt->getStyle()->height;
+        uint8_t Bpp = image->Bpp;
+        uint8_t Btpp = image->Bpp/8;
+        uint32_t Width = image->Width,
+                 cpntWidth = cpnt->getStyle()->Width;
+        uint32_t Height = image->Height,
+                 cpntHeight = cpnt->getStyle()->Height;
         uint32_t Pitch = Width * Btpp;
         bool isReversed = !(image->imageDescriptor & (1 << 5));
 
@@ -46,17 +46,16 @@ namespace Ui {
             case 2:
             {
                 for(uint64_t y = 0; y < Height; y++) {
-                    uint32_t YPos = ((isReversed) ? Height-y-1 : y) * image->height / Height;
+                    uint32_t YPosition = ((isReversed) ? Height-y-1 : y) * image->Height / Height;
 
                     for(uint64_t x = 0; x < Width; x++) {
-                        uint32_t XPos = x * image->width / Width;
+                        uint32_t XPosition = x * image->Width / Width;
 
-                        uint8_t R = *(uint8_t*) ((uint64_t)imagePixelData+XPos*Btpp+Pitch*YPos + 2);
-                        uint8_t G = *(uint8_t*) ((uint64_t)imagePixelData+XPos*Btpp+Pitch*YPos + 1);
-                        uint8_t B = *(uint8_t*) ((uint64_t)imagePixelData+XPos*Btpp+Pitch*YPos + 0);
-                        uint32_t PixelColor = B | (G << 8) | (R << 16);
-                        
-                        putPixel(cpnt->getFramebuffer(), cpnt->getStyle()->x+x, cpnt->getStyle()->y+y, PixelColor);
+                        uint8_t R = *(uint8_t*) ((uint64_t)imagePixelData+XPosition*Btpp+Pitch*YPosition + 2);
+                        uint8_t G = *(uint8_t*) ((uint64_t)imagePixelData+XPosition*Btpp+Pitch*YPosition + 1);
+                        uint8_t B = *(uint8_t*) ((uint64_t)imagePixelData+XPosition*Btpp+Pitch*YPosition + 0);
+                        uint32_t Pixel = B | (G << 8) | (R << 16);
+                        putPixel(cpnt->GetFramebuffer(), cpnt->getStyle()->x+x, cpnt->getStyle()->y+y, Pixel);
                     }
                 }
 

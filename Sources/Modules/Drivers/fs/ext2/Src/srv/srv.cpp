@@ -417,19 +417,19 @@ KResult Readdir(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Direct
     directory_entries_t* Data = (directory_entries_t*)malloc(DataSize);
     Data->EntryCount = EntryCount;
 
-    uint64_t NextEntryPosition = sizeof(directory_entries_t);
+    uint64_t NextEntrYPositionition = sizeof(directory_entries_t);
     directory_entry_t* Entry = &Data->FirstEntry;
     for(uint64_t i = 0; i < EntryCount; i++){
-        NextEntryPosition += sizeof(directory_entry_t) + ReadirData[i]->NameLength + 1;
-        Entry->NextEntryPosition = NextEntryPosition;
+        NextEntrYPositionition += sizeof(directory_entry_t) + ReadirData[i]->NameLength + 1;
+        Entry->NextEntrYPositionition = NextEntrYPositionition;
         Entry->IsFile = ReadirData[i]->IsFile;
         memcpy(&Entry->Name, ReadirData[i]->Name, ReadirData[i]->NameLength + 1);
         free(ReadirData[i]->Name);
         free(ReadirData[i]);
-        Entry = (directory_entry_t*)((uint64_t)&Data->FirstEntry + (uint64_t)NextEntryPosition);
+        Entry = (directory_entry_t*)((uint64_t)&Data->FirstEntry + (uint64_t)NextEntrYPositionition);
     }
 
-    Entry->NextEntryPosition = NULL;
+    Entry->NextEntrYPositionition = NULL;
 
     free(ReadirData);
 

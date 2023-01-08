@@ -5,7 +5,7 @@
 namespace Ui {
 
     Component* Picturebox(char* path, ImageType type, ImageStyle style) {
-        Component* picture = new Component({ .width = style.width, .height = style.height });
+        Component* picture = new Component({ .Width = style.Width, .Height = style.Height });
 
         switch(type)
         {

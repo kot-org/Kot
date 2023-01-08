@@ -13,8 +13,8 @@ namespace Ui {
         cpntStyle->align = style.align;
         cpntStyle->space = style.space;
 
-        cpntStyle->width = style.width;
-        cpntStyle->height = style.height;
+        cpntStyle->Width = style.Width;
+        cpntStyle->Height = style.Height;
         cpntStyle->fontSize = style.fontSize;
         cpntStyle->borderRadius = style.borderRadius;
 
@@ -24,7 +24,7 @@ namespace Ui {
         cpntStyle->x = style.x; 
         cpntStyle->y = style.y;
 
-        createFramebuffer(cpntStyle->width, cpntStyle->height);
+        createFramebuffer(cpntStyle->Width, cpntStyle->Height);
 
         /* component */
         this->style = cpntStyle;
@@ -34,19 +34,19 @@ namespace Ui {
         /* framebuffer */
         framebuffer_t* cpntFb = (framebuffer_t*) malloc(sizeof(framebuffer_t));
 
-        cpntFb->size = fb->size;
-        cpntFb->addr = fb->addr;
-        cpntFb->pitch = fb->pitch;
-        cpntFb->width = fb->width;
-        cpntFb->height = fb->height;
-        cpntFb->bpp = fb->bpp;
-        cpntFb->btpp = fb->btpp;
+        cpntFb->Size = fb->Size;
+        cpntFb->Buffer = fb->Buffer;
+        cpntFb->Pitch = fb->Pitch;
+        cpntFb->Width = fb->Width;
+        cpntFb->Height = fb->Height;
+        cpntFb->Bpp = fb->Bpp;
+        cpntFb->Btpp = fb->Btpp;
 
         /* style */
         ComponentStyle* cpntStyle = (ComponentStyle*) malloc(sizeof(ComponentStyle));
 
-        cpntStyle->width = fb->width;
-        cpntStyle->height = fb->height;
+        cpntStyle->Width = fb->Width;
+        cpntStyle->Height = fb->Height;
 
         /* component */
         this->fb = cpntFb;
@@ -54,39 +54,39 @@ namespace Ui {
     }
 
     /* Component Framebuffer */
-    void Component::createFramebuffer(uint32_t width, uint32_t height) {
+    void Component::createFramebuffer(uint32_t Width, uint32_t Height) {
         framebuffer_t* cpntFb = (framebuffer_t*) malloc(sizeof(framebuffer_t));
 
-        uint32_t bpp = 32, btpp = 4;
+        uint32_t Bpp = 32, Btpp = 4;
 
-        uint32_t pitch = width * btpp;
+        uint32_t Pitch = Width * Btpp;
 
-        cpntFb->size = height * pitch;
-        cpntFb->addr = calloc(cpntFb->size);
-        cpntFb->pitch = pitch;
-        cpntFb->width = width;
-        cpntFb->height = height;
-        cpntFb->bpp = bpp;
-        cpntFb->btpp = btpp;
+        cpntFb->Size = Height * Pitch;
+        cpntFb->Buffer = calloc(cpntFb->Size);
+        cpntFb->Pitch = Pitch;
+        cpntFb->Width = Width;
+        cpntFb->Height = Height;
+        cpntFb->Bpp = Bpp;
+        cpntFb->Btpp = Btpp;
 
         this->fb = cpntFb;
     }
     
-    void Component::updateFramebuffer(uint32_t width, uint32_t height) {
+    void Component::updateFramebuffer(uint32_t Width, uint32_t Height) {
 
-        if(fb->width != width || fb->height != height) {
-            uint32_t pitch = width * 4;
+        if(fb->Width != Width || fb->Height != Height) {
+            uint32_t Pitch = Width * 4;
 
-            fb->size = height * pitch;
-            fb->addr = calloc(fb->size);
-            fb->pitch = pitch;
-            fb->width = width;
-            fb->height = height;
+            fb->Size = Height * Pitch;
+            fb->Buffer = calloc(fb->Size);
+            fb->Pitch = Pitch;
+            fb->Width = Width;
+            fb->Height = Height;
         }
 
     }
     
-    framebuffer_t* Component::getFramebuffer() {
+    framebuffer_t* Component::GetFramebuffer() {
         return this->fb;
     }
 
@@ -154,10 +154,10 @@ namespace Ui {
     }
 
     void Component::draw() {
-        updateFramebuffer(this->style->width, this->style->height);
+        updateFramebuffer(this->style->Width, this->style->Height);
         Printlog("draw");
 
-        fillRect(this->fb, 0, 0, this->style->width, this->style->height, this->style->backgroundColor);
+        fillRect(this->fb, 0, 0, this->style->Width, this->style->Height, this->style->backgroundColor);
     }
 
     void Component::addChild(Component* child) {
@@ -167,8 +167,8 @@ namespace Ui {
         child->parent = this;
         vector_push(this->childs, child);
 
-        this->totalWidthChilds += child->style->width;
-        // todo: if there is a new line, add the height to totalHeightChilds (this->totalHeightChilds += child->style->height;)
+        this->totalWidthChilds += child->style->Width;
+        // todo: if there is a new line, add the Height to totalHeightChilds (this->totalHeightChilds += child->style->Height;)
     }  
 
 }

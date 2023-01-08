@@ -44,17 +44,17 @@ extern "C" int main(KernelInfo* kernelInfo) {
             arguments_t* InitParameters = (arguments_t*)calloc(sizeof(arguments_t));
 
             for (uint64_t i = 0; i < arr->length(); i++) {
-                JsonObject* service = (JsonObject*) arr->get(i);
-                JsonString* file = (JsonString*) service->get("file");
-                JsonNumber* priviledge = (JsonNumber*) service->get("priviledge"); // default: 3
-                JsonBoolean* active = (JsonBoolean*) service->get("active"); // default: true
-                JsonBoolean* vfs = (JsonBoolean*) service->get("vfs"); // default: true
+                JsonObject* service = (JsonObject*) arr->Get(i);
+                JsonString* file = (JsonString*) service->Get("file");
+                JsonNumber* priviledge = (JsonNumber*) service->Get("priviledge"); // default: 3
+                JsonBoolean* active = (JsonBoolean*) service->Get("active"); // default: true
+                JsonBoolean* vfs = (JsonBoolean*) service->Get("vfs"); // default: true
 
                 bool IsVFS = true;
 
                 if (active != NULL) {
                     if (active->getType() == JSON_BOOLEAN) {
-                        if (active->get() == false) {
+                        if (active->Get() == false) {
                             continue;
                         }
                     }
@@ -62,13 +62,13 @@ extern "C" int main(KernelInfo* kernelInfo) {
 
                 if (vfs != NULL) {
                     if (vfs->getType() == JSON_BOOLEAN) {
-                        IsVFS = vfs->get();
+                        IsVFS = vfs->Get();
                     }
                 }
                 
                 if (file->getType() == JSON_STRING) {
-                    if(strcmp(file->get(), "")) continue;
-                    initrd::File* serviceFile = initrd::Find(file->get());
+                    if(strcmp(file->Get(), "")) continue;
+                    initrd::File* serviceFile = initrd::Find(file->Get());
                     if (serviceFile != NULL) {
                         uintptr_t bufferServiceFile = calloc(serviceFile->size);
                         initrd::Read(serviceFile, bufferServiceFile);
@@ -76,18 +76,18 @@ extern "C" int main(KernelInfo* kernelInfo) {
                         int32_t servicePriledge = 3;
                         if (priviledge != NULL) {
                             if (priviledge->getType() == JSON_NUMBER){ 
-                                if (priviledge->get() >= 1 && priviledge->get() <= 3){
-                                    servicePriledge = priviledge->get();
+                                if (priviledge->Get() >= 1 && priviledge->Get() <= 3){
+                                    servicePriledge = priviledge->Get();
                                 }
                             }
                         }
                         ELF::loadElf(bufferServiceFile, (enum Priviledge)servicePriledge, NULL, &thread, IsVFS);
                         free(bufferServiceFile);
 
-                        size_t filenamelen = strlen(file->get());
+                        size_t filenamelen = strlen(file->Get());
                         char** CharArray = (char**)malloc((sizeof(char*) * 0x1) + (sizeof(char) * filenamelen));
                         CharArray[0] = (char*)&CharArray[1];
-                        memcpy(CharArray[0], file->get(), filenamelen);
+                        memcpy(CharArray[0], file->Get(), filenamelen);
 
                         InitParameters->arg[0] = 1;
                         ShareDataWithArguments_t Data{

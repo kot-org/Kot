@@ -1,12 +1,12 @@
 #include <kot/uisd/srvs/storage.h>
 
-process_t ShareProcess = NULL;
+process_t ShareProcessFS = NULL;
 
 file_t* fopen(char* Path, char* Mode){
-    if(!ShareProcess) ShareProcess = ShareProcessKey(Sys_GetProcess());
+    if(!ShareProcessFS) ShareProcessFS = ShareProcessKey(Sys_GetProcess());
     if(Mode[0] == 'r'){
         if(Mode[1] == '\0'){
-            struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read, ShareProcess, true);
+            struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read, ShareProcessFS, true);
             if(CallbackFile->Status != KSUCCESS){
                 free(CallbackFile);
                 return NULL;
@@ -16,7 +16,7 @@ file_t* fopen(char* Path, char* Mode){
             free(CallbackFile);
             return CallbackFile->Data;
         }else if(Mode[1] == '+'){
-            struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write, ShareProcess, true);
+            struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write, ShareProcessFS, true);
             if(CallbackFile->Status != KSUCCESS){
                 free(CallbackFile);
                 return NULL;
@@ -27,7 +27,7 @@ file_t* fopen(char* Path, char* Mode){
             return CallbackFile->Data;
         }else if(Mode[1] == 'b'){
             if(Mode[2] == '\0'){
-                struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read, ShareProcess, true);
+                struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read, ShareProcessFS, true);
                 if(CallbackFile->Status != KSUCCESS){
                     free(CallbackFile);
                     return NULL;
@@ -38,7 +38,7 @@ file_t* fopen(char* Path, char* Mode){
                 free(CallbackFile);
                 return CallbackFile->Data;
             }else if(Mode[2] == '+'){
-                struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write, ShareProcess, true);
+                struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write, ShareProcessFS, true);
                 if(CallbackFile->Status != KSUCCESS){
                     free(CallbackFile);
                     return NULL;
@@ -52,7 +52,7 @@ file_t* fopen(char* Path, char* Mode){
         }
     }else if(Mode[0] == 'w'){
         if(Mode[1] == '\0'){
-            struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Write | Storage_Permissions_Create, ShareProcess, true);
+            struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Write | Storage_Permissions_Create, ShareProcessFS, true);
             if(CallbackFile->Status != KSUCCESS){
                 free(CallbackFile);
                 return NULL;
@@ -62,7 +62,7 @@ file_t* fopen(char* Path, char* Mode){
             free(CallbackFile);
             return CallbackFile->Data;
         }else if(Mode[1] == '+'){
-            struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, ShareProcess, true);
+            struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, ShareProcessFS, true);
             if(CallbackFile->Status != KSUCCESS){
                 free(CallbackFile);
                 return NULL;
@@ -73,7 +73,7 @@ file_t* fopen(char* Path, char* Mode){
             return CallbackFile->Data;
         }else if(Mode[1] == 'b'){
             if(Mode[2] == '\0'){
-                struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Write | Storage_Permissions_Create, ShareProcess, true);
+                struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Write | Storage_Permissions_Create, ShareProcessFS, true);
                 if(CallbackFile->Status != KSUCCESS){
                     free(CallbackFile);
                     return NULL;
@@ -84,7 +84,7 @@ file_t* fopen(char* Path, char* Mode){
                 free(CallbackFile);
                 return CallbackFile->Data;
             }else if(Mode[2] == '+'){
-                struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, ShareProcess, true);
+                struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, ShareProcessFS, true);
                 if(CallbackFile->Status != KSUCCESS){
                     free(CallbackFile);
                     return NULL;
@@ -98,7 +98,7 @@ file_t* fopen(char* Path, char* Mode){
         }
     }else if(Mode[0] == 'a'){
         if(Mode[1] == '\0'){
-            struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Write | Storage_Permissions_Create, ShareProcess, true);
+            struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Write | Storage_Permissions_Create, ShareProcessFS, true);
             if(CallbackFile->Status != KSUCCESS){
                 free(CallbackFile);
                 return NULL;
@@ -116,7 +116,7 @@ file_t* fopen(char* Path, char* Mode){
             free(CallbackFile);
             return CallbackFile->Data;
         }else if(Mode[1] == '+'){
-            struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, ShareProcess, true);
+            struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, ShareProcessFS, true);
             if(CallbackFile->Status != KSUCCESS){
                 free(CallbackFile);
                 return NULL;
@@ -135,7 +135,7 @@ file_t* fopen(char* Path, char* Mode){
             return CallbackFile->Data;
         }else if(Mode[1] == 'b'){
             if(Mode[2] == '\0'){
-                struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Write | Storage_Permissions_Create, ShareProcess, true);
+                struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Write | Storage_Permissions_Create, ShareProcessFS, true);
                 if(CallbackFile->Status != KSUCCESS){
                     free(CallbackFile);
                     return NULL;
@@ -153,7 +153,7 @@ file_t* fopen(char* Path, char* Mode){
                 free(CallbackFile);
                 return CallbackFile->Data;
             }else if(Mode[2] == '+'){
-                struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, ShareProcess, true);
+                struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, ShareProcessFS, true);
                 if(CallbackFile->Status != KSUCCESS){
                     free(CallbackFile);
                     return NULL;
@@ -250,8 +250,8 @@ uint64_t ftell(file_t* File){
 }
 
 directory_t* opendir(char* Path){
-    if(!ShareProcess) ShareProcess = ShareProcessKey(Sys_GetProcess());
-    struct srv_storage_callback_t* CallbackDir = Srv_Storage_DirOpen(Path, ShareProcess, true);
+    if(!ShareProcessFS) ShareProcessFS = ShareProcessKey(Sys_GetProcess());
+    struct srv_storage_callback_t* CallbackDir = Srv_Storage_DirOpen(Path, ShareProcessFS, true);
     if(CallbackDir->Status != KSUCCESS){
         free(CallbackDir);
         return NULL;

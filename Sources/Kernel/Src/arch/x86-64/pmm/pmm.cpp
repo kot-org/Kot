@@ -87,9 +87,9 @@ void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
     bool IsLastFree = !Pmm_Bitmap.Get(index - 1);
     if(IsNextFree){
         if(IsLastFree){
-            freelistinfo_t* FreeListInfoNext = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount)); /* We can get start because we are at the start of the freelist segment */
+            freelistinfo_t* FreeListInfoNext = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount)); /* We can Get start because we are at the start of the freelist segment */
             freelistinfoend_t* FreeListInfoEnd = (freelistinfoend_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index - 1));
-            freelistinfo_t* FreeListInfoLast = FreeListInfoEnd->Start; /* We can get start because we are at the end of the freelist segment */
+            freelistinfo_t* FreeListInfoLast = FreeListInfoEnd->Start; /* We can Get start because we are at the end of the freelist segment */
             
             FreeListInfoLast->Next = FreeListInfoNext->Next;
             FreeListInfoNext->PageSize += pageCount + FreeListInfoNext->PageSize;
@@ -123,7 +123,7 @@ void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
         }
     }else if(IsLastFree){
         freelistinfoend_t* FreeListInfoEnd = (freelistinfoend_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index - 1));
-        freelistinfo_t* FreeListInfoLast = FreeListInfoEnd->Start; /* We can get start because we are at the end of the freelist segment */
+        freelistinfo_t* FreeListInfoLast = FreeListInfoEnd->Start; /* We can Get start because we are at the end of the freelist segment */
         FreeListInfoEnd = (freelistinfoend_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount - 1));
         FreeListInfoLast->PageSize += pageCount;
         FreeListInfoLast->IndexEnd = index + pageCount - 1;

@@ -2,11 +2,9 @@
 
 #include <kot/types.h>
 
-#include <kot-graphics++/utils.h>
+#include <kot-graphics/utils.h>
 
 #include <kot/utils/vector.h>
-
-using namespace Graphic;
 
 namespace Ui {
 
@@ -67,8 +65,8 @@ namespace Ui {
                 Layout::ComponentAlign_t align;
                 Layout::ComponentSpace space;
 
-                uint32_t width;
-                uint32_t height;
+                uint32_t Width;
+                uint32_t Height;
                 uint16_t fontSize;
                 uint16_t borderRadius;
 
@@ -84,10 +82,10 @@ namespace Ui {
             Component(framebuffer_t* fb);
 
             /* Component Framebuffer */
-            void createFramebuffer(uint32_t width, uint32_t height);
-            void updateFramebuffer(uint32_t width, uint32_t height);
+            void createFramebuffer(uint32_t Width, uint32_t Height);
+            void updateFramebuffer(uint32_t Width, uint32_t Height);
 
-            framebuffer_t* getFramebuffer();
+            framebuffer_t* GetFramebuffer();
             ComponentStyle* getStyle();
             vector_t* getChilds();
             uint32_t getTotalWidthChilds();
@@ -120,14 +118,14 @@ namespace Ui {
         _JPG = 2,
     };
     typedef struct {
-        uint32_t width;
-        uint32_t height;
+        uint32_t Width;
+        uint32_t Height;
     } ImageStyle;
     Component* Picturebox(char* path, ImageType type, ImageStyle style);
 
     typedef struct {
-        uint32_t width;
-        uint32_t height;
+        uint32_t Width;
+        uint32_t Height;
         uint32_t color;
     } BoxStyle;
     Component* box(BoxStyle style);

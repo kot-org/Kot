@@ -1,13 +1,6 @@
 #pragma once
 
-#include <kot/sys.h>
-#include <kot/math.h>
-#include <kot/types.h>
-
-#include <kot/uisd/srvs/hid.h>
-
-#include <kot++/printf.h>
-#include <kot-graphics++/utils.h>
+#include <core/main.h>
 
 extern Point_t CursorPosition;
 extern Point_t CursorMaxPosition;
@@ -26,4 +19,4 @@ extern uintptr_t BitmapMask;
 void InitializeCursor();
 void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status);
 
-void DrawCursor(Graphic::framebuffer_t* fb, uintptr_t BitmapMask, uintptr_t PixelMap);
+void DrawCursor(framebuffer_t* fb, uintptr_t BitmapMask, uintptr_t PixelMap);

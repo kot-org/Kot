@@ -26,10 +26,10 @@ struct ukl_kernel_address_t{
 
 struct ukl_framebuffer_t{
     uint64_t framebuffer_base;
-    uint64_t framebuffer_width;
-    uint64_t framebuffer_height;
-    uint64_t framebuffer_pitch;
-    uint64_t framebuffer_bpp;
+    uint64_t framebuffer_Width;
+    uint64_t framebuffer_Height;
+    uint64_t framebuffer_Pitch;
+    uint64_t framebuffer_Bpp;
 }__attribute__((packed));
 
 

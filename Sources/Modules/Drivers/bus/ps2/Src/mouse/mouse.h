@@ -4,8 +4,8 @@
 #include <kot/heap.h>
 
 #define PacketGlobalInfo    0x0
-#define PacketXPosition     0x1
-#define PacketYPosition     0x2
+#define PacketXPositionition     0x1
+#define PacketYPositionition     0x2
 #define ExtendedInfos       0x3
 
 extern struct PS2Port_t* MousePS2Port;

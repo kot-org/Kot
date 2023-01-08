@@ -15,9 +15,9 @@ typedef struct {
 
 typedef struct {
     uintptr_t address;
-    uint64_t width;
-    uint64_t height;
-    uint64_t pitch;
+    uint64_t Width;
+    uint64_t Height;
+    uint64_t Pitch;
 } font_fb_t;
 
 kfont_t* LoadFont(uintptr_t data);

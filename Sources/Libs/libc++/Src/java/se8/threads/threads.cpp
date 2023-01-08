@@ -18,7 +18,7 @@ namespace SE8 {
         return thr;
     }
 
-    Thread* Threads::get(uint64_t pid) {
+    Thread* Threads::Get(uint64_t pid) {
         if (pid <= threads->length) {
             return (Thread*) vector_get(threads, pid);
         }

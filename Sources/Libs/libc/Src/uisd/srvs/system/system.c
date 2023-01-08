@@ -25,7 +25,7 @@ void Srv_System_Callback(KResult Status, struct srv_system_callback_t* Callback,
 }
 
 /* GetFrameBufer */
-KResult Srv_System_GetFrameBuffer_Callback(KResult Status, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+KResult Srv_System_GetFramebuffer_Callback(KResult Status, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
         Callback->Data = malloc(sizeof(srv_system_framebuffer_t));
         memcpy(Callback->Data, (uintptr_t)GP0, sizeof(srv_system_framebuffer_t));
@@ -34,7 +34,7 @@ KResult Srv_System_GetFrameBuffer_Callback(KResult Status, struct srv_system_cal
     return Status;
 }
 
-struct srv_system_callback_t* Srv_System_GetFrameBuffer(bool IsAwait){
+struct srv_system_callback_t* Srv_System_GetFramebuffer(bool IsAwait){
     if(!srv_system_callback_thread) Srv_System_Initialize();
     
     thread_t self = Sys_Getthread();
@@ -45,7 +45,7 @@ struct srv_system_callback_t* Srv_System_GetFrameBuffer(bool IsAwait){
     callback->Size = NULL;
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
-    callback->Handler = &Srv_System_GetFrameBuffer_Callback;
+    callback->Handler = &Srv_System_GetFramebuffer_Callback;
 
     struct arguments_t parameters;
     parameters.arg[0] = srv_system_callback_thread;

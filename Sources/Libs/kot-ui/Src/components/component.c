@@ -24,21 +24,21 @@ component_t* AddComponent(component_t* parent, componentViewParam_t param) {
     /* framebuffer */
     framebuffer_t* fb = malloc(sizeof(framebuffer_t));
 
-    uint32_t pitch = param.width * parent->fb->btpp;
+    uint32_t Pitch = param.Width * parent->fb->Btpp;
 
-    fb->size = param.height * pitch;
-    fb->addr = calloc(fb->size);
-    fb->pitch = pitch;
-    fb->width = param.width;
-    fb->height = param.height;
-    fb->bpp = parent->fb->bpp;
-    fb->btpp = parent->fb->btpp;
+    fb->Size = param.Height * Pitch;
+    fb->Buffer = calloc(fb->Size);
+    fb->Pitch = Pitch;
+    fb->Width = param.Width;
+    fb->Height = param.Height;
+    fb->Bpp = parent->fb->Bpp;
+    fb->Btpp = parent->fb->Btpp;
 
     /* parameters */
     componentViewParam_t* cpntParam = malloc(sizeof(componentViewParam_t));
 
-    cpntParam->width = param.width;
-    cpntParam->height = param.height;
+    cpntParam->Width = param.Width;
+    cpntParam->Height = param.Height;
     cpntParam->fontSize = param.fontSize;
     cpntParam->borderRadius = param.borderRadius;
     cpntParam->bgColor = param.bgColor;
@@ -62,12 +62,12 @@ component_t* AddComponent(component_t* parent, componentViewParam_t param) {
 }
 
 void EditComponent(component_t* cpnt, componentViewParam_t param) {
-    cpnt->fb->width = param.width;
-    cpnt->fb->height = param.height;
-    cpnt->fb->pitch = cpnt->fb->btpp * param.width;
+    cpnt->fb->Width = param.Width;
+    cpnt->fb->Height = param.Height;
+    cpnt->fb->Pitch = cpnt->fb->Btpp * param.Width;
 
-    cpnt->param->width = param.width;
-    cpnt->param->height = param.height;
+    cpnt->param->Width = param.Width;
+    cpnt->param->Height = param.Height;
     cpnt->param->fontSize = param.fontSize;
     cpnt->param->borderRadius = param.borderRadius;
     cpnt->param->bgColor = param.bgColor;
@@ -93,8 +93,8 @@ component_t* GetMainParent(framebuffer_t* fb) {
     component_t* parent = malloc(sizeof(component_t));
     componentViewParam_t* param = malloc(sizeof(componentViewParam_t));
 
-    param->width = fb->width;
-    param->height = fb->height;
+    param->Width = fb->Width;
+    param->Height = fb->Height;
 
     parent->fb = fb;
     parent->param = param;
@@ -114,7 +114,7 @@ canva_t* CreateCanva(component_t* parent, componentViewParam_t param) {
 }
 
 void DrawBox(component_t* cpnt) {
-    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->width, cpnt->param->height, cpnt->param->bgColor);
+    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->Width, cpnt->param->Height, cpnt->param->bgColor);
 
     blitComponentFramebuffer(cpnt);
 }
@@ -134,23 +134,23 @@ box_t* CreateBox(component_t* parent, componentViewParam_t param) {
 }
 
 void DrawTitleBar(component_t* cpnt) {
-    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->width, cpnt->param->height, cpnt->param->bgColor);
+    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->Width, cpnt->param->Height, cpnt->param->bgColor);
 
 /*     uint8_t tmpWidthIcon = 10;
 
     // _ [] X buttons (test)
-    drawLine(ctx, ctx->width-(height+tmpWidthIcon)/2, (height+tmpWidthIcon)/2, ctx->width-(height-tmpWidthIcon)/2, (height-tmpWidthIcon)/2, 0xFFFFFF);
-    drawLine(ctx, ctx->width-(height-tmpWidthIcon)/2, (height+tmpWidthIcon)/2, ctx->width-(height+tmpWidthIcon)/2, (height-tmpWidthIcon)/2, 0xFFFFFF);
-    drawRect(ctx, (ctx->width-(height+tmpWidthIcon)/2)-25, (height-tmpWidthIcon)/2, tmpWidthIcon, tmpWidthIcon, 0xFFFFFF);
-    drawLine(ctx, (ctx->width-(height+tmpWidthIcon)/2)-50, height/2, (ctx->width-(height+tmpWidthIcon)/2)-40, height/2, 0xFFFFFF);  */
+    drawLine(ctx, ctx->Width-(Height+tmpWidthIcon)/2, (Height+tmpWidthIcon)/2, ctx->Width-(Height-tmpWidthIcon)/2, (Height-tmpWidthIcon)/2, 0xFFFFFF);
+    drawLine(ctx, ctx->Width-(Height-tmpWidthIcon)/2, (Height+tmpWidthIcon)/2, ctx->Width-(Height+tmpWidthIcon)/2, (Height-tmpWidthIcon)/2, 0xFFFFFF);
+    drawRect(ctx, (ctx->Width-(Height+tmpWidthIcon)/2)-25, (Height-tmpWidthIcon)/2, tmpWidthIcon, tmpWidthIcon, 0xFFFFFF);
+    drawLine(ctx, (ctx->Width-(Height+tmpWidthIcon)/2)-50, Height/2, (ctx->Width-(Height+tmpWidthIcon)/2)-40, Height/2, 0xFFFFFF);  */
     blitComponentFramebuffer(cpnt);
 }
 
 titlebar_t* CreateTitleBar(char* title, component_t* parent, componentViewParam_t param) {
     titlebar_t* tb = malloc(sizeof(titlebar_t));
     
-    param.width = parent->param->width;
-    param.height = 40;
+    param.Width = parent->param->Width;
+    param.Height = 40;
 
     tb->title = title;
     tb->cpnt = AddComponent(parent, param);
@@ -162,10 +162,10 @@ titlebar_t* CreateTitleBar(char* title, component_t* parent, componentViewParam_
     uint32_t btnHeight = 20;
     uint32_t btnTextColor = 0xFFFFFFFF;
 
-    box_t* div = CreateBox(tb->cpnt, (componentViewParam_t){ .width = 100, .height = 20 });
+    box_t* div = CreateBox(tb->cpnt, (componentViewParam_t){ .Width = 100, .Height = 20 });
 
-    button_t* minbtn = CreateButton(div->cpnt, (componentViewParam_t){ .width = btnWidth, .height = btnHeight, .bgColor = 0xFF00FF00, .fbColor = btnTextColor, .borderRadius = 10 });
-    button_t* testbtn = CreateButton(div->cpnt, (componentViewParam_t){ .width = btnWidth, .height = btnHeight, .bgColor = 0xFFFF0000, .fbColor = btnTextColor });
+    button_t* minbtn = CreateButton(div->cpnt, (componentViewParam_t){ .Width = btnWidth, .Height = btnHeight, .bgColor = 0xFF00FF00, .fbColor = btnTextColor, .borderRadius = 10 });
+    button_t* testbtn = CreateButton(div->cpnt, (componentViewParam_t){ .Width = btnWidth, .Height = btnHeight, .bgColor = 0xFFFF0000, .fbColor = btnTextColor });
     /* button_t* resizebtn = CreateButton(btnWidth, btnHeight, 0, 0, 0xFFFF0000, btnColor, tb->cpnt); */
     /* button_t* closebtn = CreateButton(); */
 
@@ -186,8 +186,8 @@ label_t* CreateLabel(char* string, component_t* parent, componentViewParam_t par
 
     lbl->string = string;
 
-    param.width = strlen(string) * param.fontSize;
-    param.height = param.fontSize;
+    param.Width = strlen(string) * param.fontSize;
+    param.Height = param.fontSize;
 
     lbl->cpnt = AddComponent(parent, param);
     lbl->cpnt->type = LabelComponent;
@@ -199,7 +199,7 @@ label_t* CreateLabel(char* string, component_t* parent, componentViewParam_t par
 
 void DrawButton(component_t* cpnt) {
     /* color: icon color */
-    fillRect(cpnt->fb, 0, 0, cpnt->param->width, cpnt->param->height, cpnt->param->bgColor);
+    fillRect(cpnt->fb, 0, 0, cpnt->param->Width, cpnt->param->Height, cpnt->param->bgColor);
 
     blitComponentFramebuffer(cpnt);
 }
@@ -211,9 +211,9 @@ button_t* CreateButton(component_t* parent, componentViewParam_t param) {
     itoa(parent->type, buff, 10);
     Printlog(buff); */
 
-    uint32_t newWidth = parent->fb->width + param.width;
+    uint32_t newWidth = parent->fb->Width + param.Width;
     
-    //EditComponent(parent, (componentViewParam_t){ .width = newWidth, .height = 20 });
+    //EditComponent(parent, (componentViewParam_t){ .Width = newWidth, .Height = 20 });
 
     // todo: event
     btn->cpnt = AddComponent(parent, param);
@@ -226,7 +226,7 @@ button_t* CreateButton(component_t* parent, componentViewParam_t param) {
 
 void DrawCheckbox(component_t* cpnt) {
     /* color: icon color */
-    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->width, cpnt->param->height, cpnt->param->bgColor);
+    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->Width, cpnt->param->Height, cpnt->param->bgColor);
 
     blitComponentFramebuffer(cpnt);
 }
@@ -234,8 +234,8 @@ void DrawCheckbox(component_t* cpnt) {
 checkbox_t* CreateCheckbox(component_t* parent, componentViewParam_t param) {
     checkbox_t* checkb = malloc(sizeof(checkbox_t));
 
-    param.width = 30;
-    param.height = 15;
+    param.Width = 30;
+    param.Height = 15;
 
     // todo: event
     checkb->cpnt = AddComponent(parent, param);
@@ -248,7 +248,7 @@ checkbox_t* CreateCheckbox(component_t* parent, componentViewParam_t param) {
 
 void DrawTextbox(component_t* cpnt) {
     /* color: text color */
-    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->width, cpnt->param->height, cpnt->param->bgColor);
+    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->Width, cpnt->param->Height, cpnt->param->bgColor);
 
     /* todo: placeholder */
 

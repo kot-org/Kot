@@ -180,7 +180,7 @@ namespace std {
         return JSON_BOOLEAN;
     }
 
-    bool JsonBoolean::get() {
+    bool JsonBoolean::Get() {
         return this->val;
     }
 
@@ -219,7 +219,7 @@ namespace std {
         return JSON_NUMBER;
     }
 
-    int32_t JsonNumber::get() {
+    int32_t JsonNumber::Get() {
         return this->number;
     }
 
@@ -263,7 +263,7 @@ namespace std {
         return JSON_STRING;
     }
 
-    char* JsonString::get() {
+    char* JsonString::Get() {
         return this->buffer;
     }
 
@@ -303,7 +303,7 @@ namespace std {
                 code = JSON_FAILED;
                 return;
             }
-            map_set(this->obj, key->get(), parser2->getValue());
+            map_set(this->obj, key->Get(), parser2->getValue());
             lexer->skipUseless();
             if (lexer->buffer[lexer->index] == '}') {
                 lexer->index++;
@@ -338,7 +338,7 @@ namespace std {
         return builder->toString();
     }
 
-    JsonValue* JsonObject::get(char* key) {
+    JsonValue* JsonObject::Get(char* key) {
         return (JsonValue*) map_get(obj, key);
     }
 
@@ -388,7 +388,7 @@ namespace std {
         }
     }
 
-    JsonValue* JsonArray::get(uint64_t index) {
+    JsonValue* JsonArray::Get(uint64_t index) {
         return (JsonValue*) vector_get(this->arr, index);
     }
 
@@ -410,7 +410,7 @@ namespace std {
             if (i != 0) {
                 builder->append(",");
             }
-            JsonValue* val = get(i);
+            JsonValue* val = Get(i);
             char* deserialized = val->serealize();
             builder->append(deserialized);
             if (val->getType() == JSON_STRING || val->getType() == JSON_NUMBER) {

@@ -17,9 +17,9 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
     /* Setup threads */
 
     /* GetFramebuffer */
-    thread_t GetFrameBufferThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&GetFrameBuffer, PriviledgeApp, NULL, &GetFrameBufferThread);
-    SystemSrv->GetFramebuffer = MakeShareableThread(GetFrameBufferThread, PriviledgeService);
+    thread_t GetFramebufferThread = NULL;
+    Sys_Createthread(proc, (uintptr_t)&GetFramebuffer, PriviledgeApp, NULL, &GetFramebufferThread);
+    SystemSrv->GetFramebuffer = MakeShareableThread(GetFramebufferThread, PriviledgeService);
 
     /* ReadFileInitrd */
     thread_t ReadFileFromInitrdThread = NULL;
@@ -61,10 +61,10 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
 
     SrvInfo->Framebuffer = (srv_system_framebuffer_t*)malloc(sizeof(srv_system_framebuffer_t));
     SrvInfo->Framebuffer->Address = kernelInfo->Framebuffer.framebuffer_base;
-    SrvInfo->Framebuffer->Width = kernelInfo->Framebuffer.framebuffer_width;
-    SrvInfo->Framebuffer->Height = kernelInfo->Framebuffer.framebuffer_height;
-    SrvInfo->Framebuffer->Pitch = kernelInfo->Framebuffer.framebuffer_pitch;
-    SrvInfo->Framebuffer->Bpp = kernelInfo->Framebuffer.framebuffer_bpp;
+    SrvInfo->Framebuffer->Width = kernelInfo->Framebuffer.framebuffer_Width;
+    SrvInfo->Framebuffer->Height = kernelInfo->Framebuffer.framebuffer_Height;
+    SrvInfo->Framebuffer->Pitch = kernelInfo->Framebuffer.framebuffer_Pitch;
+    SrvInfo->Framebuffer->Bpp = kernelInfo->Framebuffer.framebuffer_Bpp;
 
     SrvInfo->Smbios = kernelInfo->Smbios;
 
@@ -81,7 +81,7 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
     CreateControllerUISD(ControllerTypeEnum_System, key, true);
 }
 
-KResult GetFrameBuffer(thread_t Callback, uint64_t CallbackArg){
+KResult GetFramebuffer(thread_t Callback, uint64_t CallbackArg){
     ShareDataWithArguments_t data{
         .Data = SrvInfo->Framebuffer,
         .Size = sizeof(srv_system_framebuffer_t),

@@ -24,8 +24,8 @@ enum ComponentType {
 };
 
 typedef struct {
-    uint32_t width;
-    uint32_t height;
+    uint32_t Width;
+    uint32_t Height;
     uint16_t fontSize;
     uint16_t borderRadius;
     uint32_t bgColor;

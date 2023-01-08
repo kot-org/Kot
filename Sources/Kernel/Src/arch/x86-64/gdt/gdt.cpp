@@ -10,8 +10,8 @@ gdtInfoSelectorsRing GDTInfoSelectorsRing[(GDT_MAX_DESCRIPTORS / 2)];
 int GDTIndexTable = 0;
 
 void gdtInit(){
-    gdtBaseInfo.Size = (sizeof(GDTEntry) * GDT_MAX_DESCRIPTORS) - 1; //get the total size where gdt entries 
-    gdtBaseInfo.Offset = (uint64_t)&GDTEntries[0]; //get adress of the table where gdt entries 
+    gdtBaseInfo.Size = (sizeof(GDTEntry) * GDT_MAX_DESCRIPTORS) - 1; //Get the total size where gdt entries 
+    gdtBaseInfo.Offset = (uint64_t)&GDTEntries[0]; //Get adress of the table where gdt entries 
 
     gdtNullDescriptor();
     GDTInfoSelectorsRing[KernelRing].Code = gdtCreateCodeDescriptor(KernelRing);

@@ -5,19 +5,19 @@
 #include <kot-ui++/component.h>
 #include <kot-ui++/context.h>
 
-#include <kot-graphics++/context.h>
+#include <kot-graphics/context.h>
 
 namespace UiWindow {
 
     class Window {
         private:
-            uint32_t wid;
-            Graphic::ContextGphc* ctxGrph;
+            window_t* wid;
+            ctxg_t* ctxGrph;
             Ui::UiContext* ctxUi;
 
         public:
             /* todo: add icon */
-            Window(char* title, uint32_t width, uint32_t height, uint32_t xPos, uint32_t yPos);
+            Window(char* title, uint32_t Width, uint32_t Height, uint32_t XPosition, uint32_t YPosition);
 
             void setContent(Ui::Component* content);
     };

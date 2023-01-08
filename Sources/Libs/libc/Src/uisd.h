@@ -75,17 +75,7 @@ typedef struct {
 typedef struct {
     uisd_controller_t ControllerHeader;
 
-    thread_t create;
-    thread_t destroy;
-    thread_t getFramebuffer;
-    thread_t getWidth;
-    thread_t getHeight;
-    thread_t getBpp;
-    thread_t getFocusState;
-    thread_t show;
-    thread_t hide;
-    thread_t resize;
-    thread_t move;
+    thread_t CreateWindow;
 } uisd_graphics_t;
 
 typedef struct {
