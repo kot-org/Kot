@@ -13,9 +13,9 @@ void UpdateComponent(component_t* component) {
 void blitComponentFramebuffer(component_t* component) {
     while(component->parent != NULL) {
         if(component->param->borderRadius)
-            blitFramebufferRadius(component->parent->fb, component->fb, component->param->x, component->param->y, component->param->borderRadius);
+            BlitFramebufferRadius(component->parent->fb, component->fb, component->param->x, component->param->y, component->param->borderRadius);
         else
-            blitFramebuffer(component->parent->fb, component->fb, component->param->x, component->param->y);
+            BlitFramebuffer(component->parent->fb, component->fb, component->param->x, component->param->y);
         component = component->parent;
     }
 }
@@ -114,7 +114,7 @@ canva_t* CreateCanva(component_t* parent, componentViewParam_t param) {
 }
 
 void DrawBox(component_t* cpnt) {
-    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->Width, cpnt->param->Height, cpnt->param->bgColor);
+    FillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->Width, cpnt->param->Height, cpnt->param->bgColor);
 
     blitComponentFramebuffer(cpnt);
 }
@@ -134,15 +134,15 @@ box_t* CreateBox(component_t* parent, componentViewParam_t param) {
 }
 
 void DrawTitleBar(component_t* cpnt) {
-    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->Width, cpnt->param->Height, cpnt->param->bgColor);
+    FillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->Width, cpnt->param->Height, cpnt->param->bgColor);
 
 /*     uint8_t tmpWidthIcon = 10;
 
     // _ [] X buttons (test)
-    drawLine(ctx, ctx->Width-(Height+tmpWidthIcon)/2, (Height+tmpWidthIcon)/2, ctx->Width-(Height-tmpWidthIcon)/2, (Height-tmpWidthIcon)/2, 0xFFFFFF);
-    drawLine(ctx, ctx->Width-(Height-tmpWidthIcon)/2, (Height+tmpWidthIcon)/2, ctx->Width-(Height+tmpWidthIcon)/2, (Height-tmpWidthIcon)/2, 0xFFFFFF);
-    drawRect(ctx, (ctx->Width-(Height+tmpWidthIcon)/2)-25, (Height-tmpWidthIcon)/2, tmpWidthIcon, tmpWidthIcon, 0xFFFFFF);
-    drawLine(ctx, (ctx->Width-(Height+tmpWidthIcon)/2)-50, Height/2, (ctx->Width-(Height+tmpWidthIcon)/2)-40, Height/2, 0xFFFFFF);  */
+    DrawLine(ctx, ctx->Width-(Height+tmpWidthIcon)/2, (Height+tmpWidthIcon)/2, ctx->Width-(Height-tmpWidthIcon)/2, (Height-tmpWidthIcon)/2, 0xFFFFFF);
+    DrawLine(ctx, ctx->Width-(Height-tmpWidthIcon)/2, (Height+tmpWidthIcon)/2, ctx->Width-(Height+tmpWidthIcon)/2, (Height-tmpWidthIcon)/2, 0xFFFFFF);
+    DrawRect(ctx, (ctx->Width-(Height+tmpWidthIcon)/2)-25, (Height-tmpWidthIcon)/2, tmpWidthIcon, tmpWidthIcon, 0xFFFFFF);
+    DrawLine(ctx, (ctx->Width-(Height+tmpWidthIcon)/2)-50, Height/2, (ctx->Width-(Height+tmpWidthIcon)/2)-40, Height/2, 0xFFFFFF);  */
     blitComponentFramebuffer(cpnt);
 }
 
@@ -199,7 +199,7 @@ label_t* CreateLabel(char* string, component_t* parent, componentViewParam_t par
 
 void DrawButton(component_t* cpnt) {
     /* color: icon color */
-    fillRect(cpnt->fb, 0, 0, cpnt->param->Width, cpnt->param->Height, cpnt->param->bgColor);
+    FillRect(cpnt->fb, 0, 0, cpnt->param->Width, cpnt->param->Height, cpnt->param->bgColor);
 
     blitComponentFramebuffer(cpnt);
 }
@@ -226,7 +226,7 @@ button_t* CreateButton(component_t* parent, componentViewParam_t param) {
 
 void DrawCheckbox(component_t* cpnt) {
     /* color: icon color */
-    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->Width, cpnt->param->Height, cpnt->param->bgColor);
+    FillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->Width, cpnt->param->Height, cpnt->param->bgColor);
 
     blitComponentFramebuffer(cpnt);
 }
@@ -248,7 +248,7 @@ checkbox_t* CreateCheckbox(component_t* parent, componentViewParam_t param) {
 
 void DrawTextbox(component_t* cpnt) {
     /* color: text color */
-    fillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->Width, cpnt->param->Height, cpnt->param->bgColor);
+    FillRect(cpnt->fb, cpnt->param->x, cpnt->param->y, cpnt->param->Width, cpnt->param->Height, cpnt->param->bgColor);
 
     /* todo: placeholder */
 

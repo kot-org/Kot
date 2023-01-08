@@ -27,11 +27,11 @@ shell_t* NewShell(){
     GetActualTick(&TimerState);
     
     while (true){
-        fillRect(Shell->Backbuffer, 0, 0, 10, 16, 0xffffff);
-        blitFramebuffer(Shell->Framebuffer, Shell->Backbuffer, 0, 0);
+        FillRect(Shell->Backbuffer, 0, 0, 10, 16, 0xffffff);
+        BlitFramebuffer(Shell->Framebuffer, Shell->Backbuffer, 0, 0);
         SleepFromTick(&TimerState, 500);
-        fillRect(Shell->Backbuffer, 0, 0, 10, 16, 0x0);
-        blitFramebuffer(Shell->Framebuffer, Shell->Backbuffer, 0, 0);
+        FillRect(Shell->Backbuffer, 0, 0, 10, 16, 0x0);
+        BlitFramebuffer(Shell->Framebuffer, Shell->Backbuffer, 0, 0);
         SleepFromTick(&TimerState, 500);
     }
 }

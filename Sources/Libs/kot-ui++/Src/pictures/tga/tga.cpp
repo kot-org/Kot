@@ -55,7 +55,7 @@ namespace Ui {
                         uint8_t G = *(uint8_t*) ((uint64_t)imagePixelData+XPosition*Btpp+Pitch*YPosition + 1);
                         uint8_t B = *(uint8_t*) ((uint64_t)imagePixelData+XPosition*Btpp+Pitch*YPosition + 0);
                         uint32_t Pixel = B | (G << 8) | (R << 16);
-                        putPixel(cpnt->GetFramebuffer(), cpnt->getStyle()->x+x, cpnt->getStyle()->y+y, Pixel);
+                        PutPixel(cpnt->GetFramebuffer(), cpnt->getStyle()->x+x, cpnt->getStyle()->y+y, Pixel);
                     }
                 }
 

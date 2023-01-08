@@ -999,7 +999,7 @@ int ssfn_render(ssfn_t *ctx, ssfn_buf_t *dst, const char *str)
     struct timeval tv0, tv1, tvd;
     gettimeofday(&tv0, NULL);
 #endif
-#define PUTPIXEL  O = *Ol;bR = (O >> (16 - cs)) & 0xFF; bG = (O >> 8) & 0xFF; bB = (O >> cs) & 0xFF;\
+#define PutPixel  O = *Ol;bR = (O >> (16 - cs)) & 0xFF; bG = (O >> 8) & 0xFF; bB = (O >> cs) & 0xFF;\
     bB += ((fB - bB) * fA) >> 8; bG += ((fG - bG) * fA) >> 8; bR += ((fR - bR) * fA) >> 8;\
     *Ol = (ctx->style & SSFN_STYLE_A ? O & 0xFF000000 : ((uint32_t)fA << 24)) | (bR << (16 - cs)) | (bG << 8) | (bB << cs);
 
@@ -1337,7 +1337,7 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
                     if(dst->y + y - oy < 0) continue;
                     for (Ol = Op, x = 0; x <= k && dst->x + x - ox < j; x++, Ol++) {
                         if(dst->x + x - ox < 0 || (x > uix && x < uax)) continue;
-                        PUTPIXEL;
+                        PutPixel;
                     }
                 }
             }
@@ -1348,7 +1348,7 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
                     if(dst->y + y - oy < 0) continue;
                     for (Ol = Op, x = 0; x <= k && dst->x + x - ox < j; x++, Ol++) {
                         if(dst->x + x - ox < 0) continue;
-                        PUTPIXEL;
+                        PutPixel;
                     }
                 }
             }

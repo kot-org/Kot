@@ -24,7 +24,8 @@ ctxg_t* CreateGraphicContext(framebuffer_t* fb) {
 void ctxPutPixel(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t colour) {
     if (ctxPixelExist(ctx, x, y) == -1) return;
     uint64_t index = x * ctx->Btpp + y * ctx->Pitch;
-    blendAlpha(((uint64_t)ctx->fb_addr + index), colour);
+    *(uint32_t*)((uint64_t)ctx->fb_addr + index) = colour;
+    //blendAlpha(((uint64_t)ctx->fb_addr + index), colour);
 }
 
 int8_t ctxPixelExist(ctxg_t* ctx, uint32_t x, uint32_t y) {
@@ -113,9 +114,9 @@ void resetCtx(ctxg_t* ctx) {
 // ## absolute ##
 
 void ctxFill(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t colour, uint32_t border) {
-    uint32_t pixel = getPixel(ctx, x, y);
+    uint32_t pixel = GetPixel(ctx, x, y);
     if (pixel != colour && pixel != border && ctxPixelExist(ctx, x, y) == 1) {
-        putPixel(ctx, x, y, colour);
+        PutPixel(ctx, x, y, colour);
         ctxFill(ctx, x+1, y, colour, border);
         ctxFill(ctx, x, y+1, colour, border);
         ctxFill(ctx, x-1, y, colour, border);
@@ -143,7 +144,8 @@ void ctxFillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t Width, uint32_t H
         for (uint32_t w = x; w < _w; w++) {
             uint64_t XPosition = w * ctx->Btpp;
             uint64_t index = YPosition + XPosition;
-            blendAlpha(((uint64_t)ctx->fb_addr + index), colour);
+            *(uint32_t*)((uint64_t)ctx->fb_addr + index) = colour;
+            //blendAlpha(((uint64_t)ctx->fb_addr + index), colour);
         }
     }
 

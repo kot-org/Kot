@@ -66,24 +66,24 @@ void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
         CursorPosition.y = NewYCursorPosition;
     }
 
-    Width = CursorMaxPosition.x - CursorPosition.x;
-    Height = CursorMaxPosition.y - CursorPosition.y;
+    int64_t NewWidth = CursorMaxPosition.x - CursorPosition.x;
+    int64_t NewHeight = CursorMaxPosition.y - CursorPosition.y;
 
-    if(Width > CursorWidth){
+    if(NewWidth > CursorWidth){
         Width = CursorWidth;
-    }
-    else if(Width < 0){
+    }else if(NewWidth < 0){
         Width = 0;
+    }else{
+        Width = NewWidth;
     }
 
-    if(Height > CursorHeight){
+    if(NewHeight > CursorHeight){
         Height = CursorHeight;
-
-    }else if(Height < 0){
+    }else if(NewHeight < 0){
         Height = 0;
+    }else{
+        Height = NewHeight;
     }
-
-    std::printf("%x %x", Height, Width);
 
     Sys_Event_Close();
 }
@@ -93,13 +93,14 @@ void DrawCursor(framebuffer_t* fb, uintptr_t BitmapMask, uintptr_t PixelMap) {
     uint8_t* Mask = (uint8_t*) BitmapMask;
     
     int i = 0;
-    for(uint32_t y = 0; y < CursorHeight; y++) {
-        for(uint32_t x = 0; x < CursorWidth; x++) {
-            uint16_t bit = y * 16 + x;
+    for(uint64_t y = 0; y < Height; y++) {
+        for(uint64_t x = 0; x < Width; x++) {
+            uint16_t bit = y * CursorWidth + x;
             uint16_t byte = bit / 8;
 
-            if(Mask[byte] & (0b10000000 >> (x % 8)))
-                putPixel(fb, CursorPosition.x + x, CursorPosition.y + y, Pixel[i]); // probleme blendalpha -> retirer alpha
+            if(Mask[byte] & (0b10000000 >> (x % 8))){
+                PutPixel(fb, CursorPosition.x + x, CursorPosition.y + y, Pixel[i]);
+            }
 
             i++;
         }

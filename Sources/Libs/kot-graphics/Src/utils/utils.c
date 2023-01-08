@@ -7,18 +7,19 @@ int8_t pixelExist(framebuffer_t* fb, uint32_t x, uint32_t y) {
     return 1;
 }
 
-void putPixel(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t colour) {
+void PutPixel(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t colour) {
     if (pixelExist(fb, x, y) == -1) return;
     uint64_t index = x * 4 + y * fb->Pitch;
-    blendAlpha(((uint64_t)fb->Buffer + index), colour);
+    *(uint32_t*)((uint64_t)fb->Buffer + index) = colour;
+    //blendAlpha(((uint64_t)fb->Buffer + index), colour);
 }
 
-uint32_t getPixel(framebuffer_t* fb, uint32_t x, uint32_t y) {
+uint32_t GetPixel(framebuffer_t* fb, uint32_t x, uint32_t y) {
     uint64_t index = x * 4 + y * fb->Pitch;
-    return *(uint32_t*)((uint64_t) fb->Buffer + index);
+    return *(uint32_t*)((uint64_t)fb->Buffer + index);
 }
 
-void blitFramebuffer(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y) {
+void BlitFramebuffer(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y) {
 
     uint64_t to_addr = (uint64_t) to->Buffer;
     uint64_t from_addr = (uint64_t) from->Buffer;
@@ -41,7 +42,7 @@ void blitFramebuffer(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_
 
 }
 
-void blitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y, uint16_t borderRadius) {
+void BlitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y, uint16_t borderRadius) {
     uint64_t to_addr = (uint64_t) to->Buffer;
     uint64_t from_addr = (uint64_t) from->Buffer;
 
@@ -62,7 +63,7 @@ void blitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint32_t x, u
     }
 }
 
-void fillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t colour) {
+void FillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t colour) {
 
     uint32_t _h = Height+y;
     uint32_t _w = Width+x;
@@ -75,13 +76,14 @@ void fillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_
         for (uint32_t w = x; w < _w; w++) {
             uint64_t XPosition = w * fb->Btpp;
             uint64_t index = YPosition + XPosition;
-            blendAlpha(((uint64_t)fb->Buffer + index), colour);
+            *(uint32_t*)((uint64_t)fb->Buffer + index) = colour;
+            //blendAlpha(((uint64_t)fb->Buffer + index), colour);
         }
     }
 
 }
 
-void drawLine(framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour) {
+void DrawLine(framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour) {
 
     if (x1 > fb->Width) { x1 = fb->Width; }
     if (y1 > fb->Height) { y1 = fb->Height; }
@@ -113,31 +115,31 @@ void drawLine(framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t
 
     int32_t p = 2*(abs(dy)) - abs(dx);
 
-    putPixel(fb, x, y, colour);
+    PutPixel(fb, x, y, colour);
 
     for (int32_t i = 0; i < abs(dx); i++) {
         if (p < 0) {
             if (isSwaped == 0) {
                 x = x + sx;
-                putPixel(fb, x, y, colour);
+                PutPixel(fb, x, y, colour);
             } else {
                 y = y+sy;
-                putPixel(fb, x, y, colour);
+                PutPixel(fb, x, y, colour);
             }
             p = p + 2*abs(dy);
         } else {
             x = x+sx;
             y = y+sy;
-            putPixel(fb, x, y, colour);
+            PutPixel(fb, x, y, colour);
             p = p + 2*abs(dy) - 2*abs(dx);
         }
     }
 
 }
 
-void drawRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t colour) {
-    drawLine(fb, x, y, x+Width, y, colour); // top
-    drawLine(fb, x, y+Height, x+Width, y+Height, colour); // bottom
-    drawLine(fb, x, y, x, y+Height, colour); // left
-    drawLine(fb, x+Width, y, x+Width, y+Height, colour); // right
+void DrawRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t colour) {
+    DrawLine(fb, x, y, x+Width, y, colour); // top
+    DrawLine(fb, x, y+Height, x+Width, y+Height, colour); // bottom
+    DrawLine(fb, x, y, x, y+Height, colour); // left
+    DrawLine(fb, x+Width, y, x+Width, y+Height, colour); // right
 }

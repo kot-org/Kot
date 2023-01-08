@@ -119,7 +119,7 @@ namespace Ui {
                 if(child->fb == NULL)
                     child->draw();
                 
-                blitFramebuffer(this->fb, child->fb, child->style->x, child->style->y);
+                BlitFramebuffer(this->fb, child->fb, child->style->x, child->style->y);
                 child->IsBlit = true;
             }
 
@@ -140,7 +140,7 @@ namespace Ui {
                 Component* child = (Component*) vector_get(childs, i);
 
                 if(child->ReadyToBlit == true)
-                    blitFramebuffer(this->fb, child->fb, child->style->x, child->style->y);
+                    BlitFramebuffer(this->fb, child->fb, child->style->x, child->style->y);
                 else 
                     child->update();
 
@@ -157,7 +157,7 @@ namespace Ui {
         updateFramebuffer(this->style->Width, this->style->Height);
         Printlog("draw");
 
-        fillRect(this->fb, 0, 0, this->style->Width, this->style->Height, this->style->backgroundColor);
+        FillRect(this->fb, 0, 0, this->style->Width, this->style->Height, this->style->backgroundColor);
     }
 
     void Component::addChild(Component* child) {

@@ -38,7 +38,7 @@ void Monitor::Move(uint64_t XPosition, uint64_t YPosition) {
 }
 
 void dynamicBlit(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y, uint32_t monitorXoffset, uint32_t monitorYoffset) {
-    blitFramebuffer(to, from, x, y);
+    BlitFramebuffer(to, from, x, y);
 }
 
 void Monitor::Update(vector_t* Background, vector_t* Windows, vector_t* Foreground){
@@ -63,5 +63,4 @@ void Monitor::Update(vector_t* Background, vector_t* Windows, vector_t* Foregrou
     DrawCursor(this->BackFramebuffer, BitmapMask, PixelMap);
 
     memcpy(this->MainFramebuffer->Buffer, this->BackFramebuffer->Buffer, this->MainFramebuffer->Size);
-
 }

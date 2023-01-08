@@ -58,7 +58,7 @@ void parseBootImage(framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width, ui
         for(uint32_t j = 0; j < Width; j++){
             uint32_t Position = (j * (uint32_t)BytePerPixel) + ((Height - i) * RowSize);
             uint32_t Data = ((uint32_t)IGA[Position + 1] << 8) | ((uint32_t)IGA[Position + 2] << 16) | (uint32_t)IGA[Position];
-            putPixel(Framebuffer, j + XPosition, i + YPosition, Data);
+            PutPixel(Framebuffer, j + XPosition, i + YPosition, Data);
         }
     }
 }
@@ -74,7 +74,7 @@ void loadBootAnimation(framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t 
         .arg[3] = Width,
         .arg[4] = Height,
     };
-    drawRect(Framebuffer, XPosition, YPosition, Width, Height, 0xffffff);
+    DrawRect(Framebuffer, XPosition, YPosition, Width, Height, 0xffffff);
 
     Sys_Execthread(bootAnimationThread, &parameters, ExecutionTypeQueu, NULL);
 }
@@ -102,11 +102,11 @@ void bootAnimation(framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPos
     while(true){
         GetActualTick(&tick);
 
-        fillRect(&Backbuffer, x, 0, x, Height, 0x0);
+        FillRect(&Backbuffer, x, 0, x, Height, 0x0);
         x = ((uint64_t)(tick / divider) % Width);
-        fillRect(&Backbuffer, x, 0, x, Height, 0xffffff);
+        FillRect(&Backbuffer, x, 0, x, Height, 0xffffff);
 
-        blitFramebuffer(Framebuffer, &Backbuffer, XPosition, YPosition);
+        BlitFramebuffer(Framebuffer, &Backbuffer, XPosition, YPosition);
     }
     free(Backbuffer.Buffer);
     Sys_Exit(KSUCCESS);
