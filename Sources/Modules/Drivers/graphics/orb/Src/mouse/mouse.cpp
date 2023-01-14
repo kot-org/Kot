@@ -95,8 +95,8 @@ void DrawCursor(framebuffer_t* fb, uintptr_t BitmapMask, uintptr_t PixelMap) {
     int i = 0;
     for(uint64_t y = 0; y < Height; y++) {
         for(uint64_t x = 0; x < Width; x++) {
-            uint16_t bit = y * CursorWidth + x;
-            uint16_t byte = bit / 8;
+            uint64_t bit = y * CursorWidth + x;
+            uint64_t byte = bit / 8;
 
             if(Mask[byte] & (0b10000000 >> (x % 8))){
                 PutPixel(fb, CursorPosition.x + x, CursorPosition.y + y, Pixel[i]);

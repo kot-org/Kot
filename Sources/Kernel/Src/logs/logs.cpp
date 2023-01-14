@@ -170,6 +170,7 @@ void Warning(const char* str, ...){
 }
 
 void Error(const char * str, ...){
+    AtomicAquire(&MutexLog);
     va_list args;
     va_start(args, str);
     SerialPort::Print(SerialRED);
@@ -215,6 +216,7 @@ void Error(const char * str, ...){
 
     SerialPort::Print("\n");
     va_end(args);
+    AtomicRelease(&MutexLog);
 }
 
 void PrintRegisters(ContextStack* registers){

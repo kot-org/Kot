@@ -64,7 +64,6 @@ void BlitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint32_t x, u
 }
 
 void FillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t colour) {
-
     uint32_t _h = Height+y;
     uint32_t _w = Width+x;
 
@@ -77,10 +76,9 @@ void FillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_
             uint64_t XPosition = w * fb->Btpp;
             uint64_t index = YPosition + XPosition;
             *(uint32_t*)((uint64_t)fb->Buffer + index) = colour;
-            //blendAlpha(((uint64_t)fb->Buffer + index), colour);
+            //blendAlpha((uintptr_t)((uint64_t)fb->Buffer + index), colour);
         }
     }
-
 }
 
 void DrawLine(framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour) {

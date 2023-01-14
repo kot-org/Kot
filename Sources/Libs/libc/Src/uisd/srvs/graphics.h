@@ -9,9 +9,9 @@
 extern "C" {
 #endif
 
-#define Window_Function_CloseWindow             0x0
-#define Window_Function_ResizeWindow            0x1
-#define Window_Function_ChangePostionWindow     0x2
+#define Window_Function_Close             0x0
+#define Window_Function_Resize            0x1
+#define Window_Function_ChangePostion     0x2
 #define Window_Function_ChangeVisibility        0x3
 
 #define Window_Function_Count                   0x4

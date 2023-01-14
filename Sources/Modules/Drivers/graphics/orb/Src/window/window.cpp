@@ -1,6 +1,6 @@
 #include <window/window.h>
 
-Window::Window(uint64_t WindowType){
+window_c::window_c(uint64_t WindowType){
     this->Framebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
 
     this->Framebuffer->Bpp = DEFAUT_Bpp;
@@ -14,8 +14,8 @@ Window::Window(uint64_t WindowType){
         this->WindowType = WindowType;
     }
 
-    this->XPositionition = NULL;
-    this->YPositionition = NULL;
+    this->XPosition = NULL;
+    this->YPosition = NULL;
     
     this->SetState(false);
     this->SetVisible(false);
@@ -23,7 +23,7 @@ Window::Window(uint64_t WindowType){
     CreateBuffer();
 }
 
-KResult Window::CreateBuffer() {
+KResult window_c::CreateBuffer() {
     if (this->Framebuffer->Buffer != NULL && this->FramebufferKey != NULL) {
         Sys_CloseMemoryField(Sys_GetProcess(), this->FramebufferKey, this->Framebuffer->Buffer);
     }
@@ -46,58 +46,72 @@ KResult Window::CreateBuffer() {
     return KSUCCESS;
 }
 
-framebuffer_t* Window::GetFramebuffer(){
+framebuffer_t* window_c::GetFramebuffer(){
     return this->Framebuffer;
 }
 
-ksmem_t Window::GetFramebufferKey(){
+ksmem_t window_c::GetFramebufferKey(){
     return this->FramebufferKey;
 }
 
-KResult Window::Resize(int64_t Width, int64_t Height){
+KResult window_c::Resize(int64_t Width, int64_t Height){
+    if(Width == Window_Max_Size){
+        for(uint64_t i = 0; i < Monitors->length; i++){
+            monitor_c* Monitor = (monitor_c*)vector_get(Monitors, i);
+            if(Monitor != NULL){
+                if(IsBeetween(Monitor->XPosition, this->XPosition)
+            }
+        }
+    }
+
+    if(Height == Window_Max_Size){
+
+    }
+
     this->Framebuffer->Width = Width;
     this->Framebuffer->Height = Height;
     CreateBuffer();
     return KSUCCESS;
 }
 
-KResult Window::Move(int64_t XPositionition, int64_t YPositionition){
-    this->XPositionition = XPositionition;
-    this->YPositionition = YPositionition;
+KResult window_c::Move(int64_t XPosition, int64_t YPosition){
+    this->XPosition = XPosition;
+    this->YPosition = YPosition;
     return KSUCCESS;
 }
 
-uint64_t Window::GetHeight(){
+uint64_t window_c::GetHeight(){
     return Framebuffer->Height;
 }
 
-uint64_t Window::GetWidth(){
+uint64_t window_c::GetWidth(){
     return Framebuffer->Width;
 }
 
-uint64_t Window::GetBpp(){
+uint64_t window_c::GetBpp(){
     return Framebuffer->Bpp;
 }
 
-uint64_t Window::GetX(){
-    return XPositionition;
+uint64_t window_c::GetX(){
+    return XPosition;
 }
 
-uint64_t Window::GetY(){
-    return YPositionition;
+uint64_t window_c::GetY(){
+    return YPosition;
 }
 
 
-void Window::SetState(bool IsFocus){
+bool window_c::SetState(bool IsFocus){
     this->IsFocus = IsFocus;
+    return this->IsFocus;
 }
 
-bool Window::GetState(){
+bool window_c::GetState(){
     return IsFocus;
 }
 
 
-void Window::SetVisible(bool IsVisible){
+bool window_c::SetVisible(bool IsVisible){
     if(this->IsVisible != IsVisible){
         if(this->WindowType == Window_Type_Background){
             if(IsVisible){
@@ -120,13 +134,16 @@ void Window::SetVisible(bool IsVisible){
         }
         this->IsVisible = IsVisible;
     }
+    return this->IsVisible;
 }
 
-bool Window::GetVisible() {
+bool window_c::GetVisible() {
     return IsVisible;
 }
 
-void Window::Close() {
+KResult window_c::Close() {
     SetVisible(false);
     free(this);
+
+    return KSUCCESS;
 }

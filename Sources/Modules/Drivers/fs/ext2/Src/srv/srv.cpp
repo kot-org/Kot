@@ -148,7 +148,7 @@ KResult Openfile(thread_t Callback, uint64_t CallbackArg, char* Path, permission
 
 /* Direct access */
 KResult FileDispatch(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
-    uint32_t Function = GP0;
+    uint64_t Function = GP0;
 
     if(Function >= File_Function_Count){
         arguments_t arguments{
@@ -376,7 +376,7 @@ KResult Opendir(thread_t Callback, uint64_t CallbackArg, char* Path, permissions
 
 /* Direct access */
 KResult DirDispatch(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
-    uint32_t Function = GP0;
+    uint64_t Function = GP0;
 
     if(Function >= Dir_Function_Count){
         arguments_t arguments{
@@ -417,19 +417,19 @@ KResult Readdir(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Direct
     directory_entries_t* Data = (directory_entries_t*)malloc(DataSize);
     Data->EntryCount = EntryCount;
 
-    uint64_t NextEntrYPositionition = sizeof(directory_entries_t);
+    uint64_t NextEntrYPosition = sizeof(directory_entries_t);
     directory_entry_t* Entry = &Data->FirstEntry;
     for(uint64_t i = 0; i < EntryCount; i++){
-        NextEntrYPositionition += sizeof(directory_entry_t) + ReadirData[i]->NameLength + 1;
-        Entry->NextEntrYPositionition = NextEntrYPositionition;
+        NextEntrYPosition += sizeof(directory_entry_t) + ReadirData[i]->NameLength + 1;
+        Entry->NextEntrYPosition = NextEntrYPosition;
         Entry->IsFile = ReadirData[i]->IsFile;
         memcpy(&Entry->Name, ReadirData[i]->Name, ReadirData[i]->NameLength + 1);
         free(ReadirData[i]->Name);
         free(ReadirData[i]);
-        Entry = (directory_entry_t*)((uint64_t)&Data->FirstEntry + (uint64_t)NextEntrYPositionition);
+        Entry = (directory_entry_t*)((uint64_t)&Data->FirstEntry + (uint64_t)NextEntrYPosition);
     }
 
-    Entry->NextEntrYPositionition = NULL;
+    Entry->NextEntrYPosition = NULL;
 
     free(ReadirData);
 

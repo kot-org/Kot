@@ -3,7 +3,6 @@
 #define BootLogoBottomMargin 0x20
 
 void loadBootGraphics(framebuffer_t* Framebuffer){
-    Printlog("ok");
     bool IsBGRT = false;
     bool IsLogo = false;
 
@@ -105,7 +104,6 @@ void bootAnimation(framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPos
         FillRect(&Backbuffer, x, 0, x, Height, 0x0);
         x = ((uint64_t)(tick / divider) % Width);
         FillRect(&Backbuffer, x, 0, x, Height, 0xffffff);
-
         BlitFramebuffer(Framebuffer, &Backbuffer, XPosition, YPosition);
     }
     free(Backbuffer.Buffer);

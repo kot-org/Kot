@@ -1,27 +1,24 @@
 GLOBAL blendAlpha
 
-blendAlpha:     ; 0AAxxxxxxx
-    mov         ecx, esi
-	shr	        ecx, 24
+blendAlpha:     ; 0xRRGGBBAA
+    movzx ecx, sil
+    mov eax, [rdi]
 
-	pxor		mm5, mm5
+    and eax, 0x00FF00FF
+    and eax, 0x0000FF00
 
-	movd	    mm6, ecx
-    pshufw	    mm6, mm6, 0
+    mov edx, ecx
+    shr edx, 8
+    imul eax, edx
 
-	add	        ecx, 256
-	movd	    mm7, ecx
-    pshufw	    mm7, mm7, 0
+    mov edx, 255
+    sub edx, ecx
+    imul esi, edx
+    add eax, esi
 
+    mov edx, 0xff
+    and eax, edx
+    shr eax, 8
 
-	movd		mm0, [rdi]
-	movd		mm1, esi
-	punpcklbw	mm0, mm5
-	punpcklbw	mm1, mm5
-	pmullw		mm0, mm6
-	pmullw		mm1, mm7
-	paddusw		mm0, mm1
-	psrlw		mm0, 8
-	packuswb	mm0, mm0
-	movd		[rdi], mm0
-	ret
+    mov [rdi], eax
+    ret

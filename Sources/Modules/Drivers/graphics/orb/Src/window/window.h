@@ -7,19 +7,19 @@
 
 #define DEFAUT_Bpp 32
 
-class Monitor;
+class monitor_c;
 
 struct Cursor{
     int32_t x;
     int32_t y;
 };
 
-class Window {
+class window_c{
     private:
         framebuffer_t* Framebuffer;
         ksmem_t FramebufferKey;
-        uint64_t XPositionition;
-        uint64_t YPositionition;
+        uint64_t XPosition;
+        uint64_t YPosition;
         uint64_t WindowType;
         uint64_t WindowIndex;
         bool IsVisible = false;
@@ -27,7 +27,9 @@ class Window {
         
         KResult CreateBuffer();
     public:
-        Window(uint64_t WindowType);
+        process_t Target;
+
+        window_c(uint64_t WindowType);
         framebuffer_t* GetFramebuffer();
         ksmem_t GetFramebufferKey();
         uint64_t GetHeight();
@@ -38,15 +40,15 @@ class Window {
         uint64_t GetY();
 
         KResult Resize(int64_t Width, int64_t Height);
-        KResult Move(int64_t XPositionition, int64_t YPositionition);
+        KResult Move(int64_t XPosition, int64_t YPosition);
 
-        void SetState(bool IsFocus);
+        bool SetState(bool IsFocus);
         bool GetState();
 
-        void SetVisible(bool IsVisible);
+        bool SetVisible(bool IsVisible);
         bool GetVisible();
 
-        void Close();
+        KResult Close();
 };
 
 #endif

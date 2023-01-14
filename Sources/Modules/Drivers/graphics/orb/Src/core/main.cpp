@@ -12,10 +12,10 @@ vector_t* Monitors = NULL;
 
 void renderWindows() {
     // todo: multi threads monitor rendering
-    for (uint32_t i = 0; i < Monitors->length; i++) {
-        Monitor* monitor = (Monitor*) vector_get(Monitors, i);
-        if (monitor != NULL) {
-            monitor->Update(Background, Windows, Foreground);
+    for(uint64_t i = 0; i < Monitors->length; i++){
+        monitor_c* Monitor = (monitor_c*)vector_get(Monitors, i);
+        if(Monitor != NULL){
+            Monitor->Update(Background, Windows, Foreground);
         }
     }
 }
@@ -45,7 +45,7 @@ void InitialiseOrb(){
 
     uint64_t virtualAddress = (uint64_t)MapPhysical((uintptr_t)bootframebuffer->Address, fb_size);
 
-    Monitor* monitor0 = new Monitor(Self, (uintptr_t) virtualAddress, bootframebuffer->Width, bootframebuffer->Height, bootframebuffer->Pitch, bootframebuffer->Bpp, 0, 0);
+    monitor_c* monitor0 = new monitor_c(Self, (uintptr_t) virtualAddress, bootframebuffer->Width, bootframebuffer->Height, bootframebuffer->Pitch, bootframebuffer->Bpp, 0, 0);
 
     CursorMaxPosition.x = monitor0->GetWidth();
     CursorMaxPosition.y = monitor0->GetHeight();
@@ -54,12 +54,12 @@ void InitialiseOrb(){
 
     vector_push(Monitors, monitor0);
     
-    Window* LoadingScreen = new Window(Window_Type_Background);
+    window_c* LoadingScreen = new window_c(Window_Type_Background);
     LoadingScreen->Resize(bootframebuffer->Width, bootframebuffer->Height);
     LoadingScreen->SetVisible(true);
     
     loadBootGraphics(LoadingScreen->GetFramebuffer());
-
+    
     InitializeCursor();
 
     Sys_Createthread(Self, (uintptr_t) &threadRender, PriviledgeDriver, NULL, &renderThread);

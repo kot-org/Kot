@@ -24,8 +24,8 @@ class Context;
 #include <monitor/monitor.h>
 #include <window/window.h>
 
-class Window;
-class Monitor;
+class window_c;
+class monitor_c;
 
 extern vector_t* Background;
 extern vector_t* Windows;
