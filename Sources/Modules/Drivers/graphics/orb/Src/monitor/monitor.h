@@ -6,18 +6,21 @@
 
 #include <core/main.h>
 
-class window_c;
+class windowc;
 class Context;
 
-class monitor_c {
+class monitorc {
     private:
         framebuffer_t* MainFramebuffer;
         framebuffer_t* BackFramebuffer;
     public:
         uint64_t XPosition;
+        uint64_t XMaxPosition;
+
         uint64_t YPosition;
+        uint64_t YMaxPosition;
         
-        monitor_c(process_t orb, uintptr_t fb_addr, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition);
+        monitorc(process_t orb, uintptr_t fb_addr, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition);
         uint64_t GetWidth();
         uint64_t GetHeight();
 

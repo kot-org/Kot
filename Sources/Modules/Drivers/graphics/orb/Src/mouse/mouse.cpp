@@ -1,7 +1,7 @@
 #include <mouse/mouse.h>
 
-Point_t CursorPosition;
-Point_t CursorMaxPosition;
+point_t CursorPosition;
+point_t CursorMaxPosition;
 
 uint64_t CursorWidth;
 uint64_t CursorHeight;
@@ -92,17 +92,13 @@ void DrawCursor(framebuffer_t* fb, uintptr_t BitmapMask, uintptr_t PixelMap) {
     uint32_t* Pixel = (uint32_t*) PixelMap;
     uint8_t* Mask = (uint8_t*) BitmapMask;
     
-    int i = 0;
     for(uint64_t y = 0; y < Height; y++) {
         for(uint64_t x = 0; x < Width; x++) {
-            uint64_t bit = y * CursorWidth + x;
-            uint64_t byte = bit / 8;
+            uint64_t PixelPos = y * CursorWidth + x;
 
-            if(Mask[byte] & (0b10000000 >> (x % 8))){
-                PutPixel(fb, CursorPosition.x + x, CursorPosition.y + y, Pixel[i]);
+            if(BIT_CHECK(Mask[PixelPos / 8], PixelPos % 8)){
+                PutPixel(fb, CursorPosition.x + x, CursorPosition.y + y, Pixel[PixelPos]);
             }
-
-            i++;
         }
     }
 }

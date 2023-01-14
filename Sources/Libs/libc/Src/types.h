@@ -63,7 +63,7 @@ typedef struct arguments_t{
     uint64_t arg[6];
 }__attribute__((packed));
 
-typedef struct GUID_t{
+typedef struct{
     uint32_t Data0:32;
 
     uint16_t Data1:16;
@@ -71,9 +71,9 @@ typedef struct GUID_t{
     uint16_t Data3:16;
 
     uint64_t Data4:48;
-};
+}GUID_t;
 
-typedef struct UUID_t{
+typedef struct{
     uint32_t Data0:32;
 
     uint16_t Data1:16;
@@ -81,6 +81,6 @@ typedef struct UUID_t{
     uint16_t Data3:16;
 
     uint64_t Data4:48;
-};
+}UUID_t;
 
 #endif

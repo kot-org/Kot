@@ -3,6 +3,7 @@
 
 #include <kot/sys.h>
 #include <kot/uisd.h>
+#include <kot/math.h>
 #include <kot/types.h>
 
 #if defined(__cplusplus)
@@ -49,6 +50,7 @@ typedef struct {
     thread_t GraphicsHandler;
     bool IsVisible;
     thread_t EventHandler;
+    point_t Position;
 } window_t;
 
 void Srv_Graphics_Callback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);

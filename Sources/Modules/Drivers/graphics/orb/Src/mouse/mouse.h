@@ -2,8 +2,8 @@
 
 #include <core/main.h>
 
-extern Point_t CursorPosition;
-extern Point_t CursorMaxPosition;
+extern point_t CursorPosition;
+extern point_t CursorMaxPosition;
 
 typedef struct {
     uint8_t Revision;

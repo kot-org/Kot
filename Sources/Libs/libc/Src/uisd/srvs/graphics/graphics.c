@@ -25,7 +25,7 @@ void Srv_Graphics_Callback(KResult Status, struct srv_graphics_callback_t* Callb
 }
 
 /* CreateWindow */
-KResult Srv_Graphics_CreateWindow_Callback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+KResult Srv_Graphics_Createwindowcallback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
         window_t* Window = (window_t*)Callback->Data;
         Window->GraphicsHandler = GP2;
@@ -47,7 +47,7 @@ struct srv_graphics_callback_t* Srv_Graphics_CreateWindow(uintptr_t EventHandler
     callback->Size = sizeof(window_t);
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
-    callback->Handler = &Srv_Graphics_CreateWindow_Callback;
+    callback->Handler = &Srv_Graphics_Createwindowcallback;
 
     Sys_Createthread(Sys_GetProcess(), EventHandler, PriviledgeApp, Window, &Window->EventHandler);
 
@@ -66,7 +66,7 @@ struct srv_graphics_callback_t* Srv_Graphics_CreateWindow(uintptr_t EventHandler
 }
 
 /* CloseWindow */
-KResult Srv_Graphics_CloseWindow_Callback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+KResult Srv_Graphics_Closewindowcallback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
         window_t* Window = (window_t*)Callback->Data;
         Sys_CloseMemoryField(Sys_GetProcess(), Window->BufferKey, Window->Framebuffer.Buffer);
@@ -84,7 +84,7 @@ struct srv_graphics_callback_t* Srv_Graphics_CloseWindow(window_t* Window, bool 
     callback->Size = NULL;
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
-    callback->Handler = &Srv_Graphics_CloseWindow_Callback; 
+    callback->Handler = &Srv_Graphics_Closewindowcallback; 
 
     struct arguments_t parameters;
     parameters.arg[0] = srv_graphics_callback_thread;
@@ -100,7 +100,7 @@ struct srv_graphics_callback_t* Srv_Graphics_CloseWindow(window_t* Window, bool 
 }
 
 /* ResizeWindow */
-KResult Srv_Graphics_ResizeWindow_Callback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+KResult Srv_Graphics_Resizewindowcallback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
         window_t* Window = (window_t*)Callback->Data;
         memcpy(&Window->Framebuffer, GP1, sizeof(framebuffer_t));
@@ -119,7 +119,7 @@ struct srv_graphics_callback_t* Srv_Graphics_ResizeWindow(window_t* Window, int6
     callback->Size = NULL;
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
-    callback->Handler = &Srv_Graphics_ResizeWindow_Callback; 
+    callback->Handler = &Srv_Graphics_Resizewindowcallback; 
 
     struct arguments_t parameters;
     parameters.arg[0] = srv_graphics_callback_thread;
@@ -137,7 +137,12 @@ struct srv_graphics_callback_t* Srv_Graphics_ResizeWindow(window_t* Window, int6
 }
 
 /* ChangePostionWindow */
-KResult Srv_Graphics_ChangePostionWindow_Callback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+KResult Srv_Graphics_ChangePostionwindowcallback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    if(Status == KSUCCESS){
+        window_t* Window = (window_t*)Callback->Data;
+        Window->Position.x = GP0;
+        Window->Position.y = GP1;
+    }
     return Status;
 }
 
@@ -150,7 +155,7 @@ struct srv_graphics_callback_t* Srv_Graphics_ChangePostionWindow(window_t* Windo
     callback->Size = NULL;
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
-    callback->Handler = &Srv_Graphics_ChangePostionWindow_Callback; 
+    callback->Handler = &Srv_Graphics_ChangePostionwindowcallback; 
 
     struct arguments_t parameters;
     parameters.arg[0] = srv_graphics_callback_thread;

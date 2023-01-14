@@ -29,9 +29,9 @@ KResult InitialiseServer(){
 }
 
 KResult CreateWindow(thread_t Callback, uint64_t CallbackArg, process_t Target, thread_t Event, uint64_t WindowType){
-    window_c* Window = NULL;
+    windowc* Window = NULL;
 
-    if((Window = new window_c(WindowType)) != NULL){
+    if((Window = new windowc(WindowType)) != NULL){
         ShareDataWithArguments_t Data{
             .ParameterPosition = 0x3,
             .Data = Window->GetFramebuffer(),
@@ -94,11 +94,11 @@ KResult WindowGraphicsHandler(thread_t Callback, uint64_t CallbackArg, uint64_t 
         Sys_Close(KSUCCESS);
     }
 
-    window_c* Window = (window_c*)Sys_GetExternalDataThread();
+    windowc* Window = (windowc*)Sys_GetExternalDataThread();
     Sys_Close(WindowDispatcher[Function](Callback, CallbackArg, Window, GP1, GP2, GP3));
 }
 
-KResult WindowClose(thread_t Callback, uint64_t CallbackArg, window_c* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult WindowClose(thread_t Callback, uint64_t CallbackArg, windowc* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     KResult Status = Window->Close();
     arguments_t Arguments{
         .arg[0] = Status,               /* Status */
@@ -113,7 +113,7 @@ KResult WindowClose(thread_t Callback, uint64_t CallbackArg, window_c* Window, u
     return KSUCCESS;    
 }
 
-KResult WindowResize(thread_t Callback, uint64_t CallbackArg, window_c* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult WindowResize(thread_t Callback, uint64_t CallbackArg, windowc* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     KResult Status = Window->Resize(GP0, GP1);
     if(Status == KSUCCESS){
         ShareDataWithArguments_t Data{
@@ -152,13 +152,13 @@ KResult WindowResize(thread_t Callback, uint64_t CallbackArg, window_c* Window, 
     return KSUCCESS;    
 }
 
-KResult WindowChangePostion(thread_t Callback, uint64_t CallbackArg, window_c* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult WindowChangePostion(thread_t Callback, uint64_t CallbackArg, windowc* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     KResult Status = Window->Move(GP0, GP1);
     arguments_t Arguments{
         .arg[0] = Status,               /* Status */
         .arg[1] = CallbackArg,          /* CallbackArg */
-        .arg[2] = NULL,                 /* GP0 */
-        .arg[3] = NULL,                 /* GP1 */
+        .arg[2] = Window->XPosition,    /* XPosition */
+        .arg[3] = Window->YPosition,    /* YPosition */
         .arg[4] = NULL,                 /* GP2 */
         .arg[5] = NULL,                 /* GP3 */
     };
@@ -167,7 +167,7 @@ KResult WindowChangePostion(thread_t Callback, uint64_t CallbackArg, window_c* W
     return KSUCCESS;    
 }
 
-KResult WindowChangeVisibility(thread_t Callback, uint64_t CallbackArg, window_c* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult WindowChangeVisibility(thread_t Callback, uint64_t CallbackArg, windowc* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     bool IsVisible = Window->SetVisible(GP0);
     KResult Status = (IsVisible == GP0) ? KSUCCESS : KFAIL;
 

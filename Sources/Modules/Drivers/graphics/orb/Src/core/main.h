@@ -1,7 +1,8 @@
 #pragma once
 
-#include <kot/math.h>
 #include <kot/sys.h>
+#include <kot/bits.h>
+#include <kot/math.h>
 #include <kot/heap.h>
 #include <kot/uisd.h>
 #include <kot/utils.h>
@@ -21,12 +22,14 @@ class Context;
 #include <srv/srv.h>
 #include <boot/boot.h>
 #include <mouse/mouse.h>
-#include <monitor/monitor.h>
 #include <window/window.h>
+#include <monitor/monitor.h>
 
-class window_c;
-class monitor_c;
+class windowc;
+class monitorc;
 
 extern vector_t* Background;
 extern vector_t* Windows;
 extern vector_t* Foreground;
+
+extern vector_t* Monitors;

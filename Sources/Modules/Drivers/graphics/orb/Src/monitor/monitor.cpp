@@ -1,11 +1,14 @@
 #include <monitor/monitor.h>
 
-monitor_c::monitor_c(process_t orb, uintptr_t fb_addr, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition){
+monitorc::monitorc(process_t orb, uintptr_t fb_addr, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition){
     this->XPosition = XPosition;
-    this->YPosition = YPosition;
+    this->XMaxPosition = XPosition + Width;
 
-    MainFramebuffer = (framebuffer_t*) calloc(sizeof(framebuffer_t));
-    BackFramebuffer = (framebuffer_t*) calloc(sizeof(framebuffer_t));
+    this->YPosition = YPosition;
+    this->YMaxPosition = YPosition + Height;
+
+    MainFramebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
+    BackFramebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
 
     MainFramebuffer->Buffer = fb_addr;
     MainFramebuffer->Width = Width;
@@ -24,15 +27,15 @@ monitor_c::monitor_c(process_t orb, uintptr_t fb_addr, uint64_t Width, uint64_t 
     BackFramebuffer->Size = MainFramebuffer->Size;
 }
 
-uint64_t monitor_c::GetWidth() {
+uint64_t monitorc::GetWidth() {
     return this->MainFramebuffer->Width;
 }
 
-uint64_t monitor_c::GetHeight() {
+uint64_t monitorc::GetHeight() {
     return this->MainFramebuffer->Height;
 }
 
-void monitor_c::Move(uint64_t XPosition, uint64_t YPosition) {
+void monitorc::Move(uint64_t XPosition, uint64_t YPosition) {
     this->XPosition = XPosition;
     this->YPosition = YPosition;
 }
@@ -41,22 +44,22 @@ void dynamicBlit(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y,
     BlitFramebuffer(to, from, x, y);
 }
 
-void monitor_c::Update(vector_t* Background, vector_t* Windows, vector_t* Foreground){
+void monitorc::Update(vector_t* Background, vector_t* Windows, vector_t* Foreground){
     // Background
     for(uint64_t i = 0; i < Background->length; i++) {
-        window_c* window = (window_c*) vector_get(Background, i);
+        windowc* window = (windowc*) vector_get(Background, i);
         dynamicBlit(this->BackFramebuffer, window->GetFramebuffer(), window->GetX(), window->GetY(), this->XPosition, this->YPosition);
     }
 
     // Windows
     for(uint64_t i = 0; i < Windows->length; i++) {
-        window_c* window = (window_c*) vector_get(Windows, i);
+        windowc* window = (windowc*) vector_get(Windows, i);
         dynamicBlit(this->BackFramebuffer, window->GetFramebuffer(), window->GetX(), window->GetY(), this->XPosition, this->YPosition);
     }
 
     // Foreground
     for(uint64_t i = Foreground->length; i != 0; i--) {
-        window_c* window = (window_c*) vector_get(Foreground, i);
+        windowc* window = (windowc*) vector_get(Foreground, i);
         dynamicBlit(this->BackFramebuffer, window->GetFramebuffer(), window->GetX(), window->GetY(), this->XPosition, this->YPosition);
     }
 

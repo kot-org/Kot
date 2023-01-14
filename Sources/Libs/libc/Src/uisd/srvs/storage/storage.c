@@ -106,7 +106,7 @@ KResult Srv_Storage_NotifyOnNewPartitionByGUIDType_Callback(KResult Status, stru
     return Status;
 }
 
-struct srv_storage_callback_t* Srv_Storage_NotifyOnNewPartitionByGUIDType(struct GUID_t* PartitionTypeGUID, thread_t ThreadToNotify, process_t ProcessToNotify, bool IsAwait){
+struct srv_storage_callback_t* Srv_Storage_NotifyOnNewPartitionByGUIDType(GUID_t* PartitionTypeGUID, thread_t ThreadToNotify, process_t ProcessToNotify, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
     thread_t self = Sys_Getthread();
@@ -129,7 +129,7 @@ struct srv_storage_callback_t* Srv_Storage_NotifyOnNewPartitionByGUIDType(struct
 
     struct ShareDataWithArguments_t data;
     data.Data = PartitionTypeGUID;
-    data.Size = sizeof(struct GUID_t);
+    data.Size = sizeof(GUID_t);
     data.ParameterPosition = 0x4;
 
     KResult Status = Sys_Execthread(StorageData->NotifyOnNewPartitionByGUIDType, &parameters, ExecutionTypeQueu, &data);

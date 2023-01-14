@@ -7,15 +7,16 @@
 
 #define DEFAUT_Bpp 32
 
-class monitor_c;
+class monitorc;
 
 struct Cursor{
     int32_t x;
     int32_t y;
 };
 
-class window_c{
-    private:
+class windowc{
+    public:
+        process_t Target;
         framebuffer_t* Framebuffer;
         ksmem_t FramebufferKey;
         uint64_t XPosition;
@@ -26,10 +27,8 @@ class window_c{
         bool IsFocus = false;
         
         KResult CreateBuffer();
-    public:
-        process_t Target;
 
-        window_c(uint64_t WindowType);
+        windowc(uint64_t WindowType);
         framebuffer_t* GetFramebuffer();
         ksmem_t GetFramebufferKey();
         uint64_t GetHeight();
