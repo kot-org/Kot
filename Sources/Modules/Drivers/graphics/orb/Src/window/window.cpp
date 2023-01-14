@@ -83,19 +83,17 @@ KResult windowc::Resize(int64_t Width, int64_t Height){
         case Window_Type_DockTop:{
             monitorc* Monitor = FindMonitor();
             if(Monitor != NULL){
-                std::printf("%x", Monitor->DockTop);
                 if(Monitor->DockTop == NULL){
                     Width = Monitor->XMaxPosition - Monitor->XPosition;
                     Monitor->YPositionWithDock = Height;
-                    XPosition = 0;
-                    YPosition = 0;
+                    XPosition = Monitor->XPosition;
+                    YPosition = Monitor->YPosition;
                     Monitor->DockTop = this;
-                    std::printf("%x", Width);
                 }else if(Monitor->DockTop == this){
                     Width = Monitor->XMaxPosition - Monitor->XPosition;
                     Monitor->YMaxPositionWithDock = Height;
-                    XPosition = 0;
-                    YPosition = 0;
+                    XPosition = Monitor->XPosition;
+                    YPosition = Monitor->YPosition;
                 }
             }
             break;
@@ -106,13 +104,13 @@ KResult windowc::Resize(int64_t Width, int64_t Height){
                 if(Monitor->DockTop == NULL){
                     Width = Monitor->XMaxPosition - Monitor->XPosition;
                     Monitor->YMaxPositionWithDock = Monitor->YMaxPosition - Height;
-                    XPosition = 0;
+                    XPosition = Monitor->XPosition;
                     YPosition = Monitor->YMaxPositionWithDock;
                     Monitor->DockTop = this;
                 }else if(Monitor->DockTop == this){
                     Width = Monitor->XMaxPosition - Monitor->XPosition;
                     Monitor->YMaxPositionWithDock = Monitor->YMaxPosition - Height;
-                    XPosition = 0;
+                    XPosition = Monitor->XPosition;
                     YPosition = Monitor->YMaxPositionWithDock;
                 }
             }
@@ -124,14 +122,14 @@ KResult windowc::Resize(int64_t Width, int64_t Height){
                 if(Monitor->DockTop == NULL){
                     Height = Monitor->YMaxPosition - Monitor->YPosition;
                     Monitor->XPositionWithDock = Width;
-                    XPosition = 0;
-                    YPosition = 0;
+                    XPosition = Monitor->XPosition;
+                    YPosition = Monitor->YPosition;
                     Monitor->DockTop = this;
                 }else if(Monitor->DockTop == this){
                     Height = Monitor->YMaxPosition - Monitor->YPosition;
                     Monitor->XPositionWithDock = Width;
-                    XPosition = 0;
-                    YPosition = 0;
+                    XPosition = Monitor->XPosition;
+                    YPosition = Monitor->YPosition;
                 }
             }
             break;
@@ -143,14 +141,13 @@ KResult windowc::Resize(int64_t Width, int64_t Height){
                     Height = Monitor->YMaxPosition - Monitor->YPosition;
                     Monitor->XMaxPositionWithDock = Monitor->XMaxPosition - Width;
                     XPosition = Monitor->XMaxPositionWithDock;
-                    YPosition = 0;
+                    YPosition = Monitor->XPosition;
                     Monitor->DockTop = this;
                 }else if(Monitor->DockTop == this){
                     Height = Monitor->YMaxPosition - Monitor->YPosition;
                     Monitor->XMaxPositionWithDock = Monitor->XMaxPosition - Width;
                     XPosition = Monitor->XMaxPositionWithDock;
-                    YPosition = 0;
-                    YPosition = Monitor->YMaxPositionWithDock;
+                    YPosition = Monitor->XPosition;
                 }
             }
             break;
@@ -221,7 +218,6 @@ bool windowc::SetVisible(bool IsVisible){
         }else if(this->WindowType == Window_Type_Foreground || this->WindowType == Window_Type_DockTop || this->WindowType == Window_Type_DockBottom || this->WindowType == Window_Type_DockLeft || this->WindowType == Window_Type_DockRight){
             if(IsVisible){
                 this->WindowIndex = vector_push(Foreground, this);
-                std::printf("%x", this);
             }else{
                 vector_remove(Foreground, this->WindowIndex);
             }

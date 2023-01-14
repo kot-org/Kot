@@ -2,10 +2,14 @@
 
 monitorc::monitorc(process_t orb, uintptr_t fb_addr, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition){
     this->XPosition = XPosition;
+    this->XPositionWithDock = XPosition;
     this->XMaxPosition = XPosition + Width;
+    this->XMaxPositionWithDock = XPosition + Width;
 
     this->YPosition = YPosition;
+    this->YPositionWithDock = YPosition;
     this->YMaxPosition = YPosition + Height;
+    this->YMaxPositionWithDock = YPosition + Height;
 
     MainFramebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
     BackFramebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));

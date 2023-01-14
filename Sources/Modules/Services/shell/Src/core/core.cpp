@@ -8,6 +8,9 @@ shell_t* NewShell(){
 
     window_t* wid = CreateWindow(NULL, Window_Type_DockRight);
     ResizeWindow(wid, 50, 50);
+    memset(wid->Framebuffer.Buffer, 0xff, wid->Framebuffer.Size);
+    ChangeVisibilityWindow(wid, true);
+    return NULL; 
 
     Shell->Framebuffer = &wid->Framebuffer;
     Shell->Backbuffer = (framebuffer_t*)malloc(sizeof(framebuffer_t));
