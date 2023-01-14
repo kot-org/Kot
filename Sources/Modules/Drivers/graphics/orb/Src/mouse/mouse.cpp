@@ -16,7 +16,7 @@ uintptr_t BitmapMask;
 thread_t MouseRelativeInterrupt;
 
 void InitializeCursor(){
-    srv_system_callback_t* KursorFile = (srv_system_callback_t*) Srv_System_ReadFileInitrd("darkDefault.kursor", true);
+    srv_system_callback_t* KursorFile = (srv_system_callback_t*) Srv_System_ReadFileInitrd("christmasTree.kursor", true);
     KursorHeader* Header = (KursorHeader*) KursorFile->Data;
 
     Width = Header->Width;

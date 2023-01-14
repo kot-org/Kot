@@ -6,13 +6,7 @@ windowc::windowc(uint64_t WindowType){
     this->Framebuffer->Bpp = DEFAUT_Bpp;
     this->Framebuffer->Btpp = DEFAUT_Bpp / 8;
 
-    this->WindowType = Window_Type_Default;
-
-    if(WindowType == Window_Type_Background){
-        this->WindowType = WindowType;
-    }else if(WindowType == Window_Type_Foreground){
-        this->WindowType = WindowType;
-    }
+    this->WindowType = WindowType;
 
     this->XPosition = NULL;
     this->YPosition = NULL;
@@ -46,6 +40,18 @@ KResult windowc::CreateBuffer() {
     return KSUCCESS;
 }
 
+monitorc* windowc::FindMonitor(){
+    for(uint64_t i = 0; i < Monitors->length; i++){
+        monitorc* Monitor = (monitorc*)vector_get(Monitors, i);
+        if(Monitor != NULL){
+            if(IsBeetween(Monitor->YPosition, this->YPosition, Monitor->YMaxPosition)){
+                return Monitor;
+            }
+        }
+    }
+    return NULL;
+}
+
 framebuffer_t* windowc::GetFramebuffer(){
     return this->Framebuffer;
 }
@@ -56,32 +62,108 @@ ksmem_t windowc::GetFramebufferKey(){
 
 KResult windowc::Resize(int64_t Width, int64_t Height){
     if(Width == Window_Max_Size){
-        Width = 0;
-        for(uint64_t i = 0; i < Monitors->length; i++){
-            monitorc* Monitor = (monitorc*)vector_get(Monitors, i);
-            if(Monitor != NULL){
-                if(IsBeetween(Monitor->XPosition, this->XPosition, Monitor->XMaxPosition)){
-                    Width = Monitor->XMaxPosition - this->XPosition;
-                }
-            }
+        monitorc* Monitor = FindMonitor();
+        if(Monitor == NULL){
+            Width = 0;
+        }else{
+            Width = Monitor->XMaxPositionWithDock - this->XPosition;
         }
     }
 
     if(Height == Window_Max_Size){
-        Height = 0;
-        for(uint64_t i = 0; i < Monitors->length; i++){
-            monitorc* Monitor = (monitorc*)vector_get(Monitors, i);
+        monitorc* Monitor = FindMonitor();
+        if(Monitor == NULL){
+            Height = 0;
+        }else{
+            Height = Monitor->YMaxPositionWithDock - this->YPosition;
+        }
+    }
+
+    switch (WindowType){
+        case Window_Type_DockTop:{
+            monitorc* Monitor = FindMonitor();
             if(Monitor != NULL){
-                if(IsBeetween(Monitor->YPosition, this->YPosition, Monitor->YMaxPosition)){
-                    Height = Monitor->YMaxPosition - this->YPosition;
+                std::printf("%x", Monitor->DockTop);
+                if(Monitor->DockTop == NULL){
+                    Width = Monitor->XMaxPosition - Monitor->XPosition;
+                    Monitor->YPositionWithDock = Height;
+                    XPosition = 0;
+                    YPosition = 0;
+                    Monitor->DockTop = this;
+                    std::printf("%x", Width);
+                }else if(Monitor->DockTop == this){
+                    Width = Monitor->XMaxPosition - Monitor->XPosition;
+                    Monitor->YMaxPositionWithDock = Height;
+                    XPosition = 0;
+                    YPosition = 0;
                 }
             }
+            break;
         }
+        case Window_Type_DockBottom:{
+            monitorc* Monitor = FindMonitor();
+            if(Monitor != NULL){
+                if(Monitor->DockTop == NULL){
+                    Width = Monitor->XMaxPosition - Monitor->XPosition;
+                    Monitor->YMaxPositionWithDock = Monitor->YMaxPosition - Height;
+                    XPosition = 0;
+                    YPosition = Monitor->YMaxPositionWithDock;
+                    Monitor->DockTop = this;
+                }else if(Monitor->DockTop == this){
+                    Width = Monitor->XMaxPosition - Monitor->XPosition;
+                    Monitor->YMaxPositionWithDock = Monitor->YMaxPosition - Height;
+                    XPosition = 0;
+                    YPosition = Monitor->YMaxPositionWithDock;
+                }
+            }
+            break;
+        }
+        case Window_Type_DockLeft:{
+            monitorc* Monitor = FindMonitor();
+            if(Monitor != NULL){
+                if(Monitor->DockTop == NULL){
+                    Height = Monitor->YMaxPosition - Monitor->YPosition;
+                    Monitor->XPositionWithDock = Width;
+                    XPosition = 0;
+                    YPosition = 0;
+                    Monitor->DockTop = this;
+                }else if(Monitor->DockTop == this){
+                    Height = Monitor->YMaxPosition - Monitor->YPosition;
+                    Monitor->XPositionWithDock = Width;
+                    XPosition = 0;
+                    YPosition = 0;
+                }
+            }
+            break;
+        }
+        case Window_Type_DockRight:{
+            monitorc* Monitor = FindMonitor();
+            if(Monitor != NULL){
+                if(Monitor->DockTop == NULL){
+                    Height = Monitor->YMaxPosition - Monitor->YPosition;
+                    Monitor->XMaxPositionWithDock = Monitor->XMaxPosition - Width;
+                    XPosition = Monitor->XMaxPositionWithDock;
+                    YPosition = 0;
+                    Monitor->DockTop = this;
+                }else if(Monitor->DockTop == this){
+                    Height = Monitor->YMaxPosition - Monitor->YPosition;
+                    Monitor->XMaxPositionWithDock = Monitor->XMaxPosition - Width;
+                    XPosition = Monitor->XMaxPositionWithDock;
+                    YPosition = 0;
+                    YPosition = Monitor->YMaxPositionWithDock;
+                }
+            }
+            break;
+        }
+        default:
+            break;
     }
 
     this->Framebuffer->Width = Width;
     this->Framebuffer->Height = Height;
+
     CreateBuffer();
+
     return KSUCCESS;
 }
 
@@ -136,9 +218,10 @@ bool windowc::SetVisible(bool IsVisible){
             }else{
                 vector_remove(Windows, this->WindowIndex);
             }
-        }else if(this->WindowType == Window_Type_Foreground){
+        }else if(this->WindowType == Window_Type_Foreground || this->WindowType == Window_Type_DockTop || this->WindowType == Window_Type_DockBottom || this->WindowType == Window_Type_DockLeft || this->WindowType == Window_Type_DockRight){
             if(IsVisible){
                 this->WindowIndex = vector_push(Foreground, this);
+                std::printf("%x", this);
             }else{
                 vector_remove(Foreground, this->WindowIndex);
             }

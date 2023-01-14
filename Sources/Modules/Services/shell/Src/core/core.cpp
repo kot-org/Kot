@@ -6,8 +6,9 @@
 shell_t* NewShell(){
     shell_t* Shell = (shell_t*)malloc(sizeof(shell_t));
 
-    window_t* wid = CreateWindow(NULL, Window_Type_Default);
-    ResizeWindow(wid, 300, 300);
+    window_t* wid = CreateWindow(NULL, Window_Type_DockRight);
+    ResizeWindow(wid, 50, 50);
+
     Shell->Framebuffer = &wid->Framebuffer;
     Shell->Backbuffer = (framebuffer_t*)malloc(sizeof(framebuffer_t));
 

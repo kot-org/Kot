@@ -29,6 +29,7 @@ class windowc{
         KResult CreateBuffer();
 
         windowc(uint64_t WindowType);
+        monitorc* FindMonitor();
         framebuffer_t* GetFramebuffer();
         ksmem_t GetFramebufferKey();
         uint64_t GetHeight();

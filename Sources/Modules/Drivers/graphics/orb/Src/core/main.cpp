@@ -55,7 +55,7 @@ void InitialiseOrb(){
     vector_push(Monitors, monitor0);
     
     windowc* LoadingScreen = new windowc(Window_Type_Background);
-    LoadingScreen->Resize(bootframebuffer->Width, bootframebuffer->Height);
+    LoadingScreen->Resize(Window_Max_Size, Window_Max_Size);
     LoadingScreen->SetVisible(true);
     
     loadBootGraphics(LoadingScreen->GetFramebuffer());

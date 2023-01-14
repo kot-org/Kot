@@ -46,20 +46,20 @@ void dynamicBlit(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y,
 
 void monitorc::Update(vector_t* Background, vector_t* Windows, vector_t* Foreground){
     // Background
-    for(uint64_t i = 0; i < Background->length; i++) {
+    for(uint64_t i = 0; i < Background->length; i++){
         windowc* window = (windowc*) vector_get(Background, i);
         dynamicBlit(this->BackFramebuffer, window->GetFramebuffer(), window->GetX(), window->GetY(), this->XPosition, this->YPosition);
     }
 
     // Windows
-    for(uint64_t i = 0; i < Windows->length; i++) {
+    for(uint64_t i = 0; i < Windows->length; i++){
         windowc* window = (windowc*) vector_get(Windows, i);
         dynamicBlit(this->BackFramebuffer, window->GetFramebuffer(), window->GetX(), window->GetY(), this->XPosition, this->YPosition);
     }
 
     // Foreground
-    for(uint64_t i = Foreground->length; i != 0; i--) {
-        windowc* window = (windowc*) vector_get(Foreground, i);
+    for(uint64_t i = Foreground->length; i != 0; i--){
+        windowc* window = (windowc*) vector_get(Foreground, i - 1);
         dynamicBlit(this->BackFramebuffer, window->GetFramebuffer(), window->GetX(), window->GetY(), this->XPosition, this->YPosition);
     }
 
