@@ -29,6 +29,12 @@ extern "C" {
 
 typedef KResult (*GraphicsCallbackHandler)(KResult Status, struct srv_graphics_callback* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
+enum Window_Event{
+    Winwow_Event_Focus = 0x0,
+    Winwow_Event_Mouse = 0x1,
+    Winwow_Event_Keyboard = 0x2,
+};
+
 struct srv_graphics_callback_t{
     thread_t Self;
     uint64_t Data;
@@ -55,6 +61,7 @@ typedef struct {
     bool IsVisible;
     thread_t EventHandler;
     point_t Position;
+    event_t Event;
 } window_t;
 
 void Srv_Graphics_Callback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);

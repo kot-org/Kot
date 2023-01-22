@@ -11,11 +11,13 @@
 #include <kot/uisd/srvs/hid.h>
 #include <kot/uisd/srvs/time.h>
 #include <kot/uisd/srvs/system.h>
+#include <kot/uisd/srvs/storage.h>
 #include <kot/uisd/srvs/graphics.h>
 
 #include <kot++/printf.h>
 
 #include <kot-graphics/utils.h>
+#include <kot-graphics/event.h>
 
 class Context;
 
@@ -33,3 +35,5 @@ extern vector_t* Windows;
 extern vector_t* Foreground;
 
 extern vector_t* Monitors;
+
+void UpdateAllEvents();

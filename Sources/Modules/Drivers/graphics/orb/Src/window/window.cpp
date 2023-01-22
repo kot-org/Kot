@@ -1,41 +1,60 @@
 #include <window/window.h>
 
-windowc::windowc(uint64_t WindowType){
+windowc* CurrentFocusWindow = NULL;
+
+windowc::windowc(uint64_t WindowType, event_t Event){
     this->Framebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
 
-    this->Framebuffer->Bpp = DEFAUT_Bpp;
-    this->Framebuffer->Btpp = DEFAUT_Bpp / 8;
+    this->Framebuffer->Bpp = DEFAUT_BPP;
+    this->Framebuffer->Btpp = DEFAUT_BPP / 8;
+    
+    this->Eventbuffer = CreateEventBuffer(NULL, NULL);
+
+    this->Eventbuffer->Bpp = sizeof(windowc*) * 8;
+    this->Eventbuffer->Btpp = sizeof(windowc*);
 
     this->WindowType = WindowType;
+    this->Event = Event;
 
     this->XPosition = NULL;
     this->YPosition = NULL;
     
-    this->SetState(false);
+    this->SetFocusState(false);
     this->SetVisible(false);
 
     CreateBuffer();
 }
 
-KResult windowc::CreateBuffer() {
-    if (this->Framebuffer->Buffer != NULL && this->FramebufferKey != NULL) {
-        Sys_CloseMemoryField(Sys_GetProcess(), this->FramebufferKey, this->Framebuffer->Buffer);
-    }
+KResult windowc::CreateBuffer(){
+    uintptr_t OldFramebuffer = this->Framebuffer->Buffer;
+    ksmem_t OldFramebufferKey = this->FramebufferKey;
 
     this->Framebuffer->Pitch = this->Framebuffer->Width * this->Framebuffer->Btpp;
-    this->Framebuffer->Size = Framebuffer->Pitch * this->Framebuffer->Height;
+    this->Framebuffer->Size = this->Framebuffer->Pitch * this->Framebuffer->Height;
 
-    uintptr_t address = GetFreeAlignedSpace(this->Framebuffer->Size);
-    ksmem_t key = NULL;
-    Sys_CreateMemoryField(Sys_GetProcess(), this->Framebuffer->Size, &address, &key, MemoryFieldTypeShareSpaceRW);
+    uintptr_t Address = GetFreeAlignedSpace(this->Framebuffer->Size);
+    ksmem_t Key = NULL;
+    Sys_CreateMemoryField(Sys_GetProcess(), this->Framebuffer->Size, &Address, &Key, MemoryFieldTypeShareSpaceRW);
     ksmem_t KeyShare = NULL;
-    Sys_Keyhole_CloneModify(key, &KeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
+    Sys_Keyhole_CloneModify(Key, &KeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
+    
+    Framebuffer->Buffer = Address;
+    FramebufferKey = KeyShare;
 
-    this->Framebuffer->Buffer = address;
-    this->FramebufferKey = KeyShare;
-
+    if(OldFramebuffer != NULL && OldFramebufferKey != NULL){
+        Sys_CloseMemoryField(Sys_GetProcess(), OldFramebufferKey, OldFramebuffer);
+    }
     // clear window buffer
-    memset(address, NULL, this->Framebuffer->Size);
+    memset(Framebuffer->Buffer, NULL, Framebuffer->Size);
+
+
+    Eventbuffer->Pitch = Eventbuffer->Width * Eventbuffer->Btpp;
+    Eventbuffer->Size = Eventbuffer->Pitch * Eventbuffer->Height;
+
+    uintptr_t OldEventBuffer = Eventbuffer->Buffer;
+    Eventbuffer->Buffer = malloc(Eventbuffer->Size);
+    memset64(Eventbuffer->Buffer, (uint64_t)this, Eventbuffer->Size);
+    free(OldEventBuffer);
 
     return KSUCCESS;
 }
@@ -50,6 +69,10 @@ monitorc* windowc::FindMonitor(){
         }
     }
     return NULL;
+}
+
+graphiceventbuffer_t* windowc::GetEventbuffer(){
+    return this->Eventbuffer;
 }
 
 framebuffer_t* windowc::GetFramebuffer(){
@@ -156,10 +179,16 @@ KResult windowc::Resize(int64_t Width, int64_t Height){
             break;
     }
 
-    this->Framebuffer->Width = Width;
-    this->Framebuffer->Height = Height;
+    Framebuffer->Width = Width;
+    Framebuffer->Height = Height;
+    Eventbuffer->Width = Width;
+    Eventbuffer->Height = Height;
 
     CreateBuffer();
+
+    if(GetVisible()){
+        UpdateAllEvents();
+    }
 
     return KSUCCESS;
 }
@@ -167,6 +196,9 @@ KResult windowc::Resize(int64_t Width, int64_t Height){
 KResult windowc::Move(int64_t XPosition, int64_t YPosition){
     this->XPosition = XPosition;
     this->YPosition = YPosition;
+    if(GetVisible()){
+        UpdateAllEvents();
+    }
     return KSUCCESS;
 }
 
@@ -191,8 +223,27 @@ uint64_t windowc::GetY(){
 }
 
 
-bool windowc::SetState(bool IsFocus){
+bool windowc::SetFocusState(bool IsFocus){
     this->IsFocus = IsFocus;
+
+    if(this->IsFocus){
+        if(CurrentFocusWindow != NULL) CurrentFocusWindow->SetFocusState(false);
+        CurrentFocusWindow = this;
+        if(this->WindowType == Window_Type_Default){
+            uint64_t NewWindowIndex = vector_push(Windows, this);
+            vector_remove(Windows, this->WindowIndex);
+            this->WindowIndex = NewWindowIndex;
+            UpdateAllEvents();
+        }
+    }
+
+    arguments_t Parameters{
+        .arg[0] = Winwow_Event_Focus,   // Event type
+        .arg[1] = IsFocus,              // Focus state
+    };
+    
+    Sys_Event_Trigger(Event, &Parameters);
+
     return this->IsFocus;
 }
 
@@ -206,24 +257,36 @@ bool windowc::SetVisible(bool IsVisible){
         if(this->WindowType == Window_Type_Background){
             if(IsVisible){
                 this->WindowIndex = vector_push(Background, this);
+                if(CurrentFocusWindow == NULL){
+                    CurrentFocusWindow = this;
+                }
             }else{
                 vector_remove(Background, this->WindowIndex);
             }
         }else if(this->WindowType == Window_Type_Default){
             if(IsVisible){
                 this->WindowIndex = vector_push(Windows, this);
+                if(CurrentFocusWindow == NULL){
+                    CurrentFocusWindow = this;
+                }
             }else{
                 vector_remove(Windows, this->WindowIndex);
             }
         }else if(this->WindowType == Window_Type_Foreground || this->WindowType == Window_Type_DockTop || this->WindowType == Window_Type_DockBottom || this->WindowType == Window_Type_DockLeft || this->WindowType == Window_Type_DockRight){
             if(IsVisible){
                 this->WindowIndex = vector_push(Foreground, this);
+                if(CurrentFocusWindow == NULL){
+                    CurrentFocusWindow = this;
+                }
             }else{
                 vector_remove(Foreground, this->WindowIndex);
             }
         }
         this->IsVisible = IsVisible;
+        UpdateAllEvents();
     }
+    
+
     return this->IsVisible;
 }
 

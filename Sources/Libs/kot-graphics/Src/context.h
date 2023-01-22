@@ -33,21 +33,21 @@ typedef struct {
 
 ctxg_t* CreateGraphicContext(framebuffer_t* fb);
 
-void ctxPutPixel(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t colour);
+void ctxPutPixel(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t color);
 int8_t ctxPixelExist(ctxg_t* ctx, uint32_t x, uint32_t y);
 uint32_t ctxPetPixel(ctxg_t* ctx, uint32_t x, uint32_t y);
 
-void ctxFillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t colour);
-void ctxDrawRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t colour);
-void ctxDrawLine(ctxg_t* ctx, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour);
+void ctxFillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color);
+void ctxDrawRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color);
+void ctxDrawLine(ctxg_t* ctx, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color);
 
-void ctxDrawCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t radius, uint32_t colour);
+void ctxDrawCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t radius, uint32_t color);
 
-void ctxFill(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t colour, uint32_t border);
+void ctxFill(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t color, uint32_t border);
 
 // path function
 
-void draw(ctxg_t* ctx, uint32_t colour);
+void draw(ctxg_t* ctx, uint32_t color);
 
 void abs_pos(ctxg_t* ctx, uint32_t x, uint32_t y);
 void rel_pos(ctxg_t* ctx, uint32_t x, uint32_t y);
@@ -71,7 +71,7 @@ void swapToCtx(ctxg_t* ctx);
 void swapFromCtx(ctxg_t* ctx);
 
 void clear(ctxg_t* ctx);
-void clearColor(ctxg_t* ctx, uint32_t colour);
+void clearColor(ctxg_t* ctx, uint32_t color);
 
 uintptr_t GetFramebuffer(ctxg_t* ctx);
 

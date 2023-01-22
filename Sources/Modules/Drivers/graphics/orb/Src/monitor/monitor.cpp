@@ -29,6 +29,8 @@ monitorc::monitorc(process_t orb, uintptr_t fb_addr, uint64_t Width, uint64_t He
     BackFramebuffer->Bpp = MainFramebuffer->Bpp;
     BackFramebuffer->Btpp = MainFramebuffer->Btpp;
     BackFramebuffer->Size = MainFramebuffer->Size;
+
+    Eventbuffer = CreateEventBuffer(Width, Height);
 }
 
 uint64_t monitorc::GetWidth() {
@@ -44,27 +46,63 @@ void monitorc::Move(uint64_t XPosition, uint64_t YPosition) {
     this->YPosition = YPosition;
 }
 
-void dynamicBlit(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y, uint32_t monitorXoffset, uint32_t monitorYoffset) {
-    BlitFramebuffer(to, from, x, y);
+void DynamicBlit(framebuffer_t* to, framebuffer_t* from, uint64_t x, uint64_t y, uint64_t MonitorXoffset, uint64_t MonitorYoffset) {
+    uint64_t to_addr = (uint64_t)to->Buffer;
+    uint64_t from_addr = (uint64_t)from->Buffer;
+
+    to_addr += x * to->Btpp + y * to->Pitch; // offset
+
+    uint64_t num;
+    if(to->Pitch < from->Pitch){
+        num = to->Pitch;
+    }else{
+        num = from->Pitch;
+    } 
+
+    for (uint64_t h = 0; h < from->Height && h + y < to->Height; h++) {
+        memcpy((uintptr_t)to_addr, (uintptr_t)from_addr, num);
+        to_addr += to->Pitch;
+        from_addr += from->Pitch;
+    }
+}
+
+void monitorc::UpdateEvents(vector_t* Background, vector_t* Windows, vector_t* Foreground){
+    // Background
+    for(uint64_t i = 0; i < Background->length; i++){
+        windowc* window = (windowc*)vector_get(Background, i);
+        BlitGraphicEventbuffer(this->Eventbuffer, window->GetEventbuffer(), window->GetX(), window->GetY());
+    }
+
+    // Windows
+    for(uint64_t i = 0; i < Windows->length; i++){
+        windowc* window = (windowc*)vector_get(Windows, i);
+        BlitGraphicEventbuffer(this->Eventbuffer, window->GetEventbuffer(), window->GetX(), window->GetY());
+    }
+
+    // Foreground
+    for(uint64_t i = Foreground->length; i != 0; i--){
+        windowc* window = (windowc*)vector_get(Foreground, i - 1);
+        BlitGraphicEventbuffer(this->Eventbuffer, window->GetEventbuffer(), window->GetX(), window->GetY());
+    }
 }
 
 void monitorc::Update(vector_t* Background, vector_t* Windows, vector_t* Foreground){
     // Background
     for(uint64_t i = 0; i < Background->length; i++){
-        windowc* window = (windowc*) vector_get(Background, i);
-        dynamicBlit(this->BackFramebuffer, window->GetFramebuffer(), window->GetX(), window->GetY(), this->XPosition, this->YPosition);
+        windowc* window = (windowc*)vector_get(Background, i);
+        DynamicBlit(this->BackFramebuffer, window->GetFramebuffer(), window->GetX(), window->GetY(), this->XPosition, this->YPosition);
     }
 
     // Windows
     for(uint64_t i = 0; i < Windows->length; i++){
-        windowc* window = (windowc*) vector_get(Windows, i);
-        dynamicBlit(this->BackFramebuffer, window->GetFramebuffer(), window->GetX(), window->GetY(), this->XPosition, this->YPosition);
+        windowc* window = (windowc*)vector_get(Windows, i);
+        DynamicBlit(this->BackFramebuffer, window->GetFramebuffer(), window->GetX(), window->GetY(), this->XPosition, this->YPosition);
     }
 
     // Foreground
     for(uint64_t i = Foreground->length; i != 0; i--){
-        windowc* window = (windowc*) vector_get(Foreground, i - 1);
-        dynamicBlit(this->BackFramebuffer, window->GetFramebuffer(), window->GetX(), window->GetY(), this->XPosition, this->YPosition);
+        windowc* window = (windowc*)vector_get(Foreground, i - 1);
+        DynamicBlit(this->BackFramebuffer, window->GetFramebuffer(), window->GetX(), window->GetY(), this->XPosition, this->YPosition);
     }
 
     DrawCursor(this->BackFramebuffer, BitmapMask, PixelMap);

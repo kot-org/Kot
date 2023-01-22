@@ -1,6 +1,6 @@
 #include <kot-graphics/context.h>
 
-void ctxSubSeqCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour);
+void ctxSubSeqCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t color);
 
 ctxg_t* CreateGraphicContext(framebuffer_t* fb) {
     ctxg_t* ctx = malloc(sizeof(ctxg_t));
@@ -21,11 +21,11 @@ ctxg_t* CreateGraphicContext(framebuffer_t* fb) {
     return ctx;
 }
 
-void ctxPutPixel(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t colour) {
+void ctxPutPixel(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t color) {
     if (ctxPixelExist(ctx, x, y) == -1) return;
     uint64_t index = x * ctx->Btpp + y * ctx->Pitch;
-    *(uint32_t*)((uint64_t)ctx->fb_addr + index) = colour;
-    //blendAlpha(((uint64_t)ctx->fb_addr + index), colour);
+    *(uint32_t*)((uint64_t)ctx->fb_addr + index) = color;
+    //blendAlpha(((uint64_t)ctx->fb_addr + index), color);
 }
 
 int8_t ctxPixelExist(ctxg_t* ctx, uint32_t x, uint32_t y) {
@@ -94,14 +94,14 @@ void end_path(ctxg_t* ctx) {
     }
 }
 
-void draw(ctxg_t* ctx, uint32_t colour) {
+void draw(ctxg_t* ctx, uint32_t color) {
     if (ctx->_auto == true) {
         end_path(ctx);
     }
     for (uint64_t i = 0; i < ctx->poses->length-1; i++) {
         pos_t* pos1 = (pos_t*) vector_get(ctx->poses, i);
         pos_t* pos2 = (pos_t*) vector_get(ctx->poses, i+1);
-        ctxDrawLine(ctx, pos1->x, pos1->y, pos2->x, pos2->y, colour);
+        ctxDrawLine(ctx, pos1->x, pos1->y, pos2->x, pos2->y, color);
     }
 }
 
@@ -113,18 +113,18 @@ void resetCtx(ctxg_t* ctx) {
 
 // ## absolute ##
 
-void ctxFill(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t colour, uint32_t border) {
+void ctxFill(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t color, uint32_t border) {
     uint32_t pixel = GetPixel(ctx, x, y);
-    if (pixel != colour && pixel != border && ctxPixelExist(ctx, x, y) == 1) {
-        PutPixel(ctx, x, y, colour);
-        ctxFill(ctx, x+1, y, colour, border);
-        ctxFill(ctx, x, y+1, colour, border);
-        ctxFill(ctx, x-1, y, colour, border);
-        ctxFill(ctx, x, y-1, colour, border);
+    if (pixel != color && pixel != border && ctxPixelExist(ctx, x, y) == 1) {
+        PutPixel(ctx, x, y, color);
+        ctxFill(ctx, x+1, y, color, border);
+        ctxFill(ctx, x, y+1, color, border);
+        ctxFill(ctx, x-1, y, color, border);
+        ctxFill(ctx, x, y-1, color, border);
     }
 } 
 
-void ctxFillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t colour) {
+void ctxFillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color) {
 
     uint8_t* fb = (uint8_t*) ctx->fb_addr;
 
@@ -144,32 +144,32 @@ void ctxFillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t Width, uint32_t H
         for (uint32_t w = x; w < _w; w++) {
             uint64_t XPosition = w * ctx->Btpp;
             uint64_t index = YPosition + XPosition;
-            *(uint32_t*)((uint64_t)ctx->fb_addr + index) = colour;
-            //blendAlpha(((uint64_t)ctx->fb_addr + index), colour);
+            *(uint32_t*)((uint64_t)ctx->fb_addr + index) = color;
+            //blendAlpha(((uint64_t)ctx->fb_addr + index), color);
         }
     }
 
 }
 
-void ctxSubSeqCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t colour) {
+void ctxSubSeqCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t color) {
     uint32_t w = ctx->Width;
     uint32_t h = ctx->Height;
-    ctxPutPixel(ctx, xc+x+w/2, (h/2)-(yc+y), colour);
-    ctxPutPixel(ctx, xc-x+w/2, (h/2)-(yc+y), colour);
-    ctxPutPixel(ctx, xc+x+w/2, (h/2)-(yc-y), colour);
-    ctxPutPixel(ctx, xc-x+w/2, (h/2)-(yc-y), colour);
-    ctxPutPixel(ctx, xc+y+w/2, (h/2)-(yc+x), colour);
-    ctxPutPixel(ctx, xc-y+w/2, (h/2)-(yc+x), colour);
-    ctxPutPixel(ctx, xc+y+w/2, (h/2)-(yc-x), colour);
-    ctxPutPixel(ctx, xc-y+w/2, (h/2)-(yc-x), colour);
+    ctxPutPixel(ctx, xc+x+w/2, (h/2)-(yc+y), color);
+    ctxPutPixel(ctx, xc-x+w/2, (h/2)-(yc+y), color);
+    ctxPutPixel(ctx, xc+x+w/2, (h/2)-(yc-y), color);
+    ctxPutPixel(ctx, xc-x+w/2, (h/2)-(yc-y), color);
+    ctxPutPixel(ctx, xc+y+w/2, (h/2)-(yc+x), color);
+    ctxPutPixel(ctx, xc-y+w/2, (h/2)-(yc+x), color);
+    ctxPutPixel(ctx, xc+y+w/2, (h/2)-(yc-x), color);
+    ctxPutPixel(ctx, xc-y+w/2, (h/2)-(yc-x), color);
 }
 
-void ctxDrawCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t r, uint32_t colour) {
+void ctxDrawCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t r, uint32_t color) {
     int x = 0, y = r;
     int d = 3 - 2 * r;
-    ctxSubSeqCircle(ctx, xc, yc, x, y, colour);
+    ctxSubSeqCircle(ctx, xc, yc, x, y, color);
     while (y >= x) {
-        ctxSubSeqCircle(ctx, xc, yc, x, y, colour);
+        ctxSubSeqCircle(ctx, xc, yc, x, y, color);
         x++;
         if (d > 0) {
             y--;
@@ -177,11 +177,11 @@ void ctxDrawCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t r, uint32_t c
         } else {
             d = d + 4 * x + 6;
         }
-        ctxSubSeqCircle(ctx, xc, yc, x, y, colour);
+        ctxSubSeqCircle(ctx, xc, yc, x, y, color);
     }
 }
 
-void ctxDrawLine(ctxg_t* ctx, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour) {
+void ctxDrawLine(ctxg_t* ctx, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color) {
 
     if (x1 > ctx->Width) {
         x1 = ctx->Width;
@@ -235,33 +235,33 @@ void ctxDrawLine(ctxg_t* ctx, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2
 
     int32_t p = 2*(abs(dy)) - abs(dx);
 
-    ctxPutPixel(ctx, x, y, colour);
+    ctxPutPixel(ctx, x, y, color);
 
     for (int32_t i = 0; i < abs(dx); i++) {
         if (p < 0) {
             if (isSwaped == 0) {
                 x = x + sx;
-                ctxPutPixel(ctx, x, y, colour);
+                ctxPutPixel(ctx, x, y, color);
             } else {
                 y = y+sy;
-                ctxPutPixel(ctx, x, y, colour);
+                ctxPutPixel(ctx, x, y, color);
             }
             p = p + 2*abs(dy);
         } else {
             x = x+sx;
             y = y+sy;
-            ctxPutPixel(ctx, x, y, colour);
+            ctxPutPixel(ctx, x, y, color);
             p = p + 2*abs(dy) - 2*abs(dx);
         }
     }
 
 }
 
-void ctxDrawRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t colour) {
-    ctxDrawLine(ctx, x, y, x+Width, y, colour); // top
-    ctxDrawLine(ctx, x, y+Height, x+Width, y+Height, colour); // bottom
-    ctxDrawLine(ctx, x, y, x, y+Height, colour); // left
-    ctxDrawLine(ctx, x+Width, y, x+Width, y+Height, colour); // right
+void ctxDrawRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color) {
+    ctxDrawLine(ctx, x, y, x+Width, y, color); // top
+    ctxDrawLine(ctx, x, y+Height, x+Width, y+Height, color); // bottom
+    ctxDrawLine(ctx, x, y, x, y+Height, color); // left
+    ctxDrawLine(ctx, x+Width, y, x+Width, y+Height, color); // right
 }
 
 // ## frame buffer ##
@@ -286,8 +286,8 @@ void clear(ctxg_t* ctx) {
     memset(ctx->fb_addr, 0x00, ctx->fb_size);
 } 
 
-void clearColor(ctxg_t* ctx, uint32_t colour) {
-    memset32(ctx->fb_addr, colour, ctx->fb_size);
+void clearColor(ctxg_t* ctx, uint32_t color) {
+    memset32(ctx->fb_addr, color, ctx->fb_size);
 } 
 
 uintptr_t GetFramebuffer(ctxg_t* ctx) {

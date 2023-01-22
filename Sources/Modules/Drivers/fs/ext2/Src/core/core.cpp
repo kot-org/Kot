@@ -473,10 +473,14 @@ inode_t* mount_info_t::FindInodeFromInodeEntryAndPath(inode_t* inode, char* path
             // Find the directory entry in this inode
             inode_t* InodeFind = FindInodeInodeAndEntryFromName(InodeIteration, PathEntries[i]);
             if(InodeFind != NULL){
-                free(InodeIteration);
+                if(InodeIteration != inode){
+                    free(InodeIteration);
+                }
                 InodeIteration = InodeFind;
             }else{
-                free(InodeIteration);
+                if(InodeIteration != inode){
+                    free(InodeIteration);
+                }
                 return NULL;
             }
         }

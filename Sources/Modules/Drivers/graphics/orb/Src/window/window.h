@@ -5,7 +5,7 @@
 
 #include <core/main.h>
 
-#define DEFAUT_Bpp 32
+#define DEFAUT_BPP 32
 
 class monitorc;
 
@@ -17,7 +17,10 @@ struct Cursor{
 class windowc{
     public:
         process_t Target;
+
         framebuffer_t* Framebuffer;
+        graphiceventbuffer_t* Eventbuffer;
+
         ksmem_t FramebufferKey;
         uint64_t XPosition;
         uint64_t YPosition;
@@ -25,12 +28,14 @@ class windowc{
         uint64_t WindowIndex;
         bool IsVisible = false;
         bool IsFocus = false;
+        event_t Event;
         
         KResult CreateBuffer();
 
-        windowc(uint64_t WindowType);
+        windowc(uint64_t WindowType, event_t Event);
         monitorc* FindMonitor();
         framebuffer_t* GetFramebuffer();
+        graphiceventbuffer_t* GetEventbuffer();
         ksmem_t GetFramebufferKey();
         uint64_t GetHeight();
         uint64_t GetWidth();
@@ -42,7 +47,7 @@ class windowc{
         KResult Resize(int64_t Width, int64_t Height);
         KResult Move(int64_t XPosition, int64_t YPosition);
 
-        bool SetState(bool IsFocus);
+        bool SetFocusState(bool IsFocus);
         bool GetState();
 
         bool SetVisible(bool IsVisible);
@@ -50,5 +55,7 @@ class windowc{
 
         KResult Close();
 };
+
+extern windowc* CurrentFocusWindow;
 
 #endif

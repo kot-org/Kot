@@ -200,7 +200,6 @@ KResult Getfilesize(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, u
         .arg[4] = NULL,                 /* GP2 */
         .arg[5] = NULL,                 /* GP3 */
     };
-
     Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
     return KSUCCESS;
 }

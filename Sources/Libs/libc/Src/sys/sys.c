@@ -66,8 +66,8 @@ KResult Sys_Event_Unbind(event_t self, thread_t task){
     return Syscall_16(KSys_Event_Unbind, self, task);
 }
 
-KResult Sys_Event_trigger(event_t self, struct arguments_t* parameters){
-    return Syscall_16(KSys_Event_trigger, self, parameters);
+KResult Sys_Event_Trigger(event_t self, struct arguments_t* parameters){
+    return Syscall_16(KSys_Event_Trigger, self, parameters);
 }
 
 KResult Sys_Event_Close(){

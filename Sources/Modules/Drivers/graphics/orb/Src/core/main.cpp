@@ -10,7 +10,7 @@ vector_t* Foreground = NULL;
 
 vector_t* Monitors = NULL;
 
-void renderWindows() {
+void RenderWindows(){
     // todo: multi threads monitor rendering
     for(uint64_t i = 0; i < Monitors->length; i++){
         monitorc* Monitor = (monitorc*)vector_get(Monitors, i);
@@ -20,10 +20,19 @@ void renderWindows() {
     }
 }
 
+void UpdateAllEvents(){
+    for(uint64_t i = 0; i < Monitors->length; i++){
+        monitorc* Monitor = (monitorc*)vector_get(Monitors, i);
+        if(Monitor != NULL){
+            Monitor->UpdateEvents(Background, Windows, Foreground);
+        }
+    }
+}
+
 thread_t renderThread = NULL;
 
 void threadRender(){
-    renderWindows();
+    RenderWindows();
     Sys_Execthread(renderThread, NULL, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
@@ -47,14 +56,14 @@ void InitialiseOrb(){
 
     monitorc* monitor0 = new monitorc(Self, (uintptr_t) virtualAddress, bootframebuffer->Width, bootframebuffer->Height, bootframebuffer->Pitch, bootframebuffer->Bpp, 0, 0);
 
-    CursorMaxPosition.x = monitor0->GetWidth();
-    CursorMaxPosition.y = monitor0->GetHeight();
+    CursorMaxPosition.x = monitor0->GetWidth() - 1;
+    CursorMaxPosition.y = monitor0->GetHeight() - 1;
 
     free(bootframebuffer);
 
     vector_push(Monitors, monitor0);
     
-    windowc* LoadingScreen = new windowc(Window_Type_Background);
+    windowc* LoadingScreen = new windowc(Window_Type_Background, NULL);
     LoadingScreen->Resize(Window_Max_Size, Window_Max_Size);
     LoadingScreen->SetVisible(true);
     

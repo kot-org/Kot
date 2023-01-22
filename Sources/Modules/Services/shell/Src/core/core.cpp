@@ -3,10 +3,15 @@
 #include <kot-graphics/orb.h>
 #include <kot-graphics/context.h>
 
+void EventTest(enum Window_Event EventType){
+    std::printf("%x", EventType);
+    Sys_Event_Close();
+}
+
 shell_t* NewShell(){
     shell_t* Shell = (shell_t*)malloc(sizeof(shell_t));
 
-    window_t* wid = CreateWindow(NULL, Window_Type_DockRight);
+    window_t* wid = CreateWindow((uintptr_t)&EventTest, Window_Type_DockRight);
     ResizeWindow(wid, 50, 50);
     memset(wid->Framebuffer.Buffer, 0xff, wid->Framebuffer.Size);
     ChangeVisibilityWindow(wid, true);

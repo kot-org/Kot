@@ -49,15 +49,23 @@ struct srv_graphics_callback_t* Srv_Graphics_CreateWindow(uintptr_t EventHandler
     callback->Status = KBUSY;
     callback->Handler = &Srv_Graphics_Createwindowcallback;
 
-    Sys_Createthread(Sys_GetProcess(), EventHandler, PriviledgeApp, Window, &Window->EventHandler);
+    Sys_Event_Create(&Window->Event);
+
+    if(EventHandler != NULL){
+        Sys_Createthread(Sys_GetProcess(), EventHandler, PriviledgeApp, Window, &Window->EventHandler);
+        Sys_Event_Bind(Window->Event, Window->EventHandler, false);
+    }else{
+        Window->EventHandler = NULL;
+    }
 
     struct arguments_t parameters;
     parameters.arg[0] = srv_graphics_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = ShareProcessGraphics;
-    parameters.arg[3] = MakeShareableThreadToProcess(Window->EventHandler, GraphicsData->ControllerHeader.Process);
     parameters.arg[4] = WindowType;
     
+    Sys_Keyhole_CloneModify(Window->Event, &parameters.arg[3], GraphicsData->ControllerHeader.Process, KeyholeFlagPresent | KeyholeFlagDataTypeEventIsTriggerable, PriviledgeApp);
+
     KResult Status = Sys_Execthread(GraphicsData->CreateWindow, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);

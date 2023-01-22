@@ -78,13 +78,13 @@ namespace std {
                 uint64_t newSize = toSize+fromSize;
                 char* temp = (char*) malloc(newSize+1);
                 memcpy(temp, buffer, toSize);
-                memcpy((uintptr_t)((uint64_t) temp + toSize), str, fromSize);
+                memcpy((uintptr_t)((uint64_t)temp + toSize), str, fromSize);
                 temp[newSize] = '\0';
                 free(buffer);
                 buffer = temp;
             } else {
-                free(this->buffer);
-                this->buffer = (char*) malloc(fromSize);
+                free(buffer);
+                buffer = (char*) malloc(fromSize+1);
                 memcpy(buffer, str, fromSize);
                 buffer[fromSize] = '\0';
             }
@@ -107,7 +107,7 @@ namespace std {
                 buffer = temp;
             } else {
                 free(this->buffer);
-                this->buffer = (char*) malloc(fromSize);
+                this->buffer = (char*) malloc(fromSize+1);
                 memcpy(buffer, str, fromSize);
                 buffer[fromSize] = '\0';
             }

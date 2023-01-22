@@ -3,25 +3,25 @@
 #include <memory/memory.h>
 
 void memset(uintptr_t start, uint8_t value, size64_t size){
-    for (uint64_t i = 0; i < size; i++){
+    for (uint64_t i = 0; i < size; i += sizeof(uint8_t)){
         *(uint8_t*)((uint64_t)start + i) = value;
     }
 }       
 
 void memset16(uintptr_t start, uint16_t value, size64_t size){
-    for (uint64_t i = 0; i < size; i++){
+    for (uint64_t i = 0; i < size; i += sizeof(uint16_t)){
         *(uint16_t*)((uint64_t)start + i) = value;
     }
 }
 
 void memset32(uintptr_t start, uint32_t value, size64_t size){
-    for (uint64_t i = 0; i < size; i++){
+    for (uint64_t i = 0; i < size; i += sizeof(uint32_t)){
         *(uint32_t*)((uint64_t)start + i) = value;
     }
 }
 
 void memset64(uintptr_t start, uint64_t value, size64_t size){
-    for (uint64_t i = 0; i < size; i++){
+    for (uint64_t i = 0; i < size; i += sizeof(uint64_t)){
         *(uint64_t*)((uint64_t)start + i) = value;
     }
 }

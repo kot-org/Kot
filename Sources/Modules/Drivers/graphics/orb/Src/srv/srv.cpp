@@ -28,10 +28,10 @@ KResult InitialiseServer(){
     return Status;
 }
 
-KResult CreateWindow(thread_t Callback, uint64_t CallbackArg, process_t Target, thread_t Event, uint64_t WindowType){
+KResult CreateWindow(thread_t Callback, uint64_t CallbackArg, process_t Target, event_t Event, uint64_t WindowType){
     windowc* Window = NULL;
 
-    if((Window = new windowc(WindowType)) != NULL){
+    if((Window = new windowc(WindowType, Event)) != NULL){
         ShareDataWithArguments_t Data{
             .ParameterPosition = 0x3,
             .Data = Window->GetFramebuffer(),

@@ -10,10 +10,12 @@ class windowc;
 class Context;
 
 class monitorc {
-    private:
+    public:
         framebuffer_t* MainFramebuffer;
         framebuffer_t* BackFramebuffer;
-    public:
+
+        graphiceventbuffer_t* Eventbuffer;
+
         uint64_t XPosition;
         uint64_t XMaxPosition;
 
@@ -36,6 +38,10 @@ class monitorc {
         uint64_t GetHeight();
 
         void Move(uint64_t XPosition, uint64_t YPosition);
+
+        void SetWindowEvent(windowc* window);
+        void UpdateEvents(vector_t* Background, vector_t* Windows, vector_t* Foreground);
+
         void Update(vector_t* Background, vector_t* Windows, vector_t* Foreground);
 };
 

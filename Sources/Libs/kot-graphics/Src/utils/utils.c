@@ -1,17 +1,17 @@
 #include <kot-graphics/utils.h>
 #include <kot-graphics/context.h>
 
-int8_t pixelExist(framebuffer_t* fb, uint32_t x, uint32_t y) {
+int8_t PixelExist(framebuffer_t* fb, uint32_t x, uint32_t y) {
     if (x < 0 || y < 0) return -1;
     if (x > fb->Width || y > fb->Height) return -1;
     return 1;
 }
 
-void PutPixel(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t colour) {
-    if (pixelExist(fb, x, y) == -1) return;
+void PutPixel(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t color) {
+    if (PixelExist(fb, x, y) == -1) return;
     uint64_t index = x * 4 + y * fb->Pitch;
-    *(uint32_t*)((uint64_t)fb->Buffer + index) = colour;
-    //blendAlpha(((uint64_t)fb->Buffer + index), colour);
+    *(uint32_t*)((uint64_t)fb->Buffer + index) = color;
+    //blendAlpha(((uint64_t)fb->Buffer + index), color);
 }
 
 uint32_t GetPixel(framebuffer_t* fb, uint32_t x, uint32_t y) {
@@ -20,7 +20,6 @@ uint32_t GetPixel(framebuffer_t* fb, uint32_t x, uint32_t y) {
 }
 
 void BlitFramebuffer(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y) {
-
     uint64_t to_addr = (uint64_t) to->Buffer;
     uint64_t from_addr = (uint64_t) from->Buffer;
 
@@ -28,9 +27,9 @@ void BlitFramebuffer(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_
 
     uint64_t num;
 
-    if (to->Pitch < from->Pitch) {
+    if(to->Pitch < from->Pitch){
         num = to->Pitch;
-    } else {
+    }else{
         num = from->Pitch;
     } 
 
@@ -39,7 +38,6 @@ void BlitFramebuffer(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_
         to_addr += to->Pitch;
         from_addr += from->Pitch;
     }
-
 }
 
 void BlitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y, uint16_t borderRadius) {
@@ -63,7 +61,7 @@ void BlitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint32_t x, u
     }
 }
 
-void FillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t colour) {
+void FillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color) {
     uint32_t _h = Height+y;
     uint32_t _w = Width+x;
 
@@ -75,13 +73,13 @@ void FillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_
         for (uint32_t w = x; w < _w; w++) {
             uint64_t XPosition = w * fb->Btpp;
             uint64_t index = YPosition + XPosition;
-            *(uint32_t*)((uint64_t)fb->Buffer + index) = colour;
-            //blendAlpha((uintptr_t)((uint64_t)fb->Buffer + index), colour);
+            *(uint32_t*)((uint64_t)fb->Buffer + index) = color;
+            //blendAlpha((uintptr_t)((uint64_t)fb->Buffer + index), color);
         }
     }
 }
 
-void DrawLine(framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t colour) {
+void DrawLine(framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color) {
 
     if (x1 > fb->Width) { x1 = fb->Width; }
     if (y1 > fb->Height) { y1 = fb->Height; }
@@ -113,31 +111,31 @@ void DrawLine(framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t
 
     int32_t p = 2*(abs(dy)) - abs(dx);
 
-    PutPixel(fb, x, y, colour);
+    PutPixel(fb, x, y, color);
 
     for (int32_t i = 0; i < abs(dx); i++) {
         if (p < 0) {
             if (isSwaped == 0) {
                 x = x + sx;
-                PutPixel(fb, x, y, colour);
+                PutPixel(fb, x, y, color);
             } else {
                 y = y+sy;
-                PutPixel(fb, x, y, colour);
+                PutPixel(fb, x, y, color);
             }
             p = p + 2*abs(dy);
         } else {
             x = x+sx;
             y = y+sy;
-            PutPixel(fb, x, y, colour);
+            PutPixel(fb, x, y, color);
             p = p + 2*abs(dy) - 2*abs(dx);
         }
     }
 
 }
 
-void DrawRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t colour) {
-    DrawLine(fb, x, y, x+Width, y, colour); // top
-    DrawLine(fb, x, y+Height, x+Width, y+Height, colour); // bottom
-    DrawLine(fb, x, y, x, y+Height, colour); // left
-    DrawLine(fb, x+Width, y, x+Width, y+Height, colour); // right
+void DrawRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color) {
+    DrawLine(fb, x, y, x+Width, y, color); // top
+    DrawLine(fb, x, y+Height, x+Width, y+Height, color); // bottom
+    DrawLine(fb, x, y, x, y+Height, color); // left
+    DrawLine(fb, x+Width, y, x+Width, y+Height, color); // right
 }

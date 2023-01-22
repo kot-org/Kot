@@ -8,12 +8,13 @@ uint64_t CursorHeight;
 
 int64_t Width;
 int64_t Height;
-uint64_t Pitch;
 
 uintptr_t PixelMap;
 uintptr_t BitmapMask;
 
 thread_t MouseRelativeInterrupt;
+
+bool IsLastLeftClick = false;
 
 void InitializeCursor(){
     srv_system_callback_t* KursorFile = (srv_system_callback_t*) Srv_System_ReadFileInitrd("christmasTree.kursor", true);
@@ -21,7 +22,7 @@ void InitializeCursor(){
 
     Width = Header->Width;
     Height = Header->Height;
-    Pitch = Width * 4;
+    uint64_t Pitch = Width * 4;
 
     CursorWidth = Width;
     CursorHeight = Height;
@@ -44,6 +45,7 @@ void InitializeCursor(){
 
     BindMouseRelative(MouseRelativeInterrupt, false);
 }
+
 
 void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
     /* Update X position */
@@ -85,12 +87,38 @@ void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
         Height = NewHeight;
     }
 
+    bool IsleftClick = status & 0x1;
+    if(IsleftClick && IsLastLeftClick != IsleftClick){
+        // Change focus
+        for(uint64_t i = 0; i < Monitors->length; i++){
+            monitorc* Monitor = (monitorc*)vector_get(Monitors, i);
+            if(Monitor != NULL){
+                if(IsBeetween(Monitor->XPosition, CursorPosition.x, Monitor->XMaxPosition) && IsBeetween(Monitor->YPosition, CursorPosition.y, Monitor->YMaxPosition)){
+                    windowc* Window = (windowc*)GetEventData(Monitor->Eventbuffer, CursorPosition.x, CursorPosition.y);
+                    Window->SetFocusState(true);
+                }
+            }
+        }
+    }
+
+    IsLastLeftClick = IsleftClick;
+
+    if(CurrentFocusWindow != NULL){
+        arguments_t Parameters{
+            .arg[0] = Winwow_Event_Mouse,               // Event type
+            .arg[1] = (uint64_t)CursorPosition.x,       // X position
+            .arg[2] = (uint64_t)CursorPosition.y,       // Y position
+            .arg[3] = (uint64_t)z,                      // Z position (scroll)
+            .arg[4] = status,                           // Status of buttons
+        };
+        Sys_Event_Trigger(CurrentFocusWindow->Event, &Parameters);
+    }
     Sys_Event_Close();
 }
 
 void DrawCursor(framebuffer_t* fb, uintptr_t BitmapMask, uintptr_t PixelMap) {   
-    uint32_t* Pixel = (uint32_t*) PixelMap;
-    uint8_t* Mask = (uint8_t*) BitmapMask;
+    uint32_t* Pixel = (uint32_t*)PixelMap;
+    uint8_t* Mask = (uint8_t*)BitmapMask;
     
     for(uint64_t y = 0; y < Height; y++) {
         for(uint64_t x = 0; x < Width; x++) {

@@ -336,10 +336,10 @@ KResult Sys_Event_Unbind(SyscallStack* Registers, kthread_t* Thread){
     return Event::Unbind(Thread, event);
 }
 
-/* Sys_Event_trigger :
+/* Sys_Event_Trigger :
     Arguments : 
 */
-KResult Sys_Event_trigger(SyscallStack* Registers, kthread_t* Thread){
+KResult Sys_Event_Trigger(SyscallStack* Registers, kthread_t* Thread){
     kevent_t* event; 
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeEvent, (uint64_t*)&event, &flags) != KSUCCESS) return KKEYVIOLATION;
@@ -491,7 +491,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_Event_Create] = Sys_Event_Create,
     [KSys_Event_Bind] = Sys_Event_Bind,
     [KSys_Event_Unbind] = Sys_Event_Unbind,
-    [KSys_Event_trigger] = Sys_Event_trigger,
+    [KSys_Event_Trigger] = Sys_Event_Trigger,
     [KSys_Event_Close] = Sys_Event_Close,
     [KSys_CreateThread] = Sys_CreateThread,
     [KSys_DuplicateThread] = Sys_DuplicateThread,

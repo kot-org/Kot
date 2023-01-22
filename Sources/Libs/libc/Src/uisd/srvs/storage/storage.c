@@ -586,10 +586,15 @@ struct srv_storage_callback_t* Srv_Storage_Getfilesize(file_t* File, bool IsAwai
 /* Readfile */
 
 KResult Srv_Storage_Readfile_Callback(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
-    if(Sys_GetInfoMemoryField((ksmem_t)GP0, NULL, &Callback->Size) == KSUCCESS){
-        return Sys_AcceptMemoryField(Sys_GetProcess(), (ksmem_t)GP0, &Callback->Data);
+    if(Status == KSUCCESS){
+        uint64_t MemoryType;
+        if(Sys_GetInfoMemoryField((ksmem_t)GP0, &MemoryType, &Callback->Size) == KSUCCESS){
+            if(MemoryType == MemoryFieldTypeSendSpaceRO){
+                return Sys_AcceptMemoryField(Sys_GetProcess(), (ksmem_t)GP0, &Callback->Data);
+            }
+        }
     }
-    return KFAIL;
+    return Status;
 }
 
 struct srv_storage_callback_t* Srv_Storage_Readfile(file_t* File, uintptr_t Buffer, uint64_t Start, size64_t Size, bool IsAwait){
