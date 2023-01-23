@@ -53,10 +53,11 @@ make -C "Modules/Drivers/fs/ext2/Build"
 # Services
 echo -e "\e[32mCompiling kot services...\e[0m"
 
-make -C "Modules/Services/shell/Build"
 make -C "Modules/Services/hid/Build"
 make -C "Modules/Services/time/Build"
 make -C "Modules/Services/storage/Build"
+make -C "Modules/Services/shell/Build"
+make -C "Modules/Services/desktop/Build"
 
 # Apps
 echo -e "\e[32mCompiling kot apps...\e[0m"

@@ -16,8 +16,8 @@ namespace UiLayout {
             {
                 // todo: parent -> Width: 100%
 
-                if(parent->getStyle()->Height < child->getStyle()->Height)
-                    parent->getStyle()->Height = child->getStyle()->Height;
+                if(parent->getStyle()->height < child->getStyle()->height)
+                    parent->getStyle()->height = child->getStyle()->height;
 
                 /* space */
                 if(parent->getStyle()->space == Layout::BETWEEN) {
@@ -49,7 +49,7 @@ namespace UiLayout {
 
             Component* child = (Component*) vector_get(parent->getChilds(), i);
 
-            child->getStyle()->Height = parent->getStyle()->Height;
+            child->getStyle()->height = parent->getStyle()->height;
 
         }
 

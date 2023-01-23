@@ -17,8 +17,19 @@ thread_t MouseRelativeInterrupt;
 bool IsLastLeftClick = false;
 
 void InitializeCursor(){
-    srv_system_callback_t* KursorFile = (srv_system_callback_t*) Srv_System_ReadFileInitrd("christmasTree.kursor", true);
-    KursorHeader* Header = (KursorHeader*) KursorFile->Data;
+    file_t* KursorFile = fopen("d1:Bin/Kursors/darkDefault.kursor", "r"); // todo: kursor settings
+
+    if(KursorFile == NULL) {
+        Printlog("[GRAPHICS/ORB] \033[0;31mERR:\033[0m Kursor file not found."); // todo: error log
+        return;
+    }
+
+    fseek(KursorFile, 0, SEEK_END);
+    uint64_t KursorFileSize = ftell(KursorFile);
+	fseek(KursorFile, 0, SEEK_SET);
+
+    KursorHeader* Header = (KursorHeader*) malloc(KursorFileSize);
+    fread(Header, KursorFileSize, 1, KursorFile);
 
     Width = Header->Width;
     Height = Header->Height;
@@ -39,7 +50,8 @@ void InitializeCursor(){
     BitmapMask = malloc(BitmapMaskSize);
     memcpy(BitmapMask, BitmapMaskTmp, BitmapMaskSize);
 
-    free(KursorFile);
+    free(Header);
+    fclose(KursorFile);
 
     Sys_Createthread(Sys_GetProcess(), (uintptr_t)&CursorInterrupt, PriviledgeApp, NULL, &MouseRelativeInterrupt);
 
@@ -120,13 +132,13 @@ void DrawCursor(framebuffer_t* fb, uintptr_t BitmapMask, uintptr_t PixelMap) {
     uint32_t* Pixel = (uint32_t*)PixelMap;
     uint8_t* Mask = (uint8_t*)BitmapMask;
     
-    for(uint64_t y = 0; y < Height; y++) {
-        for(uint64_t x = 0; x < Width; x++) {
-            uint64_t PixelPos = y * CursorWidth + x;
+    uint32_t PixelPos;
+    for(uint32_t y = 0; y < Height; y++) {
+        for(uint32_t x = 0; x < Width; x++) {
+            PixelPos = y * CursorWidth + x;
 
-            if(BIT_CHECK(Mask[PixelPos / 8], PixelPos % 8)){
+            if(BIT_CHECK(Mask[PixelPos / 8], PixelPos % 8))
                 PutPixel(fb, CursorPosition.x + x, CursorPosition.y + y, Pixel[PixelPos]);
-            }
         }
     }
 }
