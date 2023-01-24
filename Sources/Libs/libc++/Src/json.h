@@ -21,7 +21,7 @@ namespace std {
         char* buffer;
 
         void skipUseless() {
-            while (buffer[index] == ' ' || buffer[index] == '\n' || buffer[index] == '\r') {
+            while (buffer[index] == ' ' || buffer[index] == '\n' || buffer[index] == '\r' || buffer[index] == '\t') {
                 index++;
             }
         }

@@ -2,6 +2,8 @@
 
 #include <core/main.h>
 
+#include <kot/uisd/srvs/storage.h>
+
 extern point_t CursorPosition;
 extern point_t CursorMaxPosition;
 

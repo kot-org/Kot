@@ -56,8 +56,8 @@ void InitialiseOrb(){
 
     monitorc* monitor0 = new monitorc(Self, (uintptr_t) virtualAddress, bootframebuffer->Width, bootframebuffer->Height, bootframebuffer->Pitch, bootframebuffer->Bpp, 0, 0);
 
-    CursorMaxPosition.x = monitor0->GetWidth() - 1;
-    CursorMaxPosition.y = monitor0->GetHeight() - 1;
+    CursorMaxPosition.x = monitor0->GetWidth()-1;
+    CursorMaxPosition.y = monitor0->GetHeight()-1;
 
     free(bootframebuffer);
 

@@ -51,6 +51,37 @@ char* strcat(char* dst, char* src){
     return dst;
 }
 
+int strtol(const char* str, char** endptr, int8_t basenumber) {
+    int result = 0;
+    int8_t sign = 1;
+    
+    while (*str == ' ' || *str == '\t' || *str == '\n') str++;
+    
+    if(*str == '+')
+        str++;
+    else if(*str == '-') {
+        sign = -1;
+        str++;
+    }
+
+    while(*str) {
+        if(*str >= '0' && *str <= '9')
+            result = result * basenumber + (*str - '0');
+        else if(*str >= 'a' && *str <= 'f')
+            result = result * basenumber + (*str - 'a' + 10);
+        else if(*str >= 'A' && *str <= 'F')
+            result = result * basenumber + (*str - 'A' + 10);
+        else
+            break;
+        str++;
+    }
+
+    if(endptr) 
+        *endptr = (char*) str;
+
+    return result * sign;
+}
+
 char** strsplit(char* str, const char* delimiters, uint64_t* count){
     char* entry = str;
     char* strTmp = str;

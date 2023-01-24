@@ -4,4 +4,17 @@
 
 #include <kot++/json.h>
 
+#include <kot/uisd/srvs/storage.h>
+
 #include <kot-graphics/orb.h>
+#include <kot-ui++/component.h>
+
+using namespace std;
+
+class desktopc {
+    public:
+        desktopc(JsonArray* settings);
+
+    private:
+        framebuffer_t* fb;
+};

@@ -5,20 +5,20 @@ namespace Ui {
     Component* titlebar(char* title, TitlebarStyle style) {
         /* todo: drag region */
         /* todo: replace Width: 500 -> 100% */
-        Component* titlebar = UiLayout::Flexbox({ .direction = Layout::HORIZONTAL, .space = Layout::BETWEEN, .Width = 500, .backgroundColor = style.backgroundColor, .foregroundColor = style.foregroundColor });
+        Component* titlebar = UiLayout::Flexbox({ .direction = Layout::HORIZONTAL, .space = Layout::BETWEEN, .width = 500, .backgroundColor = style.backgroundColor, .foregroundColor = style.foregroundColor });
 
-        auto windowInfo = Ui::box({ .Width = titlebar->getStyle()->Width/2, .Height = 40, .color = 0xFF0000 });
+        auto windowInfo = Ui::box({ .width = titlebar->getStyle()->width/2, .height = 40, .color = 0xFF0000 });
 
-        auto iconBox = Ui::box({ .Width = 20, .Height = 20, .color = 0xFFFF00 });
+        auto iconBox = Ui::box({ .width = 20, .height = 20, .color = 0xFFFF00 });
         windowInfo->addChild(iconBox); 
-        auto titleBox = Ui::box({ .Width = 40, .Height = 25, .color = 0xFF00FF });
+        auto titleBox = Ui::box({ .width = 40, .height = 25, .color = 0xFF00FF });
         windowInfo->addChild(titleBox); 
         
         titlebar->addChild(windowInfo);
 
-        auto buttons = Ui::box({ .Width = 60, .color = 0x00FF00 });
+        auto buttons = Ui::box({ .width = 60, .color = 0x00FF00 });
 
-        /* auto box2box = Ui::box({ .Width = 10, .Height = 10, .color = 0xFFFF00 });
+        /* auto box2box = Ui::box({ .width = 10, .height = 10, .color = 0xFFFF00 });
         buttons->addChild(box2box);  */
 
         titlebar->addChild(buttons);
