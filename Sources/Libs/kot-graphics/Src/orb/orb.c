@@ -20,7 +20,7 @@ KResult ResizeWindow(window_t* Window, int64_t Width, int64_t Height){
     return Status;
 }
 
-KResult ChangePosWindow(window_t* Window, uint64_t XPosition, uint64_t YPosition){
+KResult WindowChangePosition(window_t* Window, uint64_t XPosition, uint64_t YPosition){
     struct srv_graphics_callback_t* Callback = Srv_Graphics_ChangePostionWindow(Window, XPosition, YPosition, true);
     KResult Status = Callback->Status;
     free(Callback);

@@ -229,10 +229,8 @@ bool windowc::SetFocusState(bool IsFocus){
     if(this->IsFocus){
         if(CurrentFocusWindow != NULL) CurrentFocusWindow->SetFocusState(false);
         CurrentFocusWindow = this;
-        if(this->WindowType == Window_Type_Default){
-            uint64_t NewWindowIndex = vector_push(Windows, this);
-            vector_remove(Windows, this->WindowIndex);
-            this->WindowIndex = NewWindowIndex;
+        if(WindowType == Window_Type_Default && IsVisible){
+            // TODO : window in first ground
             UpdateAllEvents();
         }
     }
@@ -241,7 +239,6 @@ bool windowc::SetFocusState(bool IsFocus){
         .arg[0] = Winwow_Event_Focus,   // Event type
         .arg[1] = IsFocus,              // Focus state
     };
-    
     Sys_Event_Trigger(Event, &Parameters);
 
     return this->IsFocus;

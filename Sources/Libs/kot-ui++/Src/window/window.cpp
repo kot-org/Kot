@@ -11,7 +11,7 @@ namespace UiWindow {
     Window::Window(char* title, uint32_t Width, uint32_t Height, uint32_t XPosition, uint32_t YPosition) {
         this->wid = CreateWindow(NULL, Window_Type_Default);
         ResizeWindow(this->wid, Width, Height);
-        ChangePosWindow(this->wid, XPosition, YPosition);
+        WindowChangePosition(this->wid, XPosition, YPosition);
 
         framebuffer_t* fb = &this->wid->Framebuffer;
 

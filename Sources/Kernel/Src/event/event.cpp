@@ -112,7 +112,7 @@ namespace Event{
         for(size64_t i = 0; i < self->NumTask; i++){
             kevent_tasks_t* task = self->Tasks[i];
             AtomicAquire(&task->thread->EventLock);
-            if(task->thread->IsBlock){
+            if(task->thread->IsClose){
                 task->DataNode->CurrentData->Task = task;
                 task->thread->Launch(parameters);
             }else{
@@ -139,7 +139,7 @@ namespace Event{
         for(size64_t i = 0; i < self->NumTask; i++){
             kevent_tasks_t* task = self->Tasks[i];
             AtomicAquire(&task->thread->EventLock);
-            if(task->thread->IsBlock){
+            if(task->thread->IsClose){
                 AtomicAquire(&globalTaskManager->SchedulerLock);
                 task->thread->Launch_WL(&task->DataNode->Event->Parameters);
                 AtomicRelease(&globalTaskManager->SchedulerLock);
@@ -179,6 +179,8 @@ namespace Event{
             globalTaskManager->AcquireScheduler();
             Thread->ResetContext(Thread->Regs);
             Thread->IsBlock = true;
+            Thread->IsClose = true;
+            Thread->IsPause = false;
             AtomicRelease(&Thread->EventLock);
             ForceSelfDestruction();
         }

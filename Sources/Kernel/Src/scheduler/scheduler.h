@@ -196,16 +196,16 @@ class TaskManager{
 
         // threads
         kthread_t* GetTread_WL();
-        uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint64_t externalData);
-        uint64_t Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, enum Priviledge priviledge, uint64_t externalData);
-        uint64_t Duplicatethread(kthread_t** self, kprocess_t* proc, kthread_t* source);
+        KResult Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint64_t externalData);
+        KResult Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, enum Priviledge priviledge, uint64_t externalData);
+        KResult Duplicatethread(kthread_t** self, kprocess_t* proc, kthread_t* source);
         KResult Execthread(kthread_t* Caller, kthread_t* Self, enum ExecutionType Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers);
-        uint64_t Unpause(kthread_t* task); 
-        uint64_t Unpause_WL(kthread_t* task); 
-        uint64_t Exit(ContextStack* Registers, kthread_t* task, uint64_t ReturnValue); 
+        KResult Unpause(kthread_t* task); 
+        KResult Unpause_WL(kthread_t* task); 
+        KResult Exit(ContextStack* Registers, kthread_t* task, uint64_t ReturnValue); 
         // process
-        uint64_t CreateProcess(kprocess_t** key, enum Priviledge priviledge, uint64_t externalData);
-        uint64_t CreateProcess(kthread_t* caller, kprocess_t** key, enum Priviledge priviledge, uint64_t externalData);
+        KResult CreateProcess(kprocess_t** key, enum Priviledge priviledge, uint64_t externalData);
+        KResult CreateProcess(kthread_t* caller, kprocess_t** key, enum Priviledge priviledge, uint64_t externalData);
 
         void CreateIddleTask();   
 

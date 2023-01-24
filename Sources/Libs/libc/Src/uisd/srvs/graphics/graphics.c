@@ -19,6 +19,8 @@ void Srv_Graphics_Callback(KResult Status, struct srv_graphics_callback_t* Callb
 
     if(Callback->IsAwait){
         Sys_Unpause(Callback->Self);
+    }else{
+        free(Callback);
     }
         
     Sys_Close(KSUCCESS);

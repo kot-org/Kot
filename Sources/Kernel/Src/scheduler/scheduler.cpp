@@ -104,17 +104,17 @@ kthread_t* TaskManager::GetTread_WL(){
     return ReturnValue;
 }
 
-uint64_t TaskManager::Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint64_t externalData){
+KResult TaskManager::Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint64_t externalData){
     *self = proc->Createthread(entryPoint, externalData);
     return KSUCCESS;
 }
 
-uint64_t TaskManager::Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, enum Priviledge priviledge, uint64_t externalData){
+KResult TaskManager::Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, enum Priviledge priviledge, uint64_t externalData){
     *self = proc->Createthread(entryPoint, priviledge, externalData);
     return KSUCCESS;
 }
 
-uint64_t TaskManager::Duplicatethread(kthread_t** self, kprocess_t* proc, kthread_t* source){
+KResult TaskManager::Duplicatethread(kthread_t** self, kprocess_t* proc, kthread_t* source){
     if(source->Parent != proc) return KFAIL;
     *self = proc->Duplicatethread(source);
     return KSUCCESS;
@@ -251,6 +251,8 @@ KResult ThreadQueu_t::NextThreadInQueu_WL(){
 }
 
 KResult TaskManager::Execthread(kthread_t* Caller, kthread_t* Self, enum ExecutionType Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers){
+    if(Self->IsEvent) return KFAIL;
+
     ThreadQueu_t* queu = Self->Queu;
     AtomicAquire(&queu->Lock);
     switch (Type){
@@ -290,14 +292,16 @@ KResult TaskManager::Execthread(kthread_t* Caller, kthread_t* Self, enum Executi
     return KSUCCESS;
 }
 
-uint64_t TaskManager::Unpause(kthread_t* task){
+KResult TaskManager::Unpause(kthread_t* task){
     AcquireScheduler();
     Unpause_WL(task);
     ReleaseScheduler();
     return KSUCCESS;
 } 
 
-uint64_t TaskManager::Unpause_WL(kthread_t* task){
+KResult TaskManager::Unpause_WL(kthread_t* task){
+    if(task->IsClose) return KFAIL;
+
     if(task->IsPause){
         task->IsPause = false;
         task->IsBlock = false;
@@ -309,7 +313,7 @@ uint64_t TaskManager::Unpause_WL(kthread_t* task){
     }
 } 
 
-uint64_t TaskManager::Exit(ContextStack* Registers, kthread_t* task, uint64_t ReturnValue){   
+KResult TaskManager::Exit(ContextStack* Registers, kthread_t* task, uint64_t ReturnValue){   
     AtomicAquire(&task->Queu->Lock);
     if(task->CloseQueu(ReturnValue) == KSUCCESS){
         AtomicRelease(&task->Queu->Lock);
@@ -336,7 +340,7 @@ uint64_t TaskManager::Exit(ContextStack* Registers, kthread_t* task, uint64_t Re
     return KSUCCESS;
 }
 
-uint64_t TaskManager::CreateProcess(kprocess_t** key, enum Priviledge priviledge, uint64_t externalData){
+KResult TaskManager::CreateProcess(kprocess_t** key, enum Priviledge priviledge, uint64_t externalData){
     kprocess_t* proc = (kprocess_t*)calloc(sizeof(kprocess_t));
 
     AtomicAquire(&CreateProcessLock);
@@ -374,7 +378,7 @@ uint64_t TaskManager::CreateProcess(kprocess_t** key, enum Priviledge priviledge
     return KSUCCESS;
 }
 
-uint64_t TaskManager::CreateProcess(kthread_t* caller, kprocess_t** key, enum Priviledge priviledge, uint64_t externalData){
+KResult TaskManager::CreateProcess(kthread_t* caller, kprocess_t** key, enum Priviledge priviledge, uint64_t externalData){
     KResult status = CreateProcess(key, priviledge, externalData);
     kprocess_t* proc = *key;
     proc->PID_PCI = caller->Parent->PID;
@@ -433,6 +437,7 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge privil
     thread->MemoryAllocated = 0;
     thread->TimeAllocate = 0;
     thread->IsBlock = true;
+    thread->IsClose = true;
     thread->Parent = this;
     thread->Queu = (ThreadQueu_t*)calloc(sizeof(ThreadQueu_t));
     thread->ExternalData_T = externalData;
@@ -509,6 +514,7 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
     thread->MemoryAllocated = 0;
     thread->TimeAllocate = 0;
     thread->IsBlock = true;
+    thread->IsClose = true;
     thread->Parent = this;
     thread->Queu = (ThreadQueu_t*)calloc(sizeof(ThreadQueu_t)); 
 
@@ -816,6 +822,8 @@ bool kthread_t::Pause_WL(ContextStack* Registers, bool force){
 }
 
 KResult kthread_t::Close(ContextStack* Registers, uint64_t ReturnValue){
+    if(IsEvent) return KFAIL;
+
     AtomicAquire(&Queu->Lock);
     
     KResult Status = CloseQueu(ReturnValue);

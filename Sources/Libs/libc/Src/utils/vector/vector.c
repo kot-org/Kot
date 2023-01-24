@@ -58,7 +58,7 @@ void vector_remove(vector_t* vector, uint64_t index) {
         } else if (vector->length != 0) {
             uintptr_t* temp = (uintptr_t*) malloc((size64_t)((vector->length - 1) * 8));
             if (index != 0) { memcpy(temp, vector->items, index * 8); }
-            memcpy(temp, vector->items + index, ((vector->length - 1) * 8) - index * 8);
+            memcpy(temp, vector->items + index * 8, ((vector->length - 1) * 8) - index * 8);
             free(vector->items);
             vector->items = temp;
             vector->length--;
