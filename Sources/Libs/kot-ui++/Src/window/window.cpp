@@ -8,8 +8,14 @@
 
 namespace UiWindow {
 
+    void WindowEvent(enum Window_Event EventType){
+        /* std::printf("%x", EventType); */
+        Printlog("ok");
+        Sys_Event_Close();
+    }
+
     Window::Window(char* title, uint32_t Width, uint32_t Height, uint32_t XPosition, uint32_t YPosition) {
-        this->wid = CreateWindow(NULL, Window_Type_Default);
+        this->wid = CreateWindow((uintptr_t)&WindowEvent, Window_Type_Default);
         ResizeWindow(this->wid, Width, Height);
         WindowChangePosition(this->wid, XPosition, YPosition);
 

@@ -2,7 +2,7 @@
 
 #include <kot-ui++/component.h>
 
-#include <kot/uisd/srvs/system.h>
+#include <kot/uisd/srvs/storage.h>
 
 namespace Ui {
 
@@ -19,10 +19,10 @@ namespace Ui {
                 uint16_t Width, Height;
                 uint8_t Bpp;
                 uint8_t imageDescriptor;
-            } __attribute__((packed)) tgaHeader_t;
+            } __attribute__((__packed__)) tgaHeader_t;
 
         public:
-            TGA(char* path, Component* cpnt);
+            TGA(file_t* file);
     };
 
 }

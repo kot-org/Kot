@@ -5,12 +5,17 @@
 namespace Ui {
 
     Component* Picturebox(char* path, ImageType type, ImageStyle style) {
-        Component* picture = new Component({ .Width = style.Width, .Height = style.Height });
+        file_t* imageFile = fopen(path, "r");
+
+        if(imageFile == NULL)
+            return NULL;
+
+        Component* picture = new Component({ .width = style.width, .height = style.height });
 
         switch(type)
         {
             case ImageType::_TGA:
-                TGA* tgaImg = new TGA(path, picture);
+                TGA* tgaImage = new TGA(imageFile);
 
                 break;
         }

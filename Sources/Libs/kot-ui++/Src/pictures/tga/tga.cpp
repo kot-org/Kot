@@ -4,26 +4,30 @@
 
 namespace Ui {
 
-    TGA::TGA(char* path, Component* cpnt) {
-        srv_system_callback_t* file = Srv_System_ReadFileInitrd(path, true);
-        tgaHeader_t *image = (tgaHeader_t*) file->Data;
+    TGA::TGA(file_t* file) {
+        fseek(file, 0, SEEK_END);
+        size_t imageFileSize = ftell(file);
+        fseek(file, 0, SEEK_SET);
 
-        if(!image) return;
-        if(image->Width <= 0 || image->Height <= 0) { free(image); return; }
+        tgaHeader_t* image = (tgaHeader_t*) malloc(imageFileSize);
+        fread(image, imageFileSize, 1, file); // FREAD FONCTIONNE PAS !!!
+        Printlog("ok1");
 
-        uintptr_t imageDataOffset = (uintptr_t) (image->colorMapOrigin + image->colorMapLength + 18),
+        if(image->Width <= 0 || image->Height <= 0) { fclose(file); return; }
+
+        Printlog("ok2");
+
+/*         uintptr_t imageDataOffset = (uintptr_t) (image->colorMapOrigin + image->colorMapLength + 18),
             imagePixelData = (uintptr_t) ((uint64_t)image + (uint64_t)imageDataOffset);
 
         uint8_t Bpp = image->Bpp;
         uint8_t Btpp = image->Bpp/8;
         uint32_t Width = image->Width,
-                 cpntWidth = cpnt->getStyle()->Width;
+                 cpntWidth = cpnt->getStyle()->width;
         uint32_t Height = image->Height,
-                 cpntHeight = cpnt->getStyle()->Height;
+                 cpntHeight = cpnt->getStyle()->height;
         uint32_t Pitch = Width * Btpp;
         bool isReversed = !(image->imageDescriptor & (1 << 5));
-
-        /* Todo: dessiner l'image dans la fonction draw */
 
         if(cpntWidth == NULL)
             cpntWidth = Width;
@@ -46,7 +50,7 @@ namespace Ui {
             case 2:
             {
                 for(uint64_t y = 0; y < Height; y++) {
-                    uint32_t YPosition = ((isReversed) ? Height-y-1 : y) * image->Height / Height;
+                    uint32_t YPosition = ((isReversed) ? Height-y-1 : y) * file->Height / Height;
 
                     for(uint64_t x = 0; x < Width; x++) {
                         uint32_t XPosition = x * image->Width / Width;
@@ -70,9 +74,11 @@ namespace Ui {
                 break;
             
             default:
-                free(image);
                 break;
-        }
+        } */
+
+        free(image);
+        fclose(file);
     }
     
 }

@@ -2,11 +2,46 @@
 
 #include <kot++/printf.h>
 
-desktopc::desktopc(JsonArray* settings) {
-    window_t* Window = CreateWindow(NULL, Window_Type_Background);
-    ResizeWindow(Window, Window_Max_Size, Window_Max_Size);
+typedef struct {
+    uint8_t idLength;
+    uint8_t colorMapType;
+    uint8_t imageType;
+    uint16_t colorMapOrigin, colorMapLength;
+    uint8_t colorMapEntSz;
+    uint16_t x, y;
+    uint16_t Width, Height;
+    uint8_t Bpp;
+    uint8_t imageDescriptor;
+} __attribute__((__packed__)) tgaHeader_t;
 
-    fb = &Window->Framebuffer;
+void desktopc::SetWallpaper(char* path) {
+    //auto wallpaper = Ui::Picturebox(path, Ui::ImageType::_TGA, {});
+
+    file_t* imageFile = fopen(path, "rb");
+
+    fseek(imageFile, 0, SEEK_END);
+    size_t imageFileSize = ftell(imageFileSize);
+    fseek(imageFile, 0, SEEK_SET);
+
+    tgaHeader_t* image = (tgaHeader_t*) malloc(imageFileSize);
+    fread(image, imageFileSize, 1, imageFile); // FREAD FONCTIONNE PAS !!!
+    std::printf("%d", imageFileSize);
+
+/*     if(wallpaper == NULL) {
+        SetSolidColor(NULL);
+        return;
+    } */
+}
+
+void desktopc::SetSolidColor(uint32_t color) {
+    FillRect(fb, 0, 0, Window_Max_Size, Window_Max_Size, color);
+}
+
+desktopc::desktopc(JsonArray* settings) {
+    window_t* Desktop = CreateWindow(NULL, Window_Type_Background);
+    ResizeWindow(Desktop, Window_Max_Size, Window_Max_Size);
+
+    fb = &Desktop->Framebuffer;
 
     JsonObject* desktopSettings = (JsonObject*) settings->Get(0);
 
@@ -17,20 +52,12 @@ desktopc::desktopc(JsonArray* settings) {
     uint32_t solidColor = strtol(((JsonString*) background->Get("solidColor"))->Get(), NULL, 16);
 
     if(isWallpaper) {
-        if(wallpaperPath != NULL) {
-            file_t* wallpaperFile = fopen(wallpaperPath, "r");
-
-            if(wallpaperFile == NULL)
-                goto loadSolidColor;
-
-            // todo: afficher le wallpaper (et terminer le tga parser)
-        }
+        SetWallpaper(wallpaperPath);
     } else {
-        loadSolidColor:
-        FillRect(fb, 0, 0, Window_Max_Size, Window_Max_Size, solidColor);
+        SetSolidColor(solidColor);
     }
 
-    ChangeVisibilityWindow(Window, true);
+    ChangeVisibilityWindow(Desktop, true);
 }
 
 extern "C" int main(int argc, char* argv[]){
@@ -46,11 +73,11 @@ extern "C" int main(int argc, char* argv[]){
     }
 
     fseek(settingsFile, 0, SEEK_END);
-    uint64_t size = ftell(settingsFile);
+    size_t settingsFileSize = ftell(settingsFile);
 	fseek(settingsFile, 0, SEEK_SET);
 
-    char* BufferSettingsFile = (char*) malloc(size);
-    fread(BufferSettingsFile, size, 1, settingsFile);
+    char* BufferSettingsFile = (char*) malloc(settingsFileSize);
+    fread(BufferSettingsFile, settingsFileSize, 1, settingsFile);
         
     JsonParser* parser = new JsonParser(BufferSettingsFile);
 

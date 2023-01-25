@@ -15,6 +15,9 @@ class desktopc {
     public:
         desktopc(JsonArray* settings);
 
+        void SetWallpaper(char* path);
+        void SetSolidColor(uint32_t color);
+
     private:
         framebuffer_t* fb;
 };
