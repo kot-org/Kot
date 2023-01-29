@@ -136,8 +136,6 @@ KResult ThreadQueu_t::SetThreadInQueu(kthread_t* Caller, kthread_t* Self, argume
 
     if(FunctionParameters != NULL){
         memcpy(&LastData->Parameters, FunctionParameters, sizeof(arguments_t));
-    }else{
-        memset(&LastData->Parameters, 0, sizeof(arguments_t));
     }
 
     if(Data != NULL && Data->Size != NULL){

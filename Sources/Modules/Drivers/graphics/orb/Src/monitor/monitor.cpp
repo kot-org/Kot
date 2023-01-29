@@ -47,23 +47,7 @@ void monitorc::Move(uint64_t XPosition, uint64_t YPosition) {
 }
 
 void DynamicBlit(framebuffer_t* to, framebuffer_t* from, uint64_t x, uint64_t y, uint64_t MonitorXoffset, uint64_t MonitorYoffset) {
-    uint64_t to_addr = (uint64_t)to->Buffer;
-    uint64_t from_addr = (uint64_t)from->Buffer;
-
-    to_addr += x * to->Btpp + y * to->Pitch; // offset
-
-    uint64_t num;
-    if(to->Pitch < from->Pitch){
-        num = to->Pitch;
-    }else{
-        num = from->Pitch;
-    } 
-
-    for (uint64_t h = 0; h < from->Height && h + y < to->Height; h++) {
-        memcpy((uintptr_t)to_addr, (uintptr_t)from_addr, num);
-        to_addr += to->Pitch;
-        from_addr += from->Pitch;
-    }
+    BlitFramebuffer(to, from, x, y);
 }
 
 void monitorc::UpdateEvents(vector_t* Background, vector_t* Windows, vector_t* Foreground){

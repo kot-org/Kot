@@ -23,9 +23,9 @@ namespace Ui {
         uint8_t Bpp = image->Bpp;
         uint8_t Btpp = image->Bpp/8;
         uint32_t Width = image->Width,
-                 cpntWidth = cpnt->getStyle()->width;
+                 cpntWidth = cpnt->getStyle()->Width;
         uint32_t Height = image->Height,
-                 cpntHeight = cpnt->getStyle()->height;
+                 cpntHeight = cpnt->getStyle()->Height;
         uint32_t Pitch = Width * Btpp;
         bool isReversed = !(image->imageDescriptor & (1 << 5));
 

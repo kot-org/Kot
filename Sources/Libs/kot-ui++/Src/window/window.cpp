@@ -24,17 +24,17 @@ namespace UiWindow {
         this->ctxGrph = CreateGraphicContext(fb);
         this->ctxUi = new Ui::UiContext(fb);
 
-        /* auto imgtest = Ui::Picturebox("kotlogo.tga", Ui::ImageType::_TGA, { .width = 256, .height = 256 });
+        /* auto imgtest = Ui::Picturebox("kotlogo.tga", Ui::ImageType::_TGA, { .Width = 256, .Height = 256 });
         this->setContent(imgtest); */
 
         auto titlebar = Ui::titlebar(title, { .backgroundColor = WIN_BGCOLOR_ONFOCUS, .foregroundColor = 0xDDDDDD });
         this->setContent(titlebar);
  
-/*         auto wrapper = Ui::box({ .width = this->ctxUi->fb->width, .height = this->ctxUi->fb->height - titlebar->getStyle()->height, .color = WIN_BGCOLOR_ONFOCUS });
+/*         auto wrapper = Ui::box({ .Width = this->ctxUi->fb->Width, .Height = this->ctxUi->fb->Height - titlebar->getStyle()->Height, .color = WIN_BGCOLOR_ONFOCUS });
 
         auto flexbox = UiLayout::Flexbox({}, Ui::Layout::HORIZONTAL);
 
-        auto box = Ui::box({ .width = 20, .height = 20, .color = 0xFFFF00 });
+        auto box = Ui::box({ .Width = 20, .Height = 20, .color = 0xFFFF00 });
         flexbox->addChild(box);
 
         wrapper->addChild(flexbox);

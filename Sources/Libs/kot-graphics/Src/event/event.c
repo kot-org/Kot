@@ -17,23 +17,29 @@ graphiceventbuffer_t* CreateEventBuffer(uint64_t Width, uint64_t Height){
 }
 
 void BlitGraphicEventbuffer(graphiceventbuffer_t* To, graphiceventbuffer_t* From, uint64_t PositionX, uint64_t PositionY){
-    uint64_t to_addr = (uint64_t)To->Buffer;
-    uint64_t from_addr = (uint64_t)From->Buffer;
+    uint64_t ToBuffer = (uint64_t)To->Buffer;
+    uint64_t FromBuffer = (uint64_t)From->Buffer;
 
-    to_addr += PositionX * To->Btpp + PositionY * To->Pitch; // offset
+    ToBuffer += PositionX * To->Btpp + PositionY * To->Pitch; // offset
 
-    uint64_t num;
+    uint64_t WithCopy = From->Width;
 
-    if(To->Pitch < From->Pitch){
-        num = To->Pitch;
-    }else{
-        num = From->Pitch;
-    } 
+    if(PositionX + WithCopy >= To->Width){
+        WithCopy = To->Width - PositionX;
+    }
 
-    for (uint64_t h = 0; h < From->Height && h + PositionY < To->Height; h++) {
-        memcpy((uintptr_t)to_addr, (uintptr_t)from_addr, num);
-        to_addr += To->Pitch;
-        from_addr += From->Pitch;
+    uint64_t HeightCopy = From->Height;
+
+    if(PositionY + HeightCopy >= To->Height){
+        HeightCopy = To->Height - PositionY;
+    }
+
+    uint64_t PitchCopy = WithCopy * To->Btpp;
+
+    for(uint64_t H = 0; H < HeightCopy; H++){
+        memcpy((uintptr_t)ToBuffer, (uintptr_t)FromBuffer, PitchCopy);
+        ToBuffer += To->Pitch;
+        FromBuffer += From->Pitch;
     }
 }
 

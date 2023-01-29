@@ -1,5 +1,5 @@
-#ifndef _SRV_PCI_H
-#define _SRV_PCI_H 1
+#ifndef _SRV_TIME_H
+#define _SRV_TIME_H 1
 
 #include <kot/sys.h>
 #include <kot/uisd.h>
@@ -51,6 +51,7 @@ KResult Sleep(uint64_t duration);
 KResult SleepFromTick(uint64_t* tick, uint64_t duration);
 KResult GetActualTick(uint64_t* tick);
 KResult GetTimeFromTick(uint64_t* time, uint64_t tick);
+KResult GetFemosecondTimeFromTick(uint64_t* time, uint64_t tick);
 KResult GetTickFromTime(uint64_t* tick, uint64_t time);
 KResult GetTime(uint64_t* time);
 KResult CompareTime(uint64_t* compare, uint64_t time0, uint64_t time1);

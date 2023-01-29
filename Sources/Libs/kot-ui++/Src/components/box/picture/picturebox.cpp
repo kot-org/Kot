@@ -10,7 +10,7 @@ namespace Ui {
         if(imageFile == NULL)
             return NULL;
 
-        Component* picture = new Component({ .width = style.width, .height = style.height });
+        Component* picture = new Component({ .Width = style.Width, .Height = style.Height });
 
         switch(type)
         {

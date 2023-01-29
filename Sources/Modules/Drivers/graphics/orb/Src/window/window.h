@@ -29,6 +29,9 @@ class windowc{
         bool IsVisible = false;
         bool IsFocus = false;
         event_t Event;
+
+        windowc* Next;
+        windowc* Last;
         
         KResult CreateBuffer();
 

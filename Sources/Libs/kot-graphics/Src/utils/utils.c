@@ -19,45 +19,52 @@ uint32_t GetPixel(framebuffer_t* fb, uint32_t x, uint32_t y) {
     return *(uint32_t*)((uint64_t)fb->Buffer + index);
 }
 
-void BlitFramebuffer(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y) {
-    uint64_t to_addr = (uint64_t) to->Buffer;
-    uint64_t from_addr = (uint64_t) from->Buffer;
+void BlitFramebuffer(framebuffer_t* To, framebuffer_t* From, uint64_t PositionX, uint64_t PositionY){
+    uint64_t ToBuffer = (uint64_t)To->Buffer;
+    uint64_t FromBuffer = (uint64_t)From->Buffer;
 
-    to_addr += x * to->Btpp + y * to->Pitch; // offset
+    ToBuffer += PositionX * To->Btpp + PositionY * To->Pitch; // offset
 
-    uint64_t num;
+    uint64_t WithCopy = From->Width;
 
-    if(to->Pitch < from->Pitch){
-        num = to->Pitch;
-    }else{
-        num = from->Pitch;
-    } 
+    if(PositionX + WithCopy >= To->Width){
+        WithCopy = To->Width - PositionX;
+    }
 
-    for (uint32_t h = 0; h < from->Height && h + y < to->Height; h++) {
-        memcpy((uintptr_t) to_addr, (uintptr_t) from_addr, num);
-        to_addr += to->Pitch;
-        from_addr += from->Pitch;
+    uint64_t HeightCopy = From->Height;
+
+    if(PositionY + HeightCopy >= To->Height){
+        HeightCopy = To->Height - PositionY;
+    }
+
+    uint64_t PitchCopy = WithCopy * To->Btpp;
+
+    for(uint64_t H = 0; H < HeightCopy; H++){
+        memcpy((uintptr_t)ToBuffer, (uintptr_t)FromBuffer, PitchCopy);
+        ToBuffer += To->Pitch;
+        FromBuffer += From->Pitch;
     }
 }
 
+
 void BlitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y, uint16_t borderRadius) {
-    uint64_t to_addr = (uint64_t) to->Buffer;
-    uint64_t from_addr = (uint64_t) from->Buffer;
+    uint64_t ToBuffer = (uint64_t) to->Buffer;
+    uint64_t FromBuffer = (uint64_t) from->Buffer;
 
-    to_addr += x * to->Btpp + y * to->Pitch; // offset
+    ToBuffer += x * to->Btpp + y * to->Pitch; // offset
 
-    uint64_t num;
+    uint64_t ByteToCopyPerLine;
 
     if (to->Pitch < from->Pitch) {
-        num = to->Pitch;
+        ByteToCopyPerLine = to->Pitch;
     } else {
-        num = from->Pitch;
+        ByteToCopyPerLine = from->Pitch;
     }
 
     for (uint32_t h = 0; h < from->Height && h + y < to->Height; h++) {
-        memcpy((uintptr_t) to_addr, (uintptr_t) from_addr, num);
-        to_addr += to->Pitch;
-        from_addr += from->Pitch;
+        memcpy((uintptr_t) ToBuffer, (uintptr_t) FromBuffer, ByteToCopyPerLine);
+        ToBuffer += to->Pitch;
+        FromBuffer += from->Pitch;
     }
 }
 

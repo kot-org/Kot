@@ -262,6 +262,20 @@ KResult GetTimeFromTick(uint64_t* time, uint64_t tick){
     return KSUCCESS;
 }
 
+KResult GetFemosecondTimeFromTick(uint64_t* time, uint64_t tick){
+    uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
+
+    if(!TickPointer){
+        KResult status = Get_Tick_Initialize();
+        if(status != KSUCCESS){
+            return status;
+        }
+    }
+
+    *time = tick * TimeData->TickPeriod;
+    return KSUCCESS;
+}
+
 KResult GetTickFromTime(uint64_t* tick, uint64_t time){
     uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 

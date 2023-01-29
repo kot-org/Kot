@@ -14,7 +14,7 @@ int8_t PixelExist(framebuffer_t* fb, uint32_t x, uint32_t y);
 void PutPixel(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t color);
 uint32_t GetPixel(framebuffer_t* fb, uint32_t x, uint32_t y);
 
-void BlitFramebuffer(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y);
+void BlitFramebuffer(framebuffer_t* To, framebuffer_t* From, uint64_t PositionX, uint64_t PositionY);
 void BlitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y, uint16_t borderRadius);
 
 void FillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color);

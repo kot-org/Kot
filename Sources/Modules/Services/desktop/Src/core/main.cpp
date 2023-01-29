@@ -20,9 +20,8 @@ void desktopc::SetWallpaper(char* path) {
     file_t* imageFile = fopen(path, "rb");
 
     fseek(imageFile, 0, SEEK_END);
-    size_t imageFileSize = ftell(imageFileSize);
+    size_t imageFileSize = ftell(imageFile);
     fseek(imageFile, 0, SEEK_SET);
-
     tgaHeader_t* image = (tgaHeader_t*) malloc(imageFileSize);
     fread(image, imageFileSize, 1, imageFile); // FREAD FONCTIONNE PAS !!!
     std::printf("%d", imageFileSize);

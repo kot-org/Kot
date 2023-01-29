@@ -65,8 +65,8 @@ namespace Ui {
                 Layout::ComponentAlign_t align;
                 Layout::ComponentSpace space;
 
-                uint32_t width;
-                uint32_t height;
+                uint32_t Width;
+                uint32_t Height;
                 uint16_t fontSize;
                 uint16_t borderRadius;
 
@@ -118,14 +118,14 @@ namespace Ui {
         _JPG = 2,
     };
     typedef struct {
-        uint32_t width;
-        uint32_t height;
+        uint32_t Width;
+        uint32_t Height;
     } ImageStyle;
     Component* Picturebox(char* path, ImageType type, ImageStyle style);
 
     typedef struct {
-        uint32_t width;
-        uint32_t height;
+        uint32_t Width;
+        uint32_t Height;
         uint32_t color;
     } BoxStyle;
     Component* box(BoxStyle style);
