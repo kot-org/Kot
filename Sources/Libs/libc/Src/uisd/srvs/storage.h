@@ -51,7 +51,7 @@ typedef KResult (*StorageCallbackHandler)(KResult Status, struct srv_storage_cal
 
 struct srv_storage_space_info_t{
     thread_t CreateProtectedDeviceSpaceThread;
-    thread_t ReadWriteDeviceThread;
+    thread_t RequestToDeviceThread;
     ksmem_t BufferRWKey;
     uint64_t BufferRWAlignement;
     uint64_t BufferRWUsableSize;

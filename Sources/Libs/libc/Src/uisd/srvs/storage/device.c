@@ -35,8 +35,10 @@ KResult Srv_CallbackCreateSpaceHandler(KResult Status, struct srv_storage_device
     Sys_Close(KSUCCESS);
 }
 
-KResult Srv_CallbackRequestHandler(KResult Status, thread_t MainThread){
-    Sys_Unpause(MainThread);
+KResult Srv_CallbackRequestHandler(KResult Status, struct srv_storage_device_callback_t* CallbackData, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    CallbackData->Status = Status;
+    CallbackData->Data = GP0;
+    Sys_Unpause(CallbackData->MainThread);
     Sys_Close(KSUCCESS);
 }
 
@@ -44,15 +46,35 @@ KResult Srv_SendRequest(struct srv_storage_device_t* StorageDevice, uint64_t Sta
     struct srv_storage_device_callback_t* callbackData = (struct srv_storage_device_callback_t*)malloc(sizeof(struct srv_storage_device_callback_t));
     callbackData->MainThread = Sys_Getthread();
 
-    struct arguments_t parameters;
-    parameters.arg[0] = StorageDevice->CallbackRequestHandlerThread;
-    parameters.arg[1] = Sys_Getthread();
-    parameters.arg[2] = Start;
-    parameters.arg[3] = Size;
-    parameters.arg[4] = IsWrite;
-    Sys_Execthread(StorageDevice->SpaceInfo.ReadWriteDeviceThread, &parameters, ExecutionTypeQueu, NULL);
+    struct arguments_t Parameters;
+    Parameters.arg[0] = StorageDevice->CallbackRequestHandlerThread;
+    Parameters.arg[1] = callbackData;
+    Parameters.arg[2] = STORAGE_SINGLE_REQUEST;
+    Parameters.arg[3] = Start;
+    Parameters.arg[4] = Size;
+    Parameters.arg[5] = IsWrite;
+    Sys_Execthread(StorageDevice->SpaceInfo.RequestToDeviceThread, &Parameters, ExecutionTypeQueu, NULL);
     Sys_Pause(false);
     return KSUCCESS;
+}
+
+struct srv_storage_device_callback_t* Srv_SendMultipleRequests(struct srv_storage_device_t* StorageDevice, srv_storage_multiple_requests_t* Requests){
+    struct srv_storage_device_callback_t* callbackData = (struct srv_storage_device_callback_t*)malloc(sizeof(struct srv_storage_device_callback_t));
+    callbackData->MainThread = Sys_Getthread();
+
+    struct arguments_t Parameters;
+    Parameters.arg[0] = StorageDevice->CallbackRequestHandlerThread;
+    Parameters.arg[1] = callbackData;
+    Parameters.arg[2] = STORAGE_MULTIPLE_REQUESTS;
+
+    struct ShareDataWithArguments_t Data;
+    Data.Size = Requests->RequestsCount * sizeof(srv_storage_request_t) + sizeof(srv_storage_multiple_requests_t);
+    Data.Data = Requests;
+    Data.ParameterPosition = 0x3;
+
+    Sys_Execthread(StorageDevice->SpaceInfo.RequestToDeviceThread, &Parameters, ExecutionTypeQueu, &Data);
+    Sys_Pause(false);
+    return callbackData;
 }
 
 uint64_t Srv_GetBufferStartingAddress(struct srv_storage_device_t* StorageDevice, uint64_t Start){

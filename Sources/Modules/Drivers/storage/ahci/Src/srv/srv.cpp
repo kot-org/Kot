@@ -19,10 +19,10 @@ void SrvAddDevice(Device* Device){
     Sys_Createthread(Proc, (uintptr_t)&SrvCreateProtectedSpace, PriviledgeDriver, (uint64_t)Device->DefaultSpace, &SrvCreateProtectedSpaceThread);
     Info.MainSpace.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(SrvCreateProtectedSpaceThread, StorageHandler->ControllerHeader.Process);
 
-    /* ReadWriteDeviceThread */
-    thread_t SrvReadWriteHandlerThread = NULL;
-    Sys_Createthread(Proc, (uintptr_t)&SrvReadWriteHandler, PriviledgeApp, (uint64_t)Device->DefaultSpace, &SrvReadWriteHandlerThread);
-    Info.MainSpace.ReadWriteDeviceThread = MakeShareableThreadToProcess(SrvReadWriteHandlerThread, StorageHandler->ControllerHeader.Process);
+    /* RequestToDeviceThread */
+    thread_t SrvRequestHandlerThread = NULL;
+    Sys_Createthread(Proc, (uintptr_t)&SrvRequestHandler, PriviledgeApp, (uint64_t)Device->DefaultSpace, &SrvRequestHandlerThread);
+    Info.MainSpace.RequestToDeviceThread = MakeShareableThreadToProcess(SrvRequestHandlerThread, StorageHandler->ControllerHeader.Process);
 
     Info.MainSpace.BufferRWKey = Device->DefaultSpace->BufferKey;
     Info.MainSpace.SpaceSize = Device->DefaultSpace->Size;
@@ -64,6 +64,8 @@ void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t S
     }
     Space_t* SpaceLocalInfo = ActualSpaceLocalInfo->StorageDevice->CreateSpace(Start, Size);
 
+    SpaceLocalInfo->Process = StorageHandler->ControllerHeader.Process;
+
     srv_storage_space_info_t SpaceInfo;
 
     process_t Proc = Sys_GetProcess();
@@ -73,10 +75,10 @@ void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t S
     Sys_Createthread(Proc, (uintptr_t)&SrvCreateProtectedSpace, PriviledgeApp, (uint64_t)SpaceLocalInfo, &SrvCreateProtectedSpaceThread);
     SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableSpreadThreadToProcess(SrvCreateProtectedSpaceThread, StorageHandler->ControllerHeader.Process);
 
-    /* ReadWriteDeviceThread */
-    thread_t SrvReadWriteHandlerThread = NULL;
-    Sys_Createthread(Proc, (uintptr_t)&SrvReadWriteHandler, PriviledgeApp, (uint64_t)SpaceLocalInfo, &SrvReadWriteHandlerThread);
-    SpaceInfo.ReadWriteDeviceThread = MakeShareableSpreadThreadToProcess(SrvReadWriteHandlerThread, StorageHandler->ControllerHeader.Process);
+    /* RequestToDeviceThread */
+    thread_t SrvRequestHandlerThread = NULL;
+    Sys_Createthread(Proc, (uintptr_t)&SrvRequestHandler, PriviledgeApp, (uint64_t)SpaceLocalInfo, &SrvRequestHandlerThread);
+    SpaceInfo.RequestToDeviceThread = MakeShareableSpreadThreadToProcess(SrvRequestHandlerThread, StorageHandler->ControllerHeader.Process);
 
     SpaceInfo.BufferRWKey = SpaceLocalInfo->BufferKey;
     SpaceInfo.BufferRWAlignement = ActualSpaceLocalInfo->StorageDevice->BufferAlignement;
@@ -102,7 +104,7 @@ void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t S
     Sys_Close(KSUCCESS);
 }
 
-void SrvReadWriteHandler(thread_t Callback, uint64_t CallbackArg, uint64_t Start, size64_t Size, bool IsWrite){
+void SrvSingleRequestHandler(thread_t Callback, uint64_t CallbackArg, uint64_t Start, size64_t Size, bool IsWrite){
     KResult Status = KFAIL;
 
     Space_t* Space = (Space_t*)Sys_GetExternalDataThread();
@@ -122,7 +124,83 @@ void SrvReadWriteHandler(thread_t Callback, uint64_t CallbackArg, uint64_t Start
     }
 
     arguments_t arguments{
-        .arg[0] = Status,            /* Status */
+        .arg[0] = Status,           /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = NULL,             /* GP0 */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_Close(KSUCCESS);
+}
+
+void SrvMultipleRequestHandler(thread_t Callback, uint64_t CallbackArg, srv_storage_multiple_requests_t* Requests){
+    KResult Status = KFAIL;
+
+    Space_t* Space = (Space_t*)Sys_GetExternalDataThread();
+    uintptr_t Buffer = malloc(Requests->TotalSize);
+    if(Requests->IsWrite){
+        uint64_t Type;
+        size64_t Size;
+        Sys_GetInfoMemoryField(Requests->MemoryKey, &Type, &Size);
+        if(Type == MemoryFieldTypeSendSpaceRO && Size == Requests->TotalSize){
+            Sys_AcceptMemoryField(Sys_GetProcess(), Requests->MemoryKey, &Buffer);
+        }else{
+            free(Buffer);
+            return;
+        }
+    }
+
+    for(uint64_t i = 0; i < Requests->RequestsCount; i++){
+        srv_storage_request_t Request = Requests->Requests[i];
+
+        if(Request.Size <= Space->StorageDevice->BufferUsableSize){
+            if((Request.Start + (uint64_t)Request.Size) <= Space->StorageDevice->GetSize()){
+                Request.Start += Space->Start;
+                atomicAcquire(&Space->StorageDevice->DeviceLock, 0);
+                Space->StorageDevice->LoadSpace(Space);
+                if(Requests->IsWrite){
+                    memcpy((uintptr_t)((uint64_t)Space->BufferVirtual + (Request.Start % Space->StorageDevice->BufferAlignement)), (uintptr_t)((uint64_t)Buffer + Request.BufferOffset), Request.Size);
+                    Status = Space->StorageDevice->Write(Space, Request.Start, Request.Size);
+                }else{
+                    Status = Space->StorageDevice->Read(Space, Request.Start, Request.Size);
+                    memcpy((uintptr_t)((uint64_t)Buffer + Request.BufferOffset), (uintptr_t)((uint64_t)Space->BufferVirtual + (Request.Start % Space->StorageDevice->BufferAlignement)), Request.Size);
+                }
+                atomicUnlock(&Space->StorageDevice->DeviceLock, 0);
+            }
+        }
+    }
+
+    arguments_t arguments{
+        .arg[0] = Status,           /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = NULL,             /* GP0 */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+    
+    if(!Requests->IsWrite){
+        ksmem_t LocalKey;
+        Sys_CreateMemoryField(Sys_GetProcess(), Requests->TotalSize, &Buffer, &LocalKey, MemoryFieldTypeSendSpaceRO);
+        Sys_Keyhole_CloneModify(LocalKey, &arguments.arg[2], Space->Process, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
+    }
+
+    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_Close(KSUCCESS);
+}
+
+void SrvRequestHandler(thread_t Callback, uint64_t CallbackArg, uint64_t RequestType, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+    if(RequestType == STORAGE_SINGLE_REQUEST){
+        SrvSingleRequestHandler(Callback, CallbackArg, GP0, GP1, GP2);
+    }else if(RequestType == STORAGE_MULTIPLE_REQUESTS){
+        SrvMultipleRequestHandler(Callback, CallbackArg, (srv_storage_multiple_requests_t*)GP0);
+    }
+
+    arguments_t arguments{
+        .arg[0] = KFAIL,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
         .arg[3] = NULL,             /* GP1 */

@@ -217,18 +217,43 @@ KResult mount_info_t::ReadInode(inode_t* inode, uintptr_t buffer, uint64_t start
     
     uint64_t StartBlock = GetBlockFromLocation(start);
     uint64_t NumberOfBlockToRead = ReadLimitBlock - StartBlock;
-    uint64_t BufferPosition = (uint64_t)buffer;
+    uint64_t BufferPosition = 0;
     uint64_t SizeToRead = size;
+
+    // Cache system
+    uint64_t redirection0 = 0;
+    uint64_t redirection1 = 0;
+    uint64_t redirection2 = 0;
+    uint32_t* redirectioncache0 = NULL;
+    uint32_t* redirectioncache1 = NULL;
+    uint32_t* redirectioncache2 = NULL;
+
+    // Allocate multiple request struct
+    srv_storage_multiple_requests_t* MultipleRequest = (srv_storage_multiple_requests_t*)malloc(sizeof(srv_storage_multiple_requests_t) + NumberOfBlockToRead * sizeof(srv_storage_request_t));
+    MultipleRequest->RequestsCount = NumberOfBlockToRead;
+    MultipleRequest->TotalSize = SizeToRead;
+    MultipleRequest->IsWrite = false;
+    MultipleRequest->MemoryKey = NULL;
+
+    uint64_t RequestCount = 0;
+
     if(start % BlockSize){
         uint64_t SizeRead = SizeToRead;
         if(SizeRead > BlockSize){
             SizeRead = BlockSize;
         }
-        ReadInodeBlock(inode, (uintptr_t)BufferPosition, StartBlock, start % BlockSize, SizeRead - (start % SizeRead));
+        int64_t BlockToRead = GetInodeBlock(inode, StartBlock, &redirection0, &redirection1, &redirection2, &redirectioncache0, &redirectioncache1, &redirectioncache2);
+        uint64_t PositionToRead = GetLocationFromBlock(BlockToRead) + start % BlockSize;
+
+        MultipleRequest->Requests[RequestCount].Start = PositionToRead;
+        MultipleRequest->Requests[RequestCount].Size = SizeRead - (start % SizeRead);
+        MultipleRequest->Requests[RequestCount].BufferOffset = BufferPosition;
+
         BufferPosition += start % BlockSize;
         SizeToRead -= SizeRead;
         NumberOfBlockToRead--;
         StartBlock++;
+        RequestCount++;
     }
 
     for(uint64_t i = 0; i < NumberOfBlockToRead; i++){
@@ -236,74 +261,129 @@ KResult mount_info_t::ReadInode(inode_t* inode, uintptr_t buffer, uint64_t start
         if(SizeRead > BlockSize){
             SizeRead = BlockSize;
         }
-        ReadInodeBlock(inode, (uintptr_t)BufferPosition, StartBlock + i, NULL, SizeRead);
+        int64_t BlockToRead = GetInodeBlock(inode, StartBlock + i, &redirection0, &redirection1, &redirection2, &redirectioncache0, &redirectioncache1, &redirectioncache2);
+        uint64_t PositionToRead = GetLocationFromBlock(BlockToRead);
+
+        MultipleRequest->Requests[RequestCount].Start = PositionToRead;
+        MultipleRequest->Requests[RequestCount].Size = SizeRead;
+        MultipleRequest->Requests[RequestCount].BufferOffset = BufferPosition;
+
         BufferPosition += BlockSize;
         SizeToRead -= SizeRead;
+        RequestCount++;
     }
-    return KSUCCESS;
+
+    free(redirectioncache0);
+    free(redirectioncache1);
+    free(redirectioncache2);
+
+    Printlog("ok");
+    struct srv_storage_device_callback_t* Callback = Srv_SendMultipleRequests(StorageDevice, MultipleRequest);
+    KResult Status = Callback->Status;
+    if(Status == KSUCCESS){
+        std::printf("%x", Callback->Data);
+        Sys_AcceptMemoryField(Sys_GetProcess(), (ksmem_t)Callback->Data, &buffer);
+    }
+    free(Callback);
+
+    return Status;
 }
 
-KResult mount_info_t::ReadInodeBlock(inode_t* inode, uintptr_t buffer, uint64_t block, uint64_t start, size64_t size){
+KResult mount_info_t::ReadInodeBlock(struct inode_t* inode, uintptr_t buffer, uint64_t block, uint64_t start, size64_t size){
+    uint64_t redirection0 = 0;
+    uint64_t redirection1 = 0;
+    uint64_t redirection2 = 0;
+    uint32_t* redirectioncache0 = NULL;
+    uint32_t* redirectioncache1 = NULL;
+    uint32_t* redirectioncache2 = NULL;
+    int64_t BlockToRead = GetInodeBlock(inode, block, &redirection0, &redirection1, &redirection2, &redirectioncache0, &redirectioncache1, &redirectioncache2);
+    free(redirectioncache0);
+    free(redirectioncache1);
+    free(redirectioncache2);
+    if(BlockToRead == -1) return KFAIL;
+    return ReadBlock(buffer, BlockToRead, start, size);
+}
+
+int64_t mount_info_t::GetInodeBlock(inode_t* inode, uint64_t block, uint64_t* redirection0, uint64_t* redirection1, uint64_t* redirection2, uint32_t** redirectioncache0, uint32_t** redirectioncache1, uint32_t** redirectioncache2){
     uint64_t EntryPerBlock = BlockSize / sizeof(uint32_t); 
     if(block < INODE_BLOCK_POINTER_SINGLY_INDIRECT_ACCESS){
         // No redirection
-        uint64_t BlockToRead = inode->Inode.block[block];
-        ReadBlock(buffer, BlockToRead, start, size);
-        return KSUCCESS;
+        return inode->Inode.block[block];
     }else{
         block -= INODE_BLOCK_MAX_INDIRECT_BLOCK;
         uint64_t SingleRedirectionLimit = EntryPerBlock;
         if(block < SingleRedirectionLimit){
             // Single redirection
-            uint32_t* BlockBuffer = (uint32_t*)malloc(BlockSize);
-            uint64_t BlockRedirection0ToRead = inode->Inode.block[INODE_BLOCK_POINTER_SINGLY_INDIRECT_ACCESS];
-            ReadBlock(BlockBuffer, BlockRedirection0ToRead, NULL, BlockSize);
+            if(*redirectioncache0 == NULL || *redirection0 != INODE_BLOCK_POINTER_SINGLY_INDIRECT_ACCESS){
+                if(*redirectioncache0 != NULL) free(*redirectioncache0);
+                *redirectioncache0 = (uint32_t*)malloc(BlockSize);
+                *redirection0 = INODE_BLOCK_POINTER_SINGLY_INDIRECT_ACCESS;
+                
+                uint64_t BlockRedirection0ToRead = inode->Inode.block[INODE_BLOCK_POINTER_SINGLY_INDIRECT_ACCESS];
+                ReadBlock(*redirectioncache0, BlockRedirection0ToRead, NULL, BlockSize);
+            }
 
-
-            uint64_t BlockToRead = BlockBuffer[block];
-            ReadBlock(buffer, BlockToRead, start, size);
-            return KSUCCESS;
+            return(*redirectioncache0)[block];
         }else{
             block -= SingleRedirectionLimit;
             uint64_t DoubleRedirectionLimit = exponentInt(EntryPerBlock, 2);
 
             if(block < DoubleRedirectionLimit){
                 // Double redirection
-                uint32_t* BlockBuffer = (uint32_t*)malloc(BlockSize);
-                uint64_t BlockRedirection0ToRead = inode->Inode.block[INODE_BLOCK_POINTER_DOUBLY_INDIRECT_ACCESS];
-                ReadBlock(BlockBuffer, BlockRedirection0ToRead, NULL, BlockSize);
+                if(*redirectioncache0 == NULL || *redirection0 != INODE_BLOCK_POINTER_DOUBLY_INDIRECT_ACCESS){
+                    if(*redirectioncache0 != NULL) free(*redirectioncache0);
+                    *redirectioncache0 = (uint32_t*)malloc(BlockSize);
+                    *redirection0 = INODE_BLOCK_POINTER_DOUBLY_INDIRECT_ACCESS;
+                    uint64_t BlockRedirection0ToRead = inode->Inode.block[INODE_BLOCK_POINTER_DOUBLY_INDIRECT_ACCESS];
+                    ReadBlock(*redirectioncache0, BlockRedirection0ToRead, NULL, BlockSize);
+                }
 
-                uint64_t BlockRedirection1ToRead = BlockBuffer[block / EntryPerBlock];
-                ReadBlock(BlockBuffer, BlockRedirection1ToRead, NULL, BlockSize);
+                if(*redirectioncache1 == NULL || *redirection1 != block / EntryPerBlock){
+                    if(*redirectioncache1 != NULL) free(*redirectioncache1);
+                    *redirectioncache1 = (uint32_t*)malloc(BlockSize);
+                    *redirection1 = block / EntryPerBlock;
+                    uint64_t BlockRedirection1ToRead = (*redirectioncache0)[block / EntryPerBlock];
+                    ReadBlock(*redirectioncache1, BlockRedirection1ToRead, NULL, BlockSize);
+                }
 
 
-                uint64_t BlockToRead = BlockBuffer[block % EntryPerBlock];
-                ReadBlock(buffer, BlockToRead, start, size);
-                return KSUCCESS;
+                return (*redirectioncache1)[block % EntryPerBlock];
             }else{
                 block -= DoubleRedirectionLimit;
                 uint64_t TripleRedirectionLimit = exponentInt(EntryPerBlock, 3);
 
                 if(block < TripleRedirectionLimit){
                     // Triple redirection
-                    uint32_t* BlockBuffer = (uint32_t*)malloc(BlockSize);
-                    uint64_t BlockRedirection0ToRead = inode->Inode.block[INODE_BLOCK_POINTER_TRIPLY_INDIRECT_ACCESS];
-                    ReadBlock(BlockBuffer, BlockRedirection0ToRead, NULL, BlockSize);
+                    if(*redirectioncache0 == NULL || *redirection0 != INODE_BLOCK_POINTER_TRIPLY_INDIRECT_ACCESS){
+                        if(*redirectioncache0 != NULL) free(*redirectioncache0);
+                        *redirectioncache0 = (uint32_t*)malloc(BlockSize);
+                        *redirection0 = INODE_BLOCK_POINTER_TRIPLY_INDIRECT_ACCESS;
+                        uint64_t BlockRedirection0ToRead = inode->Inode.block[INODE_BLOCK_POINTER_TRIPLY_INDIRECT_ACCESS];
+                        ReadBlock(*redirectioncache0, BlockRedirection0ToRead, NULL, BlockSize);
+                    }
 
-                    uint64_t BlockRedirection1ToRead = BlockBuffer[block / DoubleRedirectionLimit];
-                    ReadBlock(BlockBuffer, BlockRedirection1ToRead, NULL, BlockSize);
+                    if(*redirectioncache1 == NULL || *redirection1 != block / DoubleRedirectionLimit){
+                        if(*redirectioncache1 != NULL) free(*redirectioncache1);
+                        *redirectioncache1 = (uint32_t*)malloc(BlockSize);
+                        *redirection1 = block / DoubleRedirectionLimit;
+                        uint64_t BlockRedirection1ToRead = (*redirectioncache0)[block / DoubleRedirectionLimit];
+                        ReadBlock(*redirectioncache1, BlockRedirection1ToRead, NULL, BlockSize);
+                    }
 
-                    uint64_t BlockRedirection2ToRead = BlockBuffer[(block % DoubleRedirectionLimit) / EntryPerBlock];
-                    ReadBlock(BlockBuffer, BlockRedirection2ToRead, NULL, BlockSize);
+                    if(*redirectioncache2 == NULL || *redirection2 != (block % DoubleRedirectionLimit) / EntryPerBlock){
+                        if(*redirectioncache2 != NULL) free(*redirectioncache2);
+                        *redirectioncache2 = (uint32_t*)malloc(BlockSize);
+                        *redirection2 = (block % DoubleRedirectionLimit) / EntryPerBlock;
+                        uint64_t BlockRedirection2ToRead = (*redirectioncache1)[(block % DoubleRedirectionLimit) / EntryPerBlock];
+                        ReadBlock(*redirectioncache1, BlockRedirection2ToRead, NULL, BlockSize);
+                    }
 
-                    uint64_t BlockToRead = BlockBuffer[block % EntryPerBlock];
-                    ReadBlock(buffer, BlockToRead, start, size);
-                    return KSUCCESS;
+                    return (*redirectioncache2)[block % EntryPerBlock];
                 }                 
             }
         } 
-    } 
-    return KFAIL;
+    }
+    return -1;
 }
 
 KResult mount_info_t::WriteInode(inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size, bool is_data_end){

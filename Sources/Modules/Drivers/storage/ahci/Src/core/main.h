@@ -11,5 +11,6 @@
 #include <kot/uisd/srvs/pci.h>
 #include <kot/uisd/srvs/storage.h>
 #include <controller/controller.h>
+#include <kot/uisd/srvs/storage/device.h>
 
 extern process_t Proc;

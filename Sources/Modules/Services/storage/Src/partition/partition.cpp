@@ -48,7 +48,7 @@ partition_t* NewPartition(storage_device_t* Device, uint64_t Start, uint64_t Siz
             memcpy(&SpaceInfo, Space, sizeof(srv_storage_space_info_t));
 
             SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(Space->CreateProtectedDeviceSpaceThread, NotifyInfo->ProcessToNotify);
-            SpaceInfo.ReadWriteDeviceThread = MakeShareableThreadToProcess(Space->ReadWriteDeviceThread, NotifyInfo->ProcessToNotify);
+            SpaceInfo.RequestToDeviceThread = MakeShareableThreadToProcess(Space->RequestToDeviceThread, NotifyInfo->ProcessToNotify);
 
             ShareDataWithArguments_t Data{
                 .Data = &SpaceInfo,
@@ -109,7 +109,7 @@ uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* GUIDTarget, thread_t ThreadToNot
                 memcpy(&SpaceInfo, Space, sizeof(srv_storage_space_info_t));
 
                 SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(Space->CreateProtectedDeviceSpaceThread, NotifyInfo->ProcessToNotify);
-                SpaceInfo.ReadWriteDeviceThread = MakeShareableThreadToProcess(Space->ReadWriteDeviceThread, NotifyInfo->ProcessToNotify);
+                SpaceInfo.RequestToDeviceThread = MakeShareableThreadToProcess(Space->RequestToDeviceThread, NotifyInfo->ProcessToNotify);
 
                 ShareDataWithArguments_t Data{
                     .Data = &SpaceInfo,
