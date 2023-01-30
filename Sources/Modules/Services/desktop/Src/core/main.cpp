@@ -15,7 +15,7 @@ typedef struct {
 } __attribute__((__packed__)) tgaHeader_t;
 
 void desktopc::SetWallpaper(char* path) {
-    //auto wallpaper = Ui::Picturebox(path, Ui::ImageType::_TGA, {});
+    auto wallpaper = Ui::Picturebox(path, Ui::ImageType::_TGA, {});
 
     file_t* imageFile = fopen(path, "rb");
 
@@ -23,13 +23,12 @@ void desktopc::SetWallpaper(char* path) {
     size_t imageFileSize = ftell(imageFile);
     fseek(imageFile, 0, SEEK_SET);
     tgaHeader_t* image = (tgaHeader_t*) malloc(imageFileSize);
-    fread(image, imageFileSize, 1, imageFile); // FREAD FONCTIONNE PAS !!!
-    std::printf("%d", imageFileSize);
+    fread(image, imageFileSize, 1, imageFile);
 
-/*     if(wallpaper == NULL) {
+    if(wallpaper == NULL) {
         SetSolidColor(NULL);
         return;
-    } */
+    }
 }
 
 void desktopc::SetSolidColor(uint32_t color) {

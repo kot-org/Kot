@@ -10,14 +10,11 @@ namespace Ui {
         fseek(file, 0, SEEK_SET);
 
         tgaHeader_t* image = (tgaHeader_t*) malloc(imageFileSize);
-        fread(image, imageFileSize, 1, file); // FREAD FONCTIONNE PAS !!!
-        Printlog("ok1");
-
+        fread(image, imageFileSize, 1, file); 
         if(image->Width <= 0 || image->Height <= 0) { fclose(file); return; }
 
-        Printlog("ok2");
 
-/*         uintptr_t imageDataOffset = (uintptr_t) (image->colorMapOrigin + image->colorMapLength + 18),
+        /* uintptr_t imageDataOffset = (uintptr_t) (image->colorMapOrigin + image->colorMapLength + 18),
             imagePixelData = (uintptr_t) ((uint64_t)image + (uint64_t)imageDataOffset);
 
         uint8_t Bpp = image->Bpp;
@@ -75,7 +72,7 @@ namespace Ui {
             
             default:
                 break;
-        } */
+        }*/
 
         free(image);
         fclose(file);

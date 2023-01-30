@@ -211,7 +211,7 @@ uint64_t mount_info_t::GetUsedDirCount(ext2_group_descriptor_t* descriptor){
 
 
 /* Inode function */
-KResult mount_info_t::ReadInode(inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size){
+KResult mount_info_t::ReadInode(inode_t* inode, ksmem_t* key, uint64_t start, size64_t size){
     uint64_t ReadLimit = start + size;
     uint64_t ReadLimitBlock = GetNextBlockLocation(ReadLimit);
     
@@ -277,15 +277,19 @@ KResult mount_info_t::ReadInode(inode_t* inode, uintptr_t buffer, uint64_t start
     free(redirectioncache1);
     free(redirectioncache2);
 
-    Printlog("ok");
     struct srv_storage_device_callback_t* Callback = Srv_SendMultipleRequests(StorageDevice, MultipleRequest);
     KResult Status = Callback->Status;
-    if(Status == KSUCCESS){
-        std::printf("%x", Callback->Data);
-        Sys_AcceptMemoryField(Sys_GetProcess(), (ksmem_t)Callback->Data, &buffer);
-    }
+    *key = (ksmem_t)Callback->Data;
     free(Callback);
 
+    return Status;
+}
+KResult mount_info_t::ReadInode(inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size){
+    ksmem_t Key;
+    KResult Status = ReadInode(inode, &Key, start, size);
+    if(Status == KSUCCESS){
+        Sys_AcceptMemoryField(Sys_GetProcess(), Key, &buffer);
+    }
     return Status;
 }
 
@@ -1492,6 +1496,15 @@ KResult ext_file_t::ReadFile(uintptr_t buffer, uint64_t start, size64_t size){
         Inode->Inode.atime = GetPosixTime();
         MountInfo->SetInode(Inode);
         return MountInfo->ReadInode(Inode, buffer, start, size);
+    }
+    return KFAIL;
+}
+
+KResult ext_file_t::ReadFile(ksmem_t* key, uint64_t start, size64_t size){
+    if(Permissions & Storage_Permissions_Read){
+        Inode->Inode.atime = GetPosixTime();
+        MountInfo->SetInode(Inode);
+        return MountInfo->ReadInode(Inode, key, start, size);
     }
     return KFAIL;
 }

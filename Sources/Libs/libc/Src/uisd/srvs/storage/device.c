@@ -1,5 +1,7 @@
 #include <kot/uisd/srvs/storage/device.h>
 
+process_t ShareableProcess;
+
 KResult Srv_StorageInitializeDeviceAccess(struct srv_storage_space_info_t* StorageSpace, struct srv_storage_device_t** StorageDevice){
     uint64_t BufferType = NULL;
     uint64_t BufferSize = NULL;
@@ -59,6 +61,10 @@ KResult Srv_SendRequest(struct srv_storage_device_t* StorageDevice, uint64_t Sta
 }
 
 struct srv_storage_device_callback_t* Srv_SendMultipleRequests(struct srv_storage_device_t* StorageDevice, srv_storage_multiple_requests_t* Requests){
+    if(!ShareableProcess){
+        ShareableProcess = ShareProcessKey(Sys_GetProcess());
+    }
+    
     struct srv_storage_device_callback_t* callbackData = (struct srv_storage_device_callback_t*)malloc(sizeof(struct srv_storage_device_callback_t));
     callbackData->MainThread = Sys_Getthread();
 
@@ -66,6 +72,7 @@ struct srv_storage_device_callback_t* Srv_SendMultipleRequests(struct srv_storag
     Parameters.arg[0] = StorageDevice->CallbackRequestHandlerThread;
     Parameters.arg[1] = callbackData;
     Parameters.arg[2] = STORAGE_MULTIPLE_REQUESTS;
+    Parameters.arg[4] = ShareableProcess;
 
     struct ShareDataWithArguments_t Data;
     Data.Size = Requests->RequestsCount * sizeof(srv_storage_request_t) + sizeof(srv_storage_multiple_requests_t);

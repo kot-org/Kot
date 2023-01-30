@@ -64,8 +64,6 @@ void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t S
     }
     Space_t* SpaceLocalInfo = ActualSpaceLocalInfo->StorageDevice->CreateSpace(Start, Size);
 
-    SpaceLocalInfo->Process = StorageHandler->ControllerHeader.Process;
-
     srv_storage_space_info_t SpaceInfo;
 
     process_t Proc = Sys_GetProcess();
@@ -136,7 +134,7 @@ void SrvSingleRequestHandler(thread_t Callback, uint64_t CallbackArg, uint64_t S
     Sys_Close(KSUCCESS);
 }
 
-void SrvMultipleRequestHandler(thread_t Callback, uint64_t CallbackArg, srv_storage_multiple_requests_t* Requests){
+void SrvMultipleRequestHandler(thread_t Callback, uint64_t CallbackArg, srv_storage_multiple_requests_t* Requests, process_t Process){
     KResult Status = KFAIL;
 
     Space_t* Space = (Space_t*)Sys_GetExternalDataThread();
@@ -161,6 +159,7 @@ void SrvMultipleRequestHandler(thread_t Callback, uint64_t CallbackArg, srv_stor
                 Request.Start += Space->Start;
                 atomicAcquire(&Space->StorageDevice->DeviceLock, 0);
                 Space->StorageDevice->LoadSpace(Space);
+                // TODO check buffer limit
                 if(Requests->IsWrite){
                     memcpy((uintptr_t)((uint64_t)Space->BufferVirtual + (Request.Start % Space->StorageDevice->BufferAlignement)), (uintptr_t)((uint64_t)Buffer + Request.BufferOffset), Request.Size);
                     Status = Space->StorageDevice->Write(Space, Request.Start, Request.Size);
@@ -185,7 +184,7 @@ void SrvMultipleRequestHandler(thread_t Callback, uint64_t CallbackArg, srv_stor
     if(!Requests->IsWrite){
         ksmem_t LocalKey;
         Sys_CreateMemoryField(Sys_GetProcess(), Requests->TotalSize, &Buffer, &LocalKey, MemoryFieldTypeSendSpaceRO);
-        Sys_Keyhole_CloneModify(LocalKey, &arguments.arg[2], Space->Process, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
+        Sys_Keyhole_CloneModify(LocalKey, &arguments.arg[2], Process, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
     }
 
     Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
@@ -196,7 +195,7 @@ void SrvRequestHandler(thread_t Callback, uint64_t CallbackArg, uint64_t Request
     if(RequestType == STORAGE_SINGLE_REQUEST){
         SrvSingleRequestHandler(Callback, CallbackArg, GP0, GP1, GP2);
     }else if(RequestType == STORAGE_MULTIPLE_REQUESTS){
-        SrvMultipleRequestHandler(Callback, CallbackArg, (srv_storage_multiple_requests_t*)GP0);
+        SrvMultipleRequestHandler(Callback, CallbackArg, (srv_storage_multiple_requests_t*)GP0, GP1);
     }
 
     arguments_t arguments{

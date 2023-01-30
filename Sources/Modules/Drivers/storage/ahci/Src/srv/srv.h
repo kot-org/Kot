@@ -13,8 +13,6 @@ struct Space_t{
     /* Buffer */
     ksmem_t BufferKey;
     uintptr_t BufferVirtual;
-
-    process_t Process;
 }__attribute__((packed));
 
 void SrvAddDevice(class Device* Device);
