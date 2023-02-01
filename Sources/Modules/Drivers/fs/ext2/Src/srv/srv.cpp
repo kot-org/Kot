@@ -222,7 +222,6 @@ KResult Readfile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint
 
     if(Status == KSUCCESS){
         Sys_Keyhole_CloneModify(BufferKey, &arguments.arg[2], File->Target, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
-        
         Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
     }else{
         Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);

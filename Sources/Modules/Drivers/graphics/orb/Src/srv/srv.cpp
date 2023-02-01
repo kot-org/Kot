@@ -30,7 +30,7 @@ KResult InitialiseServer(){
 
 KResult CreateWindow(thread_t Callback, uint64_t CallbackArg, process_t Target, event_t Event, uint64_t WindowType){
     windowc* Window = NULL;
-
+    Printlog("ok");
     if((Window = new windowc(WindowType, Event)) != NULL){
         ShareDataWithArguments_t Data{
             .ParameterPosition = 0x3,

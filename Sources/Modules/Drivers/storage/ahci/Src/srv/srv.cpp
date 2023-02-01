@@ -157,17 +157,35 @@ void SrvMultipleRequestHandler(thread_t Callback, uint64_t CallbackArg, srv_stor
         if(Request.Size <= Space->StorageDevice->BufferUsableSize){
             if((Request.Start + (uint64_t)Request.Size) <= Space->StorageDevice->GetSize()){
                 Request.Start += Space->Start;
-                atomicAcquire(&Space->StorageDevice->DeviceLock, 0);
-                Space->StorageDevice->LoadSpace(Space);
-                // TODO check buffer limit
-                if(Requests->IsWrite){
-                    memcpy((uintptr_t)((uint64_t)Space->BufferVirtual + (Request.Start % Space->StorageDevice->BufferAlignement)), (uintptr_t)((uint64_t)Buffer + Request.BufferOffset), Request.Size);
-                    Status = Space->StorageDevice->Write(Space, Request.Start, Request.Size);
-                }else{
-                    Status = Space->StorageDevice->Read(Space, Request.Start, Request.Size);
-                    memcpy((uintptr_t)((uint64_t)Buffer + Request.BufferOffset), (uintptr_t)((uint64_t)Space->BufferVirtual + (Request.Start % Space->StorageDevice->BufferAlignement)), Request.Size);
+
+                uint64_t RequestNum = DivideRoundUp(Request.Size, Space->StorageDevice->BufferUsableSize);
+                uint64_t StartInIteration = Request.Start;
+                uint64_t SizeToRead = Request.Size;
+                uint64_t AddressDst = (uint64_t)Buffer + Request.BufferOffset;
+                uint64_t SizeToProcessInIteration = SizeToRead;
+
+                for(uint64_t i = 0; i < RequestNum; i++){
+                    if(SizeToRead > Space->StorageDevice->BufferUsableSize){
+                        SizeToProcessInIteration = Space->StorageDevice->BufferUsableSize;
+                    }else{
+                        SizeToProcessInIteration = SizeToRead;
+                    }
+
+                    atomicAcquire(&Space->StorageDevice->DeviceLock, 0);
+                    Space->StorageDevice->LoadSpace(Space);
+                    if(Requests->IsWrite){
+                        memcpy((uintptr_t)((uint64_t)Space->BufferVirtual + (StartInIteration % Space->StorageDevice->BufferAlignement)), (uintptr_t)AddressDst, SizeToProcessInIteration);
+                        Status = Space->StorageDevice->Write(Space, StartInIteration, SizeToProcessInIteration);
+                    }else{
+                        Status = Space->StorageDevice->Read(Space, StartInIteration, SizeToProcessInIteration);
+                        memcpy((uintptr_t)AddressDst, (uintptr_t)((uint64_t)Space->BufferVirtual + (StartInIteration % Space->StorageDevice->BufferAlignement)), SizeToProcessInIteration);
+                    }
+                    atomicUnlock(&Space->StorageDevice->DeviceLock, 0);
+
+                    StartInIteration += SizeToProcessInIteration;
+                    AddressDst += SizeToProcessInIteration;
+                    SizeToRead -= SizeToProcessInIteration;
                 }
-                atomicUnlock(&Space->StorageDevice->DeviceLock, 0);
             }
         }
     }

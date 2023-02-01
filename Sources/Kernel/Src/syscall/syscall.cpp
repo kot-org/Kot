@@ -29,7 +29,7 @@ KResult Sys_CreateMemoryField(SyscallStack* Registers, kthread_t* Thread){
     uint64_t data;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!(flags & KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
-    if(CreateMemoryField(processkey, Registers->arg1, (uint64_t*)Registers->arg2, &data, (enum MemoryFieldType)Registers->arg4) != KSUCCESS) return KFAIL;
+    if(CreateMemoryField(Thread, processkey, Registers->arg1, (uint64_t*)Registers->arg2, &data, (enum MemoryFieldType)Registers->arg4) != KSUCCESS) return KFAIL;
     return Keyhole_Create((key_t*)Registers->arg3, Thread->Parent, NULL, DataTypeSharedMemory, data, KeyholeFlagFullPermissions, PriviledgeApp);
 }
 
@@ -47,7 +47,7 @@ KResult Sys_AcceptMemoryField(SyscallStack* Registers, kthread_t* Thread){
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!(flags & KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
     if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeSharedMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    return AcceptMemoryField(processkey, memoryKey, virtualAddressPointer);
+    return AcceptMemoryField(Thread, processkey, memoryKey, virtualAddressPointer);
 }
 
 /* Sys_CloseMemoryField :
@@ -60,7 +60,7 @@ KResult Sys_CloseMemoryField(SyscallStack* Registers, kthread_t* Thread){
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!(flags & KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
     if(Keyhole_Get(Thread, (key_t)Registers->arg1, DataTypeSharedMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    return CloseMemoryField(processkey, memoryKey, (uintptr_t)Registers->arg2);    
+    return CloseMemoryField(Thread, processkey, memoryKey, (uintptr_t)Registers->arg2);    
 }
 
 /* Sys_GetInfoMemoryField :

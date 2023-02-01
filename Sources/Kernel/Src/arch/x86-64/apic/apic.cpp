@@ -197,11 +197,11 @@ namespace APIC{
             lapicSendInitIPI(Processor[i]->APICID);
 
             DataTrampoline.Status = 0;
+            
+            Warning("Wait processor %u", i);
 
             // send STARTUP IPI twice 
             lapicSendStartupIPI(Processor[i]->APICID, (uintptr_t)TRAMPOLINE_ADDRESS);
-            
-            Warning("Wait processor %u", i);
 
             while (DataTrampoline.Status != 0xef){
                 __asm__ __volatile__ ("pause" : : : "memory");

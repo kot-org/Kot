@@ -30,9 +30,9 @@ extern "C" {
 typedef KResult (*GraphicsCallbackHandler)(KResult Status, struct srv_graphics_callback* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
 enum Window_Event{
-    Winwow_Event_Focus = 0x0,
-    Winwow_Event_Mouse = 0x1,
-    Winwow_Event_Keyboard = 0x2,
+    Window_Event_Focus = 0x0,
+    Window_Event_Mouse = 0x1,
+    Window_Event_Keyboard = 0x2,
 };
 
 struct srv_graphics_callback_t{

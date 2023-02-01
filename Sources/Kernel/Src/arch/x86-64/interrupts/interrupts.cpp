@@ -122,8 +122,8 @@ void ExceptionHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
 }
 
 bool PageFaultHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
-    if(globalTaskManager->ThreadExecutePerCore[CoreID] != NULL){
-        return globalTaskManager->ThreadExecutePerCore[CoreID]->ExtendStack((uint64_t)Cr2);
+    if(Registers->threadInfo != NULL){
+        return Registers->threadInfo->thread->ExtendStack((uint64_t)Cr2);
     }
     return false;
 }

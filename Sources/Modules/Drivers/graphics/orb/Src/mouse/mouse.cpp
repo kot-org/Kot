@@ -117,7 +117,7 @@ void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
 
     if(CurrentFocusWindow != NULL){
         arguments_t Parameters{
-            .arg[0] = Winwow_Event_Mouse,               // Event type
+            .arg[0] = Window_Event_Mouse,               // Event type
             .arg[1] = (uint64_t)CursorPosition.x,       // X position
             .arg[2] = (uint64_t)CursorPosition.y,       // Y position
             .arg[3] = (uint64_t)z,                      // Z position (scroll)

@@ -236,7 +236,7 @@ bool windowc::SetFocusState(bool IsFocus){
     }
 
     arguments_t Parameters{
-        .arg[0] = Winwow_Event_Focus,   // Event type
+        .arg[0] = Window_Event_Focus,   // Event type
         .arg[1] = IsFocus,              // Focus state
     };
     Sys_Event_Trigger(Event, &Parameters);

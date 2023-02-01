@@ -17,13 +17,13 @@ typedef struct {
 void desktopc::SetWallpaper(char* path) {
     auto wallpaper = Ui::Picturebox(path, Ui::ImageType::_TGA, {});
 
-    file_t* imageFile = fopen(path, "rb");
+    // file_t* imageFile = fopen(path, "rb");
 
-    fseek(imageFile, 0, SEEK_END);
-    size_t imageFileSize = ftell(imageFile);
-    fseek(imageFile, 0, SEEK_SET);
-    tgaHeader_t* image = (tgaHeader_t*) malloc(imageFileSize);
-    fread(image, imageFileSize, 1, imageFile);
+    // fseek(imageFile, 0, SEEK_END);
+    // size_t imageFileSize = ftell(imageFile);
+    // fseek(imageFile, 0, SEEK_SET);
+    // tgaHeader_t* image = (tgaHeader_t*) malloc(imageFileSize);
+    // fread(image, imageFileSize, 1, imageFile);
 
     if(wallpaper == NULL) {
         SetSolidColor(NULL);

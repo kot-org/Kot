@@ -66,7 +66,7 @@ bool vmm_GetFlags(pagetable_t table, uintptr_t Address, vmm_flag flags){
     vmm_page_table* PDP;
     vmm_page_table* PDPVirtualAddress;
 
-    if (!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
+    if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
         return false;
     }else{
         PDP = (vmm_page_table*)(vmm_GetAddress(&PDE) << 12);
@@ -367,8 +367,9 @@ void vmm_Fill(pagetable_t table, uint64_t from, uint64_t to, bool user){
     }
 }
 
-void vmm_Swap(pagetable_t table){
+void vmm_Swap(kthread_t* self, pagetable_t table){
     ASMWriteCr3((uint64_t)table);
+    self->Regs->cr3 = (uint64_t)table;
 }
 
 pagetable_t vmm_GetPageTable(){
@@ -415,7 +416,6 @@ pagetable_t vmm_Setupthread(pagetable_t parent){
     pagetable_t PageTable = Pmm_RequestPage();
 
     uint64_t VirtualAddress = (uint64_t)vmm_GetVirtualAddress(PageTable);
-    memset((uintptr_t)VirtualAddress, 0, PAGE_SIZE);
     
     vmm_CopyPageTable(parent, PageTable, VMM_STARTRHALF, VMM_LOWERHALF);
     vmm_CopyPageTable(vmm_PageTable, PageTable, VMM_LOWERHALF, VMM_HIGHERALF);

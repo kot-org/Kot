@@ -442,6 +442,7 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge privil
 
     /* Thread Data */
     uintptr_t threadDataPA = Pmm_RequestPage();
+    thread->MemoryAllocated += PAGE_SIZE;
     thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
     Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey, PriviledgeApp);
@@ -518,6 +519,7 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
 
     /* Thread Data */
     uintptr_t threadDataPA = Pmm_RequestPage();
+    thread->MemoryAllocated += PAGE_SIZE;
     thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
     Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey, PriviledgeApp);
@@ -678,10 +680,10 @@ bool kthread_t::ExtendStack(uint64_t address){
     
     if(!vmm_GetFlags(Paging, (uintptr_t)address, vmm_PhysicalStorage)){
         uintptr_t PhysicalAddress = Pmm_RequestPage();
+        MemoryAllocated += PAGE_SIZE;
         vmm_Map(Paging, (uintptr_t)address, PhysicalAddress, true, true, true);
         return true;
     }
-
     return false;
 }
 
@@ -698,6 +700,7 @@ bool kthread_t::ExtendStack(uint64_t address, size64_t size){
     for(uint64_t i = 0; i < pageCount; i++){
         if(!vmm_GetFlags(Paging, (uintptr_t)(address + i * PAGE_SIZE), vmm_PhysicalStorage) || !vmm_GetFlags(Paging, (uintptr_t)(address + i * PAGE_SIZE), vmm_Present)){
             uintptr_t PhysicalAddress = Pmm_RequestPage();
+            MemoryAllocated += PAGE_SIZE;
             vmm_Map(Paging, (uintptr_t)(address + i * PAGE_SIZE), PhysicalAddress, true, true, true);
         }        
     }
@@ -706,6 +709,9 @@ bool kthread_t::ExtendStack(uint64_t address, size64_t size){
 }
 
 KResult kthread_t::ShareDataUsingStackSpace(uintptr_t data, size64_t size, uintptr_t* location){
+    if(Parent->PID == 0xE && TID == 2){
+        asm("nop");
+    }
     uintptr_t address = (uintptr_t)((uint64_t)*location - size);
 
     uint64_t pageCount = DivideRoundUp(size, PAGE_SIZE);
@@ -725,6 +731,7 @@ KResult kthread_t::ShareDataUsingStackSpace(uintptr_t data, size64_t size, uintp
         uintptr_t physicalPage = NULL;
         if(!vmm_GetFlags(Paging, (uintptr_t)virtualAddressIterator, vmm_PhysicalStorage)){
             physicalPage = Pmm_RequestPage();
+            MemoryAllocated += PAGE_SIZE;
             vmm_Map(Paging, (uintptr_t)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
             physicalPage = (uintptr_t)((uint64_t)physicalPage + alignement);
         }else{
@@ -748,6 +755,7 @@ KResult kthread_t::ShareDataUsingStackSpace(uintptr_t data, size64_t size, uintp
         uintptr_t physicalPage = NULL;
         if(!vmm_GetFlags(Paging, (uintptr_t)virtualAddressIterator, vmm_PhysicalStorage)){
             physicalPage = Pmm_RequestPage();
+            MemoryAllocated += PAGE_SIZE;
             vmm_Map(Paging, (uintptr_t)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
         }else{
             physicalPage = vmm_GetPhysical(Paging, (uintptr_t)virtualAddressIterator);

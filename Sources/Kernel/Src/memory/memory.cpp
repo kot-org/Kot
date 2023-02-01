@@ -99,7 +99,7 @@ bool CheckUserAddress(uintptr_t address, size64_t size){
 //vmm_flag::vmm_Custom1 master share
 //vmm_flag::vmm_Slave slave share
 
-uint64_t CreateMemoryField(kprocess_t* process, size64_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, enum MemoryFieldType type){
+uint64_t CreateMemoryField(kthread_t* self, kprocess_t* process, size64_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, enum MemoryFieldType type){
     if(CheckAddress(virtualAddressPointer, sizeof(uint64_t)) != KSUCCESS) return KFAIL;
     if(CheckAddress(keyPointer, sizeof(uint64_t)) != KSUCCESS) return KFAIL;
     uintptr_t virtualAddress = (uintptr_t)*virtualAddressPointer;
@@ -140,7 +140,7 @@ uint64_t CreateMemoryField(kprocess_t* process, size64_t size, uint64_t* virtual
         }
         case MemoryFieldTypeSendSpaceRO:{
             pagetable_t lastPageTable = vmm_GetPageTable();
-            if(lastPageTable != pageTable) vmm_Swap(pageTable);
+            if(lastPageTable != pageTable) vmm_Swap(self, pageTable);
             if(CheckAddress(virtualAddress, realSize, pageTable) != KSUCCESS) return KFAIL;
             if((uint64_t)virtualAddress % PAGE_SIZE){
                 size64_t nonAlignedSize = PAGE_SIZE - ((uint64_t)virtualAddress % PAGE_SIZE);
@@ -148,7 +148,7 @@ uint64_t CreateMemoryField(kprocess_t* process, size64_t size, uint64_t* virtual
                     numberOfPage++;
                 }
             }
-            if(lastPageTable != pageTable) vmm_Swap(lastPageTable);
+            if(lastPageTable != pageTable) vmm_Swap(self, lastPageTable);
             break;
         }
     }
@@ -174,7 +174,7 @@ uint64_t CreateMemoryField(kprocess_t* process, size64_t size, uint64_t* virtual
     return KSUCCESS;
 }
 
-uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint64_t* virtualAddressPointer){
+uint64_t AcceptMemoryField(kthread_t* self, kprocess_t* process, MemoryShareInfo* shareInfo, uint64_t* virtualAddressPointer){
     pagetable_t pageTable = process->SharedPaging;
 
     if(shareInfo->signature0 != 'S' || shareInfo->signature1 != 'M') return KFAIL;
@@ -212,7 +212,7 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
         }
         case MemoryFieldTypeSendSpaceRO:{
             pagetable_t lastPageTable = vmm_GetPageTable();
-            vmm_Swap(pageTable);
+            vmm_Swap(self, pageTable);
 
             uint64_t alignement = (uint64_t)virtualAddress & 0xFFF;
             uint64_t size = shareInfo->RealSize;
@@ -270,7 +270,7 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
                 virtualAddressParentIterator += sizeToCopy;
                 size -= sizeToCopy;
             } 
-            vmm_Swap(lastPageTable);
+            vmm_Swap(self, lastPageTable);
             break;
         }
     }
@@ -287,7 +287,7 @@ uint64_t AcceptMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uint
     return KSUCCESS;
 }
 
-uint64_t CloseMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uintptr_t virtualAddress){
+uint64_t CloseMemoryField(kthread_t* self, kprocess_t* process, MemoryShareInfo* shareInfo, uintptr_t virtualAddress){
     pagetable_t pageTable = process->SharedPaging;
     bool IsParent = (process == shareInfo->Parent);
 
@@ -296,7 +296,7 @@ uint64_t CloseMemoryField(kprocess_t* process, MemoryShareInfo* shareInfo, uintp
     if(IsParent){
         for(uint64_t i = 0; i < shareInfo->SlavesNumber; i++){
             SlaveInfo_t* SlaveInfo = (SlaveInfo_t*)shareInfo->SlavesList->pop64();
-            CloseMemoryField(SlaveInfo->process, shareInfo, SlaveInfo->virtualAddress);
+            CloseMemoryField(self, SlaveInfo->process, shareInfo, SlaveInfo->virtualAddress);
         }        
     }
 

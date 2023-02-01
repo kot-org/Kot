@@ -79,8 +79,10 @@ struct srv_storage_device_callback_t* Srv_SendMultipleRequests(struct srv_storag
     Data.Data = Requests;
     Data.ParameterPosition = 0x3;
 
+    atomicAcquire(&StorageDevice->Lock, 0);
     Sys_Execthread(StorageDevice->SpaceInfo.RequestToDeviceThread, &Parameters, ExecutionTypeQueu, &Data);
     Sys_Pause(false);
+    atomicUnlock(&StorageDevice->Lock, 0);
     return callbackData;
 }
 

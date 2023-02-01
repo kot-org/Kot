@@ -56,7 +56,7 @@ uintptr_t vmm_GetPhysical(pagetable_t table, uintptr_t Address);
 void vmm_CopyPageTable(pagetable_t tableSource, pagetable_t tableDestination, uint64_t from, uint64_t to);
 void vmm_Fill(pagetable_t table, uint64_t from, uint64_t to, bool user);
 
-void vmm_Swap(pagetable_t table);
+void vmm_Swap(struct kthread_t* self, pagetable_t table);
 pagetable_t vmm_GetPageTable();
 uint64_t vmm_Init(struct ukl_boot_structure_t* bootInfo);
 
