@@ -75,6 +75,7 @@ A 64-bit x86 operating system written in C/C++
 <p align="center">
 	<img src="./Meta/Screenshots/1.png?raw=true" width="90%"/> 
 	<img src="./Meta/Screenshots/2.png?raw=true" width="90%"/> 
+	<img src="./Meta/Screenshots/3.png?raw=true" width="90%"/> 
 </p>
 
 
