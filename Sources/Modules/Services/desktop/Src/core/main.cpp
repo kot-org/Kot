@@ -32,48 +32,20 @@ void desktopc::SetWallpaper(char *Path)
         return;
     }
 
-    uint8_t Btpp = Wallpaper->Bpp / 8;
-    uint32_t Pitch = Wallpaper->Width * Btpp;
+    uint32_t* Pixels = TGARead(Wallpaper);
 
-    uintptr_t ImageDataOffset = (uintptr_t)(Wallpaper->ColorMapOrigin + Wallpaper->ColorMapLength + 18),
-              ImagePixelData = (uintptr_t)((uint64_t)Wallpaper + (uint64_t)ImageDataOffset);
+    // pour retourner l'image : ((isReversed) ? Fb->Height-y-1 : y)
 
-    uint32_t* Pixels = (uint32_t*) malloc(Fb->Height * (Fb->Width * Fb->Btpp));
-    
-    uint32_t YPos, XPos;
-    std::printf("%x", Wallpaper->Width / Fb->Width);
-    for(uint16_t y = 0; y < Fb->Height; y++)
-    {   
-        YPos = y * Wallpaper->Height / Fb->Height;
+    // resize and draw
+    for(uint16_t y = 0; y < Fb->Height; y++) {
+        uint32_t YPos = y * Wallpaper->Height / Fb->Height;
 
-        for(uint16_t x = 0; x < Fb->Width; x++)
-        {
-            XPos = x * Wallpaper->Width / Fb->Width;
+        for(uint16_t x = 0; x < Fb->Width; x++) {
+            uint32_t XPos = x * Wallpaper->Width / Fb->Width;
 
-            uint64_t index = (uint64_t)ImagePixelData + XPos * Btpp + YPos * Pitch;
-            uint8_t B = *(uint8_t*)(index + 0);
-            uint8_t G = *(uint8_t*)(index + 1);
-            uint8_t R = *(uint8_t*)(index + 2);
-
-            uint8_t A = 0xFF;
-            if (Wallpaper->Bpp == 32)
-                A = *(uint8_t*)(index + 3);
-
-            PutPixel(Fb, x, y, B | (G << 8) | (R << 16) | (A << 24));
-            //Pixels[XPos + YPos*Fb->Width] = B | (G << 8) | (R << 16) | (A << 24);
+            PutPixel(Fb, x, y, Pixels[XPos + YPos*Wallpaper->Width]);
         }
     }
-    std::printf("%x %x %x", *(uint8_t*)((uint64_t)Wallpaper + 0x123CC0), *(uint8_t*)((uint64_t)Wallpaper + 0x123CC1), *(uint8_t*)((uint64_t)Wallpaper + 0x123CC2));
-
-    std::printf("size (height*pitch): %d, array: %d", Fb->Height * (Fb->Width * Fb->Btpp), XPos + YPos*Fb->Width);
-
-    // uint32_t* Pixels = TGARead(Wallpaper, Fb->Width, Fb->Height);
-
-    // for(uint16_t y = 0; y < Fb->Height; y++) {
-    //     for(uint16_t x = 0; x < Fb->Width; x++) {
-    //         PutPixel(Fb, x, y, Pixels[x + y*Fb->Width]);
-    //     }
-    // }
 
     free(Wallpaper);
     free(Pixels);

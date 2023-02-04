@@ -24,7 +24,7 @@ namespace Ui {
         RGB_RLE       = 10
     } TGAType;
 
-    uint32_t* TGARead(TGAHeader_t* image, uint16_t Width, uint16_t Height);
+    uint32_t* TGARead(TGAHeader_t* image);
 
     /* ... */
 }
