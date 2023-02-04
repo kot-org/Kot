@@ -90,19 +90,19 @@ namespace Ui {
         return this->fb;
     }
 
-    Component::ComponentStyle* Component::getStyle() {
+    Component::ComponentStyle* Component::GetStyle() {
         return this->style;
     }
 
-    vector_t* Component::getChilds() {
+    vector_t* Component::GetChilds() {
         return this->childs;
     }
 
-    uint32_t Component::getTotalWidthChilds() {
+    uint32_t Component::GetTotalWidthChilds() {
         return this->totalWidthChilds;
     }
 
-    uint32_t Component::getTotalHeightChilds() {
+    uint32_t Component::GetTotalHeightChilds() {
         return this->totalHeightChilds;
     }
 

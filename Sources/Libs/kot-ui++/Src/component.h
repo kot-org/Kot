@@ -57,6 +57,7 @@ namespace Ui {
 
         public:
 
+            /* todo: changer cette struct et mettre une struct pour charque component */
             struct ComponentStyle {
                 // todo: modifier ca
                 Layout::ComponentPosition position;
@@ -86,10 +87,10 @@ namespace Ui {
             void updateFramebuffer(uint32_t Width, uint32_t Height);
 
             framebuffer_t* GetFramebuffer();
-            ComponentStyle* getStyle();
-            vector_t* getChilds();
-            uint32_t getTotalWidthChilds();
-            uint32_t getTotalHeightChilds();
+            ComponentStyle* GetStyle();
+            vector_t* GetChilds();
+            uint32_t GetTotalWidthChilds();
+            uint32_t GetTotalHeightChilds();
 
             void update();
             void draw();
@@ -118,8 +119,8 @@ namespace Ui {
         _JPG = 2,
     };
     typedef struct {
-        uint32_t Width;
-        uint32_t Height;
+        uint16_t Width;
+        uint16_t Height;
     } ImageStyle;
     Component* Picturebox(char* path, ImageType type, ImageStyle style);
 
@@ -143,5 +144,6 @@ namespace UiLayout {
     void calculateLayout(Ui::Component* parent);
 
     Ui::Component* Flexbox(Ui::Component::ComponentStyle style);
+    Ui::Component* Gridbox(Ui::Component::ComponentStyle style);
 
 }

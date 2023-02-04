@@ -4,39 +4,39 @@ namespace UiLayout {
 
     void calculateAlignment(Component* parent, uint32_t index) {
 
-        Component* child = (Component*) vector_get(parent->getChilds(), index);
+        Component* child = (Component*) vector_get(parent->GetChilds(), index);
 
         /* Horizontal */
-        switch(parent->getStyle()->align.x)
+        switch(parent->GetStyle()->align.x)
         {
             case Layout::LEFT:
-                child->getStyle()->x = 0;
+                child->GetStyle()->x = 0;
                 break;
 
             case Layout::CENTER:
-                child->getStyle()->x = parent->getStyle()->Width / 2 - parent->getTotalWidthChilds() / 2;
+                child->GetStyle()->x = parent->GetStyle()->Width / 2 - parent->GetTotalWidthChilds() / 2;
                 break;
 
             case Layout::RIGHT:
-                child->getStyle()->x = parent->getStyle()->Width - parent->getTotalWidthChilds();
+                child->GetStyle()->x = parent->GetStyle()->Width - parent->GetTotalWidthChilds();
                 break;
         }
 
         /* Vertical */
-        switch(parent->getStyle()->align.y)
+        switch(parent->GetStyle()->align.y)
         {
             case Layout::TOP:
-                child->getStyle()->y = 0;
+                child->GetStyle()->y = 0;
                 break;
 
             case Layout::MIDDLE:
-                // todo: child->Height   -->   getTotalHeightChilds
-                child->getStyle()->y = parent->getStyle()->Height / 2 - child->getStyle()->Height / 2;
+                // todo: child->Height   -->   GetTotalHeightChilds
+                child->GetStyle()->y = parent->GetStyle()->Height / 2 - child->GetStyle()->Height / 2;
                 break;
 
             case Layout::BOTTOM:
-                // todo: child->Height   -->   getTotalHeightChilds
-                child->getStyle()->y = parent->getStyle()->Height - child->getStyle()->Height;
+                // todo: child->Height   -->   GetTotalHeightChilds
+                child->GetStyle()->y = parent->GetStyle()->Height - child->GetStyle()->Height;
                 break;
         }
 

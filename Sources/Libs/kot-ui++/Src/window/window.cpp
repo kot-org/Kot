@@ -30,7 +30,7 @@ namespace UiWindow {
         auto titlebar = Ui::titlebar(title, { .backgroundColor = WIN_BGCOLOR_ONFOCUS, .foregroundColor = 0xDDDDDD });
         this->setContent(titlebar);
  
-/*         auto wrapper = Ui::box({ .Width = this->ctxUi->fb->Width, .Height = this->ctxUi->fb->Height - titlebar->getStyle()->Height, .color = WIN_BGCOLOR_ONFOCUS });
+/*         auto wrapper = Ui::box({ .Width = this->ctxUi->fb->Width, .Height = this->ctxUi->fb->Height - titlebar->GetStyle()->Height, .color = WIN_BGCOLOR_ONFOCUS });
 
         auto flexbox = UiLayout::Flexbox({}, Ui::Layout::HORIZONTAL);
 

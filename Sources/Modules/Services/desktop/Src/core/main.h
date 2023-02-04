@@ -13,11 +13,11 @@ using namespace std;
 
 class desktopc {
     public:
-        desktopc(JsonArray* settings);
+        desktopc(JsonArray* Settings);
 
-        void SetWallpaper(char* path);
-        void SetSolidColor(uint32_t color);
+        void SetWallpaper(char* Path);
+        void SetSolidColor(uint32_t Color);
 
     private:
-        framebuffer_t* fb;
+        framebuffer_t* Fb;
 };

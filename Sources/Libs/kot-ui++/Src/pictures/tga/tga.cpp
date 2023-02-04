@@ -1,81 +1,63 @@
 #include "../picture.h"
 
-#include <kot-graphics/utils.h>
-
 namespace Ui {
 
-    TGA::TGA(file_t* file) {
-        fseek(file, 0, SEEK_END);
-        size_t imageFileSize = ftell(file);
-        fseek(file, 0, SEEK_SET);
+    uint32_t* TGARead(TGAHeader_t* buffer, uint16_t Width, uint16_t Height) {
+        uint8_t Bpp = buffer->Bpp;
+        uint8_t Btpp = buffer->Bpp/8;
+        uint32_t Pitch = buffer->Width * Btpp;
+        bool isReversed = !(buffer->ImageDescriptor & (1 << 5));
 
-        tgaHeader_t* image = (tgaHeader_t*) malloc(imageFileSize);
-        fread(image, imageFileSize, 1, file); 
-        if(image->Width <= 0 || image->Height <= 0) { fclose(file); return; }
+        uintptr_t ImageDataOffset = (uintptr_t) (buffer->ColorMapOrigin + buffer->ColorMapLength + 18),
+            ImagePixelData = (uintptr_t) ((uint64_t)buffer + (uint64_t)ImageDataOffset);
 
+        uint32_t* Pixels = (uint32_t*) malloc(buffer->Height*Pitch);
 
-        /* uintptr_t imageDataOffset = (uintptr_t) (image->colorMapOrigin + image->colorMapLength + 18),
-            imagePixelData = (uintptr_t) ((uint64_t)image + (uint64_t)imageDataOffset);
-
-        uint8_t Bpp = image->Bpp;
-        uint8_t Btpp = image->Bpp/8;
-        uint32_t Width = image->Width,
-                 cpntWidth = cpnt->getStyle()->Width;
-        uint32_t Height = image->Height,
-                 cpntHeight = cpnt->getStyle()->Height;
-        uint32_t Pitch = Width * Btpp;
-        bool isReversed = !(image->imageDescriptor & (1 << 5));
-
-        if(cpntWidth == NULL)
-            cpntWidth = Width;
-        else
-            Width = cpntWidth;
-        
-        if(cpntHeight == NULL)
-            cpntHeight = Height;
-        else
-            Height = cpntHeight;
-        
-        cpnt->updateFramebuffer(Width, Height);
-
-        switch (image->imageType)
+        switch (buffer->ImageType)
         {
-            case 1:
+            case TGAType::COLORMAP:
                 Printlog("tga type 1");
                 break;
             
-            case 2:
+            case TGAType::RGB:
             {
-                for(uint64_t y = 0; y < Height; y++) {
-                    uint32_t YPosition = ((isReversed) ? Height-y-1 : y) * file->Height / Height;
+                Printlog("tga type 2");
 
-                    for(uint64_t x = 0; x < Width; x++) {
-                        uint32_t XPosition = x * image->Width / Width;
+                for(uint16_t y = 0; y < buffer->Height; y++) {
+                    uint32_t YPosition = ((isReversed) ? Height-y-1 : y) * buffer->Height / Height;
 
-                        uint8_t R = *(uint8_t*) ((uint64_t)imagePixelData+XPosition*Btpp+Pitch*YPosition + 2);
-                        uint8_t G = *(uint8_t*) ((uint64_t)imagePixelData+XPosition*Btpp+Pitch*YPosition + 1);
-                        uint8_t B = *(uint8_t*) ((uint64_t)imagePixelData+XPosition*Btpp+Pitch*YPosition + 0);
-                        uint32_t Pixel = B | (G << 8) | (R << 16);
-                        PutPixel(cpnt->GetFramebuffer(), cpnt->getStyle()->x+x, cpnt->getStyle()->y+y, Pixel);
+                    for(uint16_t x = 0; x < buffer->Width; x++) {
+                        uint32_t XPosition = x * buffer->Width / Width;
+
+                        uint64_t index = (uint64_t)ImagePixelData + XPosition*Btpp + YPosition*Pitch;
+
+                        uint8_t B = *(uint8_t*) (index + 0);
+                        uint8_t G = *(uint8_t*) (index + 1);
+                        uint8_t R = *(uint8_t*) (index + 2);
+
+                        uint8_t A = 0xFF;
+                        if(Bpp == 32)
+                            A = *(uint8_t*) (index + 3);
+
+                        Pixels[XPosition + YPosition*Width] = B | (G << 8) | (R << 16) | (A << 24);
                     }
                 }
 
                 break;
             }
-            case 9:
+            case TGAType::COLORMAP_RLE:
                 Printlog("tga type 9");
                 break;
             
-            case 10:
+            case TGAType::RGB_RLE:
                 Printlog("tga type 10");
                 break;
             
             default:
                 break;
-        }*/
+        }
 
-        free(image);
-        fclose(file);
+        return Pixels;
     }
     
 }

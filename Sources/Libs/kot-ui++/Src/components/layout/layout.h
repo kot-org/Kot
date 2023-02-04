@@ -11,4 +11,6 @@ namespace UiLayout {
     void calculateFlex(Component* parent, uint32_t index);
     void recalculateFlexChilds(Component* parent);
 
+    void calculateGrid(Component* parent, uint32_t index);
+
 }

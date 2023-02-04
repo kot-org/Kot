@@ -2,92 +2,149 @@
 
 #include <kot++/printf.h>
 
-typedef struct {
-    uint8_t idLength;
-    uint8_t colorMapType;
-    uint8_t imageType;
-    uint16_t colorMapOrigin, colorMapLength;
-    uint8_t colorMapEntSz;
-    uint16_t x, y;
-    uint16_t Width, Height;
-    uint8_t Bpp;
-    uint8_t imageDescriptor;
-} __attribute__((__packed__)) tgaHeader_t;
+#include <kot/assert.h>
 
-void desktopc::SetWallpaper(char* path) {
-    auto wallpaper = Ui::Picturebox(path, Ui::ImageType::_TGA, {});
+#include <kot-ui++/pictures/picture.h>
+using namespace Ui;
 
-    // file_t* imageFile = fopen(path, "rb");
+void desktopc::SetWallpaper(char *Path)
+{
+    file_t* WallpaperFile = fopen(Path, "rb");
 
-    // fseek(imageFile, 0, SEEK_END);
-    // size_t imageFileSize = ftell(imageFile);
-    // fseek(imageFile, 0, SEEK_SET);
-    // tgaHeader_t* image = (tgaHeader_t*) malloc(imageFileSize);
-    // fread(image, imageFileSize, 1, imageFile);
-
-    if(wallpaper == NULL) {
+    if (WallpaperFile == NULL)
+    {
         SetSolidColor(NULL);
         return;
     }
+
+    fseek(WallpaperFile, 0, SEEK_END);
+    size_t WallpaperFileSize = ftell(WallpaperFile);
+    fseek(WallpaperFile, 0, SEEK_SET);
+
+    TGAHeader_t* Wallpaper = (TGAHeader_t*) malloc(WallpaperFileSize);
+    fread(Wallpaper, WallpaperFileSize, 1, WallpaperFile);
+
+    if(Wallpaper->Width <= 0 || Wallpaper->Height <= 0)
+    {
+        free(Wallpaper);
+        fclose(WallpaperFile);
+        SetSolidColor(NULL);
+        return;
+    }
+
+    uint8_t Btpp = Wallpaper->Bpp / 8;
+    uint32_t Pitch = Wallpaper->Width * Btpp;
+
+    uintptr_t ImageDataOffset = (uintptr_t)(Wallpaper->ColorMapOrigin + Wallpaper->ColorMapLength + 18),
+              ImagePixelData = (uintptr_t)((uint64_t)Wallpaper + (uint64_t)ImageDataOffset);
+
+    uint32_t* Pixels = (uint32_t*) malloc(Fb->Height * (Fb->Width * Fb->Btpp));
+    
+    uint32_t YPos, XPos;
+
+    for(uint16_t y = 0; y < Wallpaper->Height; y++)
+    {
+        YPos = y * Fb->Height / Wallpaper->Height;
+
+        for(uint16_t x = 0; x < Wallpaper->Width; x++)
+        {
+            XPos = x * Fb->Width / Wallpaper->Width;
+
+            uint64_t index = (uint64_t)ImagePixelData + x*Btpp + y*Pitch;
+
+            uint8_t B = *(uint8_t*)(index + 0);
+            uint8_t G = *(uint8_t*)(index + 1);
+            uint8_t R = *(uint8_t*)(index + 2);
+
+            uint8_t A = 0xFF;
+            if (Wallpaper->Bpp == 32)
+                A = *(uint8_t*)(index + 3);
+
+            Pixels[XPos + YPos*Fb->Width] = B | (G << 8) | (R << 16) | (A << 24);
+        }
+    }
+
+    std::printf("size (height*pitch): %d, array: %d", Fb->Height * (Fb->Width * Fb->Btpp), XPos + YPos*Fb->Width);
+
+    // uint32_t* Pixels = TGARead(Wallpaper, Fb->Width, Fb->Height);
+
+    for(uint16_t y = 0; y < Fb->Height; y++) {
+        for(uint16_t x = 0; x < Fb->Width; x++) {
+            PutPixel(Fb, x, y, Pixels[x + y*Fb->Width]);
+        }
+    }
+
+    free(Wallpaper);
+    free(Pixels);
+    fclose(WallpaperFile);
 }
 
-void desktopc::SetSolidColor(uint32_t color) {
-    FillRect(fb, 0, 0, Window_Max_Size, Window_Max_Size, color);
+void desktopc::SetSolidColor(uint32_t Color)
+{
+    FillRect(Fb, 0, 0, Fb->Width, Fb->Height, Color);
 }
 
-desktopc::desktopc(JsonArray* settings) {
+desktopc::desktopc(JsonArray* Settings)
+{
     window_t* Desktop = CreateWindow(NULL, Window_Type_Background);
     ResizeWindow(Desktop, Window_Max_Size, Window_Max_Size);
 
-    fb = &Desktop->Framebuffer;
+    Fb = &Desktop->Framebuffer;
 
-    JsonObject* desktopSettings = (JsonObject*) settings->Get(0);
+    JsonObject* DesktopSettings = (JsonObject*)Settings->Get(0);
 
     /* desktop background */
-    JsonObject* background = (JsonObject*) desktopSettings->Get("background");
-    bool isWallpaper = ((JsonBoolean*) background->Get("isWallpaper"))->Get();
-    char* wallpaperPath = ((JsonString*) background->Get("wallpaperPath"))->Get();
-    uint32_t solidColor = strtol(((JsonString*) background->Get("solidColor"))->Get(), NULL, 16);
+    JsonObject* Background = (JsonObject*)DesktopSettings->Get("background");
+    bool IsWallpaper = ((JsonBoolean*)Background->Get("isWallpaper"))->Get();
+    char* WallpaperPath = ((JsonString*)Background->Get("wallpaperPath"))->Get();
+    uint32_t SolidColor = strtol(((JsonString*)Background->Get("solidColor"))->Get(), NULL, 16);
 
-    if(isWallpaper) {
-        SetWallpaper(wallpaperPath);
-    } else {
-        SetSolidColor(solidColor);
+    if(IsWallpaper)
+    {
+        SetWallpaper(WallpaperPath);
+    } else
+    {
+        SetSolidColor(SolidColor);
     }
+
+    // todo: creer une grille pour les icones
 
     ChangeVisibilityWindow(Desktop, true);
 }
 
-extern "C" int main(int argc, char* argv[]){
+extern "C" int main(int argc, char *argv[])
+{
     Printlog("[DESKTOP] Initializing...");
 
     // load desktopUserSettings.json
-    
-    file_t* settingsFile = fopen("d1:Usr/root/Share/Settings/desktop.json", "r");
-    
-    if(settingsFile == NULL) {
+
+    file_t* SettingsFile = fopen("d1:Usr/root/Share/Settings/desktop.json", "r");
+
+    if (SettingsFile == NULL)
+    {
         Printlog("[DESKTOP] \033[0;31mERR:\033[0m File not found.");
         return KFAIL;
     }
 
-    fseek(settingsFile, 0, SEEK_END);
-    size_t settingsFileSize = ftell(settingsFile);
-	fseek(settingsFile, 0, SEEK_SET);
+    fseek(SettingsFile, 0, SEEK_END);
+    size_t SettingsFileSize = ftell(SettingsFile);
+    fseek(SettingsFile, 0, SEEK_SET);
 
-    char* BufferSettingsFile = (char*) malloc(settingsFileSize);
-    fread(BufferSettingsFile, settingsFileSize, 1, settingsFile);
-        
+    char* BufferSettingsFile = (char*)malloc(SettingsFileSize);
+    fread(BufferSettingsFile, SettingsFileSize, 1, SettingsFile);
+
     JsonParser* parser = new JsonParser(BufferSettingsFile);
 
-    if(parser->getCode() != JSON_SUCCESS && parser->getValue()->getType() != JSON_ARRAY) {
+    if (parser->getCode() != JSON_SUCCESS && parser->getValue()->getType() != JSON_ARRAY)
+    {
         Printlog("[DESKTOP] \033[0;31mERR:\033[0m Json file could not be retrieved.");
         return KFAIL;
     }
 
-    JsonArray* settings = (JsonArray*) parser->getValue();
-    desktopc* desktop0 = new desktopc(settings);  
+    JsonArray* Settings = (JsonArray*)parser->getValue();
+    desktopc* desktop0 = new desktopc(Settings);
 
-    fclose(settingsFile);
+    fclose(SettingsFile);
 
     Printlog("[DESKTOP] Initialized");
     return KSUCCESS;

@@ -6,21 +6,21 @@ namespace UiLayout {
 
     void calculateFlex(Component* parent, uint32_t index) {
 
-        Component* child = (Component*) vector_get(parent->getChilds(), index);
+        Component* child = (Component*) vector_get(parent->GetChilds(), index);
 
         // todo: fill/normal mode
         
-        switch (parent->getStyle()->direction)
+        switch (parent->GetStyle()->direction)
         {
             case Layout::HORIZONTAL:
             {
                 // todo: parent -> Width: 100%
 
-                if(parent->getStyle()->Height < child->getStyle()->Height)
-                    parent->getStyle()->Height = child->getStyle()->Height;
+                if(parent->GetStyle()->Height < child->GetStyle()->Height)
+                    parent->GetStyle()->Height = child->GetStyle()->Height;
 
                 /* space */
-                if(parent->getStyle()->space == Layout::BETWEEN) {
+                if(parent->GetStyle()->space == Layout::BETWEEN) {
                     
                     
 
@@ -38,18 +38,18 @@ namespace UiLayout {
         }
 
         // if the child is the last
-        if(index+1 == parent->getChilds()->length)
+        if(index+1 == parent->GetChilds()->length)
             recalculateFlexChilds(parent);
 
     }
 
     void recalculateFlexChilds(Component* parent) {
 
-        for(int i = 0; i < parent->getChilds()->length; i++) {
+        for(int i = 0; i < parent->GetChilds()->length; i++) {
 
-            Component* child = (Component*) vector_get(parent->getChilds(), i);
+            Component* child = (Component*) vector_get(parent->GetChilds(), i);
 
-            child->getStyle()->Height = parent->getStyle()->Height;
+            child->GetStyle()->Height = parent->GetStyle()->Height;
 
         }
 

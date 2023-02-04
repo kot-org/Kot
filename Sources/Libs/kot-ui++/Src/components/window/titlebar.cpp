@@ -7,7 +7,7 @@ namespace Ui {
         /* todo: replace Width: 500 -> 100% */
         Component* titlebar = UiLayout::Flexbox({ .direction = Layout::HORIZONTAL, .space = Layout::BETWEEN, .Width = 500, .backgroundColor = style.backgroundColor, .foregroundColor = style.foregroundColor });
 
-        auto windowInfo = Ui::box({ .Width = titlebar->getStyle()->Width/2, .Height = 40, .color = 0xFF0000 });
+        auto windowInfo = Ui::box({ .Width = titlebar->GetStyle()->Width/2, .Height = 40, .color = 0xFF0000 });
 
         auto iconBox = Ui::box({ .Width = 20, .Height = 20, .color = 0xFFFF00 });
         windowInfo->addChild(iconBox); 
