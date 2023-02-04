@@ -314,7 +314,7 @@ int64_t mount_info_t::GetInodeBlock(inode_t* inode, uint64_t block, uint64_t* re
         // No redirection
         return inode->Inode.block[block];
     }else{
-        block -= INODE_BLOCK_MAX_INDIRECT_BLOCK;
+        block -= INODE_BLOCK_MAX_INDIRECT_BLOCK + 1;
         uint64_t SingleRedirectionLimit = EntryPerBlock;
         if(block < SingleRedirectionLimit){
             // Single redirection

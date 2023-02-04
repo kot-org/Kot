@@ -286,7 +286,7 @@ struct mount_info_t{
 	uint64_t GetFreeInodesCount(struct ext2_group_descriptor_t* descriptor);
 	uint64_t GetUsedDirCount(struct ext2_group_descriptor_t* descriptor);
 
-    KResult ReadInode(inode_t* inode, ksmem_t* key, uint64_t start, size64_t size);
+    KResult ReadInode(struct inode_t* inode, ksmem_t* key, uint64_t start, size64_t size);
 	KResult ReadInode(struct inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size);
 	KResult ReadInodeBlock(struct inode_t* inode, uintptr_t buffer, uint64_t block, uint64_t start, size64_t size);
     int64_t GetInodeBlock(inode_t* inode, uint64_t block, uint64_t* redirection0, uint64_t* redirection1, uint64_t* redirection2, uint32_t** redirectioncache0, uint32_t** redirectioncache1, uint32_t** redirectioncache2);
