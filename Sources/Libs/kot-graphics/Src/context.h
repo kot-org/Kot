@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __KOT__GRAPHICS__CTX__
+#define __KOT__GRAPHICS__CTX__
 
 #include <kot/math.h>
 #include <kot/utils/map.h>
@@ -83,4 +84,6 @@ void blendAlpha(uintptr_t pixel, uint32_t color);
 
 #if defined(__cplusplus)
 }
+#endif
+
 #endif

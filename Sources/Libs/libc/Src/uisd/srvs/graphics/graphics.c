@@ -38,7 +38,7 @@ KResult Srv_Graphics_Createwindowcallback(KResult Status, struct srv_graphics_ca
     return Status;
 }
 
-struct srv_graphics_callback_t* Srv_Graphics_CreateWindow(uintptr_t EventHandler, uint64_t WindowType, bool IsAwait){
+struct srv_graphics_callback_t* Srv_Graphics_CreateWindow(event_t Event, uint64_t WindowType, bool IsAwait){
     if(!srv_graphics_callback_thread) Srv_Graphics_Initialize();
 
     window_t* Window = (window_t*)malloc(sizeof(window_t));
@@ -51,14 +51,7 @@ struct srv_graphics_callback_t* Srv_Graphics_CreateWindow(uintptr_t EventHandler
     callback->Status = KBUSY;
     callback->Handler = &Srv_Graphics_Createwindowcallback;
 
-    Sys_Event_Create(&Window->Event);
-
-    if(EventHandler != NULL){
-        Sys_Createthread(Sys_GetProcess(), EventHandler, PriviledgeApp, Window, &Window->EventHandler);
-        Sys_Event_Bind(Window->Event, Window->EventHandler, false);
-    }else{
-        Window->EventHandler = NULL;
-    }
+    Window->Event = Event;
 
     struct arguments_t parameters;
     parameters.arg[0] = srv_graphics_callback_thread;

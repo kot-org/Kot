@@ -1,7 +1,7 @@
 #include <kot-graphics/orb.h>
 
-window_t* CreateWindow(uintptr_t EventHandler, uint64_t WindowType){
-    struct srv_graphics_callback_t* Callback = Srv_Graphics_CreateWindow(EventHandler, WindowType, true);
+window_t* CreateWindow(event_t Event, uint64_t WindowType){
+    struct srv_graphics_callback_t* Callback = Srv_Graphics_CreateWindow(Event, WindowType, true);
     window_t* Window = Callback->Data;
     free(Callback);
     return Window;

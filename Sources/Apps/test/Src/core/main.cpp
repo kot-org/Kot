@@ -7,7 +7,7 @@
 using namespace Ui;
 
 extern "C" int main() {
-    UiWindow::Window("test", 500, 300, 10, 400);
+    new UiWindow::Window("test", 500, 300, 10, 400);
 
     // titlebar_t* titlebar = CreateTitleBar("test", GetMainParent(fb), { .bgColor = 0xFF1B1B1B, .visible = true });
 

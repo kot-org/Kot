@@ -1,13 +1,11 @@
-#pragma once
-
 #include <kot/uisd.h>
 #include <kot/utils.h>
 #include <kot/types.h>
 
 #include <kot-graphics/utils.h> 
 
-#ifndef __KOT__GRAPHICS__ORB__
-#define __KOT__GRAPHICS__ORB__
+#ifndef __KOT__GRAPHICS__EVENT__
+#define __KOT__GRAPHICS__EVENT__
 
 #if defined(__cplusplus)
 extern "C" {

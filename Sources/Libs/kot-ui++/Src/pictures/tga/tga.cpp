@@ -13,7 +13,7 @@ namespace Ui {
         uintptr_t ImageDataOffset = (uintptr_t) (buffer->ColorMapOrigin + buffer->ColorMapLength + 18),
             ImagePixelData = (uintptr_t) ((uint64_t)buffer + (uint64_t)ImageDataOffset);
 
-        uint32_t* Pixels = (uint32_t*) malloc(Height * Pitch);
+        uint32_t* Pixels = (uint32_t*) malloc(Height * Width * sizeof(uint32_t));
 
         switch (buffer->ImageType)
         {
@@ -58,7 +58,6 @@ namespace Ui {
             default:
                 break;
         }
-
         return Pixels;
     }
     

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _UIPP_CONTEXT_H_
+#define _UIPP_CONTEXT_H_
 
 #include <kot/types.h>
 
@@ -22,3 +23,5 @@ namespace Ui {
 
     };
 }
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _UIPP_COMPONENT_H_
+#define _UIPP_COMPONENT_H_
 
 #include <kot/types.h>
 
@@ -147,3 +148,5 @@ namespace UiLayout {
     Ui::Component* Gridbox(Ui::Component::ComponentStyle style);
 
 }
+
+#endif

@@ -66,7 +66,7 @@ typedef struct {
 
 void Srv_Graphics_Callback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
-struct srv_graphics_callback_t* Srv_Graphics_CreateWindow(uintptr_t EventHandler, uint64_t WindowType, bool IsAwait);
+struct srv_graphics_callback_t* Srv_Graphics_CreateWindow(event_t Event, uint64_t WindowType, bool IsAwait);
 
 struct srv_graphics_callback_t* Srv_Graphics_CloseWindow(window_t* Window, bool IsAwait);
 struct srv_graphics_callback_t* Srv_Graphics_ResizeWindow(window_t* Window, int64_t Width, int64_t Height, bool IsAwait);
