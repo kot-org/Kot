@@ -24,6 +24,9 @@ namespace Ui {
 
         if(Width <= 0 || Height <= 0) { free(image); fclose(imageFile); return NULL; }
 
+        /* Si le component n'a pas de taille alors la taille est égal à celle de l'image
+            Si il a une taille alors on resize l'image
+         */
         if(style.Width == NULL)
             style.Width = Width;
         else
@@ -39,7 +42,7 @@ namespace Ui {
         switch(type)
         {
             case ImageType::_TGA:
-                uint32_t* Pixels = TGARead(image, Width, Height);
+                uint32_t* Pixels = TGARead(image);
 
                 for(uint16_t y = 0; y < Height; y++) {
                     for(uint16_t x = 0; x < Width; x++) {

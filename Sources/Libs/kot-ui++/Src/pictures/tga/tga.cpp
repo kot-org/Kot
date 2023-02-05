@@ -2,16 +2,18 @@
 
 namespace Ui {
 
-    uint32_t* TGARead(TGAHeader_t* buffer, uint16_t Width, uint16_t Height) {
+    uint32_t* TGARead(TGAHeader_t* buffer) {
         uint8_t Bpp = buffer->Bpp;
         uint8_t Btpp = buffer->Bpp/8;
-        uint32_t Pitch = buffer->Width * Btpp;
-        bool isReversed = !(buffer->ImageDescriptor & (1 << 5));
+        uint16_t Width = buffer->Width;
+        uint16_t Height = buffer->Height;
+        uint32_t Pitch = Width * Btpp;
+        //bool isReversed = !(buffer->ImageDescriptor & (1 << 5));
 
         uintptr_t ImageDataOffset = (uintptr_t) (buffer->ColorMapOrigin + buffer->ColorMapLength + 18),
             ImagePixelData = (uintptr_t) ((uint64_t)buffer + (uint64_t)ImageDataOffset);
 
-        uint32_t* Pixels = (uint32_t*) malloc(buffer->Height*Pitch);
+        uint32_t* Pixels = (uint32_t*) malloc(Height * Pitch);
 
         switch (buffer->ImageType)
         {
@@ -23,13 +25,13 @@ namespace Ui {
             {
                 Printlog("tga type 2");
 
-                for(uint16_t y = 0; y < buffer->Height; y++) {
-                    uint32_t YPosition = ((isReversed) ? Height-y-1 : y) * buffer->Height / Height;
+                for(uint16_t y = 0; y < Height; y++) {
+                    //uint32_t YPosition = ((isReversed) ? Height-y-1 : y) * buffer->Height / Height;
 
-                    for(uint16_t x = 0; x < buffer->Width; x++) {
-                        uint32_t XPosition = x * buffer->Width / Width;
+                    for(uint16_t x = 0; x < Width; x++) {
+                        //uint32_t XPosition = x * buffer->Width / Width;
 
-                        uint64_t index = (uint64_t)ImagePixelData + XPosition*Btpp + YPosition*Pitch;
+                        uint64_t index = (uint64_t)ImagePixelData + x*Btpp + y*Pitch;
 
                         uint8_t B = *(uint8_t*) (index + 0);
                         uint8_t G = *(uint8_t*) (index + 1);
@@ -39,7 +41,7 @@ namespace Ui {
                         if(Bpp == 32)
                             A = *(uint8_t*) (index + 3);
 
-                        Pixels[XPosition + YPosition*Width] = B | (G << 8) | (R << 16) | (A << 24);
+                        Pixels[x + y*Width] = B | (G << 8) | (R << 16) | (A << 24);
                     }
                 }
 
