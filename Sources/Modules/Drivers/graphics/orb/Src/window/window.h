@@ -25,7 +25,6 @@ class windowc{
         uint64_t XPosition;
         uint64_t YPosition;
         uint64_t WindowType;
-        uint64_t WindowIndex;
         bool IsVisible = false;
         bool IsFocus = false;
         event_t Event;
@@ -57,6 +56,11 @@ class windowc{
         bool GetVisible();
 
         KResult Close();
+
+        KResult Enqueu();
+        KResult EnqueuWL();
+        KResult Dequeu();
+        KResult DequeuWL();
 };
 
 extern windowc* CurrentFocusWindow;

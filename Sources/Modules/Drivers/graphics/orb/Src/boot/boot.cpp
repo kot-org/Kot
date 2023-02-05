@@ -2,7 +2,7 @@
 
 #define BootLogoBottomMargin 0x20
 
-void loadBootGraphics(framebuffer_t* Framebuffer){
+void LoadBootGraphics(framebuffer_t* Framebuffer){
     bool IsBGRT = false;
     bool IsLogo = false;
 
@@ -28,7 +28,7 @@ void loadBootGraphics(framebuffer_t* Framebuffer){
             uint32_t PosX = (Framebuffer->Width - BGRTBMPImageHeader->Width) / 2;
             uint32_t PosY = (Framebuffer->Height - (BGRTBMPImageHeader->Height + LogoHeight)) / 2 ;
             uint8_t* Buffer = (uint8_t*)((uint64_t)MapPhysical((uintptr_t)BGRTTable->ImageAddress, BGRTBMPImageHeader->Size) + (uint64_t)BGRTBMPImageHeader->ImageOffset); // map all the image
-            parseBootImage(Framebuffer, Buffer, BGRTBMPImageHeader->Width, BGRTBMPImageHeader->Height, BGRTBMPImageHeader->Bpp, PosX, PosY);
+            ParseBootImage(Framebuffer, Buffer, BGRTBMPImageHeader->Width, BGRTBMPImageHeader->Height, BGRTBMPImageHeader->Bpp, PosX, PosY);
         }
     }
 
@@ -40,12 +40,12 @@ void loadBootGraphics(framebuffer_t* Framebuffer){
         if(IsBGRT){
             PosY = Framebuffer->Height - (LogoImageHeader->Height + BootLogoBottomMargin);
         }
-        parseBootImage(Framebuffer, Buffer, LogoImageHeader->Width, LogoImageHeader->Height, LogoImageHeader->Bpp, PosX, PosY);
-        loadBootAnimation(Framebuffer, PosX, PosY + LogoImageHeader->Height, LogoImageHeader->Width, 10);
+        ParseBootImage(Framebuffer, Buffer, LogoImageHeader->Width, LogoImageHeader->Height, LogoImageHeader->Bpp, PosX, PosY);
+        LoadBootAnimation(Framebuffer, PosX, PosY + LogoImageHeader->Height, LogoImageHeader->Width, 10);
     }
 }
 
-void parseBootImage(framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width, uint32_t Height, uint8_t Bpp, uint32_t XPosition, uint32_t YPosition){
+void ParseBootImage(framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width, uint32_t Height, uint8_t Bpp, uint32_t XPosition, uint32_t YPosition){
     uint8_t BytePerPixel = Bpp / 8;
     uint32_t RowSize = Width * (uint32_t)BytePerPixel;
     // Add padding up to 4 bit padding
@@ -64,8 +64,8 @@ void parseBootImage(framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width, ui
 
 thread_t bootAnimationThread = NULL;
 
-void loadBootAnimation(framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPosition, uint64_t Width, uint64_t Height){
-    Sys_Createthread(Sys_GetProcess(), (uintptr_t)&bootAnimation, PriviledgeDriver, NULL, &bootAnimationThread);
+void LoadBootAnimation(framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPosition, uint64_t Width, uint64_t Height){
+    Sys_Createthread(Sys_GetProcess(), (uintptr_t)&BootAnimation, PriviledgeDriver, NULL, &bootAnimationThread);
     arguments_t parameters{
         .arg[0] = (uint64_t)Framebuffer,
         .arg[1] = XPosition,
@@ -78,7 +78,7 @@ void loadBootAnimation(framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t 
     Sys_Execthread(bootAnimationThread, &parameters, ExecutionTypeQueu, NULL);
 }
 
-void bootAnimation(framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPosition, uint64_t Width, uint64_t Height){
+void BootAnimation(framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPosition, uint64_t Width, uint64_t Height){
     // Remove rectangle
     XPosition += 1;
     YPosition += 1;

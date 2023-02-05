@@ -40,9 +40,9 @@ class monitorc {
         void Move(uint64_t XPosition, uint64_t YPosition);
 
         void SetWindowEvent(windowc* window);
-        void UpdateEvents(vector_t* Background, vector_t* Windows, vector_t* Foreground);
+        void UpdateEvents(windowc* FirstWindowNode);
 
-        void Update(vector_t* Background, vector_t* Windows, vector_t* Foreground);
+        void Update(windowc* FirstWindowNode);
 };
 
 #endif

@@ -24,16 +24,13 @@ class Context;
 #include <srv/srv.h>
 #include <boot/boot.h>
 #include <mouse/mouse.h>
+#include <render/render.h>
 #include <window/window.h>
 #include <monitor/monitor.h>
 
 class windowc;
 class monitorc;
 
-extern vector_t* Background;
-extern vector_t* Windows;
-extern vector_t* Foreground;
-
-extern vector_t* Monitors;
+extern process_t ShareableProcess;
 
 void UpdateAllEvents();

@@ -50,43 +50,21 @@ void DynamicBlit(framebuffer_t* to, framebuffer_t* from, uint64_t x, uint64_t y,
     BlitFramebuffer(to, from, x, y);
 }
 
-void monitorc::UpdateEvents(vector_t* Background, vector_t* Windows, vector_t* Foreground){
-    // Background
-    for(uint64_t i = 0; i < Background->length; i++){
-        windowc* window = (windowc*)vector_get(Background, i);
-        BlitGraphicEventbuffer(this->Eventbuffer, window->GetEventbuffer(), window->GetX(), window->GetY());
-    }
+void monitorc::UpdateEvents(windowc* FirstWindowNode){
+    windowc* Window = FirstWindowNode;
 
-    // Windows
-    for(uint64_t i = 0; i < Windows->length; i++){
-        windowc* window = (windowc*)vector_get(Windows, i);
-        BlitGraphicEventbuffer(this->Eventbuffer, window->GetEventbuffer(), window->GetX(), window->GetY());
-    }
-
-    // Foreground
-    for(uint64_t i = Foreground->length; i != 0; i--){
-        windowc* window = (windowc*)vector_get(Foreground, i - 1);
-        BlitGraphicEventbuffer(this->Eventbuffer, window->GetEventbuffer(), window->GetX(), window->GetY());
+    while(Window){
+        BlitGraphicEventbuffer(this->Eventbuffer, Window->GetEventbuffer(), Window->GetX(), Window->GetY());
+        Window = Window->Next;
     }
 }
 
-void monitorc::Update(vector_t* Background, vector_t* Windows, vector_t* Foreground){
-    // Background
-    for(uint64_t i = 0; i < Background->length; i++){
-        windowc* window = (windowc*)vector_get(Background, i);
-        DynamicBlit(this->BackFramebuffer, window->GetFramebuffer(), window->GetX(), window->GetY(), this->XPosition, this->YPosition);
-    }
+void monitorc::Update(windowc* FirstWindowNode){
+    windowc* Window = FirstWindowNode;
 
-    // Windows
-    for(uint64_t i = 0; i < Windows->length; i++){
-        windowc* window = (windowc*)vector_get(Windows, i);
-        DynamicBlit(this->BackFramebuffer, window->GetFramebuffer(), window->GetX(), window->GetY(), this->XPosition, this->YPosition);
-    }
-
-    // Foreground
-    for(uint64_t i = Foreground->length; i != 0; i--){
-        windowc* window = (windowc*)vector_get(Foreground, i - 1);
-        DynamicBlit(this->BackFramebuffer, window->GetFramebuffer(), window->GetX(), window->GetY(), this->XPosition, this->YPosition);
+    while(Window){
+        DynamicBlit(this->BackFramebuffer, Window->GetFramebuffer(), Window->GetX(), Window->GetY(), this->XPosition, this->YPosition);
+        Window = Window->Next;
     }
 
     DrawCursor(this->BackFramebuffer, BitmapMask, PixelMap);

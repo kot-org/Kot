@@ -107,7 +107,9 @@ void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
             if(Monitor != NULL){
                 if(IsBeetween(Monitor->XPosition, CursorPosition.x, Monitor->XMaxPosition) && IsBeetween(Monitor->YPosition, CursorPosition.y, Monitor->YMaxPosition)){
                     windowc* Window = (windowc*)GetEventData(Monitor->Eventbuffer, CursorPosition.x, CursorPosition.y);
-                    Window->SetFocusState(true);
+                    if(Window){
+                        Window->SetFocusState(true);
+                    }
                 }
             }
         }

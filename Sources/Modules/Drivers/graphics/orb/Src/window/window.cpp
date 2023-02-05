@@ -2,6 +2,13 @@
 
 windowc* CurrentFocusWindow = NULL;
 
+windowc* WindowBackgroundStart = NULL;
+windowc* WindowDefaultStart = NULL;
+windowc* WindowForegroundStart = NULL;
+windowc* WindowBackgroundEnd = NULL;
+windowc* WindowDefaultEnd = NULL;
+windowc* WindowForegroundEnd = NULL;
+
 windowc::windowc(uint64_t WindowType, event_t Event){
     this->Framebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
 
@@ -18,6 +25,9 @@ windowc::windowc(uint64_t WindowType, event_t Event){
 
     this->XPosition = NULL;
     this->YPosition = NULL;
+
+    this->Next = NULL;
+    this->Last = NULL;
     
     this->SetFocusState(false);
     this->SetVisible(false);
@@ -194,12 +204,15 @@ KResult windowc::Resize(int64_t Width, int64_t Height){
 }
 
 KResult windowc::Move(int64_t XPosition, int64_t YPosition){
-    this->XPosition = XPosition;
-    this->YPosition = YPosition;
-    if(GetVisible()){
-        UpdateAllEvents();
+    if(this->WindowType != Window_Type_DockTop && this->WindowType != Window_Type_DockBottom && this->WindowType != Window_Type_DockLeft && this->WindowType != Window_Type_DockRight){
+        this->XPosition = XPosition;
+        this->YPosition = YPosition;
+        if(GetVisible()){
+            UpdateAllEvents();
+        }
+        return KSUCCESS;
     }
-    return KSUCCESS;
+    return KFAIL;
 }
 
 uint64_t windowc::GetHeight(){
@@ -230,7 +243,13 @@ bool windowc::SetFocusState(bool IsFocus){
         if(CurrentFocusWindow != NULL) CurrentFocusWindow->SetFocusState(false);
         CurrentFocusWindow = this;
         if(WindowType == Window_Type_Default && IsVisible){
-            // TODO : window in first ground
+            atomicAcquire(&RenderMutex, 0);
+            
+            this->DequeuWL();
+            this->EnqueuWL();
+
+            atomicUnlock(&RenderMutex, 0);
+
             UpdateAllEvents();
         }
     }
@@ -251,33 +270,13 @@ bool windowc::GetState(){
 
 bool windowc::SetVisible(bool IsVisible){
     if(this->IsVisible != IsVisible){
-        if(this->WindowType == Window_Type_Background){
-            if(IsVisible){
-                this->WindowIndex = vector_push(Background, this);
-                if(CurrentFocusWindow == NULL){
-                    CurrentFocusWindow = this;
-                }
-            }else{
-                vector_remove(Background, this->WindowIndex);
+        if(IsVisible){
+            this->Enqueu();
+            if(CurrentFocusWindow == NULL){
+                CurrentFocusWindow = this;
             }
-        }else if(this->WindowType == Window_Type_Default){
-            if(IsVisible){
-                this->WindowIndex = vector_push(Windows, this);
-                if(CurrentFocusWindow == NULL){
-                    CurrentFocusWindow = this;
-                }
-            }else{
-                vector_remove(Windows, this->WindowIndex);
-            }
-        }else if(this->WindowType == Window_Type_Foreground || this->WindowType == Window_Type_DockTop || this->WindowType == Window_Type_DockBottom || this->WindowType == Window_Type_DockLeft || this->WindowType == Window_Type_DockRight){
-            if(IsVisible){
-                this->WindowIndex = vector_push(Foreground, this);
-                if(CurrentFocusWindow == NULL){
-                    CurrentFocusWindow = this;
-                }
-            }else{
-                vector_remove(Foreground, this->WindowIndex);
-            }
+        }else{
+            this->Dequeu();
         }
         this->IsVisible = IsVisible;
         UpdateAllEvents();
@@ -294,6 +293,172 @@ bool windowc::GetVisible() {
 KResult windowc::Close() {
     SetVisible(false);
     free(this);
+
+    return KSUCCESS;
+}
+
+KResult windowc::Enqueu(){
+    atomicAcquire(&RenderMutex, 0);
+    KResult Status = EnqueuWL();
+    atomicUnlock(&RenderMutex, 0);
+    return Status;
+}
+
+KResult windowc::EnqueuWL(){
+    if(this->WindowType == Window_Type_Background){
+        if(WindowBackgroundStart == NULL){
+            WindowBackgroundStart = this;
+            FirstWindowNode = WindowBackgroundStart;
+
+            if(WindowDefaultStart){
+                WindowBackgroundStart->Next = WindowDefaultStart;
+                WindowDefaultStart->Last = WindowBackgroundStart;
+            }else if(WindowForegroundStart){
+                WindowBackgroundStart->Next = WindowForegroundStart;
+                WindowForegroundStart->Last = WindowBackgroundStart;
+            }
+        }else{
+            this->Last = WindowBackgroundEnd;
+            WindowBackgroundEnd->Next = this;
+        }
+        this->Next = WindowDefaultStart;
+        if(WindowDefaultStart){
+            WindowDefaultStart->Last = this;
+        }
+        WindowBackgroundEnd = this;
+    }else if(this->WindowType == Window_Type_Default){
+        if(WindowDefaultStart == NULL){
+            WindowDefaultStart = this;
+
+            if(WindowBackgroundEnd){
+                WindowBackgroundEnd->Next = this;
+                this->Last = WindowBackgroundEnd;
+            }else{
+                FirstWindowNode = WindowDefaultStart;
+                if(WindowForegroundStart){
+                    WindowDefaultStart->Next = WindowForegroundStart;
+                    WindowForegroundStart->Last = WindowDefaultStart;                    
+                }
+            }
+        }else{
+            this->Last = WindowDefaultEnd;
+            WindowDefaultEnd->Next = this;
+        }
+        this->Next = WindowForegroundStart;
+        if(WindowForegroundStart){
+            WindowForegroundStart->Last = this;
+        }
+        WindowDefaultEnd = this;
+    }else if(this->WindowType == Window_Type_Foreground || this->WindowType == Window_Type_DockTop || this->WindowType == Window_Type_DockBottom || this->WindowType == Window_Type_DockLeft || this->WindowType == Window_Type_DockRight){
+        if(WindowForegroundStart == NULL){
+            WindowForegroundStart = this;
+            if(WindowDefaultEnd){
+                WindowDefaultEnd->Next = WindowForegroundStart;
+                WindowForegroundStart->Last = WindowDefaultEnd;
+            }else if(WindowBackgroundEnd){
+                WindowBackgroundEnd->Next = WindowForegroundStart;
+                WindowForegroundStart->Last = WindowBackgroundEnd;
+            }else{
+                FirstWindowNode = WindowForegroundStart;
+            }
+        }else{
+            this->Next = WindowForegroundStart->Next;
+            WindowForegroundStart->Next = this;
+            this->Last = WindowForegroundStart;
+        }
+        WindowForegroundEnd = this;
+    }
+    return KSUCCESS;
+}
+
+KResult windowc::Dequeu(){
+    atomicAcquire(&RenderMutex, 0);
+    KResult Status = DequeuWL();
+    atomicUnlock(&RenderMutex, 0);
+    return Status;
+}
+
+KResult windowc::DequeuWL(){
+    if(this->Last){
+        this->Last->Next = this->Next;
+    }
+
+    if(this->Next){
+        this->Next->Last = this->Last;
+    }
+
+    if(this == WindowBackgroundStart){
+        if(this->Next){
+            if(this->Next->WindowType == Window_Type_Background){
+                WindowBackgroundStart = this->Next;
+            }else{
+                WindowBackgroundStart = NULL;
+            }
+        }else{
+            WindowBackgroundStart = NULL;
+        }
+    }
+
+    if(this == WindowBackgroundEnd){
+        if(this->Last){
+            if(this->Last->WindowType == Window_Type_Background){
+                WindowBackgroundEnd = this->Last;
+            }else{
+                WindowBackgroundEnd = NULL;
+            }
+        }else{
+            WindowBackgroundEnd = NULL;
+        }
+    }
+
+    if(this == WindowDefaultStart){
+        if(this->Next){
+            if(this->Next->WindowType == Window_Type_Default){
+                WindowDefaultStart = this->Next;
+            }else{
+                WindowDefaultStart = NULL;
+            }
+        }else{
+            WindowDefaultStart = NULL;
+        }
+    }
+
+    if(this == WindowDefaultEnd){
+        if(this->Last){
+            if(this->Last->WindowType == Window_Type_Default){
+                WindowDefaultEnd = this->Last;
+            }else{
+                WindowDefaultEnd = NULL;
+            }
+        }else{
+            WindowDefaultEnd = NULL;
+        }
+    }
+
+
+    if(this == WindowForegroundStart){
+        if(this->Next){
+            if(this->Next->WindowType == Window_Type_Foreground || this->Next->WindowType == Window_Type_DockBottom || this->Next->WindowType == Window_Type_DockTop || this->Next->WindowType == Window_Type_DockLeft || this->Next->WindowType == Window_Type_DockRight){
+                WindowForegroundStart = this->Next;
+            }else{
+                WindowForegroundStart = NULL;
+            }
+        }else{
+            WindowForegroundStart = NULL;
+        }
+    }
+
+    if(this == WindowForegroundEnd){
+        if(this->Last){
+            if(this->Last->WindowType == Window_Type_Foreground || this->Last->WindowType == Window_Type_DockBottom || this->Last->WindowType == Window_Type_DockTop || this->Last->WindowType == Window_Type_DockLeft || this->Last->WindowType == Window_Type_DockRight){
+                WindowForegroundEnd = this->Last;
+            }else{
+                WindowForegroundEnd = NULL;
+            }
+        }else{
+            WindowForegroundEnd = NULL;
+        }
+    }
 
     return KSUCCESS;
 }
