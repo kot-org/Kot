@@ -6,8 +6,8 @@
 
 namespace Ui {
 
-    Component* Picturebox(char* path, ImageType type, ImageStyle style) {
-        file_t* imageFile = fopen(path, "rb");
+    Component* Picturebox(char* Path, ImageType Type, ImageStyle Style) {
+        file_t* imageFile = fopen(Path, "rb");
 
         if(imageFile == NULL)
             return NULL;
@@ -27,19 +27,19 @@ namespace Ui {
         /* Si le component n'a pas de taille alors la taille est égal à celle de l'image
             Si il a une taille alors on resize l'image
          */
-        if(style.Width == NULL)
-            style.Width = Width;
+        if(Style.Width == NULL)
+            Style.Width = Width;
         else
-            Width = style.Width;
+            Width = Style.Width;
         
-        if(style.Height == NULL)
-            style.Height = Height;
+        if(Style.Height == NULL)
+            Style.Height = Height;
         else
-            Height = style.Height; 
+            Height = Style.Height; 
 
-        Component* picture = new Component({ .Width = style.Width, .Height = style.Height });
+        Component* picture = new Component({ .Width = Style.Width, .Height = Style.Height });
 
-        switch(type)
+        switch(Type)
         {
             case ImageType::_TGA:
                 uint32_t* Pixels = TGARead(image);
