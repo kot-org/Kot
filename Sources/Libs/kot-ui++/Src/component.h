@@ -44,8 +44,8 @@ namespace Ui {
         };
 
         struct ComponentAlign_t {
-            ComponentHorizontalAlign x;
-            ComponentVerticalAlign y;
+            ComponentHorizontalAlign X;
+            ComponentVerticalAlign Y;
         };
 
         /* Space */

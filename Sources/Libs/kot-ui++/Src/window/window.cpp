@@ -22,7 +22,7 @@ namespace UiWindow {
 
         // Setup window
         this->Wid = CreateWindow(WindowEvent, Window_Type_Default);
-        ResizeWindow(this->Wid, Width, Height);
+        ResizeWindow(this->Wid, Width + 2, Height + 2);
         WindowChangePosition(this->Wid, XPosition, YPosition);
 
         IsBorders = true;
@@ -49,8 +49,8 @@ namespace UiWindow {
         /* auto imgtest = Ui::Picturebox("kotlogo.tga", Ui::ImageType::_TGA, { .Width = 256, .Height = 256 });
         this->SetContent(imgtest); */
 
-        auto titlebar = Ui::Titlebar(title, { .BackgroundColor = WIN_BGCOLOR_ONFOCUS, .ForegroundColor = 0xDDDDDD });
-        this->SetContent(titlebar);
+        Titlebar = Ui::Titlebar(title, { .BackgroundColor = WIN_BGCOLOR_ONFOCUS, .ForegroundColor = WIN_TBCOLOR_ONBLUR });
+        this->SetContent(Titlebar);
  
 /*         auto wrapper = Ui::Box({ .Width = this->UiCtx->fb->Width, .Height = this->UiCtx->fb->Height - titlebar->GetStyle()->Height, .color = WIN_BGCOLOR_ONFOCUS });
 
@@ -98,9 +98,14 @@ namespace UiWindow {
     void Window::HandlerFocus(bool IsFocus){
         if(IsFocus){
             DrawBorders(WIN_BDCOLOR_ONFOCUS);
+            Titlebar->GetStyle()->BackgroundColor = WIN_TBCOLOR_ONFOCUS;
         }else{
             DrawBorders(WIN_BDCOLOR_ONBLUR);
+            Titlebar->GetStyle()->BackgroundColor = WIN_TBCOLOR_ONBLUR;
         }
+
+        Titlebar->Update();
+        this->UiCtx->Cpnt->Update();
     }
 
     void Window::HandlerMouse(uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status){

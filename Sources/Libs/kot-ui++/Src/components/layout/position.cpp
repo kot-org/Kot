@@ -9,11 +9,11 @@ namespace UiLayout {
         Component* child = (Component*) vector_get(parent->GetChilds(), index);
         Component* beforeChild = (Component*) vector_get(parent->GetChilds(), index-1);
 
-        switch(parent->GetStyle()->position)
+        switch(parent->GetStyle()->Position)
         {
             case Layout::RELATIVE:
             {
-                child->GetStyle()->x = beforeChild->GetStyle()->x + beforeChild->GetStyle()->Width;
+                child->GetStyle()->X = beforeChild->GetStyle()->X + beforeChild->GetStyle()->Width;
 
                 // todo: jump to the next line
 
