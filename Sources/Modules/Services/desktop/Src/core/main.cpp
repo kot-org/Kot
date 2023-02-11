@@ -1,13 +1,9 @@
 #include <core/main.h>
 
-#include <kot++/printf.h>
-
-#include <kot/assert.h>
-
 #include <kot-ui++/pictures/picture.h>
 using namespace Ui;
 
-void desktopc::SetWallpaper(char *Path)
+void desktopc::SetWallpaper(char *Path, uint8_t Fit)
 {
     file_t* WallpaperFile = fopen(Path, "rb");
 
@@ -32,23 +28,39 @@ void desktopc::SetWallpaper(char *Path)
         return;
     }
 
-    uint32_t* Pixels = TGARead(Wallpaper);
+    TGA_t* Image = TGARead(Wallpaper);
 
-    // pour retourner l'image : ((isReversed) ? Fb->Height-y-1 : y)
+    switch(Fit)
+    {
+        case WallpaperFit::FIT:
+        {
+            // todo: resize l'image jusqu'a ce qu'elle touche le bord (horizontalement ou verticalement)
 
-    // resize and draw
-    for(uint16_t y = 0; y < Fb->Height; y++) {
-        uint32_t YPos = y * Wallpaper->Height / Fb->Height;
+            TGA_t* ImageResize = TGAResize(Image, Fb->Width, Fb->Height);
+            TGADraw(Fb, ImageResize);
 
-        for(uint16_t x = 0; x < Fb->Width; x++) {
-            uint32_t XPos = x * Wallpaper->Width / Fb->Width;
-
-            PutPixel(Fb, x, y, Pixels[XPos + YPos*Wallpaper->Width]);
+            free(ImageResize);
+            break;
         }
+
+        case WallpaperFit::FILL:
+        {
+            break;
+        }
+
+        case WallpaperFit::CENTER:
+        {
+            break;
+        }
+
+        default:
+            SetSolidColor(NULL);
+            break;
     }
 
+    free(Image);
+
     free(Wallpaper);
-    free(Pixels);
     fclose(WallpaperFile);
 }
 
@@ -70,11 +82,12 @@ desktopc::desktopc(JsonArray* Settings)
     JsonObject* Background = (JsonObject*)DesktopSettings->Get("background");
     bool IsWallpaper = ((JsonBoolean*)Background->Get("isWallpaper"))->Get();
     char* WallpaperPath = ((JsonString*)Background->Get("wallpaperPath"))->Get();
+    uint8_t WallpaperFit = ((JsonNumber*)Background->Get("wallpaperFit"))->Get();
     uint32_t SolidColor = strtol(((JsonString*)Background->Get("solidColor"))->Get(), NULL, 16);
 
     if(IsWallpaper)
     {
-        SetWallpaper(WallpaperPath);
+        SetWallpaper(WallpaperPath, WallpaperFit);
     } else
     {
         SetSolidColor(SolidColor);

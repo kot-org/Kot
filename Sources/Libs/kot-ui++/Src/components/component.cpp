@@ -21,8 +21,8 @@ namespace Ui {
         CpntStyle->BackgroundColor = Style.BackgroundColor;
         CpntStyle->ForegroundColor = Style.ForegroundColor;
 
-        CpntStyle->X = Style.X; 
-        CpntStyle->Y = Style.Y;
+        CpntStyle->x = Style.x; 
+        CpntStyle->y = Style.y;
 
 
         CreateFramebuffer(CpntStyle->Width, CpntStyle->Height);
@@ -143,7 +143,7 @@ namespace Ui {
 
 
                 if(child->ReadyToBlit == true){
-                    BlitFramebuffer(this->Framebuffer, child->Framebuffer, child->Style->X, child->Style->Y);
+                    BlitFramebuffer(this->Framebuffer, child->Framebuffer, child->Style->x, child->Style->y);
                     
                 }
                 else{

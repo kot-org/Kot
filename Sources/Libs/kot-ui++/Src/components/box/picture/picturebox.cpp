@@ -42,15 +42,15 @@ namespace Ui {
         switch(Type)
         {
             case ImageType::_TGA:
-                uint32_t* Pixels = TGARead(image);
+                TGA_t* TGAImage = TGARead(image);
 
-                for(uint16_t y = 0; y < Height; y++) {
-                    for(uint16_t x = 0; x < Width; x++) {
-                        PutPixel(picture->GetFramebuffer(), picture->GetStyle()->X+x, picture->GetStyle()->Y+y, Pixels[x + y*Width]);
+                for(uint16_t y = 0; y < TGAImage->Height; y++) {
+                    for(uint16_t x = 0; x < TGAImage->Width; x++) {
+                        PutPixel(picture->GetFramebuffer(), picture->GetStyle()->x+x, picture->GetStyle()->y+y, TGAImage->Pixels[x + y*TGAImage->Width]);
                     }
                 }
 
-                free(Pixels);
+                free(TGAImage);
 
                 break;
         }

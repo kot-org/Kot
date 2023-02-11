@@ -7,36 +7,36 @@ namespace UiLayout {
         Component* child = (Component*) vector_get(parent->GetChilds(), index);
 
         /* Horizontal */
-        switch(parent->GetStyle()->Align.X)
+        switch(parent->GetStyle()->Align.x)
         {
             case Layout::LEFT:
-                child->GetStyle()->X = 0;
+                child->GetStyle()->x = 0;
                 break;
 
             case Layout::CENTER:
-                child->GetStyle()->X = parent->GetStyle()->Width / 2 - parent->GetTotalWidthChilds() / 2;
+                child->GetStyle()->x = parent->GetStyle()->Width / 2 - parent->GetTotalWidthChilds() / 2;
                 break;
 
             case Layout::RIGHT:
-                child->GetStyle()->X = parent->GetStyle()->Width - parent->GetTotalWidthChilds();
+                child->GetStyle()->x = parent->GetStyle()->Width - parent->GetTotalWidthChilds();
                 break;
         }
 
         /* Vertical */
-        switch(parent->GetStyle()->Align.Y)
+        switch(parent->GetStyle()->Align.y)
         {
             case Layout::TOP:
-                child->GetStyle()->Y = 0;
+                child->GetStyle()->y = 0;
                 break;
 
             case Layout::MIDDLE:
                 // todo: child->Height   -->   GetTotalHeightChilds
-                child->GetStyle()->Y = parent->GetStyle()->Height / 2 - child->GetStyle()->Height / 2;
+                child->GetStyle()->y = parent->GetStyle()->Height / 2 - child->GetStyle()->Height / 2;
                 break;
 
             case Layout::BOTTOM:
                 // todo: child->Height   -->   GetTotalHeightChilds
-                child->GetStyle()->Y = parent->GetStyle()->Height - child->GetStyle()->Height;
+                child->GetStyle()->y = parent->GetStyle()->Height - child->GetStyle()->Height;
                 break;
         }
 

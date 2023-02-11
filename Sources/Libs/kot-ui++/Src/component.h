@@ -44,8 +44,8 @@ namespace Ui {
         };
 
         struct ComponentAlign_t {
-            ComponentHorizontalAlign X;
-            ComponentVerticalAlign Y;
+            ComponentHorizontalAlign x;
+            ComponentVerticalAlign y;
         };
 
         /* Space */
@@ -76,8 +76,8 @@ namespace Ui {
                 uint32_t BackgroundColor;
                 uint32_t ForegroundColor;
 
-                uint32_t X;
-                uint32_t Y;
+                uint32_t x;
+                uint32_t y;
             };
 
             /* todo: changer cette struct et mettre une struct pour charque component */

@@ -2,6 +2,8 @@
 
 #include <kot/sys.h>
 
+#include <kot-graphics/utils.h>
+
 namespace Ui {
 
     /* TGA */
@@ -24,7 +26,16 @@ namespace Ui {
         RGB_RLE       = 10
     } TGAType;
 
-    uint32_t* TGARead(TGAHeader_t* image);
+    typedef struct {
+        uint32_t* Pixels;
+        uint16_t Width;
+        uint16_t Height;
+    } TGA_t;
+
+    TGA_t* TGARead(TGAHeader_t* Buffer);
+
+    void TGADraw(framebuffer_t* Fb, TGA_t* Image);
+    TGA_t* TGAResize(TGA_t* Image, uint16_t NewWidth, uint16_t NewHeight);
 
     /* ... */
 }

@@ -15,9 +15,15 @@ class desktopc {
     public:
         desktopc(JsonArray* Settings);
 
-        void SetWallpaper(char* Path);
+        void SetWallpaper(char* Path, uint8_t Fit);
         void SetSolidColor(uint32_t Color);
 
     private:
         framebuffer_t* Fb;
+
+        typedef enum {
+            FIT     = 0,
+            FILL    = 1,
+            CENTER  = 2,
+        } WallpaperFit;
 };
