@@ -4,7 +4,7 @@ using namespace Ui;
 
 namespace UiLayout {
 
-    void UiLayout::calculateLayout(Component* parent) {
+    void UiLayout::CalculateLayout(Component* parent) {
         if(parent->GetChilds() != NULL) {
 
             for(int i = 0; i < parent->GetChilds()->length; i++) {

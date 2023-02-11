@@ -4,9 +4,9 @@ using namespace Ui;
 
 namespace UiLayout {
 
-    Component* Gridbox(Component::ComponentStyle style) {
-        style.display = Layout::GRID;
-        Component* gridbox = new Component(style);
+    Component* Gridbox(Component::ComponentStyle Style) {
+        Style.display = Layout::GRID;
+        Component* gridbox = new Component(Style);
 
         return gridbox;
     }

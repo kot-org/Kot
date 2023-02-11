@@ -13,13 +13,12 @@ QEMUFLAGS =	-no-reboot 										\
 			-device e1000,netdev=n0							\
 			-usb                                            \
     		-device usb-ehci,id=ehci                        \
-			-soundhw pcspk
 
 build:
 	bash ./Build/build.sh 
 
 run:
-	sudo qemu-system-x86_64 $(QEMUFLAGS)
+	qemu-system-x86_64 $(QEMUFLAGS)
 
 debug:
 	qemu-system-x86_64 $(QEMUFLAGS) -s -S

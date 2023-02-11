@@ -2,8 +2,8 @@
 
 namespace Ui {
 
-    Component* box(BoxStyle style) {
-        Component* box = new Component({ .Width = style.Width, .Height = style.Height, .backgroundColor = style.color });
+    Component* Box(BoxStyle Style) {
+        Component* box = new Component({ .Width = Style.Width, .Height = Style.Height, .backgroundColor = Style.color });
         return box;
     }
 

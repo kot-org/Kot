@@ -50,17 +50,17 @@ namespace UiWindow {
         /* auto imgtest = Ui::Picturebox("kotlogo.tga", Ui::ImageType::_TGA, { .Width = 256, .Height = 256 });
         this->SetContent(imgtest); */
 
-        auto titlebar = Ui::titlebar(title, { .backgroundColor = WIN_BGCOLOR_ONFOCUS, .foregroundColor = 0xDDDDDD });
+        auto titlebar = Ui::Titlebar(title, { .backgroundColor = WIN_BGCOLOR_ONFOCUS, .foregroundColor = 0xDDDDDD });
         this->SetContent(titlebar);
  
-/*         auto wrapper = Ui::box({ .Width = this->UiCtx->fb->Width, .Height = this->UiCtx->fb->Height - titlebar->GetStyle()->Height, .color = WIN_BGCOLOR_ONFOCUS });
+/*         auto wrapper = Ui::Box({ .Width = this->UiCtx->fb->Width, .Height = this->UiCtx->fb->Height - titlebar->GetStyle()->Height, .color = WIN_BGCOLOR_ONFOCUS });
 
         auto flexbox = UiLayout::Flexbox({}, Ui::Layout::HORIZONTAL);
 
-        auto box = Ui::box({ .Width = 20, .Height = 20, .color = 0xFFFF00 });
-        flexbox->addChild(box);
+        auto Box = Ui::Box({ .Width = 20, .Height = 20, .color = 0xFFFF00 });
+        flexbox->AddChild(box);
 
-        wrapper->addChild(flexbox);
+        wrapper->AddChild(flexbox);
 
         this->SetContent(wrapper); */
 
@@ -76,8 +76,8 @@ namespace UiWindow {
     void Window::SetContent(Ui::Component* content) {
         Ui::Component* windowCpnt = this->UiCtx->cpnt;
 
-        windowCpnt->addChild(content);
-        windowCpnt->update();
+        windowCpnt->AddChild(content);
+        windowCpnt->Update();
     }
 
     void Window::Handler(enum Window_Event EventType, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3, uint64_t GP4){
@@ -101,7 +101,15 @@ namespace UiWindow {
     }
 
     void Window::HandlerMouse(uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status){
-        //GetEventData(EventBuffer, PositionX - Wid->Position.x, PositionY - Wid->Position.y);
+        int64_t RelativePostionX = PositionX - Wid->Position.x;
+        int64_t RelativePostionY = PositionY - Wid->Position.y; 
+
+        if(RelativePostionX >= 0 && RelativePostionY >= 0 && RelativePostionX < Wid->Framebuffer.Width && RelativePostionY < Wid->Framebuffer.Height){
+            Ui::Component* Component = (Ui::Component*)GetEventData(EventBuffer, RelativePostionX, RelativePostionY);
+            if(Component){
+                Component->MouseEvent(RelativePostionX, RelativePostionY, PositionX, PositionY, ZValue, Status);
+            }
+        }
     }
 
 }

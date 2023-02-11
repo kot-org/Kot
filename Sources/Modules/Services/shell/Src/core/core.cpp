@@ -17,10 +17,10 @@ void EventTest(enum Window_Event EventType, uint64_t x, uint64_t y, uint64_t z, 
 shell_t* NewShell(){
     shell_t* Shell = (shell_t*)malloc(sizeof(shell_t));
 
-    wid = CreateWindow((uintptr_t)&EventTest, Window_Type_Default);
-    ResizeWindow(wid, 50, 50);
-    memset(wid->Framebuffer.Buffer, 0xff, wid->Framebuffer.Size);
-    ChangeVisibilityWindow(wid, true);
+    // wid = CreateWindow((uintptr_t)&EventTest, Window_Type_Default);
+    // ResizeWindow(wid, 50, 50);
+    // memset(wid->Framebuffer.Buffer, 0xff, wid->Framebuffer.Size);
+    // ChangeVisibilityWindow(wid, true);
     return NULL; 
 
     Shell->Framebuffer = &wid->Framebuffer;

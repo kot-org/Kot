@@ -2,32 +2,32 @@
 
 namespace Ui {
 
-    Component::Component(ComponentStyle style) {
-        /* style */
+    Component::Component(ComponentStyle Style){
+        /* Style */
         ComponentStyle* cpntStyle = (ComponentStyle*) malloc(sizeof(ComponentStyle));
 
         // layout
-        cpntStyle->position = style.position;
-        cpntStyle->display = style.display;
-        cpntStyle->direction = style.direction;
-        cpntStyle->align = style.align;
-        cpntStyle->space = style.space;
+        cpntStyle->position = Style.position;
+        cpntStyle->display = Style.display;
+        cpntStyle->direction = Style.direction;
+        cpntStyle->align = Style.align;
+        cpntStyle->space = Style.space;
 
-        cpntStyle->Width = style.Width;
-        cpntStyle->Height = style.Height;
-        cpntStyle->fontSize = style.fontSize;
-        cpntStyle->borderRadius = style.borderRadius;
+        cpntStyle->Width = Style.Width;
+        cpntStyle->Height = Style.Height;
+        cpntStyle->fontSize = Style.fontSize;
+        cpntStyle->borderRadius = Style.borderRadius;
 
-        cpntStyle->backgroundColor = style.backgroundColor;
-        cpntStyle->foregroundColor = style.foregroundColor;
+        cpntStyle->backgroundColor = Style.backgroundColor;
+        cpntStyle->foregroundColor = Style.foregroundColor;
 
-        cpntStyle->x = style.x; 
-        cpntStyle->y = style.y;
+        cpntStyle->x = Style.x; 
+        cpntStyle->y = Style.y;
 
-        createFramebuffer(cpntStyle->Width, cpntStyle->Height);
+        CreateFramebuffer(cpntStyle->Width, cpntStyle->Height);
 
         /* component */
-        this->style = cpntStyle;
+        this->Style = cpntStyle;
     }
 
     Component::Component(framebuffer_t* fb) {
@@ -42,19 +42,19 @@ namespace Ui {
         cpntFb->Bpp = fb->Bpp;
         cpntFb->Btpp = fb->Btpp;
 
-        /* style */
+        /* Style */
         ComponentStyle* cpntStyle = (ComponentStyle*) malloc(sizeof(ComponentStyle));
 
         cpntStyle->Width = fb->Width;
         cpntStyle->Height = fb->Height;
 
         /* component */
-        this->fb = cpntFb;
-        this->style = cpntStyle;
+        this->Framebuffer = cpntFb;
+        this->Style = cpntStyle;
     }
 
     /* Component Framebuffer */
-    void Component::createFramebuffer(uint32_t Width, uint32_t Height) {
+    void Component::CreateFramebuffer(uint32_t Width, uint32_t Height) {
         framebuffer_t* cpntFb = (framebuffer_t*) malloc(sizeof(framebuffer_t));
 
         uint32_t Bpp = 32, Btpp = 4;
@@ -69,45 +69,45 @@ namespace Ui {
         cpntFb->Bpp = Bpp;
         cpntFb->Btpp = Btpp;
 
-        this->fb = cpntFb;
+        this->Framebuffer = cpntFb;
     }
     
-    void Component::updateFramebuffer(uint32_t Width, uint32_t Height) {
+    void Component::UpdateFramebuffer(uint32_t Width, uint32_t Height) {
 
-        if(fb->Width != Width || fb->Height != Height) {
+        if(Framebuffer->Width != Width || Framebuffer->Height != Height) {
             uint32_t Pitch = Width * 4;
 
-            fb->Size = Height * Pitch;
-            fb->Buffer = calloc(fb->Size);
-            fb->Pitch = Pitch;
-            fb->Width = Width;
-            fb->Height = Height;
+            Framebuffer->Size = Height * Pitch;
+            Framebuffer->Buffer = calloc(Framebuffer->Size);
+            Framebuffer->Pitch = Pitch;
+            Framebuffer->Width = Width;
+            Framebuffer->Height = Height;
         }
 
     }
     
     framebuffer_t* Component::GetFramebuffer() {
-        return this->fb;
+        return this->Framebuffer;
     }
 
     Component::ComponentStyle* Component::GetStyle() {
-        return this->style;
+        return this->Style;
     }
 
     vector_t* Component::GetChilds() {
-        return this->childs;
+        return this->Childs;
     }
 
     uint32_t Component::GetTotalWidthChilds() {
-        return this->totalWidthChilds;
+        return this->TotalWidthChilds;
     }
 
     uint32_t Component::GetTotalHeightChilds() {
-        return this->totalHeightChilds;
+        return this->TotalHeightChilds;
     }
 
 /*     void Component::update() {
-        UiLayout::calculateLayout(this);
+        UiLayout::CalculateLayout(this);
         
         this->draw();
         
@@ -119,7 +119,7 @@ namespace Ui {
                 if(child->fb == NULL)
                     child->draw();
                 
-                BlitFramebuffer(this->fb, child->fb, child->style->x, child->style->y);
+                BlitFramebuffer(this->fb, child->fb, child->Style->x, child->Style->y);
                 child->IsBlit = true;
             }
 
@@ -129,46 +129,51 @@ namespace Ui {
             parent->update();
     } */
 
-    void Component::update() {
-        UiLayout::calculateLayout(this);
+    void Component::Update() {
+        UiLayout::CalculateLayout(this);
 
-        this->draw();
+        this->Draw();
 
-        if(childs != NULL) {
+        if(Childs != NULL) {
 
-            for(int i = 0; i < childs->length; i++) {
-                Component* child = (Component*) vector_get(childs, i);
+            for(int i = 0; i < Childs->length; i++) {
+                Component* child = (Component*) vector_get(Childs, i);
 
                 if(child->ReadyToBlit == true)
-                    BlitFramebuffer(this->fb, child->fb, child->style->x, child->style->y);
+                    BlitFramebuffer(this->Framebuffer, child->Framebuffer, child->Style->x, child->Style->y);
                 else 
-                    child->update();
+                    child->Update();
 
             }
 
         }
         this->ReadyToBlit = true;
 
-        if(parent != NULL)
-            parent->update();
+        if(Parent != NULL)
+            Parent->Update();
     }
 
-    void Component::draw() {
-        updateFramebuffer(this->style->Width, this->style->Height);
+    void Component::Draw() {
+        UpdateFramebuffer(this->Style->Width, this->Style->Height);
         //Printlog("draw");
 
-        FillRect(this->fb, 0, 0, this->style->Width, this->style->Height, this->style->backgroundColor);
+        FillRect(this->Framebuffer, 0, 0, this->Style->Width, this->Style->Height, this->Style->backgroundColor);
     }
 
-    void Component::addChild(Component* child) {
-        if(!this->childs)
-            this->childs = vector_create();
+    void Component::AddChild(Component* child) {
+        if(!this->Childs)
+            this->Childs = vector_create();
         
-        child->parent = this;
-        vector_push(this->childs, child);
+        child->Parent = this;
+        vector_push(this->Childs, child);
 
-        this->totalWidthChilds += child->style->Width;
-        // todo: if there is a new line, add the Height to totalHeightChilds (this->totalHeightChilds += child->style->Height;)
+        this->TotalWidthChilds += child->Style->Width;
+        // todo: if there is a new line, add the Height to totalHeightChilds (this->totalHeightChilds += child->Style->Height;)
     }  
+
+
+    void Component::MouseEvent(uint64_t RelativePositionX, uint64_t RelativePositionY, uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status){
+
+    }
 
 }

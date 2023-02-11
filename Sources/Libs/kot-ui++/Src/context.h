@@ -17,7 +17,7 @@ namespace Ui {
         private:
         public:
             framebuffer_t* fb;
-            Component* cpnt;
+            class Component* cpnt;
 
             UiContext(framebuffer_t* fb);
 

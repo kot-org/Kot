@@ -2,10 +2,10 @@
 #define _UIPP_COMPONENT_H_
 
 #include <kot/types.h>
+#include <kot/utils/vector.h>
 
 #include <kot-graphics/utils.h>
 
-#include <kot/utils/vector.h>
 
 namespace Ui {
 
@@ -54,11 +54,10 @@ namespace Ui {
 
     };
 
+
+
     class Component {
-
         public:
-
-            /* todo: changer cette struct et mettre une struct pour charque component */
             struct ComponentStyle {
                 // todo: modifier ca
                 Layout::ComponentPosition position;
@@ -79,13 +78,15 @@ namespace Ui {
                 uint32_t y;
             };
 
-            Component(ComponentStyle style);
+            /* todo: changer cette struct et mettre une struct pour charque component */
+
+            Component(ComponentStyle Style);
             /* for ui context */
             Component(framebuffer_t* fb);
 
             /* Component Framebuffer */
-            void createFramebuffer(uint32_t Width, uint32_t Height);
-            void updateFramebuffer(uint32_t Width, uint32_t Height);
+            void CreateFramebuffer(uint32_t Width, uint32_t Height);
+            void UpdateFramebuffer(uint32_t Width, uint32_t Height);
 
             framebuffer_t* GetFramebuffer();
             ComponentStyle* GetStyle();
@@ -93,21 +94,24 @@ namespace Ui {
             uint32_t GetTotalWidthChilds();
             uint32_t GetTotalHeightChilds();
 
-            void update();
-            void draw();
+            void Update();
+            void Draw();
             
             // todo: remove
 
-            void addChild(Component* child);
+            void AddChild(Component* child);
+
+            void MouseEvent(uint64_t RelativePositionX, uint64_t RelativePositionY, uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status);
             
         private:
-            framebuffer_t* fb;
-            ComponentStyle* style;
-            Component* parent;
-            vector_t* childs;
-            uint32_t totalWidthChilds;
-            uint32_t totalHeightChilds;
-            uint16_t type;
+            Component* MainParent;
+            framebuffer_t* Framebuffer;
+            ComponentStyle* Style;
+            Component* Parent;
+            vector_t* Childs;
+            uint32_t TotalWidthChilds;
+            uint32_t TotalHeightChilds;
+            uint16_t Type;
             bool ReadyToBlit;
 
     };
@@ -123,29 +127,29 @@ namespace Ui {
         uint16_t Width;
         uint16_t Height;
     } ImageStyle;
-    Component* Picturebox(char* path, ImageType type, ImageStyle style);
+    Component* Picturebox(char* Path, ImageType Type, ImageStyle Style);
 
     typedef struct {
         uint32_t Width;
         uint32_t Height;
         uint32_t color;
     } BoxStyle;
-    Component* box(BoxStyle style);
+    Component* Box(BoxStyle Style);
 
     typedef struct {
         uint32_t backgroundColor;
         uint32_t foregroundColor;
     } TitlebarStyle;
-    Component* titlebar(char* title, TitlebarStyle style);
+    Component* Titlebar(char* Title, TitlebarStyle Style);
 
 }
 
 namespace UiLayout {
 
-    void calculateLayout(Ui::Component* parent);
+    void CalculateLayout(Ui::Component* Parent);
 
-    Ui::Component* Flexbox(Ui::Component::ComponentStyle style);
-    Ui::Component* Gridbox(Ui::Component::ComponentStyle style);
+    Ui::Component* Flexbox(Ui::Component::ComponentStyle Style);
+    Ui::Component* Gridbox(Ui::Component::ComponentStyle Style);
 
 }
 
