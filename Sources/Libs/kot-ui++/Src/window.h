@@ -22,6 +22,7 @@ namespace UiWindow {
             bool IsBorders;
             ctxg_t* BordersCtx;
 
+            bool IsListeningEvents;
             event_t WindowEvent;
             thread_t WindowHandlerThread;
             void HandlerFocus(bool IsFocus);

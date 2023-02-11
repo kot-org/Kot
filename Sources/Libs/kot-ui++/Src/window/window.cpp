@@ -19,6 +19,7 @@ namespace UiWindow {
         Sys_Event_Create(&WindowEvent);
         Sys_Createthread(Sys_GetProcess(), (uintptr_t)&EventHandler, PriviledgeApp, (uint64_t)this, &WindowHandlerThread);
         Sys_Event_Bind(WindowEvent, WindowHandlerThread, false);
+        IsListeningEvents = false;
 
         // Setup window
         this->Wid = CreateWindow(WindowEvent, Window_Type_Default);
@@ -62,8 +63,8 @@ namespace UiWindow {
         wrapper->AddChild(flexbox);
 
         this->SetContent(wrapper); */
-
         ChangeVisibilityWindow(this->Wid, true);
+        IsListeningEvents = true;
     }
 
     void Window::DrawBorders(uint32_t Color){
@@ -80,18 +81,20 @@ namespace UiWindow {
     }
 
     void Window::Handler(enum Window_Event EventType, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3, uint64_t GP4){
-        switch (EventType){
-            case Window_Event_Focus:
-                HandlerFocus(GP0);
-                break;
-            case Window_Event_Mouse:
-                HandlerMouse(GP0, GP1, GP2, GP3);
-                break;
-            case Window_Event_Keyboard:
-                // TODO
-                break;
-            default:
-                break;
+        if(IsListeningEvents){
+            switch (EventType){
+                case Window_Event_Focus:
+                    HandlerFocus(GP0);
+                    break;
+                case Window_Event_Mouse:
+                    HandlerMouse(GP0, GP1, GP2, GP3);
+                    break;
+                case Window_Event_Keyboard:
+                    // TODO
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
