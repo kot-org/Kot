@@ -3,7 +3,7 @@
 namespace Ui {
 
     Component* Box(BoxStyle Style) {
-        Component* box = new Component({ .Width = Style.Width, .Height = Style.Height, .backgroundColor = Style.color });
+        Component* box = new Component({ .Width = Style.Width, .Height = Style.Height, .BackgroundColor = Style.color });
         return box;
     }
 

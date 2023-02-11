@@ -46,7 +46,7 @@ namespace Ui {
 
                 for(uint16_t y = 0; y < Height; y++) {
                     for(uint16_t x = 0; x < Width; x++) {
-                        PutPixel(picture->GetFramebuffer(), picture->GetStyle()->x+x, picture->GetStyle()->y+y, Pixels[x + y*Width]);
+                        PutPixel(picture->GetFramebuffer(), picture->GetStyle()->X+x, picture->GetStyle()->Y+y, Pixels[x + y*Width]);
                     }
                 }
 

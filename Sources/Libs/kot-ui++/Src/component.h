@@ -6,6 +6,8 @@
 
 #include <kot-graphics/utils.h>
 
+#include <kot-ui++/context.h>
+
 
 namespace Ui {
 
@@ -60,22 +62,22 @@ namespace Ui {
         public:
             struct ComponentStyle {
                 // todo: modifier ca
-                Layout::ComponentPosition position;
-                Layout::ComponentDisplay display;
-                Layout::ComponentDirection direction;
-                Layout::ComponentAlign_t align;
-                Layout::ComponentSpace space;
+                Layout::ComponentPosition Position;
+                Layout::ComponentDisplay Display;
+                Layout::ComponentDirection Direction;
+                Layout::ComponentAlign_t Align;
+                Layout::ComponentSpace Space;
 
                 uint32_t Width;
                 uint32_t Height;
-                uint16_t fontSize;
-                uint16_t borderRadius;
+                uint16_t FontSize;
+                uint16_t BorderRadius;
 
-                uint32_t backgroundColor;
-                uint32_t foregroundColor;
+                uint32_t BackgroundColor;
+                uint32_t ForegroundColor;
 
-                uint32_t x;
-                uint32_t y;
+                uint32_t X;
+                uint32_t Y;
             };
 
             /* todo: changer cette struct et mettre une struct pour charque component */
@@ -104,7 +106,8 @@ namespace Ui {
             void MouseEvent(uint64_t RelativePositionX, uint64_t RelativePositionY, uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status);
             
         private:
-            Component* MainParent;
+            class UiContext* UiCtx;
+            uint64_t Deep;
             framebuffer_t* Framebuffer;
             ComponentStyle* Style;
             Component* Parent;
@@ -113,6 +116,8 @@ namespace Ui {
             uint32_t TotalHeightChilds;
             uint16_t Type;
             bool ReadyToBlit;
+            uint64_t XAbsolute;
+            uint64_t YAbsolute;
 
     };
 
@@ -137,8 +142,8 @@ namespace Ui {
     Component* Box(BoxStyle Style);
 
     typedef struct {
-        uint32_t backgroundColor;
-        uint32_t foregroundColor;
+        uint32_t BackgroundColor;
+        uint32_t ForegroundColor;
     } TitlebarStyle;
     Component* Titlebar(char* Title, TitlebarStyle Style);
 

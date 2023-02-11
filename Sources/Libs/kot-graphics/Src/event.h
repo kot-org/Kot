@@ -22,6 +22,7 @@ typedef struct {
 } graphiceventbuffer_t;
 
 graphiceventbuffer_t* CreateEventBuffer(uint64_t Width, uint64_t Height);
+void SetGraphicEventbuffer(graphiceventbuffer_t* Framebuffer, uint64_t Value, uint64_t Width, uint64_t Height, uint64_t PositionX, uint64_t PositionY);
 void BlitGraphicEventbuffer(graphiceventbuffer_t* To, graphiceventbuffer_t* From, uint64_t PositionX, uint64_t PositionY);
 uint64_t GetEventData(graphiceventbuffer_t* EventBuffer, uint64_t PositionX, uint64_t PositionY);
 

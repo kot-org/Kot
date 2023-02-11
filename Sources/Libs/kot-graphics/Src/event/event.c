@@ -16,6 +16,31 @@ graphiceventbuffer_t* CreateEventBuffer(uint64_t Width, uint64_t Height){
     return EventBuffer;
 }
 
+void SetGraphicEventbuffer(graphiceventbuffer_t* Framebuffer, uint64_t Value, uint64_t Width, uint64_t Height, uint64_t PositionX, uint64_t PositionY){
+    uint64_t Buffer = (uint64_t)Framebuffer->Buffer;
+
+    Buffer += PositionX * Framebuffer->Btpp + PositionY * Framebuffer->Pitch; // offset
+
+    uint64_t WithCopy = Width;
+
+    if(PositionX + WithCopy >= Framebuffer->Width){
+        WithCopy = Framebuffer->Width - PositionX;
+    }
+
+    uint64_t HeightCopy = Height;
+
+    if(PositionY + HeightCopy >= Framebuffer->Height){
+        HeightCopy = Framebuffer->Height - PositionY;
+    }
+
+    uint64_t PitchCopy = WithCopy * Framebuffer->Btpp;
+
+    for(uint64_t H = 0; H < HeightCopy; H++){
+        memset64((uintptr_t)Buffer, Value, PitchCopy);
+        Buffer += Framebuffer->Pitch;
+    }
+}
+
 void BlitGraphicEventbuffer(graphiceventbuffer_t* To, graphiceventbuffer_t* From, uint64_t PositionX, uint64_t PositionY){
     uint64_t ToBuffer = (uint64_t)To->Buffer;
     uint64_t FromBuffer = (uint64_t)From->Buffer;

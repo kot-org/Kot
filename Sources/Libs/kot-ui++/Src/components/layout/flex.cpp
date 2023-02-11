@@ -10,7 +10,7 @@ namespace UiLayout {
 
         // todo: fill/normal mode
         
-        switch (parent->GetStyle()->direction)
+        switch (parent->GetStyle()->Direction)
         {
             case Layout::HORIZONTAL:
             {
@@ -19,8 +19,8 @@ namespace UiLayout {
                 if(parent->GetStyle()->Height < child->GetStyle()->Height)
                     parent->GetStyle()->Height = child->GetStyle()->Height;
 
-                /* space */
-                if(parent->GetStyle()->space == Layout::BETWEEN) {
+                /* Space */
+                if(parent->GetStyle()->Space == Layout::BETWEEN) {
                     
                     
 

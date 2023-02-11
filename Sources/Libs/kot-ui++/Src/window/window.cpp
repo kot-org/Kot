@@ -19,15 +19,14 @@ namespace UiWindow {
         Sys_Event_Create(&WindowEvent);
         Sys_Createthread(Sys_GetProcess(), (uintptr_t)&EventHandler, PriviledgeApp, (uint64_t)this, &WindowHandlerThread);
         Sys_Event_Bind(WindowEvent, WindowHandlerThread, false);
-        this->EventBuffer = CreateEventBuffer(Width, Height);
 
         // Setup window
         this->Wid = CreateWindow(WindowEvent, Window_Type_Default);
         ResizeWindow(this->Wid, Width, Height);
         WindowChangePosition(this->Wid, XPosition, YPosition);
 
-        Borders = true;
-        if(Borders){
+        IsBorders = true;
+        if(IsBorders){
             BordersCtx = CreateGraphicContext(&Wid->Framebuffer);
             framebuffer_t FramebufferWithoutBorder;
             FramebufferWithoutBorder.Bpp = Wid->Framebuffer.Bpp;
@@ -36,7 +35,7 @@ namespace UiWindow {
             FramebufferWithoutBorder.Height = Wid->Framebuffer.Height - 2;
             FramebufferWithoutBorder.Pitch = Wid->Framebuffer.Pitch;
             FramebufferWithoutBorder.Buffer = (uintptr_t)((uint64_t)Wid->Framebuffer.Buffer + Wid->Framebuffer.Btpp + Wid->Framebuffer.Pitch);
-            DrawBorders(0x101010);
+            DrawBorders(WIN_BDCOLOR_ONBLUR);
 
             GraphicCtx = CreateGraphicContext(&FramebufferWithoutBorder);
             UiCtx = new Ui::UiContext(&FramebufferWithoutBorder);
@@ -50,7 +49,7 @@ namespace UiWindow {
         /* auto imgtest = Ui::Picturebox("kotlogo.tga", Ui::ImageType::_TGA, { .Width = 256, .Height = 256 });
         this->SetContent(imgtest); */
 
-        auto titlebar = Ui::Titlebar(title, { .backgroundColor = WIN_BGCOLOR_ONFOCUS, .foregroundColor = 0xDDDDDD });
+        auto titlebar = Ui::Titlebar(title, { .BackgroundColor = WIN_BGCOLOR_ONFOCUS, .ForegroundColor = 0xDDDDDD });
         this->SetContent(titlebar);
  
 /*         auto wrapper = Ui::Box({ .Width = this->UiCtx->fb->Width, .Height = this->UiCtx->fb->Height - titlebar->GetStyle()->Height, .color = WIN_BGCOLOR_ONFOCUS });
@@ -68,13 +67,13 @@ namespace UiWindow {
     }
 
     void Window::DrawBorders(uint32_t Color){
-        if(Borders){
+        if(IsBorders){
             ctxDrawRect(BordersCtx, 0, 0, BordersCtx->Width - 1, BordersCtx->Height - 1, Color);
         }
     }
 
     void Window::SetContent(Ui::Component* content) {
-        Ui::Component* windowCpnt = this->UiCtx->cpnt;
+        Ui::Component* windowCpnt = this->UiCtx->Cpnt;
 
         windowCpnt->AddChild(content);
         windowCpnt->Update();
@@ -97,7 +96,11 @@ namespace UiWindow {
     }
 
     void Window::HandlerFocus(bool IsFocus){
-        
+        if(IsFocus){
+            DrawBorders(WIN_BDCOLOR_ONFOCUS);
+        }else{
+            DrawBorders(WIN_BDCOLOR_ONBLUR);
+        }
     }
 
     void Window::HandlerMouse(uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status){
@@ -105,7 +108,7 @@ namespace UiWindow {
         int64_t RelativePostionY = PositionY - Wid->Position.y; 
 
         if(RelativePostionX >= 0 && RelativePostionY >= 0 && RelativePostionX < Wid->Framebuffer.Width && RelativePostionY < Wid->Framebuffer.Height){
-            Ui::Component* Component = (Ui::Component*)GetEventData(EventBuffer, RelativePostionX, RelativePostionY);
+            Ui::Component* Component = (Ui::Component*)GetEventData(UiCtx->EventBuffer, RelativePostionX, RelativePostionY);
             if(Component){
                 Component->MouseEvent(RelativePostionX, RelativePostionY, PositionX, PositionY, ZValue, Status);
             }

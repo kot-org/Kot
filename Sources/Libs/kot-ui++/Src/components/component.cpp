@@ -4,30 +4,32 @@ namespace Ui {
 
     Component::Component(ComponentStyle Style){
         /* Style */
-        ComponentStyle* cpntStyle = (ComponentStyle*) malloc(sizeof(ComponentStyle));
+        ComponentStyle* CpntStyle = (ComponentStyle*) malloc(sizeof(ComponentStyle));
 
         // layout
-        cpntStyle->position = Style.position;
-        cpntStyle->display = Style.display;
-        cpntStyle->direction = Style.direction;
-        cpntStyle->align = Style.align;
-        cpntStyle->space = Style.space;
+        CpntStyle->Position = Style.Position;
+        CpntStyle->Display = Style.Display;
+        CpntStyle->Direction = Style.Direction;
+        CpntStyle->Align = Style.Align;
+        CpntStyle->Space = Style.Space;
 
-        cpntStyle->Width = Style.Width;
-        cpntStyle->Height = Style.Height;
-        cpntStyle->fontSize = Style.fontSize;
-        cpntStyle->borderRadius = Style.borderRadius;
+        CpntStyle->Width = Style.Width;
+        CpntStyle->Height = Style.Height;
+        CpntStyle->FontSize = Style.FontSize;
+        CpntStyle->BorderRadius = Style.BorderRadius;
 
-        cpntStyle->backgroundColor = Style.backgroundColor;
-        cpntStyle->foregroundColor = Style.foregroundColor;
+        CpntStyle->BackgroundColor = Style.BackgroundColor;
+        CpntStyle->ForegroundColor = Style.ForegroundColor;
 
-        cpntStyle->x = Style.x; 
-        cpntStyle->y = Style.y;
+        CpntStyle->X = Style.X; 
+        CpntStyle->Y = Style.Y;
 
-        CreateFramebuffer(cpntStyle->Width, cpntStyle->Height);
+
+        CreateFramebuffer(CpntStyle->Width, CpntStyle->Height);
 
         /* component */
-        this->Style = cpntStyle;
+        this->Style = CpntStyle;
+        this->Deep = 0;
     }
 
     Component::Component(framebuffer_t* fb) {
@@ -119,7 +121,7 @@ namespace Ui {
                 if(child->fb == NULL)
                     child->draw();
                 
-                BlitFramebuffer(this->fb, child->fb, child->Style->x, child->Style->y);
+                BlitFramebuffer(this->fb, child->fb, child->Style->X, child->Style->Y);
                 child->IsBlit = true;
             }
 
@@ -136,13 +138,17 @@ namespace Ui {
 
         if(Childs != NULL) {
 
-            for(int i = 0; i < Childs->length; i++) {
+            for(uint64_t i = 0; i < Childs->length; i++) {
                 Component* child = (Component*) vector_get(Childs, i);
 
-                if(child->ReadyToBlit == true)
-                    BlitFramebuffer(this->Framebuffer, child->Framebuffer, child->Style->x, child->Style->y);
-                else 
+
+                if(child->ReadyToBlit == true){
+                    BlitFramebuffer(this->Framebuffer, child->Framebuffer, child->Style->X, child->Style->Y);
+                    
+                }
+                else{
                     child->Update();
+                }
 
             }
 
@@ -157,23 +163,28 @@ namespace Ui {
         UpdateFramebuffer(this->Style->Width, this->Style->Height);
         //Printlog("draw");
 
-        FillRect(this->Framebuffer, 0, 0, this->Style->Width, this->Style->Height, this->Style->backgroundColor);
+        FillRect(this->Framebuffer, 0, 0, this->Style->Width, this->Style->Height, this->Style->BackgroundColor);
     }
 
-    void Component::AddChild(Component* child) {
-        if(!this->Childs)
-            this->Childs = vector_create();
-        
-        child->Parent = this;
-        vector_push(this->Childs, child);
+    void Component::AddChild(Component* Child) {
+        Child->UiCtx = this->UiCtx;
+        Child->Deep = this->Deep + 1;
 
-        this->TotalWidthChilds += child->Style->Width;
+        if(!this->Childs){
+            this->Childs = vector_create();
+        }
+        
+        Child->Parent = this;
+        vector_push(this->Childs, Child);
+
+        // todo : remove that
+        this->TotalWidthChilds += Child->Style->Width;
         // todo: if there is a new line, add the Height to totalHeightChilds (this->totalHeightChilds += child->Style->Height;)
     }  
 
 
     void Component::MouseEvent(uint64_t RelativePositionX, uint64_t RelativePositionY, uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status){
-
+        Printlog("ok");
     }
 
 }

@@ -5,7 +5,7 @@ namespace Ui {
     Component* Titlebar(char* Title, TitlebarStyle Style) {
         /* todo: drag region */
         /* todo: replace Width: 500 -> 100% */
-        Component* titlebar = UiLayout::Flexbox({ .direction = Layout::HORIZONTAL, .space = Layout::BETWEEN, .Width = 500, .backgroundColor = Style.backgroundColor, .foregroundColor = Style.foregroundColor });
+        Component* titlebar = UiLayout::Flexbox({ .Direction = Layout::HORIZONTAL, .Space = Layout::BETWEEN, .Width = 500, .BackgroundColor = Style.BackgroundColor, .ForegroundColor = Style.ForegroundColor });
 
         auto windowInfo = Ui::Box({ .Width = titlebar->GetStyle()->Width/2, .Height = 40, .color = 0xFF0000 });
 

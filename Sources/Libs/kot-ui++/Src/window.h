@@ -8,7 +8,6 @@
 #include <kot-ui++/context.h>
 #include <kot-ui++/component.h>
 
-#include <kot-graphics/event.h>
 #include <kot-graphics/context.h>
 
 namespace UiWindow {
@@ -19,12 +18,11 @@ namespace UiWindow {
             ctxg_t* GraphicCtx;
             class Ui::UiContext* UiCtx;
 
-            bool Borders;
+            bool IsBorders;
             ctxg_t* BordersCtx;
 
             event_t WindowEvent;
             thread_t WindowHandlerThread;
-            graphiceventbuffer_t* EventBuffer;
             void HandlerFocus(bool IsFocus);
             void HandlerMouse(uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status);
 

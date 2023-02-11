@@ -5,7 +5,7 @@ using namespace Ui;
 namespace UiLayout {
 
     Component* Flexbox(Component::ComponentStyle Style) {
-        Style.display = Layout::FLEX;
+        Style.Display = Layout::FLEX;
         Component* flexbox = new Component(Style);
 
         return flexbox;

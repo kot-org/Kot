@@ -3,9 +3,9 @@
 namespace Ui {
 
     UiContext::UiContext(framebuffer_t* fb) {
-        this->fb = fb;
-
-        this->cpnt = new Component(fb);
+        this->Fb = fb;
+        this->EventBuffer = CreateEventBuffer(fb->Width, fb->Height);
+        this->Cpnt = new Component(fb);
     }
 
 }

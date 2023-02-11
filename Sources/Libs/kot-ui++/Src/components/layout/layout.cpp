@@ -11,7 +11,7 @@ namespace UiLayout {
 
                 calculateAlignment(parent, i);
 
-                switch(parent->GetStyle()->display)
+                switch(parent->GetStyle()->Display)
                 {
                     case Layout::FLEX:
                         calculateFlex(parent, i);
