@@ -24,6 +24,7 @@ namespace Ui {
         public:
             framebuffer_t* Fb;
             class Component* Cpnt;
+            class Component* FocusCpnt;
             graphiceventbuffer_t* EventBuffer;
 
             UiContext(framebuffer_t* Fb);

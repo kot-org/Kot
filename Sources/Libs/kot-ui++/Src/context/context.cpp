@@ -6,6 +6,7 @@ namespace Ui {
         this->Fb = fb;
         this->EventBuffer = CreateEventBuffer(fb->Width, fb->Height);
         this->Cpnt = new Component(fb, NULL, this);
+        this->FocusCpnt = Cpnt;
     }
 
 }

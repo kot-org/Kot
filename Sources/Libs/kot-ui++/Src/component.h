@@ -57,7 +57,7 @@ namespace Ui {
 
     };
 
-    typedef void (*MouseEventHandler)(class Component* Component, uint64_t RelativePositionX, uint64_t RelativePositionY, uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status);
+    typedef void (*MouseEventHandler)(class Component* Component, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status);
     typedef void (*DrawHandler)(class Component* Component);
 
 
@@ -106,9 +106,9 @@ namespace Ui {
             DrawHandler Draw;
             uintptr_t ExternalData;
             Component* Parent;
+            class UiContext* UiCtx;
             
         private:
-            class UiContext* UiCtx;
             ComponentStyle* Style;
             uint64_t Deep;
             framebuffer_t* Framebuffer;
