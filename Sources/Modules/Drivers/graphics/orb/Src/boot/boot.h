@@ -6,7 +6,7 @@ struct BGRTHeader_t{
     srv_system_sdtheader_t Header;
     uint16_t VendorID;
     uint8_t Status;
-    uint8_t ImageType;
+    uint8_t PictureboxType;
     uint64_t ImageAddress;
     uint32_t ImageOffsetX;
     uint32_t ImageOffsetY;

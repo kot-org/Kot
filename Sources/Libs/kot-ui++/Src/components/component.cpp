@@ -2,47 +2,37 @@
 
 namespace Ui {
 
-    Component::Component(ComponentStyle Style){
+    Component::Component(ComponentStyle Style, DrawHandler HandlerDraw, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, UiContext* ParentUiContex){
         /* Style */
-        ComponentStyle* CpntStyle = (ComponentStyle*) malloc(sizeof(ComponentStyle));
+        ComponentStyle* CpntStyle = (ComponentStyle*)malloc(sizeof(ComponentStyle));
 
         // layout
-        CpntStyle->Position = Style.Position;
-        CpntStyle->Display = Style.Display;
-        CpntStyle->Direction = Style.Direction;
-        CpntStyle->Align = Style.Align;
-        CpntStyle->Space = Style.Space;
-
-        CpntStyle->Width = Style.Width;
-        CpntStyle->Height = Style.Height;
-        CpntStyle->FontSize = Style.FontSize;
-        CpntStyle->BorderRadius = Style.BorderRadius;
-
-        CpntStyle->BackgroundColor = Style.BackgroundColor;
-        CpntStyle->ForegroundColor = Style.ForegroundColor;
-
-        CpntStyle->x = Style.x; 
-        CpntStyle->y = Style.y;
-
+        memcpy(CpntStyle, &Style, sizeof(ComponentStyle));
 
         CreateFramebuffer(CpntStyle->Width, CpntStyle->Height);
 
         /* component */
         this->Style = CpntStyle;
+        this->Childs = NULL;
+        this->Parent = NULL;
         this->Deep = 0;
+        this->UiCtx = ParentUiContex;
+        this->Draw = HandlerDraw;
+        this->MouseEvent = HandlerMouseEvent;
+        this->ExternalData = ExternalData;
     }
 
-    Component::Component(framebuffer_t* fb) {
+    Component::Component(framebuffer_t* fb, MouseEventHandler HandlerMouseEvent, UiContext* ParentUiContex) {
         /* framebuffer */
-        framebuffer_t* cpntFb = (framebuffer_t*) malloc(sizeof(framebuffer_t));
+        framebuffer_t* CpntFb = (framebuffer_t*) malloc(sizeof(framebuffer_t));
 
-        cpntFb->Size = fb->Size;
-        cpntFb->Buffer = fb->Buffer;
-        cpntFb->Pitch = fb->Pitch;
-        cpntFb->Width = fb->Width;
-        cpntFb->Height = fb->Height;
-        cpntFb->Bpp = fb->Bpp;
-        cpntFb->Btpp = fb->Btpp;
+        CpntFb->Size = fb->Size;
+        CpntFb->Buffer = fb->Buffer;
+        CpntFb->Pitch = fb->Pitch;
+        CpntFb->Width = fb->Width;
+        CpntFb->Height = fb->Height;
+        CpntFb->Bpp = fb->Bpp;
+        CpntFb->Btpp = fb->Btpp;
 
         /* Style */
         ComponentStyle* cpntStyle = (ComponentStyle*) malloc(sizeof(ComponentStyle));
@@ -51,31 +41,35 @@ namespace Ui {
         cpntStyle->Height = fb->Height;
 
         /* component */
-        this->Framebuffer = cpntFb;
+        this->Childs = NULL;
+        this->Parent = NULL;
+        this->Deep = 0;
+        this->Framebuffer = CpntFb;
         this->Style = cpntStyle;
+        this->UiCtx = ParentUiContex;
+        this->MouseEvent = HandlerMouseEvent;
     }
 
     /* Component Framebuffer */
     void Component::CreateFramebuffer(uint32_t Width, uint32_t Height) {
-        framebuffer_t* cpntFb = (framebuffer_t*) malloc(sizeof(framebuffer_t));
+        framebuffer_t* CpntFb = (framebuffer_t*) malloc(sizeof(framebuffer_t));
 
         uint32_t Bpp = 32, Btpp = 4;
 
         uint32_t Pitch = Width * Btpp;
 
-        cpntFb->Size = Height * Pitch;
-        cpntFb->Buffer = calloc(cpntFb->Size);
-        cpntFb->Pitch = Pitch;
-        cpntFb->Width = Width;
-        cpntFb->Height = Height;
-        cpntFb->Bpp = Bpp;
-        cpntFb->Btpp = Btpp;
+        CpntFb->Size = Height * Pitch;
+        CpntFb->Buffer = calloc(CpntFb->Size);
+        CpntFb->Pitch = Pitch;
+        CpntFb->Width = Width;
+        CpntFb->Height = Height;
+        CpntFb->Bpp = Bpp;
+        CpntFb->Btpp = Btpp;
 
-        this->Framebuffer = cpntFb;
+        this->Framebuffer = CpntFb;
     }
     
     void Component::UpdateFramebuffer(uint32_t Width, uint32_t Height) {
-
         if(Framebuffer->Width != Width || Framebuffer->Height != Height) {
             uint32_t Pitch = Width * 4;
 
@@ -84,6 +78,8 @@ namespace Ui {
             Framebuffer->Pitch = Pitch;
             Framebuffer->Width = Width;
             Framebuffer->Height = Height;
+
+            this->Draw(this);
         }
 
     }
@@ -108,66 +104,33 @@ namespace Ui {
         return this->TotalHeightChilds;
     }
 
-/*     void Component::update() {
-        UiLayout::CalculateLayout(this);
-        
-        this->draw();
-        
-        if(childs != NULL) {
-
-            for(int i = 0; i < childs->length; i++) {
-                Component* child = (Component*) vector_get(childs, i);
-
-                if(child->fb == NULL)
-                    child->draw();
-                
-                BlitFramebuffer(this->fb, child->fb, child->Style->X, child->Style->Y);
-                child->IsBlit = true;
-            }
-
+    void Component::Update() {
+        if(this->Parent){
+            this->XAbsolute = this->Parent->XAbsolute + this->Style->x;
+            this->YAbsolute = this->Parent->YAbsolute + this->Style->y;
+        }else{
+            this->XAbsolute = this->Style->x;
+            this->YAbsolute = this->Style->y;
         }
 
-        if(parent != NULL)
-            parent->update();
-    } */
-
-    void Component::Update() {
         UiLayout::CalculateLayout(this);
-
-        this->Draw();
+        SetGraphicEventbuffer(this->UiCtx->EventBuffer, (uint64_t)this, this->Style->Width, this->Style->Height, this->XAbsolute, this->YAbsolute);;
 
         if(Childs != NULL) {
-
             for(uint64_t i = 0; i < Childs->length; i++) {
-                Component* child = (Component*) vector_get(Childs, i);
+                Component* Child = (Component*)vector_get(Childs, i);
 
-
-                if(child->ReadyToBlit == true){
-                    BlitFramebuffer(this->Framebuffer, child->Framebuffer, child->Style->x, child->Style->y);
-                    
+                Child->Update();
+                if(Child->Framebuffer){
+                    BlitFramebuffer(this->Framebuffer, Child->Framebuffer, Child->Style->x, Child->Style->y);
+                }else{
+                    // Draw directly to fb
                 }
-                else{
-                    child->Update();
-                }
-
             }
-
         }
-        this->ReadyToBlit = true;
-
-        if(Parent != NULL)
-            Parent->Update();
-    }
-
-    void Component::Draw() {
-        UpdateFramebuffer(this->Style->Width, this->Style->Height);
-        //Printlog("draw");
-
-        FillRect(this->Framebuffer, 0, 0, this->Style->Width, this->Style->Height, this->Style->BackgroundColor);
     }
 
     void Component::AddChild(Component* Child) {
-        Child->UiCtx = this->UiCtx;
         Child->Deep = this->Deep + 1;
 
         if(!this->Childs){
@@ -180,11 +143,5 @@ namespace Ui {
         // todo : remove that
         this->TotalWidthChilds += Child->Style->Width;
         // todo: if there is a new line, add the Height to totalHeightChilds (this->totalHeightChilds += child->Style->Height;)
-    }  
-
-
-    void Component::MouseEvent(uint64_t RelativePositionX, uint64_t RelativePositionY, uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status){
-        Printlog("ok");
-    }
-
+    } 
 }

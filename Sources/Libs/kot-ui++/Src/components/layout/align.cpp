@@ -2,7 +2,7 @@
 
 namespace UiLayout {
 
-    void calculateAlignment(Component* parent, uint32_t index) {
+    void CalculateAlignment(Component* parent, uint32_t index) {
 
         Component* child = (Component*) vector_get(parent->GetChilds(), index);
 

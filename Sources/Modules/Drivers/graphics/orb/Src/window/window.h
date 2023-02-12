@@ -50,7 +50,7 @@ class windowc{
         KResult Move(int64_t XPosition, int64_t YPosition);
 
         bool SetFocusState(bool IsFocus);
-        bool GetState();
+        bool GetFocusState();
 
         bool SetVisible(bool IsVisible);
         bool GetVisible();

@@ -5,24 +5,57 @@
 #include <kot/uisd/srvs/storage.h>
 
 namespace Ui {
+    void PictureboxDraw(Component* Cpnt){
+        Picturebox_t* Picturebox = (Picturebox_t*)Cpnt->ExternalData;
 
-    Component* Picturebox(char* Path, ImageType Type, ImageStyle Style) {
-        file_t* imageFile = fopen(Path, "rb");
+        switch(Picturebox->Type){
+            case PictureboxType::_TGA:
+                TGA_t* TGAImage = TGARead((Ui::TGAHeader_t *)Picturebox->Image);
 
-        if(imageFile == NULL)
+                for(uint16_t y = 0; y < TGAImage->Height; y++) {
+                    for(uint16_t x = 0; x < TGAImage->Width; x++) {
+                        PutPixel(Picturebox->Cpnt->GetFramebuffer(), Picturebox->Cpnt->GetStyle()->x+x, Picturebox->Cpnt->GetStyle()->y+y, TGAImage->Pixels[x + y*TGAImage->Width]);
+                    }
+                }
+
+                free(TGAImage);
+
+                break;
+        }
+    }
+
+    Picturebox_t* Picturebox(char* Path, PictureboxType Type, PictureboxStyle_t Style, UiContext* ParentUiContex) {
+        file_t* ImageFile = fopen(Path, "rb");
+
+        if(ImageFile == NULL)
             return NULL;
 
-        fseek(imageFile, 0, SEEK_END);
-        size_t imageFileSize = ftell(imageFile);
-        fseek(imageFile, 0, SEEK_SET);
+        fseek(ImageFile, 0, SEEK_END);
+        size_t ImageFileSize = ftell(ImageFile);
+        fseek(ImageFile, 0, SEEK_SET);
 
-        TGAHeader_t* image = (TGAHeader_t*) malloc(imageFileSize);
-        fread(image, imageFileSize, 1, imageFile);
+        uintptr_t Image = malloc(ImageFileSize);
+        fread(Image, ImageFileSize, 1, ImageFile);
 
-        uint16_t Width = image->Width;
-        uint16_t Height = image->Height;
+        uint16_t Width;
+        uint16_t Height;
+        switch(Type){
+            case PictureboxType::_TGA:
+                Width = ((TGAHeader_t*)Image)->Width;
+                Height = ((TGAHeader_t*)Image)->Height;
+                break;
+            default:
+                free(Image); 
+                fclose(ImageFile);
+                return NULL;
+                break;
+        }
 
-        if(Width <= 0 || Height <= 0) { free(image); fclose(imageFile); return NULL; }
+        if(Width <= 0 || Height <= 0) { 
+            free(Image); 
+            fclose(ImageFile); 
+            return NULL; 
+        }
 
         /* Si le component n'a pas de taille alors la taille est égal à celle de l'image
             Si il a une taille alors on resize l'image
@@ -37,28 +70,15 @@ namespace Ui {
         else
             Height = Style.Height; 
 
-        Component* picture = new Component({ .Width = Style.Width, .Height = Style.Height });
+        Picturebox_t* Picturebox = (Picturebox_t*)malloc(sizeof(Picturebox_t));
+        Picturebox->Type = Type;
+        Picturebox->Image = Image;
+        memcpy(&Picturebox->Style, &Style, sizeof(PictureboxStyle_t));
+        Picturebox->Cpnt = new Component({ .Width = Style.Width, .Height = Style.Height }, PictureboxDraw, NULL, Picturebox, ParentUiContex);
 
-        switch(Type)
-        {
-            case ImageType::_TGA:
-                TGA_t* TGAImage = TGARead(image);
-
-                for(uint16_t y = 0; y < TGAImage->Height; y++) {
-                    for(uint16_t x = 0; x < TGAImage->Width; x++) {
-                        PutPixel(picture->GetFramebuffer(), picture->GetStyle()->x+x, picture->GetStyle()->y+y, TGAImage->Pixels[x + y*TGAImage->Width]);
-                    }
-                }
-
-                free(TGAImage);
-
-                break;
-        }
-
-        free(image);
-        fclose(imageFile);
+        fclose(ImageFile);
         
-        return picture;
+        return Picturebox;
     }
 
 }

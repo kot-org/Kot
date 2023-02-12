@@ -17,7 +17,7 @@ namespace UiWindow {
             window_t* Wid;
             ctxg_t* GraphicCtx;
             class Ui::UiContext* UiCtx;
-            class Ui::Component* Titlebar;
+            Ui::Titlebar_t* Titlebar;
 
             bool IsBorders;
             ctxg_t* BordersCtx;

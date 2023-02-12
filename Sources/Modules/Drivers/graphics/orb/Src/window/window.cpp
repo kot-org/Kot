@@ -237,33 +237,34 @@ uint64_t windowc::GetY(){
 
 
 bool windowc::SetFocusState(bool IsFocus){
-    this->IsFocus = IsFocus;
+    if(this->IsFocus != IsFocus){
+        this->IsFocus = IsFocus;
+        if(this->IsFocus){
+            if(CurrentFocusWindow != NULL) CurrentFocusWindow->SetFocusState(false);
+            CurrentFocusWindow = this;
+            if(WindowType == Window_Type_Default && IsVisible){
+                atomicAcquire(&RenderMutex, 0);
+                
+                this->DequeuWL();
+                this->EnqueuWL();
 
-    if(this->IsFocus){
-        if(CurrentFocusWindow != NULL) CurrentFocusWindow->SetFocusState(false);
-        CurrentFocusWindow = this;
-        if(WindowType == Window_Type_Default && IsVisible){
-            atomicAcquire(&RenderMutex, 0);
-            
-            this->DequeuWL();
-            this->EnqueuWL();
+                atomicUnlock(&RenderMutex, 0);
 
-            atomicUnlock(&RenderMutex, 0);
-
-            UpdateAllEvents();
+                UpdateAllEvents();
+            }
         }
-    }
 
-    arguments_t Parameters{
-        .arg[0] = Window_Event_Focus,   // Event type
-        .arg[1] = IsFocus,              // Focus state
-    };
-    Sys_Event_Trigger(Event, &Parameters);
+        arguments_t Parameters{
+            .arg[0] = Window_Event_Focus,   // Event type
+            .arg[1] = IsFocus,              // Focus state
+        };
+        Sys_Event_Trigger(Event, &Parameters);
+    }
 
     return this->IsFocus;
 }
 
-bool windowc::GetState(){
+bool windowc::GetFocusState(){
     return IsFocus;
 }
 

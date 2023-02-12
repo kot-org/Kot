@@ -4,7 +4,7 @@ using namespace Ui;
 
 namespace UiLayout {
 
-    void calculateGrid(Component* parent, uint32_t index) {
+    void CalculateGrid(Component* parent, uint32_t index) {
         
     }
 

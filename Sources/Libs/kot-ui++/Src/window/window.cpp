@@ -47,11 +47,11 @@ namespace UiWindow {
 
         // Test
 
-        /* auto imgtest = Ui::Picturebox("kotlogo.tga", Ui::ImageType::_TGA, { .Width = 256, .Height = 256 });
+        /* auto imgtest = Ui::Picturebox("kotlogo.tga", Ui::PictureboxType::_TGA, { .Width = 256, .Height = 256 });
         this->SetContent(imgtest); */
-
-        Titlebar = Ui::Titlebar(title, { .BackgroundColor = WIN_BGCOLOR_ONFOCUS, .ForegroundColor = WIN_TBCOLOR_ONBLUR });
-        this->SetContent(Titlebar);
+        
+        Titlebar = Ui::Titlebar(title, { .BackgroundColor = 0xffffff, .ForegroundColor = WIN_TBCOLOR_ONBLUR }, UiCtx);
+        this->SetContent(Titlebar->Cpnt);
  
 /*         auto wrapper = Ui::Box({ .Width = this->UiCtx->fb->Width, .Height = this->UiCtx->fb->Height - titlebar->GetStyle()->Height, .color = WIN_BGCOLOR_ONFOCUS });
 
@@ -101,13 +101,13 @@ namespace UiWindow {
     void Window::HandlerFocus(bool IsFocus){
         if(IsFocus){
             DrawBorders(WIN_BDCOLOR_ONFOCUS);
-            Titlebar->GetStyle()->BackgroundColor = WIN_TBCOLOR_ONFOCUS;
+            //Titlebar->GetStyle()->BackgroundColor = WIN_TBCOLOR_ONFOCUS;
         }else{
             DrawBorders(WIN_BDCOLOR_ONBLUR);
-            Titlebar->GetStyle()->BackgroundColor = WIN_TBCOLOR_ONBLUR;
+            //Titlebar->GetStyle()->BackgroundColor = WIN_TBCOLOR_ONBLUR;
         }
 
-        Titlebar->Update();
+        //Titlebar->Update();
         this->UiCtx->Cpnt->Update();
     }
 
@@ -118,7 +118,9 @@ namespace UiWindow {
         if(RelativePostionX >= 0 && RelativePostionY >= 0 && RelativePostionX < Wid->Framebuffer.Width && RelativePostionY < Wid->Framebuffer.Height){
             Ui::Component* Component = (Ui::Component*)GetEventData(UiCtx->EventBuffer, RelativePostionX, RelativePostionY);
             if(Component){
-                Component->MouseEvent(RelativePostionX, RelativePostionY, PositionX, PositionY, ZValue, Status);
+                if(Component->MouseEvent){
+                    Component->MouseEvent(Component, RelativePostionX, RelativePostionY, PositionX, PositionY, ZValue, Status);
+                }
             }
         }
     }

@@ -4,7 +4,7 @@ using namespace Ui;
 
 namespace UiLayout {
 
-    void calculatePosition(Component* parent, uint32_t index) {
+    void CalculatePosition(Component* parent, uint32_t index) {
 
         Component* child = (Component*) vector_get(parent->GetChilds(), index);
         Component* beforeChild = (Component*) vector_get(parent->GetChilds(), index-1);
