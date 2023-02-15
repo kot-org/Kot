@@ -8,10 +8,10 @@ namespace UiLayout {
     }
 
     Component* Flexbox(Component::ComponentStyle Style, UiContext* ParentUiContex) {
-        Style.Display = Layout::FLEX;
-        Component* flexbox = new Component(Style, FlexboxDraw, NULL, NULL, ParentUiContex);
+        // Style.Display = Layout::FLEX;
+        // Component* flexbox = new Component(Style, FlexboxDraw, NULL, NULL, ParentUiContex);
 
-        return flexbox;
+        // return flexbox;
     }
 
 }

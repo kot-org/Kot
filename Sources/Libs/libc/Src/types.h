@@ -25,6 +25,8 @@ typedef unsigned long int           uint64_t;
 typedef unsigned long long int      uint64_t;
 #endif
 
+typedef uint32_t color_t;
+
 typedef uint64_t size64_t;
 typedef uint64_t KResult;
 

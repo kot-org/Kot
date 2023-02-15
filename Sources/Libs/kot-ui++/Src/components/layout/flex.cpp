@@ -5,40 +5,40 @@ using namespace Ui;
 namespace UiLayout {
 
     void CalculateFlex(Component* parent, uint32_t index) {
-        Component* child = (Component*) vector_get(parent->GetChilds(), index);
+        // Component* child = (Component*) vector_get(parent->GetChilds(), index);
 
-        // todo: fill/normal mode
+        // // todo: fill/normal mode
         
-        switch (parent->GetStyle()->Direction)
-        {
-            case Layout::HORIZONTAL:
-            {      
-                // todo: parent -> Width: 100%
+        // switch (parent->GetStyle()->Direction)
+        // {
+        //     case Layout::HORIZONTAL:
+        //     {      
+        //         // todo: parent -> Width: 100%
 
-                if(parent->GetStyle()->Height < child->GetStyle()->Height)
-                    parent->GetStyle()->Height = child->GetStyle()->Height;
+        //         if(parent->GetStyle()->Height < child->GetStyle()->Height)
+        //             parent->GetStyle()->Height = child->GetStyle()->Height;
 
-                /* Space */
-                if(parent->GetStyle()->Space == Layout::BETWEEN) {
+        //         /* Space */
+        //         if(parent->GetStyle()->Space == Layout::BETWEEN) {
                     
                     
 
-                } // else around...
-                parent->UpdateFramebuffer(parent->Parent->GetStyle()->Width, parent->GetStyle()->Height);
-                break;
-            }
+        //         } // else around...
+        //         parent->UpdateFramebuffer(parent->Parent->GetStyle()->Width, parent->GetStyle()->Height);
+        //         break;
+        //     }
 
-            case Layout::VERTICAL:
-            {
+        //     case Layout::VERTICAL:
+        //     {
                 
 
-                break;
-            }
-        }
+        //         break;
+        //     }
+        // }
 
-        // if the child is the last
-        if(index+1 == parent->GetChilds()->length)
-            RecalculateFlexChilds(parent);
+        // // if the child is the last
+        // if(index+1 == parent->GetChilds()->length)
+        //     RecalculateFlexChilds(parent);
 
     }
 

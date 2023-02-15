@@ -103,6 +103,12 @@ KResult GetVFSAbsolutePath(char** AbsolutePath, partition_t** Partition, char* P
             // TODO
             assert(0);
         }else if(*AccessTypeBuffer == 'd'){
+            if(Volume >= PartitionsList->length){
+                free(Sb);
+                free(*AbsolutePath);
+                free(VolumeBuffer);
+                return KFAIL;                
+            }
             PartitionContext = (partition_t*)vector_get(PartitionsList, Volume);
             if(!PartitionContext->IsMount){
                 free(Sb);
@@ -150,6 +156,12 @@ KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFS
             if(Context->DynamicVolumeMountPoint == Volume && strncmp(*RelativePath, Context->Path, Context->PathLength)){
                 PartitionContext = Context->Partition;
             }else{
+                if(Volume >= PartitionsList->length){
+                    free(Sb);
+                    free(*RelativePath);
+                    free(VolumeBuffer);
+                    return KFAIL;                
+                }
                 authorization_t AuthorizationNeed = (Volume == Context->StaticVolumeMountPoint) ? FS_AUTHORIZATION_MEDIUM : FS_AUTHORIZATION_HIGH;
                 if(AuthorizationNeed > Context->Authorization){
                     if(Volume > PartitionsList->length) return KNOTALLOW;

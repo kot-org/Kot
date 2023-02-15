@@ -2,7 +2,7 @@
 
 namespace Ui {
 
-    Component::Component(ComponentStyle Style, DrawHandler HandlerDraw, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, UiContext* ParentUiContex){
+    Component::Component(ComponentStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, UiContext* ParentUiContex, bool IsUpdateChild){
         /* Style */
         ComponentStyle* CpntStyle = (ComponentStyle*)malloc(sizeof(ComponentStyle));
 
@@ -17,12 +17,14 @@ namespace Ui {
         this->Parent = NULL;
         this->Deep = 0;
         this->UiCtx = ParentUiContex;
-        this->Draw = HandlerDraw;
+        this->UpdateFunction = HandlerUpdate;
         this->MouseEvent = HandlerMouseEvent;
         this->ExternalData = ExternalData;
+        this->UpdateChild = IsUpdateChild;
+        this->AbsolutePosition = {.x = 0, .y = 0};
     }
 
-    Component::Component(framebuffer_t* fb, MouseEventHandler HandlerMouseEvent, UiContext* ParentUiContex) {
+    Component::Component(framebuffer_t* fb, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, UiContext* ParentUiContex, bool IsUpdateChild) {
         /* framebuffer */
         framebuffer_t* CpntFb = (framebuffer_t*) malloc(sizeof(framebuffer_t));
 
@@ -47,7 +49,10 @@ namespace Ui {
         this->Framebuffer = CpntFb;
         this->Style = cpntStyle;
         this->UiCtx = ParentUiContex;
+        this->UpdateFunction = HandlerUpdate;
         this->MouseEvent = HandlerMouseEvent;
+        this->UpdateChild = IsUpdateChild;
+        this->AbsolutePosition = {.x = 0, .y = 0};
     }
 
     /* Component Framebuffer */
@@ -67,6 +72,7 @@ namespace Ui {
         CpntFb->Btpp = Btpp;
 
         this->Framebuffer = CpntFb;
+        this->IsFramebufferUpdate = true;
     }
     
     void Component::UpdateFramebuffer(uint32_t Width, uint32_t Height) {
@@ -79,7 +85,7 @@ namespace Ui {
             Framebuffer->Width = Width;
             Framebuffer->Height = Height;
 
-            this->Draw(this);
+            this->IsFramebufferUpdate = true;
         }
 
     }
@@ -96,36 +102,12 @@ namespace Ui {
         return this->Childs;
     }
 
-    uint32_t Component::GetTotalWidthChilds() {
-        return this->TotalWidthChilds;
-    }
-
-    uint32_t Component::GetTotalHeightChilds() {
-        return this->TotalHeightChilds;
-    }
-
     void Component::Update() {
-        if(this->Parent){
-            this->XAbsolute = this->Parent->XAbsolute + this->Style->x;
-            this->YAbsolute = this->Parent->YAbsolute + this->Style->y;
-        }else{
-            this->XAbsolute = this->Style->x;
-            this->YAbsolute = this->Style->y;
-        }
-
-        UiLayout::CalculateLayout(this);
-        SetGraphicEventbuffer(this->UiCtx->EventBuffer, (uint64_t)this, this->Style->Width, this->Style->Height, this->XAbsolute, this->YAbsolute);;
-
-        if(Childs != NULL) {
+        if(Childs != NULL && UpdateChild){
             for(uint64_t i = 0; i < Childs->length; i++) {
                 Component* Child = (Component*)vector_get(Childs, i);
-
+                Child->UpdateFunction(Child);
                 Child->Update();
-                if(Child->Framebuffer){
-                    BlitFramebuffer(this->Framebuffer, Child->Framebuffer, Child->Style->x, Child->Style->y);
-                }else{
-                    // Draw directly to fb
-                }
             }
         }
     }
@@ -139,9 +121,5 @@ namespace Ui {
         
         Child->Parent = this;
         vector_push(this->Childs, Child);
-
-        // todo : remove that
-        this->TotalWidthChilds += Child->Style->Width;
-        // todo: if there is a new line, add the Height to totalHeightChilds (this->totalHeightChilds += child->Style->Height;)
     } 
 }

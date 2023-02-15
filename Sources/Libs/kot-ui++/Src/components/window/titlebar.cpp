@@ -11,16 +11,17 @@ namespace Ui {
         /* todo: replace Width: 500 -> 100% */
         Titlebar_t* Titlebar = (Titlebar_t*)malloc(sizeof(Titlebar_t));
         memcpy(&Titlebar->Style, &Style, sizeof(TitlebarStyle_t));
-        Titlebar->Cpnt = UiLayout::Flexbox({ .Direction = Layout::HORIZONTAL, .Space = Layout::BETWEEN, .Width = 500}, ParentUiContex);
-        Titlebar->Cpnt->ExternalData = Titlebar;
+        // Titlebar->Cpnt = UiLayout::Flexbox({ .Direction = Layout::HORIZONTAL, .Space = Layout::BETWEEN, .Width = 500}, ParentUiContex);
+        // Titlebar->Cpnt->ExternalData = Titlebar;
         
-        //auto windowInfo = Ui::Box({ .Width = Titlebar->Cpnt->GetStyle()->Width/2, .Height = 40, .Color = 0xFF0000 }, ParentUiContex);
+        // //auto windowInfo = Ui::Box({ .Width = Titlebar->Cpnt->GetStyle()->Width/2, .Height = 40, .Color = 0xFF0000 }, ParentUiContex);
         
-        for(uint64_t i = 0; i < 25; i++){
-            auto iconBox = Ui::Box({ .Width = 20, .Height = 20, .Color = (uint32_t)(0xff << i) }, ParentUiContex);
-            Titlebar->Cpnt->AddChild(iconBox->Cpnt); 
-        }
-        TitlebarDraw(Titlebar->Cpnt);
+        // for(uint64_t i = 0; i < 25; i++){
+        //     auto iconBox = Ui::Box({ .Width = 20, .Height = 20, .Color = (uint32_t)(0xff << i) }, ParentUiContex);
+        //     Titlebar->Cpnt->AddChild(iconBox->Cpnt); 
+        // }
+        auto iconBox = Ui::Box({ .Width = 20, .Height = 20, .HoverColor = (color_t)0xff0000, .BackgroundColor = (color_t)0xffffff, .Position{.x = 0,  .y = 0} }, ParentUiContex);
+        Titlebar->Cpnt = iconBox->Cpnt;
         // auto titleBox = Ui::Box({ .Width = 40, .Height = 25, .Color = 0xFF00FF }, ParentUiContex);
         // windowInfo->Cpnt->AddChild(titleBox->Cpnt); 
         
@@ -32,8 +33,6 @@ namespace Ui {
         buttons->addChild(box2box);  */
         
         // Titlebar->Cpnt->AddChild(buttons->Cpnt);
-
-        //TitlebarDraw(Titlebar->Cpnt);
 
         return Titlebar;
     }

@@ -57,24 +57,15 @@ namespace Ui {
 
     };
 
-    typedef void (*MouseEventHandler)(class Component* Component, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status);
-    typedef void (*DrawHandler)(class Component* Component);
+    typedef void (*MouseEventHandler)(class Component* Component, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status);
+    typedef void (*UpdateHandler)(class Component* Component);
 
 
     class Component {
         public:
-            struct ComponentStyle {
-                Layout::ComponentPosition Position;
-                Layout::ComponentDisplay Display;
-                Layout::ComponentDirection Direction;
-                Layout::ComponentAlign_t Align;
-                Layout::ComponentSpace Space;
-
-                uint32_t Width;
-                uint32_t Height;
-
-                uint32_t x;
-                uint32_t y;
+            struct ComponentStyle{
+                uint64_t Width;
+                uint64_t Height;
 
                 uint64_t ExternalStyleType;
                 uintptr_t ExternalStyleData;
@@ -82,9 +73,9 @@ namespace Ui {
 
             /* todo: changer cette struct et mettre une struct pour charque component */
 
-            Component(ComponentStyle Style, DrawHandler HandlerDraw, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, class UiContext* ParentUiContex);
+            Component(ComponentStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, class UiContext* ParentUiContex, bool IsUpdateChild);
             /* for ui context */
-            Component(framebuffer_t* fb, MouseEventHandler HandlerMouseEvent, class UiContext* ParentUiContex);
+            Component(framebuffer_t* fb, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, class UiContext* ParentUiContex, bool IsUpdateChild);
 
             /* Component Framebuffer */
             void CreateFramebuffer(uint32_t Width, uint32_t Height);
@@ -103,22 +94,20 @@ namespace Ui {
             void AddChild(Component* Child);
 
             MouseEventHandler MouseEvent;
-            DrawHandler Draw;
+            UpdateHandler UpdateFunction;
             uintptr_t ExternalData;
             Component* Parent;
             class UiContext* UiCtx;
+            bool IsFramebufferUpdate;
+            bool UpdateChild;
+
+            point_t AbsolutePosition; 
             
         private:
             ComponentStyle* Style;
             uint64_t Deep;
             framebuffer_t* Framebuffer;
             vector_t* Childs;
-            uint32_t TotalWidthChilds;
-            uint32_t TotalHeightChilds;
-            uint16_t Type;
-            uint64_t XAbsolute;
-            uint64_t YAbsolute;
-
     };
 
     /* components */
@@ -129,8 +118,9 @@ namespace Ui {
         _JPG = 2,
     };
     typedef struct {
-        uint16_t Width;
-        uint16_t Height;
+        uint64_t Width;
+        uint64_t Height;
+        point_t Position;
     } PictureboxStyle_t;
     typedef struct {
         PictureboxType Type;
@@ -140,20 +130,24 @@ namespace Ui {
     } Picturebox_t;
     Picturebox_t* Picturebox(char* Path, PictureboxType Type, PictureboxStyle_t Style, class UiContext* ParentUiContex);
     void UpdateSizePicturebox(uint64_t Width, uint64_t Height);
-    void UpdatePositionPicturebox(uint64_t X, uint64_t Y);
+    void UpdatePositionPicturebox(point_t Position);
 
     typedef struct {
-        uint32_t Width;
-        uint32_t Height;
-        uint32_t Color;
+        uint64_t Width;
+        uint64_t Height;
+        point_t Position;
+        color_t BackgroundColor;
+        color_t HoverColor;
     } BoxStyle_t;
     typedef struct {
         BoxStyle_t Style;
         Component* Cpnt;
+        color_t CurrentColor;
+        bool IsDrawUpdate;
     } Box_t;
     Box_t* Box(BoxStyle_t Style, class UiContext* ParentUiContex);
     void UpdateSizeBox(uint64_t Width, uint64_t Height);
-    void UpdatePositionBox(uint64_t X, uint64_t Y);
+    void UpdatePositionBox(point_t Position);
 
     typedef struct {
         uint32_t BackgroundColor;
@@ -165,12 +159,16 @@ namespace Ui {
     } Titlebar_t;
     Titlebar_t* Titlebar(char* Title, TitlebarStyle_t Style, class UiContext* ParentUiContex);
     void UpdateSizeTitlebar(uint64_t Width, uint64_t Height);
-    void UpdatePositionTitlebar(uint64_t X, uint64_t Y);
+    void UpdatePositionTitlebar(point_t Position);
 
 }
 
 namespace UiLayout {
-
+    // Layout::ComponentPosition Position;
+    // Layout::ComponentDisplay Display;
+    // Layout::ComponentDirection Direction;
+    // Layout::ComponentAlign_t Align;
+    // Layout::ComponentSpace Space;
     void CalculateLayout(Ui::Component* Parent);
 
     Ui::Component* Flexbox(Ui::Component::ComponentStyle Style, class Ui::UiContext* ParentUiContex);

@@ -8,10 +8,10 @@ namespace UiLayout {
     }
 
     Component* Gridbox(Component::ComponentStyle Style, UiContext* ParentUiContex) {
-        Style.Display = Layout::GRID;
-        Component* gridbox = new Component(Style, GridboxDraw, NULL, NULL, ParentUiContex);
+        // Style.Display = Layout::GRID;
+        // Component* gridbox = new Component(Style, GridboxDraw, NULL, NULL, ParentUiContex);
 
-        return gridbox;
+        // return gridbox;
     }
 
 }

@@ -6,22 +6,22 @@
 
 namespace Ui {
     void PictureboxDraw(Component* Cpnt){
-        Picturebox_t* Picturebox = (Picturebox_t*)Cpnt->ExternalData;
+        // Picturebox_t* Picturebox = (Picturebox_t*)Cpnt->ExternalData;
 
-        switch(Picturebox->Type){
-            case PictureboxType::_TGA:
-                TGA_t* TGAImage = TGARead((Ui::TGAHeader_t *)Picturebox->Image);
+        // switch(Picturebox->Type){
+        //     case PictureboxType::_TGA:
+        //         TGA_t* TGAImage = TGARead((Ui::TGAHeader_t *)Picturebox->Image);
 
-                for(uint16_t y = 0; y < TGAImage->Height; y++) {
-                    for(uint16_t x = 0; x < TGAImage->Width; x++) {
-                        PutPixel(Picturebox->Cpnt->GetFramebuffer(), Picturebox->Cpnt->GetStyle()->x+x, Picturebox->Cpnt->GetStyle()->y+y, TGAImage->Pixels[x + y*TGAImage->Width]);
-                    }
-                }
+        //         for(uint16_t y = 0; y < TGAImage->Height; y++) {
+        //             for(uint16_t x = 0; x < TGAImage->Width; x++) {
+        //                 PutPixel(Picturebox->Cpnt->GetFramebuffer(), Picturebox->Cpnt->GetStyle()->x+x, Picturebox->Cpnt->GetStyle()->y+y, TGAImage->Pixels[x + y*TGAImage->Width]);
+        //             }
+        //         }
 
-                free(TGAImage);
+        //         free(TGAImage);
 
-                break;
-        }
+        //         break;
+        // }
     }
 
     Picturebox_t* Picturebox(char* Path, PictureboxType Type, PictureboxStyle_t Style, UiContext* ParentUiContex) {
@@ -74,7 +74,7 @@ namespace Ui {
         Picturebox->Type = Type;
         Picturebox->Image = Image;
         memcpy(&Picturebox->Style, &Style, sizeof(PictureboxStyle_t));
-        Picturebox->Cpnt = new Component({ .Width = Style.Width, .Height = Style.Height }, PictureboxDraw, NULL, Picturebox, ParentUiContex);
+        Picturebox->Cpnt = new Component({ .Width = Style.Width, .Height = Style.Height }, PictureboxDraw, NULL, Picturebox, ParentUiContex, true);
 
         fclose(ImageFile);
         

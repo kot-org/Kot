@@ -50,8 +50,14 @@ namespace UiWindow {
         /* auto imgtest = Ui::Picturebox("kotlogo.tga", Ui::PictureboxType::_TGA, { .Width = 256, .Height = 256 });
         this->SetContent(imgtest); */
         
-        Titlebar = Ui::Titlebar(title, { .BackgroundColor = 0xffffff, .ForegroundColor = WIN_TBCOLOR_ONBLUR }, UiCtx);
-        this->SetContent(Titlebar->Cpnt);
+        //Titlebar = Ui::Titlebar(title, { .BackgroundColor = 0xffffff, .ForegroundColor = WIN_TBCOLOR_ONBLUR }, UiCtx);
+        for(uint64_t y = 0; y < Height / 20; y++){
+            for(uint64_t x = 0; x < Width / 20; x++){
+                auto iconBox = Ui::Box({ .Width = 20, .Height = 20, .HoverColor = (color_t)0xff0000, .BackgroundColor = (color_t)0xffffff, .Position{.x = (int64_t)x * 20,  .y = (int64_t)y * 20} }, UiCtx);
+                this->SetContent(iconBox->Cpnt);
+            }
+        }
+        //this->SetContent(Titlebar->Cpnt);
  
 /*         auto wrapper = Ui::Box({ .Width = this->UiCtx->fb->Width, .Height = this->UiCtx->fb->Height - titlebar->GetStyle()->Height, .color = WIN_BGCOLOR_ONFOCUS });
 
@@ -119,7 +125,7 @@ namespace UiWindow {
             Ui::Component* Component = (Ui::Component*)GetEventData(UiCtx->EventBuffer, RelativePostionX, RelativePostionY);
             if(Component){
                 if(Component->MouseEvent){
-                    Component->MouseEvent(Component, RelativePostionX, RelativePostionY, PositionX, PositionY, ZValue, Status);
+                    Component->MouseEvent(Component, true, RelativePostionX, RelativePostionY, PositionX, PositionY, ZValue, Status);
                 }
             }
         }
