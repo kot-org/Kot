@@ -3,6 +3,12 @@
 #include <kot-ui++/pictures/picture.h>
 using namespace Ui;
 
+#include <kot++/printf.h>
+
+// todo: fonction "AddWallpaper" qui permet d'ajouter un wallpaper dans "USER/Share/Wallpaper" et de modifier les parametres "desktop.json" pour changer le fit en fonction de la taille de l'image (modifiable par l'utilisateur)
+
+// todo: fonction "ChangeFit"
+
 void desktopc::SetWallpaper(char *Path, uint8_t Fit)
 {
     file_t* WallpaperFile = fopen(Path, "rb");
@@ -30,13 +36,20 @@ void desktopc::SetWallpaper(char *Path, uint8_t Fit)
 
     TGA_t* Image = TGARead(Wallpaper);
 
+    if(Image == NULL) {
+        SetSolidColor(NULL);
+        return;
+    }
+
     switch(Fit)
     {
         case WallpaperFit::FIT:
         {
-            // todo: resize l'image jusqu'a ce qu'elle touche le bord (horizontalement ou verticalement)
+            TGA_t* ImageResize = TGAResize(Image, Fb->Width, Fb->Height, true);
 
-            TGA_t* ImageResize = TGAResize(Image, Fb->Width, Fb->Height);
+            ImageResize->x = Fb->Width / 2 - ImageResize->Width / 2;
+            ImageResize->y = Fb->Height / 2 - ImageResize->Height / 2;
+
             TGADraw(Fb, ImageResize);
 
             free(ImageResize);
@@ -45,11 +58,70 @@ void desktopc::SetWallpaper(char *Path, uint8_t Fit)
 
         case WallpaperFit::FILL:
         {
+            uint16_t _Width = Image->Width, _Height = Image->Height;
+
+            // permet de faire en sorte que l'image dépasse la taille du monitor
+            if(_Width > _Height) {
+                _Width = NULL;
+                _Height = Fb->Height;
+            } else if(_Height > _Width) {
+                _Width = Fb->Width;
+                _Height = NULL;
+            }
+            
+            TGA_t* ImageResize = TGAResize(Image, _Width, _Height, true);
+
+            uint16_t x = (ImageResize->Width - Fb->Width) / 2;
+            uint16_t y = (ImageResize->Height - Fb->Height) / 2;
+
+            TGA_t* ImageCrop = TGACrop(ImageResize, Fb->Width, Fb->Height, x, y);
+            
+            TGADraw(Fb, ImageCrop);
+
+            free(ImageResize);
             break;
         }
 
         case WallpaperFit::CENTER:
         {
+            uint16_t x = 0, y = 0,
+                _Width = Image->Width, _Height = Image->Height;
+
+            if(_Width > Fb->Width) {
+                x = (_Width - Fb->Width) / 2;
+                _Width = Fb->Width;
+            }
+            if(_Height > Fb->Height) {
+                y = (_Height - Fb->Height) / 2;
+                _Height = Fb->Height;
+            }
+
+            // si l'image dépasse le monitor alors on crop
+            if(Image->Width > Fb->Width || Image->Height > Fb->Height) {
+                TGA_t* ImageCrop = TGACrop(Image, _Width, _Height, x, y);
+
+                ImageCrop->x = Fb->Width / 2 - ImageCrop->Width / 2;
+                ImageCrop->y = Fb->Height / 2 - ImageCrop->Height / 2;
+
+                TGADraw(Fb, ImageCrop);
+                
+                free(ImageCrop);
+            } else {
+                Image->x = Fb->Width / 2 - Image->Width / 2;
+                Image->y = Fb->Height / 2 - Image->Height / 2;
+                
+                TGADraw(Fb, Image);
+            }
+
+            break;
+        }
+
+        case WallpaperFit::STRETCH:
+        {
+            TGA_t* ImageResize = TGAResize(Image, Fb->Width, Fb->Height);
+            TGADraw(Fb, ImageResize);
+
+            free(ImageResize);
             break;
         }
 

@@ -25,5 +25,6 @@ class desktopc {
             FIT     = 0,
             FILL    = 1,
             CENTER  = 2,
+            STRETCH = 3,
         } WallpaperFit;
 };

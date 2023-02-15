@@ -37,8 +37,8 @@ void InitializeCursor(){
 
     CursorWidth = Width;
     CursorHeight = Height;
-    CursorPosition.x = 0;
-    CursorPosition.y = 0;
+    CursorPosition.x = CursorMaxPosition.x / 2;
+    CursorPosition.y = CursorMaxPosition.y / 2;
 
     uintptr_t PixelMapTmp = (uintptr_t) ((uint64_t)Header + Header->PixelMapOffset);
     size64_t PixelMapSize = Height * Pitch;

@@ -30,12 +30,15 @@ namespace Ui {
         uint32_t* Pixels;
         uint16_t Width;
         uint16_t Height;
+        uint16_t x;
+        uint16_t y;
     } TGA_t;
 
     TGA_t* TGARead(TGAHeader_t* Buffer);
 
     void TGADraw(framebuffer_t* Fb, TGA_t* Image);
-    TGA_t* TGAResize(TGA_t* Image, uint16_t NewWidth, uint16_t NewHeight);
+    TGA_t* TGAResize(TGA_t* Image, uint16_t NewWidth, uint16_t NewHeight, bool KeepRatio = false);
+    TGA_t* TGACrop(TGA_t* Image, uint16_t Width, uint16_t Height, uint16_t x, uint16_t y);
 
     /* ... */
 }

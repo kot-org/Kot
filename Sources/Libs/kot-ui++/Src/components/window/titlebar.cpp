@@ -33,7 +33,7 @@ namespace Ui {
         
         // Titlebar->Cpnt->AddChild(buttons->Cpnt);
 
-        TitlebarDraw(Titlebar->Cpnt);
+        //TitlebarDraw(Titlebar->Cpnt);
 
         return Titlebar;
     }

@@ -25,10 +25,10 @@ void BlitFramebuffer(framebuffer_t* To, framebuffer_t* From, uint64_t PositionX,
 
     ToBuffer += PositionX * To->Btpp + PositionY * To->Pitch; // offset
 
-    uint64_t WithCopy = From->Width;
+    uint64_t WidthCopy = From->Width;
 
-    if(PositionX + WithCopy >= To->Width){
-        WithCopy = To->Width - PositionX;
+    if(PositionX + WidthCopy >= To->Width){
+        WidthCopy = To->Width - PositionX;
     }
 
     uint64_t HeightCopy = From->Height;
@@ -37,7 +37,7 @@ void BlitFramebuffer(framebuffer_t* To, framebuffer_t* From, uint64_t PositionX,
         HeightCopy = To->Height - PositionY;
     }
 
-    uint64_t PitchCopy = WithCopy * To->Btpp;
+    uint64_t PitchCopy = WidthCopy * To->Btpp;
 
     for(uint64_t H = 0; H < HeightCopy; H++){
         memcpy((uintptr_t)ToBuffer, (uintptr_t)FromBuffer, PitchCopy);
