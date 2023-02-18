@@ -20,7 +20,7 @@ KResult InitializeVFS(){
     RootPartition->StaticVolumeMountPoint = 0;
     RootPartition->DynamicVolumeMountPoint = 0;
     RootPartition->Index = 0;
-    Sys_Createthread(Sys_GetProcess(), (uintptr_t)&VFSfileOpenInitrd, PriviledgeService, NULL, &RootPartition->FSServerFunctions.Openfile);
+    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&VFSfileOpenInitrd, PriviledgeService, NULL, &RootPartition->FSServerFunctions.Openfile);
     
     vector_push(PartitionsList, RootPartition);
 
@@ -217,7 +217,7 @@ KResult VFSMount(thread_t Callback, uint64_t CallbackArg, bool IsMount, srv_stor
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
@@ -235,7 +235,7 @@ KResult VFSLoginApp(thread_t Callback, uint64_t CallbackArg, process_t Process, 
 
     /* VFSClientDispatcher */
     thread_t VFSClientDispatcherThread = NULL;
-    Sys_Createthread(Sys_GetProcess(), (uintptr_t)&VFSClientDispatcher, PriviledgeApp, (uint64_t)Context, &VFSClientDispatcherThread);
+    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&VFSClientDispatcher, PriviledgeApp, (uint64_t)Context, &VFSClientDispatcherThread);
     thread_t VFSClientShareableDispatcherThread = MakeShareableThreadToProcess(VFSClientDispatcherThread, Process);
     
     arguments_t arguments{
@@ -247,7 +247,7 @@ KResult VFSLoginApp(thread_t Callback, uint64_t CallbackArg, process_t Process, 
         .arg[5] = NULL,                                 /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);    
 }
 
@@ -265,7 +265,7 @@ KResult VFSClientDispatcher(thread_t Callback, uint64_t CallbackArg, uint64_t Fu
             .arg[5] = NULL,             /* GP3 */
         };
 
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
 
         Sys_Close(KSUCCESS); 
     }
@@ -284,7 +284,7 @@ KResult VFSClientDispatcher(thread_t Callback, uint64_t CallbackArg, uint64_t Fu
             .arg[5] = NULL,             /* GP3 */
         };
 
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     }
     Sys_Close(KSUCCESS);
 }
@@ -314,7 +314,7 @@ KResult VFSFileRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext*
         .ParameterPosition = 0x2,
     };
 
-    Status = Sys_Execthread(Partition->FSServerFunctions.Removefile, &arguments, ExecutionTypeQueu, &Data);
+    Status = Sys_ExecThread(Partition->FSServerFunctions.Removefile, &arguments, ExecutionTypeQueu, &Data);
 
     free(RelativePath);
     
@@ -352,7 +352,7 @@ KResult VFSFileOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* C
         .Size = (size64_t)strlen(RelativePath) + 1,
         .ParameterPosition = 0x2,
     };
-    Status = Sys_Execthread(Partition->FSServerFunctions.Openfile, &arguments, ExecutionTypeQueu, &Data);
+    Status = Sys_ExecThread(Partition->FSServerFunctions.Openfile, &arguments, ExecutionTypeQueu, &Data);
 
     free(RelativePath);
     
@@ -414,7 +414,7 @@ KResult VFSRename(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Con
     };
     
 
-    Status = Sys_Execthread(PartitionOld->FSServerFunctions.Rename, &arguments, ExecutionTypeQueu, &Data);
+    Status = Sys_ExecThread(PartitionOld->FSServerFunctions.Rename, &arguments, ExecutionTypeQueu, &Data);
 
     free(RelativePathOld);
     free(RelativePathNew);
@@ -448,7 +448,7 @@ KResult VFSDirCreate(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* 
         .ParameterPosition = 0x2,
     };
 
-    Status = Sys_Execthread(Partition->FSServerFunctions.Mkdir, &arguments, ExecutionTypeQueu, &Data);
+    Status = Sys_ExecThread(Partition->FSServerFunctions.Mkdir, &arguments, ExecutionTypeQueu, &Data);
 
     free(RelativePath);
     
@@ -480,7 +480,7 @@ KResult VFSDirRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* 
         .ParameterPosition = 0x2,
     };
 
-    Status = Sys_Execthread(Partition->FSServerFunctions.Rmdir, &arguments, ExecutionTypeQueu, &Data);
+    Status = Sys_ExecThread(Partition->FSServerFunctions.Rmdir, &arguments, ExecutionTypeQueu, &Data);
 
     free(RelativePath);
     
@@ -512,7 +512,7 @@ KResult VFSDirOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Co
         .ParameterPosition = 0x2,
     };
 
-    Status = Sys_Execthread(Partition->FSServerFunctions.Opendir, &arguments, ExecutionTypeQueu, &Data);
+    Status = Sys_ExecThread(Partition->FSServerFunctions.Opendir, &arguments, ExecutionTypeQueu, &Data);
 
     free(RelativePath);
     
@@ -547,7 +547,7 @@ KResult VFSfileDispatcherInitrd(thread_t Callback, uint64_t CallbackArg, uint64_
             .arg[5] = NULL,             /* GP3 */
         };
 
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
         Sys_Close(KSUCCESS);
     }
 
@@ -578,7 +578,7 @@ KResult VFSfileReadInitrd(thread_t Callback, uint64_t CallbackArg,  InitrdContex
 
     Sys_Keyhole_CloneModify(MemoryKey, &arguments.arg[2], Context->Target, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
     
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueuAwait, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueuAwait, NULL);
     Sys_CloseMemoryField(Sys_GetProcess(), MemoryKey, Buffer);
 
     free((uintptr_t)CallbackSys->Data);
@@ -601,7 +601,7 @@ KResult VFSGetfilesizeInitrd(thread_t Callback, uint64_t CallbackArg,  InitrdCon
         .arg[5] = NULL,                 /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueuAwait, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueuAwait, NULL);
 
     free((uintptr_t)CallbackSys->Data);
     free(CallbackSys);
@@ -622,7 +622,7 @@ KResult VFSfileCloseInitrd(thread_t Callback, uint64_t CallbackArg,  InitrdConte
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
 
     Sys_Exit(KSUCCESS);
 }
@@ -649,7 +649,7 @@ KResult VFSfileOpenInitrd(thread_t Callback, uint64_t CallbackArg, char* Path, p
         srv_storage_fs_server_open_file_data_t SrvOpenFileData;
         thread_t DispatcherThread;
 
-        Sys_Createthread(Sys_GetProcess(), (uintptr_t)&VFSfileDispatcherInitrd, PriviledgeDriver, (uint64_t)Context, &DispatcherThread);
+        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&VFSfileDispatcherInitrd, PriviledgeDriver, (uint64_t)Context, &DispatcherThread);
 
         SrvOpenFileData.Dispatcher = MakeShareableThreadToProcess(DispatcherThread, Target);
 
@@ -660,11 +660,11 @@ KResult VFSfileOpenInitrd(thread_t Callback, uint64_t CallbackArg, char* Path, p
             .Size = sizeof(srv_storage_fs_server_open_file_data_t),
             .ParameterPosition = 0x2,
         };
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &ShareDataWithArguments);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &ShareDataWithArguments);
     }else{
         free(Context->Path);
         free(Context);
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     }
     Sys_Close(KSUCCESS);
 }

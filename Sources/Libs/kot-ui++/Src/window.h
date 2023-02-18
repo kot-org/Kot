@@ -8,6 +8,7 @@
 #include <kot-ui++/context.h>
 #include <kot-ui++/component.h>
 
+#include <kot-graphics/orb.h>
 #include <kot-graphics/context.h>
 
 namespace UiWindow {

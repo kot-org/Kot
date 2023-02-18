@@ -16,11 +16,11 @@ KResult AddDevice(srv_storage_device_info_t* Info, storage_device_t** DevicePoin
         *DevicePointer = Device;
 
         thread_t CallbackRequestHandlerThread = NULL;
-        Sys_Createthread(Sys_GetProcess(), (uintptr_t)&CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
+        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
         Device->CallbackRequestHandlerThread = MakeShareableThreadToProcess(CallbackRequestHandlerThread, Info->MainSpace.DriverProc);
 
         thread_t CallbackCreateSpaceHandlerThread = NULL;
-        Sys_Createthread(Sys_GetProcess(), (uintptr_t)&CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
+        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
         Device->CallbackCreateSpaceHandlerThread = MakeShareableThreadToProcess(CallbackCreateSpaceHandlerThread, Info->MainSpace.DriverProc);
         LoadPartitionSystem(Device);
 
@@ -50,7 +50,7 @@ KResult storage_device_t::CreateSpace(uint64_t Start, size64_t Size, srv_storage
     parameters.arg[1] = (uint64_t)callbackData;
     parameters.arg[2] = Start;
     parameters.arg[3] = Size;
-    Sys_Execthread(Info.MainSpace.CreateProtectedDeviceSpaceThread, &parameters, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Info.MainSpace.CreateProtectedDeviceSpaceThread, &parameters, ExecutionTypeQueu, NULL);
     Sys_Pause(false);
     *SpaceInfo = (srv_storage_space_info_t*)callbackData->Data;
     return KSUCCESS;
@@ -72,7 +72,7 @@ KResult storage_device_t::SendRequest(uint64_t Start, size64_t Size, bool IsWrit
     parameters.arg[3] = Start;
     parameters.arg[4] = Size;
     parameters.arg[5] = IsWrite;
-    Sys_Execthread(Info.MainSpace.RequestToDeviceThread, &parameters, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Info.MainSpace.RequestToDeviceThread, &parameters, ExecutionTypeQueu, NULL);
     Sys_Pause(false);
     return KSUCCESS;
 }

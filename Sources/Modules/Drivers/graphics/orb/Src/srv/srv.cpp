@@ -18,7 +18,7 @@ KResult InitialiseServer(){
 
     /* CreateWindow */
     thread_t CreateWindowThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&CreateWindow, PriviledgeApp, NULL, &CreateWindowThread);
+    Sys_CreateThread(proc, (uintptr_t)&CreateWindow, PriviledgeApp, NULL, &CreateWindowThread);
     SrvData->CreateWindow = MakeShareableThread(CreateWindowThread, PriviledgeApp);
 
     uisd_callbackInfo_t* Callback = CreateControllerUISD(ControllerTypeEnum_Graphics, key, true);
@@ -41,7 +41,7 @@ KResult CreateWindow(thread_t Callback, uint64_t CallbackArg, process_t Target, 
         Window->Target = Target;
 
         thread_t GraphicsHandlerThread = NULL;
-        Sys_Createthread(Sys_GetProcess(), (uintptr_t)&WindowGraphicsHandler, PriviledgeApp, (uint64_t)Window, &GraphicsHandlerThread);
+        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&WindowGraphicsHandler, PriviledgeApp, (uint64_t)Window, &GraphicsHandlerThread);
         thread_t ShareableGraphicsHandlerThread = MakeShareableThreadToProcess(GraphicsHandlerThread, Window->Target);
         
         arguments_t Arguments{
@@ -53,7 +53,7 @@ KResult CreateWindow(thread_t Callback, uint64_t CallbackArg, process_t Target, 
             .arg[5] = NULL,                             /* GP3 */
         };
 
-        Sys_Execthread(Callback, &Arguments, ExecutionTypeQueu, &Data);
+        Sys_ExecThread(Callback, &Arguments, ExecutionTypeQueu, &Data);
         Sys_Close(KSUCCESS);
     }
     
@@ -66,7 +66,7 @@ KResult CreateWindow(thread_t Callback, uint64_t CallbackArg, process_t Target, 
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &Arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &Arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
@@ -90,7 +90,7 @@ KResult WindowGraphicsHandler(thread_t Callback, uint64_t CallbackArg, uint64_t 
             .arg[5] = NULL,             /* GP3 */
         };
 
-        Sys_Execthread(Callback, &Arguments, ExecutionTypeQueu, NULL);
+        Sys_ExecThread(Callback, &Arguments, ExecutionTypeQueu, NULL);
         Sys_Close(KSUCCESS);
     }
 
@@ -109,7 +109,7 @@ KResult WindowClose(thread_t Callback, uint64_t CallbackArg, windowc* Window, ui
         .arg[5] = NULL,                 /* GP3 */
     };
 
-    Sys_Execthread(Callback, &Arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &Arguments, ExecutionTypeQueu, NULL);
     return KSUCCESS;    
 }
 
@@ -123,7 +123,7 @@ KResult WindowResize(thread_t Callback, uint64_t CallbackArg, windowc* Window, u
         };
 
         thread_t GraphicsHandlerThread = NULL;
-        Sys_Createthread(Sys_GetProcess(), (uintptr_t)&WindowGraphicsHandler, PriviledgeApp, (uint64_t)Window, &GraphicsHandlerThread);
+        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&WindowGraphicsHandler, PriviledgeApp, (uint64_t)Window, &GraphicsHandlerThread);
         thread_t ShareableGraphicsHandlerThread = MakeShareableThreadToProcess(GraphicsHandlerThread, Window->Target);
         
         arguments_t Arguments{
@@ -135,7 +135,7 @@ KResult WindowResize(thread_t Callback, uint64_t CallbackArg, windowc* Window, u
             .arg[5] = NULL,                             /* GP3 */
         };
 
-        Sys_Execthread(Callback, &Arguments, ExecutionTypeQueu, &Data);
+        Sys_ExecThread(Callback, &Arguments, ExecutionTypeQueu, &Data);
         return KSUCCESS;
     }
 
@@ -148,7 +148,7 @@ KResult WindowResize(thread_t Callback, uint64_t CallbackArg, windowc* Window, u
         .arg[5] = NULL,                 /* GP3 */
     };
 
-    Sys_Execthread(Callback, &Arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &Arguments, ExecutionTypeQueu, NULL);
     return KSUCCESS;    
 }
 
@@ -163,7 +163,7 @@ KResult WindowChangePostion(thread_t Callback, uint64_t CallbackArg, windowc* Wi
         .arg[5] = NULL,                 /* GP3 */
     };
 
-    Sys_Execthread(Callback, &Arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &Arguments, ExecutionTypeQueu, NULL);
     return KSUCCESS;    
 }
 
@@ -180,6 +180,6 @@ KResult WindowChangeVisibility(thread_t Callback, uint64_t CallbackArg, windowc*
         .arg[5] = NULL,                 /* GP3 */
     };
 
-    Sys_Execthread(Callback, &Arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &Arguments, ExecutionTypeQueu, NULL);
     return KSUCCESS;    
 }

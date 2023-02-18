@@ -19,8 +19,10 @@ namespace Ui {
             Box->IsDrawUpdate = false;
         }
         Cpnt->AbsolutePosition = {.x = Cpnt->Parent->AbsolutePosition.x + Box->Style.Position.x, .y = Cpnt->Parent->AbsolutePosition.y + Box->Style.Position.y};
-        BlitFramebuffer(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), Box->Style.Position.x, Box->Style.Position.y);
-        SetGraphicEventbuffer(Cpnt->UiCtx->EventBuffer, (uint64_t)Cpnt, Box->Style.Width, Box->Style.Height, Cpnt->AbsolutePosition.x, Cpnt->AbsolutePosition.y);
+        if(Cpnt->GetStyle()->IsVisible){
+            BlitFramebuffer(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), Box->Style.Position.x, Box->Style.Position.y);
+            SetGraphicEventbuffer(Cpnt->UiCtx->EventBuffer, (uint64_t)Cpnt, Box->Style.Width, Box->Style.Height, Cpnt->AbsolutePosition.x, Cpnt->AbsolutePosition.y);
+        }
     }
 
     void BoxMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status){
@@ -32,16 +34,20 @@ namespace Ui {
                 }
             }
             Cpnt->UiCtx->FocusCpnt = Box->Cpnt;
-            if(Status & 0b1){
+
+            if(Status & MOUSE_CLICK_LEFT){
+                Box->CurrentColor = Box->Style.ClickColor;
+            }else if(Status & MOUSE_CLICK_RIGHT){
+                Box->CurrentColor = Box->Style.ClickColor;
+            }else{
                 Box->CurrentColor = Box->Style.HoverColor;
             }
+
             Box->IsDrawUpdate = true;
-            Cpnt->UiCtx->Cpnt->Update();
         }else{
             Box_t* Box = (Box_t*)Cpnt->ExternalData;
-            //Box->CurrentColor = Box->Style.BackgroundColor;
-            Box->IsDrawUpdate = true;
-            Cpnt->UiCtx->Cpnt->Update();            
+            Box->CurrentColor = Box->Style.BackgroundColor;
+            Box->IsDrawUpdate = true;           
         }
     }
 
@@ -49,7 +55,7 @@ namespace Ui {
         Box_t* Box = (Box_t*)malloc(sizeof(Box_t));
         memcpy(&Box->Style, &Style, sizeof(BoxStyle_t));
         Box->CurrentColor = Box->Style.BackgroundColor;
-        Box->Cpnt = new Component({ .Width = Style.Width, .Height = Style.Height}, BoxUpdate, BoxMouseEvent, (uintptr_t)Box, ParentUiContex, true);
+        Box->Cpnt = new Component({ .Width = Style.Width, .Height = Style.Height, .IsVisible = Style.IsVisible}, BoxUpdate, BoxMouseEvent, (uintptr_t)Box, ParentUiContex, true);
         return Box;
     }
 

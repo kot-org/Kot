@@ -20,7 +20,7 @@ extern "C" int main(int argc, char* argv[]){
     process_t proc = Sys_GetProcess();
 
     thread_t GetMemoryThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&GetMemory, PriviledgeApp, NULL, &GetMemoryThread);
+    Sys_CreateThread(proc, (uintptr_t)&GetMemory, PriviledgeApp, NULL, &GetMemoryThread);
 
     uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_test_t));
     ksmem_t key = NULL;

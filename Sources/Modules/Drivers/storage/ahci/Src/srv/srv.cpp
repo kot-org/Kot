@@ -16,12 +16,12 @@ void SrvAddDevice(Device* Device){
 
     /* CreateProtectedDeviceSpaceThread */
     thread_t SrvCreateProtectedSpaceThread = NULL;
-    Sys_Createthread(Proc, (uintptr_t)&SrvCreateProtectedSpace, PriviledgeDriver, (uint64_t)Device->DefaultSpace, &SrvCreateProtectedSpaceThread);
+    Sys_CreateThread(Proc, (uintptr_t)&SrvCreateProtectedSpace, PriviledgeDriver, (uint64_t)Device->DefaultSpace, &SrvCreateProtectedSpaceThread);
     Info.MainSpace.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(SrvCreateProtectedSpaceThread, StorageHandler->ControllerHeader.Process);
 
     /* RequestToDeviceThread */
     thread_t SrvRequestHandlerThread = NULL;
-    Sys_Createthread(Proc, (uintptr_t)&SrvRequestHandler, PriviledgeApp, (uint64_t)Device->DefaultSpace, &SrvRequestHandlerThread);
+    Sys_CreateThread(Proc, (uintptr_t)&SrvRequestHandler, PriviledgeApp, (uint64_t)Device->DefaultSpace, &SrvRequestHandlerThread);
     Info.MainSpace.RequestToDeviceThread = MakeShareableThreadToProcess(SrvRequestHandlerThread, StorageHandler->ControllerHeader.Process);
 
     Info.MainSpace.BufferRWKey = Device->DefaultSpace->BufferKey;
@@ -70,12 +70,12 @@ void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t S
 
     /* CreateProtectedDeviceSpaceThread */
     thread_t SrvCreateProtectedSpaceThread = NULL;
-    Sys_Createthread(Proc, (uintptr_t)&SrvCreateProtectedSpace, PriviledgeApp, (uint64_t)SpaceLocalInfo, &SrvCreateProtectedSpaceThread);
+    Sys_CreateThread(Proc, (uintptr_t)&SrvCreateProtectedSpace, PriviledgeApp, (uint64_t)SpaceLocalInfo, &SrvCreateProtectedSpaceThread);
     SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableSpreadThreadToProcess(SrvCreateProtectedSpaceThread, StorageHandler->ControllerHeader.Process);
 
     /* RequestToDeviceThread */
     thread_t SrvRequestHandlerThread = NULL;
-    Sys_Createthread(Proc, (uintptr_t)&SrvRequestHandler, PriviledgeApp, (uint64_t)SpaceLocalInfo, &SrvRequestHandlerThread);
+    Sys_CreateThread(Proc, (uintptr_t)&SrvRequestHandler, PriviledgeApp, (uint64_t)SpaceLocalInfo, &SrvRequestHandlerThread);
     SpaceInfo.RequestToDeviceThread = MakeShareableSpreadThreadToProcess(SrvRequestHandlerThread, StorageHandler->ControllerHeader.Process);
 
     SpaceInfo.BufferRWKey = SpaceLocalInfo->BufferKey;
@@ -98,7 +98,7 @@ void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t S
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &data);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
     Sys_Close(KSUCCESS);
 }
 
@@ -130,7 +130,7 @@ void SrvSingleRequestHandler(thread_t Callback, uint64_t CallbackArg, uint64_t S
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
@@ -205,7 +205,7 @@ void SrvMultipleRequestHandler(thread_t Callback, uint64_t CallbackArg, srv_stor
         Sys_Keyhole_CloneModify(LocalKey, &arguments.arg[2], Process, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
     }
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
@@ -225,6 +225,6 @@ void SrvRequestHandler(thread_t Callback, uint64_t CallbackArg, uint64_t Request
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }

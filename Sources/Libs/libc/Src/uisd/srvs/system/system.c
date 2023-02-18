@@ -9,7 +9,7 @@ void Srv_System_Initialize(){
         process_t Proc = Sys_GetProcess();
 
         thread_t SystemthreadKeyCallback = NULL;
-        Sys_Createthread(Proc, &Srv_System_Callback, PriviledgeMax, NULL, &SystemthreadKeyCallback);
+        Sys_CreateThread(Proc, &Srv_System_Callback, PriviledgeMax, NULL, &SystemthreadKeyCallback);
         srv_system_callback_thread = MakeShareableThreadToProcess(SystemthreadKeyCallback, SystemData->ControllerHeader.Process);
     }else{
         Sys_Close(KFAIL);
@@ -52,7 +52,7 @@ struct srv_system_callback_t* Srv_System_GetFramebuffer(bool IsAwait){
     parameters.arg[1] = callback;
     
 
-    KResult Status = Sys_Execthread(SystemData->GetFramebuffer, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(SystemData->GetFramebuffer, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -93,7 +93,7 @@ struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwai
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
 
-    KResult Status = Sys_Execthread(SystemData->ReadFileInitrd, &parameters, ExecutionTypeQueu, &data);
+    KResult Status = Sys_ExecThread(SystemData->ReadFileInitrd, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -133,7 +133,7 @@ struct srv_system_callback_t* Srv_System_GetTableInRootSystemDescription(char* N
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
 
-    KResult Status = Sys_Execthread(SystemData->GetTableInRootSystemDescription, &parameters, ExecutionTypeQueu, &data);
+    KResult Status = Sys_ExecThread(SystemData->GetTableInRootSystemDescription, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -167,7 +167,7 @@ struct srv_system_callback_t* Srv_System_GetSystemManagementBIOSTable(bool IsAwa
     parameters.arg[1] = callback;
     
 
-    KResult Status = Sys_Execthread(SystemData->GetSystemManagementBIOSTable, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(SystemData->GetSystemManagementBIOSTable, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -203,7 +203,7 @@ struct srv_system_callback_t* Srv_System_BindIRQLine(uint8_t IRQLineNumber, thre
     parameters.arg[4] = IgnoreMissedEvents;
     
 
-    KResult Status = Sys_Execthread(SystemData->BindIRQLine, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(SystemData->BindIRQLine, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -238,7 +238,7 @@ struct srv_system_callback_t* Srv_System_UnbindIRQLine(uint8_t IRQLineNumber, th
     parameters.arg[3] = TargetShareKey;
     
 
-    KResult Status = Sys_Execthread(SystemData->UnbindIRQLine, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(SystemData->UnbindIRQLine, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -278,7 +278,7 @@ struct srv_system_callback_t* Srv_System_BindFreeIRQ(uint8_t IRQLineNumber, thre
     parameters.arg[4] = IgnoreMissedEvents;
     
 
-    KResult Status = Sys_Execthread(SystemData->BindFreeIRQ, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(SystemData->BindFreeIRQ, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -317,7 +317,7 @@ struct srv_system_callback_t* Srv_System_UnbindIRQ(uint8_t IRQLineNumber, thread
     parameters.arg[3] = TargetShareKey;
     
 
-    KResult Status = Sys_Execthread(SystemData->UnbindIRQ, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(SystemData->UnbindIRQ, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }

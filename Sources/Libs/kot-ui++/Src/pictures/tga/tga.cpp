@@ -1,4 +1,5 @@
 #include "../picture.h"
+#include <kot/stdio.h>
 
 namespace Ui {
 
@@ -86,15 +87,11 @@ namespace Ui {
     TGA_t* TGAResize(TGA_t* Image, uint16_t NewWidth, uint16_t NewHeight, bool KeepRatio) {
         TGA_t* ImageResize = (TGA_t*) malloc(sizeof(TGA_t));
 
-        if(KeepRatio) {
-            double Scale = (double)Image->Width / Image->Height;
-
-            if(NewWidth == 0 || NewHeight != 0 && NewWidth / NewHeight >= Scale) {
-                NewWidth = NewHeight * Scale;
-                NewHeight = NewHeight;
-            } else {
-                NewWidth = NewWidth;
-                NewHeight = NewWidth / Scale;
+        if(KeepRatio){
+            if(NewWidth == 0){
+                NewWidth = NewHeight * Image->Width / Image->Height;
+            }else if(NewHeight == 0){
+                NewHeight = NewWidth * Image->Height / Image->Width;
             }
         }
         

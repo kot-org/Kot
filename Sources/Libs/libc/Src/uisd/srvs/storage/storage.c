@@ -9,7 +9,7 @@ void Srv_Storage_Initialize(){
         process_t Proc = Sys_GetProcess();
 
         thread_t StoragethreadKeyCallback = NULL;
-        Sys_Createthread(Proc, &Srv_Storage_Callback, PriviledgeApp, NULL, &StoragethreadKeyCallback);
+        Sys_CreateThread(Proc, &Srv_Storage_Callback, PriviledgeApp, NULL, &StoragethreadKeyCallback);
         srv_storage_callback_thread = MakeShareableThread(StoragethreadKeyCallback, PriviledgeService);
     }else{
         Sys_Close(KFAIL);
@@ -59,7 +59,7 @@ struct srv_storage_callback_t* Srv_Storage_AddDevice(struct srv_storage_device_i
     parameters.arg[1] = callback;
     
 
-    KResult Status = Sys_Execthread(StorageData->AddDevice, &parameters, ExecutionTypeQueu, &data);
+    KResult Status = Sys_ExecThread(StorageData->AddDevice, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -92,7 +92,7 @@ struct srv_storage_callback_t* Srv_Storage_RemoveDevice(uint64_t Index, bool IsA
     parameters.arg[2] = Index;
     
 
-    KResult Status = Sys_Execthread(StorageData->RemoveDevice, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(StorageData->RemoveDevice, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -132,7 +132,7 @@ struct srv_storage_callback_t* Srv_Storage_NotifyOnNewPartitionByGUIDType(GUID_t
     data.Size = sizeof(GUID_t);
     data.ParameterPosition = 0x4;
 
-    KResult Status = Sys_Execthread(StorageData->NotifyOnNewPartitionByGUIDType, &parameters, ExecutionTypeQueu, &data);
+    KResult Status = Sys_ExecThread(StorageData->NotifyOnNewPartitionByGUIDType, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -169,7 +169,7 @@ struct srv_storage_callback_t* Srv_Storage_MountPartition(thread_t VFSMountThrea
     data.Size = sizeof(struct srv_storage_fs_server_functions_t);
     data.ParameterPosition = 0x3;
 
-    KResult Status = Sys_Execthread(VFSMountThread, &parameters, ExecutionTypeQueu, &data);
+    KResult Status = Sys_ExecThread(VFSMountThread, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -201,7 +201,7 @@ struct srv_storage_callback_t* Srv_Storage_UnmountPartition(thread_t VFSUnmountT
     parameters.arg[1] = callback;
     parameters.arg[2] = false; // Is mount function
 
-    KResult Status = Sys_Execthread(VFSUnmountThread, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(VFSUnmountThread, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -244,7 +244,7 @@ struct srv_storage_callback_t* Srv_Storage_VFSLoginApp(process_t Process, author
     Data.Size = strlen(Path) + 1; // add '\0' char
     Data.ParameterPosition = 0x5;
 
-    KResult Status = Sys_Execthread(StorageData->VFSLoginApp, &parameters, ExecutionTypeQueu, &Data);
+    KResult Status = Sys_ExecThread(StorageData->VFSLoginApp, &parameters, ExecutionTypeQueu, &Data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -283,7 +283,7 @@ struct srv_storage_callback_t* Srv_Storage_Removefile(char* Path, bool IsAwait){
     data.Size = strlen(Path) + 1; // add '\0' char
     data.ParameterPosition = 0x3;
 
-    KResult Status = Sys_Execthread(KotSpecificData.VFSHandler, &parameters, ExecutionTypeQueu, &data);
+    KResult Status = Sys_ExecThread(KotSpecificData.VFSHandler, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -330,7 +330,7 @@ struct srv_storage_callback_t* Srv_Storage_Openfile(char* Path, permissions_t Pe
     data.Size = strlen(Path) + 1; // add '\0' char
     data.ParameterPosition = 0x4;
 
-    KResult Status = Sys_Execthread(KotSpecificData.VFSHandler, &parameters, ExecutionTypeQueu, &data);
+    KResult Status = Sys_ExecThread(KotSpecificData.VFSHandler, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -379,7 +379,7 @@ struct srv_storage_callback_t* Srv_Storage_Rename(char* OldPath, char* NewPath, 
     data.Size = RenameDataSize; // add '\0' char
     data.ParameterPosition = 0x3;
 
-    KResult Status = Sys_Execthread(KotSpecificData.VFSHandler, &parameters, ExecutionTypeQueu, &data);
+    KResult Status = Sys_ExecThread(KotSpecificData.VFSHandler, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -423,7 +423,7 @@ struct srv_storage_callback_t* Srv_Storage_DirCreate(char* Path, mode_t Mode, bo
     data.Size = strlen(Path) + 1; // add '\0' char
     data.ParameterPosition = 0x3;
 
-    KResult Status = Sys_Execthread(KotSpecificData.VFSHandler, &parameters, ExecutionTypeQueu, &data);
+    KResult Status = Sys_ExecThread(KotSpecificData.VFSHandler, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -460,7 +460,7 @@ struct srv_storage_callback_t* Srv_Storage_DirRemove(char* Path, bool IsAwait){
     data.Size = strlen(Path) + 1; // add '\0' char
     data.ParameterPosition = 0x3;
 
-    KResult Status = Sys_Execthread(KotSpecificData.VFSHandler, &parameters, ExecutionTypeQueu, &data);
+    KResult Status = Sys_ExecThread(KotSpecificData.VFSHandler, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -506,7 +506,7 @@ struct srv_storage_callback_t* Srv_Storage_DirOpen(char* Path, process_t Target,
     data.Size = strlen(Path) + 1; // add '\0' char
     data.ParameterPosition = 0x3;
 
-    KResult Status = Sys_Execthread(KotSpecificData.VFSHandler, &parameters, ExecutionTypeQueu, &data);
+    KResult Status = Sys_ExecThread(KotSpecificData.VFSHandler, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -541,7 +541,7 @@ struct srv_storage_callback_t* Srv_Storage_Closefile(file_t* File, bool IsAwait)
     parameters.arg[1] = callback;
     parameters.arg[2] = File_Function_Close;
 
-    KResult Status = Sys_Execthread(File->FileThreadHandler, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(File->FileThreadHandler, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -576,7 +576,7 @@ struct srv_storage_callback_t* Srv_Storage_Getfilesize(file_t* File, bool IsAwai
     parameters.arg[1] = callback;
     parameters.arg[2] = File_Function_GetSize;
 
-    KResult Status = Sys_Execthread(File->FileThreadHandler, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(File->FileThreadHandler, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -617,7 +617,7 @@ struct srv_storage_callback_t* Srv_Storage_Readfile(file_t* File, uintptr_t Buff
     parameters.arg[3] = Start;
     parameters.arg[4] = Size;
 
-    KResult Status = Sys_Execthread(File->FileThreadHandler, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(File->FileThreadHandler, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -662,7 +662,7 @@ struct srv_storage_callback_t* Srv_Storage_Writefile(file_t* File, uintptr_t Buf
     parameters.arg[4] = Start;
     parameters.arg[5] = IsDataEnd;
 
-    KResult Status = Sys_Execthread(File->FileThreadHandler, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(File->FileThreadHandler, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -697,7 +697,7 @@ struct srv_storage_callback_t* Srv_Storage_Closedir(directory_t* Dir, bool IsAwa
     parameters.arg[1] = callback;
     parameters.arg[2] = Dir_Function_Close;
 
-    KResult Status = Sys_Execthread(Dir->DirThreadHandler, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(Dir->DirThreadHandler, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -732,7 +732,7 @@ struct srv_storage_callback_t* Srv_Storage_Getdircount(directory_t* Dir, bool Is
     parameters.arg[1] = callback;
     parameters.arg[2] = Dir_Function_GetCount;
 
-    KResult Status = Sys_Execthread(Dir->DirThreadHandler, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(Dir->DirThreadHandler, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -770,7 +770,7 @@ struct srv_storage_callback_t* Srv_Storage_Readdir(directory_t* Dir, uint64_t In
     parameters.arg[3] = IndexStart;
     parameters.arg[4] = IndexNumber;
 
-    KResult Status = Sys_Execthread(Dir->DirThreadHandler, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(Dir->DirThreadHandler, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }

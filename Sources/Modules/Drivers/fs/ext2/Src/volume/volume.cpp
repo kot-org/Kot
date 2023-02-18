@@ -10,7 +10,7 @@ process_t ProcessKey;
 
 void InitializeVolumeListener(){
     ProcessKey = ShareProcessKey(Sys_GetProcess());
-    Sys_Createthread(Sys_GetProcess(), (uintptr_t)&ListenerEvent, PriviledgeDriver, NULL, &ListenerEventThread);
+    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&ListenerEvent, PriviledgeDriver, NULL, &ListenerEventThread);
     process_t ShareProcess = ShareProcessKey(Sys_GetProcess());
     for(uint64_t i = 0; i < GUIDToListenSize; i++){
         Srv_Storage_NotifyOnNewPartitionByGUIDType(&GUIDToListen[i], ListenerEventThread, ShareProcess, true);

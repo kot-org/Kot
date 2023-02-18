@@ -5,23 +5,139 @@
 #include <kot/uisd/srvs/storage.h>
 
 namespace Ui {
-    void PictureboxDraw(Component* Cpnt){
-        // Picturebox_t* Picturebox = (Picturebox_t*)Cpnt->ExternalData;
+    void PictureboxDraw(Picturebox_t* Picturebox){
+        switch(Picturebox->Type){
+            case PictureboxType::_TGA:{
+                switch(Picturebox->Style.Fit){
+                    case PictureboxFit::FIT:
+                    {   
+                        TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
+                        TGA_t* ImageResize = TGAResize(ImageRead, Picturebox->Cpnt->GetFramebuffer()->Width, Picturebox->Cpnt->GetFramebuffer()->Height, true);
 
-        // switch(Picturebox->Type){
-        //     case PictureboxType::_TGA:
-        //         TGA_t* TGAImage = TGARead((Ui::TGAHeader_t *)Picturebox->Image);
+                        ImageResize->x = Picturebox->Cpnt->GetFramebuffer()->Width / 2 - ImageResize->Width / 2;
+                        ImageResize->y = Picturebox->Cpnt->GetFramebuffer()->Height / 2 - ImageResize->Height / 2;
 
-        //         for(uint16_t y = 0; y < TGAImage->Height; y++) {
-        //             for(uint16_t x = 0; x < TGAImage->Width; x++) {
-        //                 PutPixel(Picturebox->Cpnt->GetFramebuffer(), Picturebox->Cpnt->GetStyle()->x+x, Picturebox->Cpnt->GetStyle()->y+y, TGAImage->Pixels[x + y*TGAImage->Width]);
-        //             }
-        //         }
+                        TGADraw(Picturebox->Cpnt->GetFramebuffer(), ImageResize);
 
-        //         free(TGAImage);
+                        free(ImageResize);
+                        free(ImageRead);
+                        break;
+                    }
 
-        //         break;
-        // }
+                    case PictureboxFit::FILL:
+                    {   
+                        TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
+                        uint16_t _Width = ((TGAHeader_t*)Picturebox->Image)->Width, _Height = ((TGAHeader_t*)Picturebox->Image)->Height;
+
+                        // permet de faire en sorte que l'image dépasse la taille du monitor
+                        if(_Width > _Height) {
+                            _Width = NULL;
+                            _Height = Picturebox->Cpnt->GetFramebuffer()->Height;
+                        } else{
+                            _Width = Picturebox->Cpnt->GetFramebuffer()->Width;
+                            _Height = NULL;
+                        }
+                        
+                        TGA_t* ImageResize = TGAResize(ImageRead, _Width, _Height, true);
+
+                        uint16_t x = (ImageResize->Width - Picturebox->Cpnt->GetFramebuffer()->Width) / 2;
+                        uint16_t y = (ImageResize->Height - Picturebox->Cpnt->GetFramebuffer()->Height) / 2;
+
+                        TGA_t* ImageCrop = TGACrop(ImageResize, Picturebox->Cpnt->GetFramebuffer()->Width, Picturebox->Cpnt->GetFramebuffer()->Height, x, y);
+                        
+                        TGADraw(Picturebox->Cpnt->GetFramebuffer(), ImageCrop);
+
+                        free(ImageResize);
+                        free(ImageCrop);
+                        free(ImageRead);
+                        break;
+                    }
+
+                    case PictureboxFit::CENTER:
+                    {
+                        TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
+                        uint16_t x = 0, y = 0,
+                            _Width = ((TGAHeader_t*)Picturebox->Image)->Width, _Height = ((TGAHeader_t*)Picturebox->Image)->Height;
+
+                        if(_Width > Picturebox->Cpnt->GetFramebuffer()->Width) {
+                            x = (_Width - Picturebox->Cpnt->GetFramebuffer()->Width) / 2;
+                            _Width = Picturebox->Cpnt->GetFramebuffer()->Width;
+                        }
+                        if(_Height > Picturebox->Cpnt->GetFramebuffer()->Height) {
+                            y = (_Height - Picturebox->Cpnt->GetFramebuffer()->Height) / 2;
+                            _Height = Picturebox->Cpnt->GetFramebuffer()->Height;
+                        }
+
+                        // si l'image dépasse le monitor alors on crop
+                        if(((TGAHeader_t*)Picturebox->Image)->Width > Picturebox->Cpnt->GetFramebuffer()->Width || ((TGAHeader_t*)Picturebox->Image)->Height > Picturebox->Cpnt->GetFramebuffer()->Height) {
+                            TGA_t* ImageCrop = TGACrop(ImageRead, _Width, _Height, x, y);
+
+                            ImageCrop->x = Picturebox->Cpnt->GetFramebuffer()->Width / 2 - ImageCrop->Width / 2;
+                            ImageCrop->y = Picturebox->Cpnt->GetFramebuffer()->Height / 2 - ImageCrop->Height / 2;
+
+                            TGADraw(Picturebox->Cpnt->GetFramebuffer(), ImageCrop);
+                            
+                            free(ImageCrop);
+                        } else {
+                            ((TGAHeader_t*)Picturebox->Image)->x = Picturebox->Cpnt->GetFramebuffer()->Width / 2 - ((TGAHeader_t*)Picturebox->Image)->Width / 2;
+                            ((TGAHeader_t*)Picturebox->Image)->y = Picturebox->Cpnt->GetFramebuffer()->Height / 2 - ((TGAHeader_t*)Picturebox->Image)->Height / 2;
+                            
+                            TGADraw(Picturebox->Cpnt->GetFramebuffer(), ImageRead);
+                        }
+
+                        free(ImageRead);
+
+                        break;
+                    }
+
+                    case PictureboxFit::STRETCH:
+                    {   
+                        TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
+                        TGA_t* ImageResize = TGAResize(ImageRead, Picturebox->Cpnt->GetFramebuffer()->Width, Picturebox->Cpnt->GetFramebuffer()->Height);
+                        TGADraw(Picturebox->Cpnt->GetFramebuffer(), ImageResize);
+
+                        free(ImageResize);
+                        free(ImageRead);
+                        break;
+                    }
+
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+    
+    void PictureboxUpdate(Component* Cpnt){
+        Picturebox_t* Picturebox = (Picturebox_t*)Cpnt->ExternalData;
+        if(Cpnt->IsFramebufferUpdate){
+            // Draw
+            Picturebox->Style.Width = Cpnt->GetStyle()->Width;
+            Picturebox->Style.Height = Cpnt->GetStyle()->Height;
+
+            PictureboxDraw(Picturebox);
+            Cpnt->IsFramebufferUpdate = false;
+        }else if(Picturebox->IsDrawUpdate){
+            PictureboxDraw(Picturebox);
+            Picturebox->IsDrawUpdate = false;
+        }
+        Cpnt->AbsolutePosition = {.x = Cpnt->Parent->AbsolutePosition.x + Picturebox->Style.Position.x, .y = Cpnt->Parent->AbsolutePosition.y + Picturebox->Style.Position.y};
+        if(Cpnt->GetStyle()->IsVisible){
+            BlitFramebuffer(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), Picturebox->Style.Position.x, Picturebox->Style.Position.y);
+            // Do not use event
+        }
+    }
+
+    void PictureboxMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status){
+        if(IsHover){
+            Picturebox_t* Picturebox = (Picturebox_t*)Cpnt->ExternalData;
+            if(Cpnt->UiCtx->FocusCpnt != Cpnt){
+                if(Cpnt->UiCtx->FocusCpnt->MouseEvent){
+                    Cpnt->UiCtx->FocusCpnt->MouseEvent(Cpnt->UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
+                }
+            }
+            Cpnt->UiCtx->FocusCpnt = Picturebox->Cpnt;
+        }
     }
 
     Picturebox_t* Picturebox(char* Path, PictureboxType Type, PictureboxStyle_t Style, UiContext* ParentUiContex) {
@@ -74,7 +190,7 @@ namespace Ui {
         Picturebox->Type = Type;
         Picturebox->Image = Image;
         memcpy(&Picturebox->Style, &Style, sizeof(PictureboxStyle_t));
-        Picturebox->Cpnt = new Component({ .Width = Style.Width, .Height = Style.Height }, PictureboxDraw, NULL, Picturebox, ParentUiContex, true);
+        Picturebox->Cpnt = new Component({ .Width = Style.Width, .Height = Style.Height, .IsVisible = Style.IsVisible}, PictureboxUpdate, PictureboxMouseEvent, (uintptr_t)Picturebox, ParentUiContex, true);
 
         fclose(ImageFile);
         

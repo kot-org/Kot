@@ -17,7 +17,7 @@ namespace UiWindow {
     Window::Window(char* title, uint32_t Width, uint32_t Height, uint32_t XPosition, uint32_t YPosition){
         // Setup event
         Sys_Event_Create(&WindowEvent);
-        Sys_Createthread(Sys_GetProcess(), (uintptr_t)&EventHandler, PriviledgeApp, (uint64_t)this, &WindowHandlerThread);
+        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&EventHandler, PriviledgeApp, (uint64_t)this, &WindowHandlerThread);
         Sys_Event_Bind(WindowEvent, WindowHandlerThread, false);
         IsListeningEvents = false;
 
@@ -29,17 +29,17 @@ namespace UiWindow {
         IsBorders = true;
         if(IsBorders){
             BordersCtx = CreateGraphicContext(&Wid->Framebuffer);
-            framebuffer_t FramebufferWithoutBorder;
-            FramebufferWithoutBorder.Bpp = Wid->Framebuffer.Bpp;
-            FramebufferWithoutBorder.Btpp = Wid->Framebuffer.Btpp;
-            FramebufferWithoutBorder.Width = Wid->Framebuffer.Width - 2;
-            FramebufferWithoutBorder.Height = Wid->Framebuffer.Height - 2;
-            FramebufferWithoutBorder.Pitch = Wid->Framebuffer.Pitch;
-            FramebufferWithoutBorder.Buffer = (uintptr_t)((uint64_t)Wid->Framebuffer.Buffer + Wid->Framebuffer.Btpp + Wid->Framebuffer.Pitch);
+            framebuffer_t* FramebufferWithoutBorder = (framebuffer_t*)malloc(sizeof(framebuffer_t));
+            FramebufferWithoutBorder->Bpp = Wid->Framebuffer.Bpp;
+            FramebufferWithoutBorder->Btpp = Wid->Framebuffer.Btpp;
+            FramebufferWithoutBorder->Width = Wid->Framebuffer.Width - 2;
+            FramebufferWithoutBorder->Height = Wid->Framebuffer.Height - 2;
+            FramebufferWithoutBorder->Pitch = Wid->Framebuffer.Pitch;
+            FramebufferWithoutBorder->Buffer = (uintptr_t)((uint64_t)Wid->Framebuffer.Buffer + Wid->Framebuffer.Btpp + Wid->Framebuffer.Pitch);
             DrawBorders(WIN_BDCOLOR_ONBLUR);
 
-            GraphicCtx = CreateGraphicContext(&FramebufferWithoutBorder);
-            UiCtx = new Ui::UiContext(&FramebufferWithoutBorder);
+            GraphicCtx = CreateGraphicContext(FramebufferWithoutBorder);
+            UiCtx = new Ui::UiContext(FramebufferWithoutBorder);
         }else{
             GraphicCtx = CreateGraphicContext(&Wid->Framebuffer);
             UiCtx = new Ui::UiContext(&Wid->Framebuffer);
@@ -53,10 +53,12 @@ namespace UiWindow {
         //Titlebar = Ui::Titlebar(title, { .BackgroundColor = 0xffffff, .ForegroundColor = WIN_TBCOLOR_ONBLUR }, UiCtx);
         for(uint64_t y = 0; y < Height / 20; y++){
             for(uint64_t x = 0; x < Width / 20; x++){
-                auto iconBox = Ui::Box({ .Width = 20, .Height = 20, .HoverColor = (color_t)0xff0000, .BackgroundColor = (color_t)0xffffff, .Position{.x = (int64_t)x * 20,  .y = (int64_t)y * 20} }, UiCtx);
+                auto iconBox = Ui::Box({ .Width = 20, .Height = 20, .ClickColor = (color_t)0x00ff00, .HoverColor = (color_t)0xff0000, .BackgroundColor = (color_t)0xffffff, .Position{.x = (int64_t)x * 20,  .y = (int64_t)y * 20}, .IsVisible = true }, UiCtx);
                 this->SetContent(iconBox->Cpnt);
             }
         }
+        auto imageBox = Ui::Picturebox("kotlogo.tga", Ui::PictureboxType::_TGA, { .Width = 205, .Height = 205, .Fit = Ui::PictureboxFit::FILL, .IsVisible = true }, UiCtx);
+        this->SetContent(imageBox->Cpnt);
         //this->SetContent(Titlebar->Cpnt);
  
 /*         auto wrapper = Ui::Box({ .Width = this->UiCtx->fb->Width, .Height = this->UiCtx->fb->Height - titlebar->GetStyle()->Height, .color = WIN_BGCOLOR_ONFOCUS });
@@ -69,6 +71,8 @@ namespace UiWindow {
         wrapper->AddChild(flexbox);
 
         this->SetContent(wrapper); */
+
+        UiCtx->UiStartRenderer();
         ChangeVisibilityWindow(this->Wid, true);
         IsListeningEvents = true;
     }
@@ -83,7 +87,6 @@ namespace UiWindow {
         Ui::Component* windowCpnt = this->UiCtx->Cpnt;
 
         windowCpnt->AddChild(content);
-        windowCpnt->Update();
     }
 
     void Window::Handler(enum Window_Event EventType, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3, uint64_t GP4){
@@ -114,7 +117,6 @@ namespace UiWindow {
         }
 
         //Titlebar->Update();
-        this->UiCtx->Cpnt->Update();
     }
 
     void Window::HandlerMouse(uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status){

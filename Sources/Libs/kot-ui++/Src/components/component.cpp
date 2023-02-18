@@ -24,37 +24,6 @@ namespace Ui {
         this->AbsolutePosition = {.x = 0, .y = 0};
     }
 
-    Component::Component(framebuffer_t* fb, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, UiContext* ParentUiContex, bool IsUpdateChild) {
-        /* framebuffer */
-        framebuffer_t* CpntFb = (framebuffer_t*) malloc(sizeof(framebuffer_t));
-
-        CpntFb->Size = fb->Size;
-        CpntFb->Buffer = fb->Buffer;
-        CpntFb->Pitch = fb->Pitch;
-        CpntFb->Width = fb->Width;
-        CpntFb->Height = fb->Height;
-        CpntFb->Bpp = fb->Bpp;
-        CpntFb->Btpp = fb->Btpp;
-
-        /* Style */
-        ComponentStyle* cpntStyle = (ComponentStyle*) malloc(sizeof(ComponentStyle));
-
-        cpntStyle->Width = fb->Width;
-        cpntStyle->Height = fb->Height;
-
-        /* component */
-        this->Childs = NULL;
-        this->Parent = NULL;
-        this->Deep = 0;
-        this->Framebuffer = CpntFb;
-        this->Style = cpntStyle;
-        this->UiCtx = ParentUiContex;
-        this->UpdateFunction = HandlerUpdate;
-        this->MouseEvent = HandlerMouseEvent;
-        this->UpdateChild = IsUpdateChild;
-        this->AbsolutePosition = {.x = 0, .y = 0};
-    }
-
     /* Component Framebuffer */
     void Component::CreateFramebuffer(uint32_t Width, uint32_t Height) {
         framebuffer_t* CpntFb = (framebuffer_t*) malloc(sizeof(framebuffer_t));

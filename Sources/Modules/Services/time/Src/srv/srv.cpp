@@ -19,12 +19,12 @@ KResult InitialiseServer(){
 
     /* SetTimePointerKey */
     thread_t SetTimePointerKeyThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&SetTimePointerKeySrv, PriviledgeApp, NULL, &SetTimePointerKeyThread);
+    Sys_CreateThread(proc, (uintptr_t)&SetTimePointerKeySrv, PriviledgeApp, NULL, &SetTimePointerKeyThread);
     SrvData->SetTimePointerKey = MakeShareableThread(SetTimePointerKeyThread, PriviledgeDriver);
 
     /* SetTickPointerKey */
     thread_t SetTickPointerKeyThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&SetTickPointerKeySrv, PriviledgeApp, NULL, &SetTickPointerKeyThread);
+    Sys_CreateThread(proc, (uintptr_t)&SetTickPointerKeySrv, PriviledgeApp, NULL, &SetTickPointerKeyThread);
     SrvData->SetTickPointerKey = MakeShareableThread(SetTickPointerKeyThread, PriviledgeDriver);
 
     CreateControllerUISD(ControllerTypeEnum_Time, key, true);
@@ -45,7 +45,7 @@ KResult SetTimePointerKeySrv(thread_t Callback, uint64_t CallbackArg, ksmem_t Ti
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
@@ -64,6 +64,6 @@ KResult SetTickPointerKeySrv(thread_t Callback, uint64_t CallbackArg, ksmem_t Ti
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }

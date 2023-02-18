@@ -7,7 +7,7 @@ void Srv_Pci_Initialize(){
     process_t proc = Sys_GetProcess();
 
     thread_t PciThreadKeyCallback = NULL;
-    Sys_Createthread(proc, &Srv_Pci_Callback, PriviledgeDriver, NULL, &PciThreadKeyCallback);
+    Sys_CreateThread(proc, &Srv_Pci_Callback, PriviledgeDriver, NULL, &PciThreadKeyCallback);
     SrvPciCallbackThread = MakeShareableThreadToProcess(PciThreadKeyCallback, PciData->ControllerHeader.Process);
 }
 
@@ -53,7 +53,7 @@ struct srv_pci_callback_t* Srv_Pci_CountDevices(srv_pci_search_parameters_t* Sea
     parameters.arg[0] = SrvPciCallbackThread;
     parameters.arg[1] = callback;
 
-    KResult Status = Sys_Execthread(PciData->CountDevices, &parameters, ExecutionTypeQueu, &data);
+    KResult Status = Sys_ExecThread(PciData->CountDevices, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -94,7 +94,7 @@ struct srv_pci_callback_t* Srv_Pci_FindDevice(srv_pci_search_parameters_t* Searc
     // arg  2 is reserved for srv_pci_search_parameters_t
     parameters.arg[3] = Index;
 
-    KResult Status = Sys_Execthread(PciData->FindDevice, &parameters, ExecutionTypeQueu, &data);
+    KResult Status = Sys_ExecThread(PciData->FindDevice, &parameters, ExecutionTypeQueu, &data);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -130,7 +130,7 @@ struct srv_pci_callback_t* Srv_Pci_GetInfoDevice(PCIDeviceID_t Device, bool IsAw
     parameters.arg[1] = callback;
     parameters.arg[2] = Device;
 
-    KResult Status = Sys_Execthread(PciData->GetInfoDevice, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(PciData->GetInfoDevice, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -167,7 +167,7 @@ struct srv_pci_callback_t* Srv_Pci_GetBAR(PCIDeviceID_t Device, uint8_t BarIndex
     parameters.arg[2] = Device;
     parameters.arg[3] = BarIndex;
 
-    KResult Status = Sys_Execthread(PciData->GetBARDevice, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(PciData->GetBARDevice, &parameters, ExecutionTypeQueu, NULL);
 
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
@@ -205,7 +205,7 @@ struct srv_pci_callback_t* Srv_Pci_BindMSI(PCIDeviceID_t Device, uint8_t IRQVect
     parameters.arg[4] = Processor;
     parameters.arg[5] = LocalDeviceVector;
 
-    KResult Status = Sys_Execthread(PciData->BindMSI, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(PciData->BindMSI, &parameters, ExecutionTypeQueu, NULL);
 
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
@@ -238,7 +238,7 @@ struct srv_pci_callback_t* Srv_Pci_UnbindMSI(PCIDeviceID_t Device, uint16_t Loca
     parameters.arg[2] = Device;
     parameters.arg[3] = LocalDeviceVector;
 
-    KResult Status = Sys_Execthread(PciData->UnbindMSI, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(PciData->UnbindMSI, &parameters, ExecutionTypeQueu, NULL);
 
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);

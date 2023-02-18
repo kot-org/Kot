@@ -35,7 +35,7 @@ partition_t* NewPartition(storage_device_t* Device, uint64_t Start, uint64_t Siz
             thread_t VFSMountThread;
             thread_t VFSMountThreadPrivate;
 
-            Sys_Createthread(Sys_GetProcess(), (uintptr_t)&VFSMount, PriviledgeDriver, (uint64_t)Self, &VFSMountThreadPrivate);
+            Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&VFSMount, PriviledgeDriver, (uint64_t)Self, &VFSMountThreadPrivate);
             VFSMountThread = MakeShareableThreadToProcess(VFSMountThreadPrivate, NotifyInfo->ProcessToNotify);
 
             arguments_t Parameters{
@@ -56,7 +56,7 @@ partition_t* NewPartition(storage_device_t* Device, uint64_t Start, uint64_t Siz
                 .ParameterPosition = 0x1,
             };
 
-            Sys_Execthread(NotifyInfo->ThreadToNotify, &Parameters, ExecutionTypeQueu, &Data);
+            Sys_ExecThread(NotifyInfo->ThreadToNotify, &Parameters, ExecutionTypeQueu, &Data);
         }
     }
     atomicUnlock(&PartitionLock, 0);
@@ -97,7 +97,7 @@ uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* GUIDTarget, thread_t ThreadToNot
                 thread_t VFSMountThread;
                 thread_t VFSMountThreadPrivate;
 
-                Sys_Createthread(Sys_GetProcess(), (uintptr_t)&VFSMount, PriviledgeDriver, (uint64_t)Partition, &VFSMountThreadPrivate);
+                Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&VFSMount, PriviledgeDriver, (uint64_t)Partition, &VFSMountThreadPrivate);
                 VFSMountThread = MakeShareableThreadToProcess(VFSMountThreadPrivate, NotifyInfo->ProcessToNotify);
 
                 arguments_t Parameters{
@@ -117,7 +117,7 @@ uint64_t NotifyOnNewPartitionByGUIDType(GUID_t* GUIDTarget, thread_t ThreadToNot
                     .ParameterPosition = 0x1,
                 };
 
-                Sys_Execthread(NotifyInfo->ThreadToNotify, &Parameters, ExecutionTypeQueu, &Data);
+                Sys_ExecThread(NotifyInfo->ThreadToNotify, &Parameters, ExecutionTypeQueu, &Data);
             }
         }
         atomicUnlock(&PartitionLock, 0);

@@ -9,7 +9,7 @@ void Srv_Time_Initialize(){
     process_t proc = Sys_GetProcess();
 
     thread_t TimeThreadKeyCallback = NULL;
-    Sys_Createthread(proc, &Srv_Time_Callback, PriviledgeApp, NULL, &TimeThreadKeyCallback);
+    Sys_CreateThread(proc, &Srv_Time_Callback, PriviledgeApp, NULL, &TimeThreadKeyCallback);
     SrvTimeCallbackThread = MakeShareableThreadToProcess(TimeThreadKeyCallback, TimeData->ControllerHeader.Process);
 }
 
@@ -56,7 +56,7 @@ struct srv_time_callback_t* Srv_Time_SetTimePointerKey(time_t** Time, bool IsAwa
     parameters.arg[1] = callback;
     parameters.arg[2] = TimePointerKeyShare;
 
-    KResult Status = Sys_Execthread(TimeData->SetTimePointerKey, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(TimeData->SetTimePointerKey, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }else if(Status != KSUCCESS){
@@ -97,7 +97,7 @@ struct srv_time_callback_t* Srv_Time_SetTickPointerKey(uint64_t* TimePointer, ui
     parameters.arg[2] = TickPointerKeyShare;
     parameters.arg[3] = TickPeriod;
 
-    KResult Status = Sys_Execthread(TimeData->SetTickPointerKey, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(TimeData->SetTickPointerKey, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }else if(Status != KSUCCESS){

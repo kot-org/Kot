@@ -10,7 +10,7 @@ void Srv_Graphics_Initialize(){
     ShareProcessGraphics = ShareProcessKey(Process);
 
     thread_t GraphicsThreadKeyCallback = NULL;
-    Sys_Createthread(Process, &Srv_Graphics_Callback, PriviledgeDriver, NULL, &GraphicsThreadKeyCallback);
+    Sys_CreateThread(Process, &Srv_Graphics_Callback, PriviledgeDriver, NULL, &GraphicsThreadKeyCallback);
     srv_graphics_callback_thread = MakeShareableThreadToProcess(GraphicsThreadKeyCallback, GraphicsData->ControllerHeader.Process);
 }
 
@@ -61,7 +61,7 @@ struct srv_graphics_callback_t* Srv_Graphics_CreateWindow(event_t Event, uint64_
     
     Sys_Keyhole_CloneModify(Window->Event, &parameters.arg[3], GraphicsData->ControllerHeader.Process, KeyholeFlagPresent | KeyholeFlagDataTypeEventIsTriggerable, PriviledgeApp);
 
-    KResult Status = Sys_Execthread(GraphicsData->CreateWindow, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(GraphicsData->CreateWindow, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -95,7 +95,7 @@ struct srv_graphics_callback_t* Srv_Graphics_CloseWindow(window_t* Window, bool 
     parameters.arg[2] = Window_Function_Close;
     
 
-    KResult Status = Sys_Execthread(Window->GraphicsHandler, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(Window->GraphicsHandler, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -132,7 +132,7 @@ struct srv_graphics_callback_t* Srv_Graphics_ResizeWindow(window_t* Window, int6
     parameters.arg[4] = Height;
     
 
-    KResult Status = Sys_Execthread(Window->GraphicsHandler, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(Window->GraphicsHandler, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -168,7 +168,7 @@ struct srv_graphics_callback_t* Srv_Graphics_ChangePostionWindow(window_t* Windo
     parameters.arg[4] = YPosition;
     
 
-    KResult Status = Sys_Execthread(Window->GraphicsHandler, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(Window->GraphicsHandler, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }
@@ -202,7 +202,7 @@ struct srv_graphics_callback_t* Srv_Graphics_ChangeVisibility(window_t* Window, 
     parameters.arg[3] = IsVisible;
     
 
-    KResult Status = Sys_Execthread(Window->GraphicsHandler, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(Window->GraphicsHandler, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         Sys_Pause(false);
     }

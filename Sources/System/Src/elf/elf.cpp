@@ -61,7 +61,7 @@ namespace ELF {
         
         if(Sys_CreateProc(&proc, privilege, identifier) != KSUCCESS) return KFAIL;
         /* TODO : create thread identifier */
-        if(Sys_Createthread(proc, (uintptr_t)self->Header->e_entry, privilege, NULL, mainthread) != KSUCCESS) return KFAIL;
+        if(Sys_CreateThread(proc, (uintptr_t)self->Header->e_entry, privilege, NULL, mainthread) != KSUCCESS) return KFAIL;
         
         process_t parentProcess = Sys_GetProcess();
         

@@ -65,7 +65,7 @@ void ParseBootImage(framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width, ui
 thread_t bootAnimationThread = NULL;
 
 void LoadBootAnimation(framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPosition, uint64_t Width, uint64_t Height){
-    Sys_Createthread(Sys_GetProcess(), (uintptr_t)&BootAnimation, PriviledgeDriver, NULL, &bootAnimationThread);
+    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&BootAnimation, PriviledgeDriver, NULL, &bootAnimationThread);
     arguments_t parameters{
         .arg[0] = (uint64_t)Framebuffer,
         .arg[1] = XPosition,
@@ -75,7 +75,7 @@ void LoadBootAnimation(framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t 
     };
     DrawRect(Framebuffer, XPosition, YPosition, Width, Height, 0xffffff);
 
-    Sys_Execthread(bootAnimationThread, &parameters, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(bootAnimationThread, &parameters, ExecutionTypeQueu, NULL);
 }
 
 void BootAnimation(framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPosition, uint64_t Width, uint64_t Height){

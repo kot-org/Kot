@@ -24,32 +24,32 @@ void InitSrv(PCIDeviceArrayInfo_t* DevicesArray){
     
     /* CountDevices */
     thread_t CountDevicesThread = NULL;
-    Sys_Createthread(proc, (uintptr_t) &CountDevices, PriviledgeDriver, NULL, &CountDevicesThread);
+    Sys_CreateThread(proc, (uintptr_t) &CountDevices, PriviledgeDriver, NULL, &CountDevicesThread);
     PciSrv->CountDevices = MakeShareableThread(CountDevicesThread, PriviledgeDriver);
 
     /* FindDevice */
     thread_t FindDeviceThread = NULL;
-    Sys_Createthread(proc, (uintptr_t) &FindDevice, PriviledgeDriver, NULL, &FindDeviceThread);
+    Sys_CreateThread(proc, (uintptr_t) &FindDevice, PriviledgeDriver, NULL, &FindDeviceThread);
     PciSrv->FindDevice = MakeShareableThread(FindDeviceThread, PriviledgeDriver);
 
     /* GetInfo */
     thread_t GetInfoDeviceThread = NULL;
-    Sys_Createthread(proc, (uintptr_t) &GetInfoDevice, PriviledgeDriver, NULL, &GetInfoDeviceThread);
+    Sys_CreateThread(proc, (uintptr_t) &GetInfoDevice, PriviledgeDriver, NULL, &GetInfoDeviceThread);
     PciSrv->GetInfoDevice = MakeShareableThread(GetInfoDeviceThread, PriviledgeDriver);
 
     /* GetBAR */
     thread_t GetBARDeviceThread = NULL;
-    Sys_Createthread(proc, (uintptr_t) &GetBARDevice, PriviledgeDriver, NULL, &GetBARDeviceThread);
+    Sys_CreateThread(proc, (uintptr_t) &GetBARDevice, PriviledgeDriver, NULL, &GetBARDeviceThread);
     PciSrv->GetBARDevice = MakeShareableThread(GetBARDeviceThread, PriviledgeDriver);
 
     /* BindMSI */
     thread_t BindMSIThread = NULL;
-    Sys_Createthread(proc, (uintptr_t) &BindMSI, PriviledgeDriver, NULL, &BindMSIThread);
+    Sys_CreateThread(proc, (uintptr_t) &BindMSI, PriviledgeDriver, NULL, &BindMSIThread);
     PciSrv->BindMSI = MakeShareableThread(BindMSIThread, PriviledgeDriver);
 
     /* UnbindMSI */
     thread_t UnbindMSIThread = NULL;
-    Sys_Createthread(proc, (uintptr_t) &UnbindMSI, PriviledgeDriver, NULL, &UnbindMSIThread);
+    Sys_CreateThread(proc, (uintptr_t) &UnbindMSI, PriviledgeDriver, NULL, &UnbindMSIThread);
     PciSrv->UnbindMSI = MakeShareableThread(UnbindMSIThread, PriviledgeDriver);
 }
 
@@ -65,7 +65,7 @@ KResult CountDevices(thread_t Callback, uint64_t CallbackArg, srv_pci_search_par
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
@@ -82,7 +82,7 @@ KResult FindDevice(thread_t Callback, uint64_t CallbackArg, srv_pci_search_param
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);    
 }
 
@@ -115,7 +115,7 @@ KResult GetInfoDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Dev
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &data);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
     Sys_Close(KSUCCESS);
 }
 
@@ -145,7 +145,7 @@ KResult GetBARDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Devi
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &data);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
     Sys_Close(KSUCCESS);
 }
 
@@ -167,7 +167,7 @@ KResult BindMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceInd
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
@@ -189,6 +189,6 @@ KResult UnbindMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceI
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }

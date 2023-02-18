@@ -356,7 +356,7 @@ KResult Sys_Event_Close(SyscallStack* Registers, kthread_t* Thread){
     return Event::Close((ContextStack*)Registers, Thread);
 }
 
-/* Sys_Createthread :
+/* Sys_CreateThread :
     Arguments : 
 */
 KResult Sys_CreateThread(SyscallStack* Registers, kthread_t* Thread){
@@ -387,7 +387,7 @@ KResult Sys_DuplicateThread(SyscallStack* Registers, kthread_t* Thread){
     return Keyhole_Create((key_t*)Registers->arg2, Thread->Parent, Thread->Parent, DataTypeThread, (uint64_t)Thread, KeyholeFlagFullPermissions, PriviledgeApp);
 }
 
-/* Sys_Execthread :
+/* Sys_ExecThread :
     Arguments : 
 */
 KResult Sys_ExecThread(SyscallStack* Registers, kthread_t* Thread){

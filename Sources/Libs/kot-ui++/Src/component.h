@@ -4,6 +4,7 @@
 #include <kot/types.h>
 #include <kot/utils/vector.h>
 
+#include <kot-graphics/orb.h>
 #include <kot-graphics/utils.h>
 
 #include <kot-ui++/context.h>
@@ -69,13 +70,11 @@ namespace Ui {
 
                 uint64_t ExternalStyleType;
                 uintptr_t ExternalStyleData;
+
+                bool IsVisible;
             };
 
-            /* todo: changer cette struct et mettre une struct pour charque component */
-
             Component(ComponentStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, class UiContext* ParentUiContex, bool IsUpdateChild);
-            /* for ui context */
-            Component(framebuffer_t* fb, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, class UiContext* ParentUiContex, bool IsUpdateChild);
 
             /* Component Framebuffer */
             void CreateFramebuffer(uint32_t Width, uint32_t Height);
@@ -117,16 +116,25 @@ namespace Ui {
         _PNG = 1,
         _JPG = 2,
     };
+    enum PictureboxFit{
+        FIT     = 0,
+        FILL    = 1,
+        CENTER  = 2,
+        STRETCH = 3,
+    };
     typedef struct {
         uint64_t Width;
         uint64_t Height;
         point_t Position;
+        PictureboxFit Fit;
+        bool IsVisible;
     } PictureboxStyle_t;
     typedef struct {
         PictureboxType Type;
         PictureboxStyle_t Style;
         Component* Cpnt;
         uintptr_t Image;
+        bool IsDrawUpdate;
     } Picturebox_t;
     Picturebox_t* Picturebox(char* Path, PictureboxType Type, PictureboxStyle_t Style, class UiContext* ParentUiContex);
     void UpdateSizePicturebox(uint64_t Width, uint64_t Height);
@@ -138,6 +146,8 @@ namespace Ui {
         point_t Position;
         color_t BackgroundColor;
         color_t HoverColor;
+        color_t ClickColor;
+        bool IsVisible;
     } BoxStyle_t;
     typedef struct {
         BoxStyle_t Style;
@@ -152,10 +162,12 @@ namespace Ui {
     typedef struct {
         uint32_t BackgroundColor;
         uint32_t ForegroundColor;
+        bool IsVisible;
     } TitlebarStyle_t;
     typedef struct {
         TitlebarStyle_t Style;
         Component* Cpnt;
+        bool IsDrawUpdate;
     } Titlebar_t;
     Titlebar_t* Titlebar(char* Title, TitlebarStyle_t Style, class UiContext* ParentUiContex);
     void UpdateSizeTitlebar(uint64_t Width, uint64_t Height);

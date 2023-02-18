@@ -22,37 +22,37 @@ KResult MountToVFS(mount_info_t* MountInfo, process_t VFSProcess, thread_t VFSMo
 
     /* ChangeUserData */
     thread_t ChangeUserDataThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&ChangeUserData, PriviledgeDriver, (uint64_t)MountInfo, &ChangeUserDataThread);
+    Sys_CreateThread(proc, (uintptr_t)&ChangeUserData, PriviledgeDriver, (uint64_t)MountInfo, &ChangeUserDataThread);
     FSServerFunctions.ChangeUserData = MakeShareableThreadToProcess(ChangeUserDataThread, VFSProcess);
 
     /* Removefile */
     thread_t RemovefileThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&Removefile, PriviledgeDriver, (uint64_t)MountInfo, &RemovefileThread);
+    Sys_CreateThread(proc, (uintptr_t)&Removefile, PriviledgeDriver, (uint64_t)MountInfo, &RemovefileThread);
     FSServerFunctions.Removefile = MakeShareableThreadToProcess(RemovefileThread, VFSProcess);
 
     /* Openfile */
     thread_t OpenfileThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&Openfile, PriviledgeDriver, (uint64_t)MountInfo, &OpenfileThread);
+    Sys_CreateThread(proc, (uintptr_t)&Openfile, PriviledgeDriver, (uint64_t)MountInfo, &OpenfileThread);
     FSServerFunctions.Openfile = MakeShareableThreadToProcess(OpenfileThread, VFSProcess);
 
     /* Rename */
     thread_t RenameThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&Rename, PriviledgeDriver, (uint64_t)MountInfo, &RenameThread);
+    Sys_CreateThread(proc, (uintptr_t)&Rename, PriviledgeDriver, (uint64_t)MountInfo, &RenameThread);
     FSServerFunctions.Rename = MakeShareableThreadToProcess(RenameThread, VFSProcess);
 
     /* Mkdir */
     thread_t MkdirThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&Mkdir, PriviledgeDriver, (uint64_t)MountInfo, &MkdirThread);
+    Sys_CreateThread(proc, (uintptr_t)&Mkdir, PriviledgeDriver, (uint64_t)MountInfo, &MkdirThread);
     FSServerFunctions.Mkdir = MakeShareableThreadToProcess(MkdirThread, VFSProcess);
 
     /* Rmdir */
     thread_t RmdirThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&Rmdir, PriviledgeDriver, (uint64_t)MountInfo, &RmdirThread);
+    Sys_CreateThread(proc, (uintptr_t)&Rmdir, PriviledgeDriver, (uint64_t)MountInfo, &RmdirThread);
     FSServerFunctions.Rmdir = MakeShareableThreadToProcess(RmdirThread, VFSProcess);
 
     /* Opendir */
     thread_t OpendirThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&Opendir, PriviledgeDriver, (uint64_t)MountInfo, &OpendirThread);
+    Sys_CreateThread(proc, (uintptr_t)&Opendir, PriviledgeDriver, (uint64_t)MountInfo, &OpendirThread);
     FSServerFunctions.Opendir = MakeShareableThreadToProcess(OpendirThread, VFSProcess);
 
     Srv_Storage_MountPartition(VFSMountThread, &FSServerFunctions, true);
@@ -78,7 +78,7 @@ KResult ChangeUserData(thread_t Callback, uint64_t CallbackArg, uint64_t UID, ui
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
@@ -98,7 +98,7 @@ KResult Removefile(thread_t Callback, uint64_t CallbackArg, char* Path, permissi
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
@@ -128,7 +128,7 @@ KResult Openfile(thread_t Callback, uint64_t CallbackArg, char* Path, permission
         srv_storage_fs_server_open_file_data_t SrvOpenFileData;
         thread_t DispatcherThread;
 
-        Sys_Createthread(Sys_GetProcess(), (uintptr_t)&FileDispatch, PriviledgeDriver, (uint64_t)File, &DispatcherThread);
+        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&FileDispatch, PriviledgeDriver, (uint64_t)File, &DispatcherThread);
 
         SrvOpenFileData.Dispatcher = MakeShareableThreadToProcess(DispatcherThread, Target);
 
@@ -139,9 +139,9 @@ KResult Openfile(thread_t Callback, uint64_t CallbackArg, char* Path, permission
             .Size = sizeof(srv_storage_fs_server_open_file_data_t),
             .ParameterPosition = 0x2,
         };
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &ShareDataWithArguments);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &ShareDataWithArguments);
     }else{
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     }
     Sys_Close(KSUCCESS);
 }
@@ -160,7 +160,7 @@ KResult FileDispatch(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint
             .arg[5] = NULL,             /* GP3 */
         };
 
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
         Sys_Close(KSUCCESS);
     }
 
@@ -181,7 +181,7 @@ KResult Closefile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uin
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     
     if(Status == KSUCCESS){
         Sys_Exit(KSUCCESS);
@@ -200,7 +200,7 @@ KResult Getfilesize(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, u
         .arg[4] = NULL,                 /* GP2 */
         .arg[5] = NULL,                 /* GP3 */
     };
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     return KSUCCESS;
 }
 
@@ -222,9 +222,9 @@ KResult Readfile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint
 
     if(Status == KSUCCESS){
         Sys_Keyhole_CloneModify(BufferKey, &arguments.arg[2], File->Target, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     }else{
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     }
 
     return KSUCCESS;
@@ -254,7 +254,7 @@ KResult Writefile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uin
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
 
     return KSUCCESS;
 }
@@ -280,7 +280,7 @@ KResult Rename(thread_t Callback, uint64_t CallbackArg, srv_storage_fs_server_re
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
@@ -302,7 +302,7 @@ KResult Mkdir(thread_t Callback, uint64_t CallbackArg, char* Path, mode_t Mode, 
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
@@ -320,7 +320,7 @@ KResult Rmdir(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
@@ -348,7 +348,7 @@ KResult Opendir(thread_t Callback, uint64_t CallbackArg, char* Path, permissions
         srv_storage_fs_server_open_dir_data_t SrvOpenDirData;
         thread_t DispatcherThread;
 
-        Sys_Createthread(Sys_GetProcess(), (uintptr_t)&DirDispatch, PriviledgeDriver, (uint64_t)Directory, &DispatcherThread);
+        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&DirDispatch, PriviledgeDriver, (uint64_t)Directory, &DispatcherThread);
 
         Sys_Keyhole_CloneModify(DispatcherThread, &SrvOpenDirData.Dispatcher, Target, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsExecutableWithQueue, PriviledgeApp);
 
@@ -359,9 +359,9 @@ KResult Opendir(thread_t Callback, uint64_t CallbackArg, char* Path, permissions
             .Size = sizeof(srv_storage_fs_server_open_dir_data_t),
             .ParameterPosition = 0x2,
         };
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &ShareDataWithArguments);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &ShareDataWithArguments);
     }else{
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     }
     Sys_Close(KSUCCESS);
 }
@@ -380,7 +380,7 @@ KResult DirDispatch(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint6
             .arg[5] = NULL,             /* GP3 */
         };
 
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
         Sys_Close(KSUCCESS);
     }
 
@@ -440,7 +440,7 @@ KResult Readdir(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Direct
         .Size = DataSize,
         .ParameterPosition = 0x2,
     };
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &ShareDataWithArguments);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &ShareDataWithArguments);
     free(Data);
     Sys_Close(KSUCCESS);
 }
@@ -456,7 +456,7 @@ KResult Getdircount(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Di
         .arg[5] = NULL,                     /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     return KSUCCESS;
 }
 
@@ -473,6 +473,6 @@ KResult Closedir(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Direc
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Exit(KSUCCESS);
 }

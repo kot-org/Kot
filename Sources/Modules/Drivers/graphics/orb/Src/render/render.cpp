@@ -34,7 +34,7 @@ void ThreadRender(){
 
 KResult StartRender(){
     IsRendering = true;
-    return Sys_Execthread(RenderThread, NULL, ExecutionTypeQueu, NULL);
+    return Sys_ExecThread(RenderThread, NULL, ExecutionTypeQueu, NULL);
 }
 
 KResult StopRender(){
@@ -47,5 +47,5 @@ KResult StopRender(){
 
 KResult InitializeRender(){
     Monitors = vector_create();
-    return Sys_Createthread(ShareableProcess, (uintptr_t) &ThreadRender, PriviledgeDriver, NULL, &RenderThread);
+    return Sys_CreateThread(ShareableProcess, (uintptr_t) &ThreadRender, PriviledgeDriver, NULL, &RenderThread);
 }

@@ -18,11 +18,11 @@ KResult Srv_StorageInitializeDeviceAccess(struct srv_storage_space_info_t* Stora
         *StorageDevice = Device;
 
         thread_t CallbackRequestHandlerThread = NULL;
-        Sys_Createthread(Sys_GetProcess(), (uintptr_t)&Srv_CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
+        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&Srv_CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
         Device->CallbackRequestHandlerThread = MakeShareableThreadToProcess(CallbackRequestHandlerThread, Device->SpaceInfo.DriverProc);
 
         thread_t CallbackCreateSpaceHandlerThread = NULL;
-        Sys_Createthread(Sys_GetProcess(), (uintptr_t)&Srv_CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
+        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&Srv_CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
         Device->CallbackCreateSpaceHandlerThread = MakeShareableThreadToProcess(CallbackCreateSpaceHandlerThread, Device->SpaceInfo.DriverProc);
 
         return KSUCCESS;
@@ -55,7 +55,7 @@ KResult Srv_SendRequest(struct srv_storage_device_t* StorageDevice, uint64_t Sta
     Parameters.arg[3] = Start;
     Parameters.arg[4] = Size;
     Parameters.arg[5] = IsWrite;
-    Sys_Execthread(StorageDevice->SpaceInfo.RequestToDeviceThread, &Parameters, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(StorageDevice->SpaceInfo.RequestToDeviceThread, &Parameters, ExecutionTypeQueu, NULL);
     Sys_Pause(false);
     return KSUCCESS;
 }
@@ -80,7 +80,7 @@ struct srv_storage_device_callback_t* Srv_SendMultipleRequests(struct srv_storag
     Data.ParameterPosition = 0x3;
 
     atomicAcquire(&StorageDevice->Lock, 0);
-    Sys_Execthread(StorageDevice->SpaceInfo.RequestToDeviceThread, &Parameters, ExecutionTypeQueu, &Data);
+    Sys_ExecThread(StorageDevice->SpaceInfo.RequestToDeviceThread, &Parameters, ExecutionTypeQueu, &Data);
     Sys_Pause(false);
     atomicUnlock(&StorageDevice->Lock, 0);
     return callbackData;

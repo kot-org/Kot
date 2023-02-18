@@ -53,7 +53,7 @@ void InitializeCursor(){
     free(Header);
     fclose(KursorFile);
 
-    Sys_Createthread(Sys_GetProcess(), (uintptr_t)&CursorInterrupt, PriviledgeApp, NULL, &MouseRelativeInterrupt);
+    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&CursorInterrupt, PriviledgeApp, NULL, &MouseRelativeInterrupt);
 
     BindMouseRelative(MouseRelativeInterrupt, false);
 }

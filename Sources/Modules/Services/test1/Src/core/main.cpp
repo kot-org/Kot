@@ -11,7 +11,7 @@ extern "C" int main(int argc, char* argv[]){
     uisd_test_t* TestSrv = (uisd_test_t*)addressReceive;
 
     arguments_t arguments;
-    ksmem_t MemoryShare = Sys_Execthread(TestSrv->GetMemory, &arguments, ExecutionTypeQueuAwait, NULL);
+    ksmem_t MemoryShare = Sys_ExecThread(TestSrv->GetMemory, &arguments, ExecutionTypeQueuAwait, NULL);
     uintptr_t addressReceiveShare = GetFreeAlignedSpace(0x1000);
     Sys_AcceptMemoryField(proc, MemoryShare, &addressReceiveShare);
     Printlog((char*)addressReceiveShare);

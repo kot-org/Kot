@@ -74,7 +74,7 @@ KResult Sys_Event_Close(){
     return Syscall_0(KSys_Event_Close);
 }
 
-KResult Sys_Createthread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t externalData, thread_t* result){
+KResult Sys_CreateThread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t externalData, thread_t* result){
     return Syscall_40(KSys_CreateThread, self, entryPoint, privilege, externalData, result);
 }
 
@@ -82,7 +82,7 @@ KResult Sys_Duplicatethread(process_t parent, thread_t source, thread_t* self){
     return Syscall_24(KSys_DuplicateThread, parent, source, self);
 }
 
-KResult Sys_Execthread(thread_t self, struct arguments_t* parameters, enum ExecutionType type, struct ShareDataWithArguments_t* data){
+KResult Sys_ExecThread(thread_t self, struct arguments_t* parameters, enum ExecutionType type, struct ShareDataWithArguments_t* data){
     return Syscall_32(KSys_ExecThread, self, parameters, type, data);
 }
 

@@ -95,7 +95,7 @@ extern "C" int main(KernelInfo* kernelInfo) {
                             .Size = sizeof(char*),
                             .ParameterPosition = 0x1,
                         };
-                        Sys_Execthread(thread, InitParameters, ExecutionTypeQueu, &Data);
+                        Sys_ExecThread(thread, InitParameters, ExecutionTypeQueu, &Data);
                     }
                 }
             }

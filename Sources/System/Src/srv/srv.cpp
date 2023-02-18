@@ -18,42 +18,42 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
 
     /* GetFramebuffer */
     thread_t GetFramebufferThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&GetFramebuffer, PriviledgeApp, NULL, &GetFramebufferThread);
+    Sys_CreateThread(proc, (uintptr_t)&GetFramebuffer, PriviledgeApp, NULL, &GetFramebufferThread);
     SystemSrv->GetFramebuffer = MakeShareableThread(GetFramebufferThread, PriviledgeService);
 
     /* ReadFileInitrd */
     thread_t ReadFileFromInitrdThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&ReadFileFromInitrd, PriviledgeApp, NULL, &ReadFileFromInitrdThread);
+    Sys_CreateThread(proc, (uintptr_t)&ReadFileFromInitrd, PriviledgeApp, NULL, &ReadFileFromInitrdThread);
     SystemSrv->ReadFileInitrd = MakeShareableThread(ReadFileFromInitrdThread, PriviledgeService);
 
     /* GetTableInRootSystemDescription */
     thread_t GetTableInRootSystemDescriptionThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&GetTableInRootSystemDescription, PriviledgeApp, NULL, &GetTableInRootSystemDescriptionThread);
+    Sys_CreateThread(proc, (uintptr_t)&GetTableInRootSystemDescription, PriviledgeApp, NULL, &GetTableInRootSystemDescriptionThread);
     SystemSrv->GetTableInRootSystemDescription = MakeShareableThread(GetTableInRootSystemDescriptionThread, PriviledgeDriver);
 
     /* GetSystemManagementBIOSTable */
     thread_t GetSystemManagementBIOSTableThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&GetSystemManagementBIOSTable, PriviledgeApp, NULL, &GetSystemManagementBIOSTableThread);
+    Sys_CreateThread(proc, (uintptr_t)&GetSystemManagementBIOSTable, PriviledgeApp, NULL, &GetSystemManagementBIOSTableThread);
     SystemSrv->GetSystemManagementBIOSTable = MakeShareableThread(GetSystemManagementBIOSTableThread, PriviledgeDriver);
 
     /* BindIRQLine */
     thread_t BindIRQLineThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&BindIRQLine, PriviledgeApp, NULL, &BindIRQLineThread);
+    Sys_CreateThread(proc, (uintptr_t)&BindIRQLine, PriviledgeApp, NULL, &BindIRQLineThread);
     SystemSrv->BindIRQLine = MakeShareableThread(BindIRQLineThread, PriviledgeDriver);
     
     /* UnbindIRQLine */
     thread_t UnbindIRQLineThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&UnbindIRQLine, PriviledgeApp, NULL, &UnbindIRQLineThread);
+    Sys_CreateThread(proc, (uintptr_t)&UnbindIRQLine, PriviledgeApp, NULL, &UnbindIRQLineThread);
     SystemSrv->UnbindIRQLine = MakeShareableThread(UnbindIRQLineThread, PriviledgeDriver);
 
     /* BindFreeIRQ */
     thread_t BindFreeIRQThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, NULL, &BindFreeIRQThread);
+    Sys_CreateThread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, NULL, &BindFreeIRQThread);
     SystemSrv->BindFreeIRQ = MakeShareableThread(BindFreeIRQThread, PriviledgeDriver);
 
     /* UnbindIRQ */
     thread_t UnbindIRQThread = NULL;
-    Sys_Createthread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, NULL, &UnbindIRQThread);
+    Sys_CreateThread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, NULL, &UnbindIRQThread);
     SystemSrv->UnbindIRQ = MakeShareableThread(UnbindIRQThread, PriviledgeDriver);
 
     /* Setup data */
@@ -97,7 +97,7 @@ KResult GetFramebuffer(thread_t Callback, uint64_t CallbackArg){
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &data);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
     Sys_Close(KSUCCESS);
 }
 
@@ -116,7 +116,7 @@ KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name){
                 .arg[4] = NULL,             /* GP2 */
                 .arg[5] = NULL,             /* GP3 */
             };
-            Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+            Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
             Sys_Close(KFAIL);
         }
 
@@ -135,7 +135,7 @@ KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name){
             .arg[5] = NULL,             /* GP3 */
         };
         
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, &data);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
         Sys_Close(KSUCCESS);
     }else{
         arguments_t arguments{
@@ -146,7 +146,7 @@ KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name){
             .arg[4] = NULL,             /* GP2 */
             .arg[5] = NULL,             /* GP3 */
         };
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
         Sys_Close(KFAIL);        
     }
 }
@@ -174,7 +174,7 @@ KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg,
             .arg[5] = NULL,                             /* GP3 */
         };
 
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
         Sys_Close(KSUCCESS);
     }else{
         arguments_t arguments{
@@ -185,7 +185,7 @@ KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg,
             .arg[4] = NULL,             /* GP2 */
             .arg[5] = NULL,             /* GP3 */
         };
-        Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
         Sys_Close(KFAIL);
     }
 }
@@ -200,7 +200,7 @@ KResult GetSystemManagementBIOSTable(thread_t Callback, uint64_t CallbackArg){
         .arg[5] = NULL,                         /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
@@ -220,7 +220,7 @@ KResult BindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumb
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
@@ -240,7 +240,7 @@ KResult UnbindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNu
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
@@ -265,7 +265,7 @@ KResult BindFreeIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, bo
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }
 
@@ -283,6 +283,6 @@ KResult UnbindIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, uint
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_Execthread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     Sys_Close(KSUCCESS);
 }

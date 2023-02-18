@@ -11,7 +11,7 @@ thread_t UISDInitialize(process_t* process) {
 
     process_t proc = Sys_GetProcess();
 
-    Sys_Createthread(proc, (uintptr_t)UISDHandler, PriviledgeService, NULL, &UISDHandlerThread);
+    Sys_CreateThread(proc, (uintptr_t)UISDHandler, PriviledgeService, NULL, &UISDHandlerThread);
     Sys_Keyhole_CloneModify(UISDHandlerThread, &UISDthreadKey, NULL, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsExecutableWithQueue, PriviledgeApp);
 
     UISDControllers = (controller_info_t**)calloc(sizeof(controller_info_t*) * UISDMaxController);
@@ -48,7 +48,7 @@ void UISDAccept(callbackget_info_t* Callback){
         .arg[2] = Callback->Callbackarg,
         .arg[3] = (uint64_t)Callback->Address,
     };
-    Sys_Execthread(Callback->Callback, &parameters, ExecutionTypeQueu, NULL);        
+    Sys_ExecThread(Callback->Callback, &parameters, ExecutionTypeQueu, NULL);        
 }
 
 void UISDAcceptAll(enum ControllerTypeEnum Controller){
@@ -118,7 +118,7 @@ KResult UISDCallbackStatu(uint64_t IPCTask, thread_t Callback, uint64_t Callback
         .arg[1] = (uint64_t)Status,
         .arg[2] = Callbackarg,
     };
-    Sys_Execthread(Callback, &parameters, ExecutionTypeQueu, NULL);  
+    Sys_ExecThread(Callback, &parameters, ExecutionTypeQueu, NULL);  
     return Status;
 }
 

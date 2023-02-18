@@ -24,7 +24,7 @@ KResult InitializeUISD(){
 
     process_t Proc = Sys_GetProcess();
 
-    Sys_Createthread(Proc, &CallbackUISD, PriviledgeApp, NULL, &UISDthreadKeyCallback);
+    Sys_CreateThread(Proc, &CallbackUISD, PriviledgeApp, NULL, &UISDthreadKeyCallback);
     CallBackUISDThread = MakeShareableThreadToProcess(UISDthreadKeyCallback, KotSpecificData.UISDHandlerProcess);
 
     Sys_Keyhole_CloneModify(Proc, &ProcessKeyForUISD, KotSpecificData.UISDHandlerProcess, KeyholeFlagPresent | KeyholeFlagDataTypeProcessMemoryAccessible, PriviledgeApp);
@@ -63,7 +63,7 @@ uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintp
     parameters.arg[3] = Info;
     parameters.arg[4] = ProcessKeyForUISD;
     parameters.arg[5] = (uint64_t)*Location;
-    KResult Status = Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && AwaitCallback){
         Sys_Pause(false);
         *Location = Info->Location;
@@ -90,7 +90,7 @@ uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ks
     parameters.arg[2] = CallBackUISDThread;
     parameters.arg[3] = Info;
     parameters.arg[4] = MemoryFieldKey;
-    KResult Status = Sys_Execthread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
+    KResult Status = Sys_ExecThread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && AwaitCallback){
         Sys_Pause(false);
         return Info;

@@ -21,14 +21,17 @@ namespace Ui {
 
     class UiContext {
         private:
+            thread_t ThreadRenderer;
         public:
+            UiContext(framebuffer_t* Fb);
+            void UiStartRenderer();
+            void UiStopRenderer();
+
+            bool IsRendering;
             framebuffer_t* Fb;
             class Component* Cpnt;
             class Component* FocusCpnt;
             graphiceventbuffer_t* EventBuffer;
-
-            UiContext(framebuffer_t* Fb);
-
     };
 }
 
