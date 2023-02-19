@@ -25,8 +25,6 @@ namespace Ui {
             
             case TGAType::RGB:
             {
-                Printlog("tga type 2");
-
                 // TODO: Retourner l'image si besoin
                 //bool isReversed = !(Buffer->ImageDescriptor & (1 << 5));
 

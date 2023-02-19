@@ -9,7 +9,7 @@ namespace Ui {
         switch(Picturebox->Type){
             case PictureboxType::_TGA:{
                 switch(Picturebox->Style.Fit){
-                    case PictureboxFit::FIT:
+                    case PictureboxFit::PICTUREFIT:
                     {   
                         TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
                         TGA_t* ImageResize = TGAResize(ImageRead, Picturebox->Cpnt->GetFramebuffer()->Width, Picturebox->Cpnt->GetFramebuffer()->Height, true);
@@ -24,7 +24,7 @@ namespace Ui {
                         break;
                     }
 
-                    case PictureboxFit::FILL:
+                    case PictureboxFit::PICTUREFILL:
                     {   
                         TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
                         uint16_t _Width = ((TGAHeader_t*)Picturebox->Image)->Width, _Height = ((TGAHeader_t*)Picturebox->Image)->Height;
@@ -53,7 +53,7 @@ namespace Ui {
                         break;
                     }
 
-                    case PictureboxFit::CENTER:
+                    case PictureboxFit::PICTURECENTER:
                     {
                         TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
                         uint16_t x = 0, y = 0,
@@ -90,7 +90,7 @@ namespace Ui {
                         break;
                     }
 
-                    case PictureboxFit::STRETCH:
+                    case PictureboxFit::PICTURESTRETCH:
                     {   
                         TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
                         TGA_t* ImageResize = TGAResize(ImageRead, Picturebox->Cpnt->GetFramebuffer()->Width, Picturebox->Cpnt->GetFramebuffer()->Height);
@@ -190,7 +190,7 @@ namespace Ui {
         Picturebox->Type = Type;
         Picturebox->Image = Image;
         memcpy(&Picturebox->Style, &Style, sizeof(PictureboxStyle_t));
-        Picturebox->Cpnt = new Component({ .Width = Style.Width, .Height = Style.Height, .IsVisible = Style.IsVisible}, PictureboxUpdate, PictureboxMouseEvent, (uintptr_t)Picturebox, ParentUiContex, true);
+        Picturebox->Cpnt = new Component({ .Width = Style.Width, .Height = Style.Height, .IsVisible = Style.IsVisible, .Position = {.x = Style.Position.x, .y = Style.Position.y}}, PictureboxUpdate, PictureboxMouseEvent, (uintptr_t)Picturebox, ParentUiContex, true);
 
         fclose(ImageFile);
         

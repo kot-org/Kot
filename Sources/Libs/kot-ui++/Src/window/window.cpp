@@ -14,6 +14,12 @@ namespace UiWindow {
         Sys_Event_Close();
     }
 
+    void ButtonTest(struct Ui::Button_t* Button, Ui::ButtonEventType EventType){
+        if(EventType == Ui::ButtonEventTypeLeftClick){
+            Printlog("Click");
+        }
+    }
+
     Window::Window(char* title, uint32_t Width, uint32_t Height, uint32_t XPosition, uint32_t YPosition){
         // Setup event
         Sys_Event_Create(&WindowEvent);
@@ -58,7 +64,8 @@ namespace UiWindow {
         this->SetContent(Grid->Cpnt);
         for(uint64_t y = 0; y < 5; y++){
             for(uint64_t x = 0; x < 5; x++){
-                auto iconBox = Ui::Box({ .Width = 20, .Height = 20, .ClickColor = (color_t)0x00ff00, .HoverColor = (color_t)0xff0000, .BackgroundColor = (color_t)0xffffff, .Position{.x = (int64_t)x,  .y = (int64_t)y}, .IsVisible = true }, UiCtx);
+                auto iconBox = Ui::Button({ .Width = 20, .Height = 20, .ClickColor = (color_t)0x00ff00, .HoverColor = (color_t)0xff0000, .BackgroundColor = (color_t)0xffffff, .Position{.x = (int64_t)x,  .y = (int64_t)y}, .IsVisible = true, .OnClick = ButtonTest }, UiCtx);
+                //auto imgtest = Ui::Picturebox("kotlogo.tga", Ui::PictureboxType::_TGA, { .Width = 20, .Height = 20, .Position{.x = (int64_t)x,  .y = (int64_t)y}, .IsVisible = true, .Fit=Ui::PICTUREFILL }, UiCtx);
                 Grid->Cpnt->AddChild(iconBox->Cpnt);
                 //this->SetContent(iconBox->Cpnt);
             }
