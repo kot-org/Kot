@@ -52,12 +52,14 @@ namespace UiWindow {
         this->SetContent(imgtest); */
         
         //Titlebar = Ui::Titlebar(title, { .BackgroundColor = 0xffffff, .ForegroundColor = WIN_TBCOLOR_ONBLUR }, UiCtx);
-        auto Flex = Ui::Flexbox({.Width = Width, .Height = Height, .Align = {.x = Ui::Layout::FILLHORIZONTAL, .y = Ui::Layout::TOP}}, UiCtx);
-        this->SetContent(Flex->Cpnt);
-        for(uint64_t y = 0; y < 1; y++){
+        //auto Flex = Ui::Flexbox({.Width = Width, .Height = Height, .Align = {.x = Ui::Layout::FILLHORIZONTAL, .y = Ui::Layout::FILLVERTICAL}}, UiCtx);
+        //this->SetContent(Flex->Cpnt);
+        auto Grid = Ui::Gridbox({.Width = Width, .Height = Height, .CaseWidth = 50, .CaseHeight = 50 }, UiCtx);
+        this->SetContent(Grid->Cpnt);
+        for(uint64_t y = 0; y < 5; y++){
             for(uint64_t x = 0; x < 5; x++){
-                auto iconBox = Ui::Box({ .Width = 10, .Height = 20, .ClickColor = (color_t)0x00ff00, .HoverColor = (color_t)0xff0000, .BackgroundColor = (color_t)0xffffff, .Position{.x = (int64_t)x * 20,  .y = (int64_t)y * 20}, .IsVisible = true }, UiCtx);
-                Flex->Cpnt->AddChild(iconBox->Cpnt);
+                auto iconBox = Ui::Box({ .Width = 20, .Height = 20, .ClickColor = (color_t)0x00ff00, .HoverColor = (color_t)0xff0000, .BackgroundColor = (color_t)0xffffff, .Position{.x = (int64_t)x,  .y = (int64_t)y}, .IsVisible = true }, UiCtx);
+                Grid->Cpnt->AddChild(iconBox->Cpnt);
                 //this->SetContent(iconBox->Cpnt);
             }
         }
@@ -128,7 +130,7 @@ namespace UiWindow {
         int64_t RelativePostionY = PositionY - Wid->Position.y; 
 
         if(RelativePostionX >= 0 && RelativePostionY >= 0 && RelativePostionX < UiCtx->EventBuffer->Width && RelativePostionY < UiCtx->EventBuffer->Height){
-            Ui::Component* Component = (Ui::Component*)GetEventData(UiCtx->EventBuffer, RelativePostionX, RelativePostionY);
+            Ui::Component* Component = (Ui::Component*)GetEventData(UiCtx->EventBufferUse, RelativePostionX, RelativePostionY);
             if(Component){
                 if(Component->MouseEvent){
                     Component->MouseEvent(Component, true, RelativePostionX, RelativePostionY, PositionX, PositionY, ZValue, Status);

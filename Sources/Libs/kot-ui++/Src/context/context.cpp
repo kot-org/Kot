@@ -4,7 +4,9 @@ namespace Ui {
     void UiContextRenderer(){
         UiContext* Context = (UiContext*)Sys_GetExternalDataThread();
         while(Context->IsRendering){
+            SetGraphicEventbuffer(Context->EventBuffer, (uint64_t)Context->Cpnt, Context->Fb->Width, Context->Fb->Height, NULL, NULL);
             Context->Cpnt->Update();
+            BlitGraphicEventbuffer(Context->EventBufferUse, Context->EventBuffer, NULL, NULL);
             BlitFramebuffer(Context->Fb, Context->Cpnt->GetFramebuffer(), NULL, NULL);
         }
         Sys_Close(KSUCCESS);
@@ -14,10 +16,22 @@ namespace Ui {
 
     }
 
+    void UiContextMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status){
+        if(IsHover){
+            if(Cpnt->UiCtx->FocusCpnt != Cpnt){
+                if(Cpnt->UiCtx->FocusCpnt->MouseEvent){
+                    Cpnt->UiCtx->FocusCpnt->MouseEvent(Cpnt->UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
+                }
+            }
+            Cpnt->UiCtx->FocusCpnt = Cpnt;
+        }
+    }
+
     UiContext::UiContext(framebuffer_t* fb) {
         this->Fb = fb;
         this->EventBuffer = CreateEventBuffer(fb->Width, fb->Height);
-        this->Cpnt = new Component({.Width = fb->Width, .Height = fb->Height, .IsVisible = true}, UiContextUpdate, NULL, NULL, this, true);
+        this->EventBufferUse = CreateEventBuffer(fb->Width, fb->Height);
+        this->Cpnt = new Component({.Width = fb->Width, .Height = fb->Height, .IsVisible = true}, UiContextUpdate, UiContextMouseEvent, NULL, this, true);
         this->FocusCpnt = Cpnt;
         Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&UiContextRenderer, PriviledgeApp, (uint64_t)this, &ThreadRenderer);
     }

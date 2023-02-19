@@ -166,6 +166,22 @@ namespace Ui {
     void UpdatePositionFlexbox(point_t Position);
 
     typedef struct {
+        uint64_t Width;
+        uint64_t Height;
+        uint64_t CaseWidth;
+        uint64_t CaseHeight;
+        point_t Position;
+        bool IsVisible;
+    } GridboxStyle_t;
+    typedef struct {
+        GridboxStyle_t Style;
+        Component* Cpnt;
+    } Gridbox_t;
+    Gridbox_t* Gridbox(GridboxStyle_t Style, class UiContext* ParentUiContex);
+    void UpdateSizeGridbox(uint64_t Width, uint64_t Height);
+    void UpdatePositionGridbox(point_t Position);
+
+    typedef struct {
         uint32_t BackgroundColor;
         uint32_t ForegroundColor;
         bool IsVisible;

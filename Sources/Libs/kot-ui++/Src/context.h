@@ -32,6 +32,7 @@ namespace Ui {
             class Component* Cpnt;
             class Component* FocusCpnt;
             graphiceventbuffer_t* EventBuffer;
+            graphiceventbuffer_t* EventBufferUse;
     };
 }
 

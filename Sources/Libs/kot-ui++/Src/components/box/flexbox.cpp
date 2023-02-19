@@ -1,5 +1,4 @@
 #include <kot-ui++/component.h>
-#include <kot/stdio.h>
 
 namespace Ui {
     void FlexboxUpdate(Component* Cpnt){
