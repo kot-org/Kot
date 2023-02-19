@@ -21,7 +21,7 @@ namespace Ui {
         //     Titlebar->Cpnt->AddChild(iconBox->Cpnt); 
         // }
         auto iconBox = Ui::Box({ .Width = 20, .Height = 20, .HoverColor = (color_t)0xff0000, .BackgroundColor = (color_t)0xffffff, .Position{.x = 0,  .y = 0} }, ParentUiContex);
-        Titlebar->Cpnt = iconBox->Cpnt;
+        Titlebar->Cpnt = Flexbox({.Width = 40, .Height = 40, .Align = {.x = Layout::FILLHORIZONTAL}}, ParentUiContex)->Cpnt;
         // auto titleBox = Ui::Box({ .Width = 40, .Height = 25, .Color = 0xFF00FF }, ParentUiContex);
         // windowInfo->Cpnt->AddChild(titleBox->Cpnt); 
         

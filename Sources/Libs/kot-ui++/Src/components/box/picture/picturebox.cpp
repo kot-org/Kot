@@ -123,7 +123,7 @@ namespace Ui {
         }
         Cpnt->AbsolutePosition = {.x = Cpnt->Parent->AbsolutePosition.x + Picturebox->Style.Position.x, .y = Cpnt->Parent->AbsolutePosition.y + Picturebox->Style.Position.y};
         if(Cpnt->GetStyle()->IsVisible){
-            BlitFramebuffer(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), Picturebox->Style.Position.x, Picturebox->Style.Position.y);
+            BlitFramebuffer(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), Cpnt->Style->Position.x, Cpnt->Style->Position.y);
             // Do not use event
         }
     }

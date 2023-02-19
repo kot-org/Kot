@@ -14,46 +14,28 @@
 namespace Ui {
 
     struct Layout {
-
-        enum ComponentPosition {
-            RELATIVE, // default
-            ABSOLUTE,
+        /* Space */
+        enum ComponentHorizontalSpace {
+            FILLHORIZONTAL = 0,
+            BETWEENHORIZONTAL = 1,
+            AROUNDHORIZONTAL = 2,
+            LEFT    = 3,
+            CENTER  = 4,
+            RIGHT   = 5,
         };
 
-        enum ComponentDirection {
-            HORIZONTAL, // default
-            VERTICAL
-        };
-    
-        /* Display */
-        enum ComponentDisplay {
-            BOX     = 0, // default
-            FLEX    = 1,
-            GRID    = 2,
-        };
-
-        /* Alignment */
-        enum ComponentHorizontalAlign {
-            LEFT    = 0,
-            CENTER  = 1,
-            RIGHT   = 2,
-        };
-
-        enum ComponentVerticalAlign {
-            TOP     = 0,
-            MIDDLE  = 1,
-            BOTTOM  = 2,
+        enum ComponentVerticalSpace {
+            FILLVERTICAL = 0,
+            BETWEENVERTICAL = 1,
+            AROUNDVERTICAL = 2,
+            TOP     = 3,
+            MIDDLE  = 4,
+            BOTTOM  = 5,
         };
 
         struct ComponentAlign_t {
-            ComponentHorizontalAlign x;
-            ComponentVerticalAlign y;
-        };
-
-        /* Space */
-        enum ComponentSpace {
-            BETWEEN = 1,
-            AROUND = 2,
+            ComponentHorizontalSpace x;
+            ComponentVerticalSpace y;
         };
 
     };
@@ -67,11 +49,15 @@ namespace Ui {
             struct ComponentStyle{
                 uint64_t Width;
                 uint64_t Height;
+                point_t Position;
 
                 uint64_t ExternalStyleType;
                 uintptr_t ExternalStyleData;
 
                 bool IsVisible;
+
+                bool IsHorizontalOverflow;
+                bool IsVerticalOverflow;
             };
 
             Component(ComponentStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, class UiContext* ParentUiContex, bool IsUpdateChild);
@@ -100,12 +86,16 @@ namespace Ui {
             bool IsFramebufferUpdate;
             bool UpdateChild;
 
-            point_t AbsolutePosition; 
-            
-        private:
+            point_t AbsolutePosition;            
+
+            Component* VerticalOverflow;
+            Component* HorizontalOverflow;
+
             ComponentStyle* Style;
             uint64_t Deep;
+
             framebuffer_t* Framebuffer;
+            
             vector_t* Childs;
     };
 
@@ -160,6 +150,22 @@ namespace Ui {
     void UpdatePositionBox(point_t Position);
 
     typedef struct {
+        uint64_t Width;
+        uint64_t Height;
+        point_t Position;
+        Layout::ComponentAlign_t Align;
+        bool IsVisible;
+    } FlexboxStyle_t;
+    typedef struct {
+        FlexboxStyle_t Style;
+        Component* Cpnt;
+        color_t CurrentColor;
+    } Flexbox_t;
+    Flexbox_t* Flexbox(FlexboxStyle_t Style, class UiContext* ParentUiContex);
+    void UpdateSizeFlexbox(uint64_t Width, uint64_t Height);
+    void UpdatePositionFlexbox(point_t Position);
+
+    typedef struct {
         uint32_t BackgroundColor;
         uint32_t ForegroundColor;
         bool IsVisible;
@@ -172,19 +178,6 @@ namespace Ui {
     Titlebar_t* Titlebar(char* Title, TitlebarStyle_t Style, class UiContext* ParentUiContex);
     void UpdateSizeTitlebar(uint64_t Width, uint64_t Height);
     void UpdatePositionTitlebar(point_t Position);
-
-}
-
-namespace UiLayout {
-    // Layout::ComponentPosition Position;
-    // Layout::ComponentDisplay Display;
-    // Layout::ComponentDirection Direction;
-    // Layout::ComponentAlign_t Align;
-    // Layout::ComponentSpace Space;
-    void CalculateLayout(Ui::Component* Parent);
-
-    Ui::Component* Flexbox(Ui::Component::ComponentStyle Style, class Ui::UiContext* ParentUiContex);
-    Ui::Component* Gridbox(Ui::Component::ComponentStyle Style, class Ui::UiContext* ParentUiContex);
 
 }
 

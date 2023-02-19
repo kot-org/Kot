@@ -23,11 +23,11 @@ namespace UiWindow {
 
         // Setup window
         this->Wid = CreateWindow(WindowEvent, Window_Type_Default);
-        ResizeWindow(this->Wid, Width + 2, Height + 2);
         WindowChangePosition(this->Wid, XPosition, YPosition);
 
         IsBorders = true;
         if(IsBorders){
+            ResizeWindow(this->Wid, Width + 2, Height + 2);
             BordersCtx = CreateGraphicContext(&Wid->Framebuffer);
             framebuffer_t* FramebufferWithoutBorder = (framebuffer_t*)malloc(sizeof(framebuffer_t));
             FramebufferWithoutBorder->Bpp = Wid->Framebuffer.Bpp;
@@ -41,6 +41,7 @@ namespace UiWindow {
             GraphicCtx = CreateGraphicContext(FramebufferWithoutBorder);
             UiCtx = new Ui::UiContext(FramebufferWithoutBorder);
         }else{
+            ResizeWindow(this->Wid, Width, Height);
             GraphicCtx = CreateGraphicContext(&Wid->Framebuffer);
             UiCtx = new Ui::UiContext(&Wid->Framebuffer);
         }
@@ -51,14 +52,17 @@ namespace UiWindow {
         this->SetContent(imgtest); */
         
         //Titlebar = Ui::Titlebar(title, { .BackgroundColor = 0xffffff, .ForegroundColor = WIN_TBCOLOR_ONBLUR }, UiCtx);
-        for(uint64_t y = 0; y < Height / 20; y++){
-            for(uint64_t x = 0; x < Width / 20; x++){
-                auto iconBox = Ui::Box({ .Width = 20, .Height = 20, .ClickColor = (color_t)0x00ff00, .HoverColor = (color_t)0xff0000, .BackgroundColor = (color_t)0xffffff, .Position{.x = (int64_t)x * 20,  .y = (int64_t)y * 20}, .IsVisible = true }, UiCtx);
-                this->SetContent(iconBox->Cpnt);
+        auto Flex = Ui::Flexbox({.Width = Width, .Height = Height, .Align = {.x = Ui::Layout::FILLHORIZONTAL, .y = Ui::Layout::TOP}}, UiCtx);
+        this->SetContent(Flex->Cpnt);
+        for(uint64_t y = 0; y < 1; y++){
+            for(uint64_t x = 0; x < 5; x++){
+                auto iconBox = Ui::Box({ .Width = 10, .Height = 20, .ClickColor = (color_t)0x00ff00, .HoverColor = (color_t)0xff0000, .BackgroundColor = (color_t)0xffffff, .Position{.x = (int64_t)x * 20,  .y = (int64_t)y * 20}, .IsVisible = true }, UiCtx);
+                Flex->Cpnt->AddChild(iconBox->Cpnt);
+                //this->SetContent(iconBox->Cpnt);
             }
         }
-        auto imageBox = Ui::Picturebox("kotlogo.tga", Ui::PictureboxType::_TGA, { .Width = 205, .Height = 205, .Fit = Ui::PictureboxFit::FILL, .IsVisible = true }, UiCtx);
-        this->SetContent(imageBox->Cpnt);
+        // auto imageBox = Ui::Picturebox("kotlogo.tga", Ui::PictureboxType::_TGA, { .Width = 205, .Height = 205, .Fit = Ui::PictureboxFit::FILL, .IsVisible = true }, UiCtx);
+        // this->SetContent(imageBox->Cpnt);
         //this->SetContent(Titlebar->Cpnt);
  
 /*         auto wrapper = Ui::Box({ .Width = this->UiCtx->fb->Width, .Height = this->UiCtx->fb->Height - titlebar->GetStyle()->Height, .color = WIN_BGCOLOR_ONFOCUS });
@@ -123,7 +127,7 @@ namespace UiWindow {
         int64_t RelativePostionX = PositionX - Wid->Position.x;
         int64_t RelativePostionY = PositionY - Wid->Position.y; 
 
-        if(RelativePostionX >= 0 && RelativePostionY >= 0 && RelativePostionX < Wid->Framebuffer.Width && RelativePostionY < Wid->Framebuffer.Height){
+        if(RelativePostionX >= 0 && RelativePostionY >= 0 && RelativePostionX < UiCtx->EventBuffer->Width && RelativePostionY < UiCtx->EventBuffer->Height){
             Ui::Component* Component = (Ui::Component*)GetEventData(UiCtx->EventBuffer, RelativePostionX, RelativePostionY);
             if(Component){
                 if(Component->MouseEvent){
