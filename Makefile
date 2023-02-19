@@ -1,18 +1,18 @@
-QEMUFLAGS =	-no-reboot 										\
-			-no-shutdown 									\
-			-boot d 										\
-			-M smm=off 										\
-			-serial stdio 									\
-			-machine q35 									\
-			-cpu qemu64 									\
-			-smp 8 											\
-			-cdrom ./Bin/kot.iso							\
-			-drive file=./Build/kot.img						\
-			-m 3G											\
-			-netdev user,id=n0						 		\
-			-device e1000,netdev=n0							\
-			-usb                                            \
-    		-device usb-ehci,id=ehci                        \
+QEMUFLAGS =	-no-reboot 														\
+			-no-shutdown 													\
+			-boot d 														\
+			-M smm=off 														\
+			-serial stdio 													\
+			-machine q35 													\
+			-cpu qemu64 													\
+			-smp 8 															\
+			-cdrom ./Bin/kot.iso											\
+			-drive file=./Build/kot.img										\
+			-m 3G															\
+			-netdev user,id=net0											\
+			-device e1000,netdev=net0,romfile=Bin/Firmwares/efi-e1000.rom	\
+			-usb                                            				\
+    		-device usb-ehci,id=ehci                        				\
 
 build:
 	bash ./Build/build.sh 
