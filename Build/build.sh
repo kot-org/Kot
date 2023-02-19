@@ -10,8 +10,10 @@ mkdir -m 777 -p "Sysroot/Include/kot/"
 mkdir -m 777 -p "Sysroot/Include/kot++/"
 mkdir -m 777 -p "Sysroot/Lib/"
 mkdir -m 777 -p $BINDIR"/Modules/"
+mkdir -m 777 -p $BINDIR"/Firmwares/"
 
-cp -p -R ./Build/Bin/** $BINDIR"/Modules/"
+cp -p -R ./Build/Bin/Modules/** $BINDIR"/Modules/"
+cp -p -R ./Build/Bin/Firmwares/** $BINDIR"/Firmwares/"
 
 cd "Sources/"
 

@@ -26,13 +26,25 @@ typedef struct {
 #define REG_STATUS              0x0008
 #define STATUS_SPEED_MASK       (1 << 6) 
 
-// MAC
-// Receive address
-#define RCV_ADDR_LOW    0x5400
-#define RCV_ADDR_HIGH   0x5404
-#define RAH_AV_MASK     (1 << 31)     
 
 // packet
+// Receive
+#define RCV_ADDR_LOW    0x5400
+#define RCV_ADDR_HIGH   0x5404
+#define RAH_AV_MASK     (1 << 31) // bit "Address valid" sur le registre RAH (Receive address high)  
+
+// Transmit descriptor (TSTD)
+#define TSTD_ADDR_LOW       0x3800
+#define TSTD_ADDR_HIGH      0x3804
+#define TSTD_LENGTH         0x3808
+#define TSTD_HEAD           0x3810
+#define TSTD_TAIL           0x3818
+
+// Transmit control
+#define REG_TST_CTRL    0x0400
+#define TST_EN_MASK     (1 << 1) // Transmit enable
+#define TST_PSP_MASK    (1 << 3) // Pad Short Packets
+
 #define PACKET_SIZE     2048
 
 typedef struct {

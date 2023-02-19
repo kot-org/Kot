@@ -55,7 +55,8 @@ E1000::E1000(srv_pci_device_info_t* DeviceInfo, srv_pci_bar_info_t* BarInfo) {
 }
 
 void E1000::InitTX() {
-    TXDescriptor* TXDesc = (TXDescriptor*) malloc(ChipInfo->NumTXDesc * sizeof(TXDescriptor));
+    uintptr_t TXPhysicalAddr;
+    TXDescriptor* TXDesc = (TXDescriptor*) GetPhysical((uintptr_t*) &TXPhysicalAddr, ChipInfo->NumTXDesc * sizeof(TXDescriptor));
 
     size_t PacketBufferSize = ChipInfo->NumTXDesc * PACKET_SIZE;
     uint8_t* PacketBuffer = (uint8_t*) GetFreeAlignedSpace(PacketBufferSize);
@@ -68,7 +69,17 @@ void E1000::InitTX() {
         TXDesc[i].Status = TX_STATUS_DD;
     }
 
+    WriteRegister(TSTD_ADDR_LOW, (uint32_t)(uint64_t)TXPhysicalAddr);
+    WriteRegister(TSTD_ADDR_HIGH, (uint32_t)(uint64_t)TXPhysicalAddr >> 32);
     
+    WriteRegister(TSTD_LENGTH, ChipInfo->NumTXDesc * sizeof(TXDescriptor));
+
+    // index initialization
+    WriteRegister(TSTD_TAIL, 0);
+    WriteRegister(TSTD_HEAD, 0);
+
+    // activate transmission
+    WriteRegister(REG_TST_CTRL, ReadRegister(REG_TST_CTRL) | TST_EN_MASK | TST_PSP_MASK);
 }
 
 uint16_t E1000::GetSpeed() {

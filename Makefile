@@ -10,7 +10,7 @@ QEMUFLAGS =	-no-reboot 														\
 			-drive file=./Build/kot.img										\
 			-m 3G															\
 			-netdev user,id=net0											\
-			-device e1000,netdev=net0,romfile=Build/Firmwares/efi-e1000.rom	\
+			-device e1000,netdev=net0,romfile=Bin/Firmwares/efi-e1000.rom	\
 			-usb                                            				\
     		-device usb-ehci,id=ehci                        				\
 

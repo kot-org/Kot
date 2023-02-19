@@ -105,6 +105,9 @@ namespace Ui {
                         break;
                 }
             }
+
+            default:
+                break;
         }
     }
     
