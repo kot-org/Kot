@@ -88,11 +88,15 @@ class E1000 {
 
         // packet
         void InitTX();
+        TXDescriptor* TXDesc;
+        uint8_t* TXPacketBuffer;
         // rx
 
     public:
         E1000(srv_pci_device_info_t* DeviceInfo, srv_pci_bar_info_t* BarInfo);
         ~E1000() { }
+
+        void SendPacket(uint8_t* Data, uint32_t Size);
 
         uint16_t GetSpeed();
 };

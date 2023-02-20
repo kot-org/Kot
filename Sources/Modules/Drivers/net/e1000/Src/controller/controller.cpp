@@ -2,6 +2,8 @@
 
 #include <kot++/printf.h>
 
+static uint64_t E1000Lock;
+
 void E1000::WriteRegister(uint16_t Reg, uint32_t Value) {
     if(BarType == PCI_BAR_TYPE_IO) {
         IoWrite32(IoBase, Reg);
@@ -52,20 +54,52 @@ E1000::E1000(srv_pci_device_info_t* DeviceInfo, srv_pci_bar_info_t* BarInfo) {
     std::printf("[NET/E1000] \n DeviceID: 0x%x\n BarType: %d\n Speed: %dMb/s\n MAC address: %x:%x:%x:%x:%x:%x", DeviceInfo->deviceID, BarType, GetSpeed(), MACAddr[0], MACAddr[1], MACAddr[2], MACAddr[3], MACAddr[4], MACAddr[5]);
 
     InitTX();
+
+    uint8_t bufferExample[PACKET_SIZE];
+    memset(bufferExample, 0, PACKET_SIZE);
+
+    uint32_t ipsrc = 0x54400001;
+    uint32_t ipdest = 0x7F000001;
+
+    uint8_t arp_buffer[42];
+
+    // Ethernet header
+    memcpy(&arp_buffer[0], (uintptr_t)"\xff\xff\xff\xff\xff\xff", 6); // Destination MAC address (broadcast)
+    memcpy(&arp_buffer[6], (uintptr_t)MACAddr, 6); // Source MAC address
+    memcpy(&arp_buffer[12], (uintptr_t)"\x08\x06", 2); // Ethernet Type: ARP
+
+    // ARP header
+    memcpy(&arp_buffer[14], (uintptr_t)"\x00\x01", 2); // Hardware Type: Ethernet
+    memcpy(&arp_buffer[16], (uintptr_t)"\x08\x00", 2); // Protocol Type: IPv4
+    arp_buffer[18] = 6; // Hardware Address Length: 6 (Ethernet MAC address)
+    arp_buffer[19] = 4; // Protocol Address Length: 4 (IPv4 address)
+    memcpy(&arp_buffer[20], (uintptr_t)"\x00\x01", 2); // Operation: ARP Request
+    memcpy(&arp_buffer[22], (uintptr_t)MACAddr, 6); // Sender Hardware Address: Source MAC address
+    memcpy(&arp_buffer[28], (uintptr_t)&ipsrc, 4); // Sender Protocol Address: Source IP address
+    memcpy(&arp_buffer[32], (uintptr_t)"\x00\x00\x00\x00\x00\x00", 6); // Target Hardware Address: zero (unknown)
+    memcpy(&arp_buffer[38], (uintptr_t)&ipdest, 4); // Target Protocol Address: Destination IP address
+
+    memcpy(bufferExample, arp_buffer, 42);
+
+/*     for(int i = 0; i < PACKET_SIZE; i++) {
+        std::printf("%x", bufferExample[i]);
+    } */
+
+    SendPacket(bufferExample, PACKET_SIZE);
 }
 
 void E1000::InitTX() {
     uintptr_t TXPhysicalAddr;
-    TXDescriptor* TXDesc = (TXDescriptor*) GetPhysical((uintptr_t*) &TXPhysicalAddr, ChipInfo->NumTXDesc * sizeof(TXDescriptor));
+    TXDesc = (TXDescriptor*) GetPhysical((uintptr_t*) &TXPhysicalAddr, ChipInfo->NumTXDesc * sizeof(TXDescriptor));
 
-    size_t PacketBufferSize = ChipInfo->NumTXDesc * PACKET_SIZE;
-    uint8_t* PacketBuffer = (uint8_t*) GetFreeAlignedSpace(PacketBufferSize);
-    Sys_CreateMemoryField(Proc, PacketBufferSize, (uintptr_t*) &PacketBuffer, NULL, MemoryFieldTypeShareSpaceRW);
+    uint32_t PacketBufferSize = ChipInfo->NumTXDesc * PACKET_SIZE;
+    TXPacketBuffer = (uint8_t*) GetFreeAlignedSpace(PacketBufferSize);
+    Sys_CreateMemoryField(Proc, PacketBufferSize, (uintptr_t*) &TXPacketBuffer, NULL, MemoryFieldTypeShareSpaceRW);
 
     for(uint8_t i = 0; i < ChipInfo->NumTXDesc; i++) {
-        TXDesc[i].BufferAddress = (uint64_t) Sys_GetPhysical(&PacketBuffer[i * PACKET_SIZE]);
+        TXDesc[i].BufferAddress = (uint64_t) Sys_GetPhysical(&TXPacketBuffer[i * PACKET_SIZE]);
         TXDesc[i].Length = 0;
-        TXDesc[i].Cmd = TX_CMD_EOP | TX_CMD_IFCS; // insert FCS (Frame Check Sequence) 
+        TXDesc[i].Cmd = TX_CMD_EOP | TX_CMD_RS | TX_CMD_IFCS; // insert FCS (Frame Check Sequence) 
         TXDesc[i].Status = TX_STATUS_DD;
     }
 
@@ -80,6 +114,31 @@ void E1000::InitTX() {
 
     // activate transmission
     WriteRegister(REG_TST_CTRL, ReadRegister(REG_TST_CTRL) | TST_EN_MASK | TST_PSP_MASK);
+}
+
+void E1000::SendPacket(uint8_t* Data, uint32_t Size) {
+    if(Size > PACKET_SIZE)
+        return;
+
+    atomicAcquire(&E1000Lock, 0);
+    // get the index of the descriptor to use
+    uint8_t Index = (uint8_t) ReadRegister(TSTD_TAIL);
+    
+    while((TXDesc[Index].Status & TX_STATUS_DD) == false);
+
+    std::printf("%d", TXDesc[Index].Status);
+
+    memcpy((uintptr_t)(TXPacketBuffer + Index * PACKET_SIZE), (uintptr_t) Data, Size);
+
+    TXDesc[Index].Length = Size;
+    TXDesc[Index].Status &= ~TX_STATUS_DD; // undone -> status = 0
+
+    WriteRegister(TSTD_TAIL, (Index + 1) % ChipInfo->NumTXDesc);
+
+    while((TXDesc[Index].Status & TX_STATUS_DD) == false);
+
+    Printlog("Packet send");
+    atomicUnlock(&E1000Lock, 0);
 }
 
 uint16_t E1000::GetSpeed() {
