@@ -33,6 +33,10 @@ typedef struct {
 #define RCV_ADDR_HIGH   0x5404
 #define RAH_AV_MASK     (1 << 31) // bit "Address valid" sur le registre RAH (Receive address high)  
 
+// Receive control
+#define REG_RCV_CTRL    0x0100
+#define RCV_EN_MASK     (1 << 1)
+
 // Transmit descriptor (TSTD)
 #define TSTD_ADDR_LOW       0x3800
 #define TSTD_ADDR_HIGH      0x3804
