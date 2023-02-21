@@ -13,6 +13,7 @@ file_t* fopen(char* Path, char* Mode){
             }
             file_t* File = (file_t*)CallbackFile->Data;
             File->Position = NULL;
+            File->Lock = NULL;
             free(CallbackFile);
             return CallbackFile->Data;
         }else if(Mode[1] == '+'){
@@ -23,6 +24,7 @@ file_t* fopen(char* Path, char* Mode){
             }
             file_t* File = (file_t*)CallbackFile->Data;
             File->Position = NULL;
+            File->Lock = NULL;
             free(CallbackFile);
             return CallbackFile->Data;
         }else if(Mode[1] == 'b'){
@@ -35,6 +37,7 @@ file_t* fopen(char* Path, char* Mode){
                 file_t* File = (file_t*)CallbackFile->Data;
                 File->IsBinary = true;
                 File->Position = NULL;
+                File->Lock = NULL;
                 free(CallbackFile);
                 return CallbackFile->Data;
             }else if(Mode[2] == '+'){
@@ -46,6 +49,7 @@ file_t* fopen(char* Path, char* Mode){
                 file_t* File = (file_t*)CallbackFile->Data;
                 File->IsBinary = true;
                 File->Position = NULL;
+                File->Lock = NULL;
                 free(CallbackFile);
                 return CallbackFile->Data;
             }
@@ -59,6 +63,7 @@ file_t* fopen(char* Path, char* Mode){
             }
             file_t* File = (file_t*)CallbackFile->Data;
             File->Position = NULL;
+            File->Lock = NULL;
             free(CallbackFile);
             return CallbackFile->Data;
         }else if(Mode[1] == '+'){
@@ -69,6 +74,7 @@ file_t* fopen(char* Path, char* Mode){
             }
             file_t* File = (file_t*)CallbackFile->Data;
             File->Position = NULL;
+            File->Lock = NULL;
             free(CallbackFile);
             return CallbackFile->Data;
         }else if(Mode[1] == 'b'){
@@ -81,6 +87,7 @@ file_t* fopen(char* Path, char* Mode){
                 file_t* File = (file_t*)CallbackFile->Data;
                 File->IsBinary = true;
                 File->Position = NULL;
+                File->Lock = NULL;
                 free(CallbackFile);
                 return CallbackFile->Data;
             }else if(Mode[2] == '+'){
@@ -92,6 +99,7 @@ file_t* fopen(char* Path, char* Mode){
                 file_t* File = (file_t*)CallbackFile->Data;
                 File->IsBinary = true;
                 File->Position = NULL;
+                File->Lock = NULL;
                 free(CallbackFile);
                 return CallbackFile->Data;
             }
@@ -112,6 +120,7 @@ file_t* fopen(char* Path, char* Mode){
             }
             size64_t Size = CallbackFileSize->Data;
             File->Position = Size;
+            File->Lock = NULL;
             free(CallbackFileSize);
             free(CallbackFile);
             return CallbackFile->Data;
@@ -130,6 +139,7 @@ file_t* fopen(char* Path, char* Mode){
             }
             size64_t Size = CallbackFileSize->Data;
             File->Position = Size;
+            File->Lock = NULL;
             free(CallbackFileSize);
             free(CallbackFile);
             return CallbackFile->Data;
@@ -150,6 +160,7 @@ file_t* fopen(char* Path, char* Mode){
                 size64_t Size = CallbackFileSize->Data;
                 File->IsBinary = true;
                 File->Position = Size;
+                File->Lock = NULL;
                 free(CallbackFile);
                 return CallbackFile->Data;
             }else if(Mode[2] == '+'){
@@ -168,6 +179,7 @@ file_t* fopen(char* Path, char* Mode){
                 size64_t Size = CallbackFileSize->Data;
                 File->IsBinary = true;
                 File->Position = Size;
+                File->Lock = NULL;
                 free(CallbackFile);
                 return CallbackFile->Data;
             }

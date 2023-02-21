@@ -88,7 +88,7 @@ E1000::E1000(srv_pci_device_info_t* DeviceInfo, srv_pci_bar_info_t* BarInfo) {
 
     SendPacket(bufferExample, PACKET_SIZE);
 
-    //ReceivePacket();
+    ReceivePacket();
 }
 
 E1000::~E1000() {
@@ -109,7 +109,7 @@ void E1000::InitTX() {
         TXDesc[i].Length = 0;
         TXDesc[i].Cso = 0;
         TXDesc[i].Cmd = TX_CMD_EOP | TX_CMD_IFCS /* insert FCS (Frame Check Sequence) */ | TX_CMD_RS; 
-        TXDesc[i].Status = 0;
+        TXDesc[i].Status = TX_STATUS_DD;
         TXDesc[i].Css = 0;
         TXDesc[i].Special = 0;
     }
@@ -149,7 +149,7 @@ void E1000::InitRX() {
 
     // index initialization
     WriteRegister(RCVD_TAIL, ChipInfo->NumRXDesc - 1);
-    std::printf("%d", ReadRegister(RCVD_TAIL)); // <---- ERREUR 
+    std::printf("%d", ReadRegister(RCVD_TAIL));
     WriteRegister(RCVD_HEAD, 0);
 
     // activate reception
@@ -164,7 +164,7 @@ void E1000::SendPacket(uint8_t* Data, uint32_t Size) {
     // get the index of the descriptor to use
     uint8_t Index = (uint8_t) ReadRegister(TSTD_TAIL);
     
-    while((TXDesc[Index].Status & TX_STATUS_DD) == false){
+    while(!(TXDesc[Index].Status & TX_STATUS_DD)){
         asm volatile("":::"memory");
     }
 
@@ -176,22 +176,20 @@ void E1000::SendPacket(uint8_t* Data, uint32_t Size) {
 
     WriteRegister(TSTD_TAIL, (Index + 1) % ChipInfo->NumTXDesc);
 
+    atomicUnlock(&E1000Lock, 0);
     // wait for the packet to be sent
-    while((TXDesc[Index].Status & TX_STATUS_DD) == false){
+    while(!(TXDesc[Index].Status & TX_STATUS_DD)){
         asm volatile("":::"memory");
     }
 
-    std::printf("Packet sent TXDescIndex: %d", Index);
-    atomicUnlock(&E1000Lock, 0);
+    std::printf("Packet sent TXDescIndex: %d", TXDesc[Index].Status);
 }
 
 void E1000::ReceivePacket() {
     atomicAcquire(&E1000Lock, 0);
     uint8_t Index = (uint8_t) ReadRegister(RCVD_TAIL);
 
-    std::printf("%d", Index);
-
-    while((RXDesc[Index].Status & TX_STATUS_DD) == false){
+    while(!(TXDesc[Index].Status & TX_STATUS_DD)){
         asm volatile("":::"memory");
     }
 

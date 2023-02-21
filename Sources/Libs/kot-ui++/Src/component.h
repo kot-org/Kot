@@ -5,7 +5,9 @@
 #include <kot/utils/vector.h>
 
 #include <kot-graphics/orb.h>
+#include <kot-graphics/font.h>
 #include <kot-graphics/utils.h>
+
 
 #include <kot-ui++/context.h>
 
@@ -74,6 +76,7 @@ namespace Ui {
             /* Component Framebuffer */
             void CreateFramebuffer(uint32_t Width, uint32_t Height);
             void UpdateFramebuffer(uint32_t Width, uint32_t Height);
+            void UpdateFramebuffer(framebuffer_t* fb);
 
             framebuffer_t* GetFramebuffer();
             ComponentStyle* GetStyle();
@@ -134,10 +137,10 @@ namespace Ui {
         Component* Cpnt;
         uintptr_t Image;
         bool IsDrawUpdate;
+        void UpdateSize(uint64_t Width, uint64_t Height);
+        void UpdatePosition(point_t Position);
     };
     Picturebox_t* Picturebox(char* Path, PictureboxType Type, PictureboxStyle_t Style, class UiContext* ParentUiContex);
-    void UpdateSizePicturebox(uint64_t Width, uint64_t Height);
-    void UpdatePositionPicturebox(point_t Position);
 
     typedef struct {
         uint64_t Width;
@@ -153,10 +156,10 @@ namespace Ui {
         Component* Cpnt;
         color_t CurrentColor;
         bool IsDrawUpdate;
+        void UpdateSize(uint64_t Width, uint64_t Height);
+        void UpdatePosition(point_t Position);
     };
     Box_t* Box(BoxStyle_t Style, class UiContext* ParentUiContex);
-    void UpdateSizeBox(uint64_t Width, uint64_t Height);
-    void UpdatePositionBox(point_t Position);
 
     typedef struct {
         uint64_t Width;
@@ -169,10 +172,10 @@ namespace Ui {
         FlexboxStyle_t Style;
         Component* Cpnt;
         color_t CurrentColor;
+        void UpdateSize(uint64_t Width, uint64_t Height);
+        void UpdatePosition(point_t Position);
     };
     Flexbox_t* Flexbox(FlexboxStyle_t Style, class UiContext* ParentUiContex);
-    void UpdateSizeFlexbox(uint64_t Width, uint64_t Height);
-    void UpdatePositionFlexbox(point_t Position);
 
     typedef struct {
         uint64_t Width;
@@ -185,10 +188,10 @@ namespace Ui {
     struct Gridbox_t{
         GridboxStyle_t Style;
         Component* Cpnt;
+        void UpdateSize(uint64_t Width, uint64_t Height);
+        void UpdatePosition(point_t Position);
     };
     Gridbox_t* Gridbox(GridboxStyle_t Style, class UiContext* ParentUiContex);
-    void UpdateSizeGridbox(uint64_t Width, uint64_t Height);
-    void UpdatePositionGridbox(point_t Position);
 
 
     typedef struct {
@@ -199,6 +202,7 @@ namespace Ui {
         color_t HoverColor;
         color_t ClickColor;
         ButtonHandler OnClick;
+        uintptr_t ExternalData;
         bool IsVisible;
     } ButtonStyle_t;
     struct Button_t{
@@ -206,10 +210,32 @@ namespace Ui {
         Component* Cpnt;
         color_t CurrentColor;
         bool IsDrawUpdate;
+        void UpdateSize(uint64_t Width, uint64_t Height);
+        void UpdatePosition(point_t Position);
     };
     Button_t* Button(ButtonStyle_t Style, class UiContext* ParentUiContex);
-    void UpdateSizeButton(uint64_t Width, uint64_t Height);
-    void UpdatePositionButton(point_t Position);
+
+    typedef struct {
+        uint64_t Width;
+        uint64_t Height;
+        point_t Position;
+        char* Text;
+        char* FontPath;
+        int16_t FontSize;
+        color_t ForegroundColor;
+        bool IsVisible;
+    } LabelStyle_t;
+    struct Label_t{
+        LabelStyle_t Style;
+        Component* Cpnt;
+        color_t CurrentColor;
+        bool IsDrawUpdate;
+        kfont_t* Font;
+        void UpdateText(char* Text);
+        void UpdateSize(uint64_t Width, uint64_t Height);
+        void UpdatePosition(point_t Position);
+    };
+    Label_t* Label(LabelStyle_t Style, class UiContext* ParentUiContex);
 
     typedef struct {
         uint32_t BackgroundColor;
@@ -220,10 +246,10 @@ namespace Ui {
         TitlebarStyle_t Style;
         Component* Cpnt;
         bool IsDrawUpdate;
+        void UpdateSize(uint64_t Width, uint64_t Height);
+        void UpdatePosition(point_t Position);
     };
     Titlebar_t* Titlebar(char* Title, TitlebarStyle_t Style, class UiContext* ParentUiContex);
-    void UpdateSizeTitlebar(uint64_t Width, uint64_t Height);
-    void UpdatePositionTitlebar(point_t Position);
 
 }
 

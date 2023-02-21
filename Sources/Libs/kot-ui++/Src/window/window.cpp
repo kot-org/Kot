@@ -60,16 +60,19 @@ namespace UiWindow {
         //Titlebar = Ui::Titlebar(title, { .BackgroundColor = 0xffffff, .ForegroundColor = WIN_TBCOLOR_ONBLUR }, UiCtx);
         //auto Flex = Ui::Flexbox({.Width = Width, .Height = Height, .Align = {.x = Ui::Layout::FILLHORIZONTAL, .y = Ui::Layout::FILLVERTICAL}}, UiCtx);
         //this->SetContent(Flex->Cpnt);
-        auto Grid = Ui::Gridbox({.Width = Width, .Height = Height, .CaseWidth = 50, .CaseHeight = 50 }, UiCtx);
-        this->SetContent(Grid->Cpnt);
-        for(uint64_t y = 0; y < 5; y++){
-            for(uint64_t x = 0; x < 5; x++){
-                auto iconBox = Ui::Button({ .Width = 20, .Height = 20, .ClickColor = (color_t)0x00ff00, .HoverColor = (color_t)0xff0000, .BackgroundColor = (color_t)0xffffff, .Position{.x = (int64_t)x,  .y = (int64_t)y}, .IsVisible = true, .OnClick = ButtonTest }, UiCtx);
-                //auto imgtest = Ui::Picturebox("kotlogo.tga", Ui::PictureboxType::_TGA, { .Width = 20, .Height = 20, .Position{.x = (int64_t)x,  .y = (int64_t)y}, .IsVisible = true, .Fit=Ui::PICTUREFILL }, UiCtx);
-                Grid->Cpnt->AddChild(iconBox->Cpnt);
-                //this->SetContent(iconBox->Cpnt);
-            }
-        }
+        //auto Grid = Ui::Gridbox({.Width = Width, .Height = Height, .CaseWidth = 50, .CaseHeight = 50 }, UiCtx);
+        // this->SetContent(Grid->Cpnt);
+        // for(uint64_t y = 0; y < 5; y++){
+        //     for(uint64_t x = 0; x < 5; x++){
+        //         auto iconBox = Ui::Button({ .Width = 200, .Height = 200, .ClickColor = (color_t)0x00ff00, .HoverColor = (color_t)0xff0000, .BackgroundColor = (color_t)0xffffff, .Position{.x = (int64_t)x,  .y = (int64_t)y}, .IsVisible = true, .OnClick = ButtonTest }, UiCtx);
+        //         //auto imgtest = Ui::Picturebox("kotlogo.tga", Ui::PictureboxType::_TGA, { .Width = 20, .Height = 20, .Position{.x = (int64_t)x,  .y = (int64_t)y}, .IsVisible = true, .Fit=Ui::PICTUREFILL }, UiCtx);
+        //         auto label = Ui::Label({.Width = 200, .Height = 200, .Text = "Test", .FontPath = "default-font.sfn", .FontSize = 16, .ForegroundColor = (color_t)0x0, .IsVisible = true}, UiCtx);
+        //         this->SetContent(label->Cpnt);
+        //         //this->SetContent(iconBox->Cpnt);
+        //     }
+        // }
+        auto label = Ui::Label({.Width = Width, .Height = Height, .Text = "Test", .FontPath = "default-font.sfn", .FontSize = 16, .ForegroundColor = (color_t)0xffffffff, .IsVisible = true}, UiCtx);
+        this->SetContent(label->Cpnt);
         // auto imageBox = Ui::Picturebox("kotlogo.tga", Ui::PictureboxType::_TGA, { .Width = 205, .Height = 205, .Fit = Ui::PictureboxFit::FILL, .IsVisible = true }, UiCtx);
         // this->SetContent(imageBox->Cpnt);
         //this->SetContent(Titlebar->Cpnt);

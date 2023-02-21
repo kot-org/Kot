@@ -10,7 +10,7 @@ SRCDIR := ../Src
 CC = clang-14
 AR = llvm-ar-14
 
-CFLAGS = -I$(INCDIR) --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -O3
+CFLAGS = -I$(INCDIR) --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -O3 $(_HOME)Sysroot/Lib/libc.a
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
    

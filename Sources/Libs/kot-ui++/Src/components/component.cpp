@@ -60,12 +60,22 @@ namespace Ui {
             this->IsFramebufferUpdate = true;
 
             Framebuffer->Size = Height * Pitch;
+            uintptr_t OldBuffer = Framebuffer->Buffer;
             Framebuffer->Buffer = calloc(Framebuffer->Size);
+            free(OldBuffer);
             Framebuffer->Pitch = Pitch;
             Framebuffer->Width = Width;
             Framebuffer->Height = Height;
         }
-
+    }
+    
+    void Component::UpdateFramebuffer(framebuffer_t* fb) {
+        this->Style->Width = fb->Width;
+        this->Style->Height = fb->Height;
+        this->IsFramebufferUpdate = true;
+        uintptr_t OldBuffer = Framebuffer->Buffer;
+        memcpy(Framebuffer, fb, sizeof(framebuffer_t));
+        free(OldBuffer);
     }
     
     framebuffer_t* Component::GetFramebuffer() {

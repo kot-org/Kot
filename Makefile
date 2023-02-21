@@ -9,7 +9,7 @@ QEMUFLAGS =	-no-reboot 														\
 			-cdrom ./Bin/kot.iso											\
 			-drive file=./Build/kot.img										\
 			-m 3G															\
-			-netdev user,id=net0,hostfwd=tcp::5555-:22						\
+			-netdev user,id=net0											\
 			-device e1000,netdev=net0,romfile=Bin/Firmwares/efi-e1000.rom	\
 			-object filter-dump,id=f1,netdev=net0,file=dump.dat				\
 			-usb                                            				\
