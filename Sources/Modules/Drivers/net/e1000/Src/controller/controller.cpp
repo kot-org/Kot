@@ -35,25 +35,30 @@ E1000::E1000(srv_pci_device_info_t* DeviceInfo, srv_pci_bar_info_t* BarInfo) {
     // reset the device
     WriteRegister(REG_CTRL, ReadRegister(REG_CTRL) | CTRL_RESET_MASK);
 
+    while(ReadRegister(REG_CTRL) & CTRL_RESET_MASK){
+        asm volatile("":::"memory");
+    }
+
     // reconfigure
     WriteRegister(REG_CTRL, ReadRegister(REG_CTRL) | CTRL_ASDE_MASK | CTRL_SLU_MASK);
 
     // get mac address
     /* LOW */
-    MACAddr[0] = (uint8_t) ReadRegister(RCV_ADDR_LOW) & 0xFF;
-    MACAddr[1] = (uint8_t) (ReadRegister(RCV_ADDR_LOW) >> 8) & 0xFF;
-    MACAddr[2] = (uint8_t) (ReadRegister(RCV_ADDR_LOW) >> 16) & 0xFF;
-    MACAddr[3] = (uint8_t) (ReadRegister(RCV_ADDR_LOW) >> 24) & 0xFF;
+    MACAddr[0] = (uint8_t) ReadRegister(RCV_BA_LOW) & 0xFF;
+    MACAddr[1] = (uint8_t) (ReadRegister(RCV_BA_LOW) >> 8) & 0xFF;
+    MACAddr[2] = (uint8_t) (ReadRegister(RCV_BA_LOW) >> 16) & 0xFF;
+    MACAddr[3] = (uint8_t) (ReadRegister(RCV_BA_LOW) >> 24) & 0xFF;
     /* HIGH */
-    MACAddr[4] = (uint8_t) ReadRegister(RCV_ADDR_HIGH) & 0xFF;
-    MACAddr[5] = (uint8_t) (ReadRegister(RCV_ADDR_HIGH) >> 8) & 0xFF;
+    MACAddr[4] = (uint8_t) ReadRegister(RCV_BA_HIGH) & 0xFF;
+    MACAddr[5] = (uint8_t) (ReadRegister(RCV_BA_HIGH) >> 8) & 0xFF;
 
     // set bit "Address valid"
-    WriteRegister(RCV_ADDR_HIGH, ReadRegister(RCV_ADDR_HIGH) | RAH_AV_MASK);
+    WriteRegister(RCV_BA_HIGH, ReadRegister(RCV_BA_HIGH) | RBAH_AV_MASK);
     
     std::printf("[NET/E1000] \n DeviceID: 0x%x\n BarType: %d\n Speed: %dMb/s\n MAC address: %x:%x:%x:%x:%x:%x", DeviceInfo->deviceID, BarType, GetSpeed(), MACAddr[0], MACAddr[1], MACAddr[2], MACAddr[3], MACAddr[4], MACAddr[5]);
 
     InitTX();
+    InitRX();
 
     uint8_t bufferExample[PACKET_SIZE];
     memset(bufferExample, 0, PACKET_SIZE);
@@ -82,6 +87,13 @@ E1000::E1000(srv_pci_device_info_t* DeviceInfo, srv_pci_bar_info_t* BarInfo) {
     memcpy(bufferExample, arp_buffer, 42);
 
     SendPacket(bufferExample, PACKET_SIZE);
+
+    //ReceivePacket();
+}
+
+E1000::~E1000() {
+    /* SYS_Unmap(Proc, TXDesc, ChipInfo->NumTXDesc * sizeof(TXDescriptor));
+    SYS_Unmap(Proc, RXDesc, ChipInfo->NumRXDesc * sizeof(RXDescriptor)); */
 }
 
 void E1000::InitTX() {
@@ -97,7 +109,7 @@ void E1000::InitTX() {
         TXDesc[i].Length = 0;
         TXDesc[i].Cso = 0;
         TXDesc[i].Cmd = TX_CMD_EOP | TX_CMD_IFCS /* insert FCS (Frame Check Sequence) */ | TX_CMD_RS; 
-        TXDesc[i].Status = TX_STATUS_DD;
+        TXDesc[i].Status = 0;
         TXDesc[i].Css = 0;
         TXDesc[i].Special = 0;
     }
@@ -113,6 +125,35 @@ void E1000::InitTX() {
 
     // activate transmission
     WriteRegister(REG_TST_CTRL, ReadRegister(REG_TST_CTRL) | TST_EN_MASK | TST_PSP_MASK);
+}
+
+void E1000::InitRX() {
+    uintptr_t RXDescPhysicalAddr;
+    RXDesc = (RXDescriptor*) GetPhysical((uintptr_t*) &RXDescPhysicalAddr, ChipInfo->NumRXDesc * sizeof(RXDescriptor));
+
+    uint32_t PacketBufferSize = ChipInfo->NumRXDesc * PACKET_SIZE;
+    RXPacketBuffer = (uint8_t*) GetFreeAlignedSpace(PacketBufferSize);
+    Sys_CreateMemoryField(Proc, PacketBufferSize, (uintptr_t*) &RXPacketBuffer, NULL, MemoryFieldTypeShareSpaceRW);
+
+    for(uint8_t i = 0; i < ChipInfo->NumRXDesc; i++) {
+        RXDesc[i].BufferAddress = (uint64_t) Sys_GetPhysical(&RXPacketBuffer[i * PACKET_SIZE]);
+        RXDesc[i].Length = 0;
+        RXDesc[i].Checksum = 0;
+        RXDesc[i].Status = 0;
+        RXDesc[i].Errors = 0;
+        RXDesc[i].Special = 0;
+    }
+
+    WriteRegister(RCVD_ADDR_LOW, (uint32_t) ((uint64_t)RXDescPhysicalAddr & 0xFFFFFFFF));
+    WriteRegister(RCVD_ADDR_HIGH, (uint32_t) ((uint64_t)RXDescPhysicalAddr >> 32));
+
+    // index initialization
+    WriteRegister(RCVD_TAIL, ChipInfo->NumRXDesc - 1);
+    std::printf("%d", ReadRegister(RCVD_TAIL)); // <---- ERREUR 
+    WriteRegister(RCVD_HEAD, 0);
+
+    // activate reception
+    WriteRegister(REG_RCV_CTRL, ReadRegister(REG_RCV_CTRL) | RCV_EN_MASK | RCV_BAM_MASK); // BSIZE is not enabled because PACKET_SIZE <= 2048
 }
 
 void E1000::SendPacket(uint8_t* Data, uint32_t Size) {
@@ -140,7 +181,25 @@ void E1000::SendPacket(uint8_t* Data, uint32_t Size) {
         asm volatile("":::"memory");
     }
 
-    std::printf("Packet Sent TXDescIndex: %d", Index);
+    std::printf("Packet sent TXDescIndex: %d", Index);
+    atomicUnlock(&E1000Lock, 0);
+}
+
+void E1000::ReceivePacket() {
+    atomicAcquire(&E1000Lock, 0);
+    uint8_t Index = (uint8_t) ReadRegister(RCVD_TAIL);
+
+    std::printf("%d", Index);
+
+    while((RXDesc[Index].Status & TX_STATUS_DD) == false){
+        asm volatile("":::"memory");
+    }
+
+    RXDesc[Index].Status &= ~TX_STATUS_DD; // undone -> status = 0
+
+    WriteRegister(RCVD_TAIL, (Index + 1) % ChipInfo->NumTXDesc);
+
+    std::printf("Packet received RXDescIndex: %d", Index);
     atomicUnlock(&E1000Lock, 0);
 }
 
