@@ -35,7 +35,6 @@ namespace UiWindow {
 
             void DrawBorders(uint32_t Color);
 
-            void SetContent(class Ui::Component* content);     
             void Handler(enum Window_Event EventType, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3, uint64_t GP4);
     };
 

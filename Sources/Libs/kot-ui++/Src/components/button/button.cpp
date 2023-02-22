@@ -9,8 +9,8 @@ namespace Ui {
         Button_t* Button = (Button_t*)Cpnt->ExternalData;
         if(Cpnt->IsFramebufferUpdate){
             // Draw
-            Button->Style.Width = Cpnt->GetStyle()->Width;
-            Button->Style.Height = Cpnt->GetStyle()->Height;
+            Button->Style.G.Width.Current = Cpnt->GetStyle()->Width.Current;
+            Button->Style.G.Height.Current = Cpnt->GetStyle()->Height.Current;
 
             ButtonDraw(Button);
             Cpnt->IsFramebufferUpdate = false;
@@ -20,7 +20,7 @@ namespace Ui {
         }
         Cpnt->AbsolutePosition = {.x = Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x, .y = Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y};
         BlitFramebuffer(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), Cpnt->Style->Position.x, Cpnt->Style->Position.y);
-        SetGraphicEventbuffer(Cpnt->UiCtx->EventBuffer, (uint64_t)Cpnt, Button->Style.Width, Button->Style.Height, Cpnt->AbsolutePosition.x, Cpnt->AbsolutePosition.y);
+        SetGraphicEventbuffer(Cpnt->UiCtx->EventBuffer, (uint64_t)Cpnt, Button->Style.G.Width.Current, Button->Style.G.Height.Current, Cpnt->AbsolutePosition.x, Cpnt->AbsolutePosition.y);
     }
 
     void ButtonMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status){
@@ -58,11 +58,11 @@ namespace Ui {
         }
     }
 
-    Button_t* Button(ButtonStyle_t Style, UiContext* ParentUiContex){
+    Button_t* Button(ButtonStyle_t Style, Component* ParentCpnt){
         Button_t* Button = (Button_t*)malloc(sizeof(Button_t));
         memcpy(&Button->Style, &Style, sizeof(ButtonStyle_t));
         Button->CurrentColor = Button->Style.BackgroundColor;
-        Button->Cpnt = new Component({ .Width = Style.Width, .Height = Style.Height, .IsVisible = Style.IsVisible, .Position = {.x = Style.Position.x, .y = Style.Position.y}}, ButtonUpdate, ButtonMouseEvent, (uintptr_t)Button, ParentUiContex, true);
+        Button->Cpnt = new Component(Style.G, ButtonUpdate, ButtonMouseEvent, (uintptr_t)Button, ParentCpnt, true);
         return Button;
     }
 

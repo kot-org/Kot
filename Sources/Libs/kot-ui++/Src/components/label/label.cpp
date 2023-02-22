@@ -3,7 +3,9 @@
 
 namespace Ui {
     void LabelDraw(Label_t* Label){
-        EditPen(Label->Font, NULL, 0, 0, -1, -1, -1);
+        EditPen(Label->Font, NULL, Label->Cpnt->Style->Position.x, Label->Cpnt->Style->Position.y, -1, -1, -1);
+        Label->Cpnt->DrawPosition.x = Label->Cpnt->Style->Position.x;
+        Label->Cpnt->DrawPosition.y = Label->Cpnt->Style->Position.y;
         DrawFont(Label->Font, Label->Style.Text);
     }
 
@@ -11,21 +13,22 @@ namespace Ui {
         Label_t* Label = (Label_t*)Cpnt->ExternalData;
         if(Cpnt->IsFramebufferUpdate){
             // Draw
-            Label->Style.Width = Cpnt->GetStyle()->Width;
-            Label->Style.Height = Cpnt->GetStyle()->Height;
-
             Cpnt->UpdateFramebuffer(Label->Cpnt->Parent->Framebuffer);
             Cpnt->IsFramebufferUpdate = false;
             font_fb_t FontBuffer = {.Address = Label->Cpnt->Framebuffer->Buffer, .Width = Label->Cpnt->Framebuffer->Width, .Height = Label->Cpnt->Framebuffer->Height, .Pitch = Label->Cpnt->Framebuffer->Pitch};
-            LoadPen(Label->Font, &FontBuffer, 0, 0, Label->Style.FontSize, 0, Label->Style.ForegroundColor);
+            LoadPen(Label->Font, &FontBuffer, Cpnt->Style->Position.x, Cpnt->Style->Position.y, Label->Style.FontSize, 0, Label->Style.ForegroundColor);
         }else if(Label->IsDrawUpdate){
             Label->IsDrawUpdate = false;
+            LabelDraw(Label);
         }
         Cpnt->AbsolutePosition = {.x = Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x, .y = Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y};
-        LabelDraw(Label);
+        if(Cpnt->Parent->IsRedraw || Cpnt->DrawPosition.x != Cpnt->Style->Position.x || Cpnt->DrawPosition.y != Cpnt->Style->Position.y){
+            Cpnt->IsRedraw = true;
+            LabelDraw(Label);
+        }
     }
 
-    Label_t* Label(LabelStyle_t Style, UiContext* ParentUiContex){
+    Label_t* Label(LabelStyle_t Style, Component* ParentCpnt){
         // Load font
         file_t* FontFile = fopen(Style.FontPath, "rb");
         if(FontFile == NULL){
@@ -43,7 +46,7 @@ namespace Ui {
         memcpy(&Label->Style, &Style, sizeof(LabelStyle_t));
         Label->Style.Text = (char*)malloc(strlen(Style.Text));
         strcpy(Label->Style.Text, Style.Text);
-        Label->Cpnt = new Component({ .Width = Style.Width, .Height = Style.Height, .IsVisible = Style.IsVisible, .Position = {.x = Style.Position.x, .y = Style.Position.y}}, LabelUpdate, NULL, (uintptr_t)Label, ParentUiContex, true);
+        Label->Cpnt = new Component(Style.G, LabelUpdate, NULL, (uintptr_t)Label, ParentCpnt, true);
         return Label;
     }
 

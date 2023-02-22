@@ -1,39 +1,24 @@
 #include <kot-ui++/component.h>
 
-namespace Ui {
-    void TitlebarDraw(Component* Cpnt){
-        Titlebar_t* Titlebar = (Titlebar_t*)Cpnt->ExternalData;
-        memset32(Titlebar->Cpnt->GetFramebuffer()->Buffer, Titlebar->Style.BackgroundColor, Titlebar->Cpnt->GetFramebuffer()->Size);
-    }
+#define Titlebar_Height 40
+#define Titlebar_FontSize 16
 
-    Titlebar_t* Titlebar(char* Title, TitlebarStyle_t Style, UiContext* ParentUiContex) {
-        /* todo: drag region */
-        /* todo: replace Width: 500 -> 100% */
+namespace Ui {
+    Titlebar_t* Titlebar(char* Title, TitlebarStyle_t Style, Component* ParentCpnt) {
         Titlebar_t* Titlebar = (Titlebar_t*)malloc(sizeof(Titlebar_t));
         memcpy(&Titlebar->Style, &Style, sizeof(TitlebarStyle_t));
-        // Titlebar->Cpnt = UiLayout::Flexbox({ .Direction = Layout::HORIZONTAL, .Space = Layout::BETWEEN, .Width = 500}, ParentUiContex);
-        // Titlebar->Cpnt->ExternalData = Titlebar;
-        
-        // //auto windowInfo = Ui::Box({ .Width = Titlebar->Cpnt->GetStyle()->Width/2, .Height = 40, .Color = 0xFF0000 }, ParentUiContex);
-        
-        // for(uint64_t i = 0; i < 25; i++){
-        //     auto iconBox = Ui::Box({ .Width = 20, .Height = 20, .Color = (uint32_t)(0xff << i) }, ParentUiContex);
-        //     Titlebar->Cpnt->AddChild(iconBox->Cpnt); 
-        // }
-        auto iconBox = Ui::Box({ .Width = 20, .Height = 20, .HoverColor = (color_t)0xff0000, .BackgroundColor = (color_t)0xffffff, .Position{.x = 0,  .y = 0} }, ParentUiContex);
-        Titlebar->Cpnt = Flexbox({.Width = 40, .Height = 40, .Align = {.x = Layout::FILLHORIZONTAL}}, ParentUiContex)->Cpnt;
-        // auto titleBox = Ui::Box({ .Width = 40, .Height = 25, .Color = 0xFF00FF }, ParentUiContex);
-        // windowInfo->Cpnt->AddChild(titleBox->Cpnt); 
-        
-
-        // auto buttons = Ui::Box({ .Height = 25, .Width = 60, .Color = 0xffffff }, ParentUiContex);
-        //Titlebar->Cpnt->AddChild(windowInfo->Cpnt);
-
-        /* auto box2box = Ui::box({ .Width = 10, .Height = 10, .color = 0xFFFF00 });
-        buttons->addChild(box2box);  */
-        
-        // Titlebar->Cpnt->AddChild(buttons->Cpnt);
-
+        Titlebar->MainBox = Box({.G.Width.Normal = -100, .G.Height.Normal = Titlebar_Height, .BackgroundColor = Titlebar->Style.BackgroundColor, .ClickColor = Titlebar->Style.BackgroundColor, .HoverColor = Titlebar->Style.BackgroundColor, .G.IsVisible = true}, ParentCpnt);
+        Titlebar->Cpnt = Titlebar->MainBox->Cpnt;
+        // Titlebar->Title = Label({.FontSize = Titlebar_FontSize, .Text  = Title, .FontPath = "default-font.sfn", .G.Width.Normal = Titlebar->Cpnt->Style->Width, .G.Height.Normal = Titlebar->Cpnt->Style->Height, .ForegroundColor = Titlebar->Style.ForegroundColor, .G.IsVisible = true}, ParentUiContex);
+        // Titlebar->Cpnt->AddChild(Titlebar->Title->Cpnt);
+        // Titlebar->CloseBtn = Button({.BackgroundColor = Titlebar->Style.BackgroundColor, .G.Width.Normal = Titlebar_Height, .G.Height.Normal = Titlebar_Height, .Position{.x = (int64_t)(Titlebar->Cpnt->Style->Width - Titlebar_Height), .y = 0}, .G.IsVisible = true}, ParentUiContex);
+        // Titlebar->Cpnt->AddChild(Titlebar->CloseBtn->Cpnt);
+        // Picturebox_t* CloseImage = Picturebox("kotlogo.tga", _TGA, {.Fit = PICTUREFILL, .G.Width.Normal = Titlebar_Height, .G.Height.Normal = Titlebar_Height, .IsVisible = true}, ParentUiContex);
+        // Titlebar->CloseBtn->Cpnt->AddChild(CloseImage->Cpnt);
+        // Titlebar->SizeBtn = Button({.BackgroundColor = Titlebar->Style.BackgroundColor, .G.Width.Normal = Titlebar_Height, .G.Height.Normal = Titlebar_Height, .Position{.x = (int64_t)(Titlebar->CloseBtn->Cpnt->Style->Position.x - Titlebar->CloseBtn->Cpnt->Style->Width.Current), .y = 0}, .G.IsVisible = true}, ParentUiContex);
+        // Titlebar->Cpnt->AddChild(Titlebar->SizeBtn->Cpnt);
+        // Titlebar->HideBtn = Button({.BackgroundColor = Titlebar->Style.BackgroundColor, .G.Width.Normal = Titlebar_Height, .G.Height.Normal = Titlebar_Height, .Position{.x = (int64_t)(Titlebar->SizeBtn->Cpnt->Style->Position.x - Titlebar->SizeBtn->Cpnt->Style->Width.Current), .y = 0}, .G.IsVisible = true}, ParentUiContex);
+        // Titlebar->Cpnt->AddChild(Titlebar->HideBtn->Cpnt);
         return Titlebar;
     }
 

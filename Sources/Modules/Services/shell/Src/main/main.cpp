@@ -18,7 +18,7 @@ extern "C" int main() {
     fread(Buffer, Size, 1, FontFile);
     Font = (kfont_t*)LoadFont(Buffer);
 
-    NewShell();
+    //NewShell();
 
     return KSUCCESS;
 }

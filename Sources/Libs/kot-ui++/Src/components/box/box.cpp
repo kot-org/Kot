@@ -2,6 +2,7 @@
 
 namespace Ui {
     void BoxDraw(Box_t* Box){
+        Box->Cpnt->IsRedraw = true;
         memset32(Box->Cpnt->GetFramebuffer()->Buffer, Box->CurrentColor, Box->Cpnt->GetFramebuffer()->Size);
     }
 
@@ -9,8 +10,8 @@ namespace Ui {
         Box_t* Box = (Box_t*)Cpnt->ExternalData;
         if(Cpnt->IsFramebufferUpdate){
             // Draw
-            Box->Style.Width = Cpnt->GetStyle()->Width;
-            Box->Style.Height = Cpnt->GetStyle()->Height;
+            Box->Style.G.Width.Current = Cpnt->GetStyle()->Width.Current;
+            Box->Style.G.Height.Current = Cpnt->GetStyle()->Height.Current;
 
             BoxDraw(Box);
             Cpnt->IsFramebufferUpdate = false;
@@ -20,7 +21,7 @@ namespace Ui {
         }
         Cpnt->AbsolutePosition = {.x = Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x, .y = Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y};
         BlitFramebuffer(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), Cpnt->Style->Position.x, Cpnt->Style->Position.y);
-        SetGraphicEventbuffer(Cpnt->UiCtx->EventBuffer, (uint64_t)Cpnt, Box->Style.Width, Box->Style.Height, Cpnt->AbsolutePosition.x, Cpnt->AbsolutePosition.y);
+        SetGraphicEventbuffer(Cpnt->UiCtx->EventBuffer, (uint64_t)Cpnt, Box->Style.G.Width.Current, Box->Style.G.Height.Current, Cpnt->AbsolutePosition.x, Cpnt->AbsolutePosition.y);
     }
 
     void BoxMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status){
@@ -49,11 +50,11 @@ namespace Ui {
         }
     }
 
-    Box_t* Box(BoxStyle_t Style, UiContext* ParentUiContex){
+    Box_t* Box(BoxStyle_t Style, Component* ParentCpnt){
         Box_t* Box = (Box_t*)malloc(sizeof(Box_t));
         memcpy(&Box->Style, &Style, sizeof(BoxStyle_t));
         Box->CurrentColor = Box->Style.BackgroundColor;
-        Box->Cpnt = new Component({ .Width = Style.Width, .Height = Style.Height, .IsVisible = Style.IsVisible, .Position = {.x = Style.Position.x, .y = Style.Position.y}}, BoxUpdate, BoxMouseEvent, (uintptr_t)Box, ParentUiContex, true);
+        Box->Cpnt = new Component({ Box->Style.G }, BoxUpdate, BoxMouseEvent, (uintptr_t)Box, ParentCpnt, true);
         return Box;
     }
 

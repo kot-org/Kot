@@ -48,13 +48,13 @@ void LoadPen(kfont_t* font, font_fb_t* buffer, int64_t x, int64_t y, int16_t siz
         Pen->w = buffer->Width;
         Pen->h = buffer->Height;
         Pen->p = buffer->Pitch;
-        Pen->x = x;
         Pen->y = y;
         Pen->fg = color;
         Pen->bg = 0x0;
 
         ssfn_select(font->FontContext, SSFN_FAMILY_ANY, NULL, style, size);
         ssfn_newline(font->FontContext, font->PenContext);
+        Pen->x = x;
         font->IsPen = true;
     }
 }
@@ -67,9 +67,6 @@ void EditPen(kfont_t* font, font_fb_t* buffer, int64_t x, int64_t y, int16_t siz
         Pen->w = buffer->Width;
         Pen->h = buffer->Height;
         Pen->p = buffer->Pitch;
-    }
-    if(x >= 0){
-        Pen->x = x;
     }
     if(y >= 0){
         Pen->y = y;
@@ -86,8 +83,11 @@ void EditPen(kfont_t* font, font_fb_t* buffer, int64_t x, int64_t y, int16_t siz
     if(color >= 0){
         Pen->fg = color;
     }
-
     ssfn_newline(font->FontContext, font->PenContext);
+    if(x >= 0){
+        Pen->x = x;
+    }
+
     font->IsPen = true;
 }
 

@@ -11,8 +11,6 @@
 
 #include <kot-ui++/context.h>
 
-
-
 namespace Ui {
 
     struct Layout {
@@ -54,24 +52,42 @@ namespace Ui {
     typedef void (*UpdateHandler)(class Component* Component);
     typedef void (*ButtonHandler)(struct Button_t* Button, ButtonEventType EventType);
 
+    struct CoponentSize{
+        uint64_t Max;
+        uint64_t Min;
+        int64_t Normal;
+        uint64_t Current;
+    };
+
+    struct Margin{
+        uint64_t Top;
+        uint64_t Bottom;
+        uint64_t Left;
+        uint64_t Right;
+    };
+
+    struct ComponentGeneralStyle{
+        CoponentSize Width;
+        CoponentSize Height;
+
+        Margin Margin;
+
+        point_t Position;
+
+        uint64_t ZIndex; // TODO
+
+        uint64_t ExternalStyleType;
+        uintptr_t ExternalStyleData;
+
+        bool IsVisible;
+
+        bool IsHorizontalOverflow;
+        bool IsVerticalOverflow;
+    };
 
     class Component {
         public:
-            struct ComponentStyle{
-                uint64_t Width;
-                uint64_t Height;
-                point_t Position;
-
-                uint64_t ExternalStyleType;
-                uintptr_t ExternalStyleData;
-
-                bool IsVisible;
-
-                bool IsHorizontalOverflow;
-                bool IsVerticalOverflow;
-            };
-
-            Component(ComponentStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, class UiContext* ParentUiContex, bool IsUpdateChild);
+            Component(ComponentGeneralStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, class Component* ParentCpnt, bool IsUpdateChild);
 
             /* Component Framebuffer */
             void CreateFramebuffer(uint32_t Width, uint32_t Height);
@@ -79,16 +95,13 @@ namespace Ui {
             void UpdateFramebuffer(framebuffer_t* fb);
 
             framebuffer_t* GetFramebuffer();
-            ComponentStyle* GetStyle();
+            ComponentGeneralStyle* GetStyle();
             vector_t* GetChilds();
             uint32_t GetTotalWidthChilds();
             uint32_t GetTotalHeightChilds();
 
             void Update();
-            
-            // todo: remove
 
-            void AddChild(Component* Child);
 
             MouseEventHandler MouseEvent;
             UpdateHandler UpdateFunction;
@@ -97,18 +110,23 @@ namespace Ui {
             class UiContext* UiCtx;
             bool IsFramebufferUpdate;
             bool UpdateChild;
+            bool IsRedraw;
 
+            point_t DrawPosition;            
             point_t AbsolutePosition;            
 
             Component* VerticalOverflow;
             Component* HorizontalOverflow;
 
-            ComponentStyle* Style;
+            ComponentGeneralStyle* Style;
             uint64_t Deep;
 
             framebuffer_t* Framebuffer;
             
             vector_t* Childs;
+
+            // Component.cpp private function
+            void AddChild(Component* Child);
     };
 
     /* components */
@@ -125,11 +143,8 @@ namespace Ui {
         PICTURESTRETCH = 3,
     };
     typedef struct {
-        uint64_t Width;
-        uint64_t Height;
-        point_t Position;
+        ComponentGeneralStyle G;
         PictureboxFit Fit;
-        bool IsVisible;
     } PictureboxStyle_t;
     struct Picturebox_t{
         PictureboxType Type;
@@ -140,16 +155,13 @@ namespace Ui {
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
-    Picturebox_t* Picturebox(char* Path, PictureboxType Type, PictureboxStyle_t Style, class UiContext* ParentUiContex);
+    Picturebox_t* Picturebox(char* Path, PictureboxType Type, PictureboxStyle_t Style, class Component* ParentCpnt);
 
     typedef struct {
-        uint64_t Width;
-        uint64_t Height;
-        point_t Position;
+        ComponentGeneralStyle G;
         color_t BackgroundColor;
         color_t HoverColor;
         color_t ClickColor;
-        bool IsVisible;
     } BoxStyle_t;
     struct Box_t{
         BoxStyle_t Style;
@@ -159,14 +171,11 @@ namespace Ui {
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
-    Box_t* Box(BoxStyle_t Style, class UiContext* ParentUiContex);
+    Box_t* Box(BoxStyle_t Style, class Component* ParentCpnt);
 
     typedef struct {
-        uint64_t Width;
-        uint64_t Height;
-        point_t Position;
+        ComponentGeneralStyle G;
         Layout::ComponentAlign_t Align;
-        bool IsVisible;
     } FlexboxStyle_t;
     struct Flexbox_t{
         FlexboxStyle_t Style;
@@ -175,15 +184,12 @@ namespace Ui {
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
-    Flexbox_t* Flexbox(FlexboxStyle_t Style, class UiContext* ParentUiContex);
+    Flexbox_t* Flexbox(FlexboxStyle_t Style, class Component* ParentCpnt);
 
     typedef struct {
-        uint64_t Width;
-        uint64_t Height;
+        ComponentGeneralStyle G;
         uint64_t CaseWidth;
         uint64_t CaseHeight;
-        point_t Position;
-        bool IsVisible;
     } GridboxStyle_t;
     struct Gridbox_t{
         GridboxStyle_t Style;
@@ -191,19 +197,16 @@ namespace Ui {
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
-    Gridbox_t* Gridbox(GridboxStyle_t Style, class UiContext* ParentUiContex);
+    Gridbox_t* Gridbox(GridboxStyle_t Style, class Component* ParentCpnt);
 
 
     typedef struct {
-        uint64_t Width;
-        uint64_t Height;
-        point_t Position;
+        ComponentGeneralStyle G;
         color_t BackgroundColor;
         color_t HoverColor;
         color_t ClickColor;
         ButtonHandler OnClick;
         uintptr_t ExternalData;
-        bool IsVisible;
     } ButtonStyle_t;
     struct Button_t{
         ButtonStyle_t Style;
@@ -213,17 +216,14 @@ namespace Ui {
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
-    Button_t* Button(ButtonStyle_t Style, class UiContext* ParentUiContex);
+    Button_t* Button(ButtonStyle_t Style, class Component* ParentCpnt);
 
     typedef struct {
-        uint64_t Width;
-        uint64_t Height;
-        point_t Position;
+        ComponentGeneralStyle G;
         char* Text;
         char* FontPath;
         int16_t FontSize;
         color_t ForegroundColor;
-        bool IsVisible;
     } LabelStyle_t;
     struct Label_t{
         LabelStyle_t Style;
@@ -235,7 +235,7 @@ namespace Ui {
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
-    Label_t* Label(LabelStyle_t Style, class UiContext* ParentUiContex);
+    Label_t* Label(LabelStyle_t Style, class Component* ParentCpnt);
 
     typedef struct {
         uint32_t BackgroundColor;
@@ -245,11 +245,17 @@ namespace Ui {
     struct Titlebar_t{
         TitlebarStyle_t Style;
         Component* Cpnt;
+        Box_t* MainBox;
+        Flexbox_t* TitleBox;
+        Label_t* Title;
+        Button_t* CloseBtn;
+        Button_t* SizeBtn;
+        Button_t* HideBtn;
         bool IsDrawUpdate;
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
-    Titlebar_t* Titlebar(char* Title, TitlebarStyle_t Style, class UiContext* ParentUiContex);
+    Titlebar_t* Titlebar(char* Title, TitlebarStyle_t Style, class Component* ParentCpnt);
 
 }
 

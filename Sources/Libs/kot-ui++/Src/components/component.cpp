@@ -2,31 +2,59 @@
 
 namespace Ui {
 
-    Component::Component(ComponentStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, UiContext* ParentUiContex, bool IsUpdateChild){
+    Component::Component(ComponentGeneralStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, Component* ParentCpnt, bool IsUpdateChild){
         /* Style */
-        ComponentStyle* CpntStyle = (ComponentStyle*)malloc(sizeof(ComponentStyle));
-
-        /* Layout */
-        memcpy(CpntStyle, &Style, sizeof(ComponentStyle));
-
-        CreateFramebuffer(CpntStyle->Width, CpntStyle->Height);
+        ComponentGeneralStyle* CpntStyle = (ComponentGeneralStyle*)malloc(sizeof(ComponentGeneralStyle));
 
         /* Component */
         this->Style = CpntStyle;
         this->Childs = NULL;
-        this->Parent = NULL;
         this->Deep = 0;
-        this->UiCtx = ParentUiContex;
+        this->Parent = ParentCpnt;
         this->UpdateFunction = HandlerUpdate;
         this->MouseEvent = HandlerMouseEvent;
         this->ExternalData = ExternalData;
         this->AbsolutePosition = {.x = 0, .y = 0};
         this->UpdateChild = IsUpdateChild;
+        this->IsRedraw = true;
+
+        /* Layout */
+        memcpy(CpntStyle, &Style, sizeof(ComponentGeneralStyle));
+
+        if(CpntStyle->Width.Normal < 0){
+            CpntStyle->Width.Current = (Parent->Style->Width.Current * abs(CpntStyle->Width.Normal)) / 100;
+            if(CpntStyle->Width.Current < CpntStyle->Width.Min){
+                CpntStyle->Width.Current = CpntStyle->Width.Min;
+            }else if(CpntStyle->Width.Current < CpntStyle->Width.Max){
+                CpntStyle->Width.Current = CpntStyle->Width.Max;
+            }
+        }else{
+            CpntStyle->Width.Current = CpntStyle->Width.Normal;
+        }
+
+        if(CpntStyle->Height.Normal < 0){
+            CpntStyle->Height.Current = (Parent->Style->Height.Current * abs(CpntStyle->Height.Normal)) / 100;
+            if(CpntStyle->Height.Current < CpntStyle->Height.Min){
+                CpntStyle->Height.Current = CpntStyle->Height.Min;
+            }else if(CpntStyle->Height.Current < CpntStyle->Height.Max){
+                CpntStyle->Height.Current = CpntStyle->Height.Max;
+            }
+        }else{
+            CpntStyle->Height.Current = CpntStyle->Height.Normal;
+        }
+
+        CreateFramebuffer(CpntStyle->Width.Current, CpntStyle->Height.Current);
+
         if(Style.IsHorizontalOverflow){
             this->HorizontalOverflow = this;
         }
         if(Style.IsVerticalOverflow){
             this->VerticalOverflow = this;
+        }
+
+        if(this->Parent){
+            this->UiCtx = Parent->UiCtx;
+            ParentCpnt->AddChild(this);
         }
     }
 
@@ -54,8 +82,8 @@ namespace Ui {
         if(Framebuffer->Width != Width || Framebuffer->Height != Height) {
             uint32_t Pitch = Width * sizeof(uint32_t);
 
-            this->Style->Width = Width;
-            this->Style->Height = Height;
+            this->Style->Width.Current = Width;
+            this->Style->Height.Current = Height;
 
             this->IsFramebufferUpdate = true;
 
@@ -66,15 +94,14 @@ namespace Ui {
             Framebuffer->Pitch = Pitch;
             Framebuffer->Width = Width;
             Framebuffer->Height = Height;
+            this->IsFramebufferUpdate = true;
         }
     }
     
     void Component::UpdateFramebuffer(framebuffer_t* fb) {
-        this->Style->Width = fb->Width;
-        this->Style->Height = fb->Height;
-        this->IsFramebufferUpdate = true;
         uintptr_t OldBuffer = Framebuffer->Buffer;
         memcpy(Framebuffer, fb, sizeof(framebuffer_t));
+        this->IsFramebufferUpdate = true;
         free(OldBuffer);
     }
     
@@ -82,7 +109,7 @@ namespace Ui {
         return this->Framebuffer;
     }
 
-    Component::ComponentStyle* Component::GetStyle() {
+    ComponentGeneralStyle* Component::GetStyle() {
         return this->Style;
     }
 
@@ -94,10 +121,32 @@ namespace Ui {
         if(Childs != NULL && UpdateChild && Style->IsVisible){
             for(uint64_t i = 0; i < Childs->length; i++) {
                 Component* Child = (Component*)vector_get(Childs, i);
+                if(Child->Style->Width.Normal < 0){
+                    Child->Style->Width.Current = (Style->Width.Current * abs(Child->Style->Width.Normal)) / 100;
+                    if(Child->Style->Width.Current < Child->Style->Width.Min){
+                        Child->Style->Width.Current = Child->Style->Width.Min;
+                    }else if(Child->Style->Width.Current < Child->Style->Width.Max){
+                        Child->Style->Width.Current = Child->Style->Width.Max;
+                    }
+                }else{
+                    Child->Style->Width.Current = Child->Style->Width.Normal;
+                }
+
+                if(Child->Style->Height.Normal < 0){
+                    Child->Style->Height.Current = (Style->Height.Current * abs(Child->Style->Height.Normal)) / 100;
+                    if(Child->Style->Height.Current < Child->Style->Height.Min){
+                        Child->Style->Height.Current = Child->Style->Height.Min;
+                    }else if(Child->Style->Height.Current < Child->Style->Height.Max){
+                        Child->Style->Height.Current = Child->Style->Height.Max;
+                    }
+                }else{
+                    Child->Style->Height.Current = Child->Style->Height.Normal;
+                }
                 Child->UpdateFunction(Child);
                 Child->Update();
             }
         }
+        IsRedraw = false;
     }
 
     void Component::AddChild(Component* Child) {
