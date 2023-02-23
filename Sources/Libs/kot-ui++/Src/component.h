@@ -67,10 +67,19 @@ namespace Ui {
     };
 
     struct ComponentGeneralStyle{
-        CoponentSize Width;
-        CoponentSize Height;
+        uint64_t Maxwidth;
+        uint64_t Minwidth;
+        uint64_t Currentwidth;
+        int64_t Width;
+
+        uint64_t Maxheight;
+        uint64_t Minheight;
+        uint64_t Currentheight;
+        int64_t Height;
 
         Margin Margin;
+
+        bool AutoPosition;
 
         point_t Position;
 
@@ -87,12 +96,11 @@ namespace Ui {
 
     class Component {
         public:
-            Component(ComponentGeneralStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, class Component* ParentCpnt, bool IsUpdateChild);
+            Component(ComponentGeneralStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, class Component* ParentCpnt, bool IsUpdateChild, bool IsOwnFb);
 
             /* Component Framebuffer */
             void CreateFramebuffer(uint32_t Width, uint32_t Height);
             void UpdateFramebuffer(uint32_t Width, uint32_t Height);
-            void UpdateFramebuffer(framebuffer_t* fb);
 
             framebuffer_t* GetFramebuffer();
             ComponentGeneralStyle* GetStyle();
@@ -247,6 +255,7 @@ namespace Ui {
         Component* Cpnt;
         Box_t* MainBox;
         Flexbox_t* TitleBox;
+        Picturebox_t* Logo;
         Label_t* Title;
         Button_t* CloseBtn;
         Button_t* SizeBtn;
@@ -255,7 +264,7 @@ namespace Ui {
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
-    Titlebar_t* Titlebar(char* Title, TitlebarStyle_t Style, class Component* ParentCpnt);
+    Titlebar_t* Titlebar(char* Title, char* Icon, TitlebarStyle_t Style, class Component* ParentCpnt);
 
 }
 

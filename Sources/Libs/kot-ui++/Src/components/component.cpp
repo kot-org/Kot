@@ -2,7 +2,7 @@
 
 namespace Ui {
 
-    Component::Component(ComponentGeneralStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, Component* ParentCpnt, bool IsUpdateChild){
+    Component::Component(ComponentGeneralStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, Component* ParentCpnt, bool IsUpdateChild, bool IsOwnFb){
         /* Style */
         ComponentGeneralStyle* CpntStyle = (ComponentGeneralStyle*)malloc(sizeof(ComponentGeneralStyle));
 
@@ -21,29 +21,33 @@ namespace Ui {
         /* Layout */
         memcpy(CpntStyle, &Style, sizeof(ComponentGeneralStyle));
 
-        if(CpntStyle->Width.Normal < 0){
-            CpntStyle->Width.Current = (Parent->Style->Width.Current * abs(CpntStyle->Width.Normal)) / 100;
-            if(CpntStyle->Width.Current < CpntStyle->Width.Min){
-                CpntStyle->Width.Current = CpntStyle->Width.Min;
-            }else if(CpntStyle->Width.Current < CpntStyle->Width.Max){
-                CpntStyle->Width.Current = CpntStyle->Width.Max;
+        if(CpntStyle->Width < 0){
+            CpntStyle->Currentwidth = (Parent->Style->Currentwidth * abs(CpntStyle->Width)) / 100;
+            if(CpntStyle->Currentwidth < CpntStyle->Minwidth){
+                CpntStyle->Currentwidth = CpntStyle->Minwidth;
+            }else if(CpntStyle->Currentwidth < CpntStyle->Maxwidth){
+                CpntStyle->Currentwidth = CpntStyle->Maxwidth;
             }
         }else{
-            CpntStyle->Width.Current = CpntStyle->Width.Normal;
+            CpntStyle->Currentwidth = CpntStyle->Width;
         }
 
-        if(CpntStyle->Height.Normal < 0){
-            CpntStyle->Height.Current = (Parent->Style->Height.Current * abs(CpntStyle->Height.Normal)) / 100;
-            if(CpntStyle->Height.Current < CpntStyle->Height.Min){
-                CpntStyle->Height.Current = CpntStyle->Height.Min;
-            }else if(CpntStyle->Height.Current < CpntStyle->Height.Max){
-                CpntStyle->Height.Current = CpntStyle->Height.Max;
+        if(CpntStyle->Height < 0){
+            CpntStyle->Currentheight = (Parent->Style->Currentheight * abs(CpntStyle->Height)) / 100;
+            if(CpntStyle->Currentheight < CpntStyle->Minheight){
+                CpntStyle->Currentheight = CpntStyle->Minheight;
+            }else if(CpntStyle->Currentheight < CpntStyle->Maxheight){
+                CpntStyle->Currentheight = CpntStyle->Maxheight;
             }
         }else{
-            CpntStyle->Height.Current = CpntStyle->Height.Normal;
+            CpntStyle->Currentheight = CpntStyle->Height;
         }
 
-        CreateFramebuffer(CpntStyle->Width.Current, CpntStyle->Height.Current);
+        if(IsOwnFb){
+            CreateFramebuffer(CpntStyle->Currentwidth, CpntStyle->Currentheight);
+        }else{
+            this->Framebuffer = this->Parent->Framebuffer;
+        }
 
         if(Style.IsHorizontalOverflow){
             this->HorizontalOverflow = this;
@@ -82,8 +86,8 @@ namespace Ui {
         if(Framebuffer->Width != Width || Framebuffer->Height != Height) {
             uint32_t Pitch = Width * sizeof(uint32_t);
 
-            this->Style->Width.Current = Width;
-            this->Style->Height.Current = Height;
+            this->Style->Currentwidth = Width;
+            this->Style->Currentheight = Height;
 
             this->IsFramebufferUpdate = true;
 
@@ -96,13 +100,6 @@ namespace Ui {
             Framebuffer->Height = Height;
             this->IsFramebufferUpdate = true;
         }
-    }
-    
-    void Component::UpdateFramebuffer(framebuffer_t* fb) {
-        uintptr_t OldBuffer = Framebuffer->Buffer;
-        memcpy(Framebuffer, fb, sizeof(framebuffer_t));
-        this->IsFramebufferUpdate = true;
-        free(OldBuffer);
     }
     
     framebuffer_t* Component::GetFramebuffer() {
@@ -119,29 +116,50 @@ namespace Ui {
 
     void Component::Update(){
         if(Childs != NULL && UpdateChild && Style->IsVisible){
+            uint64_t XIteration = 0;
+            uint64_t YIteration = 0;
+            uint64_t MaxChildHeight = 0;
             for(uint64_t i = 0; i < Childs->length; i++) {
                 Component* Child = (Component*)vector_get(Childs, i);
-                if(Child->Style->Width.Normal < 0){
-                    Child->Style->Width.Current = (Style->Width.Current * abs(Child->Style->Width.Normal)) / 100;
-                    if(Child->Style->Width.Current < Child->Style->Width.Min){
-                        Child->Style->Width.Current = Child->Style->Width.Min;
-                    }else if(Child->Style->Width.Current < Child->Style->Width.Max){
-                        Child->Style->Width.Current = Child->Style->Width.Max;
+
+                // Calculate width and height
+                if(Child->Style->Width < 0){
+                    Child->Style->Currentwidth = (Style->Currentwidth * abs(Child->Style->Width)) / 100;
+                    if(Child->Style->Currentwidth < Child->Style->Minwidth){
+                        Child->Style->Currentwidth = Child->Style->Minwidth;
+                    }else if(Child->Style->Currentwidth < Child->Style->Maxwidth){
+                        Child->Style->Currentwidth = Child->Style->Maxwidth;
                     }
                 }else{
-                    Child->Style->Width.Current = Child->Style->Width.Normal;
+                    Child->Style->Currentwidth = Child->Style->Width;
                 }
 
-                if(Child->Style->Height.Normal < 0){
-                    Child->Style->Height.Current = (Style->Height.Current * abs(Child->Style->Height.Normal)) / 100;
-                    if(Child->Style->Height.Current < Child->Style->Height.Min){
-                        Child->Style->Height.Current = Child->Style->Height.Min;
-                    }else if(Child->Style->Height.Current < Child->Style->Height.Max){
-                        Child->Style->Height.Current = Child->Style->Height.Max;
+                if(Child->Style->Height < 0){
+                    Child->Style->Currentheight = (Style->Currentheight * abs(Child->Style->Height)) / 100;
+                    if(Child->Style->Currentheight < Child->Style->Minheight){
+                        Child->Style->Currentheight = Child->Style->Minheight;
+                    }else if(Child->Style->Currentheight < Child->Style->Maxheight){
+                        Child->Style->Currentheight = Child->Style->Maxheight;
                     }
                 }else{
-                    Child->Style->Height.Current = Child->Style->Height.Normal;
+                    Child->Style->Currentheight = Child->Style->Height;
                 }
+
+                if(Child->Style->AutoPosition){
+                    Child->Style->Position.x = XIteration;
+                    Child->Style->Position.y = YIteration;
+
+                    XIteration += Child->Style->Width + Child->Style->Margin.Left + Child->Style->Margin.Right;
+
+                    if(XIteration > Parent->Style->Width){
+                        YIteration += MaxChildHeight;
+                    }
+
+                    if(MaxChildHeight < Child->Style->Height + Child->Style->Margin.Top + Child->Style->Margin.Bottom){
+                        MaxChildHeight = Child->Style->Height + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
+                    }
+                }
+
                 Child->UpdateFunction(Child);
                 Child->Update();
             }
@@ -150,6 +168,7 @@ namespace Ui {
     }
 
     void Component::AddChild(Component* Child) {
+        // TODO sort by position first and by z-index
         Child->Deep = this->Deep + 1;
 
         if(!this->Childs){

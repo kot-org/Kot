@@ -3,8 +3,9 @@
 
 namespace Ui {
     void LabelDraw(Label_t* Label){
-        EditPen(Label->Font, NULL, Label->Cpnt->Style->Position.x, Label->Cpnt->Style->Position.y, -1, -1, -1);
-        Label->Cpnt->DrawPosition.x = Label->Cpnt->Style->Position.x;
+        Label->Cpnt->IsRedraw = true;
+        EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->Style->Position.x + Label->Cpnt->Style->Margin.Left), (int64_t)(Label->Cpnt->Style->Position.y + Label->Cpnt->Style->Margin.Top), -1, -1, -1);
+        Label->Cpnt->DrawPosition.x = Label->Cpnt->Style->Position.x; // Do not use real position
         Label->Cpnt->DrawPosition.y = Label->Cpnt->Style->Position.y;
         DrawFont(Label->Font, Label->Style.Text);
     }
@@ -13,27 +14,32 @@ namespace Ui {
         Label_t* Label = (Label_t*)Cpnt->ExternalData;
         if(Cpnt->IsFramebufferUpdate){
             // Draw
-            Cpnt->UpdateFramebuffer(Label->Cpnt->Parent->Framebuffer);
             Cpnt->IsFramebufferUpdate = false;
             font_fb_t FontBuffer = {.Address = Label->Cpnt->Framebuffer->Buffer, .Width = Label->Cpnt->Framebuffer->Width, .Height = Label->Cpnt->Framebuffer->Height, .Pitch = Label->Cpnt->Framebuffer->Pitch};
-            LoadPen(Label->Font, &FontBuffer, Cpnt->Style->Position.x, Cpnt->Style->Position.y, Label->Style.FontSize, 0, Label->Style.ForegroundColor);
+            EditPen(Label->Font, &FontBuffer, (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top), Label->Style.FontSize, 0, Label->Style.ForegroundColor);
+            LabelDraw(Label);
         }else if(Label->IsDrawUpdate){
             Label->IsDrawUpdate = false;
             LabelDraw(Label);
-        }
-        Cpnt->AbsolutePosition = {.x = Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x, .y = Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y};
-        if(Cpnt->Parent->IsRedraw || Cpnt->DrawPosition.x != Cpnt->Style->Position.x || Cpnt->DrawPosition.y != Cpnt->Style->Position.y){
+        }else if(Cpnt->Parent->IsRedraw || Cpnt->DrawPosition.x != Cpnt->Style->Position.x || Cpnt->DrawPosition.y != Cpnt->Style->Position.y){
             Cpnt->IsRedraw = true;
             LabelDraw(Label);
         }
+
+        Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top)};
     }
 
     Label_t* Label(LabelStyle_t Style, Component* ParentCpnt){
+        if(Style.FontPath == NULL){
+            return NULL;
+        }
         // Load font
         file_t* FontFile = fopen(Style.FontPath, "rb");
+
         if(FontFile == NULL){
             return NULL;
         }
+
         fseek(FontFile, 0, SEEK_END);
         size_t FontFileSize = ftell(FontFile);
         fseek(FontFile, 0, SEEK_SET);
@@ -46,7 +52,11 @@ namespace Ui {
         memcpy(&Label->Style, &Style, sizeof(LabelStyle_t));
         Label->Style.Text = (char*)malloc(strlen(Style.Text));
         strcpy(Label->Style.Text, Style.Text);
-        Label->Cpnt = new Component(Style.G, LabelUpdate, NULL, (uintptr_t)Label, ParentCpnt, true);
+
+        Label->Cpnt = new Component(Style.G, LabelUpdate, (Ui::MouseEventHandler)LabelUpdate, (uintptr_t)Label, ParentCpnt, true, false);
+        
+        font_fb_t FontBuffer = {.Address = Label->Cpnt->Framebuffer->Buffer, .Width = Label->Cpnt->Framebuffer->Width, .Height = Label->Cpnt->Framebuffer->Height, .Pitch = Label->Cpnt->Framebuffer->Pitch};
+        LoadPen(Label->Font, &FontBuffer, (int64_t)(Label->Cpnt->Style->Position.x + Label->Cpnt->Style->Margin.Left), (int64_t)(Label->Cpnt->Style->Position.y + Label->Cpnt->Style->Margin.Top), Label->Style.FontSize, 0, Label->Style.ForegroundColor);
         return Label;
     }
 

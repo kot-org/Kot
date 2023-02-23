@@ -9,8 +9,8 @@ namespace Ui {
         Button_t* Button = (Button_t*)Cpnt->ExternalData;
         if(Cpnt->IsFramebufferUpdate){
             // Draw
-            Button->Style.G.Width.Current = Cpnt->GetStyle()->Width.Current;
-            Button->Style.G.Height.Current = Cpnt->GetStyle()->Height.Current;
+            Button->Style.G.Currentwidth = Cpnt->GetStyle()->Currentwidth;
+            Button->Style.G.Currentheight = Cpnt->GetStyle()->Currentheight;
 
             ButtonDraw(Button);
             Cpnt->IsFramebufferUpdate = false;
@@ -18,9 +18,9 @@ namespace Ui {
             ButtonDraw(Button);
             Button->IsDrawUpdate = false;
         }
-        Cpnt->AbsolutePosition = {.x = Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x, .y = Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y};
-        BlitFramebuffer(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), Cpnt->Style->Position.x, Cpnt->Style->Position.y);
-        SetGraphicEventbuffer(Cpnt->UiCtx->EventBuffer, (uint64_t)Cpnt, Button->Style.G.Width.Current, Button->Style.G.Height.Current, Cpnt->AbsolutePosition.x, Cpnt->AbsolutePosition.y);
+        Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top)};
+        BlitFramebuffer(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top));
+        SetGraphicEventbuffer(Cpnt->UiCtx->EventBuffer, (uint64_t)Cpnt, Button->Style.G.Currentwidth, Button->Style.G.Currentheight, Cpnt->AbsolutePosition.x, Cpnt->AbsolutePosition.y);
     }
 
     void ButtonMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status){
@@ -62,7 +62,7 @@ namespace Ui {
         Button_t* Button = (Button_t*)malloc(sizeof(Button_t));
         memcpy(&Button->Style, &Style, sizeof(ButtonStyle_t));
         Button->CurrentColor = Button->Style.BackgroundColor;
-        Button->Cpnt = new Component(Style.G, ButtonUpdate, ButtonMouseEvent, (uintptr_t)Button, ParentCpnt, true);
+        Button->Cpnt = new Component(Style.G, ButtonUpdate, ButtonMouseEvent, (uintptr_t)Button, ParentCpnt, true, true);
         return Button;
     }
 

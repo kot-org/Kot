@@ -20,7 +20,7 @@ namespace UiWindow {
         }
     }
 
-    Window::Window(char* Title, uint32_t Width, uint32_t Height, uint32_t XPosition, uint32_t YPosition){
+    Window::Window(char* Title, char* Icon, uint32_t Width, uint32_t Height, uint32_t XPosition, uint32_t YPosition){
         // Setup event
         Sys_Event_Create(&WindowEvent);
         Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&EventHandler, PriviledgeApp, (uint64_t)this, &WindowHandlerThread);
@@ -52,7 +52,7 @@ namespace UiWindow {
             UiCtx = new Ui::UiContext(&Wid->Framebuffer);
         }
 
-        Titlebar = Ui::Titlebar(Title, {.BackgroundColor = WIN_TBCOLOR_ONBLUR, .ForegroundColor = 0xffffffff}, UiCtx->Cpnt);
+        Titlebar = Ui::Titlebar(Title, Icon, {.BackgroundColor = WIN_TBCOLOR_ONBLUR, .ForegroundColor = 0xffffffff}, UiCtx->Cpnt);
 
         UiCtx->UiStartRenderer();
         ChangeVisibilityWindow(this->Wid, true);

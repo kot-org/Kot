@@ -7,10 +7,20 @@ int8_t PixelExist(framebuffer_t* fb, uint32_t x, uint32_t y) {
     return 1;
 }
 
+void inline BlendAlpha(uint32_t* pixel, uint32_t color){
+    uint32_t a = color >> 24;    /* alpha */
+    if(a == 0xff){
+        *pixel = color;
+    }else if(a != NULL){
+        uint32_t rb = (((color & 0x00ff00ff) * a) + ((*pixel & 0x00ff00ff) * (0xff - a))) & 0xff00ff00;
+        uint32_t g  = (((color & 0x0000ff00) * a) + ((*pixel & 0x0000ff00) * (0xff - a))) & 0x00ff0000;
+        *pixel = (color & 0xff000000) | ((rb | g) >> 8);
+    }
+}
+
 void PutPixel(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t color) {
-    if (PixelExist(fb, x, y) == -1) return;
     uint64_t index = x * 4 + y * fb->Pitch;
-    *(uint32_t*)((uint64_t)fb->Buffer + index) = color;
+    BlendAlpha((uint32_t*)((uint64_t)fb->Buffer + index), color);
     //blendAlpha(((uint64_t)fb->Buffer + index), color);
 }
 

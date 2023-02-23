@@ -10,6 +10,8 @@ namespace Ui {
         uint8_t Btpp = Buffer->Bpp/8;
         Image->Width = Buffer->Width;
         Image->Height = Buffer->Height;
+        Image->x = 0;
+        Image->y = 0;
         uint32_t Pitch = Image->Width * Btpp;
 
         uintptr_t ImageDataOffset = (uintptr_t) (Buffer->ColorMapOrigin + Buffer->ColorMapLength + 18),
@@ -96,6 +98,8 @@ namespace Ui {
         ImageResize->Pixels = (uint32_t*) malloc(NewHeight * NewWidth * sizeof(uint32_t));
         ImageResize->Width = NewWidth;
         ImageResize->Height = NewHeight;
+        ImageResize->x = 0;
+        ImageResize->y = 0;
 
         for(uint16_t y = 0; y < NewHeight; y++) {
             uint32_t NewY = y * Image->Height / NewHeight;
@@ -116,6 +120,9 @@ namespace Ui {
         ImageCrop->Pixels = (uint32_t*) malloc(Height * Width * sizeof(uint32_t));
         ImageCrop->Width = Width;
         ImageCrop->Height = Height;
+        ImageCrop->x = 0;
+        ImageCrop->y = 0;
+        
 
         for(uint16_t h = 0; h < Height; h++) {
             memcpy((uintptr_t)&ImageCrop->Pixels[h*Width], (uintptr_t)&Image->Pixels[x + (h + y)*Image->Width], Width * sizeof(uint32_t));

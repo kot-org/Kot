@@ -5,44 +5,44 @@ namespace Ui {
         Flexbox_t* Flexbox = (Flexbox_t*)Cpnt->ExternalData;
         if(Cpnt->IsFramebufferUpdate){
             // Draw
-            Flexbox->Style.G.Width.Current = Cpnt->GetStyle()->Width.Current;
-            Flexbox->Style.G.Height.Current = Cpnt->GetStyle()->Height.Current;
+            Flexbox->Style.G.Currentwidth = Cpnt->GetStyle()->Currentwidth;
+            Flexbox->Style.G.Currentheight = Cpnt->GetStyle()->Currentheight;
 
             Cpnt->IsFramebufferUpdate = false;
         }
         Cpnt->AbsolutePosition = {.x = Cpnt->Parent->AbsolutePosition.x + Flexbox->Style.G.Position.x, .y = Cpnt->Parent->AbsolutePosition.y + Flexbox->Style.G.Position.y};
         if(Cpnt->Childs != NULL){
-            uint64_t TotalWidth = Cpnt->Style->Width.Current;
-            uint64_t TotalHeight = Cpnt->Style->Height.Current;
+            uint64_t TotalWidth = Cpnt->Style->Currentwidth;
+            uint64_t TotalHeight = Cpnt->Style->Currentheight;
             uint64_t TotalWidthChild = 0;
             uint64_t TotalHeightChild = 0;
 
             for(uint64_t i = 0; i < Cpnt->Childs->length; i++){
                 Component* Child = (Component*)vector_get(Cpnt->Childs, i);
-                if(Child->Style->Width.Normal < 0){
-                    Child->Style->Width.Current = (Cpnt->Style->Width.Current * abs(Child->Style->Width.Normal)) / 100;
-                    if(Child->Style->Width.Current < Child->Style->Width.Min){
-                        Child->Style->Width.Current = Child->Style->Width.Min;
-                    }else if(Child->Style->Width.Current < Child->Style->Width.Max){
-                        Child->Style->Width.Current = Child->Style->Width.Max;
+                if(Child->Style->Width < 0){
+                    Child->Style->Currentwidth = (Cpnt->Style->Currentwidth * abs(Child->Style->Width)) / 100;
+                    if(Child->Style->Currentwidth < Child->Style->Minwidth){
+                        Child->Style->Currentwidth = Child->Style->Minwidth;
+                    }else if(Child->Style->Currentwidth < Child->Style->Maxwidth){
+                        Child->Style->Currentwidth = Child->Style->Maxwidth;
                     }
                 }else{
-                    Child->Style->Width.Current = Child->Style->Width.Normal;
+                    Child->Style->Currentwidth = Child->Style->Width;
                 }
 
-                if(Child->Style->Height.Normal < 0){
-                    Child->Style->Height.Current = (Cpnt->Style->Height.Current * abs(Child->Style->Height.Normal)) / 100;
-                    if(Child->Style->Height.Current < Child->Style->Height.Min){
-                        Child->Style->Height.Current = Child->Style->Height.Min;
-                    }else if(Child->Style->Height.Current < Child->Style->Height.Max){
-                        Child->Style->Height.Current = Child->Style->Height.Max;
+                if(Child->Style->Height < 0){
+                    Child->Style->Currentheight = (Cpnt->Style->Currentheight * abs(Child->Style->Height)) / 100;
+                    if(Child->Style->Currentheight < Child->Style->Minheight){
+                        Child->Style->Currentheight = Child->Style->Minheight;
+                    }else if(Child->Style->Currentheight < Child->Style->Maxheight){
+                        Child->Style->Currentheight = Child->Style->Maxheight;
                     }
                 }else{
-                    Child->Style->Height.Current = Child->Style->Height.Normal;
+                    Child->Style->Currentheight = Child->Style->Height;
                 }
 
-                TotalWidthChild += Child->Style->Width.Current + Child->Style->Margin.Left + Child->Style->Margin.Right;
-                TotalHeightChild += Child->Style->Height.Current + Child->Style->Margin.Bottom + Child->Style->Margin.Top;
+                TotalWidthChild += Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
+                TotalHeightChild += Child->Style->Currentheight + Child->Style->Margin.Bottom + Child->Style->Margin.Top;
             }
             bool IterateX = Flexbox->Style.Align.y == Ui::Layout::FILLVERTICAL ||  Flexbox->Style.Align.y == Ui::Layout::BETWEENVERTICAL || Flexbox->Style.Align.y == Ui::Layout::AROUNDVERTICAL;
             bool IterateY = !IterateX;
@@ -55,17 +55,17 @@ namespace Ui {
                         uint64_t NewWidth;
                         Child->Style->Position.x = XIteration;
                         if(IterateX){
-                            NewWidth = Child->Style->Width.Current * TotalWidth / TotalWidthChild;
-                            if(NewWidth < Child->Style->Width.Min){
-                                NewWidth = Child->Style->Width.Min;
-                            }else if(NewWidth < Child->Style->Width.Max){
-                                NewWidth = Child->Style->Width.Max;
+                            NewWidth = Child->Style->Currentwidth * TotalWidth / TotalWidthChild;
+                            if(NewWidth < Child->Style->Minwidth){
+                                NewWidth = Child->Style->Minwidth;
+                            }else if(NewWidth < Child->Style->Maxwidth){
+                                NewWidth = Child->Style->Maxwidth;
                             }
                             XIteration += NewWidth; 
                         }else{
                             NewWidth = TotalWidth;
                         }
-                        Child->UpdateFramebuffer(NewWidth, Child->Style->Height.Current);
+                        Child->UpdateFramebuffer(NewWidth, Child->Style->Currentheight);
                     }
                     break;
                 }
@@ -112,7 +112,7 @@ namespace Ui {
                     for(uint64_t i = 0; i < Cpnt->Childs->length; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.x = XIteration;
-                        XIteration += Child->Style->Width.Current + Child->Style->Margin.Left + Child->Style->Margin.Right;
+                        XIteration += Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
                     }
                     break;
                 }
@@ -121,7 +121,7 @@ namespace Ui {
                     for(uint64_t i = 0; i < Cpnt->Childs->length; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.x = XIteration;
-                        XIteration += Child->Style->Width.Current + Child->Style->Margin.Left + Child->Style->Margin.Right;
+                        XIteration += Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
                     }
                     break;
                 }
@@ -130,7 +130,7 @@ namespace Ui {
                     for(uint64_t i = 0; i < Cpnt->Childs->length; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.x = XIteration;
-                        XIteration += Child->Style->Width.Current + Child->Style->Margin.Left + Child->Style->Margin.Right;
+                        XIteration += Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
                     }
                     break;
                 }
@@ -143,17 +143,17 @@ namespace Ui {
                         uint64_t NewHeight;
                         Child->Style->Position.y = YIteration;
                         if(IterateY){
-                            NewHeight = Child->Style->Height.Current * TotalHeight / TotalHeightChild;
+                            NewHeight = Child->Style->Currentheight * TotalHeight / TotalHeightChild;
                             YIteration += NewHeight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
-                            if(NewHeight < Child->Style->Height.Min){
-                                NewHeight = Child->Style->Height.Min;
-                            }else if(NewHeight < Child->Style->Height.Max){
-                                NewHeight = Child->Style->Height.Max;
+                            if(NewHeight < Child->Style->Minheight){
+                                NewHeight = Child->Style->Minheight;
+                            }else if(NewHeight < Child->Style->Maxheight){
+                                NewHeight = Child->Style->Maxheight;
                             }
                         }else{
                             NewHeight = TotalHeight;
                         }
-                        Child->UpdateFramebuffer(Child->Style->Width.Current, NewHeight);
+                        Child->UpdateFramebuffer(Child->Style->Currentwidth, NewHeight);
                         Child->UpdateFunction(Child);
                         Child->Update();
                     }
@@ -206,7 +206,7 @@ namespace Ui {
                     for(uint64_t i = 0; i < Cpnt->Childs->length; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.y = YIteration;
-                        YIteration += Child->Style->Height.Current + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
+                        YIteration += Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
                         Child->UpdateFunction(Child);
                     }
                     break;
@@ -216,7 +216,7 @@ namespace Ui {
                     for(uint64_t i = 0; i < Cpnt->Childs->length; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.y = YIteration;
-                        YIteration += Child->Style->Height.Current + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
+                        YIteration += Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
                         Child->UpdateFunction(Child);
                     }
                     break;
@@ -226,20 +226,20 @@ namespace Ui {
                     for(uint64_t i = 0; i < Cpnt->Childs->length; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.y = YIteration;
-                        YIteration += Child->Style->Height.Current + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
+                        YIteration += Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
                         Child->UpdateFunction(Child);
                     }
                     break;
                 }
             }
         }
-        BlitFramebuffer(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), Cpnt->Style->Position.x, Cpnt->Style->Position.y);
+        BlitFramebuffer(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top));
     }
 
     Flexbox_t* Flexbox(FlexboxStyle_t Style, Component* ParentCpnt){
         Flexbox_t* Flexbox = (Flexbox_t*)malloc(sizeof(Flexbox_t));
         memcpy(&Flexbox->Style, &Style, sizeof(FlexboxStyle_t));
-        Flexbox->Cpnt = new Component(Style.G, FlexboxUpdate, NULL, (uintptr_t)Flexbox, ParentCpnt, false);
+        Flexbox->Cpnt = new Component(Style.G, FlexboxUpdate, NULL, (uintptr_t)Flexbox, ParentCpnt, false, true);
         return Flexbox;
     }
 

@@ -25,7 +25,6 @@ struct kevent_tasks_t{
 }__attribute__((packed));
 
 struct event_data_node_t{
-    kthread_t* OriginalThread;
     uint64_t NumberOfMissedEvents;
     uint64_t IRQNumberOfMissedEvents;
     struct kevent_t* Event;
