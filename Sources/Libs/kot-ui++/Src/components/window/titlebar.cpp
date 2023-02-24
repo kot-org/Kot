@@ -10,12 +10,12 @@ namespace Ui {
         Titlebar->MainBox = Box(
             {
             .G{
-                Width = -100, 
-                Height = Titlebar_Height, 
-                Maxwidth = NO_MAXIMUM, 
-                AutoPosition = true,
-                IsHidden = false
-            }
+                .Width = -100, 
+                .Height = Titlebar_Height, 
+                .Maxwidth = NO_MAXIMUM, 
+                .AutoPosition = true,
+                .IsHidden = false
+            },
             .BackgroundColor = Titlebar->Style.BackgroundColor, 
             .ClickColor = Titlebar->Style.BackgroundColor, 
             .HoverColor = Titlebar->Style.BackgroundColor, 
@@ -28,10 +28,10 @@ namespace Ui {
         {
             .Fit = PICTUREFILL, 
             .G{
-                Width = Titlebar_Height, 
-                Height = Titlebar_Height, 
-                AutoPosition = true,
-                IsHidden = false
+                .Width = Titlebar_Height, 
+                .Height = Titlebar_Height, 
+                .AutoPosition = true,
+                .IsHidden = false
             }
         }
         , Titlebar->Cpnt);
@@ -42,16 +42,16 @@ namespace Ui {
                 .Text = Title,
                 .FontSize = Titlebar_FontSize,
                 .G{
-                    Margin{
+                    .Margin{
                         .Left = 10,
                         .Top = (Titlebar_Height - Titlebar_FontSize) / 2
                     },
-                    Width = -100, 
-                    Maxwidth = NO_MAXIMUM, 
-                    Height = Titlebar_Height, 
-                    AutoPosition = true,
-                    IsHidden = false
-                }
+                    .Width = -100, 
+                    .Maxwidth = NO_MAXIMUM, 
+                    .Height = Titlebar_Height, 
+                    .AutoPosition = true,
+                    .IsHidden = false
+                },
                 .ForegroundColor = Titlebar->Style.ForegroundColor, 
             }
         , Titlebar->Cpnt);
@@ -59,12 +59,12 @@ namespace Ui {
         Titlebar->CloseBtn = Button(
             {
                 .G{
-                    Width = Titlebar_Height, 
-                    Height = Titlebar_Height, 
-                    AutoPosition = true,
-                    Align = RIGHT,
-                    IsHidden = false
-                }
+                    .Width = Titlebar_Height, 
+                    .Height = Titlebar_Height, 
+                    .AutoPosition = true,
+                    .Align = RIGHT,
+                    .IsHidden = false
+                },
                 .BackgroundColor = Titlebar->Style.BackgroundColor, 
             }
             , Titlebar->Cpnt);
@@ -73,11 +73,11 @@ namespace Ui {
             {
                 .Fit = PICTUREFILL, 
                 .G{
-                    Width = -100, 
-                    Height = -100, 
-                    Maxwidth = NO_MAXIMUM, 
-                    Maxheight = NO_MAXIMUM, 
-                    IsHidden = false
+                    .Width = -100, 
+                    .Height = -100, 
+                    .Maxwidth = NO_MAXIMUM, 
+                    .Maxheight = NO_MAXIMUM, 
+                    .IsHidden = false
                 }
             }
             , Titlebar->CloseBtn->Cpnt);
@@ -86,11 +86,11 @@ namespace Ui {
             {
                 .BackgroundColor = Titlebar->Style.BackgroundColor, 
                 .G{
-                    Width = Titlebar_Height, 
-                    Height = Titlebar_Height, 
-                    AutoPosition = true,
-                    Align = RIGHT,
-                    IsHidden = false
+                    .Width = Titlebar_Height, 
+                    .Height = Titlebar_Height, 
+                    .AutoPosition = true,
+                    .Align = RIGHT,
+                    .IsHidden = false
                 }
             }
             , Titlebar->Cpnt);
@@ -99,11 +99,11 @@ namespace Ui {
             {
                 .Fit = PICTUREFILL, 
                 .G{
-                    Width = -100, 
-                    Height = -100, 
-                    Maxwidth = NO_MAXIMUM, 
-                    Maxheight = NO_MAXIMUM, 
-                    IsHidden = false
+                    .Width = -100, 
+                    .Height = -100, 
+                    .Maxwidth = NO_MAXIMUM, 
+                    .Maxheight = NO_MAXIMUM, 
+                    .IsHidden = false
                 }
             }
             , Titlebar->SizeBtn->Cpnt);
@@ -112,11 +112,11 @@ namespace Ui {
             {
                 .BackgroundColor = Titlebar->Style.BackgroundColor, 
                 .G{
-                    Width = Titlebar_Height,
-                    Height = Titlebar_Height,
-                    AutoPosition = true,
-                    Align = RIGHT,
-                    IsHidden = false
+                    .Width = Titlebar_Height,
+                    .Height = Titlebar_Height,
+                    .AutoPosition = true,
+                    .Align = RIGHT,
+                    .IsHidden = false
                 }
             }
         , Titlebar->Cpnt);
@@ -125,11 +125,11 @@ namespace Ui {
             {
                 .Fit = PICTUREFILL, 
                 .G{
-                    Width = -100, 
-                    Height = -100, 
-                    Maxwidth = NO_MAXIMUM, 
-                    Maxheight = NO_MAXIMUM, 
-                    IsHidden = false
+                    .Width = -100, 
+                    .Height = -100, 
+                    .Maxwidth = NO_MAXIMUM, 
+                    .Maxheight = NO_MAXIMUM, 
+                    .IsHidden = false
                 }
             }
             , Titlebar->HideBtn->Cpnt);
