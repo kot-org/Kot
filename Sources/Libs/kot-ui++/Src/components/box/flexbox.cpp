@@ -23,7 +23,7 @@ namespace Ui {
                     Child->Style->Currentwidth = (Cpnt->Style->Currentwidth * abs(Child->Style->Width)) / 100;
                     if(Child->Style->Currentwidth < Child->Style->Minwidth){
                         Child->Style->Currentwidth = Child->Style->Minwidth;
-                    }else if(Child->Style->Currentwidth < Child->Style->Maxwidth){
+                    }else if(Child->Style->Currentwidth > Child->Style->Maxwidth){
                         Child->Style->Currentwidth = Child->Style->Maxwidth;
                     }
                 }else{

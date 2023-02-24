@@ -32,7 +32,6 @@ namespace UiWindow {
         public:
             Ui::Component* Cpnt; 
             
-            /* todo: add icon */
             Window(char* title, char* Icon, uint32_t Width, uint32_t Height, uint32_t XPosition, uint32_t YPosition);
 
             void DrawBorders(uint32_t Color);

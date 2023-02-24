@@ -19,7 +19,6 @@ namespace Ui {
             Button->IsDrawUpdate = false;
         }
         Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top)};
-        
         BlitFramebuffer(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top));
         SetGraphicEventbuffer(Cpnt->UiCtx->EventBuffer, (uint64_t)Cpnt, Button->Style.G.Currentwidth, Button->Style.G.Currentheight, Cpnt->AbsolutePosition.x, Cpnt->AbsolutePosition.y);
     }
@@ -34,20 +33,12 @@ namespace Ui {
             }
             Cpnt->UiCtx->FocusCpnt = Button->Cpnt;
 
-            if(Status & MOUSE_CLICK_LEFT){
+            if(Status & (MOUSE_CLICK_LEFT | MOUSE_CLICK_RIGHT | MOUSE_CLICK_MIDDLE)){
                 Button->CurrentColor = Button->Style.ClickColor;
-                Button->Style.OnMouseEvent(Button, ButtonEventTypeLeftClick);
-                Button->IsDrawUpdate = true;
-            }else if(Status & MOUSE_CLICK_RIGHT){
-                Button->CurrentColor = Button->Style.ClickColor;
-                Button->Style.OnMouseEvent(Button, ButtonEventTypeRightClick);
-                Button->IsDrawUpdate = true;
-            }else if(Status & MOUSE_CLICK_MIDDLE){
-                Button->Style.OnMouseEvent(Button, ButtonEventTypeMiddleClick);
-                Button->CurrentColor = Button->Style.HoverColor;
+                Button->Style.OnMouseEvent(Button, BUTTON_EVENT_TYPE_HOVER | (Status & MOUSE_CLICK_LEFT << 1) | (Status & BUTTON_EVENT_TYPE_RIGHT_CLICK << 2) | (Status & BUTTON_EVENT_TYPE_MIDDLE_CLICK << 3));
                 Button->IsDrawUpdate = true;
             }else{
-                Button->Style.OnMouseEvent(Button, ButtonEventTypeHover);
+                Button->Style.OnMouseEvent(Button, BUTTON_EVENT_TYPE_HOVER);
                 Button->CurrentColor = Button->Style.HoverColor;
                 Button->IsDrawUpdate = true;               
             }
@@ -55,7 +46,7 @@ namespace Ui {
             Button_t* Button = (Button_t*)Cpnt->ExternalData;
             Button->CurrentColor = Button->Style.BackgroundColor;
             Button->IsDrawUpdate = true;
-            Button->Style.OnMouseEvent(Button, ButtonEventTypeUnfocus);   
+            Button->Style.OnMouseEvent(Button, BUTTON_EVENT_TYPE_UNFOCUS);   
         }
     }
 

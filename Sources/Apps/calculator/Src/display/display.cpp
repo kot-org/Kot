@@ -2,17 +2,17 @@
 
 #include <kot++/printf.h>
 
-void OpButton(Button_t* Button, ButtonEventType Type) {
+void OpButton(Button_t* Button, ButtonEvent_t Type) {
     
 }
 
 void CreateDisplay(Component* Window) {
-    Flexbox_t* main = Flexbox(  
+    Flexbox_t* Main = Flexbox(  
         {   
             .G = { 
                     .Width = 400,
                     .Height = 600,
-                    .IsVisible = true 
+                    .IsHidden = false 
                 }, 
             .Align = { .x = Layout::FILLHORIZONTAL, .y = Layout::TOP }
         }
@@ -22,23 +22,25 @@ void CreateDisplay(Component* Window) {
         { 
             .G = { 
                     .Width = 100,
-                    .Height = 100 
+                    .Height = 100,
+                    .IsHidden = false
                 }, 
             .BackgroundColor = 0xFF0000
         }
-    , main->Cpnt);
+    , Main->Cpnt);
 
     Gridbox_t* NumericKeypad = Gridbox( 
         { 
             .G = { 
                     .Width = -100,
+                    .Maxwidth = NO_MAXIMUM,
                     .Height = 400,
-                    .IsVisible = true
+                    .IsHidden = false
                 },
             .CaseWidth = 100,
             .CaseHeight = 70
         }
-    , main->Cpnt);
+    , Main->Cpnt);
 
     for(uint8_t y = 0; y < 4; y++) {
         for(uint8_t x = 0; x < 4; x++) {
@@ -49,7 +51,7 @@ void CreateDisplay(Component* Window) {
                             .Height = 70 - 5,
                             .Margin = { .Top = 5, .Left = 5 },
                             .Position = { .x = (int64_t)x, .y = (int64_t)y },
-                            .IsVisible = true
+                            .IsHidden = false
                         },
                     .BackgroundColor = (color_t)0xFFFFFF, 
                     .ClickColor = (color_t)0x00FF00, 

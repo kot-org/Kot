@@ -40,23 +40,32 @@ namespace Ui {
 
     };
 
-    enum ButtonEventType{
-        ButtonEventTypeHover = 0,
-        ButtonEventTypeLeftClick = 1,
-        ButtonEventTypeRightClick = 2,
-        ButtonEventTypeMiddleClick = 3,
-        ButtonEventTypeUnfocus = 4,
-    };
+    #define NO_MAXIMUM                      (0xffffffffffffffff)
+
+
+    #define BUTTON_EVENT_TYPE_HOVER         (1 << 0)
+    #define BUTTON_EVENT_TYPE_LEFT_CLICK    (1 << 1)
+    #define BUTTON_EVENT_TYPE_RIGHT_CLICK   (1 << 2)
+    #define BUTTON_EVENT_TYPE_MIDDLE_CLICK  (1 << 3)
+    #define BUTTON_EVENT_TYPE_UNFOCUS       (1 << 4)
+
+    typedef uint64_t ButtonEvent_t;
 
     typedef void (*MouseEventHandler)(class Component* Component, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status);
     typedef void (*UpdateHandler)(class Component* Component);
-    typedef void (*ButtonHandler)(struct Button_t* Button, ButtonEventType EventType);
+    typedef void (*ButtonHandler)(struct Button_t* Button, ButtonEvent_t EventType);
 
     struct Margin{
         uint64_t Top;
         uint64_t Bottom;
         uint64_t Left;
         uint64_t Right;
+    };
+
+
+    enum AlignType {
+        LEFT = 0,
+        RIGHT = 1,
     };
 
     struct ComponentGeneralStyle{
@@ -72,6 +81,8 @@ namespace Ui {
 
         Margin Margin;
 
+        AlignType Align;
+
         bool AutoPosition;
 
         point_t Position;
@@ -81,7 +92,7 @@ namespace Ui {
         uint64_t ExternalStyleType;
         uintptr_t ExternalStyleData;
 
-        bool IsVisible;
+        bool IsHidden;
 
         bool IsHorizontalOverflow;
         bool IsVerticalOverflow;
@@ -241,7 +252,6 @@ namespace Ui {
     typedef struct {
         uint32_t BackgroundColor;
         uint32_t ForegroundColor;
-        bool IsVisible;
     } TitlebarStyle_t;
     struct Titlebar_t{
         TitlebarStyle_t Style;

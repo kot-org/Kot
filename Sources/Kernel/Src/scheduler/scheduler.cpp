@@ -709,9 +709,6 @@ bool kthread_t::ExtendStack(uint64_t address, size64_t size){
 }
 
 KResult kthread_t::ShareDataUsingStackSpace(uintptr_t data, size64_t size, uintptr_t* location){
-    if(Parent->PID == 0xE && TID == 2){
-        asm("nop");
-    }
     uintptr_t address = (uintptr_t)((uint64_t)*location - size);
 
     uint64_t pageCount = DivideRoundUp(size, PAGE_SIZE);

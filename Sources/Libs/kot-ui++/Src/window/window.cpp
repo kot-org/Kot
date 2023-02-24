@@ -14,12 +14,6 @@ namespace UiWindow {
         Sys_Event_Close();
     }
 
-    void ButtonTest(struct Ui::Button_t* Button, Ui::ButtonEventType EventType){
-        if(EventType == Ui::ButtonEventTypeLeftClick){
-            Printlog("Click");
-        }
-    }
-
     Window::Window(char* Title, char* Icon, uint32_t Width, uint32_t Height, uint32_t XPosition, uint32_t YPosition){
         // Setup event
         Sys_Event_Create(&WindowEvent);
@@ -52,7 +46,10 @@ namespace UiWindow {
             UiCtx = new Ui::UiContext(&Wid->Framebuffer);
         }
 
-        // todo: if Icon = null -> default icon
+        if(Icon == NULL){
+            Icon = "kotlogo.tga";
+        }
+
         Titlebar = Ui::Titlebar(Title, Icon, {.BackgroundColor = WIN_TBCOLOR_ONBLUR, .ForegroundColor = 0xffffffff}, UiCtx->Cpnt);
 
         // Content
@@ -60,8 +57,11 @@ namespace UiWindow {
             {
                 .G = {
                         .Width = -100,
-                        .Height = -100
-                    }
+                        .Maxwidth = NO_MAXIMUM,
+                        .Height = Height - 25,
+                        .AutoPosition = true,
+                        .IsHidden = false,
+                    },
             }
         , UiCtx->Cpnt)->Cpnt;
 
@@ -117,10 +117,8 @@ namespace UiWindow {
                     Component->MouseEvent(Component, true, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
                 }
             }
-        } else {
-            if(UiCtx->FocusCpnt->MouseEvent){
-                Component->UiCtx->FocusCpnt->MouseEvent(Component->UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
-            }
+        }else if(UiCtx->FocusCpnt->MouseEvent){
+            Component->UiCtx->FocusCpnt->MouseEvent(Component->UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
         }
     }
 

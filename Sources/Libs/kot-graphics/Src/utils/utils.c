@@ -21,7 +21,6 @@ void inline BlendAlpha(uint32_t* pixel, uint32_t color){
 void PutPixel(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t color) {
     uint64_t index = x * 4 + y * fb->Pitch;
     BlendAlpha((uint32_t*)((uint64_t)fb->Buffer + index), color);
-    //blendAlpha(((uint64_t)fb->Buffer + index), color);
 }
 
 uint32_t GetPixel(framebuffer_t* fb, uint32_t x, uint32_t y) {

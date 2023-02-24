@@ -17,7 +17,7 @@ thread_t MouseRelativeInterrupt;
 bool IsLastLeftClick = false;
 
 void InitializeCursor(){
-    file_t* KursorFile = fopen("d1:Bin/Kursors/darkDefault.kursor", "rb"); // todo: kursor settings
+    file_t* KursorFile = fopen("darkDefault.kursor", "rb"); // todo: kursor settings and use drive to store the cursor to d1:Bin/Kursors/
 
     if(KursorFile == NULL) {
         Printlog("[GRAPHICS/ORB] \033[0;31mERR:\033[0m Kursor file not found."); // todo: error log
