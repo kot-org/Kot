@@ -7,9 +7,12 @@
 namespace Ui {
     void PictureboxDraw(Picturebox_t* Picturebox){
         Picturebox->Cpnt->IsRedraw = true;
-        switch(Picturebox->Type){
-            case PictureboxType::_TGA:{
-                switch(Picturebox->Style.Fit){
+        
+        switch(Picturebox->Type)
+        {
+            case PictureboxType::_TGA: {
+                switch(Picturebox->Style.Fit)
+                {
                     case PictureboxFit::PICTUREFIT:
                     {   
                         TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
@@ -127,31 +130,38 @@ namespace Ui {
     
     void PictureboxUpdate(Component* Cpnt){
         Picturebox_t* Picturebox = (Picturebox_t*)Cpnt->ExternalData;
-        if(Cpnt->IsFramebufferUpdate){
+
+        if(Cpnt->IsFramebufferUpdate) {
             Cpnt->IsFramebufferUpdate = false;
             PictureboxDraw(Picturebox);
-        }else if(Picturebox->IsDrawUpdate){
+        } else if(Picturebox->IsDrawUpdate) {
             Picturebox->IsDrawUpdate = false;
             PictureboxDraw(Picturebox);
-        }else if(Cpnt->Parent->IsRedraw || Cpnt->DrawPosition.x != Cpnt->Style->Position.x || Cpnt->DrawPosition.y != Cpnt->Style->Position.y){
+        } else if(Cpnt->Parent->IsRedraw || Cpnt->DrawPosition.x != Cpnt->Style->Position.x || Cpnt->DrawPosition.y != Cpnt->Style->Position.y) {
             PictureboxDraw(Picturebox);
         }
+
         Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top)};
     }
 
     void PictureboxMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status){
         if(IsHover){
             Picturebox_t* Picturebox = (Picturebox_t*)Cpnt->ExternalData;
+
             if(Cpnt->UiCtx->FocusCpnt != Cpnt){
                 if(Cpnt->UiCtx->FocusCpnt->MouseEvent){
                     Cpnt->UiCtx->FocusCpnt->MouseEvent(Cpnt->UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
                 }
             }
+
             Cpnt->UiCtx->FocusCpnt = Picturebox->Cpnt;
         }
     }
 
     Picturebox_t* Picturebox(char* Path, PictureboxType Type, PictureboxStyle_t Style, Component* ParentCpnt) {
+        if(Path == NULL)
+            return NULL;
+
         file_t* ImageFile = fopen(Path, "rb");
 
         if(ImageFile == NULL)
@@ -166,6 +176,7 @@ namespace Ui {
 
         uint16_t Width;
         uint16_t Height;
+        
         switch(Type){
             case PictureboxType::_TGA:
                 Width = ((TGAHeader_t*)Image)->Width;
@@ -185,11 +196,14 @@ namespace Ui {
         }
 
         Picturebox_t* Picturebox = (Picturebox_t*)malloc(sizeof(Picturebox_t));
+
         Picturebox->Type = Type;
         Picturebox->Image = Image;
+
         memcpy(&Picturebox->Style, &Style, sizeof(PictureboxStyle_t));
         Picturebox->Cpnt = new Component(Style.G, PictureboxUpdate, PictureboxMouseEvent, (uintptr_t)Picturebox, ParentCpnt, true, false);
         Picturebox->IsDrawUpdate = true;
+        
         fclose(ImageFile);
         
         return Picturebox;

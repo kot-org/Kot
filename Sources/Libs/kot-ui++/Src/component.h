@@ -52,13 +52,6 @@ namespace Ui {
     typedef void (*UpdateHandler)(class Component* Component);
     typedef void (*ButtonHandler)(struct Button_t* Button, ButtonEventType EventType);
 
-    struct CoponentSize{
-        uint64_t Max;
-        uint64_t Min;
-        int64_t Normal;
-        uint64_t Current;
-    };
-
     struct Margin{
         uint64_t Top;
         uint64_t Bottom;
@@ -213,7 +206,7 @@ namespace Ui {
         color_t BackgroundColor;
         color_t HoverColor;
         color_t ClickColor;
-        ButtonHandler OnClick;
+        ButtonHandler OnMouseEvent;
         uintptr_t ExternalData;
     } ButtonStyle_t;
     struct Button_t{

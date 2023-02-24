@@ -149,7 +149,6 @@ void E1000::InitRX() {
 
     // index initialization
     WriteRegister(RCVD_TAIL, ChipInfo->NumRXDesc - 1);
-    std::printf("%d", ReadRegister(RCVD_TAIL));
     WriteRegister(RCVD_HEAD, 0);
 
     // activate reception

@@ -30,7 +30,10 @@ namespace UiWindow {
             void HandlerMouse(uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status);
 
         public:
-            Window(char* Title, char* Icon, uint32_t Width, uint32_t Height, uint32_t XPosition, uint32_t YPosition);
+            Ui::Component* Cpnt; 
+            
+            /* todo: add icon */
+            Window(char* title, char* Icon, uint32_t Width, uint32_t Height, uint32_t XPosition, uint32_t YPosition);
 
             void DrawBorders(uint32_t Color);
 

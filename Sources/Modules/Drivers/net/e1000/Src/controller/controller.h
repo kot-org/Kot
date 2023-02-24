@@ -41,9 +41,9 @@ typedef struct {
 } RXDescriptor;
 
 // Receive base address
-#define RCV_BA_LOW    0x5400 
-#define RCV_BA_HIGH   0x5404
-#define RBAH_AV_MASK     (1 << 31) // bit "Address valid" sur le registre RAH (Receive address high)
+#define RCV_BA_LOW      0x5400 
+#define RCV_BA_HIGH     0x5404
+#define RBAH_AV_MASK    (1 << 31) // bit "Address valid" sur le registre RAH (Receive address high)
 
 // Receive descriptor (RCVD)
 #define RCVD_ADDR_LOW       0x2800

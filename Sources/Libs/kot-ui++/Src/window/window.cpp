@@ -52,7 +52,18 @@ namespace UiWindow {
             UiCtx = new Ui::UiContext(&Wid->Framebuffer);
         }
 
+        // todo: if Icon = null -> default icon
         Titlebar = Ui::Titlebar(Title, Icon, {.BackgroundColor = WIN_TBCOLOR_ONBLUR, .ForegroundColor = 0xffffffff}, UiCtx->Cpnt);
+
+        // Content
+        Cpnt = Ui::Box(
+            {
+                .G = {
+                        .Width = -100,
+                        .Height = -100
+                    }
+            }
+        , UiCtx->Cpnt)->Cpnt;
 
         UiCtx->UiStartRenderer();
         ChangeVisibilityWindow(this->Wid, true);
@@ -96,15 +107,19 @@ namespace UiWindow {
     }
 
     void Window::HandlerMouse(uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status){
-        int64_t RelativePostionX = PositionX - Wid->Position.x;
-        int64_t RelativePostionY = PositionY - Wid->Position.y; 
+        int64_t RelativePositionX = PositionX - Wid->Position.x;
+        int64_t RelativePositionY = PositionY - Wid->Position.y; 
 
-        if(RelativePostionX >= 0 && RelativePostionY >= 0 && RelativePostionX < UiCtx->EventBuffer->Width && RelativePostionY < UiCtx->EventBuffer->Height){
-            Ui::Component* Component = (Ui::Component*)GetEventData(UiCtx->EventBufferUse, RelativePostionX, RelativePostionY);
+        Ui::Component* Component = (Ui::Component*)GetEventData(UiCtx->EventBufferUse, RelativePositionX, RelativePositionY);
+        if(RelativePositionX >= 0 && RelativePositionY >= 0 && RelativePositionX < UiCtx->EventBuffer->Width && RelativePositionY < UiCtx->EventBuffer->Height){
             if(Component){
                 if(Component->MouseEvent){
-                    Component->MouseEvent(Component, true, RelativePostionX, RelativePostionY, PositionX, PositionY, ZValue, Status);
+                    Component->MouseEvent(Component, true, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
                 }
+            }
+        } else {
+            if(UiCtx->FocusCpnt->MouseEvent){
+                Component->UiCtx->FocusCpnt->MouseEvent(Component->UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
             }
         }
     }
