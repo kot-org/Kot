@@ -21,8 +21,9 @@ namespace Ui {
         }
 
         Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top)};
-        BlitFramebuffer(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top));
         SetGraphicEventbuffer(Cpnt->UiCtx->EventBuffer, (uint64_t)Cpnt, Box->Style.G.Currentwidth, Box->Style.G.Currentheight, Cpnt->AbsolutePosition.x, Cpnt->AbsolutePosition.y);
+        Cpnt->Update();
+        BlitFramebuffer(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top));
     }
 
     void BoxMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status){
@@ -55,7 +56,7 @@ namespace Ui {
         Box_t* Box = (Box_t*)malloc(sizeof(Box_t));
         memcpy(&Box->Style, &Style, sizeof(BoxStyle_t));
         Box->CurrentColor = Box->Style.BackgroundColor;
-        Box->Cpnt = new Component({ Box->Style.G }, BoxUpdate, BoxMouseEvent, (uintptr_t)Box, ParentCpnt, true, true);
+        Box->Cpnt = new Component({ Box->Style.G }, BoxUpdate, BoxMouseEvent, (uintptr_t)Box, ParentCpnt, true);
         return Box;
     }
 

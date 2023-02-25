@@ -56,6 +56,7 @@ void CreateDisplay(Component* Window) {
                     .BackgroundColor = (color_t)0xFFFFFF, 
                     .ClickColor = (color_t)0x00FF00, 
                     .HoverColor = (color_t)0xFF0000, 
+                    .BorderRadius = 10,
                     .OnMouseEvent = OpButton
                 }
             , NumericKeypad->Cpnt);

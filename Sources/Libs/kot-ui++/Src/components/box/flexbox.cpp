@@ -239,7 +239,7 @@ namespace Ui {
     Flexbox_t* Flexbox(FlexboxStyle_t Style, Component* ParentCpnt){
         Flexbox_t* Flexbox = (Flexbox_t*)malloc(sizeof(Flexbox_t));
         memcpy(&Flexbox->Style, &Style, sizeof(FlexboxStyle_t));
-        Flexbox->Cpnt = new Component(Style.G, FlexboxUpdate, NULL, (uintptr_t)Flexbox, ParentCpnt, false, true);
+        Flexbox->Cpnt = new Component(Style.G, FlexboxUpdate, NULL, (uintptr_t)Flexbox, ParentCpnt, true);
         return Flexbox;
     }
 

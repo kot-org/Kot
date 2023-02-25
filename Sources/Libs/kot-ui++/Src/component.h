@@ -49,6 +49,8 @@ namespace Ui {
     #define BUTTON_EVENT_TYPE_MIDDLE_CLICK  (1 << 3)
     #define BUTTON_EVENT_TYPE_UNFOCUS       (1 << 4)
 
+    #define GRIDBOX_CASE_SIZE_AUTO          (-1)
+
     typedef uint64_t ButtonEvent_t;
 
     typedef void (*MouseEventHandler)(class Component* Component, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status);
@@ -100,7 +102,7 @@ namespace Ui {
 
     class Component {
         public:
-            Component(ComponentGeneralStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, class Component* ParentCpnt, bool IsUpdateChild, bool IsOwnFb);
+            Component(ComponentGeneralStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, class Component* ParentCpnt, bool IsOwnFb);
 
             /* Component Framebuffer */
             void CreateFramebuffer(uint32_t Width, uint32_t Height);
@@ -121,7 +123,6 @@ namespace Ui {
             Component* Parent;
             class UiContext* UiCtx;
             bool IsFramebufferUpdate;
-            bool UpdateChild;
             bool IsRedraw;
 
             point_t DrawPosition;            
@@ -200,8 +201,11 @@ namespace Ui {
 
     typedef struct {
         ComponentGeneralStyle G;
-        uint64_t CaseWidth;
-        uint64_t CaseHeight;
+        int64_t CaseWidth;
+        int64_t CaseHeight;
+        // Only if auto case
+        uint64_t SpaceBetweenCaseHorizontal;
+        uint64_t SpaceBetweenCaseVertical;
     } GridboxStyle_t;
     struct Gridbox_t{
         GridboxStyle_t Style;
@@ -217,6 +221,7 @@ namespace Ui {
         color_t BackgroundColor;
         color_t HoverColor;
         color_t ClickColor;
+        uint64_t BorderRadius;
         ButtonHandler OnMouseEvent;
         uintptr_t ExternalData;
     } ButtonStyle_t;

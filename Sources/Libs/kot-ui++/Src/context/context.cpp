@@ -31,7 +31,7 @@ namespace Ui {
         this->Fb = fb;
         this->EventBuffer = CreateEventBuffer(fb->Width, fb->Height);
         this->EventBufferUse = CreateEventBuffer(fb->Width, fb->Height);
-        this->Cpnt = new Component({.Width = (int64_t)fb->Width, .Height = (int64_t)fb->Height, .IsHidden = false}, UiContextUpdate, UiContextMouseEvent, NULL, NULL, true, true);
+        this->Cpnt = new Component({.Width = (int64_t)fb->Width, .Height = (int64_t)fb->Height, .IsHidden = false}, UiContextUpdate, UiContextMouseEvent, NULL, NULL, true);
         this->Cpnt->UiCtx = this;
         this->FocusCpnt = Cpnt;
         Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&UiContextRenderer, PriviledgeApp, (uint64_t)this, &ThreadRenderer);

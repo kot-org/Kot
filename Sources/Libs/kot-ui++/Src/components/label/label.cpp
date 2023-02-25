@@ -27,6 +27,7 @@ namespace Ui {
         }
 
         Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top)};
+        Cpnt->Update();
     }
 
     Label_t* Label(LabelStyle_t Style, Component* ParentCpnt){
@@ -53,7 +54,7 @@ namespace Ui {
         Label->Style.Text = (char*)malloc(strlen(Style.Text));
         strcpy(Label->Style.Text, Style.Text);
 
-        Label->Cpnt = new Component(Style.G, LabelUpdate, (Ui::MouseEventHandler)LabelUpdate, (uintptr_t)Label, ParentCpnt, true, false);
+        Label->Cpnt = new Component(Style.G, LabelUpdate, (Ui::MouseEventHandler)LabelUpdate, (uintptr_t)Label, ParentCpnt, false);
         
         font_fb_t FontBuffer = {.Address = Label->Cpnt->Framebuffer->Buffer, .Width = Label->Cpnt->Framebuffer->Width, .Height = Label->Cpnt->Framebuffer->Height, .Pitch = Label->Cpnt->Framebuffer->Pitch};
         LoadPen(Label->Font, &FontBuffer, (int64_t)(Label->Cpnt->Style->Position.x + Label->Cpnt->Style->Margin.Left), (int64_t)(Label->Cpnt->Style->Position.y + Label->Cpnt->Style->Margin.Top), Label->Style.FontSize, 0, Label->Style.ForegroundColor);

@@ -2,7 +2,7 @@
 
 namespace Ui {
 
-    Component::Component(ComponentGeneralStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, Component* ParentCpnt, bool IsUpdateChild, bool IsOwnFb){
+    Component::Component(ComponentGeneralStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, Component* ParentCpnt, bool IsOwnFb){
         /* Style */
         ComponentGeneralStyle* CpntStyle = (ComponentGeneralStyle*)malloc(sizeof(ComponentGeneralStyle));
 
@@ -15,7 +15,6 @@ namespace Ui {
         this->MouseEvent = HandlerMouseEvent;
         this->ExternalData = ExternalData;
         this->AbsolutePosition = {.x = 0, .y = 0};
-        this->UpdateChild = IsUpdateChild;
         this->IsRedraw = true;
 
         /* Layout */
@@ -98,6 +97,7 @@ namespace Ui {
             Framebuffer->Pitch = Pitch;
             Framebuffer->Width = Width;
             Framebuffer->Height = Height;
+
             this->IsFramebufferUpdate = true;
         }
     }
@@ -115,7 +115,7 @@ namespace Ui {
     }
 
     void Component::Update(){
-        if(Childs != NULL && UpdateChild){
+        if(Childs != NULL){
             // Left
             uint64_t XIterationLeft = 0;
             uint64_t YIterationLeft = 0;
@@ -189,7 +189,6 @@ namespace Ui {
                     }
 
                     Child->UpdateFunction(Child);
-                    Child->Update();
                 }
             }
         }

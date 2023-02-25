@@ -56,26 +56,51 @@ void BlitFramebuffer(framebuffer_t* To, framebuffer_t* From, uint64_t PositionX,
 }
 
 
-void BlitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint32_t x, uint32_t y, uint16_t borderRadius) {
+void BlitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint64_t PositionX, uint64_t PositionY, uint64_t BorderRadius) {
     uint64_t ToBuffer = (uint64_t) to->Buffer;
     uint64_t FromBuffer = (uint64_t) from->Buffer;
 
-    ToBuffer += x * to->Btpp + y * to->Pitch; // offset
+    ToBuffer += PositionX * to->Btpp + PositionY * to->Pitch;
+    uint64_t WidthCopy = from->Width;
 
-    uint64_t ByteToCopyPerLine;
-
-    if (to->Pitch < from->Pitch) {
-        ByteToCopyPerLine = to->Pitch;
-    } else {
-        ByteToCopyPerLine = from->Pitch;
+    if (PositionX + WidthCopy >= to->Width) {
+        WidthCopy = to->Width - PositionX;
     }
 
-    for (uint32_t h = 0; h < from->Height && h + y < to->Height; h++) {
-        memcpy((uintptr_t) ToBuffer, (uintptr_t) FromBuffer, ByteToCopyPerLine);
+    uint64_t HeightCopy = from->Height;
+
+    if (PositionY + HeightCopy >= to->Height) {
+        HeightCopy = to->Height - PositionY;
+    }
+
+    uint64_t PitchCopy = WidthCopy * to->Btpp;
+
+    uint64_t Ray = BorderRadius / 2;
+    for (uint64_t h = 0; h < Ray; h++) {
+        uint64_t CircleH = h;
+        uint64_t Height = (Ray - CircleH);
+        uint64_t LeftOffset = (Ray - sqrt(Ray*Ray-Height*Height)) * to->Btpp;
+        memcpy((uintptr_t) (ToBuffer + LeftOffset), (uintptr_t) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
+        ToBuffer += to->Pitch;
+        FromBuffer += from->Pitch;
+    }
+
+    for (uint64_t h = Ray; h < HeightCopy - Ray; h++) {
+        memcpy((uintptr_t) ToBuffer, (uintptr_t) FromBuffer, PitchCopy);
+        ToBuffer += to->Pitch;
+        FromBuffer += from->Pitch;
+    }
+
+    for (uint64_t h = HeightCopy - Ray; h < HeightCopy; h++) {
+        uint64_t CircleH = HeightCopy - h;
+        uint64_t Height = (Ray - CircleH);
+        uint64_t LeftOffset = (Ray - sqrt(Ray*Ray-Height*Height)) * to->Btpp;
+        memcpy((uintptr_t) (ToBuffer + LeftOffset), (uintptr_t) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
         ToBuffer += to->Pitch;
         FromBuffer += from->Pitch;
     }
 }
+
 
 void FillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color) {
     uint32_t _h = Height+y;
