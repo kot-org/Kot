@@ -9,144 +9,69 @@ using namespace Ui;
 
 // todo: fonction "ChangeFit"
 
-void desktopc::SetWallpaper(char *Path, uint8_t Fit)
-{
-    file_t* WallpaperFile = fopen(Path, "rb");
-
-    if (WallpaperFile == NULL)
-    {
-        SetSolidColor(NULL);
-        return;
-    }
-
-    fseek(WallpaperFile, 0, SEEK_END);
-    size_t WallpaperFileSize = ftell(WallpaperFile);
-    fseek(WallpaperFile, 0, SEEK_SET);
-
-    TGAHeader_t* Wallpaper = (TGAHeader_t*) malloc(WallpaperFileSize);
-    fread(Wallpaper, WallpaperFileSize, 1, WallpaperFile);
-
-    if(Wallpaper->Width <= 0 || Wallpaper->Height <= 0)
-    {
-        free(Wallpaper);
-        fclose(WallpaperFile);
-        SetSolidColor(NULL);
-        return;
-    }
-
-    TGA_t* Image = TGARead(Wallpaper);
-
-    if(Image == NULL) {
-        SetSolidColor(NULL);
-        return;
-    }
-
-    switch(Fit)
-    {
-        case WallpaperFit::FIT:
-        {
-            TGA_t* ImageResize = TGAResize(Image, Fb->Width, Fb->Height, true);
-
-            ImageResize->x = Fb->Width / 2 - ImageResize->Width / 2;
-            ImageResize->y = Fb->Height / 2 - ImageResize->Height / 2;
-
-            TGADraw(Fb, ImageResize);
-
-            free(ImageResize);
-            break;
+void desktopc::InitalizeClock(char* FontPath){
+    Ui::Flexbox_t* ClockContainer = Ui::Flexbox({
+        .G = { 
+                .Width = -100,
+                .Maxwidth = NO_MAXIMUM,
+                .Height = -100,
+                .Maxheight = NO_MAXIMUM,
+                .Position{
+                    .x = 0,
+                    .y = 0
+                },
+                .IsHidden = false 
+            }, 
+        .Align = { 
+            .x = Layout::FILLHORIZONTAL, 
+            .y = Layout::MIDDLE 
         }
+    }, UiCtx->Cpnt);
 
-        case WallpaperFit::FILL:
-        {
-            uint16_t _Width = Image->Width, _Height = Image->Height;
-
-            // permet de faire en sorte que l'image dépasse la taille du monitor
-            if(_Width > _Height) {
-                _Width = NULL;
-                _Height = Fb->Height;
-            } else if(_Height > _Width) {
-                _Width = Fb->Width;
-                _Height = NULL;
-            }
-            
-            TGA_t* ImageResize = TGAResize(Image, _Width, _Height, true);
-
-            uint16_t x = (ImageResize->Width - Fb->Width) / 2;
-            uint16_t y = (ImageResize->Height - Fb->Height) / 2;
-
-            TGA_t* ImageCrop = TGACrop(ImageResize, Fb->Width, Fb->Height, x, y);
-            
-            TGADraw(Fb, ImageCrop);
-
-            free(ImageResize);
-            break;
+    Ui::Label_t* Weekday = Ui::Label({
+        .Text = "Sunday",
+        .FontPath = FontPath,
+        .FontSize = 72,
+        .ForegroundColor = 0xffffffff,
+        .Align = Ui::TEXTALIGNCENTER,
+        .G{
+            .Width = -100,
+            .Maxwidth = NO_MAXIMUM,
+            .Height = 72,
+            .IsHidden = false            
         }
-
-        case WallpaperFit::CENTER:
-        {
-            uint16_t x = 0, y = 0,
-                _Width = Image->Width, _Height = Image->Height;
-
-            if(_Width > Fb->Width) {
-                x = (_Width - Fb->Width) / 2;
-                _Width = Fb->Width;
-            }
-            if(_Height > Fb->Height) {
-                y = (_Height - Fb->Height) / 2;
-                _Height = Fb->Height;
-            }
-
-            // si l'image dépasse le monitor alors on crop
-            if(Image->Width > Fb->Width || Image->Height > Fb->Height) {
-                TGA_t* ImageCrop = TGACrop(Image, _Width, _Height, x, y);
-
-                ImageCrop->x = Fb->Width / 2 - ImageCrop->Width / 2;
-                ImageCrop->y = Fb->Height / 2 - ImageCrop->Height / 2;
-
-                TGADraw(Fb, ImageCrop);
-                
-                free(ImageCrop);
-            } else {
-                Image->x = Fb->Width / 2 - Image->Width / 2;
-                Image->y = Fb->Height / 2 - Image->Height / 2;
-                
-                TGADraw(Fb, Image);
-            }
-
-            break;
-        }
-
-        case WallpaperFit::STRETCH:
-        {
-            TGA_t* ImageResize = TGAResize(Image, Fb->Width, Fb->Height);
-            TGADraw(Fb, ImageResize);
-
-            free(ImageResize);
-            break;
-        }
-
-        default:
-            SetSolidColor(NULL);
-            break;
-    }
-
-    free(Image);
-
-    free(Wallpaper);
-    fclose(WallpaperFile);
+    }, ClockContainer->Cpnt);
 }
 
-void desktopc::SetSolidColor(uint32_t Color)
-{
+void desktopc::SetWallpaper(char* Path, Ui::PictureboxFit Fit){
+    Wallpaper = Ui::Picturebox(Path, _TGA, {
+        .Fit = Fit,
+        .G{
+            .Width = -100,
+            .Maxwidth = NO_MAXIMUM,
+            .Height = -100,
+            .Maxheight = NO_MAXIMUM,
+            .Position{
+                .x = 0,
+                .y = 0
+            },
+            .IsHidden = false
+        }
+    }, UiCtx->Cpnt);
+}
+
+void desktopc::SetSolidColor(uint32_t Color){
     FillRect(Fb, 0, 0, Fb->Width, Fb->Height, Color);
 }
 
-desktopc::desktopc(JsonArray* Settings)
-{
+desktopc::desktopc(JsonArray* Settings){
     window_t* Desktop = CreateWindow(NULL, Window_Type_Background);
     ResizeWindow(Desktop, Window_Max_Size, Window_Max_Size);
 
     Fb = &Desktop->Framebuffer;
+
+    UiCtx = new Ui::UiContext(Fb);
+
 
     JsonObject* DesktopSettings = (JsonObject*)Settings->Get(0);
 
@@ -159,14 +84,22 @@ desktopc::desktopc(JsonArray* Settings)
 
     if(IsWallpaper)
     {
-        SetWallpaper(WallpaperPath, WallpaperFit);
+        SetWallpaper(WallpaperPath, (Ui::PictureboxFit)WallpaperFit);
     } else
     {
         SetSolidColor(SolidColor);
     }
 
+    bool IsClock = ((JsonBoolean*)Background->Get("isClock"))->Get();
+    char* FontPathClock = ((JsonString*)Background->Get("clockFontPath"))->Get();
+
+    if(IsClock){
+        InitalizeClock(FontPathClock);
+    }
+
     // todo: creer une grille pour les icones
 
+    UiCtx->UiStartRenderer();
     ChangeVisibilityWindow(Desktop, true);
 }
 

@@ -6,6 +6,9 @@
 
 namespace Ui {
     void PictureboxDraw(Picturebox_t* Picturebox){
+        Picturebox->Cpnt->DrawPosition.x = Picturebox->Cpnt->FramebufferRelativePosition.x;
+        Picturebox->Cpnt->DrawPosition.y = Picturebox->Cpnt->FramebufferRelativePosition.y;
+
         Picturebox->Cpnt->IsRedraw = true;
         switch(Picturebox->Type){
             case PictureboxType::_TGA:{
@@ -15,8 +18,8 @@ namespace Ui {
                         TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
                         TGA_t* ImageResize = TGAResize(ImageRead, Picturebox->Cpnt->Style->Currentwidth, Picturebox->Cpnt->Style->Currentheight, true);
 
-                        ImageResize->x = Picturebox->Cpnt->Style->Currentwidth / 2 - ImageResize->Width / 2; + Picturebox->Cpnt->Style->Position.x + Picturebox->Cpnt->Style->Margin.Left;
-                        ImageResize->y = Picturebox->Cpnt->Style->Currentheight / 2 - ImageResize->Height / 2 + Picturebox->Cpnt->Style->Position.y + Picturebox->Cpnt->Style->Margin.Top;
+                        ImageResize->x = Picturebox->Cpnt->Style->Currentwidth / 2 - ImageResize->Width / 2; + Picturebox->Cpnt->FramebufferRelativePosition.x + Picturebox->Cpnt->Style->Margin.Left;
+                        ImageResize->y = Picturebox->Cpnt->Style->Currentheight / 2 - ImageResize->Height / 2 + Picturebox->Cpnt->FramebufferRelativePosition.y + Picturebox->Cpnt->Style->Margin.Top;
 
                         TGADraw(Picturebox->Cpnt->Framebuffer, ImageResize);
 
@@ -46,8 +49,8 @@ namespace Ui {
 
                         TGA_t* ImageCrop = TGACrop(ImageResize, Picturebox->Cpnt->Style->Currentwidth, Picturebox->Cpnt->Style->Currentheight, x, y);
 
-                        ImageCrop->x = Picturebox->Cpnt->Style->Position.x + Picturebox->Cpnt->Style->Margin.Left;
-                        ImageCrop->y = Picturebox->Cpnt->Style->Position.y + Picturebox->Cpnt->Style->Margin.Top; 
+                        ImageCrop->x = Picturebox->Cpnt->FramebufferRelativePosition.x + Picturebox->Cpnt->Style->Margin.Left;
+                        ImageCrop->y = Picturebox->Cpnt->FramebufferRelativePosition.y + Picturebox->Cpnt->Style->Margin.Top; 
 
                         TGADraw(Picturebox->Cpnt->Framebuffer, ImageCrop);
 
@@ -79,8 +82,8 @@ namespace Ui {
                             ImageCrop->x = Picturebox->Cpnt->Style->Currentwidth / 2 - ImageCrop->Width / 2;
                             ImageCrop->y = Picturebox->Cpnt->Style->Currentheight / 2 - ImageCrop->Height / 2;
 
-                            ImageCrop->x = Picturebox->Cpnt->Style->Position.x + Picturebox->Cpnt->Style->Margin.Left;
-                            ImageCrop->y = Picturebox->Cpnt->Style->Position.y + Picturebox->Cpnt->Style->Margin.Top;
+                            ImageCrop->x = Picturebox->Cpnt->FramebufferRelativePosition.x + Picturebox->Cpnt->Style->Margin.Left;
+                            ImageCrop->y = Picturebox->Cpnt->FramebufferRelativePosition.y + Picturebox->Cpnt->Style->Margin.Top;
 
                             TGADraw(Picturebox->Cpnt->Framebuffer, ImageCrop);
                             
@@ -89,8 +92,8 @@ namespace Ui {
                             ((TGAHeader_t*)Picturebox->Image)->x = Picturebox->Cpnt->Style->Currentwidth / 2 - ((TGAHeader_t*)Picturebox->Image)->Width / 2;
                             ((TGAHeader_t*)Picturebox->Image)->y = Picturebox->Cpnt->Style->Currentheight / 2 - ((TGAHeader_t*)Picturebox->Image)->Height / 2;
                             
-                            ImageRead->x = Picturebox->Cpnt->Style->Position.x + Picturebox->Cpnt->Style->Margin.Left;
-                            ImageRead->y = Picturebox->Cpnt->Style->Position.y + Picturebox->Cpnt->Style->Margin.Top;
+                            ImageRead->x = Picturebox->Cpnt->FramebufferRelativePosition.x + Picturebox->Cpnt->Style->Margin.Left;
+                            ImageRead->y = Picturebox->Cpnt->FramebufferRelativePosition.y + Picturebox->Cpnt->Style->Margin.Top;
 
                             TGADraw(Picturebox->Cpnt->Framebuffer, ImageRead);
                         }
@@ -105,8 +108,8 @@ namespace Ui {
                         TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
                         TGA_t* ImageResize = TGAResize(ImageRead, Picturebox->Cpnt->Style->Currentwidth, Picturebox->Cpnt->Style->Currentheight);
                         
-                        ImageResize->x = Picturebox->Cpnt->Style->Position.x + Picturebox->Cpnt->Style->Margin.Left;
-                        ImageResize->y = Picturebox->Cpnt->Style->Position.y + Picturebox->Cpnt->Style->Margin.Top;
+                        ImageResize->x = Picturebox->Cpnt->FramebufferRelativePosition.x + Picturebox->Cpnt->Style->Margin.Left;
+                        ImageResize->y = Picturebox->Cpnt->FramebufferRelativePosition.y + Picturebox->Cpnt->Style->Margin.Top;
 
                         TGADraw(Picturebox->Cpnt->Framebuffer, ImageResize);
 
@@ -127,16 +130,17 @@ namespace Ui {
     
     void PictureboxUpdate(Component* Cpnt){
         Picturebox_t* Picturebox = (Picturebox_t*)Cpnt->ExternalData;
+        Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top)};
+        Cpnt->FramebufferRelativePosition = {.x = Cpnt->Parent->FramebufferRelativePosition.x + Cpnt->Style->Position.x, .y = Cpnt->Parent->FramebufferRelativePosition.y + Cpnt->Style->Position.y};
         if(Cpnt->IsFramebufferUpdate){
             Cpnt->IsFramebufferUpdate = false;
             PictureboxDraw(Picturebox);
         }else if(Picturebox->IsDrawUpdate){
             Picturebox->IsDrawUpdate = false;
             PictureboxDraw(Picturebox);
-        }else if(Cpnt->Parent->IsRedraw || Cpnt->DrawPosition.x != Cpnt->Style->Position.x || Cpnt->DrawPosition.y != Cpnt->Style->Position.y){
+        }else if(Cpnt->Parent->IsRedraw || Cpnt->DrawPosition.x != Cpnt->FramebufferRelativePosition.x || Cpnt->DrawPosition.y != Cpnt->FramebufferRelativePosition.y){
             PictureboxDraw(Picturebox);
         }
-        Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top)};
         Cpnt->Update();
     }
 

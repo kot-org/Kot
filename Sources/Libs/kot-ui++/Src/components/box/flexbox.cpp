@@ -10,7 +10,10 @@ namespace Ui {
 
             Cpnt->IsFramebufferUpdate = false;
         }
-        Cpnt->AbsolutePosition = {.x = Cpnt->Parent->AbsolutePosition.x + Flexbox->Style.G.Position.x, .y = Cpnt->Parent->AbsolutePosition.y + Flexbox->Style.G.Position.y};
+        
+        Cpnt->AbsolutePosition = {.x = Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x, .y = Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y};
+        Cpnt->FramebufferRelativePosition = {.x = Cpnt->Parent->FramebufferRelativePosition.x + Cpnt->Style->Position.x, .y = Cpnt->Parent->FramebufferRelativePosition.y + Cpnt->Style->Position.y};
+        
         if(Cpnt->Childs != NULL){
             uint64_t TotalWidth = Cpnt->Style->Currentwidth;
             uint64_t TotalHeight = Cpnt->Style->Currentheight;
@@ -155,7 +158,6 @@ namespace Ui {
                         }
                         Child->UpdateFramebuffer(Child->Style->Currentwidth, NewHeight);
                         Child->UpdateFunction(Child);
-                        Child->Update();
                     }
                     break;
                 }
@@ -233,13 +235,13 @@ namespace Ui {
                 }
             }
         }
-        BlitFramebuffer(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top));
+        Cpnt->IsRedraw = false;
     }
 
     Flexbox_t* Flexbox(FlexboxStyle_t Style, Component* ParentCpnt){
         Flexbox_t* Flexbox = (Flexbox_t*)malloc(sizeof(Flexbox_t));
         memcpy(&Flexbox->Style, &Style, sizeof(FlexboxStyle_t));
-        Flexbox->Cpnt = new Component(Style.G, FlexboxUpdate, NULL, (uintptr_t)Flexbox, ParentCpnt, true);
+        Flexbox->Cpnt = new Component(Style.G, FlexboxUpdate, NULL, (uintptr_t)Flexbox, ParentCpnt, false);
         return Flexbox;
     }
 

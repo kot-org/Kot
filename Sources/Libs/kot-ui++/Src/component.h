@@ -70,6 +70,12 @@ namespace Ui {
         RIGHT = 1,
     };
 
+    enum TextAlign {
+        TEXTALIGNLEFT = 0,
+        TEXTALIGNCENTER = 1,
+        TEXTALIGNRIGHT = 2,       
+    };
+
     struct ComponentGeneralStyle{
         uint64_t Maxwidth;
         uint64_t Minwidth;
@@ -80,6 +86,8 @@ namespace Ui {
         uint64_t Minheight;
         uint64_t Currentheight;
         int64_t Height;
+
+        uint64_t BorderRadius;
 
         Margin Margin;
 
@@ -125,8 +133,9 @@ namespace Ui {
             bool IsFramebufferUpdate;
             bool IsRedraw;
 
-            point_t DrawPosition;            
-            point_t AbsolutePosition;            
+            point_t DrawPosition; 
+            point_t AbsolutePosition;     
+            point_t FramebufferRelativePosition;
 
             Component* VerticalOverflow;
             Component* HorizontalOverflow;
@@ -221,7 +230,6 @@ namespace Ui {
         color_t BackgroundColor;
         color_t HoverColor;
         color_t ClickColor;
-        uint64_t BorderRadius;
         ButtonHandler OnMouseEvent;
         uintptr_t ExternalData;
     } ButtonStyle_t;
@@ -241,6 +249,7 @@ namespace Ui {
         char* FontPath;
         int16_t FontSize;
         color_t ForegroundColor;
+        TextAlign Align;
     } LabelStyle_t;
     struct Label_t{
         LabelStyle_t Style;
@@ -248,6 +257,10 @@ namespace Ui {
         color_t CurrentColor;
         bool IsDrawUpdate;
         kfont_t* Font;
+        int64_t TextWidth;
+        int64_t TextHeight;
+        int64_t TextX;
+        int64_t TextY;
         void UpdateText(char* Text);
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);

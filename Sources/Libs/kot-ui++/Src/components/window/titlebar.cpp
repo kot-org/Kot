@@ -1,9 +1,21 @@
 #include <kot-ui++/component.h>
 
-#define Titlebar_Height 25
+#define Titlebar_Height 24
 #define Titlebar_FontSize 16
 
 namespace Ui {
+    void CloseBtnEvent(Button_t* Button, ButtonEvent_t Type){
+        Printlog("close");
+    }
+
+    void SizeBtnEvent(Button_t* Button, ButtonEvent_t Type){
+        Printlog("size");
+    }
+
+    void HideBtnEvent(Button_t* Button, ButtonEvent_t Type){
+        Printlog("hide");
+    }
+
     Titlebar_t* Titlebar(char* Title, char* Icon, TitlebarStyle_t Style, Component* ParentCpnt) {
         Titlebar_t* Titlebar = (Titlebar_t*)malloc(sizeof(Titlebar_t));
         memcpy(&Titlebar->Style, &Style, sizeof(TitlebarStyle_t));
@@ -41,6 +53,8 @@ namespace Ui {
                 .FontPath = "default-font.sfn",
                 .Text = Title,
                 .FontSize = Titlebar_FontSize,
+                .ForegroundColor = Titlebar->Style.ForegroundColor, 
+                .Align = Ui::TEXTALIGNCENTER,
                 .G{
                     .Margin{
                         .Left = 10,
@@ -52,20 +66,21 @@ namespace Ui {
                     .AutoPosition = true,
                     .IsHidden = false
                 },
-                .ForegroundColor = Titlebar->Style.ForegroundColor, 
             }
         , Titlebar->Cpnt);
 
         Titlebar->CloseBtn = Button(
             {
+                .BackgroundColor = Titlebar->Style.BackgroundColor, 
+                .OnMouseEvent = CloseBtnEvent,
                 .G{
                     .Width = Titlebar_Height, 
                     .Height = Titlebar_Height, 
                     .AutoPosition = true,
                     .Align = RIGHT,
-                    .IsHidden = false
+                    .BorderRadius = Titlebar_Height,
+                    .IsHidden = false,
                 },
-                .BackgroundColor = Titlebar->Style.BackgroundColor, 
             }
             , Titlebar->Cpnt);
 
@@ -85,11 +100,13 @@ namespace Ui {
         Titlebar->SizeBtn = Button(
             {
                 .BackgroundColor = Titlebar->Style.BackgroundColor, 
+                .OnMouseEvent = SizeBtnEvent,
                 .G{
                     .Width = Titlebar_Height, 
                     .Height = Titlebar_Height, 
                     .AutoPosition = true,
                     .Align = RIGHT,
+                    .BorderRadius = Titlebar_Height,
                     .IsHidden = false
                 }
             }
@@ -111,11 +128,13 @@ namespace Ui {
         Titlebar->HideBtn = Button(
             {
                 .BackgroundColor = Titlebar->Style.BackgroundColor, 
+                .OnMouseEvent = HideBtnEvent,
                 .G{
                     .Width = Titlebar_Height,
                     .Height = Titlebar_Height,
                     .AutoPosition = true,
                     .Align = RIGHT,
+                    .BorderRadius = Titlebar_Height,
                     .IsHidden = false
                 }
             }

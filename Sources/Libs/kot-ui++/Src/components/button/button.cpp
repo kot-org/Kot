@@ -3,6 +3,7 @@
 namespace Ui {
     void ButtonDraw(Button_t* Button){
         memset32(Button->Cpnt->GetFramebuffer()->Buffer, Button->CurrentColor, Button->Cpnt->GetFramebuffer()->Size);
+        Button->Cpnt->IsRedraw = true;
     }
 
     void ButtonUpdate(Component* Cpnt){
@@ -19,9 +20,9 @@ namespace Ui {
             Button->IsDrawUpdate = false;
         }
         Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top)};
-        SetGraphicEventbuffer(Cpnt->UiCtx->EventBuffer, (uint64_t)Cpnt, Button->Style.G.Currentwidth, Button->Style.G.Currentheight, Cpnt->AbsolutePosition.x, Cpnt->AbsolutePosition.y);
+        SetGraphicEventbufferRadius(Cpnt->UiCtx->EventBuffer, (uint64_t)Cpnt, Button->Style.G.Currentwidth, Button->Style.G.Currentheight, Cpnt->AbsolutePosition.x, Cpnt->AbsolutePosition.y, Cpnt->Style->BorderRadius);
         Cpnt->Update();
-        BlitFramebufferRadius(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top), Button->Style.BorderRadius);
+        BlitFramebufferRadius(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top), Cpnt->Style->BorderRadius);
     }
 
     void ButtonMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status){

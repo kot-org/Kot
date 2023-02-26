@@ -15,6 +15,7 @@ namespace Ui {
         this->MouseEvent = HandlerMouseEvent;
         this->ExternalData = ExternalData;
         this->AbsolutePosition = {.x = 0, .y = 0};
+        this->FramebufferRelativePosition = {.x = 0, .y = 0};
         this->IsRedraw = true;
 
         /* Layout */
@@ -45,7 +46,18 @@ namespace Ui {
         if(IsOwnFb){
             CreateFramebuffer(CpntStyle->Currentwidth, CpntStyle->Currentheight);
         }else{
-            this->Framebuffer = this->Parent->Framebuffer;
+            framebuffer_t* CpntFb = (framebuffer_t*) malloc(sizeof(framebuffer_t));
+
+            CpntFb->Size = Parent->Framebuffer->Size;
+            CpntFb->Buffer = Parent->Framebuffer->Buffer;
+            CpntFb->Pitch = Parent->Framebuffer->Pitch;
+            CpntFb->Width = CpntStyle->Currentwidth;
+            CpntFb->Height = CpntStyle->Currentheight;
+            CpntFb->Bpp = Parent->Framebuffer->Bpp;
+            CpntFb->Btpp = Parent->Framebuffer->Btpp;
+
+            this->Framebuffer = CpntFb;
+            this->IsFramebufferUpdate = true;
         }
 
         if(Style.IsHorizontalOverflow){

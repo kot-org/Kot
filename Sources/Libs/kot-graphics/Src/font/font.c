@@ -91,18 +91,6 @@ void EditPen(kfont_t* font, font_fb_t* buffer, int64_t x, int64_t y, int16_t siz
     font->IsPen = true;
 }
 
-void DrawFontGetPos(kfont_t* font, char* str, int64_t* x, int64_t* y){
-    if(font->IsPen){
-        ssfn_buf_t* Pen = (ssfn_buf_t*)font->PenContext;
-        while(*str) {
-            ssfn_render(font->FontContext, font->PenContext, str++);
-        }
-
-        *x = Pen->x;
-        *y = Pen->y;
-    }
-}
-
 void DrawFont(kfont_t* font, char* str){
     if(font->IsPen){
         ssfn_buf_t* Pen = (ssfn_buf_t*)font->PenContext;
@@ -110,4 +98,8 @@ void DrawFont(kfont_t* font, char* str){
             ssfn_render(font->FontContext, font->PenContext, str++);
         }
     }
+}
+
+void GetTextboxInfo(kfont_t* font, char* str, int64_t* width, int64_t* height, int64_t* x, int64_t* y){
+    ssfn_bbox(font->FontContext, str, (int*)width, (int*)height, (int*)x, (int*)y);
 }
