@@ -1,6 +1,8 @@
 #include <kot-ui++/component.h>
 #include <kot/uisd/srvs/storage.h>
 
+#include <kot/stdio.h>
+
 namespace Ui {
     void LabelDraw(Label_t* Label){
         switch(Label->Style.Align){
@@ -9,7 +11,7 @@ namespace Ui {
                 break;
             }
             case TEXTALIGNCENTER:{
-                EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left + (Label->Cpnt->Style->Currentwidth - Label->TextWidth) / 2), (int64_t)(Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top + (Label->Cpnt->Style->Currentheight - Label->TextHeight) / 2), -1, -1, -1);
+                EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left + (Label->Cpnt->Style->Currentwidth - Label->TextWidth) / 2), (int64_t)(Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top), -1, -1, -1);
                 break;
             }
             case TEXTALIGNRIGHT:{
@@ -23,10 +25,10 @@ namespace Ui {
             }
         }
 
-        Label->Cpnt->IsRedraw = true;
         Label->Cpnt->DrawPosition.x = Label->Cpnt->FramebufferRelativePosition.x; // Do not use real position
         Label->Cpnt->DrawPosition.y = Label->Cpnt->FramebufferRelativePosition.y;
         DrawFont(Label->Font, Label->Style.Text);
+        Label->Cpnt->IsRedraw = true;
     }
 
     void LabelUpdate(Component* Cpnt){
@@ -43,7 +45,6 @@ namespace Ui {
             Label->IsDrawUpdate = false;
             LabelDraw(Label);
         }else if(Cpnt->Parent->IsRedraw || Cpnt->DrawPosition.x != Cpnt->FramebufferRelativePosition.x || Cpnt->DrawPosition.y != Cpnt->FramebufferRelativePosition.y){
-            Cpnt->IsRedraw = true;
             LabelDraw(Label);
         }
 
@@ -71,27 +72,42 @@ namespace Ui {
         fclose(FontFile);
 
         memcpy(&Label->Style, &Style, sizeof(LabelStyle_t));
-        Label->Style.Text = (char*)malloc(strlen(Style.Text));
+        size_t Lenght = strlen(Style.Text);
+        Label->Style.Text = (char*)malloc(Lenght + 1);
         strcpy(Label->Style.Text, Style.Text);
-
-        Label->Cpnt = new Component(Style.G, LabelUpdate, (Ui::MouseEventHandler)LabelUpdate, (uintptr_t)Label, ParentCpnt, false);
+        Label->Style.Text[Lenght] = 0;
         
+        Label->Cpnt = new Component(Style.G, LabelUpdate, (Ui::MouseEventHandler)LabelUpdate, (uintptr_t)Label, ParentCpnt, false);
+
         font_fb_t FontBuffer = {.Address = Label->Cpnt->Framebuffer->Buffer, .Width = Label->Cpnt->Parent->Framebuffer->Width, .Height = Label->Cpnt->Parent->Framebuffer->Height, .Pitch = Label->Cpnt->Parent->Framebuffer->Pitch};
         LoadPen(Label->Font, &FontBuffer, (int64_t)(Label->Cpnt->Style->Position.x + Label->Cpnt->Style->Margin.Left), (int64_t)(Label->Cpnt->Style->Position.y + Label->Cpnt->Style->Margin.Top), Label->Style.FontSize, 0, Label->Style.ForegroundColor);
         GetTextboxInfo(Label->Font, Label->Style.Text, &Label->TextWidth, &Label->TextHeight, &Label->TextX, &Label->TextY);
-        // Label->Cpnt->Style->Width = Label->TextHeight;
-        // Label->Cpnt->Style->Height = Label->TextWidth;
+        
+        if(Label->Style.AutoWidth){
+            Label->Cpnt->Style->Width = Label->TextWidth;
+            Label->Cpnt->UpdateFramebuffer(Label->TextWidth, Label->Cpnt->Style->Currentheight);
+        }
+        if(Label->Style.AutoHeight){
+            Label->Cpnt->Style->Height = Label->TextHeight;
+            Label->Cpnt->UpdateFramebuffer(Label->Cpnt->Style->Currentwidth, Label->TextHeight);
+        }
         Label->IsDrawUpdate = true;
         return Label;
     }
 
     void Label_t::UpdateText(char* Text){
         uintptr_t OldText = (uintptr_t)Style.Text;
-        Style.Text = (char*)malloc(strlen(Style.Text));
-        strcpy(Style.Text, Style.Text);
+        size_t Lenght = strlen(Style.Text);
+        this->Style.Text = (char*)malloc(Lenght + 1);
+        strcpy(this->Style.Text, Style.Text);
+        this->Style.Text[Lenght] = 0;
         GetTextboxInfo(this->Font, this->Style.Text, &this->TextWidth, &this->TextHeight, &this->TextX, &this->TextY);
-        this->Cpnt->Style->Width = this->TextHeight;
-        this->Cpnt->Style->Height = this->TextWidth;
+        if(this->Style.AutoWidth){
+            this->Cpnt->Style->Width = this->TextWidth;
+        }
+        if(this->Style.AutoHeight){
+            this->Cpnt->Style->Height = this->TextHeight;
+        }
         IsDrawUpdate = true;
         free(OldText);
     }

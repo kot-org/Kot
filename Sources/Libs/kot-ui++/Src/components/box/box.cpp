@@ -2,8 +2,8 @@
 
 namespace Ui {
     void BoxDraw(Box_t* Box){
-        Box->Cpnt->IsRedraw = true;
         memset32(Box->Cpnt->GetFramebuffer()->Buffer, Box->CurrentColor, Box->Cpnt->GetFramebuffer()->Size);
+        Box->Cpnt->IsRedraw = true;
     }
 
     void BoxUpdate(Component* Cpnt){

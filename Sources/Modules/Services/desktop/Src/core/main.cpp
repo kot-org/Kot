@@ -9,6 +9,36 @@ using namespace Ui;
 
 // todo: fonction "ChangeFit"
 
+char* WeekdayString[] = {
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thurday",
+    "friday",
+    "saturday",
+};
+
+char* MonthString[] = {
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
+};
+
+void UpdateClock(Ui::Label_t* Weekday, Ui::Label_t* Date, Ui::Label_t* Time){
+    
+    Sys_Close(KSUCCESS);
+}
+
 void desktopc::InitalizeClock(char* FontPath){
     Ui::Flexbox_t* ClockContainer = Ui::Flexbox({
         .G = { 
@@ -24,23 +54,52 @@ void desktopc::InitalizeClock(char* FontPath){
             }, 
         .Align = { 
             .x = Layout::FILLHORIZONTAL, 
-            .y = Layout::MIDDLE 
+            .y = Layout::TOP 
         }
     }, UiCtx->Cpnt);
 
-    Ui::Label_t* Weekday = Ui::Label({
-        .Text = "Sunday",
+    char TimeStr[1024];
+    sprintf((char*)&TimeStr, "%d:%d", GetHour(), GetMinute());
+
+    Ui::Label_t* Time = Ui::Label({
+        .Text = TimeStr,
         .FontPath = FontPath,
         .FontSize = 72,
         .ForegroundColor = 0xffffffff,
         .Align = Ui::TEXTALIGNCENTER,
+        .AutoWidth = false,
+        .AutoHeight = true,
         .G{
+            .Margin{
+                .Top = 20,
+            },
             .Width = -100,
             .Maxwidth = NO_MAXIMUM,
-            .Height = 72,
             .IsHidden = false            
         }
     }, ClockContainer->Cpnt);
+
+    char DateStr[1024];
+    sprintf((char*)&DateStr, "%d %s, %d", GetDay(), MonthString[GetMonth()-1], GetYear());
+
+    Ui::Label_t* Date = Ui::Label({
+        .Text = DateStr,
+        .FontPath = FontPath,
+        .FontSize = 16,
+        .ForegroundColor = 0xffffffff,
+        .Align = Ui::TEXTALIGNCENTER,
+        .AutoWidth = false,
+        .AutoHeight = true,
+        .G{
+            .Margin{
+                .Top = 20,
+            },
+            .Width = -100,
+            .Maxwidth = NO_MAXIMUM,
+            .IsHidden = false            
+        }
+    }, ClockContainer->Cpnt);
+    // TODO update time
 }
 
 void desktopc::SetWallpaper(char* Path, Ui::PictureboxFit Fit){

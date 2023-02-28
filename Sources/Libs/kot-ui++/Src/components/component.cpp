@@ -17,6 +17,7 @@ namespace Ui {
         this->AbsolutePosition = {.x = 0, .y = 0};
         this->FramebufferRelativePosition = {.x = 0, .y = 0};
         this->IsRedraw = true;
+        this->OwnFb = IsOwnFb;
 
         /* Layout */
         memcpy(CpntStyle, &Style, sizeof(ComponentGeneralStyle));
@@ -95,22 +96,31 @@ namespace Ui {
     
     void Component::UpdateFramebuffer(uint32_t Width, uint32_t Height) {
         if(Framebuffer->Width != Width || Framebuffer->Height != Height) {
-            uint32_t Pitch = Width * sizeof(uint32_t);
+            if(OwnFb){
+                uint32_t Pitch = Width * sizeof(uint32_t);
 
-            this->Style->Currentwidth = Width;
-            this->Style->Currentheight = Height;
+                this->Style->Currentwidth = Width;
+                this->Style->Currentheight = Height;
 
-            this->IsFramebufferUpdate = true;
+                this->IsFramebufferUpdate = true;
 
-            Framebuffer->Size = Height * Pitch;
-            uintptr_t OldBuffer = Framebuffer->Buffer;
-            Framebuffer->Buffer = calloc(Framebuffer->Size);
-            free(OldBuffer);
-            Framebuffer->Pitch = Pitch;
-            Framebuffer->Width = Width;
-            Framebuffer->Height = Height;
+                Framebuffer->Size = Height * Pitch;
+                uintptr_t OldBuffer = Framebuffer->Buffer;
+                Framebuffer->Buffer = calloc(Framebuffer->Size);
+                free(OldBuffer);
+                Framebuffer->Pitch = Pitch;
+                Framebuffer->Width = Width;
+                Framebuffer->Height = Height;
 
-            this->IsFramebufferUpdate = true;
+                this->IsFramebufferUpdate = true;
+            }else{
+                Framebuffer->Width = Width;
+                Framebuffer->Height = Height;
+                this->Style->Currentwidth = Width;
+                this->Style->Currentheight = Height;
+
+                this->IsFramebufferUpdate = true;
+            }
         }
     }
     
@@ -209,6 +219,7 @@ namespace Ui {
 
     void Component::AddChild(Component* Child) {
         // TODO sort by position first and by z-index
+
         Child->Deep = this->Deep + 1;
 
         if(!this->Childs){

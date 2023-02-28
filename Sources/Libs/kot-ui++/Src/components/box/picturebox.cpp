@@ -9,7 +9,6 @@ namespace Ui {
         Picturebox->Cpnt->DrawPosition.x = Picturebox->Cpnt->FramebufferRelativePosition.x;
         Picturebox->Cpnt->DrawPosition.y = Picturebox->Cpnt->FramebufferRelativePosition.y;
 
-        Picturebox->Cpnt->IsRedraw = true;
         switch(Picturebox->Type){
             case PictureboxType::_TGA:{
                 switch(Picturebox->Style.Fit){
@@ -31,19 +30,19 @@ namespace Ui {
                     case PictureboxFit::PICTUREFILL:
                     {   
                         TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
-                        uint16_t _Width = ((TGAHeader_t*)Picturebox->Image)->Width, _Height = ((TGAHeader_t*)Picturebox->Image)->Height;
+                        uint16_t _Width;
+                        uint16_t _Height;
 
-                        // permet de faire en sorte que l'image dépasse la taille du monitor
-                        if(_Width > _Height) {
-                            _Width = NULL;
-                            _Height = Picturebox->Cpnt->Style->Currentheight;
-                        } else{
+                        _Width = DivideRoundUp(Picturebox->Cpnt->Style->Currentheight * ImageRead->Width, ImageRead->Height);
+                        if(Picturebox->Cpnt->Style->Currentwidth < _Width){
+                            _Height = Picturebox->Cpnt->Style->Currentheight;              
+                        }else{
                             _Width = Picturebox->Cpnt->Style->Currentwidth;
-                            _Height = NULL;
+                            _Height = DivideRoundUp(_Width * ImageRead->Height, ImageRead->Width);
                         }
+                    
+                        TGA_t* ImageResize = TGAResize(ImageRead, _Width, _Height, false);
                         
-                        TGA_t* ImageResize = TGAResize(ImageRead, _Width, _Height, true);
-
                         uint16_t x = (ImageResize->Width - Picturebox->Cpnt->Style->Currentwidth) / 2;
                         uint16_t y = (ImageResize->Height - Picturebox->Cpnt->Style->Currentheight) / 2;
 
@@ -126,6 +125,7 @@ namespace Ui {
             default:
                 break;
         }
+        Picturebox->Cpnt->IsRedraw = true;
     }
     
     void PictureboxUpdate(Component* Cpnt){

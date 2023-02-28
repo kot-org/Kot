@@ -89,9 +89,9 @@ namespace Ui {
 
         if(KeepRatio){
             if(NewWidth == 0){
-                NewWidth = NewHeight * Image->Width / Image->Height;
+                NewWidth = DivideRoundUp(NewHeight * Image->Width, Image->Height);
             }else if(NewHeight == 0){
-                NewHeight = NewWidth * Image->Height / Image->Width;
+                NewHeight = DivideRoundUp(NewWidth * Image->Height, Image->Width);
             }
         }
         

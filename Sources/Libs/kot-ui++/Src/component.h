@@ -144,6 +144,7 @@ namespace Ui {
             uint64_t Deep;
 
             framebuffer_t* Framebuffer;
+            bool OwnFb;
             
             vector_t* Childs;
 
@@ -249,6 +250,8 @@ namespace Ui {
         char* FontPath;
         int16_t FontSize;
         color_t ForegroundColor;
+        bool AutoWidth;
+        bool AutoHeight;
         TextAlign Align;
     } LabelStyle_t;
     struct Label_t{

@@ -99,7 +99,7 @@ extern "C" int main(int argc, char* argv[]) {
     Srv_Time_SetTimePointerKey(&Time, true);
 
     while (true){
-        Time->Year = RTCGetYear();
+        Time->Year = RTCGetYear() + 2000;
         Time->Month = RTCGetMonth();
         Time->Day = RTCGetDayOfMonth();
         Time->WeekDay = RTCGetDayOfWeek();
