@@ -131,6 +131,9 @@ void BlitGraphicEventbufferRadius(graphiceventbuffer_t* to, graphiceventbuffer_t
         uint64_t CircleH = h;
         uint64_t Height = (Ray - CircleH);
         uint64_t LeftOffset = (uint64_t)(Ray - sqrt(Ray*Ray-Height*Height)) * to->Btpp;
+        if (LeftOffset < 0) {
+            LeftOffset = 0;
+        }
         memcpy((uintptr_t) (ToBuffer + LeftOffset), (uintptr_t) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
         ToBuffer += to->Pitch;
         FromBuffer += from->Pitch;
@@ -146,6 +149,9 @@ void BlitGraphicEventbufferRadius(graphiceventbuffer_t* to, graphiceventbuffer_t
         uint64_t CircleH = HeightCopy - h;
         uint64_t Height = (Ray - CircleH);
         uint64_t LeftOffset = (uint64_t)(Ray - sqrt(Ray*Ray-Height*Height)) * to->Btpp;
+        if (LeftOffset < 0) {
+            LeftOffset = 0;
+        }
         memcpy((uintptr_t) (ToBuffer + LeftOffset), (uintptr_t) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
         ToBuffer += to->Pitch;
         FromBuffer += from->Pitch;

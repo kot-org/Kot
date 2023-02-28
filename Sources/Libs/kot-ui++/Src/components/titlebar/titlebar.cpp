@@ -71,7 +71,7 @@ namespace Ui {
 
         Titlebar->CloseBtn = Button(
             {
-                .BackgroundColor = Titlebar->Style.BackgroundColor, 
+                .BackgroundColor = 0xffffff, 
                 .OnMouseEvent = CloseBtnEvent,
                 .G{
                     .Width = Titlebar_Height, 

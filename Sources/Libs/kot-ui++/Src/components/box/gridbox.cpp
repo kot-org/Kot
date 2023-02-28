@@ -11,7 +11,7 @@ namespace Ui {
 
             Cpnt->IsFramebufferUpdate = false;
         }
-        Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top)};
+        Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom)};
         if(Cpnt->Childs != NULL){
             uint64_t CaseWidth = Gridbox->Style.CaseWidth;
             uint64_t CaseHeight = Gridbox->Style.CaseHeight;
@@ -48,13 +48,12 @@ namespace Ui {
                 Child->Style->Position.y = GridPosition.y;
             }
         }
-        BlitFramebuffer(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top));
     }
 
     Gridbox_t* Gridbox(GridboxStyle_t Style, Component* ParentCpnt){
         Gridbox_t* Gridbox = (Gridbox_t*)malloc(sizeof(Gridbox_t));
         memcpy(&Gridbox->Style, &Style, sizeof(GridboxStyle_t));
-        Gridbox->Cpnt = new Component(Style.G, GridboxUpdate, NULL, (uintptr_t)Gridbox, ParentCpnt, true);
+        Gridbox->Cpnt = new Component(Style.G, GridboxUpdate, NULL, (uintptr_t)Gridbox, ParentCpnt, false);
         return Gridbox;
     }
 

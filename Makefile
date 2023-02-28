@@ -12,6 +12,7 @@ QEMUFLAGS =	-no-reboot 														\
 			-netdev user,id=net0											\
 			-device e1000,netdev=net0,romfile=Bin/Firmwares/efi-e1000.rom	\
 			-object filter-dump,id=f1,netdev=net0,file=dump.dat				\
+			-rtc base=localtime												\
 			-usb                                            				\
     		-device usb-ehci,id=ehci                        				\
 

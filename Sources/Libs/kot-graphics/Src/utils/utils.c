@@ -79,7 +79,10 @@ void BlitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint64_t Posi
     for (uint64_t h = 0; h < Ray && h < HeightCopy; h++) {
         uint64_t CircleH = h;
         uint64_t Height = (Ray - CircleH);
-        uint64_t LeftOffset = (uint64_t)(Ray - sqrt(Ray*Ray-Height*Height)) * to->Btpp;
+        int64_t LeftOffset = (int64_t)(Ray - sqrt(Ray*Ray-Height*Height)) * to->Btpp;
+        if (LeftOffset < 0) {
+            LeftOffset = 0;
+        }
         memcpy((uintptr_t) (ToBuffer + LeftOffset), (uintptr_t) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
         ToBuffer += to->Pitch;
         FromBuffer += from->Pitch;
@@ -94,7 +97,10 @@ void BlitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint64_t Posi
     for (uint64_t h = HeightCopy - Ray; h < HeightCopy; h++) {
         uint64_t CircleH = HeightCopy - h;
         uint64_t Height = (Ray - CircleH);
-        uint64_t LeftOffset = (uint64_t)(Ray - sqrt(Ray*Ray-Height*Height)) * to->Btpp;
+        int64_t LeftOffset = (int64_t)(Ray - sqrt(Ray*Ray-Height*Height)) * to->Btpp;
+        if (LeftOffset < 0) {
+            LeftOffset = 0;
+        }
         memcpy((uintptr_t) (ToBuffer + LeftOffset), (uintptr_t) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
         ToBuffer += to->Pitch;
         FromBuffer += from->Pitch;

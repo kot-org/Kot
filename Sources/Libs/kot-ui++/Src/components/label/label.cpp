@@ -33,13 +33,13 @@ namespace Ui {
 
     void LabelUpdate(Component* Cpnt){
         Label_t* Label = (Label_t*)Cpnt->ExternalData;
-        Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top)};
+        Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom)};
         Cpnt->FramebufferRelativePosition = {.x = Cpnt->Parent->FramebufferRelativePosition.x + Cpnt->Style->Position.x, .y = Cpnt->Parent->FramebufferRelativePosition.y + Cpnt->Style->Position.y};
         if(Cpnt->IsFramebufferUpdate){
             // Draw
             Cpnt->IsFramebufferUpdate = false;
             font_fb_t FontBuffer = {.Address = Label->Cpnt->Framebuffer->Buffer, .Width = Label->Cpnt->Parent->Framebuffer->Width, .Height = Label->Cpnt->Parent->Framebuffer->Height, .Pitch = Label->Cpnt->Parent->Framebuffer->Pitch};
-            EditPen(Label->Font, &FontBuffer, (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top), Label->Style.FontSize, 0, Label->Style.ForegroundColor);
+            EditPen(Label->Font, &FontBuffer, (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom), Label->Style.FontSize, 0, Label->Style.ForegroundColor);
             // TODO add buffer
         }else if(Label->IsDrawUpdate){
             Label->IsDrawUpdate = false;

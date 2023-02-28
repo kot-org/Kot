@@ -17,6 +17,7 @@ int sprintf(char *str, const char *format, ...){
                 break;
             }
             case 'd': {
+                // TODO use itoa
                 int d = va_arg(args, int);
                 k = 0;
                 if (d < 0) {
@@ -34,6 +35,29 @@ int sprintf(char *str, const char *format, ...){
                     power_of_10 /= 10;
                 }
                 break;
+            }
+            case 'h': {
+                // TODO use itoa
+                int d = va_arg(args, int);
+                k = 0;
+                if (d < 0) {
+                    str[j++] = '-';
+                    d = -d;
+                }
+                int power_of_16 = 1;
+                while (power_of_16 * 16 <= d) {
+                    power_of_16 *= 16;
+                }
+                while (power_of_16 > 0) {
+                    int digit = d / power_of_16;
+                    if (digit < 10) {
+                        str[j++] = digit + '0';
+                    } else {
+                        str[j++] = digit - 10 + 'A';
+                    }
+                    d %= power_of_16;
+                    power_of_16 /= 16;
+                }
             }
             case 'f': {
                 double f = va_arg(args, double);

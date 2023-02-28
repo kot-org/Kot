@@ -62,7 +62,6 @@ namespace UiWindow {
                         .AutoPosition = true,
                         .IsHidden = false,
                     },
-                .HoverColor = 0xffffff,
             }
         , UiCtx->Cpnt)->Cpnt;
 
