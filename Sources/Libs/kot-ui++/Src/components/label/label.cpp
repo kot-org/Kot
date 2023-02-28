@@ -40,14 +40,15 @@ namespace Ui {
             Cpnt->IsFramebufferUpdate = false;
             font_fb_t FontBuffer = {.Address = Label->Cpnt->Framebuffer->Buffer, .Width = Label->Cpnt->Parent->Framebuffer->Width, .Height = Label->Cpnt->Parent->Framebuffer->Height, .Pitch = Label->Cpnt->Parent->Framebuffer->Pitch};
             EditPen(Label->Font, &FontBuffer, (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top), Label->Style.FontSize, 0, Label->Style.ForegroundColor);
-            LabelDraw(Label);
+            // TODO add buffer
         }else if(Label->IsDrawUpdate){
             Label->IsDrawUpdate = false;
-            LabelDraw(Label);
+            // TODO add buffer
         }else if(Cpnt->Parent->IsRedraw || Cpnt->DrawPosition.x != Cpnt->FramebufferRelativePosition.x || Cpnt->DrawPosition.y != Cpnt->FramebufferRelativePosition.y){
-            LabelDraw(Label);
+            // TODO add buffer
         }
-
+        // TODO optimize
+        LabelDraw(Label);
         Cpnt->Update();
     }
 
