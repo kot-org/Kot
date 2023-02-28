@@ -23,16 +23,17 @@ int sprintf(char *str, const char *format, ...){
                     str[j++] = '-';
                     d = -d;
                 }
-                do {
-                    str[j++] = d % 10 + '0';
-                    k++;
-                } while ((d /= 10) > 0);
-                for (k = k / 2; k > 0; k--) {
-                    char c = str[j - k - 1];
-                    str[j - k - 1] = str[j - k];
-                    str[j - k] = c;
+                int power_of_10 = 1;
+                while (power_of_10 * 10 <= d) {
+                    power_of_10 *= 10;
                 }
-            break;
+                while (power_of_10 > 0) {
+                    int digit = d / power_of_10;
+                    str[j++] = digit + '0';
+                    d %= power_of_10;
+                    power_of_10 /= 10;
+                }
+                break;
             }
             case 'f': {
                 double f = va_arg(args, double);

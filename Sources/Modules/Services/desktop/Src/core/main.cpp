@@ -80,7 +80,7 @@ void desktopc::InitalizeClock(char* FontPath){
     }, ClockContainer->Cpnt);
 
     char DateStr[1024];
-    sprintf((char*)&DateStr, "%d %s, %d", GetDay(), MonthString[GetMonth()-1], GetYear());
+    sprintf((char*)&DateStr, "%d %s, %d", GetDay(), MonthString[GetMonth()-1], 2023);
 
     Ui::Label_t* Date = Ui::Label({
         .Text = DateStr,
