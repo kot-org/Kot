@@ -78,35 +78,43 @@ namespace Ui {
     };
 
     struct ComponentGeneralStyle{
-        uint64_t Maxwidth;
-        uint64_t Minwidth;
-        uint64_t Currentwidth;
-        int64_t Width;
+        uint64_t Maxwidth = NO_MAXIMUM;
+        uint64_t Minwidth = 0;
+        uint64_t Currentwidth = 0;
+        int64_t Width = 0;
 
-        uint64_t Maxheight;
-        uint64_t Minheight;
-        uint64_t Currentheight;
-        int64_t Height;
+        uint64_t Maxheight = NO_MAXIMUM;
+        uint64_t Minheight = 0;
+        uint64_t Currentheight = 0;
+        int64_t Height = 0;
 
-        uint64_t BorderRadius;
+        uint64_t BorderRadius = 0;
 
-        Margin Margin;
+        Margin Margin{
+            .Top = 0,
+            .Bottom = 0,
+            .Left = 0,
+            .Right = 0,
+        };
 
-        AlignType Align;
+        AlignType Align = AlignType::LEFT;
 
-        bool AutoPosition;
+        bool AutoPosition = true;
 
-        point_t Position;
+        point_t Position{
+            .x = 0,
+            .y = 0,
+        };
 
-        uint64_t ZIndex; // TODO
+        uint64_t ZIndex = 0; // TODO
 
-        uint64_t ExternalStyleType;
-        uintptr_t ExternalStyleData;
+        uint64_t ExternalStyleType = 0;
+        uintptr_t ExternalStyleData = 0;
 
-        bool IsHidden;
+        bool IsHidden = 0;
 
-        bool IsHorizontalOverflow;
-        bool IsVerticalOverflow;
+        bool IsHorizontalOverflow = false;
+        bool IsVerticalOverflow = false;
     };
 
     class Component {
@@ -168,8 +176,8 @@ namespace Ui {
     };
     typedef struct {
         ComponentGeneralStyle G;
-        PictureboxFit Fit;
-        bool Transparency;
+        PictureboxFit Fit = PICTUREFIT;
+        bool Transparency = false;
     } PictureboxStyle_t;
     struct Picturebox_t{
         PictureboxType Type;
@@ -184,9 +192,9 @@ namespace Ui {
 
     typedef struct {
         ComponentGeneralStyle G;
-        color_t BackgroundColor;
-        color_t HoverColor;
-        color_t ClickColor;
+        color_t BackgroundColor = 0;
+        color_t HoverColor = BackgroundColor;
+        color_t ClickColor = HoverColor;
     } BoxStyle_t;
     struct Box_t{
         BoxStyle_t Style;
@@ -200,7 +208,10 @@ namespace Ui {
 
     typedef struct {
         ComponentGeneralStyle G;
-        Layout::ComponentAlign_t Align;
+        Layout::ComponentAlign_t Align = {
+            .x = Layout::LEFT,
+            .y = Layout::TOP,
+        };
     } FlexboxStyle_t;
     struct Flexbox_t{
         FlexboxStyle_t Style;
@@ -213,11 +224,11 @@ namespace Ui {
 
     typedef struct {
         ComponentGeneralStyle G;
-        int64_t CaseWidth;
-        int64_t CaseHeight;
+        int64_t CaseWidth = 0;
+        int64_t CaseHeight = 0;
         // Only if auto case
-        uint64_t SpaceBetweenCaseHorizontal;
-        uint64_t SpaceBetweenCaseVertical;
+        uint64_t SpaceBetweenCaseHorizontal = 0;
+        uint64_t SpaceBetweenCaseVertical = 0;
     } GridboxStyle_t;
     struct Gridbox_t{
         GridboxStyle_t Style;
@@ -230,11 +241,11 @@ namespace Ui {
 
     typedef struct {
         ComponentGeneralStyle G;
-        color_t BackgroundColor;
-        color_t HoverColor;
-        color_t ClickColor;
-        ButtonHandler OnMouseEvent;
-        uintptr_t ExternalData;
+        color_t BackgroundColor = 0;
+        color_t HoverColor = BackgroundColor;
+        color_t ClickColor = HoverColor;
+        ButtonHandler OnMouseEvent = 0;
+        uintptr_t ExternalData = 0;
     } ButtonStyle_t;
     struct Button_t{
         ButtonStyle_t Style;
@@ -248,13 +259,13 @@ namespace Ui {
 
     typedef struct {
         ComponentGeneralStyle G;
-        char* Text;
-        char* FontPath;
-        int16_t FontSize;
-        color_t ForegroundColor;
-        bool AutoWidth;
-        bool AutoHeight;
-        TextAlign Align;
+        char* Text = NULL;
+        char* FontPath = "default-font.sfn";
+        int16_t FontSize = 8;
+        color_t ForegroundColor = 0;
+        bool AutoWidth = true;
+        bool AutoHeight = true;
+        TextAlign Align = LEFT;
     } LabelStyle_t;
     struct Label_t{
         LabelStyle_t Style;
@@ -273,8 +284,8 @@ namespace Ui {
     Label_t* Label(LabelStyle_t Style, class Component* ParentCpnt);
 
     typedef struct {
-        uint32_t BackgroundColor;
-        uint32_t ForegroundColor;
+        uint32_t BackgroundColor = 0;
+        uint32_t ForegroundColor = 0;
     } TitlebarStyle_t;
     struct Titlebar_t{
         TitlebarStyle_t Style;

@@ -11,7 +11,10 @@ namespace Ui {
 
             Cpnt->IsFramebufferUpdate = false;
         }
+
         Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom)};
+        Cpnt->FramebufferRelativePosition = {.x = Cpnt->Parent->FramebufferRelativePosition.x + Cpnt->Style->Position.x, .y = Cpnt->Parent->FramebufferRelativePosition.y + Cpnt->Style->Position.y};
+
         if(Cpnt->Childs != NULL){
             uint64_t CaseWidth = Gridbox->Style.CaseWidth;
             uint64_t CaseHeight = Gridbox->Style.CaseHeight;

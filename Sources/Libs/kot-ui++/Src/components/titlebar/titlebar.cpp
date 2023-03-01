@@ -24,9 +24,6 @@ namespace Ui {
                 .G{
                     .Width = -100, 
                     .Height = Titlebar_Height, 
-                    .Maxwidth = NO_MAXIMUM, 
-                    .AutoPosition = true,
-                    .IsHidden = false
                 },
                 .BackgroundColor = Titlebar->Style.BackgroundColor, 
                 .ClickColor = Titlebar->Style.BackgroundColor, 
@@ -43,10 +40,6 @@ namespace Ui {
                 .G{
                     .Width = -100, 
                     .Height = -100, 
-                    .Maxwidth = NO_MAXIMUM, 
-                    .Maxheight = NO_MAXIMUM, 
-                    .AutoPosition = true,
-                    .IsHidden = false
                 },
             }
         , Titlebar->MainBox->Cpnt);
@@ -59,8 +52,6 @@ namespace Ui {
             .G{
                 .Width = Titlebar_Height, 
                 .Height = Titlebar_Height, 
-                .AutoPosition = true,
-                .IsHidden = false
             }
         }
         , Titlebar->Cpnt);
@@ -74,10 +65,6 @@ namespace Ui {
                 .Align = Ui::TEXTALIGNCENTER,
                 .AutoWidth = true,
                 .AutoHeight = true,
-                .G{
-                    .AutoPosition = false,
-                    .IsHidden = false
-                },
             }
         , Titlebar->Cpnt);
 
@@ -86,8 +73,6 @@ namespace Ui {
                 .G{
                     .Width = Titlebar_Height * 3, 
                     .Height = -100, 
-                    .Maxheight = NO_MAXIMUM, 
-                    .IsHidden = false
                 },
                 .BackgroundColor = Titlebar->Style.BackgroundColor, 
                 .ClickColor = Titlebar->Style.BackgroundColor, 
@@ -102,10 +87,8 @@ namespace Ui {
                 .G{
                     .Width = Titlebar_Height, 
                     .Height = Titlebar_Height, 
-                    .AutoPosition = true,
                     .Align = RIGHT,
                     .BorderRadius = Titlebar_Height,
-                    .IsHidden = false,
                 },
             }
             , Titlebar->BtnBox->Cpnt);
@@ -117,8 +100,6 @@ namespace Ui {
                 .G{
                     .Width = -100, 
                     .Height = -100, 
-                    .Maxwidth = NO_MAXIMUM, 
-                    .Maxheight = NO_MAXIMUM, 
                     .IsHidden = false
                 }
             }
@@ -131,10 +112,8 @@ namespace Ui {
                 .G{
                     .Width = Titlebar_Height, 
                     .Height = Titlebar_Height, 
-                    .AutoPosition = true,
                     .Align = RIGHT,
                     .BorderRadius = Titlebar_Height,
-                    .IsHidden = false
                 }
             }
             , Titlebar->BtnBox->Cpnt);
@@ -146,9 +125,6 @@ namespace Ui {
                 .G{
                     .Width = -100, 
                     .Height = -100, 
-                    .Maxwidth = NO_MAXIMUM, 
-                    .Maxheight = NO_MAXIMUM, 
-                    .IsHidden = false
                 }
             }
             , Titlebar->SizeBtn->Cpnt);
@@ -160,10 +136,8 @@ namespace Ui {
                 .G{
                     .Width = Titlebar_Height,
                     .Height = Titlebar_Height,
-                    .AutoPosition = true,
                     .Align = RIGHT,
                     .BorderRadius = Titlebar_Height,
-                    .IsHidden = false
                 }
             }
         , Titlebar->BtnBox->Cpnt);
@@ -175,9 +149,6 @@ namespace Ui {
                 .G{
                     .Width = -100, 
                     .Height = -100, 
-                    .Maxwidth = NO_MAXIMUM, 
-                    .Maxheight = NO_MAXIMUM, 
-                    .IsHidden = false
                 }
             }
             , Titlebar->HideBtn->Cpnt);
