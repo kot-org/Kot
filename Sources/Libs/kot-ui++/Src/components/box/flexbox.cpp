@@ -47,7 +47,7 @@ namespace Ui {
                 TotalWidthChild += Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
                 TotalHeightChild += Child->Style->Currentheight + Child->Style->Margin.Bottom + Child->Style->Margin.Top;
             }
-            bool IterateX = Flexbox->Style.Align.y == Ui::Layout::FILLVERTICAL ||  Flexbox->Style.Align.y == Ui::Layout::BETWEENVERTICAL || Flexbox->Style.Align.y == Ui::Layout::AROUNDVERTICAL;
+            bool IterateX = Flexbox->Style.Align.x == Ui::Layout::BETWEENHORIZONTAL || Flexbox->Style.Align.y == Ui::Layout::FILLVERTICAL || Flexbox->Style.Align.y == Ui::Layout::BETWEENVERTICAL || Flexbox->Style.Align.y == Ui::Layout::AROUNDVERTICAL;
             bool IterateY = !IterateX;
             // Do not update in x only in y
             switch(Flexbox->Style.Align.x){
@@ -79,7 +79,7 @@ namespace Ui {
                     for(; i < Cpnt->Childs->length / 2; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.x = XIteration;
-                        if(IterateX) XIteration += SpaceFreePerChild;
+                        if(IterateX) XIteration += SpaceFreePerChild + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
                     }
 
                     if(IterateX) XIteration += (TotalWidth - TotalWidthChild) % (Cpnt->Childs->length - 1);
@@ -87,7 +87,7 @@ namespace Ui {
                     for(; i < Cpnt->Childs->length; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.x = XIteration;
-                        if(IterateX) XIteration += SpaceFreePerChild;
+                        if(IterateX) XIteration += SpaceFreePerChild + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
                     }
                     break;
                 }
@@ -98,7 +98,7 @@ namespace Ui {
                     for(; i < Cpnt->Childs->length / 2; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.x = XIteration;
-                        if(IterateX) XIteration += SpaceFreePerChild;
+                        if(IterateX) XIteration += SpaceFreePerChild + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
                     }
 
                     if(IterateX) XIteration += (TotalWidth - TotalWidthChild) % Cpnt->Childs->length;
@@ -106,7 +106,7 @@ namespace Ui {
                     for(; i < Cpnt->Childs->length; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.x = XIteration;
-                        if(IterateX) XIteration += SpaceFreePerChild;
+                        if(IterateX) XIteration += SpaceFreePerChild + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
                     }
                     break;
                 }
@@ -168,7 +168,7 @@ namespace Ui {
                     for(; i < Cpnt->Childs->length / 2; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.y = YIteration;
-                        if(IterateY) YIteration += SpaceFreePerChild;
+                        if(IterateY) YIteration += SpaceFreePerChild + Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
                         Child->UpdateFunction(Child);
                     }
 
@@ -177,7 +177,7 @@ namespace Ui {
                     for(; i < Cpnt->Childs->length; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.y = YIteration;
-                        if(IterateY) YIteration += SpaceFreePerChild;
+                        if(IterateY) YIteration += SpaceFreePerChild + Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
                         Child->UpdateFunction(Child);
                     }
                     break;
@@ -189,7 +189,7 @@ namespace Ui {
                     for(; i < Cpnt->Childs->length / 2; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.y = YIteration;
-                        if(IterateY) YIteration += SpaceFreePerChild;
+                        if(IterateY) YIteration += SpaceFreePerChild + Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
                         Child->UpdateFunction(Child);
                     }
 
@@ -198,7 +198,7 @@ namespace Ui {
                     for(; i < Cpnt->Childs->length; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.y = YIteration;
-                        if(IterateY) YIteration += SpaceFreePerChild;
+                        if(IterateY) YIteration += SpaceFreePerChild + Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
                         Child->UpdateFunction(Child);
                     }
                     break;
@@ -214,11 +214,22 @@ namespace Ui {
                     break;
                 }
                 case Ui::Layout::MIDDLE:{
-                    uint64_t YIteration = (TotalHeight - TotalHeightChild) / 2;
+                    uint64_t YIteration;
+                    if(IterateY){
+                        YIteration = (TotalHeight - TotalHeightChild) / 2;
+                    }
                     for(uint64_t i = 0; i < Cpnt->Childs->length; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
-                        Child->Style->Position.y = YIteration;
-                        YIteration += Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
+                        if(IterateY){
+                            YIteration += Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
+                            Child->Style->Position.y = YIteration;
+                        }else{
+                            if(Cpnt->Style->Height > Child->Style->Height){
+                                Child->Style->Position.y = (Cpnt->Style->Height - Child->Style->Height) / 2;
+                            }else{
+                                Child->Style->Position.y = 0;
+                            }
+                        }
                         Child->UpdateFunction(Child);
                     }
                     break;

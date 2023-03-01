@@ -21,20 +21,37 @@ namespace Ui {
         memcpy(&Titlebar->Style, &Style, sizeof(TitlebarStyle_t));
         Titlebar->MainBox = Box(
             {
-            .G{
-                .Width = -100, 
-                .Height = Titlebar_Height, 
-                .Maxwidth = NO_MAXIMUM, 
-                .AutoPosition = true,
-                .IsHidden = false
-            },
-            .BackgroundColor = Titlebar->Style.BackgroundColor, 
-            .ClickColor = Titlebar->Style.BackgroundColor, 
-            .HoverColor = Titlebar->Style.BackgroundColor, 
+                .G{
+                    .Width = -100, 
+                    .Height = Titlebar_Height, 
+                    .Maxwidth = NO_MAXIMUM, 
+                    .AutoPosition = true,
+                    .IsHidden = false
+                },
+                .BackgroundColor = Titlebar->Style.BackgroundColor, 
+                .ClickColor = Titlebar->Style.BackgroundColor, 
+                .HoverColor = Titlebar->Style.BackgroundColor, 
             }
         , ParentCpnt);
+
+        Titlebar->MainFlexbox = Flexbox(
+            {
+                .Align{
+                    .x = Layout::BETWEENHORIZONTAL,
+                    .y = Layout::MIDDLE,
+                },
+                .G{
+                    .Width = -100, 
+                    .Height = -100, 
+                    .Maxwidth = NO_MAXIMUM, 
+                    .Maxheight = NO_MAXIMUM, 
+                    .AutoPosition = true,
+                    .IsHidden = false
+                },
+            }
+        , Titlebar->MainBox->Cpnt);
         
-        Titlebar->Cpnt = Titlebar->MainBox->Cpnt;
+        Titlebar->Cpnt = Titlebar->MainFlexbox->Cpnt;
 
         Titlebar->Logo = Picturebox(Icon, _TGA, 
         {
@@ -55,23 +72,32 @@ namespace Ui {
                 .FontSize = Titlebar_FontSize,
                 .ForegroundColor = Titlebar->Style.ForegroundColor, 
                 .Align = Ui::TEXTALIGNCENTER,
+                .AutoWidth = true,
+                .AutoHeight = true,
                 .G{
-                    .Margin{
-                        .Left = 10,
-                        .Top = (Titlebar_Height - Titlebar_FontSize) / 2
-                    },
-                    .Width = -100, 
-                    .Maxwidth = NO_MAXIMUM, 
-                    .Height = Titlebar_Height, 
-                    .AutoPosition = true,
+                    .AutoPosition = false,
                     .IsHidden = false
                 },
             }
         , Titlebar->Cpnt);
 
+        Titlebar->BtnBox = Box(
+            {
+                .G{
+                    .Width = Titlebar_Height * 3, 
+                    .Height = -100, 
+                    .Maxheight = NO_MAXIMUM, 
+                    .IsHidden = false
+                },
+                .BackgroundColor = Titlebar->Style.BackgroundColor, 
+                .ClickColor = Titlebar->Style.BackgroundColor, 
+                .HoverColor = Titlebar->Style.BackgroundColor, 
+            }
+        , Titlebar->Cpnt);
+
         Titlebar->CloseBtn = Button(
             {
-                .BackgroundColor = 0xffffff, 
+                .BackgroundColor = Titlebar->Style.BackgroundColor, 
                 .OnMouseEvent = CloseBtnEvent,
                 .G{
                     .Width = Titlebar_Height, 
@@ -82,11 +108,12 @@ namespace Ui {
                     .IsHidden = false,
                 },
             }
-            , Titlebar->Cpnt);
+            , Titlebar->BtnBox->Cpnt);
 
         Picturebox_t* CloseImage = Picturebox("close.tga", _TGA, 
             {
-                .Fit = PICTUREFILL, 
+                .Fit = PICTUREFILL,
+                .Transparency = true,
                 .G{
                     .Width = -100, 
                     .Height = -100, 
@@ -110,11 +137,12 @@ namespace Ui {
                     .IsHidden = false
                 }
             }
-            , Titlebar->Cpnt);
+            , Titlebar->BtnBox->Cpnt);
 
         Picturebox_t* SizeImage = Picturebox("maximize.tga", _TGA, 
             {
                 .Fit = PICTUREFILL, 
+                .Transparency = true,
                 .G{
                     .Width = -100, 
                     .Height = -100, 
@@ -138,11 +166,12 @@ namespace Ui {
                     .IsHidden = false
                 }
             }
-        , Titlebar->Cpnt);
+        , Titlebar->BtnBox->Cpnt);
 
         Picturebox_t* HideImage = Picturebox("minimize.tga", _TGA, 
             {
                 .Fit = PICTUREFILL, 
+                .Transparency = true,
                 .G{
                     .Width = -100, 
                     .Height = -100, 

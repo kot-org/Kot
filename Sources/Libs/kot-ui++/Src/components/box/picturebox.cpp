@@ -20,6 +20,11 @@ namespace Ui {
                         ImageResize->x = Picturebox->Cpnt->Style->Currentwidth / 2 - ImageResize->Width / 2;
                         ImageResize->y = Picturebox->Cpnt->Style->Currentheight / 2 - ImageResize->Height / 2;
 
+                        if(Picturebox->Style.Transparency){
+                            ImageResize->x += Picturebox->Cpnt->FramebufferRelativePosition.x + Picturebox->Cpnt->Style->Margin.Left;
+                            ImageResize->y += Picturebox->Cpnt->FramebufferRelativePosition.y + Picturebox->Cpnt->Style->Margin.Top;
+                        }
+
                         TGADraw(Picturebox->Cpnt->Framebuffer, ImageResize);
 
                         free(ImageResize);
@@ -47,6 +52,11 @@ namespace Ui {
                         uint16_t y = (ImageResize->Height - Picturebox->Cpnt->Style->Currentheight) / 2;
 
                         TGA_t* ImageCrop = TGACrop(ImageResize, Picturebox->Cpnt->Style->Currentwidth, Picturebox->Cpnt->Style->Currentheight, x, y);
+
+                        if(Picturebox->Style.Transparency){
+                            ImageCrop->x = Picturebox->Cpnt->FramebufferRelativePosition.x + Picturebox->Cpnt->Style->Margin.Left;
+                            ImageCrop->y = Picturebox->Cpnt->FramebufferRelativePosition.y + Picturebox->Cpnt->Style->Margin.Top;
+                        }
 
                         TGADraw(Picturebox->Cpnt->Framebuffer, ImageCrop);
 
@@ -78,12 +88,22 @@ namespace Ui {
                             ImageCrop->x = Picturebox->Cpnt->Style->Currentwidth / 2 - ImageCrop->Width / 2;
                             ImageCrop->y = Picturebox->Cpnt->Style->Currentheight / 2 - ImageCrop->Height / 2;
 
+                            if(Picturebox->Style.Transparency){
+                                ImageCrop->x = Picturebox->Cpnt->FramebufferRelativePosition.x + Picturebox->Cpnt->Style->Margin.Left;
+                                ImageCrop->y = Picturebox->Cpnt->FramebufferRelativePosition.y + Picturebox->Cpnt->Style->Margin.Top;
+                            }
+
                             TGADraw(Picturebox->Cpnt->Framebuffer, ImageCrop);
                             
                             free(ImageCrop);
                         } else {
                             ((TGAHeader_t*)Picturebox->Image)->x = Picturebox->Cpnt->Style->Currentwidth / 2 - ((TGAHeader_t*)Picturebox->Image)->Width / 2;
                             ((TGAHeader_t*)Picturebox->Image)->y = Picturebox->Cpnt->Style->Currentheight / 2 - ((TGAHeader_t*)Picturebox->Image)->Height / 2;
+                            
+                            if(Picturebox->Style.Transparency){
+                                ImageRead->x = Picturebox->Cpnt->FramebufferRelativePosition.x + Picturebox->Cpnt->Style->Margin.Left;
+                                ImageRead->y = Picturebox->Cpnt->FramebufferRelativePosition.y + Picturebox->Cpnt->Style->Margin.Top;
+                            }
 
                             TGADraw(Picturebox->Cpnt->Framebuffer, ImageRead);
                         }
@@ -97,6 +117,11 @@ namespace Ui {
                     {   
                         TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
                         TGA_t* ImageResize = TGAResize(ImageRead, Picturebox->Cpnt->Style->Currentwidth, Picturebox->Cpnt->Style->Currentheight);
+
+                        if(Picturebox->Style.Transparency){
+                            ImageResize->x = Picturebox->Cpnt->FramebufferRelativePosition.x + Picturebox->Cpnt->Style->Margin.Left;
+                            ImageResize->y = Picturebox->Cpnt->FramebufferRelativePosition.y + Picturebox->Cpnt->Style->Margin.Top;
+                        }
 
                         TGADraw(Picturebox->Cpnt->Framebuffer, ImageResize);
 
@@ -182,7 +207,7 @@ namespace Ui {
         Picturebox->Type = Type;
         Picturebox->Image = Image;
         memcpy(&Picturebox->Style, &Style, sizeof(PictureboxStyle_t));
-        Picturebox->Cpnt = new Component(Style.G, PictureboxUpdate, PictureboxMouseEvent, (uintptr_t)Picturebox, ParentCpnt, true);
+        Picturebox->Cpnt = new Component(Style.G, PictureboxUpdate, PictureboxMouseEvent, (uintptr_t)Picturebox, ParentCpnt, !Style.Transparency);
         Picturebox->IsDrawUpdate = true;
         fclose(ImageFile);
         

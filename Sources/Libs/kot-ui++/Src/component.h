@@ -67,7 +67,8 @@ namespace Ui {
 
     enum AlignType {
         LEFT = 0,
-        RIGHT = 1,
+        CENTER = 1,
+        RIGHT = 2,
     };
 
     enum TextAlign {
@@ -168,6 +169,7 @@ namespace Ui {
     typedef struct {
         ComponentGeneralStyle G;
         PictureboxFit Fit;
+        bool Transparency;
     } PictureboxStyle_t;
     struct Picturebox_t{
         PictureboxType Type;
@@ -278,9 +280,10 @@ namespace Ui {
         TitlebarStyle_t Style;
         Component* Cpnt;
         Box_t* MainBox;
-        Flexbox_t* TitleBox;
+        Flexbox_t* MainFlexbox;
         Picturebox_t* Logo;
         Label_t* Title;
+        Box_t* BtnBox;
         Button_t* CloseBtn;
         Button_t* SizeBtn;
         Button_t* HideBtn;
