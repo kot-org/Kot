@@ -8,23 +8,20 @@ namespace Ui {
         atomicAcquire(&Label->Lock, 0);
         switch(Label->Style.Align){
             case TEXTALIGNLEFT:{
-                EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left), (int64_t)(Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top), -1, -1, -1);
+                EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left - Label->Cpnt->Style->Margin.Right), (int64_t)(Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top - Label->Cpnt->Style->Margin.Bottom), -1, -1, -1);
                 break;
             }
             case TEXTALIGNCENTER:{
-                EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left + (Label->Cpnt->Style->Currentwidth - Label->TextWidth) / 2), (int64_t)(Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top), -1, -1, -1);
+                EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left + (Label->Cpnt->Style->Currentwidth - Label->TextWidth) / 2 - Label->Cpnt->Style->Margin.Right), (int64_t)(Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top - Label->Cpnt->Style->Margin.Bottom), -1, -1, -1);
                 break;
             }
             case TEXTALIGNRIGHT:{
-                // char buf[33];
-                // itoa(Label->Cpnt->Style->Currentwidth - Label->TextWidth, (char*)&buf, 10);
-                // Printlog((char*)&buf);
-                EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left + Label->Cpnt->Style->Currentwidth - Label->TextWidth), (int64_t)(Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top), -1, -1, -1);
+                EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left + Label->Cpnt->Style->Currentwidth - Label->TextWidth - Label->Cpnt->Style->Margin.Right), (int64_t)(Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top - Label->Cpnt->Style->Margin.Bottom), -1, -1, -1);
                 break;
             }
             default:{
                 // TEXTALIGNLEFT
-                EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left), (int64_t)(Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top), -1, -1, -1);
+                EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left - Label->Cpnt->Style->Margin.Right), (int64_t)(Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top - Label->Cpnt->Style->Margin.Bottom), -1, -1, -1);
                 break;
             }
         }

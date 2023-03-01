@@ -45,12 +45,16 @@ void CreateDisplay(Component* Window) {
             .FontSize = 36,
             .ForegroundColor = 0xffffffff,
             .Align = Ui::TEXTALIGNRIGHT,
-            .AutoWidth = true,
+            .AutoWidth = false,
             .AutoHeight = true,
             .G{
+                .Width = -100,
                 .Align{
                     .x = AlignTypeX::CENTER,
                     .y = AlignTypeY::MIDDLE,
+                },
+                .Margin{
+                    .Right = 20,
                 },
                 .AutoPosition = true,        
             }
