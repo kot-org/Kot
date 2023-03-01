@@ -265,7 +265,7 @@ namespace Ui {
         color_t ForegroundColor = 0;
         bool AutoWidth = true;
         bool AutoHeight = true;
-        TextAlign Align = LEFT;
+        TextAlign Align = TEXTALIGNLEFT;
     } LabelStyle_t;
     struct Label_t{
         LabelStyle_t Style;

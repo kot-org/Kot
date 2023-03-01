@@ -99,6 +99,8 @@ void desktopc::InitalizeClock(char* FontPath){
             .IsHidden = false            
         }
     }, ClockContainer->Cpnt);
+
+    ClockContainer->UpdateText("Ceci est un test");
     // TODO update time
 }
 
