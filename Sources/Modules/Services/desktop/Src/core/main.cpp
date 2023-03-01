@@ -43,14 +43,12 @@ void desktopc::InitalizeClock(char* FontPath){
     Ui::Flexbox_t* ClockContainer = Ui::Flexbox({
         .G = { 
                 .Width = -100,
-                .Maxwidth = NO_MAXIMUM,
                 .Height = -100,
-                .Maxheight = NO_MAXIMUM,
                 .Position{
                     .x = 0,
                     .y = 0
                 },
-                .IsHidden = false 
+                .AutoPosition = false, 
             }, 
         .Align = { 
             .x = Layout::FILLHORIZONTAL, 
@@ -74,8 +72,7 @@ void desktopc::InitalizeClock(char* FontPath){
                 .Top = 20,
             },
             .Width = -100,
-            .Maxwidth = NO_MAXIMUM,
-            .IsHidden = false            
+            .AutoPosition = false,        
         }
     }, ClockContainer->Cpnt);
 
@@ -94,13 +91,12 @@ void desktopc::InitalizeClock(char* FontPath){
             .Margin{
                 .Top = 20,
             },
-            .Width = -100,
-            .Maxwidth = NO_MAXIMUM,
-            .IsHidden = false            
+            .Width = -100, 
+            .AutoPosition = false,          
         }
     }, ClockContainer->Cpnt);
 
-    ClockContainer->UpdateText("Ceci est un test");
+    //Date->UpdateText("Ceci est un test");
     // TODO update time
 }
 
