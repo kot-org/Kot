@@ -175,38 +175,65 @@ namespace Ui {
                     }
 
                     if(Child->Style->AutoPosition){
-                        if(Child->Style->Align == LEFT){
-                            if(XIterationLeft + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right > Style->Currentwidth){
-                                XIterationLeft = 0;
-                                YIterationLeft += MaxChildHeightLeft;
-                                Child->Style->Position.x = XIterationLeft;
-                                Child->Style->Position.y = YIterationLeft;
-                            }else{
-                                Child->Style->Position.x = XIterationLeft;
-                                Child->Style->Position.y = YIterationLeft;
-                                XIterationLeft += Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
-                            }
+                        switch (Child->Style->Align.x){
+                            case AlignTypeX::LEFT:{
+                                if(XIterationLeft + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right > Style->Currentwidth){
+                                    XIterationLeft = 0;
+                                    YIterationLeft += MaxChildHeightLeft;
+                                    Child->Style->Position.x = XIterationLeft;
+                                    Child->Style->Position.y = YIterationLeft;
+                                }else{
+                                    Child->Style->Position.x = XIterationLeft;
+                                    Child->Style->Position.y = YIterationLeft;
+                                    XIterationLeft += Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
+                                }
 
 
-                            if(MaxChildHeightLeft < Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom){
-                                MaxChildHeightLeft = Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
+                                if(MaxChildHeightLeft < Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom){
+                                    MaxChildHeightLeft = Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
+                                }
+                                break;
                             }
-                        }else{
-                            if(XIterationRight - Child->Style->Currentwidth - Child->Style->Margin.Left - Child->Style->Margin.Right < 0){
-                                XIterationRight = Style->Currentwidth;
-                                YIterationRight += MaxChildHeightRight;
-                                Child->Style->Position.x = XIterationRight;
-                                Child->Style->Position.y = YIterationRight;
-                            }else{
-                                XIterationRight -= Child->Style->Currentwidth + Child->Style->Margin.Right;
-                                Child->Style->Position.x = XIterationRight;
-                                Child->Style->Position.y = YIterationRight;
-                                XIterationRight -= Child->Style->Margin.Left;
+                            case AlignTypeX::CENTER:{
+                                Child->Style->Position.x = (Style->Currentwidth - Child->Style->Currentwidth) / 2;
+                                break;
                             }
+                            case AlignTypeX::RIGHT:{
+                                if(XIterationRight - Child->Style->Currentwidth - Child->Style->Margin.Left - Child->Style->Margin.Right < 0){
+                                    XIterationRight = Style->Currentwidth;
+                                    YIterationRight += MaxChildHeightRight;
+                                    Child->Style->Position.x = XIterationRight;
+                                    Child->Style->Position.y = YIterationRight;
+                                }else{
+                                    XIterationRight -= Child->Style->Currentwidth + Child->Style->Margin.Right;
+                                    Child->Style->Position.x = XIterationRight;
+                                    Child->Style->Position.y = YIterationRight;
+                                    XIterationRight -= Child->Style->Margin.Left;
+                                }
 
-                            if(MaxChildHeightRight < Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom){
-                                MaxChildHeightRight = Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
+                                if(MaxChildHeightRight < Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom){
+                                    MaxChildHeightRight = Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
+                                }
+                                break;
                             }
+                            default:
+                                break;
+                        }
+                        switch (Child->Style->Align.y){
+                            case AlignTypeY::TOP:{
+                                // TODO
+                                break;
+                            }
+                            case AlignTypeY::MIDDLE:{
+                                Child->Style->Position.y = (Style->Currentheight - Child->Style->Currentheight) / 2;
+                                break;
+                            }
+                            case AlignTypeY::BOTTOM:{
+                                // TODO
+                                break;
+                            }
+                            default:
+                                break;
                         }
                     }
 

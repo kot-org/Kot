@@ -15,9 +15,9 @@ namespace Ui {
 
             BoxDraw(Box);
             Cpnt->IsFramebufferUpdate = false;
-        }else if(Box->IsDrawUpdate){
+        }else if(Cpnt->IsDrawUpdate){
             BoxDraw(Box);
-            Box->IsDrawUpdate = false;
+            Cpnt->IsDrawUpdate = false;
         }
 
         Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom)};
@@ -44,11 +44,11 @@ namespace Ui {
                 Box->CurrentColor = Box->Style.HoverColor;
             }
 
-            Box->IsDrawUpdate = true;
+            Cpnt->IsDrawUpdate = true;
         }else{
             Box_t* Box = (Box_t*)Cpnt->ExternalData;
             Box->CurrentColor = Box->Style.BackgroundColor;
-            Box->IsDrawUpdate = true;           
+            Cpnt->IsDrawUpdate = true;           
         }
     }
 

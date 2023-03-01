@@ -40,7 +40,7 @@ void UpdateClock(Ui::Label_t* Time, Ui::Label_t* Date){
     uint64_t TimerState;
 
     if(GetSecond()){
-        Sleep((60 - GetSecond()) * 1000)
+        Sleep((60 - GetSecond()) * 1000);
     }
     GetActualTick(&TimerState);
 

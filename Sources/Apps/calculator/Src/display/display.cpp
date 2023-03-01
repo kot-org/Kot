@@ -2,6 +2,16 @@
 
 #include <kot++/printf.h>
 
+char NumericKeypadStr[][4][4] = {
+    {{"%"}, {"√"}, {"x²"}, {"1/x"}},
+    {{"CE"}, {"C"}, {"<-"}, {"/"}},
+    {{"7"}, {"8"}, {"9"}, {"*"}},
+    {{"4"}, {"5"}, {"6"}, {"-"}},
+    {{"1"}, {"2"}, {"3"}, {"+"}},
+    {{"-"}, {"0"}, {"."}, {"="}},
+};
+
+
 void OpButton(Button_t* Button, ButtonEvent_t Type) {
     
 }
@@ -21,20 +31,36 @@ void CreateDisplay(Component* Window) {
     Box_t* NumberDisplay = Box( 
         { 
             .G = { 
-                    .Width = 100,
+                    .Width = 400,
                     .Height = 100,
+                    .BorderRadius = 20,
                     .IsHidden = false
                 }, 
-            .BackgroundColor = 0xFF0000
+            .BackgroundColor = 0x1E1E1E
         }
     , Main->Cpnt);
+
+    Label_t* NumberDisplayLabel = Ui::Label({
+            .Text = "0",
+            .FontSize = 36,
+            .ForegroundColor = 0xffffffff,
+            .Align = Ui::TEXTALIGNRIGHT,
+            .AutoWidth = true,
+            .AutoHeight = true,
+            .G{
+                .Align{
+                    .x = AlignTypeX::CENTER,
+                    .y = AlignTypeY::MIDDLE,
+                },
+                .AutoPosition = true,        
+            }
+        }, NumberDisplay->Cpnt);
 
     Gridbox_t* NumericKeypad = Gridbox( 
         { 
             .G = { 
                     .Width = -100,
-                    .Maxwidth = NO_MAXIMUM,
-                    .Height = 400,
+                    .Height = 600,
                     .IsHidden = false
                 },
             .CaseWidth = 100,
@@ -42,7 +68,7 @@ void CreateDisplay(Component* Window) {
         }
     , Main->Cpnt);
 
-    for(uint8_t y = 0; y < 4; y++) {
+    for(uint8_t y = 0; y < 6; y++) {
         for(uint8_t x = 0; x < 4; x++) {
             Button_t* Button = Ui::Button(  
                 { 
@@ -51,15 +77,33 @@ void CreateDisplay(Component* Window) {
                             .Height = 70 - 5,
                             .Margin = { .Top = 5, .Left = 5 },
                             .Position = { .x = (int64_t)x, .y = (int64_t)y },
-                            .BorderRadius = 10,
+                            .BorderRadius = 20,
                             .IsHidden = false
                         },
-                    .BackgroundColor = (color_t)0xFFFFFF, 
-                    .ClickColor = (color_t)0x00FF00, 
-                    .HoverColor = (color_t)0xFF0000, 
+                    .BackgroundColor = (color_t)0x676767, 
+                    .ClickColor = (color_t)0x0C4BDD, 
+                    .HoverColor = (color_t)0x3399FF, 
                     .OnMouseEvent = OpButton
                 }
             , NumericKeypad->Cpnt);
+
+            Label_t* Label = Ui::Label({
+                .Text = NumericKeypadStr[y][x],
+                .FontSize = 16,
+                .ForegroundColor = 0xffffffff,
+                .Align = Ui::TEXTALIGNCENTER,
+                .AutoWidth = false,
+                .AutoHeight = true,
+                .G{
+                    .Height = -100,
+                    .Width = -100,
+                    .Align{
+                        .x = AlignTypeX::CENTER,
+                        .y = AlignTypeY::MIDDLE,
+                    },
+                    .AutoPosition = true,        
+                }
+            }, Button->Cpnt);
         }
     }
 }

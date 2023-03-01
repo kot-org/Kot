@@ -118,7 +118,7 @@ namespace UiWindow {
                 }
             }
         }else if(UiCtx->FocusCpnt->MouseEvent){
-            Component->UiCtx->FocusCpnt->MouseEvent(Component->UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
+            //Component->UiCtx->FocusCpnt->MouseEvent(Component->UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
         }
     }
 

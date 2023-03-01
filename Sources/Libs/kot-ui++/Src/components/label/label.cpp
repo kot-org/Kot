@@ -16,6 +16,9 @@ namespace Ui {
                 break;
             }
             case TEXTALIGNRIGHT:{
+                // char buf[33];
+                // itoa(Label->Cpnt->Style->Currentwidth - Label->TextWidth, (char*)&buf, 10);
+                // Printlog((char*)&buf);
                 EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left + Label->Cpnt->Style->Currentwidth - Label->TextWidth), (int64_t)(Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top), -1, -1, -1);
                 break;
             }
@@ -43,13 +46,14 @@ namespace Ui {
             font_fb_t FontBuffer = {.Address = Label->Cpnt->Framebuffer->Buffer, .Width = Label->Cpnt->Parent->Framebuffer->Width, .Height = Label->Cpnt->Parent->Framebuffer->Height, .Pitch = Label->Cpnt->Parent->Framebuffer->Pitch};
             EditPen(Label->Font, &FontBuffer, (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom), Label->Style.FontSize, 0, Label->Style.ForegroundColor);
             // TODO add buffer
-        }else if(Label->IsDrawUpdate){
-            Label->IsDrawUpdate = false;
+        }else if(Cpnt->IsDrawUpdate){
+            Cpnt->IsDrawUpdate = false;
             // TODO add buffer
         }else if(Cpnt->Parent->IsRedraw || Cpnt->DrawPosition.x != Cpnt->FramebufferRelativePosition.x || Cpnt->DrawPosition.y != Cpnt->FramebufferRelativePosition.y){
             // TODO add buffer
         }
         // TODO optimize
+        Cpnt->Parent->IsDrawUpdate = true;
         LabelDraw(Label);
         Cpnt->Update();
     }
@@ -94,7 +98,7 @@ namespace Ui {
             Label->Cpnt->Style->Height = Label->TextHeight;
             Label->Cpnt->UpdateFramebuffer(Label->Cpnt->Style->Currentwidth, Label->TextHeight);
         }
-        Label->IsDrawUpdate = true;
+        Label->Cpnt->IsDrawUpdate = true;
         return Label;
     }
 
@@ -112,7 +116,7 @@ namespace Ui {
         if(this->Style.AutoHeight){
             this->Cpnt->Style->Height = this->TextHeight;
         }
-        IsDrawUpdate = true;
+        Cpnt->IsDrawUpdate = true;
         atomicUnlock(&Lock, 0);
         free(OldText);
     }

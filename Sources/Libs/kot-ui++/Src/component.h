@@ -65,10 +65,21 @@ namespace Ui {
     };
 
 
-    enum AlignType {
+    enum AlignTypeX {
         LEFT = 0,
         CENTER = 1,
         RIGHT = 2,
+    };
+
+    enum AlignTypeY {
+        TOP = 0,
+        MIDDLE = 1,
+        BOTTOM = 2,
+    };
+
+    struct align_t{
+        AlignTypeX x;
+        AlignTypeY y;
     };
 
     enum TextAlign {
@@ -97,7 +108,10 @@ namespace Ui {
             .Right = 0,
         };
 
-        AlignType Align = AlignType::LEFT;
+        align_t Align{
+            .x = AlignTypeX::LEFT,
+            .y = AlignTypeY::TOP,
+        };
 
         bool AutoPosition = true;
 
@@ -141,6 +155,7 @@ namespace Ui {
             class UiContext* UiCtx;
             bool IsFramebufferUpdate;
             bool IsRedraw;
+            bool IsDrawUpdate;
 
             point_t DrawPosition; 
             point_t AbsolutePosition;     
@@ -184,7 +199,6 @@ namespace Ui {
         PictureboxStyle_t Style;
         Component* Cpnt;
         uintptr_t Image;
-        bool IsDrawUpdate;
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
@@ -200,7 +214,6 @@ namespace Ui {
         BoxStyle_t Style;
         Component* Cpnt;
         color_t CurrentColor;
-        bool IsDrawUpdate;
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
@@ -251,7 +264,6 @@ namespace Ui {
         ButtonStyle_t Style;
         Component* Cpnt;
         color_t CurrentColor;
-        bool IsDrawUpdate;
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
@@ -271,7 +283,6 @@ namespace Ui {
         LabelStyle_t Style;
         Component* Cpnt;
         color_t CurrentColor;
-        bool IsDrawUpdate;
         kfont_t* Font;
         int64_t TextWidth;
         int64_t TextHeight;
@@ -299,7 +310,6 @@ namespace Ui {
         Button_t* CloseBtn;
         Button_t* SizeBtn;
         Button_t* HideBtn;
-        bool IsDrawUpdate;
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };

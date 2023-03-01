@@ -51,6 +51,7 @@ namespace Ui {
                 Child->Style->Position.y = GridPosition.y;
             }
         }
+        Cpnt->Parent->IsDrawUpdate = Cpnt->IsDrawUpdate;
     }
 
     Gridbox_t* Gridbox(GridboxStyle_t Style, Component* ParentCpnt){

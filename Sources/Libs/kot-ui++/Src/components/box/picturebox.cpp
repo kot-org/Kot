@@ -150,8 +150,8 @@ namespace Ui {
         if(Cpnt->IsFramebufferUpdate){
             Cpnt->IsFramebufferUpdate = false;
             PictureboxDraw(Picturebox);
-        }else if(Picturebox->IsDrawUpdate){
-            Picturebox->IsDrawUpdate = false;
+        }else if(Cpnt->IsDrawUpdate){
+            Cpnt->IsDrawUpdate = false;
             PictureboxDraw(Picturebox);
         }else if(Cpnt->Parent->IsRedraw || Cpnt->DrawPosition.x != Cpnt->FramebufferRelativePosition.x || Cpnt->DrawPosition.y != Cpnt->FramebufferRelativePosition.y){
             PictureboxDraw(Picturebox);
@@ -210,7 +210,7 @@ namespace Ui {
         Picturebox->Image = Image;
         memcpy(&Picturebox->Style, &Style, sizeof(PictureboxStyle_t));
         Picturebox->Cpnt = new Component(Style.G, PictureboxUpdate, PictureboxMouseEvent, (uintptr_t)Picturebox, ParentCpnt, !Style.Transparency);
-        Picturebox->IsDrawUpdate = true;
+        Picturebox->Cpnt->IsDrawUpdate = true;
         fclose(ImageFile);
         
         return Picturebox;

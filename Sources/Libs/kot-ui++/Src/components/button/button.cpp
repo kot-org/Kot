@@ -15,9 +15,9 @@ namespace Ui {
 
             ButtonDraw(Button);
             Cpnt->IsFramebufferUpdate = false;
-        }else if(Button->IsDrawUpdate){
+        }else if(Cpnt->IsDrawUpdate){
             ButtonDraw(Button);
-            Button->IsDrawUpdate = false;
+            Cpnt->IsDrawUpdate = false;
         }
         Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom)};
         SetGraphicEventbufferRadius(Cpnt->UiCtx->EventBuffer, (uint64_t)Cpnt, Button->Style.G.Currentwidth, Button->Style.G.Currentheight, Cpnt->AbsolutePosition.x, Cpnt->AbsolutePosition.y, Cpnt->Style->BorderRadius);
@@ -38,16 +38,16 @@ namespace Ui {
             if(Status & (MOUSE_CLICK_LEFT | MOUSE_CLICK_RIGHT | MOUSE_CLICK_MIDDLE)){
                 Button->CurrentColor = Button->Style.ClickColor;
                 Button->Style.OnMouseEvent(Button, BUTTON_EVENT_TYPE_HOVER | (Status & MOUSE_CLICK_LEFT << 1) | (Status & BUTTON_EVENT_TYPE_RIGHT_CLICK << 2) | (Status & BUTTON_EVENT_TYPE_MIDDLE_CLICK << 3));
-                Button->IsDrawUpdate = true;
+                Cpnt->IsDrawUpdate = true;
             }else{
                 Button->Style.OnMouseEvent(Button, BUTTON_EVENT_TYPE_HOVER);
                 Button->CurrentColor = Button->Style.HoverColor;
-                Button->IsDrawUpdate = true;               
+                Cpnt->IsDrawUpdate = true;               
             }
         }else{
             Button_t* Button = (Button_t*)Cpnt->ExternalData;
             Button->CurrentColor = Button->Style.BackgroundColor;
-            Button->IsDrawUpdate = true;
+            Cpnt->IsDrawUpdate = true;
             Button->Style.OnMouseEvent(Button, BUTTON_EVENT_TYPE_UNFOCUS);   
         }
     }

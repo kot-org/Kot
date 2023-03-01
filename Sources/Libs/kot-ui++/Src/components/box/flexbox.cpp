@@ -247,6 +247,7 @@ namespace Ui {
             }
         }
         Cpnt->IsRedraw = false;
+        Cpnt->Parent->IsDrawUpdate = Cpnt->IsDrawUpdate;
     }
 
     Flexbox_t* Flexbox(FlexboxStyle_t Style, Component* ParentCpnt){
