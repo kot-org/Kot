@@ -1425,7 +1425,6 @@ int ssfn_bbox(ssfn_t *ctx, const char *str, int *w, int *h, int *left, int *top)
     int ret, f = 1, l = 0, t = 0;
 
     if(!ctx || !str) return SSFN_ERR_INVINP;
-    if(w) {*w = 0;} if(h) {*h = 0;} if(top) {*top = 0;} if(left) {*left = 0;}
     if(!*str) return SSFN_OK;
     SSFN_memset(&buf, 0, sizeof(ssfn_buf_t)); ctx->line = 0;
     while((ret = ssfn_render(ctx, &buf, str))) {

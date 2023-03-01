@@ -34,8 +34,23 @@ char* MonthString[] = {
     "december",
 };
 
-void UpdateClock(Ui::Label_t* Weekday, Ui::Label_t* Date, Ui::Label_t* Time){
-    
+void UpdateClock(Ui::Label_t* Time, Ui::Label_t* Date){
+    char TimeStr[1024];
+    char DateStr[1024];
+    uint64_t TimerState;
+
+    if(GetSecond()){
+        Sleep((60 - GetSecond()) * 1000)
+    }
+    GetActualTick(&TimerState);
+
+    while(true){
+        sprintf((char*)&TimeStr, "%d:%d", GetHour(), GetMinute());
+        Time->UpdateText((char*)&TimeStr);
+        sprintf((char*)&DateStr, "%d %s, %d", GetDay(), MonthString[GetMonth()-1], 2023);
+        Date->UpdateText((char*)&DateStr);
+        SleepFromTick(&TimerState, 60000);
+    }
     Sys_Close(KSUCCESS);
 }
 
@@ -96,8 +111,13 @@ void desktopc::InitalizeClock(char* FontPath){
         }
     }, ClockContainer->Cpnt);
 
-    //Date->UpdateText("Ceci est un test");
-    // TODO update time
+    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&UpdateClock, PriviledgeApp, NULL, &ClockThread);
+    
+    arguments_t Parameters{
+        .arg[0] = (uint64_t)Time,
+        .arg[1] = (uint64_t)Date,
+    };
+    Sys_ExecThread(ClockThread, &Parameters, ExecutionTypeQueu, NULL);
 }
 
 void desktopc::SetWallpaper(char* Path, Ui::PictureboxFit Fit){

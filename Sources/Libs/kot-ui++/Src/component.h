@@ -277,6 +277,7 @@ namespace Ui {
         int64_t TextHeight;
         int64_t TextX;
         int64_t TextY;
+        uint64_t Lock = 0;
         void UpdateText(char* Text);
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);

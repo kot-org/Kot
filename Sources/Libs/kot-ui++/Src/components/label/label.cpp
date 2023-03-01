@@ -5,6 +5,7 @@
 
 namespace Ui {
     void LabelDraw(Label_t* Label){
+        atomicAcquire(&Label->Lock, 0);
         switch(Label->Style.Align){
             case TEXTALIGNLEFT:{
                 EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left), (int64_t)(Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top), -1, -1, -1);
@@ -29,6 +30,7 @@ namespace Ui {
         Label->Cpnt->DrawPosition.y = Label->Cpnt->FramebufferRelativePosition.y;
         DrawFont(Label->Font, Label->Style.Text);
         Label->Cpnt->IsRedraw = true;
+        atomicUnlock(&Label->Lock, 0);
     }
 
     void LabelUpdate(Component* Cpnt){
@@ -97,10 +99,11 @@ namespace Ui {
     }
 
     void Label_t::UpdateText(char* Text){
-        uintptr_t OldText = (uintptr_t)Style.Text;
-        size_t Lenght = strlen(Style.Text);
+        atomicAcquire(&Lock, 0);
+        uintptr_t OldText = (uintptr_t)this->Style.Text;
+        size_t Lenght = strlen(Text);
         this->Style.Text = (char*)malloc(Lenght + 1);
-        strcpy(this->Style.Text, Style.Text);
+        strcpy(this->Style.Text, Text);
         this->Style.Text[Lenght] = 0;
         GetTextboxInfo(this->Font, this->Style.Text, &this->TextWidth, &this->TextHeight, &this->TextX, &this->TextY);
         if(this->Style.AutoWidth){
@@ -110,6 +113,7 @@ namespace Ui {
             this->Cpnt->Style->Height = this->TextHeight;
         }
         IsDrawUpdate = true;
+        atomicUnlock(&Lock, 0);
         free(OldText);
     }
 
