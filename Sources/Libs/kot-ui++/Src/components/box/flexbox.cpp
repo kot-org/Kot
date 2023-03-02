@@ -47,7 +47,7 @@ namespace Ui {
                 TotalWidthChild += Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
                 TotalHeightChild += Child->Style->Currentheight + Child->Style->Margin.Bottom + Child->Style->Margin.Top;
             }
-            bool IterateX = Flexbox->Style.Align.x == Ui::Layout::BETWEENHORIZONTAL || Flexbox->Style.Align.y == Ui::Layout::FILLVERTICAL || Flexbox->Style.Align.y == Ui::Layout::BETWEENVERTICAL || Flexbox->Style.Align.y == Ui::Layout::AROUNDVERTICAL;
+            bool IterateX = Flexbox->Style.Align.x == Ui::Layout::BETWEENHORIZONTAL || Flexbox->Style.Align.y == Ui::Layout::BETWEENVERTICAL || Flexbox->Style.Align.y == Ui::Layout::AROUNDVERTICAL;
             bool IterateY = !IterateX;
             // Do not update in x only in y
             switch(Flexbox->Style.Align.x){

@@ -130,6 +130,7 @@ namespace Event{
                 }
             }
             if(task->DataNode->NumberOfMissedEvents > 100){
+                Message("%x", task->DataNode->NumberOfMissedEvents);
                 asm("nop");
             }
             AtomicRelease(&task->thread->EventLock);

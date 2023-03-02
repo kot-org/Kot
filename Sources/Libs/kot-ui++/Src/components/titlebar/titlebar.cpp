@@ -5,7 +5,9 @@
 
 namespace Ui {
     void CloseBtnEvent(Button_t* Button, ButtonEvent_t Type){
-        Printlog("close");
+        if(Type != 1){
+            Printlog("close");
+        }
     }
 
     void SizeBtnEvent(Button_t* Button, ButtonEvent_t Type){

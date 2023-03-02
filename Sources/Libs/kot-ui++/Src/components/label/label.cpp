@@ -57,7 +57,7 @@ namespace Ui {
 
     Label_t* Label(LabelStyle_t Style, Component* ParentCpnt){
         Label_t* Label = (Label_t*)malloc(sizeof(Label_t));
-        atomicUnlock(&Label->Lock, 0);
+        Label->Lock = 0;
         if(!Style.FontBuffer){
             if(Style.FontPath == NULL){
                 free(Label);

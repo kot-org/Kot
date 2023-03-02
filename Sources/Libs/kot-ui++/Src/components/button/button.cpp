@@ -38,7 +38,7 @@ namespace Ui {
 
             if(Status & (MOUSE_CLICK_LEFT | MOUSE_CLICK_RIGHT | MOUSE_CLICK_MIDDLE)){
                 Button->CurrentColor = Button->Style.ClickColor;
-                Button->Style.OnMouseEvent(Button, BUTTON_EVENT_TYPE_HOVER | (Status & MOUSE_CLICK_LEFT << 1) | (Status & BUTTON_EVENT_TYPE_RIGHT_CLICK << 2) | (Status & BUTTON_EVENT_TYPE_MIDDLE_CLICK << 3));
+                Button->Style.OnMouseEvent(Button, BUTTON_EVENT_TYPE_HOVER | ((Status & MOUSE_CLICK_LEFT) << 1) | ((Status & BUTTON_EVENT_TYPE_RIGHT_CLICK) << 2) | ((Status & BUTTON_EVENT_TYPE_MIDDLE_CLICK) << 3));
                 Cpnt->IsDrawUpdate = true;
             }else{
                 Button->Style.OnMouseEvent(Button, BUTTON_EVENT_TYPE_HOVER);
