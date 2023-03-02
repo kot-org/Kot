@@ -9,12 +9,6 @@
 #ifndef __KOT__GRAPHICS__ORB__
 #define __KOT__GRAPHICS__ORB__
 
-#define MOUSE_CLICK_LEFT        (1 << 0)
-#define MOUSE_CLICK_RIGHT       (1 << 1)
-#define MOUSE_CLICK_MIDDLE      (1 << 2)
-#define MOUSE_CLICK_BUTTON4     (1 << 3)
-#define MOUSE_CLICK_BUTTON5     (1 << 4)
-
 #if defined(__cplusplus)
 extern "C" {
 #endif

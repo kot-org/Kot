@@ -50,7 +50,7 @@ namespace UiWindow {
             Icon = "kotlogo.tga";
         }
 
-        Titlebar = Ui::Titlebar(Title, Icon, {.BackgroundColor = WIN_TBCOLOR_ONBLUR, .ForegroundColor = 0xffffffff}, UiCtx->Cpnt);
+        Titlebar = Ui::Titlebar(this->Wid, Title, Icon, {.BackgroundColor = WIN_TBCOLOR_ONBLUR, .ForegroundColor = 0xffffffff}, UiCtx->Cpnt);
 
         // Content
         Cpnt = Ui::Box(

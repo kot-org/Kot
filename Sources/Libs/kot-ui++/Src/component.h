@@ -311,7 +311,7 @@ namespace Ui {
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
-    Titlebar_t* Titlebar(char* Title, char* Icon, TitlebarStyle_t Style, class Component* ParentCpnt);
+    Titlebar_t* Titlebar(window_t* Window, char* Title, char* Icon, TitlebarStyle_t Style, class Component* ParentCpnt);
 
 }
 

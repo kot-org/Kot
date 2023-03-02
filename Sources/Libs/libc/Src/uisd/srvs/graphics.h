@@ -27,6 +27,12 @@ extern "C" {
 
 #define Window_Max_Size                     -1
 
+#define MOUSE_CLICK_LEFT        (1 << 0)
+#define MOUSE_CLICK_RIGHT       (1 << 1)
+#define MOUSE_CLICK_MIDDLE      (1 << 2)
+#define MOUSE_CLICK_BUTTON4     (1 << 3)
+#define MOUSE_CLICK_BUTTON5     (1 << 4)
+
 typedef KResult (*GraphicsCallbackHandler)(KResult Status, struct srv_graphics_callback* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
 enum Window_Event{

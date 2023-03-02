@@ -6,23 +6,30 @@
 namespace Ui {
     void CloseBtnEvent(Button_t* Button, ButtonEvent_t Type){
         if(Type & BUTTON_EVENT_TYPE_LEFT_CLICK){
-            Printlog("close");
+            window_t* Window = (window_t*)Button->Style.ExternalData;
+            ChangeVisibilityWindow(Window, false);
+            // TODO close the process
         }
     }
 
     void SizeBtnEvent(Button_t* Button, ButtonEvent_t Type){
         if(Type & BUTTON_EVENT_TYPE_LEFT_CLICK){
-            Printlog("size");
+            window_t* Window = (window_t*)Button->Style.ExternalData;
+            WindowChangePosition(Window, 0, 0);
+            ResizeWindow(Window, Window_Max_Size, Window_Max_Size);
+            // TODO update framebuffer
         }
     }
 
     void HideBtnEvent(Button_t* Button, ButtonEvent_t Type){
         if(Type & BUTTON_EVENT_TYPE_LEFT_CLICK){
-            Printlog("hide");
+            window_t* Window = (window_t*)Button->Style.ExternalData;
+            ChangeVisibilityWindow(Window, false);
+            // TODO communicate with taskbar
         }
     }
 
-    Titlebar_t* Titlebar(char* Title, char* Icon, TitlebarStyle_t Style, Component* ParentCpnt) {
+    Titlebar_t* Titlebar(window_t* Window, char* Title, char* Icon, TitlebarStyle_t Style, Component* ParentCpnt) {
         Titlebar_t* Titlebar = (Titlebar_t*)malloc(sizeof(Titlebar_t));
         memcpy(&Titlebar->Style, &Style, sizeof(TitlebarStyle_t));
         Titlebar->MainBox = Box(
@@ -90,6 +97,7 @@ namespace Ui {
             {
                 .BackgroundColor = Titlebar->Style.BackgroundColor, 
                 .OnMouseEvent = CloseBtnEvent,
+                .ExternalData = (uint64_t)Window,
                 .G{
                     .Width = Titlebar_Height, 
                     .Height = Titlebar_Height, 
@@ -115,6 +123,7 @@ namespace Ui {
             {
                 .BackgroundColor = Titlebar->Style.BackgroundColor, 
                 .OnMouseEvent = SizeBtnEvent,
+                .ExternalData = (uint64_t)Window,
                 .G{
                     .Width = Titlebar_Height, 
                     .Height = Titlebar_Height, 
@@ -139,6 +148,7 @@ namespace Ui {
             {
                 .BackgroundColor = Titlebar->Style.BackgroundColor, 
                 .OnMouseEvent = HideBtnEvent,
+                .ExternalData = (uint64_t)Window,
                 .G{
                     .Width = Titlebar_Height,
                     .Height = Titlebar_Height,

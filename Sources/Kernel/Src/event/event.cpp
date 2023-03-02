@@ -170,7 +170,6 @@ namespace Event{
             ForceSelfDestruction();
         }else if(Thread->EventDataNode->NumberOfMissedEvents){
             event_data_t* Next = Thread->EventDataNode->CurrentData->Next;
-            SegmentHeader* Test = GetSegmentHeader(Thread->EventDataNode);
 
             free(Thread->EventDataNode->CurrentData);
             Thread->EventDataNode->CurrentData = Next;
