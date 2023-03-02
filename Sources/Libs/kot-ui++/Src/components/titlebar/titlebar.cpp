@@ -5,17 +5,21 @@
 
 namespace Ui {
     void CloseBtnEvent(Button_t* Button, ButtonEvent_t Type){
-        if(Type != 1){
+        if(Type & BUTTON_EVENT_TYPE_LEFT_CLICK){
             Printlog("close");
         }
     }
 
     void SizeBtnEvent(Button_t* Button, ButtonEvent_t Type){
-        Printlog("size");
+        if(Type & BUTTON_EVENT_TYPE_LEFT_CLICK){
+            Printlog("size");
+        }
     }
 
     void HideBtnEvent(Button_t* Button, ButtonEvent_t Type){
-        Printlog("hide");
+        if(Type & BUTTON_EVENT_TYPE_LEFT_CLICK){
+            Printlog("hide");
+        }
     }
 
     Titlebar_t* Titlebar(char* Title, char* Icon, TitlebarStyle_t Style, Component* ParentCpnt) {
