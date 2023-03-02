@@ -42,6 +42,8 @@ void SetGraphicEventbuffer(graphiceventbuffer_t* Framebuffer, uint64_t Value, ui
 }
 
 void SetGraphicEventbufferRadius(graphiceventbuffer_t* Framebuffer, uint64_t Value, uint64_t Width, uint64_t Height, uint64_t PositionX, uint64_t PositionY, uint64_t BorderRadius){
+    SetGraphicEventbuffer(Framebuffer, Value, Width, Height, PositionX, PositionY);
+    return;
     uint64_t ToBuffer = (uint64_t) Framebuffer->Buffer;
 
     ToBuffer += PositionX * Framebuffer->Btpp + PositionY * Framebuffer->Pitch;
@@ -107,54 +109,57 @@ void BlitGraphicEventbuffer(graphiceventbuffer_t* To, graphiceventbuffer_t* From
 }
 
 
-void BlitGraphicEventbufferRadius(graphiceventbuffer_t* to, graphiceventbuffer_t* from, uint64_t PositionX, uint64_t PositionY, uint64_t BorderRadius){
-    uint64_t ToBuffer = (uint64_t) to->Buffer;
-    uint64_t FromBuffer = (uint64_t) from->Buffer;
+void BlitGraphicEventbufferRadius(graphiceventbuffer_t* To, graphiceventbuffer_t* From, uint64_t PositionX, uint64_t PositionY, uint64_t BorderRadius){
+    BlitGraphicEventbuffer(To, From, PositionX, PositionY);
+    return;
 
-    ToBuffer += PositionX * to->Btpp + PositionY * to->Pitch;
-    uint64_t WidthCopy = from->Width;
+    uint64_t ToBuffer = (uint64_t) To->Buffer;
+    uint64_t FromBuffer = (uint64_t) From->Buffer;
 
-    if (PositionX + WidthCopy >= to->Width) {
-        WidthCopy = to->Width - PositionX;
+    ToBuffer += PositionX * To->Btpp + PositionY * To->Pitch;
+    uint64_t WidthCopy = From->Width;
+
+    if (PositionX + WidthCopy >= To->Width) {
+        WidthCopy = To->Width - PositionX;
     }
 
-    uint64_t HeightCopy = from->Height;
+    uint64_t HeightCopy = From->Height;
 
-    if (PositionY + HeightCopy >= to->Height) {
-        HeightCopy = to->Height - PositionY;
+    if (PositionY + HeightCopy >= To->Height) {
+        HeightCopy = To->Height - PositionY;
     }
 
-    uint64_t PitchCopy = WidthCopy * to->Btpp;
+    uint64_t PitchCopy = WidthCopy * To->Btpp;
 
     uint64_t Ray = BorderRadius / 2;
     for (uint64_t h = 0; h < Ray && h < HeightCopy; h++) {
         uint64_t CircleH = h;
         uint64_t Height = (Ray - CircleH);
-        uint64_t LeftOffset = (uint64_t)(Ray - sqrt(Ray*Ray-Height*Height)) * to->Btpp;
+        uint64_t LeftOffset = (uint64_t)(Ray - sqrt(Ray*Ray-Height*Height)) * To->Btpp;
         if (LeftOffset < 0) {
             LeftOffset = 0;
         }
         memcpy((uintptr_t) (ToBuffer + LeftOffset), (uintptr_t) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
-        ToBuffer += to->Pitch;
-        FromBuffer += from->Pitch;
+        ToBuffer += To->Pitch;
+        FromBuffer += From->Pitch;
     }
 
     for (uint64_t h = Ray; h < HeightCopy - Ray && h < HeightCopy; h++) {
         memcpy((uintptr_t) ToBuffer, (uintptr_t) FromBuffer, PitchCopy);
-        ToBuffer += to->Pitch;
-        FromBuffer += from->Pitch;
+        ToBuffer += To->Pitch;
+        FromBuffer += From->Pitch;
     }
 
     for (uint64_t h = HeightCopy - Ray; h < HeightCopy; h++) {
         uint64_t CircleH = HeightCopy - h;
         uint64_t Height = (Ray - CircleH);
-        uint64_t LeftOffset = (uint64_t)(Ray - sqrt(Ray*Ray-Height*Height)) * to->Btpp;
+        uint64_t LeftOffset = (uint64_t)(Ray - sqrt(Ray*Ray-Height*Height)) * To->Btpp;
         if (LeftOffset < 0) {
             LeftOffset = 0;
         }
         memcpy((uintptr_t) (ToBuffer + LeftOffset), (uintptr_t) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
-        ToBuffer += to->Pitch;
-        FromBuffer += from->Pitch;
+        ToBuffer += To->Pitch;
+        FromBuffer += From->Pitch;
     }
 }
 

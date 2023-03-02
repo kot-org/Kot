@@ -47,17 +47,7 @@ namespace Ui {
         if(IsOwnFb){
             CreateFramebuffer(CpntStyle->Currentwidth, CpntStyle->Currentheight);
         }else{
-            framebuffer_t* CpntFb = (framebuffer_t*) malloc(sizeof(framebuffer_t));
-
-            CpntFb->Size = Parent->Framebuffer->Size;
-            CpntFb->Buffer = Parent->Framebuffer->Buffer;
-            CpntFb->Pitch = Parent->Framebuffer->Pitch;
-            CpntFb->Width = CpntStyle->Currentwidth;
-            CpntFb->Height = CpntStyle->Currentheight;
-            CpntFb->Bpp = Parent->Framebuffer->Bpp;
-            CpntFb->Btpp = Parent->Framebuffer->Btpp;
-
-            this->Framebuffer = CpntFb;
+            this->Framebuffer = this->Parent->Framebuffer;
             this->IsFramebufferUpdate = true;
         }
 
@@ -114,8 +104,6 @@ namespace Ui {
 
                 this->IsFramebufferUpdate = true;
             }else{
-                Framebuffer->Width = Width;
-                Framebuffer->Height = Height;
                 this->Style->Currentwidth = Width;
                 this->Style->Currentheight = Height;
 
@@ -174,7 +162,25 @@ namespace Ui {
                         Child->Style->Currentheight = Child->Style->Height;
                     }
 
+                    Child->UpdateFramebuffer(Child->Style->Currentwidth, Child->Style->Currentheight);
+
                     if(Child->Style->AutoPosition){
+                        switch (Child->Style->Align.y){
+                            case AlignTypeY::TOP:{
+                                // TODO
+                                break;
+                            }
+                            case AlignTypeY::MIDDLE:{
+                                Child->Style->Position.y = (Style->Currentheight - Child->Style->Currentheight) / 2;
+                                break;
+                            }
+                            case AlignTypeY::BOTTOM:{
+                                // TODO
+                                break;
+                            }
+                            default:
+                                break;
+                        }
                         switch (Child->Style->Align.x){
                             case AlignTypeX::LEFT:{
                                 if(XIterationLeft + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right > Style->Currentwidth){
@@ -214,22 +220,6 @@ namespace Ui {
                                 if(MaxChildHeightRight < Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom){
                                     MaxChildHeightRight = Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
                                 }
-                                break;
-                            }
-                            default:
-                                break;
-                        }
-                        switch (Child->Style->Align.y){
-                            case AlignTypeY::TOP:{
-                                // TODO
-                                break;
-                            }
-                            case AlignTypeY::MIDDLE:{
-                                Child->Style->Position.y = (Style->Currentheight - Child->Style->Currentheight) / 2;
-                                break;
-                            }
-                            case AlignTypeY::BOTTOM:{
-                                // TODO
                                 break;
                             }
                             default:

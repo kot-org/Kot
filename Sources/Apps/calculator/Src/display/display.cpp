@@ -21,7 +21,7 @@ void CreateDisplay(Component* Window) {
         {   
             .G = { 
                     .Width = 400,
-                    .Height = 600,
+                    .Height = 575,
                     .IsHidden = false 
                 }, 
             .Align = { .x = Layout::FILLHORIZONTAL, .y = Layout::TOP }
@@ -64,22 +64,34 @@ void CreateDisplay(Component* Window) {
         { 
             .G = { 
                     .Width = -100,
-                    .Height = 600,
+                    .Height = 475,
                     .IsHidden = false
                 },
-            .CaseWidth = 100,
-            .CaseHeight = 70
+            .CaseWidth = -4,
+            .CaseHeight = -6,
+            .SpaceBetweenCaseHorizontal = 5,
+            .SpaceBetweenCaseVertical = 5,
         }
     , Main->Cpnt);
+
+    // Load font
+    file_t* FontFile = fopen("default-font.sfn", "rb");
+    assert(FontFile != NULL);
+
+    fseek(FontFile, 0, SEEK_END);
+    size_t FontFileSize = ftell(FontFile);
+    fseek(FontFile, 0, SEEK_SET);
+    uintptr_t Font = malloc(FontFileSize);
+    fread(Font, FontFileSize, 1, FontFile);
+
 
     for(uint8_t y = 0; y < 6; y++) {
         for(uint8_t x = 0; x < 4; x++) {
             Button_t* Button = Ui::Button(  
                 { 
                     .G = { 
-                            .Width = 100 - 5,
-                            .Height = 70 - 5,
-                            .Margin = { .Top = 5, .Left = 5 },
+                            .Width = -100,
+                            .Height = -100,
                             .Position = { .x = (int64_t)x, .y = (int64_t)y },
                             .BorderRadius = 20,
                             .IsHidden = false
@@ -94,6 +106,7 @@ void CreateDisplay(Component* Window) {
             Label_t* Label = Ui::Label({
                 .Text = NumericKeypadStr[y][x],
                 .FontSize = 16,
+                .FontBuffer = Font,
                 .ForegroundColor = 0xffffffff,
                 .Align = Ui::TEXTALIGNCENTER,
                 .AutoWidth = false,
@@ -110,4 +123,5 @@ void CreateDisplay(Component* Window) {
             }, Button->Cpnt);
         }
     }
+    fclose(FontFile);
 }

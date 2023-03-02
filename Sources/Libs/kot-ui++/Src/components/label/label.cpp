@@ -56,24 +56,31 @@ namespace Ui {
     }
 
     Label_t* Label(LabelStyle_t Style, Component* ParentCpnt){
-        if(Style.FontPath == NULL){
-            return NULL;
-        }
-        // Load font
-        file_t* FontFile = fopen(Style.FontPath, "rb");
-
-        if(FontFile == NULL){
-            return NULL;
-        }
-
-        fseek(FontFile, 0, SEEK_END);
-        size_t FontFileSize = ftell(FontFile);
-        fseek(FontFile, 0, SEEK_SET);
-        uintptr_t Font = malloc(FontFileSize);
-        fread(Font, FontFileSize, 1, FontFile);
         Label_t* Label = (Label_t*)malloc(sizeof(Label_t));
-        Label->Font = LoadFont(Font);
-        fclose(FontFile);
+        atomicUnlock(&Label->Lock, 0);
+        if(!Style.FontBuffer){
+            if(Style.FontPath == NULL){
+                free(Label);
+                return NULL;
+            }
+            // Load font
+            file_t* FontFile = fopen(Style.FontPath, "rb");
+
+            if(FontFile == NULL){
+                free(Label);
+                return NULL;
+            }
+
+            fseek(FontFile, 0, SEEK_END);
+            size_t FontFileSize = ftell(FontFile);
+            fseek(FontFile, 0, SEEK_SET);
+            uintptr_t Font = malloc(FontFileSize);
+            fread(Font, FontFileSize, 1, FontFile);
+            Label->Font = LoadFont(Font);
+            fclose(FontFile);
+        }else{
+            Label->Font = LoadFont(Style.FontBuffer);
+        }
 
         memcpy(&Label->Style, &Style, sizeof(LabelStyle_t));
         size_t Lenght = strlen(Style.Text);

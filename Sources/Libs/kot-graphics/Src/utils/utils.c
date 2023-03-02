@@ -57,6 +57,8 @@ void BlitFramebuffer(framebuffer_t* To, framebuffer_t* From, uint64_t PositionX,
 
 
 void BlitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint64_t PositionX, uint64_t PositionY, uint64_t BorderRadius) {
+    BlitFramebuffer(to, from, PositionX, PositionY);
+    return;
     uint64_t ToBuffer = (uint64_t) to->Buffer;
     uint64_t FromBuffer = (uint64_t) from->Buffer;
 

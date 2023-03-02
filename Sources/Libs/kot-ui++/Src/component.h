@@ -49,8 +49,6 @@ namespace Ui {
     #define BUTTON_EVENT_TYPE_MIDDLE_CLICK  (1 << 3)
     #define BUTTON_EVENT_TYPE_UNFOCUS       (1 << 4)
 
-    #define GRIDBOX_CASE_SIZE_AUTO          (-1)
-
     typedef uint64_t ButtonEvent_t;
 
     typedef void (*MouseEventHandler)(class Component* Component, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status);
@@ -239,7 +237,6 @@ namespace Ui {
         ComponentGeneralStyle G;
         int64_t CaseWidth = 0;
         int64_t CaseHeight = 0;
-        // Only if auto case
         uint64_t SpaceBetweenCaseHorizontal = 0;
         uint64_t SpaceBetweenCaseVertical = 0;
     } GridboxStyle_t;
@@ -258,7 +255,7 @@ namespace Ui {
         color_t HoverColor = BackgroundColor;
         color_t ClickColor = HoverColor;
         ButtonHandler OnMouseEvent = 0;
-        uintptr_t ExternalData = 0;
+        uint64_t ExternalData = 0;
     } ButtonStyle_t;
     struct Button_t{
         ButtonStyle_t Style;
@@ -273,6 +270,7 @@ namespace Ui {
         ComponentGeneralStyle G;
         char* Text = NULL;
         char* FontPath = "default-font.sfn";
+        uintptr_t FontBuffer = 0;
         int16_t FontSize = 8;
         color_t ForegroundColor = 0;
         bool AutoWidth = true;
@@ -288,7 +286,7 @@ namespace Ui {
         int64_t TextHeight;
         int64_t TextX;
         int64_t TextY;
-        uint64_t Lock = 0;
+        uint64_t Lock;
         void UpdateText(char* Text);
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);

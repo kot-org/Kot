@@ -1,4 +1,5 @@
 #include <kot-ui++/component.h>
+#include <kot/stdio.h>
 
 namespace Ui {
     // Todo calculate width and height in global update
@@ -16,37 +17,45 @@ namespace Ui {
         Cpnt->FramebufferRelativePosition = {.x = Cpnt->Parent->FramebufferRelativePosition.x + Cpnt->Style->Position.x, .y = Cpnt->Parent->FramebufferRelativePosition.y + Cpnt->Style->Position.y};
 
         if(Cpnt->Childs != NULL){
-            uint64_t CaseWidth = Gridbox->Style.CaseWidth;
-            uint64_t CaseHeight = Gridbox->Style.CaseHeight;
-            if(Gridbox->Style.CaseWidth == GRIDBOX_CASE_SIZE_AUTO || Gridbox->Style.CaseHeight == GRIDBOX_CASE_SIZE_AUTO){
-                uint64_t MaxPostionX = 0;
-                uint64_t MaxPostionY = 0;
-                for(uint64_t i = 0; i < Cpnt->Childs->length; i++){
-                    Component* Child = (Component*)vector_get(Cpnt->Childs, i);
-                    if(Child->Style->Position.x > MaxPostionX){
-                        MaxPostionX = Child->Style->Position.x;
-                    }
-                    if(Child->Style->Position.y > MaxPostionY){
-                        MaxPostionY = Child->Style->Position.y;
-                    }
-                }
-                if(Gridbox->Style.CaseWidth == GRIDBOX_CASE_SIZE_AUTO){
-                    CaseWidth = (Cpnt->Style->Currentwidth / (MaxPostionX + 1)) - Gridbox->Style.SpaceBetweenCaseHorizontal;
-                }
-                
-                if(Gridbox->Style.CaseHeight == GRIDBOX_CASE_SIZE_AUTO){
-                    CaseHeight = (Cpnt->Style->Currentheight / (MaxPostionY + 1)) - Gridbox->Style.SpaceBetweenCaseVertical;
-                }
+            int64_t CaseWidth = Gridbox->Style.CaseWidth;
+            int64_t CaseHeight = Gridbox->Style.CaseHeight;
+            if(CaseWidth < 0){
+                CaseWidth = (Cpnt->Style->Currentwidth / abs(CaseWidth)) - Gridbox->Style.SpaceBetweenCaseHorizontal - Gridbox->Style.SpaceBetweenCaseHorizontal / abs(CaseWidth);
+            }
+            if(CaseHeight < 0){
+                CaseHeight = (Cpnt->Style->Currentheight / abs(CaseHeight)) - Gridbox->Style.SpaceBetweenCaseVertical - Gridbox->Style.SpaceBetweenCaseVertical / abs(CaseHeight);
             }
             for(uint64_t i = 0; i < Cpnt->Childs->length; i++){
                 Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                 point_t GridPosition;
                 GridPosition.x = Child->Style->Position.x;
                 GridPosition.y = Child->Style->Position.y;
-                Child->Style->Position.x *= CaseWidth;
-                Child->Style->Position.y *= CaseHeight;
+                Child->Style->Position.x = Child->Style->Position.x * CaseWidth + (Child->Style->Position.x + 1) * Gridbox->Style.SpaceBetweenCaseHorizontal;
+                Child->Style->Position.y = Child->Style->Position.y * CaseHeight + (Child->Style->Position.y + 1) * Gridbox->Style.SpaceBetweenCaseVertical;
+
+                if(Child->Style->Width < 0){
+                    Child->Style->Currentwidth = (CaseWidth * abs(Child->Style->Width)) / 100;
+                    if(Child->Style->Currentwidth < Child->Style->Minwidth){
+                        Child->Style->Currentwidth = Child->Style->Minwidth;
+                    }else if(Child->Style->Currentwidth > Child->Style->Maxwidth){
+                        Child->Style->Currentwidth = Child->Style->Maxwidth;
+                    }
+                }else{
+                    Child->Style->Currentwidth = Child->Style->Width;
+                }
+
+                if(Child->Style->Height < 0){
+                    Child->Style->Currentheight = (CaseHeight * abs(Child->Style->Height)) / 100;
+                    if(Child->Style->Currentheight < Child->Style->Minheight){
+                        Child->Style->Currentheight = Child->Style->Minheight;
+                    }else if(Child->Style->Currentheight > Child->Style->Maxheight){
+                        Child->Style->Currentheight = Child->Style->Maxheight;
+                    }
+                }else{
+                    Child->Style->Currentheight = Child->Style->Height;
+                }
+                Child->UpdateFramebuffer(Child->Style->Currentwidth, Child->Style->Currentheight);
                 Child->UpdateFunction(Child);
-                Child->Update();
                 Child->Style->Position.x = GridPosition.x;
                 Child->Style->Position.y = GridPosition.y;
             }
