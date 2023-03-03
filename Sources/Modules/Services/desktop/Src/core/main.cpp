@@ -56,6 +56,7 @@ void UpdateClock(Ui::Label_t* Time, Ui::Label_t* Date){
 
 void desktopc::InitalizeClock(char* FontPath){
     Ui::Flexbox_t* ClockContainer = Ui::Flexbox({
+        .Direction = Layout::COLUMN,
         .G = { 
                 .Width = -100,
                 .Height = -100,

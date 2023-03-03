@@ -10,6 +10,8 @@ namespace Ui {
 
             Cpnt->IsFramebufferUpdate = false;
         }
+
+        Cpnt->IsRedraw = Cpnt->Parent->IsRedraw;
         
         Cpnt->AbsolutePosition = {.x = Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x, .y = Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y};
         Cpnt->FramebufferRelativePosition = {.x = Cpnt->Parent->FramebufferRelativePosition.x + Cpnt->Style->Position.x, .y = Cpnt->Parent->FramebufferRelativePosition.y + Cpnt->Style->Position.y};
@@ -47,8 +49,6 @@ namespace Ui {
                 TotalWidthChild += Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
                 TotalHeightChild += Child->Style->Currentheight + Child->Style->Margin.Bottom + Child->Style->Margin.Top;
             }
-            bool IterateX = Flexbox->Style.Align.x == Ui::Layout::BETWEENHORIZONTAL || Flexbox->Style.Align.y == Ui::Layout::BETWEENVERTICAL || Flexbox->Style.Align.y == Ui::Layout::AROUNDVERTICAL;
-            bool IterateY = !IterateX;
             // Do not update in x only in y
             switch(Flexbox->Style.Align.x){
                 case Ui::Layout::FILLHORIZONTAL:{
@@ -57,7 +57,7 @@ namespace Ui {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         uint64_t NewWidth;
                         Child->Style->Position.x = XIteration;
-                        if(IterateX){
+                        if(Flexbox->Style.Direction == Layout::ROW){
                             NewWidth = Child->Style->Currentwidth * TotalWidth / TotalWidthChild;
                             if(NewWidth < Child->Style->Minwidth){
                                 NewWidth = Child->Style->Minwidth;
@@ -73,21 +73,28 @@ namespace Ui {
                     break;
                 }
                 case Ui::Layout::BETWEENHORIZONTAL:{
-                    uint64_t SpaceFreePerChild = (TotalWidth - TotalWidthChild) / (Cpnt->Childs->length - 1);
-                    uint64_t XIteration = 0;
-                    uint64_t i = 0;
-                    for(; i < Cpnt->Childs->length / 2; i++) {
-                        Component* Child = (Component*)vector_get(Cpnt->Childs, i);
-                        Child->Style->Position.x = XIteration;
-                        if(IterateX) XIteration += SpaceFreePerChild + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
-                    }
+                    if(Cpnt->Childs->length - 1){
+                        uint64_t SpaceFreePerChild = (TotalWidth - TotalWidthChild) / (Cpnt->Childs->length - 1);
+                        uint64_t XIteration = 0;
+                        uint64_t i = 0;
+                        for(; i < Cpnt->Childs->length / 2; i++) {
+                            Component* Child = (Component*)vector_get(Cpnt->Childs, i);
+                            Child->Style->Position.x = XIteration;
+                            if(Flexbox->Style.Direction == Layout::ROW) XIteration += SpaceFreePerChild + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
+                        }
 
-                    if(IterateX) XIteration += (TotalWidth - TotalWidthChild) % (Cpnt->Childs->length - 1);
+                        if(Flexbox->Style.Direction == Layout::ROW) XIteration += (TotalWidth - TotalWidthChild) % (Cpnt->Childs->length - 1);
 
-                    for(; i < Cpnt->Childs->length; i++) {
-                        Component* Child = (Component*)vector_get(Cpnt->Childs, i);
-                        Child->Style->Position.x = XIteration;
-                        if(IterateX) XIteration += SpaceFreePerChild + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
+                        for(; i < Cpnt->Childs->length; i++) {
+                            Component* Child = (Component*)vector_get(Cpnt->Childs, i);
+                            Child->Style->Position.x = XIteration;
+                            if(Flexbox->Style.Direction == Layout::ROW) XIteration += SpaceFreePerChild + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
+                        }
+                    }else{
+                        for(uint64_t i = 0; i < Cpnt->Childs->length; i++) {
+                            Component* Child = (Component*)vector_get(Cpnt->Childs, i);
+                            Child->Style->Position.x = 0;
+                        }
                     }
                     break;
                 }
@@ -98,15 +105,15 @@ namespace Ui {
                     for(; i < Cpnt->Childs->length / 2; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.x = XIteration;
-                        if(IterateX) XIteration += SpaceFreePerChild + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
+                        if(Flexbox->Style.Direction == Layout::ROW) XIteration += SpaceFreePerChild + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
                     }
 
-                    if(IterateX) XIteration += (TotalWidth - TotalWidthChild) % Cpnt->Childs->length;
+                    if(Flexbox->Style.Direction == Layout::ROW) XIteration += (TotalWidth - TotalWidthChild) % Cpnt->Childs->length;
 
                     for(; i < Cpnt->Childs->length; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.x = XIteration;
-                        if(IterateX) XIteration += SpaceFreePerChild + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
+                        if(Flexbox->Style.Direction == Layout::ROW) XIteration += SpaceFreePerChild + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
                     }
                     break;
                 }
@@ -145,7 +152,7 @@ namespace Ui {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         uint64_t NewHeight;
                         Child->Style->Position.y = YIteration;
-                        if(IterateY){
+                        if(Flexbox->Style.Direction == Layout::COLUMN){
                             NewHeight = Child->Style->Currentheight * TotalHeight / TotalHeightChild;
                             YIteration += NewHeight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
                             if(NewHeight < Child->Style->Minheight){
@@ -168,16 +175,16 @@ namespace Ui {
                     for(; i < Cpnt->Childs->length / 2; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.y = YIteration;
-                        if(IterateY) YIteration += SpaceFreePerChild + Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
+                        if(Flexbox->Style.Direction == Layout::COLUMN) YIteration += SpaceFreePerChild + Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
                         Child->UpdateFunction(Child);
                     }
 
-                    if(IterateY) YIteration += (TotalHeight - TotalHeightChild) % (Cpnt->Childs->length - 1);
+                    if(Flexbox->Style.Direction == Layout::COLUMN) YIteration += (TotalHeight - TotalHeightChild) % (Cpnt->Childs->length - 1);
 
                     for(; i < Cpnt->Childs->length; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.y = YIteration;
-                        if(IterateY) YIteration += SpaceFreePerChild + Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
+                        if(Flexbox->Style.Direction == Layout::COLUMN) YIteration += SpaceFreePerChild + Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
                         Child->UpdateFunction(Child);
                     }
                     break;
@@ -189,16 +196,16 @@ namespace Ui {
                     for(; i < Cpnt->Childs->length / 2; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.y = YIteration;
-                        if(IterateY) YIteration += SpaceFreePerChild + Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
+                        if(Flexbox->Style.Direction == Layout::COLUMN) YIteration += SpaceFreePerChild + Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
                         Child->UpdateFunction(Child);
                     }
 
-                    if(IterateY) YIteration += (TotalHeight - TotalHeightChild) % Cpnt->Childs->length;
+                    if(Flexbox->Style.Direction == Layout::COLUMN) YIteration += (TotalHeight - TotalHeightChild) % Cpnt->Childs->length;
 
                     for(; i < Cpnt->Childs->length; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                         Child->Style->Position.y = YIteration;
-                        if(IterateY) YIteration += SpaceFreePerChild + Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
+                        if(Flexbox->Style.Direction == Layout::COLUMN) YIteration += SpaceFreePerChild + Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
                         Child->UpdateFunction(Child);
                     }
                     break;
@@ -215,12 +222,12 @@ namespace Ui {
                 }
                 case Ui::Layout::MIDDLE:{
                     uint64_t YIteration;
-                    if(IterateY){
+                    if(Flexbox->Style.Direction == Layout::COLUMN){
                         YIteration = (TotalHeight - TotalHeightChild) / 2;
                     }
                     for(uint64_t i = 0; i < Cpnt->Childs->length; i++) {
                         Component* Child = (Component*)vector_get(Cpnt->Childs, i);
-                        if(IterateY){
+                        if(Flexbox->Style.Direction == Layout::COLUMN){
                             YIteration += Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
                             Child->Style->Position.y = YIteration;
                         }else{

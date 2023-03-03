@@ -205,6 +205,12 @@ KResult windowc::Resize(int64_t Width, int64_t Height){
 
 KResult windowc::Move(int64_t XPosition, int64_t YPosition){
     if(this->WindowType != Window_Type_DockTop && this->WindowType != Window_Type_DockBottom && this->WindowType != Window_Type_DockLeft && this->WindowType != Window_Type_DockRight){
+        if(XPosition < 0){
+            XPosition = 0;
+        }
+        if(YPosition < 0){
+            YPosition = 0;
+        }
         this->XPosition = XPosition;
         this->YPosition = YPosition;
         if(GetVisible()){

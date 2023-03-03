@@ -98,41 +98,41 @@ void MergeLastAndThisToNext(SegmentHeader* header){
 }
 
 void free(uintptr_t address){
-    if(address != NULL){        
-        AtomicAquire(&globalHeap.lock);
-        SegmentHeader* header = (SegmentHeader*)(uintptr_t)((uint64_t)address - sizeof(SegmentHeader));
-        header->IsFree = true;
-        globalHeap.FreeSize += header->length + sizeof(SegmentHeader);
-        globalHeap.UsedSize -= header->length + sizeof(SegmentHeader);
+    // if(address != NULL){        
+    //     AtomicAquire(&globalHeap.lock);
+    //     SegmentHeader* header = (SegmentHeader*)(uintptr_t)((uint64_t)address - sizeof(SegmentHeader));
+    //     header->IsFree = true;
+    //     globalHeap.FreeSize += header->length + sizeof(SegmentHeader);
+    //     globalHeap.UsedSize -= header->length + sizeof(SegmentHeader);
 
-        if(header->next != NULL  && header->last != NULL){
-            if(header->next->IsFree && header->last->IsFree){
-                // merge this segment and next segment into the last segment
-                MergeLastAndThisToNext(header);
-                AtomicRelease(&globalHeap.lock);
-                return;
-            }
-        }
+    //     if(header->next != NULL  && header->last != NULL){
+    //         if(header->next->IsFree && header->last->IsFree){
+    //             // merge this segment and next segment into the last segment
+    //             MergeLastAndThisToNext(header);
+    //             AtomicRelease(&globalHeap.lock);
+    //             return;
+    //         }
+    //     }
 
-        if(header->last != NULL){
-            if(header->last->IsFree){
-                // merge this segment into the last segment
-                MergeLastToThis(header);
-                AtomicRelease(&globalHeap.lock);  
-                return;  
-            }         
-        }
+    //     if(header->last != NULL){
+    //         if(header->last->IsFree){
+    //             // merge this segment into the last segment
+    //             MergeLastToThis(header);
+    //             AtomicRelease(&globalHeap.lock);  
+    //             return;  
+    //         }         
+    //     }
         
-        if(header->next != NULL){
-            if(header->next->IsFree){
-                // merge this segment into the next segment
-                MergeThisToNext(header);
-                AtomicRelease(&globalHeap.lock);
-                return; 
-            }
-        }
-        AtomicRelease(&globalHeap.lock);
-    }
+    //     if(header->next != NULL){
+    //         if(header->next->IsFree){
+    //             // merge this segment into the next segment
+    //             MergeThisToNext(header);
+    //             AtomicRelease(&globalHeap.lock);
+    //             return; 
+    //         }
+    //     }
+    //     AtomicRelease(&globalHeap.lock);
+    // }
 }
 
 uintptr_t realloc(uintptr_t buffer, size64_t size){

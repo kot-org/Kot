@@ -2,6 +2,7 @@
 #define _UIPP_COMPONENT_H_
 
 #include <kot/types.h>
+#include <kot/stdio.h>
 #include <kot/utils/vector.h>
 
 #include <kot-graphics/orb.h>
@@ -38,6 +39,10 @@ namespace Ui {
             ComponentVerticalSpace y;
         };
 
+        enum ComponentDirection{
+            ROW     = 0,
+            COLUMN  = 1,
+        };
     };
 
     #define NO_MAXIMUM                      (0xffffffffffffffff)
@@ -123,7 +128,7 @@ namespace Ui {
         uint64_t ExternalStyleType = 0;
         uintptr_t ExternalStyleData = 0;
 
-        bool IsHidden = 0;
+        bool IsHidden = false;
 
         bool IsHorizontalOverflow = false;
         bool IsVerticalOverflow = false;
@@ -223,6 +228,7 @@ namespace Ui {
             .x = Layout::LEFT,
             .y = Layout::TOP,
         };
+        Layout::ComponentDirection Direction = Layout::ROW;
     } FlexboxStyle_t;
     struct Flexbox_t{
         FlexboxStyle_t Style;
@@ -280,7 +286,6 @@ namespace Ui {
     struct Label_t{
         LabelStyle_t Style;
         Component* Cpnt;
-        color_t CurrentColor;
         kfont_t* Font;
         int64_t TextWidth;
         int64_t TextHeight;
@@ -296,9 +301,19 @@ namespace Ui {
     typedef struct {
         uint32_t BackgroundColor = 0;
         uint32_t ForegroundColor = 0;
+        color_t HoverColor = BackgroundColor;
+        color_t ClickColor = HoverColor;
     } TitlebarStyle_t;
     struct Titlebar_t{
+        uintptr_t Window;
         TitlebarStyle_t Style;
+        color_t CurrentColor;
+
+        /* Titlebar move */
+        bool IsMouseDrag;
+        point_t MousePosition;
+        point_t WindowInitialPosition;
+
         Component* Cpnt;
         Box_t* MainBox;
         Flexbox_t* MainFlexbox;
@@ -311,7 +326,7 @@ namespace Ui {
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
-    Titlebar_t* Titlebar(window_t* Window, char* Title, char* Icon, TitlebarStyle_t Style, class Component* ParentCpnt);
+    Titlebar_t* Titlebar(uintptr_t Window, char* Title, char* Icon, TitlebarStyle_t Style, class Component* ParentCpnt);
 
 }
 

@@ -24,10 +24,13 @@ namespace Ui {
             thread_t ThreadRenderer;
         public:
             UiContext(framebuffer_t* Fb);
+            void UpdateFramebuffer(framebuffer_t* fb);
             void UiStartRenderer();
             void UiStopRenderer();
 
             bool IsRendering;
+            bool Renderer;
+            bool IsListeningEvents;
             framebuffer_t* Fb;
             class Component* Cpnt;
             class Component* FocusCpnt;

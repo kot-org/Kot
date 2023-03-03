@@ -27,11 +27,13 @@ namespace Ui {
     }
 
     void BoxMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status){
+        Box_t* Box = (Box_t*)Cpnt->ExternalData;
         if(IsHover){
-            Box_t* Box = (Box_t*)Cpnt->ExternalData;
-            if(Cpnt->UiCtx->FocusCpnt != Cpnt){
-                if(Cpnt->UiCtx->FocusCpnt->MouseEvent){
-                    Cpnt->UiCtx->FocusCpnt->MouseEvent(Cpnt->UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
+            if(Cpnt->UiCtx->FocusCpnt != NULL){
+                if(Cpnt->UiCtx->FocusCpnt != Cpnt){
+                    if(Cpnt->UiCtx->FocusCpnt->MouseEvent){
+                        Cpnt->UiCtx->FocusCpnt->MouseEvent(Cpnt->UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
+                    }
                 }
             }
             Cpnt->UiCtx->FocusCpnt = Box->Cpnt;
@@ -46,7 +48,6 @@ namespace Ui {
 
             Cpnt->IsDrawUpdate = true;
         }else{
-            Box_t* Box = (Box_t*)Cpnt->ExternalData;
             Box->CurrentColor = Box->Style.BackgroundColor;
             Cpnt->IsDrawUpdate = true;           
         }

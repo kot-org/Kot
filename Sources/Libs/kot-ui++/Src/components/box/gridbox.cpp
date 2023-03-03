@@ -1,5 +1,4 @@
 #include <kot-ui++/component.h>
-#include <kot/stdio.h>
 
 namespace Ui {
     // Todo calculate width and height in global update
@@ -12,6 +11,8 @@ namespace Ui {
 
             Cpnt->IsFramebufferUpdate = false;
         }
+
+        Cpnt->IsRedraw = Cpnt->Parent->IsRedraw;
 
         Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom)};
         Cpnt->FramebufferRelativePosition = {.x = Cpnt->Parent->FramebufferRelativePosition.x + Cpnt->Style->Position.x, .y = Cpnt->Parent->FramebufferRelativePosition.y + Cpnt->Style->Position.y};

@@ -15,9 +15,6 @@ namespace UiWindow {
 
     class Window {
         private:
-            window_t* Wid;
-            ctxg_t* GraphicCtx;
-            class Ui::UiContext* UiCtx;
             Ui::Titlebar_t* Titlebar;
 
             bool IsBorders;
@@ -26,13 +23,27 @@ namespace UiWindow {
             bool IsListeningEvents;
             event_t WindowEvent;
             thread_t WindowHandlerThread;
+
+            bool IsFullscreen;
+            point_t WindowNormalPosition;
+            uint64_t WindowNormalWidth;
+            uint64_t WindowNormalHeight;
+
+            bool IsCpntFocus;
             void HandlerFocus(bool IsFocus);
             void HandlerMouse(uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status);
 
         public:
+            window_t* Wid;
+            ctxg_t* GraphicCtx;
+            class Ui::UiContext* UiCtx;
             Ui::Component* Cpnt; 
             
             Window(char* title, char* Icon, uint32_t Width, uint32_t Height, uint32_t XPosition, uint32_t YPosition);
+
+            void Hide();
+            void Fullscreen();
+            void Close();
 
             void DrawBorders(uint32_t Color);
 

@@ -29,9 +29,11 @@ namespace Ui {
     void ButtonMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status){
         if(IsHover){
             Button_t* Button = (Button_t*)Cpnt->ExternalData;
-            if(Cpnt->UiCtx->FocusCpnt != Cpnt){
-                if(Cpnt->UiCtx->FocusCpnt->MouseEvent){
-                    Cpnt->UiCtx->FocusCpnt->MouseEvent(Cpnt->UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
+            if(Cpnt->UiCtx->FocusCpnt != NULL){
+                if(Cpnt->UiCtx->FocusCpnt != Cpnt){
+                    if(Cpnt->UiCtx->FocusCpnt->MouseEvent){
+                        Cpnt->UiCtx->FocusCpnt->MouseEvent(Cpnt->UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
+                    }
                 }
             }
             Cpnt->UiCtx->FocusCpnt = Button->Cpnt;

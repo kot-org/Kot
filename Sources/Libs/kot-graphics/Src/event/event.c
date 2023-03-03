@@ -16,6 +16,11 @@ graphiceventbuffer_t* CreateEventBuffer(uint64_t Width, uint64_t Height){
     return EventBuffer;
 }
 
+void FreeEventBuffer(graphiceventbuffer_t* EventBuffer){
+    free(EventBuffer->Buffer);
+    free(EventBuffer);
+}
+
 void SetGraphicEventbuffer(graphiceventbuffer_t* Framebuffer, uint64_t Value, uint64_t Width, uint64_t Height, uint64_t PositionX, uint64_t PositionY){
     uint64_t Buffer = (uint64_t)Framebuffer->Buffer;
 

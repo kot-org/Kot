@@ -20,10 +20,11 @@ void CreateDisplay(Component* Window) {
     Flexbox_t* Main = Flexbox(  
         {   
             .G = { 
-                    .Width = 400,
+                    .Width = -100,
                     .Height = 575,
                     .IsHidden = false 
                 }, 
+            .Direction = Layout::COLUMN,
             .Align = { .x = Layout::FILLHORIZONTAL, .y = Layout::TOP }
         }
     , Window);
@@ -31,7 +32,7 @@ void CreateDisplay(Component* Window) {
     Box_t* NumberDisplay = Box( 
         { 
             .G = { 
-                    .Width = 400,
+                    .Width = -100,
                     .Height = 100,
                     .BorderRadius = 20,
                     .IsHidden = false

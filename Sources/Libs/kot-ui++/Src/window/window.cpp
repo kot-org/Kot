@@ -15,6 +15,7 @@ namespace UiWindow {
     }
 
     Window::Window(char* Title, char* Icon, uint32_t Width, uint32_t Height, uint32_t XPosition, uint32_t YPosition){
+        IsFullscreen = false;
         // Setup event
         Sys_Event_Create(&WindowEvent);
         Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&EventHandler, PriviledgeApp, (uint64_t)this, &WindowHandlerThread);
@@ -50,7 +51,7 @@ namespace UiWindow {
             Icon = "kotlogo.tga";
         }
 
-        Titlebar = Ui::Titlebar(this->Wid, Title, Icon, {.BackgroundColor = WIN_TBCOLOR_ONBLUR, .ForegroundColor = 0xffffffff}, UiCtx->Cpnt);
+        Titlebar = Ui::Titlebar((uintptr_t)this, Title, Icon, {.BackgroundColor = WIN_TBCOLOR_ONBLUR, .ForegroundColor = 0xffffffff}, UiCtx->Cpnt);
 
         // Content
         Cpnt = Ui::Box(
@@ -70,6 +71,37 @@ namespace UiWindow {
         IsListeningEvents = true;
     }
 
+    void Window::Hide(){
+        ChangeVisibilityWindow(Wid, false);
+        // TODO communicate with taskbar
+    }
+
+    void Window::Fullscreen(){
+        if(IsFullscreen){
+            IsFullscreen = false;
+            UiCtx->UiStopRenderer();
+            ResizeWindow(Wid, WindowNormalWidth, WindowNormalHeight);
+            WindowChangePosition(Wid, WindowNormalPosition.x, WindowNormalPosition.y);
+            UiCtx->UpdateFramebuffer(&Wid->Framebuffer);
+            UiCtx->UiStartRenderer();
+        }else{
+            WindowNormalPosition = Wid->Position;
+            WindowNormalWidth = Wid->Framebuffer.Width;
+            WindowNormalHeight = Wid->Framebuffer.Height;
+            UiCtx->UiStopRenderer();
+            WindowChangePosition(Wid, 0, 0);
+            ResizeWindow(Wid, Window_Max_Size, Window_Max_Size);
+            UiCtx->UpdateFramebuffer(&Wid->Framebuffer);
+            UiCtx->UiStartRenderer();
+            IsFullscreen = true;
+        }
+    }
+
+    void Window::Close(){
+        ChangeVisibilityWindow(Wid, false);
+        // TODO close the process
+    }
+
     void Window::DrawBorders(uint32_t Color){
         if(IsBorders){
             ctxDrawRect(BordersCtx, 0, 0, BordersCtx->Width - 1, BordersCtx->Height - 1, Color);
@@ -77,7 +109,7 @@ namespace UiWindow {
     }
 
     void Window::Handler(enum Window_Event EventType, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3, uint64_t GP4){
-        if(IsListeningEvents){
+        if(IsListeningEvents && UiCtx->IsListeningEvents){
             switch (EventType){
                 case Window_Event_Focus:
                     HandlerFocus(GP0);
@@ -108,18 +140,31 @@ namespace UiWindow {
 
     void Window::HandlerMouse(uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status){
         int64_t RelativePositionX = PositionX - Wid->Position.x;
-        int64_t RelativePositionY = PositionY - Wid->Position.y; 
+        int64_t RelativePositionY = PositionY - Wid->Position.y;
 
-        Ui::Component* Component = (Ui::Component*)GetEventData(UiCtx->EventBufferUse, RelativePositionX, RelativePositionY);
-        if(RelativePositionX >= 0 && RelativePositionY >= 0 && RelativePositionX < UiCtx->EventBuffer->Width && RelativePositionY < UiCtx->EventBuffer->Height){
-            if(Component){
-                if(Component->MouseEvent){
-                    Component->MouseEvent(Component, true, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
+        if(IsCpntFocus && (Status & MOUSE_CLICK_LEFT || Status & MOUSE_CLICK_MIDDLE || Status & MOUSE_CLICK_RIGHT || Status & MOUSE_CLICK_BUTTON4 || Status & MOUSE_CLICK_BUTTON5)){
+            UiCtx->FocusCpnt->MouseEvent(UiCtx->FocusCpnt, true, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
+        }else{
+            if(RelativePositionX >= 0 && RelativePositionY >= 0 && RelativePositionX < UiCtx->EventBuffer->Width && RelativePositionY < UiCtx->EventBuffer->Height){
+                Ui::Component* Component = (Ui::Component*)GetEventData(UiCtx->EventBufferUse, RelativePositionX, RelativePositionY);
+                if(Component){
+                    if(Component->MouseEvent){
+                        Component->MouseEvent(Component, true, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
+                    }
+                }
+            }else if(UiCtx->FocusCpnt){
+                if(UiCtx->FocusCpnt->MouseEvent){
+                    UiCtx->FocusCpnt->MouseEvent(UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
+                    UiCtx->FocusCpnt = NULL;
                 }
             }
-        }else if(UiCtx->FocusCpnt->MouseEvent){
-            //Component->UiCtx->FocusCpnt->MouseEvent(Component->UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
+            if(Status & MOUSE_CLICK_LEFT || Status & MOUSE_CLICK_MIDDLE || Status & MOUSE_CLICK_RIGHT || Status & MOUSE_CLICK_BUTTON4 || Status & MOUSE_CLICK_BUTTON5){
+                IsCpntFocus = true;
+            }else{
+                IsCpntFocus = false;
+            }
         }
+
     }
 
 }
