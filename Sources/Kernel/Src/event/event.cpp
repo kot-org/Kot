@@ -129,10 +129,6 @@ namespace Event{
                     task->DataNode->NumberOfMissedEvents++;
                 }
             }
-            if(task->DataNode->NumberOfMissedEvents > 100){
-                Message("%x", task->DataNode->NumberOfMissedEvents);
-                asm("nop");
-            }
             AtomicRelease(&task->thread->EventLock);
         }
 
@@ -170,8 +166,8 @@ namespace Event{
             ForceSelfDestruction();
         }else if(Thread->EventDataNode->NumberOfMissedEvents){
             event_data_t* Next = Thread->EventDataNode->CurrentData->Next;
-
-            free(Thread->EventDataNode->CurrentData);
+            Message("%x", Thread->EventDataNode);
+            //free(Thread->EventDataNode->CurrentData);
             Thread->EventDataNode->CurrentData = Next;
             Thread->EventDataNode->NumberOfMissedEvents--;
             globalTaskManager->AcquireScheduler();

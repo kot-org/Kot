@@ -63,7 +63,10 @@ void monitorc::Update(windowc* FirstWindowNode){
     windowc* Window = FirstWindowNode;
 
     while(Window){
-        DynamicBlit(this->BackFramebuffer, Window->GetFramebuffer(), Window->GetX(), Window->GetY(), this->XPosition, this->YPosition);
+        if(atomicLock(&Window->Lock, 0)){
+            DynamicBlit(this->BackFramebuffer, Window->GetFramebuffer(), Window->GetX(), Window->GetY(), this->XPosition, this->YPosition);
+            atomicUnlock(&Window->Lock, 0);
+        }
         Window = Window->Next;
     }
 

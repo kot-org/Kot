@@ -24,7 +24,6 @@ namespace UiWindow {
             event_t WindowEvent;
             thread_t WindowHandlerThread;
 
-            bool IsFullscreen;
             point_t WindowNormalPosition;
             uint64_t WindowNormalWidth;
             uint64_t WindowNormalHeight;
@@ -34,6 +33,7 @@ namespace UiWindow {
             void HandlerMouse(uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status);
 
         public:
+            bool IsFullscreen;
             window_t* Wid;
             ctxg_t* GraphicCtx;
             class Ui::UiContext* UiCtx;

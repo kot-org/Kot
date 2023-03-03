@@ -21,6 +21,8 @@ class windowc{
         framebuffer_t* Framebuffer;
         graphiceventbuffer_t* Eventbuffer;
 
+        uint64_t Lock;
+
         ksmem_t FramebufferKey;
         uint64_t XPosition;
         uint64_t YPosition;

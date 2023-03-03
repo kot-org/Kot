@@ -40,12 +40,14 @@ namespace Ui {
 
             if(Status & MOUSE_CLICK_LEFT){
                 Titlebar->CurrentColor = Titlebar->Style.ClickColor;
-                if(Titlebar->IsMouseDrag){
-                    WindowChangePosition(((UiWindow::Window*)Titlebar->Window)->Wid, ((UiWindow::Window*)Titlebar->Window)->Wid->Position.x + PositionX - Titlebar->MousePosition.x, ((UiWindow::Window*)Titlebar->Window)->Wid->Position.y + PositionY - Titlebar->MousePosition.y);
+                if(!((UiWindow::Window*)Titlebar->Window)->IsFullscreen){
+                    if(Titlebar->IsMouseDrag){
+                        WindowChangePosition(((UiWindow::Window*)Titlebar->Window)->Wid, ((UiWindow::Window*)Titlebar->Window)->Wid->Position.x + PositionX - Titlebar->MousePosition.x, ((UiWindow::Window*)Titlebar->Window)->Wid->Position.y + PositionY - Titlebar->MousePosition.y);
+                    }
+                    Titlebar->WindowInitialPosition = ((UiWindow::Window*)Titlebar->Window)->Wid->Position;
+                    Titlebar->MousePosition = {.x = PositionX, .y = PositionY};
+                    Titlebar->IsMouseDrag = true;
                 }
-                Titlebar->WindowInitialPosition = ((UiWindow::Window*)Titlebar->Window)->Wid->Position;
-                Titlebar->MousePosition = {.x = PositionX, .y = PositionY};
-                Titlebar->IsMouseDrag = true;
             }else if(Status & MOUSE_CLICK_RIGHT){
                 if(Titlebar->IsMouseDrag){
                     Titlebar->IsMouseDrag = false;   

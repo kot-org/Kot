@@ -15,6 +15,8 @@ windowc::windowc(uint64_t WindowType, event_t Event){
     this->Framebuffer->Bpp = DEFAUT_BPP;
     this->Framebuffer->Btpp = DEFAUT_BPP / 8;
     
+    this->Lock = 0;
+    
     this->Eventbuffer = CreateEventBuffer(NULL, NULL);
 
     this->Eventbuffer->Bpp = sizeof(windowc*) * 8;
@@ -189,12 +191,14 @@ KResult windowc::Resize(int64_t Width, int64_t Height){
             break;
     }
 
+    atomicAcquire(&Lock, 0);
     Framebuffer->Width = Width;
     Framebuffer->Height = Height;
     Eventbuffer->Width = Width;
     Eventbuffer->Height = Height;
 
     CreateBuffer();
+    atomicUnlock(&Lock, 0);
 
     if(GetVisible()){
         UpdateAllEvents();

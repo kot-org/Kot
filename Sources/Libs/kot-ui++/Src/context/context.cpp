@@ -63,6 +63,8 @@ namespace Ui {
     void UiContext::UiStopRenderer(){
         IsListeningEvents = false;
         Renderer = false;
-        while(IsRendering);
+        while(IsRendering){
+            asm volatile("":::"memory");
+        }
     }
 }
