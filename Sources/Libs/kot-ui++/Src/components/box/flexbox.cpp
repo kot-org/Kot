@@ -39,7 +39,7 @@ namespace Ui {
                     Child->Style->Currentheight = (Cpnt->Style->Currentheight * abs(Child->Style->Height)) / 100;
                     if(Child->Style->Currentheight < Child->Style->Minheight){
                         Child->Style->Currentheight = Child->Style->Minheight;
-                    }else if(Child->Style->Currentheight < Child->Style->Maxheight){
+                    }else if(Child->Style->Currentheight > Child->Style->Maxheight){
                         Child->Style->Currentheight = Child->Style->Maxheight;
                     }
                 }else{
@@ -157,8 +157,11 @@ namespace Ui {
                             YIteration += NewHeight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
                             if(NewHeight < Child->Style->Minheight){
                                 NewHeight = Child->Style->Minheight;
-                            }else if(NewHeight < Child->Style->Maxheight){
+                            }else if(NewHeight > Child->Style->Maxheight){
                                 NewHeight = Child->Style->Maxheight;
+                            }
+                            if(NewHeight + Child->Style->Position.y > Cpnt->Style->Height){
+                                NewHeight = Cpnt->Style->Height - Child->Style->Position.y;
                             }
                         }else{
                             NewHeight = TotalHeight;

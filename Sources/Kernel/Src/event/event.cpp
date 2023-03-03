@@ -65,6 +65,7 @@ namespace Event{
 
         if(!task->IsEvent){
             task->EventDataNode = (event_data_node_t*)calloc(sizeof(event_data_node_t));
+            GetSegmentHeader(task->EventDataNode)->signature = 77;
             task->EventDataNode->Event = self;
             task->EventDataNode->LastData = (event_data_t*)malloc(sizeof(event_data_t));
             task->EventDataNode->LastData->Next = (event_data_t*)malloc(sizeof(event_data_t));
@@ -166,8 +167,7 @@ namespace Event{
             ForceSelfDestruction();
         }else if(Thread->EventDataNode->NumberOfMissedEvents){
             event_data_t* Next = Thread->EventDataNode->CurrentData->Next;
-            Message("%x", Thread->EventDataNode);
-            //free(Thread->EventDataNode->CurrentData);
+            free(Thread->EventDataNode->CurrentData);
             Thread->EventDataNode->CurrentData = Next;
             Thread->EventDataNode->NumberOfMissedEvents--;
             globalTaskManager->AcquireScheduler();

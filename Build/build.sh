@@ -65,6 +65,7 @@ make -C "Modules/Services/desktop/Build"
 echo -e "\e[32mCompiling kot apps...\e[0m"
 
 make -C "Apps/calculator/Build"
+make -C "Apps/explorer/Build"
 
 # kernel
 echo -e "\e[32mBuilding kernel...\e[0m"

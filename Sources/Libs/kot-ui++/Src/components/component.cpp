@@ -147,6 +147,9 @@ namespace Ui {
                         }else if(Child->Style->Currentwidth > Child->Style->Maxwidth){
                             Child->Style->Currentwidth = Child->Style->Maxwidth;
                         }
+                        if(Child->Style->Currentwidth + Child->Style->Position.x > Style->Currentwidth){
+                            Child->Style->Currentwidth = Style->Currentwidth - Child->Style->Position.x;
+                        }
                     }else{
                         Child->Style->Currentwidth = Child->Style->Width;
                     }
@@ -157,6 +160,9 @@ namespace Ui {
                             Child->Style->Currentheight = Child->Style->Minheight;
                         }else if(Child->Style->Currentheight > Child->Style->Maxheight){
                             Child->Style->Currentheight = Child->Style->Maxheight;
+                        }
+                        if(Child->Style->Currentheight + Child->Style->Position.y > Style->Currentheight){
+                            Child->Style->Currentheight = Style->Currentheight - Child->Style->Position.y;
                         }
                     }else{
                         Child->Style->Currentheight = Child->Style->Height;

@@ -21,11 +21,11 @@ void CreateDisplay(Component* Window) {
         {   
             .G = { 
                     .Width = -100,
-                    .Height = 575,
+                    .Height = -100,
                     .IsHidden = false 
                 }, 
             .Direction = Layout::COLUMN,
-            .Align = { .x = Layout::FILLHORIZONTAL, .y = Layout::TOP }
+            .Align = { .x = Layout::FILLHORIZONTAL, .y = Layout::FILLVERTICAL }
         }
     , Window);
 
@@ -65,7 +65,7 @@ void CreateDisplay(Component* Window) {
         { 
             .G = { 
                     .Width = -100,
-                    .Height = 475,
+                    .Height = -100,
                     .IsHidden = false
                 },
             .CaseWidth = -4,
