@@ -35,9 +35,11 @@ namespace Event{
 
         }
 
-        self->Type = Type;
+        AtomicClearLock(&self->Lock);
         self->Tasks = NULL;
         self->NumTask = 0;
+        self->Type = Type;
+
 
         *event = self;
 
@@ -65,7 +67,6 @@ namespace Event{
 
         if(!task->IsEvent){
             task->EventDataNode = (event_data_node_t*)calloc(sizeof(event_data_node_t));
-            GetSegmentHeader(task->EventDataNode)->signature = 77;
             task->EventDataNode->Event = self;
             task->EventDataNode->LastData = (event_data_t*)malloc(sizeof(event_data_t));
             task->EventDataNode->LastData->Next = (event_data_t*)malloc(sizeof(event_data_t));
@@ -140,6 +141,9 @@ namespace Event{
         for(size64_t i = 0; i < self->NumTask; i++){
             kevent_tasks_t* task = self->Tasks[i];
             AtomicAquire(&task->thread->EventLock);
+            if(task->thread->EventDataNode->NumberOfMissedEvents){
+                Error("Yes %x", task->thread->EventDataNode->NumberOfMissedEvents);
+            }
             if(task->thread->IsClose){
                 AtomicAquire(&globalTaskManager->SchedulerLock);
                 task->thread->Launch_WL(&task->DataNode->Event->Parameters);

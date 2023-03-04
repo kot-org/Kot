@@ -98,12 +98,9 @@ void MergeLastAndThisToNext(SegmentHeader* header){
 }
 
 void free(uintptr_t address){
-    if(address != NULL){  
+    if(address != NULL){
         AtomicAquire(&globalHeap.lock);
         SegmentHeader* header = (SegmentHeader*)(uintptr_t)((uint64_t)address - sizeof(SegmentHeader));
-        if(header->signature == 77){
-            Warning("----------");
-        }
         header->IsFree = true;
         globalHeap.FreeSize += header->length + sizeof(SegmentHeader);
         globalHeap.UsedSize -= header->length + sizeof(SegmentHeader);

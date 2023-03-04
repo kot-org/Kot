@@ -96,7 +96,6 @@ KResult GetVFSAbsolutePath(char** AbsolutePath, partition_t** Partition, char* P
         char AccessType = *AccessTypeBuffer;
         uint64_t Volume = atoi(VolumeBuffer);
 
-        free(AccessTypeBuffer);
         free(VolumeBuffer);
 
         if(*AccessTypeBuffer == 's'){
@@ -106,23 +105,23 @@ KResult GetVFSAbsolutePath(char** AbsolutePath, partition_t** Partition, char* P
             if(Volume >= PartitionsList->length){
                 free(Sb);
                 free(*AbsolutePath);
-                free(VolumeBuffer);
+                free(AccessTypeBuffer);
                 return KFAIL;                
             }
             PartitionContext = (partition_t*)vector_get(PartitionsList, Volume);
             if(!PartitionContext->IsMount){
                 free(Sb);
                 free(*AbsolutePath);
-                free(VolumeBuffer);
+                free(AccessTypeBuffer);
                 return KFAIL;
             }
         }else{
             free(Sb);
             free(*AbsolutePath);
-            free(VolumeBuffer);
+            free(AccessTypeBuffer);
             return KFAIL;
         }
-        free(VolumeBuffer);
+        free(AccessTypeBuffer);
     }
     *Partition = PartitionContext;
     free(Sb);
@@ -146,7 +145,6 @@ KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFS
         char AccessType = *AccessTypeBuffer;
         uint64_t Volume = atoi(VolumeBuffer);
 
-        free(AccessTypeBuffer);
         free(VolumeBuffer);
 
         if(*AccessTypeBuffer == 's'){
@@ -159,7 +157,7 @@ KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFS
                 if(Volume >= PartitionsList->length){
                     free(Sb);
                     free(*RelativePath);
-                    free(VolumeBuffer);
+                    free(AccessTypeBuffer);
                     return KFAIL;                
                 }
                 authorization_t AuthorizationNeed = (Volume == Context->StaticVolumeMountPoint) ? FS_AUTHORIZATION_MEDIUM : FS_AUTHORIZATION_HIGH;
@@ -169,7 +167,7 @@ KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFS
                     if(VFSAskForAuthorization(Context, AuthorizationNeed) != KSUCCESS){
                         free(Sb);
                         free(*RelativePath);
-                        free(VolumeBuffer);
+                        free(AccessTypeBuffer);
                         return KNOTALLOW;
                     }
                 }
@@ -177,19 +175,17 @@ KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFS
                 if(!PartitionContext->IsMount){
                     free(Sb);
                     free(*RelativePath);
-                    free(VolumeBuffer);
+                    free(AccessTypeBuffer);
                     return KFAIL;
                 }
             }
-
         }else{
             free(Sb);
             free(*RelativePath);
-            free(VolumeBuffer);
+            free(AccessTypeBuffer);
             return KFAIL;
         }
-
-        free(VolumeBuffer);
+        free(AccessTypeBuffer);
     }
 
     *Partition = PartitionContext;
@@ -271,7 +267,7 @@ KResult VFSClientDispatcher(thread_t Callback, uint64_t CallbackArg, uint64_t Fu
     }
     
     ClientVFSContext* Context = (ClientVFSContext*)Sys_GetExternalDataThread();
-
+    
     KResult Status = VFSClientDispatcherFunctions[Function](Callback, CallbackArg, Context, Context->Permissions, GP0, GP1, GP2);
 
     if(Status != KSUCCESS){
@@ -353,7 +349,6 @@ KResult VFSFileOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* C
         .ParameterPosition = 0x2,
     };
     Status = Sys_ExecThread(Partition->FSServerFunctions.Openfile, &arguments, ExecutionTypeQueu, &Data);
-
     free(RelativePath);
     
     return Status; 
@@ -506,15 +501,18 @@ KResult VFSDirOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Co
         .arg[5] = NULL,             /* GP3 */
     };
 
-    ShareDataWithArguments_t Data{
-        .Data = RelativePath,
-        .Size = (size64_t)strlen(RelativePath) + 1,
-        .ParameterPosition = 0x2,
-    };
+    if(RelativePath){
+        ShareDataWithArguments_t Data{
+            .Data = RelativePath,
+            .Size = (size64_t)strlen(RelativePath) + 1,
+            .ParameterPosition = 0x2,
+        };
 
-    Status = Sys_ExecThread(Partition->FSServerFunctions.Opendir, &arguments, ExecutionTypeQueu, &Data);
-
-    free(RelativePath);
+        Status = Sys_ExecThread(Partition->FSServerFunctions.Opendir, &arguments, ExecutionTypeQueu, &Data);
+        free(RelativePath);
+    }else{
+        Status = Sys_ExecThread(Partition->FSServerFunctions.Opendir, &arguments, ExecutionTypeQueu, NULL);
+    }
     
     return Status; 
 }

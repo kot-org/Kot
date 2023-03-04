@@ -50,7 +50,7 @@ namespace std {
 
     char* StringBuilder::substr(uint64_t startingAt, uint64_t endingAt) {
         if (buffer == NULL || (endingAt == startingAt) || length() <= startingAt || length() < endingAt) {
-            return "";
+            return NULL;
         }
         uint64_t size = endingAt - startingAt;
         char* temp = (char*) malloc(size+1);

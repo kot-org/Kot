@@ -548,7 +548,7 @@ inode_t* mount_info_t::FindInodeFromPath(char* path){
 
 inode_t* mount_info_t::FindInodeFromInodeEntryAndPath(inode_t* inode, char* path){
     inode_t* InodeIteration = inode;
-    if(*path != NULL){
+    if(path != NULL){
         uint64_t PathEntriesCount;
         char** PathEntries = strsplit(path, "/", &PathEntriesCount);
 
@@ -584,8 +584,9 @@ inode_t* mount_info_t::FindInodeInodeAndEntryFromName(inode_t* inode, char* name
         while(Directory->type_indicator != 0 && ((uint64_t)Directory - (uint64_t)DirectoryMain) < BlockSize){
             if(NameLenght == Directory->name_length){
                 if(strncmp(Directory->name, name, Directory->name_length)){
+                    uint32_t inode = Directory->inode;
                     free(DirectoryMain);
-                    return GetInode(Directory->inode);
+                    return GetInode(inode);
                 }
             }
             Directory = (ext2_directory_entry_t*)((uint64_t)Directory + (uint64_t)Directory->size);

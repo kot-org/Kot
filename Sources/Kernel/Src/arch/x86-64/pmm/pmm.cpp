@@ -168,7 +168,7 @@ uintptr_t Pmm_RequestPage(){
     }
     
     // Panic
-    KernelPanic("Not enought memory available");
+    KernelPanic("Not enough memory available");
     AtomicRelease(&Pmm_Mutex);
     return NULL; 
 }

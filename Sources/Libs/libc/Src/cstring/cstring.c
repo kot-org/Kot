@@ -10,6 +10,7 @@ int64_t asi(int64_t n, int basenumber){
 }
 
 int strlen(char* p){
+    if(p == NULL) return 0;
     int count = 0;
     while (*p != '\0') {
         count++;

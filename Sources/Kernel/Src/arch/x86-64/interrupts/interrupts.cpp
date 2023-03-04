@@ -131,5 +131,5 @@ bool PageFaultHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
 void KernelUnrecovorable(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
     Error("Kernel Panic CPU %x \nWith exception : '%s' | Error code : %x", CoreID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
     PrintRegisters(Registers);
-    //KernelPanic("Unrecoverable exception ;(");
+    KernelPanic("Unrecoverable exception ;(");
 }

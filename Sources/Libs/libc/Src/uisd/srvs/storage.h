@@ -134,7 +134,7 @@ typedef struct {
 } directory_t;
 
 typedef struct {
-    uint64_t NextEntrYPosition;
+    uint64_t NextEntryPosition;
     bool IsFile;
     char Name[];
 } directory_entry_t;

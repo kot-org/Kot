@@ -57,7 +57,14 @@ namespace Ui {
 
     Label_t* Label(LabelStyle_t Style, Component* ParentCpnt){
         Label_t* Label = (Label_t*)malloc(sizeof(Label_t));
+
+        // Reset some values
         Label->Lock = 0;
+        Label->TextY = 0;
+        Label->TextX = 0;
+        Label->TextWidth = 0;
+        Label->TextHeight = 0;
+
         if(!Style.FontBuffer){
             if(Style.FontPath == NULL){
                 free(Label);
@@ -87,6 +94,8 @@ namespace Ui {
         Label->Style.Text = (char*)malloc(Lenght + 1);
         strcpy(Label->Style.Text, Style.Text);
         Label->Style.Text[Lenght] = 0;
+
+        atomicAcquire(&Label->Lock, 0);
         
         Label->Cpnt = new Component(Style.G, LabelUpdate, (Ui::MouseEventHandler)LabelUpdate, (uintptr_t)Label, ParentCpnt, false);
 
@@ -103,6 +112,7 @@ namespace Ui {
             Label->Cpnt->UpdateFramebuffer(Label->Cpnt->Style->Currentwidth, Label->TextHeight);
         }
         Label->Cpnt->IsDrawUpdate = true;
+        atomicUnlock(&Label->Lock, 0);
         return Label;
     }
 
@@ -116,9 +126,11 @@ namespace Ui {
         GetTextboxInfo(this->Font, this->Style.Text, &this->TextWidth, &this->TextHeight, &this->TextX, &this->TextY);
         if(this->Style.AutoWidth){
             this->Cpnt->Style->Width = this->TextWidth;
+            this->Cpnt->UpdateFramebuffer(this->TextWidth, this->Cpnt->Style->Currentheight);
         }
         if(this->Style.AutoHeight){
             this->Cpnt->Style->Height = this->TextHeight;
+            this->Cpnt->UpdateFramebuffer(this->Cpnt->Style->Currentwidth, this->TextHeight);
         }
         Cpnt->IsDrawUpdate = true;
         atomicUnlock(&Lock, 0);

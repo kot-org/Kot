@@ -15,7 +15,7 @@ file_t* fopen(char* Path, char* Mode){
             File->Position = NULL;
             File->Lock = NULL;
             free(CallbackFile);
-            return CallbackFile->Data;
+            return File;
         }else if(Mode[1] == '+'){
             struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write, ShareProcessFS, true);
             if(CallbackFile->Status != KSUCCESS){
@@ -26,7 +26,7 @@ file_t* fopen(char* Path, char* Mode){
             File->Position = NULL;
             File->Lock = NULL;
             free(CallbackFile);
-            return CallbackFile->Data;
+            return File;
         }else if(Mode[1] == 'b'){
             if(Mode[2] == '\0'){
                 struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read, ShareProcessFS, true);
@@ -39,7 +39,7 @@ file_t* fopen(char* Path, char* Mode){
                 File->Position = NULL;
                 File->Lock = NULL;
                 free(CallbackFile);
-                return CallbackFile->Data;
+                return File;
             }else if(Mode[2] == '+'){
                 struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write, ShareProcessFS, true);
                 if(CallbackFile->Status != KSUCCESS){
@@ -51,7 +51,7 @@ file_t* fopen(char* Path, char* Mode){
                 File->Position = NULL;
                 File->Lock = NULL;
                 free(CallbackFile);
-                return CallbackFile->Data;
+                return File;
             }
         }
     }else if(Mode[0] == 'w'){
@@ -65,7 +65,7 @@ file_t* fopen(char* Path, char* Mode){
             File->Position = NULL;
             File->Lock = NULL;
             free(CallbackFile);
-            return CallbackFile->Data;
+            return File;
         }else if(Mode[1] == '+'){
             struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, ShareProcessFS, true);
             if(CallbackFile->Status != KSUCCESS){
@@ -76,7 +76,7 @@ file_t* fopen(char* Path, char* Mode){
             File->Position = NULL;
             File->Lock = NULL;
             free(CallbackFile);
-            return CallbackFile->Data;
+            return File;
         }else if(Mode[1] == 'b'){
             if(Mode[2] == '\0'){
                 struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Write | Storage_Permissions_Create, ShareProcessFS, true);
@@ -89,7 +89,7 @@ file_t* fopen(char* Path, char* Mode){
                 File->Position = NULL;
                 File->Lock = NULL;
                 free(CallbackFile);
-                return CallbackFile->Data;
+                return File;
             }else if(Mode[2] == '+'){
                 struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, ShareProcessFS, true);
                 if(CallbackFile->Status != KSUCCESS){
@@ -101,7 +101,7 @@ file_t* fopen(char* Path, char* Mode){
                 File->Position = NULL;
                 File->Lock = NULL;
                 free(CallbackFile);
-                return CallbackFile->Data;
+                return File;
             }
         }
     }else if(Mode[0] == 'a'){
@@ -123,7 +123,7 @@ file_t* fopen(char* Path, char* Mode){
             File->Lock = NULL;
             free(CallbackFileSize);
             free(CallbackFile);
-            return CallbackFile->Data;
+            return File;
         }else if(Mode[1] == '+'){
             struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, ShareProcessFS, true);
             if(CallbackFile->Status != KSUCCESS){
@@ -142,7 +142,7 @@ file_t* fopen(char* Path, char* Mode){
             File->Lock = NULL;
             free(CallbackFileSize);
             free(CallbackFile);
-            return CallbackFile->Data;
+            return File;
         }else if(Mode[1] == 'b'){
             if(Mode[2] == '\0'){
                 struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Write | Storage_Permissions_Create, ShareProcessFS, true);
@@ -162,7 +162,7 @@ file_t* fopen(char* Path, char* Mode){
                 File->Position = Size;
                 File->Lock = NULL;
                 free(CallbackFile);
-                return CallbackFile->Data;
+                return File;
             }else if(Mode[2] == '+'){
                 struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, ShareProcessFS, true);
                 if(CallbackFile->Status != KSUCCESS){
@@ -181,7 +181,7 @@ file_t* fopen(char* Path, char* Mode){
                 File->Position = Size;
                 File->Lock = NULL;
                 free(CallbackFile);
-                return CallbackFile->Data;
+                return File;
             }
         }
     }
@@ -240,6 +240,7 @@ KResult fseek(file_t* File, uint64_t Offset, int Whence){
     case SEEK_END:{
         struct srv_storage_callback_t* CallbackFileSize = Srv_Storage_Getfilesize(File, true);
         if(CallbackFileSize->Status != KSUCCESS){
+            free(CallbackFileSize);
             return KFAIL;
         }
         size64_t Size = CallbackFileSize->Data;
