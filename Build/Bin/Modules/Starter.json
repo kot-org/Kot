@@ -14,5 +14,6 @@
     {"file":"Time.elf", "priviledge":2},
     {"file":"Desktop.elf", "priviledge":3},
     {"file":"Shell.elf", "priviledge":3},
+    {"file":"Calculator.elf", "priviledge":3},
     {"file":"Explorer.elf", "priviledge":3}
 ]

@@ -242,13 +242,8 @@ namespace Ui {
     }
 
     void Component::Free(){
-        // TODO atomics
-        vector_remove(this->Parent->Childs, this->Index);
-        this->ClearChilds();
-        if(this->Childs){
-            vector_clear(this->Childs);
-        }
-        //free(this);
+        this->Style->IsHidden = true;
+        // TODO free
     }
 
     void Component::ClearChilds(){

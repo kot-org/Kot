@@ -52,6 +52,18 @@ void LoadFiles(char* Path){
             }
         , ExplorerWindow->Cpnt);
 
+        Ui::Picturebox_t* FileImage = Picturebox((char*)(FileData->IsFile ? "file.tga" : "folder.tga"), Ui::_TGA, 
+        {
+            .Fit = Ui::PICTUREFILL,
+            .Transparency = true,
+            .G{
+                .Width = -100, 
+                .Height = -100, 
+                .IsHidden = false
+            }
+        }
+        , Filebox->Cpnt);
+
         Ui::Label_t* LabelFileName = Ui::Label({
             .Text = FileData->Name,
             .FontSize = 12,
@@ -63,7 +75,7 @@ void LoadFiles(char* Path){
                 .Width = -100,
                 .Align{
                     .x = Ui::AlignTypeX::CENTER,
-                    .y = Ui::AlignTypeY::BOTTOM,
+                    .y = Ui::AlignTypeY::MIDDLE,
                 },     
             }
         }, Filebox->Cpnt);
