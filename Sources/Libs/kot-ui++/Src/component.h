@@ -150,6 +150,9 @@ namespace Ui {
 
             void Update();
 
+            void Free();
+            void ClearChilds();
+
 
             MouseEventHandler MouseEvent;
             UpdateHandler UpdateFunction;
@@ -169,6 +172,8 @@ namespace Ui {
 
             ComponentGeneralStyle* Style;
             uint64_t Deep;
+
+            uint64_t Index;
 
             framebuffer_t* Framebuffer;
             bool OwnFb;

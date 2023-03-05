@@ -186,6 +186,7 @@ uint64_t ftell(file_t* File);
 
 directory_t* opendir(char* Path);
 KResult rewinddir(directory_t* Dir);
+KResult filecount(directory_t* Dir, uint64_t* Count);
 directory_entries_t* mreaddir(directory_t* Dir, uint64_t Start, uint64_t Count);
 directory_entry_t* readdir(directory_t* Dir);
 KResult closedir(directory_t* Dir);

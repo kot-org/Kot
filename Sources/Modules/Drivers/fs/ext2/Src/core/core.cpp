@@ -555,6 +555,10 @@ inode_t* mount_info_t::FindInodeFromInodeEntryAndPath(inode_t* inode, char* path
 
         for(uint64_t i = 0; i < PathEntriesCount; i++){
             // Find the directory entry in this inode
+            if(!(InodeIteration->Inode.mode & INODE_TYPE_DIRECTORY)){
+                free(InodeIteration);
+                return NULL;
+            }
             inode_t* InodeFind = FindInodeInodeAndEntryFromName(InodeIteration, PathEntries[i]);
             if(InodeFind != NULL){
                 if(InodeIteration != inode){
@@ -1253,15 +1257,17 @@ ext_directory_t* mount_info_t::OpenDir(char* path, permissions_t permissions){
 
 ext_directory_t* mount_info_t::OpenDir(inode_t* inode, char* path, permissions_t permissions){
     inode_t* Target = FindInodeFromInodeEntryAndPath(inode, path);
-    if(Target->Inode.mode & INODE_TYPE_DIRECTORY && CheckPermissions(Target, permissions, Storage_Permissions_Read) == KSUCCESS){
-        ext_directory_t* Directory = (ext_directory_t*)malloc(sizeof(ext_directory_t));
-        Directory->Inode = Target;
-        Directory->MountInfo = this;
-        Directory->Permissions = permissions;
-        return Directory;
-    }
+    if(Target){
+        if(Target->Inode.mode & INODE_TYPE_DIRECTORY && CheckPermissions(Target, permissions, Storage_Permissions_Read) == KSUCCESS){
+            ext_directory_t* Directory = (ext_directory_t*)malloc(sizeof(ext_directory_t));
+            Directory->Inode = Target;
+            Directory->MountInfo = this;
+            Directory->Permissions = permissions;
+            return Directory;
+        }
 
-    free(Target);
+        free(Target);
+    }
     return NULL;
 }
 

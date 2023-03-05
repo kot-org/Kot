@@ -288,6 +288,14 @@ KResult rewinddir(directory_t* Dir){
     return KSUCCESS;
 }
 
+KResult filecount(directory_t* Dir, uint64_t* Count){
+    struct srv_storage_callback_t* CallbackDir = Srv_Storage_Getdircount(Dir, true);
+    KResult Status = CallbackDir->Status;
+    *Count = CallbackDir->Data;
+    free(CallbackDir);
+    return Status;
+}
+
 directory_entries_t* mreaddir(directory_t* Dir, uint64_t Start, uint64_t Count){
     struct srv_storage_callback_t* CallbackDir = Srv_Storage_Readdir(Dir, Start, Count, true);
     directory_entries_t* Entries = (directory_entries_t*)CallbackDir->Data;

@@ -1,13 +1,44 @@
 #include <core/main.h>
 
-extern "C" int main() {
-    UiWindow::Window* ExplorerWindow = new UiWindow::Window("File explorer", "explorer.tga", 600, 600, 600, 10);
-    
-    directory_t* Dir = opendir("d1:");
-    directory_entries_t* Directories = mreaddir(Dir, 0, 0xff);
+
+UiWindow::Window* ExplorerWindow;
+
+bool IsRoot;
+char* MainPath;
+
+void LoadFiles(char* Path);
+
+void FileButton(Ui::Button_t* Button, Ui::ButtonEvent_t Type){
+    if(Type & BUTTON_EVENT_TYPE_LEFT_CLICK){
+        Explorer_File_Data* FileData = (Explorer_File_Data*)Button->Style.ExternalData;
+        if(!FileData->IsFile){
+            std::StringBuilder* builder = new std::StringBuilder(MainPath);
+            if(IsRoot){
+                IsRoot = false;
+            }else{
+                builder->append("/");
+            }
+            builder->append(FileData->Name);
+            LoadFiles(builder->toString());
+            free(builder);
+        }
+    }
+}
+
+void LoadFiles(char* Path){
+    ExplorerWindow->Cpnt->ClearChilds();
+    directory_t* Dir = opendir(Path);
+    MainPath = Path;
+    uint64_t FilesCount;
+    filecount(Dir, &FilesCount);
+    directory_entries_t* Directories = mreaddir(Dir, 0, FilesCount);
     directory_entry_t* Entry = &Directories->FirstEntry;
     for(uint64_t i = 0; i < Directories->EntryCount; i++){
-        Ui::Box_t* Filebox = Box( 
+        Explorer_File_Data* FileData = (Explorer_File_Data*)malloc(sizeof(Explorer_File_Data));
+        FileData->IsFile = Entry->IsFile;
+        FileData->Name = (char*)malloc(strlen(Entry->Name));
+        strcpy(FileData->Name, Entry->Name);
+        Ui::Button_t* Filebox = Button( 
             { 
                 .G = { 
                         .Width = 100,
@@ -15,12 +46,14 @@ extern "C" int main() {
                         .IsHidden = false
                     }, 
                 .BackgroundColor = 0x1E1E1E,
+                .OnMouseEvent = FileButton,
+                .ExternalData = (uint64_t)FileData,
                 .HoverColor = 0xff0000
             }
         , ExplorerWindow->Cpnt);
 
-        Ui::Label_t* FileName = Ui::Label({
-            .Text = Entry->Name,
+        Ui::Label_t* LabelFileName = Ui::Label({
+            .Text = FileData->Name,
             .FontSize = 12,
             .ForegroundColor = 0xffffffff,
             .Align = Ui::TEXTALIGNCENTER,
@@ -30,13 +63,21 @@ extern "C" int main() {
                 .Width = -100,
                 .Align{
                     .x = Ui::AlignTypeX::CENTER,
-                    .y = Ui::AlignTypeY::MIDDLE,
+                    .y = Ui::AlignTypeY::BOTTOM,
                 },     
             }
         }, Filebox->Cpnt);
 
         Entry = (directory_entry_t*)((uint64_t)&Directories->FirstEntry + Entry->NextEntryPosition);
     }
+
+    free(Directories);
+}
+
+extern "C" int main() {
+    ExplorerWindow = new UiWindow::Window("File explorer", "explorer.tga", 600, 600, 600, 10);
+    IsRoot = true;
+    LoadFiles("d1:");
 
     return KSUCCESS;
 }

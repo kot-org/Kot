@@ -192,6 +192,7 @@ namespace Ui {
                                 if(XIterationLeft + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right > Style->Currentwidth){
                                     XIterationLeft = 0;
                                     YIterationLeft += MaxChildHeightLeft;
+                                    MaxChildHeightLeft = 0;
                                     Child->Style->Position.x = XIterationLeft;
                                     Child->Style->Position.y = YIterationLeft;
                                 }else{
@@ -199,7 +200,6 @@ namespace Ui {
                                     Child->Style->Position.y = YIterationLeft;
                                     XIterationLeft += Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
                                 }
-
 
                                 if(MaxChildHeightLeft < Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom){
                                     MaxChildHeightLeft = Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
@@ -214,6 +214,7 @@ namespace Ui {
                                 if(XIterationRight - Child->Style->Currentwidth - Child->Style->Margin.Left - Child->Style->Margin.Right < 0){
                                     XIterationRight = Style->Currentwidth;
                                     YIterationRight += MaxChildHeightRight;
+                                    MaxChildHeightRight = 0;
                                     Child->Style->Position.x = XIterationRight;
                                     Child->Style->Position.y = YIterationRight;
                                 }else{
@@ -240,6 +241,25 @@ namespace Ui {
         IsRedraw = false;
     }
 
+    void Component::Free(){
+        // TODO atomics
+        vector_remove(this->Parent->Childs, this->Index);
+        this->ClearChilds();
+        if(this->Childs){
+            vector_clear(this->Childs);
+        }
+        //free(this);
+    }
+
+    void Component::ClearChilds(){
+        if(this->Childs){
+            for(uint64_t i = 0; i < this->Childs->length; i++) {
+                Component* Child = (Component*)vector_get(this->Childs, i);
+                Child->Free();
+            }
+        }
+    }
+
     void Component::AddChild(Component* Child) {
         // TODO sort by position first and by z-index
 
@@ -253,6 +273,6 @@ namespace Ui {
         Child->VerticalOverflow = VerticalOverflow;
         
         Child->Parent = this;
-        vector_push(this->Childs, Child);
+        this->Index = vector_push(this->Childs, Child);
     } 
 }

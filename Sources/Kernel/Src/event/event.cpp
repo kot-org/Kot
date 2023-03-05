@@ -111,6 +111,7 @@ namespace Event{
     }
     
     uint64_t Trigger(kevent_t* self, arguments_t* parameters){
+        AtomicAquire(&self->Lock);
         for(size64_t i = 0; i < self->NumTask; i++){
             kevent_tasks_t* task = self->Tasks[i];
             AtomicAquire(&task->thread->EventLock);
@@ -133,17 +134,16 @@ namespace Event{
             }
             AtomicRelease(&task->thread->EventLock);
         }
+        AtomicRelease(&self->Lock);
 
         return KSUCCESS;
     } 
     
     uint64_t TriggerIRQ(kevent_t* self){
+        AtomicAquire(&self->Lock);
         for(size64_t i = 0; i < self->NumTask; i++){
             kevent_tasks_t* task = self->Tasks[i];
             AtomicAquire(&task->thread->EventLock);
-            if(task->thread->EventDataNode->NumberOfMissedEvents){
-                Error("Yes %x", task->thread->EventDataNode->NumberOfMissedEvents);
-            }
             if(task->thread->IsClose){
                 AtomicAquire(&globalTaskManager->SchedulerLock);
                 task->thread->Launch_WL(&task->DataNode->Event->Parameters);
@@ -155,6 +155,7 @@ namespace Event{
             }
             AtomicRelease(&task->thread->EventLock);
         }
+        AtomicRelease(&self->Lock);
 
         return KSUCCESS;
     } 

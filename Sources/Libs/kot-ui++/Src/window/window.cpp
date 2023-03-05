@@ -57,15 +57,16 @@ namespace UiWindow {
         Cpnt = Ui::Box(
             {
                 .G = {
-                        .Width = 100,
-                        .Maxwidth = NO_MAXIMUM,
-                        .Height = Height - 25,
+                        .Width = -100,
+                        .Height = -100,
+                        .Position{
+                            .x = 25
+                        },
                         .AutoPosition = true,
                         .IsHidden = false,
                     },
             }
         , UiCtx->Cpnt)->Cpnt;
-        Cpnt = UiCtx->Cpnt;
 
         UiCtx->UiStartRenderer();
         ChangeVisibilityWindow(this->Wid, true);
