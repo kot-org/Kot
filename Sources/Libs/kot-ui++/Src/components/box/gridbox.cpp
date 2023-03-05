@@ -26,13 +26,32 @@ namespace Ui {
             if(CaseHeight < 0){
                 CaseHeight = (Cpnt->Style->Currentheight / abs(CaseHeight)) - Gridbox->Style.SpaceBetweenCaseVertical - Gridbox->Style.SpaceBetweenCaseVertical / abs(CaseHeight);
             }
+            
+            uint16_t XAutoPosition = 0,
+                     YAutoPosition = 0;
+
             for(uint64_t i = 0; i < Cpnt->Childs->length; i++){
                 Component* Child = (Component*)vector_get(Cpnt->Childs, i);
                 point_t GridPosition;
+
                 GridPosition.x = Child->Style->Position.x;
                 GridPosition.y = Child->Style->Position.y;
-                Child->Style->Position.x = Child->Style->Position.x * CaseWidth + (Child->Style->Position.x + 1) * Gridbox->Style.SpaceBetweenCaseHorizontal;
-                Child->Style->Position.y = Child->Style->Position.y * CaseHeight + (Child->Style->Position.y + 1) * Gridbox->Style.SpaceBetweenCaseVertical;
+                
+                if(Gridbox->Style.CaseWidth < 0 && Gridbox->Style.CaseHeight < 0) {
+                    if(Child->Style->AutoPosition) {
+
+                        Child->Style->Position.x = XAutoPosition * CaseWidth + (XAutoPosition + 1) * Gridbox->Style.SpaceBetweenCaseHorizontal;
+                        Child->Style->Position.y = YAutoPosition * CaseHeight + (YAutoPosition + 1) * Gridbox->Style.SpaceBetweenCaseVertical;
+
+                        if((XAutoPosition + 1) == abs(Gridbox->Style.CaseWidth))
+                            YAutoPosition = (YAutoPosition + 1) % abs(Gridbox->Style.CaseHeight);
+                        XAutoPosition = (XAutoPosition + 1) % abs(Gridbox->Style.CaseWidth);
+
+                    } else {
+                        Child->Style->Position.x = Child->Style->Position.x * CaseWidth + (Child->Style->Position.x + 1) * Gridbox->Style.SpaceBetweenCaseHorizontal;
+                        Child->Style->Position.y = Child->Style->Position.y * CaseHeight + (Child->Style->Position.y + 1) * Gridbox->Style.SpaceBetweenCaseVertical;
+                    }
+                }
 
                 if(Child->Style->Width < 0){
                     Child->Style->Currentwidth = (CaseWidth * abs(Child->Style->Width)) / 100;

@@ -54,11 +54,8 @@ namespace Ui {
     #define BUTTON_EVENT_TYPE_MIDDLE_CLICK  (1 << 3)
     #define BUTTON_EVENT_TYPE_UNFOCUS       (1 << 4)
 
-    typedef uint64_t ButtonEvent_t;
-
     typedef void (*MouseEventHandler)(class Component* Component, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status);
     typedef void (*UpdateHandler)(class Component* Component);
-    typedef void (*ButtonHandler)(struct Button_t* Button, ButtonEvent_t EventType);
 
     struct Margin{
         uint64_t Top;
@@ -184,8 +181,50 @@ namespace Ui {
             void AddChild(Component* Child);
     };
 
-    /* components */
+    /* Layout */
 
+    /* Flexbox */
+    typedef struct {
+        ComponentGeneralStyle G;
+        Layout::ComponentAlign_t Align = {
+            .x = Layout::LEFT,
+            .y = Layout::TOP,
+        };
+        Layout::ComponentDirection Direction = Layout::ROW;
+    } FlexboxStyle_t;
+
+    struct Flexbox_t{
+        FlexboxStyle_t Style;
+        Component* Cpnt;
+        color_t CurrentColor;
+        void UpdateSize(uint64_t Width, uint64_t Height);
+        void UpdatePosition(point_t Position);
+    };
+
+    Flexbox_t* Flexbox(FlexboxStyle_t Style, class Component* ParentCpnt);
+
+
+    /* Gridbox */
+    typedef struct {
+        ComponentGeneralStyle G;
+        int64_t CaseWidth = 0;
+        int64_t CaseHeight = 0;
+        uint64_t SpaceBetweenCaseHorizontal = 0;
+        uint64_t SpaceBetweenCaseVertical = 0;
+    } GridboxStyle_t;
+
+    struct Gridbox_t{
+        GridboxStyle_t Style;
+        Component* Cpnt;
+        void UpdateSize(uint64_t Width, uint64_t Height);
+        void UpdatePosition(point_t Position);
+    };
+
+    Gridbox_t* Gridbox(GridboxStyle_t Style, class Component* ParentCpnt); 
+
+    /* Components */
+
+    /* Picturebox */
     enum PictureboxType {
         _TGA = 0,
         _PNG = 1,
@@ -197,11 +236,13 @@ namespace Ui {
         PICTURECENTER  = 2,
         PICTURESTRETCH = 3,
     };
+
     typedef struct {
         ComponentGeneralStyle G;
         PictureboxFit Fit = PICTUREFIT;
         bool Transparency = false;
     } PictureboxStyle_t;
+
     struct Picturebox_t{
         PictureboxType Type;
         PictureboxStyle_t Style;
@@ -212,12 +253,15 @@ namespace Ui {
     };
     Picturebox_t* Picturebox(char* Path, PictureboxType Type, PictureboxStyle_t Style, class Component* ParentCpnt);
 
+
+    /* Box */
     typedef struct {
         ComponentGeneralStyle G;
         color_t BackgroundColor = 0;
         color_t HoverColor = BackgroundColor;
         color_t ClickColor = HoverColor;
     } BoxStyle_t;
+
     struct Box_t{
         BoxStyle_t Style;
         Component* Cpnt;
@@ -225,58 +269,38 @@ namespace Ui {
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
+
     Box_t* Box(BoxStyle_t Style, class Component* ParentCpnt);
 
-    typedef struct {
-        ComponentGeneralStyle G;
-        Layout::ComponentAlign_t Align = {
-            .x = Layout::LEFT,
-            .y = Layout::TOP,
-        };
-        Layout::ComponentDirection Direction = Layout::ROW;
-    } FlexboxStyle_t;
-    struct Flexbox_t{
-        FlexboxStyle_t Style;
-        Component* Cpnt;
-        color_t CurrentColor;
-        void UpdateSize(uint64_t Width, uint64_t Height);
-        void UpdatePosition(point_t Position);
-    };
-    Flexbox_t* Flexbox(FlexboxStyle_t Style, class Component* ParentCpnt);
-
-    typedef struct {
-        ComponentGeneralStyle G;
-        int64_t CaseWidth = 0;
-        int64_t CaseHeight = 0;
-        uint64_t SpaceBetweenCaseHorizontal = 0;
-        uint64_t SpaceBetweenCaseVertical = 0;
-    } GridboxStyle_t;
-    struct Gridbox_t{
-        GridboxStyle_t Style;
-        Component* Cpnt;
-        void UpdateSize(uint64_t Width, uint64_t Height);
-        void UpdatePosition(point_t Position);
-    };
-    Gridbox_t* Gridbox(GridboxStyle_t Style, class Component* ParentCpnt);
-
-
+    
+    /* Button */
     typedef struct {
         ComponentGeneralStyle G;
         color_t BackgroundColor = 0;
         color_t HoverColor = BackgroundColor;
         color_t ClickColor = HoverColor;
-        ButtonHandler OnMouseEvent = 0;
-        uint64_t ExternalData = 0;
     } ButtonStyle_t;
-    struct Button_t{
+
+    typedef struct {
+        void (*Onclick)() = nullptr;
+        void (*Onhover)() = nullptr;
+        void (*Onfocus)() = nullptr;
+    } ButtonEvent_t;
+
+    struct Button_t {
         ButtonStyle_t Style;
         Component* Cpnt;
         color_t CurrentColor;
+        ButtonEvent_t Event;
+        
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
-    Button_t* Button(ButtonStyle_t Style, class Component* ParentCpnt);
 
+    Button_t* Button(ButtonEvent_t Event, ButtonStyle_t Style, class Component* ParentCpnt);
+
+
+    /* Label */
     typedef struct {
         ComponentGeneralStyle G;
         char* Text = NULL;
@@ -288,6 +312,7 @@ namespace Ui {
         bool AutoHeight = true;
         TextAlign Align = TEXTALIGNLEFT;
     } LabelStyle_t;
+
     struct Label_t{
         LabelStyle_t Style;
         Component* Cpnt;
@@ -301,14 +326,18 @@ namespace Ui {
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
+
     Label_t* Label(LabelStyle_t Style, class Component* ParentCpnt);
 
+
+    /* Titlebar */
     typedef struct {
         uint32_t BackgroundColor = 0;
         uint32_t ForegroundColor = 0;
         color_t HoverColor = BackgroundColor;
         color_t ClickColor = HoverColor;
     } TitlebarStyle_t;
+
     struct Titlebar_t{
         uintptr_t Window;
         TitlebarStyle_t Style;
@@ -322,16 +351,21 @@ namespace Ui {
         Component* Cpnt;
         Box_t* MainBox;
         Flexbox_t* MainFlexbox;
+
         Picturebox_t* Logo;
+
         Label_t* Title;
+
         Box_t* BtnBox;
         Button_t* CloseBtn;
-        Button_t* SizeBtn;
-        Button_t* HideBtn;
+        Button_t* MaximizeBtn;
+        Button_t* MinimizeBtn;
+
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
     };
-    Titlebar_t* Titlebar(uintptr_t Window, char* Title, char* Icon, TitlebarStyle_t Style, class Component* ParentCpnt);
+
+    Titlebar_t* Titlebar(uintptr_t Window, char* Title, char* Icon, TitlebarStyle_t Style, class Component* ParentCpnt);   
 
 }
 

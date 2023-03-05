@@ -27,8 +27,10 @@ namespace Ui {
     }
 
     void ButtonMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status){
+        Button_t* Button = (Button_t*)Cpnt->ExternalData;
+
         if(IsHover){
-            Button_t* Button = (Button_t*)Cpnt->ExternalData;
+
             if(Cpnt->UiCtx->FocusCpnt != NULL){
                 if(Cpnt->UiCtx->FocusCpnt != Cpnt){
                     if(Cpnt->UiCtx->FocusCpnt->MouseEvent){
@@ -36,30 +38,33 @@ namespace Ui {
                     }
                 }
             }
+            
             Cpnt->UiCtx->FocusCpnt = Button->Cpnt;
 
             if(Status & (MOUSE_CLICK_LEFT | MOUSE_CLICK_RIGHT | MOUSE_CLICK_MIDDLE)){
+                Button->Event.Onclick();
                 Button->CurrentColor = Button->Style.ClickColor;
-                Button->Style.OnMouseEvent(Button, BUTTON_EVENT_TYPE_HOVER | ((Status & MOUSE_CLICK_LEFT) << 1) | ((Status & MOUSE_CLICK_RIGHT) << 2) | ((Status & MOUSE_CLICK_MIDDLE) << 3));
                 Cpnt->IsDrawUpdate = true;
             }else{
-                Button->Style.OnMouseEvent(Button, BUTTON_EVENT_TYPE_HOVER);
+                Button->Event.Onhover();
                 Button->CurrentColor = Button->Style.HoverColor;
                 Cpnt->IsDrawUpdate = true;               
             }
         }else{
-            Button_t* Button = (Button_t*)Cpnt->ExternalData;
+            Button->Event.Onfocus();
             Button->CurrentColor = Button->Style.BackgroundColor;
             Cpnt->IsDrawUpdate = true;
-            Button->Style.OnMouseEvent(Button, BUTTON_EVENT_TYPE_UNFOCUS);   
         }
     }
 
-    Button_t* Button(ButtonStyle_t Style, Component* ParentCpnt){
+    Button_t* Button(ButtonEvent_t Event, ButtonStyle_t Style, Component* ParentCpnt){
         Button_t* Button = (Button_t*)malloc(sizeof(Button_t));
+
         memcpy(&Button->Style, &Style, sizeof(ButtonStyle_t));
+        Button->Event = Event;
         Button->CurrentColor = Button->Style.BackgroundColor;
         Button->Cpnt = new Component(Style.G, ButtonUpdate, ButtonMouseEvent, (uintptr_t)Button, ParentCpnt, true);
+
         return Button;
     }
 

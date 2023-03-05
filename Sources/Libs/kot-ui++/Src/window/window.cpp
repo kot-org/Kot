@@ -48,7 +48,7 @@ namespace UiWindow {
         }
 
         if(Icon == NULL){
-            Icon = "kotlogo.tga";
+            Icon = "kotlogo.tga"; // changer le logo par défaut
         }
 
         Titlebar = Ui::Titlebar((uintptr_t)this, Title, Icon, {.BackgroundColor = WIN_TBCOLOR_ONBLUR, .ForegroundColor = 0xffffffff}, UiCtx->Cpnt);

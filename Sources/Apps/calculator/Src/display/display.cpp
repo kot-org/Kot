@@ -2,19 +2,39 @@
 
 #include <kot++/printf.h>
 
-char NumericKeypadStr[][4][4] = {
-    {{"%"}, {"√"}, {"x²"}, {"1/x"}},
-    {{"CE"}, {"C"}, {"<-"}, {"/"}},
-    {{"7"}, {"8"}, {"9"}, {"*"}},
-    {{"4"}, {"5"}, {"6"}, {"-"}},
-    {{"1"}, {"2"}, {"3"}, {"+"}},
-    {{"-"}, {"0"}, {"."}, {"="}},
+Label_t* NumberDisplayLabel;
+
+char* NumericKeypadStr[6][4] = {
+    {"%",   "CE",   "C",   "<-"},
+    {"√x",  "x²",   "1/x",  "/"},
+    {"7",   "8",    "9",    "*"},
+    {"4",   "5",    "6",    "-"},
+    {"1",   "2",    "3",    "+"},
+    {"+/-", "0",    ".",    "="},
 };
 
+char NumericKeypadData[6][4] = {
+    {PERCENT_OP,    CLEARALL_ACTION,    CLEAR_ACTION,       BACKSPACE_ACTION},
+    {SQRT_OP,       SQUARE_OP,          RESIPROCAL_OP,      DIV_OP},
+    {'7',           '8',                '9',                MULT_OP},
+    {'4',           '5',                '6',                SUB_OP},
+    {'1',           '2',                '3',                ADD_OP},
+    {INVERTSIGN_OP, '0',                DECIMAL_ACTION,     EQUAL_ACTION},
+};
 
-void OpButton(Button_t* Button, ButtonEvent_t Type) {
-    
-}
+/* 
+    0 : Background color
+    1 : Hover color
+    2 : Click color
+ */
+uint32_t NumericKeypadColor[6][4][3] = {
+    {{0x676767, 0x858585, 0x454545},  {0x676767, 0x858585, 0x454545},   {0x676767, 0x858585, 0x454545},   {0x676767, 0x858585, 0x454545}},
+    {{0x676767, 0x858585, 0x454545},  {0x676767, 0x858585, 0x454545},   {0x676767, 0x858585, 0x454545},   {0x676767, 0x858585, 0x454545}},
+    {{0x676767, 0x858585, 0x454545},  {0x676767, 0x858585, 0x454545},   {0x676767, 0x858585, 0x454545},   {0x676767, 0x858585, 0x454545}},
+    {{0x676767, 0x858585, 0x454545},  {0x676767, 0x858585, 0x454545},   {0x676767, 0x858585, 0x454545},   {0x676767, 0x858585, 0x454545}},
+    {{0x676767, 0x858585, 0x454545},  {0x676767, 0x858585, 0x454545},   {0x676767, 0x858585, 0x454545},   {0x676767, 0x858585, 0x454545}},
+    {{0x676767, 0x858585, 0x454545},  {0x676767, 0x858585, 0x454545},   {0x676767, 0x858585, 0x454545},   {0x0B1AFF, 0x3399FF, 0x0C4BDD}},
+};
 
 void CreateDisplay(Component* Window) {
     Flexbox_t* Main = Flexbox(  
@@ -33,33 +53,37 @@ void CreateDisplay(Component* Window) {
         { 
             .G = { 
                     .Width = -100,
-                    .Height = 100,
+                    .Height = 150,
                     .BorderRadius = 20,
                     .IsHidden = false
                 }, 
-            .BackgroundColor = 0x1E1E1E
+
+            .BackgroundColor = WIN_DEFAULT_BKGCOLOR
         }
     , Main->Cpnt);
 
-    Label_t* NumberDisplayLabel = Ui::Label({
+    NumberDisplayLabel = Label(
+        {
             .Text = "0",
             .FontSize = 36,
             .ForegroundColor = 0xffffffff,
-            .Align = Ui::TEXTALIGNRIGHT,
+            .Align = TextAlign::TEXTALIGNRIGHT,
             .AutoWidth = false,
             .AutoHeight = true,
-            .G{
-                .Width = -100,
-                .Align{
-                    .x = AlignTypeX::CENTER,
-                    .y = AlignTypeY::MIDDLE,
-                },
-                .Margin{
-                    .Right = 20,
-                },
-                .AutoPosition = true,        
-            }
-        }, NumberDisplay->Cpnt);
+
+            .G = {
+                    .Width = -100,
+                    .Align{
+                        .x = AlignTypeX::CENTER,
+                        .y = AlignTypeY::MIDDLE,
+                    },
+                    .Margin{
+                        .Right = 20,
+                    },
+                    .AutoPosition = true,        
+                }
+        }
+    , NumberDisplay->Cpnt);
 
     Gridbox_t* NumericKeypad = Gridbox( 
         { 
@@ -68,6 +92,7 @@ void CreateDisplay(Component* Window) {
                     .Height = -100,
                     .IsHidden = false
                 },
+
             .CaseWidth = -4,
             .CaseHeight = -6,
             .SpaceBetweenCaseHorizontal = 5,
@@ -85,44 +110,59 @@ void CreateDisplay(Component* Window) {
     uintptr_t Font = malloc(FontFileSize);
     fread(Font, FontFileSize, 1, FontFile);
 
-
+    /* Draw the grid with buttons */
     for(uint8_t y = 0; y < 6; y++) {
         for(uint8_t x = 0; x < 4; x++) {
-            Button_t* Button = Ui::Button(  
+            
+            Button_t* Btn = Button(
+                {
+                    .Onclick = [&] {
+                        AddDigit(2);
+                    }
+                },
                 { 
                     .G = { 
                             .Width = -100,
                             .Height = -100,
-                            .Position = { .x = (int64_t)x, .y = (int64_t)y },
                             .BorderRadius = 20,
                             .IsHidden = false
                         },
-                    .BackgroundColor = (color_t)0x676767, 
-                    .ClickColor = (color_t)0x0C4BDD, 
-                    .HoverColor = (color_t)0x3399FF, 
-                    .OnMouseEvent = OpButton
+
+                    .BackgroundColor = (color_t)NumericKeypadColor[y][x][0], 
+                    .HoverColor = (color_t)NumericKeypadColor[y][x][1], 
+                    .ClickColor = (color_t)NumericKeypadColor[y][x][2],
                 }
             , NumericKeypad->Cpnt);
 
-            Label_t* Label = Ui::Label({
-                .Text = NumericKeypadStr[y][x],
-                .FontSize = 16,
-                .FontBuffer = Font,
-                .ForegroundColor = 0xffffffff,
-                .Align = Ui::TEXTALIGNCENTER,
-                .AutoWidth = false,
-                .AutoHeight = true,
-                .G{
-                    .Height = -100,
-                    .Width = -100,
-                    .Align{
-                        .x = AlignTypeX::CENTER,
-                        .y = AlignTypeY::MIDDLE,
-                    },
-                    .AutoPosition = true,        
+            Label_t* BtnLabel = Label(
+                {
+                    .Text = NumericKeypadStr[y][x],
+                    .FontSize = 16,
+                    .FontBuffer = Font,
+                    .ForegroundColor = 0xffffffff,
+                    .Align = TextAlign::TEXTALIGNCENTER,
+                    .AutoWidth = false,
+                    .AutoHeight = true,
+
+                    .G = {
+                        .Height = -100,
+                        .Width = -100,
+                        .Align = {
+                            .x = AlignTypeX::CENTER,
+                            .y = AlignTypeY::MIDDLE,
+                        },
+                        .AutoPosition = true,        
+                    }
                 }
-            }, Button->Cpnt);
+            , Btn->Cpnt);
+
         }
     }
     fclose(FontFile);
+}
+
+void DisplayNumber(int64_t Number) {
+    char Buffer[50];
+
+    NumberDisplayLabel->UpdateText(itoa(Number, Buffer, 10)); 
 }

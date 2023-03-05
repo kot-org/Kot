@@ -15,24 +15,34 @@
 
 using namespace std;
 
+#define WIN_TASKBAR_COLOR      0x181818
+
 class desktopc {
-    public:
-        desktopc(JsonArray* Settings);
-
-        void InitalizeClock(char* FontPath);
-        void SetWallpaper(char* Path, Ui::PictureboxFit Fit);
-        void SetSolidColor(uint32_t Color);
-
     private:
         Ui::UiContext* UiCtx;
         Ui::Picturebox_t* Wallpaper;
         framebuffer_t* Fb;
         thread_t ClockThread;
 
-        typedef enum {
-            FIT     = 0,
-            FILL    = 1,
-            CENTER  = 2,
-            STRETCH = 3,
-        } WallpaperFit;
+        typedef struct {
+            uint8_t Height;
+            window_t* Window;
+
+            bool IsExtended;
+            uint8_t IconSize;
+        } Taskbar_t;
+
+        Taskbar_t* Taskbar;
+
+    public:
+        desktopc(JsonObject* DesktopSettings);
+        ~desktopc() { free(Taskbar); }
+
+        void CreateTaskbar(JsonObject* TaskbarSettings);
+        void ResizeTaskbar();
+
+        void SetWallpaper(char* Path, Ui::PictureboxFit Fit);
+        void SetSolidColor(uint32_t Color);
+
+        void InitalizeClock(char* FontPath);
 };

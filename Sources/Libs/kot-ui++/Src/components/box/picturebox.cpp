@@ -9,9 +9,14 @@ namespace Ui {
         Picturebox->Cpnt->DrawPosition.x = Picturebox->Cpnt->FramebufferRelativePosition.x;
         Picturebox->Cpnt->DrawPosition.y = Picturebox->Cpnt->FramebufferRelativePosition.y;
 
-        switch(Picturebox->Type){
-            case PictureboxType::_TGA:{
-                switch(Picturebox->Style.Fit){
+        Picturebox->Cpnt->IsRedraw = true;
+
+        switch(Picturebox->Type)
+        {
+            case PictureboxType::_TGA:
+            {
+                switch(Picturebox->Style.Fit)
+                {
                     case PictureboxFit::PICTUREFIT:
                     {   
                         TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
@@ -143,10 +148,13 @@ namespace Ui {
     
     void PictureboxUpdate(Component* Cpnt){
         Picturebox_t* Picturebox = (Picturebox_t*)Cpnt->ExternalData;
+
         Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom)};
+        
         if(Picturebox->Style.Transparency){
             Cpnt->FramebufferRelativePosition = {.x = Cpnt->Parent->FramebufferRelativePosition.x + Cpnt->Style->Position.x, .y = Cpnt->Parent->FramebufferRelativePosition.y + Cpnt->Style->Position.y};
         }
+
         if(Cpnt->IsFramebufferUpdate){
             Cpnt->IsFramebufferUpdate = false;
             PictureboxDraw(Picturebox);
@@ -156,6 +164,8 @@ namespace Ui {
         }else if(Cpnt->Parent->IsRedraw || Cpnt->DrawPosition.x != Cpnt->FramebufferRelativePosition.x || Cpnt->DrawPosition.y != Cpnt->FramebufferRelativePosition.y){
             PictureboxDraw(Picturebox);
         }
+
+        //Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top)};
         Cpnt->Update();
         if(!Picturebox->Style.Transparency){
             BlitFramebufferRadius(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), (int64_t)(Cpnt->Parent->FramebufferRelativePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), (int64_t)(Cpnt->Parent->FramebufferRelativePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom), Cpnt->Style->BorderRadius);
@@ -165,16 +175,21 @@ namespace Ui {
     void PictureboxMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status){
         if(IsHover){
             Picturebox_t* Picturebox = (Picturebox_t*)Cpnt->ExternalData;
+
             if(Cpnt->UiCtx->FocusCpnt != Cpnt){
                 if(Cpnt->UiCtx->FocusCpnt->MouseEvent){
                     Cpnt->UiCtx->FocusCpnt->MouseEvent(Cpnt->UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
                 }
             }
+
             Cpnt->UiCtx->FocusCpnt = Picturebox->Cpnt;
         }
     }
 
     Picturebox_t* Picturebox(char* Path, PictureboxType Type, PictureboxStyle_t Style, Component* ParentCpnt) {
+        if(Path == NULL)
+            return NULL;
+        
         file_t* ImageFile = fopen(Path, "rb");
 
         if(ImageFile == NULL)

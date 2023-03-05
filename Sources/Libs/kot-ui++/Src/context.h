@@ -17,6 +17,8 @@
 #define WIN_TBCOLOR_ONFOCUS 0x2B2B2B // TB : titlebar
 #define WIN_TBCOLOR_ONBLUR 0x3B3B3B // TB : titlebar
 
+#define WIN_DEFAULT_BKGCOLOR 0x1E1E1E // BKG : background
+
 namespace Ui {
 
     class UiContext {
