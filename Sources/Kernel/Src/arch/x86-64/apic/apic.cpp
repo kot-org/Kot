@@ -220,8 +220,13 @@ namespace APIC{
     void EnableAPIC(uint8_t CoreID){
         lapicAddress[CoreID]->PhysicalAddress = (uintptr_t)(msr::rdmsr(0x1b) & 0xfffff000);
         lapicAddress[CoreID]->VirtualAddress = (uintptr_t)vmm_Map(lapicAddress[CoreID]->PhysicalAddress); 
-        msr::wrmsr(0x1b, ((uint64_t)lapicAddress[CoreID]->PhysicalAddress | LOCAL_APIC_ENABLE) & ~((1 << 10)));
+
+        // reset registers recommanded by intel : DFR, LDR and TPR
+        localAPICWriteRegister(LocalAPICRegisterOffsetDestinationFormat, 0xffffffff);
+        localAPICWriteRegister(LocalAPICRegisterOffsetLogicalDestination, (localAPICReadRegister(LocalAPICRegisterOffsetLogicalDestination) & ~((0xff << 24)) | (CoreID << 24)));
         localAPICWriteRegister(LocalAPICRegisterOffsetSpuriousIntVector, localAPICReadRegister(LocalAPICRegisterOffsetSpuriousIntVector) | (LOCAL_APIC_SPURIOUS_ALL | LOCAL_APIC_SPURIOUS_ENABLE_APIC));
+        localAPICWriteRegister(LocalAPICRegisterOffsetTaskPriority, 0);
+        msr::wrmsr(0x1b, ((uint64_t)lapicAddress[CoreID]->PhysicalAddress | LOCAL_APIC_ENABLE) & ~((1 << 10)));
     }
 
 

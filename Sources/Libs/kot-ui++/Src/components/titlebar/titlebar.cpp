@@ -66,6 +66,27 @@ namespace Ui {
         }
     }
 
+    void CloseBtnEvent(Button_t* Button, ButtonStatus_t Type){
+        if(Type & BUTTON_EVENT_TYPE_LEFT_CLICK){
+            Titlebar_t* Titlebar = (Titlebar_t*)Button->Style.ExternalData;
+            ((UiWindow::Window*)Titlebar->Window)->Close();
+        }
+    }
+
+    void MaximizeBtnEvent(Button_t* Button, ButtonStatus_t Type){
+        if(Type & BUTTON_EVENT_TYPE_LEFT_CLICK){
+            Titlebar_t* Titlebar = (Titlebar_t*)Button->Style.ExternalData;
+            ((UiWindow::Window*)Titlebar->Window)->Fullscreen();
+        }
+    }
+
+    void MinimizeBtnEvent(Button_t* Button, ButtonStatus_t Type){
+        if(Type & BUTTON_EVENT_TYPE_LEFT_CLICK){
+            Titlebar_t* Titlebar = (Titlebar_t*)Button->Style.ExternalData;
+            ((UiWindow::Window*)Titlebar->Window)->Hide();
+        }
+    }
+
     Titlebar_t* Titlebar(uintptr_t Window, char* Title, char* Icon, TitlebarStyle_t Style, Component* ParentCpnt) {
         Titlebar_t* Titlebar = (Titlebar_t*)malloc(sizeof(Titlebar_t));
         memcpy(&Titlebar->Style, &Style, sizeof(TitlebarStyle_t));
@@ -126,14 +147,10 @@ namespace Ui {
             }
         , Titlebar->MainFlexbox->Cpnt);
 
-        Titlebar->CloseBtn = Button(
+        Titlebar->CloseBtn = Button(CloseBtnEvent, 
             {
-                .Onclick = [&] {
-                    ((UiWindow::Window*)Titlebar->Window)->Close();
-                }
-            },
-            {
-                .BackgroundColor = Titlebar->Style.BackgroundColor,
+                .BackgroundColor = Titlebar->Style.BackgroundColor, 
+                .ExternalData = (uint64_t)Titlebar,
                 .G{
                     .Width = Titlebar_Height, 
                     .Height = Titlebar_Height, 
@@ -141,7 +158,7 @@ namespace Ui {
                     .BorderRadius = Titlebar_Height,
                 },
             }
-        , Titlebar->BtnBox->Cpnt);
+            , Titlebar->BtnBox->Cpnt);
 
         Picturebox_t* CloseImage = Picturebox("close.tga", _TGA, 
             {
@@ -153,16 +170,12 @@ namespace Ui {
                     .IsHidden = false
                 }
             }
-        , Titlebar->CloseBtn->Cpnt);
+            , Titlebar->CloseBtn->Cpnt);
 
-        Titlebar->MaximizeBtn = Button(
+        Titlebar->MaximizeBtn = Button(MaximizeBtnEvent, 
             {
-                .Onclick = [&] {
-                    ((UiWindow::Window*)Titlebar->Window)->Fullscreen();
-                }
-            },
-            {
-                .BackgroundColor = Titlebar->Style.BackgroundColor,
+                .BackgroundColor = Titlebar->Style.BackgroundColor, 
+                .ExternalData = (uint64_t)Titlebar,
                 .G{
                     .Width = Titlebar_Height, 
                     .Height = Titlebar_Height, 
@@ -170,9 +183,9 @@ namespace Ui {
                     .BorderRadius = Titlebar_Height,
                 }
             }
-        , Titlebar->BtnBox->Cpnt);
+            , Titlebar->BtnBox->Cpnt);
 
-        Picturebox_t* MaximizeImage = Picturebox("maximize.tga", _TGA, 
+        Picturebox_t* SizeImage = Picturebox("maximize.tga", _TGA, 
             {
                 .Fit = PICTUREFILL, 
                 .Transparency = true,
@@ -181,16 +194,12 @@ namespace Ui {
                     .Height = -100, 
                 }
             }
-        , Titlebar->MaximizeBtn->Cpnt);
+            , Titlebar->MaximizeBtn->Cpnt);
 
-        Titlebar->MinimizeBtn = Button(
+        Titlebar->MinimizeBtn = Button(MinimizeBtnEvent, 
             {
-                .Onclick = [&] {
-                    ((UiWindow::Window*)Titlebar->Window)->Hide();
-                }
-            },
-            {
-                .BackgroundColor = Titlebar->Style.BackgroundColor,
+                .BackgroundColor = Titlebar->Style.BackgroundColor, 
+                .ExternalData = (uint64_t)Titlebar,
                 .G{
                     .Width = Titlebar_Height,
                     .Height = Titlebar_Height,
@@ -200,7 +209,7 @@ namespace Ui {
             }
         , Titlebar->BtnBox->Cpnt);
 
-        Picturebox_t* MinimizeImage = Picturebox("minimize.tga", _TGA, 
+        Picturebox_t* HideImage = Picturebox("minimize.tga", _TGA, 
             {
                 .Fit = PICTUREFILL, 
                 .Transparency = true,
@@ -209,8 +218,7 @@ namespace Ui {
                     .Height = -100, 
                 }
             }
-        , Titlebar->MinimizeBtn->Cpnt);
-
+            , Titlebar->MinimizeBtn->Cpnt);
         return Titlebar;
     }
 

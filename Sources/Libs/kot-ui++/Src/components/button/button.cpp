@@ -30,7 +30,6 @@ namespace Ui {
         Button_t* Button = (Button_t*)Cpnt->ExternalData;
 
         if(IsHover){
-
             if(Cpnt->UiCtx->FocusCpnt != NULL){
                 if(Cpnt->UiCtx->FocusCpnt != Cpnt){
                     if(Cpnt->UiCtx->FocusCpnt->MouseEvent){
@@ -38,22 +37,21 @@ namespace Ui {
                     }
                 }
             }
-            
             Cpnt->UiCtx->FocusCpnt = Button->Cpnt;
 
             if(Status & (MOUSE_CLICK_LEFT | MOUSE_CLICK_RIGHT | MOUSE_CLICK_MIDDLE)){
-                Button->Event.Onclick();
                 Button->CurrentColor = Button->Style.ClickColor;
+                Button->Event(Button, BUTTON_EVENT_TYPE_HOVER | ((Status & MOUSE_CLICK_LEFT) << 1) | ((Status & MOUSE_CLICK_RIGHT) << 2) | ((Status & MOUSE_CLICK_MIDDLE) << 3));
                 Cpnt->IsDrawUpdate = true;
             }else{
-                Button->Event.Onhover();
+                Button->Event(Button, BUTTON_EVENT_TYPE_HOVER);
                 Button->CurrentColor = Button->Style.HoverColor;
                 Cpnt->IsDrawUpdate = true;               
             }
         }else{
-            Button->Event.Onfocus();
             Button->CurrentColor = Button->Style.BackgroundColor;
             Cpnt->IsDrawUpdate = true;
+            Button->Event(Button, BUTTON_EVENT_TYPE_UNFOCUS);   
         }
     }
 

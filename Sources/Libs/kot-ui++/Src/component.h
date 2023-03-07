@@ -54,8 +54,11 @@ namespace Ui {
     #define BUTTON_EVENT_TYPE_MIDDLE_CLICK  (1 << 3)
     #define BUTTON_EVENT_TYPE_UNFOCUS       (1 << 4)
 
+    typedef uint64_t ButtonStatus_t;
+
     typedef void (*MouseEventHandler)(class Component* Component, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status);
     typedef void (*UpdateHandler)(class Component* Component);
+    typedef void (*ButtonEvent_t)(struct Button_t* Button, ButtonStatus_t EventType);
 
     struct Margin{
         uint64_t Top;
@@ -279,13 +282,8 @@ namespace Ui {
         color_t BackgroundColor = 0;
         color_t HoverColor = BackgroundColor;
         color_t ClickColor = HoverColor;
+        uint64_t ExternalData = 0;
     } ButtonStyle_t;
-
-    typedef struct {
-        void (*Onclick)() = nullptr;
-        void (*Onhover)() = nullptr;
-        void (*Onfocus)() = nullptr;
-    } ButtonEvent_t;
 
     struct Button_t {
         ButtonStyle_t Style;

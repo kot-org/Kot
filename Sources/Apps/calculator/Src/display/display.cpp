@@ -36,6 +36,10 @@ uint32_t NumericKeypadColor[6][4][3] = {
     {{0x676767, 0x858585, 0x454545},  {0x676767, 0x858585, 0x454545},   {0x676767, 0x858585, 0x454545},   {0x0B1AFF, 0x3399FF, 0x0C4BDD}},
 };
 
+void OpButton(Button_t* Button, ButtonStatus_t Type) {
+    
+}
+
 void CreateDisplay(Component* Window) {
     Flexbox_t* Main = Flexbox(  
         {   
@@ -114,12 +118,7 @@ void CreateDisplay(Component* Window) {
     for(uint8_t y = 0; y < 6; y++) {
         for(uint8_t x = 0; x < 4; x++) {
             
-            Button_t* Btn = Button(
-                {
-                    .Onclick = [&] {
-                        AddDigit(2);
-                    }
-                },
+            Button_t* Btn = Button(OpButton,
                 { 
                     .G = { 
                             .Width = -100,
