@@ -4,7 +4,7 @@ namespace initrd{
     Info* info;
     void Parse(uintptr_t baseAddress, size64_t size){
         if(size == NULL) return;
-        info = (Info*)malloc(sizeof(Info));
+        info = (Info*)kmalloc(sizeof(Info));
         info->baseAddress = baseAddress;
         info->size = size;
         info->header = (Header*)baseAddress;

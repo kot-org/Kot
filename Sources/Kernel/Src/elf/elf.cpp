@@ -45,13 +45,13 @@ namespace ELF{
 
 
     KResult loadElf(uintptr_t buffer, enum Priviledge ring, kthread_t** selfthread){
-        elf_t* self = (elf_t*)calloc(sizeof(elf_t));
+        elf_t* self = (elf_t*)kcalloc(sizeof(elf_t));
         self->Buffer = buffer;
         self->Header = (Elf64_Ehdr*)buffer;
         
         /* Check elf */
         if(Check(self)){
-            free(self);
+            kfree(self);
             return KFAIL;
         }
         
@@ -154,19 +154,19 @@ namespace ELF{
                         HeapLocation -= HeapLocation % PAGE_SIZE;
                         HeapLocation += PAGE_SIZE;
                     }
-                    KotSpecificData_t* KotSpecificData = (KotSpecificData_t*)calloc(sizeof(KotSpecificData_t));
+                    KotSpecificData_t* KotSpecificData = (KotSpecificData_t*)kcalloc(sizeof(KotSpecificData_t));
                     KotSpecificData->MMapPageSize = PAGE_SIZE;
                     KotSpecificData->HeapLocation = HeapLocation;
                     KotSpecificData->FreeMemorySpace = (uintptr_t)FreeMemorySpaceAddress;
                     uintptr_t DataAddress = (uintptr_t)vmm_GetVirtualAddress(vmm_GetPhysical(mainthread->Paging, (uintptr_t)self->KotSpecificSymbol->st_value));
                     memcpy(DataAddress, KotSpecificData, sizeof(KotSpecificData_t));
-                    free(KotSpecificData);
+                    kfree(KotSpecificData);
                 }
             }
         }
 
         *selfthread = mainthread;
-        free(self);
+        kfree(self);
         return KSUCCESS;
     }
 

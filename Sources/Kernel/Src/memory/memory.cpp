@@ -140,8 +140,8 @@ uint64_t CreateMemoryField(kthread_t* self, kprocess_t* process, size64_t size, 
         }
         case MemoryFieldTypeSendSpaceRO:{
             pagetable_t lastPageTable = vmm_GetPageTable();
-            if(lastPageTable != pageTable) vmm_Swap(self, pageTable);
             if(CheckAddress(virtualAddress, realSize, pageTable) != KSUCCESS) return KFAIL;
+            if(lastPageTable != pageTable) vmm_Swap(self, pageTable);
             if((uint64_t)virtualAddress % PAGE_SIZE){
                 size64_t nonAlignedSize = PAGE_SIZE - ((uint64_t)virtualAddress % PAGE_SIZE);
                 if(realSize > nonAlignedSize){
@@ -153,7 +153,7 @@ uint64_t CreateMemoryField(kthread_t* self, kprocess_t* process, size64_t size, 
         }
     }
 
-    MemoryShareInfo* shareInfo = (MemoryShareInfo*)malloc(sizeof(MemoryShareInfo));
+    MemoryShareInfo* shareInfo = (MemoryShareInfo*)kmalloc(sizeof(MemoryShareInfo));
     AtomicClearLock(&shareInfo->Lock);
     shareInfo->InitialSize = size;
     shareInfo->Type = type;
@@ -162,7 +162,7 @@ uint64_t CreateMemoryField(kthread_t* self, kprocess_t* process, size64_t size, 
     shareInfo->Parent = process;
     shareInfo->PageTableParent = pageTable;
     shareInfo->VirtualAddressParent = virtualAddress;
-    shareInfo->SlavesList = new KStack(0x50);
+    shareInfo->SlavesList = KStackInitialize(0x50);
     shareInfo->SlavesNumber = NULL;
     shareInfo->Offset = offset;
     shareInfo->signature0 = 'S';
@@ -275,7 +275,7 @@ uint64_t AcceptMemoryField(kthread_t* self, kprocess_t* process, MemoryShareInfo
         }
     }
 
-    SlaveInfo_t* SlaveInfo = (SlaveInfo_t*)malloc(sizeof(SlaveInfo));
+    SlaveInfo_t* SlaveInfo = (SlaveInfo_t*)kmalloc(sizeof(SlaveInfo));
     SlaveInfo->process = process;
     SlaveInfo->virtualAddress = virtualAddress;
     shareInfo->SlavesList->push64((uint64_t)SlaveInfo);
@@ -337,7 +337,7 @@ uint64_t CloseMemoryField(kthread_t* self, kprocess_t* process, MemoryShareInfo*
     }
     
     if(IsParent){
-        free((uintptr_t)shareInfo);
+        kfree((uintptr_t)shareInfo);
     }
     AtomicRelease(&shareInfo->Lock);
     

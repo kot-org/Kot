@@ -39,14 +39,14 @@ bool Bitmap::GetAndSet(uint64_t index, bool value){
 }
 
 BitmapHeap::BitmapHeap(size64_t size){
-    bitmap = (Bitmap*)malloc(sizeof(Bitmap));
+    bitmap = (Bitmap*)kmalloc(sizeof(Bitmap));
     bitmap->Size = size;
-    bitmap->Buffer = (uint8_t*)calloc(DivideRoundUp(size, 8));
+    bitmap->Buffer = (uint8_t*)kcalloc(DivideRoundUp(size, 8));
 }
 
-void BitmapHeap::Free(){
-    free(bitmap->Buffer);
-    free(bitmap);
+void BitmapHeap::free(){
+    kfree(bitmap->Buffer);
+    kfree(bitmap);
 }
 
 bool BitmapHeap::operator[](uint64_t index){

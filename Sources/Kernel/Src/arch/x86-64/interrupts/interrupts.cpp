@@ -62,11 +62,11 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
     SetIDTGate((uintptr_t)InterruptEntryList[INT_Schedule], INT_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
     SetIDTGate((uintptr_t)InterruptEntryList[INT_DestroySelf], INT_DestroySelf, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_DestroySelf, idtr); // Interrupt gate type because interrupt should be disable before
 
-    uint64_t stackSchedulerAPIC = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+    uint64_t stackSchedulerAPIC = (uint64_t)stackalloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
     TSSSetIST(CPU::GetAPICID(), IST_SchedulerAPIC, stackSchedulerAPIC);
-    uint64_t stackScheduler = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+    uint64_t stackScheduler = (uint64_t)stackalloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
     TSSSetIST(CPU::GetAPICID(), IST_Scheduler, stackScheduler);
-    uint64_t stackDestroySelf = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+    uint64_t stackDestroySelf = (uint64_t)stackalloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
     TSSSetIST(CPU::GetAPICID(), IST_DestroySelf, stackDestroySelf);
 
     asm("lidt %0" : : "m" (idtr));   

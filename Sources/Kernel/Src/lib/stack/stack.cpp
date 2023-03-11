@@ -1,18 +1,20 @@
 #include <lib/stack/stack.h>
 
-KStack::KStack(uint64_t sector_size) {
+KStack* KStackInitialize(uint64_t sector_size) {
+    KStack* Stack = (KStack*)kmalloc(sizeof(KStack));
     if (sector_size < 24) sector_size = 24;
-    this->sector_size = sector_size + 8 + 1;
-    this->current_sector = malloc(this->sector_size); // last sector address: 8; recovery byte: 1;
-    this->top = 9;
-    *(uint64_t*)(this->current_sector) = NULL;
+    Stack->sector_size = sector_size + 8 + 1;
+    Stack->current_sector = kmalloc(Stack->sector_size); // last sector address: 8; recovery byte: 1;
+    Stack->top = 9;
+    *(uint64_t*)(Stack->current_sector) = NULL;
+    return Stack;
 }
 
 uint8_t KStack::pop8() {
     if (this->top < 9 + 1) {
         uintptr_t temp = (uintptr_t) *(uint64_t*)(current_sector);
         if (temp == NULL) { return NULL; }
-        free(current_sector);
+        kfree(current_sector);
         current_sector = temp;
         top = sector_size - *(uint8_t*)((uint64_t) current_sector + 8);
         return pop16();
@@ -26,7 +28,7 @@ uint16_t KStack::pop16() {
     if (this->top < 9 + 2) {
         uintptr_t temp = (uintptr_t) *(uint64_t*)(current_sector);
         if (temp == NULL) { return NULL; }
-        free(current_sector);
+        kfree(current_sector);
         current_sector = temp;
         top = sector_size - *(uint8_t*)((uint64_t) current_sector + 8);
         return pop16();
@@ -40,7 +42,7 @@ uint32_t KStack::pop32() {
     if (this->top < 9 + 4) {
         uintptr_t temp = (uintptr_t) *(uint64_t*)(current_sector);
         if (temp == NULL) { return NULL; }
-        free(current_sector);
+        kfree(current_sector);
         current_sector = temp;
         top = sector_size - *(uint8_t*)((uint64_t) current_sector + 8);
         return pop32();
@@ -54,7 +56,7 @@ uint64_t KStack::pop64() {
     if (this->top < 9 + 8) {
         uintptr_t temp = (uintptr_t) *(uint64_t*)(current_sector);
         if (temp == NULL) { return NULL; }
-        free(current_sector);
+        kfree(current_sector);
         current_sector = temp;
         top = sector_size - *(uint8_t*)((uint64_t) current_sector + 8);
         return pop64();
@@ -67,7 +69,7 @@ uint64_t KStack::pop64() {
 void KStack::push8(uint8_t item) {
     if (this->top + 1 > this->sector_size) {
         *(uint8_t*)((uint64_t) current_sector + 8) = sector_size - top;
-        uintptr_t temp = malloc(sector_size);
+        uintptr_t temp = kmalloc(sector_size);
         *(uint64_t*)(temp) = (uint64_t) current_sector;
         current_sector = temp;
         top = 9;
@@ -81,7 +83,7 @@ void KStack::push8(uint8_t item) {
 void KStack::push16(uint16_t item) {
     if (this->top + 2 > this->sector_size) {
         *(uint8_t*)((uint64_t) current_sector + 8) = sector_size - top;
-        uintptr_t temp = malloc(sector_size);
+        uintptr_t temp = kmalloc(sector_size);
         *(uint64_t*)(temp) = (uint64_t) current_sector;
         current_sector = temp;
         top = 9;
@@ -95,7 +97,7 @@ void KStack::push16(uint16_t item) {
 void KStack::push32(uint32_t item) {
     if (this->top + 4 > this->sector_size) {
         *(uint8_t*)((uint64_t) current_sector + 8) = sector_size - top;
-        uintptr_t temp = malloc(sector_size);
+        uintptr_t temp = kmalloc(sector_size);
         *(uint64_t*)(temp) = (uint64_t) current_sector;
         current_sector = temp;
         top = 9;
@@ -109,7 +111,7 @@ void KStack::push32(uint32_t item) {
 void KStack::push64(uint64_t item) {
     if (this->top + 8 > this->sector_size) {
         *(uint8_t*)((uint64_t) current_sector + 8) = sector_size - top;
-        uintptr_t temp = malloc(sector_size);
+        uintptr_t temp = kmalloc(sector_size);
         *(uint64_t*)(temp) = (uint64_t) current_sector;
         current_sector = temp;
         top = 9;

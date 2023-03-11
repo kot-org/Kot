@@ -48,7 +48,6 @@ SyscallEntry:
 	push qword rbp				; save rbp
 	mov rbp, [gs:0x8]			; 
 	
-	cld ; clear DF to push correctly to the stack
 
 	push qword [rbp + 0x10]    	; ss
 	push qword [gs:0x10]    	; rsp

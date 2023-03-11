@@ -2,7 +2,7 @@
 #include <heap/heap.h>
 
 Node* CreateNode(uintptr_t data){
-    Node* node = (Node*)malloc(sizeof(Node));
+    Node* node = (Node*)kmalloc(sizeof(Node));
     node->data = data;
     node->parent = node;
     node->lastNodeCreate = node;
@@ -43,7 +43,7 @@ uint64_t Node::GetSize(){
 
 Node* Node::Add(uintptr_t data){
     AtomicAquire(&lock);
-    Node* newNode = (Node*)malloc(sizeof(Node));
+    Node* newNode = (Node*)kmalloc(sizeof(Node));
     newNode->data = data;
     parent->lastNodeCreate->next = newNode;
     newNode->last = newNode;
@@ -81,7 +81,7 @@ void Node::Delete(){
     }
     AtomicRelease(&lock);
 
-    free(this);
+    kfree(this);
 }
 
 void Node::FreeAllNode(){

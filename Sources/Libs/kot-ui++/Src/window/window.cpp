@@ -74,6 +74,7 @@ namespace UiWindow {
     }
 
     void Window::Hide(){
+        UiCtx->UiStopRenderer();
         ChangeVisibilityWindow(Wid, false);
         // TODO communicate with taskbar
     }
@@ -100,6 +101,7 @@ namespace UiWindow {
     }
 
     void Window::Close(){
+        UiCtx->UiStopRenderer();
         ChangeVisibilityWindow(Wid, false);
         // TODO close the process
     }

@@ -8,7 +8,6 @@ GLOBAL boot_kernel
 boot_kernel:
     mov ebp, esp
     cli
-    cld
     
     ;long mode enable efer
     mov ecx, 0xC0000080 

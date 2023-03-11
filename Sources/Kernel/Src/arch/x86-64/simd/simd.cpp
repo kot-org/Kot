@@ -13,7 +13,7 @@ void simdInit(){
 }
 
 uintptr_t simdCreateSaveSpace(){
-    return calloc(512);
+    return kcalloc(512);
 }
 
 void simdSave(uintptr_t location){

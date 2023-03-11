@@ -122,10 +122,10 @@ KResult TaskManager::Duplicatethread(kthread_t** self, kprocess_t* proc, kthread
 
 KResult ThreadQueu_t::SetThreadInQueu(kthread_t* Caller, kthread_t* Self, arguments_t* FunctionParameters, bool IsAwaitTask, ThreadShareData_t* Data){
     if(TasksInQueu){
-        LastData->Next = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
+        LastData->Next = (ThreadQueuData_t*)kmalloc(sizeof(ThreadQueuData_t));
         LastData = LastData->Next;
     }else{
-        LastData = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
+        LastData = (ThreadQueuData_t*)kmalloc(sizeof(ThreadQueuData_t));
         CurrentData = LastData;
     }
 
@@ -139,10 +139,10 @@ KResult ThreadQueu_t::SetThreadInQueu(kthread_t* Caller, kthread_t* Self, argume
     }
 
     if(Data != NULL && Data->Size != NULL){
-        LastData->Data = (ThreadShareData_t*)malloc(sizeof(ThreadShareData_t));
+        LastData->Data = (ThreadShareData_t*)kmalloc(sizeof(ThreadShareData_t));
         LastData->Data->Size = Data->Size;
         LastData->Data->ParameterPosition = Data->ParameterPosition;
-        LastData->Data->Data = malloc(Data->Size);
+        LastData->Data->Data = kmalloc(Data->Size);
         memcpy(LastData->Data->Data, Data->Data, Data->Size);
         if(LastData->Data->ParameterPosition > 0x5){
             LastData->Data->ParameterPosition = 0x0;
@@ -166,10 +166,10 @@ KResult ThreadQueu_t::SetThreadInQueu(kthread_t* Caller, kthread_t* Self, argume
 /* Set Thread In Queu No Scheduler Unlock */
 KResult ThreadQueu_t::SetThreadInQueu_NSU(kthread_t* Caller, kthread_t* Self, arguments_t* FunctionParameters, bool IsAwaitTask, ThreadShareData_t* Data){
     if(TasksInQueu){
-        LastData->Next = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
+        LastData->Next = (ThreadQueuData_t*)kmalloc(sizeof(ThreadQueuData_t));
         LastData = LastData->Next;
     }else{
-        LastData = (ThreadQueuData_t*)malloc(sizeof(ThreadQueuData_t));
+        LastData = (ThreadQueuData_t*)kmalloc(sizeof(ThreadQueuData_t));
         CurrentData = LastData;
     }
 
@@ -185,10 +185,10 @@ KResult ThreadQueu_t::SetThreadInQueu_NSU(kthread_t* Caller, kthread_t* Self, ar
     }
 
     if(Data != NULL && Data->Size != NULL){
-        LastData->Data = (ThreadShareData_t*)malloc(sizeof(ThreadShareData_t));
+        LastData->Data = (ThreadShareData_t*)kmalloc(sizeof(ThreadShareData_t));
         LastData->Data->Size = Data->Size;
         LastData->Data->ParameterPosition = Data->ParameterPosition;
-        LastData->Data->Data = malloc(Data->Size);
+        LastData->Data->Data = kmalloc(Data->Size);
         memcpy(LastData->Data->Data, Data->Data, Data->Size);
         if(LastData->Data->ParameterPosition > 0x5){
             LastData->Data->ParameterPosition = 0x0;
@@ -211,13 +211,13 @@ KResult ThreadQueu_t::SetThreadInQueu_NSU(kthread_t* Caller, kthread_t* Self, ar
 
 KResult ThreadQueu_t::ExecuteThreadInQueu(){
     if(TasksInQueu){
-        uint64_t DataLocation = StackTop;
+        uint64_t DataLocation = CurrentData->Task->Stack->StackStart;
         if(CurrentData->Data){
             // We can use share stack space here because we already reset rsp with context
             CurrentData->Task->ShareDataUsingStackSpace(CurrentData->Data->Data, CurrentData->Data->Size, (uintptr_t*)&DataLocation);
             CurrentData->Parameters.arg[CurrentData->Data->ParameterPosition] = DataLocation;
-            free(CurrentData->Data->Data);
-            free(CurrentData->Data);
+            kfree(CurrentData->Data->Data);
+            kfree(CurrentData->Data);
         }
 
         globalTaskManager->AcquireScheduler();
@@ -243,7 +243,7 @@ KResult ThreadQueu_t::ExecuteThreadInQueu(){
 KResult ThreadQueu_t::NextThreadInQueu_WL(){
     ThreadQueuData_t* CurrentDataOld = CurrentData;
     CurrentData = CurrentData->Next;
-    free(CurrentDataOld);
+    kfree(CurrentDataOld);
     TasksInQueu--;
     return KSUCCESS;
 }
@@ -339,7 +339,7 @@ KResult TaskManager::Exit(ContextStack* Registers, kthread_t* task, uint64_t Ret
 }
 
 KResult TaskManager::CreateProcess(kprocess_t** key, enum Priviledge priviledge, uint64_t externalData){
-    kprocess_t* proc = (kprocess_t*)calloc(sizeof(kprocess_t));
+    kprocess_t* proc = (kprocess_t*)kcalloc(sizeof(kprocess_t));
 
     AtomicAquire(&CreateProcessLock);
     if(ProcessList == NULL){
@@ -391,7 +391,7 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, uint64_t externalData)
 }
 
 kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge priviledge, uint64_t externalData){
-    kthread_t* thread = (kthread_t*)calloc(sizeof(kthread_t));
+    kthread_t* thread = (kthread_t*)kcalloc(sizeof(kthread_t));
 
     AtomicAquire(&CreateThreadLocker);
     if(Childs == NULL){
@@ -403,13 +403,10 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge privil
     AtomicRelease(&CreateThreadLocker);
 
     /* Allocate context */
-    thread->Regs = (ContextStack*)calloc(sizeof(ContextStack));
+    thread->Regs = (ContextStack*)kcalloc(sizeof(ContextStack));
 
     /* Copy paging */
     thread->Paging = vmm_Setupthread(this->SharedPaging);
-
-    /* Load new stack */
-    thread->SetupStack();
 
     /* Setup priviledge */
     thread->Priviledge = priviledge;
@@ -423,12 +420,14 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge privil
     thread->SIMDSaver = simdCreateSaveSpace();
 
     /* thread info for kernel */
-    thread->Info = (threadInfo_t*)malloc(sizeof(threadInfo_t));
-    thread->Info->SyscallStack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE; 
+    thread->Info = (threadInfo_t*)kmalloc(sizeof(threadInfo_t));
     thread->Info->CS = thread->Regs->cs;
     thread->Info->SS = thread->Regs->ss;
     thread->Info->thread = thread;
     thread->Regs->threadInfo = thread->Info;
+
+    /* Load new stack */
+    thread->SetupStack();
 
     /* Other data */
     thread->CreationTime = HPET::GetTime();
@@ -437,7 +436,7 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge privil
     thread->IsBlock = true;
     thread->IsClose = true;
     thread->Parent = this;
-    thread->Queu = (ThreadQueu_t*)calloc(sizeof(ThreadQueu_t));
+    thread->Queu = (ThreadQueu_t*)kcalloc(sizeof(ThreadQueu_t));
     thread->ExternalData_T = externalData;
 
     /* Thread Data */
@@ -469,7 +468,7 @@ kthread_t* kprocess_t::Createthread(uintptr_t entryPoint, enum Priviledge privil
 }
 
 kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
-    kthread_t* thread = (kthread_t*)calloc(sizeof(kthread_t));
+    kthread_t* thread = (kthread_t*)kcalloc(sizeof(kthread_t));
 
     AtomicAquire(&CreateThreadLocker);
     if(Childs == NULL){
@@ -481,24 +480,23 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
     AtomicRelease(&CreateThreadLocker);
 
     /* Allocate context */
-    thread->Regs = (ContextStack*)calloc(sizeof(ContextStack));
+    thread->Regs = (ContextStack*)kcalloc(sizeof(ContextStack));
 
     /* Copy paging */
     thread->Paging = vmm_Setupthread(this->SharedPaging);
-
-    /* Load new stack */
-    thread->SetupStack();
 
     /* Setup SIMD */
     thread->SIMDSaver = simdCreateSaveSpace();
 
     /* thread info for kernel */
-    thread->Info = (threadInfo_t*)malloc(sizeof(threadInfo_t));
-    thread->Info->SyscallStack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE; 
+    thread->Info = (threadInfo_t*)kmalloc(sizeof(threadInfo_t));
     thread->Info->CS = source->Regs->cs;
     thread->Info->SS = source->Regs->ss;
     thread->Info->thread = thread;
     thread->EntryPoint = source->EntryPoint;
+
+    /* Load new stack */
+    thread->SetupStack();
 
     /* Setup priviledge */
     thread->Priviledge = source->Priviledge;
@@ -515,7 +513,7 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
     thread->IsBlock = true;
     thread->IsClose = true;
     thread->Parent = this;
-    thread->Queu = (ThreadQueu_t*)calloc(sizeof(ThreadQueu_t)); 
+    thread->Queu = (ThreadQueu_t*)kcalloc(sizeof(ThreadQueu_t)); 
 
     /* Thread Data */
     uintptr_t threadDataPA = Pmm_RequestPage();
@@ -547,16 +545,18 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
 void kthread_t::SetupStack(){
     uint64_t StackLocation = StackTop;
     this->Regs->rsp = StackLocation;
-    this->Stack = (StackInfo*)malloc(sizeof(StackInfo));
+    this->Stack = (StackInfo*)kmalloc(sizeof(StackInfo));
     this->Stack->StackStart = StackLocation;
     this->Stack->StackEndMax = StackBottom;
+    
+    this->KernelInternalStack = (uintptr_t)((uint64_t)stackalloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE);
+
+    this->Info->SyscallStack = (uint64_t)stackalloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
 
     /* Clear stack */
     vmm_page_table* PML4VirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uintptr_t)Paging);
     PML4VirtualAddress->entries[0xff] = NULL;
 
-    /* Setup KernelInternalStack */
-    this->KernelInternalStack = (uintptr_t)((uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE);
 }
 
 

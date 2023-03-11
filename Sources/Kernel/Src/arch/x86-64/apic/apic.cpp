@@ -52,12 +52,12 @@ namespace APIC{
             }
         }
 
-        Processor = (LocalProcessor**)malloc(sizeof(LocalProcessor) * ProcessorCount);
-        lapicAddress = (LapicAddress**)malloc(sizeof(LapicAddress) * MaxAPICID);
+        Processor = (LocalProcessor**)kmalloc(sizeof(LocalProcessor) * ProcessorCount);
+        lapicAddress = (LapicAddress**)kmalloc(sizeof(LapicAddress) * MaxAPICID);
 
-        IOapic = (IOAPIC**)malloc(sizeof(IOAPIC) * IOAPICCount);
+        IOapic = (IOAPIC**)kmalloc(sizeof(IOAPIC) * IOAPICCount);
 
-        Iso = (InterruptSourceOverride**)malloc(sizeof(InterruptSourceOverride) * IsoCount);
+        Iso = (InterruptSourceOverride**)kmalloc(sizeof(InterruptSourceOverride) * IsoCount);
 
         uint8_t ProcessorCountTmp = 0;
         uint64_t IsoCountTmp = 0;
@@ -71,7 +71,7 @@ namespace APIC{
                 case EntryTypeLocalProcessor: {
                     LocalProcessor* processor = (LocalProcessor*)entryRecord;
                     Processor[ProcessorCountTmp] = processor;  
-                    lapicAddress[processor->APICID] = (LapicAddress*)malloc(sizeof(LapicAddress));
+                    lapicAddress[processor->APICID] = (LapicAddress*)kmalloc(sizeof(LapicAddress));
                     ProcessorCountTmp++;
                     break;
                 }
@@ -190,9 +190,9 @@ namespace APIC{
 
             Data->Paging = (uint64_t)vmm_PageTable;
             Data->MainEntry = (uint64_t)&TrampolineMain; 
-            Data->Stack = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+            Data->Stack = (uint64_t)stackalloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
             DataTrampoline.Stack = Data->Stack;
-            DataTrampoline.StackScheduler = (uint64_t)malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+            DataTrampoline.StackScheduler = (uint64_t)stackalloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
 
             lapicSendInitIPI(Processor[i]->APICID);
 

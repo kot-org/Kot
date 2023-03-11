@@ -590,6 +590,7 @@ inode_t* mount_info_t::FindInodeInodeAndEntryFromName(inode_t* inode, char* name
                 if(strncmp(Directory->name, name, Directory->name_length)){
                     uint32_t inode = Directory->inode;
                     free(DirectoryMain);
+                    std::printf("%s %x", name, GetInode(inode));
                     return GetInode(inode);
                 }
             }

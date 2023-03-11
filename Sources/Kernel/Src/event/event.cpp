@@ -8,7 +8,7 @@ namespace Event{
 
         switch (Type){
             case EventTypeIRQLines: {
-                IRQLinekevent_t* event = (IRQLinekevent_t*)malloc(sizeof(IRQLinekevent_t));
+                IRQLinekevent_t* event = (IRQLinekevent_t*)kmalloc(sizeof(IRQLinekevent_t));
                 self = &event->Header;
                 event->IRQLine = (uint8_t)AdditionnalData;
                 event->IsEnable = false;
@@ -16,14 +16,14 @@ namespace Event{
                 break;
             }                
             case EventTypeIRQ: {
-                IRQkevent_t* event = (IRQkevent_t*)malloc(sizeof(IRQkevent_t));
+                IRQkevent_t* event = (IRQkevent_t*)kmalloc(sizeof(IRQkevent_t));
                 self = &event->header;
                 event->IRQ = (uint8_t)AdditionnalData;
                 self->Parameters.arg[0] = AdditionnalData;
                 break;                
             }
             case EventTypeIPC: {
-                IPCkevent_t* event = (IPCkevent_t*)malloc(sizeof(IPCkevent_t));
+                IPCkevent_t* event = (IPCkevent_t*)kmalloc(sizeof(IPCkevent_t));
                 self = &event->header;
                 event->master = (kthread_t*)AdditionnalData;
                 self->Parameters.arg[0] = NULL;
@@ -59,17 +59,17 @@ namespace Event{
         }
         
         self->NumTask++;
-        self->Tasks = (kevent_tasks_t**)realloc(self->Tasks, self->NumTask * sizeof(kevent_tasks_t*));
+        self->Tasks = (kevent_tasks_t**)krealloc(self->Tasks, self->NumTask * sizeof(kevent_tasks_t*));
 
-        kevent_tasks_t* TasksEvent = (kevent_tasks_t*)calloc(sizeof(kevent_tasks_t));
+        kevent_tasks_t* TasksEvent = (kevent_tasks_t*)kcalloc(sizeof(kevent_tasks_t));
         TasksEvent->thread = task;
         TasksEvent->Event = self;
 
         if(!task->IsEvent){
-            task->EventDataNode = (event_data_node_t*)calloc(sizeof(event_data_node_t));
+            task->EventDataNode = (event_data_node_t*)kcalloc(sizeof(event_data_node_t));
             task->EventDataNode->Event = self;
-            task->EventDataNode->LastData = (event_data_t*)malloc(sizeof(event_data_t));
-            task->EventDataNode->LastData->Next = (event_data_t*)malloc(sizeof(event_data_t));
+            task->EventDataNode->LastData = (event_data_t*)kmalloc(sizeof(event_data_t));
+            task->EventDataNode->LastData->Next = (event_data_t*)kmalloc(sizeof(event_data_t));
             task->EventDataNode->CurrentData = task->EventDataNode->LastData;
         }
         TasksEvent->DataNode = task->EventDataNode;
@@ -91,7 +91,7 @@ namespace Event{
         self->NumTask--;
         for(size64_t i = 0; i < self->NumTask; i++){
             if(self->Tasks[i]->thread == task){
-                uintptr_t newPos = malloc(self->NumTask * sizeof(kevent_tasks_t));
+                uintptr_t newPos = kmalloc(self->NumTask * sizeof(kevent_tasks_t));
                 memcpy(newPos, self->Tasks[i], sizeof(kevent_tasks_t) * i);
                 i++;
                 memcpy((uintptr_t)((uint64_t)newPos + sizeof(kevent_tasks_t) * (i - 1)), (uintptr_t)((uint64_t)self->Tasks[i] + sizeof(kevent_tasks_t) * i), sizeof(kevent_tasks_t) * i);
@@ -121,7 +121,7 @@ namespace Event{
             }else{
                 if(!task->IgnoreMissedEvents){
                     task->DataNode->LastData = task->DataNode->LastData->Next;
-                    task->DataNode->LastData->Next = (event_data_t*)malloc(sizeof(event_data_t));
+                    task->DataNode->LastData->Next = (event_data_t*)kmalloc(sizeof(event_data_t));
                     task->DataNode->LastData->Task = task;
                     if(parameters != NULL){
                         memcpy(&task->DataNode->LastData->Parameters, parameters, sizeof(arguments_t));
@@ -172,7 +172,7 @@ namespace Event{
             ForceSelfDestruction();
         }else if(Thread->EventDataNode->NumberOfMissedEvents){
             event_data_t* Next = Thread->EventDataNode->CurrentData->Next;
-            free(Thread->EventDataNode->CurrentData);
+            kfree(Thread->EventDataNode->CurrentData);
             Thread->EventDataNode->CurrentData = Next;
             Thread->EventDataNode->NumberOfMissedEvents--;
             globalTaskManager->AcquireScheduler();

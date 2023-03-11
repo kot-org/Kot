@@ -26,7 +26,7 @@ namespace CPU{
     }
 
     void InitCore(){
-        CPUContext* context = (CPUContext*)calloc(sizeof(CPUContext));
+        CPUContext* context = (CPUContext*)kcalloc(sizeof(CPUContext));
         GetFeatures(context->FeaturesECX, context->FeaturesEDX);
         context->ID = GetAPICID();
         ReloadGSFS();

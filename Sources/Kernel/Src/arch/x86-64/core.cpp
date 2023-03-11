@@ -53,10 +53,10 @@ ArchInfo_t* arch_initialize(ukl_boot_structure_t* BootData){
     uint64_t LastAddressUsed = vmm_Init(BootData);
     Successful("VMM initialized");
     
-    InitializeHeap((uintptr_t)LastAddressUsed, 0x10);
+    InitializeHeap((uintptr_t)LastAddressUsed, (uintptr_t)0xFFFFFFFFFFFFF000, 0x10);
     Successful("Heap initialized");
 
-    ArchInfo_t* ArchInfo = (ArchInfo_t*)malloc(sizeof(ArchInfo_t));
+    ArchInfo_t* ArchInfo = (ArchInfo_t*)kmalloc(sizeof(ArchInfo_t));
     CPU::InitCPU(ArchInfo);
     CPU::InitCore();
 
@@ -70,7 +70,7 @@ ArchInfo_t* arch_initialize(ukl_boot_structure_t* BootData){
     Successful("SIMD initialized");
     
 
-    globalTaskManager = (TaskManager*)calloc(sizeof(TaskManager));
+    globalTaskManager = (TaskManager*)kcalloc(sizeof(TaskManager));
     globalTaskManager->InitScheduler(APIC::ProcessorCount, (uintptr_t)&IdleTask);
 
 
@@ -102,7 +102,7 @@ ArchInfo_t* arch_initialize(ukl_boot_structure_t* BootData){
 
 KResult GetDataToStartService(ArchInfo_t* ArchInfo, kthread_t* thread, arguments_t* Parameters, uintptr_t* Data, size64_t* Size){
     KResult Status = KFAIL;
-    ArchInfo = (ArchInfo_t*)realloc(ArchInfo, sizeof(ArchInfo_t) + ArchInfo->IRQSize * sizeof(event_t));
+    ArchInfo = (ArchInfo_t*)krealloc(ArchInfo, sizeof(ArchInfo_t) + ArchInfo->IRQSize * sizeof(event_t));
     for(uint64_t i = 0; i < ArchInfo->IRQSize; i++){
         if(InterruptEventList[i] != NULL){
             Keyhole_Create((key_t*)&ArchInfo->IRQEvents[i], thread->Parent, thread->Parent, DataTypeEvent, (uint64_t)InterruptEventList[i], KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeApp);

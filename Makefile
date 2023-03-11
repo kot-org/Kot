@@ -7,7 +7,7 @@ QEMUFLAGS =	-no-reboot 														\
 			-cpu qemu64 													\
 			-smp 8 															\
 			-cdrom ./Bin/kot.iso											\
-			-drive file=./Build/kot.img										\
+			-drive file=./Bin/kot.img										\
 			-m 3G															\
 			-netdev user,id=net0											\
 			-device e1000,netdev=net0,romfile=Bin/Firmwares/efi-e1000.rom	\
@@ -33,14 +33,14 @@ deps-llvm:
 
 deps-debian: deps-llvm
 	sudo apt update
-	sudo apt install nasm xorriso mtools grub-common grub-efi-amd64 grub-pc-bin build-essential qemu-system-x86 ovmf  -y
+	sudo apt install kpartx nasm xorriso mtools grub-common grub-efi-amd64 grub-pc-bin build-essential qemu-system-x86 ovmf  -y
 
 clean:
 	sudo rm -rf ./Bin ./Sysroot ./Sources/*/*/*/*/*/Lib ./Sources/*/*/*/*/Lib ./Sources/*/*/*/Lib ./Sources/*/*/Lib ./Sources/*/Lib
 
 deps-github-action: deps-llvm
 	sudo apt update
-	sudo apt install nasm xorriso mtools
+	sudo apt install kpartx nasm xorriso mtools
 
 github-action: deps-github-action build
 

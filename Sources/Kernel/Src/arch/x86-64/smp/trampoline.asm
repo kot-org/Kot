@@ -10,7 +10,6 @@ GLOBAL Trampoline
 
 Trampoline: 
     cli
-    cld
         
     mov	byte [Target(DataTrampoline.Status)], 1
     

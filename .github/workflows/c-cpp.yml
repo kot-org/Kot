@@ -22,4 +22,6 @@ jobs:
           automatic_release_tag: "nightly"
           prerelease: true
           title: "Nightly Build"
-          files: "Bin/kot.iso"
+          files: |
+            Bin/kot.iso
+            Bin/kot.img

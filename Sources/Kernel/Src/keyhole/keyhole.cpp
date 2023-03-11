@@ -10,7 +10,7 @@ KResult Keyhole_Create(key_t* key, kprocess_t* parent, kprocess_t* target, enum 
     
     parent->LockIndex++;
     // alloc lock
-    lock_t* Lock = (lock_t*)malloc(sizeof(lock_t));
+    lock_t* Lock = (lock_t*)kmalloc(sizeof(lock_t));
     // add reference to the parent
     uint64_t Address = (parent->LockIndex * sizeof(uint64_t)) + (uint64_t)parent->Locks;
     uint64_t Page = Address - (Address % PAGE_SIZE);

@@ -4,6 +4,10 @@ SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd $SCRIPTPATH
 cd "../"
 
+echo -e "\e[32mCreating disk...\e[0m"
+mkdir -m 777 -p "Disk"
+git clone "https://github.com/kot-org/Disk"
+
 echo -e "\e[32mCreating compilation dirs...\e[0m"
 
 mkdir -m 777 -p "Sysroot/Include/kot/"
