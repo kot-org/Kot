@@ -320,7 +320,7 @@ KResult VFSFileRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext*
 KResult VFSFileOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t PermissionsContext, permissions_t Permissions, char* Path, process_t Target){
     partition_t* Partition;
     char* RelativePath;
-
+    
     KResult Status = GetVFSAccessData(&RelativePath, &Partition, Context, Path);
     if(Status != KSUCCESS){
         return Status; 

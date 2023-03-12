@@ -37,7 +37,7 @@ KResult InitialiseSrv(){
     SrvData->VFSLoginApp = MakeShareableThread(VFSLoginAppThread, PriviledgeDriver);
     
     uisd_callbackInfo_t* info = CreateControllerUISD(ControllerTypeEnum_Storage, key, true);   
-    free(info); 
+    free(info);
 
     return KSUCCESS;
 }

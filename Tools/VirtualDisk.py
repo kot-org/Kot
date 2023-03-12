@@ -42,6 +42,7 @@ with open(json_path) as f:
 for element in data:
     source_path = element['source']
     destination_path = "/mnt/kot-partition/" + element['destination']
+    print("Copy " + element['source'] + " to " + element['destination'])
     if element['destination'] != "":
         subprocess.call(["sudo", "mkdir", "-m", "777", "-p", os.path.dirname(destination_path)])
     if source_path != "":

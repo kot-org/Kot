@@ -67,6 +67,12 @@ namespace Event{
 
         if(!task->IsEvent){
             task->EventDataNode = (event_data_node_t*)kcalloc(sizeof(event_data_node_t));
+            if(self->Type == EventTypeIRQLines){
+                IRQLinekevent_t* event = (IRQLinekevent_t*)self;
+                if(event->IRQLine == 12){
+                    Message("%x", task->EventDataNode);
+                }
+            }
             task->EventDataNode->Event = self;
             task->EventDataNode->LastData = (event_data_t*)kmalloc(sizeof(event_data_t));
             task->EventDataNode->LastData->Next = (event_data_t*)kmalloc(sizeof(event_data_t));

@@ -6,10 +6,14 @@
 #include <kot/utils.h>
 #include <kot/utils/vector.h>
 
+#include <kot++/json.h>
 #include <kot++/printf.h>
 
 #include <srv/srv.h>
 #include <vfs/vfs.h>
+#include <system/system.h>
+
+using namespace std;
 
 #define LBA_SIZE 0x200
 

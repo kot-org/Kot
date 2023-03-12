@@ -136,6 +136,7 @@ KResult MountPartition(uint64_t PartitonID){
             Partition->StaticVolumeMountPoint = Partition->Index;
             Partition->IsMount = true;
             Status = KSUCCESS;
+            ExecuteSystemAction(PartitonID);
         }
     }
     atomicUnlock(&PartitionLock, 0);
