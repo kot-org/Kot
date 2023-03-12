@@ -32,6 +32,8 @@ mount_info_t* InitializeMount(srv_storage_device_t* StorageDevice){
     MountInfo->BlockSize = EXT_LEFT_VALUE_TO_SHIFT_LEFT << MountInfo->SuperBlock->log_block_size;
     MountInfo->FirstBlock = (EXT_SUPERBLOCK_SIZE / MountInfo->BlockSize) + 1;
 
+    MountInfo->ReadGroupDescriptors();
+
     return MountInfo;
 }
 
@@ -50,6 +52,15 @@ KResult mount_info_t::ReadSuperBlock(){
 
 KResult mount_info_t::WriteSuperBlock(){
     return Srv_WriteDevice(StorageDevice, SuperBlock, EXT_SUPERBLOCK_START, sizeof(super_block_t));
+}
+
+KResult mount_info_t::ReadGroupDescriptors(){
+    uint64_t i = (SuperBlock->blocks_count / SuperBlock->blocks_per_group) + ((SuperBlock->blocks_count % SuperBlock->blocks_per_group) ? 1 : 0);
+	uint64_t j = (SuperBlock->inodes_count / SuperBlock->inodes_per_group) + ((SuperBlock->inodes_count % SuperBlock->inodes_per_group) ? 1 : 0);
+	GroupsCount = (i > j) ? i : j;
+    GroupDescriptors = malloc(sizeof(ext2_group_descriptor_t) * GroupsCount);
+    uint64_t DescriptorGroupOffset = GetLocationFromBlock(FirstBlock);
+    return Srv_ReadDevice(StorageDevice, GroupDescriptors, DescriptorGroupOffset, sizeof(ext2_group_descriptor_t) * GroupsCount);
 }
 
 uint64_t mount_info_t::GetLocationFromBlock(uint64_t block){
@@ -103,7 +114,6 @@ inode_t* mount_info_t::GetInode(uint64_t position){
     Inode->InodeLocation = LocationOfInode;
 
     Srv_ReadDevice(StorageDevice, &Inode->Inode, LocationOfInode, InodeSize);
-    free(DescriptorGroup);
     return Inode;
 }
 
@@ -155,12 +165,7 @@ uint64_t mount_info_t::GetDirectoryIndicatorFromInode(inode_t* inode){
 
 /* Descriptor functions */
 ext2_group_descriptor_t* mount_info_t::GetDescriptorFromGroup(uint64_t group){
-    ext2_group_descriptor_t* DescriptorGroup = (ext2_group_descriptor_t*)malloc(sizeof(ext2_group_descriptor_t));
-    uint64_t DescriptorGroupBlock = GetBlockGroupStartBlock(group) + FirstBlock;
-    uint64_t DescriptorGroupOffset = GetLocationFromBlock(DescriptorGroupBlock);
-
-    Srv_ReadDevice(StorageDevice, DescriptorGroup, DescriptorGroupOffset, sizeof(ext2_group_descriptor_t));
-    return DescriptorGroup;
+    return (ext2_group_descriptor_t*)((uint64_t)GroupDescriptors + sizeof(ext2_group_descriptor_t) * group);
 }
 
 ext2_group_descriptor_t* mount_info_t::GetDescriptorFromBlock(uint64_t block){
@@ -590,7 +595,6 @@ inode_t* mount_info_t::FindInodeInodeAndEntryFromName(inode_t* inode, char* name
                 if(strncmp(Directory->name, name, Directory->name_length)){
                     uint32_t inode = Directory->inode;
                     free(DirectoryMain);
-                    std::printf("%s %x", name, GetInode(inode));
                     return GetInode(inode);
                 }
             }
@@ -757,7 +761,6 @@ KResult mount_info_t::AllocateBlock(uint64_t* block){
                         WriteSuperBlock();
 
                         *block = GetBlockGroupStartBlock(i) + Position;
-                        free(Descriptor);
                         free(BlockBitmap);
                         atomicUnlock(&Lock, 1);
                         return KSUCCESS;
@@ -765,7 +768,6 @@ KResult mount_info_t::AllocateBlock(uint64_t* block){
                 }
             }
         }
-        free(Descriptor);
     }
     atomicUnlock(&Lock, 1);
     free(BlockBitmap);
@@ -800,14 +802,12 @@ KResult mount_info_t::FreeBlock(uint64_t block){
         SuperBlock->free_blocks_count++;
         WriteSuperBlock();
 
-        free(Descriptor);
         free(BitmapBuffer);
 
         atomicUnlock(&Lock, 1);
         return KSUCCESS;
     }
     atomicUnlock(&Lock, 1);
-    free(Descriptor);
     free(BitmapBuffer);
 
     return KFAIL;
@@ -854,14 +854,12 @@ KResult mount_info_t::AllocateInode(uint64_t* inode){
                         WriteSuperBlock();
 
                         *inode = GetBlockGroupStartBlock(i) + z;
-                        free(Descriptor);
                         free(BlockBitmap);
                         return KSUCCESS;
                     }
                 }
             }
         }
-        free(Descriptor);
     }
     free(BlockBitmap);
     return KFAIL;
@@ -894,12 +892,10 @@ KResult mount_info_t::FreeInode(uint64_t inode){
         SuperBlock->free_inodes_count++;
         WriteSuperBlock();
 
-        free(Descriptor);
         free(BitmapBuffer);
 
         return KSUCCESS;
     }
-    free(Descriptor);
     free(BitmapBuffer);
 
     return KFAIL;

@@ -100,6 +100,8 @@ struct ext2_group_descriptor_t{  	/* block group which contain blocks*/
 	uint16_t free_blocks_count; /* 16bits of number of unallocated blocks in group. */
 	uint16_t free_inodes_count; /* 16bits of number of unallocated inodes in group */
 	uint16_t used_dirs_count;	/* 16bits of number of directories in group */
+    uint16_t padding;
+    uint32_t reserved[3];
 }__attribute__((packed));
 
 struct ext2_inode_t{
@@ -242,6 +244,9 @@ struct mount_info_t{
 	uint64_t InodeSize;
 	uint64_t FirstInode;
 
+    uint64_t GroupsCount;
+    uintptr_t GroupDescriptors;
+
     uint64_t Lock;
 
     /* Posix info */
@@ -254,6 +259,8 @@ struct mount_info_t{
 
     KResult ReadSuperBlock();
     KResult WriteSuperBlock();
+
+    KResult ReadGroupDescriptors();
 
 	uint64_t GetLocationFromBlock(uint64_t block);
 	uint64_t GetBlockFromLocation(uint64_t location);
