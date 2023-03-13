@@ -195,6 +195,8 @@ KResult rename(char* OldName, char* NewName);
 KResult mkdir(char* Path, mode_t Mode);
 KResult rmdir(char* Path);
 
+char* dirname(char* path);
+
 #if defined(__cplusplus)
 }
 #endif

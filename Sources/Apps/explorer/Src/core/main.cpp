@@ -86,7 +86,7 @@ void LoadFiles(char* Path){
 }
 
 extern "C" int main() {
-    ExplorerWindow = new UiWindow::Window("File explorer", "explorer.tga", 600, 600, 600, 10);
+    ExplorerWindow = new UiWindow::Window("File explorer", "d0:explorer.tga", 600, 600, 600, 10);
     IsRoot = true;
     LoadFiles("d1:");
 

@@ -14,6 +14,7 @@ int strcmp(char* a, char* b);
 int strncmp(char* a, char* b, size64_t len);
 void strcpy(char* to, char* from);
 char* strcat(char* dst, char* src);
+char* strrchr(const char* s, int c);
 int strtol(const char* str, char** endptr, int8_t basenumber);
 char** strsplit(char* str, const char* delimiters, uint64_t* count);
 void freeSplit(char** splitData);

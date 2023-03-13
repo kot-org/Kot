@@ -302,7 +302,7 @@ namespace Ui {
     typedef struct {
         ComponentGeneralStyle G;
         char* Text = NULL;
-        char* FontPath = "default-font.sfn";
+        char* FontPath = "d0:default-font.sfn";
         uintptr_t FontBuffer = 0;
         int16_t FontSize = 8;
         color_t ForegroundColor = 0;

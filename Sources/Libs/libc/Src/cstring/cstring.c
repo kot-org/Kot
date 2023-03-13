@@ -52,6 +52,19 @@ char* strcat(char* dst, char* src){
     return dst;
 }
 
+char* strrchr(const char* s, int c){
+    while(*s != '\0'){
+        if(*s == c){
+            return (char*)s;
+        }
+        s++;
+    }
+    if(*s == c){
+        return (char*)s;
+    }
+    return NULL;
+}
+
 int strtol(const char* str, char** endptr, int8_t basenumber) {
     int result = 0;
     int8_t sign = 1;

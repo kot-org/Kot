@@ -13,7 +13,7 @@
 
 namespace ELF {
     
-    KResult loadElf(uintptr_t buffer, enum Priviledge ring, uint64_t identifier, thread_t* mainthread, bool isVFS);
+    KResult loadElf(uintptr_t buffer, enum Priviledge ring, uint64_t identifier, thread_t* mainthread, char* rootpath, bool isVFS);
     bool Check(struct elf_t* self);
 
     struct elf_t {

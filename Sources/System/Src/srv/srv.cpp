@@ -106,10 +106,10 @@ KResult LoadExecutable(thread_t Callback, uint64_t CallbackArg, process_t Proces
 
             uintptr_t BufferExecutable = malloc(ExecutableFileSize);
             fread(BufferExecutable, ExecutableFileSize, 1, ExecutableFile);
-            Status = ELF::loadElf(BufferExecutable, (enum Priviledge)Priviledge, NULL, &Thread, true);
+            Status = ELF::loadElf(BufferExecutable, (enum Priviledge)Priviledge, NULL, &Thread, dirname(Path), true);
             free(BufferExecutable);
+            ThreadOutput = MakeShareableThreadToProcess(Thread, Process);
         }
-        ThreadOutput = MakeShareableThreadToProcess(Thread, Process);
     }
 
 

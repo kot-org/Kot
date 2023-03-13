@@ -88,6 +88,9 @@ KResult GetVFSAbsolutePath(char** AbsolutePath, partition_t** Partition, char* P
     if(RelativePathStart == -1){
         free(Sb);
         return KFAIL;
+    }else if(RelativePathStart == 0){
+        free(Sb);
+        return KFAIL;
     }else{
         char* AccessTypeBuffer = Sb->substr(0, 1);
         char* VolumeBuffer = Sb->substr(1, RelativePathStart);
@@ -137,6 +140,9 @@ KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFS
         PartitionContext = Context->Partition;
         Sb->append(Context->Path, 0);
         *RelativePath = Sb->toString();
+    }else if(RelativePathStart == 0){
+        free(Sb);
+        return KFAIL;
     }else{
         char* AccessTypeBuffer = Sb->substr(0, 1);
         char* VolumeBuffer = Sb->substr(1, RelativePathStart);
@@ -223,16 +229,18 @@ KResult VFSLoginApp(thread_t Callback, uint64_t CallbackArg, process_t Process, 
     Context->Authorization = Authorization;
     Context->Permissions = Permissions;
     Context->PathLength = NULL;
-    GetVFSAbsolutePath(&Context->Path, &Context->Partition, Path);
-    Context->PathLength = strlen(Context->Path);
-    Context->StaticVolumeMountPoint = Context->Partition->StaticVolumeMountPoint;
-    Context->DynamicVolumeMountPoint = Context->Partition->DynamicVolumeMountPoint;
+    thread_t VFSClientShareableDispatcherThread = NULL;
+    if(GetVFSAbsolutePath(&Context->Path, &Context->Partition, Path) == KSUCCESS){
+        Context->PathLength = strlen(Context->Path);
+        Context->StaticVolumeMountPoint = Context->Partition->StaticVolumeMountPoint;
+        Context->DynamicVolumeMountPoint = Context->Partition->DynamicVolumeMountPoint;
 
 
-    /* VFSClientDispatcher */
-    thread_t VFSClientDispatcherThread = NULL;
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&VFSClientDispatcher, PriviledgeApp, (uint64_t)Context, &VFSClientDispatcherThread);
-    thread_t VFSClientShareableDispatcherThread = MakeShareableThreadToProcess(VFSClientDispatcherThread, Process);
+        /* VFSClientDispatcher */
+        thread_t VFSClientDispatcherThread = NULL;
+        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&VFSClientDispatcher, PriviledgeApp, (uint64_t)Context, &VFSClientDispatcherThread);
+        VFSClientShareableDispatcherThread = MakeShareableThreadToProcess(VFSClientDispatcherThread, Process);
+    }
     
     arguments_t arguments{
         .arg[0] = Status,                               /* Status */

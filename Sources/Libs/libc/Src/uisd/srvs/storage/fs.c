@@ -347,3 +347,23 @@ KResult rmdir(char* Path){
     free(CallbackDir);
     return Status;
 }
+
+char* dirname(char* path){
+    int len = strlen(path);
+    char *slash = path + len - 1;
+
+    while (slash > path && *slash == '/') {
+        slash--;
+    }
+    while (slash > path && *slash != '/') {
+        slash--;
+    }
+    if (slash == path && *slash != '/') {
+        return ".";
+    } else if (slash == path) {
+        return "/";
+    } else {
+        *slash = '\0';
+        return path;
+    }
+}

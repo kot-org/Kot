@@ -81,7 +81,7 @@ extern "C" int main(KernelInfo* kernelInfo) {
                                 }
                             }
                         }
-                        ELF::loadElf(bufferServiceFile, (enum Priviledge)servicePriledge, NULL, &thread, IsVFS);
+                        ELF::loadElf(bufferServiceFile, (enum Priviledge)servicePriledge, NULL, &thread, "d0:", IsVFS);
                         free(bufferServiceFile);
 
                         size_t filenamelen = strlen(file->Get());
