@@ -32,11 +32,57 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
 
             JsonParser* Parser = new JsonParser(BufferSystemDataFile);
 
+
             if(Parser->getCode() == JSON_SUCCESS && Parser->getValue()->getType() == JSON_ARRAY){
-                Printlog("Hey");
+                JsonArray* Array = (JsonArray*) Parser->getValue();
+
+                arguments_t* InitParameters = (arguments_t*)calloc(sizeof(arguments_t));
+
+                for(uint64_t i = 0; i < Array->length(); i++){
+                    JsonObject* Service = (JsonObject*) Array->Get(i);
+                    JsonString* File = (JsonString*) Service->Get("file");
+                    JsonNumber* Priviledge = (JsonNumber*) Service->Get("priviledge"); // default: 3
+                    
+                    if (File->getType() == JSON_STRING) {
+                        if(strcmp(File->Get(), "")) continue;
+                        int32_t ServicePriledge = 3;
+                        if(Priviledge != NULL){
+                            if(Priviledge->getType() == JSON_NUMBER){ 
+                                if(Priviledge->Get() >= 1 && Priviledge->Get() <= 3){
+                                    ServicePriledge = Priviledge->Get();
+                                }
+                            }
+                        }
+
+                        StringBuilder* ServicePathBuilder = new StringBuilder("d");
+                        ServicePathBuilder->append(DiskNumberBuffer);
+                        ServicePathBuilder->append(":");
+                        ServicePathBuilder->append(File->Get());
+                        char* FilePath = ServicePathBuilder->toString();
+                        delete ServicePathBuilder;
+
+                        srv_system_callback_t* Callback = Srv_System_LoadExecutable(Priviledge->Get(), FilePath, true);
+                        
+                        size_t Filenamelen = strlen(FilePath);
+                        char** CharArray = (char**)malloc((sizeof(char*) * 0x1) + (sizeof(char) * Filenamelen));
+                        CharArray[0] = (char*)&CharArray[1];
+                        memcpy(CharArray[0], FilePath, Filenamelen);
+
+                        InitParameters->arg[0] = 1;
+                        ShareDataWithArguments_t Data{
+                            .Data = &CharArray,
+                            .Size = (sizeof(char*) * 0x1) + (sizeof(char) * Filenamelen),
+                            .ParameterPosition = 0x1,
+                        };
+                        Sys_ExecThread((thread_t)Callback->Data, InitParameters, ExecutionTypeQueu, &Data);
+                        free(Callback);
+                    }
+                }
+                free(InitParameters);
                 Status = KSUCCESS;
             }
             delete Parser;
+            free(SystemDataFile);
             free(BufferSystemDataFile);
         }
         free(SystemDataPath);

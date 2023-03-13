@@ -2,11 +2,13 @@
 
 thread_t srv_system_callback_thread = NULL;
 uisd_system_t* SystemData = NULL;
+process_t ShareableProcessUISDSystem;
 
 void Srv_System_Initialize(){
     SystemData = (uisd_system_t*)FindControllerUISD(ControllerTypeEnum_System);
     if(SystemData != NULL){
         process_t Proc = Sys_GetProcess();
+        ShareableProcessUISDSystem = ShareProcessKey(Proc);
 
         thread_t SystemthreadKeyCallback = NULL;
         Sys_CreateThread(Proc, &Srv_System_Callback, PriviledgeMax, NULL, &SystemthreadKeyCallback);
@@ -22,6 +24,50 @@ void Srv_System_Callback(KResult Status, struct srv_system_callback_t* Callback,
         Sys_Unpause(Callback->Self);
     }
     Sys_Close(KSUCCESS);
+}
+
+/* LoadExecutable */
+KResult Srv_System_LoadExecutable_Callback(KResult Status, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    if(Status == KSUCCESS){
+        Callback->Data = GP0;
+        Callback->Size = (size64_t)sizeof(thread_t);
+    }
+    return Status;
+}
+
+struct srv_system_callback_t* Srv_System_LoadExecutable(uint64_t Priviledge, char* Path, bool IsAwait){
+    if(!srv_system_callback_thread) Srv_System_Initialize();
+    
+    thread_t self = Sys_Getthread();
+
+    struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_System_LoadExecutable_Callback;
+
+    struct arguments_t parameters;
+    parameters.arg[0] = srv_system_callback_thread;
+    parameters.arg[1] = callback;
+    parameters.arg[2] = ShareableProcessUISDSystem;
+    parameters.arg[3] = Priviledge;
+
+    struct ShareDataWithArguments_t data;
+
+    if(Path != NULL){
+        data.Data = Path;
+        data.Size = strlen(Path) + 1; // add '\0' char
+        data.ParameterPosition = 0x4; 
+    }
+    
+
+    KResult Status = Sys_ExecThread(SystemData->LoadExecutable, &parameters, ExecutionTypeQueu, &data);
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
 }
 
 /* GetFrameBufer */

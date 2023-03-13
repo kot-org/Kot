@@ -6,6 +6,7 @@
 
 void InitializeSrv(struct KernelInfo* kernelInfo);
 
+KResult LoadExecutable(thread_t Callback, uint64_t CallbackArg, process_t Process, uint64_t Priviledge, char* Path);
 KResult GetFramebuffer(thread_t Callback, uint64_t CallbackArg);
 KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name);
 KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg, char* Name);

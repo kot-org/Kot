@@ -4,7 +4,39 @@
       "destination": ""
   },
   {
-      "source": "../Bin/Modules/Orb.elf",
-      "destination": "Bin/Orb/Orb.elf"
+      "source": "../Sources/Modules/Drivers/graphics/orb/Bin/Orb.elf",
+      "destination": "Programs/Drivers/Orb/Orb.elf"
+  },
+  {
+      "source": "../Sources/Modules/Drivers/sound/pcspk/Bin/Pcspk.elf",
+      "destination": "Programs/Drivers/Pcspk/Pcspk.elf"
+  },
+  {
+      "source": "../Sources/Modules/Drivers/bus/ps2/Bin/Ps2.elf",
+      "destination": "Programs/Drivers/Ps2/Ps2.elf"
+  },
+  {
+      "source": "../Sources/Modules/Drivers/net/e1000/Bin/E1000.elf",
+      "destination": "Programs/Drivers/E1000/E1000.elf"
+  },
+  {
+      "source": "../Sources/Modules/Services/hid/Bin/Hid.elf",
+      "destination": "Programs/Services/Hid/Hid.elf"
+  },
+  {
+      "source": "../Sources/Modules/Services/desktop/Bin/Desktop.elf",
+      "destination": "Programs/Services/Desktop/Desktop.elf"
+  },
+  {
+      "source": "../Sources/Modules/Services/shell/Bin/Shell.elf",
+      "destination": "Programs/Services/Shell/Shell.elf"
+  },
+  {
+      "source": "../Sources/Apps/calculator/Bin/Calculator.elf",
+      "destination": "Programs/Apps/Calculator/Calculator.elf"
+  },
+  {
+      "source": "../Sources/Apps/explorer/Bin/Explorer.elf",
+      "destination": "Programs/Apps/Explorer/Explorer.elf"
   }
 ]

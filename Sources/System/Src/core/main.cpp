@@ -92,7 +92,7 @@ extern "C" int main(KernelInfo* kernelInfo) {
                         InitParameters->arg[0] = 1;
                         ShareDataWithArguments_t Data{
                             .Data = &CharArray,
-                            .Size = sizeof(char*),
+                            .Size = (sizeof(char*) * 0x1) + (sizeof(char) * filenamelen),
                             .ParameterPosition = 0x1,
                         };
                         Sys_ExecThread(thread, InitParameters, ExecutionTypeQueu, &Data);

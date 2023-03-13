@@ -16,6 +16,11 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
 
     /* Setup threads */
 
+    /* LoadExecutable */
+    thread_t LoadExecutableThread = NULL;
+    Sys_CreateThread(proc, (uintptr_t)&LoadExecutable, PriviledgeApp, NULL, &LoadExecutableThread);
+    SystemSrv->LoadExecutable = MakeShareableThread(LoadExecutableThread, PriviledgeApp);
+
     /* GetFramebuffer */
     thread_t GetFramebufferThread = NULL;
     Sys_CreateThread(proc, (uintptr_t)&GetFramebuffer, PriviledgeApp, NULL, &GetFramebufferThread);
@@ -79,6 +84,47 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
     SrvInfo->IsIRQEventsFree = IsIRQEventsFree;
 
     CreateControllerUISD(ControllerTypeEnum_System, key, true);
+}
+
+KResult LoadExecutable(thread_t Callback, uint64_t CallbackArg, process_t Process, uint64_t Priviledge, char* Path){
+    // Load filesystem handler
+    if(!KotSpecificData.VFSHandler){
+        srv_storage_callback_t* Callback = Srv_Storage_VFSLoginApp(ShareProcessKey(Sys_GetProcess()), FS_AUTHORIZATION_HIGH, Storage_Permissions_Admin | Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, "d0:", true);
+        KotSpecificData.VFSHandler = Callback->Data;
+        free(Callback);
+    }
+
+    KResult Status = KFAIL;
+    thread_t ThreadOutput;
+    if(Priviledge >= Sys_GetPriviledgeThreadLauncher()){
+        thread_t Thread;
+        file_t* ExecutableFile = fopen(Path, "r");
+        if(ExecutableFile){
+            fseek(ExecutableFile, 0, SEEK_END);
+            size_t ExecutableFileSize = ftell(ExecutableFile);
+            fseek(ExecutableFile, 0, SEEK_SET);
+
+            uintptr_t BufferExecutable = malloc(ExecutableFileSize);
+            fread(BufferExecutable, ExecutableFileSize, 1, ExecutableFile);
+            Status = ELF::loadElf(BufferExecutable, (enum Priviledge)Priviledge, NULL, &Thread, true);
+            free(BufferExecutable);
+        }
+        ThreadOutput = MakeShareableThreadToProcess(Thread, Process);
+    }
+
+
+
+    arguments_t arguments{
+        .arg[0] = Status,           /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = ThreadOutput,     /* ThreadOutput */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_Close(KSUCCESS);
 }
 
 KResult GetFramebuffer(thread_t Callback, uint64_t CallbackArg){

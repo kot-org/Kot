@@ -9,7 +9,7 @@ ASMFLAGS =
 
 SRCDIR := ../Src
 OBJDIR := ../Lib
-BINDIR = $(_HOME)Bin/Modules
+BINDIR = $(_HOME)Sources/Modules/Services/hid/Bin
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
@@ -33,4 +33,5 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 
 link:
 	@ echo !==== LINKING
+	@ mkdir -p $(BINDIR)
 	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Hid.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/Lib/libcpp.a $(_HOME)Sysroot/Lib/crt0.o
