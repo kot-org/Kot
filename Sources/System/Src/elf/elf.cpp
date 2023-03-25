@@ -47,7 +47,6 @@ namespace ELF {
     }
 
     KResult loadElf(uintptr_t buffer, enum Priviledge privilege, uint64_t identifier, thread_t* mainthread, char* rootpath, bool isVFS) {
-        Printlog(rootpath);
         elf_t* self = (elf_t*)calloc(sizeof(elf_t));
         self->Buffer = buffer;
         self->Header = (Elf64_Ehdr*)buffer;

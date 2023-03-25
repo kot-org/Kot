@@ -47,7 +47,7 @@ make -C "Modules/Drivers/net/e1000/Build"
 
 make -C "Modules/Drivers/storage/ahci/Build"
 
-make -C "Modules/Drivers/sound/pcspk/Build"
+make -C "Modules/Drivers/sound/hda/Build"
 
 make -C "Modules/Drivers/time/hpet/Build"
 make -C "Modules/Drivers/time/rtc/Build"

@@ -51,6 +51,16 @@ void InitSrv(PCIDeviceArrayInfo_t* DevicesArray){
     thread_t UnbindMSIThread = NULL;
     Sys_CreateThread(proc, (uintptr_t) &UnbindMSI, PriviledgeDriver, NULL, &UnbindMSIThread);
     PciSrv->UnbindMSI = MakeShareableThread(UnbindMSIThread, PriviledgeDriver);
+
+    /* ConfigReadWord */
+    thread_t ConfigReadWordThread = NULL;
+    Sys_CreateThread(proc, (uintptr_t) &ConfigReadWord, PriviledgeDriver, NULL, &ConfigReadWordThread);
+    PciSrv->ConfigReadWord = MakeShareableThread(ConfigReadWordThread, PriviledgeDriver);
+
+    /* ConfigWriteWord */
+    thread_t ConfigWriteWordThread = NULL;
+    Sys_CreateThread(proc, (uintptr_t) &ConfigWriteWord, PriviledgeDriver, NULL, &ConfigWriteWordThread);
+    PciSrv->ConfigWriteWord = MakeShareableThread(ConfigWriteWordThread, PriviledgeDriver);
 }
 
 KResult CountDevices(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters){
@@ -173,8 +183,6 @@ KResult BindMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceInd
 
 KResult UnbindMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex, uint16_t LocalDeviceVector){
     KResult Status = KFAIL;
-    srv_pci_bar_info_t BARInfo;
-    uint64_t Version = 0;
     if(CheckDevice(SrvDevicesArray, DeviceIndex)){
         PCIDevice_t* Device = GetDeviceFromIndex(SrvDevicesArray, DeviceIndex);
         Status = Device->UnbindMSI(LocalDeviceVector);
@@ -183,7 +191,48 @@ KResult UnbindMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceI
     arguments_t arguments{
         .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
-        .arg[2] = Version,          /* Version */
+        .arg[2] = NULL,             /* GP0 */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_Close(KSUCCESS);
+}
+
+KResult ConfigReadWord(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex, uint16_t Offset){
+    KResult Status = KFAIL;
+    uint16_t Value;
+    if(CheckDevice(SrvDevicesArray, DeviceIndex)){
+        PCIDevice_t* Device = GetDeviceFromIndex(SrvDevicesArray, DeviceIndex);
+        Status = Device->ConfigReadWord(Offset, &Value);
+    }
+
+    arguments_t arguments{
+        .arg[0] = Status,           /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = Value,            /* Value */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_Close(KSUCCESS);
+}
+
+KResult ConfigWriteWord(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex, uint16_t Offset, uint16_t Value){
+    KResult Status = KFAIL;
+    if(CheckDevice(SrvDevicesArray, DeviceIndex)){
+        PCIDevice_t* Device = GetDeviceFromIndex(SrvDevicesArray, DeviceIndex);
+        Status = Device->ConfigWriteWord(Offset, Value);
+    }
+
+    arguments_t arguments{
+        .arg[0] = Status,           /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = NULL,             /* GP0 */
         .arg[3] = NULL,             /* GP1 */
         .arg[4] = NULL,             /* GP2 */
         .arg[5] = NULL,             /* GP3 */

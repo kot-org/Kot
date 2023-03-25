@@ -37,9 +37,6 @@ PCIDeviceListInfo_t* InitPCIList(){
 void AddPCIDevice(PCIDeviceListInfo_t* DevicesList, PCIDevice_t* Device){
     // Setup command register
     PCIDeviceHeader_t* Header = (PCIDeviceHeader_t*)Device->ConfigurationSpace;
-    Header->Command |= PCI_COMMAND_IO_SPACE;
-    Header->Command |= PCI_COMMAND_MEMORY_SPACE;
-    Header->Command |= PCI_COMMAND_BUS_MASTERING;
     Device->SendConfigurationSpace();
 
     // Add device to list
@@ -286,7 +283,7 @@ KResult PCIDevice_t::BindMSI(uint8_t IRQVector, uint8_t processor, uint16_t loca
                 CapabilityOffset = Capability->CapabilityNext;
                 if(Capability->CapabilityID == PCICapabilitiesMSI){
                     CapabilityMSI = Capability;
-                } else if(Capability->CapabilityID == PCICapabilitiesMSIX){
+                }else if(Capability->CapabilityID == PCICapabilitiesMSIX){
                     CapabilityMSIX = Capability;
                     break;
                 }
@@ -308,9 +305,11 @@ KResult PCIDevice_t::BindMSI(uint8_t IRQVector, uint8_t processor, uint16_t loca
             }else if(CapabilityMSI){
                 if(CapabilityMSI->MSI.Control & (1 << 7)){ // check if support 64 bits
                     CapabilityMSI->MSI.Address = 0xFEE00000 | (processor << 12);
-                    CapabilityMSI->MSI.Data = IRQVector; 
-                    CapabilityMSI->MSI.Control |= 1 << 0;                   
-                    CapabilityMSI->MSI.Control &= ~(0b111 << 4); // set 0 for MME
+                    CapabilityMSI->MSI.Data = (IRQVector & 0xff) | (1 << 14) | (1 << 15); 
+                    CapabilityMSI->MSI.Control &= ~((0b111 << 4) | (1 << 8)); // set 0 for MME and for MSI MASk
+                    CapabilityMSI->MSI.Control |= (1 << 0);                   
+
+                    Header->Command |= PCI_COMMAND_INTERRUPT_DISABLE;
                     SendConfigurationSpace();
                     *version = PCI_MSI_VERSION;
                     return KSUCCESS;
@@ -368,6 +367,39 @@ KResult PCIDevice_t::UnbindMSI(uint16_t localDeviceVector){
             break;
     }
     return KFAIL;
+}
+
+/* Conguration space */
+KResult PCIDevice_t::ConfigReadWord(uint16_t Offset, uint16_t* Value){
+    // Check Offset
+    if(IsPCIe){
+        if(Offset > (PCI_CONFIGURATION_SPACE_PCIE - sizeof(uint16_t))){
+            return KFAIL;
+        }
+    }else{
+        if(Offset > (PCI_CONFIGURATION_SPACE_PCI - sizeof(uint16_t))){
+            return KFAIL;
+        }
+    }
+    *Value = *(uint16_t*)((uint64_t)ConfigurationSpace + (uint64_t)Offset);
+    ReceiveConfigurationSpace();
+    return KSUCCESS;
+}
+
+KResult PCIDevice_t::ConfigWriteWord(uint16_t Offset, uint16_t Value){
+    // Check Offset
+    if(IsPCIe){
+        if(Offset > (PCI_CONFIGURATION_SPACE_PCIE - sizeof(uint16_t))){
+            return KFAIL;
+        }
+    }else{
+        if(Offset > (PCI_CONFIGURATION_SPACE_PCI - sizeof(uint16_t))){
+            return KFAIL;
+        }
+    }
+    *(uint16_t*)((uint64_t)ConfigurationSpace + (uint64_t)Offset) = Value;
+    SendConfigurationSpace();
+    return KSUCCESS;
 }
 
 /* Version specific */

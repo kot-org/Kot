@@ -245,3 +245,74 @@ struct srv_pci_callback_t* Srv_Pci_UnbindMSI(PCIDeviceID_t Device, uint16_t Loca
     }
     return callback;
 }
+
+/* ConfigReadWord */
+KResult Srv_Pci_ConfigReadWord_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    if(Status == KSUCCESS){
+        Callback->Data = GP0;
+        Callback->Size = sizeof(uint16_t);
+    }
+    return Status;
+}
+
+struct srv_pci_callback_t* Srv_Pci_ConfigReadWord(PCIDeviceID_t Device, uint16_t Offset, bool IsAwait){
+    if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+    uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
+
+    thread_t self = Sys_Getthread();
+
+    struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Pci_ConfigReadWord_Callback; 
+
+    struct arguments_t parameters;
+    parameters.arg[0] = SrvPciCallbackThread;
+    parameters.arg[1] = callback;
+    parameters.arg[2] = Device;
+    parameters.arg[3] = Offset;
+
+    KResult Status = Sys_ExecThread(PciData->ConfigReadWord, &parameters, ExecutionTypeQueu, NULL);
+
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}
+
+/* ConfigWriteWord */
+KResult Srv_Pci_ConfigWriteWord_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    return Status;
+}
+
+struct srv_pci_callback_t* Srv_Pci_ConfigWriteWord(PCIDeviceID_t Device, uint16_t Offset, uint16_t Value, bool IsAwait){
+    if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+    uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
+
+    thread_t self = Sys_Getthread();
+
+    struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Pci_ConfigWriteWord_Callback; 
+
+    struct arguments_t parameters;
+    parameters.arg[0] = SrvPciCallbackThread;
+    parameters.arg[1] = callback;
+    parameters.arg[2] = Device;
+    parameters.arg[3] = Offset;
+    parameters.arg[4] = Value;
+
+    KResult Status = Sys_ExecThread(PciData->ConfigWriteWord, &parameters, ExecutionTypeQueu, NULL);
+
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}

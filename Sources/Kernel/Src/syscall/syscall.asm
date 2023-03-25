@@ -39,7 +39,7 @@ SyscallEnable:
 
 	ret
 
-SyscallEntry: 
+SyscallEntry:
 	swapgs
 
 	mov [gs:0x10], rsp			; save userspace stack

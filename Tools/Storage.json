@@ -1,15 +1,23 @@
 [
   {
-      "source": "../Disk/.",
-      "destination": ""
+      "source": "../Disk/Programs/.",
+      "destination": "/Programs"
+  },
+  {
+      "source": "../Disk/System/.",
+      "destination": "/System"
+  },
+  {
+      "source": "../Disk/Usr/.",
+      "destination": "/Usr"
   },
   {
       "source": "../Sources/Modules/Drivers/graphics/orb/Bin/Orb.elf",
       "destination": "Programs/Drivers/Orb/Orb.elf"
   },
   {
-      "source": "../Sources/Modules/Drivers/sound/pcspk/Bin/Pcspk.elf",
-      "destination": "Programs/Drivers/Pcspk/Pcspk.elf"
+      "source": "../Sources/Modules/Drivers/sound/hda/Bin/Hda.elf",
+      "destination": "Programs/Drivers/Hda/Hda.elf"
   },
   {
       "source": "../Sources/Modules/Drivers/bus/ps2/Bin/Ps2.elf",

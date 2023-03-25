@@ -10,7 +10,7 @@ ASMFLAGS =
 SRCDIR := ../Src
 OBJDIR := ../Lib
 BUILDDIR = ../Bin
-BINDIR = $(_HOME)Sources/Modules/Drivers/sound/pcspk/Bin
+BINDIR = $(_HOME)Sources/Modules/Drivers/sound/hda/Bin
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
@@ -35,4 +35,4 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 link:
 	@ echo !==== LINKING
 	@ mkdir -p $(BINDIR)
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Pcspk.elf $(OBJS) $(_HOME)Sysroot/Lib/crt0.o 
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Hda.elf $(OBJS) $(_HOME)Sysroot/Lib/crt0.o  $(_HOME)Sysroot/Lib/libcpp.a

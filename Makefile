@@ -9,18 +9,17 @@ QEMUFLAGS =	-no-reboot 														\
 			-cdrom ./Bin/kot.iso											\
 			-drive file=./Bin/kot.img										\
 			-m 3G															\
-			-netdev user,id=net0											\
-			-device e1000,netdev=net0,romfile=Bin/Firmwares/efi-e1000.rom	\
-			-object filter-dump,id=f1,netdev=net0,file=dump.dat				\
 			-rtc base=localtime												\
 			-usb                                            				\
     		-device usb-ehci,id=ehci                        				\
+			-device ich9-intel-hda -device hda-output,debug=3
+
 
 build:
 	bash ./Build/build.sh 
 
 run:
-	qemu-system-x86_64 $(QEMUFLAGS)
+	../qemu/bin/debug/native/x86_64-softmmu/qemu-system-x86_64 $(QEMUFLAGS)
 
 debug:
 	qemu-system-x86_64 $(QEMUFLAGS) -s -S

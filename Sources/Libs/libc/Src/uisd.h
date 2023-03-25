@@ -110,6 +110,8 @@ typedef struct {
     thread_t GetBARDevice;
     thread_t BindMSI;
     thread_t UnbindMSI;
+    thread_t ConfigReadWord;
+    thread_t ConfigWriteWord;
 } uisd_pci_t;
 
 typedef struct {

@@ -2,6 +2,9 @@
 
 #define Pci_Srv_Version 0x1
 
+#define PCI_CONFIGURATION_SPACE_PCI     0x100
+#define PCI_CONFIGURATION_SPACE_PCIE    0x1000
+
 #define PCI_VENDOR_ID_OFFSET 		0x0
 #define PCI_DEVICE_ID_OFFSET 		0x2
 #define PCI_COMMAND_OFFSET 			0x4
@@ -15,9 +18,10 @@
 #define PCI_HEADER_TYPE_OFFSET 		0xE
 #define PCI_BIST_OFFSET 			0xF
 
-#define PCI_COMMAND_IO_SPACE        1 << 0x0
-#define PCI_COMMAND_MEMORY_SPACE    1 << 0x1
-#define PCI_COMMAND_BUS_MASTERING   1 << 0x2
+#define PCI_COMMAND_IO_SPACE            (1 << 0x0)
+#define PCI_COMMAND_MEMORY_SPACE        (1 << 0x1)
+#define PCI_COMMAND_BUS_MASTERING       (1 << 0x2)
+#define PCI_COMMAND_INTERRUPT_DISABLE   (1 << 0xA)
 
 #include <kot/sys.h>
 #include <kot/arch.h>
@@ -144,6 +148,10 @@ struct PCIDevice_t{
     uint8_t GetBarType(uint8_t index);
     KResult BindMSI(uint8_t IRQVector, uint8_t processor, uint16_t localDeviceVector, uint64_t* version);
     KResult UnbindMSI(uint16_t localDeviceVector);
+
+    /* Configuration space */
+    KResult ConfigReadWord(uint16_t Offset, uint16_t* Value);
+    KResult ConfigWriteWord(uint16_t Offset, uint16_t Value);
 
     /* Version specific */
     void ReceiveConfigurationSpace();

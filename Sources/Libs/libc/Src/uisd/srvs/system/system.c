@@ -300,7 +300,7 @@ KResult Srv_System_BindFreeIRQ_Callback(KResult Status, struct srv_system_callba
     return Status;
 }
 
-struct srv_system_callback_t* Srv_System_BindFreeIRQ(uint8_t IRQLineNumber, thread_t Target, bool IgnoreMissedEvents, bool IsAwait){
+struct srv_system_callback_t* Srv_System_BindFreeIRQ(thread_t Target, bool IgnoreMissedEvents, bool IsAwait){
     if(!srv_system_callback_thread) Srv_System_Initialize();
     
     thread_t self = Sys_Getthread();
@@ -319,9 +319,8 @@ struct srv_system_callback_t* Srv_System_BindFreeIRQ(uint8_t IRQLineNumber, thre
     struct arguments_t parameters;
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
-    parameters.arg[2] = IRQLineNumber;
-    parameters.arg[3] = TargetShareKey;
-    parameters.arg[4] = IgnoreMissedEvents;
+    parameters.arg[2] = TargetShareKey;
+    parameters.arg[3] = IgnoreMissedEvents;
     
 
     KResult Status = Sys_ExecThread(SystemData->BindFreeIRQ, &parameters, ExecutionTypeQueu, NULL);
@@ -340,7 +339,7 @@ KResult Srv_System_UnbindIRQ_Callback(KResult Status, struct srv_system_callback
     return Status;
 }
 
-struct srv_system_callback_t* Srv_System_UnbindIRQ(uint8_t IRQLineNumber, thread_t Target, bool IsAwait){
+struct srv_system_callback_t* Srv_System_UnbindIRQ(uint8_t Vector, thread_t Target, bool IsAwait){
     if(!srv_system_callback_thread) Srv_System_Initialize();
     
     thread_t self = Sys_Getthread();
@@ -359,8 +358,8 @@ struct srv_system_callback_t* Srv_System_UnbindIRQ(uint8_t IRQLineNumber, thread
     struct arguments_t parameters;
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
-    parameters.arg[2] = IRQLineNumber;
-    parameters.arg[3] = TargetShareKey;
+    parameters.arg[2] = TargetShareKey;
+    parameters.arg[3] = Vector;
     
 
     KResult Status = Sys_ExecThread(SystemData->UnbindIRQ, &parameters, ExecutionTypeQueu, NULL);

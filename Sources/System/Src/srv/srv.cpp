@@ -294,7 +294,7 @@ KResult BindFreeIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, bo
     event_t Vector = NULL;
     for(size64_t i = 0; i < SrvInfo->IRQSize; i++){
         if(SrvInfo->IsIRQEventsFree[i]){
-            Vector = SrvInfo->IsIRQEventsFree[i];
+            Vector = i;
             break;
         }
     }
@@ -305,7 +305,7 @@ KResult BindFreeIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, bo
     arguments_t arguments{
         .arg[0] = KSUCCESS,         /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
-        .arg[2] = Vector,              /* IRQNumber */
+        .arg[2] = Vector,           /* IRQNumber */
         .arg[3] = NULL,             /* GP1 */
         .arg[4] = NULL,             /* GP2 */
         .arg[5] = NULL,             /* GP3 */

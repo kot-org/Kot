@@ -51,7 +51,7 @@ void LoadFiles(char* Path){
             }
         , ExplorerWindow->Cpnt);
 
-        Ui::Picturebox_t* FileImage = Picturebox((char*)(FileData->IsFile ? "file.tga" : "folder.tga"), Ui::_TGA, 
+        Ui::Picturebox_t* FileImage = Picturebox((char*)(FileData->IsFile ? "d0:file.tga" : "d0:folder.tga"), Ui::_TGA, 
         {
             .Fit = Ui::PICTUREFILL,
             .Transparency = true,
