@@ -31,7 +31,7 @@ KResult InitialiseSrv(){
     Sys_CreateThread(proc, (uintptr_t)&NotifyOnNewPartitionByGUIDTypeSrv, PriviledgeApp, NULL, &CountPartitionByGUIDTypeThread);
     SrvData->NotifyOnNewPartitionByGUIDType = MakeShareableThread(CountPartitionByGUIDTypeThread, PriviledgeDriver);
 
-    /* NotifyOnNewPartitionByGUIDType */
+    /* VFSLoginApp */
     thread_t VFSLoginAppThread = NULL;
     Sys_CreateThread(proc, (uintptr_t)&VFSLoginApp, PriviledgeApp, NULL, &VFSLoginAppThread);
     SrvData->VFSLoginApp = MakeShareableThread(VFSLoginAppThread, PriviledgeDriver);

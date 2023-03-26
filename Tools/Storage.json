@@ -16,7 +16,7 @@
       "destination": "Programs/Drivers/Orb/Orb.elf"
   },
   {
-      "source": "../Sources/Modules/Drivers/sound/hda/Bin/Hda.elf",
+      "source": "../Sources/Modules/Drivers/audio/hda/Bin/Hda.elf",
       "destination": "Programs/Drivers/Hda/Hda.elf"
   },
   {
@@ -30,6 +30,10 @@
   {
       "source": "../Sources/Modules/Services/hid/Bin/Hid.elf",
       "destination": "Programs/Services/Hid/Hid.elf"
+  },
+  {
+      "source": "../Sources/Modules/Services/audio/Bin/Audio.elf",
+      "destination": "Programs/Services/Audio/Audio.elf"
   },
   {
       "source": "../Sources/Modules/Services/desktop/Bin/Desktop.elf",

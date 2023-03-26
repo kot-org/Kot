@@ -81,6 +81,8 @@ typedef struct {
 
 typedef struct {
     uisd_controller_t ControllerHeader;
+
+    thread_t AddDevice;
     /* TODO */
 } uisd_audio_t;
 

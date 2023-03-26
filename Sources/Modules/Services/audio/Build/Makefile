@@ -1,24 +1,23 @@
-_HOME = ../../../../../../
+_HOME = ../../../../../
 
 CC = clang-14
 ASMC = nasm
 
-CFLAGS = -O3 --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-rtti -fno-exceptions -fPIC -I../Src -I$(_HOME)Sysroot/Include/
+CFLAGS = -O3 --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I$(_HOME)Sysroot/Include
 LINKERFLAGS = -nostartfiles -Wall -static -L$(_HOME)Sysroot/Lib/ -lc
 ASMFLAGS = 
 
 SRCDIR := ../Src
 OBJDIR := ../Lib
-BUILDDIR = ../Bin
-BINDIR = $(_HOME)Sources/Modules/Drivers/sound/hda/Bin
+BINDIR = $(_HOME)Sources/Modules/Services/audio/Bin
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
-SRCCPP = $(call rwildcard,$(SRCDIR),*.cpp)      
+SRCC = $(call rwildcard,$(SRCDIR),*.cpp)
 ASMSRC = $(call rwildcard,$(SRCDIR),*.asm)   
-OBJS += $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCCPP))
+OBJS += $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCC))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
-DIRS = $(wildcard $(SRCDIR)/*)    
+DIRS = $(wildcard $(SRCDIR)/*)         
 
 main: $(OBJS) link
 
@@ -35,4 +34,4 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 link:
 	@ echo !==== LINKING
 	@ mkdir -p $(BINDIR)
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Hda.elf $(OBJS) $(_HOME)Sysroot/Lib/crt0.o  $(_HOME)Sysroot/Lib/libcpp.a
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Audio.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/Lib/libcpp.a $(_HOME)Sysroot/Lib/crt0.o

@@ -7,9 +7,12 @@
 
 #include <kot/uisd/srvs/pci.h>
 #include <kot/uisd/srvs/time.h>
+#include <kot/uisd/srvs/audio.h>
 #include <kot/uisd/srvs/system.h>
 
 #include <kot++/printf.h>
+
+#include <srv/srv.h>
 
 extern process_t Proc;
 
@@ -87,7 +90,8 @@ extern process_t Proc;
 #define HDA_STREAM_STS_DESC_ERROR           (1 << 4)
 #define HDA_STREAM_STS_FIFO_READY           (1 << 5)
 
-#define HDA_MAX_CODECS                      15
+#define HDA_MAX_CODECS                          15
+#define HDA_MAX_STREAMS                         15
 
 // Payload for set stream, channel command
 #define HDA_CODEC_SET_STREAM_CHAN_PAYLOAD(stream, chan) (((stream & 0xf) << 4) | (chan & 0xf))
@@ -358,15 +362,9 @@ struct HDACodec{
     vector_t* Functions;
 };
 
-enum SoundEncoding{
-    PCMS8LE = 0,
-    PCMS16LE = 1,
-    PCMS20LE = 2,
-    PCMS24LE = 3,
-    PCMS32LE = 4,
-};
-
 struct HDAOutput{
+    class HDAController* ControllerParent;
+
     bool IsCurrentRunning;
 
     uint32_t SupportedPCM;
@@ -377,7 +375,11 @@ struct HDAOutput{
 
     HDAStreamFormat Format;
 
-    SoundEncoding SampleFormat;
+    AudioEncoding SampleFormat;
+
+    event_t OffsetUpdateEvent;
+
+    srv_audio_device_t AudioDevice;
 };
 
 struct HDAStream{
@@ -389,6 +391,7 @@ struct HDAStream{
     uint32_t BufferDescriptorListEntries;
     HDABufferDescriptorEntry* BufferDescriptorList;
 
+    ksmem_t BufferKey;
     uintptr_t Buffer;
     size64_t Size;
 };
@@ -415,6 +418,8 @@ class HDAController{
         thread_t InterruptThread;
 
         HDACodec Codecs[HDA_MAX_CODECS];
+
+        HDAOutput* Outputs[HDA_MAX_STREAMS];
         
         KResult SetupCORB();
         KResult SetupRIRB();
@@ -426,7 +431,7 @@ class HDAController{
         KResult SetSampleRate(HDAOutput* Output, uint32_t SampleRate);
         KResult SetChannel(HDAOutput* Output, uint8_t Channels);
         KResult SetVolume(HDAOutput* Output, uint8_t Volume);
-        KResult SetSoundEncoding(HDAOutput* Output, SoundEncoding Encoding);
+        KResult SetSoundEncoding(HDAOutput* Output, AudioEncoding Encoding);
         KResult GetNodeConfiguration(HDAWidget* Widget, NodeConfiguration* Config);
 
         KResult TransferData(HDAOutput* Output, uintptr_t Buffer, size64_t Size, uint64_t Offset);

@@ -3,7 +3,7 @@
 process_t Proc = NULL;
 
 extern "C" int main(int argc, char* argv[]) {
-    Printlog("[SOUND/HDA] Initialization ...");
+    Printlog("[AUDIO/HDA] Initialization ...");
 
     srv_pci_search_parameters_t SearchParameters{
         .vendorID = PCI_SEARCH_NO_PARAMETER,
@@ -26,7 +26,7 @@ extern "C" int main(int argc, char* argv[]) {
         new HDAController(DeviceID);
     }
 
-    Printlog("[SOUND/HDA] Driver initialized successfully");
+    Printlog("[AUDIO/HDA] Driver initialized successfully");
 
     return KSUCCESS;
 }

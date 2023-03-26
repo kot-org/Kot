@@ -12,14 +12,15 @@ QEMUFLAGS =	-no-reboot 														\
 			-rtc base=localtime												\
 			-usb                                            				\
     		-device usb-ehci,id=ehci                        				\
-			-device ich9-intel-hda -device hda-output,debug=3
+			-device ich9-intel-hda -device hda-output
 
 
 build:
 	bash ./Build/build.sh 
 
+# debug with your own qemu build : ../qemu/bin/debug/native/x86_64-softmmu/
 run:
-	../qemu/bin/debug/native/x86_64-softmmu/qemu-system-x86_64 $(QEMUFLAGS)
+	qemu-system-x86_64 $(QEMUFLAGS)
 
 debug:
 	qemu-system-x86_64 $(QEMUFLAGS) -s -S

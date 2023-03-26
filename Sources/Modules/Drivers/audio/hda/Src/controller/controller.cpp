@@ -7,8 +7,15 @@ void HDAControllerOnInterrupt(){
     for(uint8_t i = 0; i < Controller->StreamCount; i++){
         if(Controller->Registers->InterruptStatus & (1 << i)){
             if(Controller->Registers->Streams[i].Status & HDA_STREAM_STS_BCIS){
+                uint64_t CurrentPosition = Controller->Registers->Streams[i].CurrentBufferLinkPosition;
                 Controller->Registers->Streams[i].Status |= HDA_STREAM_STS_BCIS; // Clear
+                *(uint64_t*)((uint64_t)Controller->Outputs[i]->Stream->Buffer + Controller->Outputs[i]->Stream->Size - sizeof(uint64_t)) = CurrentPosition; // Set the offset
+                arguments_t Parameters{
+                    .arg[0] = CurrentPosition,
+                };
+                Sys_Event_Trigger(Controller->Outputs[i]->OffsetUpdateEvent, &Parameters);
             }
+            Controller->Registers->InterruptStatus |= (1 << i);
         }
     }
 
@@ -55,7 +62,7 @@ HDAController::HDAController(PCIDeviceID_t DeviceID){
         Sleep(1);
     }
     if(Timer < 0){
-        std::printf("[HDA] Timed out waiting for controller");
+        std::printf("[AUDIO/HDA] Timed out waiting for controller");
         return;
     }
 
@@ -71,7 +78,7 @@ HDAController::HDAController(PCIDeviceID_t DeviceID){
     while (((Registers->CORBControl | Registers->RIRBControl) & HDA_RIRB_AND_CORB_DMA) && Timer--)
         Sleep(1);
     if (Timer < 0) {
-        std::printf("[HDA] Timed out waiting for controller");
+        std::printf("[AUDIO/HDA] Timed out waiting for controller");
         return;
     }
 
@@ -84,13 +91,13 @@ HDAController::HDAController(PCIDeviceID_t DeviceID){
 
     /* Setup CORB */
     if(SetupCORB() != KSUCCESS){
-        std::printf("[HDA] Error while setting the CORB");
+        std::printf("[AUDIO/HDA] Error while setting the CORB");
         return;
     }
 
     /* Setup RIRB */
     if(SetupRIRB() != KSUCCESS){
-        std::printf("[HDA] Error while setting the RIRB");
+        std::printf("[AUDIO/HDA] Error while setting the RIRB");
         return;
     }
 
@@ -104,10 +111,8 @@ HDAController::HDAController(PCIDeviceID_t DeviceID){
     Registers->ResponseInterruptCount = 1; // we have suprising behavior
 
     uint32_t Status = Registers->WakeStatus;
-    std::printf("[HDA] Wake status: %d", Status);
 
     if(!Status){
-        std::printf("[HDA] No codecs are awake!");
         return;
     }
     StreamCount = NumInputStreams + NumOutputStreams + NumBidirectionalStreams;
@@ -146,35 +151,37 @@ KResult HDAController::SetSampleRate(HDAOutput* Output, uint32_t SampleRate){
     switch(SampleRate){
         case 44100:{
             Output->Format.SampleBaseRate = 1; // 44.1 kHz
+            Output->AudioDevice.Format.SampleRate = 44100;
             break;    
         }
         default:{
             Output->Format.SampleBaseRate = 0; // 48 kHz
+            Output->AudioDevice.Format.SampleRate = 48000;
             break;
         }
     }
     return ConfigureStreamFormat(Output);
 }
 
-KResult HDAController::SetSoundEncoding(HDAOutput* Output, SoundEncoding Encoding){
+KResult HDAController::SetSoundEncoding(HDAOutput* Output, AudioEncoding Encoding){
     switch(Encoding){
-        case PCMS8LE:{
+        case AudioEncodingPCMS8LE:{
             Output->Format.BitsPerSample = 0b000; // 8 bits
             break;   
         }
-        case PCMS16LE:{
+        case AudioEncodingPCMS16LE:{
             Output->Format.BitsPerSample = 0b001; // 16 bits
             break; 
         }
-        case PCMS20LE:{
+        case AudioEncodingPCMS20LE:{
             Output->Format.BitsPerSample = 0b010; // 20 bits
             break;        
         }
-        case PCMS24LE:{
+        case AudioEncodingPCMS24LE:{
             Output->Format.BitsPerSample = 0b011; // 24 bits
             break; 
         }
-        case PCMS32LE:{
+        case AudioEncodingPCMS32LE:{
             Output->Format.BitsPerSample = 0b100; // 32 bits
             break; 
         }
@@ -182,11 +189,13 @@ KResult HDAController::SetSoundEncoding(HDAOutput* Output, SoundEncoding Encodin
             return KFAIL;
         }
     }
+    Output->AudioDevice.Format.Encoding = Encoding;
     return ConfigureStreamFormat(Output);
 }
 
 KResult HDAController::SetChannel(HDAOutput* Output, uint8_t Channels){
     Output->Format.NumberOfChannels = Channels;
+    Output->AudioDevice.Format.NumberOfChannels = Channels;
     return ConfigureStreamFormat(Output);
 }
 
@@ -257,7 +266,7 @@ void HDAController::DetectCodec(uint8_t Codec){
     Codecs[Codec].FunctionsCount = SubNodes & 0xff;
 
 
-    std::printf("[HDA] Codec %d, VendorID: %x, RevisionID: %x, Sub Nodes: %d", Codec, VendorID, RevisionID, SubNodes & 0xff);
+    std::printf("[AUDIO/HDA] Codec %d, VendorID: %x, RevisionID: %x, Sub Nodes: %d", Codec, VendorID, RevisionID, SubNodes & 0xff);
 
     for(uint8_t Node = Codecs[Codec].FunctionsStart; Node < Codecs[Codec].FunctionsStart + Codecs[Codec].FunctionsCount; Node++){
         uint8_t FunctionType = GetCodecParameter(Codec, Node, HDA_PARAMETER_FUNCTION_TYPE) & 0xff;
@@ -329,30 +338,39 @@ void HDAController::WidgetInitialize(HDAFunction* Function, uint8_t WidgetNode){
 
 void HDAController::AddOutputFunction(HDAFunction* Function){
     HDAOutput* Output = (HDAOutput*)malloc(sizeof(HDAOutput));
+    Output->ControllerParent = this;
     Output->Function = Function;
     Output->IsCurrentRunning = false;
     Output->Stream = CreateStream(Function->Codec, StreamType::Output);
     Output->SupportedPCM = GetCodecParameter(Function->Codec->Index, Function->Node, HDA_PARAMETER_PCM);
+    Outputs[Output->Stream->StreamNumber] = Output;
 
     uint64_t Response;
     uint32_t Result = SendVerb(MakeVerb((HDA_VERB_SET_CHANNEL_STREAMID << 8) | HDA_CODEC_SET_STREAM_CHAN_PAYLOAD(Output->Stream->StreamNumber, 0), Function->Node, Function->Codec->Index), &Response);
     SetChannel(Output, 2);
-    SetVolume(Output, 255);
+    SetVolume(Output, 0);
     if(Output->SupportedPCM & HDA_SUPPCM_BITS_32){
-        SetSoundEncoding(Output, PCMS32LE);
+        SetSoundEncoding(Output, AudioEncodingPCMS32LE);
     }else if(Output->SupportedPCM & HDA_SUPPCM_BITS_24){
-        SetSoundEncoding(Output, PCMS24LE);
+        SetSoundEncoding(Output, AudioEncodingPCMS24LE);
     }else if(Output->SupportedPCM & HDA_SUPPCM_BITS_20){
-        SetSoundEncoding(Output, PCMS20LE);
+        SetSoundEncoding(Output, AudioEncodingPCMS20LE);
     }else if(Output->SupportedPCM & HDA_SUPPCM_BITS_16){
-        SetSoundEncoding(Output, PCMS16LE);
+        SetSoundEncoding(Output, AudioEncodingPCMS16LE);
     }else if(Output->SupportedPCM & HDA_SUPPCM_BITS_8){
-        SetSoundEncoding(Output, PCMS8LE);
+        SetSoundEncoding(Output, AudioEncodingPCMS8LE);
     }
+
     SetSampleRate(Output, 48000); // according to specs : must be supported by all codecs
 
+    Output->AudioDevice.Type = AudioDeviceTypeOut;
+
+    InitializeSrv(Output);
+    
     TransferData(Output, (uintptr_t)&Music, 947928, 0);
     ChangeStatus(Output, true);
+
+    Srv_Audio_AddDevice(&Output->AudioDevice, true);
 }
 
 HDAStream* HDAController::CreateStream(HDACodec* Codec, StreamType Type){
@@ -374,9 +392,9 @@ HDAStream* HDAController::CreateStream(HDACodec* Codec, StreamType Type){
     Stream->BufferDescriptorList = (HDABufferDescriptorEntry*)GetPhysical((uintptr_t*)&Stream->BufferDescriptorListPhysicalAddress, HDA_BDL_SIZE);
     Stream->Size = Stream->BufferDescriptorListEntries * HDA_BDL_SIZE;
 
-    uint64_t RealSize = Stream->Size;
-    Stream->Buffer = GetFreeAlignedSpace(Stream->Size);
-    Sys_Map(Sys_GetProcess(), (uint64_t*)&Stream->Buffer, AllocationTypeBasic, NULL, &RealSize, false);
+    uint64_t RealSize = Stream->Size + sizeof(uint64_t); // add the offset field
+    Stream->Buffer = GetFreeAlignedSpace(RealSize);
+    Sys_CreateMemoryField(Sys_GetProcess(), RealSize, &Stream->Buffer, &Stream->BufferKey, MemoryFieldTypeShareSpaceRW);
 
     for(uint32_t i = 0; i < Stream->BufferDescriptorListEntries; i++){
         Stream->BufferDescriptorList[i].Reserved = 0; // Clear reserved
@@ -503,7 +521,7 @@ KResult HDAController::SetupCORB(){
     if(Timer < 0){
         return KFAIL;
     }
-    std::printf("[HDA] CORB setup with %d entries with value of %d", CORBEntries, Registers->CORBSize);
+    std::printf("[AUDIO/HDA] CORB setup with %d entries with value of %d", CORBEntries, Registers->CORBSize);
     return KSUCCESS;
 }
 
@@ -530,7 +548,7 @@ KResult HDAController::SetupRIRB(){
     Registers->RIRBControl |= HDA_RIRB_AND_CORB_DMA | HDA_RIRB_GENERATE_RESPONSE_INTERRUPT;
     Sleep(10);
 
-    std::printf("[HDA] RIRB setup with %d entries with value of %d", RIRBEntries, Registers->RIRBSize);
+    std::printf("[AUDIO/HDA] RIRB setup with %d entries with value of %d", RIRBEntries, Registers->RIRBSize);
 
     return KSUCCESS;
 }
