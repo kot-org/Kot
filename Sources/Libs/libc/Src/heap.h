@@ -24,6 +24,8 @@ struct heap_t{
     bool IsHeapEnabled;
 }__attribute__((packed));
 
+extern struct heap_t heap;
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -46,10 +48,19 @@ void MergeNextToThisUser(struct SegmentHeader* header);
 #endif
 
 #if defined(__cplusplus)
-inline void* operator new(size_t Size) {return malloc(Size);}
-inline void* operator new[](size_t Size) {return malloc(Size);}
+inline uintptr_t operator new(size_t Size){
+    return malloc(Size);
+}
+inline uintptr_t operator new[](size_t Size){
+    return malloc(Size);
+}
 
-inline void operator delete(void* p) {free(p);}
+inline void operator delete(uintptr_t p){
+    free(p);
+}
+inline void operator delete[](uintptr_t p){
+    free(p);
+}
 #endif
 
 #endif

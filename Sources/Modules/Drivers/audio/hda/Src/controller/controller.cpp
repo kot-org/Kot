@@ -1,5 +1,4 @@
 #include <controller/controller.h>
-#include <controller/music.h>
 
 void HDAControllerOnInterrupt(){
     HDAController* Controller = (HDAController*)Sys_GetExternalDataThread();
@@ -7,11 +6,11 @@ void HDAControllerOnInterrupt(){
     for(uint8_t i = 0; i < Controller->StreamCount; i++){
         if(Controller->Registers->InterruptStatus & (1 << i)){
             if(Controller->Registers->Streams[i].Status & HDA_STREAM_STS_BCIS){
-                uint64_t CurrentPosition = Controller->Registers->Streams[i].CurrentBufferLinkPosition;
+                Controller->Outputs[i]->Stream->CurrentPosition = (Controller->Outputs[i]->Stream->CurrentPosition + Controller->Outputs[i]->Stream->SizeIOCToTrigger) % Controller->Outputs[i]->Stream->Size;
                 Controller->Registers->Streams[i].Status |= HDA_STREAM_STS_BCIS; // Clear
-                *(uint64_t*)((uint64_t)Controller->Outputs[i]->Stream->Buffer + Controller->Outputs[i]->Stream->Size - sizeof(uint64_t)) = CurrentPosition; // Set the offset
+                *(uint64_t*)((uint64_t)Controller->Outputs[i]->Stream->Buffer + Controller->Outputs[i]->Stream->PositionOfStreamData) = Controller->Outputs[i]->Stream->CurrentPosition; // Set the offset
                 arguments_t Parameters{
-                    .arg[0] = CurrentPosition,
+                    .arg[0] = Controller->Outputs[i]->Stream->CurrentPosition,
                 };
                 Sys_Event_Trigger(Controller->Outputs[i]->OffsetUpdateEvent, &Parameters);
             }
@@ -199,7 +198,7 @@ KResult HDAController::SetChannel(HDAOutput* Output, uint8_t Channels){
     return ConfigureStreamFormat(Output);
 }
 
-KResult HDAController::SetVolume(HDAOutput* Output, uint8_t Volume){
+KResult HDAController::SetVolume(HDAOutput* Output, audio_volume_t Volume){
     uint32_t Data = (1 << 13) | (1 << 12); // left and right
     if(Volume == 0){
         Data |= (1 << 7); // mute
@@ -216,17 +215,6 @@ KResult HDAController::GetNodeConfiguration(HDAWidget* Widget, NodeConfiguration
     KResult Status = SendVerb(MakeVerb(HDA_VERB_GET_CONFIG_DEFAULT << 8, Widget->Node, Widget->Function->Codec->Index), &Response);
     *(uint32_t*)Config = Response & 0xffffffff;
     return Status;
-}
-
-KResult HDAController::TransferData(HDAOutput* Output, uintptr_t Buffer, size64_t Size, uint64_t Offset){
-    atomicAcquire(&Lock, 1);
-    if(Offset + Size > Output->Stream->Size){
-        // TODO
-        return KFAIL;
-    }
-    memcpy((uintptr_t)((uint64_t)Output->Stream->Buffer + Offset), Buffer, Size);
-    atomicUnlock(&Lock, 1);
-    return KSUCCESS;
 }
 
 KResult HDAController::ChangeStatus(HDAOutput* Output, bool IsRunning){
@@ -327,6 +315,7 @@ void HDAController::WidgetInitialize(HDAFunction* Function, uint8_t WidgetNode){
                 SendVerb(MakeVerb((HDA_VERB_SET_PIN_WIDGET_CONTROL << 8) | PinControl, Function->Node, Function->Codec->Index), &Response);
                 SendVerb(MakeVerb((HDA_VERB_SET_EAPD_BTLENABLE << 8) | EAPDBTL | 0x2, Function->Node, Function->Codec->Index), &Response);
             }
+            GetNodeConfiguration(Widget, &Function->Configuration);
             break;
         }
         default:
@@ -337,7 +326,7 @@ void HDAController::WidgetInitialize(HDAFunction* Function, uint8_t WidgetNode){
 }
 
 void HDAController::AddOutputFunction(HDAFunction* Function){
-    HDAOutput* Output = (HDAOutput*)malloc(sizeof(HDAOutput));
+    HDAOutput* Output = (HDAOutput*)calloc(sizeof(HDAOutput));
     Output->ControllerParent = this;
     Output->Function = Function;
     Output->IsCurrentRunning = false;
@@ -346,7 +335,7 @@ void HDAController::AddOutputFunction(HDAFunction* Function){
     Outputs[Output->Stream->StreamNumber] = Output;
 
     uint64_t Response;
-    uint32_t Result = SendVerb(MakeVerb((HDA_VERB_SET_CHANNEL_STREAMID << 8) | HDA_CODEC_SET_STREAM_CHAN_PAYLOAD(Output->Stream->StreamNumber, 0), Function->Node, Function->Codec->Index), &Response);
+    uint32_t Result = SendVerb(MakeVerb((HDA_VERB_SET_CHANNEL_STREAMID << 8) | HDA_CODEC_SET_STREAM_CHAN(Output->Stream->StreamNumber, 0), Function->Node, Function->Codec->Index), &Response);
     SetChannel(Output, 2);
     SetVolume(Output, 0);
     if(Output->SupportedPCM & HDA_SUPPCM_BITS_32){
@@ -366,9 +355,6 @@ void HDAController::AddOutputFunction(HDAFunction* Function){
     Output->AudioDevice.Type = AudioDeviceTypeOut;
 
     InitializeSrv(Output);
-    
-    TransferData(Output, (uintptr_t)&Music, 947928, 0);
-    ChangeStatus(Output, true);
 
     Srv_Audio_AddDevice(&Output->AudioDevice, true);
 }
@@ -391,18 +377,20 @@ HDAStream* HDAController::CreateStream(HDACodec* Codec, StreamType Type){
     Stream->BufferDescriptorListEntries = HDA_BDL_SIZE / sizeof(HDABufferDescriptorEntry);
     Stream->BufferDescriptorList = (HDABufferDescriptorEntry*)GetPhysical((uintptr_t*)&Stream->BufferDescriptorListPhysicalAddress, HDA_BDL_SIZE);
     Stream->Size = Stream->BufferDescriptorListEntries * HDA_BDL_SIZE;
+    Stream->PositionOfStreamData = Stream->Size + sizeof(uint64_t); // add the offset field
 
-    uint64_t RealSize = Stream->Size + sizeof(uint64_t); // add the offset field
-    Stream->Buffer = GetFreeAlignedSpace(RealSize);
-    Sys_CreateMemoryField(Sys_GetProcess(), RealSize, &Stream->Buffer, &Stream->BufferKey, MemoryFieldTypeShareSpaceRW);
+    Stream->RealSize = Stream->Size + sizeof(uint64_t); // add the offset field
+    Stream->Buffer = GetFreeAlignedSpace(Stream->RealSize);
+    Sys_CreateMemoryField(Sys_GetProcess(), Stream->RealSize, &Stream->Buffer, &Stream->BufferKey, MemoryFieldTypeShareSpaceRW);
 
+    Stream->SizeIOCToTrigger = HDA_INTERRUPT_ON_COMPLETION_BDL_COUNT * HDA_BDL_SIZE;
     for(uint32_t i = 0; i < Stream->BufferDescriptorListEntries; i++){
         Stream->BufferDescriptorList[i].Reserved = 0; // Clear reserved
         Stream->BufferDescriptorList[i].Length = HDA_BDL_SIZE;
-        Stream->BufferDescriptorList[i].InterruptOnCompletion = 1;
+        Stream->BufferDescriptorList[i].InterruptOnCompletion = ((i % HDA_INTERRUPT_ON_COMPLETION_BDL_COUNT) == 0) ? 1 : 0;
         Stream->BufferDescriptorList[i].Address = (uint64_t)Sys_GetPhysical((uintptr_t)((uint64_t)Stream->Buffer + i * HDA_BDL_SIZE));
     }
-    memset32(Stream->Buffer, 0x0, HDA_BDL_SIZE * Stream->BufferDescriptorListEntries);
+    memset64(Stream->Buffer, 0x0, Stream->Size);
 
     Descriptor->BufferDescriptorListPointer = (uint64_t)Stream->BufferDescriptorListPhysicalAddress;
 

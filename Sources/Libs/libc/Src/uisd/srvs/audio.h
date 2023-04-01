@@ -31,21 +31,34 @@ enum AudioSetStatus{
 
 typedef struct {
     uint8_t NumberOfChannels;
-    AudioEncoding Encoding;
+    enum AudioEncoding Encoding;
     uint64_t SampleRate;
-} srv_audio_format;
+} audio_format;
 
 typedef struct {
+    char Name[128];
+
     enum AudioDeviceType Type;
-    srv_audio_format Format;
+    audio_format Format;
 
     thread_t ChangeStatus;
 
-    event_t OffsetUpdate;
+    event_t OnOffsetUpdate;
+    size64_t SizeOffsetUpdateToTrigger;
 
-    ksmem_t Buffer;
-    size64_t BufferSize;
+    ksmem_t StreamBufferKey;
+    size64_t StreamSize;
+    size64_t StreamRealSize;
+    size64_t PositionOfStreamData;
 } srv_audio_device_t;
+
+typedef uint8_t audio_volume_t;
+
+typedef struct{
+    cyclic_t Buffer;
+    audio_format Format;
+    audio_volume_t Volume; 
+}audio_buffer_t;
 
 struct srv_audio_callback_t{
     thread_t Self;

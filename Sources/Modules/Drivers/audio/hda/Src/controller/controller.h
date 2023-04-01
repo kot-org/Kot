@@ -20,6 +20,7 @@ extern process_t Proc;
 #define HDA_SUBCLASS        0x3
 
 #define HDA_BDL_SIZE        0x1000
+#define HDA_INTERRUPT_ON_COMPLETION_BDL_COUNT     0x5
 
 #define HDA_GCTL_RESET                          (1 << 0)
 #define HDA_GCTL_UNSOLICITED_RESPONSES          (1 << 8)
@@ -94,7 +95,7 @@ extern process_t Proc;
 #define HDA_MAX_STREAMS                         15
 
 // Payload for set stream, channel command
-#define HDA_CODEC_SET_STREAM_CHAN_PAYLOAD(stream, chan) (((stream & 0xf) << 4) | (chan & 0xf))
+#define HDA_CODEC_SET_STREAM_CHAN(stream, chan) (((stream & 0xf) << 4) | (chan & 0xf))
 
 // Audio widget capabilities
 #define HDA_W_AUDIO_CHAN_COUNT              0x1
@@ -244,7 +245,25 @@ enum {
 	HDA_WID_POWER       = 0x5,		    /* Power */
 	HDA_WID_VOL_KNB     = 0x6,		    /* Volume Knob */
 	HDA_WID_BEEP        = 0x7,		    /* Beep Generator */
-	HDA_WID_VENDOR      = 0x0f	        /* Vendor specific */
+	HDA_WID_VENDOR      = 0xF	        /* Vendor specific */
+};
+
+enum {
+	AC_JACK_LINE_OUT        = 0x0,
+	AC_JACK_SPEAKER         = 0x1,
+	AC_JACK_HP_OUT          = 0x2,
+	AC_JACK_CD              = 0x3,
+	AC_JACK_SPDIF_OUT       = 0x4,
+	AC_JACK_DIG_OTHER_OUT   = 0x5,
+	AC_JACK_MODEM_LINE_SIDE = 0x6,
+	AC_JACK_MODEM_HAND_SIDE = 0x7,
+	AC_JACK_LINE_IN         = 0x8,
+	AC_JACK_AUX             = 0x9,
+	AC_JACK_MIC_IN          = 0xA,
+	AC_JACK_TELEPHONY       = 0xB,
+	AC_JACK_SPDIF_IN        = 0xC,
+	AC_JACK_DIG_OTHER_IN    = 0xD,
+	AC_JACK_OTHER           = 0xF,
 };
 
 struct HDAStreamFormat{
@@ -352,6 +371,7 @@ struct HDAFunction{
     vector_t* Widgets;
     uint32_t GainStepOut;
     uint32_t AMPOutNode;
+    NodeConfiguration Configuration;
     struct HDACodec* Codec;
 };
 
@@ -393,7 +413,11 @@ struct HDAStream{
 
     ksmem_t BufferKey;
     uintptr_t Buffer;
+    uint64_t CurrentPosition;
     size64_t Size;
+    size64_t RealSize;
+    size64_t PositionOfStreamData;
+    size64_t SizeIOCToTrigger;
 };
 
 class HDAController{
@@ -430,11 +454,10 @@ class HDAController{
         KResult ConfigureStreamFormat(HDAOutput* Output);
         KResult SetSampleRate(HDAOutput* Output, uint32_t SampleRate);
         KResult SetChannel(HDAOutput* Output, uint8_t Channels);
-        KResult SetVolume(HDAOutput* Output, uint8_t Volume);
+        KResult SetVolume(HDAOutput* Output, audio_volume_t Volume);
         KResult SetSoundEncoding(HDAOutput* Output, AudioEncoding Encoding);
         KResult GetNodeConfiguration(HDAWidget* Widget, NodeConfiguration* Config);
 
-        KResult TransferData(HDAOutput* Output, uintptr_t Buffer, size64_t Size, uint64_t Offset);
         KResult ChangeStatus(HDAOutput* Output, bool IsRunning);
         KResult GetOffset(HDAOutput* Output, uint64_t* Offset);
 

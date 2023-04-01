@@ -12,7 +12,7 @@ QEMUFLAGS =	-no-reboot 														\
 			-rtc base=localtime												\
 			-usb                                            				\
     		-device usb-ehci,id=ehci                        				\
-			-device ich9-intel-hda -device hda-output
+			-device intel-hda -device hda-duplex
 
 
 build:

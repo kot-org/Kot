@@ -11,9 +11,15 @@ struct CallbackAudio{
     KResult Status;
 };
 
+struct AddDeviceExternalData{
+    class Outputs* OutputsClass;
+    // TODO : add inputs class
+};
+
 KResult InitialiseServer();
 
 KResult AddDevice(thread_t Callback, uint64_t CallbackArg, srv_audio_device_t* Device);
 
 CallbackAudio* ChangeStatus(srv_audio_device_t* Device, enum AudioSetStatus Function, uint64_t GP0, uint64_t GP1, uint64_t GP2);
-KResult SetVolume(srv_audio_device_t* Device, uint8_t Volume);
+KResult SetRunningState(srv_audio_device_t* Device, bool IsRunning);
+KResult SetVolume(srv_audio_device_t* Device, audio_volume_t Volume);

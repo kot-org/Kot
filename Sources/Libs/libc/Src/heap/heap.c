@@ -1,7 +1,16 @@
 #include <kot/heap.h>
 
 static uint64_t mutexHeap;
-static struct heap_t heap;
+struct heap_t heap = {
+    .lastSegment = NULL,
+    .mainSegment = NULL,
+    .TotalSize = NULL,
+    .FreeSize = NULL,
+    .UsedSize = NULL,
+    .EndAddress = NULL,
+    .Process = NULL,
+    .IsHeapEnabled = false,
+};
 
 void InitializeHeapUser(){
     heap.Process = Sys_GetProcess();
@@ -32,9 +41,10 @@ uintptr_t malloc(size64_t size){
     atomicAcquire(&mutexHeap, 0);
 
     struct SegmentHeader* currentSeg = (struct SegmentHeader*)heap.mainSegment;
+    uint64_t sizeWithHeader = size + sizeof(struct SegmentHeader);
     while(true){
         if(currentSeg->IsFree){
-            if(currentSeg->length > size){
+            if(currentSeg->length > sizeWithHeader){
                 // split this segment in two 
                 SplitSegmentUser(currentSeg, size);
                 currentSeg->IsFree = false;
@@ -42,7 +52,7 @@ uintptr_t malloc(size64_t size){
                 heap.FreeSize -= currentSeg->length + sizeof(struct SegmentHeader);
                 atomicUnlock(&mutexHeap, 0);
                 return (uintptr_t)((uint64_t)currentSeg + sizeof(struct SegmentHeader));
-            }else if(currentSeg->length == size){
+            }else if(currentSeg->length >= size){
                 currentSeg->IsFree = false;
                 heap.UsedSize += currentSeg->length + sizeof(struct SegmentHeader);
                 heap.FreeSize -= currentSeg->length + sizeof(struct SegmentHeader);

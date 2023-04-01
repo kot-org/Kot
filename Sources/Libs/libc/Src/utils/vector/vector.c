@@ -25,21 +25,21 @@ uint64_t vector_push(vector_t* vector, uintptr_t item) {
     if (vector->items == NULL) {
         vector->items = (uintptr_t*) malloc(8);
         vector->length = 1;
-        *(vector->items) = item;
+        *(uintptr_t*)(vector->items) = item;
     } else {
         vector_expand(vector, 1);
-        *(vector->items + vector->length - 1) = item;
+        *(uintptr_t*)(vector->items + vector->length - 1) = item;
     }
     return vector->length - 1;
 }
 
 uintptr_t vector_get(vector_t* vector, uint64_t index) {
-    return *(vector->items + index);
+    return *(uintptr_t*)(vector->items + index);
 }
 
 void vector_set(vector_t* vector, uint64_t index, uintptr_t item) {
     if (index < vector->length) {
-        *(vector->items + index) = item;
+        *(uintptr_t*)(vector->items + index) = item;
     }
 }
 

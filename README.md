@@ -95,3 +95,5 @@ Download the latest release <a href="https://github.com/kot-org/Kot/releases">he
 # Credits
 The icons used in this project were provided by [Icon8](https://icons8.com/).
 
+Song: Henri Werner - ITTY BITTY (feat. EHLE) [NCS Release] Music provided by NoCopyrightSounds Free Download/Stream: http://ncs.io/ITTYBITTY 
+

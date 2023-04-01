@@ -85,4 +85,10 @@ typedef struct{
     uint64_t Data4:48;
 }UUID_t;
 
+// cyclic buffer
+typedef struct{
+    uintptr_t Base;
+    size64_t Size;
+}cyclic_t;
+
 #endif

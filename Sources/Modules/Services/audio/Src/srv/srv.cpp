@@ -3,6 +3,7 @@
 uisd_audio_t* SrvData;
 
 KResult InitialiseServer(){
+    AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)malloc(sizeof(AddDeviceExternalData));
     process_t proc = Sys_GetProcess();
 
     uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_audio_t));
@@ -17,9 +18,11 @@ KResult InitialiseServer(){
     SrvData->ControllerHeader.Process = ShareProcessKey(proc);
 
 
+    ExternalDataAddDevice->OutputsClass = new Outputs();
+
     /* AddDevice */
     thread_t AddDeviceThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&AddDevice, PriviledgeApp, NULL, &AddDeviceThread);
+    Sys_CreateThread(proc, (uintptr_t)&AddDevice, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &AddDeviceThread);
     SrvData->AddDevice = MakeShareableThread(AddDeviceThread, PriviledgeDriver);
     
     CreateControllerUISD(ControllerTypeEnum_Audio, key, true);
@@ -29,11 +32,13 @@ KResult InitialiseServer(){
 KResult AddDevice(thread_t Callback, uint64_t CallbackArg, srv_audio_device_t* Device){
     KResult Status = KFAIL;
 
+    AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)Sys_GetExternalDataThread();
+
     if(Device != NULL){
         // TODO : in
         switch(Device->Type){
             case AudioDeviceTypeOut:{
-                Status = AddOutputDevice(Device);
+                Status = ExternalDataAddDevice->OutputsClass->AddOutputDevice(Device);
                 break;
             }
             default:{
@@ -57,7 +62,7 @@ KResult AddDevice(thread_t Callback, uint64_t CallbackArg, srv_audio_device_t* D
 
 thread_t ChangeStatusCallbackThread = NULL;
 
-void ChangeStatusCallback(KResult Status, struct srv_audio_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+void ChangeStatusCallback(KResult Status, struct CallbackAudio* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     Callback->Status = Status;
     Sys_Unpause(Callback->Self);
     Sys_Close(KSUCCESS);
@@ -90,7 +95,14 @@ CallbackAudio* ChangeStatus(srv_audio_device_t* Device, enum AudioSetStatus Func
     return Callback;
 }
 
-KResult SetVolume(srv_audio_device_t* Device, uint8_t Volume){
+KResult SetRunningState(srv_audio_device_t* Device, bool IsRunning){
+    CallbackAudio* Callback = ChangeStatus(Device, AudioSetStatusRunningState, IsRunning, 0, 0);
+    KResult Status = Callback->Status;
+    free(Callback);
+    return Status;
+}
+
+KResult SetVolume(srv_audio_device_t* Device, audio_volume_t Volume){
     CallbackAudio* Callback = ChangeStatus(Device, AudioSetStatusVolume, Volume, 0, 0);
     KResult Status = Callback->Status;
     free(Callback);
