@@ -30,6 +30,7 @@ make -C "Libs/libc++/Build"
 make -C "Libs/kot-graphics/Build"
 make -C "Libs/kot-ui/Build"
 make -C "Libs/kot-ui++/Build"
+make -C "Libs/kot-audio++/Build"
 
 # System
 echo -e "\e[32mCompiling kot system...\e[0m"

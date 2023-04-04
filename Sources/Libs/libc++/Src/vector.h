@@ -28,14 +28,16 @@ namespace std{
                 delete Data;
             }
 
-            void push(const T& Item){
+            uint64_t push(const T& Item){
                 atomicAcquire(&Lock, 0);
                 if(Size == Capacity){
                     expand();
                 }
-                Data[Size] = Item;
+                uint64_t Index = Size;
+                Data[Index] = Item;
                 Size++;
                 atomicUnlock(&Lock, 0);
+                return Index;
             }
 
             void remove(uint64_t Index){
@@ -51,10 +53,12 @@ namespace std{
             }
 
             void set(uint64_t Index, const T& Item){
+                atomicAcquire(&Lock, 0);
                 if(Index < 0 || Index >= Size){
                     return;
                 }
                 Data[Index] = Item;
+                atomicUnlock(&Lock, 0);
             }
 
             void expand(uint64_t len = 4){
@@ -66,7 +70,10 @@ namespace std{
             }
 
             T& get(uint64_t Index){
-                return Data[Index];
+                atomicAcquire(&Lock, 0);
+                T& DataOutput = Data[Index];
+                atomicUnlock(&Lock, 0);
+                return DataOutput;
             }
 
             T& operator[](uint64_t Index){

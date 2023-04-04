@@ -1,12 +1,18 @@
 #include <out/out.h>
 
+uintptr_t FileBuf;
+size64_t FileSize;
+uint64_t FileOffset;
+
+uint64_t FirstOffset = 0;
+
 /// @brief This function mix audio together
 /// @tparam T 
 /// @param Size in byte
 /// @param Dst 
 /// @param Src 
 template <typename T> 
-void MixAudio(size64_t Size, uint64_t Offset, audio_buffer_t* Dst, std::vector<audio_buffer_t> Src){
+void MixAudio(size64_t Size, uint64_t Offset, audio_buffer_t* Dst, std::vector<StreamRequest_t*> Src){
     // TODO mix
     assert(Size <= Dst->Buffer.Size);
 
@@ -20,47 +26,38 @@ void MixAudio(size64_t Size, uint64_t Offset, audio_buffer_t* Dst, std::vector<a
                 SizeSecondCopy = Size - SizeToCopy;
             }
         }
-        memcpy((uintptr_t)((uint64_t)Dst->Buffer.Base + Offset), (uintptr_t)((uint64_t)Src[0].Buffer.Base + Offset), SizeToCopy);
+        memcpy((uintptr_t)((uint64_t)Dst->Buffer.Base + Offset), (uintptr_t)((uint64_t)Src[0]->LocalBuffer->Buffer.Base + Offset), SizeToCopy);
         if(SizeSecondCopy){
-            memcpy((uintptr_t)((uint64_t)Dst->Buffer.Base), (uintptr_t)((uint64_t)Src[0].Buffer.Base), SizeSecondCopy);
+            memcpy((uintptr_t)((uint64_t)Dst->Buffer.Base), (uintptr_t)((uint64_t)Src[0]->LocalBuffer->Buffer.Base), SizeSecondCopy);
         }
+        *(uint64_t*)((uint64_t)Src[0]->LocalBuffer->Buffer.Base + Src[0]->ShareBuffer->PositionOfStreamData) = (Offset + Size) % Src[0]->LocalBuffer->Buffer.Size;
     }
 }
 
-Outputs::Outputs(){
+Outputs::Outputs(event_t OnDeviceChangedEvent){
     Devices.push(NULL); // defautl output
+    OnDeviceChanged = OnDeviceChangedEvent;
+    DeviceCount = 0;
     Lock = NULL;
 }
 
-uintptr_t FileBuf;
-size64_t FileSize;
-uint64_t FileOffset;
-
 void OnOffsetUpdate(){
     OutputDevice_t* OutputDevice = (OutputDevice_t*)Sys_GetExternalDataThread();
-    uint64_t Offset = (*(uint64_t*)((uint64_t)OutputDevice->OutputStream.Buffer.Base + OutputDevice->Device.PositionOfStreamData) + 0x1000) % OutputDevice->Device.StreamSize;
-    size64_t SizeToProcess = OutputDevice->Device.SizeOffsetUpdateToTrigger + 0x1000;
-    size64_t SizeToCopy = SizeToProcess;
-    size64_t SizeSecondCopy = 0;
-    if(Offset + SizeToCopy > OutputDevice->OutputStream.Buffer.Size){
-        SizeToCopy = OutputDevice->OutputStream.Buffer.Size - Offset;
-        if(SizeToProcess > SizeToCopy){
-            SizeSecondCopy = SizeToProcess - SizeToCopy;
-        }
-    }
-    memcpy((uintptr_t)((uint64_t)OutputDevice->InputStreams[0].Buffer.Base + Offset), (uintptr_t)((uint64_t)FileBuf + (FileOffset % FileSize)), SizeToCopy);
-    if(SizeSecondCopy){
-        memcpy((uintptr_t)((uint64_t)OutputDevice->InputStreams[0].Buffer.Base), (uintptr_t)((uint64_t)FileBuf + ((FileOffset + SizeToCopy) % FileSize)), SizeSecondCopy);
-    }
-
-    FileOffset += OutputDevice->Device.SizeOffsetUpdateToTrigger;
-
+    uint64_t Offset = (*(uint64_t*)((uint64_t)OutputDevice->OutputStream.Buffer.Base + OutputDevice->Device.Info.PositionOfStreamData) + (OutputDevice->Device.Info.SizeOffsetUpdateToTrigger * 2)) % OutputDevice->Device.Info.StreamSize;
+    
+    atomicAcquire(&OutputDevice->Lock, 0);
 
     if(OutputDevice->OutputStream.Format.Encoding == AudioEncodingPCMS8LE || OutputDevice->OutputStream.Format.Encoding == AudioEncodingPCMS16LE){
-        MixAudio<uint16_t>(SizeToProcess, Offset, &OutputDevice->OutputStream, OutputDevice->InputStreams);
+        MixAudio<uint16_t>(OutputDevice->Device.Info.SizeOffsetUpdateToTrigger, Offset, &OutputDevice->OutputStream, OutputDevice->InputStreams);
     }else{
-        MixAudio<uint32_t>(SizeToProcess, Offset, &OutputDevice->OutputStream, OutputDevice->InputStreams);
+        MixAudio<uint32_t>(OutputDevice->Device.Info.SizeOffsetUpdateToTrigger, Offset, &OutputDevice->OutputStream, OutputDevice->InputStreams);
     }
+    atomicUnlock(&OutputDevice->Lock, 0);
+
+    arguments_t Parameters;
+
+    Sys_Event_Trigger(OutputDevice->ClientOnOffsetUpdate, &Parameters);
+
     Sys_Event_Close();
 }
 
@@ -69,53 +66,161 @@ KResult Outputs::AddOutputDevice(srv_audio_device_t* Device){
 
     OutputDevice_t* OutputDevice = new OutputDevice_t;
 
+    // Reset lock
+    OutputDevice->Lock = NULL;
+
     memcpy(&OutputDevice->Device, Device, sizeof(srv_audio_device_t));
 
     // Intialize stream buffer
-    OutputDevice->OutputStream.Buffer.Base = GetFreeAlignedSpace(Device->StreamRealSize);
+    OutputDevice->OutputStream.Buffer.Base = GetFreeAlignedSpace(Device->Info.StreamRealSize);
     Sys_AcceptMemoryField(Sys_GetProcess(), Device->StreamBufferKey, &OutputDevice->OutputStream.Buffer.Base);
-    OutputDevice->OutputStream.Buffer.Size = Device->StreamSize;
+    OutputDevice->OutputStream.Buffer.Size = Device->Info.StreamSize;
 
-    OutputDevice->OutputStream.Format = Device->Format;
+    OutputDevice->OutputStream.Format = Device->Info.Format;
 
     // Intialize stream events
     Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&OnOffsetUpdate, PriviledgeApp, (uint64_t)OutputDevice, &OutputDevice->OnOffsetUpdateHandler);
     Sys_Event_Bind(Device->OnOffsetUpdate, OutputDevice->OnOffsetUpdateHandler, false);
 
+    Sys_Event_Create(&OutputDevice->ClientOnOffsetUpdate);
+    Sys_Keyhole_CloneModify(OutputDevice->ClientOnOffsetUpdate, &OutputDevice->ClientOnOffsetUpdateShareableKey, NULL, KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeApp);
+
     // Intialize stream status
     OutputDevice->OutputStream.Volume = 255;
-    OutputDevice->StreamIsRunning = true;
     SetVolume(Device, OutputDevice->OutputStream.Volume);
 
-    Devices.push(OutputDevice);
+    OutputDevice->DeviceID = Devices.push(OutputDevice);
+    DeviceCount++;
+
+    {
+        arguments_t Paramters{
+            .arg[0] = OutputDevice->DeviceID,
+        };
+
+        Sys_Event_Trigger(OnDeviceChanged, &Paramters);
+    }
 
     // Set default
     if(!Devices[0]){
         Devices[0] = OutputDevice;
+        Devices[0]->Device.Info.IsDefault = true;
+        arguments_t Paramters{
+            .arg[0] = 0,
+            .arg[1] = OutputDevice->DeviceID,
+        };
+
+        Sys_Event_Trigger(OnDeviceChanged, &Paramters);
     }
 
-    audio_buffer_t Buf{
-        .Buffer{
-            .Base = calloc(OutputDevice->OutputStream.Buffer.Size),
-            .Size = OutputDevice->OutputStream.Buffer.Size,
-        },
-        .Format = OutputDevice->OutputStream.Format,
-        .Volume = 255,
-    };
-
-    file_t* MusicFile = fopen("d1:Programs/Services/Audio/music.bin", "r");
-
-    fseek(MusicFile, 0, SEEK_END);
-    FileSize = ftell(MusicFile);
-    fseek(MusicFile, 0, SEEK_SET);
-
-    FileBuf = malloc(FileSize);
-    fread(FileBuf, FileSize, 1, MusicFile);
-    FileOffset = 0;
-
-    OutputDevice->InputStreams.push(Buf);
+    OutputDevice->StreamIsRunning = true;
     SetRunningState(Device, OutputDevice->StreamIsRunning);
 
     atomicUnlock(&Lock, 0);
     return KSUCCESS;
+}
+
+StreamRequest_t* Outputs::RequestStream(uint64_t OutputID, process_t ProcessKey, uint64_t PID){
+    if(OutputID >= Devices.size()){
+        return NULL;
+    }
+
+    atomicAcquire(&Lock, 0);
+
+    OutputDevice_t* OutputDevice = Devices[OutputID];
+    StreamRequest_t* OutputRequestData = (StreamRequest_t*)malloc(sizeof(StreamRequest_t));
+    audio_share_buffer_t* ShareBuffer = (audio_share_buffer_t*)malloc(sizeof(audio_share_buffer_t));
+    audio_buffer_t* LocalBuffer = (audio_buffer_t*)malloc(sizeof(audio_buffer_t));
+
+    OutputRequestData->ShareBuffer = ShareBuffer;
+    OutputRequestData->LocalBuffer = LocalBuffer;
+    OutputRequestData->PID = PID;
+    OutputRequestData->OutputID = OutputID;
+    OutputRequestData->ProcessKey = ProcessKey;
+    OutputRequestData->Self = this;
+    OutputRequestData->Device = OutputDevice;
+
+    ShareBuffer->StreamSize = OutputDevice->OutputStream.Buffer.Size;
+    ShareBuffer->StreamRealSize = ShareBuffer->StreamSize + sizeof(uint64_t); // Add offset field
+    ShareBuffer->PositionOfStreamData = ShareBuffer->StreamSize;
+    ShareBuffer->Format = OutputDevice->OutputStream.Format;
+    ShareBuffer->OnOffsetUpdate = OutputDevice->ClientOnOffsetUpdateShareableKey;
+    ShareBuffer->SizeOffsetUpdateToTrigger = OutputDevice->Device.Info.SizeOffsetUpdateToTrigger;
+
+    LocalBuffer->Buffer.Size = ShareBuffer->StreamSize;
+    LocalBuffer->Format = OutputDevice->OutputStream.Format;
+    LocalBuffer->Volume = 255;
+
+    LocalBuffer->Buffer.Base = GetFreeAlignedSpace(ShareBuffer->StreamRealSize);
+    Sys_CreateMemoryField(Sys_GetProcess(), ShareBuffer->StreamRealSize, &LocalBuffer->Buffer.Base, &OutputRequestData->StreamBufferLocalKey, MemoryFieldTypeShareSpaceRW);
+    Sys_Keyhole_CloneModify(OutputRequestData->StreamBufferLocalKey, &ShareBuffer->StreamBufferKey, ProcessKey, KeyholeFlagPresent, PriviledgeApp);
+    memset(LocalBuffer->Buffer.Base, 0, LocalBuffer->Buffer.Size);
+
+    OutputDevice->InputStreams.push(OutputRequestData);
+
+    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&StreamCommand, PriviledgeApp, (uint64_t)OutputRequestData, &OutputRequestData->StreamCommandThread);
+    OutputRequestData->ShareBuffer->StreamCommand = MakeShareableThreadToProcess(OutputRequestData->StreamCommandThread, ProcessKey);
+
+    atomicUnlock(&Lock, 0);
+
+    return OutputRequestData; 
+}
+
+KResult Outputs::CloseStream(StreamRequest_t* Stream){
+    atomicAcquire(&Stream->Device->Lock, 0);
+    Stream->Device->InputStreams.remove(Stream->Index);
+    atomicUnlock(&Stream->Device->Lock, 0);
+    Sys_CloseMemoryField(Sys_GetProcess(), Stream->StreamBufferLocalKey, Stream->LocalBuffer->Buffer.Base);
+    free(Stream->ShareBuffer);
+    free(Stream->LocalBuffer);
+    free(Stream);
+    return KSUCCESS;
+}
+
+KResult Outputs::ChangeVolume(uint64_t OutputID, uint8_t Volume){
+    if(OutputID >= Devices.size()){
+        return KFAIL;
+    }
+    atomicAcquire(&Lock, 0);
+    OutputDevice_t* OutputDevice = Devices[OutputID];
+    OutputDevice->OutputStream.Volume = Volume;
+    KResult Status = SetVolume(&OutputDevice->Device, OutputDevice->OutputStream.Volume);
+    atomicUnlock(&Lock, 0);
+    return Status;
+}
+
+KResult Outputs::SetDefault(uint64_t OutputID){
+    if(OutputID >= Devices.size() && OutputID != 0){
+        return KFAIL;
+    }
+    atomicAcquire(&Lock, 0);
+    Devices[0]->Device.Info.IsDefault = false;
+    Devices[0] = Devices[OutputID];
+    Devices[0]->Device.Info.IsDefault = true;
+    arguments_t Paramters{
+        .arg[0] = 0,
+        .arg[1] = OutputID,
+    };
+
+    Sys_Event_Trigger(OnDeviceChanged, &Paramters);
+    atomicUnlock(&Lock, 0);
+    return KSUCCESS;
+}
+
+uint64_t Outputs::GetDeviceCount(){
+    atomicAcquire(&Lock, 0);
+    uint64_t Count = DeviceCount; 
+    atomicUnlock(&Lock, 0);
+    return Count;
+}
+
+KResult Outputs::GetDeviceInfo(uint64_t OutputID, srv_audio_device_info_t* Info){
+    if(OutputID >= Devices.size()){
+        return KFAIL;
+    }
+    atomicAcquire(&Lock, 0);
+
+    memcpy(Info, &Devices[OutputID]->Device.Info, sizeof(srv_audio_device_info_t));
+
+    atomicUnlock(&Lock, 0);
+    return KSUCCESS;    
 }

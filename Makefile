@@ -14,6 +14,7 @@ QEMUFLAGS =	-no-reboot 														\
     		-device usb-ehci,id=ehci                        				\
 			-device intel-hda -device hda-duplex
 
+# -audiodev wav,id=snd0,path=output.wav 	 ,audiodev=snd0		
 
 build:
 	bash ./Build/build.sh 

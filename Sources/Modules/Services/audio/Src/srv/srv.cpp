@@ -17,8 +17,37 @@ KResult InitialiseServer(){
     SrvData->ControllerHeader.Type = ControllerTypeEnum_Audio;
     SrvData->ControllerHeader.Process = ShareProcessKey(proc);
 
+    /* OnDeviceChanged */
+    event_t OnDeviceChanged;
+    Sys_Event_Create(&OnDeviceChanged);
+    Sys_Keyhole_CloneModify(OnDeviceChanged, &SrvData->OnDeviceChanged, NULL, KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeApp);
 
-    ExternalDataAddDevice->OutputsClass = new Outputs();
+    ExternalDataAddDevice->OutputsClass = new Outputs(SrvData->OnDeviceChanged);
+
+    /* RequestStream */
+    thread_t RequestStreamThread = NULL;
+    Sys_CreateThread(proc, (uintptr_t)&RequestStream, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &RequestStreamThread);
+    SrvData->RequestStream = MakeShareableThread(RequestStreamThread, PriviledgeApp);
+
+    /* ChangeVolume */
+    thread_t ChangeVolumeThread = NULL;
+    Sys_CreateThread(proc, (uintptr_t)&ChangeVolume, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &ChangeVolumeThread);
+    SrvData->ChangeVolume = MakeShareableThread(ChangeVolumeThread, PriviledgeService);
+
+    /* SetDefault */
+    thread_t SetDefaultThread = NULL;
+    Sys_CreateThread(proc, (uintptr_t)&SetDefault, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &SetDefaultThread);
+    SrvData->SetDefault = MakeShareableThread(SetDefaultThread, PriviledgeService);
+
+    /* GetDeviceCount */
+    thread_t GetDeviceCountThread = NULL;
+    Sys_CreateThread(proc, (uintptr_t)&GetDeviceCount, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &GetDeviceCountThread);
+    SrvData->GetDeviceCount = MakeShareableThread(GetDeviceCountThread, PriviledgeService);
+
+    /* GetDeviceInfo */
+    thread_t GetDeviceInfoThread = NULL;
+    Sys_CreateThread(proc, (uintptr_t)&GetDeviceInfo, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &GetDeviceInfoThread);
+    SrvData->GetDeviceInfo = MakeShareableThread(GetDeviceInfoThread, PriviledgeService);
 
     /* AddDevice */
     thread_t AddDeviceThread = NULL;
@@ -29,6 +58,164 @@ KResult InitialiseServer(){
     return KSUCCESS;
 }
 
+/* Input part of server */
+KResult RequestStream(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID, process_t ProcessKey){
+    KResult Status = KFAIL;
+
+    uint64_t PID = Sys_GetPIDThreadLauncher();
+
+    AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)Sys_GetExternalDataThread();
+
+    StreamRequest_t* StreamRequest = ExternalDataAddDevice->OutputsClass->RequestStream(OutputID, ProcessKey, PID);
+    
+    if(StreamRequest){
+        Status = KSUCCESS;
+    
+        arguments_t arguments{
+            .arg[0] = Status,           /* Status */
+            .arg[1] = CallbackArg,      /* CallbackArg */
+            .arg[2] = NULL,             /* OutputBuffer */
+            .arg[3] = NULL,             /* GP1 */
+            .arg[4] = NULL,             /* GP2 */
+            .arg[5] = NULL,             /* GP3 */
+        };
+
+        ShareDataWithArguments_t Data{
+            .Size = sizeof(audio_share_buffer_t),
+            .Data = StreamRequest->ShareBuffer,
+            .ParameterPosition = 0x2,
+        };
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &Data);
+    }else{
+        arguments_t arguments{
+            .arg[0] = Status,           /* Status */
+            .arg[1] = CallbackArg,      /* CallbackArg */
+            .arg[2] = NULL,             /* OutputBuffer */
+            .arg[3] = NULL,             /* GP1 */
+            .arg[4] = NULL,             /* GP2 */
+            .arg[5] = NULL,             /* GP3 */
+        };
+        
+        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    }
+    Sys_Close(KSUCCESS);
+}
+
+KResult StreamCommand(thread_t Callback, uint64_t CallbackArg, uint64_t Command, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+    StreamRequest_t* Stream = (StreamRequest_t*)Sys_GetExternalDataThread();
+
+    KResult Status = KFAIL;
+
+    switch(Command){
+        case AUDIO_STREAM_CLOSE:{
+            Status = Stream->Self->CloseStream(Stream);
+            break;
+        }
+        case AUDIO_STREAM_SET_VOLUME:{
+            Stream->LocalBuffer->Volume = GP0 & 0xff;
+            Status = KSUCCESS;
+            break;
+        }
+        default:{
+            break;
+        }
+    }
+
+    arguments_t arguments{
+        .arg[0] = Status,               /* Status */
+        .arg[1] = CallbackArg,          /* CallbackArg */
+        .arg[2] = NULL,                 /* GP0 */
+        .arg[3] = NULL,                 /* GP1 */
+        .arg[4] = NULL,                 /* GP2 */
+        .arg[5] = NULL,                 /* GP3 */
+    };
+
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    if(Command == AUDIO_STREAM_CLOSE && Status == KSUCCESS){
+        Sys_Exit(KSUCCESS);
+    }else{
+        Sys_Close(KSUCCESS);
+    }
+}
+
+KResult ChangeVolume(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID, uint8_t Volume){
+    AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)Sys_GetExternalDataThread();
+
+    KResult Status = ExternalDataAddDevice->OutputsClass->ChangeVolume(OutputID, Volume);
+
+    arguments_t arguments{
+        .arg[0] = Status,               /* Status */
+        .arg[1] = CallbackArg,          /* CallbackArg */
+        .arg[2] = NULL,                 /* GP0 */
+        .arg[3] = NULL,                 /* GP1 */
+        .arg[4] = NULL,                 /* GP2 */
+        .arg[5] = NULL,                 /* GP3 */
+    };
+
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_Close(KSUCCESS);
+}
+
+KResult SetDefault(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID){
+    AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)Sys_GetExternalDataThread();
+
+    KResult Status = ExternalDataAddDevice->OutputsClass->SetDefault(OutputID);
+
+    arguments_t arguments{
+        .arg[0] = Status,               /* Status */
+        .arg[1] = CallbackArg,          /* CallbackArg */
+        .arg[2] = NULL,                 /* GP0 */
+        .arg[3] = NULL,                 /* GP1 */
+        .arg[4] = NULL,                 /* GP2 */
+        .arg[5] = NULL,                 /* GP3 */
+    };
+
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_Close(KSUCCESS);
+}
+
+KResult GetDeviceCount(thread_t Callback, uint64_t CallbackArg){
+    AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)Sys_GetExternalDataThread();
+
+    arguments_t arguments{
+        .arg[0] = KSUCCESS,                                                     /* Status */
+        .arg[1] = CallbackArg,                                                  /* CallbackArg */
+        .arg[2] = ExternalDataAddDevice->OutputsClass->GetDeviceCount(),        /* DeviceCount */
+        .arg[3] = NULL,                                                         /* GP1 */
+        .arg[4] = NULL,                                                         /* GP2 */
+        .arg[5] = NULL,                                                         /* GP3 */
+    };
+
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    Sys_Close(KSUCCESS);
+}
+
+KResult GetDeviceInfo(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID){
+    AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)Sys_GetExternalDataThread();
+
+    srv_audio_device_info_t Info;
+    KResult Status = ExternalDataAddDevice->OutputsClass->GetDeviceInfo(OutputID, &Info);
+
+    arguments_t arguments{
+        .arg[0] = Status,               /* Status */
+        .arg[1] = CallbackArg,          /* CallbackArg */
+        .arg[2] = NULL,                 /* Info */
+        .arg[3] = NULL,                 /* GP1 */
+        .arg[4] = NULL,                 /* GP2 */
+        .arg[5] = NULL,                 /* GP3 */
+    };
+
+    ShareDataWithArguments_t Data{
+        .Size = sizeof(srv_audio_device_info_t),
+        .Data = &Info,
+        .ParameterPosition = 0x2,
+    };
+
+    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &Data);
+    Sys_Close(KSUCCESS);
+}
+
+/* Output part of server */
 KResult AddDevice(thread_t Callback, uint64_t CallbackArg, srv_audio_device_t* Device){
     KResult Status = KFAIL;
 
@@ -36,7 +223,7 @@ KResult AddDevice(thread_t Callback, uint64_t CallbackArg, srv_audio_device_t* D
 
     if(Device != NULL){
         // TODO : in
-        switch(Device->Type){
+        switch(Device->Info.Type){
             case AudioDeviceTypeOut:{
                 Status = ExternalDataAddDevice->OutputsClass->AddOutputDevice(Device);
                 break;

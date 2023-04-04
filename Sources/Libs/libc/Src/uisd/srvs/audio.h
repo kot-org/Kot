@@ -9,6 +9,9 @@
 extern "C" {
 #endif
 
+#define AUDIO_STREAM_CLOSE          0x0
+#define AUDIO_STREAM_SET_VOLUME     0x1
+
 typedef KResult (*AudioCallbackHandler)(KResult Status, struct srv_audio_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
 enum AudioDeviceType{
@@ -35,21 +38,29 @@ typedef struct {
     uint64_t SampleRate;
 } audio_format;
 
+
 typedef struct {
     char Name[128];
 
+    bool IsDefault;
     enum AudioDeviceType Type;
     audio_format Format;
+
+    size64_t SizeOffsetUpdateToTrigger;
+
+    size64_t StreamSize;
+    size64_t StreamRealSize;
+    size64_t PositionOfStreamData;
+} srv_audio_device_info_t;
+
+typedef struct {
+    srv_audio_device_info_t Info;
 
     thread_t ChangeStatus;
 
     event_t OnOffsetUpdate;
-    size64_t SizeOffsetUpdateToTrigger;
 
     ksmem_t StreamBufferKey;
-    size64_t StreamSize;
-    size64_t StreamRealSize;
-    size64_t PositionOfStreamData;
 } srv_audio_device_t;
 
 typedef uint8_t audio_volume_t;
@@ -58,7 +69,20 @@ typedef struct{
     cyclic_t Buffer;
     audio_format Format;
     audio_volume_t Volume; 
-}audio_buffer_t;
+} audio_buffer_t;
+
+typedef struct{
+    ksmem_t StreamBufferKey;
+    size64_t StreamSize;
+    size64_t StreamRealSize;
+    size64_t PositionOfStreamData;
+    audio_format Format;
+    
+    event_t OnOffsetUpdate;
+    size64_t SizeOffsetUpdateToTrigger;
+
+    thread_t StreamCommand;
+} audio_share_buffer_t;
 
 struct srv_audio_callback_t{
     thread_t Self;
@@ -72,6 +96,16 @@ struct srv_audio_callback_t{
 void Srv_Audio_Initialize();
 
 void Srv_Audio_Callback(KResult Status, struct srv_audio_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
+
+struct srv_audio_callback_t* Srv_Audio_RequestStream(uint64_t OutputID, bool IsAwait);
+struct srv_audio_callback_t* Srv_Audio_StreamCommand(audio_share_buffer_t* ShareBuffer, uint64_t Command, uint64_t GP0, uint64_t GP1, uint64_t GP2, bool IsAwait);
+
+KResult CloseStream(audio_share_buffer_t* ShareBuffer);
+KResult ChangeVolumeStream(audio_share_buffer_t* ShareBuffer, uint8_t Volume);
+
+struct srv_audio_callback_t* Srv_Audio_ChangeVolume(uint64_t OutputID, uint8_t Volume, bool IsAwait);
+struct srv_audio_callback_t* Srv_Audio_SetDefault(uint64_t OutputID, bool IsAwait);
+struct srv_audio_callback_t* Srv_Audio_GetDeviceInfo(uint64_t OutputID, bool IsAwait);
 
 struct srv_audio_callback_t* Srv_Audio_AddDevice(srv_audio_device_t* Device, bool IsAwait);
 

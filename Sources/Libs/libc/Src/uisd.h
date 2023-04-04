@@ -82,6 +82,14 @@ typedef struct {
 typedef struct {
     uisd_controller_t ControllerHeader;
 
+    event_t OnDeviceChanged;
+
+    thread_t RequestStream;
+    thread_t ChangeVolume;
+    thread_t SetDefault;
+    thread_t GetDeviceCount;
+    thread_t GetDeviceInfo;
+
     thread_t AddDevice;
     /* TODO */
 } uisd_audio_t;

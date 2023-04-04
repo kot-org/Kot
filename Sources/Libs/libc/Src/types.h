@@ -91,4 +91,9 @@ typedef struct{
     size64_t Size;
 }cyclic_t;
 
+typedef struct{
+    uintptr_t Base;
+    size64_t Size;
+}memory_buffer_t;
+
 #endif

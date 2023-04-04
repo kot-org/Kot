@@ -35,4 +35,4 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 link:
 	@ echo !==== LINKING
 	@ mkdir -p $(BINDIR)
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Explorer.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/Lib/libc.a $(_HOME)Sysroot/Lib/libcpp.a $(_HOME)Sysroot/Lib/kot-ui.a $(_HOME)Sysroot/Lib/kot-uipp.a $(_HOME)Sysroot/Lib/kot-graphics.a $(_HOME)Sysroot/Lib/crt0.o
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Explorer.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/Lib/libc.a $(_HOME)Sysroot/Lib/libcpp.a $(_HOME)Sysroot/Lib/kot-ui.a $(_HOME)Sysroot/Lib/kot-audiopp.a $(_HOME)Sysroot/Lib/kot-uipp.a $(_HOME)Sysroot/Lib/kot-graphics.a $(_HOME)Sysroot/Lib/crt0.o

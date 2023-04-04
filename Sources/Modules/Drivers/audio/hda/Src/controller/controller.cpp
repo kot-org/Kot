@@ -6,7 +6,11 @@ void HDAControllerOnInterrupt(){
     for(uint8_t i = 0; i < Controller->StreamCount; i++){
         if(Controller->Registers->InterruptStatus & (1 << i)){
             if(Controller->Registers->Streams[i].Status & HDA_STREAM_STS_BCIS){
-                Controller->Outputs[i]->Stream->CurrentPosition = (Controller->Outputs[i]->Stream->CurrentPosition + Controller->Outputs[i]->Stream->SizeIOCToTrigger) % Controller->Outputs[i]->Stream->Size;
+                Controller->Outputs[i]->Stream->CurrentPosition = Controller->Registers->Streams[i].CurrentBufferLinkPosition;
+                if(Controller->Outputs[i]->Stream->CurrentPosition % Controller->Outputs[i]->Stream->SizeIOCToTrigger){
+                    Controller->Outputs[i]->Stream->CurrentPosition -= Controller->Outputs[i]->Stream->CurrentPosition % Controller->Outputs[i]->Stream->SizeIOCToTrigger;
+                    Controller->Outputs[i]->Stream->CurrentPosition += Controller->Outputs[i]->Stream->SizeIOCToTrigger;
+                }
                 Controller->Registers->Streams[i].Status |= HDA_STREAM_STS_BCIS; // Clear
                 *(uint64_t*)((uint64_t)Controller->Outputs[i]->Stream->Buffer + Controller->Outputs[i]->Stream->PositionOfStreamData) = Controller->Outputs[i]->Stream->CurrentPosition; // Set the offset
                 arguments_t Parameters{
@@ -150,12 +154,12 @@ KResult HDAController::SetSampleRate(HDAOutput* Output, uint32_t SampleRate){
     switch(SampleRate){
         case 44100:{
             Output->Format.SampleBaseRate = 1; // 44.1 kHz
-            Output->AudioDevice.Format.SampleRate = 44100;
+            Output->AudioDevice.Info.Format.SampleRate = 44100;
             break;    
         }
         default:{
             Output->Format.SampleBaseRate = 0; // 48 kHz
-            Output->AudioDevice.Format.SampleRate = 48000;
+            Output->AudioDevice.Info.Format.SampleRate = 48000;
             break;
         }
     }
@@ -188,13 +192,13 @@ KResult HDAController::SetSoundEncoding(HDAOutput* Output, AudioEncoding Encodin
             return KFAIL;
         }
     }
-    Output->AudioDevice.Format.Encoding = Encoding;
+    Output->AudioDevice.Info.Format.Encoding = Encoding;
     return ConfigureStreamFormat(Output);
 }
 
 KResult HDAController::SetChannel(HDAOutput* Output, uint8_t Channels){
     Output->Format.NumberOfChannels = Channels;
-    Output->AudioDevice.Format.NumberOfChannels = Channels;
+    Output->AudioDevice.Info.Format.NumberOfChannels = Channels;
     return ConfigureStreamFormat(Output);
 }
 
@@ -352,7 +356,7 @@ void HDAController::AddOutputFunction(HDAFunction* Function){
 
     SetSampleRate(Output, 48000); // according to specs : must be supported by all codecs
 
-    Output->AudioDevice.Type = AudioDeviceTypeOut;
+    Output->AudioDevice.Info.Type = AudioDeviceTypeOut;
 
     InitializeSrv(Output);
 
@@ -374,23 +378,23 @@ HDAStream* HDAController::CreateStream(HDACodec* Codec, StreamType Type){
     HDAStreamDescriptor* Descriptor = &Registers->Streams[Stream->StreamNumber];
 
     Stream->Descriptor = Descriptor;
-    Stream->BufferDescriptorListEntries = HDA_BDL_SIZE / sizeof(HDABufferDescriptorEntry);
-    Stream->BufferDescriptorList = (HDABufferDescriptorEntry*)GetPhysical((uintptr_t*)&Stream->BufferDescriptorListPhysicalAddress, HDA_BDL_SIZE);
-    Stream->Size = Stream->BufferDescriptorListEntries * HDA_BDL_SIZE;
+    Stream->BufferDescriptorListEntries = HDA_BDL_ENTRY_COUNT;
+    Stream->BufferDescriptorList = (HDABufferDescriptorEntry*)GetPhysical((uintptr_t*)&Stream->BufferDescriptorListPhysicalAddress, HDA_BDL_ENTRY_COUNT * sizeof(HDABufferDescriptorEntry));
+    Stream->Size = Stream->BufferDescriptorListEntries * HDA_BDL_ENTRY_SIZE;
     Stream->PositionOfStreamData = Stream->Size + sizeof(uint64_t); // add the offset field
 
     Stream->RealSize = Stream->Size + sizeof(uint64_t); // add the offset field
     Stream->Buffer = GetFreeAlignedSpace(Stream->RealSize);
     Sys_CreateMemoryField(Sys_GetProcess(), Stream->RealSize, &Stream->Buffer, &Stream->BufferKey, MemoryFieldTypeShareSpaceRW);
 
-    Stream->SizeIOCToTrigger = HDA_INTERRUPT_ON_COMPLETION_BDL_COUNT * HDA_BDL_SIZE;
-    for(uint32_t i = 0; i < Stream->BufferDescriptorListEntries; i++){
+    Stream->SizeIOCToTrigger = HDA_INTERRUPT_ON_COMPLETION_BDL_COUNT * HDA_BDL_ENTRY_SIZE;
+    for(uint64_t i = 0; i < Stream->BufferDescriptorListEntries; i++){
         Stream->BufferDescriptorList[i].Reserved = 0; // Clear reserved
-        Stream->BufferDescriptorList[i].Length = HDA_BDL_SIZE;
+        Stream->BufferDescriptorList[i].Length = HDA_BDL_ENTRY_SIZE;
         Stream->BufferDescriptorList[i].InterruptOnCompletion = ((i % HDA_INTERRUPT_ON_COMPLETION_BDL_COUNT) == 0) ? 1 : 0;
-        Stream->BufferDescriptorList[i].Address = (uint64_t)Sys_GetPhysical((uintptr_t)((uint64_t)Stream->Buffer + i * HDA_BDL_SIZE));
+        Stream->BufferDescriptorList[i].Address = (uint64_t)Sys_GetPhysical((uintptr_t)((uint64_t)Stream->Buffer + i * HDA_BDL_ENTRY_SIZE));
     }
-    memset64(Stream->Buffer, 0x0, Stream->Size);
+    memset(Stream->Buffer, 0x0, Stream->RealSize);
 
     Descriptor->BufferDescriptorListPointer = (uint64_t)Stream->BufferDescriptorListPhysicalAddress;
 
@@ -409,7 +413,7 @@ HDAStream* HDAController::CreateStream(HDACodec* Codec, StreamType Type){
 
     Descriptor->Status |= HDA_STREAM_STS_BCIS | HDA_STREAM_STS_FIFO_ERROR | HDA_STREAM_STS_DESC_ERROR;
 
-    Descriptor->CyclicBufferSize = Stream->BufferDescriptorListEntries * HDA_BDL_SIZE;
+    Descriptor->CyclicBufferSize = Stream->Size;
     Descriptor->LastValidIndex = (Descriptor->LastValidIndex & ~HDA_STREAM_DESCRIPTOR_LVI_MASK) | (Stream->BufferDescriptorListEntries - 1); // LVI must be at least 1; i.e., there must be at least two valid entries in the buffer descriptor list before DMA operations can begin
 
     return Stream;

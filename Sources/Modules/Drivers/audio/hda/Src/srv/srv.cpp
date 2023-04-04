@@ -9,28 +9,28 @@ KResult InitializeSrv(HDAOutput* Output){
 
     Sys_Event_Create(&Output->OffsetUpdateEvent);
     Sys_Keyhole_CloneModify(Output->OffsetUpdateEvent, &Output->AudioDevice.OnOffsetUpdate, ProcessToShareData, KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeApp);
-    Output->AudioDevice.SizeOffsetUpdateToTrigger = Output->Stream->SizeIOCToTrigger;
+    Output->AudioDevice.Info.SizeOffsetUpdateToTrigger = Output->Stream->SizeIOCToTrigger;
     
     Sys_Keyhole_CloneModify(Output->Stream->BufferKey, &Output->AudioDevice.StreamBufferKey, ProcessToShareData, KeyholeFlagPresent, PriviledgeApp);
-    Output->AudioDevice.StreamSize = Output->Stream->Size;
-    Output->AudioDevice.PositionOfStreamData = Output->Stream->PositionOfStreamData;
-    Output->AudioDevice.StreamRealSize = Output->Stream->RealSize;
+    Output->AudioDevice.Info.StreamSize = Output->Stream->Size;
+    Output->AudioDevice.Info.PositionOfStreamData = Output->Stream->PositionOfStreamData;
+    Output->AudioDevice.Info.StreamRealSize = Output->Stream->RealSize;
 
     switch(Output->Function->Configuration.DefaultDevice){
         case AC_JACK_LINE_OUT:{
-            strcpy((char*)&Output->AudioDevice.Name, "HDA line out\0");
+            strcpy((char*)&Output->AudioDevice.Info.Name, "HDA line out\0");
             break;
         }
         case AC_JACK_SPEAKER:{
-            strcpy((char*)&Output->AudioDevice.Name, "HDA speaker\0");
+            strcpy((char*)&Output->AudioDevice.Info.Name, "HDA speaker\0");
             break;
         }
         case AC_JACK_TELEPHONY:{
-            strcpy((char*)&Output->AudioDevice.Name, "HDA telephony\0");
+            strcpy((char*)&Output->AudioDevice.Info.Name, "HDA telephony\0");
             break;
         }
         default:{
-            strcpy((char*)&Output->AudioDevice.Name, "HDA output\0");
+            strcpy((char*)&Output->AudioDevice.Info.Name, "HDA output\0");
             break;
         }
     }
