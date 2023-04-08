@@ -8,8 +8,8 @@ exit:
 	jmp iddle
 
 _start:
-	push 0
-	mov rbp, rsp
+	and rsp, 0xfffffffffffffff0 ; 16 byte aligned
+	mov rbp, 0
 	call main
 	jmp exit
 

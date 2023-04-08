@@ -18,17 +18,8 @@ void MixAudio(size64_t Size, uint64_t Offset, audio_buffer_t* Dst, std::vector<S
 
     size64_t SrcCount = Src.size();
     if(Src.size() >= 1){
-        size64_t SizeToCopy = Size;
-        size64_t SizeSecondCopy = 0;
-        if(Offset + SizeToCopy > Dst->Buffer.Size){
-            SizeToCopy = Dst->Buffer.Size - Offset;
-            if(Size > SizeToCopy){
-                SizeSecondCopy = Size - SizeToCopy;
-            }
-        }
-        memcpy((uintptr_t)((uint64_t)Dst->Buffer.Base + Offset), (uintptr_t)((uint64_t)Src[0]->LocalBuffer->Buffer.Base + Offset), SizeToCopy);
-        if(SizeSecondCopy){
-            memcpy((uintptr_t)((uint64_t)Dst->Buffer.Base), (uintptr_t)((uint64_t)Src[0]->LocalBuffer->Buffer.Base), SizeSecondCopy);
+        for(uint64_t i = 0; i < Size; i += sizeof(T)){
+            *(T*)((uint64_t)Dst->Buffer.Base + ((Offset + i) % Dst->Buffer.Size)) = *(T*)((uint64_t)Src[0]->LocalBuffer->Buffer.Base  + ((Offset + i) % Src[0]->LocalBuffer->Buffer.Size)) ;
         }
         *(uint64_t*)((uint64_t)Src[0]->LocalBuffer->Buffer.Base + Src[0]->ShareBuffer->PositionOfStreamData) = (Offset + Size) % Src[0]->LocalBuffer->Buffer.Size;
     }
@@ -91,7 +82,6 @@ KResult Outputs::AddOutputDevice(srv_audio_device_t* Device){
 
     OutputDevice->DeviceID = Devices.push(OutputDevice);
     DeviceCount++;
-
     {
         arguments_t Paramters{
             .arg[0] = OutputDevice->DeviceID,
@@ -104,11 +94,11 @@ KResult Outputs::AddOutputDevice(srv_audio_device_t* Device){
     if(!Devices[0]){
         Devices[0] = OutputDevice;
         Devices[0]->Device.Info.IsDefault = true;
-        arguments_t Paramters{
+
+        alignas(16) arguments_t Paramters{
             .arg[0] = 0,
             .arg[1] = OutputDevice->DeviceID,
         };
-
         Sys_Event_Trigger(OnDeviceChanged, &Paramters);
     }
 

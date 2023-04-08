@@ -2,7 +2,7 @@
 
 #include <kot/sys.h>
 #include <kot/assert.h>
-#include <kot/uisd/srvs/audio.h>
+#include <kot/uisd/srvs/system.h>
 #include <kot/uisd/srvs/storage.h>
 
 #include <kot++/string.h>

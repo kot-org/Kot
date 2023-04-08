@@ -19,7 +19,7 @@ extern process_t Proc;
 #define HDA_CLASS           0x4
 #define HDA_SUBCLASS        0x3
 
-#define HDA_BDL_ENTRY_COUNT                          0xff
+#define HDA_BDL_ENTRY_COUNT                         0xff
 #define HDA_BDL_ENTRY_SIZE                          0x1000
 #define HDA_INTERRUPT_ON_COMPLETION_BDL_COUNT       0x4
 

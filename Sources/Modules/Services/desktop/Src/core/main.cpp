@@ -9,8 +9,7 @@ using namespace Ui;
 
 // todo: fonction "ChangeFit"
 
-desktopc::desktopc(JsonObject* DesktopSettings)
-{
+desktopc::desktopc(JsonObject* DesktopSettings){
     window_t* Desktop = CreateWindow(NULL, Window_Type_Background);
     ResizeWindow(Desktop, Window_Max_Size, Window_Max_Size);
 
@@ -25,10 +24,11 @@ desktopc::desktopc(JsonObject* DesktopSettings)
     uint8_t WallpaperFit = ((JsonNumber*)Background->Get("wallpaperFit"))->Get();
     uint32_t SolidColor = strtol(((JsonString*)Background->Get("solidColor"))->Get(), NULL, 16);
 
-    if(IsWallpaper)
+    if(IsWallpaper){
         SetWallpaper(WallpaperPath, (PictureboxFit) WallpaperFit);
-    else
+    }else{
         SetSolidColor(SolidColor);
+    }
 
     /* clock */
     bool IsClock = ((JsonBoolean*)Background->Get("isClock"))->Get();
@@ -44,14 +44,19 @@ desktopc::desktopc(JsonObject* DesktopSettings)
     ChangeVisibilityWindow(Desktop, true);
 }
 
+void EventIcon(struct Button_t* Button, ButtonStatus_t EventType){
+    return;
+}
+
 void desktopc::CreateTaskbar(JsonObject* TaskbarSettings) {
-    Taskbar = (Taskbar_t*) malloc(sizeof(Taskbar_t));
+    Taskbar = (Taskbar_t*)malloc(sizeof(Taskbar_t));
 
     JsonObject* Style = (JsonObject*)TaskbarSettings->Get("style");
 
-    Taskbar->Height = 65;
+    Taskbar->Height = ((JsonNumber*) Style->Get("height"))->Get();
     Taskbar->IsExtended = ((JsonBoolean*) Style->Get("isExtended"))->Get();
     Taskbar->IconSize = ((JsonNumber*) Style->Get("iconSize"))->Get();
+    Taskbar->SolidColor = strtol(((JsonString*)Style->Get("solidColor"))->Get(), NULL, 16);
 
     Taskbar->Window = CreateWindow(NULL, Window_Type_DockBottom);
     ResizeWindow(Taskbar->Window, Window_Max_Size, Taskbar->Height);
@@ -60,15 +65,34 @@ void desktopc::CreateTaskbar(JsonObject* TaskbarSettings) {
 
     UiContext* UiCtx = new UiContext(TaskbarFb);
 
-    Box_t* AppsContainer = Box(
+    Box_t* FlexContainer = Box(
         {
             .G = {
-                    .Width = 500,
-                    .Height = Taskbar->Height
+                    .Width = -100,
+                    .Height = -100,
                 },
-            .BackgroundColor = 0xFFFF00
+            .BackgroundColor = Taskbar->SolidColor
         }
-    , UiCtx->Cpnt);
+        , UiCtx->Cpnt);
+
+    Ui::Flexbox_t* AppsContainer = Ui::Flexbox(
+        {
+            .Direction = Layout::ROW,
+            .G = { 
+                    .Width = -100,
+                    .Height = -100,
+                    .Position{
+                        .x = 0,
+                        .y = 0
+                    },
+                    .AutoPosition = false, 
+                }, 
+            .Align = { 
+                .x = Layout::CENTER, 
+                .y = Layout::MIDDLE 
+            }
+        }
+    , FlexContainer->Cpnt);
     
     JsonArray* Applications = (JsonArray*)TaskbarSettings->Get("applications");
     
@@ -77,28 +101,29 @@ void desktopc::CreateTaskbar(JsonObject* TaskbarSettings) {
 
         uint8_t AppPosition = ((JsonNumber*) App->Get("position"))->Get();
 
-        Box_t* AppButton = Box(
+        Button_t* AppButton = Button(EventIcon,
         {
             .G = {
-                    .Width = Taskbar->Height,
-                    .Height = Taskbar->Height,
-                    .BorderRadius = 15,
-                    .Position = { .x = AppPosition * Taskbar->Height }
+                    .Width = Taskbar->IconSize,
+                    .Height = Taskbar->IconSize,
+                    .Position = { .x = AppPosition * Taskbar->IconSize },
+                    .Margin.Left = 20,
+                    .IsHidden = false
                 },
-            .BackgroundColor = 0xFF0000
+            .BackgroundColor = 0xFF0000,
+            .HoverColor = 0x00FF00
         }
         , AppsContainer->Cpnt);
 
         Picturebox_t* AppIcon = Picturebox("kotlogo.tga", PictureboxType::_TGA,
             {
-                .G = {
-                        .Width = Taskbar->IconSize,
-                        .Height = Taskbar->IconSize,
-                        .Position = {
-                            .x = Taskbar->Height - Taskbar->IconSize,
-                            .y = Taskbar->Height - Taskbar->IconSize
-                        }
-                    }
+                .Fit = Ui::PICTUREFILL,
+                .Transparency = true,
+                .G{
+                    .Width = -100, 
+                    .Height = -100, 
+                    .IsHidden = false
+                }
             }
         , AppButton->Cpnt);
     }
@@ -283,12 +308,18 @@ extern "C" int main(int argc, char *argv[])
     }
 
     JsonArray* Settings = (JsonArray*)parser->getValue();
+    assert(Settings != NULL);
 
-    JsonObject* DesktopSettings = (JsonObject*)Settings->Get(0);
+    JsonObject* DefaultSetting = (JsonObject*)Settings->Get(0);
+    assert(DefaultSetting != NULL);
+
+    JsonObject* DesktopSettings = (JsonObject*)DefaultSetting->Get("desktop");
+    assert(DesktopSettings != NULL);
     desktopc* desktop0 = new desktopc(DesktopSettings);
 
-    JsonObject* TaskbarSettings = (JsonObject*)Settings->Get(1);
-    //desktop0->CreateTaskbar(TaskbarSettings);
+    JsonObject* TaskbarSettings = (JsonObject*)DefaultSetting->Get("taskbar");
+    assert(TaskbarSettings != NULL);
+    desktop0->CreateTaskbar(TaskbarSettings);
 
     fclose(SettingsFile);
 

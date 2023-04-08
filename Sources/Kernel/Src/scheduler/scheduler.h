@@ -18,6 +18,16 @@ class TaskManager;
 #define FreeMemorySpaceAddress vmm_MapAddress(0xfe, 0, 0, 0) 
 #define DefaultFlagsKey 0xff
 
+inline uint64_t StackAlignToJmp(uint64_t Stack){
+     // Have to be 16 byte aligned before call so if we jump we have to be non 16 bytes aligned but 8 bytes aligned
+    if((Stack & 0xfffffffffffffff0) != 0 && (Stack & 0xfffffffffffffff0) != 8){
+        Stack = (Stack & 0xfffffffffffffff0) - 8;
+    }else if(Stack & 0xfffffffffffffff0 != 8){
+        Stack -= 8;
+    }
+    return Stack;
+}
+
 struct threadInfo_t{
     uint64_t SyscallStack;
     uint64_t CS;

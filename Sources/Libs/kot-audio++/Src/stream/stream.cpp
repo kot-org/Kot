@@ -78,12 +78,35 @@ namespace Audio{
         return KSUCCESS;
     }
 
+    template <typename T> 
+    KResult Stream::MixAudioBuffers(){
+        uint64_t Offset = (*(uint64_t*)((uint64_t)LocalStreamBuffer.Base + StreamBuffer->PositionOfStreamData) + (StreamBuffer->SizeOffsetUpdateToTrigger * 2)) % StreamBuffer->StreamSize;
+        uint64_t SizeToProcess = StreamBuffer->SizeOffsetUpdateToTrigger;
+        if(InputStreams[0].Index > InputStreams[0].Buffer.Size + StreamBuffer->SizeOffsetUpdateToTrigger){
+            SizeToProcess = InputStreams[0].Index % StreamBuffer->SizeOffsetUpdateToTrigger;
+        }
+        for(uint64_t i = 0; i < SizeToProcess; i += sizeof(T)){
+            *(T*)((uint64_t)LocalStreamBuffer.Base + ((Offset + i) % LocalStreamBuffer.Size)) = *(T*)((uint64_t)InputStreams[0].Buffer.Base + InputStreams[0].Index + i);
+        }
+        InputStreams[0].Index += SizeToProcess;
+
+        return KSUCCESS;
+    }
+
     KResult Stream::OnOffsetUpdate(){
         // TODO : mix more than one stream
-        uint64_t Offset = (*(uint64_t*)((uint64_t)LocalStreamBuffer.Base + StreamBuffer->PositionOfStreamData) + (StreamBuffer->SizeOffsetUpdateToTrigger * 2)) % StreamBuffer->StreamSize;
         if(InputStreams.size() >= 1){
-            memcpy((uintptr_t)((uint64_t)LocalStreamBuffer.Base + Offset), (uintptr_t)((uint64_t)InputStreams[0].Buffer.Base + InputStreams[0].Index), StreamBuffer->SizeOffsetUpdateToTrigger);
-            InputStreams[0].Index += StreamBuffer->SizeOffsetUpdateToTrigger;
+            if(InputStreams[0].Index >= InputStreams[0].Buffer.Size){
+                InputStreams.remove(0);
+                // Clear buffer
+                memset(LocalStreamBuffer.Base, 0, LocalStreamBuffer.Size);
+            }else{
+                if(StreamBuffer->Format.Encoding == AudioEncodingPCMS8LE || StreamBuffer->Format.Encoding == AudioEncodingPCMS16LE){
+                    MixAudioBuffers<uint16_t>();
+                }else{
+                    MixAudioBuffers<uint32_t>();
+                }
+            }
         }
         return KSUCCESS;
     }

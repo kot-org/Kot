@@ -2,6 +2,7 @@
 
 #include <kot/sys.h>
 #include <kot/stdio.h>
+#include <kot/assert.h>
 
 #include <kot/uisd/srvs/time.h>
 #include <kot/uisd/srvs/storage.h>
@@ -30,6 +31,7 @@ class desktopc {
 
             bool IsExtended;
             uint8_t IconSize;
+            uint32_t SolidColor;
         } Taskbar_t;
 
         Taskbar_t* Taskbar;

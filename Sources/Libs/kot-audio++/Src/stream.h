@@ -4,6 +4,7 @@
 #include <kot/sys.h>
 #include <kot/heap.h>
 #include <kot/types.h>
+#include <kot/stdio.h>
 #include <kot/uisd/srvs/audio.h>
 
 #include <kot++/vector.h>
@@ -22,6 +23,7 @@ namespace Audio{
             srv_audio_device_info_t* GetDeviceInfoStream();
             KResult SetVolume(uint8_t Volume);
             KResult OnDeviceUpdate(uint64_t DeviceID, uint64_t OldDeviceID);
+            template <typename T> KResult MixAudioBuffers();
             KResult OnOffsetUpdate();
             KResult AddBuffer(uintptr_t Base, size64_t Size);
         private:

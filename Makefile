@@ -12,7 +12,8 @@ QEMUFLAGS =	-no-reboot 														\
 			-rtc base=localtime												\
 			-usb                                            				\
     		-device usb-ehci,id=ehci                        				\
-			-device intel-hda -device hda-duplex
+			-device intel-hda -device hda-duplex 							\
+			-accel kvm
 
 # -audiodev wav,id=snd0,path=output.wav 	 ,audiodev=snd0		
 

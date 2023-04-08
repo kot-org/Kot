@@ -59,7 +59,7 @@ KResult InitialiseServer(){
 }
 
 /* Input part of server */
-KResult RequestStream(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID, process_t ProcessKey){
+UISDServerEntry KResult RequestStream(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID, process_t ProcessKey){
     KResult Status = KFAIL;
 
     uint64_t PID = Sys_GetPIDThreadLauncher();
@@ -138,7 +138,7 @@ KResult StreamCommand(thread_t Callback, uint64_t CallbackArg, uint64_t Command,
     }
 }
 
-KResult ChangeVolume(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID, uint8_t Volume){
+UISDServerEntry KResult ChangeVolume(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID, uint8_t Volume){
     AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)Sys_GetExternalDataThread();
 
     KResult Status = ExternalDataAddDevice->OutputsClass->ChangeVolume(OutputID, Volume);
@@ -156,7 +156,7 @@ KResult ChangeVolume(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID,
     Sys_Close(KSUCCESS);
 }
 
-KResult SetDefault(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID){
+UISDServerEntry KResult SetDefault(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID){
     AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)Sys_GetExternalDataThread();
 
     KResult Status = ExternalDataAddDevice->OutputsClass->SetDefault(OutputID);
@@ -174,7 +174,7 @@ KResult SetDefault(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID){
     Sys_Close(KSUCCESS);
 }
 
-KResult GetDeviceCount(thread_t Callback, uint64_t CallbackArg){
+UISDServerEntry KResult GetDeviceCount(thread_t Callback, uint64_t CallbackArg){
     AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)Sys_GetExternalDataThread();
 
     arguments_t arguments{
@@ -190,7 +190,7 @@ KResult GetDeviceCount(thread_t Callback, uint64_t CallbackArg){
     Sys_Close(KSUCCESS);
 }
 
-KResult GetDeviceInfo(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID){
+UISDServerEntry KResult GetDeviceInfo(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID){
     AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)Sys_GetExternalDataThread();
 
     srv_audio_device_info_t Info;
@@ -216,7 +216,7 @@ KResult GetDeviceInfo(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID
 }
 
 /* Output part of server */
-KResult AddDevice(thread_t Callback, uint64_t CallbackArg, srv_audio_device_t* Device){
+UISDServerEntry KResult AddDevice(thread_t Callback, uint64_t CallbackArg, srv_audio_device_t* Device){
     KResult Status = KFAIL;
 
     AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)Sys_GetExternalDataThread();

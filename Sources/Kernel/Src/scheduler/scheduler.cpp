@@ -230,7 +230,7 @@ KResult ThreadQueu_t::ExecuteThreadInQueu(){
 
         CurrentData->Task->ResetContext(CurrentData->Task->Regs);
 
-        CurrentData->Task->Regs->rsp = DataLocation;
+        CurrentData->Task->Regs->rsp = StackAlignToJmp(DataLocation);
         
         CurrentData->Task->Launch_WL(&CurrentData->Parameters);
         return KSUCCESS;
@@ -544,7 +544,7 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
 
 void kthread_t::SetupStack(){
     uint64_t StackLocation = StackTop;
-    this->Regs->rsp = StackLocation;
+    this->Regs->rsp = StackAlignToJmp(StackLocation);
     this->Stack = (StackInfo*)kmalloc(sizeof(StackInfo));
     this->Stack->StackStart = StackLocation;
     this->Stack->StackEndMax = StackBottom;
@@ -556,7 +556,6 @@ void kthread_t::SetupStack(){
     /* Clear stack */
     vmm_page_table* PML4VirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uintptr_t)Paging);
     PML4VirtualAddress->entries[0xff] = NULL;
-
 }
 
 
@@ -648,7 +647,7 @@ void kthread_t::CreateContext(ContextStack* Registers, uint64_t CoreID){
 }
 
 void kthread_t::ResetContext(ContextStack* Registers){
-    Registers->rsp = (uint64_t)StackTop;
+    Registers->rsp = StackAlignToJmp((uint64_t)StackTop);
     Registers->rip = (uint64_t)EntryPoint;
     Registers->cs = (uint64_t)Registers->threadInfo->CS;
     Registers->ss = (uint64_t)Registers->threadInfo->SS;

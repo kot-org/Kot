@@ -12,6 +12,8 @@
 #define UISDFreeTask        0x2
 #define UISDMaxController   0xff
 
+#define UISDServerEntry [[ noreturn ]] 
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
