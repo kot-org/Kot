@@ -16,6 +16,7 @@ void HDAControllerOnInterrupt(){
                 arguments_t Parameters{
                     .arg[0] = Controller->Outputs[i]->Stream->CurrentPosition,
                 };
+                Sys_Event_Trigger(Controller->Outputs[i]->OffsetUpdateEvent, &Parameters);
             }
             Controller->Registers->InterruptStatus |= (1 << i);
         }
