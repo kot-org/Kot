@@ -18,7 +18,7 @@ typedef struct {
 
 typedef struct {
     uintptr_t FbBase;
-    size64_t fb_size;
+    size64_t FbSize;
     uint32_t Width;
     uint32_t Height;
     uint32_t Pitch;

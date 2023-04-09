@@ -18,7 +18,7 @@ KResult InitialiseServer(orbc* Orb){
 
     /* CreateWindow */
     thread_t CreateWindowThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&CreateWindow, PriviledgeApp, (uint64_t)Orb, &CreateWindowThread);
+    Sys_CreateThread(proc, (uintptr_t)&CreateWindowSrv, PriviledgeApp, (uint64_t)Orb, &CreateWindowThread);
     SrvData->CreateWindow = MakeShareableThread(CreateWindowThread, PriviledgeApp);
 
     uisd_callbackInfo_t* Callback = CreateControllerUISD(ControllerTypeEnum_Graphics, key, true);
@@ -28,7 +28,7 @@ KResult InitialiseServer(orbc* Orb){
     return Status;
 }
 
-KResult CreateWindow(thread_t Callback, uint64_t CallbackArg, process_t Target, event_t Event, uint64_t WindowType){
+KResult CreateWindowSrv(thread_t Callback, uint64_t CallbackArg, process_t Target, event_t Event, uint64_t WindowType){
     orbc* Orb = (orbc*)Sys_GetExternalDataThread();
 
     windowc* Window = NULL;

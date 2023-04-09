@@ -1,5 +1,5 @@
-#ifndef _SRV_HID_H
-#define _SRV_HID_H 1
+#ifndef _SRV_AUDIO_H
+#define _SRV_AUDIO_H 1
 
 #include <kot/sys.h>
 #include <kot/uisd.h>

@@ -67,6 +67,8 @@ void monitorc::UpdateEvents(windowc* FirstWindowNode){
 void monitorc::Update(windowc* FirstWindowNode){
     windowc* Window = FirstWindowNode;
 
+    Orb->Desktop->UpdateBackground(this);
+
     while(Window){
         if(atomicLock(&Window->Lock, 0)){
             DynamicBlit(this->BackFramebuffer, Window->GetFramebuffer(), Window->GetX(), Window->GetY(), this->XPosition, this->YPosition);
@@ -75,7 +77,7 @@ void monitorc::Update(windowc* FirstWindowNode){
         Window = Window->Next;
     }
 
-    Orb->Desktop->Update(this);
+    Orb->Desktop->UpdateWidgets(this);
 
     Orb->Mouse->DrawCursor(this->BackFramebuffer);
 

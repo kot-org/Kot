@@ -31,10 +31,7 @@ class monitorc {
         uint64_t YPositionWithDock;
         uint64_t YMaxPositionWithDock;
 
-        windowc* DockTop;
-        windowc* DockBottom;
-        windowc* DockLeft;
-        windowc* DockRight;
+        struct desktopmonitor* DesktopData;
 
         orbc* Orb;
         

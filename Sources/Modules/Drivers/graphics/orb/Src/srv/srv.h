@@ -15,7 +15,7 @@ typedef KResult (*window_dispatch_t)(thread_t Callback, uint64_t CallbackArg, wi
 
 KResult InitialiseServer(orbc* Orb);
 
-KResult CreateWindow(thread_t Callback, uint64_t CallbackArg, process_t Target, thread_t Event, uint64_t WindowType);
+KResult CreateWindowSrv(thread_t Callback, uint64_t CallbackArg, process_t Target, thread_t Event, uint64_t WindowType);
 
 KResult WindowGraphicsHandler(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 

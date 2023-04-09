@@ -26,6 +26,7 @@ namespace Audio{
         /* Initialize device update */
         Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&OnDeviceUpdateHandler, PriviledgeApp, (uint64_t)this, &DeviceUpdate);
         StreamBuffer = NULL;
+        Sys_Event_Bind(((uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio))->OnDeviceChanged, DeviceUpdate, false);
 
         /* Request stream, if event didn't do it before */
         atomicAcquire(&Lock, 0);

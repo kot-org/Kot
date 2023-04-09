@@ -33,6 +33,7 @@ class Outputs{
     private:
         uint64_t Lock;
         event_t OnDeviceChanged;
+        OutputDevice_t* NullDevice;
         std::vector<OutputDevice_t*> Devices;
         uint64_t DeviceCount;
     public:

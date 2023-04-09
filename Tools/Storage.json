@@ -36,10 +36,6 @@
       "destination": "Programs/Services/Audio/Audio.elf"
   },
   {
-      "source": "../Sources/Modules/Services/desktop/Bin/Desktop.elf",
-      "destination": "Programs/Services/Desktop/Desktop.elf"
-  },
-  {
       "source": "../Sources/Modules/Services/shell/Bin/Shell.elf",
       "destination": "Programs/Services/Shell/Shell.elf"
   },

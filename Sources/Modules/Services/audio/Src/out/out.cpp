@@ -26,7 +26,8 @@ void MixAudio(size64_t Size, uint64_t Offset, audio_buffer_t* Dst, std::vector<S
 }
 
 Outputs::Outputs(event_t OnDeviceChangedEvent){
-    Devices.push(NULL); // defautl output
+    NullDevice = (OutputDevice_t*)calloc(sizeof(OutputDevice_t));
+    Devices.push(NullDevice); // default output
     OnDeviceChanged = OnDeviceChangedEvent;
     DeviceCount = 0;
     Lock = NULL;
@@ -91,11 +92,11 @@ KResult Outputs::AddOutputDevice(srv_audio_device_t* Device){
     }
 
     // Set default
-    if(!Devices[0]){
+    if(Devices[0] == NullDevice){
         Devices[0] = OutputDevice;
         Devices[0]->Device.Info.IsDefault = true;
 
-        alignas(16) arguments_t Paramters{
+        arguments_t Paramters{
             .arg[0] = 0,
             .arg[1] = OutputDevice->DeviceID,
         };

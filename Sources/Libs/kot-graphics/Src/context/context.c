@@ -11,7 +11,7 @@ ctxg_t* CreateGraphicContext(framebuffer_t* fb) {
     ctx->Bpp = fb->Bpp;
     ctx->Btpp = fb->Btpp;
     ctx->Pitch = fb->Pitch;
-    ctx->fb_size = fb->Size;
+    ctx->FbSize = fb->Size;
     
     if (ctx->Width >= ctx->Height) {
         ctx->scale = ctx->Width/412;
@@ -267,11 +267,11 @@ void ctxDrawRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t Width, uint32_t H
 // ## frame buffer ##
 
 void swapTo(ctxg_t* ctx, uintptr_t to) {
-    memcpy(to, ctx->FbBase, ctx->fb_size);
+    memcpy(to, ctx->FbBase, ctx->FbSize);
 }
 
 void swapFrom(ctxg_t* ctx, uintptr_t from) {
-    memcpy(ctx->FbBase, from, ctx->fb_size);
+    memcpy(ctx->FbBase, from, ctx->FbSize);
 }
 
 void swapToCtx(ctxg_t* ctx) {
@@ -283,11 +283,11 @@ void swapFromCtx(ctxg_t* ctx) {
 }
 
 void clear(ctxg_t* ctx) {
-    memset(ctx->FbBase, 0x00, ctx->fb_size);
+    memset(ctx->FbBase, 0x00, ctx->FbSize);
 } 
 
 void clearColor(ctxg_t* ctx, uint32_t color) {
-    memset32(ctx->FbBase, color, ctx->fb_size);
+    memset32(ctx->FbBase, color, ctx->FbSize);
 } 
 
 uintptr_t GetFramebuffer(ctxg_t* ctx) {

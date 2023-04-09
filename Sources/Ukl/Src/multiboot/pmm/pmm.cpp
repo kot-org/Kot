@@ -59,8 +59,8 @@ bool Pmm_CheckPage(uint64_t Address){
                 if(Address + PAGE_SIZE > ((struct multiboot_tag_module*)tag)->mod_start && Address < ((struct multiboot_tag_module*)tag)->mod_end) return false;
                 break;
             case MULTIBOOT_TAG_TYPE_FRAMEBUFFER:{
-                uint64_t fb_size = ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_Pitch * ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_Height;
-                if(Address + PAGE_SIZE > ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr && Address < ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr + fb_size) return false;
+                uint64_t FbSize = ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_Pitch * ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_Height;
+                if(Address + PAGE_SIZE > ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr && Address < ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr + FbSize) return false;
                 break;
             }
             default:
@@ -145,15 +145,15 @@ void Pmm_AddEntry(struct ukl_mmap_info_t** entry, uint64_t* index, uint64_t base
                     }
                     break;
                 case MULTIBOOT_TAG_TYPE_FRAMEBUFFER:{
-                    uint64_t fb_size = ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_Pitch * ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_Height;
-                    if(base + length > ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr && base < ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr + fb_size){
+                    uint64_t FbSize = ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_Pitch * ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_Height;
+                    if(base + length > ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr && base < ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr + FbSize){
                         uint64_t LowerHalfSegmentLength = ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr - base;
-                        uint64_t MiddleHalfSegmentLength = fb_size;
+                        uint64_t MiddleHalfSegmentLength = FbSize;
                         uint64_t HigherHalfSegmentLength = length - MiddleHalfSegmentLength - LowerHalfSegmentLength;
 
                         uint64_t LowerHalfSegmentAddress = base;
                         uint64_t MiddleHalfSegmentAddress = ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr;
-                        uint64_t HigherHalfSegmentAddress = ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr + fb_size;
+                        uint64_t HigherHalfSegmentAddress = ((struct multiboot_tag_framebuffer_common*)tag)->framebuffer_addr + FbSize;
                         
                         Pmm_AddEntry(entry, index, LowerHalfSegmentAddress, LowerHalfSegmentLength, UKL_MMAP_AVAILABLE);
                         Pmm_AddEntry(entry, index, MiddleHalfSegmentAddress, MiddleHalfSegmentLength, UKL_MMAP_USED);

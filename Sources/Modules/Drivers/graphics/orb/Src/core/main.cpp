@@ -26,12 +26,6 @@ orbc::orbc(){
     Mouse->CursorMaxPosition.y = monitor0->GetHeight()-1;
 
     free(bootframebuffer);
-    
-    windowc* LoadingScreen = new windowc(this, Window_Type_Background, NULL);
-    LoadingScreen->Resize(Window_Max_Size, Window_Max_Size);
-    LoadingScreen->SetVisible(true);
-    
-    LoadBootGraphics(LoadingScreen->GetFramebuffer());    
 }
 
 extern "C" int main() {

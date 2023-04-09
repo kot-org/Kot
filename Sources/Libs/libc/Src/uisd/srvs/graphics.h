@@ -18,12 +18,7 @@ extern "C" {
 #define Window_Function_Count               0x4
 
 #define Window_Type_Default                 0x0
-#define Window_Type_Background              0x1
-#define Window_Type_Foreground              0x2
-#define Window_Type_DockTop                 0x3 // Dock 
-#define Window_Type_DockBottom              0x4 // Dock
-#define Window_Type_DockLeft                0x5 // Dock
-#define Window_Type_DockRight               0x6 // Dock
+#define Window_Type_Foreground              0x1
 
 #define Window_Max_Size                     -1
 

@@ -7,6 +7,7 @@
 #include <kot/uisd.h>
 #include <kot/utils.h>
 #include <kot/atomic.h>
+#include <kot/assert.h>
 #include <kot/utils/vector.h>
 #include <kot/uisd/srvs/hid.h>
 #include <kot/uisd/srvs/time.h>

@@ -116,83 +116,6 @@ KResult windowc::Resize(int64_t Width, int64_t Height){
         }
     }
 
-    switch (WindowType){
-        case Window_Type_DockTop:{
-            monitorc* Monitor = FindMonitor();
-            if(Monitor != NULL){
-                if(Monitor->DockTop == NULL){
-                    Width = Monitor->XMaxPosition - Monitor->XPosition;
-                    Monitor->YPositionWithDock = Height;
-                    XPosition = Monitor->XPosition;
-                    YPosition = Monitor->YPosition;
-                    Monitor->DockTop = this;
-                }else if(Monitor->DockTop == this){
-                    Width = Monitor->XMaxPosition - Monitor->XPosition;
-                    Monitor->YMaxPositionWithDock = Height;
-                    XPosition = Monitor->XPosition;
-                    YPosition = Monitor->YPosition;
-                }
-            }
-            break;
-        }
-        case Window_Type_DockBottom:{
-            monitorc* Monitor = FindMonitor();
-            if(Monitor != NULL){
-                if(Monitor->DockTop == NULL){
-                    Width = Monitor->XMaxPosition - Monitor->XPosition;
-                    Monitor->YMaxPositionWithDock = Monitor->YMaxPosition - Height;
-                    XPosition = Monitor->XPosition;
-                    YPosition = Monitor->YMaxPositionWithDock;
-                    Monitor->DockTop = this;
-                }else if(Monitor->DockTop == this){
-                    Width = Monitor->XMaxPosition - Monitor->XPosition;
-                    Monitor->YMaxPositionWithDock = Monitor->YMaxPosition - Height;
-                    XPosition = Monitor->XPosition;
-                    YPosition = Monitor->YMaxPositionWithDock;
-                }
-            }
-            break;
-        }
-        case Window_Type_DockLeft:{
-            monitorc* Monitor = FindMonitor();
-            if(Monitor != NULL){
-                if(Monitor->DockTop == NULL){
-                    Height = Monitor->YMaxPosition - Monitor->YPosition;
-                    Monitor->XPositionWithDock = Width;
-                    XPosition = Monitor->XPosition;
-                    YPosition = Monitor->YPosition;
-                    Monitor->DockTop = this;
-                }else if(Monitor->DockTop == this){
-                    Height = Monitor->YMaxPosition - Monitor->YPosition;
-                    Monitor->XPositionWithDock = Width;
-                    XPosition = Monitor->XPosition;
-                    YPosition = Monitor->YPosition;
-                }
-            }
-            break;
-        }
-        case Window_Type_DockRight:{
-            monitorc* Monitor = FindMonitor();
-            if(Monitor != NULL){
-                if(Monitor->DockTop == NULL){
-                    Height = Monitor->YMaxPosition - Monitor->YPosition;
-                    Monitor->XMaxPositionWithDock = Monitor->XMaxPosition - Width;
-                    XPosition = Monitor->XMaxPositionWithDock;
-                    YPosition = Monitor->XPosition;
-                    Monitor->DockTop = this;
-                }else if(Monitor->DockTop == this){
-                    Height = Monitor->YMaxPosition - Monitor->YPosition;
-                    Monitor->XMaxPositionWithDock = Monitor->XMaxPosition - Width;
-                    XPosition = Monitor->XMaxPositionWithDock;
-                    YPosition = Monitor->XPosition;
-                }
-            }
-            break;
-        }
-        default:
-            break;
-    }
-
     atomicAcquire(&Lock, 0);
     Framebuffer->Width = Width;
     Framebuffer->Height = Height;
@@ -210,21 +133,18 @@ KResult windowc::Resize(int64_t Width, int64_t Height){
 }
 
 KResult windowc::Move(int64_t XPosition, int64_t YPosition){
-    if(this->WindowType != Window_Type_DockTop && this->WindowType != Window_Type_DockBottom && this->WindowType != Window_Type_DockLeft && this->WindowType != Window_Type_DockRight){
-        if(XPosition < 0){
-            XPosition = 0;
-        }
-        if(YPosition < 0){
-            YPosition = 0;
-        }
-        this->XPosition = XPosition;
-        this->YPosition = YPosition;
-        if(GetVisible()){
-            Orb->Render->UpdateAllEvents();
-        }
-        return KSUCCESS;
+    if(XPosition < 0){
+        XPosition = 0;
     }
-    return KFAIL;
+    if(YPosition < 0){
+        YPosition = 0;
+    }
+    this->XPosition = XPosition;
+    this->YPosition = YPosition;
+    if(GetVisible()){
+        Orb->Render->UpdateAllEvents();
+    }
+    return KSUCCESS;
 }
 
 uint64_t windowc::GetHeight(){
@@ -318,28 +238,7 @@ KResult windowc::Enqueu(){
 }
 
 KResult windowc::EnqueuWL(){
-    if(this->WindowType == Window_Type_Background){
-        if(WindowBackgroundStart == NULL){
-            WindowBackgroundStart = this;
-            Orb->Render->FirstWindowNode = WindowBackgroundStart;
-
-            if(WindowDefaultStart){
-                WindowBackgroundStart->Next = WindowDefaultStart;
-                WindowDefaultStart->Last = WindowBackgroundStart;
-            }else if(WindowForegroundStart){
-                WindowBackgroundStart->Next = WindowForegroundStart;
-                WindowForegroundStart->Last = WindowBackgroundStart;
-            }
-        }else{
-            this->Last = WindowBackgroundEnd;
-            WindowBackgroundEnd->Next = this;
-        }
-        this->Next = WindowDefaultStart;
-        if(WindowDefaultStart){
-            WindowDefaultStart->Last = this;
-        }
-        WindowBackgroundEnd = this;
-    }else if(this->WindowType == Window_Type_Default){
+    if(this->WindowType == Window_Type_Default){
         if(WindowDefaultStart == NULL){
             WindowDefaultStart = this;
 
@@ -362,7 +261,7 @@ KResult windowc::EnqueuWL(){
             WindowForegroundStart->Last = this;
         }
         WindowDefaultEnd = this;
-    }else if(this->WindowType == Window_Type_Foreground || this->WindowType == Window_Type_DockTop || this->WindowType == Window_Type_DockBottom || this->WindowType == Window_Type_DockLeft || this->WindowType == Window_Type_DockRight){
+    }else if(this->WindowType == Window_Type_Foreground){
         if(WindowForegroundStart == NULL){
             WindowForegroundStart = this;
             if(WindowDefaultEnd){
@@ -401,27 +300,11 @@ KResult windowc::DequeuWL(){
     }
 
     if(this == WindowBackgroundStart){
-        if(this->Next){
-            if(this->Next->WindowType == Window_Type_Background){
-                WindowBackgroundStart = this->Next;
-            }else{
-                WindowBackgroundStart = NULL;
-            }
-        }else{
-            WindowBackgroundStart = NULL;
-        }
+        WindowBackgroundStart = NULL;
     }
 
     if(this == WindowBackgroundEnd){
-        if(this->Last){
-            if(this->Last->WindowType == Window_Type_Background){
-                WindowBackgroundEnd = this->Last;
-            }else{
-                WindowBackgroundEnd = NULL;
-            }
-        }else{
-            WindowBackgroundEnd = NULL;
-        }
+        WindowBackgroundEnd = NULL;
     }
 
     if(this == WindowDefaultStart){
@@ -451,7 +334,7 @@ KResult windowc::DequeuWL(){
 
     if(this == WindowForegroundStart){
         if(this->Next){
-            if(this->Next->WindowType == Window_Type_Foreground || this->Next->WindowType == Window_Type_DockBottom || this->Next->WindowType == Window_Type_DockTop || this->Next->WindowType == Window_Type_DockLeft || this->Next->WindowType == Window_Type_DockRight){
+            if(this->Next->WindowType == Window_Type_Foreground){
                 WindowForegroundStart = this->Next;
             }else{
                 WindowForegroundStart = NULL;
@@ -463,7 +346,7 @@ KResult windowc::DequeuWL(){
 
     if(this == WindowForegroundEnd){
         if(this->Last){
-            if(this->Last->WindowType == Window_Type_Foreground || this->Last->WindowType == Window_Type_DockBottom || this->Last->WindowType == Window_Type_DockTop || this->Last->WindowType == Window_Type_DockLeft || this->Last->WindowType == Window_Type_DockRight){
+            if(this->Last->WindowType == Window_Type_Foreground){
                 WindowForegroundEnd = this->Last;
             }else{
                 WindowForegroundEnd = NULL;
