@@ -1,13 +1,16 @@
+#pragma once
+
 #include <kot/heap.h>
+#include <core/main.h>
 #include <kot/utils/vector.h>
 
-#ifndef __ORB__MONITOR__
-#define __ORB__MONITOR__
-
-#include <core/main.h>
-
+class orbc;
 class windowc;
-class Context;
+class monitorc;
+class desktopc;
+class renderc;
+class mousec;
+
 
 class monitorc {
     public:
@@ -32,8 +35,10 @@ class monitorc {
         windowc* DockBottom;
         windowc* DockLeft;
         windowc* DockRight;
+
+        orbc* Orb;
         
-        monitorc(process_t orb, uintptr_t fb_addr, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition);
+        monitorc(orbc* Parent, uintptr_t FbBase, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition);
         uint64_t GetWidth();
         uint64_t GetHeight();
 
@@ -44,5 +49,3 @@ class monitorc {
 
         void Update(windowc* FirstWindowNode);
 };
-
-#endif

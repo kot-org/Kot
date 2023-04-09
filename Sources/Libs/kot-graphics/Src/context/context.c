@@ -4,7 +4,7 @@ void ctxSubSeqCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t
 
 ctxg_t* CreateGraphicContext(framebuffer_t* fb) {
     ctxg_t* ctx = malloc(sizeof(ctxg_t));
-    ctx->fb_addr = fb->Buffer;
+    ctx->FbBase = fb->Buffer;
     ctx->poses = vector_create();
     ctx->Width = fb->Width;
     ctx->Height = fb->Height;
@@ -24,8 +24,8 @@ ctxg_t* CreateGraphicContext(framebuffer_t* fb) {
 void ctxPutPixel(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t color) {
     if (ctxPixelExist(ctx, x, y) == -1) return;
     uint64_t index = x * ctx->Btpp + y * ctx->Pitch;
-    *(uint32_t*)((uint64_t)ctx->fb_addr + index) = color;
-    //blendAlpha(((uint64_t)ctx->fb_addr + index), color);
+    *(uint32_t*)((uint64_t)ctx->FbBase + index) = color;
+    //blendAlpha(((uint64_t)ctx->FbBase + index), color);
 }
 
 int8_t ctxPixelExist(ctxg_t* ctx, uint32_t x, uint32_t y) {
@@ -36,7 +36,7 @@ int8_t ctxPixelExist(ctxg_t* ctx, uint32_t x, uint32_t y) {
 
 inline uint32_t ctxGetPixel(ctxg_t* ctx, uint32_t x, uint32_t y) {
     uint64_t index = x * ctx->Btpp + y * ctx->Pitch;
-    return *(uint32_t*)((uint64_t) ctx->fb_addr + index);
+    return *(uint32_t*)((uint64_t) ctx->FbBase + index);
 }
 
 // ## path ##
@@ -126,7 +126,7 @@ void ctxFill(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t color, uint32_t borde
 
 void ctxFillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color) {
 
-    uint8_t* fb = (uint8_t*) ctx->fb_addr;
+    uint8_t* fb = (uint8_t*) ctx->FbBase;
 
     uint32_t _h = Height+y;
     uint32_t _w = Width+x;
@@ -144,8 +144,8 @@ void ctxFillRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t Width, uint32_t H
         for (uint32_t w = x; w < _w; w++) {
             uint64_t XPosition = w * ctx->Btpp;
             uint64_t index = YPosition + XPosition;
-            *(uint32_t*)((uint64_t)ctx->fb_addr + index) = color;
-            //blendAlpha(((uint64_t)ctx->fb_addr + index), color);
+            *(uint32_t*)((uint64_t)ctx->FbBase + index) = color;
+            //blendAlpha(((uint64_t)ctx->FbBase + index), color);
         }
     }
 
@@ -267,11 +267,11 @@ void ctxDrawRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t Width, uint32_t H
 // ## frame buffer ##
 
 void swapTo(ctxg_t* ctx, uintptr_t to) {
-    memcpy(to, ctx->fb_addr, ctx->fb_size);
+    memcpy(to, ctx->FbBase, ctx->fb_size);
 }
 
 void swapFrom(ctxg_t* ctx, uintptr_t from) {
-    memcpy(ctx->fb_addr, from, ctx->fb_size);
+    memcpy(ctx->FbBase, from, ctx->fb_size);
 }
 
 void swapToCtx(ctxg_t* ctx) {
@@ -283,13 +283,13 @@ void swapFromCtx(ctxg_t* ctx) {
 }
 
 void clear(ctxg_t* ctx) {
-    memset(ctx->fb_addr, 0x00, ctx->fb_size);
+    memset(ctx->FbBase, 0x00, ctx->fb_size);
 } 
 
 void clearColor(ctxg_t* ctx, uint32_t color) {
-    memset32(ctx->fb_addr, color, ctx->fb_size);
+    memset32(ctx->FbBase, color, ctx->fb_size);
 } 
 
 uintptr_t GetFramebuffer(ctxg_t* ctx) {
-    return ctx->fb_addr;
+    return ctx->FbBase;
 }

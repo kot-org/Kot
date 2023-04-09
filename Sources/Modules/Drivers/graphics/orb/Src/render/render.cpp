@@ -1,15 +1,17 @@
 #include <render/render.h>
 
-vector_t* Monitors = NULL;
+void ThreadRenderEntry(){
+    renderc* Render = (renderc*)Sys_GetExternalDataThread();
+    Render->ThreadRender();
+    Sys_Close(KSUCCESS);
+}
 
-windowc* FirstWindowNode;
+renderc::renderc(orbc* Parent){
+    Monitors = vector_create();
+    Sys_CreateThread(ShareableProcess, (uintptr_t) &ThreadRenderEntry, PriviledgeDriver, (uint64_t)this, &RenderThread);
+}
 
-uint64_t RenderMutex;
-
-thread_t RenderThread = NULL;
-bool IsRendering = false;
-
-void RenderWindows(){
+void renderc::RenderWindows(){
     // todo: multi threads monitor rendering
     for(uint64_t i = 0; i < Monitors->length; i++){
         monitorc* Monitor = (monitorc*)vector_get(Monitors, i);
@@ -17,7 +19,7 @@ void RenderWindows(){
     }
 }
 
-void UpdateAllEvents(){
+void renderc::UpdateAllEvents(){
     for(uint64_t i = 0; i < Monitors->length; i++){
         monitorc* Monitor = (monitorc*)vector_get(Monitors, i);
         Monitor->UpdateEvents(FirstWindowNode);
@@ -25,19 +27,18 @@ void UpdateAllEvents(){
 }
 
 
-void ThreadRender(){
+void renderc::ThreadRender(){
     while(IsRendering){
         RenderWindows();
     }
-    Sys_Close(KSUCCESS);
 }
 
-KResult StartRender(){
+KResult renderc::StartRender(){
     IsRendering = true;
     return Sys_ExecThread(RenderThread, NULL, ExecutionTypeQueu, NULL);
 }
 
-KResult StopRender(){
+KResult renderc::StopRender(){
     if(IsRendering){
         IsRendering = false;
         return KSUCCESS;
@@ -45,7 +46,12 @@ KResult StopRender(){
     return KFAIL;
 }
 
-KResult InitializeRender(){
-    Monitors = vector_create();
-    return Sys_CreateThread(ShareableProcess, (uintptr_t) &ThreadRender, PriviledgeDriver, NULL, &RenderThread);
+KResult renderc::AddMonitor(monitorc* Monitor){
+    vector_push(Monitors, Monitor);
+    return KSUCCESS;
+}
+
+KResult renderc::RemoveMonitor(){
+    // TODO
+    return KSUCCESS;
 }

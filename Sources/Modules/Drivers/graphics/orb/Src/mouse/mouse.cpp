@@ -1,22 +1,14 @@
 #include <mouse/mouse.h>
 
-point_t CursorPosition;
-point_t CursorMaxPosition;
+void CursorInterruptEntry(int64_t x, int64_t y, int64_t z, uint64_t status){
+    mousec* Mouse = (mousec*)Sys_GetExternalDataThread();
+    Mouse->CursorInterrupt(x, y, z, status);
+    Sys_Event_Close();
+}
 
-uint64_t CursorWidth;
-uint64_t CursorHeight;
+mousec::mousec(orbc* Parent){
+    Orb = Parent;
 
-int64_t Width;
-int64_t Height;
-
-uintptr_t PixelMap;
-uintptr_t BitmapMask;
-
-thread_t MouseRelativeInterrupt;
-
-bool IsLastLeftClick = false;
-
-void InitializeCursor(){
     file_t* KursorFile = fopen("d0:darkDefault.kursor", "rb"); // todo: kursor settings and use drive to store the cursor to d1:Bin/Kursors/
 
     if(KursorFile == NULL) {
@@ -53,13 +45,13 @@ void InitializeCursor(){
     free(Header);
     fclose(KursorFile);
 
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&CursorInterrupt, PriviledgeApp, NULL, &MouseRelativeInterrupt);
+    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&CursorInterruptEntry, PriviledgeApp, (uint64_t)this, &MouseRelativeInterrupt);
 
     BindMouseRelative(MouseRelativeInterrupt, false);
 }
 
 
-void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
+void mousec::CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
     /* Update X position */
     int64_t NewXCursorPosition = CursorPosition.x + x;
     if(NewXCursorPosition < 0){
@@ -102,8 +94,8 @@ void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
     bool IsleftClick = status & 0x1;
     if(IsleftClick && IsLastLeftClick != IsleftClick){
         // Change focus
-        for(uint64_t i = 0; i < Monitors->length; i++){
-            monitorc* Monitor = (monitorc*)vector_get(Monitors, i);
+        for(uint64_t i = 0; i < Orb->Render->Monitors->length; i++){
+            monitorc* Monitor = (monitorc*)vector_get(Orb->Render->Monitors, i);
             if(Monitor != NULL){
                 if(IsBeetween(Monitor->XPosition, CursorPosition.x, Monitor->XMaxPosition) && IsBeetween(Monitor->YPosition, CursorPosition.y, Monitor->YMaxPosition)){
                     windowc* Window = (windowc*)GetEventData(Monitor->Eventbuffer, CursorPosition.x, CursorPosition.y);
@@ -127,10 +119,9 @@ void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
         };
         Sys_Event_Trigger(CurrentFocusWindow->Event, &Parameters);
     }
-    Sys_Event_Close();
 }
 
-void DrawCursor(framebuffer_t* fb, uintptr_t BitmapMask, uintptr_t PixelMap) {   
+void mousec::DrawCursor(framebuffer_t* fb){   
     uint32_t* Pixel = (uint32_t*)PixelMap;
     uint8_t* Mask = (uint8_t*)BitmapMask;
     

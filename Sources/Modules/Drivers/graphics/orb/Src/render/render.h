@@ -2,13 +2,26 @@
 
 #include <core/main.h>
 
-extern vector_t* Monitors;
-extern windowc* FirstWindowNode;
-extern uint64_t RenderMutex;
+class orbc;
+class windowc;
+class monitorc;
+class desktopc;
+class renderc;
 
-void RenderWindows();
-void UpdateAllEvents();
-void ThreadRender();
-KResult StartRender();
-KResult StopRender();
-KResult InitializeRender();
+class renderc{
+    public:
+        renderc(orbc* Parent);
+        void RenderWindows();
+        void UpdateAllEvents();
+        void ThreadRender();
+        KResult StartRender();
+        KResult StopRender();
+        KResult AddMonitor(class monitorc* Monitor);
+        KResult RemoveMonitor();
+
+        vector_t* Monitors = NULL;
+        windowc* FirstWindowNode;
+        uint64_t RenderMutex = NULL;
+        thread_t RenderThread = NULL;
+        bool IsRendering = false;   
+};

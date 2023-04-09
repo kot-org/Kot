@@ -9,7 +9,9 @@ windowc* WindowBackgroundEnd = NULL;
 windowc* WindowDefaultEnd = NULL;
 windowc* WindowForegroundEnd = NULL;
 
-windowc::windowc(uint64_t WindowType, event_t Event){
+windowc::windowc(orbc* Parent, uint64_t WindowType, event_t Event){
+    Orb = Parent;
+
     this->Framebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
 
     this->Framebuffer->Bpp = DEFAUT_BPP;
@@ -72,8 +74,8 @@ KResult windowc::CreateBuffer(){
 }
 
 monitorc* windowc::FindMonitor(){
-    for(uint64_t i = 0; i < Monitors->length; i++){
-        monitorc* Monitor = (monitorc*)vector_get(Monitors, i);
+    for(uint64_t i = 0; i < Orb->Render->Monitors->length; i++){
+        monitorc* Monitor = (monitorc*)vector_get(Orb->Render->Monitors, i);
         if(Monitor != NULL){
             if(IsBeetween(Monitor->YPosition, this->YPosition, Monitor->YMaxPosition)){
                 return Monitor;
@@ -201,7 +203,7 @@ KResult windowc::Resize(int64_t Width, int64_t Height){
     atomicUnlock(&Lock, 0);
 
     if(GetVisible()){
-        UpdateAllEvents();
+        Orb->Render->UpdateAllEvents();
     }
 
     return KSUCCESS;
@@ -218,7 +220,7 @@ KResult windowc::Move(int64_t XPosition, int64_t YPosition){
         this->XPosition = XPosition;
         this->YPosition = YPosition;
         if(GetVisible()){
-            UpdateAllEvents();
+            Orb->Render->UpdateAllEvents();
         }
         return KSUCCESS;
     }
@@ -253,14 +255,14 @@ bool windowc::SetFocusState(bool IsFocus){
             if(CurrentFocusWindow != NULL) CurrentFocusWindow->SetFocusState(false);
             CurrentFocusWindow = this;
             if(WindowType == Window_Type_Default && IsVisible){
-                atomicAcquire(&RenderMutex, 0);
+                atomicAcquire(&Orb->Render->RenderMutex, 0);
                 
                 this->DequeuWL();
                 this->EnqueuWL();
 
-                atomicUnlock(&RenderMutex, 0);
+                atomicUnlock(&Orb->Render->RenderMutex, 0);
 
-                UpdateAllEvents();
+                Orb->Render->UpdateAllEvents();
             }
         }
 
@@ -290,7 +292,7 @@ bool windowc::SetVisible(bool IsVisible){
             this->Dequeu();
         }
         this->IsVisible = IsVisible;
-        UpdateAllEvents();
+        Orb->Render->UpdateAllEvents();
     }
     
 
@@ -309,9 +311,9 @@ KResult windowc::Close() {
 }
 
 KResult windowc::Enqueu(){
-    atomicAcquire(&RenderMutex, 0);
+    atomicAcquire(&Orb->Render->RenderMutex, 0);
     KResult Status = EnqueuWL();
-    atomicUnlock(&RenderMutex, 0);
+    atomicUnlock(&Orb->Render->RenderMutex, 0);
     return Status;
 }
 
@@ -319,7 +321,7 @@ KResult windowc::EnqueuWL(){
     if(this->WindowType == Window_Type_Background){
         if(WindowBackgroundStart == NULL){
             WindowBackgroundStart = this;
-            FirstWindowNode = WindowBackgroundStart;
+            Orb->Render->FirstWindowNode = WindowBackgroundStart;
 
             if(WindowDefaultStart){
                 WindowBackgroundStart->Next = WindowDefaultStart;
@@ -345,7 +347,7 @@ KResult windowc::EnqueuWL(){
                 WindowBackgroundEnd->Next = this;
                 this->Last = WindowBackgroundEnd;
             }else{
-                FirstWindowNode = WindowDefaultStart;
+                Orb->Render->FirstWindowNode = WindowDefaultStart;
                 if(WindowForegroundStart){
                     WindowDefaultStart->Next = WindowForegroundStart;
                     WindowForegroundStart->Last = WindowDefaultStart;                    
@@ -370,7 +372,7 @@ KResult windowc::EnqueuWL(){
                 WindowBackgroundEnd->Next = WindowForegroundStart;
                 WindowForegroundStart->Last = WindowBackgroundEnd;
             }else{
-                FirstWindowNode = WindowForegroundStart;
+                Orb->Render->FirstWindowNode = WindowForegroundStart;
             }
         }else{
             this->Next = WindowForegroundStart->Next;
@@ -383,9 +385,9 @@ KResult windowc::EnqueuWL(){
 }
 
 KResult windowc::Dequeu(){
-    atomicAcquire(&RenderMutex, 0);
+    atomicAcquire(&Orb->Render->RenderMutex, 0);
     KResult Status = DequeuWL();
-    atomicUnlock(&RenderMutex, 0);
+    atomicUnlock(&Orb->Render->RenderMutex, 0);
     return Status;
 }
 

@@ -16,6 +16,7 @@ struct Cursor{
 
 class windowc{
     public:
+        orbc* Orb;
         process_t Target;
 
         framebuffer_t* Framebuffer;
@@ -36,7 +37,7 @@ class windowc{
         
         KResult CreateBuffer();
 
-        windowc(uint64_t WindowType, event_t Event);
+        windowc(orbc* Parent, uint64_t WindowType, event_t Event);
         monitorc* FindMonitor();
         framebuffer_t* GetFramebuffer();
         graphiceventbuffer_t* GetEventbuffer();

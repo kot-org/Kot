@@ -17,7 +17,7 @@ typedef struct {
 } pos_t;
 
 typedef struct {
-    uintptr_t fb_addr;
+    uintptr_t FbBase;
     size64_t fb_size;
     uint32_t Width;
     uint32_t Height;

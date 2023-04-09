@@ -282,6 +282,21 @@ extern "C" int main(int argc, char *argv[])
 {
     Printlog("[DESKTOP] Initializing...");
 
+    
+    // Startup sound
+    Audio::Stream* St = new Audio::Stream(0);
+
+    file_t* MusicFile = fopen("d1:Usr/root/Share/Sounds/startup.bin", "r");
+
+    fseek(MusicFile, 0, SEEK_END);
+    size64_t FileSize = ftell(MusicFile);
+    fseek(MusicFile, 0, SEEK_SET); 
+
+    uintptr_t FileBuf = malloc(FileSize);
+    fread(FileBuf, FileSize, 1, MusicFile);
+
+    St->AddBuffer(FileBuf, FileSize);
+
     // load desktopUserSettings.json
 
     file_t* SettingsFile = fopen("d1:Usr/root/Share/Settings/desktop.json", "r");
@@ -319,7 +334,7 @@ extern "C" int main(int argc, char *argv[])
 
     JsonObject* TaskbarSettings = (JsonObject*)DefaultSetting->Get("taskbar");
     assert(TaskbarSettings != NULL);
-    desktop0->CreateTaskbar(TaskbarSettings);
+    //desktop0->CreateTaskbar(TaskbarSettings);
 
     fclose(SettingsFile);
 

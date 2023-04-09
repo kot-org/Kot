@@ -27,10 +27,23 @@ class Context;
 #include <render/render.h>
 #include <window/window.h>
 #include <monitor/monitor.h>
+#include <desktop/desktop.h>
 
+class orbc;
 class windowc;
 class monitorc;
+class desktopc;
+class renderc;
+class mousec;
+
 
 extern process_t ShareableProcess;
 
-void UpdateAllEvents();
+class orbc{
+    public:
+        orbc();
+
+        desktopc* Desktop;    
+        renderc* Render; 
+        mousec* Mouse;
+};

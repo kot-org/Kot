@@ -1,6 +1,8 @@
 #include <monitor/monitor.h>
 
-monitorc::monitorc(process_t orb, uintptr_t fb_addr, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition){
+monitorc::monitorc(orbc* Parent, uintptr_t FbBase, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition){
+    this->Orb = Parent;
+    
     this->XPosition = XPosition;
     this->XPositionWithDock = XPosition;
     this->XMaxPosition = XPosition + Width;
@@ -14,7 +16,7 @@ monitorc::monitorc(process_t orb, uintptr_t fb_addr, uint64_t Width, uint64_t He
     MainFramebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
     BackFramebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
 
-    MainFramebuffer->Buffer = fb_addr;
+    MainFramebuffer->Buffer = FbBase;
     MainFramebuffer->Width = Width;
     MainFramebuffer->Height = Height;
     MainFramebuffer->Pitch = Pitch;
@@ -31,6 +33,9 @@ monitorc::monitorc(process_t orb, uintptr_t fb_addr, uint64_t Width, uint64_t He
     BackFramebuffer->Size = MainFramebuffer->Size;
 
     Eventbuffer = CreateEventBuffer(Width, Height);
+
+    Orb->Render->AddMonitor(this);
+    Orb->Desktop->AddMonitor(this);
 }
 
 uint64_t monitorc::GetWidth() {
@@ -70,7 +75,9 @@ void monitorc::Update(windowc* FirstWindowNode){
         Window = Window->Next;
     }
 
-    DrawCursor(this->BackFramebuffer, BitmapMask, PixelMap);
+    Orb->Desktop->Update(this);
+
+    Orb->Mouse->DrawCursor(this->BackFramebuffer);
 
     memcpy(this->MainFramebuffer->Buffer, this->BackFramebuffer->Buffer, this->MainFramebuffer->Size);
 }

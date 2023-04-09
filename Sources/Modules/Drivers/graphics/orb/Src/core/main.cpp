@@ -4,42 +4,41 @@ using namespace std;
 
 process_t ShareableProcess;
 
-void InitialiseOrb(){
+orbc::orbc(){
     ShareableProcess = ShareProcessKey(Sys_GetProcess());
-    InitializeRender();
+
+    Render = new renderc(this);
+    Mouse = new mousec(this);
+    Desktop = new desktopc(this);
 
     srv_system_callback_t* callback = Srv_System_GetFramebuffer(true);
     srv_system_framebuffer_t* bootframebuffer = (srv_system_framebuffer_t*)callback->Data;
     free(callback);
 
-    size64_t fb_size = bootframebuffer->Pitch * bootframebuffer->Height;
+    size64_t FbSize = bootframebuffer->Pitch * bootframebuffer->Height;
 
-    uint64_t virtualAddress = (uint64_t)MapPhysical((uintptr_t)bootframebuffer->Address, fb_size);
+    uint64_t virtualAddress = (uint64_t)MapPhysical((uintptr_t)bootframebuffer->Address, FbSize);
 
-    monitorc* monitor0 = new monitorc(ShareableProcess, (uintptr_t) virtualAddress, bootframebuffer->Width, bootframebuffer->Height, bootframebuffer->Pitch, bootframebuffer->Bpp, 0, 0);
+    
+    monitorc* monitor0 = new monitorc(this, (uintptr_t)virtualAddress, bootframebuffer->Width, bootframebuffer->Height, bootframebuffer->Pitch, bootframebuffer->Bpp, 0, 0);
 
-    CursorMaxPosition.x = monitor0->GetWidth()-1;
-    CursorMaxPosition.y = monitor0->GetHeight()-1;
+    Mouse->CursorMaxPosition.x = monitor0->GetWidth()-1;
+    Mouse->CursorMaxPosition.y = monitor0->GetHeight()-1;
 
     free(bootframebuffer);
-
-    vector_push(Monitors, monitor0);
     
-    windowc* LoadingScreen = new windowc(Window_Type_Background, NULL);
+    windowc* LoadingScreen = new windowc(this, Window_Type_Background, NULL);
     LoadingScreen->Resize(Window_Max_Size, Window_Max_Size);
     LoadingScreen->SetVisible(true);
     
-    LoadBootGraphics(LoadingScreen->GetFramebuffer());
-    
-    InitializeCursor();
-
+    LoadBootGraphics(LoadingScreen->GetFramebuffer());    
 }
 
 extern "C" int main() {
-    InitialiseOrb();
-    InitialiseServer();
+    orbc* Orb = new orbc();
+    InitialiseServer(Orb);
 
-    StartRender();
+    Orb->Render->StartRender();
     Printlog("[GRAPHICS/ORB] Service started");
     
     return KSUCCESS;

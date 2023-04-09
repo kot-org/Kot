@@ -4,8 +4,13 @@
 
 #include <kot/uisd/srvs/storage.h>
 
-extern point_t CursorPosition;
-extern point_t CursorMaxPosition;
+class orbc;
+class windowc;
+class monitorc;
+class desktopc;
+class renderc;
+class mousec;
+
 
 typedef struct {
     uint8_t Revision;
@@ -15,10 +20,27 @@ typedef struct {
     uint64_t BitmapMaskOffset;
 } __attribute__((__packed__)) KursorHeader;
 
-extern uintptr_t PixelMap;
-extern uintptr_t BitmapMask;
 
-void InitializeCursor();
-void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status);
+class mousec{
+    public:
+        mousec(orbc* Parent);
+        void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status);
+        void DrawCursor(framebuffer_t* fb);
 
-void DrawCursor(framebuffer_t* fb, uintptr_t BitmapMask, uintptr_t PixelMap);
+        orbc* Orb;
+        point_t CursorPosition;
+        point_t CursorMaxPosition;
+
+        uint64_t CursorWidth;
+        uint64_t CursorHeight;
+
+        int64_t Width;
+        int64_t Height;
+
+        uintptr_t PixelMap;
+        uintptr_t BitmapMask;
+
+        thread_t MouseRelativeInterrupt;
+
+        bool IsLastLeftClick = false;
+};

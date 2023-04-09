@@ -86,18 +86,6 @@ void LoadFiles(char* Path){
 }
 
 extern "C" int main() {
-    Audio::Stream* St = new Audio::Stream(0);
-
-    file_t* MusicFile = fopen("d1:Programs/Services/Audio/music.bin", "r");
-
-    fseek(MusicFile, 0, SEEK_END);
-    size64_t FileSize = ftell(MusicFile);
-    fseek(MusicFile, 0, SEEK_SET); 
-
-    uintptr_t FileBuf = malloc(FileSize);
-    fread(FileBuf, FileSize, 1, MusicFile);
-
-    St->AddBuffer(FileBuf, FileSize);
     return 0;
     ExplorerWindow = new UiWindow::Window("File explorer", "d0:explorer.tga", 600, 600, 600, 10);
     IsRoot = true;

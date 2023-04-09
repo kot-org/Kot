@@ -2,7 +2,7 @@
 
 uisd_graphics_t* SrvData;
 
-KResult InitialiseServer(){
+KResult InitialiseServer(orbc* Orb){
     process_t proc = Sys_GetProcess();
 
     uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_graphics_t));
@@ -18,7 +18,7 @@ KResult InitialiseServer(){
 
     /* CreateWindow */
     thread_t CreateWindowThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&CreateWindow, PriviledgeApp, NULL, &CreateWindowThread);
+    Sys_CreateThread(proc, (uintptr_t)&CreateWindow, PriviledgeApp, (uint64_t)Orb, &CreateWindowThread);
     SrvData->CreateWindow = MakeShareableThread(CreateWindowThread, PriviledgeApp);
 
     uisd_callbackInfo_t* Callback = CreateControllerUISD(ControllerTypeEnum_Graphics, key, true);
@@ -29,9 +29,11 @@ KResult InitialiseServer(){
 }
 
 KResult CreateWindow(thread_t Callback, uint64_t CallbackArg, process_t Target, event_t Event, uint64_t WindowType){
+    orbc* Orb = (orbc*)Sys_GetExternalDataThread();
+
     windowc* Window = NULL;
     
-    if((Window = new windowc(WindowType, Event)) != NULL){
+    if((Window = new windowc(Orb, WindowType, Event)) != NULL){
         ShareDataWithArguments_t Data{
             .ParameterPosition = 0x3,
             .Data = Window->GetFramebuffer(),

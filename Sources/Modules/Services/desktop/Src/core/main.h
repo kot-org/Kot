@@ -14,6 +14,8 @@
 #include <kot-ui++/context.h>
 #include <kot-ui++/component.h>
 
+#include <kot-audio++/stream.h>
+
 using namespace std;
 
 #define WIN_TASKBAR_COLOR      0x181818
