@@ -21,11 +21,14 @@ windowc::windowc(orbc* Parent, uint64_t WindowType, event_t Event){
     
     this->Eventbuffer = CreateEventBuffer(NULL, NULL);
 
-    this->Eventbuffer->Bpp = sizeof(windowc*) * 8;
-    this->Eventbuffer->Btpp = sizeof(windowc*);
-
     this->WindowType = WindowType;
+
     this->Event = Event;
+    
+    this->MouseEvent = (mouse_event_t*)malloc(sizeof(mouse_event_t));
+    this->MouseEvent->Event = Event;
+    this->MouseEvent->ParentType = MOUSE_EVENT_PARENT_TYPE_WINDOW;
+    this->MouseEvent->Parent = this;
 
     this->XPosition = NULL;
     this->YPosition = NULL;
@@ -67,7 +70,7 @@ KResult windowc::CreateBuffer(){
 
     uintptr_t OldEventBuffer = Eventbuffer->Buffer;
     Eventbuffer->Buffer = malloc(Eventbuffer->Size);
-    memset64(Eventbuffer->Buffer, (uint64_t)this, Eventbuffer->Size);
+    memset64(Eventbuffer->Buffer, (uint64_t)this->MouseEvent, Eventbuffer->Size);
     free(OldEventBuffer);
 
     return KSUCCESS;

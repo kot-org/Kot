@@ -42,8 +42,11 @@ clean:
 
 deps-github-action: deps-llvm
 	sudo apt update
-	sudo apt install kpartx nasm xorriso mtools
+	sudo apt install kpartx nasm xorriso mtools qemu-utils
 
 github-action: deps-github-action build
+	qemu-img convert -f raw -O vmdk Bin/kot.img Bin/kot.vmdk
+	qemu-img convert -f raw -O vdi Bin/kot.img Bin/kot.vdi
+
 
 .PHONY: build run deps-llvm deps-debian

@@ -10,6 +10,8 @@ KResult InitialiseServer(orbc* Orb){
     Sys_CreateMemoryField(proc, sizeof(uisd_graphics_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
     SrvData = (uisd_graphics_t*)address;
+    memset(SrvData, 0, sizeof(uisd_graphics_t)); // Clear data
+
     SrvData->ControllerHeader.IsReadWrite = false;
     SrvData->ControllerHeader.Version = ORB_Srv_Version;
     SrvData->ControllerHeader.VendorID = Kot_VendorID;

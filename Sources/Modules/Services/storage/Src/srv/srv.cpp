@@ -10,6 +10,8 @@ KResult InitialiseSrv(){
     Sys_CreateMemoryField(proc, sizeof(uisd_storage_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
     SrvData = (uisd_storage_t*)address;
+    memset(SrvData, 0, sizeof(uisd_storage_t)); // Clear data
+
     SrvData->ControllerHeader.IsReadWrite = false;
     SrvData->ControllerHeader.Version = Storage_Srv_Version;
     SrvData->ControllerHeader.VendorID = Kot_VendorID;
