@@ -4,14 +4,10 @@ monitorc::monitorc(orbc* Parent, uintptr_t FbBase, uint64_t Width, uint64_t Heig
     this->Orb = Parent;
     
     this->XPosition = XPosition;
-    this->XPositionWithDock = XPosition;
     this->XMaxPosition = XPosition + Width;
-    this->XMaxPositionWithDock = XPosition + Width;
 
     this->YPosition = YPosition;
-    this->YPositionWithDock = YPosition;
     this->YMaxPosition = YPosition + Height;
-    this->YMaxPositionWithDock = YPosition + Height;
 
     MainFramebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
     BackFramebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
@@ -36,6 +32,8 @@ monitorc::monitorc(orbc* Parent, uintptr_t FbBase, uint64_t Width, uint64_t Heig
 
     Orb->Render->AddMonitor(this);
     Orb->Desktop->AddMonitor(this);
+
+    UpdateEvents(Orb->Render->FirstWindowNode);
 }
 
 uint64_t monitorc::GetWidth() {
@@ -58,10 +56,14 @@ void DynamicBlit(framebuffer_t* to, framebuffer_t* from, uint64_t x, uint64_t y,
 void monitorc::UpdateEvents(windowc* FirstWindowNode){
     windowc* Window = FirstWindowNode;
 
+    Orb->Desktop->UpdateBackgroundEvent(this);
+
     while(Window){
         BlitGraphicEventbuffer(this->Eventbuffer, Window->GetEventbuffer(), Window->GetX(), Window->GetY());
         Window = Window->Next;
     }
+
+    Orb->Desktop->UpdateWidgetsEvent(this);
 }
 
 void monitorc::Update(windowc* FirstWindowNode){

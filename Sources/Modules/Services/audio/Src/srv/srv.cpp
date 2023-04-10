@@ -11,6 +11,8 @@ KResult InitialiseServer(){
     Sys_CreateMemoryField(proc, sizeof(uisd_audio_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
     SrvData = (uisd_audio_t*)address;
+    memset(SrvData, 0, sizeof(uisd_audio_t)); // Clear data
+
     SrvData->ControllerHeader.IsReadWrite = false;
     SrvData->ControllerHeader.Version = Audio_Srv_Version;
     SrvData->ControllerHeader.VendorID = Kot_VendorID;

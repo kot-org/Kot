@@ -30,7 +30,9 @@ class windowc{
         uint64_t WindowType;
         bool IsVisible = false;
         bool IsFocus = false;
+
         event_t Event;
+        struct mouse_event_t* MouseEvent;
 
         windowc* Next;
         windowc* Last;

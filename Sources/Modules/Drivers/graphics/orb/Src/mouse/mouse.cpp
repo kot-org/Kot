@@ -98,9 +98,12 @@ void mousec::CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
             monitorc* Monitor = (monitorc*)vector_get(Orb->Render->Monitors, i);
             if(Monitor != NULL){
                 if(IsBeetween(Monitor->XPosition, CursorPosition.x, Monitor->XMaxPosition) && IsBeetween(Monitor->YPosition, CursorPosition.y, Monitor->YMaxPosition)){
-                    windowc* Window = (windowc*)GetEventData(Monitor->Eventbuffer, CursorPosition.x, CursorPosition.y);
-                    if(Window){
-                        Window->SetFocusState(true);
+                    mouse_event_t* EventData = (mouse_event_t*)GetEventData(Monitor->Eventbuffer, CursorPosition.x, CursorPosition.y);
+                    CurrentFocusEvent = EventData;
+                    if(EventData){
+                        if(EventData->ParentType == MOUSE_EVENT_PARENT_TYPE_WINDOW){
+                            ((windowc*)EventData->Parent)->SetFocusState(true);
+                        }
                     }
                 }
             }
@@ -109,7 +112,7 @@ void mousec::CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
 
     IsLastLeftClick = IsleftClick;
 
-    if(CurrentFocusWindow != NULL){
+    if(CurrentFocusEvent != NULL){
         arguments_t Parameters{
             .arg[0] = Window_Event_Mouse,               // Event type
             .arg[1] = (uint64_t)CursorPosition.x,       // X position
@@ -117,7 +120,7 @@ void mousec::CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
             .arg[3] = (uint64_t)z,                      // Z position (scroll)
             .arg[4] = status,                           // Status of buttons
         };
-        Sys_Event_Trigger(CurrentFocusWindow->Event, &Parameters);
+        Sys_Event_Trigger(CurrentFocusEvent->Event, &Parameters);
     }
 }
 

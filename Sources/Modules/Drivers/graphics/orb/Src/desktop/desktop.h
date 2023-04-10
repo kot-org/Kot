@@ -23,7 +23,9 @@ class desktopc{
         KResult AddMonitor(monitorc* Monitor);
         KResult RemoveMonitor(monitorc* Monitor);
         KResult UpdateBackground(monitorc* Monitor);
+        KResult UpdateBackgroundEvent(monitorc* Monitor);
         KResult UpdateWidgets(monitorc* Monitor);
+        KResult UpdateWidgetsEvent(monitorc* Monitor);
     private:
         void UpdateTaskbar(JsonObject* TaskbarSettings);
 
@@ -47,13 +49,20 @@ class desktopc{
         Taskbar_t* Taskbar;
 };
 
-struct desktopmonitor{
-    Ui::UiContext* UiCtxDesktop;
-    framebuffer_t* FbDesktop;
+struct desktopcomponent{
+    Ui::UiContext* UiCtx;
+    framebuffer_t* Fb;
+    graphiceventbuffer_t* Eventbuffer;
+    struct mouse_event_t* MouseEvent;
+    thread_t MouseEventThread;
+    bool IsCpntFocus;
+    point_t Position;
+    void MouseHandler(uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status);
+};
 
-    Ui::UiContext* UiCtxTaskbar;
-    framebuffer_t* FbTaskbar;
-    point_t TaskBarPositon;
+struct desktopmonitor{
+    desktopcomponent* Desktop;
+    desktopcomponent* Taskbar;
 
     Ui::Picturebox_t* Wallpaper;
     desktopc* Parent;

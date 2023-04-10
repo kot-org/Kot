@@ -25,3 +25,5 @@ jobs:
           files: |
             Bin/kot.iso
             Bin/kot.img
+            Bin/kot.vmdk
+            Bin/kot.vdi
