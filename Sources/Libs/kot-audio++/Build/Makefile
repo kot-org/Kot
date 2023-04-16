@@ -1,7 +1,7 @@
 _HOME = ../../../../
 
-INCDIR = $(_HOME)Sysroot/Include
-BUILDDIR := $(_HOME)Sysroot/Lib
+INCDIR = $(_HOME)Sysroot/include
+BUILDDIR := $(_HOME)Sysroot/lib
 BINDIR = $(_HOME)Bin/Modules
 
 OBJDIR := ../Lib
@@ -10,7 +10,7 @@ SRCDIR := ../Src
 CC = clang-14
 AR = llvm-ar-14
 
-CFLAGS = -I$(INCDIR) --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -O3 $(_HOME)Sysroot/Lib/libc.a
+CFLAGS = -I$(INCDIR) --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -O3 $(_HOME)Sysroot/lib/kot/libc.a
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
    
@@ -38,4 +38,4 @@ $(INCDIR)/kot-audio++/%.h : $(SRCDIR)/%.h
 link:
 	@ echo !==== LINKING
 	@ mkdir -p $(BUILDDIR)
-	$(AR) rcs $(BUILDDIR)/kot-audiopp.a $(OBJS)
+	$(AR) rcs $(BUILDDIR)/kot/audiopp.a $(OBJS)

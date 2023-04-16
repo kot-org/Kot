@@ -10,9 +10,9 @@ git clone "https://github.com/kot-org/Disk"
 
 echo -e "\e[32mCreating compilation dirs...\e[0m"
 
-mkdir -m 777 -p "Sysroot/Include/kot/"
-mkdir -m 777 -p "Sysroot/Include/kot++/"
-mkdir -m 777 -p "Sysroot/Lib/"
+mkdir -m 777 -p "Sysroot/include/kot/"
+mkdir -m 777 -p "Sysroot/include/kot++/"
+mkdir -m 777 -p "Sysroot/lib/"
 mkdir -m 777 -p $BINDIR"/Modules/"
 mkdir -m 777 -p $BINDIR"/Firmwares/"
 
@@ -26,6 +26,7 @@ echo -e "\e[32mCompiling kot libraries...\e[0m"
 
 make -C "Libs/abi/Build"
 make -C "Libs/libc/Build"
+make -C "Libs/mlibc/Build"
 make -C "Libs/libc++/Build"
 make -C "Libs/kot-graphics/Build"
 make -C "Libs/kot-ui/Build"

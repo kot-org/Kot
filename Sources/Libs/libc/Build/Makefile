@@ -1,7 +1,7 @@
 _HOME = ../../../../
 
-INCDIR = $(_HOME)Sysroot/Include
-BUILDDIR := $(_HOME)Sysroot/Lib
+INCDIR = $(_HOME)Sysroot/include
+BUILDDIR := $(_HOME)Sysroot/lib
 BINDIR = $(_HOME)Bin/Modules
 
 OBJDIR := ../Lib
@@ -47,5 +47,5 @@ $(INCDIR)/kot/%.h : $(SRCDIR)/%.h
 link:
 	@ echo !==== LINKING
 	@ mkdir -p $(BUILDDIR)
-	$(AR) rcs $(BUILDDIR)/libc.a $(OBJS) $(OBJSCPP)
+	$(AR) rcs $(BUILDDIR)/kot/libc.a $(OBJS) $(OBJSCPP)
 

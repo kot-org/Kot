@@ -3,8 +3,8 @@ _HOME = ../../../../
 CC = clang-14
 ASMC = nasm
 
-CFLAGS = -O3 --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I$(_HOME)Sysroot/Include
-LINKERFLAGS = -nostartfiles -Wall -static -L$(_HOME)Sysroot/Lib/ -lc
+CFLAGS = -O3 --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I$(_HOME)Sysroot/include
+LINKERFLAGS = -nostartfiles -Wall -static -L$(_HOME)Sysroot/lib/kot -lc
 ASMFLAGS = 
 
 SRCDIR := ../Src
@@ -34,4 +34,4 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 link:
 	@ echo !==== LINKING
 	@ mkdir -p $(BINDIR)
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Calculator.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/Lib/libc.a $(_HOME)Sysroot/Lib/libcpp.a $(_HOME)Sysroot/Lib/kot-ui.a $(_HOME)Sysroot/Lib/kot-uipp.a $(_HOME)Sysroot/Lib/kot-graphics.a $(_HOME)Sysroot/Lib/crt0.o
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Calculator.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/lib/kot/uipp.a $(_HOME)Sysroot/lib/kot/libcpp.a $(_HOME)Sysroot/lib/kot/ui.a $(_HOME)Sysroot/lib/kot/uipp.a $(_HOME)Sysroot/lib/kot/graphics.a $(_HOME)Sysroot/lib/kot/crt0.o
