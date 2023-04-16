@@ -69,6 +69,7 @@ make -C "Modules/Services/shell/Build"
 # Apps
 echo -e "\e[32mCompiling kot apps...\e[0m"
 
+make -C "Apps/test/Build"
 make -C "Apps/calculator/Build"
 make -C "Apps/explorer/Build"
 

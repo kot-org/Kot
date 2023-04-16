@@ -9,6 +9,7 @@
 #include <kot-graphics/font.h>
 #include <kot-graphics/utils.h>
 
+#include <kot++/function.h>
 
 #include <kot-ui++/context.h>
 
@@ -290,6 +291,7 @@ namespace Ui {
         Component* Cpnt;
         color_t CurrentColor;
         ButtonEvent_t Event;
+        std::function<void()> EventLambda;
         
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);
