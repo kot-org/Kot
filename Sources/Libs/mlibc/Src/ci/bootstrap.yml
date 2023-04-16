@@ -1,0 +1,217 @@
+declare_options:
+  - name: arch
+    default: x86_64
+
+sources:
+  - name: gcc
+    git: 'git://gcc.gnu.org/git/gcc.git'
+    tag: 'releases/gcc-10.3.0'
+    regenerate:
+      - args: ['./contrib/download_prerequisites']
+        workdir: '@THIS_SOURCE_DIR@'
+
+  - name: mlibc
+    git: 'https://github.com/managarm/mlibc.git'
+    branch: 'master'
+
+  - name: linux
+    url: 'https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.8.tar.xz'
+    extract_path: 'linux-6.1.8'
+    format: 'tar.xz'
+    version: '6.1.8'
+
+tools:
+  - name: gcc
+    from_source: gcc
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--prefix=@PREFIX@'
+        - '--program-prefix=mlibc-'
+        - '--with-sysroot=@SYSROOT_DIR@'
+        - '--enable-languages=c,c++'
+        - '--disable-multilib'
+        - '--disable-bootstrap'
+        - '--disable-libgomp'
+        - '--with-specs=%{!static:%x{-rpath=@SYSROOT_DIR@/usr/lib} %x{-dynamic-linker=@SYSROOT_DIR@/usr/lib/ld.so}}'
+        # -g blows up GCC's binary size.
+        - 'CFLAGS=-O2'
+        - 'CXXFLAGS=-O2'
+        environ:
+          C: 'gcc-10'
+          CXX: 'g++-10'
+    stages:
+      - name: compiler
+        pkgs_required:
+         - mlibc
+         - linux-headers
+        compile:
+          # GCC complains if the include directory is non-existant.
+          - args: ['mkdir', '-p', '@SYSROOT_DIR@/usr/include']
+          - args: ['make', '-j@PARALLELISM@', 'all-gcc']
+        install:
+          - args: ['make', 'install-gcc']
+      - name: libgcc
+        tools_required:
+          - tool: gcc
+            stage_dependencies: [compiler]
+        compile:
+          - args: ['make', '-j@PARALLELISM@', 'all-target-libgcc']
+        install:
+          - args: ['make', 'install-target-libgcc']
+      # TODO: libstdc++ requires some patching before it will work.
+      # - name: libstdc++
+      #   tools_required:
+      #     - tool: gcc
+      #       stage_dependencies: [libgcc]
+      #   compile:
+      #     - args: ['make', '-j@PARALLELISM@', 'all-target-libstdc++-v3']
+      #   install:
+      #     - args: ['make', 'install-target-libstdc++-v3']
+
+packages:
+  - name: mlibc
+    architecture: '@OPTION:arch@'
+    from_source: mlibc
+    pkgs_required:
+      - linux-headers
+    configure:
+      - args:
+        - 'meson'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '--buildtype=debugoptimized'
+        - "-Dbuild_tests=true"
+        - "-Db_sanitize=undefined"
+        - "-Ddefault_library=both"
+        - "-Dwerror=true"
+        - '-Dlinux_kernel_headers=@BUILD_ROOT@/packages/linux-headers/usr/include'
+        - "--cross-file=@THIS_SOURCE_DIR@/ci/linux-@OPTION:arch@.cross-file"
+        - '@THIS_SOURCE_DIR@'
+    build:
+      - args: ['ninja']
+      - args: ['ninja', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+
+  - name: mlibc-static
+    architecture: '@OPTION:arch@'
+    from_source: mlibc
+    pkgs_required:
+      - linux-headers
+    configure:
+      - args:
+        - 'meson'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '--buildtype=debugoptimized'
+        - "-Dbuild_tests=true"
+        - "-Db_sanitize=undefined"
+        - "-Ddefault_library=static"
+        - "-Dwerror=true"
+        - '-Dlinux_kernel_headers=@BUILD_ROOT@/packages/linux-headers/usr/include'
+        - "--cross-file=@THIS_SOURCE_DIR@/ci/linux-@OPTION:arch@.cross-file"
+        - '@THIS_SOURCE_DIR@'
+    build:
+      - args: ['ninja']
+      - args: ['ninja', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+
+  - name: mlibc-shared
+    from_source: mlibc
+    pkgs_required:
+      - linux-headers
+    configure:
+      - args:
+        - 'meson'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '--buildtype=debugoptimized'
+        - "-Dbuild_tests=true"
+        - "-Db_sanitize=undefined"
+        - "-Ddefault_library=shared"
+        - "-Dwerror=true"
+        - '-Dlinux_kernel_headers=@BUILD_ROOT@/packages/linux-headers/usr/include'
+        - "--cross-file=@THIS_SOURCE_DIR@/ci/linux-@OPTION:arch@.cross-file"
+        - '@THIS_SOURCE_DIR@'
+    build:
+      - args: ['ninja']
+      - args: ['ninja', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+
+  - name: mlibc-ansi-only
+    architecture: '@OPTION:arch@'
+    from_source: mlibc
+    pkgs_required:
+      - linux-headers
+    configure:
+      - args:
+        - 'meson'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '--buildtype=debugoptimized'
+        - "-Dbuild_tests=true"
+        - "-Db_sanitize=undefined"
+        - "-Ddefault_library=both"
+        - "-Dwerror=true"
+        - "-Ddisable_posix_option=true"
+        - "-Ddisable_linux_option=true"
+        - "-Ddisable_glibc_option=true"
+        - "-Ddisable_bsd_option=true"
+        - '-Dlinux_kernel_headers=@BUILD_ROOT@/packages/linux-headers/usr/include'
+        - "--cross-file=@THIS_SOURCE_DIR@/ci/linux-@OPTION:arch@.cross-file"
+        - '@THIS_SOURCE_DIR@'
+    build:
+      - args: ['ninja']
+      - args: ['ninja', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+
+  - name: mlibc-headers-only
+    architecture: '@OPTION:arch@'
+    from_source: mlibc
+    pkgs_required:
+      - linux-headers
+    configure:
+      - args:
+        - 'meson'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '--buildtype=debugoptimized'
+        - "-Db_sanitize=undefined"
+        - "-Dwerror=true"
+        - "-Dheaders_only=true"
+        - '-Dlinux_kernel_headers=@BUILD_ROOT@/packages/linux-headers/usr/include'
+        - "--cross-file=@THIS_SOURCE_DIR@/ci/linux-@OPTION:arch@.cross-file"
+        - '@THIS_SOURCE_DIR@'
+    build:
+      - args: ['ninja']
+      - args: ['ninja', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+        quiet: true
+
+  - name: linux-headers
+    architecture: '@OPTION:arch@'
+    from_source: linux
+    configure:
+      # custom build system requires in tree-ish builds
+      - args: ['cp', '-Tr', '@THIS_SOURCE_DIR@', '.']
+    build:
+      - args: |
+          LINUX_ARCH="@OPTION:arch@"
+          case "$LINUX_ARCH" in
+            "aarch64")
+              LINUX_ARCH="arm64"
+              ;;
+            "riscv64")
+              LINUX_ARCH="riscv"
+              ;;
+          esac
+          make O=@THIS_COLLECT_DIR@ ARCH="$LINUX_ARCH" headers_install

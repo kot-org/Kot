@@ -3,8 +3,8 @@ _HOME = ../../../../
 CC = clang-14
 AR = llvm-ar-14
 
-INCDIR = $(_HOME)Sysroot/Include/
-BUILDDIR = $(_HOME)Sysroot/Lib/
+INCDIR = $(_HOME)Sysroot/include
+BUILDDIR = $(_HOME)Sysroot/lib/
 
 CFLAGS = -O3 --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I$(INCDIR)
 
@@ -36,4 +36,4 @@ $(INCDIR)/kot++/%.h : $(SRCDIR)/%.h
 
 link:
 	@ echo !==== LINKING
-	$(AR) rcs $(BUILDDIR)libcpp.a $(OBJS)
+	$(AR) rcs $(BUILDDIR)kot/libcpp.a $(OBJS)
