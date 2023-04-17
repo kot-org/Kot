@@ -1,5 +1,6 @@
 #include <desktop/desktop.h>
 
+#include <kot++/printf.h>
 
 void MouseHandlerDesktop(uint64_t EventType, uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status){
     monitorc* Monitor = (monitorc*)Sys_GetExternalDataThread();
@@ -13,17 +14,13 @@ void MouseHandlerTaskbar(uint64_t EventType, uint64_t PositionX, uint64_t Positi
     Sys_Event_Close();
 }
 
-void EventIcon(struct Button_t* Button, ButtonStatus_t EventType){
-    return;
-}
-
 desktopc::desktopc(orbc* Parent){
     Printlog("[ORB/DESKTOP] Initializing...");
     
     /* Play startup sound */
     Audio::Stream* St = new Audio::Stream(0);
 
-    file_t* MusicFile = fopen("d1:Usr/root/Share/Sounds/startup.bin", "r");
+    file_t* MusicFile = fopen("d1:User/root/Share/Sounds/startup.bin", "r");
 
     fseek(MusicFile, 0, SEEK_END);
     size64_t FileSize = ftell(MusicFile);
@@ -36,7 +33,7 @@ desktopc::desktopc(orbc* Parent){
 
     /* Load desktopUserSettings.json */
 
-    file_t* SettingsFile = fopen("d1:Usr/root/Share/Settings/desktop.json", "r");
+    file_t* SettingsFile = fopen("d1:User/root/Share/Settings/desktop.json", "r");
 
     assert(SettingsFile != NULL);
 
@@ -130,14 +127,13 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
 
     Monitor->Orb->Desktop = this;
 
-    if(IsWallpaper){
+    if(IsWallpaper)
         Monitor->DesktopData->SetWallpaper(WallpaperPath, (PictureboxFit)WallpaperFit);
-    }else{
+    else
         Monitor->DesktopData->SetSolidColor(SolidColor);
-    }
-    if(IsClock){
+
+    if(IsClock)
         Monitor->DesktopData->InitalizeClock(FontPathClock);
-    }
 
     Monitor->DesktopData->Desktop->UiCtx->UiStartRenderer();
 
@@ -176,7 +172,7 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
                 },
             .BackgroundColor = Taskbar->SolidColor
         }
-        , Monitor->DesktopData->Taskbar->UiCtx->Cpnt);
+    , Monitor->DesktopData->Taskbar->UiCtx->Cpnt);
 
     Ui::Flexbox_t* AppsContainer = Ui::Flexbox(
         {
@@ -198,35 +194,38 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
     , FlexContainer->Cpnt);
     
     for(uint8_t i = 0; i < Taskbar->Applications->length(); i++) {
-        JsonObject* App = (JsonObject*)Taskbar->Applications->Get(i);
+        JsonObject* App = (JsonObject*) Taskbar->Applications->Get(i);
 
         uint8_t AppPosition = ((JsonNumber*) App->Get("position"))->Get();
 
-        Button_t* AppButton = Button(EventIcon,
-        {
-            .G = {
-                    .Width = Taskbar->IconSize,
-                    .Height = Taskbar->IconSize,
-                    .Position = { .x = AppPosition * Taskbar->IconSize },
-                    .Margin.Left = 20,
-                    .IsHidden = false
-                },
-            .BackgroundColor = 0xFF0000,
-            .HoverColor = 0x00FF00
-        }
+        Button_t* AppButton = Button(
+            {
+
+            },
+            {
+                .G = {
+                        .Width = Taskbar->IconSize,
+                        .Height = Taskbar->IconSize,
+                        .Position = { .x = AppPosition * Taskbar->IconSize },
+                        .Margin.Left = 20,
+                        .IsHidden = false
+                    },
+                .BackgroundColor = 0xFF0000,
+                .HoverColor = 0x00FF00
+            }
         , AppsContainer->Cpnt);
 
-        // Picturebox_t* AppIcon = Picturebox("d0:kotlogo.tga", PictureboxType::_TGA,
-        //     {
-        //         .Fit = Ui::PICTUREFILL,
-        //         .Transparency = true,
-        //         .G{
-        //             .Width = -100, 
-        //             .Height = -100, 
-        //             .IsHidden = false
-        //         }
-        //     }
-        // , AppButton->Cpnt);
+        /* Picturebox_t* AppIcon = Picturebox("d0:kotlogo.tga", PictureboxType::_TGA,
+            {
+                .Fit = Ui::PICTUREFILL,
+                .Transparency = true,
+                .G{
+                    .Width = -100, 
+                    .Height = -100, 
+                    .IsHidden = false
+                }
+            }
+        , AppButton->Cpnt); */
     }
 
     Monitor->DesktopData->Taskbar->UiCtx->UiStartRenderer();
@@ -409,10 +408,12 @@ void desktopc::UpdateTaskbar(JsonObject* TaskbarSettings) {
 
     JsonObject* Style = (JsonObject*)TaskbarSettings->Get("style");
     assert(Style != NULL);
+
     Taskbar->Height = ((JsonNumber*) Style->Get("height"))->Get();
     Taskbar->IsExtended = ((JsonBoolean*) Style->Get("isExtended"))->Get();
     Taskbar->IconSize = ((JsonNumber*) Style->Get("iconSize"))->Get();
     Taskbar->SolidColor = strtol(((JsonString*)Style->Get("solidColor"))->Get(), NULL, 16);
+
     Taskbar->Applications = (JsonArray*)TaskbarSettings->Get("applications");
 }
 

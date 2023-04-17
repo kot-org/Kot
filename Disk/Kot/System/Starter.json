@@ -1,0 +1,11 @@
+[
+    {"file":"Kot/System/Drivers/Orb/Orb.elf", "priviledge":1},
+    {"file":"Kot/System/Drivers/Hda/Hda.elf", "priviledge":1},
+    {"file":"Kot/System/Drivers/Ps2/Ps2.elf", "priviledge":1},
+    {"file":"Kot/System/Drivers/E1000/E1000.elf", "priviledge":1},
+    {"file":"Kot/System/Services/Hid/Hid.elf", "priviledge":2},
+    {"file":"Kot/System/Services/Audio/Audio.elf", "priviledge":2},
+    {"file":"Kot/System/Services/Shell/Shell.elf", "priviledge":3},
+    {"file":"Kot/System/Apps/Calculator/Calculator.elf", "priviledge":3},
+    {"file":"Kot/System/Apps/Explorer/Explorer.elf", "priviledge":3}
+]

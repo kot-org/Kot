@@ -18,7 +18,7 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
 
         StringBuilder* SystemDataPathBuilder = new StringBuilder("d");
         SystemDataPathBuilder->append(DiskNumberBuffer);
-        SystemDataPathBuilder->append(":System/Starter.json");
+        SystemDataPathBuilder->append(":Kot/System/Starter.json");
         char* SystemDataPath = SystemDataPathBuilder->toString();
         delete SystemDataPathBuilder;
         file_t* SystemDataFile = fopen(SystemDataPath, "r");

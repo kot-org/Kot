@@ -44,7 +44,8 @@ class orbc{
     public:
         orbc();
 
-        desktopc* Desktop;    
         renderc* Render; 
+        desktopc* Desktop;    
         mousec* Mouse;
+        monitorc* Monitor;
 };

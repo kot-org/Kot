@@ -59,7 +59,6 @@ namespace Ui {
 
     typedef void (*MouseEventHandler)(class Component* Component, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status);
     typedef void (*UpdateHandler)(class Component* Component);
-    typedef void (*ButtonEvent_t)(struct Button_t* Button, ButtonStatus_t EventType);
 
     struct Margin{
         uint64_t Top;
@@ -285,6 +284,12 @@ namespace Ui {
         color_t ClickColor = HoverColor;
         uint64_t ExternalData = 0;
     } ButtonStyle_t;
+
+    typedef struct {
+        std::function<void()> Onclick;
+        std::function<void()> Onhover;
+        std::function<void()> Onfocus;
+    } ButtonEvent_t;
 
     struct Button_t {
         ButtonStyle_t Style;

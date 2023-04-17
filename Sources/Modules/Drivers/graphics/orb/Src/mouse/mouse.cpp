@@ -9,7 +9,7 @@ void CursorInterruptEntry(int64_t x, int64_t y, int64_t z, uint64_t status){
 mousec::mousec(orbc* Parent){
     Orb = Parent;
 
-    file_t* KursorFile = fopen("d0:darkDefault.kursor", "rb"); // todo: kursor settings and use drive to store the cursor to d1:Bin/Kursors/
+    file_t* KursorFile = fopen("d1:Kot/Kursors/darkDefault.kursor", "rb");
 
     if(KursorFile == NULL) {
         Printlog("[GRAPHICS/ORB] \033[0;31mERR:\033[0m Kursor file not found."); // todo: error log
@@ -29,8 +29,9 @@ mousec::mousec(orbc* Parent){
 
     CursorWidth = Width;
     CursorHeight = Height;
-    CursorPosition.x = CursorMaxPosition.x / 2;
-    CursorPosition.y = CursorMaxPosition.y / 2;
+    // todo: mettre le curseur au milieu de l'ecran
+    CursorPosition.x = NULL;
+    CursorPosition.y = NULL;
 
     uintptr_t PixelMapTmp = (uintptr_t) ((uint64_t)Header + Header->PixelMapOffset);
     size64_t PixelMapSize = Height * Pitch;
@@ -96,14 +97,15 @@ void mousec::CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
         // Change focus
         for(uint64_t i = 0; i < Orb->Render->Monitors->length; i++){
             monitorc* Monitor = (monitorc*)vector_get(Orb->Render->Monitors, i);
+
             if(Monitor != NULL){
                 if(IsBeetween(Monitor->XPosition, CursorPosition.x, Monitor->XMaxPosition) && IsBeetween(Monitor->YPosition, CursorPosition.y, Monitor->YMaxPosition)){
                     mouse_event_t* EventData = (mouse_event_t*)GetEventData(Monitor->Eventbuffer, CursorPosition.x, CursorPosition.y);
                     CurrentFocusEvent = EventData;
-                    if(EventData){
-                        if(EventData->ParentType == MOUSE_EVENT_PARENT_TYPE_WINDOW){
+
+                    if(EventData) {
+                        if(EventData->ParentType == MOUSE_EVENT_PARENT_TYPE_WINDOW)
                             ((windowc*)EventData->Parent)->SetFocusState(true);
-                        }
                     }
                 }
             }
