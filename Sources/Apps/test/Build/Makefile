@@ -3,7 +3,7 @@ _HOME = ../../../../
 CC = clang-14
 ASMC = nasm
 
-CFLAGS = -O3 --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I../Src -I$(_HOME)Sysroot/include
+CFLAGS = -O3 --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -no-pie -I../Src -I$(_HOME)Sysroot/include
 LINKERFLAGS = -nostartfiles -Wall -static -L$(_HOME)Sysroot/lib -lc
 ASMFLAGS = 
 

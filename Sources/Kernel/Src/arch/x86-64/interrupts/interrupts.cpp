@@ -109,9 +109,10 @@ void ExceptionHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
             if(PageFaultHandler(Cr2, Registers, CoreID)){
                 return;
             }
+            Error("Page fault at 0x%x", Cr2);
         }
 
-        Error("Thread error, PID : %x | TID : %x \nWith exception : '%s' | Error code : %x", Registers->threadInfo->thread->Parent->PID, Registers->threadInfo->thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
+        Error("Thread error, PID : 0x%x | TID : 0x%x \nWith exception : '%s' | Error code : 0x%x", Registers->threadInfo->thread->Parent->PID, Registers->threadInfo->thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
         PrintRegisters(Registers);
         if(Registers->threadInfo->thread->IsEvent){
             Event::Close(Registers, Registers->threadInfo->thread);
@@ -129,7 +130,7 @@ bool PageFaultHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
 }
 
 void KernelUnrecovorable(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
-    Error("Kernel Panic CPU %x \nWith exception : '%s' | Error code : %x", CoreID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
+    Error("Kernel Panic CPU 0x%x \nWith exception : '%s' | Error code : 0x%x", CoreID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
     PrintRegisters(Registers);
     KernelPanic("Unrecoverable exception ;(");
 }
