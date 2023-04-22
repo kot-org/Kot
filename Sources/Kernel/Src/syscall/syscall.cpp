@@ -149,6 +149,9 @@ KResult Sys_UnPause(SyscallStack* Registers, kthread_t* Thread){
     5 -> find free address  > bool
 */
 KResult Sys_Map(SyscallStack* Registers, kthread_t* Thread){
+    if(Thread->Parent->PID == 0x10){
+        asm("nop");
+    }
     // Check priviledge
     if(Registers->arg2 > AllocationTypeBasic && Thread->Priviledge != PriviledgeDriver){
         return KNOTALLOW;
@@ -463,6 +466,16 @@ KResult Sys_Keyhole_Verify(SyscallStack* Registers, kthread_t* Thread){
     return KSUCCESS;
 }
 
+/* Sys_TCB_Set :
+    Arguments : 
+
+*/
+KResult Sys_TCB_Set(SyscallStack* Registers, kthread_t* Thread){
+    Thread->FSBase = (uintptr_t)Registers->arg0;
+    CPU::SetCPUFSBase((uint64_t)Thread->FSBase);
+    return KSUCCESS;
+}
+
 /* Sys_Logs :
     Arguments : 
     0 -> string             > char*
@@ -498,6 +511,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_ExecThread] = Sys_ExecThread,
     [KSys_Keyhole_CloneModify] = Sys_Keyhole_CloneModify,
     [KSys_Keyhole_Verify] = Sys_Keyhole_Verify,
+    [KSys_TCB_Set] = Sys_TCB_Set,
     [KSys_Logs] = Sys_Logs,
 };
 

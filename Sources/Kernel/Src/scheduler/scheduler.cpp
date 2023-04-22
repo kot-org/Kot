@@ -606,8 +606,6 @@ void TaskManager::EnabledScheduler(uint64_t CoreID){
 
         CPU::SetCPUGSKernelBase((uint64_t)SelfDataStartAddress); // keys position
 
-        CPU::SetCPUFSBase((uint64_t)SelfDataEndAddress); // thread Local Storage
-
         SyscallEnable(GDTInfoSelectorsRing[KernelRing].Code, GDTInfoSelectorsRing[UserAppRing].Code); 
 
         IsSchedulerEnable[CoreID] = true;
@@ -643,6 +641,7 @@ void kthread_t::CreateContext(ContextStack* Registers, uint64_t CoreID){
     Parent->TaskManagerParent->ThreadExecutePerCore[CoreID] = this;
     simdSave(SIMDSaver);
     memcpy(Registers, Regs, sizeof(ContextStack));
+    CPU::SetCPUFSBase((uint64_t)FSBase);
     TSSSetIST(CoreID, IST_Interrupts, (uint64_t)KernelInternalStack);
 }
 

@@ -77,7 +77,7 @@ namespace ELF {
         thread_t Runningthread = Sys_Getthread();
 
         uint64_t HeapLocation = 0x0;
-        for (int i = 0; i < self->Header->e_phnum; i++) {
+        for (uint64_t i = 0; i < self->Header->e_phnum; i++) {
             Elf64_Phdr* phdr = (Elf64_Phdr*)((uint64_t)self->phdrs + (i * self->Header->e_phentsize));
             if((phdr->p_vaddr + phdr->p_memsz) > HeapLocation){
                 HeapLocation = phdr->p_vaddr + phdr->p_memsz;
@@ -113,7 +113,7 @@ namespace ELF {
             }
         }
 
-        for (int i = 0; i < self->Header->e_phnum; i++) {
+        for (uint64_t i = 0; i < self->Header->e_phnum; i++) {
             Elf64_Phdr* phdr = (Elf64_Phdr*)((uint64_t)self->phdrs + (i * self->Header->e_phentsize));
             if(phdr->p_type == PT_LOAD){
                 uintptr_t TmpAddress = (uintptr_t)malloc(phdr->p_memsz);

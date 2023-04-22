@@ -13,7 +13,7 @@ QEMUFLAGS =	-no-reboot 														\
 			-usb                                            				\
     		-device usb-ehci,id=ehci                        				\
 			-device intel-hda -device hda-duplex 							\
-			-accel kvm
+			#-accel kvm
 
 # -audiodev wav,id=snd0,path=output.wav 	 ,audiodev=snd0		
 

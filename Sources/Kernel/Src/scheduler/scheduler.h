@@ -122,6 +122,7 @@ struct kthread_t{
 
     /* KernelInternalStack */
     uintptr_t KernelInternalStack;
+    uintptr_t FSBase;
 
     /* Thread infos */
     threadInfo_t* Info;
