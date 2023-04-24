@@ -4,66 +4,47 @@
 #include "../../../../../../libc/Src/sys/list.h"
 
 #include <stdint.h>
+#include <kot/sys.h>
+#include <kot/types.h>
 
-#define KFAIL               0
-#define KSUCCESS            1
-#define KBUSY               2
-#define KNOTALLOW           3
-#define KKEYVIOLATION       4
-#define KMEMORYVIOLATION    5
-
-typedef uint64_t kot_key_t; 
-typedef kot_key_t kot_process_t;
-typedef kot_key_t kot_thread_t;
-typedef kot_key_t kot_event_t;
-typedef kot_key_t kot_ksmem_t;
-
-struct KotSpecificData_t{
-    /* Memory */
-    uint64_t MMapPageSize;
-    /* Heap */
-    uint64_t HeapLocation;
-    /* UISD */
-    kot_thread_t UISDHandler;
-    kot_process_t UISDHandlerProcess;
-    /* FreeMemorySpace */
-    uintptr_t FreeMemorySpace;
-    /* VFS */
-    kot_thread_t VFSHandler;
-}__attribute__((aligned(0x1000)));
-
-extern struct KotSpecificData_t KotSpecificData;
+#define Syscall_48(syscall, arg0, arg1, arg2, arg3, arg4, arg5) (DoSyscall48(syscall, (uint64_t)arg0, (uint64_t)arg1, (uint64_t)arg2, (uint64_t)arg3, (uint64_t)arg4, (uint64_t)arg5))
+#define Syscall_40(syscall, arg0, arg1, arg2, arg3, arg4) (DoSyscall40(syscall, (uint64_t)arg0, (uint64_t)arg1, (uint64_t)arg2, (uint64_t)arg3, (uint64_t)arg4))
+#define Syscall_32(syscall, arg0, arg1, arg2, arg3) (DoSyscall32(syscall, (uint64_t)arg0, (uint64_t)arg1, (uint64_t)arg2, (uint64_t)arg3))
+#define Syscall_24(syscall, arg0, arg1, arg2) (DoSyscall24(syscall, (uint64_t)arg0, (uint64_t)arg1, (uint64_t)arg2))
+#define Syscall_16(syscall, arg0, arg1) (DoSyscall16(syscall, (uint64_t)arg0, (uint64_t)arg1))
+#define Syscall_8(syscall, arg0) (DoSyscall8(syscall, (uint64_t)arg0))
+#define Syscall_0(syscall) (DoSyscall0(syscall))
 
 __attribute__((always_inline))
-static inline uint64_t Syscall_0(uint64_t call) {
+static inline uint64_t DoSyscall0(uint64_t call) {
     volatile uint64_t ret;
     asm volatile("syscall" : "=a"(ret) : "a"(call)); 
     return ret;
 }
 
 __attribute__((always_inline))
-static uint64_t Syscall_8(uint64_t call, uint64_t arg0) {
+static uint64_t DoSyscall8(uint64_t call, uint64_t arg0) {
     volatile uint64_t ret;
     asm volatile("syscall" : "=a"(ret) : "a"(call), "D"(arg0) : "memory"); 
     return ret;
 }
 
 __attribute__((always_inline))
-static uint64_t Syscall_16(uint64_t call, uint64_t arg0, uint64_t arg1) {
+static uint64_t DoSyscall16(uint64_t call, uint64_t arg0, uint64_t arg1) {
     volatile uint64_t ret;
     asm volatile("syscall" : "=a"(ret) : "a"(call), "D"(arg0), "S"(arg1) : "memory"); 
     return ret;
 }
 
 __attribute__((always_inline))
-static uint64_t Syscall_24(uint64_t call, uint64_t arg0, uint64_t arg1, uint64_t arg2) {
+static uint64_t DoSyscall24(uint64_t call, uint64_t arg0, uint64_t arg1, uint64_t arg2) {
     volatile uint64_t ret;
     asm volatile("syscall" : "=a"(ret) : "a"(call), "D"(arg0), "S"(arg1), "d"(arg2) : "memory"); 
     return ret;
 }
 
 __attribute__((always_inline))
-static uint64_t Syscall_32(uint64_t call, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3) {
+static uint64_t DoSyscall32(uint64_t call, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3) {
     volatile uint64_t ret;
 	register uint64_t arg3r asm("r10") = arg3; // put arg3 in r10
     asm volatile("syscall" : "=a"(ret) : "a"(call), "D"(arg0), "S"(arg1), "d"(arg2), "r"(arg3r) : "memory"); 
@@ -71,7 +52,7 @@ static uint64_t Syscall_32(uint64_t call, uint64_t arg0, uint64_t arg1, uint64_t
 }
 
 __attribute__((always_inline))
-static uint64_t Syscall_40(uint64_t call, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4) {
+static uint64_t DoSyscall40(uint64_t call, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4) {
     volatile uint64_t ret;
 	register uint64_t arg3r asm("r10") = arg3; // put arg3 in r10
 	register uint64_t arg4r asm("r9") = arg4; // put arg4 in r9
@@ -80,7 +61,7 @@ static uint64_t Syscall_40(uint64_t call, uint64_t arg0, uint64_t arg1, uint64_t
 }
 
 __attribute__((always_inline))
-static uint64_t Syscall_48(uint64_t call, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5) {
+static uint64_t DoSyscall48(uint64_t call, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5) {
     volatile uint64_t ret;
 	register uint64_t arg3r asm("r10") = arg3; // put arg3 in r10
 	register uint64_t arg4r asm("r9") = arg4; // put arg4 in r9

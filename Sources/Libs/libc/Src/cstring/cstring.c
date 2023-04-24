@@ -45,6 +45,7 @@ int strncmp(char* a, char* b, size64_t len){
 
 void strcpy(char* to, char* from){
     while(*to++ = *from++);
+    *to = 0;
 }
 
 char* strcat(char* dst, char* src){

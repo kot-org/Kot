@@ -85,17 +85,7 @@ void LoadFiles(char* Path){
     free(Directories);
 }
 
-struct test{
-    std::function<int(int, int)> testadd;
-};
-
 extern "C" int main() {
-    test* Testy = new test;
-    std::function<int(int, int)> add = [](int x, int y) { return x + y; };
-    Testy->testadd = std::move(add);
-    std::printf("%x", Testy->testadd(20, 100));
-
-    return 0;
     ExplorerWindow = new UiWindow::Window("File explorer", "d0:explorer.tga", 600, 600, 600, 10);
     IsRoot = true;
     LoadFiles("d1:");

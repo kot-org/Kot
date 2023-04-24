@@ -5,6 +5,14 @@ rtdl_sources += files(
 libc_sources += files(
 	'generic/entry.cpp',
 	'generic/generic.cpp',
+	'generic/sys.cpp',
+	'generic/atomic.S',
+	'generic/uisd/uisd.cpp',
+	'generic/uisd/srvs/storage/device.cpp',
+	'generic/uisd/srvs/storage/fs.cpp',
+	'generic/uisd/srvs/storage/storage.cpp',
+	'generic/uisd/srvs/system/system.cpp',
+	'generic/uisd/srvs/time/time.cpp',
 )
 
 if not no_headers

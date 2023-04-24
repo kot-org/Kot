@@ -1,19 +1,8 @@
-#include <kot/syscall.h>
+#include <kot/sys.h>
 #include <string.h>
 #include <mlibc/debug.hpp>
 #include <bits/ensure.h>
 #include <mlibc/all-sysdeps.hpp>
-
-struct KotSpecificData_t KotSpecificData;
-
-namespace Kot{
-    kot_process_t Sys_GetProcess(){
-        /* Get Self Data */
-        uint64_t self;
-        asm("mov %%gs:0x8, %0":"=r"(self));
-        return self;
-    }
-}
 
 namespace mlibc{
     void sys_libc_log(const char *message){

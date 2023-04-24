@@ -1,8 +1,8 @@
 #include <stdio.h>
 
-extern "C" void* __dso_handle = 0;
-
-extern "C" int main(){
-    printf("Hello from mlibc, with %s %x", "stdio.h", __dso_handle);
+extern "C" int main(int argc, char *argv[], char *env[]){
+    for(int i = 0; i < argc; i++){
+        printf("\n - %s", argv[i]);
+    }
     return 0;
 }

@@ -6,6 +6,10 @@
 #include <frg/string.hpp>
 #include <frg/vector.hpp>
 
+#if MLIBC_STATIC_BUILD
+void* __dso_handle;
+#endif
+
 // defined by the POSIX library
 void __mlibc_initLocale();
 
@@ -20,20 +24,26 @@ struct LibraryGuard {
 };
 
 
-// TODO : Update ELF loader for better loading
-char* Argv[] = {NULL};
-char* Env[] = {NULL};
-
 static LibraryGuard guard;
 
 LibraryGuard::LibraryGuard() {
 	__mlibc_initLocale();
 
-	// Parse the exec() stack.
-	__mlibc_stack_data.argc = 0;
-	__mlibc_stack_data.argv = (char**)&Argv;
-	__mlibc_stack_data.envp = (char**)&Env;
-	// mlibc::parse_exec_stack(__dlapi_entrystack(), &__mlibc_stack_data);
+	mlibc::parse_exec_stack(__dlapi_entrystack(), &__mlibc_stack_data);
+
+	// Convert offset to pointer
+	char** argv = __mlibc_stack_data.argv;
+	for(int i = 0; i < __mlibc_stack_data.argc; i++){
+        *argv = (char*)((uint64_t)(*argv) + (uint64_t)__dlapi_entrystack());
+		argv++;
+    }
+
+	char** ev = __mlibc_stack_data.envp;
+	while(*ev){
+		*ev = (char*)((uint64_t)(*ev) + (uint64_t)__dlapi_entrystack());
+		ev++;
+	}
+
 	mlibc::set_startup_data(__mlibc_stack_data.argc, __mlibc_stack_data.argv,
 			__mlibc_stack_data.envp);
 }
