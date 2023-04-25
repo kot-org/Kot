@@ -7,7 +7,7 @@
 #include <kot/memory.h>
 
 namespace Kot{
-    #define FEMOSECOND_IN_MILLISECOND     1000000000000 // femosecond 10E15 to millisecond 10E3
+    #define FEMOSECOND_IN_NANOSECOND     1000000 // femosecond 10E15 to nanosecond 10E9
 
     typedef KResult (*TimeCallbackHandler)(KResult Status, struct srv_time_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 

@@ -96,6 +96,10 @@ namespace Kot{
         return Syscall_40(KSys_Keyhole_Verify, self, type, target, flags, priviledge);
     }
 
+    KResult Sys_SetTCB(uintptr_t pointer){
+        return Syscall_8(KSys_TCB_Set, (uint64_t)pointer);
+    }
+
     KResult Sys_Logs(char* message, size64_t size){
         return Syscall_16(KSys_Logs, message, size);
     }

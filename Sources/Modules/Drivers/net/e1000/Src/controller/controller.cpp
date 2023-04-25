@@ -92,8 +92,8 @@ E1000::E1000(srv_pci_device_info_t* DeviceInfo, srv_pci_bar_info_t* BarInfo) {
 }
 
 E1000::~E1000() {
-    /* SYS_Unmap(Proc, TXDesc, ChipInfo->NumTXDesc * sizeof(TXDescriptor));
-    SYS_Unmap(Proc, RXDesc, ChipInfo->NumRXDesc * sizeof(RXDescriptor)); */
+    /* Sys_Unmap(Proc, TXDesc, ChipInfo->NumTXDesc * sizeof(TXDescriptor));
+    Sys_Unmap(Proc, RXDesc, ChipInfo->NumRXDesc * sizeof(RXDescriptor)); */
 }
 
 void E1000::InitTX() {

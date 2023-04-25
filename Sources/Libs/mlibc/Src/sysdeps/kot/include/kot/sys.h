@@ -107,7 +107,7 @@ namespace Kot{
     KResult Sys_Pause(bool force);
     KResult Sys_Unpause(kot_thread_t self);
     KResult Sys_Map(kot_process_t self, uint64_t* addressVirtual, enum AllocationType type, uintptr_t* addressPhysical, size64_t* size, bool findFree);
-    KResult SYS_Unmap(kot_process_t self, uintptr_t addressVirtual, size64_t size);
+    KResult Sys_Unmap(kot_process_t self, uintptr_t addressVirtual, size64_t size);
     uintptr_t Sys_GetPhysical(uintptr_t addressVirtual);
     KResult Sys_Event_Create(kot_event_t* self);
     KResult Sys_Event_Bind(kot_event_t self, kot_thread_t task, bool IgnoreMissedEvents);
@@ -119,6 +119,7 @@ namespace Kot{
     KResult Sys_ExecThread(kot_thread_t self, struct kot_arguments_t* parameters, enum ExecutionType type, struct ShareDataWithArguments_t* data);
     KResult Sys_Keyhole_CloneModify(kot_key_t source, kot_key_t* destination, kot_process_t target, uint64_t flags, enum Priviledge privilidge);
     KResult Sys_Keyhole_Verify(kot_key_t self, enum DataType type, kot_process_t* target, uint64_t* flags, uint64_t* priviledge);
+    KResult Sys_SetTCB(uintptr_t pointer);
     KResult Sys_Logs(char* message, size64_t size);
 
     void Sys_Schedule();
@@ -141,9 +142,6 @@ namespace Kot{
     uint64_t Sys_GetTIDThreadLauncher();
     uint64_t Sys_GetExternalDataProcessLauncher();
     uint64_t Sys_GetPriviledgeThreadLauncher();
-
-    KResult Printlog(char* message);
-
 }
 
 #endif

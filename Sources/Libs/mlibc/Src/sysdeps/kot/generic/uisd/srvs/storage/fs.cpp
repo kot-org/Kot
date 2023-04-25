@@ -1,6 +1,11 @@
-#include <kot/uisd/srvs/storage.h>
 #include <stdlib.h>
 #include <string.h>
+#include <bits/ensure.h>
+#include <mlibc/debug.hpp>
+#include <abi-bits/fcntl.h>
+#include <mlibc/allocator.hpp>
+#include <mlibc/all-sysdeps.hpp>
+#include <kot/uisd/srvs/storage.h>
 
 namespace Kot{
     kot_process_t ShareProcessFS = NULL;
@@ -16,6 +21,7 @@ namespace Kot{
                 }
                 file_t* File = (file_t*)CallbackFile->Data;
                 File->Position = NULL;
+                File->ExternalData = NULL;
                 File->Lock = NULL;
                 free(CallbackFile);
                 return File;
@@ -27,6 +33,7 @@ namespace Kot{
                 }
                 file_t* File = (file_t*)CallbackFile->Data;
                 File->Position = NULL;
+                File->ExternalData = NULL;
                 File->Lock = NULL;
                 free(CallbackFile);
                 return File;
@@ -38,7 +45,7 @@ namespace Kot{
                         return NULL;
                     }
                     file_t* File = (file_t*)CallbackFile->Data;
-                    File->IsBinary = true;
+                    File->ExternalData = File_Is_Binary;
                     File->Position = NULL;
                     File->Lock = NULL;
                     free(CallbackFile);
@@ -50,7 +57,7 @@ namespace Kot{
                         return NULL;
                     }
                     file_t* File = (file_t*)CallbackFile->Data;
-                    File->IsBinary = true;
+                    File->ExternalData = File_Is_Binary;
                     File->Position = NULL;
                     File->Lock = NULL;
                     free(CallbackFile);
@@ -66,6 +73,7 @@ namespace Kot{
                 }
                 file_t* File = (file_t*)CallbackFile->Data;
                 File->Position = NULL;
+                File->ExternalData = NULL;
                 File->Lock = NULL;
                 free(CallbackFile);
                 return File;
@@ -77,6 +85,7 @@ namespace Kot{
                 }
                 file_t* File = (file_t*)CallbackFile->Data;
                 File->Position = NULL;
+                File->ExternalData = NULL;
                 File->Lock = NULL;
                 free(CallbackFile);
                 return File;
@@ -88,7 +97,7 @@ namespace Kot{
                         return NULL;
                     }
                     file_t* File = (file_t*)CallbackFile->Data;
-                    File->IsBinary = true;
+                    File->ExternalData = File_Is_Binary;
                     File->Position = NULL;
                     File->Lock = NULL;
                     free(CallbackFile);
@@ -100,7 +109,7 @@ namespace Kot{
                         return NULL;
                     }
                     file_t* File = (file_t*)CallbackFile->Data;
-                    File->IsBinary = true;
+                    File->ExternalData = File_Is_Binary;
                     File->Position = NULL;
                     File->Lock = NULL;
                     free(CallbackFile);
@@ -117,12 +126,14 @@ namespace Kot{
                 file_t* File = (file_t*)CallbackFile->Data;
                 struct srv_storage_callback_t* CallbackFileSize = Srv_Storage_Getfilesize(File, true);
                 if(CallbackFileSize->Status != KSUCCESS){
+                    free(CallbackFileSize);
                     free(CallbackFile);
                     free(File);
                     return NULL;
                 }
                 size64_t Size = CallbackFileSize->Data;
                 File->Position = Size;
+                File->ExternalData = NULL;
                 File->Lock = NULL;
                 free(CallbackFileSize);
                 free(CallbackFile);
@@ -142,6 +153,7 @@ namespace Kot{
                 }
                 size64_t Size = CallbackFileSize->Data;
                 File->Position = Size;
+                File->ExternalData = NULL;
                 File->Lock = NULL;
                 free(CallbackFileSize);
                 free(CallbackFile);
@@ -161,7 +173,7 @@ namespace Kot{
                         return NULL;
                     }
                     size64_t Size = CallbackFileSize->Data;
-                    File->IsBinary = true;
+                    File->ExternalData = File_Is_Binary;
                     File->Position = Size;
                     File->Lock = NULL;
                     free(CallbackFile);
@@ -180,7 +192,7 @@ namespace Kot{
                         return NULL;
                     }
                     size64_t Size = CallbackFileSize->Data;
-                    File->IsBinary = true;
+                    File->ExternalData = File_Is_Binary;
                     File->Position = Size;
                     File->Lock = NULL;
                     free(CallbackFile);
@@ -189,6 +201,64 @@ namespace Kot{
             }
         }
         return NULL;
+    }
+
+    file_t* fopenmf(char* Path, int Flags, mode_t Mode){
+        if(!ShareProcessFS) ShareProcessFS = ShareProcessKey(Sys_GetProcess());
+
+        permissions_t Permissions = NULL;
+
+        // Main flags
+        if(Flags & O_RDWR){
+            Permissions = Storage_Permissions_Read | Storage_Permissions_Write;
+        }else if(Flags & O_RDONLY){
+            Permissions = Storage_Permissions_Read;
+        }else if(Flags & O_WRONLY){
+            Permissions = Storage_Permissions_Write;
+        }
+
+        // Other flags
+        if(Flags & O_CREAT){
+            Permissions |= Storage_Permissions_Create;
+        }
+
+        if(Flags & O_TRUNC){
+            // TODO
+            __ensure(!"O_TRUNC : Not implemented");
+        }
+
+        if(Flags & O_CLOEXEC){
+            // TODO
+            __ensure(!"O_CLOEXEC : Not implemented");
+        }
+        mlibc::infoLogger() << "ok" << frg::endlog;
+        struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Permissions, ShareProcessFS, true);
+        mlibc::infoLogger() << "ok" << frg::endlog;
+        if(CallbackFile->Status != KSUCCESS){
+            free(CallbackFile);
+            return NULL;
+        }
+        mlibc::infoLogger() << "ok" << frg::endlog;
+        file_t* File = (file_t*)CallbackFile->Data;
+        mlibc::infoLogger() << "ok" << frg::endlog;
+        if(Flags & O_APPEND){
+            struct srv_storage_callback_t* CallbackFileSize = Srv_Storage_Getfilesize(File, true);
+            if(CallbackFileSize->Status != KSUCCESS){
+                free(CallbackFileSize);
+                free(CallbackFile);
+                free(File);
+                return NULL;
+            }
+            size64_t Size = CallbackFileSize->Data;
+            free(CallbackFileSize);
+            File->Position = Size;
+        }else{
+            File->Position = NULL;
+        }
+        
+        File->Lock = NULL;
+        free(CallbackFile);
+        return File;
     }
 
     KResult fclose(file_t* File){

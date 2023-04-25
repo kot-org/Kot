@@ -634,13 +634,11 @@ KResult VFSfileCloseInitrd(thread_t Callback, uint64_t CallbackArg,  InitrdConte
 }
 
 KResult VFSfileOpenInitrd(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions, process_t Target){
-    KResult Status = KSUCCESS; // TODO: verify if the file exists
+    srv_system_callback_t* CallbackSys = Srv_System_ReadFileInitrd(Path, true);
+    KResult Status = CallbackSys->Status;
+    free((uintptr_t)CallbackSys->Data);
+    free(CallbackSys);
 
-    size64_t FilePathSize = strlen(Path) + 1;
-    InitrdContext* Context = (InitrdContext*)malloc(sizeof(InitrdContext));
-    Context->Target = Target;
-    Context->Path = (char*)malloc(FilePathSize);
-    memcpy(Context->Path, Path, FilePathSize);
     
     arguments_t arguments{
         .arg[0] = Status,           /* Status */
@@ -652,6 +650,12 @@ KResult VFSfileOpenInitrd(thread_t Callback, uint64_t CallbackArg, char* Path, p
     };
 
     if(Status == KSUCCESS){
+        size64_t FilePathSize = strlen(Path) + 1;
+        InitrdContext* Context = (InitrdContext*)malloc(sizeof(InitrdContext));
+        Context->Target = Target;
+        Context->Path = (char*)malloc(FilePathSize);
+        memcpy(Context->Path, Path, FilePathSize);
+
         srv_storage_fs_server_open_file_data_t SrvOpenFileData;
         thread_t DispatcherThread;
 
@@ -668,8 +672,6 @@ KResult VFSfileOpenInitrd(thread_t Callback, uint64_t CallbackArg, char* Path, p
         };
         Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &ShareDataWithArguments);
     }else{
-        free(Context->Path);
-        free(Context);
         Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     }
     Sys_Close(KSUCCESS);

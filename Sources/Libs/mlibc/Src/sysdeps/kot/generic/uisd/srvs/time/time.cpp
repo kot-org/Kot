@@ -200,7 +200,7 @@ namespace Kot{
         return TimePointer->Second;
     }
 
-    KResult Sleep(uint64_t duration){ // duration in ms
+    KResult Sleep(uint64_t duration){ // duration in ns
         uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
         if(!TickPointer){
@@ -210,7 +210,7 @@ namespace Kot{
             }
         }
 
-        uint64_t Target = *TickPointer + (FEMOSECOND_IN_MILLISECOND * duration) / TimeData->TickPeriod;
+        uint64_t Target = *TickPointer + (FEMOSECOND_IN_NANOSECOND * duration) / TimeData->TickPeriod;
         while(*TickPointer < Target){
             Sys_Schedule();
         }
@@ -218,7 +218,7 @@ namespace Kot{
         return KSUCCESS;
     }
 
-    KResult SleepFromTick(uint64_t* tick, uint64_t duration){ // duration in ms
+    KResult SleepFromTick(uint64_t* tick, uint64_t duration){ // duration in ns
         uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
         if(!TickPointer){
@@ -228,7 +228,7 @@ namespace Kot{
             }
         }
 
-        uint64_t Target = *tick + (FEMOSECOND_IN_MILLISECOND * duration) / TimeData->TickPeriod;
+        uint64_t Target = *tick + (FEMOSECOND_IN_NANOSECOND * duration) / TimeData->TickPeriod;
         while(*TickPointer < Target){
             Sys_Schedule();
         }
@@ -261,7 +261,7 @@ namespace Kot{
             }
         }
 
-        *time = (tick * TimeData->TickPeriod) / FEMOSECOND_IN_MILLISECOND;
+        *time = (tick * TimeData->TickPeriod) / FEMOSECOND_IN_NANOSECOND;
         return KSUCCESS;
     }
 
@@ -289,7 +289,7 @@ namespace Kot{
             }
         }
             
-        *tick = (FEMOSECOND_IN_MILLISECOND * time) / TimeData->TickPeriod;
+        *tick = (FEMOSECOND_IN_NANOSECOND * time) / TimeData->TickPeriod;
         return KSUCCESS;
     }
 

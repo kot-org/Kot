@@ -35,6 +35,10 @@ extern "C" {
 #define File_Function_Read              0x2
 #define File_Function_Write             0x3
 
+// External data file
+#define File_Is_Binary                  (1 << 0)
+#define File_Is_TTY                     (1 << 1)
+
 
 #define Dir_Function_Count              0x3
 
@@ -117,7 +121,7 @@ typedef struct {
     process_t FileProcessHandler;
     thread_t FileThreadHandler;
 
-    bool IsBinary;
+    uint64_t ExternalData;
 
     uint64_t Position;
 

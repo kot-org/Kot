@@ -1,6 +1,6 @@
-#include <kot/uisd/srvs/storage.h>
 #include <stdlib.h>
 #include <string.h>
+#include <kot/uisd/srvs/storage.h>
 
 namespace Kot{
     kot_thread_t srv_storage_callback_thread = NULL;

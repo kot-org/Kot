@@ -1,12 +1,13 @@
-#include <kot/sys.h>
 #include <string.h>
-#include <mlibc/debug.hpp>
+#include <kot/sys.h>
 #include <bits/ensure.h>
+#include <mlibc/debug.hpp>
+#include <kot/uisd/srvs/time.h>
 #include <mlibc/all-sysdeps.hpp>
 
 namespace mlibc{
     void sys_libc_log(const char *message){
-        Syscall_16(KSys_Logs, (uint64_t)message, (uint64_t)strlen(message));
+        Kot::Sys_Logs((char*)message, strlen(message));
     }
 
     [[noreturn]] void sys_libc_panic(){
@@ -16,14 +17,11 @@ namespace mlibc{
     }
 
     int sys_tcb_set(void *pointer){
-        return (Syscall_8(KSys_TCB_Set, (uint64_t)pointer) != KSUCCESS);
+        return (Kot::Sys_SetTCB((uintptr_t)pointer) != KSUCCESS);
     }
 
     int sys_futex_tid(){
-        /* Get Self Data */
-        uint64_t TID = NULL;
-        asm("mov %%gs:0x18, %0":"=r"(TID));
-        return static_cast<int>(TID);
+        return static_cast<int>(Kot::Sys_GetTID());
     }
 
     int sys_futex_wait(int *pointer, int expected, const struct timespec *time){
@@ -70,46 +68,6 @@ namespace mlibc{
         sys_exit(KSUCCESS);
         __builtin_unreachable();
     }
-    
-    int sys_open(const char *pathname, int flags, mode_t mode, int *fd){
-        __ensure(!"Not implemented");
-    }
-
-    int sys_read(int fd, void *buf, size_t count, ssize_t *bytes_read){
-        __ensure(!"Not implemented");
-    }
-
-    int sys_write(int fd, const void *buf, size_t count, ssize_t *bytes_written){
-        Syscall_16(KSys_Logs, (uint64_t)buf, (uint64_t)count);
-        *bytes_written = count;
-        //__ensure(!"Not implemented");
-        return 0;
-    }
-
-    int sys_seek(int fd, off_t offset, int whence, off_t *new_offset){
-        //__ensure(!"Not implemented");
-        return 0;
-    }
-
-    int sys_close(int fd){
-        __ensure(!"Not implemented");
-    }
-
-    int sys_flock(int fd, int options){
-        __ensure(!"Not implemented");
-    }
-
-    int sys_open_dir(const char *path, int *handle){
-        __ensure(!"Not implemented");
-    }
-
-    int sys_read_entries(int handle, void *buffer, size_t max_size, size_t *bytes_read){
-        __ensure(!"Not implemented");
-    }
-
-    int sys_pread(int fd, void *buf, size_t n, off_t off, ssize_t *bytes_read){
-        __ensure(!"Not implemented");
-    }
 
     int sys_clock_get(int clock, time_t *secs, long *nanos){
         __ensure(!"Not implemented");
@@ -120,30 +78,10 @@ namespace mlibc{
     }
 
     int sys_sleep(time_t *secs, long *nanos){
-        __ensure(!"Not implemented");
-    }
-
-    // In contrast to the isatty() library function, the sysdep function uses return value
-    // zero (and not one) to indicate that the file is a terminal.
-    int sys_isatty(int fd){
-        // __ensure(!"Not implemented");
+        KResult Status = Kot::Sleep((*secs) * 1000000000 + (*nanos));
+        *secs = 0;
+	    *nanos = 0;
         return 0;
-    }
-
-    int sys_rmdir(const char *path){
-        __ensure(!"Not implemented");
-    }
-
-    int sys_unlinkat(int dirfd, const char *path, int flags){
-        __ensure(!"Not implemented");
-    }
-
-    int sys_rename(const char *path, const char *new_path){
-        __ensure(!"Not implemented");
-    }
-
-    int sys_renameat(int olddirfd, const char *old_path, int newdirfd, const char *new_path){
-        __ensure(!"Not implemented");
     }
 
     int sys_sigprocmask(int how, const sigset_t *__restrict set, sigset_t *__restrict retrieve){
@@ -168,10 +106,7 @@ namespace mlibc{
     }
 
     pid_t sys_getpid(){
-        /* Get Self Data */
-        uint64_t PID = NULL;
-        asm("mov %%gs:0x10, %0":"=r"(PID));
-        return static_cast<pid_t>(PID);
+        return static_cast<pid_t>(Kot::Sys_GetPID());
     }
 
     int sys_kill(int, int){

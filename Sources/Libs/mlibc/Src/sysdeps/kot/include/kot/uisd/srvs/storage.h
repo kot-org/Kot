@@ -33,6 +33,10 @@ namespace Kot{
     #define File_Function_Read              0x2
     #define File_Function_Write             0x3
 
+    // External data file
+    #define File_Is_Binary                  (1 << 0)
+    #define File_Is_TTY                     (1 << 1)
+
 
     #define Dir_Function_Count              0x3
 
@@ -115,7 +119,7 @@ namespace Kot{
         kot_process_t FileProcessHandler;
         kot_thread_t FileThreadHandler;
 
-        bool IsBinary;
+        uint64_t ExternalData;
 
         uint64_t Position;
 
@@ -175,6 +179,7 @@ namespace Kot{
     struct srv_storage_callback_t* Srv_Storage_Readdir(directory_t* Dir, uint64_t IndexStart, size64_t IndexNumber, bool IsAwait);
 
     file_t* fopen(char* Path, char* Mode);
+    file_t* fopenmf(char* Path, int Flags, mode_t Mode);
     KResult fclose(file_t* File);
     KResult fread(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, file_t* File);
     KResult fwrite(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, file_t* File);
