@@ -11,6 +11,7 @@
 
 #include <srv/srv.h>
 #include <vfs/vfs.h>
+#include <dev/dev.h>
 #include <system/system.h>
 
 using namespace std;

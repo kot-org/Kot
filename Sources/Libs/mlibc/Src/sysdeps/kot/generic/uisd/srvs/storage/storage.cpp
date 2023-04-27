@@ -1,5 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
+#include <frg/string.hpp>
+#include <frg/vector.hpp>
+#include <mlibc/debug.hpp>
 #include <kot/uisd/srvs/storage.h>
 
 namespace Kot{
@@ -13,6 +16,7 @@ namespace Kot{
 
             kot_thread_t StoragethreadKeyCallback = NULL;
             Sys_CreateThread(Proc, (uintptr_t)&Srv_Storage_Callback, PriviledgeApp, NULL, &StoragethreadKeyCallback);
+            InitializeThread(StoragethreadKeyCallback);
             srv_storage_callback_thread = MakeShareableThread(StoragethreadKeyCallback, PriviledgeService);
         }else{
             Sys_Close(KFAIL);

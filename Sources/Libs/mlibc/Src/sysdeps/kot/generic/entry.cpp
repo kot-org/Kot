@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <kot/shell.h>
 #include <bits/ensure.h>
 #include <frg/string.hpp>
 #include <frg/vector.hpp>
@@ -51,10 +52,8 @@ LibraryGuard::LibraryGuard() {
 
 extern "C" void __mlibc_entry(uintptr_t *entry_stack, int (*main_fn)(int argc, char *argv[], char *env[])) {
 	__dlapi_enter(entry_stack);
-	// open terminal
-	stdin = fopen("d0:tty", "r");
-	// stdout = fopen("d0:tty", "w");
-	// stderr = fopen("d0:tty", "w+");
+	mlibc::infoLogger() << malloc(48) << frg::endlog;
+	Kot::InitializeShell();
 	auto result = main_fn(__mlibc_stack_data.argc, __mlibc_stack_data.argv, environ);
 	exit(result);
 }

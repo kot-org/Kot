@@ -14,7 +14,7 @@ namespace Kot{
     #define UISDServerEntry [[ noreturn ]] 
 
 
-    #define ControllerCount 0x8
+    #define ControllerCount 0x9
 
     enum ControllerTypeEnum {
         ControllerTypeEnum_System       = 0x0,
@@ -25,6 +25,7 @@ namespace Kot{
         ControllerTypeEnum_Audio        = 0x5,
         ControllerTypeEnum_USB          = 0x6,
         ControllerTypeEnum_PCI          = 0x7,
+        ControllerTypeEnum_Shell        = 0x8,
         ControllerTypeEnum_Other        = 0xff
     };
 
@@ -101,6 +102,8 @@ namespace Kot{
         kot_thread_t NotifyOnNewPartitionByGUIDType;
 
         kot_thread_t VFSLoginApp;
+
+        kot_thread_t NewDev;
     } uisd_storage_t;
 
     typedef struct {
@@ -121,6 +124,12 @@ namespace Kot{
         kot_thread_t ConfigReadWord;
         kot_thread_t ConfigWriteWord;
     } uisd_pci_t;
+
+    typedef struct {
+        uisd_controller_t ControllerHeader;
+        bool IsAvailableAsFile;
+    } uisd_shell_t;
+
 
     typedef struct {
         kot_thread_t Self;

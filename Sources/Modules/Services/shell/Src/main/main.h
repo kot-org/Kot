@@ -12,6 +12,7 @@
 #include <kot/uisd/srvs/system.h>
 #include <kot/uisd/srvs/storage.h>
 
+#include <srv/srv.h>
 #include <core/core.h>
 
 extern kfont_t* Font;

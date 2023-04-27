@@ -13,6 +13,7 @@ namespace Kot{
 
         kot_thread_t TimeThreadKeyCallback = NULL;
         Sys_CreateThread(proc, (uintptr_t)&Srv_Time_Callback, PriviledgeApp, NULL, &TimeThreadKeyCallback);
+        InitializeThread(TimeThreadKeyCallback);
         SrvTimeCallbackThread = MakeShareableThreadToProcess(TimeThreadKeyCallback, TimeData->ControllerHeader.Process);
     }
 

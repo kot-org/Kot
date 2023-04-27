@@ -37,6 +37,11 @@ KResult InitialiseSrv(){
     thread_t VFSLoginAppThread = NULL;
     Sys_CreateThread(proc, (uintptr_t)&VFSLoginApp, PriviledgeApp, NULL, &VFSLoginAppThread);
     SrvData->VFSLoginApp = MakeShareableThread(VFSLoginAppThread, PriviledgeDriver);
+
+    /* NewDev */
+    thread_t NewDevThread = NULL;
+    Sys_CreateThread(proc, (uintptr_t)&NewDev, PriviledgeApp, NULL, &NewDevThread);
+    SrvData->NewDev = MakeShareableThread(NewDevThread, PriviledgeService);
     
     uisd_callbackInfo_t* info = CreateControllerUISD(ControllerTypeEnum_Storage, key, true);   
     free(info);

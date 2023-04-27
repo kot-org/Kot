@@ -180,6 +180,8 @@ struct srv_storage_callback_t* Srv_Storage_Closedir(directory_t* Dir, bool IsAwa
 struct srv_storage_callback_t* Srv_Storage_Getdircount(directory_t* Dir, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_Readdir(directory_t* Dir, uint64_t IndexStart, size64_t IndexNumber, bool IsAwait);
 
+struct srv_storage_callback_t* Srv_Storage_NewDev(char* Name, struct srv_storage_fs_server_functions_t* FSServerFunctions, bool IsAwait);
+
 file_t* fopen(char* Path, char* Mode);
 KResult fclose(file_t* File);
 KResult fread(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, file_t* File);

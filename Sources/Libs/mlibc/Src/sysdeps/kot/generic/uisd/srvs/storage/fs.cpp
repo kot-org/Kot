@@ -231,16 +231,12 @@ namespace Kot{
             // TODO
             __ensure(!"O_CLOEXEC : Not implemented");
         }
-        mlibc::infoLogger() << "ok" << frg::endlog;
         struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Permissions, ShareProcessFS, true);
-        mlibc::infoLogger() << "ok" << frg::endlog;
         if(CallbackFile->Status != KSUCCESS){
             free(CallbackFile);
             return NULL;
         }
-        mlibc::infoLogger() << "ok" << frg::endlog;
         file_t* File = (file_t*)CallbackFile->Data;
-        mlibc::infoLogger() << "ok" << frg::endlog;
         if(Flags & O_APPEND){
             struct srv_storage_callback_t* CallbackFileSize = Srv_Storage_Getfilesize(File, true);
             if(CallbackFileSize->Status != KSUCCESS){
@@ -255,7 +251,6 @@ namespace Kot{
         }else{
             File->Position = NULL;
         }
-        
         File->Lock = NULL;
         free(CallbackFile);
         return File;

@@ -23,10 +23,12 @@ namespace Kot{
 
             kot_thread_t CallbackRequestHandlerThread = NULL;
             Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&Srv_CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
+            InitializeThread(CallbackRequestHandlerThread);
             Device->CallbackRequestHandlerThread = MakeShareableThreadToProcess(CallbackRequestHandlerThread, Device->SpaceInfo.DriverProc);
 
             kot_thread_t CallbackCreateSpaceHandlerThread = NULL;
             Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&Srv_CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
+            InitializeThread(CallbackCreateSpaceHandlerThread);
             Device->CallbackCreateSpaceHandlerThread = MakeShareableThreadToProcess(CallbackCreateSpaceHandlerThread, Device->SpaceInfo.DriverProc);
 
             return KSUCCESS;

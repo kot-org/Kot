@@ -96,8 +96,12 @@ namespace Kot{
         return Syscall_40(KSys_Keyhole_Verify, self, type, target, flags, priviledge);
     }
 
-    KResult Sys_SetTCB(uintptr_t pointer){
-        return Syscall_8(KSys_TCB_Set, (uint64_t)pointer);
+    KResult Sys_SetTCB(kot_thread_t thread, uintptr_t pointer){
+        return Syscall_16(KSys_TCB_Set, thread, (uint64_t)pointer);
+    }
+
+    KResult Sys_Thread_Info_Get(kot_thread_t thread, uint64_t arg, uint64_t* value){
+        return Syscall_24(KSys_Thread_Info_Get, thread, (uint64_t)arg, (uint64_t)value);
     }
 
     KResult Sys_Logs(char* message, size64_t size){

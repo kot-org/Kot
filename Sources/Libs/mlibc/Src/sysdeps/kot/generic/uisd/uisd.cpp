@@ -29,6 +29,7 @@ namespace Kot{
         kot_process_t Proc = Sys_GetProcess();
 
         Sys_CreateThread(Proc, (uintptr_t)&CallbackUISD, PriviledgeApp, NULL, &UISDthreadKeyCallback);
+        InitializeThread(UISDthreadKeyCallback);
         CallBackUISDThread = MakeShareableThreadToProcess(UISDthreadKeyCallback, KotSpecificData.UISDHandlerProcess);
 
         Sys_Keyhole_CloneModify(Proc, &ProcessKeyForUISD, KotSpecificData.UISDHandlerProcess, KeyholeFlagPresent | KeyholeFlagDataTypeProcessMemoryAccessible, PriviledgeApp);

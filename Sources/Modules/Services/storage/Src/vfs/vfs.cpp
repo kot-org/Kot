@@ -132,6 +132,16 @@ KResult GetVFSAbsolutePath(char** AbsolutePath, partition_t** Partition, char* P
 }
 
 KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFSContext* Context, char* Path){
+    if(Path[0] == '/'){
+        if(strncmp(Path, DEV_PATH, DEV_PATH_LEN)){
+            // OS Services
+            return GetDevAccessData(RelativePath, Partition, Context, Path);
+        }else{
+            // Otherwise valid path can't begin with /
+            return KFAIL;
+        }
+    }
+
     std::StringBuilder* Sb = new std::StringBuilder(Path);
     int64_t RelativePathStart = Sb->indexOf(":");
 

@@ -15,6 +15,7 @@
 #define KeyholeFlagDataTypeThreadIsDuplicable               (1 << 6)
 #define KeyholeFlagDataTypeThreadIsExecutableWithQueue      (1 << 7)
 #define KeyholeFlagDataTypeThreadIsExecutableOneshot        (1 << 8)
+#define KeyholeFlagDataTypeThreadAllowChangeTCB             (1 << 9)
 
 /* DataTypeProcess */
 #define KeyholeFlagDataTypeProcessMemoryAccessible          (1 << 4)

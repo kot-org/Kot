@@ -3,50 +3,46 @@
 #include <kot-graphics/orb.h>
 #include <kot-graphics/context.h>
 
-window_t* wid;
 
-void EventTest(enum Window_Event EventType, uint64_t x, uint64_t y, uint64_t z, uint64_t status){
-    //std::printf("%x", EventType);
-    if(EventType == 1){
-        //memset32(wid->Framebuffer.Buffer, 0xf0c1d2, wid->Framebuffer.Size);
-        WindowChangePosition(wid, x, y);
-    }
-    Sys_Event_Close();
-}
-
-shell_t* NewShell(){
+shell_t* NewShell(process_t Target){
     shell_t* Shell = (shell_t*)malloc(sizeof(shell_t));
-    
-    wid = CreateWindow(NULL, Window_Type_Default);
-    ResizeWindow(wid, 50, 50);
-    memset(wid->Framebuffer.Buffer, 0xff, wid->Framebuffer.Size);
-    ChangeVisibilityWindow(wid, true);
 
-    Shell->Framebuffer = &wid->Framebuffer;
+    Shell->Target = Target;
+    
+    Shell->Wid = CreateWindow(NULL, Window_Type_Default);
+    ResizeWindow(Shell->Wid, 500, 500);
+    ChangeVisibilityWindow(Shell->Wid, true);
+
+    Shell->Framebuffer = &Shell->Wid->Framebuffer;
     Shell->Backbuffer = (framebuffer_t*)malloc(sizeof(framebuffer_t));
 
     memcpy(Shell->Backbuffer, Shell->Framebuffer, sizeof(framebuffer_t));
     Shell->Backbuffer->Buffer = calloc(Shell->Framebuffer->Size);
+
+    // Load font
+    file_t* FontFile = fopen("d0:default-font.sfn", "r");
+    fseek(FontFile, 0, SEEK_END);
+    size64_t Size = ftell(FontFile);
+    uintptr_t Buffer = malloc(Size);
+    fseek(FontFile, 0, SEEK_SET);
+    fread(Buffer, Size, 1, FontFile);
+    Shell->Font = (kfont_t*)LoadFont(Buffer);
+    free(Buffer);
+    fclose(FontFile);
 
     font_fb_t FontFB;
     FontFB.Address = Shell->Backbuffer->Buffer;
     FontFB.Width = Shell->Backbuffer->Width;
     FontFB.Height = Shell->Backbuffer->Height;
     FontFB.Pitch = Shell->Backbuffer->Pitch;
-    LoadPen(Font, &FontFB, 0, 0, 16, 0, 0xFFFFFFFF);
-    DrawFont(Font, "Hello");
+    LoadPen(Shell->Font, &FontFB, 0, 0, 16, 0, 0xFFFFFFFF);
 
-    ChangeVisibilityWindow(wid, true);
+    ChangeVisibilityWindow(Shell->Wid, true);
 
-    uint64_t TimerState;
-    GetActualTick(&TimerState);
-    
-    while (true){
-        FillRect(Shell->Backbuffer, 0, 0, 10, 16, 0xffffff);
-        BlitFramebuffer(Shell->Framebuffer, Shell->Backbuffer, 0, 0);
-        SleepFromTick(&TimerState, 500);
-        FillRect(Shell->Backbuffer, 0, 0, 10, 16, 0x0);
-        BlitFramebuffer(Shell->Framebuffer, Shell->Backbuffer, 0, 0);
-        SleepFromTick(&TimerState, 500);
-    }
+    return Shell;
+}
+
+void ShellPrint(shell_t* Shell, uintptr_t Buffer, size64_t Size){
+    DrawFontSize(Shell->Font, (char*)Buffer, Size);
+    BlitFramebuffer(Shell->Framebuffer, Shell->Backbuffer, 0, 0);
 }

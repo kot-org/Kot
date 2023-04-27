@@ -4,8 +4,10 @@ rtdl_sources += files(
 
 libc_sources += files(
 	'generic/sys.cpp',
+	'generic/shell.cpp',
 	'generic/atomic.S',
 	'generic/entry.cpp',
+	'generic/thread.cpp',
 	'generic/memory.cpp',
 	'generic/generic.cpp',
 	'generic/uisd/uisd.cpp',

@@ -15,6 +15,7 @@ namespace Kot{
 
             kot_thread_t SystemthreadKeyCallback = NULL;
             Sys_CreateThread(Proc, (uintptr_t)&Srv_System_Callback, PriviledgeMax, NULL, &SystemthreadKeyCallback);
+            InitializeThread(SystemthreadKeyCallback);
             srv_system_callback_thread = MakeShareableThreadToProcess(SystemthreadKeyCallback, SystemData->ControllerHeader.Process);
         }else{
             Sys_Close(KFAIL);

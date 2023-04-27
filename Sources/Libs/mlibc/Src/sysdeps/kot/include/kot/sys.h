@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <kot/types.h>
+#include <kot/thread.h>
 #include <kot/syscall.h>
 
 struct KotSpecificData_t{
@@ -119,7 +120,8 @@ namespace Kot{
     KResult Sys_ExecThread(kot_thread_t self, struct kot_arguments_t* parameters, enum ExecutionType type, struct ShareDataWithArguments_t* data);
     KResult Sys_Keyhole_CloneModify(kot_key_t source, kot_key_t* destination, kot_process_t target, uint64_t flags, enum Priviledge privilidge);
     KResult Sys_Keyhole_Verify(kot_key_t self, enum DataType type, kot_process_t* target, uint64_t* flags, uint64_t* priviledge);
-    KResult Sys_SetTCB(uintptr_t pointer);
+    KResult Sys_Thread_Info_Get(kot_thread_t thread, uint64_t arg, uint64_t* value);
+    KResult Sys_SetTCB(kot_thread_t thread, uintptr_t pointer);
     KResult Sys_Logs(char* message, size64_t size);
 
     void Sys_Schedule();
