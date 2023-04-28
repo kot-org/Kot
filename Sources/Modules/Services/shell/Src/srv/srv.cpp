@@ -131,28 +131,8 @@ KResult Getshellsize(thread_t Callback, uint64_t CallbackArg, shell_t* Shell, ui
 
 /* Direct access */
 KResult Readshell(thread_t Callback, uint64_t CallbackArg, shell_t* Shell, uint64_t GP0, uint64_t GP1, uint64_t GP2){
-    size64_t Size = GP1;
-    ksmem_t BufferKey;
-
-    KResult Status = KSUCCESS;
-
-    arguments_t arguments{
-        .arg[0] = Status,           /* Status */
-        .arg[1] = CallbackArg,      /* CallbackArg */
-        .arg[2] = NULL,             /* Key to buffer */
-        .arg[3] = NULL,             /* GP1 */
-        .arg[4] = NULL,             /* GP2 */
-        .arg[5] = NULL,             /* GP3 */
-    };
-
-    if(Status == KSUCCESS){
-        Sys_Keyhole_CloneModify(BufferKey, &arguments.arg[2], Shell->Target, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
-        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    }else{
-        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    }
-
-    return KSUCCESS;
+    // Ignore GP0 : start
+    return ShellCreateRequest(Shell, Callback, CallbackArg, GP1);
 }
 
 /* Direct access */

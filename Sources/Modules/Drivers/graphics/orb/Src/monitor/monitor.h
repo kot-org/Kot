@@ -9,7 +9,7 @@ class windowc;
 class monitorc;
 class desktopc;
 class renderc;
-class mousec;
+class hidc;
 
 
 class monitorc {

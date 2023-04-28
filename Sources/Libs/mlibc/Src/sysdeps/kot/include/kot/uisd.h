@@ -68,8 +68,7 @@ namespace Kot{
 
         kot_event_t MouseRelative;
         kot_event_t MouseAbsolute;
-        kot_event_t KeyboardServer;
-        kot_event_t KeyboardClient;
+        kot_event_t KeyboardEvent;
     } uisd_hid_t;
 
     typedef struct {

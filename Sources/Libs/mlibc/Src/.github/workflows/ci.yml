@@ -1,0 +1,96 @@
+name: Continuous Integration
+
+on: [push, pull_request]
+
+jobs:
+    build-mlibc:
+        strategy:
+            matrix:
+                arch: [x86_64, riscv64, aarch64]
+                builds: [mlibc, mlibc-static, mlibc-shared, mlibc-ansi-only, mlibc-headers-only]
+        name: Build mlibc
+        runs-on: ubuntu-20.04
+        steps:
+          - name: Install prerequisites
+            # Note: the default jsonschema is too old.
+            #       xbstrap should fix this by demanding a recent version.
+            run: |
+                sudo apt-get update
+                sudo apt-get install ninja-build g++-10 g++-10-riscv64-linux-gnu g++-10-aarch64-linux-gnu qemu-user
+                sudo pip3 install setuptools
+                sudo pip3 install -U jsonschema
+                sudo pip3 install meson xbstrap
+                sudo pip3 install pyexpect
+          - name: Prepare directories
+            run: |
+                mkdir src/
+                mkdir src/mlibc/
+                mkdir build/
+          - name: Checkout
+            uses: actions/checkout@v2
+            with:
+              path: src/mlibc/
+          - name: Prepare src/
+            run: |
+                cp mlibc/ci/bootstrap.yml .
+                touch mlibc/checkedout.xbstrap
+            working-directory: src/
+          - name: Prepare build/
+            run: |
+              cat > bootstrap-site.yml << EOF
+              define_options:
+                arch: ${{matrix.arch}}
+              EOF
+              xbstrap init ../src
+            working-directory: build/
+          - name: Build mlibc
+            run: 'xbstrap install ${{matrix.builds}}'
+            working-directory: build/
+          - name: Test mlibc
+            run: 'meson test -v -C pkg-builds/${{matrix.builds}}'
+            working-directory: build/
+          - name: Build GCC
+            if: ${{matrix.builds == 'mlibc' && matrix.arch == 'x86_64'}}
+            run: 'xbstrap install-tool gcc'
+            working-directory: build/
+
+    compile-sysdeps:
+        strategy:
+            matrix:
+                sysdeps: [dripos, lemon, aero, ironclad, lyre, keyronex]
+        name: Compile sysdeps
+        runs-on: ubuntu-20.04
+        steps:
+          - name: Install prerequisites
+            # Note: the default jsonschema is too old.
+            #       xbstrap should fix this by demanding a recent version.
+            run: |
+                sudo apt-get install ninja-build g++-10
+                sudo pip3 install setuptools
+                sudo pip3 install -U jsonschema
+                sudo pip3 install meson xbstrap
+          - name: Checkout
+            uses: actions/checkout@v2
+            with:
+              path: src/mlibc/
+          - name: Set up linux kernel headers
+            run: |
+                mkdir -p build/mlibc/
+                cp src/mlibc/ci/bootstrap.yml src/
+                (
+                  cd build
+                  xbstrap init ../src
+                  xbstrap install linux-headers
+                )
+          - name: Compile sysdeps
+            run: |
+                meson setup \
+                    "-Dc_args=['-fno-stack-protector', '-U__linux__']" \
+                    "-Dcpp_args=['-fno-stack-protector', '-U__linux__']" \
+                    "-Dbuild_tests=true" \
+                    "-Db_sanitize=undefined" \
+                    "-Dlinux_kernel_headers=$(pwd)/packages/linux-headers/usr/include" \
+                    --cross-file ../src/mlibc/ci/${{matrix.sysdeps}}.cross-file compile-${{matrix.sysdeps}} \
+                    "../src/mlibc/"
+                ninja -C compile-${{matrix.sysdeps}}
+            working-directory: build/

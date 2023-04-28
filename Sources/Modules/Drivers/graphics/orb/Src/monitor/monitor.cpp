@@ -81,7 +81,7 @@ void monitorc::Update(windowc* FirstWindowNode){
 
     Orb->Desktop->UpdateWidgets(this);
 
-    Orb->Mouse->DrawCursor(this->BackFramebuffer);
+    Orb->Hid->DrawCursor(this->BackFramebuffer);
 
     memcpy(this->MainFramebuffer->Buffer, this->BackFramebuffer->Buffer, this->MainFramebuffer->Size);
 }

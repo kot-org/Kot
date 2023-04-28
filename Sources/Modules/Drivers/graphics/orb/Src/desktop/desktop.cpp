@@ -108,7 +108,7 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
     Monitor->DesktopData->Desktop->Fb->Btpp = Monitor->BackFramebuffer->Btpp;
     Monitor->DesktopData->Desktop->Fb->Size = Monitor->BackFramebuffer->Size;
 
-    Monitor->DesktopData->Desktop->MouseEvent = (mouse_event_t*)malloc(sizeof(mouse_event_t));
+    Monitor->DesktopData->Desktop->MouseEvent = (hid_event_t*)malloc(sizeof(hid_event_t));
     Sys_Event_Create(&Monitor->DesktopData->Desktop->MouseEvent->Event);
     Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&MouseHandlerDesktop, PriviledgeApp, (uint64_t)Monitor, &Monitor->DesktopData->Desktop->MouseEventThread);
     Sys_Event_Bind(Monitor->DesktopData->Desktop->MouseEvent->Event, Monitor->DesktopData->Desktop->MouseEventThread, true);
@@ -152,7 +152,7 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
     Monitor->DesktopData->Taskbar->Fb->Btpp = Monitor->BackFramebuffer->Btpp;
     Monitor->DesktopData->Taskbar->Fb->Size = Taskbar->Height * Monitor->BackFramebuffer->Pitch;
 
-    Monitor->DesktopData->Taskbar->MouseEvent = (mouse_event_t*)malloc(sizeof(mouse_event_t));
+    Monitor->DesktopData->Taskbar->MouseEvent = (hid_event_t*)malloc(sizeof(hid_event_t));
     Sys_Event_Create(&Monitor->DesktopData->Taskbar->MouseEvent->Event);
     Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&MouseHandlerTaskbar, PriviledgeApp, (uint64_t)Monitor, &Monitor->DesktopData->Taskbar->MouseEventThread);
     Sys_Event_Bind(Monitor->DesktopData->Taskbar->MouseEvent->Event, Monitor->DesktopData->Taskbar->MouseEventThread, true);

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <kot/sys.h>
 #include <bits/ensure.h>
 #include <frg/vector.hpp>
@@ -59,10 +60,19 @@ namespace mlibc{
         Kot::file_t* File = Kot::FDList[fd];
         atomicUnlock(&Kot::LockFDList, 0);
         if(File == NULL) return -1;
-        if(Kot::fread((uintptr_t)buf, count, 1, File) == KSUCCESS){
-            *bytes_read = count;
+
+        atomicAcquire(&File->Lock, 0);
+        Kot::srv_storage_callback_t* CallbackReadFile = Kot::Srv_Storage_Readfile(File, (uintptr_t)buf, File->Position, count, true);
+        if(CallbackReadFile->Status == KSUCCESS){
+            File->Position += CallbackReadFile->Size;
+        }
+        atomicUnlock(&File->Lock, 0);
+        if(CallbackReadFile->Status == KSUCCESS){
+            *bytes_read = CallbackReadFile->Size;
+            free(CallbackReadFile);
             return 0;
         }else{
+            free(CallbackReadFile);
             return -1;
         }
     }

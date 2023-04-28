@@ -12,7 +12,7 @@ class windowc;
 class monitorc;
 class desktopc;
 class renderc;
-class mousec;
+class hidc;
 
 using namespace std;
 using namespace Ui;
@@ -53,7 +53,7 @@ struct desktopcomponent{
     Ui::UiContext* UiCtx;
     framebuffer_t* Fb;
     graphiceventbuffer_t* Eventbuffer;
-    struct mouse_event_t* MouseEvent;
+    struct hid_event_t* MouseEvent;
     thread_t MouseEventThread;
     bool IsCpntFocus;
     point_t Position;

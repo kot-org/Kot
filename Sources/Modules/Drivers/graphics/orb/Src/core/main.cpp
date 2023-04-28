@@ -8,7 +8,7 @@ orbc::orbc(){
     ShareableProcess = ShareProcessKey(Sys_GetProcess());
 
     Render = new renderc(this);
-    Mouse = new mousec(this);
+    Hid = new hidc(this);
     Desktop = new desktopc(this);
 
     srv_system_callback_t* callback = Srv_System_GetFramebuffer(true);
@@ -22,8 +22,8 @@ orbc::orbc(){
     
     monitorc* monitor0 = new monitorc(this, (uintptr_t)virtualAddress, bootframebuffer->Width, bootframebuffer->Height, bootframebuffer->Pitch, bootframebuffer->Bpp, 0, 0);
 
-    Mouse->CursorMaxPosition.x = monitor0->GetWidth()-1;
-    Mouse->CursorMaxPosition.y = monitor0->GetHeight()-1;
+    Hid->CursorMaxPosition.x = monitor0->GetWidth()-1;
+    Hid->CursorMaxPosition.y = monitor0->GetHeight()-1;
 
     free(bootframebuffer);
 }

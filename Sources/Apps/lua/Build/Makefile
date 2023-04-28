@@ -52,19 +52,19 @@ R= $V.4
 all:	$(PLAT)
 
 $(PLATS) help test clean:
-	@cd src && $(MAKE) $@
+	@cd ../Src && $(MAKE) $@
 
 install: dummy
-	cd src && $(MKDIR) $(INSTALL_BIN) $(INSTALL_INC) $(INSTALL_LIB) $(INSTALL_MAN) $(INSTALL_LMOD) $(INSTALL_CMOD)
-	cd src && $(INSTALL_EXEC) $(TO_BIN) $(INSTALL_BIN)
-	cd src && $(INSTALL_DATA) $(TO_INC) $(INSTALL_INC)
-	cd src && $(INSTALL_DATA) $(TO_LIB) $(INSTALL_LIB)
+	cd ../Src && $(MKDIR) $(INSTALL_BIN) $(INSTALL_INC) $(INSTALL_LIB) $(INSTALL_MAN) $(INSTALL_LMOD) $(INSTALL_CMOD)
+	cd ../Src && $(INSTALL_EXEC) $(TO_BIN) $(INSTALL_BIN)
+	cd ../Src && $(INSTALL_DATA) $(TO_INC) $(INSTALL_INC)
+	cd ../Src && $(INSTALL_DATA) $(TO_LIB) $(INSTALL_LIB)
 	cd doc && $(INSTALL_DATA) $(TO_MAN) $(INSTALL_MAN)
 
 uninstall:
-	cd src && cd $(INSTALL_BIN) && $(RM) $(TO_BIN)
-	cd src && cd $(INSTALL_INC) && $(RM) $(TO_INC)
-	cd src && cd $(INSTALL_LIB) && $(RM) $(TO_LIB)
+	cd ../Src && cd $(INSTALL_BIN) && $(RM) $(TO_BIN)
+	cd ../Src && cd $(INSTALL_INC) && $(RM) $(TO_INC)
+	cd ../Src && cd $(INSTALL_LIB) && $(RM) $(TO_LIB)
 	cd doc && cd $(INSTALL_MAN) && $(RM) $(TO_MAN)
 
 local:
@@ -75,7 +75,7 @@ dummy:
 
 # Echo config parameters.
 echo:
-	@cd src && $(MAKE) -s echo
+	@cd ../Src && $(MAKE) -s echo
 	@echo "PLAT= $(PLAT)"
 	@echo "V= $V"
 	@echo "R= $R"

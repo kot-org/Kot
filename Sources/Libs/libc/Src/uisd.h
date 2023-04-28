@@ -72,8 +72,7 @@ typedef struct {
 
     event_t MouseRelative;
     event_t MouseAbsolute;
-    event_t KeyboardServer;
-    event_t KeyboardClient;
+    event_t KeyboardEvent;
 } uisd_hid_t;
 
 typedef struct {

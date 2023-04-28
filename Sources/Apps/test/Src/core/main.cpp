@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -7,8 +8,8 @@ extern "C" int main(int argc, char *argv[], char *env[]){
         printf("- %s\n", argv[i]);
     }
     while(true){
-        sleep(1);
-        printf("ok\n");
+        char c = getchar();
+        printf("%x\n", rand());
     }
     return 0;
 }

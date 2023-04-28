@@ -24,7 +24,7 @@ class Context;
 
 #include <srv/srv.h>
 #include <boot/boot.h>
-#include <mouse/mouse.h>
+#include <hid/hid.h>
 #include <render/render.h>
 #include <window/window.h>
 #include <monitor/monitor.h>
@@ -35,7 +35,7 @@ class windowc;
 class monitorc;
 class desktopc;
 class renderc;
-class mousec;
+class hidc;
 
 
 extern process_t ShareableProcess;
@@ -46,5 +46,5 @@ class orbc{
 
         desktopc* Desktop;    
         renderc* Render; 
-        mousec* Mouse;
+        hidc* Hid;
 };

@@ -269,7 +269,7 @@ namespace Kot{
         struct srv_storage_callback_t* CallbackReadFile = Srv_Storage_Readfile(File, Buffer, File->Position, BlockSize * BlockCount, true);
         KResult Status = CallbackReadFile->Status;
         if(Status == KSUCCESS){
-            File->Position += BlockSize * BlockCount;
+            File->Position += CallbackReadFile->Size;
         }
         atomicUnlock(&File->Lock, 0);
         free(CallbackReadFile);
@@ -278,13 +278,13 @@ namespace Kot{
 
     KResult fwrite(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, file_t* File){
         atomicAcquire(&File->Lock, 0);
-        struct srv_storage_callback_t* CallbackReadFile = Srv_Storage_Writefile(File, Buffer, File->Position, BlockSize * BlockCount, File->IsDataEnd, true);
-        KResult Status = CallbackReadFile->Status;
+        struct srv_storage_callback_t* CallbackWriteFile = Srv_Storage_Writefile(File, Buffer, File->Position, BlockSize * BlockCount, File->IsDataEnd, true);
+        KResult Status = CallbackWriteFile->Status;
         if(Status == KSUCCESS){
             File->Position += BlockSize * BlockCount;
         }
         atomicUnlock(&File->Lock, 0);
-        free(CallbackReadFile);
+        free(CallbackWriteFile);
         return Status;
     }
 
