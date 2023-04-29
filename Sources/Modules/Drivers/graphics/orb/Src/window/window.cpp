@@ -25,7 +25,7 @@ windowc::windowc(orbc* Parent, uint64_t WindowType, event_t Event){
 
     this->Event = Event;
     
-    this->MouseEvent = (mouse_event_t*)malloc(sizeof(mouse_event_t));
+    this->MouseEvent = (hid_event_t*)malloc(sizeof(hid_event_t));
     this->MouseEvent->Event = Event;
     this->MouseEvent->ParentType = MOUSE_EVENT_PARENT_TYPE_WINDOW;
     this->MouseEvent->Parent = this;

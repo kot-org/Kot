@@ -1,8 +1,15 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdlib.h>
 
-extern "C" void* __dso_handle = 0;
-
-extern "C" int main(){
-    printf("Hello from mlibc, with %s %x", "stdio.h", __dso_handle);
+extern "C" int main(int argc, char *argv[], char *env[]){
+    for(int i = 0; i < argc; i++){
+        printf("- %s\n", argv[i]);
+    }
+    while(true){
+        char c = getchar();
+        printf("%x\n", rand());
+    }
     return 0;
 }

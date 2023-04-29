@@ -1,1 +1,1 @@
-../../../../abis/aero/auxv.h
+../../../../abis/kot/auxv.h

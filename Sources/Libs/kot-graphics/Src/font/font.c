@@ -100,6 +100,15 @@ void DrawFont(kfont_t* font, char* str){
     }
 }
 
+void DrawFontSize(kfont_t* font, char* str, size64_t Size){
+    if(font->IsPen){
+        ssfn_buf_t* Pen = (ssfn_buf_t*)font->PenContext;
+        for(size64_t i = 0; i < Size; i++){
+            ssfn_render(font->FontContext, font->PenContext, str++);
+        }
+    }
+}
+
 void GetTextboxInfo(kfont_t* font, char* str, int64_t* width, int64_t* height, int64_t* x, int64_t* y){
     ssfn_bbox(font->FontContext, str, (int*)width, (int*)height, (int*)x, (int*)y);
 }

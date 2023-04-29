@@ -13,6 +13,7 @@ file_t* fopen(char* Path, char* Mode){
             }
             file_t* File = (file_t*)CallbackFile->Data;
             File->Position = NULL;
+            File->ExternalData = NULL;
             File->Lock = NULL;
             free(CallbackFile);
             return File;
@@ -24,6 +25,7 @@ file_t* fopen(char* Path, char* Mode){
             }
             file_t* File = (file_t*)CallbackFile->Data;
             File->Position = NULL;
+            File->ExternalData = NULL;
             File->Lock = NULL;
             free(CallbackFile);
             return File;
@@ -35,7 +37,7 @@ file_t* fopen(char* Path, char* Mode){
                     return NULL;
                 }
                 file_t* File = (file_t*)CallbackFile->Data;
-                File->IsBinary = true;
+                File->ExternalData = File_Is_Binary;
                 File->Position = NULL;
                 File->Lock = NULL;
                 free(CallbackFile);
@@ -47,7 +49,7 @@ file_t* fopen(char* Path, char* Mode){
                     return NULL;
                 }
                 file_t* File = (file_t*)CallbackFile->Data;
-                File->IsBinary = true;
+                File->ExternalData = File_Is_Binary;
                 File->Position = NULL;
                 File->Lock = NULL;
                 free(CallbackFile);
@@ -63,6 +65,7 @@ file_t* fopen(char* Path, char* Mode){
             }
             file_t* File = (file_t*)CallbackFile->Data;
             File->Position = NULL;
+            File->ExternalData = NULL;
             File->Lock = NULL;
             free(CallbackFile);
             return File;
@@ -74,6 +77,7 @@ file_t* fopen(char* Path, char* Mode){
             }
             file_t* File = (file_t*)CallbackFile->Data;
             File->Position = NULL;
+            File->ExternalData = NULL;
             File->Lock = NULL;
             free(CallbackFile);
             return File;
@@ -85,7 +89,7 @@ file_t* fopen(char* Path, char* Mode){
                     return NULL;
                 }
                 file_t* File = (file_t*)CallbackFile->Data;
-                File->IsBinary = true;
+                File->ExternalData = File_Is_Binary;
                 File->Position = NULL;
                 File->Lock = NULL;
                 free(CallbackFile);
@@ -97,7 +101,7 @@ file_t* fopen(char* Path, char* Mode){
                     return NULL;
                 }
                 file_t* File = (file_t*)CallbackFile->Data;
-                File->IsBinary = true;
+                File->ExternalData = File_Is_Binary;
                 File->Position = NULL;
                 File->Lock = NULL;
                 free(CallbackFile);
@@ -120,6 +124,7 @@ file_t* fopen(char* Path, char* Mode){
             }
             size64_t Size = CallbackFileSize->Data;
             File->Position = Size;
+            File->ExternalData = NULL;
             File->Lock = NULL;
             free(CallbackFileSize);
             free(CallbackFile);
@@ -139,6 +144,7 @@ file_t* fopen(char* Path, char* Mode){
             }
             size64_t Size = CallbackFileSize->Data;
             File->Position = Size;
+            File->ExternalData = NULL;
             File->Lock = NULL;
             free(CallbackFileSize);
             free(CallbackFile);
@@ -158,7 +164,7 @@ file_t* fopen(char* Path, char* Mode){
                     return NULL;
                 }
                 size64_t Size = CallbackFileSize->Data;
-                File->IsBinary = true;
+                File->ExternalData = File_Is_Binary;
                 File->Position = Size;
                 File->Lock = NULL;
                 free(CallbackFile);
@@ -177,7 +183,7 @@ file_t* fopen(char* Path, char* Mode){
                     return NULL;
                 }
                 size64_t Size = CallbackFileSize->Data;
-                File->IsBinary = true;
+                File->ExternalData = File_Is_Binary;
                 File->Position = Size;
                 File->Lock = NULL;
                 free(CallbackFile);
@@ -201,7 +207,7 @@ KResult fread(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, file_t* Fil
     struct srv_storage_callback_t* CallbackReadFile = Srv_Storage_Readfile(File, Buffer, File->Position, BlockSize * BlockCount, true);
     KResult Status = CallbackReadFile->Status;
     if(Status == KSUCCESS){
-        File->Position += BlockSize * BlockCount;
+        File->Position += CallbackReadFile->Size;
     }
     atomicUnlock(&File->Lock, 0);
     free(CallbackReadFile);
@@ -210,13 +216,13 @@ KResult fread(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, file_t* Fil
 
 KResult fwrite(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, file_t* File){
     atomicAcquire(&File->Lock, 0);
-    struct srv_storage_callback_t* CallbackReadFile = Srv_Storage_Writefile(File, Buffer, File->Position, BlockSize * BlockCount, File->IsDataEnd, true);
-    KResult Status = CallbackReadFile->Status;
+    struct srv_storage_callback_t* CallbackWriteFile = Srv_Storage_Writefile(File, Buffer, File->Position, BlockSize * BlockCount, File->IsDataEnd, true);
+    KResult Status = CallbackWriteFile->Status;
     if(Status == KSUCCESS){
         File->Position += BlockSize * BlockCount;
     }
     atomicUnlock(&File->Lock, 0);
-    free(CallbackReadFile);
+    free(CallbackWriteFile);
     return Status;
 }
 

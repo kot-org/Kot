@@ -5,11 +5,11 @@
 #include <kot/stdio.h>
 #include <kot/utils/vector.h>
 
+#include <kot++/function.h>
+
 #include <kot-graphics/orb.h>
 #include <kot-graphics/font.h>
 #include <kot-graphics/utils.h>
-
-#include <kot++/function.h>
 
 #include <kot-ui++/context.h>
 
@@ -145,8 +145,6 @@ namespace Ui {
             framebuffer_t* GetFramebuffer();
             ComponentGeneralStyle* GetStyle();
             vector_t* GetChilds();
-            uint32_t GetTotalWidthChilds();
-            uint32_t GetTotalHeightChilds();
 
             void Update();
 
@@ -296,7 +294,6 @@ namespace Ui {
         Component* Cpnt;
         color_t CurrentColor;
         ButtonEvent_t Event;
-        std::function<void()> EventLambda;
         
         void UpdateSize(uint64_t Width, uint64_t Height);
         void UpdatePosition(point_t Position);

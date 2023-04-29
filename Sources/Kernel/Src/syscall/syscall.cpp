@@ -471,8 +471,48 @@ KResult Sys_Keyhole_Verify(SyscallStack* Registers, kthread_t* Thread){
 
 */
 KResult Sys_TCB_Set(SyscallStack* Registers, kthread_t* Thread){
-    Thread->FSBase = (uintptr_t)Registers->arg0;
-    CPU::SetCPUFSBase((uint64_t)Thread->FSBase);
+    kthread_t* threadkey;
+    uint64_t flags;
+    if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!(flags & KeyholeFlagDataTypeThreadAllowChangeTCB)) return KMEMORYVIOLATION;
+    threadkey->FSBase = (uintptr_t)Registers->arg1;
+    CPU::SetCPUFSBase((uint64_t)threadkey->FSBase);
+    return KSUCCESS;
+}
+
+/* Sys_Thread_Info_Get :
+    Arguments : 
+
+*/
+KResult Sys_Thread_Info_Get(SyscallStack* Registers, kthread_t* Thread){
+    kthread_t* threadkey;
+    uint64_t flags;
+    if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
+    switch (Registers->arg1){
+        case 0:{ // TID
+            if(CheckUserAddress((uintptr_t)Registers->arg2, sizeof(uint64_t)) != KSUCCESS) return KMEMORYVIOLATION;
+            *(uint64_t*)Registers->arg2 = threadkey->TID;
+            break;
+
+        }
+        case 1:{ // Stack start
+            if(CheckUserAddress((uintptr_t)Registers->arg2, sizeof(uint64_t)) != KSUCCESS) return KMEMORYVIOLATION;
+            *(uint64_t*)Registers->arg2 = (uint64_t)StackTop;
+            break;
+        }
+        case 2:{ // Stack size
+            if(CheckUserAddress((uintptr_t)Registers->arg2, sizeof(uint64_t)) != KSUCCESS) return KMEMORYVIOLATION;
+            *(uint64_t*)Registers->arg2 = (uint64_t)StackTop - (uint64_t)StackBottom;
+            break;
+        }
+        case 3:{ // Entry point
+            if(CheckUserAddress((uintptr_t)Registers->arg2, sizeof(uint64_t)) != KSUCCESS) return KMEMORYVIOLATION;
+            *(uint64_t*)Registers->arg2 = (uint64_t)threadkey->EntryPoint;
+            break;
+        }
+        default:
+            return KFAIL;
+    }
     return KSUCCESS;
 }
 
@@ -512,6 +552,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_Keyhole_CloneModify] = Sys_Keyhole_CloneModify,
     [KSys_Keyhole_Verify] = Sys_Keyhole_Verify,
     [KSys_TCB_Set] = Sys_TCB_Set,
+    [KSys_Thread_Info_Get] = Sys_Thread_Info_Get,
     [KSys_Logs] = Sys_Logs,
 };
 

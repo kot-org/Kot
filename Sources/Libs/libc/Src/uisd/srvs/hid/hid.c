@@ -12,14 +12,9 @@ event_t GetMouseAbsoluteEvent(){
     return ControllerData->MouseAbsolute;
 }
 
-event_t GetKeyboardServerEvent(){
+event_t GetKeyboardEvent(){
     uisd_hid_t* ControllerData = (uisd_hid_t*)FindControllerUISD(ControllerTypeEnum_Hid);
-    return ControllerData->KeyboardServer;
-}
-
-event_t GetKeyboardClientEvent(){
-    uisd_hid_t* ControllerData = (uisd_hid_t*)FindControllerUISD(ControllerTypeEnum_Hid);
-    return ControllerData->KeyboardClient;
+    return ControllerData->KeyboardEvent;
 }
 
 /* Bind functions */
@@ -34,7 +29,57 @@ KResult BindMouseAbsolute(thread_t Task, bool IgnoreMissedEvents){
     return KSUCCESS;
 }
 
-KResult BindKeyboardClient(thread_t Task, bool IgnoreMissedEvents){
-    Sys_Event_Bind(GetKeyboardClientEvent(), Task, IgnoreMissedEvents);
+KResult BindKeyboardEvent(thread_t Task, bool IgnoreMissedEvents){
+    Sys_Event_Bind(GetKeyboardEvent(), Task, IgnoreMissedEvents);
+    return KSUCCESS;
+}
+
+KResult GetTableConverter(char* Path, char** TableConverter, size64_t* TableConverterCharCount){
+    file_t* File = fopen(Path, "rb");
+    if(!File){
+        return KFAIL;
+    }
+    fseek(File, 0, SEEK_END);
+    size64_t Size = ftell(File);
+    fseek(File, 0, SEEK_SET);
+    *TableConverter = malloc(Size);
+    fread(*TableConverter, Size, 1, File);
+
+    *TableConverterCharCount = Size / sizeof(char);
+
+    fclose(File);
+    return KSUCCESS;
+}
+
+KResult GetCharFromScanCode(uint64_t ScanCode, char* TableConverter, size64_t TableConverterCharCount, char* Char, bool* IsPressed, uint64_t* PressedCache){
+    if(ScanCode > 0x80){
+        *IsPressed = false;
+        ScanCode -= 0x80;
+    }else{
+        *IsPressed = true;
+    }
+    
+    if(ScanCode > TableConverterCharCount){
+        return KFAIL;
+    }
+
+
+    if(TableConverter[ScanCode] == 0xf){ // shift
+        *PressedCache = (1 << 0);
+        return KBUSY;
+    }
+
+    if(*PressedCache & (1 << 0)){
+        if(TableConverter[ScanCode] >= 'a' && TableConverter[ScanCode] <= 'z'){
+            // convert to upper case
+            *Char = TableConverter[ScanCode] - 32;
+        }else{
+            *Char = TableConverter[ScanCode];
+        }
+    }else{
+        *Char = TableConverter[ScanCode];
+    }
+
+    *PressedCache = NULL;
     return KSUCCESS;
 }

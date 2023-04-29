@@ -22,43 +22,43 @@ namespace Ui {
         /* Layout */
         memcpy(CpntStyle, &Style, sizeof(ComponentGeneralStyle));
 
-        if(CpntStyle->Width < 0){
+        if(CpntStyle->Width < 0) {
             CpntStyle->Currentwidth = (Parent->Style->Currentwidth * abs(CpntStyle->Width)) / 100;
-            if(CpntStyle->Currentwidth < CpntStyle->Minwidth){
+
+            if(CpntStyle->Currentwidth < CpntStyle->Minwidth) {
                 CpntStyle->Currentwidth = CpntStyle->Minwidth;
-            }else if(CpntStyle->Currentwidth > CpntStyle->Maxwidth){
+            } else if(CpntStyle->Currentwidth > CpntStyle->Maxwidth) {
                 CpntStyle->Currentwidth = CpntStyle->Maxwidth;
             }
-        }else{
+        } else {
             CpntStyle->Currentwidth = CpntStyle->Width;
         }
 
-        if(CpntStyle->Height < 0){
+        if(CpntStyle->Height < 0) {
             CpntStyle->Currentheight = (Parent->Style->Currentheight * abs(CpntStyle->Height)) / 100;
-            if(CpntStyle->Currentheight < CpntStyle->Minheight){
+
+            if(CpntStyle->Currentheight < CpntStyle->Minheight) {
                 CpntStyle->Currentheight = CpntStyle->Minheight;
-            }else if(CpntStyle->Currentheight > CpntStyle->Maxheight){
+            } else if(CpntStyle->Currentheight > CpntStyle->Maxheight) {
                 CpntStyle->Currentheight = CpntStyle->Maxheight;
             }
-        }else{
+        } else {
             CpntStyle->Currentheight = CpntStyle->Height;
         }
 
-        if(IsOwnFb){
+        if(IsOwnFb)
             CreateFramebuffer(CpntStyle->Currentwidth, CpntStyle->Currentheight);
-        }else{
+        else {
             this->Framebuffer = this->Parent->Framebuffer;
             this->IsFramebufferUpdate = true;
         }
 
-        if(Style.IsHorizontalOverflow){
+        if(Style.IsHorizontalOverflow)
             this->HorizontalOverflow = this;
-        }
-        if(Style.IsVerticalOverflow){
+        if(Style.IsVerticalOverflow)
             this->VerticalOverflow = this;
-        }
 
-        if(this->Parent){
+        if(this->Parent) {
             this->UiCtx = Parent->UiCtx;
             ParentCpnt->AddChild(this);
         }
@@ -86,13 +86,11 @@ namespace Ui {
     
     void Component::UpdateFramebuffer(uint32_t Width, uint32_t Height) {
         if(Framebuffer->Width != Width || Framebuffer->Height != Height) {
-            if(OwnFb){
+            if(OwnFb) {
                 uint32_t Pitch = Width * sizeof(uint32_t);
 
                 this->Style->Currentwidth = Width;
                 this->Style->Currentheight = Height;
-
-                this->IsFramebufferUpdate = true;
 
                 Framebuffer->Size = Height * Pitch;
                 uintptr_t OldBuffer = Framebuffer->Buffer;
@@ -103,7 +101,7 @@ namespace Ui {
                 Framebuffer->Height = Height;
 
                 this->IsFramebufferUpdate = true;
-            }else{
+            } else {
                 this->Style->Currentwidth = Width;
                 this->Style->Currentheight = Height;
 
@@ -124,7 +122,7 @@ namespace Ui {
         return this->Childs;
     }
 
-    void Component::Update(){
+    void Component::Update() {
         if(Childs != NULL){
             // Left
             uint64_t XIterationLeft = 0;
@@ -138,64 +136,73 @@ namespace Ui {
 
             for(uint64_t i = 0; i < Childs->length; i++) {
                 Component* Child = (Component*)vector_get(Childs, i);
-                if(!Child->Style->IsHidden){
+
+                if(!Child->Style->IsHidden) {
+
                     // Calculate width and height
-                    if(Child->Style->Width < 0){
+                    if(Child->Style->Width < 0) {
                         Child->Style->Currentwidth = (Style->Currentwidth * abs(Child->Style->Width)) / 100;
-                        if(Child->Style->Currentwidth < Child->Style->Minwidth){
+
+                        if(Child->Style->Currentwidth < Child->Style->Minwidth) {
                             Child->Style->Currentwidth = Child->Style->Minwidth;
-                        }else if(Child->Style->Currentwidth > Child->Style->Maxwidth){
+                        } else if(Child->Style->Currentwidth > Child->Style->Maxwidth) {
                             Child->Style->Currentwidth = Child->Style->Maxwidth;
                         }
-                        if(Child->Style->Currentwidth + Child->Style->Position.x > Style->Currentwidth){
+
+                        if(Child->Style->Currentwidth + Child->Style->Position.x > Style->Currentwidth) {
                             Child->Style->Currentwidth = Style->Currentwidth - Child->Style->Position.x;
                         }
-                    }else{
+                    } else {
                         Child->Style->Currentwidth = Child->Style->Width;
                     }
 
-                    if(Child->Style->Height < 0){
+                    if(Child->Style->Height < 0) {
                         Child->Style->Currentheight = (Style->Currentheight * abs(Child->Style->Height)) / 100;
-                        if(Child->Style->Currentheight < Child->Style->Minheight){
+
+                        if(Child->Style->Currentheight < Child->Style->Minheight) {
                             Child->Style->Currentheight = Child->Style->Minheight;
-                        }else if(Child->Style->Currentheight > Child->Style->Maxheight){
+                        } else if(Child->Style->Currentheight > Child->Style->Maxheight) {
                             Child->Style->Currentheight = Child->Style->Maxheight;
                         }
-                        if(Child->Style->Currentheight + Child->Style->Position.y > Style->Currentheight){
+
+                        if(Child->Style->Currentheight + Child->Style->Position.y > Style->Currentheight) {
                             Child->Style->Currentheight = Style->Currentheight - Child->Style->Position.y;
                         }
-                    }else{
+                    } else {
                         Child->Style->Currentheight = Child->Style->Height;
                     }
 
                     Child->UpdateFramebuffer(Child->Style->Currentwidth, Child->Style->Currentheight);
 
-                    if(Child->Style->AutoPosition){
-                        switch (Child->Style->Align.y){
-                            case AlignTypeY::TOP:{
+                    if(Child->Style->AutoPosition) {
+                        switch (Child->Style->Align.y) 
+                        {
+                            case AlignTypeY::TOP: {
                                 // TODO
                                 break;
                             }
-                            case AlignTypeY::MIDDLE:{
+                            case AlignTypeY::MIDDLE: {
                                 Child->Style->Position.y = (Style->Currentheight - Child->Style->Currentheight) / 2;
                                 break;
                             }
-                            case AlignTypeY::BOTTOM:{
+                            case AlignTypeY::BOTTOM: {
                                 // TODO
                                 break;
                             }
                             default:
                                 break;
                         }
-                        switch (Child->Style->Align.x){
-                            case AlignTypeX::LEFT:{
-                                if(XIterationLeft + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right > Style->Currentwidth){
+
+                        switch (Child->Style->Align.x)
+                        {
+                            case AlignTypeX::LEFT: {
+                                if(XIterationLeft + Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right > Style->Currentwidth) {
                                     XIterationLeft = 0;
                                     YIterationLeft += MaxChildHeightLeft;
                                     MaxChildHeightLeft = 0;
                                     Child->Style->Position.x = XIterationLeft;
                                     Child->Style->Position.y = YIterationLeft;
-                                }else{
+                                } else {
                                     Child->Style->Position.x = XIterationLeft;
                                     Child->Style->Position.y = YIterationLeft;
                                     XIterationLeft += Child->Style->Currentwidth + Child->Style->Margin.Left + Child->Style->Margin.Right;
@@ -206,25 +213,25 @@ namespace Ui {
                                 }
                                 break;
                             }
-                            case AlignTypeX::CENTER:{
+                            case AlignTypeX::CENTER: {
                                 Child->Style->Position.x = (Style->Currentwidth - Child->Style->Currentwidth) / 2;
                                 break;
                             }
-                            case AlignTypeX::RIGHT:{
-                                if(XIterationRight - Child->Style->Currentwidth - Child->Style->Margin.Left - Child->Style->Margin.Right < 0){
+                            case AlignTypeX::RIGHT: {
+                                if(XIterationRight - Child->Style->Currentwidth - Child->Style->Margin.Left - Child->Style->Margin.Right < 0) {
                                     XIterationRight = Style->Currentwidth;
                                     YIterationRight += MaxChildHeightRight;
                                     MaxChildHeightRight = 0;
                                     Child->Style->Position.x = XIterationRight;
                                     Child->Style->Position.y = YIterationRight;
-                                }else{
+                                } else {
                                     XIterationRight -= Child->Style->Currentwidth + Child->Style->Margin.Right;
                                     Child->Style->Position.x = XIterationRight;
                                     Child->Style->Position.y = YIterationRight;
                                     XIterationRight -= Child->Style->Margin.Left;
                                 }
 
-                                if(MaxChildHeightRight < Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom){
+                                if(MaxChildHeightRight < Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom) {
                                     MaxChildHeightRight = Child->Style->Currentheight + Child->Style->Margin.Top + Child->Style->Margin.Bottom;
                                 }
                                 break;
@@ -241,13 +248,13 @@ namespace Ui {
         IsRedraw = false;
     }
 
-    void Component::Free(){
+    void Component::Free() {
         this->Style->IsHidden = true;
         // TODO free
     }
 
-    void Component::ClearChilds(){
-        if(this->Childs){
+    void Component::ClearChilds() {
+        if(this->Childs) {
             for(uint64_t i = 0; i < this->Childs->length; i++) {
                 Component* Child = (Component*)vector_get(this->Childs, i);
                 Child->Free();

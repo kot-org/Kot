@@ -776,3 +776,46 @@ struct srv_storage_callback_t* Srv_Storage_Readdir(directory_t* Dir, uint64_t In
     }
     return callback;
 }
+
+
+/* NewDev */
+
+KResult Srv_Storage_NewDev_Callback(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    return Status;
+}
+
+struct srv_storage_callback_t* Srv_Storage_NewDev(char* Name, struct srv_storage_fs_server_functions_t* FSServerFunctions, bool IsAwait){
+    if(!srv_storage_callback_thread) Srv_Storage_Initialize();
+    
+    thread_t self = Sys_Getthread();
+
+    struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
+    callback->Self = self;
+    callback->Size = NULL;
+    callback->Data = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Storage_MountPartition_Callback;
+
+    struct arguments_t parameters;
+    parameters.arg[0] = srv_storage_callback_thread;
+    parameters.arg[1] = callback;
+
+    size64_t SizeBufferArg = sizeof(struct srv_storage_fs_server_functions_t) + strlen(Name) + 1;
+    uintptr_t BufferArg = malloc(SizeBufferArg);
+
+    memcpy(BufferArg, FSServerFunctions, sizeof(struct srv_storage_fs_server_functions_t));
+    memcpy((uintptr_t)(((uint64_t)BufferArg) + sizeof(struct srv_storage_fs_server_functions_t)), Name, strlen(Name) + 1);
+
+    struct ShareDataWithArguments_t data;
+    data.Data = BufferArg;
+    data.Size = SizeBufferArg;
+    data.ParameterPosition = 0x2;
+
+    KResult Status = Sys_ExecThread(StorageData->NewDev, &parameters, ExecutionTypeQueu, &data);
+    free(BufferArg);
+    if(Status == KSUCCESS && IsAwait){
+        Sys_Pause(false);
+    }
+    return callback;
+}

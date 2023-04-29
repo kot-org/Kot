@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-#define ControllerCount 0x8
+#define ControllerCount 0x9
 
 enum ControllerTypeEnum {
     ControllerTypeEnum_System       = 0x0,
@@ -29,6 +29,7 @@ enum ControllerTypeEnum {
     ControllerTypeEnum_Audio        = 0x5,
     ControllerTypeEnum_USB          = 0x6,
     ControllerTypeEnum_PCI          = 0x7,
+    ControllerTypeEnum_Shell        = 0x8,
     ControllerTypeEnum_Other        = 0xff
 };
 
@@ -71,8 +72,7 @@ typedef struct {
 
     event_t MouseRelative;
     event_t MouseAbsolute;
-    event_t KeyboardServer;
-    event_t KeyboardClient;
+    event_t KeyboardEvent;
 } uisd_hid_t;
 
 typedef struct {
@@ -93,7 +93,6 @@ typedef struct {
     thread_t GetDeviceInfo;
 
     thread_t AddDevice;
-    /* TODO */
 } uisd_audio_t;
 
 typedef struct {
@@ -105,6 +104,8 @@ typedef struct {
     thread_t NotifyOnNewPartitionByGUIDType;
 
     thread_t VFSLoginApp;
+
+    thread_t NewDev;
 } uisd_storage_t;
 
 typedef struct {
@@ -125,6 +126,12 @@ typedef struct {
     thread_t ConfigReadWord;
     thread_t ConfigWriteWord;
 } uisd_pci_t;
+
+typedef struct {
+    uisd_controller_t ControllerHeader;
+    bool IsAvailableAsFile;
+} uisd_shell_t;
+
 
 typedef struct {
     thread_t Self;

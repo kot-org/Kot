@@ -94,6 +94,14 @@ KResult Sys_Keyhole_Verify(key_t self, enum DataType type, process_t* target, ui
     return Syscall_40(KSys_Keyhole_Verify, self, type, target, flags, priviledge);
 }
 
+KResult Sys_SetTCB(thread_t thread, uintptr_t pointer){
+    return Syscall_16(KSys_TCB_Set, thread, (uint64_t)pointer);
+}
+
+KResult Sys_Thread_Info_Get(thread_t thread, uint64_t arg, uint64_t* value){
+    return Syscall_24(KSys_Thread_Info_Get, thread, (uint64_t)arg, (uint64_t)value);
+}
+
 KResult Sys_Logs(char* message, size64_t size){
     return Syscall_16(KSys_Logs, message, size);
 }

@@ -1,12 +1,18 @@
-#include <mouse/mouse.h>
+#include <hid/hid.h>
+
+void KeyboardInterruptEntry(uint64_t KeyCode){
+    hidc* Hid = (hidc*)Sys_GetExternalDataThread();
+    Hid->KeyboardInterrupt(KeyCode);
+    Sys_Event_Close();   
+}
 
 void CursorInterruptEntry(int64_t x, int64_t y, int64_t z, uint64_t status){
-    mousec* Mouse = (mousec*)Sys_GetExternalDataThread();
-    Mouse->CursorInterrupt(x, y, z, status);
+    hidc* Hid = (hidc*)Sys_GetExternalDataThread();
+    Hid->CursorInterrupt(x, y, z, status);
     Sys_Event_Close();
 }
 
-mousec::mousec(orbc* Parent){
+hidc::hidc(orbc* Parent){
     Orb = Parent;
 
     file_t* KursorFile = fopen("d1:Kot/Kursors/darkDefault.kursor", "rb");
@@ -46,13 +52,27 @@ mousec::mousec(orbc* Parent){
     free(Header);
     fclose(KursorFile);
 
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&CursorInterruptEntry, PriviledgeApp, (uint64_t)this, &MouseRelativeInterrupt);
+    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&CursorInterruptEntry, PriviledgeApp, (uint64_t)this, &MouseRelativeInterruptThread);
 
-    BindMouseRelative(MouseRelativeInterrupt, false);
+    BindMouseRelative(MouseRelativeInterruptThread, false);
+
+    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&KeyboardInterruptEntry, PriviledgeApp, (uint64_t)this, &KeyboardInterruptThread);
+
+    BindKeyboardEvent(KeyboardInterruptThread, false);
+}
+
+void hidc::KeyboardInterrupt(uint64_t KeyCode){
+    if(CurrentFocusEvent != NULL){
+        arguments_t Parameters{
+            .arg[0] = Window_Event_Keyboard,            // Event type
+            .arg[1] = (uint64_t)KeyCode,                // KeyCode
+        };
+        Sys_Event_Trigger(CurrentFocusEvent->Event, &Parameters);
+    }    
 }
 
 
-void mousec::CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
+void hidc::CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
     /* Update X position */
     int64_t NewXCursorPosition = CursorPosition.x + x;
     if(NewXCursorPosition < 0){
@@ -100,7 +120,7 @@ void mousec::CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
 
             if(Monitor != NULL){
                 if(IsBeetween(Monitor->XPosition, CursorPosition.x, Monitor->XMaxPosition) && IsBeetween(Monitor->YPosition, CursorPosition.y, Monitor->YMaxPosition)){
-                    mouse_event_t* EventData = (mouse_event_t*)GetEventData(Monitor->Eventbuffer, CursorPosition.x, CursorPosition.y);
+                    hid_event_t* EventData = (hid_event_t*)GetEventData(Monitor->Eventbuffer, CursorPosition.x, CursorPosition.y);
                     CurrentFocusEvent = EventData;
 
                     if(EventData) {
@@ -126,7 +146,7 @@ void mousec::CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
     }
 }
 
-void mousec::DrawCursor(framebuffer_t* fb){   
+void hidc::DrawCursor(framebuffer_t* fb){   
     uint32_t* Pixel = (uint32_t*)PixelMap;
     uint8_t* Mask = (uint8_t*)BitmapMask;
     

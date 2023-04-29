@@ -27,6 +27,7 @@ void LoadPen(kfont_t* font, font_fb_t* buffer, int64_t x, int64_t y, int16_t siz
 void EditPen(kfont_t* font, font_fb_t* buffer, int64_t x, int64_t y, int16_t size, int32_t style, int64_t color);
 
 void DrawFont(kfont_t* font, char* str);
+void DrawFontSize(kfont_t* font, char* str, size64_t Size);
 void GetTextboxInfo(kfont_t* font, char* str, int64_t* width, int64_t* height, int64_t* x, int64_t* y);
 
 #if defined(__cplusplus)

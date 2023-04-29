@@ -32,7 +32,7 @@ class windowc{
         bool IsFocus = false;
 
         event_t Event;
-        struct mouse_event_t* MouseEvent;
+        struct hid_event_t* MouseEvent;
 
         windowc* Next;
         windowc* Last;

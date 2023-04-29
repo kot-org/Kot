@@ -2,30 +2,30 @@
 	{
 		"desktop" : {
 			"background": {
-				"isWallpaper":true,
-				"wallpaperPath":"d1:Kot/Wallpapers/default0.tga",
-				"wallpaperFit":1,
-				"solidColor":"1B1B1B",
-				"isClock":true,
-				"clockFontPath":"d0:tesla.sfn"
+				"isWallpaper": true,
+				"wallpaperPath": "d1:Kot/Wallpapers/default0.tga",
+				"wallpaperFit": 1,
+				"solidColor": "1B1B1B",
+				"isClock": true,
+				"clockFontPath": "d0:tesla.sfn"
 			}
 		},
-		"taskbar" : {
-			"style" : {
-				"height" : 40,
+		"taskbar": {
+			"style": {
+				"height": 40,
 				"isExtended": true,
-				"iconSize" : 40,
-				"solidColor" : "1B1B1B"
+				"iconSize": 40,
+				"solidColor": "1B1B1B"
 			},
-			"applications" : [
+			"applications": [
 				{
-					"position" : 0
+					"position": 0
 				},
 				{
-					"position" : 1
+					"position": 1
 				},
 				{
-					"position" : 2
+					"position": 2
 				}
 			]
 		}

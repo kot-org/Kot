@@ -5,7 +5,7 @@
 #include <kot/uisd/srvs/storage.h>
 
 namespace Ui {
-    void PictureboxDraw(Picturebox_t* Picturebox){
+    void PictureboxDraw(Picturebox_t* Picturebox) {
         Picturebox->Cpnt->DrawPosition.x = Picturebox->Cpnt->FramebufferRelativePosition.x;
         Picturebox->Cpnt->DrawPosition.y = Picturebox->Cpnt->FramebufferRelativePosition.y;
 
@@ -13,12 +13,10 @@ namespace Ui {
 
         switch(Picturebox->Type)
         {
-            case PictureboxType::_TGA:
-            {
+            case PictureboxType::_TGA: {
                 switch(Picturebox->Style.Fit)
                 {
-                    case PictureboxFit::PICTUREFIT:
-                    {   
+                    case PictureboxFit::PICTUREFIT: {   
                         TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
                         TGA_t* ImageResize = TGAResize(ImageRead, Picturebox->Cpnt->Style->Currentwidth, Picturebox->Cpnt->Style->Currentheight, true);
 
@@ -34,11 +32,11 @@ namespace Ui {
 
                         free(ImageResize);
                         free(ImageRead);
+
                         break;
                     }
 
-                    case PictureboxFit::PICTUREFILL:
-                    {   
+                    case PictureboxFit::PICTUREFILL: {   
                         TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
                         uint16_t _Width;
                         uint16_t _Height;
@@ -68,11 +66,11 @@ namespace Ui {
                         free(ImageResize);
                         free(ImageCrop);
                         free(ImageRead);
+
                         break;
                     }
 
-                    case PictureboxFit::PICTURECENTER:
-                    {
+                    case PictureboxFit::PICTURECENTER: {
                         TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
                         uint16_t x = 0, y = 0,
                             _Width = ((TGAHeader_t*)Picturebox->Image)->Width, _Height = ((TGAHeader_t*)Picturebox->Image)->Height;
@@ -118,8 +116,7 @@ namespace Ui {
                         break;
                     }
 
-                    case PictureboxFit::PICTURESTRETCH:
-                    {   
+                    case PictureboxFit::PICTURESTRETCH: {   
                         TGA_t* ImageRead = TGARead((TGAHeader_t*)Picturebox->Image);
                         TGA_t* ImageResize = TGAResize(ImageRead, Picturebox->Cpnt->Style->Currentwidth, Picturebox->Cpnt->Style->Currentheight);
 
@@ -146,38 +143,37 @@ namespace Ui {
         Picturebox->Cpnt->IsRedraw = true;
     }
     
-    void PictureboxUpdate(Component* Cpnt){
+    void PictureboxUpdate(Component* Cpnt) {
         Picturebox_t* Picturebox = (Picturebox_t*)Cpnt->ExternalData;
 
         Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom)};
         
-        if(Picturebox->Style.Transparency){
+        if(Picturebox->Style.Transparency)
             Cpnt->FramebufferRelativePosition = {.x = Cpnt->Parent->FramebufferRelativePosition.x + Cpnt->Style->Position.x, .y = Cpnt->Parent->FramebufferRelativePosition.y + Cpnt->Style->Position.y};
-        }
 
-        if(Cpnt->IsFramebufferUpdate){
+        if(Cpnt->IsFramebufferUpdate) {
             Cpnt->IsFramebufferUpdate = false;
             PictureboxDraw(Picturebox);
-        }else if(Cpnt->IsDrawUpdate){
+        } else if(Cpnt->IsDrawUpdate) {
             Cpnt->IsDrawUpdate = false;
             PictureboxDraw(Picturebox);
-        }else if(Cpnt->Parent->IsRedraw || Cpnt->DrawPosition.x != Cpnt->FramebufferRelativePosition.x || Cpnt->DrawPosition.y != Cpnt->FramebufferRelativePosition.y){
+        } else if(Cpnt->Parent->IsRedraw || Cpnt->DrawPosition.x != Cpnt->FramebufferRelativePosition.x || Cpnt->DrawPosition.y != Cpnt->FramebufferRelativePosition.y) {
             PictureboxDraw(Picturebox);
         }
 
         //Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top)};
         Cpnt->Update();
-        if(!Picturebox->Style.Transparency){
+        
+        if(!Picturebox->Style.Transparency)
             BlitFramebufferRadius(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), (int64_t)(Cpnt->Parent->FramebufferRelativePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), (int64_t)(Cpnt->Parent->FramebufferRelativePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom), Cpnt->Style->BorderRadius);
-        }
     }
 
-    void PictureboxMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status){
-        if(IsHover){
+    void PictureboxMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status) {
+        if(IsHover) {
             Picturebox_t* Picturebox = (Picturebox_t*)Cpnt->ExternalData;
 
-            if(Cpnt->UiCtx->FocusCpnt != Cpnt){
-                if(Cpnt->UiCtx->FocusCpnt->MouseEvent){
+            if(Cpnt->UiCtx->FocusCpnt != Cpnt) {
+                if(Cpnt->UiCtx->FocusCpnt->MouseEvent) {
                     Cpnt->UiCtx->FocusCpnt->MouseEvent(Cpnt->UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
                 }
             }
@@ -204,15 +200,20 @@ namespace Ui {
 
         uint16_t Width;
         uint16_t Height;
-        switch(Type){
+        
+        switch(Type)
+        {
             case PictureboxType::_TGA:
                 Width = ((TGAHeader_t*)Image)->Width;
                 Height = ((TGAHeader_t*)Image)->Height;
+
                 break;
+
             default:
                 free(Image); 
                 fclose(ImageFile);
                 return NULL;
+
                 break;
         }
 
@@ -223,11 +224,15 @@ namespace Ui {
         }
 
         Picturebox_t* Picturebox = (Picturebox_t*)malloc(sizeof(Picturebox_t));
+
         Picturebox->Type = Type;
         Picturebox->Image = Image;
+
         memcpy(&Picturebox->Style, &Style, sizeof(PictureboxStyle_t));
+
         Picturebox->Cpnt = new Component(Style.G, PictureboxUpdate, PictureboxMouseEvent, (uintptr_t)Picturebox, ParentCpnt, !Style.Transparency);
         Picturebox->Cpnt->IsDrawUpdate = true;
+
         fclose(ImageFile);
         
         return Picturebox;

@@ -1,4 +1,4 @@
-#define Syscall_Count 0x18 + 1
+#define Syscall_Count 0x19 + 1
 
 #define KSys_CreateMemoryField 0x0
 #define KSys_AcceptMemoryField 0x1
@@ -32,4 +32,6 @@
 
 #define KSys_TCB_Set 0x17
 
-#define KSys_Logs 0x18
+#define KSys_Thread_Info_Get 0x18
+
+#define KSys_Logs 0x19

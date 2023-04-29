@@ -6,7 +6,6 @@
 #include <kot/uisd/srvs/storage.h>
 
 #include <kot++/string.h>
-#include <kot++/function.h>
 
 #include <kot-ui++/window.h>
 

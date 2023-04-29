@@ -352,8 +352,8 @@ KResult TaskManager::CreateProcess(kprocess_t** key, enum Priviledge priviledge,
 
     /* Setup default paging */
     proc->SharedPaging = vmm_SetupProcess();
-
     /* Setup default priviledge */
+
     proc->DefaultPriviledge = priviledge;
 
     /* Save time */

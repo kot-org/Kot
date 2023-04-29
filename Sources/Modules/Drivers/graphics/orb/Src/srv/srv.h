@@ -9,7 +9,7 @@ class windowc;
 class monitorc;
 class desktopc;
 class renderc;
-class mousec;
+class hidc;
 
 typedef KResult (*window_dispatch_t)(thread_t Callback, uint64_t CallbackArg, windowc* window, uint64_t GP0, uint64_t GP1, uint64_t GP2);
 

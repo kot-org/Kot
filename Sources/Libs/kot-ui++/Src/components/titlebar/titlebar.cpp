@@ -5,96 +5,88 @@
 #define Titlebar_FontSize 16
 
 namespace Ui {
-    void TitlebarDraw(Titlebar_t* Titlebar){
+    void TitlebarDraw(Titlebar_t* Titlebar) {
         memset32(Titlebar->Cpnt->GetFramebuffer()->Buffer, Titlebar->CurrentColor, Titlebar->Cpnt->GetFramebuffer()->Size);
         Titlebar->Cpnt->IsRedraw = true;
     }
 
-    void TitlebarUpdate(Component* Cpnt){
+    void TitlebarUpdate(Component* Cpnt) {
         Titlebar_t* Titlebar = (Titlebar_t*)Cpnt->ExternalData;
-        if(Cpnt->IsFramebufferUpdate){
+
+        if(Cpnt->IsFramebufferUpdate) {
             TitlebarDraw(Titlebar);
             Cpnt->IsFramebufferUpdate = false;
-        }else if(Cpnt->IsDrawUpdate){
+        } else if(Cpnt->IsDrawUpdate) {
             TitlebarDraw(Titlebar);
             Cpnt->IsDrawUpdate = false;
         }
 
         Cpnt->AbsolutePosition = {.x = (int64_t)(Cpnt->Parent->AbsolutePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), .y = (int64_t)(Cpnt->Parent->AbsolutePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom)};
+        
         SetGraphicEventbufferRadius(Cpnt->UiCtx->EventBuffer, (uint64_t)Cpnt, Cpnt->Style->Currentwidth, Cpnt->Style->Currentheight, Cpnt->AbsolutePosition.x, Cpnt->AbsolutePosition.y, Cpnt->Style->BorderRadius);
         Cpnt->Update();
         BlitFramebufferRadius(Cpnt->Parent->GetFramebuffer(), Cpnt->GetFramebuffer(), (int64_t)(Cpnt->Parent->FramebufferRelativePosition.x + Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), (int64_t)(Cpnt->Parent->FramebufferRelativePosition.y + Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom), Cpnt->Style->BorderRadius);
     }
 
-    void TitlebarMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status){
+    void TitlebarMouseEvent(class Component* Cpnt, bool IsHover, int64_t RelativePositionX, int64_t RelativePositionY, int64_t PositionX, int64_t PositionY, int64_t ZValue, uint64_t Status) {
         Titlebar_t* Titlebar = (Titlebar_t*)Cpnt->ExternalData;
-        if(IsHover){
-            if(Cpnt->UiCtx->FocusCpnt != NULL){
-                if(Cpnt->UiCtx->FocusCpnt != Cpnt){
-                    if(Cpnt->UiCtx->FocusCpnt->MouseEvent){
+
+        if(IsHover) {
+            if(Cpnt->UiCtx->FocusCpnt != NULL) {
+                if(Cpnt->UiCtx->FocusCpnt != Cpnt) {
+                    if(Cpnt->UiCtx->FocusCpnt->MouseEvent) {
                         Cpnt->UiCtx->FocusCpnt->MouseEvent(Cpnt->UiCtx->FocusCpnt, false, RelativePositionX, RelativePositionY, PositionX, PositionY, ZValue, Status);
                     }
                 }
             }
+
             Cpnt->UiCtx->FocusCpnt = Titlebar->Cpnt;
 
-            if(Status & MOUSE_CLICK_LEFT){
+            if(Status & MOUSE_CLICK_LEFT) {
                 Titlebar->CurrentColor = Titlebar->Style.ClickColor;
-                if(!((UiWindow::Window*)Titlebar->Window)->IsFullscreen){
+                if(!((UiWindow::Window*)Titlebar->Window)->IsFullscreen) {
                     if(Titlebar->IsMouseDrag){
                         WindowChangePosition(((UiWindow::Window*)Titlebar->Window)->Wid, ((UiWindow::Window*)Titlebar->Window)->Wid->Position.x + PositionX - Titlebar->MousePosition.x, ((UiWindow::Window*)Titlebar->Window)->Wid->Position.y + PositionY - Titlebar->MousePosition.y);
                     }
+
                     Titlebar->WindowInitialPosition = ((UiWindow::Window*)Titlebar->Window)->Wid->Position;
                     Titlebar->MousePosition = {.x = PositionX, .y = PositionY};
                     Titlebar->IsMouseDrag = true;
                 }
-            }else if(Status & MOUSE_CLICK_RIGHT){
-                if(Titlebar->IsMouseDrag){
+            } else if(Status & MOUSE_CLICK_RIGHT) {
+                if(Titlebar->IsMouseDrag) {
                     Titlebar->IsMouseDrag = false;   
                 }
+
                 Titlebar->CurrentColor = Titlebar->Style.ClickColor;
-            }else{
+            } else {
                 if(Titlebar->IsMouseDrag){
                     Titlebar->IsMouseDrag = false;   
                 }
+
                 Titlebar->CurrentColor = Titlebar->Style.HoverColor;
             }
+
             Cpnt->IsDrawUpdate = true;
-        }else{
+        } else {
             Titlebar->CurrentColor = Titlebar->Style.BackgroundColor;
             Cpnt->IsDrawUpdate = true;           
         }
     }
 
-    void CloseBtnEvent(Button_t* Button, ButtonStatus_t Type){
-        if(Type & BUTTON_EVENT_TYPE_LEFT_CLICK){
-            Titlebar_t* Titlebar = (Titlebar_t*)Button->Style.ExternalData;
-            ((UiWindow::Window*)Titlebar->Window)->Close();
-        }
-    }
-
-    void MaximizeBtnEvent(Button_t* Button, ButtonStatus_t Type){
-        if(Type & BUTTON_EVENT_TYPE_LEFT_CLICK){
-            Titlebar_t* Titlebar = (Titlebar_t*)Button->Style.ExternalData;
-            ((UiWindow::Window*)Titlebar->Window)->Fullscreen();
-        }
-    }
-
-    void MinimizeBtnEvent(Button_t* Button, ButtonStatus_t Type){
-        if(Type & BUTTON_EVENT_TYPE_LEFT_CLICK){
-            Titlebar_t* Titlebar = (Titlebar_t*)Button->Style.ExternalData;
-            ((UiWindow::Window*)Titlebar->Window)->Hide();
-        }
-    }
-
     Titlebar_t* Titlebar(uintptr_t Window, char* Title, char* Icon, TitlebarStyle_t Style, Component* ParentCpnt) {
         Titlebar_t* Titlebar = (Titlebar_t*)malloc(sizeof(Titlebar_t));
+
         memcpy(&Titlebar->Style, &Style, sizeof(TitlebarStyle_t));
+        
         Titlebar->CurrentColor = Titlebar->Style.BackgroundColor;
-        Titlebar->Cpnt = new Component({                 
+
+        Titlebar->Cpnt = new Component(
+            {                 
                 .Width = -100, 
                 .Height = Titlebar_Height, 
-            }, TitlebarUpdate, TitlebarMouseEvent, (uintptr_t)Titlebar, ParentCpnt, true);
+            }
+        , TitlebarUpdate, TitlebarMouseEvent, (uintptr_t)Titlebar, ParentCpnt, true);
 
         Titlebar->Window = Window;
 
@@ -113,14 +105,14 @@ namespace Ui {
         , Titlebar->Cpnt);
 
         Titlebar->Logo = Picturebox(Icon, _TGA, 
-        {
-            .Fit = PICTUREFILL, 
-            .Transparency = true,
-            .G{
-                .Width = Titlebar_Height, 
-                .Height = Titlebar_Height, 
+            {
+                .Fit = PICTUREFILL, 
+                .Transparency = true,
+                .G{
+                    .Width = Titlebar_Height, 
+                    .Height = Titlebar_Height, 
+                }
             }
-        }
         , Titlebar->MainFlexbox->Cpnt);
 
         Titlebar->Title = Label(
@@ -147,7 +139,12 @@ namespace Ui {
             }
         , Titlebar->MainFlexbox->Cpnt);
 
-        Titlebar->CloseBtn = Button(CloseBtnEvent, 
+        Titlebar->CloseBtn = Button(
+            {
+                .Onclick = [&]() {
+                    ((UiWindow::Window*)Titlebar->Window)->Close();
+                }
+            }, 
             {
                 .BackgroundColor = Titlebar->Style.BackgroundColor, 
                 .ExternalData = (uint64_t)Titlebar,
@@ -158,7 +155,7 @@ namespace Ui {
                     .BorderRadius = Titlebar_Height,
                 },
             }
-            , Titlebar->BtnBox->Cpnt);
+        , Titlebar->BtnBox->Cpnt);
 
         Picturebox_t* CloseImage = Picturebox("d0:close.tga", _TGA, 
             {
@@ -170,9 +167,14 @@ namespace Ui {
                     .IsHidden = false
                 }
             }
-            , Titlebar->CloseBtn->Cpnt);
+        , Titlebar->CloseBtn->Cpnt);
 
-        Titlebar->MaximizeBtn = Button(MaximizeBtnEvent, 
+        Titlebar->MaximizeBtn = Button(
+            {
+                .Onclick = [&]() {
+                    ((UiWindow::Window*)Titlebar->Window)->Fullscreen();
+                }
+            }, 
             {
                 .BackgroundColor = Titlebar->Style.BackgroundColor, 
                 .ExternalData = (uint64_t)Titlebar,
@@ -183,7 +185,7 @@ namespace Ui {
                     .BorderRadius = Titlebar_Height,
                 }
             }
-            , Titlebar->BtnBox->Cpnt);
+        , Titlebar->BtnBox->Cpnt);
 
         Picturebox_t* SizeImage = Picturebox("d0:maximize.tga", _TGA, 
             {
@@ -194,9 +196,14 @@ namespace Ui {
                     .Height = -100, 
                 }
             }
-            , Titlebar->MaximizeBtn->Cpnt);
+        , Titlebar->MaximizeBtn->Cpnt);
 
-        Titlebar->MinimizeBtn = Button(MinimizeBtnEvent, 
+        Titlebar->MinimizeBtn = Button(
+            {
+                .Onclick = [&]() {
+                    ((UiWindow::Window*)Titlebar->Window)->Hide();
+                }
+            }, 
             {
                 .BackgroundColor = Titlebar->Style.BackgroundColor, 
                 .ExternalData = (uint64_t)Titlebar,
@@ -218,7 +225,8 @@ namespace Ui {
                     .Height = -100, 
                 }
             }
-            , Titlebar->MinimizeBtn->Cpnt);
+        , Titlebar->MinimizeBtn->Cpnt);
+        
         return Titlebar;
     }
 

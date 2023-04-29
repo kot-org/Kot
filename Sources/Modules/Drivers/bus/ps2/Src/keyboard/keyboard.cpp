@@ -3,7 +3,7 @@
 
 PS2Port_t* KeyboardPS2Port;
 arguments_t* KeyboardEventParameters;
-event_t KeyboardServer;
+event_t KeyboardEvent;
 
 uint8_t LedStateSaver = 0;
 
@@ -18,7 +18,7 @@ KResult KeyboardInitialize(){
             KeyboardPS2Port = &PS2Ports[i];
             IRQRedirectionsArray[KeyboardPS2Port->PortNumber] = KeyboardHandler;
 
-            KeyboardServer = GetKeyboardServerEvent();
+            KeyboardEvent = GetKeyboardEvent();
 
             Srv_System_BindIRQLine(KeyboardPS2Port->IRQ, InterruptThreadHandler[i], false, true);
             
@@ -31,7 +31,7 @@ KResult KeyboardInitialize(){
 
 KResult KeyboardHandler(uint8_t data){
     KeyboardEventParameters->arg[0] = (uint64_t)data;
-    Sys_Event_Trigger(KeyboardServer, KeyboardEventParameters);
+    Sys_Event_Trigger(KeyboardEvent, KeyboardEventParameters);
 
     return KSUCCESS;
 }

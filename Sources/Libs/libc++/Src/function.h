@@ -96,7 +96,7 @@ namespace std{
     class function;
 
     template <typename R, typename... Args>
-    class function<R(Args...)>
+    class function<R(Args...)> 
     {
     public:
 
@@ -105,7 +105,7 @@ namespace std{
         template <typename F>
         function(F&& f) : callable(new CallableImpl<F>(std::forward<F>(f))) {}
         
-        function(const function& other) : callable(other.callable ? other.callable->clone() : nullptr) {}
+        function(const function& other) : callable(other.callable ? other.callable->clone() : static_cast<unique_ptr<CallableBase>>(nullptr)) {}
         function(function&& other) noexcept : callable(std::move(other.callable)) {}
         
         function& operator=(const function& other)
@@ -125,10 +125,14 @@ namespace std{
         {        
             return callable->invoke(std::forward<Args>(args)...);
         }
+
+        void _swap(function& f1, function& f2) noexcept {
+            f1.swap(f2);
+        }
         
         void swap(function& other) noexcept
         {
-            swap(callable, other.callable);
+            _swap(*this, other);
         }
         
         explicit operator bool() const noexcept
@@ -167,9 +171,4 @@ namespace std{
         
         std::unique_ptr<CallableBase> callable;
     };
-
-    template <typename R, typename... Args>
-    void swap(function<R(Args...)>& f1, function<R(Args...)>& f2) noexcept{
-        f1.swap(f2);
-    }
 }

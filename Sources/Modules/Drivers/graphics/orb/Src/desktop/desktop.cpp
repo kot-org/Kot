@@ -20,7 +20,7 @@ desktopc::desktopc(orbc* Parent){
     /* Play startup sound */
     Audio::Stream* St = new Audio::Stream(0);
 
-    file_t* MusicFile = fopen("d1:User/root/Share/Sounds/startup.bin", "r");
+    file_t* MusicFile = fopen("d1:Kot/Sounds/startup.bin", "r");
 
     fseek(MusicFile, 0, SEEK_END);
     size64_t FileSize = ftell(MusicFile);
@@ -45,7 +45,6 @@ desktopc::desktopc(orbc* Parent){
     fread(BufferSettingsFile, SettingsFileSize, 1, SettingsFile);
 
     JsonParser* parser = new JsonParser(BufferSettingsFile);
-
     assert(parser->getCode() == JSON_SUCCESS);
     assert(parser->getValue()->getType() == JSON_ARRAY);
 
@@ -105,7 +104,7 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
     Monitor->DesktopData->Desktop->Fb->Btpp = Monitor->BackFramebuffer->Btpp;
     Monitor->DesktopData->Desktop->Fb->Size = Monitor->BackFramebuffer->Size;
 
-    Monitor->DesktopData->Desktop->MouseEvent = (mouse_event_t*)malloc(sizeof(mouse_event_t));
+    Monitor->DesktopData->Desktop->MouseEvent = (hid_event_t*)malloc(sizeof(hid_event_t));
     Sys_Event_Create(&Monitor->DesktopData->Desktop->MouseEvent->Event);
     Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&MouseHandlerDesktop, PriviledgeApp, (uint64_t)Monitor, &Monitor->DesktopData->Desktop->MouseEventThread);
     Sys_Event_Bind(Monitor->DesktopData->Desktop->MouseEvent->Event, Monitor->DesktopData->Desktop->MouseEventThread, true);
@@ -148,7 +147,7 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
     Monitor->DesktopData->Taskbar->Fb->Btpp = Monitor->BackFramebuffer->Btpp;
     Monitor->DesktopData->Taskbar->Fb->Size = Taskbar->Height * Monitor->BackFramebuffer->Pitch;
 
-    Monitor->DesktopData->Taskbar->MouseEvent = (mouse_event_t*)malloc(sizeof(mouse_event_t));
+    Monitor->DesktopData->Taskbar->MouseEvent = (hid_event_t*)malloc(sizeof(hid_event_t));
     Sys_Event_Create(&Monitor->DesktopData->Taskbar->MouseEvent->Event);
     Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&MouseHandlerTaskbar, PriviledgeApp, (uint64_t)Monitor, &Monitor->DesktopData->Taskbar->MouseEventThread);
     Sys_Event_Bind(Monitor->DesktopData->Taskbar->MouseEvent->Event, Monitor->DesktopData->Taskbar->MouseEventThread, true);
@@ -198,9 +197,9 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
 
         uint8_t AppPosition = ((JsonNumber*) App->Get("position"))->Get();
 
-        Button_t* AppButton = Button(
+/*         Button_t* AppButton = Button(
             {
-
+                
             },
             {
                 .G = {
@@ -213,7 +212,7 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
                 .BackgroundColor = 0xFF0000,
                 .HoverColor = 0x00FF00
             }
-        , AppsContainer->Cpnt);
+        , AppsContainer->Cpnt); */
 
         /* Picturebox_t* AppIcon = Picturebox("d0:kotlogo.tga", PictureboxType::_TGA,
             {

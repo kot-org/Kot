@@ -1,14 +1,10 @@
 #include <keyboard/keyboard.h>
 
-event_t KeyboardServer;
-event_t KeyboardClient;
+event_t KeyboardEvent;
 
 KResult CreateKeyboardContext(uisd_hid_t* self){
-    Sys_Event_Create(&KeyboardServer);
-    Sys_Keyhole_CloneModify(KeyboardServer, &self->KeyboardServer, NULL, KeyholeFlagPresent | KeyholeFlagDataTypeEventIsTriggerable, PriviledgeService);
-
-    Sys_Event_Create(&KeyboardClient);
-    Sys_Keyhole_CloneModify(KeyboardClient, &self->KeyboardClient, NULL, KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeService);
+    Sys_Event_Create(&KeyboardEvent);
+    Sys_Keyhole_CloneModify(KeyboardEvent, &self->KeyboardEvent, NULL, KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeService);
 
     return KSUCCESS;
 }

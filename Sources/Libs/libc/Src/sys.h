@@ -119,7 +119,7 @@ KResult Sys_Exit(uint64_t errorCode);
 KResult Sys_Pause(bool force);
 KResult Sys_Unpause(thread_t self);
 KResult Sys_Map(process_t self, uint64_t* addressVirtual, enum AllocationType type, uintptr_t* addressPhysical, size64_t* size, bool findFree);
-KResult SYS_Unmap(process_t self, uintptr_t addressVirtual, size64_t size);
+KResult Sys_Unmap(process_t self, uintptr_t addressVirtual, size64_t size);
 uintptr_t Sys_GetPhysical(uintptr_t addressVirtual);
 KResult Sys_Event_Create(event_t* self);
 KResult Sys_Event_Bind(event_t self, thread_t task, bool IgnoreMissedEvents);
@@ -131,6 +131,8 @@ KResult Sys_Duplicatethread(process_t parent, thread_t source, thread_t* self);
 KResult Sys_ExecThread(thread_t self, struct arguments_t* parameters, enum ExecutionType type, struct ShareDataWithArguments_t* data);
 KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, process_t target, uint64_t flags, enum Priviledge privilidge);
 KResult Sys_Keyhole_Verify(key_t self, enum DataType type, process_t* target, uint64_t* flags, uint64_t* priviledge);
+KResult Sys_Keyhole_Verify(key_t self, enum DataType type, process_t* target, uint64_t* flags, uint64_t* priviledge);
+KResult Sys_Thread_Info_Get(thread_t thread, uint64_t arg, uint64_t* value);
 KResult Sys_Logs(char* message, size64_t size);
 
 void Sys_Schedule();
