@@ -25,7 +25,7 @@ build:
 
 # debug with your own qemu build : ../qemu/bin/debug/native/x86_64-softmmu/
 run:
-	qemu-system-x86_64 $(QEMUFLAGS)
+	~/Bureau/qemu/bin/debug/native/x86_64-softmmu/qemu-system-x86_64 $(QEMUFLAGS)
 
 debug:
 	qemu-system-x86_64 $(QEMUFLAGS) -s -S
