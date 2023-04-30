@@ -40,7 +40,7 @@ with open(json_path) as f:
 
 # Iterate over each item in the JSON file and copy the files/folders to the mounted partition
 for element in data:
-    source_path = element['source']
+    source_path = "../"+element['source']
     destination_path = "/mnt/kot-partition/" + element['destination']
     print("Copy " + element['source'] + " to " + element['destination'])
     if element['destination'] != "":

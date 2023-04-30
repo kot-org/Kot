@@ -13,7 +13,10 @@ QEMUFLAGS =	-no-reboot 														\
 			-usb                                            				\
     		-device usb-ehci,id=ehci                        				\
 			-device intel-hda -device hda-duplex 							\
-			#-accel kvm
+			-device e1000,netdev=net0,romfile=Bin/Firmwares/efi-e1000.rom	\
+			-netdev user,id=net0											\
+			-object filter-dump,id=f1,netdev=net0,file=dump.dat				\
+			-accel kvm
 
 # -audiodev wav,id=snd0,path=output.wav 	 ,audiodev=snd0		
 

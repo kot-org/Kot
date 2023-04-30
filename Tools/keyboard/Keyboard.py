@@ -1,6 +1,6 @@
 import json
 
-PathJson = "keys.json"
+PathJson = "keyboard/Keys.json"
 
 with open(PathJson) as JsonFile:
     DataFile = json.load(JsonFile)

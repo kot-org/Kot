@@ -156,8 +156,10 @@ void E1000::InitRX() {
 }
 
 void E1000::SendPacket(uint8_t* Data, uint32_t Size) {
-    if(Size > PACKET_SIZE)
+    if(Size > PACKET_SIZE) {
+        std::printf("Too much large packet: %d", Size);
         return;
+    }
 
     atomicAcquire(&E1000Lock, 0);
     // get the index of the descriptor to use
@@ -175,13 +177,13 @@ void E1000::SendPacket(uint8_t* Data, uint32_t Size) {
 
     WriteRegister(TSTD_TAIL, (Index + 1) % ChipInfo->NumTXDesc);
 
-    atomicUnlock(&E1000Lock, 0);
     // wait for the packet to be sent
     while(!(TXDesc[Index].Status & TX_STATUS_DD)){
         asm volatile("":::"memory");
     }
 
     std::printf("Packet sent TXDescIndex: %d", TXDesc[Index].Status);
+    atomicUnlock(&E1000Lock, 0);
 }
 
 void E1000::ReceivePacket() {
