@@ -31,6 +31,18 @@ struct read_request_shell_t{
     char* Buffer;
 };
 
+// Taken from ssfn.h
+struct ssfn_buf_t{
+    uint8_t *ptr;                     /* pointer to the buffer */
+    int w;                            /* Width (positive: ARGB, negative: ABGR pixels) */
+    int h;                            /* Height */
+    uint16_t p;                       /* Pitch, bytes per line */
+    int x;                            /* cursor x */
+    int y;                            /* cursor y */
+    uint32_t fg;                      /* foreground color */
+    uint32_t bg;                      /* background color */
+};
+
 struct shell_t* NewShell(process_t Target);
 
 void ShellPrint(shell_t* Shell, uintptr_t Buffer, size64_t Size);

@@ -10,6 +10,8 @@ git clone "https://github.com/kot-org/Disk"
 
 echo -e "\e[32mCreating compilation dirs...\e[0m"
 
+mkdir -m 777 -p "Sysroot/include/kot/"
+mkdir -m 777 -p "Sysroot/include/kot++/"
 mkdir -m 777 -p "Sysroot/lib/"
 mkdir -m 777 -p $BINDIR"/Modules/"
 mkdir -m 777 -p $BINDIR"/Firmwares/"

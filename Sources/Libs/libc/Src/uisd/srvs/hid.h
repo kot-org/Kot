@@ -18,8 +18,8 @@ KResult BindMouseRelative(thread_t Task, bool IgnoreMissedEvents);
 KResult BindMouseAbsolute(thread_t Task, bool IgnoreMissedEvents);
 KResult BindKeyboardEvent(thread_t Task, bool IgnoreMissedEvents);
 
-KResult GetTableConverter(char* Path, char** TableConverter, size64_t* TableConverterCharCount);
-KResult GetCharFromScanCode(uint64_t ScanCode, char* TableConverter, size64_t TableConverterCharCount, char* Char, bool* IsPressed, uint64_t* PressedCache);
+KResult GetTableConverter(char* Path, uintptr_t* TableConverter, size64_t* TableConverterCharCount);
+KResult GetCharFromScanCode(uint64_t ScanCode, uintptr_t TableConverter, size64_t TableConverterCharCount, char* Char, bool* IsPressed, uint64_t* PressedCache);
 
 #if defined(__cplusplus)
 }

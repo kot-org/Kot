@@ -1,19 +1,14 @@
 # 📁 FileSystem
 
-- **Kot**
-    - *System*
-        - Apps
-            ...
-        - Drivers
-            - ...
-        - Services
-            - ...
+- **Bin**
+    - Apps
+        - ...
     - Kursors
         - ...
-    - Wallpapers
+    - Services
         - ...
 
-- **User**
+- **Usr**
     - root
         - Home
             - Desktop
@@ -23,10 +18,6 @@
             - Trash
         - Share
             - Settings
-                - ...
-            - Sounds
-                - ...
-            - Kursors
                 - ...
             - Wallpapers
                 - ...

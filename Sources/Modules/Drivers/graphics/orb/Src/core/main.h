@@ -44,7 +44,7 @@ class orbc{
     public:
         orbc();
 
+        desktopc* Desktop;    
         renderc* Render; 
         hidc* Hid;
-        desktopc* Desktop;
 };

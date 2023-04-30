@@ -131,12 +131,21 @@ void ShellEventEntry(uint64_t EventType, uint64_t GP0, uint64_t GP1, uint64_t GP
             bool IsPressed;
             GetCharFromScanCode(ScanCode, TableConverter, TableConverterCharCount, &Char, &IsPressed, &Shell->PressedCache);
             if(IsPressed){
-                DrawFontSize(Shell->Font, &Char, 1);
-                BlitFramebuffer(Shell->Framebuffer, Shell->Backbuffer, 0, 0);
                 
-                CurrentRequest->SizeGet += sizeof(char);
-                CurrentRequest->Buffer = (char*)realloc((uintptr_t)CurrentRequest->Buffer, CurrentRequest->SizeGet);
-                CurrentRequest->Buffer[CurrentRequest->SizeGet - 1] = Char;
+                if(Char != 8){
+                    CurrentRequest->SizeGet += sizeof(char);
+                    CurrentRequest->Buffer = (char*)realloc((uintptr_t)CurrentRequest->Buffer, CurrentRequest->SizeGet);
+                    CurrentRequest->Buffer[CurrentRequest->SizeGet - 1] = Char;
+                    DrawFontSize(Shell->Font, &Char, 1);
+                    BlitFramebuffer(Shell->Framebuffer, Shell->Backbuffer, 0, 0);
+                }else{
+                    CurrentRequest->SizeGet -= sizeof(char);
+                    CurrentRequest->Buffer = (char*)realloc((uintptr_t)CurrentRequest->Buffer, CurrentRequest->SizeGet);
+                    ssfn_buf_t* Pen = (ssfn_buf_t*)Shell->Font->PenContext;
+                    FillRect(Shell->Backbuffer, Pen->x - 16, Pen->y - 16, 16, 16, 0xff0000ff);
+                    std::printf("%x %x", Pen->x, Pen->y);
+                    BlitFramebuffer(Shell->Framebuffer, Shell->Backbuffer, 0, 0);
+                }
 
                 if(Char == '\n' || CurrentRequest->SizeGet == CurrentRequest->SizeRequest){
                     ShellSendRequest(Shell, CurrentRequest);

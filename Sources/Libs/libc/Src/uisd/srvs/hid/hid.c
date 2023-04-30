@@ -34,7 +34,7 @@ KResult BindKeyboardEvent(thread_t Task, bool IgnoreMissedEvents){
     return KSUCCESS;
 }
 
-KResult GetTableConverter(char* Path, char** TableConverter, size64_t* TableConverterCharCount){
+KResult GetTableConverter(char* Path, uintptr_t* TableConverter, size64_t* TableConverterCharCount){
     file_t* File = fopen(Path, "rb");
     if(!File){
         return KFAIL;
@@ -51,7 +51,7 @@ KResult GetTableConverter(char* Path, char** TableConverter, size64_t* TableConv
     return KSUCCESS;
 }
 
-KResult GetCharFromScanCode(uint64_t ScanCode, char* TableConverter, size64_t TableConverterCharCount, char* Char, bool* IsPressed, uint64_t* PressedCache){
+KResult GetCharFromScanCode(uint64_t ScanCode, uintptr_t TableConverter, size64_t TableConverterCharCount, char* Char, bool* IsPressed, uint64_t* PressedCache){
     if(ScanCode > 0x80){
         *IsPressed = false;
         ScanCode -= 0x80;
@@ -63,23 +63,24 @@ KResult GetCharFromScanCode(uint64_t ScanCode, char* TableConverter, size64_t Ta
         return KFAIL;
     }
 
+    char* LowerTableConverter = (char*)((uint64_t)TableConverter + sizeof(uint8_t));
+    char* UpperTableConverter = (char*)((uint64_t)TableConverter + sizeof(uint8_t) + *(uint8_t*)TableConverter);
 
-    if(TableConverter[ScanCode] == 0xf){ // shift
-        *PressedCache = (1 << 0);
+    if(LowerTableConverter[ScanCode] == 0xf){ // shift
+        if(*IsPressed){
+            *PressedCache = (1 << 0);
+        }else{
+            *PressedCache &= ~(1 << 0);
+        }
         return KBUSY;
     }
 
     if(*PressedCache & (1 << 0)){
-        if(TableConverter[ScanCode] >= 'a' && TableConverter[ScanCode] <= 'z'){
-            // convert to upper case
-            *Char = TableConverter[ScanCode] - 32;
-        }else{
-            *Char = TableConverter[ScanCode];
-        }
+        // convert to upper case
+        *Char = UpperTableConverter[ScanCode];
     }else{
-        *Char = TableConverter[ScanCode];
+        *Char = LowerTableConverter[ScanCode];
     }
 
-    *PressedCache = NULL;
     return KSUCCESS;
 }

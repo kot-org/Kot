@@ -13,7 +13,7 @@ QEMUFLAGS =	-no-reboot 														\
 			-usb                                            				\
     		-device usb-ehci,id=ehci                        				\
 			-device intel-hda -device hda-duplex 							\
-			-accel kvm
+			#-accel kvm
 
 # -audiodev wav,id=snd0,path=output.wav 	 ,audiodev=snd0		
 
@@ -35,7 +35,7 @@ deps-llvm:
 
 deps-debian: deps-llvm
 	sudo apt update
-	sudo apt install kpartx nasm xorriso mtools grub-common grub-efi-amd64 grub-pc-bin build-essential qemu-system-x86 ovmf meson kpartx -y
+	sudo apt install kpartx nasm xorriso mtools grub-common grub-efi-amd64 grub-pc-bin build-essential qemu-system-x86 ovmf  -y
 
 clean:
 	sudo rm -rf ./Bin ./Sysroot ./Sources/*/*/*/*/*/Lib ./Sources/*/*/*/*/Lib ./Sources/*/*/*/Lib ./Sources/*/*/Lib ./Sources/*/Lib
