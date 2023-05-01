@@ -21,9 +21,7 @@ namespace ELF {
         Elf64_Ehdr* Header;
         uintptr_t phdrs;
         uintptr_t shdrs;
-        Elf64_Shdr* str;
         Elf64_Shdr* shstr;
-        Elf64_Shdr* symtab;
         Elf64_Shdr* KotSpecific;
         Elf64_Half KotSpecificIndex;
         Elf64_Sym* KotSpecificSymbol;

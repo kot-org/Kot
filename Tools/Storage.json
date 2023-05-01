@@ -40,6 +40,10 @@
         "destination": "/Kot/System/Apps/Lua/Lua.elf"
     },
     {
+        "source": "../Sources/Apps/tcc/Bin/Tcc.elf",
+        "destination": "/Kot/System/Apps/Tcc/Tcc.elf"
+    },
+    {
         "source": "../Sources/Apps/test/Bin/Test.elf",
         "destination": "/Kot/System/Apps/Test/Test.elf"
     },
