@@ -25,7 +25,7 @@ namespace Kot{
     KResult InitializeThread(kot_thread_t thread){
         auto new_tcb = __rtdl_allocateTcb();
         pid_t tid;
-        pthread_attr_t attr = {};
+        pthread_attr_t attr;
         pthread_attr_init(&attr);
 
         // TODO: due to alignment guarantees, the stackaddr and stacksize might change

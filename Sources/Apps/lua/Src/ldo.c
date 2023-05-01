@@ -60,13 +60,6 @@
 	try { a } catch(...) { if ((c)->status == 0) (c)->status = -1; }
 #define luai_jmpbuf		int  /* dummy variable */
 
-#elif defined(LUA_USE_POSIX)				/* }{ */
-
-/* in POSIX, try _longjmp/_setjmp (more efficient) */
-#define LUAI_THROW(L,c)		_longjmp((c)->b, 1)
-#define LUAI_TRY(L,c,a)		if (_setjmp((c)->b) == 0) { a }
-#define luai_jmpbuf		jmp_buf
-
 #else							/* }{ */
 
 /* ISO C handling with long jumps */

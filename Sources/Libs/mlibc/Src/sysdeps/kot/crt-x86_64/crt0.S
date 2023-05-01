@@ -2,6 +2,7 @@
 
 .global _start
 _start:
+	and $0xfffffffffffffff0, %rsp
 	mov $main, %rsi
 	call __mlibc_entry
 

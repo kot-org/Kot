@@ -1,7 +1,10 @@
-#include <kot/uisd.h>
-#include <kot/memory.h>
 #include <stdlib.h>
 #include <string.h>
+#include <kot/uisd.h>
+#include <kot/memory.h>
+#include <frg/string.hpp>
+#include <frg/vector.hpp>
+#include <mlibc/debug.hpp>
 
 namespace Kot{
     uintptr_t ControllerList[ControllerCount];
