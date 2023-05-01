@@ -53,21 +53,30 @@ shell_t* NewShell(process_t Target){
 void ShellPrint(shell_t* Shell, uintptr_t Buffer, size64_t Size){
     char* Text = (char*)malloc(Size + 1);
     memcpy(Text, Buffer, Size);
+
     Text[Size] = NULL;
     int64_t TextHeight = 16; // font size
+
     if(TextHeight + Shell->HeightUsed > Shell->Backbuffer->Height){
         uint64_t HeightToMove = TextHeight;
         size64_t SizeToMove = HeightToMove * Shell->Backbuffer->Pitch;
+
         uintptr_t Src = (uintptr_t)((uint64_t)Shell->Backbuffer->Buffer + SizeToMove);
         uintptr_t Dst = Shell->Backbuffer->Buffer;
         size64_t Size = Shell->Backbuffer->Size - SizeToMove;
         memcpy(Dst, Src, Size);
+
         memset((uintptr_t)((uint64_t)Dst + Size), 0, SizeToMove);
+
         Shell->HeightUsed -= HeightToMove;
+
         EditPen(Shell->Font, NULL, -1, Shell->HeightUsed, -1, -1, -1);
     }
+
     Shell->HeightUsed += TextHeight;
+    
     DrawFont(Shell->Font, Text);
+
     free(Text);
     BlitFramebuffer(Shell->Framebuffer, Shell->Backbuffer, 0, 0);
 }
@@ -85,6 +94,7 @@ KResult ShellSendRequest(shell_t* Shell, read_request_shell_t* Request){
     ksmem_t BufferKey;
     Sys_CreateMemoryField(Sys_GetProcess(), Request->SizeGet, (uintptr_t*)&Request->Buffer, &BufferKey, MemoryFieldTypeSendSpaceRO);
     Sys_Keyhole_CloneModify(BufferKey, &arguments.arg[2], Shell->Target, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
+    
     KResult Status = Sys_ExecThread(Request->Callback, &arguments, ExecutionTypeQueu, NULL);
     vector_remove(Shell->ReadRequest, 0);
     return Status;
@@ -106,21 +116,28 @@ KResult ShellCreateRequest(shell_t* Shell, thread_t Callback, uint64_t CallbackA
 
 void ShellEventEntry(uint64_t EventType, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3, uint64_t GP4){
     shell_t* Shell = (shell_t*)Sys_GetExternalDataThread();
+
     if(EventType == Window_Event_Keyboard){
         // Only handle Keyboard
         if(Shell->ReadRequest->length){
             read_request_shell_t* CurrentRequest = (read_request_shell_t*)vector_get(Shell->ReadRequest, 0);
+
             if(CurrentRequest->SizeGet == 0){
                 int64_t TextHeight = 16; // font size
+
                 if(TextHeight + Shell->HeightUsed > Shell->Backbuffer->Height){
                     uint64_t HeightToMove = TextHeight;
                     size64_t SizeToMove = HeightToMove * Shell->Backbuffer->Pitch;
+
                     uintptr_t Src = (uintptr_t)((uint64_t)Shell->Backbuffer->Buffer + SizeToMove);
                     uintptr_t Dst = Shell->Backbuffer->Buffer;
                     size64_t Size = Shell->Backbuffer->Size - SizeToMove;
                     memcpy(Dst, Src, Size);
+
                     memset((uintptr_t)((uint64_t)Dst + Size), 0, SizeToMove);
+
                     Shell->HeightUsed -= HeightToMove;
+
                     EditPen(Shell->Font, NULL, -1, Shell->HeightUsed, -1, -1, -1);
                 }
                 Shell->HeightUsed += TextHeight;
@@ -129,7 +146,9 @@ void ShellEventEntry(uint64_t EventType, uint64_t GP0, uint64_t GP1, uint64_t GP
             uint64_t ScanCode = GP0;
             char Char;
             bool IsPressed;
+
             GetCharFromScanCode(ScanCode, TableConverter, TableConverterCharCount, &Char, &IsPressed, &Shell->PressedCache);
+            
             if(IsPressed){
                 
                 if(Char != 8){

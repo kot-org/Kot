@@ -50,7 +50,7 @@ link:
 createISO:
 	@ echo !==== ISO
 
-	bash $(_HOME)Tools/BuildStorage.sh
+	bash $(_HOME)Tools/BuildTools.sh
 
 	cp grub.cfg $(BUILDDIR)/boot/grub/grub.cfg
 	grub-mkrescue --xorriso=xorriso -o $(BINDIR)/kot.iso $(BUILDDIR)

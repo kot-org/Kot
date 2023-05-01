@@ -1,0 +1,54 @@
+[
+  {
+      "source": "Disk/Kot/.",
+      "destination": "Kot"
+  },
+  {
+      "source": "Disk/User/.",
+      "destination": "User"
+  },
+  {
+      "source": "Sources/Modules/Drivers/graphics/orb/Bin/Orb.elf",
+      "destination": "Kot/System/Drivers/Orb/Orb.elf"
+  },
+  {
+      "source": "Sources/Modules/Drivers/audio/hda/Bin/Hda.elf",
+      "destination": "Kot/System/Drivers/Hda/Hda.elf"
+  },
+  {
+      "source": "Sources/Modules/Drivers/bus/ps2/Bin/Ps2.elf",
+      "destination": "Kot/System/Drivers/Ps2/Ps2.elf"
+  },
+  {
+      "source": "Sources/Modules/Drivers/net/e1000/Bin/E1000.elf",
+      "destination": "Kot/System/Drivers/E1000/E1000.elf"
+  },
+  {
+      "source": "Sources/Modules/Services/hid/Bin/Hid.elf",
+      "destination": "Kot/System/Services/Hid/Hid.elf"
+  },
+  {
+      "source": "Sources/Modules/Services/audio/Bin/Audio.elf",
+      "destination": "Kot/System/Services/Audio/Audio.elf"
+  },
+  {
+      "source": "Sources/Modules/Services/shell/Bin/Shell.elf",
+      "destination": "Kot/System/Services/Shell/Shell.elf"
+  },
+  {
+      "source": "Sources/Apps/lua/Bin/Lua.elf",
+      "destination": "Kot/System/Apps/Lua/Lua.elf"
+  },
+  {
+      "source": "Sources/Apps/test/Bin/Test.elf",
+      "destination": "Kot/System/Apps/Test/Test.elf"
+  },
+  {
+      "source": "Sources/Apps/calculator/Bin/Calculator.elf",
+      "destination": "Kot/System/Apps/Calculator/Calculator.elf"
+  },
+  {
+      "source": "Sources/Apps/explorer/Bin/Explorer.elf",
+      "destination": "Kot/System/Apps/Explorer/Explorer.elf"
+  }
+]
