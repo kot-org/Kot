@@ -39,18 +39,16 @@ deps-llvm:
 deps-gcc-kot:
 	cd Sources/Compiler/gcc && make gitclone && make setup && make build
 
-deps-debian: deps-llvm
+deps-debian: deps-llvm deps-gcc-kot
 	sudo apt update
 	sudo apt install kpartx nasm xorriso mtools grub-common grub-efi-amd64 grub-pc-bin build-essential qemu-system-x86 ovmf meson kpartx  -y
-	deps-gcc-kot
 
 clean:
 	sudo rm -rf ./Bin ./Sysroot ./Sources/*/*/*/*/*/Lib ./Sources/*/*/*/*/Lib ./Sources/*/*/*/Lib ./Sources/*/*/Lib ./Sources/*/Lib
 
-deps-github-action: deps-llvm
+deps-github-action: deps-llvm deps-gcc-kot
 	sudo apt update
 	sudo apt install kpartx nasm xorriso mtools qemu-utils
-	deps-gcc-kot
 
 github-action: deps-github-action build
 	qemu-img convert -f raw -O vmdk Bin/kot.img Bin/kot.vmdk
