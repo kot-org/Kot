@@ -93,7 +93,6 @@ That's easy! Run `make deps-debian` to install all the required build tools list
 Download the latest release <a href="https://github.com/kot-org/Kot/releases">here</a> and make it run on your x86-64 emulator such as qemu, bochs, vmware, virtual box, ...
 
 # Credits
-The icons used in this project were provided by [Icon8](https://icons8.com/).
-
-Song: Henri Werner - ITTY BITTY (feat. EHLE) [NCS Release] Music provided by NoCopyrightSounds Free Download/Stream: http://ncs.io/ITTYBITTY 
+- Icons: [Icon8](https://icons8.com/).
+- Song: https://pixabay.com/sound-effects/id-103697/
 
