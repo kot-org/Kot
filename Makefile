@@ -36,17 +36,14 @@ deps-llvm:
 	sudo ./llvm.sh 14 all
 	rm -f llvm.sh
 
-deps-gcc-kot:
-	cd Sources/Compiler/gcc && make gitclone && make setup && make build
-
-deps-debian: deps-llvm deps-gcc-kot
+deps-debian: deps-llvm
 	sudo apt update
 	sudo apt install kpartx nasm xorriso mtools grub-common grub-efi-amd64 grub-pc-bin build-essential qemu-system-x86 ovmf meson kpartx  -y
 
 clean:
 	sudo rm -rf ./Bin ./Sysroot ./Sources/*/*/*/*/*/Lib ./Sources/*/*/*/*/Lib ./Sources/*/*/*/Lib ./Sources/*/*/Lib ./Sources/*/Lib
 
-deps-github-action: deps-llvm deps-gcc-kot
+deps-github-action: deps-llvm
 	sudo apt update
 	sudo apt install kpartx nasm xorriso mtools qemu-utils
 
