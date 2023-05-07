@@ -1,0 +1,110 @@
+#!groovy
+@Library('jenkins-pipeline-lib') _
+
+pipeline
+{
+  agent any
+  environment
+  {
+    GIT_CHANGE_LOG = gitChangeLog(currentBuild.changeSets)
+  }
+  stages
+  {
+    stage('Setup')
+    {
+      steps
+      {
+        setGithubStatus('continuous-integration/jenkins/libcpp', 'libcpp CI Build Started', 'PENDING')
+      }
+    }
+    stage('Clean')
+    {
+      when
+      {
+        expression
+        {
+          /*
+          * If the previous build suceeeded (unstable means test failed but build passed)
+          * then we continue on in CI mode. If the previous build failed we want to
+          * start with a clean environment. This is done to reduce manual user interation.
+          */
+          return !(didLastBuildSucceed())
+        }
+      }
+      steps
+      {
+        echo('Previous build failed: Running a clean build.')
+        sh 'make distclean'
+      }
+    }
+    stage('Build')
+    {
+      steps
+      {
+        sh 'make'
+      }
+    }
+    stage('Cross Compile for ARM')
+    {
+      steps
+      {
+        sh 'meson buildresults/arm/ --cross-file build/cross/arm.txt --cross-file build/cross/cortex-m3.txt -Denable-threading=false -Dlibcxx-enable-chrono=false -Dlibcxx-monotonic-clock=false'
+        sh 'ninja -C buildresults/arm'
+      }
+    }
+  }
+  post
+  {
+    success
+    {
+      setGithubStatus('continuous-integration/jenkins/libcpp', 'libcpp CI Build Successful', 'SUCCESS')
+    }
+    failure
+    {
+      setGithubStatus('continuous-integration/jenkins/libcpp', 'libcpp CI Build Failed', 'FAILURE')
+    }
+    unstable
+    {
+      // Unstable occurs when there are failing tests
+      setGithubStatus('continuous-integration/jenkins/libcpp', 'libcpp CI build has test or warning failures', 'FAILURE')
+    }
+    aborted
+    {
+      echo "Build manually aborted on Jenkins"
+      slackNotify('ABORTED')
+      setGithubStatus('continuous-integration/jenkins/libcpp', 'libcpp CI Build Aborted', 'ERROR')
+    }
+    always
+    {
+      // Scan for open tasks, warnings, issues, etc.
+      recordIssues(
+        enabledForFailure: true,
+        healthy: 5,
+        unhealthy: 10,
+        referenceJobName: 'ea-nightly/libcpp/master',
+        qualityGates: [
+          // 3 new issue: unstable
+          //[threshold: 3, type: 'DELTA', unstable: true],
+          // 5 new issues: failed build
+          //[threshold: 5, type: 'DELTA', unstable: false],
+          // 10 total issues: unstable
+          //[threshold: 55, type: 'TOTAL', unstable: true],
+          // 20 total issues: fail
+          //[threshold: 75, type: 'TOTAL', unstable: false]
+        ],
+        tools: [
+          clang(),
+          taskScanner(
+            excludePattern: 'buildresults/**, libcxx/**, libcxxabi/**, build/**',
+            includePattern: '**/*.c, **/*.cpp, **/*.h, **/*.hpp, **/*.lua, **/*.sh, **/*.build',
+            normalTags: 'TODO, to do, WIP',
+            highTags: 'FIXME, FIX',
+            ignoreCase: true,
+          ),
+        ]
+      )
+
+      slackNotify(currentBuild.currentResult)
+    }
+  }
+}

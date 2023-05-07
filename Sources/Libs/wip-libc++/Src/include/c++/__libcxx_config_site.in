@@ -1,0 +1,43 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _LIBCPP_CONFIG_SITE
+#define _LIBCPP_CONFIG_SITE
+
+#mesondefine _LIBCPP_ABI_VERSION
+#mesondefine _LIBCPP_ABI_UNSTABLE
+#mesondefine _LIBCPP_ABI_FORCE_ITANIUM
+#mesondefine _LIBCPP_ABI_FORCE_MICROSOFT
+#mesondefine _LIBCPP_HIDE_FROM_ABI_PER_TU_BY_DEFAULT
+#mesondefine _LIBCPP_HAS_NO_GLOBAL_FILESYSTEM_NAMESPACE
+#mesondefine _LIBCPP_HAS_NO_STDIN
+#mesondefine _LIBCPP_HAS_NO_STDOUT
+#mesondefine _LIBCPP_HAS_NO_THREADS
+#mesondefine _LIBCPP_HAS_NO_MONOTONIC_CLOCK
+#mesondefine _LIBCPP_HAS_NO_THREAD_UNSAFE_C_FUNCTIONS
+#mesondefine _LIBCPP_HAS_MUSL_LIBC
+#mesondefine _LIBCPP_HAS_THREAD_API_PTHREAD
+#mesondefine _LIBCPP_HAS_THREAD_API_EXTERNAL
+#mesondefine _LIBCPP_HAS_THREAD_API_WIN32
+#mesondefine _LIBCPP_HAS_THREAD_LIBRARY_EXTERNAL
+#mesondefine _LIBCPP_DISABLE_VISIBILITY_ANNOTATIONS
+#mesondefine _LIBCPP_NO_VCRUNTIME
+#mesondefine _LIBCPP_ABI_NAMESPACE
+#mesondefine _LIBCPP_NO_RTTI
+#mesondefine _LIBCPP_NO_EXCEPTIONS
+#mesondefine _BAREMETAL
+
+// Not supported: @ _LIBCPP_ABI_DEFINES@
+
+#ifdef _LIBCPP_FORCE_PTHREAD_ON_HOST
+#undef _LIBCPP_HAS_THREAD_LIBRARY_EXTERNAL
+#undef _LIBCPP_HAS_THREAD_API_EXTERNAL
+#define _LIBCPP_HAS_THREAD_API_PTHREAD
+#endif
+
+#endif // _LIBCPP_CONFIG_SITE

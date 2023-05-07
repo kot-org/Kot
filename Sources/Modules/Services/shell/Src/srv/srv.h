@@ -1,6 +1,6 @@
 #pragma once
 
-#include <main/main.h>
+#include <core/main.h>
 
 #define Shell_Srv_Version 0x1
 

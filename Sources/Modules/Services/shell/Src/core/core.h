@@ -1,6 +1,6 @@
 #pragma once
 
-#include <main/main.h>
+#include <core/main.h>
 #include <kot-graphics/utils.h>
 
 struct shell_t{

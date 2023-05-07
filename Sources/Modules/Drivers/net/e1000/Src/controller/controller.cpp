@@ -33,14 +33,14 @@ E1000::E1000(srv_pci_device_info_t* DeviceInfo, srv_pci_bar_info_t* BarInfo) {
     ChipInfo = GetChipInfo(DeviceInfo->deviceID);
 
     // reset the device
-    WriteRegister(REG_CTRL, ReadRegister(REG_CTRL) | CTRL_RESET_MASK);
+    WriteRegister(REG_CTRL, CTRL_RESET_MASK);
 
     while(ReadRegister(REG_CTRL) & CTRL_RESET_MASK){
         asm volatile("":::"memory");
     }
 
     // reconfigure
-    WriteRegister(REG_CTRL, ReadRegister(REG_CTRL) | CTRL_ASDE_MASK | CTRL_SLU_MASK);
+    WriteRegister(REG_CTRL, CTRL_ASDE_MASK | CTRL_SLU_MASK);
 
     // get mac address
     /* LOW */
@@ -58,7 +58,7 @@ E1000::E1000(srv_pci_device_info_t* DeviceInfo, srv_pci_bar_info_t* BarInfo) {
     std::printf("[NET/E1000] \n DeviceID: 0x%x\n BarType: %d\n Speed: %dMb/s\n MAC address: %x:%x:%x:%x:%x:%x", DeviceInfo->deviceID, BarType, GetSpeed(), MACAddr[0], MACAddr[1], MACAddr[2], MACAddr[3], MACAddr[4], MACAddr[5]);
 
     InitTX();
-    InitRX();
+    //InitRX();
 
     uint8_t bufferExample[PACKET_SIZE];
     memset(bufferExample, 0, PACKET_SIZE);
@@ -88,7 +88,7 @@ E1000::E1000(srv_pci_device_info_t* DeviceInfo, srv_pci_bar_info_t* BarInfo) {
 
     SendPacket(bufferExample, PACKET_SIZE);
 
-    ReceivePacket();
+    //ReceivePacket();
 }
 
 E1000::~E1000() {
@@ -206,7 +206,7 @@ uint16_t E1000::GetSpeed() {
     switch((ReadRegister(REG_STATUS) & STATUS_SPEED_MASK) >> 6)
     {
         case 0x0:
-            return 10;
+            return 10; 
         case 0x1:
             return 100;
         case 0x2:
