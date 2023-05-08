@@ -30,20 +30,37 @@ run:
 debug:
 	qemu-system-x86_64 $(QEMUFLAGS) -s -S
 
+deps-ninja:
+	sudo wget -qO /usr/local/bin/ninja.gz https://github.com/ninja-build/ninja/releases/latest/download/ninja-linux.zip
+	sudo gunzip /usr/local/bin/ninja.gz
+	sudo chmod a+x /usr/local/bin/ninja
+
+deps-llvm-toolchain:
+	mkdir -m 777 -p "Toolchain"
+	cd "Toolchain" && \
+	git clone https://github.com/kot-org/llvm-project && \
+	cd llvm-project && \
+	git checkout release/14.x && \
+	mkdir -m 777 -p "build" && \
+	cd "build" && \
+	cmake -DCMAKE_INSTALL_PREFIX="$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))/Toolchain/local" -DLLVM_ENABLE_PROJECTS="clang;lld" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DLLVM_PARALLEL_LINK_JOBS=2 -DLLVM_USE_LINKER=lld -G "Ninja" ../llvm && \
+	ninja all -j4 && \
+	ninja install -j4
+
 deps-llvm:
 	wget https://apt.llvm.org/llvm.sh
 	chmod +x llvm.sh
 	sudo ./llvm.sh 14 all
-	rm -f llvm.sh
+	rm -f llvm.sh	
 
-deps-debian: deps-llvm
+deps-debian: deps-llvm deps-llvm-toolchain
 	sudo apt update
 	sudo apt install kpartx nasm xorriso mtools grub-common grub-efi-amd64 grub-pc-bin build-essential qemu-system-x86 ovmf meson kpartx  -y
 
 clean:
 	sudo rm -rf ./Bin ./Sysroot ./Sources/*/*/*/*/*/Lib ./Sources/*/*/*/*/Lib ./Sources/*/*/*/Lib ./Sources/*/*/Lib ./Sources/*/Lib
 
-deps-github-action: deps-llvm
+deps-github-action: deps-llvm deps-llvm-toolchain
 	sudo apt update
 	sudo apt install kpartx nasm xorriso mtools qemu-utils
 
@@ -51,5 +68,4 @@ github-action: deps-github-action build
 	qemu-img convert -f raw -O vmdk Bin/kot.img Bin/kot.vmdk
 	qemu-img convert -f raw -O vdi Bin/kot.img Bin/kot.vdi
 
-
-.PHONY: build run deps-llvm deps-debian
+.PHONY: build run deps-llvm deps-llvm-toolchain deps-debian

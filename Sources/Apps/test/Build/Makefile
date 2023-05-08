@@ -1,10 +1,10 @@
 _HOME = ../../../../
 
-CC = clang-14
+CC = ../clang --target=x86_64-kot --sysroot=$(_HOME)Sysroot
 ASMC = nasm
 
-CFLAGS = -O3 -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -no-pie -I../Src -I$(_HOME)Sysroot/include
-LINKERFLAGS = -nostartfiles -Wall -static -L$(_HOME)Sysroot/lib -lc
+CFLAGS = -O3 -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -no-pie -I../Src
+LINKERFLAGS = -Wall -lc
 ASMFLAGS = 
 
 SRCDIR := ../Src
@@ -34,4 +34,4 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 link:
 	@ echo !==== LINKING
 	@ mkdir -p $(BINDIR)
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Test.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/lib/crt0.o
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Test.elf $(OBJS) $(OBJSCPP)

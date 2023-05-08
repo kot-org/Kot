@@ -2,6 +2,7 @@
 .vscode
 
 # Build Folders
+Toolchain
 Sysroot
 Bin
 
