@@ -35,7 +35,7 @@ deps-ninja:
 	sudo gunzip /usr/local/bin/ninja.gz
 	sudo chmod a+x /usr/local/bin/ninja
 
-deps-llvm-toolchain:
+deps-llvm-toolchain: deps-ninja
 	mkdir -m 777 -p "Toolchain"
 	cd "Toolchain" && \
 	git clone https://github.com/kot-org/llvm-project && \
