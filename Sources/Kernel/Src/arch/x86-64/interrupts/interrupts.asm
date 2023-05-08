@@ -15,7 +15,6 @@ EXTERN InterruptHandler
 
 %macro GLOBAL_INTERRUPT_HANDLER 1
     %assign y %1*2
-    cli
     SWAPGS_IF_NECESSARY y
     PUSH_REG
     
