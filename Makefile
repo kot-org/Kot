@@ -31,6 +31,7 @@ debug:
 	qemu-system-x86_64 $(QEMUFLAGS) -s -S
 
 deps-ninja:
+	sudo apt install wget
 	sudo wget -qO /usr/local/bin/ninja.gz https://github.com/ninja-build/ninja/releases/latest/download/ninja-linux.zip
 	sudo gunzip /usr/local/bin/ninja.gz
 	sudo chmod a+x /usr/local/bin/ninja
@@ -43,7 +44,7 @@ deps-llvm-toolchain: deps-ninja
 	git checkout release/14.x && \
 	mkdir -m 777 -p "build" && \
 	cd "build" && \
-	cmake -DCMAKE_INSTALL_PREFIX="$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))/Toolchain/local" -DLLVM_ENABLE_PROJECTS="clang;lld" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DLLVM_PARALLEL_LINK_JOBS=2 -DLLVM_USE_LINKER=lld -G "Ninja" ../llvm && \
+	cmake -DCMAKE_INSTALL_PREFIX="$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))/Toolchain/local" -DLLVM_ENABLE_PROJECTS="clang;lld" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DLLVM_PARALLEL_LINK_JOBS=2 -G "Ninja" ../llvm && \
 	ninja all -j4 && \
 	ninja install -j4
 
