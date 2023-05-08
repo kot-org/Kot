@@ -44,7 +44,7 @@ deps-llvm-toolchain: deps-ninja
 	git checkout release/14.x && \
 	mkdir -m 777 -p "build" && \
 	cd "build" && \
-	cmake -DCMAKE_INSTALL_PREFIX="$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))/Toolchain/local" -DLLVM_ENABLE_PROJECTS="clang;lld" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DLLVM_PARALLEL_LINK_JOBS=2 -G "Ninja" ../llvm && \
+	cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_INSTALL_PREFIX="$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))/Toolchain/local" -DLLVM_ENABLE_PROJECTS="clang;lld" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DLLVM_PARALLEL_LINK_JOBS=2 -DLLVM_USE_LINKER=lld -G "Ninja" ../llvm && \
 	ninja all -j4 && \
 	ninja install -j4
 
