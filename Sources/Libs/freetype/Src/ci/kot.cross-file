@@ -1,0 +1,12 @@
+[binaries]
+c = 'kot-clang'
+cpp = 'kot-clang'
+
+[properties]
+needs_exe_wrapper = true
+
+[host_machine]
+system = 'kot'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
+endian = 'little'

@@ -19,16 +19,21 @@ mkdir -m 777 -p $BINDIR"/Firmwares/"
 cp -p -R ./Build/Bin/Modules/** $BINDIR"/Modules/"
 cp -p -R ./Build/Bin/Firmwares/** $BINDIR"/Firmwares/"
 
+# Compiler
+echo -e "\e[32mCompiling kot compilers...\e[0m"
+bash "Tools/BuildCompilers.sh"
+
 cd "Sources/"
 
 # Libraries
 echo -e "\e[32mCompiling kot libraries...\e[0m"
 
+make -C "Libs/wrap-headers/Build"
 make -C "Libs/abi/Build"
 make -C "Libs/libc/Build"
 make -C "Libs/mlibc/Build"
 make -C "Libs/libc++/Build"
-make -C "Libs/wip-libc++/Build"
+make -C "Libs/freetype/Build"
 make -C "Libs/kot-graphics/Build"
 make -C "Libs/kot-ui/Build"
 make -C "Libs/kot-ui++/Build"

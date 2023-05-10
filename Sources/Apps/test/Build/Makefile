@@ -1,9 +1,9 @@
 _HOME = ../../../../
 
-CC = $(_HOME)/Toolchain/local/bin/clang --target=x86_64-kot --sysroot=$(_HOME)Sysroot
+CC = kot-clang
 ASMC = nasm
 
-CFLAGS = -O3 -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -no-pie -I../Src
+CFLAGS = -O3 -I../Src
 LINKERFLAGS = -Wall -lc
 ASMFLAGS = 
 
