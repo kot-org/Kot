@@ -1,9 +1,14 @@
+#include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <kot/sys.h>
 #include <bits/ensure.h>
+#include <frg/vector.hpp>
 #include <mlibc/debug.hpp>
+#include <mlibc/allocator.hpp>
 #include <kot/uisd/srvs/time.h>
 #include <mlibc/all-sysdeps.hpp>
+#include <kot/uisd/srvs/system.h>
 
 namespace mlibc{
     void sys_libc_log(const char *message){
@@ -114,8 +119,32 @@ namespace mlibc{
     }
 
     int sys_execve(const char *path, char *const argv[], char *const envp[]){
-        // TODO
-        __ensure(!"Not implemented");
+        Kot::srv_system_callback_t* Callback = Kot::Srv_System_LoadExecutable(Kot::Sys_GetPriviledgeThread(), (char*)path, true);
+        KResult Status = Callback->Status;
+
+        uintptr_t MainStackData;
+        size64_t SizeMainStackData;
+        uint64_t argc = 0;
+        for(; argv[argc] != NULL; argc++);
+        Kot::SetupStack(&MainStackData, &SizeMainStackData, argc, (char**)argv, (char**)envp);
+
+        Kot::ShareDataWithArguments_t Data{
+            .Data = MainStackData,
+            .Size = SizeMainStackData,
+            .ParameterPosition = 0x0,
+        };
+
+        kot_arguments_t InitParameters;
+
+        __ensure(Sys_ExecThread((kot_thread_t)Callback->Data, &InitParameters, Kot::ExecutionTypeQueu, &Data) == KSUCCESS);
+        free((void*)MainStackData);
+        free((void*)Callback);
+
+        if(Status != KSUCCESS){
+            return -1;
+        }else{
+            Kot::Sys_Close(KSUCCESS);
+        }
     }
 
     pid_t sys_getpid(){

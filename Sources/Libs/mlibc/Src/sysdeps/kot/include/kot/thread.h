@@ -7,6 +7,7 @@
 
 namespace Kot{
     KResult InitializeThread(kot_thread_t thread);
+    KResult SetupStack(uintptr_t* Data, size64_t* Size, int argc, char** argv, char** envp);
 }
 
 #endif

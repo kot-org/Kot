@@ -60,7 +60,10 @@ KResult GetDevAccessData(char** RelativePath, partition_t** Partition, ClientVFS
         dev_t* Dev = (dev_t*)vector_get(DevList, i);
         if(strncmp(DevNameTarget, Dev->Name, Dev->NameLen)){
             *Partition = &Dev->VirtualPartition;
-            *RelativePath = Dev->Name;
+            *RelativePath = (char*)malloc(Dev->NameLen + 1);
+            memcpy(*RelativePath, Dev->Name, Dev->NameLen);
+            (*RelativePath)[Dev->NameLen] = NULL;
+            atomicUnlock(&DevListLock, 0);
             return KSUCCESS;
         }
     }
