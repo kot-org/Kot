@@ -35,6 +35,27 @@ typedef struct{
     uint16_t Data3:16;
 
     uint64_t Data4:48;
-}GUID_t;
+}kot_GUID_t;
+
+typedef struct{
+    uint32_t Data0:32;
+
+    uint16_t Data1:16;
+    uint16_t Data2:16;
+    uint16_t Data3:16;
+
+    uint64_t Data4:48;
+}kot_UUID_t;
+
+// cyclic buffer
+typedef struct{
+    uintptr_t Base;
+    size64_t Size;
+}kot_cyclic_t;
+
+typedef struct{
+    uintptr_t Base;
+    size64_t Size;
+}kot_memory_buffer_t;
 
 #endif

@@ -155,7 +155,7 @@ namespace Kot{
 
     struct srv_storage_callback_t* Srv_Storage_AddDevice(struct srv_storage_device_info_t* Info, bool IsAwait);
     struct srv_storage_callback_t* Srv_Storage_RemoveDevice(uint64_t Index, bool IsAwait);
-    struct srv_storage_callback_t* Srv_Storage_NotifyOnNewPartitionByGUIDType(GUID_t* PartitionTypeGUID, kot_thread_t ThreadToNotify, kot_process_t ProcessToNotify, bool IsAwait);
+    struct srv_storage_callback_t* Srv_Storage_NotifyOnNewPartitionByGUIDType(kot_GUID_t* PartitionTypeGUID, kot_thread_t ThreadToNotify, kot_process_t ProcessToNotify, bool IsAwait);
     struct srv_storage_callback_t* Srv_Storage_MountPartition(kot_thread_t VFSMountThread, struct srv_storage_fs_server_functions_t* FSServerFunctions, bool IsAwait);
     struct srv_storage_callback_t* Srv_Storage_UnmountPartition(kot_thread_t VFSMountThread, bool IsAwait);
 

@@ -113,7 +113,7 @@ namespace Kot{
         return Status;
     }
 
-    struct srv_storage_callback_t* Srv_Storage_NotifyOnNewPartitionByGUIDType(GUID_t* PartitionTypeGUID, kot_thread_t ThreadToNotify, kot_process_t ProcessToNotify, bool IsAwait){
+    struct srv_storage_callback_t* Srv_Storage_NotifyOnNewPartitionByGUIDType(kot_GUID_t* PartitionTypeGUID, kot_thread_t ThreadToNotify, kot_process_t ProcessToNotify, bool IsAwait){
         if(!srv_storage_callback_thread) Srv_Storage_Initialize();
         
         kot_thread_t self = Sys_Getthread();
@@ -136,7 +136,7 @@ namespace Kot{
 
         struct ShareDataWithArguments_t data;
         data.Data = (uintptr_t)PartitionTypeGUID;
-        data.Size = sizeof(GUID_t);
+        data.Size = sizeof(kot_GUID_t);
         data.ParameterPosition = 0x4;
 
         KResult Status = Sys_ExecThread(StorageData->NotifyOnNewPartitionByGUIDType, &parameters, ExecutionTypeQueu, &data);

@@ -12,11 +12,16 @@ libc_sources += files(
 	'generic/generic.cpp',
 	'generic/uisd/uisd.cpp',
 	'generic/filesystem.cpp',
-	'generic/uisd/srvs/storage/fs.cpp',
+	'generic/uisd/srvs/pci/pci.cpp',
+	'generic/uisd/srvs/hid/hid.cpp',
 	'generic/uisd/srvs/time/time.cpp',
+	'generic/uisd/srvs/storage/fs.cpp',
+	'generic/uisd/srvs/audio/audio.cpp',
 	'generic/uisd/srvs/system/system.cpp',
 	'generic/uisd/srvs/storage/device.cpp',
 	'generic/uisd/srvs/storage/storage.cpp',
+	'generic/uisd/srvs/graphics/graphics.cpp',
+	'generic/uisd/srvs/authorization/authorization.cpp',
 )
 
 if not no_headers
@@ -63,10 +68,6 @@ if not no_headers
 		'include/abi-bits/ioctls.h',
 		'include/abi-bits/xattr.h',
 		subdir: 'abi-bits'
-	)
-	install_headers(
-		'include/kot/syscall.h',
-		subdir: 'kot'
 	)
 endif
 

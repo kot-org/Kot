@@ -48,6 +48,14 @@ deps-llvm-toolchain: deps-ninja
 	ninja all -j4 && \
 	ninja install -j4
 
+update-llvm-toolchain:
+	cd "Toolchain" && \
+	cd llvm-project && \
+	cd "build" && \
+	ninja all -j4 && \
+	ninja install -j4
+
+
 deps-llvm:
 	wget https://apt.llvm.org/llvm.sh
 	chmod +x llvm.sh

@@ -39,21 +39,17 @@ namespace mlibc{
         // TODO
         *pointer = (void*)KotSpecificData.HeapLocation;
         KotSpecificData.HeapLocation += size;
-        return (Syscall_48(KSys_Map, Kot::Sys_GetProcess(), (uint64_t)pointer, 0, 0, (uint64_t)&size, false) != KSUCCESS);
+        return (Syscall_48(KSys_Map, Kot::Sys_GetProcess(), (uint64_t)pointer, 0, 0, (uint64_t)&size, true) != KSUCCESS);
     }
 
     int sys_anon_free(void *pointer, size_t size){
-        return sys_vm_unmap(pointer, size);
-    }
-
-    int sys_stat(fsfd_target fsfdt, int fd, const char *path, int flags, struct stat *statbuf){
-        // TODO
-        __ensure(!"Not implemented");
+        sys_vm_unmap(pointer, size);
+        return 0;
     }
 
     int sys_vm_map(void *hint, size_t size, int prot, int flags, int fd, off_t offset, void **window){
         // TODO
-        __ensure(!"Not implemented");
+        return (Syscall_48(KSys_Map, Kot::Sys_GetProcess(), (uint64_t)&hint, 0, 0, (uint64_t)&size, false) != KSUCCESS);
     }
 
     int sys_vm_unmap(void *pointer, size_t size){

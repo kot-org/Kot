@@ -197,4 +197,37 @@ namespace mlibc{
         // TODO
         __ensure(!"Not implemented");
     }
+
+    int sys_stat(fsfd_target fsfdt, int fd, const char *path, int flags, struct stat *statbuf){
+        if(fd >= MAX_OPEN_FILES) return -1;
+        atomicAcquire(&Kot::LockFDList, 0);
+        Kot::file_t* File = Kot::FDList[fd];
+        atomicUnlock(&Kot::LockFDList, 0);
+        if(File == NULL) return -1;
+
+        Kot::srv_storage_callback_t* CallbackFileSize = Kot::Srv_Storage_Getfilesize(File, true);
+        if(CallbackFileSize->Status != KSUCCESS){
+            free(File);
+            return -1;
+        }
+        statbuf->st_size = CallbackFileSize->Data;
+        free(CallbackFileSize);
+        // TODO
+        statbuf->st_dev = 0;
+        statbuf->st_ino = 0;
+        statbuf->st_mode = 0;
+        statbuf->st_nlink = 0;
+        statbuf->st_uid = 0;
+        statbuf->st_gid = 0;
+        statbuf->st_rdev = 0;
+        statbuf->st_blksize = 0;
+        statbuf->st_blocks = 0;
+        free(File);
+        return 0;
+    }
+    int sys_fcntl(int fd, int request, va_list args, int *result_value){
+        // TODO
+        infoLogger() << "mlibc: sys_fcntl unsupported request (" << request << ")" << frg::endlog;
+        return 0;
+    }
 }

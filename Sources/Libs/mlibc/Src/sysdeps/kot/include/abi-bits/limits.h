@@ -1,1 +1,1 @@
-../../../../abis/mlibc/limits.h
+../../../../abis/kot/limits.h

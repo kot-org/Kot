@@ -28,7 +28,7 @@ extern "C" {
 #define MOUSE_CLICK_BUTTON4     (1 << 3)
 #define MOUSE_CLICK_BUTTON5     (1 << 4)
 
-typedef KResult (*GraphicsCallbackHandler)(KResult Status, struct srv_graphics_callback* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
+typedef KResult (*GraphicsCallbackHandler)(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
 enum Window_Event{
     Window_Event_Focus = 0x0,
