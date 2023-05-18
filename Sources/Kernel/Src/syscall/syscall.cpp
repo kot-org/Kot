@@ -90,8 +90,28 @@ KResult Sys_CreateProc(SyscallStack* Registers, kthread_t* Thread){
     if(Registers->arg4 > PriviledgeApp){
         Registers->arg4 = PriviledgeApp;
     }
+    if(CheckUserAddress((uintptr_t)Registers->arg0, sizeof(key_t)) != KSUCCESS) return KMEMORYVIOLATION;
     if(globalTaskManager->CreateProcess(&data, (enum Priviledge)Registers->arg1, Registers->arg2) != KSUCCESS) return KFAIL;
     return Keyhole_Create((key_t*)Registers->arg0, data, Thread->Parent, DataTypeProcess, (uint64_t)data, KeyholeFlagFullPermissions, PriviledgeApp);
+}
+
+/* Sys_Fork :
+    Arguments : 
+*/
+KResult Sys_Fork(SyscallStack* Registers, kthread_t* Thread){
+    uint64_t flags;
+    if(CheckUserAddress((uintptr_t)Registers->arg0, sizeof(key_t)) != KSUCCESS) return KMEMORYVIOLATION;
+    kprocess_t* Child;
+    kthread_t* ChildThread;
+    kprocess_t* Parent = Thread->Parent;
+    // Select non fork process
+    while(Parent->Parent){
+        Parent = Parent->Parent;
+    }
+    KResult Status = Thread->Parent->Fork((ContextStack*)Registers, Thread, &Child, &ChildThread);
+    if(Status != KSUCCESS) return Status;
+    
+    return Keyhole_Create((key_t*)Registers->arg0, Child, Thread->Parent, DataTypeProcess, (uint64_t)Child, KeyholeFlagFullPermissions, PriviledgeApp);
 }
 
 /* Sys_CloseProc :
@@ -149,17 +169,18 @@ KResult Sys_UnPause(SyscallStack* Registers, kthread_t* Thread){
     5 -> find free address  > bool
 */
 KResult Sys_Map(SyscallStack* Registers, kthread_t* Thread){
-    if(Thread->Parent->PID == 0x10){
-        asm("nop");
-    }
     // Check priviledge
     if(Registers->arg2 > AllocationTypeBasic && Thread->Priviledge != PriviledgeDriver){
         return KNOTALLOW;
     } 
     kprocess_t* processkey;
     uint64_t flags;
-    if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    if(!(flags & KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
+    if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS){
+        return KKEYVIOLATION;
+    } 
+    if(!(flags & KeyholeFlagDataTypeProcessMemoryAccessible)){
+       return KKEYVIOLATION; 
+    } 
     
     pagetable_t pageTable = processkey->SharedPaging;
     
@@ -174,7 +195,9 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* Thread){
     size64_t* size = (size64_t*)Registers->arg4;
     bool IsNeedToBeFree = (bool)Registers->arg5; 
 
-    if(!CheckUserAddress((uintptr_t)addressVirtual, sizeof(uint64_t))) return KMEMORYVIOLATION;
+    if(!CheckUserAddress((uintptr_t)addressVirtual, sizeof(uint64_t))){
+        return KMEMORYVIOLATION;
+    } 
     *addressVirtual = *addressVirtual - ((uint64_t)*addressVirtual % PAGE_SIZE);
 
 
@@ -187,7 +210,9 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* Thread){
         }
     }
 
-    if(!CheckUserAddress((uintptr_t)size, sizeof(uint64_t))) return KMEMORYVIOLATION;
+    if(!CheckUserAddress((uintptr_t)size, sizeof(uint64_t))){
+        return KMEMORYVIOLATION;
+    } 
 
 
     uint64_t pageCount = DivideRoundUp(*size, PAGE_SIZE);
@@ -209,7 +234,7 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* Thread){
     if(*addressVirtual + pageCount * PAGE_SIZE < vmm_HHDMAdress){
         if(type == AllocationTypePhysical || type == AllocationTypePhysicalContiguous){
             for(uint64_t i = 0; i < pageCount; i++){
-                if(vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage) && vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_Master)){
+                if(vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_IsPureMemory) && vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_Master)){
                     Pmm_FreePage(vmm_GetPhysical(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE)));
                 }
                 vmm_Unmap(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE));
@@ -228,7 +253,7 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* Thread){
                 for(uint64_t i = 0; i < pageCount; i++){
                     uintptr_t virtualAddress = (uintptr_t)(*addressVirtual + i * PAGE_SIZE);
                     uintptr_t physicalAddress = (uintptr_t)((uint64_t)physicalAddressAllocated + i * PAGE_SIZE);
-                    vmm_Map(pageTable, virtualAddress, physicalAddress, true, true, true);
+                    vmm_Map(pageTable, virtualAddress, physicalAddress, true, true, false);
                     vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_Master, true); //set master state
                 }
                 processkey->MemoryAllocated += pageCount * PAGE_SIZE; 
@@ -240,9 +265,9 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* Thread){
             for(uint64_t i = 0; i < pageCount; i++){
                 uintptr_t virtualAddress = (uintptr_t)(*addressVirtual + i * PAGE_SIZE);
                 if(type == AllocationTypePhysical){
-                    vmm_Map(pageTable, virtualAddress, (uintptr_t)((uint64_t)*addressPhysical + i * PAGE_SIZE), true, true, true);
-                    vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_PhysicalStorage, false); // remove master state
-                }else if(!vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage)){
+                    vmm_Map(pageTable, virtualAddress, (uintptr_t)((uint64_t)*addressPhysical + i * PAGE_SIZE), true, true, false);
+                    vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_IsPureMemory, false); // remove master state
+                }else if(!vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_IsPureMemory)){
                     uintptr_t physicalAddressAllocated = (uintptr_t)Pmm_RequestPage();
                     if(IsPhysicalAddress){
                         *addressPhysical = physicalAddressAllocated;
@@ -250,7 +275,7 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* Thread){
                         IsPhysicalAddress = false; 
                     }
                     vmm_Map(pageTable, virtualAddress, physicalAddressAllocated, true, true, true);
-                    vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_PhysicalStorage, true); // set master state
+                    vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_IsPureMemory, true); // set master state
                     processkey->MemoryAllocated += PAGE_SIZE;
                     *size += PAGE_SIZE;      
                 }
@@ -281,7 +306,7 @@ KResult Sys_Unmap(SyscallStack* Registers, kthread_t* Thread){
     if((uint64_t)addressVirtual + pageCount * PAGE_SIZE < vmm_HHDMAdress){
         for(uint64_t i = 0; i < pageCount; i += PAGE_SIZE){
             if(vmm_GetFlags(pageTable, (uintptr_t)addressVirtual, vmm_flag::vmm_Master)){
-                if(vmm_GetFlags(pageTable, (uintptr_t)addressVirtual, vmm_flag::vmm_PhysicalStorage)){
+                if(vmm_GetFlags(pageTable, (uintptr_t)addressVirtual, vmm_flag::vmm_IsPureMemory)){
                     Pmm_FreePage(vmm_GetPhysical(pageTable, addressVirtual));
                     processkey->MemoryAllocated -= PAGE_SIZE;
                 }
@@ -523,7 +548,7 @@ KResult Sys_Thread_Info_Get(SyscallStack* Registers, kthread_t* Thread){
 */
 KResult Sys_Logs(SyscallStack* Registers, kthread_t* Thread){
     if(CheckUserAddress((uintptr_t)Registers->arg0, Registers->arg1) != KSUCCESS) return KMEMORYVIOLATION;
-    MessageProcess((char*)Registers->arg0, Registers->arg1, Thread->Parent->PID, Thread->TID);
+    MessageProcess((char*)Registers->arg0, Registers->arg1, Thread->Parent->PID, Thread->Parent->PPID, Thread->TID);
     return KSUCCESS;
 }
 
@@ -533,6 +558,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_CloseMemoryField] = Sys_CloseMemoryField,
     [KSys_GetTypeMemoryField] = Sys_GetInfoMemoryField,
     [KSys_CreateProc] = Sys_CreateProc,
+    [KSys_Fork] = Sys_Fork,
     [KSys_CloseProc] = Sys_CloseProc,
     [KSys_Close] = Sys_Close,
     [KSys_Exit] = Sys_Exit,
@@ -557,6 +583,9 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
 };
 
 extern "C" void SyscallDispatch(SyscallStack* Registers, kthread_t* Self){
+    if(Self->Parent->PID == 0x10){
+        asm("nop");
+    }
     if(Registers->GlobalPurpose >= Syscall_Count){
         Registers->arg0 = KFAIL;
         return;

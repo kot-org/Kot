@@ -33,7 +33,7 @@ struct srv_time_callback_t* Srv_Time_SetTimePointerKey(time_t** Time, bool IsAwa
     if(!SrvTimeCallbackThread) Srv_Time_Initialize();
     uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_time_callback_t* callback = (struct srv_time_callback_t*)malloc(sizeof(struct srv_time_callback_t));
     callback->Self = self;
@@ -75,7 +75,7 @@ struct srv_time_callback_t* Srv_Time_SetTickPointerKey(uint64_t* TimePointer, ui
     if(!SrvTimeCallbackThread) Srv_Time_Initialize();
     uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_time_callback_t* callback = (struct srv_time_callback_t*)malloc(sizeof(struct srv_time_callback_t));
     callback->Self = self;

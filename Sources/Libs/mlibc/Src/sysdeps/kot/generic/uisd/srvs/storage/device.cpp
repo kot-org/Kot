@@ -52,7 +52,7 @@ namespace Kot{
 
     KResult Srv_SendRequest(struct srv_storage_device_t* StorageDevice, uint64_t Start, size64_t Size, bool IsWrite){
         struct srv_storage_device_callback_t* callbackData = (struct srv_storage_device_callback_t*)malloc(sizeof(struct srv_storage_device_callback_t));
-        callbackData->MainThread = Sys_Getthread();
+        callbackData->MainThread = Sys_GetThread();
 
         struct kot_arguments_t Parameters;
         Parameters.arg[0] = StorageDevice->CallbackRequestHandlerThread;
@@ -72,7 +72,7 @@ namespace Kot{
         }
         
         struct srv_storage_device_callback_t* callbackData = (struct srv_storage_device_callback_t*)malloc(sizeof(struct srv_storage_device_callback_t));
-        callbackData->MainThread = Sys_Getthread();
+        callbackData->MainThread = Sys_GetThread();
 
         struct kot_arguments_t Parameters;
         Parameters.arg[0] = StorageDevice->CallbackRequestHandlerThread;

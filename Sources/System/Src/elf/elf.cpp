@@ -60,7 +60,7 @@ namespace ELF {
         self->shstr = GetSectionHeaderIndex(self, self->Header->e_shstrndx);
         self->KotSpecific = GetSectionHeaderName(self, ".KotSpecificData");
 
-        thread_t Runningthread = Sys_Getthread();
+        thread_t Runningthread = Sys_GetThread();
 
         uint64_t HeapLocation = 0x0;
         for(uint64_t i = 0; i < self->Header->e_phnum; i++){

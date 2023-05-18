@@ -37,7 +37,7 @@ struct srv_audio_callback_t* Srv_Audio_RequestStream(uint64_t OutputID, bool IsA
     if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
     uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_audio_callback_t* callback = (struct srv_audio_callback_t*)malloc(sizeof(struct srv_audio_callback_t));
     callback->Self = self;
@@ -69,7 +69,7 @@ struct srv_audio_callback_t* Srv_Audio_StreamCommand(audio_share_buffer_t* Share
     if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
     uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_audio_callback_t* callback = (struct srv_audio_callback_t*)malloc(sizeof(struct srv_audio_callback_t));
     callback->Self = self;
@@ -117,7 +117,7 @@ struct srv_audio_callback_t* Srv_Audio_ChangeVolume(uint64_t OutputID, uint8_t V
     if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
     uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_audio_callback_t* callback = (struct srv_audio_callback_t*)malloc(sizeof(struct srv_audio_callback_t));
     callback->Self = self;
@@ -149,7 +149,7 @@ struct srv_audio_callback_t* Srv_Audio_SetDefault(uint64_t OutputID, bool IsAwai
     if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
     uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_audio_callback_t* callback = (struct srv_audio_callback_t*)malloc(sizeof(struct srv_audio_callback_t));
     callback->Self = self;
@@ -185,7 +185,7 @@ struct srv_audio_callback_t* Srv_Audio_GetDeviceInfo(uint64_t OutputID, bool IsA
     if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
     uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_audio_callback_t* callback = (struct srv_audio_callback_t*)malloc(sizeof(struct srv_audio_callback_t));
     callback->Self = self;
@@ -220,7 +220,7 @@ struct srv_audio_callback_t* Srv_Audio_AddDevice(srv_audio_device_t* Device, boo
     if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
     uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_audio_callback_t* callback = (struct srv_audio_callback_t*)malloc(sizeof(struct srv_audio_callback_t));
     callback->Self = self;

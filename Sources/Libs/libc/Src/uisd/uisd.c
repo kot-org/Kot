@@ -49,7 +49,7 @@ KResult CallbackUISD(uint64_t Task, KResult Status, uisd_callbackInfo_t* Info, u
 
 uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t* Location, bool AwaitCallback){
     if(!CallBackUISDThread) InitializeUISD();
-    thread_t Self = Sys_Getthread();
+    thread_t Self = Sys_GetThread();
     uisd_callbackInfo_t* Info = (uisd_callbackInfo_t*)malloc(sizeof(uisd_callbackInfo_t));
     Info->Self = Self;
     Info->Controller = Controller;
@@ -75,7 +75,7 @@ uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintp
 
 uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ksmem_t MemoryField, bool AwaitCallback){
     if(!CallBackUISDThread) InitializeUISD();
-    thread_t Self = Sys_Getthread();
+    thread_t Self = Sys_GetThread();
     uisd_callbackInfo_t* Info = malloc(sizeof(uisd_callbackInfo_t));
     Info->Self = Self;
     Info->Controller = Controller;

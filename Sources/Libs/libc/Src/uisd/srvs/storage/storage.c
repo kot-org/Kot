@@ -37,7 +37,7 @@ KResult Srv_Storage_AddDevice_Callback(KResult Status, struct srv_storage_callba
 struct srv_storage_callback_t* Srv_Storage_AddDevice(struct srv_storage_device_info_t* Info, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -76,7 +76,7 @@ KResult Srv_Storage_RemoveDevice_Callback(KResult Status, struct srv_storage_cal
 struct srv_storage_callback_t* Srv_Storage_RemoveDevice(uint64_t Index, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -109,7 +109,7 @@ KResult Srv_Storage_NotifyOnNewPartitionByGUIDType_Callback(KResult Status, stru
 struct srv_storage_callback_t* Srv_Storage_NotifyOnNewPartitionByGUIDType(GUID_t* PartitionTypeGUID, thread_t ThreadToNotify, process_t ProcessToNotify, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     thread_t shareabbleThreadToNotify = MakeShareableThreadToProcess(ThreadToNotify, StorageData->ControllerHeader.Process);
 
@@ -149,7 +149,7 @@ KResult Srv_Storage_MountPartition_Callback(KResult Status, struct srv_storage_c
 struct srv_storage_callback_t* Srv_Storage_MountPartition(thread_t VFSMountThread, struct srv_storage_fs_server_functions_t* FSServerFunctions, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -186,7 +186,7 @@ KResult Srv_Storage_UnmountPartition_Callback(KResult Status, struct srv_storage
 struct srv_storage_callback_t* Srv_Storage_UnmountPartition(thread_t VFSUnmountThread, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -222,7 +222,7 @@ KResult Srv_Storage_VFSLoginApp_Callback(KResult Status, struct srv_storage_call
 struct srv_storage_callback_t* Srv_Storage_VFSLoginApp(process_t Process, authorization_t Authorization, permissions_t Permissions, char* Path, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -263,7 +263,7 @@ KResult Srv_Storage_Removefile_Callback(KResult Status, struct srv_storage_callb
 struct srv_storage_callback_t* Srv_Storage_Removefile(char* Path, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -308,7 +308,7 @@ KResult Srv_Storage_Openfile_Callback(KResult Status, struct srv_storage_callbac
 struct srv_storage_callback_t* Srv_Storage_Openfile(char* Path, permissions_t Permissions, process_t Target, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -347,7 +347,7 @@ KResult Srv_Storage_Rename_Callback(KResult Status, struct srv_storage_callback_
 struct srv_storage_callback_t* Srv_Storage_Rename(char* OldPath, char* NewPath, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -402,7 +402,7 @@ KResult Srv_Storage_DirCreate_Callback(KResult Status, struct srv_storage_callba
 struct srv_storage_callback_t* Srv_Storage_DirCreate(char* Path, mode_t Mode, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -440,7 +440,7 @@ KResult Srv_Storage_DirRemove_Callback(KResult Status, struct srv_storage_callba
 struct srv_storage_callback_t* Srv_Storage_DirRemove(char* Path, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -485,7 +485,7 @@ KResult Srv_Storage_DirOpen_Callback(KResult Status, struct srv_storage_callback
 struct srv_storage_callback_t* Srv_Storage_DirOpen(char* Path, process_t Target, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -526,7 +526,7 @@ KResult Srv_Storage_Closefile_Callback(KResult Status, struct srv_storage_callba
 struct srv_storage_callback_t* Srv_Storage_Closefile(file_t* File, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -561,7 +561,7 @@ KResult Srv_Storage_Getfilesize_Callback(KResult Status, struct srv_storage_call
 struct srv_storage_callback_t* Srv_Storage_Getfilesize(file_t* File, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -600,7 +600,7 @@ KResult Srv_Storage_Readfile_Callback(KResult Status, struct srv_storage_callbac
 struct srv_storage_callback_t* Srv_Storage_Readfile(file_t* File, uintptr_t Buffer, uint64_t Start, size64_t Size, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -634,7 +634,7 @@ KResult Srv_Storage_Writefile_Callback(KResult Status, struct srv_storage_callba
 struct srv_storage_callback_t* Srv_Storage_Writefile(file_t* File, uintptr_t Buffer, uint64_t Start, size64_t Size, bool IsDataEnd, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -682,7 +682,7 @@ KResult Srv_Storage_Closedir_Callback(KResult Status, struct srv_storage_callbac
 struct srv_storage_callback_t* Srv_Storage_Closedir(directory_t* Dir, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -717,7 +717,7 @@ KResult Srv_Storage_Getdircount_Callback(KResult Status, struct srv_storage_call
 struct srv_storage_callback_t* Srv_Storage_Getdircount(directory_t* Dir, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -753,7 +753,7 @@ KResult Srv_Storage_Readdir_Callback(KResult Status, struct srv_storage_callback
 struct srv_storage_callback_t* Srv_Storage_Readdir(directory_t* Dir, uint64_t IndexStart, size64_t IndexNumber, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
@@ -787,7 +787,7 @@ KResult Srv_Storage_NewDev_Callback(KResult Status, struct srv_storage_callback_
 struct srv_storage_callback_t* Srv_Storage_NewDev(char* Name, struct srv_storage_fs_server_functions_t* FSServerFunctions, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;

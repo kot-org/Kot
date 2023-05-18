@@ -42,7 +42,7 @@ namespace Kot{
         if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
         uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_audio_callback_t* callback = (struct srv_audio_callback_t*)malloc(sizeof(struct srv_audio_callback_t));
         callback->Self = self;
@@ -74,7 +74,7 @@ namespace Kot{
         if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
         uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_audio_callback_t* callback = (struct srv_audio_callback_t*)malloc(sizeof(struct srv_audio_callback_t));
         callback->Self = self;
@@ -122,7 +122,7 @@ namespace Kot{
         if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
         uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_audio_callback_t* callback = (struct srv_audio_callback_t*)malloc(sizeof(struct srv_audio_callback_t));
         callback->Self = self;
@@ -154,7 +154,7 @@ namespace Kot{
         if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
         uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_audio_callback_t* callback = (struct srv_audio_callback_t*)malloc(sizeof(struct srv_audio_callback_t));
         callback->Self = self;
@@ -190,7 +190,7 @@ namespace Kot{
         if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
         uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_audio_callback_t* callback = (struct srv_audio_callback_t*)malloc(sizeof(struct srv_audio_callback_t));
         callback->Self = self;
@@ -225,7 +225,7 @@ namespace Kot{
         if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
         uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_audio_callback_t* callback = (struct srv_audio_callback_t*)malloc(sizeof(struct srv_audio_callback_t));
         callback->Self = self;

@@ -37,7 +37,7 @@ namespace Kot{
         if(!SrvTimeCallbackThread) Srv_Time_Initialize();
         uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_time_callback_t* callback = (struct srv_time_callback_t*)malloc(sizeof(struct srv_time_callback_t));
         callback->Self = self;
@@ -79,7 +79,7 @@ namespace Kot{
         if(!SrvTimeCallbackThread) Srv_Time_Initialize();
         uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_time_callback_t* callback = (struct srv_time_callback_t*)malloc(sizeof(struct srv_time_callback_t));
         callback->Self = self;

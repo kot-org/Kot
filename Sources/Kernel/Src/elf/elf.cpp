@@ -93,7 +93,7 @@ namespace ELF{
                     }
 
                     uintptr_t physicalPage = NULL;
-                    if(!vmm_GetFlags(mainthread->Paging, (uintptr_t)virtualAddressIterator, vmm_PhysicalStorage)){
+                    if(!vmm_GetFlags(mainthread->Paging, (uintptr_t)virtualAddressIterator, vmm_Present)){
                         physicalPage = Pmm_RequestPage();
                         vmm_Map(mainthread->Paging, (uintptr_t)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
                         physicalPage = (uintptr_t)((uint64_t)physicalPage + alignement);
@@ -121,7 +121,7 @@ namespace ELF{
                     }
                 
                     uintptr_t physicalPage = NULL;
-                    if(!vmm_GetFlags(mainthread->Paging, (uintptr_t)virtualAddressIterator, vmm_PhysicalStorage)){
+                    if(!vmm_GetFlags(mainthread->Paging, (uintptr_t)virtualAddressIterator, vmm_Present)){
                         physicalPage = Pmm_RequestPage();
                         vmm_Map(mainthread->Paging, (uintptr_t)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
                     }else{

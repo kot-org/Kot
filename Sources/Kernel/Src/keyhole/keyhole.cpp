@@ -71,7 +71,7 @@ KResult Keyhole_Verify(kthread_t* caller, key_t key, enum DataType type){
     if(!CheckAddress((uintptr_t)lock, sizeof(lock_t))) return KFAIL;
     if(lock->Signature0 != 'L' || lock->Signature1 != 'O' || lock->Signature2 != 'K') return KFAIL;
     if(lock->Target != NULL){
-        if(lock->Target != caller->Parent) return KFAIL;
+        if(lock->Target->PID != caller->Parent->PID) return KFAIL; // Just check the PID, to share key beetween fork process
     }
     if(type != DataTypeUnknow){
         if(lock->Type != type) return KFAIL;            
@@ -84,13 +84,10 @@ KResult Keyhole_Verify(kthread_t* caller, key_t key, enum DataType type){
     
     uint64_t VirtualAddress = (uint64_t)vmm_GetVirtualAddress(lock->Parent->SharedPaging);
     
-    if(!vmm_GetFlags(lock->Parent->SharedPaging, (uintptr_t)VirtualAddress, vmm_flag::vmm_Master) || !vmm_GetFlags(lock->Parent->SharedPaging, (uintptr_t)VirtualAddress, vmm_flag::vmm_PhysicalStorage) || !vmm_GetFlags(lock->Parent->SharedPaging, (uintptr_t)VirtualAddress, vmm_flag::vmm_Slave)) return KFAIL;
-    
     uint64_t PageAddress = lock->Address - (lock->Address % PAGE_SIZE);
     uint64_t Offset = (lock->Address % PAGE_SIZE) / sizeof(uint64_t);
     if(!vmm_GetFlags(lock->Parent->SharedPaging, (uintptr_t)PageAddress, vmm_flag::vmm_Present)) return KFAIL;
     lockreference_t* AccessAddress = (lockreference_t*)(vmm_GetVirtualAddress(vmm_GetPhysical(lock->Parent->SharedPaging, (uintptr_t)PageAddress)));
-    if(AccessAddress->LockOffset[Offset] != lock) return KFAIL;
     return KSUCCESS;
 }
 

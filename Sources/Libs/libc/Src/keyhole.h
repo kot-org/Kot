@@ -20,6 +20,7 @@
 /* DataTypeProcess */
 #define KeyholeFlagDataTypeProcessMemoryAccessible          (1 << 4)
 #define KeyholeFlagDataTypeProcessIsThreadCreateable        (1 << 5)
+#define KeyholeFlagDataTypeProcessIsForkable                (1 << 6)
 
 /* DataTypeEvent */
 #define KeyholeFlagDataTypeEventIsBindable                  (1 << 4)

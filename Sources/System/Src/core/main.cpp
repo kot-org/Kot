@@ -12,7 +12,7 @@ extern "C" int main(KernelInfo* kernelInfo) {
 
     proc = Sys_GetProcess();
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     // parse file system
     initrd::Parse((uintptr_t)kernelInfo->initrd.base, kernelInfo->initrd.size);

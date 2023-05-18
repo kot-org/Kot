@@ -23,7 +23,7 @@ enum vmm_flag{
     vmm_Accessed        = 5,
     vmm_LargerPages     = 7,
     vmm_Master          = 9, 
-    vmm_PhysicalStorage = 10,
+    vmm_IsPureMemory    = 10,
     vmm_Slave           = 11,
 };
 
@@ -55,7 +55,7 @@ void vmm_Map(uint64_t Address, uint64_t physicalAddress);
 void vmm_Map(pagetable_t table, uint64_t Address, uint64_t physicalAddress);
 void vmm_Map(pagetable_t table, uint64_t Address, uint64_t physicalAddress, bool user);
 void vmm_Map(pagetable_t table, uint64_t Address, uint64_t physicalAddress, bool user, bool readWrite);
-void vmm_Map(pagetable_t table, uint64_t Address, uint64_t physicalAddress, bool user, bool readWrite, bool physicalStorage);
+void vmm_Map(pagetable_t table, uint64_t Address, uint64_t physicalAddress, bool user, bool readWrite, bool isPureMemory);
 
 void vmm_Unmap(uint64_t Address);
 void vmm_Unmap(pagetable_t table, uint64_t Address);

@@ -14,7 +14,7 @@ enum vmm_flag{
     vmm_Accessed        = 5,
     vmm_LargerPages     = 7,
     vmm_Master          = 9, 
-    vmm_PhysicalStorage = 10,
+    vmm_IsPureMemory = 10,
     vmm_Slave           = 11,
 };
 
@@ -47,7 +47,7 @@ void vmm_Map(uintptr_t Address, uintptr_t physicalAddress);
 void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress);
 void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bool user);
 void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bool user, bool readWrite);
-void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bool user, bool readWrite, bool physicalStorage);
+void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bool user, bool readWrite, bool isPureMemory);
 
 void vmm_Unmap(uintptr_t Address);
 void vmm_Unmap(pagetable_t table, uintptr_t Address);
@@ -65,10 +65,13 @@ pagetable_t vmm_Setupthread(pagetable_t parent);
 uint64_t vmm_CopyProcessMemory(pagetable_t dst, pagetable_t src);
 void vmm_ClearMemory(pagetable_t src);
 
+void vmm_ForkMemory(struct kprocess_t* Parent, struct kprocess_t* Child);
+bool vmm_MapFork(pagetable_t Table, uint64_t Address);
+
 #define VMM_STARTRHALF 0x0
 #define VMM_LOWERHALF 0x100
 #define VMM_HIGHERALF 0x200
-#define VMM_MAXLEVEL 0x4
+#define VMM_MAXLEVEL 0x4 
 #define VMM_LEVELENTRY 0x200
 #define vmm_GetVirtualAddress(PhysicalAddress)((uint64_t)PhysicalAddress + vmm_HHDMAdress)
 

@@ -37,7 +37,7 @@ namespace Kot{
             return ENOSYS;
         }
         void *entry;
-        Sys_Thread_Info_Get(Sys_Getthread(), 3, (uint64_t*)&entry);
+        Sys_Thread_Info_Get(Sys_GetThread(), 3, (uint64_t*)&entry);
         int ret = mlibc::sys_prepare_stack(&stack, reinterpret_cast<void*>(entry),
                 NULL, new_tcb, &attr.__mlibc_stacksize, &attr.__mlibc_guardsize);
         if (ret)
@@ -102,8 +102,8 @@ namespace Kot{
 namespace mlibc{
     int sys_prepare_stack(void **stack, void *entry, void *user_arg, void *tcb, size_t *stack_size, size_t *guard_size) {
         // We can use this thread because stack is initialized in the same way for every thread
-        Kot::Sys_Thread_Info_Get(Kot::Sys_Getthread(), 1, (uint64_t*)stack);
-        Kot::Sys_Thread_Info_Get(Kot::Sys_Getthread(), 2, stack_size);
+        Kot::Sys_Thread_Info_Get(Kot::Sys_GetThread(), 1, (uint64_t*)stack);
+        Kot::Sys_Thread_Info_Get(Kot::Sys_GetThread(), 2, stack_size);
         *stack = (void*)((uint64_t)*stack - (uint64_t)*stack_size); // mlibc want the first address of the stack
         *guard_size = 0;
         return 0;

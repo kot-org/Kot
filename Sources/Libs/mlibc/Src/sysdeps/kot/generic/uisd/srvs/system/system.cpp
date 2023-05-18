@@ -42,7 +42,7 @@ namespace Kot{
     struct srv_system_callback_t* Srv_System_LoadExecutable(uint64_t Priviledge, char* Path, bool IsAwait){
         if(!srv_system_callback_thread) Srv_System_Initialize();
         
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
         callback->Self = self;
@@ -87,7 +87,7 @@ namespace Kot{
     struct srv_system_callback_t* Srv_System_GetFramebuffer(bool IsAwait){
         if(!srv_system_callback_thread) Srv_System_Initialize();
         
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
         callback->Self = self;
@@ -122,7 +122,7 @@ namespace Kot{
     struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwait){
         if(!srv_system_callback_thread) Srv_System_Initialize();
         
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
         callback->Self = self;
@@ -162,7 +162,7 @@ namespace Kot{
     struct srv_system_callback_t* Srv_System_GetTableInRootSystemDescription(char* Name, bool IsAwait){
         if(!srv_system_callback_thread) Srv_System_Initialize();
         
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
         callback->Self = self;
@@ -202,7 +202,7 @@ namespace Kot{
     struct srv_system_callback_t* Srv_System_GetSystemManagementBIOSTable(bool IsAwait){
         if(!srv_system_callback_thread) Srv_System_Initialize();
         
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
         callback->Self = self;
@@ -232,7 +232,7 @@ namespace Kot{
     struct srv_system_callback_t* Srv_System_BindIRQLine(uint8_t IRQLineNumber, kot_thread_t Target, bool IgnoreMissedEvents, bool IsAwait){
         if(!srv_system_callback_thread) Srv_System_Initialize();
         
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         uint64_t TargetShareKey = NULL;
         Sys_Keyhole_CloneModify(Target, &TargetShareKey, SystemData->ControllerHeader.Process, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsEventable, PriviledgeApp);
@@ -268,7 +268,7 @@ namespace Kot{
     struct srv_system_callback_t* Srv_System_UnbindIRQLine(uint8_t IRQLineNumber, kot_thread_t Target, bool IsAwait){
         if(!srv_system_callback_thread) Srv_System_Initialize();
         
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         uint64_t TargetShareKey = NULL;
         Sys_Keyhole_CloneModify(Target, &TargetShareKey, SystemData->ControllerHeader.Process, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsEventable, PriviledgeApp);
@@ -307,7 +307,7 @@ namespace Kot{
     struct srv_system_callback_t* Srv_System_BindFreeIRQ(kot_thread_t Target, bool IgnoreMissedEvents, bool IsAwait){
         if(!srv_system_callback_thread) Srv_System_Initialize();
         
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         uint64_t TargetShareKey = NULL;
         Sys_Keyhole_CloneModify(Target, &TargetShareKey, SystemData->ControllerHeader.Process, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsEventable, PriviledgeApp);
@@ -346,7 +346,7 @@ namespace Kot{
     struct srv_system_callback_t* Srv_System_UnbindIRQ(uint8_t Vector, kot_thread_t Target, bool IsAwait){
         if(!srv_system_callback_thread) Srv_System_Initialize();
         
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         uint64_t TargetShareKey = NULL;
         Sys_Keyhole_CloneModify(Target, &TargetShareKey, SystemData->ControllerHeader.Process, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsEventable, PriviledgeApp);

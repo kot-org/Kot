@@ -265,7 +265,7 @@ CallbackAudio* ChangeStatus(srv_audio_device_t* Device, enum AudioSetStatus Func
     }
 
     CallbackAudio* Callback = (CallbackAudio*)malloc(sizeof(CallbackAudio));
-    Callback->Self = Sys_Getthread();
+    Callback->Self = Sys_GetThread();
     Callback->Status = KBUSY;
 
     struct arguments_t parameters{

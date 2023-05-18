@@ -28,6 +28,7 @@ namespace Kot{
         kot_process_t ThreadKey;
         kot_process_t ProcessKey;
         uint64_t PID;
+        uint64_t PPID;
         uint64_t TID;
         uint64_t ExternalData_T; /* Thread external data */
         uint64_t ExternalData_P; /* Process external data */
@@ -35,12 +36,14 @@ namespace Kot{
 
         /* Process Creator Info */
         uint64_t PID_PCI;
+        uint64_t PPID_PCI;
         uint64_t TID_PCI;
         uint64_t ExternalData_P_PCI; /* Process external data */
         uint64_t Priviledge_PCI; /* Thread priviledge */
 
         /* Thread Launcher Info */
         uint64_t PID_TLI;
+        uint64_t PPID_TLI;
         uint64_t TID_TLI;
         uint64_t ExternalData_P_TLI; /* Process external data */
         uint64_t Priviledge_TLI; /* Thread priviledge */
@@ -101,7 +104,7 @@ namespace Kot{
     KResult Sys_CloseMemoryField(kot_process_t self, kot_ksmem_t key, uintptr_t address);
     KResult Sys_GetInfoMemoryField(kot_ksmem_t key, uint64_t* typePointer, size64_t* sizePointer);
     KResult Sys_CreateProc(kot_process_t* key, enum Priviledge privilege, uint64_t data);
-    KResult Sys_Fork(kot_process_t* src, kot_process_t* dst);
+    KResult Sys_Fork(kot_process_t* child);
     KResult Sys_CloseProc();
     KResult Sys_Close(uint64_t errorCode);
     KResult Sys_Exit(uint64_t errorCode);
@@ -127,20 +130,23 @@ namespace Kot{
     void Sys_Schedule();
 
 
-    kot_thread_t Sys_Getthread();
+    kot_thread_t Sys_GetThread();
     kot_process_t Sys_GetProcess();
     uint64_t Sys_GetPID();
+    uint64_t Sys_GetPPID();
     uint64_t Sys_GetTID();
     uint64_t Sys_GetExternalDataThread();
     uint64_t Sys_GetExternalDataProcess();
     uint64_t Sys_GetPriviledgeThread();
 
     uint64_t Sys_GetPIDThreadCreator();
+    uint64_t Sys_GetPPIDThreadCreator();
     uint64_t Sys_GetTIDThreadCreator();
     uint64_t Sys_GetExternalDataProcessCreator();
     uint64_t Sys_GetPriviledgeThreadCreator();
 
     uint64_t Sys_GetPIDThreadLauncher();
+    uint64_t Sys_GetPPIDThreadLauncher();
     uint64_t Sys_GetTIDThreadLauncher();
     uint64_t Sys_GetExternalDataProcessLauncher();
     uint64_t Sys_GetPriviledgeThreadLauncher();

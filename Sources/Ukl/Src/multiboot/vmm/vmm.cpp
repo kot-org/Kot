@@ -169,7 +169,7 @@ void vmm_Map(pagetable_t table, uint64_t Address, uint64_t physicalAddress, bool
     vmm_Map(table, Address, physicalAddress, user, readWrite, true);
 }
 
-void vmm_Map(pagetable_t table, uint64_t Address, uint64_t physicalAddress, bool user, bool readWrite, bool physicalStorage){
+void vmm_Map(pagetable_t table, uint64_t Address, uint64_t physicalAddress, bool user, bool readWrite, bool isPureMemory){
     vmm_index indexer = vmm_Index((uint64_t)Address);
     uint64_t PDE;
 
@@ -237,7 +237,7 @@ void vmm_Map(pagetable_t table, uint64_t Address, uint64_t physicalAddress, bool
     vmm_SetAddress(&PDE, (uint64_t)physicalAddress >> 12);
     vmm_SetFlag(&PDE, vmm_flag::vmm_Present, true);
     vmm_SetFlag(&PDE, vmm_flag::vmm_ReadWrite, readWrite);
-    vmm_SetFlag(&PDE, vmm_flag::vmm_PhysicalStorage, physicalStorage);
+    vmm_SetFlag(&PDE, vmm_flag::vmm_IsPureMemory, isPureMemory);
     vmm_SetFlag(&PDE, vmm_flag::vmm_User, user);
     PTVirtualAddress->entries[indexer.P_i] = PDE;
 }

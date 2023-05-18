@@ -46,7 +46,7 @@ KResult Srv_CallbackRequestHandler(KResult Status, struct srv_storage_device_cal
 
 KResult Srv_SendRequest(struct srv_storage_device_t* StorageDevice, uint64_t Start, size64_t Size, bool IsWrite){
     struct srv_storage_device_callback_t* callbackData = (struct srv_storage_device_callback_t*)malloc(sizeof(struct srv_storage_device_callback_t));
-    callbackData->MainThread = Sys_Getthread();
+    callbackData->MainThread = Sys_GetThread();
 
     struct arguments_t Parameters;
     Parameters.arg[0] = StorageDevice->CallbackRequestHandlerThread;
@@ -66,7 +66,7 @@ struct srv_storage_device_callback_t* Srv_SendMultipleRequests(struct srv_storag
     }
     
     struct srv_storage_device_callback_t* callbackData = (struct srv_storage_device_callback_t*)malloc(sizeof(struct srv_storage_device_callback_t));
-    callbackData->MainThread = Sys_Getthread();
+    callbackData->MainThread = Sys_GetThread();
 
     struct arguments_t Parameters;
     Parameters.arg[0] = StorageDevice->CallbackRequestHandlerThread;

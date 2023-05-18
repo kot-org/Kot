@@ -43,7 +43,7 @@ KResult CallbackCreateSpaceHandler(KResult Status, storage_callback_t* CallbackD
 
 KResult storage_device_t::CreateSpace(uint64_t Start, size64_t Size, srv_storage_space_info_t** SpaceInfo){
     storage_callback_t* callbackData = (storage_callback_t*)malloc(sizeof(storage_callback_t));
-    callbackData->MainThread = Sys_Getthread();
+    callbackData->MainThread = Sys_GetThread();
 
     arguments_t parameters;
     parameters.arg[0] = CallbackCreateSpaceHandlerThread;
@@ -63,11 +63,11 @@ KResult CallbackRequestHandler(KResult Status, thread_t MainThread){
 
 KResult storage_device_t::SendRequest(uint64_t Start, size64_t Size, bool IsWrite){
     storage_callback_t* callbackData = (storage_callback_t*)malloc(sizeof(storage_callback_t));
-    callbackData->MainThread = Sys_Getthread();
+    callbackData->MainThread = Sys_GetThread();
 
     arguments_t parameters;
     parameters.arg[0] = CallbackRequestHandlerThread;
-    parameters.arg[1] = Sys_Getthread();
+    parameters.arg[1] = Sys_GetThread();
     parameters.arg[2] = NULL; // Sigle request
     parameters.arg[3] = Start;
     parameters.arg[4] = Size;

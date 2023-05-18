@@ -221,7 +221,7 @@ uint64_t AcceptMemoryField(kthread_t* self, kprocess_t* process, MemoryShareInfo
             /* Allocate child memory */
             if((uint64_t)virtualAddress + pages * PAGE_SIZE < vmm_HHDMAdress){
                 for(uint64_t i = 0; i < pages; i++){
-                    if(!vmm_GetFlags(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_PhysicalStorage)){
+                    if(!vmm_GetFlags(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Present)){
                         vmm_Unmap(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE));
                     }
                 }

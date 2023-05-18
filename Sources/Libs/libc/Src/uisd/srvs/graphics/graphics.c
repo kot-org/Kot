@@ -44,7 +44,7 @@ struct srv_graphics_callback_t* Srv_Graphics_CreateWindow(event_t Event, uint64_
     window_t* Window = (window_t*)malloc(sizeof(window_t));
 
     struct srv_graphics_callback_t* callback = (struct srv_graphics_callback_t*)malloc(sizeof(struct srv_graphics_callback_t));
-    callback->Self = Sys_Getthread();
+    callback->Self = Sys_GetThread();
     callback->Data = Window;
     callback->Size = sizeof(window_t);
     callback->IsAwait = IsAwait;
@@ -82,7 +82,7 @@ struct srv_graphics_callback_t* Srv_Graphics_CloseWindow(window_t* Window, bool 
     if(!srv_graphics_callback_thread) Srv_Graphics_Initialize();
 
     struct srv_graphics_callback_t* callback = (struct srv_graphics_callback_t*)malloc(sizeof(struct srv_graphics_callback_t));
-    callback->Self = Sys_Getthread();
+    callback->Self = Sys_GetThread();
     callback->Data = Window;
     callback->Size = NULL;
     callback->IsAwait = IsAwait;
@@ -117,7 +117,7 @@ struct srv_graphics_callback_t* Srv_Graphics_ResizeWindow(window_t* Window, int6
     if(!srv_graphics_callback_thread) Srv_Graphics_Initialize();
 
     struct srv_graphics_callback_t* callback = (struct srv_graphics_callback_t*)malloc(sizeof(struct srv_graphics_callback_t));
-    callback->Self = Sys_Getthread();
+    callback->Self = Sys_GetThread();
     callback->Data = Window;
     callback->Size = NULL;
     callback->IsAwait = IsAwait;
@@ -153,7 +153,7 @@ struct srv_graphics_callback_t* Srv_Graphics_ChangePostionWindow(window_t* Windo
     if(!srv_graphics_callback_thread) Srv_Graphics_Initialize();
 
     struct srv_graphics_callback_t* callback = (struct srv_graphics_callback_t*)malloc(sizeof(struct srv_graphics_callback_t));
-    callback->Self = Sys_Getthread();
+    callback->Self = Sys_GetThread();
     callback->Data = Window;
     callback->Size = NULL;
     callback->IsAwait = IsAwait;
@@ -188,7 +188,7 @@ struct srv_graphics_callback_t* Srv_Graphics_ChangeVisibility(window_t* Window, 
     if(!srv_graphics_callback_thread) Srv_Graphics_Initialize();
 
     struct srv_graphics_callback_t* callback = (struct srv_graphics_callback_t*)malloc(sizeof(struct srv_graphics_callback_t));
-    callback->Self = Sys_Getthread();
+    callback->Self = Sys_GetThread();
     callback->Data = Window;
     callback->Size = NULL;
     callback->IsAwait = IsAwait;

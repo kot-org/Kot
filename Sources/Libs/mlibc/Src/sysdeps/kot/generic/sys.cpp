@@ -24,6 +24,10 @@ namespace Kot{
         return Syscall_24(KSys_CreateProc, key, privilege, data);
     }
 
+    KResult Sys_Fork(kot_process_t* child){
+        return Syscall_8(KSys_Fork, child);
+    }
+
     KResult Sys_CloseProc(){
         return Syscall_0(KSys_CloseProc);
     }
@@ -111,8 +115,8 @@ namespace Kot{
     void Sys_Schedule(){
         asm("int $0x41");
     }
-    
-    kot_thread_t Sys_Getthread(){
+
+    kot_thread_t Sys_GetThread(){
         /* Get Self Data */
         uint64_t self = NULL;
         asm("mov %%gs:0x0, %0":"=r"(self));
@@ -133,87 +137,108 @@ namespace Kot{
         return PID;
     }
 
+    uint64_t Sys_GetPPID(){
+        /* Get Self Data */
+        uint64_t PPID = NULL;
+        asm("mov %%gs:0x18, %0":"=r"(PPID));
+        return PPID;
+    }
+
     uint64_t Sys_GetTID(){
         /* Get Self Data */
         uint64_t TID = NULL;
-        asm("mov %%gs:0x18, %0":"=r"(TID));
+        asm("mov %%gs:0x20, %0":"=r"(TID));
         return TID;
     }
 
     uint64_t Sys_GetExternalDataThread(){
         /* Get Self Data */
         uint64_t ExternalData = NULL;
-        asm("mov %%gs:0x20, %0":"=r"(ExternalData));
+        asm("mov %%gs:0x28, %0":"=r"(ExternalData));
         return ExternalData;
     }
 
     uint64_t Sys_GetExternalDataProcess(){
         /* Get Self Data */
         uint64_t ExternalData = NULL;
-        asm("mov %%gs:0x28, %0":"=r"(ExternalData));
+        asm("mov %%gs:0x30, %0":"=r"(ExternalData));
         return ExternalData;
     }
 
     uint64_t Sys_GetPriviledgeThread(){
         /* Get Self Data */
         uint64_t Priviledge = NULL;
-        asm("mov %%gs:0x30, %0":"=r"(Priviledge));
+        asm("mov %%gs:0x38, %0":"=r"(Priviledge));
         return Priviledge;
     }
 
     uint64_t Sys_GetPIDThreadCreator(){
         /* Get Self Data */
         uint64_t PID = NULL;
-        asm("mov %%gs:0x38, %0":"=r"(PID));
+        asm("mov %%gs:0x40, %0":"=r"(PID));
         return PID;
+    }
+
+    uint64_t Sys_GetPPIDThreadCreator(){
+        /* Get Self Data */
+        uint64_t PPID = NULL;
+        asm("mov %%gs:0x48, %0":"=r"(PPID));
+        return PPID;
     }
 
     uint64_t Sys_GetTIDThreadCreator(){
         /* Get Self Data */
         uint64_t TID = NULL;
-        asm("mov %%gs:0x40, %0":"=r"(TID));
+        asm("mov %%gs:0x50, %0":"=r"(TID));
         return TID;
     }
 
     uint64_t Sys_GetExternalDataProcessCreator(){
         /* Get Self Data */
         uint64_t ExternalData = NULL;
-        asm("mov %%gs:0x48, %0":"=r"(ExternalData));
+        asm("mov %%gs:0x58, %0":"=r"(ExternalData));
         return ExternalData;
     }
 
     uint64_t Sys_GetPriviledgeThreadCreator(){
         /* Get Self Data */
         uint64_t Priviledge = NULL;
-        asm("mov %%gs:0x50, %0":"=r"(Priviledge));
+        asm("mov %%gs:0x60, %0":"=r"(Priviledge));
         return Priviledge;
     }
 
     uint64_t Sys_GetPIDThreadLauncher(){
         /* Get Self Data */
         uint64_t PID = NULL;
-        asm("mov %%gs:0x58, %0":"=r"(PID));
+        asm("mov %%gs:0x68, %0":"=r"(PID));
         return PID;
+    }
+
+    uint64_t Sys_GetPPIDThreadLauncher(){
+        /* Get Self Data */
+        uint64_t PPID = NULL;
+        asm("mov %%gs:0x70, %0":"=r"(PPID));
+        return PPID;
     }
 
     uint64_t Sys_GetTIDThreadLauncher(){
         /* Get Self Data */
         uint64_t TID = NULL;
-        asm("mov %%gs:0x60, %0":"=r"(TID));
+        asm("mov %%gs:0x78, %0":"=r"(TID));
         return TID;
     }
 
     uint64_t Sys_GetExternalDataProcessLauncher(){
         /* Get Self Data */
         uint64_t ExternalData = NULL;
-        asm("mov %%gs:0x68, %0":"=r"(ExternalData));
+        asm("mov %%gs:0x80, %0":"=r"(ExternalData));
         return ExternalData;
     }
 
     uint64_t Sys_GetPriviledgeThreadLauncher(){
         /* Get Self Data */
         uint64_t Priviledge = NULL;
-        asm("mov %%gs:0x70, %0":"=r"(Priviledge));
+        asm("mov %%gs:0x88, %0":"=r"(Priviledge));
         return Priviledge;
     }
 }

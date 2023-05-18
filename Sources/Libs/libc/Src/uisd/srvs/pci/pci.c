@@ -34,7 +34,7 @@ struct srv_pci_callback_t* Srv_Pci_CountDevices(srv_pci_search_parameters_t* Sea
     if(!SrvPciCallbackThread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
     callback->Self = self;
@@ -73,7 +73,7 @@ struct srv_pci_callback_t* Srv_Pci_FindDevice(srv_pci_search_parameters_t* Searc
     if(!SrvPciCallbackThread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
     callback->Self = self;
@@ -115,7 +115,7 @@ struct srv_pci_callback_t* Srv_Pci_GetInfoDevice(PCIDeviceID_t Device, bool IsAw
     if(!SrvPciCallbackThread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
     callback->Self = self;
@@ -151,7 +151,7 @@ struct srv_pci_callback_t* Srv_Pci_GetBAR(PCIDeviceID_t Device, uint8_t BarIndex
     if(!SrvPciCallbackThread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
     callback->Self = self;
@@ -187,7 +187,7 @@ struct srv_pci_callback_t* Srv_Pci_BindMSI(PCIDeviceID_t Device, uint8_t IRQVect
     if(!SrvPciCallbackThread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
     callback->Self = self;
@@ -222,7 +222,7 @@ struct srv_pci_callback_t* Srv_Pci_UnbindMSI(PCIDeviceID_t Device, uint16_t Loca
     if(!SrvPciCallbackThread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
     callback->Self = self;
@@ -259,7 +259,7 @@ struct srv_pci_callback_t* Srv_Pci_ConfigReadWord(PCIDeviceID_t Device, uint16_t
     if(!SrvPciCallbackThread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
     callback->Self = self;
@@ -292,7 +292,7 @@ struct srv_pci_callback_t* Srv_Pci_ConfigWriteWord(PCIDeviceID_t Device, uint16_
     if(!SrvPciCallbackThread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
     callback->Self = self;

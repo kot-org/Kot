@@ -38,7 +38,7 @@ namespace Kot{
         if(!SrvPciCallbackThread) Srv_Pci_Initialize();
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
         callback->Self = self;
@@ -77,7 +77,7 @@ namespace Kot{
         if(!SrvPciCallbackThread) Srv_Pci_Initialize();
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
         callback->Self = self;
@@ -119,7 +119,7 @@ namespace Kot{
         if(!SrvPciCallbackThread) Srv_Pci_Initialize();
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
         callback->Self = self;
@@ -155,7 +155,7 @@ namespace Kot{
         if(!SrvPciCallbackThread) Srv_Pci_Initialize();
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
         callback->Self = self;
@@ -191,7 +191,7 @@ namespace Kot{
         if(!SrvPciCallbackThread) Srv_Pci_Initialize();
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
         callback->Self = self;
@@ -226,7 +226,7 @@ namespace Kot{
         if(!SrvPciCallbackThread) Srv_Pci_Initialize();
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
         callback->Self = self;
@@ -263,7 +263,7 @@ namespace Kot{
         if(!SrvPciCallbackThread) Srv_Pci_Initialize();
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
         callback->Self = self;
@@ -296,7 +296,7 @@ namespace Kot{
         if(!SrvPciCallbackThread) Srv_Pci_Initialize();
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
-        kot_thread_t self = Sys_Getthread();
+        kot_thread_t self = Sys_GetThread();
 
         struct srv_pci_callback_t* callback = (struct srv_pci_callback_t*)malloc(sizeof(struct srv_pci_callback_t));
         callback->Self = self;

@@ -38,7 +38,7 @@ KResult Srv_System_LoadExecutable_Callback(KResult Status, struct srv_system_cal
 struct srv_system_callback_t* Srv_System_LoadExecutable(uint64_t Priviledge, char* Path, bool IsAwait){
     if(!srv_system_callback_thread) Srv_System_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
     callback->Self = self;
@@ -83,7 +83,7 @@ KResult Srv_System_GetFramebuffer_Callback(KResult Status, struct srv_system_cal
 struct srv_system_callback_t* Srv_System_GetFramebuffer(bool IsAwait){
     if(!srv_system_callback_thread) Srv_System_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
     callback->Self = self;
@@ -118,7 +118,7 @@ KResult Srv_System_ReadFileInitrd_Callback(KResult Status, struct srv_system_cal
 struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwait){
     if(!srv_system_callback_thread) Srv_System_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
     callback->Self = self;
@@ -158,7 +158,7 @@ KResult Srv_System_GetTableInRootSystemDescription_Callback(KResult Status, stru
 struct srv_system_callback_t* Srv_System_GetTableInRootSystemDescription(char* Name, bool IsAwait){
     if(!srv_system_callback_thread) Srv_System_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
     callback->Self = self;
@@ -198,7 +198,7 @@ KResult Srv_System_GetSystemManagementBIOSTable_Callback(KResult Status, struct 
 struct srv_system_callback_t* Srv_System_GetSystemManagementBIOSTable(bool IsAwait){
     if(!srv_system_callback_thread) Srv_System_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     struct srv_system_callback_t* callback = (struct srv_system_callback_t*)malloc(sizeof(struct srv_system_callback_t));
     callback->Self = self;
@@ -228,7 +228,7 @@ KResult Srv_System_BindIRQLine_Callback(KResult Status, struct srv_system_callba
 struct srv_system_callback_t* Srv_System_BindIRQLine(uint8_t IRQLineNumber, thread_t Target, bool IgnoreMissedEvents, bool IsAwait){
     if(!srv_system_callback_thread) Srv_System_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     uint64_t TargetShareKey = NULL;
     Sys_Keyhole_CloneModify(Target, &TargetShareKey, SystemData->ControllerHeader.Process, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsEventable, PriviledgeApp);
@@ -264,7 +264,7 @@ KResult Srv_System_UnbindIRQLine_Callback(KResult Status, struct srv_system_call
 struct srv_system_callback_t* Srv_System_UnbindIRQLine(uint8_t IRQLineNumber, thread_t Target, bool IsAwait){
     if(!srv_system_callback_thread) Srv_System_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     uint64_t TargetShareKey = NULL;
     Sys_Keyhole_CloneModify(Target, &TargetShareKey, SystemData->ControllerHeader.Process, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsEventable, PriviledgeApp);
@@ -303,7 +303,7 @@ KResult Srv_System_BindFreeIRQ_Callback(KResult Status, struct srv_system_callba
 struct srv_system_callback_t* Srv_System_BindFreeIRQ(thread_t Target, bool IgnoreMissedEvents, bool IsAwait){
     if(!srv_system_callback_thread) Srv_System_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     uint64_t TargetShareKey = NULL;
     Sys_Keyhole_CloneModify(Target, &TargetShareKey, SystemData->ControllerHeader.Process, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsEventable, PriviledgeApp);
@@ -342,7 +342,7 @@ KResult Srv_System_UnbindIRQ_Callback(KResult Status, struct srv_system_callback
 struct srv_system_callback_t* Srv_System_UnbindIRQ(uint8_t Vector, thread_t Target, bool IsAwait){
     if(!srv_system_callback_thread) Srv_System_Initialize();
     
-    thread_t self = Sys_Getthread();
+    thread_t self = Sys_GetThread();
 
     uint64_t TargetShareKey = NULL;
     Sys_Keyhole_CloneModify(Target, &TargetShareKey, SystemData->ControllerHeader.Process, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsEventable, PriviledgeApp);

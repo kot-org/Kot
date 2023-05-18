@@ -100,19 +100,19 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
 }
 
 void ExceptionHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
+    // Try to recover exception
+    if(Registers->InterruptNumber == Exception_PageFault){
+        if(PageFaultHandler(Cr2, Registers, CoreID)){
+            return;
+        }
+        Error("Page fault at 0x%x", Cr2);
+    }
     // If exception come from kernel we can't recover it
-    if(CPU::GetCodeRing(Registers) == KernelRing){ 
+    if(CPU::GetCodeRing(Registers) == KernelRing){
         KernelUnrecovorable(Cr2, Registers, CoreID);
     }else{
         // Try to recover exception
-        if(Registers->InterruptNumber == Exception_PageFault){
-            if(PageFaultHandler(Cr2, Registers, CoreID)){
-                return;
-            }
-            Error("Page fault at 0x%x", Cr2);
-        }
-
-        Error("Thread error, PID : 0x%x | TID : 0x%x \nWith exception : '%s' | Error code : 0x%x", Registers->threadInfo->thread->Parent->PID, Registers->threadInfo->thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
+        Error("Thread error, PID : 0x%x | PPID : 0x%x | TID : 0x%x \nWith exception : '%s' | Error code : 0x%x", Registers->threadInfo->thread->Parent->PID, Registers->threadInfo->thread->Parent->PPID, Registers->threadInfo->thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
         PrintRegisters(Registers);
         if(Registers->threadInfo->thread->IsEvent){
             Event::Close(Registers, Registers->threadInfo->thread);
@@ -124,7 +124,7 @@ void ExceptionHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
 
 bool PageFaultHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
     if(Registers->threadInfo != NULL){
-        return Registers->threadInfo->thread->ExtendStack((uint64_t)Cr2);
+        return Registers->threadInfo->thread->PageFaultHandler(((Registers->ErrorCode & (1 << 1)) >> 1), (uint64_t)Cr2);
     }
     return false;
 }

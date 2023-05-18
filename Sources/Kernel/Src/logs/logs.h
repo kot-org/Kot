@@ -4,7 +4,7 @@
 #include <arch/x86-64/io/serial/serial.h>
 
 void Message(const char* str, ...);
-void MessageProcess(const char* str, uint64_t charNum, uint64_t PID, uint64_t TID);
+void MessageProcess(const char* str, uint64_t charNum, uint64_t PID, uint64_t PPID, uint64_t TID);
 void Successful(const char* str, ...);
 void Warning(const char* str, ...);
 void Error(const char* str, ...);

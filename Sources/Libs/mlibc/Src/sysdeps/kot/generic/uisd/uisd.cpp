@@ -56,7 +56,7 @@ namespace Kot{
 
     uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t* Location, bool AwaitCallback){
         if(!CallBackUISDThread) InitializeUISD();
-        kot_thread_t Self = Sys_Getthread();
+        kot_thread_t Self = Sys_GetThread();
         uisd_callbackInfo_t* Info = (uisd_callbackInfo_t*)malloc(sizeof(uisd_callbackInfo_t));
         Info->Self = Self;
         Info->Controller = Controller;
@@ -82,7 +82,7 @@ namespace Kot{
 
     uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, kot_ksmem_t MemoryField, bool AwaitCallback){
         if(!CallBackUISDThread) InitializeUISD();
-        kot_thread_t Self = Sys_Getthread();
+        kot_thread_t Self = Sys_GetThread();
         uisd_callbackInfo_t* Info = (uisd_callbackInfo_t*)malloc(sizeof(uisd_callbackInfo_t));
         Info->Self = Self;
         Info->Controller = Controller;

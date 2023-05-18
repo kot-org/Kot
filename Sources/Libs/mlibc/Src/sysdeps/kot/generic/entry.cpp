@@ -19,7 +19,7 @@ extern "C" uintptr_t *__dlapi_entrystack();
 extern "C" void __dlapi_enter(uintptr_t *);
 
 extern char **environ;
-static mlibc::exec_stack_data __mlibc_stack_data;
+mlibc::exec_stack_data __mlibc_stack_data;
 
 struct LibraryGuard {
 	LibraryGuard();

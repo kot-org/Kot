@@ -5,10 +5,15 @@
 #include <bits/ensure.h>
 #include <frg/vector.hpp>
 #include <mlibc/debug.hpp>
+#include <mlibc/elf/startup.h>
 #include <mlibc/allocator.hpp>
 #include <kot/uisd/srvs/time.h>
 #include <mlibc/all-sysdeps.hpp>
 #include <kot/uisd/srvs/system.h>
+
+
+extern char **environ;
+extern mlibc::exec_stack_data __mlibc_stack_data;
 
 namespace mlibc{
     void sys_libc_log(const char *message){
@@ -22,7 +27,7 @@ namespace mlibc{
     }
 
     int sys_tcb_set(void *pointer){
-        return (Kot::Sys_SetTCB(Kot::Sys_Getthread(), (uintptr_t)pointer) != KSUCCESS);
+        return (Kot::Sys_SetTCB(Kot::Sys_GetThread(), (uintptr_t)pointer) != KSUCCESS);
     }
 
     int sys_futex_tid(){
@@ -58,7 +63,7 @@ namespace mlibc{
     }
 
     int sys_vm_unmap(void *pointer, size_t size){
-        return (Kot::Sys_Unmap(Kot::Sys_Getthread(), (uintptr_t)pointer, static_cast<size64_t>(size)) != KSUCCESS);
+        return (Kot::Sys_Unmap(Kot::Sys_GetThread(), (uintptr_t)pointer, static_cast<size64_t>(size)) != KSUCCESS);
     }
 
     int sys_vm_protect(void *pointer, size_t size, int prot){
@@ -109,8 +114,18 @@ namespace mlibc{
     }
 
     int sys_fork(pid_t *child){
-        // TODO
-        __ensure(!"Not implemented");
+        kot_process_t ProcessChild;
+        KResult Status = Kot::Sys_Fork((kot_process_t*)&ProcessChild);
+
+        if(Status != KSUCCESS) return -1;
+
+
+        if(Kot::Sys_GetPPID()){
+            *child = NULL;
+        }else{
+            *child = ProcessChild;
+        }
+        return (Status != KSUCCESS);
     }
 
     int sys_waitpid(pid_t pid, int *status, int flags, struct rusage *ru, pid_t *ret_pid){

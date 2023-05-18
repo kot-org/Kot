@@ -48,7 +48,7 @@ namespace Kot{
         window_t* Window = (window_t*)malloc(sizeof(window_t));
 
         struct srv_graphics_callback_t* callback = (struct srv_graphics_callback_t*)malloc(sizeof(struct srv_graphics_callback_t));
-        callback->Self = Sys_Getthread();
+        callback->Self = Sys_GetThread();
         callback->Data = (uint64_t)Window;
         callback->Size = sizeof(window_t);
         callback->IsAwait = IsAwait;
@@ -86,7 +86,7 @@ namespace Kot{
         if(!srv_graphics_callback_thread) Srv_Graphics_Initialize();
 
         struct srv_graphics_callback_t* callback = (struct srv_graphics_callback_t*)malloc(sizeof(struct srv_graphics_callback_t));
-        callback->Self = Sys_Getthread();
+        callback->Self = Sys_GetThread();
         callback->Data = (uint64_t)Window;
         callback->Size = NULL;
         callback->IsAwait = IsAwait;
@@ -121,7 +121,7 @@ namespace Kot{
         if(!srv_graphics_callback_thread) Srv_Graphics_Initialize();
 
         struct srv_graphics_callback_t* callback = (struct srv_graphics_callback_t*)malloc(sizeof(struct srv_graphics_callback_t));
-        callback->Self = Sys_Getthread();
+        callback->Self = Sys_GetThread();
         callback->Data = (uint64_t)Window;
         callback->Size = NULL;
         callback->IsAwait = IsAwait;
@@ -157,7 +157,7 @@ namespace Kot{
         if(!srv_graphics_callback_thread) Srv_Graphics_Initialize();
 
         struct srv_graphics_callback_t* callback = (struct srv_graphics_callback_t*)malloc(sizeof(struct srv_graphics_callback_t));
-        callback->Self = Sys_Getthread();
+        callback->Self = Sys_GetThread();
         callback->Data = (uint64_t)Window;
         callback->Size = NULL;
         callback->IsAwait = IsAwait;
@@ -192,7 +192,7 @@ namespace Kot{
         if(!srv_graphics_callback_thread) Srv_Graphics_Initialize();
 
         struct srv_graphics_callback_t* callback = (struct srv_graphics_callback_t*)malloc(sizeof(struct srv_graphics_callback_t));
-        callback->Self = Sys_Getthread();
+        callback->Self = Sys_GetThread();
         callback->Data = (uint64_t)Window;
         callback->Size = NULL;
         callback->IsAwait = IsAwait;

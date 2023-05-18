@@ -39,6 +39,7 @@ struct SelfData{
     process_t ThreadKey;
     process_t ProcessKey;
     uint64_t PID;
+    uint64_t PPID;
     uint64_t TID;
     uint64_t ExternalData_T; /* Thread external data */
     uint64_t ExternalData_P; /* Process external data */
@@ -46,12 +47,14 @@ struct SelfData{
 
     /* Process Creator Info */
     uint64_t PID_PCI;
+    uint64_t PPID_PCI;
     uint64_t TID_PCI;
     uint64_t ExternalData_P_PCI; /* Process external data */
     uint64_t Priviledge_PCI; /* Thread priviledge */
 
     /* Thread Launcher Info */
     uint64_t PID_TLI;
+    uint64_t PPID_TLI;
     uint64_t TID_TLI;
     uint64_t ExternalData_P_TLI; /* Process external data */
     uint64_t Priviledge_TLI; /* Thread priviledge */
@@ -112,7 +115,7 @@ KResult Sys_AcceptMemoryField(process_t self, ksmem_t key, uintptr_t* virtualAdd
 KResult Sys_CloseMemoryField(process_t self, ksmem_t key, uintptr_t address);
 KResult Sys_GetInfoMemoryField(ksmem_t key, uint64_t* typePointer, size64_t* sizePointer);
 KResult Sys_CreateProc(process_t* key, enum Priviledge privilege, uint64_t data);
-KResult Sys_Fork(process_t* src, process_t* dst);
+KResult Sys_Fork(process_t* child);
 KResult Sys_CloseProc();
 KResult Sys_Close(uint64_t errorCode);
 KResult Sys_Exit(uint64_t errorCode);
@@ -138,7 +141,7 @@ KResult Sys_Logs(char* message, size64_t size);
 void Sys_Schedule();
 
 
-thread_t Sys_Getthread();
+thread_t Sys_GetThread();
 process_t Sys_GetProcess();
 uint64_t Sys_GetPID();
 uint64_t Sys_GetTID();

@@ -39,6 +39,7 @@ struct StackInfo{
     /* stack is also use for TLS */
     uint64_t StackStart;
     uint64_t StackEndMax;
+    uint64_t LastStackUsed;
 }__attribute__((packed));
 
 struct ThreadQueu_t{
@@ -74,6 +75,10 @@ struct kthread_t;
 struct kprocess_t{
     /* ID infos */
     uint64_t PID;
+    uint64_t PPID;
+    uint64_t PPIDCount;
+
+    struct kprocess_t* Parent;
 
     /* Priviledge */
     enum Priviledge DefaultPriviledge;
@@ -103,6 +108,7 @@ struct kprocess_t{
 
     /* Process Creator Info */
     uint64_t PID_PCI;
+    uint64_t PPID_PCI;
     uint64_t TID_PCI;
     uint64_t ExternalData_P_PCI;
     uint64_t Priviledge_PCI;
@@ -113,6 +119,7 @@ struct kprocess_t{
     kthread_t* Createthread(uintptr_t entryPoint, uint64_t externalData);
     kthread_t* Createthread(uintptr_t entryPoint, enum Priviledge priviledge, uint64_t externalData);
     kthread_t* Duplicatethread(kthread_t* source);
+    KResult Fork(struct ContextStack* Registers, kthread_t* Caller, kprocess_t** Child, kthread_t** ChildThread);
 }__attribute__((packed));  
 
 struct kthread_t{
@@ -140,6 +147,7 @@ struct kthread_t{
     bool IsBlock;
     bool IsClose;
     bool IsPause;
+    bool IsFork;
     uint64_t UnpauseOverflowCounter;
 
     /* Time info */
@@ -178,6 +186,8 @@ struct kthread_t{
 
     void SetParameters(arguments_t* FunctionParameters);
 
+    bool PageFaultHandler(bool IsWriting, uint64_t Address);
+
     void SetupStack();
     void CopyStack(kthread_t* source);
     bool ExtendStack(uint64_t address);
@@ -192,6 +202,8 @@ struct kthread_t{
     bool Pause_WL(ContextStack* Registers, bool force);   
     KResult Close(ContextStack* Registers, uint64_t ReturnValue);
     KResult CloseQueu(uint64_t ReturnValue);
+
+    kthread_t* ForkThread(ContextStack* Registers, kprocess_t* Child);
 }__attribute__((packed));  
 
 class TaskManager{
@@ -215,6 +227,8 @@ class TaskManager{
         KResult Unpause_WL(kthread_t* task); 
         KResult Exit(ContextStack* Registers, kthread_t* task, uint64_t ReturnValue); 
         // process
+        KResult CreateProcessWithoutPaging(kprocess_t** key, enum Priviledge priviledge, uint64_t externalData);
+        KResult CreateProcessWithoutPaging(kthread_t* caller, kprocess_t** key, enum Priviledge priviledge, uint64_t externalData);
         KResult CreateProcess(kprocess_t** key, enum Priviledge priviledge, uint64_t externalData);
         KResult CreateProcess(kthread_t* caller, kprocess_t** key, enum Priviledge priviledge, uint64_t externalData);
 
