@@ -1,6 +1,6 @@
 #include <kot/uisd/srvs/pci.h>
 
-thread_t SrvPciCallbackThread = NULL;
+thread_t srv_pci_callback_thread = NULL;
 
 void Srv_Pci_Initialize(){
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
@@ -8,7 +8,7 @@ void Srv_Pci_Initialize(){
 
     thread_t PciThreadKeyCallback = NULL;
     Sys_CreateThread(proc, &Srv_Pci_Callback, PriviledgeDriver, NULL, &PciThreadKeyCallback);
-    SrvPciCallbackThread = MakeShareableThreadToProcess(PciThreadKeyCallback, PciData->ControllerHeader.Process);
+    srv_pci_callback_thread = MakeShareableThreadToProcess(PciThreadKeyCallback, PciData->ControllerHeader.Process);
 }
 
 void Srv_Pci_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
@@ -31,7 +31,7 @@ KResult Srv_Pci_CountDevices_Callback(KResult Status, struct srv_pci_callback_t*
 }
 
 struct srv_pci_callback_t* Srv_Pci_CountDevices(srv_pci_search_parameters_t* SearchParameters, bool IsAwait){
-    if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+    if(!srv_pci_callback_thread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
     thread_t self = Sys_GetThread();
@@ -50,7 +50,7 @@ struct srv_pci_callback_t* Srv_Pci_CountDevices(srv_pci_search_parameters_t* Sea
     data.ParameterPosition = 0x2;
 
     struct arguments_t parameters;
-    parameters.arg[0] = SrvPciCallbackThread;
+    parameters.arg[0] = srv_pci_callback_thread;
     parameters.arg[1] = callback;
 
     KResult Status = Sys_ExecThread(PciData->CountDevices, &parameters, ExecutionTypeQueu, &data);
@@ -70,7 +70,7 @@ KResult Srv_Pci_FindDevice_Callback(KResult Status, struct srv_pci_callback_t* C
 }
 
 struct srv_pci_callback_t* Srv_Pci_FindDevice(srv_pci_search_parameters_t* SearchParameters, uint64_t Index, bool IsAwait){
-    if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+    if(!srv_pci_callback_thread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
     thread_t self = Sys_GetThread();
@@ -89,7 +89,7 @@ struct srv_pci_callback_t* Srv_Pci_FindDevice(srv_pci_search_parameters_t* Searc
     data.ParameterPosition = 0x2;
 
     struct arguments_t parameters;
-    parameters.arg[0] = SrvPciCallbackThread;
+    parameters.arg[0] = srv_pci_callback_thread;
     parameters.arg[1] = callback;
     // arg  2 is reserved for srv_pci_search_parameters_t
     parameters.arg[3] = Index;
@@ -112,7 +112,7 @@ KResult Srv_Pci_GetInfoDevice_Callback(KResult Status, struct srv_pci_callback_t
 }
 
 struct srv_pci_callback_t* Srv_Pci_GetInfoDevice(PCIDeviceID_t Device, bool IsAwait){
-    if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+    if(!srv_pci_callback_thread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
     thread_t self = Sys_GetThread();
@@ -126,7 +126,7 @@ struct srv_pci_callback_t* Srv_Pci_GetInfoDevice(PCIDeviceID_t Device, bool IsAw
     callback->Handler = &Srv_Pci_GetInfoDevice_Callback; 
 
     struct arguments_t parameters;
-    parameters.arg[0] = SrvPciCallbackThread;
+    parameters.arg[0] = srv_pci_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Device;
 
@@ -148,7 +148,7 @@ KResult Srv_Pci_GetBAR_Callback(KResult Status, struct srv_pci_callback_t* Callb
 }
 
 struct srv_pci_callback_t* Srv_Pci_GetBAR(PCIDeviceID_t Device, uint8_t BarIndex, bool IsAwait){
-    if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+    if(!srv_pci_callback_thread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
     thread_t self = Sys_GetThread();
@@ -162,7 +162,7 @@ struct srv_pci_callback_t* Srv_Pci_GetBAR(PCIDeviceID_t Device, uint8_t BarIndex
     callback->Handler = &Srv_Pci_GetBAR_Callback; 
 
     struct arguments_t parameters;
-    parameters.arg[0] = SrvPciCallbackThread;
+    parameters.arg[0] = srv_pci_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Device;
     parameters.arg[3] = BarIndex;
@@ -184,7 +184,7 @@ KResult Srv_Pci_BindMSI_Callback(KResult Status, struct srv_pci_callback_t* Call
 }
 
 struct srv_pci_callback_t* Srv_Pci_BindMSI(PCIDeviceID_t Device, uint8_t IRQVector, uint8_t Processor, uint16_t LocalDeviceVector, bool IsAwait){
-    if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+    if(!srv_pci_callback_thread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
     thread_t self = Sys_GetThread();
@@ -198,7 +198,7 @@ struct srv_pci_callback_t* Srv_Pci_BindMSI(PCIDeviceID_t Device, uint8_t IRQVect
     callback->Handler = &Srv_Pci_BindMSI_Callback; 
 
     struct arguments_t parameters;
-    parameters.arg[0] = SrvPciCallbackThread;
+    parameters.arg[0] = srv_pci_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Device;
     parameters.arg[3] = IRQVector;
@@ -219,7 +219,7 @@ KResult Srv_Pci_UnbindMSI_Callback(KResult Status, struct srv_pci_callback_t* Ca
 }
 
 struct srv_pci_callback_t* Srv_Pci_UnbindMSI(PCIDeviceID_t Device, uint16_t LocalDeviceVector, bool IsAwait){
-    if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+    if(!srv_pci_callback_thread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
     thread_t self = Sys_GetThread();
@@ -233,7 +233,7 @@ struct srv_pci_callback_t* Srv_Pci_UnbindMSI(PCIDeviceID_t Device, uint16_t Loca
     callback->Handler = &Srv_Pci_UnbindMSI_Callback; 
 
     struct arguments_t parameters;
-    parameters.arg[0] = SrvPciCallbackThread;
+    parameters.arg[0] = srv_pci_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Device;
     parameters.arg[3] = LocalDeviceVector;
@@ -256,7 +256,7 @@ KResult Srv_Pci_ConfigReadWord_Callback(KResult Status, struct srv_pci_callback_
 }
 
 struct srv_pci_callback_t* Srv_Pci_ConfigReadWord(PCIDeviceID_t Device, uint16_t Offset, bool IsAwait){
-    if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+    if(!srv_pci_callback_thread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
     thread_t self = Sys_GetThread();
@@ -270,7 +270,7 @@ struct srv_pci_callback_t* Srv_Pci_ConfigReadWord(PCIDeviceID_t Device, uint16_t
     callback->Handler = &Srv_Pci_ConfigReadWord_Callback; 
 
     struct arguments_t parameters;
-    parameters.arg[0] = SrvPciCallbackThread;
+    parameters.arg[0] = srv_pci_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Device;
     parameters.arg[3] = Offset;
@@ -289,7 +289,7 @@ KResult Srv_Pci_ConfigWriteWord_Callback(KResult Status, struct srv_pci_callback
 }
 
 struct srv_pci_callback_t* Srv_Pci_ConfigWriteWord(PCIDeviceID_t Device, uint16_t Offset, uint16_t Value, bool IsAwait){
-    if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+    if(!srv_pci_callback_thread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
     thread_t self = Sys_GetThread();
@@ -303,7 +303,7 @@ struct srv_pci_callback_t* Srv_Pci_ConfigWriteWord(PCIDeviceID_t Device, uint16_
     callback->Handler = &Srv_Pci_ConfigWriteWord_Callback; 
 
     struct arguments_t parameters;
-    parameters.arg[0] = SrvPciCallbackThread;
+    parameters.arg[0] = srv_pci_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Device;
     parameters.arg[3] = Offset;

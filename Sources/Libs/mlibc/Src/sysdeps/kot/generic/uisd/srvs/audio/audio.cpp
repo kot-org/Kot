@@ -4,7 +4,7 @@
 
 
 namespace Kot{
-    kot_thread_t SrvAudioCallbackThread = NULL;
+    kot_thread_t srv_audio_callback_thread = NULL;
     kot_process_t ShareProcess = NULL;
 
     void Srv_Audio_Initialize(){
@@ -15,7 +15,7 @@ namespace Kot{
         kot_thread_t AudioThreadKeyCallback = NULL;
         Sys_CreateThread(proc, (uintptr_t)&Srv_Audio_Callback, PriviledgeDriver, NULL, &AudioThreadKeyCallback);
         InitializeThread(AudioThreadKeyCallback);
-        SrvAudioCallbackThread = MakeShareableThreadToProcess(AudioThreadKeyCallback, AudioData->ControllerHeader.Process);
+        srv_audio_callback_thread = MakeShareableThreadToProcess(AudioThreadKeyCallback, AudioData->ControllerHeader.Process);
     }
 
     void Srv_Audio_Callback(KResult Status, struct srv_audio_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
@@ -39,7 +39,7 @@ namespace Kot{
     }
 
     struct srv_audio_callback_t* Srv_Audio_RequestStream(uint64_t OutputID, bool IsAwait){
-        if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
+        if(!srv_audio_callback_thread) Srv_Audio_Initialize();
         uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
         kot_thread_t self = Sys_GetThread();
@@ -53,7 +53,7 @@ namespace Kot{
         callback->Handler = &Srv_Audio_RequestStream_Callback; 
 
         struct kot_arguments_t parameters;
-        parameters.arg[0] = SrvAudioCallbackThread;
+        parameters.arg[0] = srv_audio_callback_thread;
         parameters.arg[1] = (uint64_t)callback;
         parameters.arg[2] = OutputID;
         parameters.arg[3] = ShareProcess;
@@ -71,7 +71,7 @@ namespace Kot{
     }
 
     struct srv_audio_callback_t* Srv_Audio_StreamCommand(audio_share_buffer_t* ShareBuffer, uint64_t Command, uint64_t GP0, uint64_t GP1, uint64_t GP2, bool IsAwait){
-        if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
+        if(!srv_audio_callback_thread) Srv_Audio_Initialize();
         uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
         kot_thread_t self = Sys_GetThread();
@@ -85,7 +85,7 @@ namespace Kot{
         callback->Handler = &Srv_Audio_StreamCommand_Callback; 
 
         struct kot_arguments_t parameters;
-        parameters.arg[0] = SrvAudioCallbackThread;
+        parameters.arg[0] = srv_audio_callback_thread;
         parameters.arg[1] = (uint64_t)callback;
         parameters.arg[2] = Command;
         parameters.arg[3] = GP0;
@@ -119,7 +119,7 @@ namespace Kot{
     }
 
     struct srv_audio_callback_t* Srv_Audio_ChangeVolume(uint64_t OutputID, uint8_t Volume, bool IsAwait){
-        if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
+        if(!srv_audio_callback_thread) Srv_Audio_Initialize();
         uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
         kot_thread_t self = Sys_GetThread();
@@ -133,7 +133,7 @@ namespace Kot{
         callback->Handler = &Srv_Audio_ChangeVolume_Callback; 
 
         struct kot_arguments_t parameters;
-        parameters.arg[0] = SrvAudioCallbackThread;
+        parameters.arg[0] = srv_audio_callback_thread;
         parameters.arg[1] = (uint64_t)callback;
         parameters.arg[2] = OutputID;
         parameters.arg[3] = Volume;
@@ -151,7 +151,7 @@ namespace Kot{
     }
 
     struct srv_audio_callback_t* Srv_Audio_SetDefault(uint64_t OutputID, bool IsAwait){
-        if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
+        if(!srv_audio_callback_thread) Srv_Audio_Initialize();
         uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
         kot_thread_t self = Sys_GetThread();
@@ -165,7 +165,7 @@ namespace Kot{
         callback->Handler = &Srv_Audio_SetDefault_Callback; 
 
         struct kot_arguments_t parameters;
-        parameters.arg[0] = SrvAudioCallbackThread;
+        parameters.arg[0] = srv_audio_callback_thread;
         parameters.arg[1] = (uint64_t)callback;
         parameters.arg[2] = OutputID;
 
@@ -187,7 +187,7 @@ namespace Kot{
     }
 
     struct srv_audio_callback_t* Srv_Audio_GetDeviceInfo(uint64_t OutputID, bool IsAwait){
-        if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
+        if(!srv_audio_callback_thread) Srv_Audio_Initialize();
         uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
         kot_thread_t self = Sys_GetThread();
@@ -201,7 +201,7 @@ namespace Kot{
         callback->Handler = &Srv_Audio_GetDeviceInfo_Callback; 
 
         struct kot_arguments_t parameters;
-        parameters.arg[0] = SrvAudioCallbackThread;
+        parameters.arg[0] = srv_audio_callback_thread;
         parameters.arg[1] = (uint64_t)callback;
         parameters.arg[2] = OutputID;
 
@@ -222,7 +222,7 @@ namespace Kot{
     }
 
     struct srv_audio_callback_t* Srv_Audio_AddDevice(srv_audio_device_t* Device, bool IsAwait){
-        if(!SrvAudioCallbackThread) Srv_Audio_Initialize();
+        if(!srv_audio_callback_thread) Srv_Audio_Initialize();
         uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
 
         kot_thread_t self = Sys_GetThread();
@@ -241,7 +241,7 @@ namespace Kot{
         data.ParameterPosition = 0x2;
 
         struct kot_arguments_t parameters;
-        parameters.arg[0] = SrvAudioCallbackThread;
+        parameters.arg[0] = srv_audio_callback_thread;
         parameters.arg[1] = (uint64_t)callback;
 
         KResult Status = Sys_ExecThread(AudioData->AddDevice, &parameters, ExecutionTypeQueu, &data);

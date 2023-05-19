@@ -3,7 +3,7 @@
 #include <string.h>
 
 namespace Kot{
-    kot_thread_t SrvTimeCallbackThread = NULL;
+    kot_thread_t srv_time_callback_thread = NULL;
     time_t* TimePointer = NULL;
     uint64_t* TickPointer = NULL;
 
@@ -14,7 +14,7 @@ namespace Kot{
         kot_thread_t TimeThreadKeyCallback = NULL;
         Sys_CreateThread(proc, (uintptr_t)&Srv_Time_Callback, PriviledgeApp, NULL, &TimeThreadKeyCallback);
         InitializeThread(TimeThreadKeyCallback);
-        SrvTimeCallbackThread = MakeShareableThreadToProcess(TimeThreadKeyCallback, TimeData->ControllerHeader.Process);
+        srv_time_callback_thread = MakeShareableThreadToProcess(TimeThreadKeyCallback, TimeData->ControllerHeader.Process);
     }
 
     void Srv_Time_Callback(KResult Status, struct srv_time_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
@@ -34,7 +34,7 @@ namespace Kot{
     }
 
     struct srv_time_callback_t* Srv_Time_SetTimePointerKey(time_t** Time, bool IsAwait){
-        if(!SrvTimeCallbackThread) Srv_Time_Initialize();
+        if(!srv_time_callback_thread) Srv_Time_Initialize();
         uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
         kot_thread_t self = Sys_GetThread();
@@ -56,7 +56,7 @@ namespace Kot{
         Sys_Keyhole_CloneModify(TimePointerKey, &TimePointerKeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
 
         struct kot_arguments_t parameters;
-        parameters.arg[0] = SrvTimeCallbackThread;
+        parameters.arg[0] = srv_time_callback_thread;
         parameters.arg[1] = (uint64_t)callback;
         parameters.arg[2] = TimePointerKeyShare;
 
@@ -76,7 +76,7 @@ namespace Kot{
     }
 
     struct srv_time_callback_t* Srv_Time_SetTickPointerKey(uint64_t* TimePointer, uint64_t TickPeriod, bool IsAwait){
-        if(!SrvTimeCallbackThread) Srv_Time_Initialize();
+        if(!srv_time_callback_thread) Srv_Time_Initialize();
         uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
         kot_thread_t self = Sys_GetThread();
@@ -96,7 +96,7 @@ namespace Kot{
         Sys_Keyhole_CloneModify(TickPointerKey, &TickPointerKeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
 
         struct kot_arguments_t parameters;
-        parameters.arg[0] = SrvTimeCallbackThread;
+        parameters.arg[0] = srv_time_callback_thread;
         parameters.arg[1] = (uint64_t)callback;
         parameters.arg[2] = TickPointerKeyShare;
         parameters.arg[3] = TickPeriod;

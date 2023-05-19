@@ -145,3 +145,19 @@ uintptr_t FindControllerUISD(enum ControllerTypeEnum Controller){
     return ControllerData;
 }
 
+KResult ResetUISDThreads(){
+    CallBackUISDThread = NULL;
+
+    // Reset every clients
+    srv_system_callback_thread = NULL;
+    srv_storage_callback_thread = NULL;
+    srv_time_callback_thread = NULL;
+    srv_pci_callback_thread = NULL;
+    // HID doesn't have thread
+    srv_graphics_callback_thread = NULL;
+    // Authorization doesn't have thread
+    srv_audio_callback_thread = NULL;
+    
+    return KSUCCESS;
+}
+

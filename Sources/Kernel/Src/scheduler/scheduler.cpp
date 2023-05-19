@@ -609,9 +609,7 @@ KResult kprocess_t::Fork(ContextStack* Registers, kthread_t* Caller, kprocess_t*
 
     (*Child)->Parent = this;
 
-    if(PPIDCount == 1){
-        vmm_ForkMemory(this, (*Child));
-    }
+    vmm_ForkMemory(this, *Child);
 
     Keyhole_Create(&(*Child)->ProcessKey, (*Child), (*Child), DataTypeProcess, (uint64_t)(*Child), DefaultFlagsKey, PriviledgeApp);
     

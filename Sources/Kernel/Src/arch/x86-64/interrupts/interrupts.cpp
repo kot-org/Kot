@@ -111,7 +111,6 @@ void ExceptionHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
     if(CPU::GetCodeRing(Registers) == KernelRing){
         KernelUnrecovorable(Cr2, Registers, CoreID);
     }else{
-        // Try to recover exception
         Error("Thread error, PID : 0x%x | PPID : 0x%x | TID : 0x%x \nWith exception : '%s' | Error code : 0x%x", Registers->threadInfo->thread->Parent->PID, Registers->threadInfo->thread->Parent->PPID, Registers->threadInfo->thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
         PrintRegisters(Registers);
         if(Registers->threadInfo->thread->IsEvent){

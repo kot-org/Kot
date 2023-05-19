@@ -116,7 +116,7 @@ uint64_t CreateMemoryField(kthread_t* self, kprocess_t* process, size64_t size, 
             for(uint64_t i = 0; i < numberOfPage; i++){
                 uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
                 if(!vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Present)){
-                    vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, Pmm_RequestPage(), true, true, true);
+                    vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, Pmm_RequestPage(), true, true, false);
                     vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Master, true); //set master state
                     process->MemoryAllocated += PAGE_SIZE;  
                 }
@@ -131,7 +131,7 @@ uint64_t CreateMemoryField(kthread_t* self, kprocess_t* process, size64_t size, 
             for(uint64_t i = 0; i < numberOfPage; i++){
                 uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
                 if(!vmm_GetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Present)){
-                    vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, Pmm_RequestPage(), true, true, true); // the master can write into memory even if it's read only for slave
+                    vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, Pmm_RequestPage(), true, true, false); // the master can write into memory even if it's read only for slave
                     vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Master, true); //set master state
                     process->MemoryAllocated += PAGE_SIZE;  
                 }
@@ -192,7 +192,7 @@ uint64_t AcceptMemoryField(kthread_t* self, kprocess_t* process, MemoryShareInfo
                 uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
                 uint64_t virtualAddressParentIterator = (uint64_t)shareInfo->VirtualAddressParent + i * PAGE_SIZE;
                 uintptr_t physicalAddressParentIterator = vmm_GetPhysical(shareInfo->PageTableParent, (uintptr_t)virtualAddressParentIterator);
-                vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, physicalAddressParentIterator, true, true, true);
+                vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, physicalAddressParentIterator, true, true, false);
                 vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Slave, true); //set slave state
             }
             break;
@@ -205,7 +205,7 @@ uint64_t AcceptMemoryField(kthread_t* self, kprocess_t* process, MemoryShareInfo
                 uint64_t virtualAddressIterator = (uint64_t)virtualAddress + i * PAGE_SIZE;
                 uint64_t virtualAddressParentIterator = (uint64_t)shareInfo->VirtualAddressParent + i * PAGE_SIZE;
                 uintptr_t physicalAddressParentIterator = vmm_GetPhysical(shareInfo->PageTableParent, (uintptr_t)virtualAddressParentIterator);
-                vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, physicalAddressParentIterator, true, false, true);
+                vmm_Map(pageTable, (uintptr_t)virtualAddressIterator, physicalAddressParentIterator, true, false, false);
                 vmm_SetFlags(pageTable, (uintptr_t)virtualAddressIterator, vmm_flag::vmm_Slave, true); //set slave state
             }            
             break;
@@ -228,7 +228,7 @@ uint64_t AcceptMemoryField(kthread_t* self, kprocess_t* process, MemoryShareInfo
                 
                 for(uint64_t i = 0; i < pages; i++){
                     if(!vmm_GetFlags(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Present)){
-                        vmm_Map(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), Pmm_RequestPage(), true, true, true);
+                        vmm_Map(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), Pmm_RequestPage(), true, true, false);
                         vmm_SetFlags(pageTable, (uintptr_t)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Master, true); //set master state
                         process->MemoryAllocated += PAGE_SIZE;                    
                     }

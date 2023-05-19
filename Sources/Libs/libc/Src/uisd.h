@@ -7,16 +7,23 @@
 #include <kot/cstring.h>
 #include <kot/keyhole.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+extern thread_t srv_system_callback_thread;
+extern thread_t srv_storage_callback_thread;
+extern thread_t srv_time_callback_thread;
+extern thread_t srv_pci_callback_thread;
+extern thread_t srv_graphics_callback_thread;
+extern thread_t srv_audio_callback_thread;
+
 #define UISDGetTask         0x1
 #define UISDCreateTask      0x0
 #define UISDFreeTask        0x2
 #define UISDMaxController   0xff
 
 #define UISDServerEntry [[ noreturn ]] 
-
-#if defined(__cplusplus)
-extern "C" {
-#endif
 
 #define ControllerCount 0x9
 
@@ -152,6 +159,8 @@ process_t ShareProcessKey(process_t Process);
 
 uintptr_t GetControllerLocationUISD(enum ControllerTypeEnum Controller);
 uintptr_t FindControllerUISD(enum ControllerTypeEnum Controller);
+
+KResult ResetUISDThreads();
 
 #if defined(__cplusplus)
 }

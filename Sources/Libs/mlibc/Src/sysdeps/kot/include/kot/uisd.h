@@ -6,6 +6,13 @@
 #include <kot/keyhole.h>
 
 namespace Kot{
+    extern kot_thread_t srv_system_callback_thread;
+    extern kot_thread_t srv_storage_callback_thread;
+    extern kot_thread_t srv_time_callback_thread;
+    extern kot_thread_t srv_pci_callback_thread;
+    extern kot_thread_t srv_graphics_callback_thread;
+    extern kot_thread_t srv_audio_callback_thread;
+
     #define UISDGetTask         0x1
     #define UISDCreateTask      0x0
     #define UISDFreeTask        0x2
@@ -149,6 +156,8 @@ namespace Kot{
 
     uintptr_t GetControllerLocationUISD(enum ControllerTypeEnum Controller);
     uintptr_t FindControllerUISD(enum ControllerTypeEnum Controller);
+
+    KResult ResetUISDThreads();
 }
 
 #endif

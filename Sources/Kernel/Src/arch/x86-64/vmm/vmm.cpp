@@ -188,23 +188,6 @@ void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bo
         vmm_SetAddress(&PDE, (uint64_t)PDP >> 12);
         vmm_SetFlag(&PDE, vmm_flag::vmm_Present, true);
         vmm_SetFlag(&PDE, vmm_flag::vmm_ReadWrite, true);
-    }else if(vmm_GetFlag(&PDE, vmm_Master) && vmm_GetFlag(&PDE, vmm_Slave)){
-        vmm_SetFlag(&PDE, vmm_Slave, false);
-        vmm_SetFlag(&PDE, vmm_Master, false);
-        vmm_SetFlag(&PDE, vmm_ReadWrite, true);
-        PDP = Pmm_RequestPage();
-        PDPVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uintptr_t)((uint64_t)vmm_GetAddress(&PDE) << 12)); 
-        memcpy((uintptr_t)vmm_GetVirtualAddress((uint64_t)PDP), (uintptr_t)PDPVirtualAddress, PAGE_SIZE);
-        vmm_SetAddress(&PDE, ((uint64_t)PDP) >> 12);
-
-        PDPVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uint64_t)PDP);
-        for(uint16_t i = VMM_STARTRHALF; i < VMM_LOWERHALF; i++){
-            uint64_t PDEChild = PDPVirtualAddress->entries[i];
-            vmm_SetFlag(&PDEChild, vmm_Slave, true);
-            vmm_SetFlag(&PDEChild, vmm_Master, true);
-            vmm_SetFlag(&PDEChild, vmm_ReadWrite, false);
-            PDPVirtualAddress->entries[i] = PDEChild;
-        }
     }else{
         PDP = (uintptr_t)((uint64_t)vmm_GetAddress(&PDE) << 12);
         PDPVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PDP);    
@@ -225,23 +208,6 @@ void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bo
         vmm_SetAddress(&PDE, (uint64_t)PD >> 12);
         vmm_SetFlag(&PDE, vmm_flag::vmm_Present, true);
         vmm_SetFlag(&PDE, vmm_flag::vmm_ReadWrite, true);
-    }else if(vmm_GetFlag(&PDE, vmm_Master) && vmm_GetFlag(&PDE, vmm_Slave)){
-        vmm_SetFlag(&PDE, vmm_Slave, false);
-        vmm_SetFlag(&PDE, vmm_Master, false);
-        vmm_SetFlag(&PDE, vmm_ReadWrite, true);
-        PD = Pmm_RequestPage();
-        PDVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uintptr_t)((uint64_t)vmm_GetAddress(&PDE) << 12));  
-        memcpy((uintptr_t)vmm_GetVirtualAddress((uint64_t)PD), (uintptr_t)PDVirtualAddress, PAGE_SIZE);
-        vmm_SetAddress(&PDE, ((uint64_t)PD) >> 12);
-
-        PDVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uint64_t)PD);
-        for(uint16_t i = VMM_STARTRHALF; i < VMM_LOWERHALF; i++){
-            uint64_t PDEChild = PDVirtualAddress->entries[i];
-            vmm_SetFlag(&PDEChild, vmm_Slave, true);
-            vmm_SetFlag(&PDEChild, vmm_Master, true);
-            vmm_SetFlag(&PDEChild, vmm_ReadWrite, false);
-            PDVirtualAddress->entries[i] = PDEChild;
-        }
     }else{
         PD = (uintptr_t)((uint64_t)vmm_GetAddress(&PDE) << 12);
         PDVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PD);  
@@ -261,23 +227,6 @@ void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bo
         vmm_SetAddress(&PDE, (uint64_t)PT >> 12);
         vmm_SetFlag(&PDE, vmm_flag::vmm_Present, true);
         vmm_SetFlag(&PDE, vmm_flag::vmm_ReadWrite, true);
-    }else if(vmm_GetFlag(&PDE, vmm_Master) && vmm_GetFlag(&PDE, vmm_Slave)){
-        vmm_SetFlag(&PDE, vmm_Slave, false);
-        vmm_SetFlag(&PDE, vmm_Master, false);
-        vmm_SetFlag(&PDE, vmm_ReadWrite, true);
-        PT = Pmm_RequestPage();
-        PTVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uintptr_t)((uint64_t)vmm_GetAddress(&PDE) << 12));  
-        memcpy((uintptr_t)vmm_GetVirtualAddress((uint64_t)PT), (uintptr_t)PTVirtualAddress, PAGE_SIZE);
-        vmm_SetAddress(&PDE, ((uint64_t)PT) >> 12);
-
-        PTVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uint64_t)PT);
-        for(uint16_t i = VMM_STARTRHALF; i < VMM_LOWERHALF; i++){
-            uint64_t PDEChild = PTVirtualAddress->entries[i];
-            vmm_SetFlag(&PDEChild, vmm_Slave, true);
-            vmm_SetFlag(&PDEChild, vmm_Master, true);
-            vmm_SetFlag(&PDEChild, vmm_ReadWrite, false);
-            PTVirtualAddress->entries[i] = PDEChild;
-        }
     }else{
         PT = (uintptr_t)((uint64_t)vmm_GetAddress(&PDE) << 12);
         PTVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PT);  
@@ -556,154 +505,185 @@ void vmm_ClearMemory(pagetable_t Src){
 
 }
 
-void vmm_ForkMemory(kprocess_t* Parent, kprocess_t* Child){
-    vmm_page_table* PML4VirtualAddressSource = (vmm_page_table*)vmm_GetVirtualAddress(Parent->SharedPaging);
-    for(uint16_t i = VMM_STARTRHALF; i < VMM_LOWERHALF; i++){
-        vmm_page_table* PDPVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uintptr_t)((uint64_t)vmm_GetAddress(&PML4VirtualAddressSource->entries[i]) << 12));    
-        if(vmm_GetFlag(&PML4VirtualAddressSource->entries[i], vmm_flag::vmm_Present)){
-            for(uint16_t y = VMM_STARTRHALF; y < VMM_HIGHERALF; y++){
-                uint64_t PDE = PDPVirtualAddress->entries[y];
-                vmm_SetFlag(&PDE, vmm_flag::vmm_Master, true); // set flag master and slave to know that is a fork
-                vmm_SetFlag(&PDE, vmm_flag::vmm_Slave, true);
-                vmm_SetFlag(&PDE, vmm_flag::vmm_ReadWrite, false);
-                PDPVirtualAddress->entries[y] = PDE;
+void vmm_CopyPageTable(vmm_page_table* Dst, vmm_page_table* Src, uint64_t Start, uint64_t End, uint8_t Level){
+    for(uint16_t i = Start; i < End; i++){
+        if(vmm_GetFlag(&Src->entries[i], vmm_flag::vmm_Present)){
+            vmm_page_table* NextLevelSrc = (vmm_page_table*)vmm_GetVirtualAddress((uintptr_t)((uint64_t)vmm_GetAddress(&Src->entries[i]) << 12));    
+            uint64_t PDE = Src->entries[i];
+            if(Level){
+                uintptr_t NextLevelDstPhysical = (uintptr_t)Pmm_RequestPage();
+                vmm_page_table* NextLevelDst = (vmm_page_table*)vmm_GetVirtualAddress(NextLevelDstPhysical);  
+                memset(NextLevelDst, 0, PAGE_SIZE);
+                vmm_SetAddress(&PDE, (uint64_t)NextLevelDstPhysical >> 12);
+                Dst->entries[i] = PDE;
+                vmm_CopyPageTable(NextLevelDst, NextLevelSrc, VMM_STARTRHALF, VMM_HIGHERALF, Level - 1);
+            }else{
+                if(!vmm_GetFlag(&Src->entries[i], vmm_Master) || !vmm_GetFlag(&Src->entries[i], vmm_Slave)){
+                    uintptr_t Physical = (uintptr_t)Pmm_RequestPage();
+                    uintptr_t Buffer = (vmm_page_table*)vmm_GetVirtualAddress(Physical);  
+                    memcpy(Buffer, (uintptr_t)vmm_GetVirtualAddress((uintptr_t)((uint64_t)vmm_GetAddress(&Src->entries[i]) << 12)), PAGE_SIZE);
+                    vmm_SetAddress(&PDE, (uint64_t)Physical >> 12);
+                }
+                Dst->entries[i] = PDE;
             }
         }
-    }
-    Child->SharedPaging = Parent->SharedPaging;
+    } 
+}
+
+void vmm_ForkMemory(kprocess_t* Parent, kprocess_t* Child){
+    Child->SharedPaging = vmm_SetupProcess();
+    vmm_CopyPageTable((vmm_page_table*)vmm_GetVirtualAddress(Child->SharedPaging), (vmm_page_table*)vmm_GetVirtualAddress(Parent->SharedPaging), VMM_STARTRHALF, VMM_LOWERHALF, VMM_MAXLEVEL - 1);
+    // TODO : Make write copy
+    // vmm_page_table* PML4VirtualAddressSource = (vmm_page_table*)vmm_GetVirtualAddress(Parent->SharedPaging);
+    // for(uint16_t i = VMM_STARTRHALF; i < VMM_LOWERHALF; i++){
+    //     vmm_page_table* PDPVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uintptr_t)((uint64_t)vmm_GetAddress(&PML4VirtualAddressSource->entries[i]) << 12));    
+    //     if(vmm_GetFlag(&PML4VirtualAddressSource->entries[i], vmm_flag::vmm_Present)){
+    //         for(uint16_t y = VMM_STARTRHALF; y < VMM_HIGHERALF; y++){
+    //             uint64_t PDE = PDPVirtualAddress->entries[y];
+    //             vmm_SetFlag(&PDE, vmm_flag::vmm_Master, true); // set flag master and slave to know that is a fork
+    //             vmm_SetFlag(&PDE, vmm_flag::vmm_Slave, true);
+    //             vmm_SetFlag(&PDE, vmm_flag::vmm_ReadWrite, false);
+    //             PDPVirtualAddress->entries[y] = PDE;
+    //         }
+    //     }
+    // }
+    // Child->SharedPaging = Parent->SharedPaging;
 }
 
 bool vmm_MapFork(pagetable_t Table, uint64_t Address){
-    if(Address % PAGE_SIZE){
-        Address -= Address % PAGE_SIZE;
-    }
-
-    vmm_index Indexer = vmm_Index((uint64_t)Address);
-    uint64_t PDE;
-    int8_t LevelForkProtected = -1;
-    bool IsPureMemory = false;
-
-    vmm_page_table* PML4VirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(Table);
-    PDE = PML4VirtualAddress->entries[Indexer.PDP_i];
-    vmm_page_table* PDP;
-    vmm_page_table* PDPVirtualAddress;
-
-    if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
-        return false;
-    }else{
-        PDP = (vmm_page_table*)(vmm_GetAddress(&PDE) << 12);
-        PDPVirtualAddress = (vmm_page_table*)(vmm_GetVirtualAddress(PDP)); 
-    }
-
-    if(vmm_GetFlag(&PDE, vmm_Master) && vmm_GetFlag(&PDE, vmm_Slave)) LevelForkProtected = 3;
-
-    PDE = PDPVirtualAddress->entries[Indexer.PD_i];
-
-    vmm_page_table* PD;
-    vmm_page_table* PDVirtualAddress;
-    if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
-        return false;
-    }else{
-        PD = (vmm_page_table*)(vmm_GetAddress(&PDE) << 12);
-        PDVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PD);  
-    }
-
-    if(vmm_GetFlag(&PDE, vmm_Master) && vmm_GetFlag(&PDE, vmm_Slave)) LevelForkProtected = 2;
-
-    PDE = PDVirtualAddress->entries[Indexer.PT_i];
-
-    vmm_page_table* PT;
-    vmm_page_table* PTVirtualAddress;
-    if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
-        return false;
-    }else{
-        PT = (vmm_page_table*)(vmm_GetAddress(&PDE) << 12);
-        PTVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PT);
-    }
-
-    if(vmm_GetFlag(&PDE, vmm_Master) && vmm_GetFlag(&PDE, vmm_Slave)) LevelForkProtected = 1;
-
-    PDE = PTVirtualAddress->entries[Indexer.P_i];
-
-    if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
-        return false;
-    }
-
-    IsPureMemory = vmm_GetFlag(&PDE, vmm_IsPureMemory);
-
-    if(vmm_GetFlag(&PDE, vmm_Master) && vmm_GetFlag(&PDE, vmm_Slave)) LevelForkProtected = 0;
-
-    if(LevelForkProtected == -1) return false;
-
-    switch (LevelForkProtected){
-        case 3:{
-            PDE = PML4VirtualAddress->entries[Indexer.PDP_i];
-            vmm_SetFlag(&PDE, vmm_Slave, false);
-            vmm_SetFlag(&PDE, vmm_Master, false);
-            vmm_SetFlag(&PDE, vmm_ReadWrite, true);
-            uintptr_t NewPage = Pmm_RequestPage();
-            memcpy((uintptr_t)vmm_GetVirtualAddress((uint64_t)NewPage), (uintptr_t)PDPVirtualAddress, PAGE_SIZE);
-            vmm_SetAddress(&PDE, ((uint64_t)NewPage) >> 12);
-            PML4VirtualAddress->entries[Indexer.PDP_i] = PDE;
-
-            PDPVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uint64_t)NewPage);
-            for(uint16_t i = VMM_STARTRHALF; i < VMM_LOWERHALF; i++){
-                uint64_t PDEChild = PDPVirtualAddress->entries[i];
-                vmm_SetFlag(&PDEChild, vmm_Slave, true);
-                vmm_SetFlag(&PDEChild, vmm_Master, true);
-                vmm_SetFlag(&PDEChild, vmm_ReadWrite, false);
-                PDPVirtualAddress->entries[i] = PDEChild;
-            }
-        }
-        case 2:{
-            PDE = PDPVirtualAddress->entries[Indexer.PD_i];
-            vmm_SetFlag(&PDE, vmm_Slave, false);
-            vmm_SetFlag(&PDE, vmm_Master, false);
-            vmm_SetFlag(&PDE, vmm_ReadWrite, true);
-            uintptr_t NewPage = Pmm_RequestPage();
-            memcpy((uintptr_t)vmm_GetVirtualAddress((uint64_t)NewPage), (uintptr_t)PDVirtualAddress, PAGE_SIZE);
-            vmm_SetAddress(&PDE, ((uint64_t)NewPage) >> 12);
-            PDPVirtualAddress->entries[Indexer.PD_i] = PDE;
-
-            PDVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uint64_t)NewPage);
-            for(uint16_t i = VMM_STARTRHALF; i < VMM_LOWERHALF; i++){
-                uint64_t PDEChild = PDVirtualAddress->entries[i];
-                vmm_SetFlag(&PDEChild, vmm_Slave, true);
-                vmm_SetFlag(&PDEChild, vmm_Master, true);
-                vmm_SetFlag(&PDEChild, vmm_ReadWrite, false);
-                PDVirtualAddress->entries[i] = PDEChild;
-            }
-        }
-        case 1:{
-            PDE = PDVirtualAddress->entries[Indexer.PT_i];
-            vmm_SetFlag(&PDE, vmm_Slave, false);
-            vmm_SetFlag(&PDE, vmm_Master, false);
-            vmm_SetFlag(&PDE, vmm_ReadWrite, true);
-            uintptr_t NewPage = Pmm_RequestPage();
-            memcpy((uintptr_t)vmm_GetVirtualAddress((uint64_t)NewPage), (uintptr_t)PTVirtualAddress, PAGE_SIZE);
-            vmm_SetAddress(&PDE, ((uint64_t)NewPage) >> 12);
-            PDVirtualAddress->entries[Indexer.PT_i] = PDE;
-
-            PTVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uint64_t)NewPage);
-            for(uint16_t i = VMM_STARTRHALF; i < VMM_LOWERHALF; i++){
-                uint64_t PDEChild = PTVirtualAddress->entries[i];
-                vmm_SetFlag(&PDEChild, vmm_Slave, true);
-                vmm_SetFlag(&PDEChild, vmm_Master, true);
-                vmm_SetFlag(&PDEChild, vmm_ReadWrite, false);
-                PTVirtualAddress->entries[i] = PDEChild;
-            }
-        }
-        case 0:{
-            PDE = PTVirtualAddress->entries[Indexer.P_i];
-            vmm_SetFlag(&PDE, vmm_Slave, false);
-            vmm_SetFlag(&PDE, vmm_Master, false);
-            vmm_SetFlag(&PDE, vmm_ReadWrite, true);
-            uintptr_t NewPage = Pmm_RequestPage();
-            memcpy((uintptr_t)vmm_GetVirtualAddress((uint64_t)NewPage), (uintptr_t)Address, PAGE_SIZE);
-            vmm_SetAddress(&PDE, ((uint64_t)NewPage) >> 12);
-            PTVirtualAddress->entries[Indexer.P_i] = PDE;
-            return true;
-        }
-    }
+    // TODO : Make write copy
     return false;
+
+    // if(Address % PAGE_SIZE){
+    //     Address -= Address % PAGE_SIZE;
+    // }
+
+    // vmm_index Indexer = vmm_Index((uint64_t)Address);
+    // uint64_t PDE;
+    // int8_t LevelForkProtected = -1;
+    // bool IsPureMemory = false;
+
+    // vmm_page_table* PML4VirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(Table);
+    // PDE = PML4VirtualAddress->entries[Indexer.PDP_i];
+    // vmm_page_table* PDP;
+    // vmm_page_table* PDPVirtualAddress;
+
+    // if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
+    //     return false;
+    // }else{
+    //     PDP = (vmm_page_table*)(vmm_GetAddress(&PDE) << 12);
+    //     PDPVirtualAddress = (vmm_page_table*)(vmm_GetVirtualAddress(PDP)); 
+    // }
+
+    // if(vmm_GetFlag(&PDE, vmm_Master) && vmm_GetFlag(&PDE, vmm_Slave)) LevelForkProtected = 3;
+
+    // PDE = PDPVirtualAddress->entries[Indexer.PD_i];
+
+    // vmm_page_table* PD;
+    // vmm_page_table* PDVirtualAddress;
+    // if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
+    //     return false;
+    // }else{
+    //     PD = (vmm_page_table*)(vmm_GetAddress(&PDE) << 12);
+    //     PDVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PD);  
+    // }
+
+    // if(vmm_GetFlag(&PDE, vmm_Master) && vmm_GetFlag(&PDE, vmm_Slave)) LevelForkProtected = 2;
+
+    // PDE = PDVirtualAddress->entries[Indexer.PT_i];
+
+    // vmm_page_table* PT;
+    // vmm_page_table* PTVirtualAddress;
+    // if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
+    //     return false;
+    // }else{
+    //     PT = (vmm_page_table*)(vmm_GetAddress(&PDE) << 12);
+    //     PTVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PT);
+    // }
+
+    // if(vmm_GetFlag(&PDE, vmm_Master) && vmm_GetFlag(&PDE, vmm_Slave)) LevelForkProtected = 1;
+
+    // PDE = PTVirtualAddress->entries[Indexer.P_i];
+
+    // if(!vmm_GetFlag(&PDE, vmm_flag::vmm_Present)){
+    //     return false;
+    // }
+
+    // IsPureMemory = vmm_GetFlag(&PDE, vmm_IsPureMemory);
+
+    // if(vmm_GetFlag(&PDE, vmm_Master) && vmm_GetFlag(&PDE, vmm_Slave)) LevelForkProtected = 0;
+
+    // if(LevelForkProtected == -1) return false;
+
+    // switch (LevelForkProtected){
+    //     case 3:{
+    //         PDE = PML4VirtualAddress->entries[Indexer.PDP_i];
+    //         vmm_SetFlag(&PDE, vmm_Slave, false);
+    //         vmm_SetFlag(&PDE, vmm_Master, false);
+    //         vmm_SetFlag(&PDE, vmm_ReadWrite, true);
+    //         uintptr_t NewPage = Pmm_RequestPage();
+    //         memcpy((uintptr_t)vmm_GetVirtualAddress((uint64_t)NewPage), (uintptr_t)PDPVirtualAddress, PAGE_SIZE);
+    //         vmm_SetAddress(&PDE, ((uint64_t)NewPage) >> 12);
+    //         PML4VirtualAddress->entries[Indexer.PDP_i] = PDE;
+
+    //         PDPVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uint64_t)NewPage);
+    //         for(uint16_t i = VMM_STARTRHALF; i < VMM_LOWERHALF; i++){
+    //             uint64_t PDEChild = PDPVirtualAddress->entries[i];
+    //             vmm_SetFlag(&PDEChild, vmm_Slave, true);
+    //             vmm_SetFlag(&PDEChild, vmm_Master, true);
+    //             vmm_SetFlag(&PDEChild, vmm_ReadWrite, false);
+    //             PDPVirtualAddress->entries[i] = PDEChild;
+    //         }
+    //     }
+    //     case 2:{
+    //         PDE = PDPVirtualAddress->entries[Indexer.PD_i];
+    //         vmm_SetFlag(&PDE, vmm_Slave, false);
+    //         vmm_SetFlag(&PDE, vmm_Master, false);
+    //         vmm_SetFlag(&PDE, vmm_ReadWrite, true);
+    //         uintptr_t NewPage = Pmm_RequestPage();
+    //         memcpy((uintptr_t)vmm_GetVirtualAddress((uint64_t)NewPage), (uintptr_t)PDVirtualAddress, PAGE_SIZE);
+    //         vmm_SetAddress(&PDE, ((uint64_t)NewPage) >> 12);
+    //         PDPVirtualAddress->entries[Indexer.PD_i] = PDE;
+
+    //         PDVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uint64_t)NewPage);
+    //         for(uint16_t i = VMM_STARTRHALF; i < VMM_LOWERHALF; i++){
+    //             uint64_t PDEChild = PDVirtualAddress->entries[i];
+    //             vmm_SetFlag(&PDEChild, vmm_Slave, true);
+    //             vmm_SetFlag(&PDEChild, vmm_Master, true);
+    //             vmm_SetFlag(&PDEChild, vmm_ReadWrite, false);
+    //             PDVirtualAddress->entries[i] = PDEChild;
+    //         }
+    //     }
+    //     case 1:{
+    //         PDE = PDVirtualAddress->entries[Indexer.PT_i];
+    //         vmm_SetFlag(&PDE, vmm_Slave, false);
+    //         vmm_SetFlag(&PDE, vmm_Master, false);
+    //         vmm_SetFlag(&PDE, vmm_ReadWrite, true);
+    //         uintptr_t NewPage = Pmm_RequestPage();
+    //         memcpy((uintptr_t)vmm_GetVirtualAddress((uint64_t)NewPage), (uintptr_t)PTVirtualAddress, PAGE_SIZE);
+    //         vmm_SetAddress(&PDE, ((uint64_t)NewPage) >> 12);
+    //         PDVirtualAddress->entries[Indexer.PT_i] = PDE;
+
+    //         PTVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uint64_t)NewPage);
+    //         for(uint16_t i = VMM_STARTRHALF; i < VMM_LOWERHALF; i++){
+    //             uint64_t PDEChild = PTVirtualAddress->entries[i];
+    //             vmm_SetFlag(&PDEChild, vmm_Slave, true);
+    //             vmm_SetFlag(&PDEChild, vmm_Master, true);
+    //             vmm_SetFlag(&PDEChild, vmm_ReadWrite, false);
+    //             PTVirtualAddress->entries[i] = PDEChild;
+    //         }
+    //     }
+    //     case 0:{
+    //         PDE = PTVirtualAddress->entries[Indexer.P_i];
+    //         vmm_SetFlag(&PDE, vmm_Slave, false);
+    //         vmm_SetFlag(&PDE, vmm_Master, false);
+    //         vmm_SetFlag(&PDE, vmm_ReadWrite, true);
+    //         uintptr_t NewPage = Pmm_RequestPage();
+    //         memcpy((uintptr_t)vmm_GetVirtualAddress((uint64_t)NewPage), (uintptr_t)Address, PAGE_SIZE);
+    //         vmm_SetAddress(&PDE, ((uint64_t)NewPage) >> 12);
+    //         PTVirtualAddress->entries[Indexer.P_i] = PDE;
+    //         return true;
+    //     }
+    // }
+    // return false;
 }

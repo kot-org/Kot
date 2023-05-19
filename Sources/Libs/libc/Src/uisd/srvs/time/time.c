@@ -1,6 +1,6 @@
 #include <kot/uisd/srvs/time.h>
 
-thread_t SrvTimeCallbackThread = NULL;
+thread_t srv_time_callback_thread = NULL;
 time_t* TimePointer = NULL;
 uint64_t* TickPointer = NULL;
 
@@ -10,7 +10,7 @@ void Srv_Time_Initialize(){
 
     thread_t TimeThreadKeyCallback = NULL;
     Sys_CreateThread(proc, &Srv_Time_Callback, PriviledgeApp, NULL, &TimeThreadKeyCallback);
-    SrvTimeCallbackThread = MakeShareableThreadToProcess(TimeThreadKeyCallback, TimeData->ControllerHeader.Process);
+    srv_time_callback_thread = MakeShareableThreadToProcess(TimeThreadKeyCallback, TimeData->ControllerHeader.Process);
 }
 
 void Srv_Time_Callback(KResult Status, struct srv_time_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
@@ -30,7 +30,7 @@ KResult Srv_Time_SetTimePointerKey_Callback(KResult Status, struct srv_time_call
 }
 
 struct srv_time_callback_t* Srv_Time_SetTimePointerKey(time_t** Time, bool IsAwait){
-    if(!SrvTimeCallbackThread) Srv_Time_Initialize();
+    if(!srv_time_callback_thread) Srv_Time_Initialize();
     uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
     thread_t self = Sys_GetThread();
@@ -52,7 +52,7 @@ struct srv_time_callback_t* Srv_Time_SetTimePointerKey(time_t** Time, bool IsAwa
     Sys_Keyhole_CloneModify(TimePointerKey, &TimePointerKeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
 
     struct arguments_t parameters;
-    parameters.arg[0] = SrvTimeCallbackThread;
+    parameters.arg[0] = srv_time_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = TimePointerKeyShare;
 
@@ -72,7 +72,7 @@ KResult Srv_Time_SetTickPointerKey_Callback(KResult Status, struct srv_time_call
 }
 
 struct srv_time_callback_t* Srv_Time_SetTickPointerKey(uint64_t* TimePointer, uint64_t TickPeriod, bool IsAwait){
-    if(!SrvTimeCallbackThread) Srv_Time_Initialize();
+    if(!srv_time_callback_thread) Srv_Time_Initialize();
     uisd_time_t* TimeData = (uisd_time_t*)FindControllerUISD(ControllerTypeEnum_Time);
 
     thread_t self = Sys_GetThread();
@@ -92,7 +92,7 @@ struct srv_time_callback_t* Srv_Time_SetTickPointerKey(uint64_t* TimePointer, ui
     Sys_Keyhole_CloneModify(TickPointerKey, &TickPointerKeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
 
     struct arguments_t parameters;
-    parameters.arg[0] = SrvTimeCallbackThread;
+    parameters.arg[0] = srv_time_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = TickPointerKeyShare;
     parameters.arg[3] = TickPeriod;

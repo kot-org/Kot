@@ -121,8 +121,12 @@ namespace mlibc{
 
 
         if(Kot::Sys_GetPPID()){
+            // We are child
+            // Reset UISD thread to avoid redirection to parent process
+            __ensure(Kot::ResetUISDThreads() == KSUCCESS);
             *child = NULL;
         }else{
+            // We are parent
             *child = ProcessChild;
         }
         return (Status != KSUCCESS);
@@ -137,6 +141,11 @@ namespace mlibc{
         Kot::srv_system_callback_t* Callback = Kot::Srv_System_LoadExecutable(Kot::Sys_GetPriviledgeThread(), (char*)path, true);
         KResult Status = Callback->Status;
 
+        if(Status != KSUCCESS){
+            free((void*)Callback);
+            return -1;
+        }
+
         uintptr_t MainStackData;
         size64_t SizeMainStackData;
         uint64_t argc = 0;
@@ -150,16 +159,10 @@ namespace mlibc{
         };
 
         kot_arguments_t InitParameters;
-
         __ensure(Sys_ExecThread((kot_thread_t)Callback->Data, &InitParameters, Kot::ExecutionTypeQueu, &Data) == KSUCCESS);
         free((void*)MainStackData);
         free((void*)Callback);
-
-        if(Status != KSUCCESS){
-            return -1;
-        }else{
-            Kot::Sys_Close(KSUCCESS);
-        }
+        Kot::Sys_Close(KSUCCESS);
     }
 
     pid_t sys_getpid(){

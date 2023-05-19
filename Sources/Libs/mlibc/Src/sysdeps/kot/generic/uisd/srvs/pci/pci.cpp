@@ -3,7 +3,7 @@
 #include <string.h>
 
 namespace Kot{
-    kot_thread_t SrvPciCallbackThread = NULL;
+    kot_thread_t srv_pci_callback_thread = NULL;
 
     void Srv_Pci_Initialize(){
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
@@ -12,7 +12,7 @@ namespace Kot{
         kot_thread_t PciThreadKeyCallback = NULL;
         Sys_CreateThread(proc, (uintptr_t)&Srv_Pci_Callback, PriviledgeDriver, NULL, &PciThreadKeyCallback);
         InitializeThread(PciThreadKeyCallback);
-        SrvPciCallbackThread = MakeShareableThreadToProcess(PciThreadKeyCallback, PciData->ControllerHeader.Process);
+        srv_pci_callback_thread = MakeShareableThreadToProcess(PciThreadKeyCallback, PciData->ControllerHeader.Process);
     }
 
     void Srv_Pci_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
@@ -35,7 +35,7 @@ namespace Kot{
     }
 
     struct srv_pci_callback_t* Srv_Pci_CountDevices(srv_pci_search_parameters_t* SearchParameters, bool IsAwait){
-        if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+        if(!srv_pci_callback_thread) Srv_Pci_Initialize();
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
         kot_thread_t self = Sys_GetThread();
@@ -54,7 +54,7 @@ namespace Kot{
         data.ParameterPosition = 0x2;
 
         struct kot_arguments_t parameters;
-        parameters.arg[0] = SrvPciCallbackThread;
+        parameters.arg[0] = srv_pci_callback_thread;
         parameters.arg[1] = (uint64_t)callback;
 
         KResult Status = Sys_ExecThread(PciData->CountDevices, &parameters, ExecutionTypeQueu, &data);
@@ -74,7 +74,7 @@ namespace Kot{
     }
 
     struct srv_pci_callback_t* Srv_Pci_FindDevice(srv_pci_search_parameters_t* SearchParameters, uint64_t Index, bool IsAwait){
-        if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+        if(!srv_pci_callback_thread) Srv_Pci_Initialize();
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
         kot_thread_t self = Sys_GetThread();
@@ -93,7 +93,7 @@ namespace Kot{
         data.ParameterPosition = 0x2;
 
         struct kot_arguments_t parameters;
-        parameters.arg[0] = SrvPciCallbackThread;
+        parameters.arg[0] = srv_pci_callback_thread;
         parameters.arg[1] = (uint64_t)callback;
         // arg  2 is reserved for srv_pci_search_parameters_t
         parameters.arg[3] = Index;
@@ -116,7 +116,7 @@ namespace Kot{
     }
 
     struct srv_pci_callback_t* Srv_Pci_GetInfoDevice(PCIDeviceID_t Device, bool IsAwait){
-        if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+        if(!srv_pci_callback_thread) Srv_Pci_Initialize();
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
         kot_thread_t self = Sys_GetThread();
@@ -130,7 +130,7 @@ namespace Kot{
         callback->Handler = &Srv_Pci_GetInfoDevice_Callback; 
 
         struct kot_arguments_t parameters;
-        parameters.arg[0] = SrvPciCallbackThread;
+        parameters.arg[0] = srv_pci_callback_thread;
         parameters.arg[1] = (uint64_t)callback;
         parameters.arg[2] = Device;
 
@@ -152,7 +152,7 @@ namespace Kot{
     }
 
     struct srv_pci_callback_t* Srv_Pci_GetBAR(PCIDeviceID_t Device, uint8_t BarIndex, bool IsAwait){
-        if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+        if(!srv_pci_callback_thread) Srv_Pci_Initialize();
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
         kot_thread_t self = Sys_GetThread();
@@ -166,7 +166,7 @@ namespace Kot{
         callback->Handler = &Srv_Pci_GetBAR_Callback; 
 
         struct kot_arguments_t parameters;
-        parameters.arg[0] = SrvPciCallbackThread;
+        parameters.arg[0] = srv_pci_callback_thread;
         parameters.arg[1] = (uint64_t)callback;
         parameters.arg[2] = Device;
         parameters.arg[3] = BarIndex;
@@ -188,7 +188,7 @@ namespace Kot{
     }
 
     struct srv_pci_callback_t* Srv_Pci_BindMSI(PCIDeviceID_t Device, uint8_t IRQVector, uint8_t Processor, uint16_t LocalDeviceVector, bool IsAwait){
-        if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+        if(!srv_pci_callback_thread) Srv_Pci_Initialize();
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
         kot_thread_t self = Sys_GetThread();
@@ -202,7 +202,7 @@ namespace Kot{
         callback->Handler = &Srv_Pci_BindMSI_Callback; 
 
         struct kot_arguments_t parameters;
-        parameters.arg[0] = SrvPciCallbackThread;
+        parameters.arg[0] = srv_pci_callback_thread;
         parameters.arg[1] = (uint64_t)callback;
         parameters.arg[2] = Device;
         parameters.arg[3] = IRQVector;
@@ -223,7 +223,7 @@ namespace Kot{
     }
 
     struct srv_pci_callback_t* Srv_Pci_UnbindMSI(PCIDeviceID_t Device, uint16_t LocalDeviceVector, bool IsAwait){
-        if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+        if(!srv_pci_callback_thread) Srv_Pci_Initialize();
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
         kot_thread_t self = Sys_GetThread();
@@ -237,7 +237,7 @@ namespace Kot{
         callback->Handler = &Srv_Pci_UnbindMSI_Callback; 
 
         struct kot_arguments_t parameters;
-        parameters.arg[0] = SrvPciCallbackThread;
+        parameters.arg[0] = srv_pci_callback_thread;
         parameters.arg[1] = (uint64_t)callback;
         parameters.arg[2] = Device;
         parameters.arg[3] = LocalDeviceVector;
@@ -260,7 +260,7 @@ namespace Kot{
     }
 
     struct srv_pci_callback_t* Srv_Pci_ConfigReadWord(PCIDeviceID_t Device, uint16_t Offset, bool IsAwait){
-        if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+        if(!srv_pci_callback_thread) Srv_Pci_Initialize();
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
         kot_thread_t self = Sys_GetThread();
@@ -274,7 +274,7 @@ namespace Kot{
         callback->Handler = &Srv_Pci_ConfigReadWord_Callback; 
 
         struct kot_arguments_t parameters;
-        parameters.arg[0] = SrvPciCallbackThread;
+        parameters.arg[0] = srv_pci_callback_thread;
         parameters.arg[1] = (uint64_t)callback;
         parameters.arg[2] = Device;
         parameters.arg[3] = Offset;
@@ -293,7 +293,7 @@ namespace Kot{
     }
 
     struct srv_pci_callback_t* Srv_Pci_ConfigWriteWord(PCIDeviceID_t Device, uint16_t Offset, uint16_t Value, bool IsAwait){
-        if(!SrvPciCallbackThread) Srv_Pci_Initialize();
+        if(!srv_pci_callback_thread) Srv_Pci_Initialize();
         uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
         kot_thread_t self = Sys_GetThread();
@@ -307,7 +307,7 @@ namespace Kot{
         callback->Handler = &Srv_Pci_ConfigWriteWord_Callback; 
 
         struct kot_arguments_t parameters;
-        parameters.arg[0] = SrvPciCallbackThread;
+        parameters.arg[0] = srv_pci_callback_thread;
         parameters.arg[1] = (uint64_t)callback;
         parameters.arg[2] = Device;
         parameters.arg[3] = Offset;
