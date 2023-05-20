@@ -194,11 +194,11 @@ namespace mlibc{
     }
 
     int sys_read_entries(int handle, void *buffer, size_t max_size, size_t *bytes_read){
+        if(handle >= MAX_OPEN_FILES + MAX_OPEN_DIRS) return EBADF;
         atomicAcquire(&Kot::LockHandleList, 0);
         Kot::directory_t* Dir = Kot::HandleList[handle];
         atomicUnlock(&Kot::LockHandleList, 0);
-        
-        if(Dir == NULL) return -1;
+        if(Dir == NULL) return EBADF;
 
         Kot::directory_entry_t* KotDirEntry = Kot::readdir(Dir);
 

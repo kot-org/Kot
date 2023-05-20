@@ -69,6 +69,20 @@ if not no_headers
 		'include/abi-bits/xattr.h',
 		subdir: 'abi-bits'
 	)
+	install_headers(
+		'include/kot/authorization.h',
+		'include/kot/keyhole.h',
+		'include/kot/syscall.h',
+		'include/kot/memory.h',
+		'include/kot/atomic.h',
+		'include/kot/thread.h',
+		'include/kot/shell.h',
+		'include/kot/types.h',
+		'include/kot/math.h',
+		'include/kot/uisd.h',
+		'include/kot/sys.h',
+		subdir: 'sys-kot'
+	)
 endif
 
 if not headers_only
