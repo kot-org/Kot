@@ -753,7 +753,10 @@ namespace Kot{
             Callback->Data = (uint64_t)malloc(GP1);
             Callback->Size = GP1;
             memcpy((void*)Callback->Data, (void*)GP0, GP1);
-        }    
+        }else{
+            Callback->Data = NULL;
+            Callback->Size = NULL;            
+        }
         return Status;
     }
 

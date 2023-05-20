@@ -746,7 +746,10 @@ KResult Srv_Storage_Readdir_Callback(KResult Status, struct srv_storage_callback
         Callback->Data = malloc(GP1);
         Callback->Size = GP1;
         memcpy(Callback->Data, GP0, GP1);
-    }    
+    }else{
+        Callback->Data = NULL;
+        Callback->Size = NULL;            
+    }
     return Status;
 }
 

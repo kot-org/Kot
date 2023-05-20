@@ -396,11 +396,16 @@ KResult Readdir(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Direct
 
     read_dir_data** ReadirData = (read_dir_data**)malloc(sizeof(read_dir_data*) * IndexCount);
 
+    KResult Status = KSUCCESS;
+
     uint64_t EntryCount = 0;
     size64_t DataSize = sizeof(directory_entries_t);
     for(uint64_t i = 0; i < IndexCount; i++){
         ReadirData[i] = Directory->ReadDir(IndexStart + i);
-        if(ReadirData[i] == NULL) break;
+        if(ReadirData[i] == NULL){
+            Status = KFAIL;
+            break;
+        } 
         DataSize += sizeof(directory_entry_t);
         DataSize += ReadirData[i]->NameLength + 1;
         EntryCount++;
@@ -427,7 +432,7 @@ KResult Readdir(thread_t Callback, uint64_t CallbackArg, ext_directory_t* Direct
 
     
     arguments_t arguments{
-        .arg[0] = KSUCCESS,         /* Status */
+        .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
         .arg[3] = DataSize,         /* GP1 */

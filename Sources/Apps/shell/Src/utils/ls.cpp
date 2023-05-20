@@ -6,7 +6,7 @@ int main(int argc, char* argv[]) {
     struct dirent* Entry;
 
     // TODO: opendir avec arg
-    Directory = opendir(".");
+    Directory = opendir("d1:.");
 
     while((Entry = readdir(Directory)) != NULL) {
         printf("%s\n", Entry->d_name);

@@ -156,11 +156,11 @@ namespace mlibc{
             return 0;
         }else if(fd < MAX_OPEN_FILES + MAX_OPEN_DIRS){
             atomicAcquire(&Kot::LockHandleList, 0);
-            if(!Kot::HandleList[fd]){
+            if(!Kot::HandleList[fd - MAX_OPEN_FILES]){
                 atomicUnlock(&Kot::LockHandleList, 0);
                 return EBADF;
             }
-            if(closedir(Kot::HandleList[fd]) != KSUCCESS){
+            if(closedir(Kot::HandleList[fd - MAX_OPEN_FILES]) != KSUCCESS){
                 atomicUnlock(&Kot::LockHandleList, 0);
                 return -1;
             }
@@ -196,14 +196,14 @@ namespace mlibc{
     int sys_read_entries(int handle, void *buffer, size_t max_size, size_t *bytes_read){
         if(handle >= MAX_OPEN_FILES + MAX_OPEN_DIRS) return EBADF;
         atomicAcquire(&Kot::LockHandleList, 0);
-        Kot::directory_t* Dir = Kot::HandleList[handle];
+        Kot::directory_t* Dir = Kot::HandleList[handle - MAX_OPEN_FILES];
         atomicUnlock(&Kot::LockHandleList, 0);
         if(Dir == NULL) return EBADF;
 
         Kot::directory_entry_t* KotDirEntry = Kot::readdir(Dir);
 
-        if(KotDirEntry != NULL) {
-            dirent* DirEntry = (dirent*) buffer;
+        if(KotDirEntry != NULL){
+            dirent* DirEntry = (dirent*)buffer;
 
             DirEntry->d_ino = KotDirEntry->NextEntryPosition;
             DirEntry->d_off = 0;
@@ -213,8 +213,9 @@ namespace mlibc{
 
             *bytes_read = sizeof(dirent);
             return 0;
-        } else {
-            return -1;
+        }else{
+            *bytes_read = NULL;
+            return 0;            
         }
     }
 

@@ -63,6 +63,7 @@ int
 main( int     argc,
       char**  argv )
 {
+  return 0;
   FT_Library    library;
   FT_Face       face;
 
