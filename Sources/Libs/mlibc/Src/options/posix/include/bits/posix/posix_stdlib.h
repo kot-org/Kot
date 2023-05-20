@@ -49,6 +49,10 @@ int ptsname_r(int fd, char *buf, size_t len);
 double strtod_l(const char *__restrict__ nptr, char ** __restrict__ endptr, locale_t loc);
 long double strtold_l(const char *__restrict__ nptr, char ** __restrict__ endptr, locale_t loc);
 float strtof_l(const char *__restrict string, char **__restrict end, locale_t loc);
+long strtol_l(const char *__restrict string, char **__restrict end, int base, locale_t);
+long long strtoll_l(const char *__restrict string, char **__restrict end, int base, locale_t);
+unsigned long strtoul_l(const char *__restrict string, char **__restrict end, int base, locale_t);
+unsigned long long strtoull_l(const char *__restrict string, char **__restrict end, int base, locale_t);
 
 int getloadavg(double *, int);
 

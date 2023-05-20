@@ -168,3 +168,19 @@ size_t strlcat(char *d, const char *s, size_t n) {
 	}
 	return l + strlcpy(d + l, s, n - l);
 }
+
+
+size_t strxfrm_l(char *__restrict dest, const char *__restrict src, size_t max_size, locale_t){
+	mlibc::infoLogger() << "mlibc: strxfrm_l ignores locales" << frg::endlog;
+	return strxfrm(dest, src, max_size);
+}
+
+int wcscoll_l(const wchar_t *a, const wchar_t *b, locale_t){
+	mlibc::infoLogger() << "mlibc: wcscoll_l ignores locales" << frg::endlog;
+	return wcscoll(a, b);		
+}
+
+int wcsxfrm_l(wchar_t *__restrict dest, const wchar_t *__restrict src, size_t max_size, locale_t){
+	mlibc::infoLogger() << "mlibc: wcsxfrm_l ignores locales" << frg::endlog;
+	return wcsxfrm(dest, src, max_size);	
+}

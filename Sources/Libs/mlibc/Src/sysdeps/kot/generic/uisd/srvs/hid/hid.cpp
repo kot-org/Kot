@@ -1,4 +1,5 @@
 #include <kot/uisd/srvs/hid.h>
+#include <abi-bits/seek-whence.h>
 #include <stdlib.h>
 #include <string.h>
 

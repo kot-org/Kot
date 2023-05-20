@@ -18,7 +18,7 @@ shell_t* NewShell(process_t Target){
     Sys_Event_Bind(Shell->ShellEvent, Shell->ShellEventThread, false);
     Shell->Wid = CreateWindow(Shell->ShellEvent, Window_Type_Default);
 
-    ResizeWindow(Shell->Wid, 500, 500);
+    ResizeWindow(Shell->Wid, 1920, 700);
     ChangeVisibilityWindow(Shell->Wid, true);
 
     Shell->Framebuffer = &Shell->Wid->Framebuffer;

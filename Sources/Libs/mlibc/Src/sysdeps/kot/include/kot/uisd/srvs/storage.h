@@ -44,10 +44,6 @@ namespace Kot{
     #define Dir_Function_GetCount           0x1
     #define Dir_Function_Read               0x2
 
-    #define SEEK_SET                        0x0
-    #define SEEK_CUR                        0x1
-    #define SEEK_END                        0x2
-
 
     typedef KResult (*StorageCallbackHandler)(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 

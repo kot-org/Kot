@@ -2,6 +2,7 @@
 #ifndef MLIBC_POSIX_STRING_H
 #define MLIBC_POSIX_STRING_H
 
+#include <wchar.h>
 #include <alloca.h>
 #include <bits/posix/locale_t.h>
 
@@ -45,6 +46,10 @@ void *memrchr(const void *, int, size_t);
 // BSD extensions
 size_t strlcpy(char *d, const char *s, size_t n);
 size_t strlcat(char *d, const char *s, size_t n);
+
+size_t strxfrm_l(char *__restrict dest, const char *__restrict src, size_t max_size, locale_t);
+int wcscoll_l(const wchar_t *a, const wchar_t *b, locale_t);
+int wcsxfrm_l(wchar_t *__restrict dest, const wchar_t *__restrict src, size_t max_size, locale_t);
 
 #endif /* !__MLIBC_ABI_ONLY */
 

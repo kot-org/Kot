@@ -2,6 +2,13 @@
 #include <bits/ensure.h>
 #include <mlibc/posix-sysdeps.hpp>
 #include <errno.h>
+#include <stdlib.h>
+
+#include <frg/small_vector.hpp>
+#include <mlibc/allocator.hpp>
+#include <mlibc/debug.hpp>
+#include <mlibc/posix-sysdeps.hpp>
+#include <mlibc/rtdl-config.hpp>
 
 int utimes(const char *filename, const struct timeval times[2]) {
 	MLIBC_CHECK_OR_ENOSYS(mlibc::sys_utimensat, -1);
@@ -29,4 +36,9 @@ int utimes(const char *filename, const struct timeval times[2]) {
 int futimes(int, const struct timeval[2]) {
 	__ensure(!"Not implemented");
 	__builtin_unreachable();
+}
+
+size_t strftime_l(char *__restrict dest, size_t max_size, const char *__restrict format, const struct tm *__restrict tm, locale_t){
+	mlibc::infoLogger() << "mlibc: strftime_l ignores locales" << frg::endlog;
+	return strftime(dest, max_size, format, tm);
 }

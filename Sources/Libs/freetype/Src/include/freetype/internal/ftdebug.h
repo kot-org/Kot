@@ -143,7 +143,6 @@ FT_BEGIN_HEADER
 #define FT_LOG( level, varformat )                                         \
           do                                                               \
           {                                                                \
-            if ( ft_trace_levels[FT_TRACE_COMP( FT_COMPONENT )] >= level ) \
               FT_Message varformat;                                        \
           } while ( 0 )
 

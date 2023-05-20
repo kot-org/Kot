@@ -478,6 +478,26 @@ float strtof_l(const char *__restrict__ nptr, char **__restrict__ endptr, locale
 	return strtof(nptr, endptr);
 }
 
+long strtol_l(const char *__restrict string, char **__restrict end, int base, locale_t){
+	mlibc::infoLogger() << "mlibc: strtoll_l ignores locales" << frg::endlog;
+	return strtol(string, end, base);
+}
+
+long long strtoll_l(const char *__restrict string, char **__restrict end, int base, locale_t) {
+	mlibc::infoLogger() << "mlibc: strtoll_l ignores locales" << frg::endlog;
+	return strtoll(string, end, base);
+}
+
+unsigned long strtoul_l(const char *__restrict string, char **__restrict end, int base, locale_t) {
+	mlibc::infoLogger() << "mlibc: strtoul_l ignores locales" << frg::endlog;
+	return strtoul(string, end, base);
+}
+
+unsigned long long strtoull_l(const char *__restrict string, char **__restrict end, int base, locale_t) {
+	mlibc::infoLogger() << "mlibc: strtoull_l ignores locales" << frg::endlog;
+	return strtoull(string, end, base);
+}
+
 int strcoll_l(const char *, const char *, locale_t) {
 	__ensure(!"Not implemented");
 	__builtin_unreachable();

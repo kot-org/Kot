@@ -430,8 +430,8 @@ FT_BEGIN_HEADER
    *   Do not `#undef` these macros here since the build system might define
    *   them for certain configurations only.
    */
-/* #define FT_DEBUG_LEVEL_ERROR */
-/* #define FT_DEBUG_LEVEL_TRACE */
+// #define FT_DEBUG_LEVEL_ERROR
+// #define FT_DEBUG_LEVEL_TRACE
 
 
   /**************************************************************************
@@ -551,7 +551,7 @@ FT_BEGIN_HEADER
    *
    *   More details can be found in the file `fterrors.h`.
    */
-/* #define FT_CONFIG_OPTION_ERROR_STRINGS */
+ #define FT_CONFIG_OPTION_ERROR_STRINGS
 
 
   /*************************************************************************/

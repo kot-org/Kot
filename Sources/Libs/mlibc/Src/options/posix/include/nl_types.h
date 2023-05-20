@@ -9,10 +9,16 @@
 typedef void* nl_catd;
 typedef int nl_item;
 
-extern nl_catd catopen (const char *__cat_name, int __flag) __nonnull ((1));
+nl_catd catopen (const char *__cat_name, int __flag){
+    return NULL;
+}
 
-extern char *catgets (nl_catd __catalog, int __set, int __number, const char *__string) __THROW __nonnull ((1));
+char *catgets (nl_catd __catalog, int __set, int __number, const char *__string){
+    return NULL;
+}
 
-extern int catclose (nl_catd __catalog) __THROW __nonnull ((1));
+int catclose (nl_catd __catalog){
+    return -1;
+}
 
 #endif // NL_TYPES_H 
