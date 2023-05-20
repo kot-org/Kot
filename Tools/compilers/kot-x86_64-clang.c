@@ -7,7 +7,7 @@ int main(int argc, char *argv[]) {
 
     char cwd[PATH_MAX];
 
-    if(getcwd(cwd, sizeof(cwd)) != NULL){
+    if(getcwd(cwd, sizeof(cwd)) != NULL) {
         args[0] = KOT_BASE_PATH"/Toolchain/local/bin/clang";
         args[1] = "--target=x86_64-kot";
         args[2] = "--sysroot="KOT_BASE_PATH"/Sysroot";
@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
         args[argc + 2] = NULL;
 
         return execvp(args[0], args);
-    }else{
+    } else {
         return 1;
     }
 }

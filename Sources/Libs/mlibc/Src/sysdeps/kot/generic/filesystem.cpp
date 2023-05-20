@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <dirent.h>
 #include <string.h>
 #include <stdlib.h>
 #include <kot/sys.h>
@@ -193,8 +194,28 @@ namespace mlibc{
     }
 
     int sys_read_entries(int handle, void *buffer, size_t max_size, size_t *bytes_read){
-        // TODO
-        __ensure(!"Not implemented");
+        atomicAcquire(&Kot::LockHandleList, 0);
+        Kot::directory_t* Dir = Kot::HandleList[handle];
+        atomicUnlock(&Kot::LockHandleList, 0);
+        
+        if(Dir == NULL) return -1;
+
+        Kot::directory_entry_t* KotDirEntry = Kot::readdir(Dir);
+
+        if(KotDirEntry != NULL) {
+            dirent* DirEntry = (dirent*) buffer;
+
+            DirEntry->d_ino = KotDirEntry->NextEntryPosition;
+            DirEntry->d_off = 0;
+            DirEntry->d_reclen = sizeof(dirent);
+            DirEntry->d_type = KotDirEntry->IsFile;
+            strcpy(DirEntry->d_name, KotDirEntry->Name);
+
+            *bytes_read = sizeof(dirent);
+            return 0;
+        } else {
+            return -1;
+        }
     }
 
     int sys_pread(int fd, void *buf, size_t n, off_t off, ssize_t *bytes_read){

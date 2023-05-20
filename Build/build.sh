@@ -81,7 +81,7 @@ make -C "Apps/tcc/Build"
 make -C "Apps/test/Build"
 make -C "Apps/calculator/Build"
 make -C "Apps/explorer/Build"
-make -C "Apps/shell"
+make -C "Apps/shell/Build"
 
 # kernel
 echo -e "\e[32mBuilding kernel...\e[0m"
