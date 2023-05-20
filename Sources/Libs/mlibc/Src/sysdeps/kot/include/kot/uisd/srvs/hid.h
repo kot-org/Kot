@@ -8,18 +8,16 @@
 #include <kot/memory.h>
 #include <kot/uisd/srvs/storage.h>
 
-namespace Kot{
-    kot_event_t GetMouseRelativeEvent();
-    kot_event_t GetMouseAbsoluteEvent();
-    kot_event_t GetKeyboardEvent();
+kot_event_t kot_GetMouseRelativeEvent();
+kot_event_t kot_GetMouseAbsoluteEvent();
+kot_event_t kot_GetKeyboardEvent();
 
-    KResult BindMouseRelative(kot_thread_t Task, bool IgnoreMissedEvents);
-    KResult BindMouseAbsolute(kot_thread_t Task, bool IgnoreMissedEvents);
-    KResult BindKeyboardEvent(kot_thread_t Task, bool IgnoreMissedEvents);
+KResult kot_BindMouseRelative(kot_thread_t Task, bool IgnoreMissedEvents);
+KResult kot_BindMouseAbsolute(kot_thread_t Task, bool IgnoreMissedEvents);
+KResult kot_BindKeyboardEvent(kot_thread_t Task, bool IgnoreMissedEvents);
 
-    KResult GetTableConverter(char* Path, uintptr_t* TableConverter, size64_t* TableConverterCharCount);
-    KResult GetCharFromScanCode(uint64_t ScanCode, uintptr_t TableConverter, size64_t TableConverterCharCount, char* Char, bool* IsPressed, uint64_t* PressedCache);
-}
+KResult kot_GetTableConverter(char* Path, uintptr_t* TableConverter, size64_t* TableConverterCharCount);
+KResult kot_GetCharFromScanCode(uint64_t ScanCode, uintptr_t TableConverter, size64_t TableConverterCharCount, char* Char, bool* IsPressed, uint64_t* PressedCache);
 
 
 

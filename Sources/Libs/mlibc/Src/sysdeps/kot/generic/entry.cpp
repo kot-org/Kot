@@ -52,7 +52,7 @@ LibraryGuard::LibraryGuard() {
 
 extern "C" void __mlibc_entry(uintptr_t *entry_stack, int (*main_fn)(int argc, char *argv[], char *env[])) {
 	__dlapi_enter(entry_stack);
-	Kot::InitializeShell();
+	kot_InitializeShell();
 	auto result = main_fn(__mlibc_stack_data.argc, __mlibc_stack_data.argv, environ);
 	exit(result);
 }

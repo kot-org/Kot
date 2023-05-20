@@ -6,10 +6,8 @@
 #include <kot/types.h>
 #include <kot/atomic.h>
 
-namespace Kot{
-    int InitializeShell();
-    int OpenShellFile(const char *pathname);
-}
+int kot_InitializeShell();
+int kot_OpenShellFile(const char *pathname);
 
 
 #endif

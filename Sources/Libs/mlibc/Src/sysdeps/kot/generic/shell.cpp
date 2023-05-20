@@ -6,16 +6,13 @@
 #include <mlibc/debug.hpp>
 #include <kot/uisd/srvs/storage.h>
 
-namespace Kot{
-    int InitializeShell(){
-        uisd_shell_t* Shell = (uisd_shell_t*)Kot::FindControllerUISD(ControllerTypeEnum_Shell);
-        if(!Shell->IsAvailableAsFile){
-            mlibc::infoLogger() << "mlibc warning: Shell isn't available as file" << frg::endlog;
-            mlibc::infoLogger() << "mlibc warning: Shell initialization failed" << frg::endlog;
-            return -1;
-        }
-        __ensure(OpenShellFile("/dev/tty") == 0);
-        return 0;
+int kot_InitializeShell(){
+    kot_uisd_shell_t* Shell = (kot_uisd_shell_t*)kot_FindControllerUISD(ControllerTypeEnum_Shell);
+    if(!Shell->IsAvailableAsFile){
+        mlibc::infoLogger() << "mlibc warning: Shell isn't available as file" << frg::endlog;
+        mlibc::infoLogger() << "mlibc warning: Shell initialization failed" << frg::endlog;
+        return -1;
     }
-
+    __ensure(kot_OpenShellFile("/dev/tty") == 0);
+    return 0;
 }
