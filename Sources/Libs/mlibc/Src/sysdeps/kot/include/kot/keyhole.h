@@ -1,5 +1,5 @@
-#ifndef _KEYHOLE_H
-#define _KEYHOLE_H 1
+#ifndef KOT_KEYHOLE_H
+#define KOT_KEYHOLE_H 1
 
 #if defined(__cplusplus)
 extern "C" {

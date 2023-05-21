@@ -1,6 +1,8 @@
 #pragma once
 
 #include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
 #include <assert.h>
 
 #include <kot++/printf.h>

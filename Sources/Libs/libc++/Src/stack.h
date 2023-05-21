@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include <kot++/printf.h>
 
 #ifndef __LIBCPP__STACK__

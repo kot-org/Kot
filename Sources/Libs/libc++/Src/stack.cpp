@@ -5,7 +5,7 @@ namespace std {
     Stack::Stack(uint64_t sector_size) {
         if (sector_size < 24) sector_size = 24;
         this->sector_size = sector_size + 8 + 1;
-        this->current_sector = malloc(this->sector_size); // last sector address: 8; recovery byte: 1;
+        this->current_sector = (uintptr_t)malloc(this->sector_size); // last sector address: 8; recovery byte: 1;
         this->top = 9;
         *(uint64_t*)(this->current_sector) = NULL;
     }
@@ -14,7 +14,7 @@ namespace std {
         if (this->top < 9 + 1) {
             uintptr_t temp = (uintptr_t) *(uint64_t*)(current_sector);
             if (temp == NULL) { return NULL; }
-            free(current_sector);
+            free((void*)current_sector);
             current_sector = temp;
             top = sector_size - *(uint8_t*)((uint64_t) current_sector + 8);
             return pop16();
@@ -28,7 +28,7 @@ namespace std {
         if (this->top < 9 + 2) {
             uintptr_t temp = (uintptr_t) *(uint64_t*)(current_sector);
             if (temp == NULL) { return NULL; }
-            free(current_sector);
+            free((void*)current_sector);
             current_sector = temp;
             top = sector_size - *(uint8_t*)((uint64_t) current_sector + 8);
             return pop16();
@@ -42,7 +42,7 @@ namespace std {
         if (this->top < 9 + 4) {
             uintptr_t temp = (uintptr_t) *(uint64_t*)(current_sector);
             if (temp == NULL) { return NULL; }
-            free(current_sector);
+            free((void*)current_sector);
             current_sector = temp;
             top = sector_size - *(uint8_t*)((uint64_t) current_sector + 8);
             return pop32();
@@ -56,7 +56,7 @@ namespace std {
         if (this->top < 9 + 8) {
             uintptr_t temp = (uintptr_t) *(uint64_t*)(current_sector);
             if (temp == NULL) { return NULL; }
-            free(current_sector);
+            free((void*)current_sector);
             current_sector = temp;
             top = sector_size - *(uint8_t*)((uint64_t) current_sector + 8);
             return pop64();
@@ -69,7 +69,7 @@ namespace std {
     void Stack::push8(uint8_t item) {
         if (this->top + 1 > this->sector_size) {
             *(uint8_t*)((uint64_t) current_sector + 8) = sector_size - top;
-            uintptr_t temp = malloc(sector_size);
+            uintptr_t temp = (uintptr_t)malloc(sector_size);
             *(uint64_t*)(temp) = (uint64_t) current_sector;
             current_sector = temp;
             top = 9;
@@ -83,7 +83,7 @@ namespace std {
     void Stack::push16(uint16_t item) {
         if (this->top + 2 > this->sector_size) {
             *(uint8_t*)((uint64_t) current_sector + 8) = sector_size - top;
-            uintptr_t temp = malloc(sector_size);
+            uintptr_t temp = (uintptr_t)malloc(sector_size);
             *(uint64_t*)(temp) = (uint64_t) current_sector;
             current_sector = temp;
             top = 9;
@@ -97,7 +97,7 @@ namespace std {
     void Stack::push32(uint32_t item) {
         if (this->top + 4 > this->sector_size) {
             *(uint8_t*)((uint64_t) current_sector + 8) = sector_size - top;
-            uintptr_t temp = malloc(sector_size);
+            uintptr_t temp = (uintptr_t)malloc(sector_size);
             *(uint64_t*)(temp) = (uint64_t) current_sector;
             current_sector = temp;
             top = 9;
@@ -111,7 +111,7 @@ namespace std {
     void Stack::push64(uint64_t item) {
         if (this->top + 8 > this->sector_size) {
             *(uint8_t*)((uint64_t) current_sector + 8) = sector_size - top;
-            uintptr_t temp = malloc(sector_size);
+            uintptr_t temp = (uintptr_t)malloc(sector_size);
             *(uint64_t*)(temp) = (uint64_t) current_sector;
             current_sector = temp;
             top = 9;

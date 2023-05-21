@@ -55,7 +55,7 @@ void kot_map_remove(kot_vector_t* map, char* key) {
 }
 
 uintptr_t kot_map_get(kot_vector_t* map, char* key) {
-    int64_t indexof = map_indexof(map, key);
+    int64_t indexof = kot_map_indexof(map, key);
     if (indexof != -1) {
         return ((kot_map_item_t*)kot_vector_get(map, indexof))->item;
     }
