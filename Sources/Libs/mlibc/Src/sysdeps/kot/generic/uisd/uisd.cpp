@@ -6,6 +6,8 @@
 #include <frg/vector.hpp>
 #include <mlibc/debug.hpp>
 
+extern "C" {
+
 uintptr_t kot_ControllerList[ControllerCount];
 
 size64_t kot_ControllerTypeSize[ControllerCount] = {
@@ -165,5 +167,7 @@ KResult kot_ResetUISDThreads(){
     kot_srv_audio_callback_thread = NULL;
     
     return KSUCCESS;
+}
+
 }
 

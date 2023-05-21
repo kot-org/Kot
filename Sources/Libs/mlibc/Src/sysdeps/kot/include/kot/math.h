@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #ifndef KOT_MATH_H
 #define KOT_MATH_H 1
 

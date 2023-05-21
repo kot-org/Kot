@@ -7,6 +7,8 @@
 #include <mlibc/all-sysdeps.hpp>
 #include <kot/uisd/srvs/storage.h>
 
+extern "C" {
+
 kot_process_t kot_ShareProcessFS = NULL;
 
 kot_file_t* kot_fopen(char* Path, char* Mode){
@@ -433,4 +435,6 @@ char* kot_dirname(char* path){
         *slash = '\0';
         return path;
     }
+}
+
 }

@@ -1,6 +1,8 @@
 #include <kot/utils/vector.h>
 #include <string.h>
 
+extern "C" {
+
 kot_vector_t* kot_vector_create() {
     kot_vector_t* vector = (kot_vector_t*)malloc(sizeof(kot_vector_t));
     vector->items = NULL;
@@ -65,4 +67,6 @@ void kot_vector_remove(kot_vector_t* vector, uint64_t index) {
             vector->length--;
         }
     }
+}
+
 }

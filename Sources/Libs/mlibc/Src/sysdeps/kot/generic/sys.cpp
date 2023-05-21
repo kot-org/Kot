@@ -1,5 +1,7 @@
 #include <kot/sys.h>
 
+extern "C" {
+
 __attribute__((section(".KotSpecificData"))) struct kot_KotSpecificData_t KotSpecificData;
 
 KResult kot_Sys_CreateMemoryField(kot_process_t self, size64_t size, uintptr_t* virtualAddressPointer, kot_ksmem_t* keyPointer, enum kot_MemoryFieldType type){
@@ -245,4 +247,6 @@ uint64_t kot_Sys_GetPriviledgeThreadLauncher(){
     uint64_t Priviledge = NULL;
     asm("mov %%gs:0x88, %0":"=r"(Priviledge));
     return Priviledge;
+}
+
 }

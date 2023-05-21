@@ -6,6 +6,8 @@
 #include <mlibc/debug.hpp>
 #include <kot/uisd/srvs/storage.h>
 
+extern "C" {
+
 int kot_InitializeShell(){
     kot_uisd_shell_t* Shell = (kot_uisd_shell_t*)kot_FindControllerUISD(ControllerTypeEnum_Shell);
     if(!Shell->IsAvailableAsFile){
@@ -15,4 +17,6 @@ int kot_InitializeShell(){
     }
     __ensure(kot_OpenShellFile("/dev/tty") == 0);
     return 0;
+}
+
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include <kot/types.h>
+#include <lib/types.h>
 
 typedef struct locker_t{
     uint64_t Mutex;

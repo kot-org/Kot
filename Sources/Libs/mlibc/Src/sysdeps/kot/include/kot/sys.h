@@ -7,6 +7,12 @@
 #include <kot/syscall.h>
 
 #if defined(__cplusplus)
+extern "C" struct kot_KotSpecificData_t KotSpecificData;
+#else
+extern struct kot_KotSpecificData_t KotSpecificData;
+#endif
+
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -23,8 +29,6 @@ struct kot_KotSpecificData_t{
     /* VFS */
     kot_thread_t VFSHandler;
 }__attribute__((aligned(0x1000)));
-
-extern "C" struct kot_KotSpecificData_t KotSpecificData;
 
 struct kot_SelfData{
     /* Self Info */

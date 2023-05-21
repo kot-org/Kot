@@ -1,6 +1,6 @@
 #pragma once
 
-#include <kot/types.h>
+#include <lib/types.h>
 #include <lib/stdio.h>
 #include <logs/logs.h>
 #include <arch/arch.h>

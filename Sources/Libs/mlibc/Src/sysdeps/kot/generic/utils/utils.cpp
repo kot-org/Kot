@@ -97,7 +97,7 @@ int main()
 
 */
 
-uint32_t crc32(uint32_t crc, const char *buf, size_t len){
+uint32_t kot_crc32(uint32_t crc, const char *buf, size_t len){
 	uint8_t byte;
 	const char *p, *q;
 

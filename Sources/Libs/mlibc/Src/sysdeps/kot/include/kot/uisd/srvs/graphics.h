@@ -1,6 +1,8 @@
 #ifndef KOT_SRV_GRAPHICS_H
 #define KOT_SRV_GRAPHICS_H 1
 
+#include <stdbool.h>
+
 #include <kot/sys.h>
 #include <kot/uisd.h>
 #include <kot/math.h>

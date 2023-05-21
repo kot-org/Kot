@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern "C" {
+
 kot_thread_t kot_srv_time_callback_thread = NULL;
 kot_time_t* kot_TimePointer = NULL;
 uint64_t* kot_TickPointer = NULL;
@@ -308,4 +310,6 @@ KResult kot_CompareTime(uint64_t* compare, uint64_t time0, uint64_t time1){
 uint64_t kot_GetPosixTime(){
     // TODO
     return NULL;
+}
+
 }

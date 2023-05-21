@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern "C" {
+
 kot_thread_t kot_srv_system_callback_thread = NULL;
 kot_uisd_system_t* kot_SystemData = NULL;
 kot_process_t kot_ShareableProcessUISDSystem;
@@ -370,4 +372,6 @@ struct kot_srv_system_callback_t* kot_Srv_System_UnbindIRQ(uint8_t Vector, kot_t
         kot_Sys_Pause(false);
     }
     return callback;
+}
+
 }

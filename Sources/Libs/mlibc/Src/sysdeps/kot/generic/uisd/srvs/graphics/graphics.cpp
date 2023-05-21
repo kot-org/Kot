@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern "C" {
+
 kot_thread_t kot_srv_graphics_callback_thread = NULL;
 kot_uisd_graphics_t* kot_GraphicsData = NULL;
 kot_process_t kot_ShareProcessGraphics = NULL;
@@ -210,4 +212,6 @@ struct kot_srv_graphics_callback_t* kot_Srv_Graphics_ChangeVisibility(kot_window
         kot_Sys_Pause(false);
     }
     return callback;
+}
+
 }

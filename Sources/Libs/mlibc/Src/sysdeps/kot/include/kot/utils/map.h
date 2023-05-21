@@ -2,6 +2,7 @@
 #define KOT_UTILS_MAP_H 1
 
 #include <kot/utils/vector.h>
+#include <stdbool.h>
 
 #if defined(__cplusplus)
 extern "C" {

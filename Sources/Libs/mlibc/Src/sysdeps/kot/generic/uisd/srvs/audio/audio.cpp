@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern "C" {
+
 kot_thread_t kot_srv_audio_callback_thread = NULL;
 kot_process_t kot_ShareProcess = NULL;
 
@@ -247,4 +249,6 @@ struct kot_srv_audio_callback_t* kot_Srv_Audio_AddDevice(kot_srv_audio_device_t*
         kot_Sys_Pause(false);
     }
     return callback;
+}
+
 }

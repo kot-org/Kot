@@ -338,7 +338,7 @@ uint64_t vmm_GetPhysical(pagetable_t table, uint64_t Address){
 }
 
 void vmm_Init(struct multiboot_tag_mmap* Map, uint64_t* Stack){
-    vmm_PageTable = Pmm_RequestPage();
+    vmm_PageTable = (pagetable_t)Pmm_RequestPage();
     memset((uintptr_t)vmm_PageTable, 0, PAGE_SIZE);
 
     vmm_HHDMAdress = PML4_HIGHER_HALF_ADDRESS;
@@ -387,5 +387,5 @@ void Vmm_ExtractsInfo(struct ukl_boot_structure_t* BootData){
     BootData->memory_info.HHDM = vmm_HHDMAdress;
     BootData->memory_info.bitmap_address = vmm_BitmapAddress;
     BootData->memory_info.bitmap_size = vmm_BitmapSize;
-    BootData->memory_info.page_table = vmm_PageTable;
+    BootData->memory_info.page_table = (uint64_t)vmm_PageTable;
 }

@@ -4,7 +4,7 @@ CC = kot-x86_64-clang
 ASMC = nasm
 
 CFLAGS = -O3 -I../Src
-LINKERFLAGS = -Wall -lc
+LINKERFLAGS = -Wall -lc -lkot-c++ -lkot-graphics
 ASMFLAGS = 
 
 SRCDIR := ../Src
@@ -34,4 +34,4 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 link:
 	@ echo !==== LINKING
 	@ mkdir -p $(BINDIR)
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Shell.elf $(OBJS) $(OBJSCPP) $(_HOME)Sysroot/lib/kot/libcpp.a $(_HOME)Sysroot/lib/kot/ui.a $(_HOME)Sysroot/lib/kot/graphics.a
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Shell.elf $(OBJS) $(OBJSCPP)

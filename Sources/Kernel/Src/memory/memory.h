@@ -1,10 +1,18 @@
 #pragma once
 
+#include <lib/sys.h>
 #include <arch/arch.h>
 #include <lib/types.h>
-#include <kot/memory.h>
 #include <lib/stack/stack.h>
 #include <scheduler/scheduler.h>
+
+void memset(uintptr_t start, uint8_t value, size64_t size);
+void memset16(uintptr_t start, uint16_t value, size64_t size);
+void memset32(uintptr_t start, uint32_t value, size64_t size);
+void memset64(uintptr_t start, uint64_t value, size64_t size);
+
+int memcmp(const void *aptr, const void *bptr, size64_t size);
+void memcpy(uintptr_t destination, uintptr_t source, size64_t size);
 
 bool CheckAddress(uintptr_t address, size64_t size, uintptr_t pagingEntry);
 bool CheckAddress(uintptr_t address, size64_t size);

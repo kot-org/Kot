@@ -1,5 +1,7 @@
 #include <kot/memory.h>
 
+extern "C" {
+
 uint64_t kot_MemoryLock;
 
 uintptr_t kot_GetFreeAlignedSpace(size64_t size){
@@ -33,4 +35,6 @@ uintptr_t kot_GetPhysical(uintptr_t* physicalAddress, size64_t size){
 
 void kot_FreeAddress(uintptr_t virtualAddress, size64_t size){
     kot_Sys_Unmap(kot_Sys_GetProcess(), virtualAddress, size);
+}
+
 }

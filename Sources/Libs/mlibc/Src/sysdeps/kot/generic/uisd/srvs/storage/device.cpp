@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern "C" {
+
 kot_process_t kot_ShareableProcessUISDStorage;
 
 KResult Srv_StorageInitializeDeviceAccess(struct kot_srv_storage_space_info_t* StorageSpace, struct kot_srv_storage_device_t** StorageDevice){
@@ -145,4 +147,6 @@ KResult Srv_WriteDevice(struct kot_srv_storage_device_t* StorageDevice, uintptr_
         SizeToWrite -= SizeToWriteInIteration;
     }
     return KSUCCESS;
+}
+
 }

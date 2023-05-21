@@ -1,6 +1,6 @@
 #pragma once
 #include <arch/arch.h>
-#include <kot/types.h>
+#include <lib/types.h>
 #include <heap/heap.h>
 #include <lib/limits.h>
 #include <event/event.h>

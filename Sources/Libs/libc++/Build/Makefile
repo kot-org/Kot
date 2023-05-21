@@ -36,4 +36,4 @@ $(INCDIR)/kot++/%.h : $(SRCDIR)/%.h
 
 link:
 	@ echo !==== LINKING
-	$(AR) rcs $(BUILDDIR)kot/libcpp.a $(OBJS)
+	$(AR) rcs $(BUILDDIR)libkot-c++.a $(OBJS)

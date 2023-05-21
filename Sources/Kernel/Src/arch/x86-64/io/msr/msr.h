@@ -1,5 +1,5 @@
 #pragma once
-#include <kot/types.h>
+#include <lib/types.h>
 
 namespace msr{
     #define MSR_CPU_TEMP 0x1A2

@@ -1,7 +1,7 @@
 #pragma once
 #include <arch/x86-64/gdt/gdt.h>
 #include <arch/x86-64/apic/apic.h>
-#include <kot/types.h>
+#include <lib/types.h>
 #include <memory/memory.h>
 #include <lib/stdio.h>
 

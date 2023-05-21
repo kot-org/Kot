@@ -11,7 +11,7 @@ graphiceventbuffer_t* CreateEventBuffer(uint64_t Width, uint64_t Height){
 
     EventBuffer->Pitch = EventBuffer->Width * EventBuffer->Btpp;
     EventBuffer->Size = EventBuffer->Pitch * EventBuffer->Height;
-    EventBuffer->Buffer = calloc(EventBuffer->Size);
+    EventBuffer->Buffer = calloc(EventBuffer->Size, sizeof(uint64_t));
 
     return EventBuffer;
 }

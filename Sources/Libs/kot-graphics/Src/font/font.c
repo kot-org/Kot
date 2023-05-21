@@ -6,8 +6,8 @@
 kfont_t* LoadFont(uintptr_t data){
     kfont_t* font = malloc(sizeof(kfont_t));
 
-    font->FontContext = calloc(sizeof(ssfn_t));
-    font->PenContext = calloc(sizeof(ssfn_buf_t));
+    font->FontContext = calloc(sizeof(ssfn_t), sizeof(ssfn_t));
+    font->PenContext = calloc(sizeof(ssfn_buf_t), sizeof(ssfn_buf_t));
     font->IsPen = false;
 
     ssfn_load(font->FontContext, data);

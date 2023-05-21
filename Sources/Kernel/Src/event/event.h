@@ -1,7 +1,7 @@
 #pragma once
 
-#include <kot/types.h>
-#include <kot/sys.h>
+#include <lib/types.h>
+#include <lib/sys.h>
 #include <lib/node/node.h>
 #include <scheduler/scheduler.h>
 #include <arch/x86-64/apic/apic.h>

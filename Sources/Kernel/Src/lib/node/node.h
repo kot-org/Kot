@@ -1,5 +1,5 @@
 #pragma once
-#include <kot/types.h>
+#include <lib/types.h>
 #include <arch/x86-64/atomic/atomic.h>
 
 struct Node{

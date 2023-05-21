@@ -18,7 +18,9 @@
 #include <mlibc/allocator.hpp>
 #include <mlibc/posix-sysdeps.hpp>
 
-extern "C" Tcb *__rtdl_allocateTcb();
+extern "C" {
+
+Tcb *__rtdl_allocateTcb();
 
 // Warning: This function must be used after each kot_Sys_CreateThread unless another initialization for the thread has been performed
 KResult kot_InitializeThread(kot_thread_t thread){
@@ -95,6 +97,8 @@ KResult kot_SetupStack(uintptr_t* Data, size64_t* Size, int argc, char** argv, c
     *Data = Buffer;
 
     return KSUCCESS;
+}
+
 }
 
 namespace mlibc{

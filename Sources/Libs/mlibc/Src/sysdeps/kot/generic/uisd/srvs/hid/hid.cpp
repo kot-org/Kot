@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern "C" {
+
 /* Get event functions */
 
 kot_event_t kot_GetMouseRelativeEvent(){
@@ -86,4 +88,6 @@ KResult kot_GetCharFromScanCode(uint64_t ScanCode, uintptr_t TableConverter, siz
     }
 
     return KSUCCESS;
+}
+
 }

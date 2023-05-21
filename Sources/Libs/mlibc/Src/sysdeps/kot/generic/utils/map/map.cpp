@@ -1,6 +1,8 @@
 #include <kot/utils/map.h>
 #include <string.h>
 
+extern "C" {
+
 typedef struct{
     char* key;
     uintptr_t item;
@@ -64,4 +66,6 @@ uintptr_t kot_map_get(kot_vector_t* map, char* key) {
 
 uintptr_t kot_map_geti(kot_vector_t* map, uint64_t index) {
     return ((kot_map_item_t*)kot_vector_get(map, index))->item;
+}
+
 }

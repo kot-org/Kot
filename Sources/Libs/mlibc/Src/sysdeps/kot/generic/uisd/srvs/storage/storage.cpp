@@ -5,6 +5,8 @@
 #include <mlibc/debug.hpp>
 #include <kot/uisd/srvs/storage.h>
 
+extern "C" {
+
 kot_thread_t kot_srv_storage_callback_thread = NULL;
 kot_uisd_storage_t* StorageData = NULL;
 
@@ -827,4 +829,6 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_NewDev(char* Name, struct kot
         kot_Sys_Pause(false);
     }
     return callback;
+}
+
 }

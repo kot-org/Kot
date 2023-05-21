@@ -44,4 +44,4 @@ $(INCDIR)/kot-graphics/%.h : $(SRCDIR)/%.h
 
 link:
 	@ echo !==== LINKING
-	$(AR) rcs $(BUILDDIR)kot/graphics.a $(OBJS)
+	$(AR) rcs $(BUILDDIR)libkot-graphics.a $(OBJS)

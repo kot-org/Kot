@@ -1,5 +1,7 @@
 #include <kot/cstring.h>
 
+extern "C" {
+
 // alpha size of int
 int64_t asi(int64_t n, int basenumber){
     int64_t i = 0;
@@ -41,4 +43,6 @@ char* itoa(int64_t n, char* buffer, int basenumber){
 
 
     return buffer;
+}
+
 }

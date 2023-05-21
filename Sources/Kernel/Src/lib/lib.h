@@ -1,5 +1,5 @@
 #pragma once
-#include <kot/types.h>
+#include <lib/types.h>
 
 bool ReadBit(uint8_t byte, int position);
 uint8_t WriteBit(uint8_t byte, int position, bool value);
