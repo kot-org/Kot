@@ -30,7 +30,7 @@ namespace UiWindow {
         if(IsBorders){
             ResizeWindow(this->Wid, Width + 2, Height + 2);
             BordersCtx = CreateGraphicContext(&Wid->Framebuffer);
-            framebuffer_t* FramebufferWithoutBorder = (framebuffer_t*)malloc(sizeof(framebuffer_t));
+            kot_framebuffer_t* FramebufferWithoutBorder = (kot_framebuffer_t*)malloc(sizeof(kot_framebuffer_t));
             FramebufferWithoutBorder->Bpp = Wid->Framebuffer.Bpp;
             FramebufferWithoutBorder->Btpp = Wid->Framebuffer.Btpp;
             FramebufferWithoutBorder->Width = Wid->Framebuffer.Width - 2;

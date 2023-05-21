@@ -1,4 +1,4 @@
-#include <kot/assert.h>
+#include <assert.h>
 
 void _assert(int expression, const char* expression_name, const char* file, int line, const char* function){
     if(!expression){

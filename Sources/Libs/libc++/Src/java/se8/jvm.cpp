@@ -36,7 +36,7 @@ namespace SE8 {
         return threads;
     }
 
-    vector_t* JavaVM::getRefSys() {
+    kot_vector_t* JavaVM::getRefSys() {
         return ref_sys;
     }
 

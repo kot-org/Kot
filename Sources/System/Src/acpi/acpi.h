@@ -2,7 +2,7 @@
 
 #include <kot/types.h>
 #include <kot/memory.h>
-#include <kot/cstring.h>
+#include <string.h>
 #include <kot/uisd/srvs/system.h>
 
 struct RSDP2{

@@ -1,4 +1,4 @@
-#include <kot/cstring.h>
+#include <string.h>
 
 // alpha size of int
 int64_t asi(int64_t n, int basenumber){

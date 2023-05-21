@@ -76,7 +76,7 @@ namespace Ui {
         return Image;
     }
 
-    void TGADraw(framebuffer_t* Fb, TGA_t* Image) {
+    void TGADraw(kot_framebuffer_t* Fb, TGA_t* Image) {
         for(uint16_t y = 0; y < Image->Height; y++) {
             for(uint16_t x = 0; x < Image->Width; x++) {
                 PutPixel(Fb, Image->x+x, Image->y+y, Image->Pixels[x + y*Image->Width]);

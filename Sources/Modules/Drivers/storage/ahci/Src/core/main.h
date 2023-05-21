@@ -10,7 +10,7 @@
 #include <kot++/printf.h>
 #include <kot/uisd/srvs/pci.h>
 #include <kot/uisd/srvs/time.h>
-#include <kot/uisd/srvs/storage.h>
+#include <stdio.h>
 #include <controller/controller.h>
 #include <kot/uisd/srvs/storage/device.h>
 

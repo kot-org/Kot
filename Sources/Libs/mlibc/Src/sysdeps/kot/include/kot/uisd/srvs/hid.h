@@ -8,6 +8,10 @@
 #include <kot/memory.h>
 #include <kot/uisd/srvs/storage.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 kot_event_t kot_GetMouseRelativeEvent();
 kot_event_t kot_GetMouseAbsoluteEvent();
 kot_event_t kot_GetKeyboardEvent();
@@ -20,5 +24,9 @@ KResult kot_GetTableConverter(char* Path, uintptr_t* TableConverter, size64_t* T
 KResult kot_GetCharFromScanCode(uint64_t ScanCode, uintptr_t TableConverter, size64_t TableConverterCharCount, char* Char, bool* IsPressed, uint64_t* PressedCache);
 
 
+
+#if defined(__cplusplus)
+} 
+#endif
 
 #endif

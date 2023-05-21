@@ -58,7 +58,7 @@ typedef struct {
 
     thread_t ChangeStatus;
 
-    event_t OnOffsetUpdate;
+    kot_event_t OnOffsetUpdate;
 
     ksmem_t StreamBufferKey;
 } srv_audio_device_t;
@@ -78,7 +78,7 @@ typedef struct{
     size64_t PositionOfStreamData;
     audio_format Format;
     
-    event_t OnOffsetUpdate;
+    kot_event_t OnOffsetUpdate;
     size64_t SizeOffsetUpdateToTrigger;
 
     thread_t StreamCommand;

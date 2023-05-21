@@ -79,6 +79,13 @@ KResult kot_Sys_Event_Close(){
 }
 
 KResult kot_Sys_CreateThread(kot_process_t self, uintptr_t entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result){
+    KResult Status = Syscall_40(KSys_CreateThread, self, entryPoint, privilege, externalData, result);
+    if(Status != KSUCCESS) return Status;
+    Status = kot_InitializeThread(*result);
+    return Status;
+}
+
+KResult kot_Sys_CreateThreadWithoutAutoInit(kot_process_t self, uintptr_t entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result){
     return Syscall_40(KSys_CreateThread, self, entryPoint, privilege, externalData, result);
 }
 

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <kot/elf.h>
+#include <elf.h>
 #include <kot/sys.h>
-#include <kot/heap.h>
+#include <stdlib.h>
 #include <kot/math.h>
 #include <kot/utils.h>
-#include <kot/cstring.h>
+#include <string.h>
 #include <kot/authorization.h>
-#include <kot/uisd/srvs/storage.h>
+#include <stdio.h>
 
 #include "../core/main.h"
 

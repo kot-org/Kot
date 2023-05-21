@@ -40,17 +40,17 @@ namespace SE8 {
 
         uintptr_t static_object;
 
-        vector_t* static_fields_map = map_create();
+        kot_vector_t* static_fields_map = map_create();
         uint32_t static_fields_size = 0;
 
-        vector_t* static_methods_map = map_create();
+        kot_vector_t* static_methods_map = map_create();
 
     public:
 
-        vector_t* fields_map = map_create();
+        kot_vector_t* fields_map = map_create();
         uint32_t fields_size = 0;
 
-        vector_t* methods_map = map_create();
+        kot_vector_t* methods_map = map_create();
 
         ClassArea(ClassArea* super_class, char* name);   
         ClassArea(ClassParser* cl);

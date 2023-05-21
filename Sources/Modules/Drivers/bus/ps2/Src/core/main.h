@@ -2,7 +2,7 @@
 
 #include <kot/sys.h>
 #include <kot/bits.h>
-#include <kot/cstring.h>
+#include <string.h>
 #include <mouse/mouse.h>
 #include <kot++/printf.h>
 #include <keyboard/keyboard.h>

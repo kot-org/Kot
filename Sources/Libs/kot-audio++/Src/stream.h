@@ -2,7 +2,7 @@
 #define _AUDIOPP_COMPONENT_H_
 
 #include <kot/sys.h>
-#include <kot/heap.h>
+#include <stdlib.h>
 #include <kot/types.h>
 #include <kot/stdio.h>
 #include <kot/uisd/srvs/audio.h>

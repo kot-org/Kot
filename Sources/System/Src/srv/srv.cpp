@@ -79,8 +79,8 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
     SrvInfo->IRQLineSize = kernelInfo->IRQLineSize;
 
     SrvInfo->IRQSize = kernelInfo->IRQSize;
-    SrvInfo->IRQEvents = (event_t*)malloc(sizeof(event_t) * kernelInfo->IRQSize);
-    memcpy(SrvInfo->IRQEvents, &kernelInfo->IRQEvents, sizeof(event_t) * kernelInfo->IRQSize);    
+    SrvInfo->IRQEvents = (kot_event_t*)malloc(sizeof(kot_event_t) * kernelInfo->IRQSize);
+    memcpy(SrvInfo->IRQEvents, &kernelInfo->IRQEvents, sizeof(kot_event_t) * kernelInfo->IRQSize);    
     SrvInfo->IsIRQEventsFree = IsIRQEventsFree;
 
     CreateControllerUISD(ControllerTypeEnum_System, key, true);
@@ -291,7 +291,7 @@ KResult UnbindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNu
 }
 
 KResult BindFreeIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, bool IgnoreMissedEvents){
-    event_t Vector = NULL;
+    kot_event_t Vector = NULL;
     for(size64_t i = 0; i < SrvInfo->IRQSize; i++){
         if(SrvInfo->IsIRQEventsFree[i]){
             Vector = i;

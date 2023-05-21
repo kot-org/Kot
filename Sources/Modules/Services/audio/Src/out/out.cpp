@@ -25,7 +25,7 @@ void MixAudio(size64_t Size, uint64_t Offset, audio_buffer_t* Dst, std::vector<S
     }
 }
 
-Outputs::Outputs(event_t OnDeviceChangedEvent){
+Outputs::Outputs(kot_event_t OnDeviceChangedEvent){
     NullDevice = (OutputDevice_t*)calloc(sizeof(OutputDevice_t));
     Devices.push(NullDevice); // default output
     OnDeviceChanged = OnDeviceChangedEvent;

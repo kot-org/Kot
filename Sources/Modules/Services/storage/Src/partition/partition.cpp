@@ -1,7 +1,7 @@
 #include <partition/partition.h>
 
-vector_t* PartitionsList;
-vector_t* PartitionsListNotify;
+kot_vector_t* PartitionsList;
+kot_vector_t* PartitionsListNotify;
 
 uint64_t PartitionLock = NULL;
 

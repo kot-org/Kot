@@ -233,7 +233,7 @@ KResult VFSMount(thread_t Callback, uint64_t CallbackArg, bool IsMount, srv_stor
     Sys_Close(KSUCCESS);
 }
 
-KResult VFSLoginApp(thread_t Callback, uint64_t CallbackArg, process_t Process, authorization_t Authorization, permissions_t Permissions, char* Path){
+KResult VFSLoginApp(thread_t Callback, uint64_t CallbackArg, process_t Process, authorization_t Authorization, kot_permissions_t Permissions, char* Path){
     KResult Status = KFAIL;
     ClientVFSContext* Context = (ClientVFSContext*)malloc(sizeof(ClientVFSContext));
     Context->Authorization = Authorization;
@@ -303,7 +303,7 @@ KResult VFSClientDispatcher(thread_t Callback, uint64_t CallbackArg, uint64_t Fu
     Sys_Close(KSUCCESS);
 }
 
-KResult VFSFileRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t Permissions, char* Path){
+KResult VFSFileRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path){
     partition_t* Partition;
     char* RelativePath;
 
@@ -335,7 +335,7 @@ KResult VFSFileRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext*
     return Status; 
 }
 
-KResult VFSFileOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t PermissionsContext, permissions_t Permissions, char* Path, process_t Target){
+KResult VFSFileOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t PermissionsContext, kot_permissions_t Permissions, char* Path, process_t Target){
     partition_t* Partition;
     char* RelativePath;
     
@@ -373,7 +373,7 @@ KResult VFSFileOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* C
 }
 
 
-KResult VFSRename(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t Permissions, srv_storage_fs_server_rename_t* RenameData){
+KResult VFSRename(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, srv_storage_fs_server_rename_t* RenameData){
     partition_t* PartitionOld;
     partition_t* PartitionNew;
     
@@ -436,7 +436,7 @@ KResult VFSRename(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Con
     return Status; 
 }
 
-KResult VFSDirCreate(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t Permissions, char* Path, mode_t Mode){
+KResult VFSDirCreate(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path, mode_t Mode){
     partition_t* Partition;
     char* RelativePath;
 
@@ -468,7 +468,7 @@ KResult VFSDirCreate(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* 
     return Status; 
 }
 
-KResult VFSDirRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t Permissions, char* Path){
+KResult VFSDirRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path){
     partition_t* Partition;
     char* RelativePath;
 
@@ -500,7 +500,7 @@ KResult VFSDirRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* 
     return Status; 
 }
 
-KResult VFSDirOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, permissions_t Permissions, char* Path, process_t Target){
+KResult VFSDirOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path, process_t Target){
     partition_t* Partition;
     char* RelativePath;
 
@@ -643,7 +643,7 @@ KResult VFSfileCloseInitrd(thread_t Callback, uint64_t CallbackArg,  InitrdConte
     Sys_Exit(KSUCCESS);
 }
 
-KResult VFSfileOpenInitrd(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions, process_t Target){
+KResult VFSfileOpenInitrd(thread_t Callback, uint64_t CallbackArg, char* Path, kot_permissions_t Permissions, process_t Target){
     srv_system_callback_t* CallbackSys = Srv_System_ReadFileInitrd(Path, true);
     KResult Status = CallbackSys->Status;
     free((uintptr_t)CallbackSys->Data);

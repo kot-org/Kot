@@ -3,7 +3,7 @@
 #include <kot/uisd.h>
 #include <core/main.h>
 #include <device/device.h>
-#include <kot/uisd/srvs/storage.h>
+#include <stdio.h>
 
 #define Storage_Srv_Version 0x1
 

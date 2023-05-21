@@ -30,7 +30,7 @@ KResult InitialiseServer(orbc* Orb){
     return Status;
 }
 
-KResult CreateWindowSrv(thread_t Callback, uint64_t CallbackArg, process_t Target, event_t Event, uint64_t WindowType){
+KResult CreateWindowSrv(thread_t Callback, uint64_t CallbackArg, process_t Target, kot_event_t Event, uint64_t WindowType){
     orbc* Orb = (orbc*)Sys_GetExternalDataThread();
 
     windowc* Window = NULL;
@@ -39,7 +39,7 @@ KResult CreateWindowSrv(thread_t Callback, uint64_t CallbackArg, process_t Targe
         ShareDataWithArguments_t Data{
             .ParameterPosition = 0x3,
             .Data = Window->GetFramebuffer(),
-            .Size = sizeof(framebuffer_t),
+            .Size = sizeof(kot_framebuffer_t),
         };
 
         Window->Target = Target;
@@ -123,7 +123,7 @@ KResult WindowResize(thread_t Callback, uint64_t CallbackArg, windowc* Window, u
         ShareDataWithArguments_t Data{
             .ParameterPosition = 0x3,
             .Data = Window->GetFramebuffer(),
-            .Size = sizeof(framebuffer_t),
+            .Size = sizeof(kot_framebuffer_t),
         };
 
         thread_t GraphicsHandlerThread = NULL;

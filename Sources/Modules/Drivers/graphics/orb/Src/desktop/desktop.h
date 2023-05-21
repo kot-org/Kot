@@ -51,7 +51,7 @@ class desktopc{
 
 struct desktopcomponent{
     Ui::UiContext* UiCtx;
-    framebuffer_t* Fb;
+    kot_framebuffer_t* Fb;
     graphiceventbuffer_t* Eventbuffer;
     struct hid_event_t* MouseEvent;
     thread_t MouseEventThread;

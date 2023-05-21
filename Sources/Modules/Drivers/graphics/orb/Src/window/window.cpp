@@ -9,10 +9,10 @@ windowc* WindowBackgroundEnd = NULL;
 windowc* WindowDefaultEnd = NULL;
 windowc* WindowForegroundEnd = NULL;
 
-windowc::windowc(orbc* Parent, uint64_t WindowType, event_t Event){
+windowc::windowc(orbc* Parent, uint64_t WindowType, kot_event_t Event){
     Orb = Parent;
 
-    this->Framebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
+    this->Framebuffer = (kot_framebuffer_t*)calloc(sizeof(kot_framebuffer_t));
 
     this->Framebuffer->Bpp = DEFAUT_BPP;
     this->Framebuffer->Btpp = DEFAUT_BPP / 8;
@@ -92,7 +92,7 @@ graphiceventbuffer_t* windowc::GetEventbuffer(){
     return this->Eventbuffer;
 }
 
-framebuffer_t* windowc::GetFramebuffer(){
+kot_framebuffer_t* windowc::GetFramebuffer(){
     return this->Framebuffer;
 }
 

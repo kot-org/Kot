@@ -1,7 +1,7 @@
 #include <mouse/mouse.h>
 
-event_t MouseRelative;
-event_t MouseAbsolute;
+kot_event_t MouseRelative;
+kot_event_t MouseAbsolute;
 
 KResult CreateMouseContext(uisd_hid_t* self){
     Sys_Event_Create(&MouseRelative);

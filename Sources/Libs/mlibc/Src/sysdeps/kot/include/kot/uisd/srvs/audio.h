@@ -7,6 +7,10 @@
 #include <kot/atomic.h>
 #include <kot/memory.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #define AUDIO_STREAM_CLOSE          0x0
 #define AUDIO_STREAM_SET_VOLUME     0x1
 
@@ -107,5 +111,9 @@ struct kot_srv_audio_callback_t* kot_Srv_Audio_GetDeviceInfo(uint64_t OutputID, 
 
 struct kot_srv_audio_callback_t* kot_Srv_Audio_AddDevice(kot_srv_audio_device_t* Device, bool IsAwait);
 
+
+#if defined(__cplusplus)
+} 
+#endif
 
 #endif

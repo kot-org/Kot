@@ -4,6 +4,10 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #define KFAIL               0
 #define KSUCCESS            1
 #define KBUSY               2
@@ -57,5 +61,9 @@ typedef struct{
     uintptr_t Base;
     size64_t Size;
 }kot_memory_buffer_t;
+
+#if defined(__cplusplus)
+} 
+#endif
 
 #endif

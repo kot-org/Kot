@@ -6,6 +6,10 @@
 #include <kot/thread.h>
 #include <kot/syscall.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 struct kot_KotSpecificData_t{
     /* Memory */
     uint64_t MMapPageSize;
@@ -118,6 +122,7 @@ KResult kot_Sys_Event_Unbind(kot_event_t self, kot_thread_t task);
 KResult kot_Sys_kot_event_trigger(kot_event_t self, struct kot_arguments_t* parameters);
 KResult kot_Sys_Event_Close();
 KResult kot_Sys_CreateThread(kot_process_t self, uintptr_t entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result); // TODO make external data field
+KResult kot_Sys_CreateThreadWithoutAutoInit(kot_process_t self, uintptr_t entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result); // TODO make external data field
 KResult kot_Sys_Duplicatethread(kot_process_t parent, kot_thread_t source, kot_thread_t* self);
 KResult kot_Sys_ExecThread(kot_thread_t self, struct kot_arguments_t* parameters, enum kot_ExecutionType type, struct kot_ShareDataWithArguments_t* data);
 KResult kot_Sys_Keyhole_CloneModify(kot_key_t source, kot_key_t* destination, kot_process_t target, uint64_t flags, enum kot_Priviledge privilidge);
@@ -149,5 +154,9 @@ uint64_t kot_Sys_GetPPIDThreadLauncher();
 uint64_t kot_Sys_GetTIDThreadLauncher();
 uint64_t kot_Sys_GetExternalDataProcessLauncher();
 uint64_t kot_Sys_GetPriviledgeThreadLauncher();
+
+#if defined(__cplusplus)
+} 
+#endif
 
 #endif

@@ -3,7 +3,7 @@
 #include <core/main.h>
 #include <partition/mbr/mbr.h>
 #include <partition/gpt/gpt.h>
-#include <kot/uisd/srvs/storage.h>
+#include <stdio.h>
 
 struct device_partitions_t{
     // Device
@@ -37,7 +37,7 @@ struct partition_t{
 
     struct storage_device_t* Device;
 
-    vector_t* SpaceList;
+    kot_vector_t* SpaceList;
 
     uint64_t StaticVolumeMountPoint;
     uint64_t DynamicVolumeMountPoint;
@@ -50,7 +50,7 @@ struct notify_info_t{
 };
 
 
-extern vector_t* PartitionsList;
+extern kot_vector_t* PartitionsList;
 
 void InitializePartition();
 struct partition_t* NewPartition(struct storage_device_t* Device, uint64_t Start, uint64_t Size, GUID_t* PartitionTypeGUID);

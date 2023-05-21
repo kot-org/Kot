@@ -32,7 +32,7 @@ namespace SE8 {
     void Opc::aaload(Frame* frame) {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         frame->stack->push32(*(uint32_t*)((uint64_t) arr + index * 4));
     }
@@ -41,7 +41,7 @@ namespace SE8 {
         uint32_t value = frame->stack->pop32();
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         *(uint32_t*)((uint64_t) arr + index * 4) = value;
     }
@@ -82,7 +82,7 @@ namespace SE8 {
             // todo: should use garbage collection to allocate array
             uintptr_t arr = calloc(4*count+4);
             *(uint32_t*)(arr) = count;
-            vector_t* rs = frame->jvm->getRefSys();
+            kot_vector_t* rs = frame->jvm->getRefSys();
             vector_push(rs, (uintptr_t)((uint64_t) arr+4));
             frame->stack->push32(rs->length-1);
         }
@@ -95,7 +95,7 @@ namespace SE8 {
 
     void Opc::arraylength(Frame* frame) {
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         frame->stack->push32(*(uint32_t*)((uint64_t) arr - 4));
     }
@@ -129,7 +129,7 @@ namespace SE8 {
     void Opc::baload(Frame* frame) {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         frame->stack->push32(*(uint8_t*)((uint64_t) arr + index));
     }
@@ -138,7 +138,7 @@ namespace SE8 {
         uint32_t value = frame->stack->pop32();
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         *(uint8_t*)((uint64_t) arr + index) = (uint8_t) value;
     }
@@ -150,7 +150,7 @@ namespace SE8 {
     void Opc::caload(Frame* frame) {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         frame->stack->push32(*(uint16_t*)((uint64_t) arr + index * 2));
     }
@@ -159,7 +159,7 @@ namespace SE8 {
         uint32_t value = frame->stack->pop32();
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         *(uint16_t*)((uint64_t) arr + index * 2) = (uint16_t) value;
     }
@@ -193,7 +193,7 @@ namespace SE8 {
     void Opc::daload(Frame* frame) {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         frame->stack->push64(*(uint64_t*)((uint64_t) arr + index * 8));
     }
@@ -202,7 +202,7 @@ namespace SE8 {
         uint64_t value = frame->stack->pop64();
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         *(uint64_t*)((uint64_t) arr + index * 8) = value;
     }
@@ -390,7 +390,7 @@ namespace SE8 {
     void Opc::faload(Frame* frame) {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         frame->stack->push32(*(uint32_t*)((uint64_t) arr + index * 4));
     }
@@ -399,7 +399,7 @@ namespace SE8 {
         uint64_t value = frame->stack->pop64();
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         *(uint64_t*)((uint64_t) arr + index * 4) = value;
     }
@@ -593,7 +593,7 @@ namespace SE8 {
     void Opc::iaload(Frame* frame) {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         frame->stack->push32(*(uint32_t*)((uint64_t) arr + index * 4));
     }
@@ -608,7 +608,7 @@ namespace SE8 {
         uint32_t value = frame->stack->pop32();
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         *(uint32_t*)((uint64_t) arr + index * 4) = value;
     }
@@ -907,7 +907,7 @@ namespace SE8 {
             args = (uint32_t*) malloc(args_length*4);
             frame->stack->sinkInto((uintptr_t) args, args_length*4);
         }
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uint32_t ret = cl->runMethod(frame->jvm, frame->stack->pop32(), methodName, signature, args, args_length);
         if (signature[signatureLength-1] != 'V') {
             // todo doesn't support long/double
@@ -1024,7 +1024,7 @@ namespace SE8 {
     void Opc::laload(Frame* frame) {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         frame->stack->push64(*(uint64_t*)((uint64_t) arr + index * 4));
     }
@@ -1039,7 +1039,7 @@ namespace SE8 {
         int64_t value = frame->stack->pop64();
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         *(uint64_t*)((uint64_t) arr + index * 8) = value;
     }
@@ -1067,7 +1067,7 @@ namespace SE8 {
     void Opc::ldc(Frame* frame) {
         uint8_t idx = frame->reader->u1();
         ConstantPoolEntry* entry = (ConstantPoolEntry*) frame->constant_pool[idx];
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         if (entry->tag == CONSTANT_String) {
             ClassArea* jlString = frame->jvm->getClasses()->getClass("java/lang/String");
             uintptr_t object = jlString->newObject();
@@ -1083,7 +1083,7 @@ namespace SE8 {
     void Opc::ldc_w(Frame* frame) {
         uint16_t idx = frame->reader->u2B();
         ConstantPoolEntry* entry = (ConstantPoolEntry*) frame->constant_pool[idx];
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         if (entry->tag == CONSTANT_String) {
             ClassArea* jlString = frame->jvm->getClasses()->getClass("java/lang/String");
             uintptr_t object = jlString->newObject();
@@ -1099,7 +1099,7 @@ namespace SE8 {
     void Opc::ldc2_w(Frame* frame) {
         uint16_t idx = frame->reader->u2B();
         ConstantPoolEntry* entry = (ConstantPoolEntry*) frame->constant_pool[idx];
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         if (entry->tag == CONSTANT_Long || entry->tag == CONSTANT_Double) {
             Constant_Double_Long* l = (Constant_Double_Long*) entry;
             frame->stack->push64(((long) l->high_bytes << 32) + l->low_bytes);
@@ -1241,7 +1241,7 @@ namespace SE8 {
         Constant_ClassInfo* classInfo = (Constant_ClassInfo*) frame->constant_pool[idx];
         char* className = (char*) ((Constant_Utf8*) frame->constant_pool[classInfo->name_index])->bytes;
         ClassArea* cl = frame->jvm->getClasses()->getClass(className);
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t obj = cl->newObject();
         vector_push(rs, obj);
         frame->stack->push32(rs->length-1);
@@ -1273,7 +1273,7 @@ namespace SE8 {
             // todo: should use garbage collection to allocate array
             uintptr_t arr = malloc(itemSize*count+4);
             *(uint32_t*)(arr) = count;
-            vector_t* rs = frame->jvm->getRefSys();
+            kot_vector_t* rs = frame->jvm->getRefSys();
             vector_push(rs, (uintptr_t)((uint64_t) arr+4));
             frame->stack->push32(rs->length-1);
         }
@@ -1332,7 +1332,7 @@ namespace SE8 {
     void Opc::saload(Frame* frame) {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         frame->stack->push32(*(uint32_t*)((uint64_t) arr + index * 4));
         // throws null pointer exception if arrayref is null
@@ -1342,7 +1342,7 @@ namespace SE8 {
         uint32_t value = frame->stack->pop32();
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
-        vector_t* rs = frame->jvm->getRefSys();
+        kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t arr = vector_get(rs, arrayref);
         *(uint16_t*)((uint64_t) arr + index * 2) = (uint16_t) value;
     }

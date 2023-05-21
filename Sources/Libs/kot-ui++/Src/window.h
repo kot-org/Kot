@@ -21,7 +21,7 @@ namespace UiWindow {
             ctxg_t* BordersCtx;
 
             bool IsListeningEvents;
-            event_t WindowEvent;
+            kot_event_t WindowEvent;
             thread_t WindowHandlerThread;
 
             point_t WindowNormalPosition;
@@ -34,7 +34,7 @@ namespace UiWindow {
 
         public:
             bool IsFullscreen;
-            window_t* Wid;
+            kot_window_t* Wid;
             ctxg_t* GraphicCtx;
             class Ui::UiContext* UiCtx;
             Ui::Component* Cpnt; 

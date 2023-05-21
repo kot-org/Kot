@@ -1,6 +1,6 @@
 #pragma once
 
-#include <kot/heap.h>
+#include <stdlib.h>
 #include <kot/types.h>
 #include <kot/memory.h>
 

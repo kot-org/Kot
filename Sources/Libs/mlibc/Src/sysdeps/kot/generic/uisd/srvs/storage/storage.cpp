@@ -785,3 +785,46 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Readdir(kot_directory_t* Dir,
     }
     return callback;
 }
+
+
+/* NewDev */
+
+KResult Srv_Storage_NewDev_Callback(KResult Status, struct kot_srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    return Status;
+}
+
+struct kot_srv_storage_callback_t* kot_Srv_Storage_NewDev(char* Name, struct kot_srv_storage_fs_server_functions_t* FSServerFunctions, bool IsAwait){
+    if(!kot_srv_storage_callback_thread) Srv_Storage_Initialize();
+    
+    kot_thread_t self = kot_Sys_GetThread();
+
+    struct kot_srv_storage_callback_t* callback = (struct kot_srv_storage_callback_t*)malloc(sizeof(struct kot_srv_storage_callback_t));
+    callback->Self = self;
+    callback->Size = NULL;
+    callback->Data = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Storage_MountPartition_Callback;
+
+    struct kot_arguments_t parameters;
+    parameters.arg[0] = kot_srv_storage_callback_thread;
+    parameters.arg[1] = (uint64_t)callback;
+
+    size64_t SizeBufferArg = sizeof(struct kot_srv_storage_fs_server_functions_t) + strlen(Name) + 1;
+    uintptr_t BufferArg = (uintptr_t)malloc(SizeBufferArg);
+
+    memcpy((void*)BufferArg, FSServerFunctions, sizeof(struct kot_srv_storage_fs_server_functions_t));
+    memcpy((void*)(((uint64_t)BufferArg) + sizeof(struct kot_srv_storage_fs_server_functions_t)), Name, strlen(Name) + 1);
+
+    struct kot_ShareDataWithArguments_t data;
+    data.Data = BufferArg;
+    data.Size = SizeBufferArg;
+    data.ParameterPosition = 0x2;
+
+    KResult Status = kot_Sys_ExecThread(StorageData->NewDev, &parameters, ExecutionTypeQueu, &data);
+    free((void*)BufferArg);
+    if(Status == KSUCCESS && IsAwait){
+        kot_Sys_Pause(false);
+    }
+    return callback;
+}

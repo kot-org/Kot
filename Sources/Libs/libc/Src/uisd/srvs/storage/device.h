@@ -4,7 +4,7 @@
 #include <kot/sys.h>
 #include <kot/uisd.h>
 #include <kot/types.h>
-#include <kot/uisd/srvs/storage.h>
+#include <stdio.h>
 
 #if defined(__cplusplus)
 extern "C" {

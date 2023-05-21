@@ -1,9 +1,9 @@
 #pragma once
 
 #include <kot/sys.h>
-#include <kot/assert.h>
+#include <assert.h>
 #include <kot/uisd/srvs/system.h>
-#include <kot/uisd/srvs/storage.h>
+#include <stdio.h>
 
 #include <kot++/string.h>
 

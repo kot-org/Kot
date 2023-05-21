@@ -4,15 +4,15 @@
 #include <kot/sys.h>
 #include <kot/uisd.h>
 #include <kot/types.h>
-#include <kot/uisd/srvs/storage.h>
+#include <stdio.h>
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-event_t GetMouseRelativeEvent();
-event_t GetMouseAbsoluteEvent();
-event_t GetKeyboardEvent();
+kot_event_t GetMouseRelativeEvent();
+kot_event_t GetMouseAbsoluteEvent();
+kot_event_t GetKeyboardEvent();
 
 KResult BindMouseRelative(thread_t Task, bool IgnoreMissedEvents);
 KResult BindMouseAbsolute(thread_t Task, bool IgnoreMissedEvents);

@@ -4,7 +4,7 @@
 #include <kot/sys.h>
 #include <kot/types.h>
 #include <kot/memory.h>
-#include <kot/cstring.h>
+#include <string.h>
 #include <kot/keyhole.h>
 
 #if defined(__cplusplus)
@@ -77,9 +77,9 @@ typedef struct {
 typedef struct {
     uisd_controller_t ControllerHeader;
 
-    event_t MouseRelative;
-    event_t MouseAbsolute;
-    event_t KeyboardEvent;
+    kot_event_t MouseRelative;
+    kot_event_t MouseAbsolute;
+    kot_event_t KeyboardEvent;
 } uisd_hid_t;
 
 typedef struct {
@@ -91,7 +91,7 @@ typedef struct {
 typedef struct {
     uisd_controller_t ControllerHeader;
 
-    event_t OnDeviceChanged;
+    kot_event_t OnDeviceChanged;
 
     thread_t RequestStream;
     thread_t ChangeVolume;

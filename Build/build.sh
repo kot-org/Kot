@@ -30,7 +30,6 @@ echo -e "\e[32mCompiling kot libraries...\e[0m"
 
 make -C "Libs/wrap-headers/Build"
 make -C "Libs/abi/Build"
-make -C "Libs/libc/Build"
 make -C "Libs/mlibc/Build"
 make -C "Libs/libc++/Build"
 make -C "Libs/wip-libc++/Build"

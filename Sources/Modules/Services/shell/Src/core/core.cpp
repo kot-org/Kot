@@ -4,37 +4,37 @@
 #include <kot-graphics/context.h>
 
 
-shell_t* NewShell(process_t Target){
+shell_t* NewShell(kot_process_t Target){
     shell_t* Shell = (shell_t*)malloc(sizeof(shell_t));
 
     Shell->Target = Target;
 
-    Shell->ReadRequest = vector_create();
+    Shell->ReadRequest = kot_vector_create();
 
     Shell->HeightUsed = 0;
     
-    Sys_Event_Create(&Shell->ShellEvent);
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&ShellEventEntry, PriviledgeApp, (uint64_t)Shell, &Shell->ShellEventThread);
-    Sys_Event_Bind(Shell->ShellEvent, Shell->ShellEventThread, false);
+    kot_Sys_Event_Create(&Shell->ShellEvent);
+    kot_Sys_CreateThread(kot_Sys_GetProcess(), (uintptr_t)&ShellEventEntry, PriviledgeApp, (uint64_t)Shell, &Shell->ShellEventThread);
+    kot_Sys_Event_Bind(Shell->ShellEvent, Shell->ShellEventThread, false);
     Shell->Wid = CreateWindow(Shell->ShellEvent, Window_Type_Default);
 
     ResizeWindow(Shell->Wid, 1920, 700);
     ChangeVisibilityWindow(Shell->Wid, true);
 
     Shell->Framebuffer = &Shell->Wid->Framebuffer;
-    Shell->Backbuffer = (framebuffer_t*)malloc(sizeof(framebuffer_t));
+    Shell->Backbuffer = (kot_framebuffer_t*)malloc(sizeof(kot_framebuffer_t));
 
-    memcpy(Shell->Backbuffer, Shell->Framebuffer, sizeof(framebuffer_t));
-    Shell->Backbuffer->Buffer = calloc(Shell->Framebuffer->Size);
+    memcpy(Shell->Backbuffer, Shell->Framebuffer, sizeof(kot_framebuffer_t));
+    Shell->Backbuffer->Buffer = (uintptr_t)calloc(Shell->Framebuffer->Size, sizeof(uint8_t));
 
     // Load font
-    file_t* FontFile = fopen("d0:default-font.sfn", "r");
+    FILE* FontFile = fopen("d0:default-font.sfn", "r");
     fseek(FontFile, 0, SEEK_END);
     size64_t Size = ftell(FontFile);
-    uintptr_t Buffer = malloc(Size);
+    void* Buffer = malloc(Size);
     fseek(FontFile, 0, SEEK_SET);
     fread(Buffer, Size, 1, FontFile);
-    Shell->Font = (kfont_t*)LoadFont(Buffer);
+    Shell->Font = (kfont_t*)LoadFont((uintptr_t)Buffer);
     free(Buffer);
     fclose(FontFile);
 
@@ -52,7 +52,7 @@ shell_t* NewShell(process_t Target){
 
 void ShellPrint(shell_t* Shell, uintptr_t Buffer, size64_t Size){
     char* Text = (char*)malloc(Size + 1);
-    memcpy(Text, Buffer, Size);
+    memcpy(Text, (void*)Buffer, Size);
 
     Text[Size] = NULL;
     int64_t TextHeight = 16; // font size
@@ -61,12 +61,12 @@ void ShellPrint(shell_t* Shell, uintptr_t Buffer, size64_t Size){
         uint64_t HeightToMove = TextHeight;
         size64_t SizeToMove = HeightToMove * Shell->Backbuffer->Pitch;
 
-        uintptr_t Src = (uintptr_t)((uint64_t)Shell->Backbuffer->Buffer + SizeToMove);
-        uintptr_t Dst = Shell->Backbuffer->Buffer;
+        void* Src = (void*)((uint64_t)Shell->Backbuffer->Buffer + SizeToMove);
+        void* Dst = (void*)Shell->Backbuffer->Buffer;
         size64_t Size = Shell->Backbuffer->Size - SizeToMove;
         memcpy(Dst, Src, Size);
 
-        memset((uintptr_t)((uint64_t)Dst + Size), 0, SizeToMove);
+        memset((void*)((uint64_t)Dst + Size), 0, SizeToMove);
 
         Shell->HeightUsed -= HeightToMove;
 
@@ -82,7 +82,7 @@ void ShellPrint(shell_t* Shell, uintptr_t Buffer, size64_t Size){
 }
 
 KResult ShellSendRequest(shell_t* Shell, read_request_shell_t* Request){
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = KSUCCESS,             /* Status */
         .arg[1] = Request->CallbackArg, /* CallbackArg */
         .arg[2] = NULL,                 /* Key to buffer */
@@ -91,16 +91,16 @@ KResult ShellSendRequest(shell_t* Shell, read_request_shell_t* Request){
         .arg[5] = NULL,                 /* GP3 */
     };
 
-    ksmem_t BufferKey;
-    Sys_CreateMemoryField(Sys_GetProcess(), Request->SizeGet, (uintptr_t*)&Request->Buffer, &BufferKey, MemoryFieldTypeSendSpaceRO);
-    Sys_Keyhole_CloneModify(BufferKey, &arguments.arg[2], Shell->Target, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
+    kot_ksmem_t BufferKey;
+    kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), Request->SizeGet, (uintptr_t*)&Request->Buffer, &BufferKey, MemoryFieldTypeSendSpaceRO);
+    kot_Sys_Keyhole_CloneModify(BufferKey, &arguments.arg[2], Shell->Target, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
     
-    KResult Status = Sys_ExecThread(Request->Callback, &arguments, ExecutionTypeQueu, NULL);
-    vector_remove(Shell->ReadRequest, 0);
+    KResult Status = kot_Sys_ExecThread(Request->Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_vector_remove(Shell->ReadRequest, 0);
     return Status;
 }
 
-KResult ShellCreateRequest(shell_t* Shell, thread_t Callback, uint64_t CallbackArg, size64_t SizeRequest){
+KResult ShellCreateRequest(shell_t* Shell, kot_thread_t Callback, uint64_t CallbackArg, size64_t SizeRequest){
     read_request_shell_t* Request = (read_request_shell_t*)malloc(sizeof(read_request_shell_t));
     Request->Callback = Callback;
     Request->CallbackArg = CallbackArg;
@@ -109,18 +109,18 @@ KResult ShellCreateRequest(shell_t* Shell, thread_t Callback, uint64_t CallbackA
     Request->SizeGet = NULL;
     Request->Buffer = NULL;
 
-    vector_push(Shell->ReadRequest, Request);
+    kot_vector_push(Shell->ReadRequest, (uintptr_t)Request);
 
     return KSUCCESS;
 }
 
 void ShellEventEntry(uint64_t EventType, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3, uint64_t GP4){
-    shell_t* Shell = (shell_t*)Sys_GetExternalDataThread();
+    shell_t* Shell = (shell_t*)kot_Sys_GetExternalDataThread();
 
     if(EventType == Window_Event_Keyboard){
         // Only handle Keyboard
         if(Shell->ReadRequest->length){
-            read_request_shell_t* CurrentRequest = (read_request_shell_t*)vector_get(Shell->ReadRequest, 0);
+            read_request_shell_t* CurrentRequest = (read_request_shell_t*)kot_vector_get(Shell->ReadRequest, 0);
 
             if(CurrentRequest->SizeGet == 0){
                 int64_t TextHeight = 16; // font size
@@ -129,12 +129,12 @@ void ShellEventEntry(uint64_t EventType, uint64_t GP0, uint64_t GP1, uint64_t GP
                     uint64_t HeightToMove = TextHeight;
                     size64_t SizeToMove = HeightToMove * Shell->Backbuffer->Pitch;
 
-                    uintptr_t Src = (uintptr_t)((uint64_t)Shell->Backbuffer->Buffer + SizeToMove);
-                    uintptr_t Dst = Shell->Backbuffer->Buffer;
+                    void* Src = (void*)((uint64_t)Shell->Backbuffer->Buffer + SizeToMove);
+                    void* Dst = (void*)Shell->Backbuffer->Buffer;
                     size64_t Size = Shell->Backbuffer->Size - SizeToMove;
                     memcpy(Dst, Src, Size);
 
-                    memset((uintptr_t)((uint64_t)Dst + Size), 0, SizeToMove);
+                    memset((void*)((uint64_t)Dst + Size), 0, SizeToMove);
 
                     Shell->HeightUsed -= HeightToMove;
 
@@ -147,13 +147,13 @@ void ShellEventEntry(uint64_t EventType, uint64_t GP0, uint64_t GP1, uint64_t GP
             char Char;
             bool IsPressed;
 
-            GetCharFromScanCode(ScanCode, TableConverter, TableConverterCharCount, &Char, &IsPressed, &Shell->PressedCache);
+            kot_GetCharFromScanCode(ScanCode, TableConverter, TableConverterCharCount, &Char, &IsPressed, &Shell->PressedCache);
             
             if(IsPressed){
                 
                 if(Char != 8){
                     CurrentRequest->SizeGet += sizeof(char);
-                    CurrentRequest->Buffer = (char*)realloc((uintptr_t)CurrentRequest->Buffer, CurrentRequest->SizeGet);
+                    CurrentRequest->Buffer = (char*)realloc((void*)CurrentRequest->Buffer, CurrentRequest->SizeGet);
                     CurrentRequest->Buffer[CurrentRequest->SizeGet - 1] = Char;
                     DrawFontSize(Shell->Font, &Char, 1);
                     BlitFramebuffer(Shell->Framebuffer, Shell->Backbuffer, 0, 0);
@@ -167,5 +167,5 @@ void ShellEventEntry(uint64_t EventType, uint64_t GP0, uint64_t GP1, uint64_t GP
             }
         }
     }
-    Sys_Event_Close();
+    kot_Sys_Event_Close();
 }

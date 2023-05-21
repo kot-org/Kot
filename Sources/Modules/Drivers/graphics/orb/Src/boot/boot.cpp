@@ -2,7 +2,7 @@
 
 #define BootLogoBottomMargin 0x20
 
-void LoadBootGraphics(framebuffer_t* Framebuffer){
+void LoadBootGraphics(kot_framebuffer_t* Framebuffer){
     bool IsBGRT = false;
     bool IsLogo = false;
 
@@ -45,7 +45,7 @@ void LoadBootGraphics(framebuffer_t* Framebuffer){
     }
 }
 
-void ParseBootImage(framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width, uint32_t Height, uint8_t Bpp, uint32_t XPosition, uint32_t YPosition){
+void ParseBootImage(kot_framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width, uint32_t Height, uint8_t Bpp, uint32_t XPosition, uint32_t YPosition){
     uint8_t BytePerPixel = Bpp / 8;
     uint32_t RowSize = Width * (uint32_t)BytePerPixel;
     // Add padding up to 4 bit padding
@@ -64,7 +64,7 @@ void ParseBootImage(framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width, ui
 
 thread_t bootAnimationThread = NULL;
 
-void LoadBootAnimation(framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPosition, uint64_t Width, uint64_t Height){
+void LoadBootAnimation(kot_framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPosition, uint64_t Width, uint64_t Height){
     Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&BootAnimation, PriviledgeDriver, NULL, &bootAnimationThread);
     arguments_t parameters{
         .arg[0] = (uint64_t)Framebuffer,
@@ -78,14 +78,14 @@ void LoadBootAnimation(framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t 
     Sys_ExecThread(bootAnimationThread, &parameters, ExecutionTypeQueu, NULL);
 }
 
-void BootAnimation(framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPosition, uint64_t Width, uint64_t Height){
+void BootAnimation(kot_framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPosition, uint64_t Width, uint64_t Height){
     // Remove rectangle
     XPosition += 1;
     YPosition += 1;
     Width -= 1;
     Height -= 1;
 
-    framebuffer_t Backbuffer;
+    kot_framebuffer_t Backbuffer;
     Backbuffer.Size = Width * Framebuffer->Btpp * Height;
     Backbuffer.Buffer = calloc(Backbuffer.Size);
     Backbuffer.Bpp = Framebuffer->Bpp;

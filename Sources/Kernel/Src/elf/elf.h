@@ -1,5 +1,5 @@
 #pragma once
-#include <kot/elf.h>
+#include <elf.h>
 #include <core/core.h>
 #include <scheduler/scheduler.h>
 

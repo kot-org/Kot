@@ -10,8 +10,8 @@ struct OutputDevice_t{
     audio_buffer_t OutputStream;
     std::vector<struct StreamRequest_t*> InputStreams;
     thread_t OnOffsetUpdateHandler;
-    event_t ClientOnOffsetUpdate;
-    event_t ClientOnOffsetUpdateShareableKey;
+    kot_event_t ClientOnOffsetUpdate;
+    kot_event_t ClientOnOffsetUpdateShareableKey;
     uint64_t DeviceID;
     uint64_t Lock;
 };
@@ -32,12 +32,12 @@ struct StreamRequest_t{
 class Outputs{
     private:
         uint64_t Lock;
-        event_t OnDeviceChanged;
+        kot_event_t OnDeviceChanged;
         OutputDevice_t* NullDevice;
         std::vector<OutputDevice_t*> Devices;
         uint64_t DeviceCount;
     public:
-        Outputs(event_t OnDeviceChangedEvent);
+        Outputs(kot_event_t OnDeviceChangedEvent);
         KResult AddOutputDevice(srv_audio_device_t* Device);
         StreamRequest_t* RequestStream(uint64_t OutputID, process_t ProcessKey, uint64_t PID);
         KResult CloseStream(StreamRequest_t* Stream);

@@ -3,7 +3,7 @@
 
 #include <kot/math.h>
 #include <kot/utils/map.h>
-#include <kot/cstring.h>
+#include <string.h>
 
 #include <kot/uisd/srvs/graphics.h>
 
@@ -28,11 +28,11 @@ typedef struct {
     bool _scaling;
     uint32_t x;
     uint32_t y;
-    vector_t* poses;
+    kot_vector_t* poses;
     uint16_t scale;
 } ctxg_t;
 
-ctxg_t* CreateGraphicContext(framebuffer_t* fb);
+ctxg_t* CreateGraphicContext(kot_framebuffer_t* fb);
 
 void ctxPutPixel(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t color);
 int8_t ctxPixelExist(ctxg_t* ctx, uint32_t x, uint32_t y);

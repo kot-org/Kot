@@ -2,7 +2,7 @@
 
 #include <kot-ui++/pictures/picture.h>
 
-#include <kot/uisd/srvs/storage.h>
+#include <stdio.h>
 
 namespace Ui {
     void PictureboxDraw(Picturebox_t* Picturebox) {

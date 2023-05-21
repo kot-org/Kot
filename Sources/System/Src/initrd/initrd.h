@@ -1,10 +1,10 @@
 #pragma once
 
 #include <kot/sys.h>
-#include <kot/heap.h>
+#include <stdlib.h>
 #include <kot/types.h>
 #include <kot/memory.h>
-#include <kot/cstring.h>
+#include <string.h>
 
 #define MaxName 36
 

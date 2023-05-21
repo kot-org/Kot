@@ -2,7 +2,7 @@
 
 #include <core/main.h>
 
-#include <kot/uisd/srvs/storage.h>
+#include <stdio.h>
 
 class orbc;
 class windowc;
@@ -24,7 +24,7 @@ typedef struct {
 #define MOUSE_EVENT_PARENT_TYPE_WIDGET  0x1
 
 struct hid_event_t{
-    event_t Event;
+    kot_event_t Event;
     uint64_t ParentType;
     uintptr_t Parent;
 };
@@ -35,7 +35,7 @@ class hidc{
         hidc(orbc* Parent);
         void KeyboardInterrupt(uint64_t KeyCode);
         void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status);
-        void DrawCursor(framebuffer_t* fb);
+        void DrawCursor(kot_framebuffer_t* fb);
 
         hid_event_t* CurrentFocusEvent;
 

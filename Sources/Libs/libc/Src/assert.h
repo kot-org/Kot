@@ -3,7 +3,7 @@
 #define _ASSERT_H 1
 
 #include <kot/types.h>
-#include <kot/cstring.h>
+#include <string.h>
 
 #if defined(__cplusplus)
 extern "C" {

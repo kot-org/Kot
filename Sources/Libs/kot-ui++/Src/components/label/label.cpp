@@ -1,5 +1,5 @@
 #include <kot-ui++/component.h>
-#include <kot/uisd/srvs/storage.h>
+#include <stdio.h>
 
 #include <kot/stdio.h>
 

@@ -19,7 +19,7 @@ class windowc{
         orbc* Orb;
         process_t Target;
 
-        framebuffer_t* Framebuffer;
+        kot_framebuffer_t* Framebuffer;
         graphiceventbuffer_t* Eventbuffer;
 
         uint64_t Lock;
@@ -31,7 +31,7 @@ class windowc{
         bool IsVisible = false;
         bool IsFocus = false;
 
-        event_t Event;
+        kot_event_t Event;
         struct hid_event_t* MouseEvent;
 
         windowc* Next;
@@ -39,9 +39,9 @@ class windowc{
         
         KResult CreateBuffer();
 
-        windowc(orbc* Parent, uint64_t WindowType, event_t Event);
+        windowc(orbc* Parent, uint64_t WindowType, kot_event_t Event);
         monitorc* FindMonitor();
-        framebuffer_t* GetFramebuffer();
+        kot_framebuffer_t* GetFramebuffer();
         graphiceventbuffer_t* GetEventbuffer();
         ksmem_t GetFramebufferKey();
         uint64_t GetHeight();

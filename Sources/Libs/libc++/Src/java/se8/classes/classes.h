@@ -13,7 +13,7 @@ namespace SE8 {
     class Classes {
     private:
         JavaVM* jvm;
-        vector_t* areas;
+        kot_vector_t* areas;
     public:
         Classes(JavaVM* jvm);
         ClassArea* getClass(char* name);

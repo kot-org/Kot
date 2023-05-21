@@ -100,7 +100,7 @@ namespace SE8 {
     }
 
     void ClassArea::registerMethod(char* name, char* signature, MethodInterface* interface) {
-        vector_t* signature_map = (vector_t*) map_get(methods_map, signature);
+        kot_vector_t* signature_map = (kot_vector_t*) map_get(methods_map, signature);
         if (signature_map == NULL) {
             signature_map = map_create();
             map_set(methods_map, signature, signature_map);
@@ -109,7 +109,7 @@ namespace SE8 {
     }
 
     void ClassArea::registerStaticMethod(char* name, char* signature, MethodInterface* interface) {
-        vector_t* signature_map = (vector_t*) map_get(static_methods_map, signature);
+        kot_vector_t* signature_map = (kot_vector_t*) map_get(static_methods_map, signature);
         if (signature_map == NULL) {
             signature_map = map_create();
             map_set(static_methods_map, signature, signature_map);
@@ -118,7 +118,7 @@ namespace SE8 {
     }
 
     uint32_t ClassArea::runMethod(JavaVM* jvm, uint32_t object, char* name, char* signature, uint32_t* args, uint16_t args_length) {
-        vector_t* signature_map = (vector_t*) map_get(methods_map, signature);
+        kot_vector_t* signature_map = (kot_vector_t*) map_get(methods_map, signature);
         MethodInterface* interface = (MethodInterface*) map_get(signature_map, name);
         if (interface->type == 0) {
             Frame* frame = (Frame*) malloc(sizeof(Frame));
@@ -132,7 +132,7 @@ namespace SE8 {
     }
 
     uint32_t ClassArea::runStaticMethod(JavaVM* jvm, char* name, char* signature, uint32_t* args, uint16_t args_length) {
-        vector_t* signature_map = (vector_t*) map_get(static_methods_map, signature);
+        kot_vector_t* signature_map = (kot_vector_t*) map_get(static_methods_map, signature);
         MethodInterface* interface = (MethodInterface*) map_get(signature_map, name);
         if (interface->type == 0) {
             Frame* frame = (Frame*) malloc(sizeof(Frame));
@@ -146,7 +146,7 @@ namespace SE8 {
     }
 
     bool ClassArea::isMethodStatic(char* name, char* signature) {
-        vector_t* signature_map = (vector_t*) map_get(static_methods_map, signature);
+        kot_vector_t* signature_map = (kot_vector_t*) map_get(static_methods_map, signature);
         if (signature_map == NULL) { return false; }
         MethodInterface* interface = (MethodInterface*) map_get(signature_map, name);
         if (interface == NULL) {
@@ -157,13 +157,13 @@ namespace SE8 {
     }
 
     uint16_t ClassArea::getMethodArgsLength(char* name, char* signature) {
-        vector_t* signature_map = (vector_t*) map_get(methods_map, signature);
+        kot_vector_t* signature_map = (kot_vector_t*) map_get(methods_map, signature);
         MethodInterface* interface = (MethodInterface*) map_get(signature_map, name);
         return interface->args_length;
     }
 
     uint16_t ClassArea::getStaticMethodArgsLength(char* name, char* signature) {
-        vector_t* signature_map = (vector_t*) map_get(static_methods_map, signature);
+        kot_vector_t* signature_map = (kot_vector_t*) map_get(static_methods_map, signature);
         MethodInterface* interface = (MethodInterface*) map_get(signature_map, name);
         return interface->args_length;
     }

@@ -2,7 +2,7 @@
 #define _MEMORY_H 1
 
 #include <kot/sys.h>
-#include <kot/heap.h>
+#include <stdlib.h>
 #include <kot/types.h>
 #include <kot/atomic.h>
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <kot/sys.h>
-#include <kot/heap.h>
+#include <stdlib.h>
 #include <kot/types.h>
 #include <kot/memory.h>
 #include <kot++/json.h>
@@ -49,7 +49,7 @@ struct KernelInfo {
     uint8_t IRQLineSize;
 
     size64_t IRQSize;
-    event_t IRQEvents[];
+    kot_event_t IRQEvents[];
 }__attribute__((packed));
 
 struct InfoSlot {

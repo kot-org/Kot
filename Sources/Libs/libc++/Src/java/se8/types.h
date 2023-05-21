@@ -1,7 +1,7 @@
 #pragma once
 
-#include <kot/heap.h>
-#include <kot/cstring.h>
+#include <stdlib.h>
+#include <string.h>
 #include <kot/utils/map.h>
 #include "../utils/reader.h"
 

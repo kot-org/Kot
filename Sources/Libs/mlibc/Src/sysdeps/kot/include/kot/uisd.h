@@ -5,6 +5,10 @@
 #include <kot/types.h>
 #include <kot/keyhole.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 extern kot_thread_t kot_srv_system_callback_thread;
 extern kot_thread_t kot_srv_storage_callback_thread;
 extern kot_thread_t kot_srv_time_callback_thread;
@@ -157,5 +161,9 @@ uintptr_t kot_GetControllerLocationUISD(enum kot_uisd_controller_type_enum Contr
 uintptr_t kot_FindControllerUISD(enum kot_uisd_controller_type_enum Controller);
 
 KResult kot_ResetUISDThreads();
+
+#if defined(__cplusplus)
+} 
+#endif
 
 #endif

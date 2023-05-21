@@ -29,24 +29,24 @@ void Srv_Graphics_Callback(KResult Status, struct srv_graphics_callback_t* Callb
 /* CreateWindow */
 KResult Srv_Graphics_Createwindowcallback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
-        window_t* Window = (window_t*)Callback->Data;
+        kot_window_t* Window = (kot_window_t*)Callback->Data;
         Window->GraphicsHandler = GP2;
-        memcpy(&Window->Framebuffer, GP1, sizeof(framebuffer_t));
+        memcpy(&Window->Framebuffer, GP1, sizeof(kot_framebuffer_t));
         Window->BufferKey = GP0;
         Sys_AcceptMemoryField(Sys_GetProcess(), Window->BufferKey, &Window->Framebuffer.Buffer);
     }
     return Status;
 }
 
-struct srv_graphics_callback_t* Srv_Graphics_CreateWindow(event_t Event, uint64_t WindowType, bool IsAwait){
+struct srv_graphics_callback_t* Srv_Graphics_CreateWindow(kot_event_t Event, uint64_t WindowType, bool IsAwait){
     if(!srv_graphics_callback_thread) Srv_Graphics_Initialize();
 
-    window_t* Window = (window_t*)malloc(sizeof(window_t));
+    kot_window_t* Window = (kot_window_t*)malloc(sizeof(kot_window_t));
 
     struct srv_graphics_callback_t* callback = (struct srv_graphics_callback_t*)malloc(sizeof(struct srv_graphics_callback_t));
     callback->Self = Sys_GetThread();
     callback->Data = Window;
-    callback->Size = sizeof(window_t);
+    callback->Size = sizeof(kot_window_t);
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
     callback->Handler = &Srv_Graphics_Createwindowcallback;
@@ -71,14 +71,14 @@ struct srv_graphics_callback_t* Srv_Graphics_CreateWindow(event_t Event, uint64_
 /* CloseWindow */
 KResult Srv_Graphics_Closewindowcallback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
-        window_t* Window = (window_t*)Callback->Data;
+        kot_window_t* Window = (kot_window_t*)Callback->Data;
         Sys_CloseMemoryField(Sys_GetProcess(), Window->BufferKey, Window->Framebuffer.Buffer);
         free(Window);
     }
     return Status;
 }
 
-struct srv_graphics_callback_t* Srv_Graphics_CloseWindow(window_t* Window, bool IsAwait){
+struct srv_graphics_callback_t* Srv_Graphics_CloseWindow(kot_window_t* Window, bool IsAwait){
     if(!srv_graphics_callback_thread) Srv_Graphics_Initialize();
 
     struct srv_graphics_callback_t* callback = (struct srv_graphics_callback_t*)malloc(sizeof(struct srv_graphics_callback_t));
@@ -105,15 +105,15 @@ struct srv_graphics_callback_t* Srv_Graphics_CloseWindow(window_t* Window, bool 
 /* ResizeWindow */
 KResult Srv_Graphics_Resizewindowcallback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
-        window_t* Window = (window_t*)Callback->Data;
-        memcpy(&Window->Framebuffer, GP1, sizeof(framebuffer_t));
+        kot_window_t* Window = (kot_window_t*)Callback->Data;
+        memcpy(&Window->Framebuffer, GP1, sizeof(kot_framebuffer_t));
         Window->BufferKey = GP0;
         Sys_AcceptMemoryField(Sys_GetProcess(), Window->BufferKey, &Window->Framebuffer.Buffer);
     }
     return Status;
 }
 
-struct srv_graphics_callback_t* Srv_Graphics_ResizeWindow(window_t* Window, int64_t Width, int64_t Height, bool IsAwait){
+struct srv_graphics_callback_t* Srv_Graphics_ResizeWindow(kot_window_t* Window, int64_t Width, int64_t Height, bool IsAwait){
     if(!srv_graphics_callback_thread) Srv_Graphics_Initialize();
 
     struct srv_graphics_callback_t* callback = (struct srv_graphics_callback_t*)malloc(sizeof(struct srv_graphics_callback_t));
@@ -142,14 +142,14 @@ struct srv_graphics_callback_t* Srv_Graphics_ResizeWindow(window_t* Window, int6
 /* ChangePostionWindow */
 KResult Srv_Graphics_ChangePostionwindowcallback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
-        window_t* Window = (window_t*)Callback->Data;
+        kot_window_t* Window = (kot_window_t*)Callback->Data;
         Window->Position.x = GP0;
         Window->Position.y = GP1;
     }
     return Status;
 }
 
-struct srv_graphics_callback_t* Srv_Graphics_ChangePostionWindow(window_t* Window, uint64_t XPosition, uint64_t YPosition, bool IsAwait){
+struct srv_graphics_callback_t* Srv_Graphics_ChangePostionWindow(kot_window_t* Window, uint64_t XPosition, uint64_t YPosition, bool IsAwait){
     if(!srv_graphics_callback_thread) Srv_Graphics_Initialize();
 
     struct srv_graphics_callback_t* callback = (struct srv_graphics_callback_t*)malloc(sizeof(struct srv_graphics_callback_t));
@@ -178,13 +178,13 @@ struct srv_graphics_callback_t* Srv_Graphics_ChangePostionWindow(window_t* Windo
 /* ChangeState */
 KResult Srv_Graphics_ChangeVisibility_Callback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
-        window_t* Window = (window_t*)Callback->Data;
+        kot_window_t* Window = (kot_window_t*)Callback->Data;
         Window->IsVisible = GP0;
     }
     return Status;
 }
 
-struct srv_graphics_callback_t* Srv_Graphics_ChangeVisibility(window_t* Window, bool IsVisible, bool IsAwait){
+struct srv_graphics_callback_t* Srv_Graphics_ChangeVisibility(kot_window_t* Window, bool IsVisible, bool IsAwait){
     if(!srv_graphics_callback_thread) Srv_Graphics_Initialize();
 
     struct srv_graphics_callback_t* callback = (struct srv_graphics_callback_t*)malloc(sizeof(struct srv_graphics_callback_t));

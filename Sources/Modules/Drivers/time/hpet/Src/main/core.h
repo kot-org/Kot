@@ -1,7 +1,7 @@
 #pragma once
 
 #include <kot/sys.h>
-#include <kot/cstring.h>
+#include <string.h>
 #include <kot++/printf.h>
 #include <kot/uisd/srvs/time.h>
 #include <kot/uisd/srvs/system.h>

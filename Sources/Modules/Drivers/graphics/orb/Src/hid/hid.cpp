@@ -144,7 +144,7 @@ void hidc::CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
     }
 }
 
-void hidc::DrawCursor(framebuffer_t* fb){   
+void hidc::DrawCursor(kot_framebuffer_t* fb){   
     uint32_t* Pixel = (uint32_t*)PixelMap;
     uint8_t* Mask = (uint8_t*)BitmapMask;
     

@@ -25,10 +25,10 @@
 
 #include <kot/sys.h>
 #include <kot/arch.h>
-#include <kot/heap.h>
+#include <stdlib.h>
 #include <kot/utils.h>
 #include <kot/memory.h>
-#include <kot/cstring.h>
+#include <string.h>
 #include <kot++/stack.h>
 #include <kot++/printf.h>
 #include <kot/uisd/srvs/pci.h>

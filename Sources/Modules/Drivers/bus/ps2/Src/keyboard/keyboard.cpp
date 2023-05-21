@@ -3,7 +3,7 @@
 
 PS2Port_t* KeyboardPS2Port;
 arguments_t* KeyboardEventParameters;
-event_t KeyboardEvent;
+kot_event_t KeyboardEvent;
 
 uint8_t LedStateSaver = 0;
 

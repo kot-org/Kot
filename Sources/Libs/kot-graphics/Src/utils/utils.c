@@ -1,7 +1,7 @@
 #include <kot-graphics/utils.h>
 #include <kot-graphics/context.h>
 
-int8_t PixelExist(framebuffer_t* fb, uint32_t x, uint32_t y) {
+int8_t PixelExist(kot_framebuffer_t* fb, uint32_t x, uint32_t y) {
     if (x < 0 || y < 0) return -1;
     if (x > fb->Width || y > fb->Height) return -1;
     return 1;
@@ -18,17 +18,17 @@ void inline BlendAlpha(uint32_t* pixel, uint32_t color){
     }
 }
 
-void PutPixel(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t color) {
+void PutPixel(kot_framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t color) {
     uint64_t index = x * 4 + y * fb->Pitch;
     BlendAlpha((uint32_t*)((uint64_t)fb->Buffer + index), color);
 }
 
-uint32_t GetPixel(framebuffer_t* fb, uint32_t x, uint32_t y) {
+uint32_t GetPixel(kot_framebuffer_t* fb, uint32_t x, uint32_t y) {
     uint64_t index = x * 4 + y * fb->Pitch;
     return *(uint32_t*)((uint64_t)fb->Buffer + index);
 }
 
-void BlitFramebuffer(framebuffer_t* To, framebuffer_t* From, uint64_t PositionX, uint64_t PositionY){
+void BlitFramebuffer(kot_framebuffer_t* To, kot_framebuffer_t* From, uint64_t PositionX, uint64_t PositionY){
     uint64_t ToBuffer = (uint64_t)To->Buffer;
     uint64_t FromBuffer = (uint64_t)From->Buffer;
 
@@ -56,7 +56,7 @@ void BlitFramebuffer(framebuffer_t* To, framebuffer_t* From, uint64_t PositionX,
 }
 
 
-void BlitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint64_t PositionX, uint64_t PositionY, uint64_t BorderRadius) {
+void BlitFramebufferRadius(kot_framebuffer_t* to, kot_framebuffer_t* from, uint64_t PositionX, uint64_t PositionY, uint64_t BorderRadius) {
     BlitFramebuffer(to, from, PositionX, PositionY);
     return;
     uint64_t ToBuffer = (uint64_t) to->Buffer;
@@ -110,7 +110,7 @@ void BlitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint64_t Posi
 }
 
 
-void FillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color) {
+void FillRect(kot_framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color) {
     uint32_t _h = Height+y;
     uint32_t _w = Width+x;
 
@@ -128,7 +128,7 @@ void FillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_
     }
 }
 
-void DrawLine(framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color) {
+void DrawLine(kot_framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color) {
 
     if (x1 > fb->Width) { x1 = fb->Width; }
     if (y1 > fb->Height) { y1 = fb->Height; }
@@ -182,7 +182,7 @@ void DrawLine(framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t
 
 }
 
-void DrawRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color) {
+void DrawRect(kot_framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color) {
     DrawLine(fb, x, y, x+Width, y, color); // top
     DrawLine(fb, x, y+Height, x+Width, y+Height, color); // bottom
     DrawLine(fb, x, y, x, y+Height, color); // left

@@ -85,7 +85,7 @@ KResult ChangeUserData(thread_t Callback, uint64_t CallbackArg, uint64_t UID, ui
 /* Files */
 
 /* VFS access */
-KResult Removefile(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions){
+KResult Removefile(thread_t Callback, uint64_t CallbackArg, char* Path, kot_permissions_t Permissions){
     mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
     KResult Status = MountInfo->RemoveFile(Path, Permissions);
     
@@ -103,7 +103,7 @@ KResult Removefile(thread_t Callback, uint64_t CallbackArg, char* Path, permissi
 }
 
 /* VFS access */
-KResult Openfile(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions, process_t Target){
+KResult Openfile(thread_t Callback, uint64_t CallbackArg, char* Path, kot_permissions_t Permissions, process_t Target){
     mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
     KResult Status = KFAIL;
 
@@ -263,7 +263,7 @@ KResult Writefile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uin
 /* Files and directories */
 
 /* VFS access */
-KResult Rename(thread_t Callback, uint64_t CallbackArg, srv_storage_fs_server_rename_t* RenameData, permissions_t Permissions){
+KResult Rename(thread_t Callback, uint64_t CallbackArg, srv_storage_fs_server_rename_t* RenameData, kot_permissions_t Permissions){
     char* OldPath = (char*)((uint64_t)RenameData + RenameData->OldPathPosition);
     char* NewPath = (char*)((uint64_t)RenameData + RenameData->NewPathPosition);
     
@@ -288,7 +288,7 @@ KResult Rename(thread_t Callback, uint64_t CallbackArg, srv_storage_fs_server_re
 /* Directories */
 
 /* VFS access */
-KResult Mkdir(thread_t Callback, uint64_t CallbackArg, char* Path, mode_t Mode, permissions_t Permissions){
+KResult Mkdir(thread_t Callback, uint64_t CallbackArg, char* Path, mode_t Mode, kot_permissions_t Permissions){
     mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
 
     KResult Status = MountInfo->CreateDir(Path, Mode, Permissions);
@@ -307,7 +307,7 @@ KResult Mkdir(thread_t Callback, uint64_t CallbackArg, char* Path, mode_t Mode, 
 }
 
 /* VFS access */
-KResult Rmdir(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions){
+KResult Rmdir(thread_t Callback, uint64_t CallbackArg, char* Path, kot_permissions_t Permissions){
     mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
     KResult Status = MountInfo->RemoveDir(Path, Permissions);
     
@@ -325,7 +325,7 @@ KResult Rmdir(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t
 }
 
 /* VFS access */
-KResult Opendir(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions, process_t Target){
+KResult Opendir(thread_t Callback, uint64_t CallbackArg, char* Path, kot_permissions_t Permissions, process_t Target){
     mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
     KResult Status = KFAIL;
 

@@ -124,10 +124,10 @@ KResult Sys_Unpause(thread_t self);
 KResult Sys_Map(process_t self, uint64_t* addressVirtual, enum AllocationType type, uintptr_t* addressPhysical, size64_t* size, bool findFree);
 KResult Sys_Unmap(process_t self, uintptr_t addressVirtual, size64_t size);
 uintptr_t Sys_GetPhysical(uintptr_t addressVirtual);
-KResult Sys_Event_Create(event_t* self);
-KResult Sys_Event_Bind(event_t self, thread_t task, bool IgnoreMissedEvents);
-KResult Sys_Event_Unbind(event_t self, thread_t task);
-KResult Sys_Event_Trigger(event_t self, struct arguments_t* parameters);
+KResult Sys_Event_Create(kot_event_t* self);
+KResult Sys_Event_Bind(kot_event_t self, thread_t task, bool IgnoreMissedEvents);
+KResult Sys_Event_Unbind(kot_event_t self, thread_t task);
+KResult Sys_Event_Trigger(kot_event_t self, struct arguments_t* parameters);
 KResult Sys_Event_Close();
 KResult Sys_CreateThread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t externalData, thread_t* result); // TODO make external data field
 KResult Sys_Duplicatethread(process_t parent, thread_t source, thread_t* self);

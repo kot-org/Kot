@@ -1,5 +1,5 @@
 #pragma once
-#include <kot/elf.h>
+#include <elf.h>
 #include <lib/types.h>
 #include <lib/math.h>
 #include <bootloader.h>

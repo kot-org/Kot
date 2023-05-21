@@ -10,7 +10,7 @@ thread_t Mousethread = NULL;
 
 #include <kot++/printf.h>
 
-event_t MouseRelativeEvent; // We don't use absolute for ps2
+kot_event_t MouseRelativeEvent; // We don't use absolute for ps2
 
 KResult MouseInitalize(){
     for(uint8_t i = 0; i < PS2_PORT_NUMBER; i++){

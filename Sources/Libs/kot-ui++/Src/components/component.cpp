@@ -66,7 +66,7 @@ namespace Ui {
 
     /* Component Framebuffer */
     void Component::CreateFramebuffer(uint32_t Width, uint32_t Height) {
-        framebuffer_t* CpntFb = (framebuffer_t*) malloc(sizeof(framebuffer_t));
+        kot_framebuffer_t* CpntFb = (kot_framebuffer_t*) malloc(sizeof(kot_framebuffer_t));
 
         uint32_t Bpp = 32, Btpp = 4;
 
@@ -110,7 +110,7 @@ namespace Ui {
         }
     }
     
-    framebuffer_t* Component::GetFramebuffer() {
+    kot_framebuffer_t* Component::GetFramebuffer() {
         return this->Framebuffer;
     }
 
@@ -118,7 +118,7 @@ namespace Ui {
         return this->Style;
     }
 
-    vector_t* Component::GetChilds() {
+    kot_vector_t* Component::GetChilds() {
         return this->Childs;
     }
 

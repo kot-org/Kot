@@ -1,6 +1,6 @@
 #include <dev/dev.h>
 
-vector_t* DevList;
+kot_vector_t* DevList;
 uint64_t DevListLock;
 
 struct dev_t{

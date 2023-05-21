@@ -20,7 +20,7 @@ namespace SE8 {
     private:
         Classes* classes;
         Threads* threads;
-        vector_t* ref_sys;
+        kot_vector_t* ref_sys;
         char* entryPoint;
         print_native out = &__default_print;
     public:
@@ -28,7 +28,7 @@ namespace SE8 {
         void run(uint32_t* args, uint16_t args_length);
         Classes* getClasses();
         Threads* getThreads();
-        vector_t* getRefSys();
+        kot_vector_t* getRefSys();
         void setEntryPoint(char* entryPoint);
         void setOutput(print_native fn);
         print_native getOutput();

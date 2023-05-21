@@ -142,9 +142,9 @@ namespace Ui {
             void CreateFramebuffer(uint32_t Width, uint32_t Height);
             void UpdateFramebuffer(uint32_t Width, uint32_t Height);
 
-            framebuffer_t* GetFramebuffer();
+            kot_framebuffer_t* GetFramebuffer();
             ComponentGeneralStyle* GetStyle();
-            vector_t* GetChilds();
+            kot_vector_t* GetChilds();
 
             void Update();
 
@@ -173,10 +173,10 @@ namespace Ui {
 
             uint64_t Index;
 
-            framebuffer_t* Framebuffer;
+            kot_framebuffer_t* Framebuffer;
             bool OwnFb;
             
-            vector_t* Childs;
+            kot_vector_t* Childs;
 
             // Component.cpp private function
             void AddChild(Component* Child);

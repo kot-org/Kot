@@ -2,7 +2,7 @@
 
 void ctxSubSeqCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t color);
 
-ctxg_t* CreateGraphicContext(framebuffer_t* fb) {
+ctxg_t* CreateGraphicContext(kot_framebuffer_t* fb) {
     ctxg_t* ctx = malloc(sizeof(ctxg_t));
     ctx->FbBase = fb->Buffer;
     ctx->poses = vector_create();

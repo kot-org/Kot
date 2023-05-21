@@ -6,6 +6,10 @@
 #include <kot/types.h>
 #include <kot/uisd/srvs/storage.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #define STORAGE_SINGLE_REQUEST      0x0
 #define STORAGE_MULTIPLE_REQUESTS   0x1
 
@@ -52,5 +56,9 @@ struct kot_srv_storage_device_callback_t* Srv_SendMultipleRequests(struct kot_sr
 uint64_t Srv_GetBufferStartingAddress(struct kot_srv_storage_device_t* StorageDevice, uint64_t Start);
 KResult Srv_ReadDevice(struct kot_srv_storage_device_t* StorageDevice, uintptr_t Buffer, uint64_t Start, size64_t Size);
 KResult Srv_WriteDevice(struct kot_srv_storage_device_t* StorageDevice, uintptr_t Buffer, uint64_t Start, size64_t Size);
+
+#if defined(__cplusplus)
+} 
+#endif
 
 #endif

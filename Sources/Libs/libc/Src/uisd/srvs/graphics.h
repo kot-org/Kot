@@ -53,26 +53,26 @@ typedef struct {
     uint64_t Height;
     uint64_t Bpp;
     uint64_t Btpp;
-} framebuffer_t;
+} kot_framebuffer_t;
 
 typedef struct {
-    framebuffer_t Framebuffer;
+    kot_framebuffer_t Framebuffer;
     ksmem_t BufferKey;
     thread_t GraphicsHandler;
     bool IsVisible;
     thread_t EventHandler;
     point_t Position;
-    event_t Event;
-} window_t;
+    kot_event_t Event;
+} kot_window_t;
 
 void Srv_Graphics_Callback(KResult Status, struct srv_graphics_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
-struct srv_graphics_callback_t* Srv_Graphics_CreateWindow(event_t Event, uint64_t WindowType, bool IsAwait);
+struct srv_graphics_callback_t* Srv_Graphics_CreateWindow(kot_event_t Event, uint64_t WindowType, bool IsAwait);
 
-struct srv_graphics_callback_t* Srv_Graphics_CloseWindow(window_t* Window, bool IsAwait);
-struct srv_graphics_callback_t* Srv_Graphics_ResizeWindow(window_t* Window, int64_t Width, int64_t Height, bool IsAwait);
-struct srv_graphics_callback_t* Srv_Graphics_ChangePostionWindow(window_t* Window, uint64_t XPosition, uint64_t YPosition, bool IsAwait);
-struct srv_graphics_callback_t* Srv_Graphics_ChangeVisibility(window_t* Window, bool IsVisible, bool IsAwait);
+struct srv_graphics_callback_t* Srv_Graphics_CloseWindow(kot_window_t* Window, bool IsAwait);
+struct srv_graphics_callback_t* Srv_Graphics_ResizeWindow(kot_window_t* Window, int64_t Width, int64_t Height, bool IsAwait);
+struct srv_graphics_callback_t* Srv_Graphics_ChangePostionWindow(kot_window_t* Window, uint64_t XPosition, uint64_t YPosition, bool IsAwait);
+struct srv_graphics_callback_t* Srv_Graphics_ChangeVisibility(kot_window_t* Window, bool IsVisible, bool IsAwait);
 
 #if defined(__cplusplus)
 }

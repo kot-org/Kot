@@ -9,8 +9,8 @@ monitorc::monitorc(orbc* Parent, uintptr_t FbBase, uint64_t Width, uint64_t Heig
     this->YPosition = YPosition;
     this->YMaxPosition = YPosition + Height;
 
-    MainFramebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
-    BackFramebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
+    MainFramebuffer = (kot_framebuffer_t*)calloc(sizeof(kot_framebuffer_t));
+    BackFramebuffer = (kot_framebuffer_t*)calloc(sizeof(kot_framebuffer_t));
 
     MainFramebuffer->Buffer = FbBase;
     MainFramebuffer->Width = Width;
@@ -49,7 +49,7 @@ void monitorc::Move(uint64_t XPosition, uint64_t YPosition) {
     this->YPosition = YPosition;
 }
 
-void DynamicBlit(framebuffer_t* to, framebuffer_t* from, uint64_t x, uint64_t y, uint64_t MonitorXoffset, uint64_t MonitorYoffset) {
+void DynamicBlit(kot_framebuffer_t* to, kot_framebuffer_t* from, uint64_t x, uint64_t y, uint64_t MonitorXoffset, uint64_t MonitorYoffset) {
     BlitFramebuffer(to, from, x, y);
 }
 

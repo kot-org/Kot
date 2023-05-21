@@ -1,19 +1,19 @@
 #include "../vector.h"
 
-vector_t* vector_create() {
-    vector_t* vector = (vector_t*) malloc(sizeof(vector_t));
+kot_vector_t* vector_create() {
+    kot_vector_t* vector = (kot_vector_t*) malloc(sizeof(kot_vector_t));
     vector->items = NULL;
     vector->length = 0;
     return vector;
 }
 
-vector_t* vector_clone(vector_t* vector) {
+kot_vector_t* vector_clone(kot_vector_t* vector) {
     uintptr_t* new_vector = (uintptr_t*) malloc((size64_t)(vector->length * 8));
     memcpy(new_vector, vector->items, vector->length * 8);
     return new_vector;
 }
 
-void vector_expand(vector_t* vector, uint64_t len) {
+void vector_expand(kot_vector_t* vector, uint64_t len) {
     uintptr_t* temp = (uintptr_t*) malloc((size64_t)((vector->length + len) * 8));
     memcpy(temp, vector->items, vector->length * 8);
     free(vector->items);
@@ -21,7 +21,7 @@ void vector_expand(vector_t* vector, uint64_t len) {
     vector->length+=len;
 }
 
-uint64_t vector_push(vector_t* vector, uintptr_t item) {
+uint64_t vector_push(kot_vector_t* vector, uintptr_t item) {
     if (vector->items == NULL) {
         vector->items = (uintptr_t*) malloc(8);
         vector->length = 1;
@@ -33,17 +33,17 @@ uint64_t vector_push(vector_t* vector, uintptr_t item) {
     return vector->length - 1;
 }
 
-uintptr_t vector_get(vector_t* vector, uint64_t index) {
+uintptr_t vector_get(kot_vector_t* vector, uint64_t index) {
     return *(uintptr_t*)(vector->items + index);
 }
 
-void vector_set(vector_t* vector, uint64_t index, uintptr_t item) {
+void vector_set(kot_vector_t* vector, uint64_t index, uintptr_t item) {
     if (index < vector->length) {
         *(uintptr_t*)(vector->items + index) = item;
     }
 }
 
-void vector_clear(vector_t* vector) {
+void vector_clear(kot_vector_t* vector) {
     if (vector->items != NULL) {
         free(vector->items);
         vector->items = NULL;
@@ -51,7 +51,7 @@ void vector_clear(vector_t* vector) {
     }
 }
 
-void vector_remove(vector_t* vector, uint64_t index) {
+void vector_remove(kot_vector_t* vector, uint64_t index) {
     if (vector->items != NULL && index < vector->length) {
         if (vector->length == 1) {
             vector_clear(vector);

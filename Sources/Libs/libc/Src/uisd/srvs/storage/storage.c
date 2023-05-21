@@ -1,4 +1,4 @@
-#include <kot/uisd/srvs/storage.h>
+#include <stdio.h>
 
 thread_t srv_storage_callback_thread = NULL;
 uisd_storage_t* StorageData = NULL;
@@ -219,7 +219,7 @@ KResult Srv_Storage_VFSLoginApp_Callback(KResult Status, struct srv_storage_call
     return Status;
 }
 
-struct srv_storage_callback_t* Srv_Storage_VFSLoginApp(process_t Process, authorization_t Authorization, permissions_t Permissions, char* Path, bool IsAwait){
+struct srv_storage_callback_t* Srv_Storage_VFSLoginApp(process_t Process, authorization_t Authorization, kot_permissions_t Permissions, char* Path, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
     thread_t self = Sys_GetThread();
@@ -305,7 +305,7 @@ KResult Srv_Storage_Openfile_Callback(KResult Status, struct srv_storage_callbac
     return Status;
 }
 
-struct srv_storage_callback_t* Srv_Storage_Openfile(char* Path, permissions_t Permissions, process_t Target, bool IsAwait){
+struct srv_storage_callback_t* Srv_Storage_Openfile(char* Path, kot_permissions_t Permissions, process_t Target, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
     thread_t self = Sys_GetThread();

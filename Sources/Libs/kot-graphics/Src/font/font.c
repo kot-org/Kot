@@ -1,4 +1,4 @@
-#include <kot/heap.h>
+#include <stdlib.h>
 
 #include <kot-graphics/font.h>
 #include <kot-graphics/font/ssfn.h>

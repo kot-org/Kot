@@ -22,7 +22,7 @@ void blitComponentFramebuffer(component_t* component) {
 
 component_t* AddComponent(component_t* parent, componentViewParam_t param) {
     /* framebuffer */
-    framebuffer_t* fb = malloc(sizeof(framebuffer_t));
+    kot_framebuffer_t* fb = malloc(sizeof(kot_framebuffer_t));
 
     uint32_t Pitch = param.Width * parent->fb->Btpp;
 
@@ -89,7 +89,7 @@ void RemoveComponent(component_t* cpnt) {
     free(cpnt);
 }
 
-component_t* GetMainParent(framebuffer_t* fb) {
+component_t* GetMainParent(kot_framebuffer_t* fb) {
     component_t* parent = malloc(sizeof(component_t));
     componentViewParam_t* param = malloc(sizeof(componentViewParam_t));
 

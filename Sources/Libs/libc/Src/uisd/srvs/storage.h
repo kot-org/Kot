@@ -149,7 +149,7 @@ typedef struct {
 } directory_entries_t;
 
 typedef uint64_t mode_t;
-typedef uint64_t permissions_t;
+typedef uint64_t kot_permissions_t;
 
 void Srv_Storage_Initialize();
 
@@ -161,10 +161,10 @@ struct srv_storage_callback_t* Srv_Storage_NotifyOnNewPartitionByGUIDType(GUID_t
 struct srv_storage_callback_t* Srv_Storage_MountPartition(thread_t VFSMountThread, struct srv_storage_fs_server_functions_t* FSServerFunctions, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_UnmountPartition(thread_t VFSMountThread, bool IsAwait);
 
-struct srv_storage_callback_t* Srv_Storage_VFSLoginApp(process_t Process, authorization_t Authorization, permissions_t Permissions, char* Path, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_VFSLoginApp(process_t Process, authorization_t Authorization, kot_permissions_t Permissions, char* Path, bool IsAwait);
 
 struct srv_storage_callback_t* Srv_Storage_Removefile(char* Path, bool IsAwait);
-struct srv_storage_callback_t* Srv_Storage_Openfile(char* Path, permissions_t Permissions, process_t Target, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_Openfile(char* Path, kot_permissions_t Permissions, process_t Target, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_Rename(char* OldPath, char* NewPath, bool IsAwait);
 
 struct srv_storage_callback_t* Srv_Storage_DirCreate(char* Path, mode_t Mode, bool IsAwait);

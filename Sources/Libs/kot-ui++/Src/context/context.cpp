@@ -31,7 +31,7 @@ namespace Ui {
         }
     }
 
-    UiContext::UiContext(framebuffer_t* fb) {
+    UiContext::UiContext(kot_framebuffer_t* fb) {
         this->Fb = fb;
         this->EventBuffer = CreateEventBuffer(fb->Width, fb->Height);
         this->EventBufferUse = CreateEventBuffer(fb->Width, fb->Height);
@@ -42,7 +42,7 @@ namespace Ui {
         Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&UiContextRenderer, PriviledgeApp, (uint64_t)this, &ThreadRenderer);
     }
 
-    void UiContext::UpdateFramebuffer(framebuffer_t* fb){
+    void UiContext::UpdateFramebuffer(kot_framebuffer_t* fb){
         // Warning : Don't forget to stop renderer before
         this->Fb = fb;
         this->Cpnt->UpdateFramebuffer(fb->Width, fb->Height);

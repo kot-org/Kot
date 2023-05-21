@@ -1,6 +1,10 @@
 #ifndef KOT_MATH_H
 #define KOT_MATH_H 1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
 
 typedef struct{
@@ -12,5 +16,9 @@ typedef struct{
     int64_t x;
     int64_t y;
 }kot_point_t;
+
+#if defined(__cplusplus)
+} 
+#endif
 
 #endif

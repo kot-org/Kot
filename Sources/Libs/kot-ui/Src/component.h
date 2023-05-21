@@ -36,10 +36,10 @@ typedef struct {
 } componentViewParam_t;
 
 typedef struct component_s {
-    framebuffer_t* fb;
+    kot_framebuffer_t* fb;
     componentViewParam_t* param;
     struct component_s* parent;
-    vector_t* childs;
+    kot_vector_t* childs;
     uint16_t type;
 } component_t;
 
@@ -98,7 +98,7 @@ component_t* AddComponent(component_t* parent, componentViewParam_t param);
 void EditComponent(component_t* cpnt, componentViewParam_t param);
 void RemoveComponent(component_t* cpnt);
 
-component_t* GetMainParent(framebuffer_t* fb);
+component_t* GetMainParent(kot_framebuffer_t* fb);
 
 /* Components */
 

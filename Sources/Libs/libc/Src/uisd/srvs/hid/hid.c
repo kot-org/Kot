@@ -2,17 +2,17 @@
 
 /* Get event functions */
 
-event_t GetMouseRelativeEvent(){
+kot_event_t GetMouseRelativeEvent(){
     uisd_hid_t* ControllerData = (uisd_hid_t*)FindControllerUISD(ControllerTypeEnum_Hid);
     return ControllerData->MouseRelative;
 }
 
-event_t GetMouseAbsoluteEvent(){
+kot_event_t GetMouseAbsoluteEvent(){
     uisd_hid_t* ControllerData = (uisd_hid_t*)FindControllerUISD(ControllerTypeEnum_Hid);
     return ControllerData->MouseAbsolute;
 }
 
-event_t GetKeyboardEvent(){
+kot_event_t GetKeyboardEvent(){
     uisd_hid_t* ControllerData = (uisd_hid_t*)FindControllerUISD(ControllerTypeEnum_Hid);
     return ControllerData->KeyboardEvent;
 }

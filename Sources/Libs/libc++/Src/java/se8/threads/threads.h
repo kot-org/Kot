@@ -8,7 +8,7 @@ namespace SE8 {
 
     class Threads {
     private:
-        vector_t* threads;
+        kot_vector_t* threads;
     public: 
         Threads();
         Thread* append();

@@ -95,7 +95,7 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
 
     /* Desktop */
     Monitor->DesktopData->Desktop = (desktopcomponent*)malloc(sizeof(desktopcomponent));
-    Monitor->DesktopData->Desktop->Fb = (framebuffer_t*)malloc(sizeof(framebuffer_t));
+    Monitor->DesktopData->Desktop->Fb = (kot_framebuffer_t*)malloc(sizeof(kot_framebuffer_t));
     Monitor->DesktopData->Desktop->Fb->Buffer = calloc(Monitor->BackFramebuffer->Size);
     Monitor->DesktopData->Desktop->Fb->Width = Monitor->BackFramebuffer->Width;
     Monitor->DesktopData->Desktop->Fb->Height = Monitor->BackFramebuffer->Height;
@@ -138,7 +138,7 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
 
     /* Taskbar */
     Monitor->DesktopData->Taskbar = (desktopcomponent*)malloc(sizeof(desktopcomponent));
-    Monitor->DesktopData->Taskbar->Fb = (framebuffer_t*)malloc(sizeof(framebuffer_t));
+    Monitor->DesktopData->Taskbar->Fb = (kot_framebuffer_t*)malloc(sizeof(kot_framebuffer_t));
     Monitor->DesktopData->Taskbar->Fb->Buffer = calloc(Taskbar->Height * Monitor->BackFramebuffer->Pitch);
     Monitor->DesktopData->Taskbar->Fb->Width = Monitor->BackFramebuffer->Width;
     Monitor->DesktopData->Taskbar->Fb->Height = Taskbar->Height;

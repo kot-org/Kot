@@ -1,6 +1,6 @@
 #pragma once
 
-#include <kot/heap.h>
+#include <stdlib.h>
 #include <core/main.h>
 #include <kot/utils/vector.h>
 
@@ -14,8 +14,8 @@ class hidc;
 
 class monitorc {
     public:
-        framebuffer_t* MainFramebuffer;
-        framebuffer_t* BackFramebuffer;
+        kot_framebuffer_t* MainFramebuffer;
+        kot_framebuffer_t* BackFramebuffer;
 
         graphiceventbuffer_t* Eventbuffer;
 

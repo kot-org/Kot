@@ -102,14 +102,14 @@ ArchInfo_t* arch_initialize(ukl_boot_structure_t* BootData){
 
 KResult GetDataToStartService(ArchInfo_t* ArchInfo, kthread_t* thread, arguments_t* Parameters, uintptr_t* Data, size64_t* Size){
     KResult Status = KFAIL;
-    ArchInfo = (ArchInfo_t*)krealloc(ArchInfo, sizeof(ArchInfo_t) + ArchInfo->IRQSize * sizeof(event_t));
+    ArchInfo = (ArchInfo_t*)krealloc(ArchInfo, sizeof(ArchInfo_t) + ArchInfo->IRQSize * sizeof(kot_event_t));
     for(uint64_t i = 0; i < ArchInfo->IRQSize; i++){
         if(InterruptEventList[i] != NULL){
             Keyhole_Create((key_t*)&ArchInfo->IRQEvents[i], thread->Parent, thread->Parent, DataTypeEvent, (uint64_t)InterruptEventList[i], KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeApp);
         }
     }
     *Data = ArchInfo;
-    *Size = sizeof(ArchInfo_t) + ArchInfo->IRQSize * sizeof(event_t);
+    *Size = sizeof(ArchInfo_t) + ArchInfo->IRQSize * sizeof(kot_event_t);
     return Status;
 }
 

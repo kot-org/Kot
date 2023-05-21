@@ -1,6 +1,6 @@
 #include <keyboard/keyboard.h>
 
-event_t KeyboardEvent;
+kot_event_t KeyboardEvent;
 
 KResult CreateKeyboardContext(uisd_hid_t* self){
     Sys_Event_Create(&KeyboardEvent);

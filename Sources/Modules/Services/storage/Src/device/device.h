@@ -2,7 +2,7 @@
 #include <kot/math.h>
 #include <core/main.h>
 #include <partition/partition.h>
-#include <kot/uisd/srvs/storage.h>
+#include <stdio.h>
 
 struct storage_callback_t{
     thread_t MainThread;

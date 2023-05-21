@@ -8,6 +8,10 @@
 #include <kot/atomic.h>
 #include <kot/memory.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #define Window_Function_Close               0x0
 #define Window_Function_Resize              0x1
 #define Window_Function_ChangePostion       0x2
@@ -73,5 +77,9 @@ struct kot_srv_graphics_callback_t* kot_Srv_Graphics_ChangePostionWindow(kot_win
 struct kot_srv_graphics_callback_t* kot_Srv_Graphics_ChangeVisibility(kot_window_t* Window, bool IsVisible, bool IsAwait);
 
 
+
+#if defined(__cplusplus)
+} 
+#endif
 
 #endif

@@ -20,7 +20,7 @@ KResult InitialiseServer(){
     SrvData->ControllerHeader.Process = ShareProcessKey(proc);
 
     /* OnDeviceChanged */
-    event_t OnDeviceChanged;
+    kot_event_t OnDeviceChanged;
     Sys_Event_Create(&OnDeviceChanged);
     Sys_Keyhole_CloneModify(OnDeviceChanged, &SrvData->OnDeviceChanged, NULL, KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeApp);
 

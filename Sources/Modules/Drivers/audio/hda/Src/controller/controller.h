@@ -2,7 +2,7 @@
 
 #include <kot/sys.h>
 #include <kot/bits.h>
-#include <kot/assert.h>
+#include <assert.h>
 #include <kot/utils/vector.h>
 
 #include <kot/uisd/srvs/pci.h>
@@ -369,7 +369,7 @@ struct HDAFunction{
     uint8_t Type;
     uint32_t WidgetsStart;
     uint32_t WidgetsCount;
-    vector_t* Widgets;
+    kot_vector_t* Widgets;
     uint32_t GainStepOut;
     uint32_t AMPOutNode;
     NodeConfiguration Configuration;
@@ -380,7 +380,7 @@ struct HDACodec{
     uint32_t Index;
     uint32_t FunctionsStart;
     uint32_t FunctionsCount;
-    vector_t* Functions;
+    kot_vector_t* Functions;
 };
 
 struct HDAOutput{
@@ -398,7 +398,7 @@ struct HDAOutput{
 
     AudioEncoding SampleFormat;
 
-    event_t OffsetUpdateEvent;
+    kot_event_t OffsetUpdateEvent;
 
     srv_audio_device_t AudioDevice;
 };

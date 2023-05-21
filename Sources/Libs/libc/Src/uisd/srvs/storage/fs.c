@@ -1,4 +1,4 @@
-#include <kot/uisd/srvs/storage.h>
+#include <stdio.h>
 
 process_t ShareProcessFS = NULL;
 
