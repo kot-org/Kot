@@ -16,11 +16,11 @@ KResult AddDevice(kot_srv_storage_device_info_t* Info, storage_device_t** Device
         *DevicePointer = Device;
 
         kot_thread_t CallbackRequestHandlerThread = NULL;
-        kot_Sys_CreateThread(kot_Sys_GetProcess(), (uintptr_t)&CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
+        kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
         Device->CallbackRequestHandlerThread = kot_MakeShareableThreadToProcess(CallbackRequestHandlerThread, Info->MainSpace.DriverProc);
 
         kot_thread_t CallbackCreateSpaceHandlerThread = NULL;
-        kot_Sys_CreateThread(kot_Sys_GetProcess(), (uintptr_t)&CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
+        kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
         Device->CallbackCreateSpaceHandlerThread = kot_MakeShareableThreadToProcess(CallbackCreateSpaceHandlerThread, Info->MainSpace.DriverProc);
         LoadPartitionSystem(Device);
 
@@ -35,7 +35,7 @@ KResult RemoveDevice(storage_device_t* Device){
 }
 
 KResult CallbackCreateSpaceHandler(KResult Status, storage_callback_t* CallbackData, kot_srv_storage_space_info_t* SpaceInfo){
-    CallbackData->Data = (uintptr_t)malloc(sizeof(kot_srv_storage_space_info_t));
+    CallbackData->Data = (void*)malloc(sizeof(kot_srv_storage_space_info_t));
     memcpy((void*)CallbackData->Data, SpaceInfo, sizeof(kot_srv_storage_space_info_t));
     kot_Sys_Unpause(CallbackData->MainThread);
     kot_Sys_Close(KSUCCESS);
@@ -81,7 +81,7 @@ uint64_t storage_device_t::GetBufferStartingAddress(uint64_t Start){
     return (uint64_t)BufferRWBase + (Start % Info.MainSpace.BufferRWAlignement);
 }
 
-KResult storage_device_t::ReadDevice(uintptr_t Buffer, uint64_t Start, size64_t Size){
+KResult storage_device_t::ReadDevice(void* Buffer, uint64_t Start, size64_t Size){
     uint64_t RequestNum = DIV_ROUND_UP(Size, Info.MainSpace.BufferRWUsableSize);
     uint64_t StartInIteration = Start;
     uint64_t SizeToRead = Size;
@@ -107,7 +107,7 @@ KResult storage_device_t::ReadDevice(uintptr_t Buffer, uint64_t Start, size64_t 
     return KSUCCESS;
 }
 
-KResult storage_device_t::WriteDevice(uintptr_t Buffer, uint64_t Start, size64_t Size){
+KResult storage_device_t::WriteDevice(void* Buffer, uint64_t Start, size64_t Size){
     uint64_t RequestNum = DIV_ROUND_UP(Size, Info.MainSpace.BufferRWUsableSize);
     uint64_t StartInIteration = Start;
     uint64_t SizeToWrite = Size;

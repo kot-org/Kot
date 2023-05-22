@@ -5,7 +5,7 @@ PCIDeviceArrayInfo_t* SrvDevicesArray;
 void InitSrv(PCIDeviceArrayInfo_t* DevicesArray){
     SrvDevicesArray = DevicesArray;
 
-    uintptr_t addr = GetFreeAlignedSpace(sizeof(uisd_pci_t));
+    void* addr = GetFreeAlignedSpace(sizeof(uisd_pci_t));
     kot_key_mem_t key = NULL;
     
     process_t proc = Sys_GetProcess();
@@ -24,42 +24,42 @@ void InitSrv(PCIDeviceArrayInfo_t* DevicesArray){
     
     /* CountDevices */
     thread_t CountDevicesThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t) &CountDevices, PriviledgeDriver, NULL, &CountDevicesThread);
+    Sys_CreateThread(proc, (void*) &CountDevices, PriviledgeDriver, NULL, &CountDevicesThread);
     PciSrv->CountDevices = MakeShareableThread(CountDevicesThread, PriviledgeDriver);
 
     /* FindDevice */
     thread_t FindDeviceThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t) &FindDevice, PriviledgeDriver, NULL, &FindDeviceThread);
+    Sys_CreateThread(proc, (void*) &FindDevice, PriviledgeDriver, NULL, &FindDeviceThread);
     PciSrv->FindDevice = MakeShareableThread(FindDeviceThread, PriviledgeDriver);
 
     /* GetInfo */
     thread_t GetInfoDeviceThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t) &GetInfoDevice, PriviledgeDriver, NULL, &GetInfoDeviceThread);
+    Sys_CreateThread(proc, (void*) &GetInfoDevice, PriviledgeDriver, NULL, &GetInfoDeviceThread);
     PciSrv->GetInfoDevice = MakeShareableThread(GetInfoDeviceThread, PriviledgeDriver);
 
     /* GetBAR */
     thread_t GetBARDeviceThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t) &GetBARDevice, PriviledgeDriver, NULL, &GetBARDeviceThread);
+    Sys_CreateThread(proc, (void*) &GetBARDevice, PriviledgeDriver, NULL, &GetBARDeviceThread);
     PciSrv->GetBARDevice = MakeShareableThread(GetBARDeviceThread, PriviledgeDriver);
 
     /* BindMSI */
     thread_t BindMSIThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t) &BindMSI, PriviledgeDriver, NULL, &BindMSIThread);
+    Sys_CreateThread(proc, (void*) &BindMSI, PriviledgeDriver, NULL, &BindMSIThread);
     PciSrv->BindMSI = MakeShareableThread(BindMSIThread, PriviledgeDriver);
 
     /* UnbindMSI */
     thread_t UnbindMSIThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t) &UnbindMSI, PriviledgeDriver, NULL, &UnbindMSIThread);
+    Sys_CreateThread(proc, (void*) &UnbindMSI, PriviledgeDriver, NULL, &UnbindMSIThread);
     PciSrv->UnbindMSI = MakeShareableThread(UnbindMSIThread, PriviledgeDriver);
 
     /* ConfigReadWord */
     thread_t ConfigReadWordThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t) &ConfigReadWord, PriviledgeDriver, NULL, &ConfigReadWordThread);
+    Sys_CreateThread(proc, (void*) &ConfigReadWord, PriviledgeDriver, NULL, &ConfigReadWordThread);
     PciSrv->ConfigReadWord = MakeShareableThread(ConfigReadWordThread, PriviledgeDriver);
 
     /* ConfigWriteWord */
     thread_t ConfigWriteWordThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t) &ConfigWriteWord, PriviledgeDriver, NULL, &ConfigWriteWordThread);
+    Sys_CreateThread(proc, (void*) &ConfigWriteWord, PriviledgeDriver, NULL, &ConfigWriteWordThread);
     PciSrv->ConfigWriteWord = MakeShareableThread(ConfigWriteWordThread, PriviledgeDriver);
 }
 

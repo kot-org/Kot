@@ -173,8 +173,8 @@ struct srv_storage_callback_t* Srv_Storage_DirOpen(char* Path, process_t Target,
 
 struct srv_storage_callback_t* Srv_Storage_Closefile(file_t* File, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_Getfilesize(file_t* File, bool IsAwait);
-struct srv_storage_callback_t* Srv_Storage_Readfile(file_t* File, uintptr_t Buffer, uint64_t Start, size64_t Size, bool IsAwait);
-struct srv_storage_callback_t* Srv_Storage_Writefile(file_t* File, uintptr_t Buffer, uint64_t Start, size64_t Size, bool IsDataEnd, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_Readfile(file_t* File, void* Buffer, uint64_t Start, size64_t Size, bool IsAwait);
+struct srv_storage_callback_t* Srv_Storage_Writefile(file_t* File, void* Buffer, uint64_t Start, size64_t Size, bool IsDataEnd, bool IsAwait);
 
 struct srv_storage_callback_t* Srv_Storage_Closedir(directory_t* Dir, bool IsAwait);
 struct srv_storage_callback_t* Srv_Storage_Getdircount(directory_t* Dir, bool IsAwait);
@@ -184,8 +184,8 @@ struct srv_storage_callback_t* Srv_Storage_NewDev(char* Name, struct srv_storage
 
 file_t* fopen(char* Path, char* Mode);
 KResult fclose(file_t* File);
-KResult fread(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, file_t* File);
-KResult fwrite(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, file_t* File);
+KResult fread(void* Buffer, size_t BlockSize, size_t BlockCount, file_t* File);
+KResult fwrite(void* Buffer, size_t BlockSize, size_t BlockCount, file_t* File);
 KResult fputs(char* String, file_t* File);
 KResult fseek(file_t* File, uint64_t Offset, int Whence);
 uint64_t ftell(file_t* File);

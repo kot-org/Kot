@@ -39,35 +39,35 @@ static inline uint32_t kot_IoRead32(uint16_t port){
 
 // mmio
 
-static inline void kot_MmioWrite8(uintptr_t address, uint8_t value) {
+static inline void kot_MmioWrite8(void* address, uint8_t value) {
     *(volatile uint8_t*) address = value;
 }
 
-static inline void kot_MmioWrite16(uintptr_t address, uint16_t value) {
+static inline void kot_MmioWrite16(void* address, uint16_t value) {
     *(volatile uint16_t*) address = value;
 }
 
-static inline void kot_MmioWrite32(uintptr_t address, uint32_t value) {
+static inline void kot_MmioWrite32(void* address, uint32_t value) {
     *(volatile uint32_t*) address = value;
 }
 
-static inline void kot_MmioWrite64(uintptr_t address, uint64_t value) {
+static inline void kot_MmioWrite64(void* address, uint64_t value) {
     *(volatile uint64_t*) address = value;
 }
 
-static inline uint8_t kot_MmioRead8(uintptr_t address) {
+static inline uint8_t kot_MmioRead8(void* address) {
     return *(volatile uint8_t*) address;
 }
 
-static inline uint16_t kot_MmioRead16(uintptr_t address) {
+static inline uint16_t kot_MmioRead16(void* address) {
     return *(volatile uint16_t*) address;
 }
 
-static inline uint32_t kot_MmioRead32(uintptr_t address) {
+static inline uint32_t kot_MmioRead32(void* address) {
     return *(volatile uint32_t*) address;
 }
 
-static inline uint64_t kot_MmioRead64(uintptr_t address) {
+static inline uint64_t kot_MmioRead64(void* address) {
     return *(volatile uint64_t*) address;
 }
 

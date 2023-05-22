@@ -44,7 +44,7 @@ HDAController::HDAController(PCIDeviceID_t DeviceID){
     srv_pci_bar_info_t* BarInfo = (srv_pci_bar_info_t*)CallbackPCI->Data;
     free(CallbackPCI);
 
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&HDAControllerOnInterrupt, PriviledgeDriver, (uint64_t)this, &InterruptThread);
+    Sys_CreateThread(Sys_GetProcess(), (void*)&HDAControllerOnInterrupt, PriviledgeDriver, (uint64_t)this, &InterruptThread);
 
     srv_system_callback_t* CallbackSys = Srv_System_BindFreeIRQ(InterruptThread, true, true);
     uint64_t Vector = CallbackSys->Data;
@@ -379,7 +379,7 @@ HDAStream* HDAController::CreateStream(HDACodec* Codec, StreamType Type){
 
     Stream->Descriptor = Descriptor;
     Stream->BufferDescriptorListEntries = HDA_BDL_ENTRY_COUNT;
-    Stream->BufferDescriptorList = (HDABufferDescriptorEntry*)GetPhysical((uintptr_t*)&Stream->BufferDescriptorListPhysicalAddress, HDA_BDL_ENTRY_COUNT * sizeof(HDABufferDescriptorEntry));
+    Stream->BufferDescriptorList = (HDABufferDescriptorEntry*)GetPhysical((void**)&Stream->BufferDescriptorListPhysicalAddress, HDA_BDL_ENTRY_COUNT * sizeof(HDABufferDescriptorEntry));
     Stream->Size = Stream->BufferDescriptorListEntries * HDA_BDL_ENTRY_SIZE;
     Stream->PositionOfStreamData = Stream->Size + sizeof(uint64_t); // add the offset field
 
@@ -392,7 +392,7 @@ HDAStream* HDAController::CreateStream(HDACodec* Codec, StreamType Type){
         Stream->BufferDescriptorList[i].Reserved = 0; // Clear reserved
         Stream->BufferDescriptorList[i].Length = HDA_BDL_ENTRY_SIZE;
         Stream->BufferDescriptorList[i].InterruptOnCompletion = ((i % HDA_INTERRUPT_ON_COMPLETION_BDL_COUNT) == 0) ? 1 : 0;
-        Stream->BufferDescriptorList[i].Address = (uint64_t)Sys_GetPhysical((uintptr_t)((uint64_t)Stream->Buffer + i * HDA_BDL_ENTRY_SIZE));
+        Stream->BufferDescriptorList[i].Address = (uint64_t)Sys_GetPhysical((void*)((uint64_t)Stream->Buffer + i * HDA_BDL_ENTRY_SIZE));
     }
     memset(Stream->Buffer, 0x0, Stream->RealSize);
 
@@ -479,7 +479,7 @@ KResult HDAController::SetupCORB(){
         CORBEntries = 2;
     }
 
-    CORB = (uint32_t*)GetPhysical((uintptr_t*)&Registers->CORBBaseAddress, CORBEntries * sizeof(uint32_t));
+    CORB = (uint32_t*)GetPhysical((void**)&Registers->CORBBaseAddress, CORBEntries * sizeof(uint32_t));
     Registers->CORBWritePointer &= ~HDA_CORB_WRITEP_MASK;
     // Reset CORB pointer : sofwate set bit to 1, hardware will clear it and set it when reset is finish
     Registers->CORBReadPointer |= HDA_CORB_READP_RESET;
@@ -534,7 +534,7 @@ KResult HDAController::SetupRIRB(){
         RIRBEntries = 2;
     }
 
-    RIRB = (uint64_t*)GetPhysical((uintptr_t*)&Registers->RIRBBaseAddress, RIRBEntries * sizeof(uint64_t));
+    RIRB = (uint64_t*)GetPhysical((void**)&Registers->RIRBBaseAddress, RIRBEntries * sizeof(uint64_t));
 
     // Start RIRB
     Registers->RIRBControl |= HDA_RIRB_AND_CORB_DMA | HDA_RIRB_GENERATE_RESPONSE_INTERRUPT;

@@ -61,7 +61,7 @@ namespace mlibc{
         if(File == NULL) return EBADF;
 
         atomicAcquire(&File->Lock, 0);
-        kot_srv_storage_callback_t* CallbackReadFile = kot_Srv_Storage_Readfile(File, (uintptr_t)buf, File->Position, count, true);
+        kot_srv_storage_callback_t* CallbackReadFile = kot_Srv_Storage_Readfile(File, (void*)buf, File->Position, count, true);
         if(CallbackReadFile->Status == KSUCCESS){
             File->Position += CallbackReadFile->Size;
         }
@@ -84,7 +84,7 @@ namespace mlibc{
         kot_file_t* File = kot_FDList[fd];
         atomicUnlock(&kot_LockFDList, 0);
         if(File == NULL) return EBADF;
-        if(kot_fwrite((uintptr_t)buf, count, 1, File) == KSUCCESS){
+        if(kot_fwrite((void*)buf, count, 1, File) == KSUCCESS){
             *bytes_written = count;
             return 0;
         }else{

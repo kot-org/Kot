@@ -266,11 +266,11 @@ void ctxDrawRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t Width, uint32_t H
 
 // ## frame buffer ##
 
-void swapTo(ctxg_t* ctx, uintptr_t to) {
+void swapTo(ctxg_t* ctx, void* to) {
     memcpy(to, ctx->FbBase, ctx->FbSize);
 }
 
-void swapFrom(ctxg_t* ctx, uintptr_t from) {
+void swapFrom(ctxg_t* ctx, void* from) {
     memcpy(ctx->FbBase, from, ctx->FbSize);
 }
 
@@ -290,6 +290,6 @@ void clearColor(ctxg_t* ctx, uint32_t color) {
     memset32(ctx->FbBase, color, ctx->FbSize);
 } 
 
-uintptr_t GetFramebuffer(ctxg_t* ctx) {
+void* GetFramebuffer(ctxg_t* ctx) {
     return ctx->FbBase;
 }

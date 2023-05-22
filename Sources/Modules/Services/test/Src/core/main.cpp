@@ -3,7 +3,7 @@
 void GetMemory(){
     kot_Printlog("[Test] Call another function");
     kot_key_mem_t MemoryShare = NULL;
-    uintptr_t address = GetFreeAlignedSpace(0x1000);
+    void* address = GetFreeAlignedSpace(0x1000);
     kot_key_mem_t key = NULL;
     process_t proc = Sys_GetProcess();
     Sys_CreateMemoryField(proc, 0x1000, &address, &key, MemoryFieldTypeShareSpaceRO);
@@ -20,9 +20,9 @@ extern "C" int main(int argc, char* argv[]){
     process_t proc = Sys_GetProcess();
 
     thread_t GetMemoryThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&GetMemory, PriviledgeApp, NULL, &GetMemoryThread);
+    Sys_CreateThread(proc, (void*)&GetMemory, PriviledgeApp, NULL, &GetMemoryThread);
 
-    uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_test_t));
+    void* address = GetFreeAlignedSpace(sizeof(uisd_test_t));
     kot_key_mem_t key = NULL;
     Sys_CreateMemoryField(proc, sizeof(uisd_test_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 

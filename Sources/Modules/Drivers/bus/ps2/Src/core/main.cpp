@@ -14,7 +14,7 @@ extern "C" int main(int argc, char* argv[]){
     self = Sys_GetProcess();
 
     for(uint8_t i = 0; i < PS2_PORT_NUMBER; i++){
-        Sys_CreateThread(self, (uintptr_t)&PS2InterruptHandler, PriviledgeDriver, NULL, &InterruptThreadHandler[i]);
+        Sys_CreateThread(self, (void*)&PS2InterruptHandler, PriviledgeDriver, NULL, &InterruptThreadHandler[i]);
     }
 
     KResult status = KSUCCESS;

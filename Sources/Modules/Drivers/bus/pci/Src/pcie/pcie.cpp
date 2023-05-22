@@ -1,6 +1,6 @@
 #include <pcie/pcie.h>
 
-void InitPCIe(PCIDeviceListInfo_t* PCIDeviceList, uintptr_t mcfgAddress){
+void InitPCIe(PCIDeviceListInfo_t* PCIDeviceList, void* mcfgAddress){
     MCFGHeader_t* MCFG = (MCFGHeader_t*)mcfgAddress;
 
     size64_t Entries = ((MCFG->Header.Length) - sizeof(MCFGHeader_t)) / sizeof(DeviceConfig_t);
@@ -8,16 +8,16 @@ void InitPCIe(PCIDeviceListInfo_t* PCIDeviceList, uintptr_t mcfgAddress){
     for(size64_t i = 0; i < Entries; i++){
         DeviceConfig_t* DeviceConfig = &MCFG->ConfigurationSpace[i];
         for (uint64_t bus = DeviceConfig->StartBus; bus < DeviceConfig->EndBus; bus++){
-            EnumerateBus(PCIDeviceList, (uintptr_t)DeviceConfig->BaseAddress, bus);
+            EnumerateBus(PCIDeviceList, (void*)DeviceConfig->BaseAddress, bus);
         }
     }
 }
 
 
-void EnumerateBus(PCIDeviceListInfo_t* PCIDeviceList, uintptr_t baseAddress, uint64_t bus){
+void EnumerateBus(PCIDeviceListInfo_t* PCIDeviceList, void* baseAddress, uint64_t bus){
     uint64_t offset = bus << 20;
 
-    uintptr_t busAddress = (uintptr_t)((uint64_t)baseAddress + offset);
+    void* busAddress = (void*)((uint64_t)baseAddress + offset);
     PCIDeviceHeader_t* PCIDeviceHeader = (PCIDeviceHeader_t*)MapPhysical(busAddress, PCIE_CONFIGURATION_SPACE_SIZE);
     if(PCIDeviceHeader->DeviceID == 0) return;
     if(PCIDeviceHeader->DeviceID == 0xFFFF) return;
@@ -27,10 +27,10 @@ void EnumerateBus(PCIDeviceListInfo_t* PCIDeviceList, uintptr_t baseAddress, uin
     }
 }
 
-void EnumerateDevice(PCIDeviceListInfo_t* PCIDeviceList, uintptr_t busAddress, uint64_t device){
+void EnumerateDevice(PCIDeviceListInfo_t* PCIDeviceList, void* busAddress, uint64_t device){
     uint64_t offset = device << 15;
 
-    uintptr_t deviceAddress = (uintptr_t)((uint64_t)busAddress + offset);
+    void* deviceAddress = (void*)((uint64_t)busAddress + offset);
     PCIDeviceHeader_t* PCIDeviceHeader = (PCIDeviceHeader_t*)MapPhysical(deviceAddress, PCIE_CONFIGURATION_SPACE_SIZE);
 
     if(PCIDeviceHeader->DeviceID == 0) return;
@@ -45,10 +45,10 @@ void EnumerateDevice(PCIDeviceListInfo_t* PCIDeviceList, uintptr_t busAddress, u
     }
 }
 
-void EnumerateFunction(PCIDeviceListInfo_t* PCIDeviceList, uintptr_t deviceAddress, uint64_t function){
+void EnumerateFunction(PCIDeviceListInfo_t* PCIDeviceList, void* deviceAddress, uint64_t function){
     uint64_t offset = function << 12;
 
-    uintptr_t functionAddress = (uintptr_t)((uint64_t)deviceAddress + offset);
+    void* functionAddress = (void*)((uint64_t)deviceAddress + offset);
     PCIDeviceHeader_t* PCIDeviceHeader = (PCIDeviceHeader_t*)MapPhysical(functionAddress, PCIE_CONFIGURATION_SPACE_SIZE);
 
     if(PCIDeviceHeader->DeviceID == 0) return;

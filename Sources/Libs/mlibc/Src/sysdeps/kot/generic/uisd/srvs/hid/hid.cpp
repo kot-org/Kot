@@ -39,7 +39,7 @@ KResult kot_BindKeyboardEvent(kot_thread_t Task, bool IgnoreMissedEvents){
     return KSUCCESS;
 }
 
-KResult kot_GetTableConverter(char* Path, uintptr_t* TableConverter, size64_t* TableConverterCharCount){
+KResult kot_GetTableConverter(char* Path, void** TableConverter, size64_t* TableConverterCharCount){
     kot_file_t* File = kot_fopen(Path, "rb");
     if(!File){
         return KFAIL;
@@ -47,7 +47,7 @@ KResult kot_GetTableConverter(char* Path, uintptr_t* TableConverter, size64_t* T
     kot_fseek(File, 0, SEEK_END);
     size64_t Size = kot_ftell(File);
     kot_fseek(File, 0, SEEK_SET);
-    *TableConverter = (uintptr_t)malloc(Size);
+    *TableConverter = (void*)malloc(Size);
     kot_fread(*TableConverter, Size, 1, File);
 
     *TableConverterCharCount = Size / sizeof(char);
@@ -56,7 +56,7 @@ KResult kot_GetTableConverter(char* Path, uintptr_t* TableConverter, size64_t* T
     return KSUCCESS;
 }
 
-KResult kot_GetCharFromScanCode(uint64_t ScanCode, uintptr_t TableConverter, size64_t TableConverterCharCount, char* Char, bool* IsPressed, uint64_t* PressedCache){
+KResult kot_GetCharFromScanCode(uint64_t ScanCode, void* TableConverter, size64_t TableConverterCharCount, char* Char, bool* IsPressed, uint64_t* PressedCache){
     if(ScanCode > 0x80){
         *IsPressed = false;
         ScanCode -= 0x80;

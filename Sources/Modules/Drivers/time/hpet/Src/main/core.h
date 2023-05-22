@@ -91,7 +91,7 @@ enum RegisterTimerOffset{
 
 struct HPET_t{
     HPETHeader_t* Header;
-    uintptr_t RegistersAddress;
+    void* RegistersAddress;
     uint64_t MainCounterAddress;
 
     uint64_t TickPeriod; // TickPeriod in femosecond

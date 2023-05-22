@@ -148,7 +148,7 @@ typedef struct {
     KResult Status;
 } uisd_callbackInfo_t;
 
-uisd_callbackInfo_t* GetControllerUISD(enum kot_uisd_controller_type_enum Controller, uintptr_t* Location, bool AwaitCallback);
+uisd_callbackInfo_t* GetControllerUISD(enum kot_uisd_controller_type_enum Controller, void** Location, bool AwaitCallback);
 uisd_callbackInfo_t* CreateControllerUISD(enum kot_uisd_controller_type_enum Controller, kot_key_mem_t MemoryField, bool AwaitCallback);
 
 thread_t MakeShareableThread(thread_t Thread, enum Priviledge priviledgeRequired);
@@ -157,8 +157,8 @@ thread_t MakeShareableThreadToProcess(thread_t Thread, process_t Process);
 thread_t MakeShareableSpreadThreadToProcess(thread_t Thread, process_t Process);
 process_t ShareProcessKey(process_t Process);
 
-uintptr_t GetControllerLocationUISD(enum kot_uisd_controller_type_enum Controller);
-uintptr_t FindControllerUISD(enum kot_uisd_controller_type_enum Controller);
+void* GetControllerLocationUISD(enum kot_uisd_controller_type_enum Controller);
+void* FindControllerUISD(enum kot_uisd_controller_type_enum Controller);
 
 KResult ResetUISDThreads();
 

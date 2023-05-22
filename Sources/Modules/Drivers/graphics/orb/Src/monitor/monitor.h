@@ -35,7 +35,7 @@ class monitorc {
 
         orbc* Orb;
         
-        monitorc(orbc* Parent, uintptr_t FbBase, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition);
+        monitorc(orbc* Parent, void* FbBase, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition);
         uint64_t GetWidth();
         uint64_t GetHeight();
 

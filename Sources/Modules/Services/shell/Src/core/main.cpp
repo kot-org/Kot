@@ -1,6 +1,6 @@
 #include <core/main.h>
 
-uintptr_t TableConverter;
+void* TableConverter;
 size64_t TableConverterCharCount;
 
 extern "C" int main(){

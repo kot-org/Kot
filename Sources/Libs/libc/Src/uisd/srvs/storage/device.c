@@ -18,11 +18,11 @@ KResult Srv_StorageInitializeDeviceAccess(struct srv_storage_space_info_t* Stora
         *StorageDevice = Device;
 
         thread_t CallbackRequestHandlerThread = NULL;
-        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&Srv_CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
+        Sys_CreateThread(Sys_GetProcess(), (void*)&Srv_CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
         Device->CallbackRequestHandlerThread = MakeShareableThreadToProcess(CallbackRequestHandlerThread, Device->SpaceInfo.DriverProc);
 
         thread_t CallbackCreateSpaceHandlerThread = NULL;
-        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&Srv_CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
+        Sys_CreateThread(Sys_GetProcess(), (void*)&Srv_CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
         Device->CallbackCreateSpaceHandlerThread = MakeShareableThreadToProcess(CallbackCreateSpaceHandlerThread, Device->SpaceInfo.DriverProc);
 
         return KSUCCESS;
@@ -90,7 +90,7 @@ uint64_t Srv_GetBufferStartingAddress(struct srv_storage_device_t* StorageDevice
     return (uint64_t)StorageDevice->BufferRWBase + (Start % StorageDevice->SpaceInfo.BufferRWAlignement);
 }
 
-KResult Srv_ReadDevice(struct srv_storage_device_t* StorageDevice, uintptr_t Buffer, uint64_t Start, size64_t Size){
+KResult Srv_ReadDevice(struct srv_storage_device_t* StorageDevice, void* Buffer, uint64_t Start, size64_t Size){
     uint64_t RequestNum = DivideRoundUp(Size, StorageDevice->SpaceInfo.BufferRWUsableSize);
     uint64_t StartInIteration = Start;
     uint64_t SizeToRead = Size;
@@ -106,7 +106,7 @@ KResult Srv_ReadDevice(struct srv_storage_device_t* StorageDevice, uintptr_t Buf
 
         atomicAcquire(&StorageDevice->Lock, 0);
         Srv_SendRequest(StorageDevice, StartInIteration, SizeToReadInIteration, false);
-        memcpy((uintptr_t)AddressDst, (uintptr_t)Srv_GetBufferStartingAddress(StorageDevice, StartInIteration), SizeToReadInIteration);
+        memcpy((void*)AddressDst, (void*)Srv_GetBufferStartingAddress(StorageDevice, StartInIteration), SizeToReadInIteration);
         atomicUnlock(&StorageDevice->Lock, 0);
 
         StartInIteration += SizeToReadInIteration;
@@ -116,7 +116,7 @@ KResult Srv_ReadDevice(struct srv_storage_device_t* StorageDevice, uintptr_t Buf
     return KSUCCESS;
 }
 
-KResult Srv_WriteDevice(struct srv_storage_device_t* StorageDevice, uintptr_t Buffer, uint64_t Start, size64_t Size){
+KResult Srv_WriteDevice(struct srv_storage_device_t* StorageDevice, void* Buffer, uint64_t Start, size64_t Size){
     uint64_t RequestNum = DivideRoundUp(Size, StorageDevice->SpaceInfo.BufferRWUsableSize);
     uint64_t StartInIteration = Start;
     uint64_t SizeToWrite = Size;
@@ -131,7 +131,7 @@ KResult Srv_WriteDevice(struct srv_storage_device_t* StorageDevice, uintptr_t Bu
         }
 
         atomicAcquire(&StorageDevice->Lock, 0);
-        memcpy((uintptr_t)Srv_GetBufferStartingAddress(StorageDevice, StartInIteration), (uintptr_t)AddressDst, SizeToWriteInIteration);
+        memcpy((void*)Srv_GetBufferStartingAddress(StorageDevice, StartInIteration), (void*)AddressDst, SizeToWriteInIteration);
         Srv_SendRequest(StorageDevice, StartInIteration, SizeToWriteInIteration, true);
         atomicUnlock(&StorageDevice->Lock, 0);
 

@@ -1,5 +1,5 @@
 #include "../picture.h"
-#include <kot/stdio.h>
+#include <string.h>
 
 namespace Ui {
 
@@ -14,8 +14,8 @@ namespace Ui {
         Image->y = 0;
         uint32_t Pitch = Image->Width * Btpp;
 
-        uintptr_t ImageDataOffset = (uintptr_t) (Buffer->ColorMapOrigin + Buffer->ColorMapLength + 18),
-            ImagePixelData = (uintptr_t) ((uint64_t)Buffer + (uint64_t)ImageDataOffset);
+        void* ImageDataOffset = (void*) (Buffer->ColorMapOrigin + Buffer->ColorMapLength + 18);
+        void* ImagePixelData = (void*) ((uint64_t)Buffer + (uint64_t)ImageDataOffset);
 
         Image->Pixels = (uint32_t*) malloc(Image->Height * Image->Width * sizeof(uint32_t));
 
@@ -89,9 +89,9 @@ namespace Ui {
 
         if(KeepRatio){
             if(NewWidth == 0){
-                NewWidth = DivideRoundUp(NewHeight * Image->Width, Image->Height);
+                NewWidth = DIV_ROUND_UP(NewHeight * Image->Width, Image->Height);
             }else if(NewHeight == 0){
-                NewHeight = DivideRoundUp(NewWidth * Image->Height, Image->Width);
+                NewHeight = DIV_ROUND_UP(NewWidth * Image->Height, Image->Width);
             }
         }
         
@@ -125,7 +125,7 @@ namespace Ui {
         
 
         for(uint16_t h = 0; h < Height; h++) {
-            memcpy((uintptr_t)&ImageCrop->Pixels[h*Width], (uintptr_t)&Image->Pixels[x + (h + y)*Image->Width], Width * sizeof(uint32_t));
+            memcpy((void*)&ImageCrop->Pixels[h*Width], (void*)&Image->Pixels[x + (h + y)*Image->Width], Width * sizeof(uint32_t));
         }
 
         return ImageCrop;

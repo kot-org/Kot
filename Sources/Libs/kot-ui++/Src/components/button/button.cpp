@@ -1,9 +1,10 @@
 #include <kot-ui++/component.h>
-#include <kot/stdio.h>
+#include <kot/memory.h>
+#include <string.h>
 
 namespace Ui {
     void ButtonDraw(Button_t* Button) {
-        memset32(Button->Cpnt->GetFramebuffer()->Buffer, Button->CurrentColor, Button->Cpnt->GetFramebuffer()->Size);
+        kot_memset32(Button->Cpnt->GetFramebuffer()->Buffer, Button->CurrentColor, Button->Cpnt->GetFramebuffer()->Size);
         Button->Cpnt->IsRedraw = true;
     }
 
@@ -64,7 +65,7 @@ namespace Ui {
         memcpy(&Button->Style, &Style, sizeof(ButtonStyle_t));
         Button->Event = Event;
         Button->CurrentColor = Button->Style.BackgroundColor;
-        Button->Cpnt = new Component(Style.G, ButtonUpdate, ButtonMouseEvent, (uintptr_t)Button, ParentCpnt, true);
+        Button->Cpnt = new Component(Style.G, ButtonUpdate, ButtonMouseEvent, (void*)Button, ParentCpnt, true);
 
         return Button;
     }

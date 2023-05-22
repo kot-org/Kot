@@ -42,7 +42,7 @@ enum kot_Window_Event{
 
 struct kot_srv_graphics_callback_t{
     kot_thread_t Self;
-    uint64_t Data;
+    uintptr_t Data;
     size64_t Size;
     bool IsAwait;
     KResult Status;
@@ -50,7 +50,7 @@ struct kot_srv_graphics_callback_t{
 };
 
 typedef struct {
-    uintptr_t Buffer;
+    void* Buffer;
     size64_t Size;
     uint64_t Pitch;
     uint64_t Width;

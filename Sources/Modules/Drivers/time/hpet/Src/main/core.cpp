@@ -19,7 +19,7 @@ extern "C" int main(int argc, char* argv[]){
 
     HPET_t* Hpet = (HPET_t*)malloc(sizeof(HPET_t));
     Hpet->Header = HPETHeader;
-    Hpet->RegistersAddress = (uintptr_t)MapPhysical((uintptr_t)HPETHeader->Address.Address, REGISTER_SIZE);
+    Hpet->RegistersAddress = (void*)MapPhysical((void*)HPETHeader->Address.Address, REGISTER_SIZE);
     Hpet->MainCounterAddress = (uint64_t)Hpet->RegistersAddress + RegisterMainCounterValues;
     Hpet->TickPeriod = Hpet->ReadRegister(RegisterGeneralCapabilitiesAndIDRegister) >> GeneralCapabilitiesAndIDRegisterCounterPeriod;
 
@@ -30,11 +30,11 @@ extern "C" int main(int argc, char* argv[]){
 }
 
 uint64_t HPET_t::ReadRegister(uint64_t offset){
-    return *((volatile uint64_t*)((uintptr_t)((uint64_t)RegistersAddress + offset)));
+    return *((volatile uint64_t*)((void*)((uint64_t)RegistersAddress + offset)));
 }
 
 void HPET_t::WriteRegister(uint64_t offset, uint64_t value){
-    *((volatile uint64_t*)((uintptr_t)((uint64_t)RegistersAddress + offset))) = value;
+    *((volatile uint64_t*)((void*)((uint64_t)RegistersAddress + offset))) = value;
 }
 
 

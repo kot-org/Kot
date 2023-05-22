@@ -7,10 +7,12 @@ BINDIR = $(_HOME)Bin/Modules
 OBJDIR := ../Lib
 SRCDIR := ../Src
 
-CC = clang-14
+ASMC = nasm
+CC = kot-x86_64-clang
 AR = llvm-ar-14
 
-CFLAGS = -I$(INCDIR) --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -O3 $(_HOME)Sysroot/lib/kot/libc.a
+CFLAGS = -O3 -I../Src -fno-exceptions
+
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
    

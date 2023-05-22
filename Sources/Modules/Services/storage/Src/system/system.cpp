@@ -1,6 +1,6 @@
 #include <system/system.h>
 
-KResult SetupStack(uintptr_t* Data, size64_t* Size, int argc, char** argv, char** envp){
+KResult SetupStack(void** Data, size64_t* Size, int argc, char** argv, char** envp){
     size64_t args = 0;
     for(int i = 0; i < argc; i++){
         args += strlen(argv[i]) + 1; // Add NULL char at the end
@@ -13,36 +13,36 @@ KResult SetupStack(uintptr_t* Data, size64_t* Size, int argc, char** argv, char*
         envs += strlen(*ev) + 1; // Add NULL char at the end
 	}
 
-    *Size = sizeof(uintptr_t) + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*) + args + envs;
-    uintptr_t Buffer = malloc(*Size);
+    *Size = sizeof(void*) + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*) + args + envs;
+    void* Buffer = malloc(*Size);
     
-    uintptr_t StackDst = Buffer;
+    void* StackDst = Buffer;
 
-    *(uintptr_t*)StackDst = (uintptr_t)argc;
-    StackDst = (uintptr_t)((uint64_t)StackDst + sizeof(uintptr_t));
+    *(void**)StackDst = (void*)argc;
+    StackDst = (void*)((uint64_t)StackDst + sizeof(void*));
 
-    uintptr_t OffsetDst = StackDst;
-    StackDst = (uintptr_t)((uint64_t)StackDst + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*));
+    void* OffsetDst = StackDst;
+    StackDst = (void*)((uint64_t)StackDst + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*));
 
     for(int i = 0; i < argc; i++){
-        *((uintptr_t*)OffsetDst) = (uintptr_t)((uint64_t)StackDst - (uint64_t)Buffer);
-        OffsetDst = (uintptr_t)((uint64_t)OffsetDst + sizeof(uintptr_t));
+        *((void**)OffsetDst) = (void*)((uint64_t)StackDst - (uint64_t)Buffer);
+        OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
         strcpy((char*)StackDst, argv[i]);
-        StackDst = (uintptr_t)((uint64_t)StackDst + strlen(argv[i]) + 1); // Add NULL char at the end
+        StackDst = (void*)((uint64_t)StackDst + strlen(argv[i]) + 1); // Add NULL char at the end
     }
 
     // Null argument
-    *(uintptr_t*)OffsetDst = NULL;
-    OffsetDst = (uintptr_t)((uint64_t)OffsetDst + sizeof(uintptr_t));
+    *(void**)OffsetDst = NULL;
+    OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
 
     for(int i = 0; i < envc; i++){
-        *(uintptr_t*)OffsetDst = (uintptr_t)((uint64_t)StackDst - (uint64_t)Buffer);
-        OffsetDst = (uintptr_t)((uint64_t)OffsetDst + sizeof(uintptr_t));
+        *(void**)OffsetDst = (void*)((uint64_t)StackDst - (uint64_t)Buffer);
+        OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
         strcpy((char*)StackDst, envp[i]);
-        StackDst = (uintptr_t)((uint64_t)StackDst + strlen(envp[i]) + 1); // Add NULL char at the end
+        StackDst = (void*)((uint64_t)StackDst + strlen(envp[i]) + 1); // Add NULL char at the end
     }
     // Null argument
-    *(uintptr_t*)OffsetDst = NULL;
+    *(void**)OffsetDst = NULL;
 
     *Data = Buffer;
 
@@ -70,7 +70,7 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
         SystemDataPathBuilder->append(":Kot/System/Starter.json");
         char* SystemDataPath = SystemDataPathBuilder->toString();
         delete SystemDataPathBuilder;
-        file_t* SystemDataFile = fopen(SystemDataPath, "r");
+        FILE* SystemDataFile = fopen(SystemDataPath, "r");
         if(SystemDataFile){
             fseek(SystemDataFile, 0, SEEK_END);
             size_t SystemDataFileSize = ftell(SystemDataFile);
@@ -112,7 +112,7 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
 
                         srv_system_callback_t* Callback = Srv_System_LoadExecutable(Priviledge->Get(), FilePath, true);
 
-                        uintptr_t MainStackData;
+                        void* MainStackData;
                         size64_t SizeMainStackData;
                         char* Argv[] = {FilePath, NULL};
                         char* Env[] = {NULL};

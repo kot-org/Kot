@@ -46,7 +46,7 @@ struct srv_time_callback_t* Srv_Time_SetTimePointerKey(time_t** Time, bool IsAwa
     *Time = GetFreeAlignedSpace(sizeof(time_t));
 
     kot_key_mem_t TimePointerKey;
-    Sys_CreateMemoryField(Sys_GetProcess(), sizeof(time_t), (uintptr_t*)Time, &TimePointerKey, MemoryFieldTypeShareSpaceRO);
+    Sys_CreateMemoryField(Sys_GetProcess(), sizeof(time_t), (void**)Time, &TimePointerKey, MemoryFieldTypeShareSpaceRO);
 
     kot_key_mem_t TimePointerKeyShare;
     Sys_Keyhole_CloneModify(TimePointerKey, &TimePointerKeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);

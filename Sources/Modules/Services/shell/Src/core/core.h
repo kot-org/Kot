@@ -45,7 +45,7 @@ struct ssfn_buf_t{
 
 struct shell_t* NewShell(kot_process_t Target);
 
-void ShellPrint(shell_t* Shell, uintptr_t Buffer, size64_t Size);
+void ShellPrint(shell_t* Shell, void* Buffer, size64_t Size);
 
 KResult ShellSendRequest(shell_t* Shell, read_request_shell_t* Request);
 KResult ShellCreateRequest(shell_t* Shell, kot_thread_t Callback, uint64_t CallbackArg, size64_t SizeRequest);

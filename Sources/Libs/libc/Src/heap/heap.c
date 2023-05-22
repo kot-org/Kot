@@ -20,13 +20,13 @@ void InitializeHeapUser(){
     heap.IsHeapEnabled = true;
 }
 
-uintptr_t calloc(size64_t size){
-    uintptr_t address = malloc(size);
+void* calloc(size64_t size){
+    void* address = malloc(size);
     memset(address, 0, size);
     return address;
 }
 
-uintptr_t malloc(size64_t size){
+void* malloc(size64_t size){
     if(!heap.IsHeapEnabled){
         InitializeHeapUser();
     }
@@ -51,13 +51,13 @@ uintptr_t malloc(size64_t size){
                 heap.UsedSize += currentSeg->length + sizeof(struct SegmentHeader);
                 heap.FreeSize -= currentSeg->length + sizeof(struct SegmentHeader);
                 atomicUnlock(&mutexHeap, 0);
-                return (uintptr_t)((uint64_t)currentSeg + sizeof(struct SegmentHeader));
+                return (void*)((uint64_t)currentSeg + sizeof(struct SegmentHeader));
             }else if(currentSeg->length >= size){
                 currentSeg->IsFree = false;
                 heap.UsedSize += currentSeg->length + sizeof(struct SegmentHeader);
                 heap.FreeSize -= currentSeg->length + sizeof(struct SegmentHeader);
                 atomicUnlock(&mutexHeap, 0);
-                return (uintptr_t)((uint64_t)currentSeg + sizeof(struct SegmentHeader));
+                return (void*)((uint64_t)currentSeg + sizeof(struct SegmentHeader));
             }
         }
         if (currentSeg->next == NULL) break;
@@ -113,10 +113,10 @@ void MergeNextToThisUser(struct SegmentHeader* header){
     memset(headerNext, 0, sizeof(struct SegmentHeader));
 }
 
-void free(uintptr_t address){
+void free(void* address){
     if(address != NULL){
         atomicAcquire(&mutexHeap, 0);
-        struct SegmentHeader* header = (struct SegmentHeader*)(uintptr_t)((uint64_t)address - sizeof(struct SegmentHeader));
+        struct SegmentHeader* header = (struct SegmentHeader*)(void*)((uint64_t)address - sizeof(struct SegmentHeader));
         header->IsFree = true;
         heap.FreeSize += header->length + sizeof(struct SegmentHeader);
         heap.UsedSize -= header->length + sizeof(struct SegmentHeader);
@@ -151,8 +151,8 @@ void free(uintptr_t address){
     }
 }
 
-uintptr_t realloc(uintptr_t buffer, size64_t size){
-    uintptr_t newBuffer = malloc(size);
+void* realloc(void* buffer, size64_t size){
+    void* newBuffer = malloc(size);
     if(newBuffer == NULL){
         return NULL;
     }
@@ -169,7 +169,7 @@ uintptr_t realloc(uintptr_t buffer, size64_t size){
 
 void SplitSegmentUser(struct SegmentHeader* segment, size64_t size){
     if(segment->length > size + sizeof(struct SegmentHeader)){
-        struct SegmentHeader* newSegment = (struct SegmentHeader*)(uintptr_t)((uint64_t)segment + sizeof(struct SegmentHeader) + (uint64_t)size);
+        struct SegmentHeader* newSegment = (struct SegmentHeader*)(void*)((uint64_t)segment + sizeof(struct SegmentHeader) + (uint64_t)size);
         newSegment->IsFree = true;   
         newSegment->signature = 0xff;       
         newSegment->length = segment->length - (size + sizeof(struct SegmentHeader));
@@ -214,6 +214,6 @@ void ExpandHeapUser(size64_t length){
     heap.FreeSize += length;     
 }
 
-struct SegmentHeader* GetSegmentHeaderUser(uintptr_t address){
-    return (struct SegmentHeader*)(uintptr_t)((uint64_t)address - sizeof(struct SegmentHeader));
+struct SegmentHeader* GetSegmentHeaderUser(void* address){
+    return (struct SegmentHeader*)(void*)((uint64_t)address - sizeof(struct SegmentHeader));
 }

@@ -6,7 +6,7 @@
 
 namespace Ui {
     void TitlebarDraw(Titlebar_t* Titlebar) {
-        memset32(Titlebar->Cpnt->GetFramebuffer()->Buffer, Titlebar->CurrentColor, Titlebar->Cpnt->GetFramebuffer()->Size);
+        kot_memset32(Titlebar->Cpnt->GetFramebuffer()->Buffer, Titlebar->CurrentColor, Titlebar->Cpnt->GetFramebuffer()->Size);
         Titlebar->Cpnt->IsRedraw = true;
     }
 
@@ -74,7 +74,7 @@ namespace Ui {
         }
     }
 
-    Titlebar_t* Titlebar(uintptr_t Window, char* Title, char* Icon, TitlebarStyle_t Style, Component* ParentCpnt) {
+    Titlebar_t* Titlebar(void* Window, char* Title, char* Icon, TitlebarStyle_t Style, Component* ParentCpnt) {
         Titlebar_t* Titlebar = (Titlebar_t*)malloc(sizeof(Titlebar_t));
 
         memcpy(&Titlebar->Style, &Style, sizeof(TitlebarStyle_t));
@@ -86,7 +86,7 @@ namespace Ui {
                 .Width = -100, 
                 .Height = Titlebar_Height, 
             }
-        , TitlebarUpdate, TitlebarMouseEvent, (uintptr_t)Titlebar, ParentCpnt, true);
+        , TitlebarUpdate, TitlebarMouseEvent, (void*)Titlebar, ParentCpnt, true);
 
         Titlebar->Window = Window;
 

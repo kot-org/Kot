@@ -16,14 +16,14 @@ KResult SrvInitalize(){
     kot_srv_storage_fs_server_functions_t FSServerFunctions;
 
     kot_thread_t ThreadOpenfile;
-    kot_Sys_CreateThread(kot_Sys_GetProcess(), (uintptr_t)&OpenShell, PriviledgeApp, NULL, &ThreadOpenfile);
+    kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&OpenShell, PriviledgeApp, NULL, &ThreadOpenfile);
     FSServerFunctions.Openfile = kot_MakeShareableSpreadThreadToProcess(ThreadOpenfile, ((kot_uisd_storage_t*)kot_FindControllerUISD(ControllerTypeEnum_Storage))->ControllerHeader.Process);
 
     kot_srv_storage_callback_t* StorageCallback = kot_Srv_Storage_NewDev("tty", &FSServerFunctions, true);
 
 
     /* Load uisd controller */
-    uintptr_t address = kot_GetFreeAlignedSpace(sizeof(kot_uisd_shell_t));
+    void* address = kot_GetFreeAlignedSpace(sizeof(kot_uisd_shell_t));
     kot_key_mem_t key = NULL;
     kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), sizeof(kot_uisd_shell_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
@@ -47,7 +47,7 @@ KResult OpenShell(kot_thread_t Callback, uint64_t CallbackArg, char* Path, kot_p
     kot_srv_storage_fs_server_open_file_data_t SrvOpenFileData;
     kot_thread_t DispatcherThread;
 
-    kot_Sys_CreateThread(kot_Sys_GetProcess(), (uintptr_t)&ShellDispatch, PriviledgeDriver, (uint64_t)Shell, &DispatcherThread);
+    kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&ShellDispatch, PriviledgeDriver, (uint64_t)Shell, &DispatcherThread);
 
     SrvOpenFileData.Dispatcher = kot_MakeShareableThreadToProcess(DispatcherThread, Target);
 
@@ -63,7 +63,7 @@ KResult OpenShell(kot_thread_t Callback, uint64_t CallbackArg, char* Path, kot_p
     };
     
     kot_ShareDataWithArguments_t ShareDataWithArguments{
-        .Data = (uintptr_t)&SrvOpenFileData,
+        .Data = (void*)&SrvOpenFileData,
         .Size = sizeof(kot_srv_storage_fs_server_open_file_data_t),
         .ParameterPosition = 0x2,
     };
@@ -144,8 +144,8 @@ KResult Writeshell(kot_thread_t Callback, uint64_t CallbackArg, shell_t* Shell, 
     if(kot_Sys_GetInfoMemoryField(GP0, &TypePointer, &Size) == KSUCCESS){
         if(TypePointer == MemoryFieldTypeSendSpaceRO){            
             void* Buffer = malloc(Size);
-            assert(kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), GP0, (uintptr_t*)&Buffer) == KSUCCESS);
-            ShellPrint(Shell, (uintptr_t)Buffer, Size);
+            assert(kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), GP0, (void**)&Buffer) == KSUCCESS);
+            ShellPrint(Shell, (void*)Buffer, Size);
 
             Status = KSUCCESS;
         }

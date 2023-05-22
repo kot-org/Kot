@@ -27,7 +27,7 @@ struct kot_SpecificData_t{
     thread_t UISDHandler;
     process_t UISDHandlerProcess;
     /* FreeMemorySpace */
-    uintptr_t FreeMemorySpace;
+    void* FreeMemorySpace;
     /* VFS */
     thread_t VFSHandler;
 }__attribute__((aligned(0x1000)));
@@ -62,7 +62,7 @@ struct SelfData{
 
 struct ShareDataWithArguments_t{
     size64_t Size;
-    uintptr_t Data;
+    void* Data;
     uint8_t ParameterPosition;
 }__attribute__((packed));
 
@@ -110,9 +110,9 @@ enum AllocationType{
 uint64_t DoSyscall(uint64_t syscall, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);
 
 
-KResult Sys_CreateMemoryField(process_t self, size64_t size, uintptr_t* virtualAddressPointer, kot_key_mem_t* keyPointer, enum MemoryFieldType type);
-KResult Sys_AcceptMemoryField(process_t self, kot_key_mem_t key, uintptr_t* virtualAddressPointer);
-KResult Sys_CloseMemoryField(process_t self, kot_key_mem_t key, uintptr_t address);
+KResult Sys_CreateMemoryField(process_t self, size64_t size, void** virtualAddressPointer, kot_key_mem_t* keyPointer, enum MemoryFieldType type);
+KResult Sys_AcceptMemoryField(process_t self, kot_key_mem_t key, void** virtualAddressPointer);
+KResult Sys_CloseMemoryField(process_t self, kot_key_mem_t key, void* address);
 KResult Sys_GetInfoMemoryField(kot_key_mem_t key, uint64_t* typePointer, size64_t* sizePointer);
 KResult Sys_CreateProc(process_t* key, enum Priviledge privilege, uint64_t data);
 KResult Sys_Fork(process_t* child);
@@ -121,15 +121,15 @@ KResult Sys_Close(uint64_t errorCode);
 KResult Sys_Exit(uint64_t errorCode);
 KResult Sys_Pause(bool force);
 KResult Sys_Unpause(thread_t self);
-KResult Sys_Map(process_t self, uint64_t* addressVirtual, enum AllocationType type, uintptr_t* addressPhysical, size64_t* size, bool findFree);
-KResult Sys_Unmap(process_t self, uintptr_t addressVirtual, size64_t size);
-uintptr_t Sys_GetPhysical(uintptr_t addressVirtual);
+KResult Sys_Map(process_t self, uint64_t* addressVirtual, enum AllocationType type, void** addressPhysical, size64_t* size, bool findFree);
+KResult Sys_Unmap(process_t self, void* addressVirtual, size64_t size);
+void* Sys_GetPhysical(void* addressVirtual);
 KResult Sys_Event_Create(kot_event_t* self);
 KResult Sys_Event_Bind(kot_event_t self, thread_t task, bool IgnoreMissedEvents);
 KResult Sys_Event_Unbind(kot_event_t self, thread_t task);
 KResult Sys_Event_Trigger(kot_event_t self, struct arguments_t* parameters);
 KResult Sys_Event_Close();
-KResult Sys_CreateThread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t externalData, thread_t* result); // TODO make external data field
+KResult Sys_CreateThread(process_t self, void* entryPoint, enum Priviledge privilege, uint64_t externalData, thread_t* result); // TODO make external data field
 KResult Sys_Duplicatethread(process_t parent, thread_t source, thread_t* self);
 KResult Sys_ExecThread(thread_t self, struct arguments_t* parameters, enum ExecutionType type, struct ShareDataWithArguments_t* data);
 KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, process_t target, uint64_t flags, enum Priviledge privilidge);

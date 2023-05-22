@@ -25,7 +25,7 @@ struct kot_SpecificData_t{
     kot_thread_t UISDHandler;
     kot_process_t UISDHandlerProcess;
     /* FreeMemorySpace */
-    uintptr_t FreeMemorySpace;
+    void* FreeMemorySpace;
     /* VFS */
     kot_thread_t VFSHandler;
 }__attribute__((aligned(0x1000)));
@@ -58,7 +58,7 @@ struct kot_SelfData{
 
 struct kot_ShareDataWithArguments_t{
     size64_t Size;
-    uintptr_t Data;
+    void* Data;
     uint8_t ParameterPosition;
 }__attribute__((packed));
 
@@ -106,9 +106,9 @@ enum kot_AllocationType{
 
 
 
-KResult kot_Sys_CreateMemoryField(kot_process_t self, size64_t size, uintptr_t* virtualAddressPointer, kot_key_mem_t* keyPointer, enum kot_MemoryFieldType type);
-KResult kot_Sys_AcceptMemoryField(kot_process_t self, kot_key_mem_t key, uintptr_t* virtualAddressPointer);
-KResult kot_Sys_CloseMemoryField(kot_process_t self, kot_key_mem_t key, uintptr_t address);
+KResult kot_Sys_CreateMemoryField(kot_process_t self, size64_t size, void** virtualAddressPointer, kot_key_mem_t* keyPointer, enum kot_MemoryFieldType type);
+KResult kot_Sys_AcceptMemoryField(kot_process_t self, kot_key_mem_t key, void** virtualAddressPointer);
+KResult kot_Sys_CloseMemoryField(kot_process_t self, kot_key_mem_t key, void* address);
 KResult kot_Sys_GetInfoMemoryField(kot_key_mem_t key, uint64_t* typePointer, size64_t* sizePointer);
 KResult kot_Sys_CreateProc(kot_process_t* key, enum kot_Priviledge privilege, uint64_t data);
 KResult kot_Sys_Fork(kot_process_t* child);
@@ -117,22 +117,22 @@ KResult kot_Sys_Close(uint64_t errorCode);
 KResult kot_Sys_Exit(uint64_t errorCode);
 KResult kot_Sys_Pause(bool force);
 KResult kot_Sys_Unpause(kot_thread_t self);
-KResult kot_Sys_Map(kot_process_t self, uint64_t* addressVirtual, enum kot_AllocationType type, uintptr_t* addressPhysical, size64_t* size, bool findFree);
-KResult kot_Sys_Unmap(kot_process_t self, uintptr_t addressVirtual, size64_t size);
-uintptr_t kot_Sys_GetPhysical(uintptr_t addressVirtual);
+KResult kot_Sys_Map(kot_process_t self, void** addressVirtual, enum kot_AllocationType type, void** addressPhysical, size64_t* size, bool findFree);
+KResult kot_Sys_Unmap(kot_process_t self, void* addressVirtual, size64_t size);
+void* kot_Sys_GetPhysical(void* addressVirtual);
 KResult kot_Sys_Event_Create(kot_event_t* self);
 KResult kot_Sys_Event_Bind(kot_event_t self, kot_thread_t task, bool IgnoreMissedEvents);
 KResult kot_Sys_Event_Unbind(kot_event_t self, kot_thread_t task);
 KResult kot_Sys_kot_event_trigger(kot_event_t self, struct kot_arguments_t* parameters);
 KResult kot_Sys_Event_Close();
-KResult kot_Sys_CreateThread(kot_process_t self, uintptr_t entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result); // TODO make external data field
-KResult kot_Sys_CreateThreadWithoutAutoInit(kot_process_t self, uintptr_t entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result); // TODO make external data field
+KResult kot_Sys_CreateThread(kot_process_t self, void* entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result); // TODO make external data field
+KResult kot_Sys_CreateThreadWithoutAutoInit(kot_process_t self, void* entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result); // TODO make external data field
 KResult kot_Sys_Duplicatethread(kot_process_t parent, kot_thread_t source, kot_thread_t* self);
 KResult kot_Sys_ExecThread(kot_thread_t self, struct kot_arguments_t* parameters, enum kot_ExecutionType type, struct kot_ShareDataWithArguments_t* data);
 KResult kot_Sys_Keyhole_CloneModify(kot_key_t source, kot_key_t* destination, kot_process_t target, uint64_t flags, enum kot_Priviledge privilidge);
 KResult kot_Sys_Keyhole_Verify(kot_key_t self, enum kot_DataType type, kot_process_t* target, uint64_t* flags, uint64_t* priviledge);
 KResult kot_Sys_Thread_Info_Get(kot_thread_t thread, uint64_t arg, uint64_t* value);
-KResult kot_Sys_SetTCB(kot_thread_t thread, uintptr_t pointer);
+KResult kot_Sys_SetTCB(kot_thread_t thread, void* pointer);
 KResult kot_Sys_Logs(char* message, size64_t size);
 
 void kot_Sys_Schedule();

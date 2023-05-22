@@ -371,8 +371,8 @@ struct srv_storage_callback_t* Srv_Storage_Rename(char* OldPath, char* NewPath, 
     RenameData->OldPathPosition = sizeof(struct srv_storage_fs_server_rename_t);
     RenameData->NewPathPosition = sizeof(struct srv_storage_fs_server_rename_t) + PathOldSize;
 
-    memcpy((uintptr_t)((uint64_t)RenameData + RenameData->OldPathPosition), OldPath, PathOldSize);
-    memcpy((uintptr_t)((uint64_t)RenameData + RenameData->NewPathPosition), NewPath, PathNewSize);
+    memcpy((void*)((uint64_t)RenameData + RenameData->OldPathPosition), OldPath, PathOldSize);
+    memcpy((void*)((uint64_t)RenameData + RenameData->NewPathPosition), NewPath, PathNewSize);
 
     struct ShareDataWithArguments_t data;
     data.Data = RenameData;
@@ -597,7 +597,7 @@ KResult Srv_Storage_Readfile_Callback(KResult Status, struct srv_storage_callbac
     return Status;
 }
 
-struct srv_storage_callback_t* Srv_Storage_Readfile(file_t* File, uintptr_t Buffer, uint64_t Start, size64_t Size, bool IsAwait){
+struct srv_storage_callback_t* Srv_Storage_Readfile(file_t* File, void* Buffer, uint64_t Start, size64_t Size, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
     thread_t self = Sys_GetThread();
@@ -627,11 +627,11 @@ struct srv_storage_callback_t* Srv_Storage_Readfile(file_t* File, uintptr_t Buff
 /* Writefile */
 
 KResult Srv_Storage_Writefile_Callback(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
-    Sys_CloseMemoryField(Sys_GetProcess(), *(kot_key_mem_t*)Callback->Data, *(uintptr_t*)(Callback->Data + 8));
+    Sys_CloseMemoryField(Sys_GetProcess(), *(kot_key_mem_t*)Callback->Data, *(void**)(Callback->Data + 8));
     return Status;
 }
 
-struct srv_storage_callback_t* Srv_Storage_Writefile(file_t* File, uintptr_t Buffer, uint64_t Start, size64_t Size, bool IsDataEnd, bool IsAwait){
+struct srv_storage_callback_t* Srv_Storage_Writefile(file_t* File, void* Buffer, uint64_t Start, size64_t Size, bool IsDataEnd, bool IsAwait){
     if(!srv_storage_callback_thread) Srv_Storage_Initialize();
     
     thread_t self = Sys_GetThread();
@@ -639,7 +639,7 @@ struct srv_storage_callback_t* Srv_Storage_Writefile(file_t* File, uintptr_t Buf
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
     callback->Size = NULL;
-    callback->Data = malloc(sizeof(kot_key_mem_t) + sizeof(uintptr_t));
+    callback->Data = malloc(sizeof(kot_key_mem_t) + sizeof(void*));
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_Readfile_Callback;
@@ -648,7 +648,7 @@ struct srv_storage_callback_t* Srv_Storage_Writefile(file_t* File, uintptr_t Buf
     kot_key_mem_t BufferKeyShareable;
 
     *(kot_key_mem_t*)callback->Data = BufferKey;
-    *(uintptr_t*)(callback->Data + 8) = Buffer;
+    *(void**)(callback->Data + 8) = Buffer;
 
     Sys_CreateMemoryField(Sys_GetProcess(), Size, &Buffer, &BufferKey, MemoryFieldTypeSendSpaceRO);
     
@@ -805,10 +805,10 @@ struct srv_storage_callback_t* Srv_Storage_NewDev(char* Name, struct srv_storage
     parameters.arg[1] = callback;
 
     size64_t SizeBufferArg = sizeof(struct srv_storage_fs_server_functions_t) + strlen(Name) + 1;
-    uintptr_t BufferArg = malloc(SizeBufferArg);
+    void* BufferArg = malloc(SizeBufferArg);
 
     memcpy(BufferArg, FSServerFunctions, sizeof(struct srv_storage_fs_server_functions_t));
-    memcpy((uintptr_t)(((uint64_t)BufferArg) + sizeof(struct srv_storage_fs_server_functions_t)), Name, strlen(Name) + 1);
+    memcpy((void*)(((uint64_t)BufferArg) + sizeof(struct srv_storage_fs_server_functions_t)), Name, strlen(Name) + 1);
 
     struct ShareDataWithArguments_t data;
     data.Data = BufferArg;

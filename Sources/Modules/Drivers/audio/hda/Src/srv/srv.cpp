@@ -4,7 +4,7 @@ KResult InitializeSrv(HDAOutput* Output){
     process_t ProcessToShareData = ((uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio))->ControllerHeader.Process;
 
     thread_t ChangeStatusThread;
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&ChangeStatus, PriviledgeDriver, (uint64_t)Output, &ChangeStatusThread);
+    Sys_CreateThread(Sys_GetProcess(), (void*)&ChangeStatus, PriviledgeDriver, (uint64_t)Output, &ChangeStatusThread);
     Output->AudioDevice.ChangeStatus = MakeShareableThreadToProcess(ChangeStatusThread, ProcessToShareData);
 
     Sys_Event_Create(&Output->OffsetUpdateEvent);

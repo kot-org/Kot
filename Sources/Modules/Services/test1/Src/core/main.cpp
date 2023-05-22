@@ -5,14 +5,14 @@ extern "C" int main(int argc, char* argv[]){
 
     process_t proc = Sys_GetProcess();
 
-    uintptr_t addressReceive = GetFreeAlignedSpace(sizeof(uisd_test_t));
+    void* addressReceive = GetFreeAlignedSpace(sizeof(uisd_test_t));
     GetControllerUISD(ControllerTypeEnum_Test, &addressReceive, true);
 
     uisd_test_t* TestSrv = (uisd_test_t*)addressReceive;
 
     arguments_t arguments;
     kot_key_mem_t MemoryShare = Sys_ExecThread(TestSrv->GetMemory, &arguments, ExecutionTypeQueuAwait, NULL);
-    uintptr_t addressReceiveShare = GetFreeAlignedSpace(0x1000);
+    void* addressReceiveShare = GetFreeAlignedSpace(0x1000);
     Sys_AcceptMemoryField(proc, MemoryShare, &addressReceiveShare);
     kot_Printlog((char*)addressReceiveShare);
 

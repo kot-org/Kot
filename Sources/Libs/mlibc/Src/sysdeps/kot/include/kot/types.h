@@ -16,6 +16,8 @@ extern "C" {
 #define KKEYVIOLATION       4
 #define KMEMORYVIOLATION    5
 
+typedef uint32_t color_t;
+
 typedef uint64_t size64_t;
 typedef uint64_t KResult;
 
@@ -54,12 +56,12 @@ typedef struct{
 
 // cyclic buffer
 typedef struct{
-    uintptr_t Base;
+    void* Base;
     size64_t Size;
 }kot_cyclic_t;
 
 typedef struct{
-    uintptr_t Base;
+    void* Base;
     size64_t Size;
 }kot_memory_buffer_t;
 

@@ -8,7 +8,7 @@
 
 extern "C" {
 
-uintptr_t kot_ControllerList[ControllerCount];
+void* kot_ControllerList[ControllerCount];
 
 size64_t kot_ControllerTypeSize[ControllerCount] = {
     sizeof(kot_uisd_system_t),
@@ -32,20 +32,20 @@ KResult kot_InitializeUISD(){
 
     kot_process_t Proc = kot_Sys_GetProcess();
 
-    kot_Sys_CreateThread(Proc, (uintptr_t)&kot_CallbackUISD, PriviledgeApp, NULL, &UISDthreadKeyCallback);
+    kot_Sys_CreateThread(Proc, (void*)&kot_CallbackUISD, PriviledgeApp, NULL, &UISDthreadKeyCallback);
     kot_InitializeThread(UISDthreadKeyCallback);
     kot_CallBackUISDThread = kot_MakeShareableThreadToProcess(UISDthreadKeyCallback, KotSpecificData.UISDHandlerProcess);
 
     kot_Sys_Keyhole_CloneModify(Proc, &kot_ProcessKeyForUISD, KotSpecificData.UISDHandlerProcess, KeyholeFlagPresent | KeyholeFlagDataTypeProcessMemoryAccessible, PriviledgeApp);
     
-    memset(&kot_ControllerList, NULL, ControllerCount * sizeof(uintptr_t));
+    memset(&kot_ControllerList, NULL, ControllerCount * sizeof(void*));
     
     return KSUCCESS;
 }
 
 KResult kot_CallbackUISD(uint64_t Task, KResult Status, kot_uisd_callbackInfo_t* Info, uint64_t GP0, uint64_t GP1){
     if(Task == UISDGetTask){
-        kot_ControllerList[Info->Controller] = (uintptr_t)GP0;
+        kot_ControllerList[Info->Controller] = (void*)GP0;
         Info->Location = GP0;
     } 
     Info->Status = Status;
@@ -55,7 +55,7 @@ KResult kot_CallbackUISD(uint64_t Task, KResult Status, kot_uisd_callbackInfo_t*
     kot_Sys_Close(KSUCCESS);
 }
 
-kot_uisd_callbackInfo_t* kot_GetControllerUISD(enum kot_uisd_controller_type_enum Controller, uintptr_t* Location, bool AwaitCallback){
+kot_uisd_callbackInfo_t* kot_GetControllerUISD(enum kot_uisd_controller_type_enum Controller, void** Location, bool AwaitCallback){
     if(!kot_CallBackUISDThread) kot_InitializeUISD();
     kot_thread_t Self = kot_Sys_GetThread();
     kot_uisd_callbackInfo_t* Info = (kot_uisd_callbackInfo_t*)malloc(sizeof(kot_uisd_callbackInfo_t));
@@ -75,7 +75,7 @@ kot_uisd_callbackInfo_t* kot_GetControllerUISD(enum kot_uisd_controller_type_enu
     KResult Status = kot_Sys_ExecThread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && AwaitCallback){
         kot_Sys_Pause(false);
-        *Location = Info->Location;
+        *Location = (void*)Info->Location;
         return Info;
     }
     return Info;
@@ -139,12 +139,12 @@ kot_process_t kot_ShareProcessKey(kot_process_t Process){
     return ReturnValue;
 }
 
-uintptr_t kot_GetControllerLocationUISD(enum kot_uisd_controller_type_enum Controller){
+void* kot_GetControllerLocationUISD(enum kot_uisd_controller_type_enum Controller){
     return kot_ControllerList[Controller];
 }
 
-uintptr_t kot_FindControllerUISD(enum kot_uisd_controller_type_enum Controller){
-    uintptr_t ControllerData = kot_GetControllerLocationUISD(Controller);
+void* kot_FindControllerUISD(enum kot_uisd_controller_type_enum Controller){
+    void* ControllerData = kot_GetControllerLocationUISD(Controller);
     if(!ControllerData){
         ControllerData = kot_GetFreeAlignedSpace(kot_ControllerTypeSize[Controller]);
         kot_uisd_callbackInfo_t* Info = kot_GetControllerUISD(Controller, &ControllerData, true);

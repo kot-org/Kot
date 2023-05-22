@@ -64,7 +64,7 @@ namespace std{
             void expand(uint64_t len = 4){
                 Capacity += len;
                 T* NewData = new T[Capacity];
-                memcpy((uintptr_t)NewData, (uintptr_t)Data, sizeof(T) * Size);
+                memcpy((void*)NewData, (void*)Data, sizeof(T) * Size);
                 delete Data;
                 Data = NewData;
             }

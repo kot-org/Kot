@@ -31,13 +31,13 @@ extern "C" {
 #endif
 
 void InitializeHeapUser();
-uintptr_t calloc(size64_t size);
-uintptr_t malloc(size64_t size);
-uintptr_t realloc(uintptr_t buffer, size64_t size);
-void free(uintptr_t address);
+void* calloc(size64_t size);
+void* malloc(size64_t size);
+void* realloc(void* buffer, size64_t size);
+void free(void* address);
 void SplitSegmentUser(struct SegmentHeader* segment, size64_t size);
 void ExpandHeapUser(size64_t lenght);
-struct SegmentHeader* GetSegmentHeaderUser(uintptr_t address);
+struct SegmentHeader* GetSegmentHeaderUser(void* address);
 
 void MergeNextAndThisToLastUser(struct SegmentHeader* header);
 void MergeThisToLastUser(struct SegmentHeader* header);
@@ -48,17 +48,17 @@ void MergeNextToThisUser(struct SegmentHeader* header);
 #endif
 
 #if defined(__cplusplus)
-inline uintptr_t operator new(size_t Size){
+inline void* operator new(size_t Size){
     return malloc(Size);
 }
-inline uintptr_t operator new[](size_t Size){
+inline void* operator new[](size_t Size){
     return malloc(Size);
 }
 
-inline void operator delete(uintptr_t p){
+inline void operator delete(void* p){
     free(p);
 }
-inline void operator delete[](uintptr_t p){
+inline void operator delete[](void* p){
     free(p);
 }
 #endif

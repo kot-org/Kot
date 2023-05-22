@@ -22,12 +22,12 @@ void LoadBootGraphics(kot_framebuffer_t* Framebuffer){
     srv_system_callback_t* CallbackBGRT = Srv_System_GetTableInRootSystemDescription("BGRT", true);
     if(CallbackBGRT->Data != NULL){
         BGRTHeader_t* BGRTTable = (BGRTHeader_t*)CallbackBGRT->Data;
-        BMPImageHeader_t* BGRTBMPImageHeader = (BMPImageHeader_t*)MapPhysical((uintptr_t)BGRTTable->ImageAddress, sizeof(BMPImageHeader_t)); // map the header only
+        BMPImageHeader_t* BGRTBMPImageHeader = (BMPImageHeader_t*)MapPhysical((void*)BGRTTable->ImageAddress, sizeof(BMPImageHeader_t)); // map the header only
         if(BGRTBMPImageHeader->ImageOffset != NULL){
             IsBGRT = true;
             uint32_t PosX = (Framebuffer->Width - BGRTBMPImageHeader->Width) / 2;
             uint32_t PosY = (Framebuffer->Height - (BGRTBMPImageHeader->Height + LogoHeight)) / 2 ;
-            uint8_t* Buffer = (uint8_t*)((uint64_t)MapPhysical((uintptr_t)BGRTTable->ImageAddress, BGRTBMPImageHeader->Size) + (uint64_t)BGRTBMPImageHeader->ImageOffset); // map all the image
+            uint8_t* Buffer = (uint8_t*)((uint64_t)MapPhysical((void*)BGRTTable->ImageAddress, BGRTBMPImageHeader->Size) + (uint64_t)BGRTBMPImageHeader->ImageOffset); // map all the image
             ParseBootImage(Framebuffer, Buffer, BGRTBMPImageHeader->Width, BGRTBMPImageHeader->Height, BGRTBMPImageHeader->Bpp, PosX, PosY);
         }
     }
@@ -65,7 +65,7 @@ void ParseBootImage(kot_framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width
 thread_t bootAnimationThread = NULL;
 
 void LoadBootAnimation(kot_framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPosition, uint64_t Width, uint64_t Height){
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&BootAnimation, PriviledgeDriver, NULL, &bootAnimationThread);
+    Sys_CreateThread(Sys_GetProcess(), (void*)&BootAnimation, PriviledgeDriver, NULL, &bootAnimationThread);
     arguments_t parameters{
         .arg[0] = (uint64_t)Framebuffer,
         .arg[1] = XPosition,

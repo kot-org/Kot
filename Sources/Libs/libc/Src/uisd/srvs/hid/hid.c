@@ -34,7 +34,7 @@ KResult BindKeyboardEvent(thread_t Task, bool IgnoreMissedEvents){
     return KSUCCESS;
 }
 
-KResult GetTableConverter(char* Path, uintptr_t* TableConverter, size64_t* TableConverterCharCount){
+KResult GetTableConverter(char* Path, void** TableConverter, size64_t* TableConverterCharCount){
     file_t* File = fopen(Path, "rb");
     if(!File){
         return KFAIL;
@@ -51,7 +51,7 @@ KResult GetTableConverter(char* Path, uintptr_t* TableConverter, size64_t* Table
     return KSUCCESS;
 }
 
-KResult GetCharFromScanCode(uint64_t ScanCode, uintptr_t TableConverter, size64_t TableConverterCharCount, char* Char, bool* IsPressed, uint64_t* PressedCache){
+KResult GetCharFromScanCode(uint64_t ScanCode, void* TableConverter, size64_t TableConverterCharCount, char* Char, bool* IsPressed, uint64_t* PressedCache){
     if(ScanCode > 0x80){
         *IsPressed = false;
         ScanCode -= 0x80;

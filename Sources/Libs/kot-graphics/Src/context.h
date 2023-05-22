@@ -17,7 +17,7 @@ typedef struct {
 } pos_t;
 
 typedef struct {
-    uintptr_t FbBase;
+    void* FbBase;
     size64_t FbSize;
     uint32_t Width;
     uint32_t Height;
@@ -66,17 +66,17 @@ uint16_t get_scale(ctxg_t* ctx);
 
 // framebuffer function
 
-void swapTo(ctxg_t* ctx, uintptr_t to);
-void swapFrom(ctxg_t* ctx, uintptr_t from);
+void swapTo(ctxg_t* ctx, void* to);
+void swapFrom(ctxg_t* ctx, void* from);
 void swapToCtx(ctxg_t* ctx);
 void swapFromCtx(ctxg_t* ctx);
 
 void clear(ctxg_t* ctx);
 void clearColor(ctxg_t* ctx, uint32_t color);
 
-uintptr_t GetFramebuffer(ctxg_t* ctx);
+void* GetFramebuffer(ctxg_t* ctx);
 
-void blendAlpha(uintptr_t pixel, uint32_t color);
+void blendAlpha(void* pixel, uint32_t color);
 
 /* uint32_t getPitch(ctxg_t* ctx) {
     return ctx->Pitch;

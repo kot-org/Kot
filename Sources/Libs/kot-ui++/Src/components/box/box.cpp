@@ -1,8 +1,10 @@
 #include <kot-ui++/component.h>
+#include <kot/memory.h>
+#include <string.h> 
 
 namespace Ui {
     void BoxDraw(Box_t* Box) {
-        memset32(Box->Cpnt->GetFramebuffer()->Buffer, Box->CurrentColor, Box->Cpnt->GetFramebuffer()->Size);
+        kot_memset32(Box->Cpnt->GetFramebuffer()->Buffer, Box->CurrentColor, Box->Cpnt->GetFramebuffer()->Size);
         Box->Cpnt->IsRedraw = true;
     }
 
@@ -61,7 +63,7 @@ namespace Ui {
 
         memcpy(&Box->Style, &Style, sizeof(BoxStyle_t));
         Box->CurrentColor = Box->Style.BackgroundColor;
-        Box->Cpnt = new Component({ Box->Style.G }, BoxUpdate, BoxMouseEvent, (uintptr_t)Box, ParentCpnt, true);
+        Box->Cpnt = new Component({ Box->Style.G }, BoxUpdate, BoxMouseEvent, (void*)Box, ParentCpnt, true);
         
         return Box;
     }

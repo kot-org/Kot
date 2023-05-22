@@ -23,7 +23,7 @@ namespace Ui {
 
     class UiContext {
         private:
-            thread_t ThreadRenderer;
+            kot_thread_t ThreadRenderer;
         public:
             UiContext(kot_framebuffer_t* Fb);
             void UpdateFramebuffer(kot_framebuffer_t* fb);

@@ -6,7 +6,7 @@ KResult InitialiseServer(){
     AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)malloc(sizeof(AddDeviceExternalData));
     process_t proc = Sys_GetProcess();
 
-    uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_audio_t));
+    void* address = GetFreeAlignedSpace(sizeof(uisd_audio_t));
     kot_key_mem_t key = NULL;
     Sys_CreateMemoryField(proc, sizeof(uisd_audio_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
@@ -28,32 +28,32 @@ KResult InitialiseServer(){
 
     /* RequestStream */
     thread_t RequestStreamThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&RequestStream, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &RequestStreamThread);
+    Sys_CreateThread(proc, (void*)&RequestStream, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &RequestStreamThread);
     SrvData->RequestStream = MakeShareableThread(RequestStreamThread, PriviledgeApp);
 
     /* ChangeVolume */
     thread_t ChangeVolumeThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&ChangeVolume, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &ChangeVolumeThread);
+    Sys_CreateThread(proc, (void*)&ChangeVolume, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &ChangeVolumeThread);
     SrvData->ChangeVolume = MakeShareableThread(ChangeVolumeThread, PriviledgeService);
 
     /* SetDefault */
     thread_t SetDefaultThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&SetDefault, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &SetDefaultThread);
+    Sys_CreateThread(proc, (void*)&SetDefault, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &SetDefaultThread);
     SrvData->SetDefault = MakeShareableThread(SetDefaultThread, PriviledgeService);
 
     /* GetDeviceCount */
     thread_t GetDeviceCountThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&GetDeviceCount, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &GetDeviceCountThread);
+    Sys_CreateThread(proc, (void*)&GetDeviceCount, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &GetDeviceCountThread);
     SrvData->GetDeviceCount = MakeShareableThread(GetDeviceCountThread, PriviledgeService);
 
     /* GetDeviceInfo */
     thread_t GetDeviceInfoThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&GetDeviceInfo, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &GetDeviceInfoThread);
+    Sys_CreateThread(proc, (void*)&GetDeviceInfo, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &GetDeviceInfoThread);
     SrvData->GetDeviceInfo = MakeShareableThread(GetDeviceInfoThread, PriviledgeService);
 
     /* AddDevice */
     thread_t AddDeviceThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&AddDevice, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &AddDeviceThread);
+    Sys_CreateThread(proc, (void*)&AddDevice, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &AddDeviceThread);
     SrvData->AddDevice = MakeShareableThread(AddDeviceThread, PriviledgeDriver);
     
     CreateControllerUISD(ControllerTypeEnum_Audio, key, true);
@@ -260,7 +260,7 @@ void ChangeStatusCallback(KResult Status, struct CallbackAudio* Callback, uint64
 CallbackAudio* ChangeStatus(srv_audio_device_t* Device, enum AudioSetStatus Function, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     if(!ChangeStatusCallbackThread){
         thread_t AudioThreadKeyCallback = NULL;
-        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&ChangeStatusCallback, PriviledgeDriver, NULL, &AudioThreadKeyCallback);
+        Sys_CreateThread(Sys_GetProcess(), (void*)&ChangeStatusCallback, PriviledgeDriver, NULL, &AudioThreadKeyCallback);
         ChangeStatusCallbackThread = MakeShareableThread(AudioThreadKeyCallback, PriviledgeDriver);
     }
 

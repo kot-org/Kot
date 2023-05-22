@@ -408,12 +408,12 @@ struct HDAStream{
 
     uint32_t StreamNumber;
 
-    uintptr_t BufferDescriptorListPhysicalAddress;
+    void* BufferDescriptorListPhysicalAddress;
     uint32_t BufferDescriptorListEntries;
     HDABufferDescriptorEntry* BufferDescriptorList;
 
     kot_key_mem_t BufferKey;
-    uintptr_t Buffer;
+    void* Buffer;
     uint64_t CurrentPosition;
     size64_t Size;
     size64_t RealSize;
@@ -423,7 +423,7 @@ struct HDAStream{
 
 class HDAController{
     public:
-        uintptr_t HDABaseAddress;
+        void* HDABaseAddress;
         HDAControllerRegs* Registers;
 
         bool Supports64Bit;

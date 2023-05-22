@@ -148,7 +148,7 @@ char** strsplit(char* str, const char* delimiters, uint64_t* count){
             }
 
             ReturnValue[currentItemNumber] = (char*)malloc(((charNumberStart - lastCharEnd) + 1) * sizeof(char));
-            memcpy((uintptr_t)ReturnValue[currentItemNumber], (uintptr_t)((uint64_t)entry + lastCharEnd), (charNumberStart - lastCharEnd) * sizeof(char));  
+            memcpy((void*)ReturnValue[currentItemNumber], (void*)((uint64_t)entry + lastCharEnd), (charNumberStart - lastCharEnd) * sizeof(char));  
             ReturnValue[currentItemNumber][(charNumberStart - lastCharEnd)] = (char*)NULL;
             lastCharEnd = currentCharNumber;
             c = delimiters;
@@ -159,7 +159,7 @@ char** strsplit(char* str, const char* delimiters, uint64_t* count){
         str++; 
     }
     ReturnValue[currentItemNumber] = (char*)malloc(((len - lastCharEnd) + 1) * sizeof(char));
-    memcpy((uintptr_t)ReturnValue[currentItemNumber], (uintptr_t)((uint64_t)entry + lastCharEnd), (len - lastCharEnd) * sizeof(char)); 
+    memcpy((void*)ReturnValue[currentItemNumber], (void*)((uint64_t)entry + lastCharEnd), (len - lastCharEnd) * sizeof(char)); 
     ReturnValue[currentItemNumber][(len - lastCharEnd)] = (char*)NULL;
     ReturnValue[currentItemNumber + 1] = (char*)NULL;
     *count = currentItemNumber + 1;

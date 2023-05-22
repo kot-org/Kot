@@ -1,6 +1,6 @@
 #include <kot/uisd.h>
 
-uintptr_t ControllerList[ControllerCount];
+void* ControllerList[ControllerCount];
 
 size64_t ControllerTypeSize[ControllerCount] = {
     sizeof(uisd_system_t),
@@ -30,14 +30,14 @@ KResult InitializeUISD(){
 
     Sys_Keyhole_CloneModify(Proc, &ProcessKeyForUISD, KotSpecificData.UISDHandlerProcess, KeyholeFlagPresent | KeyholeFlagDataTypeProcessMemoryAccessible, PriviledgeApp);
     
-    memset(&ControllerList, NULL, ControllerCount * sizeof(uintptr_t));
+    memset(&ControllerList, NULL, ControllerCount * sizeof(void*));
     
     return KSUCCESS;
 }
 
 KResult CallbackUISD(uint64_t Task, KResult Status, uisd_callbackInfo_t* Info, uint64_t GP0, uint64_t GP1){
     if(Task == UISDGetTask){
-        ControllerList[Info->Controller] = (uintptr_t)GP0;
+        ControllerList[Info->Controller] = (void*)GP0;
         Info->Location = GP0;
     } 
     Info->Status = Status;
@@ -47,7 +47,7 @@ KResult CallbackUISD(uint64_t Task, KResult Status, uisd_callbackInfo_t* Info, u
     Sys_Close(KSUCCESS);
 }
 
-uisd_callbackInfo_t* GetControllerUISD(enum kot_uisd_controller_type_enum Controller, uintptr_t* Location, bool AwaitCallback){
+uisd_callbackInfo_t* GetControllerUISD(enum kot_uisd_controller_type_enum Controller, void** Location, bool AwaitCallback){
     if(!CallBackUISDThread) InitializeUISD();
     thread_t Self = Sys_GetThread();
     uisd_callbackInfo_t* Info = (uisd_callbackInfo_t*)malloc(sizeof(uisd_callbackInfo_t));
@@ -131,12 +131,12 @@ process_t ShareProcessKey(process_t Process){
     return ReturnValue;
 }
 
-uintptr_t GetControllerLocationUISD(enum kot_uisd_controller_type_enum Controller){
+void* GetControllerLocationUISD(enum kot_uisd_controller_type_enum Controller){
     return ControllerList[Controller];
 }
 
-uintptr_t FindControllerUISD(enum kot_uisd_controller_type_enum Controller){
-    uintptr_t ControllerData = GetControllerLocationUISD(Controller);
+void* FindControllerUISD(enum kot_uisd_controller_type_enum Controller){
+    void* ControllerData = GetControllerLocationUISD(Controller);
     if(!ControllerData){
         ControllerData = GetFreeAlignedSpace(ControllerTypeSize[Controller]);
         uisd_callbackInfo_t* Info = GetControllerUISD(Controller, &ControllerData, true);

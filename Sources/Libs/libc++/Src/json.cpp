@@ -303,7 +303,7 @@ namespace std {
                 code = JSON_FAILED;
                 return;
             }
-            kot_map_set(this->obj, key->Get(), (uintptr_t)parser2->getValue());
+            kot_map_set(this->obj, key->Get(), (void*)parser2->getValue());
             lexer->skipUseless();
             if (lexer->buffer[lexer->index] == '}') {
                 lexer->index++;
@@ -343,7 +343,7 @@ namespace std {
     }
 
     void JsonObject::set(char* key, JsonValue* value) {
-        kot_map_set(obj, key, (uintptr_t)value);
+        kot_map_set(obj, key, (void*)value);
     }
 
     JsonParsingCode JsonObject::getCode() {
@@ -374,7 +374,7 @@ namespace std {
                 code = JSON_FAILED;
                 return;
             }
-            kot_vector_push(this->arr, (uintptr_t)parser->getValue());
+            kot_vector_push(this->arr, (void*)parser->getValue());
             lexer->skipUseless();
             if (lexer->buffer[lexer->index] == ']') {
                 lexer->index++;
@@ -389,15 +389,15 @@ namespace std {
     }
 
     JsonValue* JsonArray::Get(uint64_t index) {
-        return (JsonValue*) kot_vector_get(this->arr, (uintptr_t)index);
+        return (JsonValue*) kot_vector_get(this->arr, index);
     }
 
     void JsonArray::set(uint64_t index, JsonValue* value) {
-        kot_vector_set(this->arr, index, (uintptr_t)value);
+        kot_vector_set(this->arr, index, (void*)value);
     }
 
     void JsonArray::push(JsonValue* value) {
-        kot_vector_push(this->arr, (uintptr_t)value);
+        kot_vector_push(this->arr, (void*)value);
     }
 
     uint64_t JsonArray::length() {

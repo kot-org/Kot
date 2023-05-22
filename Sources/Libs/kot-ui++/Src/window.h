@@ -22,9 +22,9 @@ namespace UiWindow {
 
             bool IsListeningEvents;
             kot_event_t WindowEvent;
-            thread_t WindowHandlerThread;
+            kot_thread_t WindowHandlerThread;
 
-            point_t WindowNormalPosition;
+            kot_point_t WindowNormalPosition;
             uint64_t WindowNormalWidth;
             uint64_t WindowNormalHeight;
 
@@ -47,7 +47,7 @@ namespace UiWindow {
 
             void DrawBorders(uint32_t Color);
 
-            void Handler(enum Window_Event EventType, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3, uint64_t GP4);
+            void Handler(enum kot_Window_Event EventType, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3, uint64_t GP4);
     };
 
 }

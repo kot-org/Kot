@@ -5,7 +5,7 @@ uisd_graphics_t* SrvData;
 KResult InitialiseServer(orbc* Orb){
     process_t proc = Sys_GetProcess();
 
-    uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_graphics_t));
+    void* address = GetFreeAlignedSpace(sizeof(uisd_graphics_t));
     kot_key_mem_t key = NULL;
     Sys_CreateMemoryField(proc, sizeof(uisd_graphics_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
@@ -20,7 +20,7 @@ KResult InitialiseServer(orbc* Orb){
 
     /* CreateWindow */
     thread_t CreateWindowThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&CreateWindowSrv, PriviledgeApp, (uint64_t)Orb, &CreateWindowThread);
+    Sys_CreateThread(proc, (void*)&CreateWindowSrv, PriviledgeApp, (uint64_t)Orb, &CreateWindowThread);
     SrvData->CreateWindow = MakeShareableThread(CreateWindowThread, PriviledgeApp);
 
     uisd_callbackInfo_t* Callback = CreateControllerUISD(ControllerTypeEnum_Graphics, key, true);
@@ -45,7 +45,7 @@ KResult CreateWindowSrv(thread_t Callback, uint64_t CallbackArg, process_t Targe
         Window->Target = Target;
 
         thread_t GraphicsHandlerThread = NULL;
-        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&WindowGraphicsHandler, PriviledgeApp, (uint64_t)Window, &GraphicsHandlerThread);
+        Sys_CreateThread(Sys_GetProcess(), (void*)&WindowGraphicsHandler, PriviledgeApp, (uint64_t)Window, &GraphicsHandlerThread);
         thread_t ShareableGraphicsHandlerThread = MakeShareableThreadToProcess(GraphicsHandlerThread, Window->Target);
         
         arguments_t Arguments{
@@ -127,7 +127,7 @@ KResult WindowResize(thread_t Callback, uint64_t CallbackArg, windowc* Window, u
         };
 
         thread_t GraphicsHandlerThread = NULL;
-        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&WindowGraphicsHandler, PriviledgeApp, (uint64_t)Window, &GraphicsHandlerThread);
+        Sys_CreateThread(Sys_GetProcess(), (void*)&WindowGraphicsHandler, PriviledgeApp, (uint64_t)Window, &GraphicsHandlerThread);
         thread_t ShareableGraphicsHandlerThread = MakeShareableThreadToProcess(GraphicsHandlerThread, Window->Target);
         
         arguments_t Arguments{

@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 typedef struct {
-    uintptr_t Buffer;
+    void* Buffer;
     size64_t Size;
     uint64_t Pitch;
     uint64_t Width;

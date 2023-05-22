@@ -35,7 +35,7 @@ partition_t* NewPartition(storage_device_t* Device, uint64_t Start, uint64_t Siz
             kot_thread_t VFSMountThread;
             kot_thread_t VFSMountThreadPrivate;
 
-            Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&VFSMount, PriviledgeDriver, (uint64_t)Self, &VFSMountThreadPrivate);
+            Sys_CreateThread(Sys_GetProcess(), (void*)&VFSMount, PriviledgeDriver, (uint64_t)Self, &VFSMountThreadPrivate);
             VFSMountThread = MakeShareableThreadToProcess(VFSMountThreadPrivate, NotifyInfo->ProcessToNotify);
 
             arguments_t Parameters{
@@ -97,7 +97,7 @@ uint64_t NotifyOnNewPartitionByGUIDType(kot_GUID_t* GUIDTarget, kot_thread_t Thr
                 kot_thread_t VFSMountThread;
                 kot_thread_t VFSMountThreadPrivate;
 
-                Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&VFSMount, PriviledgeDriver, (uint64_t)Partition, &VFSMountThreadPrivate);
+                Sys_CreateThread(Sys_GetProcess(), (void*)&VFSMount, PriviledgeDriver, (uint64_t)Partition, &VFSMountThreadPrivate);
                 VFSMountThread = MakeShareableThreadToProcess(VFSMountThreadPrivate, NotifyInfo->ProcessToNotify);
 
                 arguments_t Parameters{

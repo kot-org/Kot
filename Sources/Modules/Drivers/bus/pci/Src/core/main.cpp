@@ -4,7 +4,7 @@ extern "C" int main(int argc, char* argv[]) {
     kot_Printlog("[BUS/PCI] Initialization ...");
 
     srv_system_callback_t* Callback = Srv_System_GetTableInRootSystemDescription("MCFG", true);
-    uintptr_t MCFGTable = (uintptr_t)Callback->Data;
+    void* MCFGTable = (void*)Callback->Data;
     free(Callback);
 
     PCIDeviceListInfo_t* PCIDeviceList = InitPCIList();
@@ -162,7 +162,7 @@ uint8_t GetBarTypeWithBARValue(uint32_t Value){
     return PCI_BAR_TYPE_NULL;
 }
 
-uintptr_t PCIDevice_t::GetBarAddress(uint8_t index){
+void* PCIDevice_t::GetBarAddress(uint8_t index){
     PCIDeviceHeader_t* Header = (PCIDeviceHeader_t*)ConfigurationSpace;
     switch (Header->HeaderType & 0x7F){
         case 0x0:{
@@ -170,11 +170,11 @@ uintptr_t PCIDevice_t::GetBarAddress(uint8_t index){
                 PCIHeader0_t* Header0 = (PCIHeader0_t*)Header;
                 switch (GetBarTypeWithBARValue(Header0->BAR[index])){
                     case PCI_BAR_TYPE_IO:
-                        return (uintptr_t)(Header0->BAR[index] & 0xFFFFFFFC);
+                        return (void*)(Header0->BAR[index] & 0xFFFFFFFC);
                     case PCI_BAR_TYPE_32:
-                        return (uintptr_t)(Header0->BAR[index] & 0xFFFFFFF0);
+                        return (void*)(Header0->BAR[index] & 0xFFFFFFF0);
                     case PCI_BAR_TYPE_64:
-                        return (uintptr_t)((Header0->BAR[index] & 0xFFFFFFF0) | ((Header0->BAR[index + 1] & 0xFFFFFFFF) << 32));
+                        return (void*)((Header0->BAR[index] & 0xFFFFFFF0) | ((Header0->BAR[index + 1] & 0xFFFFFFFF) << 32));
                     default:
                         break;
                 }
@@ -187,7 +187,7 @@ uintptr_t PCIDevice_t::GetBarAddress(uint8_t index){
     return NULL;
 }
 
-size64_t PCIDevice_t::GetBarSizeWithAddress(uintptr_t addresslow){
+size64_t PCIDevice_t::GetBarSizeWithAddress(void* addresslow){
     uint32_t BARValueLow = *(uint32_t*)addresslow;
     uint8_t Type = GetBarTypeWithBARValue(BARValueLow);
 
@@ -210,7 +210,7 @@ size64_t PCIDevice_t::GetBarSizeWithAddress(uintptr_t addresslow){
         uint32_t SizeHigh = 0xFFFFFFFF;
 
         if(Type == PCI_BAR_TYPE_64){
-            uintptr_t addresshigh = (uintptr_t)((uint64_t)addresslow + 0x4);
+            void* addresshigh = (void*)((uint64_t)addresslow + 0x4);
 
             uint32_t BARValueHigh = *(uint32_t*)addresshigh;
             /* Write into bar high */

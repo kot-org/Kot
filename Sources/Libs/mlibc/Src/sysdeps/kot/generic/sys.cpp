@@ -5,15 +5,15 @@ extern "C" {
 
 __attribute__((section(".KotSpecificData"))) struct kot_SpecificData_t KotSpecificData;
 
-KResult kot_Sys_CreateMemoryField(kot_process_t self, size64_t size, uintptr_t* virtualAddressPointer, kot_key_mem_t* keyPointer, enum kot_MemoryFieldType type){
+KResult kot_Sys_CreateMemoryField(kot_process_t self, size64_t size, void** virtualAddressPointer, kot_key_mem_t* keyPointer, enum kot_MemoryFieldType type){
     return Syscall_40(KSys_CreateMemoryField, self, size, virtualAddressPointer, keyPointer, type);
 }
 
-KResult kot_Sys_AcceptMemoryField(kot_process_t self, kot_key_mem_t key, uintptr_t* virtualAddressPointer){
+KResult kot_Sys_AcceptMemoryField(kot_process_t self, kot_key_mem_t key, void** virtualAddressPointer){
     return Syscall_24(KSys_AcceptMemoryField, self, key, virtualAddressPointer);
 }
 
-KResult kot_Sys_CloseMemoryField(kot_process_t self, kot_key_mem_t key, uintptr_t address){
+KResult kot_Sys_CloseMemoryField(kot_process_t self, kot_key_mem_t key, void* address){
     return Syscall_24(KSys_CloseMemoryField, self, key, address);
 }
 
@@ -49,16 +49,16 @@ KResult kot_Sys_Unpause(kot_thread_t self){
     return Syscall_8(KSys_UnPause, self);
 }
 
-KResult kot_Sys_Map(kot_process_t self, uint64_t* addressVirtual, enum kot_AllocationType type, uintptr_t* addressPhysical, size64_t* size, bool findFree){
-    return Syscall_48(KSys_Map, self, addressVirtual, type, addressPhysical, size, findFree);
+KResult kot_Sys_Map(kot_process_t self, void** addressVirtual, enum kot_AllocationType type, void** addressPhysical, size64_t* size, bool findFree){
+    return Syscall_48(KSys_Map, self, (uintptr_t*)addressVirtual, type, addressPhysical, size, findFree);
 }
 
-KResult kot_Sys_Unmap(kot_thread_t self, uintptr_t addressVirtual, size64_t size){
+KResult kot_Sys_Unmap(kot_thread_t self, void* addressVirtual, size64_t size){
     return Syscall_24(KSys_Unmap, self, addressVirtual, size);
 }
 
-uintptr_t kot_Sys_GetPhysical(uintptr_t addressVirtual){
-    return Syscall_8(KSys_GetPhysical, addressVirtual);
+void* kot_Sys_GetPhysical(void* addressVirtual){
+    return (void*)Syscall_8(KSys_GetPhysical, addressVirtual);
 }
 
 KResult kot_Sys_Event_Create(kot_event_t* self){
@@ -81,14 +81,14 @@ KResult kot_Sys_Event_Close(){
     return Syscall_0(KSys_Event_Close);
 }
 
-KResult kot_Sys_CreateThread(kot_process_t self, uintptr_t entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result){
+KResult kot_Sys_CreateThread(kot_process_t self, void* entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result){
     KResult Status = Syscall_40(KSys_CreateThread, self, entryPoint, privilege, externalData, result);
     if(Status != KSUCCESS) return Status;
     Status = kot_InitializeThread(*result);
     return Status;
 }
 
-KResult kot_Sys_CreateThreadWithoutAutoInit(kot_process_t self, uintptr_t entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result){
+KResult kot_Sys_CreateThreadWithoutAutoInit(kot_process_t self, void* entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result){
     return Syscall_40(KSys_CreateThread, self, entryPoint, privilege, externalData, result);
 }
 
@@ -108,7 +108,7 @@ KResult kot_Sys_Keyhole_Verify(kot_key_t self, enum kot_DataType type, kot_proce
     return Syscall_40(KSys_Keyhole_Verify, self, type, target, flags, priviledge);
 }
 
-KResult kot_Sys_SetTCB(kot_thread_t thread, uintptr_t pointer){
+KResult kot_Sys_SetTCB(kot_thread_t thread, void* pointer){
     return Syscall_16(KSys_TCB_Set, thread, (uint64_t)pointer);
 }
 

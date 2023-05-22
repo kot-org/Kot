@@ -43,13 +43,13 @@ windowc::windowc(orbc* Parent, uint64_t WindowType, kot_event_t Event){
 }
 
 KResult windowc::CreateBuffer(){
-    uintptr_t OldFramebuffer = this->Framebuffer->Buffer;
+    void* OldFramebuffer = this->Framebuffer->Buffer;
     kot_key_mem_t OldFramebufferKey = this->FramebufferKey;
 
     this->Framebuffer->Pitch = this->Framebuffer->Width * this->Framebuffer->Btpp;
     this->Framebuffer->Size = this->Framebuffer->Pitch * this->Framebuffer->Height;
 
-    uintptr_t Address = GetFreeAlignedSpace(this->Framebuffer->Size);
+    void* Address = GetFreeAlignedSpace(this->Framebuffer->Size);
     kot_key_mem_t Key = NULL;
     Sys_CreateMemoryField(Sys_GetProcess(), this->Framebuffer->Size, &Address, &Key, MemoryFieldTypeShareSpaceRW);
     kot_key_mem_t KeyShare = NULL;
@@ -68,7 +68,7 @@ KResult windowc::CreateBuffer(){
     Eventbuffer->Pitch = Eventbuffer->Width * Eventbuffer->Btpp;
     Eventbuffer->Size = Eventbuffer->Pitch * Eventbuffer->Height;
 
-    uintptr_t OldEventBuffer = Eventbuffer->Buffer;
+    void* OldEventBuffer = Eventbuffer->Buffer;
     Eventbuffer->Buffer = malloc(Eventbuffer->Size);
     memset64(Eventbuffer->Buffer, (uint64_t)this->MouseEvent, Eventbuffer->Size);
     free(OldEventBuffer);

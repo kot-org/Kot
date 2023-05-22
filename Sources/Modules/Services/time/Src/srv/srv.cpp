@@ -5,7 +5,7 @@ uisd_time_t* SrvData;
 KResult InitialiseServer(){
     process_t proc = Sys_GetProcess();
 
-    uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_time_t));
+    void* address = GetFreeAlignedSpace(sizeof(uisd_time_t));
     kot_key_mem_t key = NULL;
     Sys_CreateMemoryField(proc, sizeof(uisd_time_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
@@ -21,12 +21,12 @@ KResult InitialiseServer(){
 
     /* SetTimePointerKey */
     thread_t SetTimePointerKeyThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&SetTimePointerKeySrv, PriviledgeApp, NULL, &SetTimePointerKeyThread);
+    Sys_CreateThread(proc, (void*)&SetTimePointerKeySrv, PriviledgeApp, NULL, &SetTimePointerKeyThread);
     SrvData->SetTimePointerKey = MakeShareableThread(SetTimePointerKeyThread, PriviledgeDriver);
 
     /* SetTickPointerKey */
     thread_t SetTickPointerKeyThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&SetTickPointerKeySrv, PriviledgeApp, NULL, &SetTickPointerKeyThread);
+    Sys_CreateThread(proc, (void*)&SetTickPointerKeySrv, PriviledgeApp, NULL, &SetTickPointerKeyThread);
     SrvData->SetTickPointerKey = MakeShareableThread(SetTickPointerKeyThread, PriviledgeDriver);
 
     CreateControllerUISD(ControllerTypeEnum_Time, key, true);

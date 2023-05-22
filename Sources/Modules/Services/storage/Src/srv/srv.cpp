@@ -5,7 +5,7 @@ uisd_storage_t* SrvData;
 KResult InitialiseSrv(){
     kot_process_t proc = Sys_GetProcess();
 
-    uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_storage_t));
+    void* address = GetFreeAlignedSpace(sizeof(uisd_storage_t));
     ksmem_t key = NULL;
     Sys_CreateMemoryField(proc, sizeof(uisd_storage_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
@@ -20,27 +20,27 @@ KResult InitialiseSrv(){
 
     /* AddDevice */
     kot_thread_t AddDeviceThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&AddDeviceSrv, PriviledgeApp, NULL, &AddDeviceThread);
+    Sys_CreateThread(proc, (void*)&AddDeviceSrv, PriviledgeApp, NULL, &AddDeviceThread);
     SrvData->AddDevice = MakeShareableThread(AddDeviceThread, PriviledgeDriver);
 
     /* RemoveDevice */
     kot_thread_t RemoveDeviceThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&RemoveDeviceSrv, PriviledgeApp, NULL, &RemoveDeviceThread);
+    Sys_CreateThread(proc, (void*)&RemoveDeviceSrv, PriviledgeApp, NULL, &RemoveDeviceThread);
     SrvData->RemoveDevice = MakeShareableThread(RemoveDeviceThread, PriviledgeDriver);
 
     /* NotifyOnNewPartitionByGUIDType */
     kot_thread_t CountPartitionByGUIDTypeThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&NotifyOnNewPartitionByGUIDTypeSrv, PriviledgeApp, NULL, &CountPartitionByGUIDTypeThread);
+    Sys_CreateThread(proc, (void*)&NotifyOnNewPartitionByGUIDTypeSrv, PriviledgeApp, NULL, &CountPartitionByGUIDTypeThread);
     SrvData->NotifyOnNewPartitionByGUIDType = MakeShareableThread(CountPartitionByGUIDTypeThread, PriviledgeDriver);
 
     /* VFSLoginApp */
     kot_thread_t VFSLoginAppThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&VFSLoginApp, PriviledgeApp, NULL, &VFSLoginAppThread);
+    Sys_CreateThread(proc, (void*)&VFSLoginApp, PriviledgeApp, NULL, &VFSLoginAppThread);
     SrvData->VFSLoginApp = MakeShareableThread(VFSLoginAppThread, PriviledgeDriver);
 
     /* NewDev */
     kot_thread_t NewDevThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&NewDev, PriviledgeApp, NULL, &NewDevThread);
+    Sys_CreateThread(proc, (void*)&NewDev, PriviledgeApp, NULL, &NewDevThread);
     SrvData->NewDev = MakeShareableThread(NewDevThread, PriviledgeService);
     
     uisd_callbackInfo_t* info = CreateControllerUISD(ControllerTypeEnum_Storage, key, true);   

@@ -100,7 +100,7 @@ struct kot_srv_storage_fs_server_rename_t{
 
 struct kot_srv_storage_callback_t{
     kot_thread_t Self;
-    uint64_t Data;
+    uintptr_t Data;
     size64_t Size;
     bool IsAwait;
     KResult Status;
@@ -170,8 +170,8 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_DirOpen(char* Path, kot_proce
 
 struct kot_srv_storage_callback_t* kot_Srv_Storage_Closefile(kot_file_t* File, bool IsAwait);
 struct kot_srv_storage_callback_t* kot_Srv_Storage_Getfilesize(kot_file_t* File, bool IsAwait);
-struct kot_srv_storage_callback_t* kot_Srv_Storage_Readfile(kot_file_t* File, uintptr_t Buffer, uint64_t Start, size64_t Size, bool IsAwait);
-struct kot_srv_storage_callback_t* kot_Srv_Storage_Writefile(kot_file_t* File, uintptr_t Buffer, uint64_t Start, size64_t Size, bool IsDataEnd, bool IsAwait);
+struct kot_srv_storage_callback_t* kot_Srv_Storage_Readfile(kot_file_t* File, void* Buffer, uint64_t Start, size64_t Size, bool IsAwait);
+struct kot_srv_storage_callback_t* kot_Srv_Storage_Writefile(kot_file_t* File, void* Buffer, uint64_t Start, size64_t Size, bool IsDataEnd, bool IsAwait);
 
 struct kot_srv_storage_callback_t* kot_Srv_Storage_Closedir(kot_directory_t* Dir, bool IsAwait);
 struct kot_srv_storage_callback_t* kot_Srv_Storage_Getdircount(kot_directory_t* Dir, bool IsAwait);
@@ -182,8 +182,8 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_NewDev(char* Name, struct kot
 kot_file_t* kot_fopen(char* Path, char* Mode);
 kot_file_t* kot_fopenmf(char* Path, int Flags, mode_t Mode);
 KResult kot_fclose(kot_file_t* File);
-KResult kot_fread(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, kot_file_t* File);
-KResult kot_fwrite(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, kot_file_t* File);
+KResult kot_fread(void* Buffer, size_t BlockSize, size_t BlockCount, kot_file_t* File);
+KResult kot_fwrite(void* Buffer, size_t BlockSize, size_t BlockCount, kot_file_t* File);
 KResult kot_fputs(char* String, kot_file_t* File);
 KResult kot_fseek(kot_file_t* File, uint64_t Offset, int Whence);
 uint64_t kot_ftell(kot_file_t* File);

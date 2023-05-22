@@ -5,7 +5,7 @@ uisd_hid_t* SrvData;
 KResult InitialiseServer(){
     process_t proc = Sys_GetProcess();
 
-    uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_hid_t));
+    void* address = GetFreeAlignedSpace(sizeof(uisd_hid_t));
     kot_key_mem_t key = NULL;
     Sys_CreateMemoryField(proc, sizeof(uisd_hid_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 

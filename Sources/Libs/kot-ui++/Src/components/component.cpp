@@ -1,8 +1,9 @@
 #include <kot-ui++/component.h>
+#include <string.h>
 
 namespace Ui {
 
-    Component::Component(ComponentGeneralStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, Component* ParentCpnt, bool IsOwnFb){
+    Component::Component(ComponentGeneralStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, void* ExternalData, Component* ParentCpnt, bool IsOwnFb){
         /* Style */
         ComponentGeneralStyle* CpntStyle = (ComponentGeneralStyle*)malloc(sizeof(ComponentGeneralStyle));
 
@@ -20,7 +21,7 @@ namespace Ui {
         this->OwnFb = IsOwnFb;
 
         /* Layout */
-        memcpy(CpntStyle, &Style, sizeof(ComponentGeneralStyle));
+        memcpy(CpntStyle, (void*)&Style, sizeof(ComponentGeneralStyle));
 
         if(CpntStyle->Width < 0) {
             CpntStyle->Currentwidth = (Parent->Style->Currentwidth * abs(CpntStyle->Width)) / 100;
@@ -73,7 +74,7 @@ namespace Ui {
         uint32_t Pitch = Width * Btpp;
 
         CpntFb->Size = Height * Pitch;
-        CpntFb->Buffer = calloc(CpntFb->Size);
+        CpntFb->Buffer = calloc(CpntFb->Size, Btpp);
         CpntFb->Pitch = Pitch;
         CpntFb->Width = Width;
         CpntFb->Height = Height;
@@ -93,8 +94,8 @@ namespace Ui {
                 this->Style->Currentheight = Height;
 
                 Framebuffer->Size = Height * Pitch;
-                uintptr_t OldBuffer = Framebuffer->Buffer;
-                Framebuffer->Buffer = calloc(Framebuffer->Size);
+                void* OldBuffer = Framebuffer->Buffer;
+                Framebuffer->Buffer = calloc(Framebuffer->Size, Framebuffer->Btpp);
                 free(OldBuffer);
                 Framebuffer->Pitch = Pitch;
                 Framebuffer->Width = Width;
@@ -135,7 +136,7 @@ namespace Ui {
             uint64_t MaxChildHeightRight = 0;
 
             for(uint64_t i = 0; i < Childs->length; i++) {
-                Component* Child = (Component*)vector_get(Childs, i);
+                Component* Child = (Component*)kot_vector_get(Childs, i);
 
                 if(!Child->Style->IsHidden) {
 
@@ -256,7 +257,7 @@ namespace Ui {
     void Component::ClearChilds() {
         if(this->Childs) {
             for(uint64_t i = 0; i < this->Childs->length; i++) {
-                Component* Child = (Component*)vector_get(this->Childs, i);
+                Component* Child = (Component*)kot_vector_get(this->Childs, i);
                 Child->Free();
             }
         }
@@ -268,13 +269,13 @@ namespace Ui {
         Child->Deep = this->Deep + 1;
 
         if(!this->Childs){
-            this->Childs = vector_create();
+            this->Childs = kot_vector_create();
         }
 
         Child->HorizontalOverflow = HorizontalOverflow;
         Child->VerticalOverflow = VerticalOverflow;
         
         Child->Parent = this;
-        this->Index = vector_push(this->Childs, Child);
+        this->Index = kot_vector_push(this->Childs, Child);
     } 
 }

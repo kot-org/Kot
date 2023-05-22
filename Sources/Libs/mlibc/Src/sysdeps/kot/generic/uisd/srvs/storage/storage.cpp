@@ -16,7 +16,7 @@ void Srv_Storage_Initialize(){
         kot_process_t Proc = kot_Sys_GetProcess();
 
         kot_thread_t StoragethreadKeyCallback = NULL;
-        kot_Sys_CreateThread(Proc, (uintptr_t)&kot_Srv_Storage_Callback, PriviledgeApp, NULL, &StoragethreadKeyCallback);
+        kot_Sys_CreateThread(Proc, (void*)&kot_Srv_Storage_Callback, PriviledgeApp, NULL, &StoragethreadKeyCallback);
         kot_InitializeThread(StoragethreadKeyCallback);
         kot_srv_storage_callback_thread = kot_MakeShareableThread(StoragethreadKeyCallback, PriviledgeService);
     }else{
@@ -57,7 +57,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_AddDevice(struct kot_srv_stor
 
     struct kot_ShareDataWithArguments_t data;
     if(Info != NULL){
-        data.Data = (uintptr_t)Info;
+        data.Data = (void*)Info;
         data.Size = sizeof(struct kot_srv_storage_device_info_t);
         data.ParameterPosition = 0x2; 
     }
@@ -136,7 +136,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_NotifyOnNewPartitionByGUIDTyp
     parameters.arg[3] = ProcessToNotify;
 
     struct kot_ShareDataWithArguments_t data;
-    data.Data = (uintptr_t)PartitionTypeGUID;
+    data.Data = (void*)PartitionTypeGUID;
     data.Size = sizeof(kot_GUID_t);
     data.ParameterPosition = 0x4;
 
@@ -173,7 +173,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_MountPartition(kot_thread_t V
     parameters.arg[2] = true; // Is mount function
 
     struct kot_ShareDataWithArguments_t data;
-    data.Data = (uintptr_t)FSServerFunctions;
+    data.Data = (void*)FSServerFunctions;
     data.Size = sizeof(struct kot_srv_storage_fs_server_functions_t);
     data.ParameterPosition = 0x3;
 
@@ -248,7 +248,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_VFSLoginApp(kot_process_t Pro
     parameters.arg[4] = Permissions;
 
     struct kot_ShareDataWithArguments_t Data;
-    Data.Data = (uintptr_t)Path;
+    Data.Data = (void*)Path;
     Data.Size = strlen(Path) + 1; // add '\0' char
     Data.ParameterPosition = 0x5;
 
@@ -287,7 +287,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Removefile(char* Path, bool I
     parameters.arg[2] = Client_VFS_File_Remove;
 
     struct kot_ShareDataWithArguments_t data;
-    data.Data = (uintptr_t)Path;
+    data.Data = (void*)Path;
     data.Size = strlen(Path) + 1; // add '\0' char
     data.ParameterPosition = 0x3;
 
@@ -334,7 +334,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Openfile(char* Path, kot_perm
     parameters.arg[5] = Target;
 
     struct kot_ShareDataWithArguments_t data;
-    data.Data = (uintptr_t)Path;
+    data.Data = (void*)Path;
     data.Size = strlen(Path) + 1; // add '\0' char
     data.ParameterPosition = 0x4;
 
@@ -383,7 +383,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Rename(char* OldPath, char* N
     memcpy((void*)((uint64_t)RenameData + RenameData->NewPathPosition), NewPath, PathNewSize);
 
     struct kot_ShareDataWithArguments_t data;
-    data.Data = (uintptr_t)RenameData;
+    data.Data = (void*)RenameData;
     data.Size = RenameDataSize; // add '\0' char
     data.ParameterPosition = 0x3;
 
@@ -427,7 +427,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_DirCreate(char* Path, mode_t 
     parameters.arg[4] = Mode;
 
     struct kot_ShareDataWithArguments_t data;
-    data.Data = (uintptr_t)Path;
+    data.Data = (void*)Path;
     data.Size = strlen(Path) + 1; // add '\0' char
     data.ParameterPosition = 0x3;
 
@@ -464,7 +464,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_DirRemove(char* Path, bool Is
     parameters.arg[2] = Client_VFS_Dir_Remove;
 
     struct kot_ShareDataWithArguments_t data;
-    data.Data = (uintptr_t)Path;
+    data.Data = (void*)Path;
     data.Size = strlen(Path) + 1; // add '\0' char
     data.ParameterPosition = 0x3;
 
@@ -510,7 +510,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_DirOpen(char* Path, kot_proce
     parameters.arg[4] = Target;
 
     struct kot_ShareDataWithArguments_t data;
-    data.Data = (uintptr_t)Path;
+    data.Data = (void*)Path;
     data.Size = strlen(Path) + 1; // add '\0' char
     data.ParameterPosition = 0x3;
 
@@ -598,21 +598,21 @@ KResult Srv_Storage_Readfile_Callback(KResult Status, struct kot_srv_storage_cal
         uint64_t MemoryType;
         if(kot_Sys_GetInfoMemoryField((kot_key_mem_t)GP0, &MemoryType, &Callback->Size) == KSUCCESS){
             if(MemoryType == MemoryFieldTypeSendSpaceRO){
-                return kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), (kot_key_mem_t)GP0, &Callback->Data);
+                return kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), (kot_key_mem_t)GP0, (void**)&Callback->Data);
             }
         }
     }
     return Status;
 }
 
-struct kot_srv_storage_callback_t* kot_Srv_Storage_Readfile(kot_file_t* File, uintptr_t Buffer, uint64_t Start, size64_t Size, bool IsAwait){
+struct kot_srv_storage_callback_t* kot_Srv_Storage_Readfile(kot_file_t* File, void* Buffer, uint64_t Start, size64_t Size, bool IsAwait){
     if(!kot_srv_storage_callback_thread) Srv_Storage_Initialize();
     
     kot_thread_t self = kot_Sys_GetThread();
 
     struct kot_srv_storage_callback_t* callback = (struct kot_srv_storage_callback_t*)malloc(sizeof(struct kot_srv_storage_callback_t));
     callback->Self = self;
-    callback->Data = Buffer;
+    callback->Data = (uint64_t)Buffer;
     callback->Size = NULL;
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
@@ -635,11 +635,11 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Readfile(kot_file_t* File, ui
 /* Writefile */
 
 KResult Srv_Storage_Writefile_Callback(KResult Status, struct kot_srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
-    kot_Sys_CloseMemoryField(kot_Sys_GetProcess(), *(kot_key_mem_t*)Callback->Data, *(uintptr_t*)(Callback->Data + 8));
+    kot_Sys_CloseMemoryField(kot_Sys_GetProcess(), *(kot_key_mem_t*)Callback->Data, *(void**)(Callback->Data + 8));
     return Status;
 }
 
-struct kot_srv_storage_callback_t* kot_Srv_Storage_Writefile(kot_file_t* File, uintptr_t Buffer, uint64_t Start, size64_t Size, bool IsDataEnd, bool IsAwait){
+struct kot_srv_storage_callback_t* kot_Srv_Storage_Writefile(kot_file_t* File, void* Buffer, uint64_t Start, size64_t Size, bool IsDataEnd, bool IsAwait){
     if(!kot_srv_storage_callback_thread) Srv_Storage_Initialize();
     
     kot_thread_t self = kot_Sys_GetThread();
@@ -647,7 +647,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Writefile(kot_file_t* File, u
     struct kot_srv_storage_callback_t* callback = (struct kot_srv_storage_callback_t*)malloc(sizeof(struct kot_srv_storage_callback_t));
     callback->Self = self;
     callback->Size = NULL;
-    callback->Data = (uint64_t)malloc(sizeof(kot_key_mem_t) + sizeof(uintptr_t));
+    callback->Data = (uint64_t)malloc(sizeof(kot_key_mem_t) + sizeof(void*));
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_Readfile_Callback;
@@ -656,7 +656,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Writefile(kot_file_t* File, u
     kot_key_mem_t BufferKeyShareable;
 
     *(kot_key_mem_t*)callback->Data = BufferKey;
-    *(uintptr_t*)(callback->Data + 8) = Buffer;
+    *(void**)(callback->Data + 8) = Buffer;
 
     kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), Size, &Buffer, &BufferKey, MemoryFieldTypeSendSpaceRO);
     
@@ -813,7 +813,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_NewDev(char* Name, struct kot
     parameters.arg[1] = (uint64_t)callback;
 
     size64_t SizeBufferArg = sizeof(struct kot_srv_storage_fs_server_functions_t) + strlen(Name) + 1;
-    uintptr_t BufferArg = (uintptr_t)malloc(SizeBufferArg);
+    void* BufferArg = (void*)malloc(SizeBufferArg);
 
     memcpy((void*)BufferArg, FSServerFunctions, sizeof(struct kot_srv_storage_fs_server_functions_t));
     memcpy((void*)(((uint64_t)BufferArg) + sizeof(struct kot_srv_storage_fs_server_functions_t)), Name, strlen(Name) + 1);

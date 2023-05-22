@@ -27,7 +27,7 @@ namespace mlibc{
     }
 
     int sys_tcb_set(void *pointer){
-        return (kot_Sys_SetTCB(kot_Sys_GetThread(), (uintptr_t)pointer) != KSUCCESS);
+        return (kot_Sys_SetTCB(kot_Sys_GetThread(), (void*)pointer) != KSUCCESS);
     }
 
     int sys_futex_tid(){
@@ -63,7 +63,7 @@ namespace mlibc{
     }
 
     int sys_vm_unmap(void *pointer, size_t size){
-        return (kot_Sys_Unmap(kot_Sys_GetThread(), (uintptr_t)pointer, static_cast<size64_t>(size)) != KSUCCESS);
+        return (kot_Sys_Unmap(kot_Sys_GetThread(), (void*)pointer, static_cast<size64_t>(size)) != KSUCCESS);
     }
 
     int sys_vm_protect(void *pointer, size_t size, int prot){
@@ -146,7 +146,7 @@ namespace mlibc{
             return -1;
         }
 
-        uintptr_t MainStackData;
+        void* MainStackData;
         size64_t SizeMainStackData;
         uint64_t argc = 0;
         for(; argv[argc] != NULL; argc++);

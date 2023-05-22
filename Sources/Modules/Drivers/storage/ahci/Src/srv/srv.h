@@ -12,7 +12,7 @@ struct Space_t{
 
     /* Buffer */
     kot_key_mem_t BufferKey;
-    uintptr_t BufferVirtual;
+    void* BufferVirtual;
 }__attribute__((packed));
 
 void SrvAddDevice(class Device* Device);

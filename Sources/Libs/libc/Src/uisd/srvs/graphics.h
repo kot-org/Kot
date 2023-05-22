@@ -46,7 +46,7 @@ struct srv_graphics_callback_t{
 };
 
 typedef struct {
-    uintptr_t Buffer;
+    void* Buffer;
     size64_t Size;
     uint64_t Pitch;
     uint64_t Width;

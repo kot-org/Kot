@@ -14,7 +14,7 @@ KResult InitializeDev(){
     return KSUCCESS;
 }
 
-KResult NewDev(kot_thread_t Callback, uint64_t CallbackArg, uintptr_t Opaque){
+KResult NewDev(kot_thread_t Callback, uint64_t CallbackArg, void* Opaque){
     struct kot_srv_storage_fs_server_functions_t* FSServerFunctions = (kot_srv_storage_fs_server_functions_t*)Opaque;
     char* Name = (char*)((uint64_t)Opaque + sizeof(struct kot_srv_storage_fs_server_functions_t));
 
@@ -37,7 +37,7 @@ KResult NewDev(kot_thread_t Callback, uint64_t CallbackArg, uintptr_t Opaque){
     memcpy(&Dev->VirtualPartition.FSServerFunctions, FSServerFunctions, sizeof(kot_srv_storage_fs_server_functions_t));
 
     atomicAcquire(&DevListLock, 0);
-    kot_vector_push(DevList, (uintptr_t)Dev);
+    kot_vector_push(DevList, (void*)Dev);
     atomicUnlock(&DevListLock, 0);
     
     kot_arguments_t arguments{

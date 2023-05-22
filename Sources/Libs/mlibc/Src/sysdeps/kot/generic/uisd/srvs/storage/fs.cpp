@@ -265,7 +265,7 @@ KResult kot_fclose(kot_file_t* File){
     return Status;
 }
 
-KResult kot_fread(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, kot_file_t* File){
+KResult kot_fread(void* Buffer, size_t BlockSize, size_t BlockCount, kot_file_t* File){
     atomicAcquire(&File->Lock, 0);
     struct kot_srv_storage_callback_t* CallbackReadFile = kot_Srv_Storage_Readfile(File, Buffer, File->Position, BlockSize * BlockCount, true);
     KResult Status = CallbackReadFile->Status;
@@ -277,7 +277,7 @@ KResult kot_fread(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, kot_fil
     return Status;
 }
 
-KResult kot_fwrite(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, kot_file_t* File){
+KResult kot_fwrite(void* Buffer, size_t BlockSize, size_t BlockCount, kot_file_t* File){
     atomicAcquire(&File->Lock, 0);
     struct kot_srv_storage_callback_t* CallbackWriteFile = kot_Srv_Storage_Writefile(File, Buffer, File->Position, BlockSize * BlockCount, File->IsDataEnd, true);
     KResult Status = CallbackWriteFile->Status;
@@ -290,7 +290,7 @@ KResult kot_fwrite(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, kot_fi
 }
 
 KResult kot_fputs(char* String, kot_file_t* File){
-    return kot_fwrite((uintptr_t)String, strlen(String) + 1, 1, File);
+    return kot_fwrite((void*)String, strlen(String) + 1, 1, File);
 }
 
 KResult kot_fseek(kot_file_t* File, uint64_t Offset, int Whence){

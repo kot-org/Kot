@@ -102,7 +102,7 @@ class E1000 {
     private:
         uint8_t BarType;
 
-        uintptr_t MemoryBase;
+        void* MemoryBase;
         uint64_t IoBase;
 
         uint8_t MACAddr[5];

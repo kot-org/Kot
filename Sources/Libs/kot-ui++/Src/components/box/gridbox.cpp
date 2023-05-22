@@ -1,4 +1,5 @@
 #include <kot-ui++/component.h>
+#include <string.h>
 
 namespace Ui {
     // Todo calculate width and height in global update
@@ -31,8 +32,8 @@ namespace Ui {
                      YAutoPosition = 0;
 
             for(uint64_t i = 0; i < Cpnt->Childs->length; i++) {
-                Component* Child = (Component*)vector_get(Cpnt->Childs, i);
-                point_t GridPosition;
+                Component* Child = (Component*)kot_vector_get(Cpnt->Childs, i);
+                kot_point_t GridPosition;
 
                 GridPosition.x = Child->Style->Position.x;
                 GridPosition.y = Child->Style->Position.y;
@@ -91,8 +92,8 @@ namespace Ui {
     Gridbox_t* Gridbox(GridboxStyle_t Style, Component* ParentCpnt){
         Gridbox_t* Gridbox = (Gridbox_t*)malloc(sizeof(Gridbox_t));
 
-        memcpy(&Gridbox->Style, &Style, sizeof(GridboxStyle_t));
-        Gridbox->Cpnt = new Component(Style.G, GridboxUpdate, NULL, (uintptr_t)Gridbox, ParentCpnt, false);
+        memcpy((void*)&Gridbox->Style, (void*)&Style, sizeof(GridboxStyle_t));
+        Gridbox->Cpnt = new Component(Style.G, GridboxUpdate, NULL, (void*)Gridbox, ParentCpnt, false);
         
         return Gridbox;
     }

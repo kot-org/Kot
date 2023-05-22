@@ -26,7 +26,7 @@ typedef struct {
 struct hid_event_t{
     kot_event_t Event;
     uint64_t ParentType;
-    uintptr_t Parent;
+    void* Parent;
 };
 
 
@@ -52,8 +52,8 @@ class hidc{
         int64_t Width;
         int64_t Height;
 
-        uintptr_t PixelMap;
-        uintptr_t BitmapMask;
+        void* PixelMap;
+        void* BitmapMask;
 
         thread_t MouseRelativeInterruptThread;
 

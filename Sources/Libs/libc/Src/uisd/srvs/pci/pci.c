@@ -105,7 +105,7 @@ struct srv_pci_callback_t* Srv_Pci_FindDevice(srv_pci_search_parameters_t* Searc
 KResult Srv_Pci_GetInfoDevice_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
         Callback->Data = malloc(sizeof(srv_pci_device_info_t));
-        memcpy(Callback->Data, (uintptr_t)GP0, sizeof(srv_pci_device_info_t));
+        memcpy(Callback->Data, (void*)GP0, sizeof(srv_pci_device_info_t));
         Callback->Size = sizeof(srv_pci_device_info_t);
     }
     return Status;
@@ -141,7 +141,7 @@ struct srv_pci_callback_t* Srv_Pci_GetInfoDevice(PCIDeviceID_t Device, bool IsAw
 KResult Srv_Pci_GetBAR_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
         Callback->Data = malloc(sizeof(srv_pci_bar_info_t));
-        memcpy(Callback->Data, (uintptr_t)GP0, sizeof(srv_pci_bar_info_t));
+        memcpy(Callback->Data, (void*)GP0, sizeof(srv_pci_bar_info_t));
         Callback->Size = sizeof(srv_pci_bar_info_t);
     }
     return Status;

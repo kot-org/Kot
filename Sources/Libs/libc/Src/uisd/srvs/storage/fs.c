@@ -202,7 +202,7 @@ KResult fclose(file_t* File){
     return Status;
 }
 
-KResult fread(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, file_t* File){
+KResult fread(void* Buffer, size_t BlockSize, size_t BlockCount, file_t* File){
     atomicAcquire(&File->Lock, 0);
     struct srv_storage_callback_t* CallbackReadFile = Srv_Storage_Readfile(File, Buffer, File->Position, BlockSize * BlockCount, true);
     KResult Status = CallbackReadFile->Status;
@@ -214,7 +214,7 @@ KResult fread(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, file_t* Fil
     return Status;
 }
 
-KResult fwrite(uintptr_t Buffer, size_t BlockSize, size_t BlockCount, file_t* File){
+KResult fwrite(void* Buffer, size_t BlockSize, size_t BlockCount, file_t* File){
     atomicAcquire(&File->Lock, 0);
     struct srv_storage_callback_t* CallbackWriteFile = Srv_Storage_Writefile(File, Buffer, File->Position, BlockSize * BlockCount, File->IsDataEnd, true);
     KResult Status = CallbackWriteFile->Status;

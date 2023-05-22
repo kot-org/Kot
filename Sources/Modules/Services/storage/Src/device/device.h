@@ -6,12 +6,12 @@
 
 struct storage_callback_t{
     kot_thread_t MainThread;
-    uintptr_t Data;
+    void* Data;
     size64_t Size;
 };
 
 struct storage_device_t{
-    uintptr_t BufferRWBase;
+    void* BufferRWBase;
     size_t BufferRWSize;
     kot_srv_storage_device_info_t Info;
     kot_thread_t CallbackRequestHandlerThread;
@@ -24,8 +24,8 @@ struct storage_device_t{
 
     uint64_t GetBufferStartingAddress(uint64_t Start);
 
-    KResult ReadDevice(uintptr_t Buffer, uint64_t Start, size64_t Size);
-    KResult WriteDevice(uintptr_t Buffer, uint64_t Start, size64_t Size);
+    KResult ReadDevice(void* Buffer, uint64_t Start, size64_t Size);
+    KResult WriteDevice(void* Buffer, uint64_t Start, size64_t Size);
 };
 
 KResult CallbackCreateSpaceHandler(KResult Status, storage_callback_t* CallbackData, kot_srv_storage_space_info_t* SpaceInfo);

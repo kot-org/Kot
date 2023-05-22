@@ -219,9 +219,9 @@ struct ext_file_t{
     size64_t Size;
     kot_permissions_t Permissions;
     process_t Target;
-    KResult ReadFile(uintptr_t buffer, uint64_t start, size64_t size);
+    KResult ReadFile(void* buffer, uint64_t start, size64_t size);
     KResult ReadFile(kot_key_mem_t* key, uint64_t start, size64_t size);
-    KResult WriteFile(uintptr_t buffer, uint64_t start, size64_t size, bool is_data_end);
+    KResult WriteFile(void* buffer, uint64_t start, size64_t size, bool is_data_end);
     KResult GetSize();
     KResult CloseFile();
 };
@@ -245,7 +245,7 @@ struct mount_info_t{
 	uint64_t FirstInode;
 
     uint64_t GroupsCount;
-    uintptr_t GroupDescriptors;
+    void* GroupDescriptors;
 
     uint64_t Lock;
 
@@ -294,14 +294,14 @@ struct mount_info_t{
 	uint64_t GetUsedDirCount(struct ext2_group_descriptor_t* descriptor);
 
     KResult ReadInode(struct inode_t* inode, kot_key_mem_t* key, uint64_t start, size64_t size);
-	KResult ReadInode(struct inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size);
-	KResult ReadInodeBlock(struct inode_t* inode, uintptr_t buffer, uint64_t block, uint64_t start, size64_t size);
+	KResult ReadInode(struct inode_t* inode, void* buffer, uint64_t start, size64_t size);
+	KResult ReadInodeBlock(struct inode_t* inode, void* buffer, uint64_t block, uint64_t start, size64_t size);
     int64_t GetInodeBlock(inode_t* inode, uint64_t block, uint64_t* redirection0, uint64_t* redirection1, uint64_t* redirection2, uint32_t** redirectioncache0, uint32_t** redirectioncache1, uint32_t** redirectioncache2);
-	KResult WriteInode(struct inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size, bool is_data_end);
-	KResult WriteInodeBlock(struct inode_t* inode, uintptr_t buffer, uint64_t block, uint64_t start, size64_t size);
+	KResult WriteInode(struct inode_t* inode, void* buffer, uint64_t start, size64_t size, bool is_data_end);
+	KResult WriteInodeBlock(struct inode_t* inode, void* buffer, uint64_t block, uint64_t start, size64_t size);
 
-	KResult ReadBlock(uintptr_t buffer, uint64_t block, uint64_t start, size64_t size);
-	KResult WriteBlock(uintptr_t buffer, uint64_t block, uint64_t start, size64_t size);
+	KResult ReadBlock(void* buffer, uint64_t block, uint64_t start, size64_t size);
+	KResult WriteBlock(void* buffer, uint64_t block, uint64_t start, size64_t size);
 
 	uint64_t GetLocationFromInode(uint64_t inode);
 

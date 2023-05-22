@@ -74,7 +74,7 @@ struct srv_system_callback_t* Srv_System_LoadExecutable(uint64_t Priviledge, cha
 KResult Srv_System_GetFramebuffer_Callback(KResult Status, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
         Callback->Data = malloc(sizeof(srv_system_framebuffer_t));
-        memcpy(Callback->Data, (uintptr_t)GP0, sizeof(srv_system_framebuffer_t));
+        memcpy(Callback->Data, (void*)GP0, sizeof(srv_system_framebuffer_t));
         Callback->Size = (size64_t)sizeof(srv_system_framebuffer_t);
     }
     return Status;
@@ -109,7 +109,7 @@ struct srv_system_callback_t* Srv_System_GetFramebuffer(bool IsAwait){
 KResult Srv_System_ReadFileInitrd_Callback(KResult Status, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
         Callback->Data = malloc((size64_t)GP0);
-        memcpy(Callback->Data, (uintptr_t)GP1, (size64_t)GP0);
+        memcpy(Callback->Data, (void*)GP1, (size64_t)GP0);
         Callback->Size = (size64_t)GP0;
     }
     return Status;
@@ -149,7 +149,7 @@ struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwai
 /* GetTableInRootSystemDescription */
 KResult Srv_System_GetTableInRootSystemDescription_Callback(KResult Status, struct srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
-        Callback->Data = (uintptr_t)MapPhysical(GP0, GP1);
+        Callback->Data = (void*)MapPhysical(GP0, GP1);
         Callback->Size = (size64_t)GP1;
     }
     return Status;

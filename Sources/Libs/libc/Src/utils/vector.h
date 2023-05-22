@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 typedef struct {
-    uintptr_t* items;
+    void** items;
     uint64_t length;
 } kot_vector_t;
 
@@ -12,11 +12,11 @@ extern "C" {
 #endif
 
 kot_vector_t* vector_create();
-uint64_t vector_push(kot_vector_t* vector, uintptr_t item);
+uint64_t vector_push(kot_vector_t* vector, void* item);
 void vector_remove(kot_vector_t* vector, uint64_t index);
-void vector_set(kot_vector_t* vector, uint64_t index, uintptr_t item);
+void vector_set(kot_vector_t* vector, uint64_t index, void* item);
 void vector_expand(kot_vector_t* vector, uint64_t len);
-uintptr_t vector_get(kot_vector_t* vector, uint64_t index);
+void* vector_get(kot_vector_t* vector, uint64_t index);
 void vector_clear(kot_vector_t* vector);
 kot_vector_t* vector_clone(kot_vector_t* vector);
 

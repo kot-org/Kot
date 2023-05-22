@@ -22,37 +22,37 @@ KResult MountToVFS(mount_info_t* MountInfo, process_t VFSProcess, thread_t VFSMo
 
     /* ChangeUserData */
     thread_t ChangeUserDataThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&ChangeUserData, PriviledgeDriver, (uint64_t)MountInfo, &ChangeUserDataThread);
+    Sys_CreateThread(proc, (void*)&ChangeUserData, PriviledgeDriver, (uint64_t)MountInfo, &ChangeUserDataThread);
     FSServerFunctions.ChangeUserData = MakeShareableThreadToProcess(ChangeUserDataThread, VFSProcess);
 
     /* Removefile */
     thread_t RemovefileThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&Removefile, PriviledgeDriver, (uint64_t)MountInfo, &RemovefileThread);
+    Sys_CreateThread(proc, (void*)&Removefile, PriviledgeDriver, (uint64_t)MountInfo, &RemovefileThread);
     FSServerFunctions.Removefile = MakeShareableThreadToProcess(RemovefileThread, VFSProcess);
 
     /* Openfile */
     thread_t OpenfileThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&Openfile, PriviledgeDriver, (uint64_t)MountInfo, &OpenfileThread);
+    Sys_CreateThread(proc, (void*)&Openfile, PriviledgeDriver, (uint64_t)MountInfo, &OpenfileThread);
     FSServerFunctions.Openfile = MakeShareableThreadToProcess(OpenfileThread, VFSProcess);
 
     /* Rename */
     thread_t RenameThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&Rename, PriviledgeDriver, (uint64_t)MountInfo, &RenameThread);
+    Sys_CreateThread(proc, (void*)&Rename, PriviledgeDriver, (uint64_t)MountInfo, &RenameThread);
     FSServerFunctions.Rename = MakeShareableThreadToProcess(RenameThread, VFSProcess);
 
     /* Mkdir */
     thread_t MkdirThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&Mkdir, PriviledgeDriver, (uint64_t)MountInfo, &MkdirThread);
+    Sys_CreateThread(proc, (void*)&Mkdir, PriviledgeDriver, (uint64_t)MountInfo, &MkdirThread);
     FSServerFunctions.Mkdir = MakeShareableThreadToProcess(MkdirThread, VFSProcess);
 
     /* Rmdir */
     thread_t RmdirThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&Rmdir, PriviledgeDriver, (uint64_t)MountInfo, &RmdirThread);
+    Sys_CreateThread(proc, (void*)&Rmdir, PriviledgeDriver, (uint64_t)MountInfo, &RmdirThread);
     FSServerFunctions.Rmdir = MakeShareableThreadToProcess(RmdirThread, VFSProcess);
 
     /* Opendir */
     thread_t OpendirThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&Opendir, PriviledgeDriver, (uint64_t)MountInfo, &OpendirThread);
+    Sys_CreateThread(proc, (void*)&Opendir, PriviledgeDriver, (uint64_t)MountInfo, &OpendirThread);
     FSServerFunctions.Opendir = MakeShareableThreadToProcess(OpendirThread, VFSProcess);
 
     Srv_Storage_MountPartition(VFSMountThread, &FSServerFunctions, true);
@@ -128,7 +128,7 @@ KResult Openfile(thread_t Callback, uint64_t CallbackArg, char* Path, kot_permis
         srv_storage_fs_server_open_file_data_t SrvOpenFileData;
         thread_t DispatcherThread;
 
-        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&FileDispatch, PriviledgeDriver, (uint64_t)File, &DispatcherThread);
+        Sys_CreateThread(Sys_GetProcess(), (void*)&FileDispatch, PriviledgeDriver, (uint64_t)File, &DispatcherThread);
 
         SrvOpenFileData.Dispatcher = MakeShareableThreadToProcess(DispatcherThread, Target);
 
@@ -238,7 +238,7 @@ KResult Writefile(thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uin
     uint64_t Size;
     if(Sys_GetInfoMemoryField(GP0, &TypePointer, &Size) == KSUCCESS){
         if(TypePointer == MemoryFieldTypeSendSpaceRO){            
-            uintptr_t Buffer = malloc(Size);
+            void* Buffer = malloc(Size);
             assert(Sys_AcceptMemoryField(Sys_GetProcess(), GP0, &Buffer) == KSUCCESS);
 
             Status = File->WriteFile(Buffer, GP1, Size, GP2);
@@ -348,7 +348,7 @@ KResult Opendir(thread_t Callback, uint64_t CallbackArg, char* Path, kot_permiss
         srv_storage_fs_server_open_dir_data_t SrvOpenDirData;
         thread_t DispatcherThread;
 
-        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&DirDispatch, PriviledgeDriver, (uint64_t)Directory, &DispatcherThread);
+        Sys_CreateThread(Sys_GetProcess(), (void*)&DirDispatch, PriviledgeDriver, (uint64_t)Directory, &DispatcherThread);
 
         Sys_Keyhole_CloneModify(DispatcherThread, &SrvOpenDirData.Dispatcher, Target, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsExecutableWithQueue, PriviledgeApp);
 

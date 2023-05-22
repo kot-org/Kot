@@ -20,8 +20,8 @@ KResult kot_BindMouseRelative(kot_thread_t Task, bool IgnoreMissedEvents);
 KResult kot_BindMouseAbsolute(kot_thread_t Task, bool IgnoreMissedEvents);
 KResult kot_BindKeyboardEvent(kot_thread_t Task, bool IgnoreMissedEvents);
 
-KResult kot_GetTableConverter(char* Path, uintptr_t* TableConverter, size64_t* TableConverterCharCount);
-KResult kot_GetCharFromScanCode(uint64_t ScanCode, uintptr_t TableConverter, size64_t TableConverterCharCount, char* Char, bool* IsPressed, uint64_t* PressedCache);
+KResult kot_GetTableConverter(char* Path, void** TableConverter, size64_t* TableConverterCharCount);
+KResult kot_GetCharFromScanCode(uint64_t ScanCode, void* TableConverter, size64_t TableConverterCharCount, char* Char, bool* IsPressed, uint64_t* PressedCache);
 
 
 

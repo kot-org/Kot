@@ -3,7 +3,7 @@
 
 typedef struct {
     char* key;
-    uintptr_t item;
+    void* item;
 } map_item_t;
 
 kot_vector_t* map_create() {
@@ -28,7 +28,7 @@ int64_t map_indexof(kot_vector_t* map, char* key) {
     return -1; 
 }
 
-void map_set(kot_vector_t* map, char* key, uintptr_t item) {
+void map_set(kot_vector_t* map, char* key, void* item) {
     map_item_t* map_item = (map_item_t*) malloc(sizeof(map_item_t));
     map_item->key = key;
     map_item->item = item;
@@ -54,7 +54,7 @@ void map_remove(kot_vector_t* map, char* key) {
     }
 }
 
-uintptr_t map_get(kot_vector_t* map, char* key) {
+void* map_get(kot_vector_t* map, char* key) {
     int64_t indexof = map_indexof(map, key);
     if (indexof != -1) {
         return ((map_item_t*) vector_get(map, indexof))->item;
@@ -62,6 +62,6 @@ uintptr_t map_get(kot_vector_t* map, char* key) {
     return NULL;
 }
 
-uintptr_t map_geti(kot_vector_t* map, uint64_t index) {
+void* map_geti(kot_vector_t* map, uint64_t index) {
     return ((map_item_t*) vector_get(map, index))->item;
 }

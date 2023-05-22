@@ -17,10 +17,10 @@ orbc::orbc(){
 
     size64_t FbSize = bootframebuffer->Pitch * bootframebuffer->Height;
 
-    uint64_t virtualAddress = (uint64_t)MapPhysical((uintptr_t)bootframebuffer->Address, FbSize);
+    uint64_t virtualAddress = (uint64_t)MapPhysical((void*)bootframebuffer->Address, FbSize);
 
     
-    monitorc* monitor0 = new monitorc(this, (uintptr_t)virtualAddress, bootframebuffer->Width, bootframebuffer->Height, bootframebuffer->Pitch, bootframebuffer->Bpp, 0, 0);
+    monitorc* monitor0 = new monitorc(this, (void*)virtualAddress, bootframebuffer->Width, bootframebuffer->Height, bootframebuffer->Pitch, bootframebuffer->Bpp, 0, 0);
 
     Hid->CursorMaxPosition.x = monitor0->GetWidth()-1;
     Hid->CursorMaxPosition.y = monitor0->GetHeight()-1;

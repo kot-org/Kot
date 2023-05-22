@@ -14,7 +14,7 @@ shell_t* NewShell(kot_process_t Target){
     Shell->HeightUsed = 0;
     
     kot_Sys_Event_Create(&Shell->ShellEvent);
-    kot_Sys_CreateThread(kot_Sys_GetProcess(), (uintptr_t)&ShellEventEntry, PriviledgeApp, (uint64_t)Shell, &Shell->ShellEventThread);
+    kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&ShellEventEntry, PriviledgeApp, (uint64_t)Shell, &Shell->ShellEventThread);
     kot_Sys_Event_Bind(Shell->ShellEvent, Shell->ShellEventThread, false);
     Shell->Wid = CreateWindow(Shell->ShellEvent, Window_Type_Default);
 
@@ -25,7 +25,7 @@ shell_t* NewShell(kot_process_t Target){
     Shell->Backbuffer = (kot_framebuffer_t*)malloc(sizeof(kot_framebuffer_t));
 
     memcpy(Shell->Backbuffer, Shell->Framebuffer, sizeof(kot_framebuffer_t));
-    Shell->Backbuffer->Buffer = (uintptr_t)calloc(Shell->Framebuffer->Size, sizeof(uint8_t));
+    Shell->Backbuffer->Buffer = (void*)calloc(Shell->Framebuffer->Size, sizeof(uint8_t));
 
     // Load font
     FILE* FontFile = fopen("d0:default-font.sfn", "r");
@@ -34,7 +34,7 @@ shell_t* NewShell(kot_process_t Target){
     void* Buffer = malloc(Size);
     fseek(FontFile, 0, SEEK_SET);
     fread(Buffer, Size, 1, FontFile);
-    Shell->Font = (kfont_t*)LoadFont((uintptr_t)Buffer);
+    Shell->Font = (kfont_t*)LoadFont((void*)Buffer);
     free(Buffer);
     fclose(FontFile);
 
@@ -50,7 +50,7 @@ shell_t* NewShell(kot_process_t Target){
     return Shell;
 }
 
-void ShellPrint(shell_t* Shell, uintptr_t Buffer, size64_t Size){
+void ShellPrint(shell_t* Shell, void* Buffer, size64_t Size){
     char* Text = (char*)malloc(Size + 1);
     memcpy(Text, (void*)Buffer, Size);
 
@@ -92,7 +92,7 @@ KResult ShellSendRequest(shell_t* Shell, read_request_shell_t* Request){
     };
 
     kot_key_mem_t BufferKey;
-    kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), Request->SizeGet, (uintptr_t*)&Request->Buffer, &BufferKey, MemoryFieldTypeSendSpaceRO);
+    kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), Request->SizeGet, (void**)&Request->Buffer, &BufferKey, MemoryFieldTypeSendSpaceRO);
     kot_Sys_Keyhole_CloneModify(BufferKey, &arguments.arg[2], Shell->Target, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
     
     KResult Status = kot_Sys_ExecThread(Request->Callback, &arguments, ExecutionTypeQueu, NULL);
@@ -109,7 +109,7 @@ KResult ShellCreateRequest(shell_t* Shell, kot_thread_t Callback, uint64_t Callb
     Request->SizeGet = NULL;
     Request->Buffer = NULL;
 
-    kot_vector_push(Shell->ReadRequest, (uintptr_t)Request);
+    kot_vector_push(Shell->ReadRequest, (void*)Request);
 
     return KSUCCESS;
 }

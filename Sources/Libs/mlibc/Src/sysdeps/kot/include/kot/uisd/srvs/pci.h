@@ -45,14 +45,14 @@ typedef struct {
 } kot_srv_pci_device_info_t;
 
 typedef struct {
-    uintptr_t Address;
+    void* Address;
     size64_t Size;
     uint8_t Type;
 } kot_srv_pci_bar_info_t;
 
 struct kot_srv_pci_callback_t{
     kot_thread_t Self;
-    uint64_t Data;
+    uintptr_t Data;
     size64_t Size;
     bool IsAwait;
     KResult Status;

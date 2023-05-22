@@ -1,6 +1,6 @@
 #include <out/out.h>
 
-uintptr_t FileBuf;
+void* FileBuf;
 size64_t FileSize;
 uint64_t FileOffset;
 
@@ -71,7 +71,7 @@ KResult Outputs::AddOutputDevice(srv_audio_device_t* Device){
     OutputDevice->OutputStream.Format = Device->Info.Format;
 
     // Intialize stream events
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&OnOffsetUpdate, PriviledgeApp, (uint64_t)OutputDevice, &OutputDevice->OnOffsetUpdateHandler);
+    Sys_CreateThread(Sys_GetProcess(), (void*)&OnOffsetUpdate, PriviledgeApp, (uint64_t)OutputDevice, &OutputDevice->OnOffsetUpdateHandler);
     Sys_Event_Bind(Device->OnOffsetUpdate, OutputDevice->OnOffsetUpdateHandler, false);
 
     Sys_Event_Create(&OutputDevice->ClientOnOffsetUpdate);
@@ -148,7 +148,7 @@ StreamRequest_t* Outputs::RequestStream(uint64_t OutputID, process_t ProcessKey,
 
     OutputDevice->InputStreams.push(OutputRequestData);
 
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&StreamCommand, PriviledgeApp, (uint64_t)OutputRequestData, &OutputRequestData->StreamCommandThread);
+    Sys_CreateThread(Sys_GetProcess(), (void*)&StreamCommand, PriviledgeApp, (uint64_t)OutputRequestData, &OutputRequestData->StreamCommandThread);
     OutputRequestData->ShareBuffer->StreamCommand = MakeShareableThreadToProcess(OutputRequestData->StreamCommandThread, ProcessKey);
 
     atomicUnlock(&Lock, 0);

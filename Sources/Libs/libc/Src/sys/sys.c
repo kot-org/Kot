@@ -2,15 +2,15 @@
 
 __attribute__((section(".KotSpecificData"))) struct kot_SpecificData_t KotSpecificData;
 
-KResult Sys_CreateMemoryField(process_t self, size64_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, enum MemoryFieldType type){
+KResult Sys_CreateMemoryField(process_t self, size64_t size, void** virtualAddressPointer, ksmem_t* keyPointer, enum MemoryFieldType type){
     return Syscall_40(KSys_CreateMemoryField, self, size, virtualAddressPointer, keyPointer, type);
 }
 
-KResult Sys_AcceptMemoryField(process_t self, ksmem_t key, uintptr_t* virtualAddressPointer){
+KResult Sys_AcceptMemoryField(process_t self, ksmem_t key, void** virtualAddressPointer){
     return Syscall_24(KSys_AcceptMemoryField, self, key, virtualAddressPointer);
 }
 
-KResult Sys_CloseMemoryField(process_t self, ksmem_t key, uintptr_t address){
+KResult Sys_CloseMemoryField(process_t self, ksmem_t key, void* address){
     return Syscall_24(KSys_CloseMemoryField, self, key, address);
 }
 
@@ -46,15 +46,15 @@ KResult Sys_Unpause(thread_t self){
     return Syscall_8(KSys_UnPause, self);
 }
 
-KResult Sys_Map(process_t self, uint64_t* addressVirtual, enum AllocationType type, uintptr_t* addressPhysical, size64_t* size, bool findFree){
+KResult Sys_Map(process_t self, uint64_t* addressVirtual, enum AllocationType type, void** addressPhysical, size64_t* size, bool findFree){
     return Syscall_48(KSys_Map, self, addressVirtual, type, addressPhysical, size, findFree);
 }
 
-KResult Sys_Unmap(thread_t self, uintptr_t addressVirtual, size64_t size){
+KResult Sys_Unmap(thread_t self, void* addressVirtual, size64_t size){
     return Syscall_24(KSys_Unmap, self, addressVirtual, size);
 }
 
-uintptr_t Sys_GetPhysical(uintptr_t addressVirtual){
+void* Sys_GetPhysical(void* addressVirtual){
     return Syscall_8(KSys_GetPhysical, addressVirtual);
 }
 
@@ -78,7 +78,7 @@ KResult Sys_Event_Close(){
     return Syscall_0(KSys_Event_Close);
 }
 
-KResult Sys_CreateThread(process_t self, uintptr_t entryPoint, enum Priviledge privilege, uint64_t externalData, thread_t* result){
+KResult Sys_CreateThread(process_t self, void* entryPoint, enum Priviledge privilege, uint64_t externalData, thread_t* result){
     return Syscall_40(KSys_CreateThread, self, entryPoint, privilege, externalData, result);
 }
 
@@ -98,7 +98,7 @@ KResult Sys_Keyhole_Verify(key_t self, enum DataType type, process_t* target, ui
     return Syscall_40(KSys_Keyhole_Verify, self, type, target, flags, priviledge);
 }
 
-KResult Sys_SetTCB(thread_t thread, uintptr_t pointer){
+KResult Sys_SetTCB(thread_t thread, void* pointer){
     return Syscall_16(KSys_TCB_Set, thread, (uint64_t)pointer);
 }
 

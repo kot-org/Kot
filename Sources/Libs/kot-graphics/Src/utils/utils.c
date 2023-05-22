@@ -49,7 +49,7 @@ void BlitFramebuffer(kot_framebuffer_t* To, kot_framebuffer_t* From, uint64_t Po
     uint64_t PitchCopy = WidthCopy * To->Btpp;
 
     for(uint64_t H = 0; H < HeightCopy; H++){
-        memcpy((uintptr_t)ToBuffer, (uintptr_t)FromBuffer, PitchCopy);
+        memcpy((void*)ToBuffer, (void*)FromBuffer, PitchCopy);
         ToBuffer += To->Pitch;
         FromBuffer += From->Pitch;
     }
@@ -85,13 +85,13 @@ void BlitFramebufferRadius(kot_framebuffer_t* to, kot_framebuffer_t* from, uint6
         if (LeftOffset < 0) {
             LeftOffset = 0;
         }
-        memcpy((uintptr_t) (ToBuffer + LeftOffset), (uintptr_t) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
+        memcpy((void*) (ToBuffer + LeftOffset), (void*) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
         ToBuffer += to->Pitch;
         FromBuffer += from->Pitch;
     }
 
     for (uint64_t h = Ray; h < HeightCopy - Ray && h < HeightCopy; h++) {
-        memcpy((uintptr_t) ToBuffer, (uintptr_t) FromBuffer, PitchCopy);
+        memcpy((void*) ToBuffer, (void*) FromBuffer, PitchCopy);
         ToBuffer += to->Pitch;
         FromBuffer += from->Pitch;
     }
@@ -103,7 +103,7 @@ void BlitFramebufferRadius(kot_framebuffer_t* to, kot_framebuffer_t* from, uint6
         if (LeftOffset < 0) {
             LeftOffset = 0;
         }
-        memcpy((uintptr_t) (ToBuffer + LeftOffset), (uintptr_t) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
+        memcpy((void*) (ToBuffer + LeftOffset), (void*) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
         ToBuffer += to->Pitch;
         FromBuffer += from->Pitch;
     }
@@ -123,7 +123,7 @@ void FillRect(kot_framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uin
             uint64_t XPosition = w * fb->Btpp;
             uint64_t index = YPosition + XPosition;
             *(uint32_t*)((uint64_t)fb->Buffer + index) = color;
-            //blendAlpha((uintptr_t)((uint64_t)fb->Buffer + index), color);
+            //blendAlpha((void*)((uint64_t)fb->Buffer + index), color);
         }
     }
 }

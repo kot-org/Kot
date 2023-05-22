@@ -5,7 +5,7 @@ extern "C" {
 
 typedef struct{
     char* key;
-    uintptr_t item;
+    void* item;
 }kot_map_item_t;
 
 kot_vector_t* kot_map_create(){
@@ -30,15 +30,15 @@ int64_t kot_map_indexof(kot_vector_t* map, char* key) {
     return -1; 
 }
 
-void kot_map_set(kot_vector_t* map, char* key, uintptr_t item) {
+void kot_map_set(kot_vector_t* map, char* key, void* item) {
     kot_map_item_t* map_item = (kot_map_item_t*) malloc(sizeof(kot_map_item_t));
     map_item->key = key;
     map_item->item = item;
     int64_t indexof = kot_map_indexof(map, key);
     if (indexof == -1) {
-        kot_vector_push(map, (uintptr_t)map_item);
+        kot_vector_push(map, (void*)map_item);
     } else {
-        kot_vector_set(map, indexof, (uintptr_t)map_item);
+        kot_vector_set(map, indexof, (void*)map_item);
     }
 }
 
@@ -56,7 +56,7 @@ void kot_map_remove(kot_vector_t* map, char* key) {
     }
 }
 
-uintptr_t kot_map_get(kot_vector_t* map, char* key) {
+void* kot_map_get(kot_vector_t* map, char* key) {
     int64_t indexof = kot_map_indexof(map, key);
     if (indexof != -1) {
         return ((kot_map_item_t*)kot_vector_get(map, indexof))->item;
@@ -64,7 +64,7 @@ uintptr_t kot_map_get(kot_vector_t* map, char* key) {
     return NULL;
 }
 
-uintptr_t kot_map_geti(kot_vector_t* map, uint64_t index) {
+void* kot_map_geti(kot_vector_t* map, uint64_t index) {
     return ((kot_map_item_t*)kot_vector_get(map, index))->item;
 }
 

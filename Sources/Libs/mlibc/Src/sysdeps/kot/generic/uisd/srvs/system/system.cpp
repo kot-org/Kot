@@ -15,7 +15,7 @@ void kot_Srv_System_Initialize(){
         kot_ShareableProcessUISDSystem = kot_ShareProcessKey(Proc);
 
         kot_thread_t SystemthreadKeyCallback = NULL;
-        kot_Sys_CreateThread(Proc, (uintptr_t)&kot_Srv_System_Callback, PriviledgeMax, NULL, &SystemthreadKeyCallback);
+        kot_Sys_CreateThread(Proc, (void*)&kot_Srv_System_Callback, PriviledgeMax, NULL, &SystemthreadKeyCallback);
         kot_InitializeThread(SystemthreadKeyCallback);
         kot_srv_system_callback_thread = kot_MakeShareableThreadToProcess(SystemthreadKeyCallback, kot_SystemData->ControllerHeader.Process);
     }else{
@@ -62,7 +62,7 @@ struct kot_srv_system_callback_t* kot_Srv_System_LoadExecutable(uint64_t Privile
     struct kot_ShareDataWithArguments_t data;
 
     if(Path != NULL){
-        data.Data = (uintptr_t)Path;
+        data.Data = (void*)Path;
         data.Size = strlen(Path) + 1; // add '\0' char
         data.ParameterPosition = 0x4; 
     }
@@ -135,7 +135,7 @@ struct kot_srv_system_callback_t* kot_Srv_System_ReadFileInitrd(char* Name,  boo
 
     struct kot_ShareDataWithArguments_t data;
     if(Name != NULL){
-        data.Data = (uintptr_t)Name;
+        data.Data = (void*)Name;
         data.Size = strlen(Name) + 1; // add '\0' char
         data.ParameterPosition = 0x2; 
     }
@@ -154,7 +154,7 @@ struct kot_srv_system_callback_t* kot_Srv_System_ReadFileInitrd(char* Name,  boo
 /* GetTableInRootSystemDescription */
 KResult Srv_System_GetTableInRootSystemDescription_Callback(KResult Status, struct kot_srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
-        Callback->Data = (uintptr_t)kot_MapPhysical(GP0, GP1);
+        Callback->Data = (uintptr_t)kot_MapPhysical((void*)GP0, GP1);
         Callback->Size = (size64_t)GP1;
     }
     return Status;
@@ -175,7 +175,7 @@ struct kot_srv_system_callback_t* kot_Srv_System_GetTableInRootSystemDescription
 
     struct kot_ShareDataWithArguments_t data;
     if(Name != NULL){
-        data.Data = (uintptr_t)Name;
+        data.Data = (void*)Name;
         data.Size = strlen(Name) + 1; // add '\0' char
         data.ParameterPosition = 0x2; 
     }

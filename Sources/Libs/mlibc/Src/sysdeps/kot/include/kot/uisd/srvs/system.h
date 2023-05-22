@@ -34,7 +34,7 @@ struct kot_srv_system_sdtheader_t {
 
 struct kot_srv_system_callback_t{
     kot_thread_t Self;
-    uint64_t Data;
+    uintptr_t Data;
     size64_t Size;
     bool IsAwait;
     KResult Status;

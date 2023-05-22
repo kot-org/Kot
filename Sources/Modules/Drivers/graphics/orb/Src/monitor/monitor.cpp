@@ -1,6 +1,6 @@
 #include <monitor/monitor.h>
 
-monitorc::monitorc(orbc* Parent, uintptr_t FbBase, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition){
+monitorc::monitorc(orbc* Parent, void* FbBase, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition){
     this->Orb = Parent;
     
     this->XPosition = XPosition;

@@ -40,7 +40,7 @@ typedef struct {
 } srv_pci_device_info_t;
 
 typedef struct {
-    uintptr_t Address;
+    void* Address;
     size64_t Size;
     uint8_t Type;
 } srv_pci_bar_info_t;

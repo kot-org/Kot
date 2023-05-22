@@ -28,21 +28,21 @@ uint8_t PCIRead8(uint32_t addr) {
     return (uint16_t) ((PCIRead16(addr) >> ((offset & 0b1) * 0x8)) & 0xff);
 }
 
-void PCIMemcpy8(uintptr_t dst, uint32_t src, size64_t size){
+void PCIMemcpy8(void* dst, uint32_t src, size64_t size){
     src &= ~(0b11);
     for(size64_t i = 0; i < size; i += 0x1){
         *(uint8_t*)((uint64_t)dst + i) = PCIRead8(src + i);
     }
 }
 
-void PCIMemcpy16(uintptr_t dst, uint32_t src, size64_t size){
+void PCIMemcpy16(void* dst, uint32_t src, size64_t size){
     src &= ~(0b11);
     for(size64_t i = 0; i < size; i += 0x2){
         *(uint16_t*)((uint64_t)dst + i) = PCIRead16(src + i);
     }
 }
 
-void PCIMemcpy32(uintptr_t dst, uint32_t src, size64_t size){
+void PCIMemcpy32(void* dst, uint32_t src, size64_t size){
     src &= ~(0b11);
     for(size64_t i = 0; i < size; i += 0x4){
         *(uint32_t*)((uint64_t)dst + i) = PCIRead32(src + i);
@@ -127,5 +127,5 @@ void SendConfigurationSpacePCI(struct PCIDevice_t* Device){
     }
 
     // update back buffer
-    memcpy((uintptr_t)BackBuffer, (uintptr_t)FrontBuffer, PCI_CONFIGURATION_SPACE_SIZE);
+    memcpy((void*)BackBuffer, (void*)FrontBuffer, PCI_CONFIGURATION_SPACE_SIZE);
 }

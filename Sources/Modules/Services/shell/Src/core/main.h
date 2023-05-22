@@ -17,5 +17,5 @@
 #include <srv/srv.h>
 #include <core/core.h>
 
-extern uintptr_t TableConverter;
+extern void* TableConverter;
 extern size64_t TableConverterCharCount;

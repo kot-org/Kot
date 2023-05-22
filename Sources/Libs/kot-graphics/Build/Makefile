@@ -1,13 +1,13 @@
 _HOME = ../../../../
 
-CC = clang-14
 ASMC = nasm
+CC = kot-x86_64-clang
 AR = llvm-ar-14
+
+CFLAGS = -O3 -I../Src -fno-exceptions
 
 INCDIR = $(_HOME)Sysroot/include
 BUILDDIR = $(_HOME)Sysroot/lib/
-
-CFLAGS = -O3 --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I$(INCDIR)
 
 SRCDIR := ../Src
 OBJDIR := ../Lib

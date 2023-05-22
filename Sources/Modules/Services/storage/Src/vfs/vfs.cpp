@@ -20,7 +20,7 @@ KResult InitializeVFS(){
     RootPartition->StaticVolumeMountPoint = 0;
     RootPartition->DynamicVolumeMountPoint = 0;
     RootPartition->Index = 0;
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&VFSfileOpenInitrd, PriviledgeService, NULL, &RootPartition->FSServerFunctions.Openfile);
+    Sys_CreateThread(Sys_GetProcess(), (void*)&VFSfileOpenInitrd, PriviledgeService, NULL, &RootPartition->FSServerFunctions.Openfile);
     
     vector_push(PartitionsList, RootPartition);
 
@@ -248,7 +248,7 @@ KResult VFSLoginApp(kot_thread_t Callback, uint64_t CallbackArg, kot_process_t P
 
         /* VFSClientDispatcher */
         kot_thread_t VFSClientDispatcherThread = NULL;
-        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&VFSClientDispatcher, PriviledgeApp, (uint64_t)Context, &VFSClientDispatcherThread);
+        Sys_CreateThread(Sys_GetProcess(), (void*)&VFSClientDispatcher, PriviledgeApp, (uint64_t)Context, &VFSClientDispatcherThread);
         VFSClientShareableDispatcherThread = MakeShareableThreadToProcess(VFSClientDispatcherThread, Process);
     }
     
@@ -408,8 +408,8 @@ KResult VFSRename(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext*
     RelativeRenameData->OldPathPosition = sizeof(srv_storage_fs_server_rename_t);
     RelativeRenameData->NewPathPosition = sizeof(srv_storage_fs_server_rename_t) + RelativePathOldSize;
 
-    memcpy((uintptr_t)((uint64_t)RelativeRenameData + RelativeRenameData->OldPathPosition), RelativePathOld, RelativePathOldSize);
-    memcpy((uintptr_t)((uint64_t)RelativeRenameData + RelativeRenameData->NewPathPosition), RelativePathNew, RelativePathNewSize);
+    memcpy((void*)((uint64_t)RelativeRenameData + RelativeRenameData->OldPathPosition), RelativePathOld, RelativePathOldSize);
+    memcpy((void*)((uint64_t)RelativeRenameData + RelativeRenameData->NewPathPosition), RelativePathNew, RelativePathNewSize);
     
     arguments_t arguments{
         .arg[0] = Callback,         /* Callback */
@@ -587,7 +587,7 @@ KResult VFSfileReadInitrd(kot_thread_t Callback, uint64_t CallbackArg,  InitrdCo
         .arg[5] = NULL,             /* GP3 */
     };
 
-    uintptr_t Buffer = (uintptr_t)(CallbackSys->Data + GP0);
+    void* Buffer = (void*)(CallbackSys->Data + GP0);
 
     ksmem_t MemoryKey;
     Sys_CreateMemoryField(Sys_GetProcess(), Size, &Buffer, &MemoryKey, MemoryFieldTypeSendSpaceRO);
@@ -597,7 +597,7 @@ KResult VFSfileReadInitrd(kot_thread_t Callback, uint64_t CallbackArg,  InitrdCo
     Sys_ExecThread(Callback, &arguments, ExecutionTypeQueuAwait, NULL);
     Sys_CloseMemoryField(Sys_GetProcess(), MemoryKey, Buffer);
 
-    free((uintptr_t)CallbackSys->Data);
+    free((void*)CallbackSys->Data);
     free(CallbackSys);
 
     return KSUCCESS;
@@ -619,7 +619,7 @@ KResult VFSGetfilesizeInitrd(kot_thread_t Callback, uint64_t CallbackArg,  Initr
 
     Sys_ExecThread(Callback, &arguments, ExecutionTypeQueuAwait, NULL);
 
-    free((uintptr_t)CallbackSys->Data);
+    free((void*)CallbackSys->Data);
     free(CallbackSys);
 
     return KSUCCESS;
@@ -646,7 +646,7 @@ KResult VFSfileCloseInitrd(kot_thread_t Callback, uint64_t CallbackArg,  InitrdC
 KResult VFSfileOpenInitrd(kot_thread_t Callback, uint64_t CallbackArg, char* Path, kot_permissions_t Permissions, kot_process_t Target){
     srv_system_callback_t* CallbackSys = Srv_System_ReadFileInitrd(Path, true);
     KResult Status = CallbackSys->Status;
-    free((uintptr_t)CallbackSys->Data);
+    free((void*)CallbackSys->Data);
     free(CallbackSys);
 
     
@@ -669,7 +669,7 @@ KResult VFSfileOpenInitrd(kot_thread_t Callback, uint64_t CallbackArg, char* Pat
         srv_storage_fs_server_open_file_data_t SrvOpenFileData;
         kot_thread_t DispatcherThread;
 
-        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&VFSfileDispatcherInitrd, PriviledgeDriver, (uint64_t)Context, &DispatcherThread);
+        Sys_CreateThread(Sys_GetProcess(), (void*)&VFSfileDispatcherInitrd, PriviledgeDriver, (uint64_t)Context, &DispatcherThread);
 
         SrvOpenFileData.Dispatcher = MakeShareableThreadToProcess(DispatcherThread, Target);
 

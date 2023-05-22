@@ -3,7 +3,7 @@
 #include <kot-graphics/font.h>
 #include <kot-graphics/font/ssfn.h>
 
-kfont_t* LoadFont(uintptr_t data){
+kfont_t* LoadFont(void* data){
     kfont_t* font = malloc(sizeof(kfont_t));
 
     font->FontContext = calloc(sizeof(ssfn_t), sizeof(ssfn_t));

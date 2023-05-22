@@ -138,12 +138,12 @@ struct PCIBar_t{
 struct PCIDevice_t{
     bool IsPCIe;
     uint64_t Address; // PCI only
-    uintptr_t ConfigurationSpaceBack; // PCI only
-    uintptr_t ConfigurationSpace;
+    void* ConfigurationSpaceBack; // PCI only
+    void* ConfigurationSpace;
 
     /* Device functions */
-    uintptr_t GetBarAddress(uint8_t index);
-    size64_t GetBarSizeWithAddress(uintptr_t address);
+    void* GetBarAddress(uint8_t index);
+    size64_t GetBarSizeWithAddress(void* address);
     size64_t GetBarSize(uint8_t index);
     uint8_t GetBarType(uint8_t index);
     KResult BindMSI(uint8_t IRQVector, uint8_t processor, uint16_t localDeviceVector, uint64_t* version);

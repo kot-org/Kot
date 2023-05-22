@@ -20,20 +20,20 @@ desktopc::desktopc(orbc* Parent){
     /* Play startup sound */
     Audio::Stream* St = new Audio::Stream(0);
 
-    file_t* MusicFile = fopen("d1:Kot/Sounds/startup.bin", "r");
+    FILE* MusicFile = fopen("d1:Kot/Sounds/startup.bin", "r");
 
     fseek(MusicFile, 0, SEEK_END);
     size64_t FileSize = ftell(MusicFile);
     fseek(MusicFile, 0, SEEK_SET); 
 
-    uintptr_t FileBuf = malloc(FileSize);
+    void* FileBuf = malloc(FileSize);
     fread(FileBuf, FileSize, 1, MusicFile);
 
     St->AddBuffer(FileBuf, FileSize);
 
     /* Load desktopUserSettings.json */
 
-    file_t* SettingsFile = fopen("d1:User/root/Share/Settings/desktop.json", "r");
+    FILE* SettingsFile = fopen("d1:User/root/Share/Settings/desktop.json", "r");
 
     assert(SettingsFile != NULL);
 
@@ -106,7 +106,7 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
 
     Monitor->DesktopData->Desktop->MouseEvent = (hid_event_t*)malloc(sizeof(hid_event_t));
     Sys_Event_Create(&Monitor->DesktopData->Desktop->MouseEvent->Event);
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&MouseHandlerDesktop, PriviledgeApp, (uint64_t)Monitor, &Monitor->DesktopData->Desktop->MouseEventThread);
+    Sys_CreateThread(Sys_GetProcess(), (void*)&MouseHandlerDesktop, PriviledgeApp, (uint64_t)Monitor, &Monitor->DesktopData->Desktop->MouseEventThread);
     Sys_Event_Bind(Monitor->DesktopData->Desktop->MouseEvent->Event, Monitor->DesktopData->Desktop->MouseEventThread, true);
 
     Monitor->DesktopData->Desktop->MouseEvent->ParentType = MOUSE_EVENT_PARENT_TYPE_WIDGET;
@@ -149,7 +149,7 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
 
     Monitor->DesktopData->Taskbar->MouseEvent = (hid_event_t*)malloc(sizeof(hid_event_t));
     Sys_Event_Create(&Monitor->DesktopData->Taskbar->MouseEvent->Event);
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&MouseHandlerTaskbar, PriviledgeApp, (uint64_t)Monitor, &Monitor->DesktopData->Taskbar->MouseEventThread);
+    Sys_CreateThread(Sys_GetProcess(), (void*)&MouseHandlerTaskbar, PriviledgeApp, (uint64_t)Monitor, &Monitor->DesktopData->Taskbar->MouseEventThread);
     Sys_Event_Bind(Monitor->DesktopData->Taskbar->MouseEvent->Event, Monitor->DesktopData->Taskbar->MouseEventThread, true);
 
     Monitor->DesktopData->Taskbar->MouseEvent->ParentType = MOUSE_EVENT_PARENT_TYPE_WIDGET;
@@ -393,7 +393,7 @@ void desktopmonitor::InitalizeClock(char* FontPath){
         }
     , ClockContainer->Cpnt);
 
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&UpdateClock, PriviledgeApp, NULL, &ClockThread);
+    Sys_CreateThread(Sys_GetProcess(), (void*)&UpdateClock, PriviledgeApp, NULL, &ClockThread);
     
     arguments_t Parameters{
         .arg[0] = (uint64_t)Time,

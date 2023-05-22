@@ -14,7 +14,7 @@ extern "C" {
 #define STORAGE_MULTIPLE_REQUESTS   0x1
 
 struct kot_srv_storage_device_t{
-    uintptr_t BufferRWBase;
+    void* BufferRWBase;
     size_t BufferRWSize;
     struct kot_srv_storage_space_info_t SpaceInfo;
     kot_thread_t CallbackRequestHandlerThread;
@@ -25,7 +25,7 @@ struct kot_srv_storage_device_t{
 struct kot_srv_storage_device_callback_t{
     KResult Status;
     kot_thread_t MainThread;
-    uintptr_t Data;
+    void* Data;
     size64_t Size;
 };
 
@@ -54,8 +54,8 @@ KResult Srv_CallbackRequestHandler(KResult Status, struct kot_srv_storage_device
 KResult Srv_SendRequest(struct kot_srv_storage_device_t* StorageDevice, uint64_t Start, size64_t Size, bool IsWrite);
 struct kot_srv_storage_device_callback_t* Srv_SendMultipleRequests(struct kot_srv_storage_device_t* StorageDevice, kot_srv_storage_multiple_requests_t* Requests);
 uint64_t Srv_GetBufferStartingAddress(struct kot_srv_storage_device_t* StorageDevice, uint64_t Start);
-KResult Srv_ReadDevice(struct kot_srv_storage_device_t* StorageDevice, uintptr_t Buffer, uint64_t Start, size64_t Size);
-KResult Srv_WriteDevice(struct kot_srv_storage_device_t* StorageDevice, uintptr_t Buffer, uint64_t Start, size64_t Size);
+KResult Srv_ReadDevice(struct kot_srv_storage_device_t* StorageDevice, void* Buffer, uint64_t Start, size64_t Size);
+KResult Srv_WriteDevice(struct kot_srv_storage_device_t* StorageDevice, void* Buffer, uint64_t Start, size64_t Size);
 
 #if defined(__cplusplus)
 } 

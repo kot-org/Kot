@@ -10,18 +10,18 @@
 extern "C" {
 #endif
 
-void memset(uintptr_t start, uint8_t value, size64_t size);
-void memset16(uintptr_t start, uint16_t value, size64_t size);
-void memset32(uintptr_t start, uint32_t value, size64_t size);
-void memset64(uintptr_t start, uint64_t value, size64_t size);
+void memset(void* start, uint8_t value, size64_t size);
+void memset16(void* start, uint16_t value, size64_t size);
+void memset32(void* start, uint32_t value, size64_t size);
+void memset64(void* start, uint64_t value, size64_t size);
 
 int memcmp(const void *aptr, const void *bptr, size64_t size);
-void memcpy(uintptr_t destination, uintptr_t source, size64_t size);
-uintptr_t GetFreeAlignedSpace(size64_t size);
-uintptr_t MapPhysical(uintptr_t physicalAddress, size64_t size);
-void MapPhysicalToVirtual(uintptr_t virtualAddress, uintptr_t* physicalAddress, size64_t size);
-uintptr_t GetPhysical(uintptr_t* physicalAddress, size64_t size);
-void FreeAddress(uintptr_t virtualAddress, size64_t size);
+void memcpy(void* destination, void* source, size64_t size);
+void* GetFreeAlignedSpace(size64_t size);
+void* MapPhysical(void* physicalAddress, size64_t size);
+void MapPhysicalToVirtual(void* virtualAddress, void** physicalAddress, size64_t size);
+void* GetPhysical(void** physicalAddress, size64_t size);
+void FreeAddress(void* virtualAddress, size64_t size);
 
 #if defined(__cplusplus)
 }

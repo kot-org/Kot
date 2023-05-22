@@ -15,7 +15,7 @@ void CursorInterruptEntry(int64_t x, int64_t y, int64_t z, uint64_t status){
 hidc::hidc(orbc* Parent){
     Orb = Parent;
 
-    file_t* KursorFile = fopen("d0:darkDefault.kursor", "rb"); // todo: kursor settings and use drive to store the cursor to d1:Bin/Kursors/
+    FILE* KursorFile = fopen("d0:darkDefault.kursor", "rb"); // todo: kursor settings and use drive to store the cursor to d1:Bin/Kursors/
 
     if(KursorFile == NULL) {
         kot_Printlog("[GRAPHICS/ORB] \033[0;31mERR:\033[0m Kursor file not found."); // todo: error log
@@ -38,12 +38,12 @@ hidc::hidc(orbc* Parent){
     CursorPosition.x = CursorMaxPosition.x / 2;
     CursorPosition.y = CursorMaxPosition.y / 2;
 
-    uintptr_t PixelMapTmp = (uintptr_t) ((uint64_t)Header + Header->PixelMapOffset);
+    void* PixelMapTmp = (void*) ((uint64_t)Header + Header->PixelMapOffset);
     size64_t PixelMapSize = Height * Pitch;
     PixelMap = malloc(PixelMapSize);
     memcpy(PixelMap, PixelMapTmp, PixelMapSize);
 
-    uintptr_t BitmapMaskTmp = (uintptr_t) ((uint64_t)Header + Header->BitmapMaskOffset);
+    void* BitmapMaskTmp = (void*) ((uint64_t)Header + Header->BitmapMaskOffset);
     size64_t BitmapMaskSize = DIV_ROUND_UP(Height * Pitch, 8);
     BitmapMask = malloc(BitmapMaskSize);
     memcpy(BitmapMask, BitmapMaskTmp, BitmapMaskSize);
@@ -51,11 +51,11 @@ hidc::hidc(orbc* Parent){
     free(Header);
     fclose(KursorFile);
 
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&CursorInterruptEntry, PriviledgeApp, (uint64_t)this, &MouseRelativeInterruptThread);
+    Sys_CreateThread(Sys_GetProcess(), (void*)&CursorInterruptEntry, PriviledgeApp, (uint64_t)this, &MouseRelativeInterruptThread);
 
     BindMouseRelative(MouseRelativeInterruptThread, false);
 
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&KeyboardInterruptEntry, PriviledgeApp, (uint64_t)this, &KeyboardInterruptThread);
+    Sys_CreateThread(Sys_GetProcess(), (void*)&KeyboardInterruptEntry, PriviledgeApp, (uint64_t)this, &KeyboardInterruptThread);
 
     BindKeyboardEvent(KeyboardInterruptThread, false);
 }

@@ -8,7 +8,7 @@ void ThreadRenderEntry(){
 
 renderc::renderc(orbc* Parent){
     Monitors = vector_create();
-    Sys_CreateThread(ShareableProcess, (uintptr_t) &ThreadRenderEntry, PriviledgeDriver, (uint64_t)this, &RenderThread);
+    Sys_CreateThread(ShareableProcess, (void*) &ThreadRenderEntry, PriviledgeDriver, (uint64_t)this, &RenderThread);
 }
 
 void renderc::RenderWindows(){
