@@ -40,4 +40,4 @@ $(INCDIR)/kot-ui++/%.h : $(SRCDIR)/%.h
 link:
 	@ echo !==== LINKING
 	@ mkdir -p $(BUILDDIR)
-	$(AR) rcs $(BUILDDIR)libkot-ui++.a $(OBJS)
+	$(AR) rcs $(BUILDDIR)/libkot-ui++.a $(OBJS)

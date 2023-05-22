@@ -78,7 +78,7 @@ KResult windowc::CreateBuffer(){
 
 monitorc* windowc::FindMonitor(){
     for(uint64_t i = 0; i < Orb->Render->Monitors->length; i++){
-        monitorc* Monitor = (monitorc*)vector_get(Orb->Render->Monitors, i);
+        monitorc* Monitor = (monitorc*)kot_vector_get(Orb->Render->Monitors, i);
         if(Monitor != NULL){
             if(IsBeetween(Monitor->YPosition, this->YPosition, Monitor->YMaxPosition)){
                 return Monitor;
@@ -189,7 +189,7 @@ bool windowc::SetFocusState(bool IsFocus){
             }
         }
 
-        arguments_t Parameters{
+        kot_arguments_t Parameters{
             .arg[0] = Window_Event_Focus,   // Event type
             .arg[1] = IsFocus,              // Focus state
         };

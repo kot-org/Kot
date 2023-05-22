@@ -51,18 +51,18 @@ hidc::hidc(orbc* Parent){
     free(Header);
     fclose(KursorFile);
 
-    Sys_CreateThread(Sys_GetProcess(), (void*)&CursorInterruptEntry, PriviledgeApp, (uint64_t)this, &MouseRelativeInterruptThread);
+    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&CursorInterruptEntry, PriviledgeApp, (uint64_t)this, &MouseRelativeInterruptThread);
 
     BindMouseRelative(MouseRelativeInterruptThread, false);
 
-    Sys_CreateThread(Sys_GetProcess(), (void*)&KeyboardInterruptEntry, PriviledgeApp, (uint64_t)this, &KeyboardInterruptThread);
+    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&KeyboardInterruptEntry, PriviledgeApp, (uint64_t)this, &KeyboardInterruptThread);
 
     BindKeyboardEvent(KeyboardInterruptThread, false);
 }
 
 void hidc::KeyboardInterrupt(uint64_t KeyCode){
     if(CurrentFocusEvent != NULL){
-        arguments_t Parameters{
+        kot_arguments_t Parameters{
             .arg[0] = Window_Event_Keyboard,            // Event type
             .arg[1] = (uint64_t)KeyCode,                // KeyCode
         };
@@ -115,7 +115,7 @@ void hidc::CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
     if(IsleftClick && IsLastLeftClick != IsleftClick){
         // Change focus
         for(uint64_t i = 0; i < Orb->Render->Monitors->length; i++){
-            monitorc* Monitor = (monitorc*)vector_get(Orb->Render->Monitors, i);
+            monitorc* Monitor = (monitorc*)kot_vector_get(Orb->Render->Monitors, i);
             if(Monitor != NULL){
                 if(IsBeetween(Monitor->XPosition, CursorPosition.x, Monitor->XMaxPosition) && IsBeetween(Monitor->YPosition, CursorPosition.y, Monitor->YMaxPosition)){
                     hid_event_t* EventData = (hid_event_t*)GetEventData(Monitor->Eventbuffer, CursorPosition.x, CursorPosition.y);
@@ -133,7 +133,7 @@ void hidc::CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
     IsLastLeftClick = IsleftClick;
 
     if(CurrentFocusEvent != NULL){
-        arguments_t Parameters{
+        kot_arguments_t Parameters{
             .arg[0] = Window_Event_Mouse,               // Event type
             .arg[1] = (uint64_t)CursorPosition.x,       // X position
             .arg[2] = (uint64_t)CursorPosition.y,       // Y position

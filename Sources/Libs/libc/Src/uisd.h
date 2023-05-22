@@ -146,16 +146,16 @@ typedef struct {
     bool AwaitCallback;
     uint64_t Location;
     KResult Status;
-} uisd_callbackInfo_t;
+} kot_uisd_callbackInfo_t;
 
-uisd_callbackInfo_t* GetControllerUISD(enum kot_uisd_controller_type_enum Controller, void** Location, bool AwaitCallback);
-uisd_callbackInfo_t* CreateControllerUISD(enum kot_uisd_controller_type_enum Controller, kot_key_mem_t MemoryField, bool AwaitCallback);
+kot_uisd_callbackInfo_t* GetControllerUISD(enum kot_uisd_controller_type_enum Controller, void** Location, bool AwaitCallback);
+kot_uisd_callbackInfo_t* CreateControllerUISD(enum kot_uisd_controller_type_enum Controller, kot_key_mem_t MemoryField, bool AwaitCallback);
 
-thread_t MakeShareableThread(thread_t Thread, enum Priviledge priviledgeRequired);
+thread_t kot_MakeShareableThread(thread_t Thread, enum Priviledge priviledgeRequired);
 thread_t MakeShareableThreadUISDOnly(thread_t Thread);
 thread_t MakeShareableThreadToProcess(thread_t Thread, process_t Process);
 thread_t MakeShareableSpreadThreadToProcess(thread_t Thread, process_t Process);
-process_t ShareProcessKey(process_t Process);
+process_t kot_ShareProcessKey(process_t Process);
 
 void* GetControllerLocationUISD(enum kot_uisd_controller_type_enum Controller);
 void* FindControllerUISD(enum kot_uisd_controller_type_enum Controller);

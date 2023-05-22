@@ -5,7 +5,7 @@ using namespace std;
 process_t ShareableProcess;
 
 orbc::orbc(){
-    ShareableProcess = ShareProcessKey(Sys_GetProcess());
+    ShareableProcess = kot_ShareProcessKey(Sys_GetProcess());
 
     Render = new renderc(this);
     Hid = new hidc(this);

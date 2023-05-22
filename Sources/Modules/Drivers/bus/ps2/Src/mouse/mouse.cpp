@@ -5,7 +5,7 @@ uint8_t MousePacket[4];
 uint8_t MouseCycle = 0;
 
 PS2Port_t* MousePS2Port;
-arguments_t* MouseEventParameters;
+kot_arguments_t* MouseEventParameters;
 thread_t Mousethread = NULL;
 
 #include <kot++/printf.h>
@@ -20,7 +20,7 @@ KResult MouseInitalize(){
             || PS2Ports[i].Type == PS2_TYPE_MOUSE_5BUTTONS){
                 kot_Printlog("[BUS/PS2] Mouse device found");
                 
-                MouseEventParameters = (arguments_t*)malloc(sizeof(arguments_t));
+                MouseEventParameters = (kot_arguments_t*)malloc(sizeof(kot_arguments_t));
 
 
                 MousePS2Port = &PS2Ports[i];

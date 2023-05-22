@@ -11,12 +11,12 @@ typedef struct {
 extern "C" {
 #endif
 
-kot_vector_t* vector_create();
-uint64_t vector_push(kot_vector_t* vector, void* item);
+kot_vector_t* kot_vector_create();
+uint64_t kot_vector_push(kot_vector_t* vector, void* item);
 void vector_remove(kot_vector_t* vector, uint64_t index);
 void vector_set(kot_vector_t* vector, uint64_t index, void* item);
 void vector_expand(kot_vector_t* vector, uint64_t len);
-void* vector_get(kot_vector_t* vector, uint64_t index);
+void* kot_vector_get(kot_vector_t* vector, uint64_t index);
 void vector_clear(kot_vector_t* vector);
 kot_vector_t* vector_clone(kot_vector_t* vector);
 

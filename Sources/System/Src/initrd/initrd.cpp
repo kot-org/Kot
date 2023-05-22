@@ -1,10 +1,11 @@
 #include <initrd/initrd.h>
+#include <stdio.h>
 
 namespace initrd {
 
     Info* info;
 
-    void Parse(uintptr_t baseAddress, size64_t size) {
+    void Parse(void* baseAddress, size64_t size) {
         if (size == NULL) return;
         info = (Info*) malloc(sizeof(Info));
         info->baseAddress = baseAddress;
@@ -12,35 +13,35 @@ namespace initrd {
         info->header = (Header*) baseAddress;
     }
 
-    File* Find(char* fileName) {
+    InitrdFile* Find(char* fileName) {
         if (info == NULL) return NULL;
         uint64_t cursor = sizeof(Header);
         for (uint64_t i = 0; i < info->header->filenumber; i++){
-            File* file = (File*) (cursor + (uint64_t)info->baseAddress);
+            InitrdFile* file = (InitrdFile*) (cursor + (uint64_t)info->baseAddress);
             if (!strcmp(fileName, file->name)) {
                 return file;
             }
-            cursor += sizeof(File) + file->size;
+            cursor += sizeof(InitrdFile) + file->size;
         }
         return NULL;
     }
 
-    File* FindInitFile() {
+    InitrdFile* FindInitFile() {
         if (info->header->initfile == NULL) return NULL;
-        File* file = (File*) (info->header->initfile + (uint64_t) info->baseAddress);
+        InitrdFile* file = (InitrdFile*) (info->header->initfile + (uint64_t) info->baseAddress);
         return file;
     }
 
-    bool Read(File* file, uintptr_t buffer) {
+    bool Read(InitrdFile* file, void* buffer) {
         if (info == NULL) return false;
-        void* fileData = (void*)((uint64_t)file + sizeof(File));
+        void* fileData = (void*)((uint64_t)file + sizeof(InitrdFile));
         memcpy((void*)buffer, fileData, file->size);
         return true;
     }
 
-    uintptr_t Read(File* file) {
+    void* Read(InitrdFile* file) {
         if (info == NULL) return NULL;
-        uintptr_t fileData = (uintptr_t) ((uint64_t)file + sizeof(File));
+        void* fileData = (void*) ((uint64_t)file + sizeof(InitrdFile));
         return fileData;
     }
 

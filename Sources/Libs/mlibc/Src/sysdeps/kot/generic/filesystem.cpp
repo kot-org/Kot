@@ -133,7 +133,7 @@ namespace mlibc{
         }
     }
 
-    int sys_close(int fd){
+    int kot_Sys_Close(int fd){
         if(fd < MAX_OPEN_FILES){
             atomicAcquire(&kot_LockFDList, 0);
             if(!kot_FDList[fd]){

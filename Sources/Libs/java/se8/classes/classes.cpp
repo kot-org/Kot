@@ -14,7 +14,7 @@ namespace SE8 {
 
     uint32_t jips_print_str_fn(JavaVM* jvm, uint32_t object, uint32_t* args, uint16_t args_length) {
         kot_vector_t* rs = jvm->getRefSys();
-        jvm->getOutput()((char*) jvm->getClasses()->getClass("java/lang/String")->getField64(vector_get(rs, args[0]), "<pointer>"));
+        jvm->getOutput()((char*) jvm->getClasses()->getClass("java/lang/String")->getField64(kot_vector_get(rs, args[0]), "<pointer>"));
         return NULL;
     }
 
@@ -29,7 +29,7 @@ namespace SE8 {
 
     uint32_t jips_println_str_fn(JavaVM* jvm, uint32_t object, uint32_t* args, uint16_t args_length) {
         kot_vector_t* rs = jvm->getRefSys();
-        jvm->getOutput()((char*) jvm->getClasses()->getClass("java/lang/String")->getField64(vector_get(rs, args[0]), "<pointer>"));
+        jvm->getOutput()((char*) jvm->getClasses()->getClass("java/lang/String")->getField64(kot_vector_get(rs, args[0]), "<pointer>"));
         jvm->getOutput()("\n\0");
         return NULL;
     }
@@ -51,7 +51,7 @@ namespace SE8 {
         uintptr_t obj = jls->newObject();
         jls->setField64(obj, "<pointer>", NULL);
         jls->setField32(obj, "<length>", 0);
-        jlsb->setField64(vector_get(rs, object), "<string>", (uint64_t) obj);
+        jlsb->setField64(kot_vector_get(rs, object), "<string>", (uint64_t) obj);
         return NULL;
     }
 
@@ -59,9 +59,9 @@ namespace SE8 {
         kot_vector_t* rs = jvm->getRefSys();
         ClassArea* jls = jvm->getClasses()->getClass("java/lang/String");
         ClassArea* jlsb = jvm->getClasses()->getClass("java/lang/StringBuilder");
-        uintptr_t self = vector_get(rs, object);
+        uintptr_t self = kot_vector_get(rs, object);
         uintptr_t to = (uintptr_t) jlsb->getField64(self, "<string>");
-        uintptr_t from = vector_get(rs, args[0]);
+        uintptr_t from = kot_vector_get(rs, args[0]);
         int32_t toLength = jls->getField32(to, "<length>");
         int32_t fromLength = jls->getField32(from, "<length>");
         if (fromLength > 0) {
@@ -84,7 +84,7 @@ namespace SE8 {
     uint32_t jlsb_toString_fn(JavaVM* jvm, uint32_t object, uint32_t* args, uint16_t args_length) {
         kot_vector_t* rs = jvm->getRefSys();
         ClassArea* jlsb = jvm->getClasses()->getClass("java/lang/StringBuilder");
-        vector_push(rs, (uintptr_t) jlsb->getField64(vector_get(rs, object), "<string>"));
+        kot_vector_push(rs, (uintptr_t) jlsb->getField64(kot_vector_get(rs, object), "<string>"));
         return rs->length-1;
     }
 
@@ -94,7 +94,7 @@ namespace SE8 {
         ClassArea* jls = jvm->getClasses()->getClass("java/lang/String");
         ClassArea* jlsb = jvm->getClasses()->getClass("java/lang/StringBuilder");
 
-        uintptr_t self = vector_get(rs, object);
+        uintptr_t self = kot_vector_get(rs, object);
         uintptr_t to = (uintptr_t) jlsb->getField64(self, "<string>");
         int32_t toLength = jls->getField32(to, "<length>");
 
@@ -171,7 +171,7 @@ namespace SE8 {
         map_set(areas, "java/lang/System", java_lang_System);
         java_lang_System->registerStaticField("out", 4);
         java_lang_System->clinit(jvm);
-        vector_push(rs, java_io_PrintStream->newObject());
+        kot_vector_push(rs, java_io_PrintStream->newObject());
         java_lang_System->setStaticField32("out", rs->length-1);
 
     }

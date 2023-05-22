@@ -33,7 +33,7 @@ namespace SE8 {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         frame->stack->push32(*(uint32_t*)((uint64_t) arr + index * 4));
     }
 
@@ -42,7 +42,7 @@ namespace SE8 {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         *(uint32_t*)((uint64_t) arr + index * 4) = value;
     }
 
@@ -83,7 +83,7 @@ namespace SE8 {
             uintptr_t arr = calloc(4*count+4);
             *(uint32_t*)(arr) = count;
             kot_vector_t* rs = frame->jvm->getRefSys();
-            vector_push(rs, (uintptr_t)((uint64_t) arr+4));
+            kot_vector_push(rs, (uintptr_t)((uint64_t) arr+4));
             frame->stack->push32(rs->length-1);
         }
     }
@@ -96,7 +96,7 @@ namespace SE8 {
     void Opc::arraylength(Frame* frame) {
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         frame->stack->push32(*(uint32_t*)((uint64_t) arr - 4));
     }
 
@@ -130,7 +130,7 @@ namespace SE8 {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         frame->stack->push32(*(uint8_t*)((uint64_t) arr + index));
     }
 
@@ -139,7 +139,7 @@ namespace SE8 {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         *(uint8_t*)((uint64_t) arr + index) = (uint8_t) value;
     }
 
@@ -151,7 +151,7 @@ namespace SE8 {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         frame->stack->push32(*(uint16_t*)((uint64_t) arr + index * 2));
     }
 
@@ -160,7 +160,7 @@ namespace SE8 {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         *(uint16_t*)((uint64_t) arr + index * 2) = (uint16_t) value;
     }
 
@@ -194,7 +194,7 @@ namespace SE8 {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         frame->stack->push64(*(uint64_t*)((uint64_t) arr + index * 8));
     }
 
@@ -203,7 +203,7 @@ namespace SE8 {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         *(uint64_t*)((uint64_t) arr + index * 8) = value;
     }
 
@@ -391,7 +391,7 @@ namespace SE8 {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         frame->stack->push32(*(uint32_t*)((uint64_t) arr + index * 4));
     }
 
@@ -400,7 +400,7 @@ namespace SE8 {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         *(uint64_t*)((uint64_t) arr + index * 4) = value;
     }
 
@@ -594,7 +594,7 @@ namespace SE8 {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         frame->stack->push32(*(uint32_t*)((uint64_t) arr + index * 4));
     }
 
@@ -609,7 +609,7 @@ namespace SE8 {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         *(uint32_t*)((uint64_t) arr + index * 4) = value;
     }
 
@@ -1025,7 +1025,7 @@ namespace SE8 {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         frame->stack->push64(*(uint64_t*)((uint64_t) arr + index * 4));
     }
 
@@ -1040,7 +1040,7 @@ namespace SE8 {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         *(uint64_t*)((uint64_t) arr + index * 8) = value;
     }
 
@@ -1073,7 +1073,7 @@ namespace SE8 {
             uintptr_t object = jlString->newObject();
             jlString->setField64(object, "<pointer>", (uint64_t) ((Constant_Utf8*) frame->constant_pool[((Constant_String*) entry)->string_index])->bytes);
             jlString->setField32(object, "<length>", (uint32_t) ((Constant_Utf8*) frame->constant_pool[((Constant_String*) entry)->string_index])->length);
-            vector_push(rs, object);
+            kot_vector_push(rs, object);
             frame->stack->push32(rs->length-1);
         } else if (entry->tag == CONSTANT_Integer || entry->tag == CONSTANT_Float) {
             frame->stack->push32(((Constant_Integer_Float*) entry)->bytes);
@@ -1089,7 +1089,7 @@ namespace SE8 {
             uintptr_t object = jlString->newObject();
             jlString->setField64(object, "<pointer>", (uint64_t) ((Constant_Utf8*) frame->constant_pool[((Constant_String*) entry)->string_index])->bytes);
             jlString->setField32(object, "<length>", (uint32_t) ((Constant_Utf8*) frame->constant_pool[((Constant_String*) entry)->string_index])->length);
-            vector_push(rs, object);
+            kot_vector_push(rs, object);
             frame->stack->push32(rs->length-1);
         } else if (entry->tag == CONSTANT_Integer || entry->tag == CONSTANT_Float) {
             frame->stack->push32(((Constant_Integer_Float*) entry)->bytes);
@@ -1243,7 +1243,7 @@ namespace SE8 {
         ClassArea* cl = frame->jvm->getClasses()->getClass(className);
         kot_vector_t* rs = frame->jvm->getRefSys();
         uintptr_t obj = cl->newObject();
-        vector_push(rs, obj);
+        kot_vector_push(rs, obj);
         frame->stack->push32(rs->length-1);
     }
 
@@ -1274,7 +1274,7 @@ namespace SE8 {
             uintptr_t arr = malloc(itemSize*count+4);
             *(uint32_t*)(arr) = count;
             kot_vector_t* rs = frame->jvm->getRefSys();
-            vector_push(rs, (uintptr_t)((uint64_t) arr+4));
+            kot_vector_push(rs, (uintptr_t)((uint64_t) arr+4));
             frame->stack->push32(rs->length-1);
         }
     }
@@ -1333,7 +1333,7 @@ namespace SE8 {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         frame->stack->push32(*(uint32_t*)((uint64_t) arr + index * 4));
         // throws null pointer exception if arrayref is null
     }
@@ -1343,7 +1343,7 @@ namespace SE8 {
         int32_t index = frame->stack->pop32();
         uint32_t arrayref = frame->stack->pop32();
         kot_vector_t* rs = frame->jvm->getRefSys();
-        uintptr_t arr = vector_get(rs, arrayref);
+        uintptr_t arr = kot_vector_get(rs, arrayref);
         *(uint16_t*)((uint64_t) arr + index * 2) = (uint16_t) value;
     }
 

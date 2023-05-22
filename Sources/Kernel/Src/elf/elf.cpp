@@ -171,6 +171,6 @@ namespace ELF{
     }
 
     bool Check(elf_t* self){
-        return (self->Header->e_ident[0] != EI_MAG0 || self->Header->e_ident[1] != EI_MAG1 || self->Header->e_ident[2] != EI_MAG2 || self->Header->e_ident[3] != EI_MAG3);
+        return (self->Header->e_ident[0] != ELFMAG0 || self->Header->e_ident[1] != ELFMAG1 || self->Header->e_ident[2] != ELFMAG2 || self->Header->e_ident[3] != ELFMAG3);
     }
 }

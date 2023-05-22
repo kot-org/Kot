@@ -106,7 +106,7 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
 
     Monitor->DesktopData->Desktop->MouseEvent = (hid_event_t*)malloc(sizeof(hid_event_t));
     Sys_Event_Create(&Monitor->DesktopData->Desktop->MouseEvent->Event);
-    Sys_CreateThread(Sys_GetProcess(), (void*)&MouseHandlerDesktop, PriviledgeApp, (uint64_t)Monitor, &Monitor->DesktopData->Desktop->MouseEventThread);
+    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&MouseHandlerDesktop, PriviledgeApp, (uint64_t)Monitor, &Monitor->DesktopData->Desktop->MouseEventThread);
     Sys_Event_Bind(Monitor->DesktopData->Desktop->MouseEvent->Event, Monitor->DesktopData->Desktop->MouseEventThread, true);
 
     Monitor->DesktopData->Desktop->MouseEvent->ParentType = MOUSE_EVENT_PARENT_TYPE_WIDGET;
@@ -149,7 +149,7 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
 
     Monitor->DesktopData->Taskbar->MouseEvent = (hid_event_t*)malloc(sizeof(hid_event_t));
     Sys_Event_Create(&Monitor->DesktopData->Taskbar->MouseEvent->Event);
-    Sys_CreateThread(Sys_GetProcess(), (void*)&MouseHandlerTaskbar, PriviledgeApp, (uint64_t)Monitor, &Monitor->DesktopData->Taskbar->MouseEventThread);
+    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&MouseHandlerTaskbar, PriviledgeApp, (uint64_t)Monitor, &Monitor->DesktopData->Taskbar->MouseEventThread);
     Sys_Event_Bind(Monitor->DesktopData->Taskbar->MouseEvent->Event, Monitor->DesktopData->Taskbar->MouseEventThread, true);
 
     Monitor->DesktopData->Taskbar->MouseEvent->ParentType = MOUSE_EVENT_PARENT_TYPE_WIDGET;
@@ -326,7 +326,7 @@ void UpdateClock(Ui::Label_t* Time, Ui::Label_t* Date){
         SleepFromTick(&TimerState, 60000);
     }
     
-    Sys_Close(KSUCCESS);
+    kot_Sys_Close(KSUCCESS);
 }
 
 void desktopmonitor::InitalizeClock(char* FontPath){
@@ -393,13 +393,13 @@ void desktopmonitor::InitalizeClock(char* FontPath){
         }
     , ClockContainer->Cpnt);
 
-    Sys_CreateThread(Sys_GetProcess(), (void*)&UpdateClock, PriviledgeApp, NULL, &ClockThread);
+    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&UpdateClock, PriviledgeApp, NULL, &ClockThread);
     
-    arguments_t Parameters{
+    kot_arguments_t Parameters{
         .arg[0] = (uint64_t)Time,
         .arg[1] = (uint64_t)Date,
     };
-    Sys_ExecThread(ClockThread, &Parameters, ExecutionTypeQueu, NULL);
+    kot_Sys_ExecThread(ClockThread, &Parameters, ExecutionTypeQueu, NULL);
 }
 
 void desktopc::UpdateTaskbar(JsonObject* TaskbarSettings) {

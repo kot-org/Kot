@@ -6,8 +6,8 @@ kot_vector_t* PartitionsListNotify;
 uint64_t PartitionLock = NULL;
 
 void InitializePartition(){
-    PartitionsList = vector_create();
-    PartitionsListNotify = vector_create();
+    PartitionsList = kot_vector_create();
+    PartitionsListNotify = kot_vector_create();
 }
 
 partition_t* NewPartition(storage_device_t* Device, uint64_t Start, uint64_t Size, kot_GUID_t* PartitionTypeGUID){
@@ -21,24 +21,24 @@ partition_t* NewPartition(storage_device_t* Device, uint64_t Start, uint64_t Siz
     Self->Device = Device;
     
     Self->IsMount = false;
-    Self->Index = vector_push(PartitionsList, Self);
+    Self->Index = kot_vector_push(PartitionsList, Self);
 
-    Self->SpaceList = vector_create();
+    Self->SpaceList = kot_vector_create();
 
     for(uint64_t i = 0; i < PartitionsListNotify->length; i++){
-        notify_info_t* NotifyInfo = (notify_info_t*)vector_get(PartitionsListNotify, i);
+        notify_info_t* NotifyInfo = (notify_info_t*)kot_vector_get(PartitionsListNotify, i);
         if(memcmp(&Self->PartitionTypeGUID, NotifyInfo->GUIDTarget, sizeof(kot_GUID_t))){
             kot_srv_storage_space_info_t* Space;
             Self->Device->CreateSpace(Start, Size, &Space);
-            vector_push(Self->SpaceList, Space);
+            kot_vector_push(Self->SpaceList, Space);
 
             kot_thread_t VFSMountThread;
             kot_thread_t VFSMountThreadPrivate;
 
-            Sys_CreateThread(Sys_GetProcess(), (void*)&VFSMount, PriviledgeDriver, (uint64_t)Self, &VFSMountThreadPrivate);
-            VFSMountThread = MakeShareableThreadToProcess(VFSMountThreadPrivate, NotifyInfo->ProcessToNotify);
+            kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&VFSMount, PriviledgeDriver, (uint64_t)Self, &VFSMountThreadPrivate);
+            VFSMountThread = kot_MakeShareableThreadToProcess(VFSMountThreadPrivate, NotifyInfo->ProcessToNotify);
 
-            arguments_t Parameters{
+            kot_arguments_t Parameters{
                 .arg[0] = i,
                 .arg[2] = VFSProcess,
                 .arg[3] = VFSMountThread,
@@ -47,16 +47,16 @@ partition_t* NewPartition(storage_device_t* Device, uint64_t Start, uint64_t Siz
 
             memcpy(&SpaceInfo, Space, sizeof(kot_srv_storage_space_info_t));
 
-            SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(Space->CreateProtectedDeviceSpaceThread, NotifyInfo->ProcessToNotify);
-            SpaceInfo.RequestToDeviceThread = MakeShareableThreadToProcess(Space->RequestToDeviceThread, NotifyInfo->ProcessToNotify);
+            SpaceInfo.CreateProtectedDeviceSpaceThread = kot_MakeShareableThreadToProcess(Space->CreateProtectedDeviceSpaceThread, NotifyInfo->ProcessToNotify);
+            SpaceInfo.RequestToDeviceThread = kot_MakeShareableThreadToProcess(Space->RequestToDeviceThread, NotifyInfo->ProcessToNotify);
 
-            ShareDataWithArguments_t Data{
+            kot_ShareDataWithArguments_t Data{
                 .Data = &SpaceInfo,
                 .Size = sizeof(kot_srv_storage_space_info_t),
                 .ParameterPosition = 0x1,
             };
 
-            Sys_ExecThread(NotifyInfo->ThreadToNotify, &Parameters, ExecutionTypeQueu, &Data);
+            kot_Sys_ExecThread(NotifyInfo->ThreadToNotify, &Parameters, ExecutionTypeQueu, &Data);
         }
     }
     atomicUnlock(&PartitionLock, 0);
@@ -65,7 +65,7 @@ partition_t* NewPartition(storage_device_t* Device, uint64_t Start, uint64_t Siz
 
 partition_t* GetPartition(uint64_t Index){
     atomicAcquire(&PartitionLock, 0);
-    partition_t* Partition = (partition_t*)vector_get(PartitionsList, Index);
+    partition_t* Partition = (partition_t*)kot_vector_get(PartitionsList, Index);
     atomicUnlock(&PartitionLock, 0);
     return Partition;
 }
@@ -74,7 +74,7 @@ uint64_t NotifyOnNewPartitionByGUIDType(kot_GUID_t* GUIDTarget, kot_thread_t Thr
     if(GUIDTarget != NULL){
         atomicAcquire(&PartitionLock, 0);
         for(uint64_t i = 0; i < PartitionsListNotify->length; i++){
-            notify_info_t* NotifyInfo = (notify_info_t*)vector_get(PartitionsListNotify, i);
+            notify_info_t* NotifyInfo = (notify_info_t*)kot_vector_get(PartitionsListNotify, i);
             if(memcmp(&GUIDTarget, NotifyInfo->GUIDTarget, sizeof(kot_GUID_t))){
                 atomicUnlock(&PartitionLock, 0);
                 return KFAIL;
@@ -85,22 +85,22 @@ uint64_t NotifyOnNewPartitionByGUIDType(kot_GUID_t* GUIDTarget, kot_thread_t Thr
         NotifyInfo->GUIDTarget = GUIDTarget;
         NotifyInfo->ThreadToNotify = ThreadToNotify;
         NotifyInfo->ProcessToNotify = ProcessToNotify;
-        vector_push(PartitionsListNotify, NotifyInfo);
+        kot_vector_push(PartitionsListNotify, NotifyInfo);
 
         for(uint64_t i = 1; i < PartitionsList->length; i++){
-            partition_t* Partition = (partition_t*)vector_get(PartitionsList, i);
+            partition_t* Partition = (partition_t*)kot_vector_get(PartitionsList, i);
             if(memcmp(&Partition->PartitionTypeGUID, NotifyInfo->GUIDTarget, sizeof(kot_GUID_t))){
                 kot_srv_storage_space_info_t* Space;
                 Partition->Device->CreateSpace(Partition->Start, Partition->Size, &Space);
-                vector_push(Partition->SpaceList, Space);
+                kot_vector_push(Partition->SpaceList, Space);
 
                 kot_thread_t VFSMountThread;
                 kot_thread_t VFSMountThreadPrivate;
 
-                Sys_CreateThread(Sys_GetProcess(), (void*)&VFSMount, PriviledgeDriver, (uint64_t)Partition, &VFSMountThreadPrivate);
-                VFSMountThread = MakeShareableThreadToProcess(VFSMountThreadPrivate, NotifyInfo->ProcessToNotify);
+                kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&VFSMount, PriviledgeDriver, (uint64_t)Partition, &VFSMountThreadPrivate);
+                VFSMountThread = kot_MakeShareableThreadToProcess(VFSMountThreadPrivate, NotifyInfo->ProcessToNotify);
 
-                arguments_t Parameters{
+                kot_arguments_t Parameters{
                     .arg[0] = i,
                     .arg[2] = VFSProcess,
                     .arg[3] = VFSMountThread,
@@ -108,16 +108,16 @@ uint64_t NotifyOnNewPartitionByGUIDType(kot_GUID_t* GUIDTarget, kot_thread_t Thr
                 kot_srv_storage_space_info_t SpaceInfo;
                 memcpy(&SpaceInfo, Space, sizeof(kot_srv_storage_space_info_t));
 
-                SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(Space->CreateProtectedDeviceSpaceThread, NotifyInfo->ProcessToNotify);
-                SpaceInfo.RequestToDeviceThread = MakeShareableThreadToProcess(Space->RequestToDeviceThread, NotifyInfo->ProcessToNotify);
+                SpaceInfo.CreateProtectedDeviceSpaceThread = kot_MakeShareableThreadToProcess(Space->CreateProtectedDeviceSpaceThread, NotifyInfo->ProcessToNotify);
+                SpaceInfo.RequestToDeviceThread = kot_MakeShareableThreadToProcess(Space->RequestToDeviceThread, NotifyInfo->ProcessToNotify);
 
-                ShareDataWithArguments_t Data{
+                kot_ShareDataWithArguments_t Data{
                     .Data = &SpaceInfo,
                     .Size = sizeof(kot_srv_storage_space_info_t),
                     .ParameterPosition = 0x1,
                 };
 
-                Sys_ExecThread(NotifyInfo->ThreadToNotify, &Parameters, ExecutionTypeQueu, &Data);
+                kot_Sys_ExecThread(NotifyInfo->ThreadToNotify, &Parameters, ExecutionTypeQueu, &Data);
             }
         }
         atomicUnlock(&PartitionLock, 0);
@@ -131,7 +131,7 @@ KResult MountPartition(uint64_t PartitonID){
 
     atomicAcquire(&PartitionLock, 0);
     if(PartitonID < PartitionsList->length){
-        partition_t* Partition = (partition_t*)vector_get(PartitionsList, PartitonID);
+        partition_t* Partition = (partition_t*)kot_vector_get(PartitionsList, PartitonID);
         if(!Partition->IsMount){
             Partition->StaticVolumeMountPoint = Partition->Index;
             Partition->IsMount = true;
@@ -148,7 +148,7 @@ KResult UnmountPartition(uint64_t PartitonID){
 
     atomicAcquire(&PartitionLock, 0);
     if(PartitonID < PartitionsList->length){
-        partition_t* Partition = (partition_t*)vector_get(PartitionsList, PartitonID);
+        partition_t* Partition = (partition_t*)kot_vector_get(PartitionsList, PartitonID);
         if(Partition->IsMount){
             Partition->IsMount = false;
             Status = KSUCCESS;
@@ -159,7 +159,7 @@ KResult UnmountPartition(uint64_t PartitonID){
 }
 
 void LoadPartitionSystem(storage_device_t* Device){
-    device_partitions_t* Partitons = (device_partitions_t*)calloc(sizeof(device_partitions_t));
+    device_partitions_t* Partitons = (device_partitions_t*)calloc(sizeof(device_partitions_t), sizeof(device_partitions_t));
     Partitons->Device = Device;
     Partitons->LoadPartitions();
 }

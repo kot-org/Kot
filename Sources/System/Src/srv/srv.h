@@ -20,9 +20,9 @@ KResult UnbindIRQ(kot_thread_t Callback, uint64_t CallbackArg, kot_thread_t Targ
 struct SrvInfo_t{
     kot_srv_system_framebuffer_t* Framebuffer;
 
-    uintptr_t Smbios;
+    void* Smbios;
 
-    uintptr_t Rsdp;
+    void* Rsdp;
 
     uint8_t IRQLineStart;
     uint8_t IRQLineSize;

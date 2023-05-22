@@ -34,11 +34,11 @@ namespace ELF {
         return (Elf64_Half)(((uint64_t)shdr - (uint64_t)self->shdrs) / self->Header->e_shentsize);
     }
 
-    KResult loadElf(uintptr_t buffer, enum kot_Priviledge privilege, uint64_t identifier, kot_thread_t* mainthread, char* rootpath, bool isVFS) {
+    KResult loadElf(void* buffer, enum kot_Priviledge privilege, uint64_t identifier, kot_thread_t* mainthread, char* rootpath, bool isVFS) {
         elf_t* self = (elf_t*)calloc(sizeof(elf_t), sizeof(elf_t));
         self->Buffer = buffer;
         self->Header = (Elf64_Ehdr*)buffer;
-        
+
         /* Check elf */
         if(Check(self)){
             free(self);
@@ -49,13 +49,13 @@ namespace ELF {
         
         if(kot_Sys_CreateProc(&proc, privilege, identifier) != KSUCCESS) return KFAIL;
         /* TODO : create thread identifier */
-        if(kot_Sys_CreateThread(proc, (uintptr_t)self->Header->e_entry, privilege, NULL, mainthread) != KSUCCESS) return KFAIL;
+        if(kot_Sys_CreateThread(proc, (void*)self->Header->e_entry, privilege, NULL, mainthread) != KSUCCESS) return KFAIL;
 
         kot_process_t parentProcess = kot_Sys_GetProcess();
 
         /* Load the elf */
-        self->phdrs = (uintptr_t)((uint64_t)buffer + self->Header->e_phoff);
-        self->shdrs = (uintptr_t)((uint64_t)buffer + self->Header->e_shoff);
+        self->phdrs = (void*)((uint64_t)buffer + self->Header->e_phoff);
+        self->shdrs = (void*)((uint64_t)buffer + self->Header->e_shoff);
         
         self->shstr = GetSectionHeaderIndex(self, self->Header->e_shstrndx);
         self->KotSpecific = GetSectionHeaderName(self, ".KotSpecificData");
@@ -101,7 +101,7 @@ namespace ELF {
         for(uint64_t i = 0; i < self->Header->e_phnum; i++){
             Elf64_Phdr* phdr = (Elf64_Phdr*)((uint64_t)self->phdrs + (i * self->Header->e_phentsize));
             if(phdr->p_type == PT_LOAD){
-                uintptr_t TmpAddress = (uintptr_t)malloc(phdr->p_memsz);
+                void* TmpAddress = (void*)malloc(phdr->p_memsz);
                 memset((void*)TmpAddress, 0x0, phdr->p_memsz);  
                 memcpy((void*)TmpAddress, (void*)((uint64_t)buffer + phdr->p_offset), phdr->p_filesz);  
 
@@ -109,7 +109,7 @@ namespace ELF {
                 uint64_t flags = 0;
 
                 kot_Sys_CreateMemoryField(parentProcess, phdr->p_memsz, &TmpAddress, &SharedKey, MemoryFieldTypeSendSpaceRO);
-                uintptr_t clientAddress = (uintptr_t)phdr->p_vaddr;
+                void* clientAddress = (void*)phdr->p_vaddr;
 
                 kot_Sys_AcceptMemoryField(proc, SharedKey, &clientAddress);
                 kot_Sys_CloseMemoryField(parentProcess, SharedKey, TmpAddress);
@@ -119,12 +119,11 @@ namespace ELF {
 
         free(KotSpecificDataClient);
         free(self);
-
         return KSUCCESS;
 
     }
 
     bool Check(elf_t* self) {
-        return (self->Header->e_ident[0] != EI_MAG0 || self->Header->e_ident[1] != EI_MAG1 || self->Header->e_ident[2] != EI_MAG2 || self->Header->e_ident[3] != EI_MAG3);
+        return (self->Header->e_ident[EI_MAG0] != ELFMAG0 || self->Header->e_ident[EI_MAG1] != ELFMAG1 || self->Header->e_ident[EI_MAG2] != ELFMAG2 || self->Header->e_ident[EI_MAG3] != ELFMAG3);
     }
 }

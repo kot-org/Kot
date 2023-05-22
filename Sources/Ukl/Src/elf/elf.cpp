@@ -8,7 +8,7 @@ KResult loadElf(uintptr_t buffer, uint64_t* entrypoint, ukl_kernel_address_t* ke
     Elf64_Ehdr* Header = (Elf64_Ehdr*)buffer;
     
     /* Check elf */
-    if(Header->e_ident[0] != EI_MAG0 || Header->e_ident[1] != EI_MAG1 || Header->e_ident[2] != EI_MAG2 || Header->e_ident[3] != EI_MAG3){
+    if(Header->e_ident[0] != ELFMAG0 || Header->e_ident[1] != ELFMAG1 || Header->e_ident[2] != ELFMAG2 || Header->e_ident[3] != ELFMAG3){
         return KFAIL;
     }
     

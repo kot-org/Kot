@@ -29,8 +29,8 @@ struct XSDT{
     uint64_t SDTPointer[];
 }__attribute__((packed));
 
-uintptr_t ParseRSDP(uintptr_t rsdpPhysical);
+void* ParseRSDP(void* rsdpPhysical);
 
 uint64_t FindTableIndex(char* signature);
-uintptr_t GetTablePhysicalAddress(uint64_t index);
+void* GetTablePhysicalAddress(uint64_t index);
 size64_t GetTableSize(uint64_t index);

@@ -16,19 +16,19 @@ void SrvAddDevice(Device* Device){
 
     /* CreateProtectedDeviceSpaceThread */
     thread_t SrvCreateProtectedSpaceThread = NULL;
-    Sys_CreateThread(Proc, (void*)&SrvCreateProtectedSpace, PriviledgeDriver, (uint64_t)Device->DefaultSpace, &SrvCreateProtectedSpaceThread);
+    kot_Sys_CreateThread(Proc, (void*)&SrvCreateProtectedSpace, PriviledgeDriver, (uint64_t)Device->DefaultSpace, &SrvCreateProtectedSpaceThread);
     Info.MainSpace.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(SrvCreateProtectedSpaceThread, StorageHandler->ControllerHeader.Process);
 
     /* RequestToDeviceThread */
     thread_t SrvRequestHandlerThread = NULL;
-    Sys_CreateThread(Proc, (void*)&SrvRequestHandler, PriviledgeApp, (uint64_t)Device->DefaultSpace, &SrvRequestHandlerThread);
+    kot_Sys_CreateThread(Proc, (void*)&SrvRequestHandler, PriviledgeApp, (uint64_t)Device->DefaultSpace, &SrvRequestHandlerThread);
     Info.MainSpace.RequestToDeviceThread = MakeShareableThreadToProcess(SrvRequestHandlerThread, StorageHandler->ControllerHeader.Process);
 
     Info.MainSpace.BufferRWKey = Device->DefaultSpace->BufferKey;
     Info.MainSpace.SpaceSize = Device->DefaultSpace->Size;
     Info.MainSpace.BufferRWAlignement = Device->BufferAlignement;
     Info.MainSpace.BufferRWUsableSize = Device->BufferUsableSize;
-    Info.MainSpace.DriverProc = ShareProcessKey(Proc);
+    Info.MainSpace.DriverProc = kot_ShareProcessKey(Proc);
     Info.DeviceSize = Device->GetSize();
 
     memcpy(&Info.SerialNumber, Device->GetSerialNumber(), Serial_Number_Size);
@@ -70,12 +70,12 @@ void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t S
 
     /* CreateProtectedDeviceSpaceThread */
     thread_t SrvCreateProtectedSpaceThread = NULL;
-    Sys_CreateThread(Proc, (void*)&SrvCreateProtectedSpace, PriviledgeApp, (uint64_t)SpaceLocalInfo, &SrvCreateProtectedSpaceThread);
+    kot_Sys_CreateThread(Proc, (void*)&SrvCreateProtectedSpace, PriviledgeApp, (uint64_t)SpaceLocalInfo, &SrvCreateProtectedSpaceThread);
     SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableSpreadThreadToProcess(SrvCreateProtectedSpaceThread, StorageHandler->ControllerHeader.Process);
 
     /* RequestToDeviceThread */
     thread_t SrvRequestHandlerThread = NULL;
-    Sys_CreateThread(Proc, (void*)&SrvRequestHandler, PriviledgeApp, (uint64_t)SpaceLocalInfo, &SrvRequestHandlerThread);
+    kot_Sys_CreateThread(Proc, (void*)&SrvRequestHandler, PriviledgeApp, (uint64_t)SpaceLocalInfo, &SrvRequestHandlerThread);
     SpaceInfo.RequestToDeviceThread = MakeShareableSpreadThreadToProcess(SrvRequestHandlerThread, StorageHandler->ControllerHeader.Process);
 
     SpaceInfo.BufferRWKey = SpaceLocalInfo->BufferKey;
@@ -89,7 +89,7 @@ void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t S
         .ParameterPosition = 0x2,
     };
     
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* SpaceInfo */
@@ -98,8 +98,8 @@ void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t S
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
+    kot_Sys_Close(KSUCCESS);
 }
 
 void SrvSingleRequestHandler(thread_t Callback, uint64_t CallbackArg, uint64_t Start, size64_t Size, bool IsWrite){
@@ -121,7 +121,7 @@ void SrvSingleRequestHandler(thread_t Callback, uint64_t CallbackArg, uint64_t S
         }
     }
 
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
@@ -130,8 +130,8 @@ void SrvSingleRequestHandler(thread_t Callback, uint64_t CallbackArg, uint64_t S
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }
 
 void SrvMultipleRequestHandler(thread_t Callback, uint64_t CallbackArg, srv_storage_multiple_requests_t* Requests, process_t Process){
@@ -190,7 +190,7 @@ void SrvMultipleRequestHandler(thread_t Callback, uint64_t CallbackArg, srv_stor
         }
     }
 
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
@@ -205,8 +205,8 @@ void SrvMultipleRequestHandler(thread_t Callback, uint64_t CallbackArg, srv_stor
         Sys_Keyhole_CloneModify(LocalKey, &arguments.arg[2], Process, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
     }
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }
 
 void SrvRequestHandler(thread_t Callback, uint64_t CallbackArg, uint64_t RequestType, uint64_t GP0, uint64_t GP1, uint64_t GP2){
@@ -216,7 +216,7 @@ void SrvRequestHandler(thread_t Callback, uint64_t CallbackArg, uint64_t Request
         SrvMultipleRequestHandler(Callback, CallbackArg, (srv_storage_multiple_requests_t*)GP0, GP1);
     }
 
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = KFAIL,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
@@ -225,6 +225,6 @@ void SrvRequestHandler(thread_t Callback, uint64_t CallbackArg, uint64_t Request
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }

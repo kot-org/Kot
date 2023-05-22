@@ -3,7 +3,7 @@
 process_t ShareProcessFS = NULL;
 
 file_t* fopen(char* Path, char* Mode){
-    if(!ShareProcessFS) ShareProcessFS = ShareProcessKey(Sys_GetProcess());
+    if(!ShareProcessFS) ShareProcessFS = kot_ShareProcessKey(Sys_GetProcess());
     if(Mode[0] == 'r'){
         if(Mode[1] == '\0'){
             struct srv_storage_callback_t* CallbackFile = Srv_Storage_Openfile(Path, Storage_Permissions_Read, ShareProcessFS, true);
@@ -269,7 +269,7 @@ uint64_t ftell(file_t* File){
 }
 
 directory_t* opendir(char* Path){
-    if(!ShareProcessFS) ShareProcessFS = ShareProcessKey(Sys_GetProcess());
+    if(!ShareProcessFS) ShareProcessFS = kot_ShareProcessKey(Sys_GetProcess());
     struct srv_storage_callback_t* CallbackDir = Srv_Storage_DirOpen(Path, ShareProcessFS, true);
     if(CallbackDir->Status != KSUCCESS){
         free(CallbackDir);

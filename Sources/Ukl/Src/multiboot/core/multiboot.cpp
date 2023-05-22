@@ -11,7 +11,7 @@ extern "C" void multiboot_entry(uint32_t Magic, uint32_t BootDataBase){
             case MULTIBOOT_TAG_TYPE_MODULE:{
                 struct multiboot_tag_module* module_header = (struct multiboot_tag_module*)tag; 
                 uint8_t* module_buffer = (uint8_t*)module_header->mod_start;
-                bool IsElf = (module_buffer[0] == EI_MAG0 && module_buffer[1] == EI_MAG1 && module_buffer[2] == EI_MAG2 && module_buffer[3] == EI_MAG3);
+                bool IsElf = (module_buffer[0] == ELFMAG0 && module_buffer[1] == ELFMAG1 && module_buffer[2] == ELFMAG2 && module_buffer[3] == ELFMAG3);
                 if(IsElf){
                     KernelBuffer = module_header->mod_start;
                 }else{

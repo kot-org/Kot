@@ -7,7 +7,7 @@ void Srv_Pci_Initialize(){
     process_t proc = Sys_GetProcess();
 
     thread_t PciThreadKeyCallback = NULL;
-    Sys_CreateThread(proc, &Srv_Pci_Callback, PriviledgeDriver, NULL, &PciThreadKeyCallback);
+    kot_Sys_CreateThread(proc, &Srv_Pci_Callback, PriviledgeDriver, NULL, &PciThreadKeyCallback);
     srv_pci_callback_thread = MakeShareableThreadToProcess(PciThreadKeyCallback, PciData->ControllerHeader.Process);
 }
 
@@ -18,7 +18,7 @@ void Srv_Pci_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint6
         Sys_Unpause(Callback->Self);
     }
         
-    Sys_Close(KSUCCESS);
+    kot_Sys_Close(KSUCCESS);
 }
 
 /* CountDevices */
@@ -49,7 +49,7 @@ struct srv_pci_callback_t* Srv_Pci_CountDevices(srv_pci_search_parameters_t* Sea
     data.Size = sizeof(srv_pci_search_parameters_t);
     data.ParameterPosition = 0x2;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_pci_callback_thread;
     parameters.arg[1] = callback;
 
@@ -88,7 +88,7 @@ struct srv_pci_callback_t* Srv_Pci_FindDevice(srv_pci_search_parameters_t* Searc
     data.Size = sizeof(srv_pci_search_parameters_t);
     data.ParameterPosition = 0x2;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_pci_callback_thread;
     parameters.arg[1] = callback;
     // arg  2 is reserved for srv_pci_search_parameters_t
@@ -125,7 +125,7 @@ struct srv_pci_callback_t* Srv_Pci_GetInfoDevice(PCIDeviceID_t Device, bool IsAw
     callback->Status = KBUSY;
     callback->Handler = &Srv_Pci_GetInfoDevice_Callback; 
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_pci_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Device;
@@ -161,7 +161,7 @@ struct srv_pci_callback_t* Srv_Pci_GetBAR(PCIDeviceID_t Device, uint8_t BarIndex
     callback->Status = KBUSY;
     callback->Handler = &Srv_Pci_GetBAR_Callback; 
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_pci_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Device;
@@ -197,7 +197,7 @@ struct srv_pci_callback_t* Srv_Pci_BindMSI(PCIDeviceID_t Device, uint8_t IRQVect
     callback->Status = KBUSY;
     callback->Handler = &Srv_Pci_BindMSI_Callback; 
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_pci_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Device;
@@ -232,7 +232,7 @@ struct srv_pci_callback_t* Srv_Pci_UnbindMSI(PCIDeviceID_t Device, uint16_t Loca
     callback->Status = KBUSY;
     callback->Handler = &Srv_Pci_UnbindMSI_Callback; 
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_pci_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Device;
@@ -269,7 +269,7 @@ struct srv_pci_callback_t* Srv_Pci_ConfigReadWord(PCIDeviceID_t Device, uint16_t
     callback->Status = KBUSY;
     callback->Handler = &Srv_Pci_ConfigReadWord_Callback; 
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_pci_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Device;
@@ -302,7 +302,7 @@ struct srv_pci_callback_t* Srv_Pci_ConfigWriteWord(PCIDeviceID_t Device, uint16_
     callback->Status = KBUSY;
     callback->Handler = &Srv_Pci_ConfigWriteWord_Callback; 
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_pci_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Device;

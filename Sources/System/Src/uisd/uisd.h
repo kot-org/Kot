@@ -16,7 +16,7 @@ void UISDHandler(uint64_t IPCTask, enum kot_uisd_controller_type_enum Controller
 
 struct controller_info_t {
     bool IsLoad;
-    uintptr_t Data;
+    void* Data;
     kot_key_mem_t DataKey;
     std::Stack* WaitingTasks;
     uint64_t NumberOfWaitingTasks;
@@ -25,7 +25,7 @@ struct controller_info_t {
 struct callbackget_info_t{
     enum kot_uisd_controller_type_enum Controller;
     kot_process_t Self;
-    uintptr_t Address;
+    void* Address;
     kot_thread_t Callback; 
     uint64_t Callbackarg;
 };

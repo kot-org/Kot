@@ -129,7 +129,7 @@ KResult Sys_Event_Bind(kot_event_t self, thread_t task, bool IgnoreMissedEvents)
 KResult Sys_Event_Unbind(kot_event_t self, thread_t task);
 KResult Sys_Event_Trigger(kot_event_t self, struct arguments_t* parameters);
 KResult Sys_Event_Close();
-KResult Sys_CreateThread(process_t self, void* entryPoint, enum Priviledge privilege, uint64_t externalData, thread_t* result); // TODO make external data field
+KResult kot_Sys_CreateThread(process_t self, void* entryPoint, enum Priviledge privilege, uint64_t externalData, thread_t* result); // TODO make external data field
 KResult Sys_Duplicatethread(process_t parent, thread_t source, thread_t* self);
 KResult Sys_ExecThread(thread_t self, struct arguments_t* parameters, enum ExecutionType type, struct ShareDataWithArguments_t* data);
 KResult Sys_Keyhole_CloneModify(key_t source, key_t* destination, process_t target, uint64_t flags, enum Priviledge privilidge);

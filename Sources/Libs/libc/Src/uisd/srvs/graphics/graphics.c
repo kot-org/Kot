@@ -7,10 +7,10 @@ process_t ShareProcessGraphics = NULL;
 void Srv_Graphics_Initialize(){
     GraphicsData = (uisd_graphics_t*)FindControllerUISD(ControllerTypeEnum_Graphics);
     process_t Process = Sys_GetProcess();
-    ShareProcessGraphics = ShareProcessKey(Process);
+    ShareProcessGraphics = kot_ShareProcessKey(Process);
 
     thread_t GraphicsThreadKeyCallback = NULL;
-    Sys_CreateThread(Process, &Srv_Graphics_Callback, PriviledgeDriver, NULL, &GraphicsThreadKeyCallback);
+    kot_Sys_CreateThread(Process, &Srv_Graphics_Callback, PriviledgeDriver, NULL, &GraphicsThreadKeyCallback);
     srv_graphics_callback_thread = MakeShareableThreadToProcess(GraphicsThreadKeyCallback, GraphicsData->ControllerHeader.Process);
 }
 
@@ -23,7 +23,7 @@ void Srv_Graphics_Callback(KResult Status, struct srv_graphics_callback_t* Callb
         free(Callback);
     }
         
-    Sys_Close(KSUCCESS);
+    kot_Sys_Close(KSUCCESS);
 }
 
 /* CreateWindow */
@@ -53,7 +53,7 @@ struct srv_graphics_callback_t* Srv_Graphics_CreateWindow(kot_event_t Event, uin
 
     Window->Event = Event;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_graphics_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = ShareProcessGraphics;
@@ -89,7 +89,7 @@ struct srv_graphics_callback_t* Srv_Graphics_CloseWindow(kot_window_t* Window, b
     callback->Status = KBUSY;
     callback->Handler = &Srv_Graphics_Closewindowcallback; 
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_graphics_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Window_Function_Close;
@@ -124,7 +124,7 @@ struct srv_graphics_callback_t* Srv_Graphics_ResizeWindow(kot_window_t* Window, 
     callback->Status = KBUSY;
     callback->Handler = &Srv_Graphics_Resizewindowcallback; 
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_graphics_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Window_Function_Resize;
@@ -160,7 +160,7 @@ struct srv_graphics_callback_t* Srv_Graphics_ChangePostionWindow(kot_window_t* W
     callback->Status = KBUSY;
     callback->Handler = &Srv_Graphics_ChangePostionwindowcallback; 
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_graphics_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Window_Function_ChangePostion;
@@ -195,7 +195,7 @@ struct srv_graphics_callback_t* Srv_Graphics_ChangeVisibility(kot_window_t* Wind
     callback->Status = KBUSY;
     callback->Handler = &Srv_Graphics_ChangeVisibility_Callback; 
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_graphics_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Window_Function_ChangeVisibility;

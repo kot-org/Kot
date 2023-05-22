@@ -236,7 +236,7 @@ ChipInfo_t* GetChipInfo(uint16_t DeviceID) {
 
         default:
             kot_Printlog("[NET/E1000] This DeviceID does not exist. (exit)");
-            Sys_Close(KFAIL);
+            kot_Sys_Close(KFAIL);
             break;
     }
 

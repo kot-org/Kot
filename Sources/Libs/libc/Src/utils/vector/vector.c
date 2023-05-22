@@ -1,6 +1,6 @@
 #include "../vector.h"
 
-kot_vector_t* vector_create() {
+kot_vector_t* kot_vector_create() {
     kot_vector_t* vector = (kot_vector_t*) malloc(sizeof(kot_vector_t));
     vector->items = NULL;
     vector->length = 0;
@@ -21,7 +21,7 @@ void vector_expand(kot_vector_t* vector, uint64_t len) {
     vector->length+=len;
 }
 
-uint64_t vector_push(kot_vector_t* vector, void* item) {
+uint64_t kot_vector_push(kot_vector_t* vector, void* item) {
     if (vector->items == NULL) {
         vector->items = (void**) malloc(8);
         vector->length = 1;
@@ -33,7 +33,7 @@ uint64_t vector_push(kot_vector_t* vector, void* item) {
     return vector->length - 1;
 }
 
-void* vector_get(kot_vector_t* vector, uint64_t index) {
+void* kot_vector_get(kot_vector_t* vector, uint64_t index) {
     return *(void**)(vector->items + index);
 }
 

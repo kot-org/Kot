@@ -13,7 +13,7 @@ void HDAControllerOnInterrupt(){
                 }
                 Controller->Registers->Streams[i].Status |= HDA_STREAM_STS_BCIS; // Clear
                 *(uint64_t*)((uint64_t)Controller->Outputs[i]->Stream->Buffer + Controller->Outputs[i]->Stream->PositionOfStreamData) = Controller->Outputs[i]->Stream->CurrentPosition; // Set the offset
-                arguments_t Parameters{
+                kot_arguments_t Parameters{
                     .arg[0] = Controller->Outputs[i]->Stream->CurrentPosition,
                 };
                 Sys_Event_Trigger(Controller->Outputs[i]->OffsetUpdateEvent, &Parameters);
@@ -44,7 +44,7 @@ HDAController::HDAController(PCIDeviceID_t DeviceID){
     srv_pci_bar_info_t* BarInfo = (srv_pci_bar_info_t*)CallbackPCI->Data;
     free(CallbackPCI);
 
-    Sys_CreateThread(Sys_GetProcess(), (void*)&HDAControllerOnInterrupt, PriviledgeDriver, (uint64_t)this, &InterruptThread);
+    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&HDAControllerOnInterrupt, PriviledgeDriver, (uint64_t)this, &InterruptThread);
 
     srv_system_callback_t* CallbackSys = Srv_System_BindFreeIRQ(InterruptThread, true, true);
     uint64_t Vector = CallbackSys->Data;
@@ -244,7 +244,7 @@ KResult HDAController::GetOffset(HDAOutput* Output, uint64_t* Offset){
 
 void HDAController::DetectCodec(uint8_t Codec){
     Codecs[Codec].Index = Codec;
-    Codecs[Codec].Functions = vector_create();
+    Codecs[Codec].Functions = kot_vector_create();
 
     uint32_t VendorID = GetCodecParameter(Codec, 0, HDA_PARAMETER_VENDOR_ID);
     if (VendorID == 0xffffffff) {
@@ -273,7 +273,7 @@ void HDAController::DetectCodec(uint8_t Codec){
 
         Function->WidgetsStart = (WidgetNodeCount >> 16) & 0xff;
         Function->WidgetsCount = WidgetNodeCount & 0xff;
-        Function->Widgets = vector_create();
+        Function->Widgets = kot_vector_create();
 
         Function->Node = Node;
 
@@ -290,7 +290,7 @@ void HDAController::DetectCodec(uint8_t Codec){
         if(Function->Type == HDA_W_AUDIO_OUTPUT){
             AddOutputFunction(Function);
         }
-        vector_push(Codecs[Codec].Functions, Function);
+        kot_vector_push(Codecs[Codec].Functions, Function);
     }
 }
 
@@ -326,7 +326,7 @@ void HDAController::WidgetInitialize(HDAFunction* Function, uint8_t WidgetNode){
             break;
     }
 
-    vector_push(Function->Widgets, Widget);
+    kot_vector_push(Function->Widgets, Widget);
 }
 
 void HDAController::AddOutputFunction(HDAFunction* Function){

@@ -21,10 +21,10 @@ namespace Audio{
         Lock = NULL;
 
         /* Initialize offset update */
-        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&OnOffsetUpdateHandler, PriviledgeApp, (uint64_t)this, &OffsetUpdate);
+        kot_Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&OnOffsetUpdateHandler, PriviledgeApp, (uint64_t)this, &OffsetUpdate);
 
         /* Initialize device update */
-        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&OnDeviceUpdateHandler, PriviledgeApp, (uint64_t)this, &DeviceUpdate);
+        kot_Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&OnDeviceUpdateHandler, PriviledgeApp, (uint64_t)this, &DeviceUpdate);
         StreamBuffer = NULL;
         Sys_Event_Bind(((uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio))->OnDeviceChanged, DeviceUpdate, false);
 

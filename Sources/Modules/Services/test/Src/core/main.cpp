@@ -11,7 +11,7 @@ void GetMemory(){
     memcpy(address, testchar, strlen(testchar) + 1);
     kot_key_mem_t KeyShare = NULL;
     Sys_Keyhole_CloneModify(key, &KeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
-    SYS_Close(KeyShare);
+    kot_Sys_Close(KeyShare);
 }
 
 extern "C" int main(int argc, char* argv[]){
@@ -20,7 +20,7 @@ extern "C" int main(int argc, char* argv[]){
     process_t proc = Sys_GetProcess();
 
     thread_t GetMemoryThread = NULL;
-    Sys_CreateThread(proc, (void*)&GetMemory, PriviledgeApp, NULL, &GetMemoryThread);
+    kot_Sys_CreateThread(proc, (void*)&GetMemory, PriviledgeApp, NULL, &GetMemoryThread);
 
     void* address = GetFreeAlignedSpace(sizeof(uisd_test_t));
     kot_key_mem_t key = NULL;
@@ -32,7 +32,7 @@ extern "C" int main(int argc, char* argv[]){
     TestSrv->ControllerHeader.VendorID = Kot_VendorID;
     TestSrv->ControllerHeader.Type = ControllerTypeEnum_Test;
 
-    TestSrv->GetMemory = MakeShareableThread(GetMemoryThread, PriviledgeApp);
+    TestSrv->GetMemory = kot_MakeShareableThread(GetMemoryThread, PriviledgeApp);
 
     CreateControllerUISD(ControllerTypeEnum_Test, key, true);
 

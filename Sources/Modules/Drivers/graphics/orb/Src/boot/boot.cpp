@@ -65,8 +65,8 @@ void ParseBootImage(kot_framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width
 thread_t bootAnimationThread = NULL;
 
 void LoadBootAnimation(kot_framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPosition, uint64_t Width, uint64_t Height){
-    Sys_CreateThread(Sys_GetProcess(), (void*)&BootAnimation, PriviledgeDriver, NULL, &bootAnimationThread);
-    arguments_t parameters{
+    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&BootAnimation, PriviledgeDriver, NULL, &bootAnimationThread);
+    kot_arguments_t parameters{
         .arg[0] = (uint64_t)Framebuffer,
         .arg[1] = XPosition,
         .arg[2] = YPosition,
@@ -75,7 +75,7 @@ void LoadBootAnimation(kot_framebuffer_t* Framebuffer, uint64_t XPosition, uint6
     };
     DrawRect(Framebuffer, XPosition, YPosition, Width, Height, 0xffffffff);
 
-    Sys_ExecThread(bootAnimationThread, &parameters, ExecutionTypeQueu, NULL);
+    kot_Sys_ExecThread(bootAnimationThread, &parameters, ExecutionTypeQueu, NULL);
 }
 
 void BootAnimation(kot_framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPosition, uint64_t Width, uint64_t Height){

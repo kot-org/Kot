@@ -13,18 +13,18 @@
 
 namespace ELF {
     
-    KResult loadElf(uintptr_t buffer, enum kot_Priviledge ring, uint64_t identifier, kot_thread_t* mainthread, char* rootpath, bool isVFS);
+    KResult loadElf(void* buffer, enum kot_Priviledge ring, uint64_t identifier, kot_thread_t* mainthread, char* rootpath, bool isVFS);
     bool Check(struct elf_t* self);
 
     struct elf_t {
-        uintptr_t Buffer;
-        Elf64_Ehdr* Header;
-        uintptr_t phdrs;
-        uintptr_t shdrs;
-        Elf64_Shdr* shstr;
-        Elf64_Shdr* KotSpecific;
-        Elf64_Half KotSpecificIndex;
-        Elf64_Sym* KotSpecificSymbol;
+        void* Buffer;
+        __attribute__((packed)) Elf64_Ehdr* Header;
+        void* phdrs;
+        void* shdrs;
+        __attribute__((packed)) Elf64_Shdr* shstr;
+        __attribute__((packed)) Elf64_Shdr* KotSpecific;
+        __attribute__((packed)) Elf64_Half KotSpecificIndex;
+        __attribute__((packed)) Elf64_Sym* KotSpecificSymbol;
     };
 
 }

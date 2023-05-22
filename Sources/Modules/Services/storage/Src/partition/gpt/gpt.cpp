@@ -77,13 +77,13 @@ KResult device_partitions_t::LoadGPTHeader(){
 uint64_t device_partitions_t::CheckPartitions(){
     size64_t SizeOfPartitionList = sizeof(GPTPartitionEntry_t) * GPTHeader->NumberOfPartitionEntries;
 
-    uint32_t crc32HeaderCompute = crc32(NULL, (char*)GPTPartitionEntries, SizeOfPartitionList);
+    uint32_t crc32HeaderCompute = kot_crc32(NULL, (char*)GPTPartitionEntries, SizeOfPartitionList);
 
     // Check recovery 
     GPTPartitionEntry_t* GPTPartitionEntriesRecovery = (GPTPartitionEntry_t*)malloc(SizeOfPartitionList);
     uint64_t PGTPartitionEntriesRevoryLocation = ConvertLBAToBytes(GPTHeader->AlternateLBA) - SizeOfPartitionList;
     Device->ReadDevice(GPTPartitionEntriesRecovery, PGTPartitionEntriesRevoryLocation, SizeOfPartitionList);
-    uint32_t crc32RecoveryHeaderCompute = crc32(NULL, (char*)GPTPartitionEntriesRecovery, SizeOfPartitionList);
+    uint32_t crc32RecoveryHeaderCompute = kot_crc32(NULL, (char*)GPTPartitionEntriesRecovery, SizeOfPartitionList);
 
     if(GPTHeader->PartitionEntryArrayCRC32 == crc32HeaderCompute){
         if(GPTHeader->PartitionEntryArrayCRC32 != crc32RecoveryHeaderCompute){

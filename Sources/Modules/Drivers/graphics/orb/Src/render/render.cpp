@@ -3,25 +3,25 @@
 void ThreadRenderEntry(){
     renderc* Render = (renderc*)Sys_GetExternalDataThread();
     Render->ThreadRender();
-    Sys_Close(KSUCCESS);
+    kot_Sys_Close(KSUCCESS);
 }
 
 renderc::renderc(orbc* Parent){
-    Monitors = vector_create();
-    Sys_CreateThread(ShareableProcess, (void*) &ThreadRenderEntry, PriviledgeDriver, (uint64_t)this, &RenderThread);
+    Monitors = kot_vector_create();
+    kot_Sys_CreateThread(ShareableProcess, (void*) &ThreadRenderEntry, PriviledgeDriver, (uint64_t)this, &RenderThread);
 }
 
 void renderc::RenderWindows(){
     // todo: multi threads monitor rendering
     for(uint64_t i = 0; i < Monitors->length; i++){
-        monitorc* Monitor = (monitorc*)vector_get(Monitors, i);
+        monitorc* Monitor = (monitorc*)kot_vector_get(Monitors, i);
         Monitor->Update(FirstWindowNode);
     }
 }
 
 void renderc::UpdateAllEvents(){
     for(uint64_t i = 0; i < Monitors->length; i++){
-        monitorc* Monitor = (monitorc*)vector_get(Monitors, i);
+        monitorc* Monitor = (monitorc*)kot_vector_get(Monitors, i);
         Monitor->UpdateEvents(FirstWindowNode);
     }
 }
@@ -35,7 +35,7 @@ void renderc::ThreadRender(){
 
 KResult renderc::StartRender(){
     IsRendering = true;
-    return Sys_ExecThread(RenderThread, NULL, ExecutionTypeQueu, NULL);
+    return kot_Sys_ExecThread(RenderThread, NULL, ExecutionTypeQueu, NULL);
 }
 
 KResult renderc::StopRender(){
@@ -47,7 +47,7 @@ KResult renderc::StopRender(){
 }
 
 KResult renderc::AddMonitor(monitorc* Monitor){
-    vector_push(Monitors, Monitor);
+    kot_vector_push(Monitors, Monitor);
     return KSUCCESS;
 }
 

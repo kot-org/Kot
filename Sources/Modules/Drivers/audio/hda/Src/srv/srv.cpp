@@ -4,7 +4,7 @@ KResult InitializeSrv(HDAOutput* Output){
     process_t ProcessToShareData = ((uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio))->ControllerHeader.Process;
 
     thread_t ChangeStatusThread;
-    Sys_CreateThread(Sys_GetProcess(), (void*)&ChangeStatus, PriviledgeDriver, (uint64_t)Output, &ChangeStatusThread);
+    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&ChangeStatus, PriviledgeDriver, (uint64_t)Output, &ChangeStatusThread);
     Output->AudioDevice.ChangeStatus = MakeShareableThreadToProcess(ChangeStatusThread, ProcessToShareData);
 
     Sys_Event_Create(&Output->OffsetUpdateEvent);
@@ -57,7 +57,7 @@ KResult ChangeStatus(thread_t Callback, uint64_t CallbackArg, enum AudioSetStatu
         }
     }
 
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,               /* Status */
         .arg[1] = CallbackArg,          /* CallbackArg */
         .arg[2] = NULL,                 /* GP0 */
@@ -66,6 +66,6 @@ KResult ChangeStatus(thread_t Callback, uint64_t CallbackArg, enum AudioSetStatu
         .arg[5] = NULL,                 /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }

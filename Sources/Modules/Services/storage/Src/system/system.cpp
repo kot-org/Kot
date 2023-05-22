@@ -52,7 +52,7 @@ KResult SetupStack(void** Data, size64_t* Size, int argc, char** argv, char** en
 KResult ExecuteSystemAction(uint64_t PartitonID){
     // Load filesystem handler
     if(!KotSpecificData.VFSHandler){
-        srv_storage_callback_t* Callback = Srv_Storage_VFSLoginApp(Sys_GetProcess(), FS_AUTHORIZATION_HIGH, Storage_Permissions_Admin | Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, "d0:", true);
+        kot_srv_storage_callback_t* Callback = kot_Srv_Storage_VFSLoginApp(kot_Sys_GetProcess(), FS_AUTHORIZATION_HIGH, Storage_Permissions_Admin | Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, "d0:", true);
         KotSpecificData.VFSHandler = Callback->Data;
         free(Callback);
     }
@@ -85,7 +85,7 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
             if(Parser->getCode() == JSON_SUCCESS && Parser->getValue()->getType() == JSON_ARRAY){
                 JsonArray* Array = (JsonArray*) Parser->getValue();
 
-                arguments_t* InitParameters = (arguments_t*)calloc(sizeof(arguments_t));
+                kot_arguments_t* InitParameters = (kot_arguments_t*)calloc(sizeof(kot_arguments_t), sizeof(kot_arguments_t));
 
                 for(uint64_t i = 0; i < Array->length(); i++){
                     JsonObject* Service = (JsonObject*) Array->Get(i);
@@ -110,7 +110,7 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
                         char* FilePath = ServicePathBuilder->toString();
                         delete ServicePathBuilder;
 
-                        srv_system_callback_t* Callback = Srv_System_LoadExecutable(Priviledge->Get(), FilePath, true);
+                        kot_srv_system_callback_t* Callback = kot_Srv_System_LoadExecutable(Priviledge->Get(), FilePath, true);
 
                         void* MainStackData;
                         size64_t SizeMainStackData;
@@ -119,12 +119,12 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
                         SetupStack(&MainStackData, &SizeMainStackData, 1, Argv, Env);
                         free(FilePath);
 
-                        ShareDataWithArguments_t Data{
+                        kot_ShareDataWithArguments_t Data{
                             .Data = MainStackData,
                             .Size = SizeMainStackData,
                             .ParameterPosition = 0x0,
                         };
-                        Sys_ExecThread((kot_thread_t)Callback->Data, InitParameters, ExecutionTypeQueu, &Data);
+                        kot_Sys_ExecThread((kot_thread_t)Callback->Data, InitParameters, ExecutionTypeQueu, &Data);
                         free(MainStackData);
                         free(Callback);
                     }

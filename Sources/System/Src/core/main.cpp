@@ -6,6 +6,56 @@ using namespace std;
 
 kot_process_t proc;
 
+
+KResult SetupStack(void** Data, size64_t* Size, int argc, char** argv, char** envp){
+    size64_t args = 0;
+    for(int i = 0; i < argc; i++){
+        args += strlen(argv[i]) + 1; // Add NULL char at the end
+    }
+    size64_t envc = 0;
+    size64_t envs = 0;
+    auto ev = envp;
+	while(*ev){
+		envc++;
+        envs += strlen(*ev) + 1; // Add NULL char at the end
+	}
+
+    *Size = sizeof(void*) + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*) + args + envs;
+    void* Buffer = malloc(*Size);
+    
+    void* StackDst = Buffer;
+
+    *(void**)StackDst = (void*)argc;
+    StackDst = (void*)((uint64_t)StackDst + sizeof(void*));
+
+    void* OffsetDst = StackDst;
+    StackDst = (void*)((uint64_t)StackDst + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*));
+
+    for(int i = 0; i < argc; i++){
+        *((void**)OffsetDst) = (void*)((uint64_t)StackDst - (uint64_t)Buffer);
+        OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
+        strcpy((char*)StackDst, argv[i]);
+        StackDst = (void*)((uint64_t)StackDst + strlen(argv[i]) + 1); // Add NULL char at the end
+    }
+
+    // Null argument
+    *(void**)OffsetDst = NULL;
+    OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
+
+    for(int i = 0; i < envc; i++){
+        *(void**)OffsetDst = (void*)((uint64_t)StackDst - (uint64_t)Buffer);
+        OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
+        strcpy((char*)StackDst, envp[i]);
+        StackDst = (void*)((uint64_t)StackDst + strlen(envp[i]) + 1); // Add NULL char at the end
+    }
+    // Null argument
+    *(void**)OffsetDst = NULL;
+
+    *Data = Buffer;
+
+    return KSUCCESS;
+}
+
 int main(int argc, char* argv[]) {
     KernelInfo* kernelInfo = (KernelInfo*)argv[0];
 
@@ -16,7 +66,7 @@ int main(int argc, char* argv[]) {
     kot_thread_t self = kot_Sys_GetThread();
 
     // parse file system
-    initrd::Parse((uintptr_t)kernelInfo->initrd.base, kernelInfo->initrd.size);
+    initrd::Parse((void*)kernelInfo->initrd.base, kernelInfo->initrd.size);
 
     // parse rsdp
     ParseRSDP(kernelInfo->Rsdp);
@@ -31,11 +81,11 @@ int main(int argc, char* argv[]) {
     InitializeSrv(kernelInfo);
 
     // load starter file
-    initrd::File* StarterFile = initrd::Find("Starter.json");
+    initrd::InitrdFile* StarterFile = initrd::Find("Starter.json");
 
     if (StarterFile != NULL) {
         char* BufferStarterFile = (char*)calloc(StarterFile->size, sizeof(char));
-        initrd::Read(StarterFile, (uintptr_t)BufferStarterFile);
+        initrd::Read(StarterFile, (void*)BufferStarterFile);
         
         JsonParser* parser = new JsonParser(BufferStarterFile);
 
@@ -44,6 +94,8 @@ int main(int argc, char* argv[]) {
 
             kot_arguments_t* InitParameters = (kot_arguments_t*)calloc(sizeof(kot_arguments_t), sizeof(uint64_t));
 
+            InitParameters->arg[2] = 1; // Disable shell
+            
             for (uint64_t i = 0; i < arr->length(); i++) {
                 JsonObject* service = (JsonObject*) arr->Get(i);
                 JsonString* file = (JsonString*) service->Get("file");
@@ -69,9 +121,9 @@ int main(int argc, char* argv[]) {
                 
                 if (file->getType() == JSON_STRING) {
                     if(!strcmp(file->Get(), "")) continue;
-                    initrd::File* serviceFile = initrd::Find(file->Get());
+                    initrd::InitrdFile* serviceFile = initrd::Find(file->Get());
                     if (serviceFile != NULL) {
-                        uintptr_t bufferServiceFile = (uintptr_t)calloc(serviceFile->size, sizeof(uint8_t));
+                        void* bufferServiceFile = (void*)calloc(serviceFile->size, sizeof(uint8_t));
                         initrd::Read(serviceFile, bufferServiceFile);
                         kot_thread_t thread = NULL;
                         int32_t servicePriledge = 3;
@@ -85,16 +137,16 @@ int main(int argc, char* argv[]) {
                         ELF::loadElf(bufferServiceFile, (enum kot_Priviledge)servicePriledge, NULL, &thread, "d0:", IsVFS);
                         free((void*)bufferServiceFile);
 
-                        size_t filenamelen = strlen(file->Get());
-                        char** CharArray = (char**)malloc((sizeof(char*) * 0x1) + (sizeof(char) * filenamelen));
-                        CharArray[0] = (char*)&CharArray[1];
-                        memcpy(CharArray[0], file->Get(), filenamelen);
+                        void* MainStackData;
+                        size64_t SizeMainStackData;
+                        char* Argv[] = {file->Get(), NULL};
+                        char* Env[] = {NULL};
+                        SetupStack(&MainStackData, &SizeMainStackData, 1, Argv, Env);
 
-                        InitParameters->arg[0] = 1;
                         kot_ShareDataWithArguments_t Data{
-                            .Data = (uintptr_t)&CharArray,
-                            .Size = (sizeof(char*) * 0x1) + (sizeof(char) * filenamelen),
-                            .ParameterPosition = 0x1,
+                            .Data = MainStackData,
+                            .Size = SizeMainStackData,
+                            .ParameterPosition = 0x0,
                         };
                         kot_Sys_ExecThread(thread, InitParameters, ExecutionTypeQueu, &Data);
                     }

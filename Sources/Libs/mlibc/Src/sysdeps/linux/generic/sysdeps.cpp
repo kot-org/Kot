@@ -91,8 +91,8 @@ int sys_openat(int dirfd, const char *path, int flags, mode_t mode, int *fd) {
 	return 0;
 }
 
-int sys_close(int fd) {
-	auto ret = do_cp_syscall(SYS_close, fd);
+int kot_Sys_Close(int fd) {
+	auto ret = do_cp_syscall(kot_Sys_Close, fd);
 	if(int e = sc_error(ret); e)
 		return e;
 	return 0;
@@ -1197,7 +1197,7 @@ int sys_thread_setname(void *tcb, const char *name) {
 		return e;
 	}
 
-	sys_close(fd);
+	kot_Sys_Close(fd);
 
 	pthread_setcancelstate(cs, 0);
 
@@ -1226,7 +1226,7 @@ int sys_thread_getname(void *tcb, char *name, size_t size) {
 	}
 
 	name[real_size - 1] = 0;
-	sys_close(fd);
+	kot_Sys_Close(fd);
 
 	pthread_setcancelstate(cs, 0);
 

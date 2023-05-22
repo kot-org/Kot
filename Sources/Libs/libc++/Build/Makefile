@@ -1,10 +1,14 @@
 _HOME = ../../../../
 
+INCDIR = $(_HOME)Sysroot/include
+BUILDDIR := $(_HOME)Sysroot/lib
+BINDIR = $(_HOME)Bin/Modules
+
 ASMC = nasm
 CC = kot-x86_64-clang
 AR = llvm-ar-14
 
-CFLAGS = -O3 -I../Src -fno-exceptions
+CFLAGS = -O3 -fno-exceptions
 
 SRCDIR := ../Src
 OBJDIR := ../Lib
@@ -34,4 +38,4 @@ $(INCDIR)/kot++/%.h : $(SRCDIR)/%.h
 
 link:
 	@ echo !==== LINKING
-	$(AR) rcs $(BUILDDIR)libkot-c++.a $(OBJS)
+	$(AR) rcs $(BUILDDIR)/libkot-c++.a $(OBJS)

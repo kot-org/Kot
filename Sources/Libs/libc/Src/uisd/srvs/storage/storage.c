@@ -9,10 +9,10 @@ void Srv_Storage_Initialize(){
         process_t Proc = Sys_GetProcess();
 
         thread_t StoragethreadKeyCallback = NULL;
-        Sys_CreateThread(Proc, &Srv_Storage_Callback, PriviledgeApp, NULL, &StoragethreadKeyCallback);
-        srv_storage_callback_thread = MakeShareableThread(StoragethreadKeyCallback, PriviledgeService);
+        kot_Sys_CreateThread(Proc, &Srv_Storage_Callback, PriviledgeApp, NULL, &StoragethreadKeyCallback);
+        srv_storage_callback_thread = kot_MakeShareableThread(StoragethreadKeyCallback, PriviledgeService);
     }else{
-        Sys_Close(KFAIL);
+        kot_Sys_Close(KFAIL);
     }
 }
 
@@ -21,7 +21,7 @@ void Srv_Storage_Callback(KResult Status, struct srv_storage_callback_t* Callbac
     if(Callback->IsAwait){
         Sys_Unpause(Callback->Self);
     }
-    Sys_Close(KSUCCESS);    
+    kot_Sys_Close(KSUCCESS);    
 }
 
 /* Add device */
@@ -54,7 +54,7 @@ struct srv_storage_callback_t* Srv_Storage_AddDevice(struct srv_storage_device_i
         data.ParameterPosition = 0x2; 
     }
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     
@@ -86,7 +86,7 @@ struct srv_storage_callback_t* Srv_Storage_RemoveDevice(uint64_t Index, bool IsA
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_RemoveDevice_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Index;
@@ -121,7 +121,7 @@ struct srv_storage_callback_t* Srv_Storage_NotifyOnNewPartitionByGUIDType(GUID_t
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_NotifyOnNewPartitionByGUIDType_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = shareabbleThreadToNotify;
@@ -159,7 +159,7 @@ struct srv_storage_callback_t* Srv_Storage_MountPartition(thread_t VFSMountThrea
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_MountPartition_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = true; // Is mount function
@@ -196,7 +196,7 @@ struct srv_storage_callback_t* Srv_Storage_UnmountPartition(thread_t VFSUnmountT
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_UnmountPartition_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = false; // Is mount function
@@ -232,7 +232,7 @@ struct srv_storage_callback_t* Srv_Storage_VFSLoginApp(process_t Process, author
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_VFSLoginApp_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Process;
@@ -273,7 +273,7 @@ struct srv_storage_callback_t* Srv_Storage_Removefile(char* Path, bool IsAwait){
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_MountPartition_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Client_VFS_File_Remove;
@@ -318,7 +318,7 @@ struct srv_storage_callback_t* Srv_Storage_Openfile(char* Path, kot_permissions_
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_Openfile_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Client_VFS_File_Open;
@@ -357,7 +357,7 @@ struct srv_storage_callback_t* Srv_Storage_Rename(char* OldPath, char* NewPath, 
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_Rename_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Client_VFS_Rename;
@@ -412,7 +412,7 @@ struct srv_storage_callback_t* Srv_Storage_DirCreate(char* Path, mode_t Mode, bo
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_DirCreate_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Client_VFS_Dir_Create;
@@ -450,7 +450,7 @@ struct srv_storage_callback_t* Srv_Storage_DirRemove(char* Path, bool IsAwait){
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_DirRemove_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Client_VFS_Dir_Remove;
@@ -495,7 +495,7 @@ struct srv_storage_callback_t* Srv_Storage_DirOpen(char* Path, process_t Target,
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_DirOpen_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Client_VFS_Dir_Open;
@@ -536,7 +536,7 @@ struct srv_storage_callback_t* Srv_Storage_Closefile(file_t* File, bool IsAwait)
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_Closefile_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = File_Function_Close;
@@ -571,7 +571,7 @@ struct srv_storage_callback_t* Srv_Storage_Getfilesize(file_t* File, bool IsAwai
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_Getfilesize_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = File_Function_GetSize;
@@ -610,7 +610,7 @@ struct srv_storage_callback_t* Srv_Storage_Readfile(file_t* File, void* Buffer, 
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_Readfile_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = File_Function_Read;
@@ -654,7 +654,7 @@ struct srv_storage_callback_t* Srv_Storage_Writefile(file_t* File, void* Buffer,
     
     Sys_Keyhole_CloneModify(BufferKey, &BufferKeyShareable, File->FileProcessHandler, KeyholeFlagPresent, PriviledgeApp);
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = File_Function_Write;
@@ -692,7 +692,7 @@ struct srv_storage_callback_t* Srv_Storage_Closedir(directory_t* Dir, bool IsAwa
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_Closedir_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Dir_Function_Close;
@@ -727,7 +727,7 @@ struct srv_storage_callback_t* Srv_Storage_Getdircount(directory_t* Dir, bool Is
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_Getdircount_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Dir_Function_GetCount;
@@ -766,7 +766,7 @@ struct srv_storage_callback_t* Srv_Storage_Readdir(directory_t* Dir, uint64_t In
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_Readdir_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Dir_Function_Read;
@@ -800,7 +800,7 @@ struct srv_storage_callback_t* Srv_Storage_NewDev(char* Name, struct srv_storage
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_MountPartition_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_storage_callback_thread;
     parameters.arg[1] = callback;
 

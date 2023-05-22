@@ -8,13 +8,13 @@ void Srv_System_Initialize(){
     SystemData = (uisd_system_t*)FindControllerUISD(ControllerTypeEnum_System);
     if(SystemData != NULL){
         process_t Proc = Sys_GetProcess();
-        ShareableProcessUISDSystem = ShareProcessKey(Proc);
+        ShareableProcessUISDSystem = kot_ShareProcessKey(Proc);
 
         thread_t SystemthreadKeyCallback = NULL;
-        Sys_CreateThread(Proc, &Srv_System_Callback, PriviledgeMax, NULL, &SystemthreadKeyCallback);
+        kot_Sys_CreateThread(Proc, &Srv_System_Callback, PriviledgeMax, NULL, &SystemthreadKeyCallback);
         srv_system_callback_thread = MakeShareableThreadToProcess(SystemthreadKeyCallback, SystemData->ControllerHeader.Process);
     }else{
-        Sys_Close(KFAIL);
+        kot_Sys_Close(KFAIL);
     }
 }
 
@@ -23,7 +23,7 @@ void Srv_System_Callback(KResult Status, struct srv_system_callback_t* Callback,
     if(Callback->IsAwait){
         Sys_Unpause(Callback->Self);
     }
-    Sys_Close(KSUCCESS);
+    kot_Sys_Close(KSUCCESS);
 }
 
 /* LoadExecutable */
@@ -48,7 +48,7 @@ struct srv_system_callback_t* Srv_System_LoadExecutable(uint64_t Priviledge, cha
     callback->Status = KBUSY;
     callback->Handler = &Srv_System_LoadExecutable_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = ShareableProcessUISDSystem;
@@ -93,7 +93,7 @@ struct srv_system_callback_t* Srv_System_GetFramebuffer(bool IsAwait){
     callback->Status = KBUSY;
     callback->Handler = &Srv_System_GetFramebuffer_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
     
@@ -135,7 +135,7 @@ struct srv_system_callback_t* Srv_System_ReadFileInitrd(char* Name,  bool IsAwai
         data.ParameterPosition = 0x2; 
     }
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
 
@@ -175,7 +175,7 @@ struct srv_system_callback_t* Srv_System_GetTableInRootSystemDescription(char* N
         data.ParameterPosition = 0x2; 
     }
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
 
@@ -208,7 +208,7 @@ struct srv_system_callback_t* Srv_System_GetSystemManagementBIOSTable(bool IsAwa
     callback->Status = KBUSY;
     callback->Handler = &Srv_System_GetSystemManagementBIOSTable_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
     
@@ -241,7 +241,7 @@ struct srv_system_callback_t* Srv_System_BindIRQLine(uint8_t IRQLineNumber, thre
     callback->Status = KBUSY;
     callback->Handler = &Srv_System_BindIRQLine_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = IRQLineNumber;
@@ -277,7 +277,7 @@ struct srv_system_callback_t* Srv_System_UnbindIRQLine(uint8_t IRQLineNumber, th
     callback->Status = KBUSY;
     callback->Handler = &Srv_System_UnbindIRQLine_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = IRQLineNumber;
@@ -316,7 +316,7 @@ struct srv_system_callback_t* Srv_System_BindFreeIRQ(thread_t Target, bool Ignor
     callback->Status = KBUSY;
     callback->Handler = &Srv_System_BindFreeIRQ_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = TargetShareKey;
@@ -355,7 +355,7 @@ struct srv_system_callback_t* Srv_System_UnbindIRQ(uint8_t Vector, thread_t Targ
     callback->Status = KBUSY;
     callback->Handler = &Srv_System_BindFreeIRQ_Callback;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_system_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = TargetShareKey;

@@ -17,7 +17,7 @@ size64_t ControllerTypeSize[ControllerCount] = {
 thread_t CallBackUISDThread = NULL;
 process_t ProcessKeyForUISD = NULL;
 
-KResult CallbackUISD(uint64_t Task, KResult Status, uisd_callbackInfo_t* Info, uint64_t GP0, uint64_t GP1);
+KResult CallbackUISD(uint64_t Task, KResult Status, kot_uisd_callbackInfo_t* Info, uint64_t GP0, uint64_t GP1);
 
 KResult InitializeUISD(){
     thread_t UISDthreadKeyCallback;
@@ -25,7 +25,7 @@ KResult InitializeUISD(){
 
     process_t Proc = Sys_GetProcess();
 
-    Sys_CreateThread(Proc, &CallbackUISD, PriviledgeApp, NULL, &UISDthreadKeyCallback);
+    kot_Sys_CreateThread(Proc, &CallbackUISD, PriviledgeApp, NULL, &UISDthreadKeyCallback);
     CallBackUISDThread = MakeShareableThreadToProcess(UISDthreadKeyCallback, KotSpecificData.UISDHandlerProcess);
 
     Sys_Keyhole_CloneModify(Proc, &ProcessKeyForUISD, KotSpecificData.UISDHandlerProcess, KeyholeFlagPresent | KeyholeFlagDataTypeProcessMemoryAccessible, PriviledgeApp);
@@ -35,7 +35,7 @@ KResult InitializeUISD(){
     return KSUCCESS;
 }
 
-KResult CallbackUISD(uint64_t Task, KResult Status, uisd_callbackInfo_t* Info, uint64_t GP0, uint64_t GP1){
+KResult CallbackUISD(uint64_t Task, KResult Status, kot_uisd_callbackInfo_t* Info, uint64_t GP0, uint64_t GP1){
     if(Task == UISDGetTask){
         ControllerList[Info->Controller] = (void*)GP0;
         Info->Location = GP0;
@@ -47,17 +47,17 @@ KResult CallbackUISD(uint64_t Task, KResult Status, uisd_callbackInfo_t* Info, u
     Sys_Close(KSUCCESS);
 }
 
-uisd_callbackInfo_t* GetControllerUISD(enum kot_uisd_controller_type_enum Controller, void** Location, bool AwaitCallback){
+kot_uisd_callbackInfo_t* GetControllerUISD(enum kot_uisd_controller_type_enum Controller, void** Location, bool AwaitCallback){
     if(!CallBackUISDThread) InitializeUISD();
     thread_t Self = Sys_GetThread();
-    uisd_callbackInfo_t* Info = (uisd_callbackInfo_t*)malloc(sizeof(uisd_callbackInfo_t));
+    kot_uisd_callbackInfo_t* Info = (kot_uisd_callbackInfo_t*)malloc(sizeof(kot_uisd_callbackInfo_t));
     Info->Self = Self;
     Info->Controller = Controller;
     Info->AwaitCallback = AwaitCallback;
     Info->Location = NULL;
     Info->Status = KBUSY;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = UISDGetTask;
     parameters.arg[1] = Controller;
     parameters.arg[2] = CallBackUISDThread;
@@ -73,10 +73,10 @@ uisd_callbackInfo_t* GetControllerUISD(enum kot_uisd_controller_type_enum Contro
     return Info;
 }
 
-uisd_callbackInfo_t* CreateControllerUISD(enum kot_uisd_controller_type_enum Controller, kot_key_mem_t MemoryField, bool AwaitCallback){
+kot_uisd_callbackInfo_t* CreateControllerUISD(enum kot_uisd_controller_type_enum Controller, kot_key_mem_t MemoryField, bool AwaitCallback){
     if(!CallBackUISDThread) InitializeUISD();
     thread_t Self = Sys_GetThread();
-    uisd_callbackInfo_t* Info = malloc(sizeof(uisd_callbackInfo_t));
+    kot_uisd_callbackInfo_t* Info = malloc(sizeof(kot_uisd_callbackInfo_t));
     Info->Self = Self;
     Info->Controller = Controller;
     Info->AwaitCallback = AwaitCallback;
@@ -85,7 +85,7 @@ uisd_callbackInfo_t* CreateControllerUISD(enum kot_uisd_controller_type_enum Con
     kot_key_mem_t MemoryFieldKey = NULL;
     Sys_Keyhole_CloneModify(MemoryField, &MemoryFieldKey, KotSpecificData.UISDHandlerProcess, KeyholeFlagPresent, PriviledgeApp);
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = UISDCreateTask;
     parameters.arg[1] = Controller;
     parameters.arg[2] = CallBackUISDThread;
@@ -101,7 +101,7 @@ uisd_callbackInfo_t* CreateControllerUISD(enum kot_uisd_controller_type_enum Con
 
 /* Useful functions */
 
-thread_t MakeShareableThread(thread_t Thread, enum Priviledge priviledgeRequired){
+thread_t kot_MakeShareableThread(thread_t Thread, enum Priviledge priviledgeRequired){
     thread_t ReturnValue;
     Sys_Keyhole_CloneModify(Thread, &ReturnValue, NULL, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsExecutableWithQueue, PriviledgeApp);
     return ReturnValue;
@@ -125,7 +125,7 @@ thread_t MakeShareableSpreadThreadToProcess(thread_t Thread, process_t Process){
     return ReturnValue;
 }
 
-process_t ShareProcessKey(process_t Process){
+process_t kot_ShareProcessKey(process_t Process){
     process_t ReturnValue;
     Sys_Keyhole_CloneModify(Process, &ReturnValue, NULL, KeyholeFlagPresent, PriviledgeApp);
     return ReturnValue;
@@ -139,7 +139,7 @@ void* FindControllerUISD(enum kot_uisd_controller_type_enum Controller){
     void* ControllerData = GetControllerLocationUISD(Controller);
     if(!ControllerData){
         ControllerData = GetFreeAlignedSpace(ControllerTypeSize[Controller]);
-        uisd_callbackInfo_t* Info = GetControllerUISD(Controller, &ControllerData, true);
+        kot_uisd_callbackInfo_t* Info = GetControllerUISD(Controller, &ControllerData, true);
         free(Info);
     }
     return ControllerData;

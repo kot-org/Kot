@@ -4,7 +4,7 @@ struct SrvInfo_t* SrvInfo;
 kot_process_t ShareProcess;
 
 void InitializeSrv(struct KernelInfo* kernelInfo){
-    uintptr_t address = kot_GetFreeAlignedSpace(sizeof(kot_uisd_system_t));
+    void* address = kot_GetFreeAlignedSpace(sizeof(kot_uisd_system_t));
     kot_key_mem_t key = NULL;
     kot_Sys_CreateMemoryField(proc, sizeof(kot_uisd_system_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
@@ -21,47 +21,47 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
 
     /* LoadExecutable */
     kot_thread_t LoadExecutableThread = NULL;
-    kot_Sys_CreateThread(proc, (uintptr_t)&LoadExecutable, PriviledgeApp, NULL, &LoadExecutableThread);
+    kot_Sys_CreateThread(proc, (void*)&LoadExecutable, PriviledgeApp, NULL, &LoadExecutableThread);
     SystemSrv->LoadExecutable = kot_MakeShareableThread(LoadExecutableThread, PriviledgeApp);
 
     /* GetFramebuffer */
     kot_thread_t GetFramebufferThread = NULL;
-    kot_Sys_CreateThread(proc, (uintptr_t)&GetFramebuffer, PriviledgeApp, NULL, &GetFramebufferThread);
+    kot_Sys_CreateThread(proc, (void*)&GetFramebuffer, PriviledgeApp, NULL, &GetFramebufferThread);
     SystemSrv->GetFramebuffer = kot_MakeShareableThread(GetFramebufferThread, PriviledgeService);
 
     /* ReadFileInitrd */
     kot_thread_t ReadFileFromInitrdThread = NULL;
-    kot_Sys_CreateThread(proc, (uintptr_t)&ReadFileFromInitrd, PriviledgeApp, NULL, &ReadFileFromInitrdThread);
+    kot_Sys_CreateThread(proc, (void*)&ReadFileFromInitrd, PriviledgeApp, NULL, &ReadFileFromInitrdThread);
     SystemSrv->ReadFileInitrd = kot_MakeShareableThread(ReadFileFromInitrdThread, PriviledgeService);
 
     /* GetTableInRootSystemDescription */
     kot_thread_t GetTableInRootSystemDescriptionThread = NULL;
-    kot_Sys_CreateThread(proc, (uintptr_t)&GetTableInRootSystemDescription, PriviledgeApp, NULL, &GetTableInRootSystemDescriptionThread);
+    kot_Sys_CreateThread(proc, (void*)&GetTableInRootSystemDescription, PriviledgeApp, NULL, &GetTableInRootSystemDescriptionThread);
     SystemSrv->GetTableInRootSystemDescription = kot_MakeShareableThread(GetTableInRootSystemDescriptionThread, PriviledgeDriver);
 
     /* GetSystemManagementBIOSTable */
     kot_thread_t GetSystemManagementBIOSTableThread = NULL;
-    kot_Sys_CreateThread(proc, (uintptr_t)&GetSystemManagementBIOSTable, PriviledgeApp, NULL, &GetSystemManagementBIOSTableThread);
+    kot_Sys_CreateThread(proc, (void*)&GetSystemManagementBIOSTable, PriviledgeApp, NULL, &GetSystemManagementBIOSTableThread);
     SystemSrv->GetSystemManagementBIOSTable = kot_MakeShareableThread(GetSystemManagementBIOSTableThread, PriviledgeDriver);
 
     /* BindIRQLine */
     kot_thread_t BindIRQLineThread = NULL;
-    kot_Sys_CreateThread(proc, (uintptr_t)&BindIRQLine, PriviledgeApp, NULL, &BindIRQLineThread);
+    kot_Sys_CreateThread(proc, (void*)&BindIRQLine, PriviledgeApp, NULL, &BindIRQLineThread);
     SystemSrv->BindIRQLine = kot_MakeShareableThread(BindIRQLineThread, PriviledgeDriver);
     
     /* UnbindIRQLine */
     kot_thread_t UnbindIRQLineThread = NULL;
-    kot_Sys_CreateThread(proc, (uintptr_t)&UnbindIRQLine, PriviledgeApp, NULL, &UnbindIRQLineThread);
+    kot_Sys_CreateThread(proc, (void*)&UnbindIRQLine, PriviledgeApp, NULL, &UnbindIRQLineThread);
     SystemSrv->UnbindIRQLine = kot_MakeShareableThread(UnbindIRQLineThread, PriviledgeDriver);
 
     /* BindFreeIRQ */
     kot_thread_t BindFreeIRQThread = NULL;
-    kot_Sys_CreateThread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, NULL, &BindFreeIRQThread);
+    kot_Sys_CreateThread(proc, (void*)&BindFreeIRQ, PriviledgeApp, NULL, &BindFreeIRQThread);
     SystemSrv->BindFreeIRQ = kot_MakeShareableThread(BindFreeIRQThread, PriviledgeDriver);
 
     /* UnbindIRQ */
     kot_thread_t UnbindIRQThread = NULL;
-    kot_Sys_CreateThread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, NULL, &UnbindIRQThread);
+    kot_Sys_CreateThread(proc, (void*)&BindFreeIRQ, PriviledgeApp, NULL, &UnbindIRQThread);
     SystemSrv->UnbindIRQ = kot_MakeShareableThread(UnbindIRQThread, PriviledgeDriver);
 
     /* Setup data */
@@ -109,7 +109,7 @@ KResult LoadExecutable(kot_thread_t Callback, uint64_t CallbackArg, kot_process_
 
             void* BufferExecutable = malloc(ExecutableFileSize);
             fread(BufferExecutable, ExecutableFileSize, 1, ExecutableFile);
-            Status = ELF::loadElf((uintptr_t)BufferExecutable, (enum kot_Priviledge)Priviledge, NULL, &Thread, dirname(Path), true);
+            Status = ELF::loadElf((void*)BufferExecutable, (enum kot_Priviledge)Priviledge, NULL, &Thread, dirname(Path), true);
             free(BufferExecutable);
             ThreadOutput = kot_MakeShareableThreadToProcess(Thread, Process);
         }
@@ -132,7 +132,7 @@ KResult LoadExecutable(kot_thread_t Callback, uint64_t CallbackArg, kot_process_
 
 KResult GetFramebuffer(kot_thread_t Callback, uint64_t CallbackArg){
     kot_ShareDataWithArguments_t data{
-        .Data = (uintptr_t)SrvInfo->Framebuffer,
+        .Data = (void*)SrvInfo->Framebuffer,
         .Size = sizeof(kot_srv_system_framebuffer_t),
         .ParameterPosition = 0x2, 
     };
@@ -152,8 +152,8 @@ KResult GetFramebuffer(kot_thread_t Callback, uint64_t CallbackArg){
 
 KResult ReadFileFromInitrd(kot_thread_t Callback, uint64_t CallbackArg, char* Name){
     if(Name != NULL){
-        initrd::File* file = initrd::Find(Name);
-        uintptr_t fileData = NULL; 
+        initrd::InitrdFile* file = initrd::Find(Name);
+        void* fileData = NULL; 
         if(file != NULL){
             fileData = initrd::Read(file);
         }else{
@@ -203,7 +203,7 @@ KResult ReadFileFromInitrd(kot_thread_t Callback, uint64_t CallbackArg, char* Na
 KResult GetTableInRootSystemDescription(kot_thread_t Callback, uint64_t CallbackArg, char* Name){
     if(Name != NULL){
         uint64_t tableIndex = FindTableIndex(Name);
-        uintptr_t tableAddress = NULL;
+        void* tableAddress = NULL;
         size64_t tableSize = NULL;
 
         KResult status = KFAIL;

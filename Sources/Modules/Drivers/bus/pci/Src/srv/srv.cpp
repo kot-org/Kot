@@ -17,56 +17,56 @@ void InitSrv(PCIDeviceArrayInfo_t* DevicesArray){
     PciSrv->ControllerHeader.Version = Pci_Srv_Version;
     PciSrv->ControllerHeader.VendorID = Kot_VendorID;
     PciSrv->ControllerHeader.Type = ControllerTypeEnum_PCI;
-    PciSrv->ControllerHeader.Process = ShareProcessKey(proc);
+    PciSrv->ControllerHeader.Process = kot_ShareProcessKey(proc);
 
     /* Setup thread */
     CreateControllerUISD(ControllerTypeEnum_PCI, key, true);
     
     /* CountDevices */
     thread_t CountDevicesThread = NULL;
-    Sys_CreateThread(proc, (void*) &CountDevices, PriviledgeDriver, NULL, &CountDevicesThread);
-    PciSrv->CountDevices = MakeShareableThread(CountDevicesThread, PriviledgeDriver);
+    kot_Sys_CreateThread(proc, (void*) &CountDevices, PriviledgeDriver, NULL, &CountDevicesThread);
+    PciSrv->CountDevices = kot_MakeShareableThread(CountDevicesThread, PriviledgeDriver);
 
     /* FindDevice */
     thread_t FindDeviceThread = NULL;
-    Sys_CreateThread(proc, (void*) &FindDevice, PriviledgeDriver, NULL, &FindDeviceThread);
-    PciSrv->FindDevice = MakeShareableThread(FindDeviceThread, PriviledgeDriver);
+    kot_Sys_CreateThread(proc, (void*) &FindDevice, PriviledgeDriver, NULL, &FindDeviceThread);
+    PciSrv->FindDevice = kot_MakeShareableThread(FindDeviceThread, PriviledgeDriver);
 
     /* GetInfo */
     thread_t GetInfoDeviceThread = NULL;
-    Sys_CreateThread(proc, (void*) &GetInfoDevice, PriviledgeDriver, NULL, &GetInfoDeviceThread);
-    PciSrv->GetInfoDevice = MakeShareableThread(GetInfoDeviceThread, PriviledgeDriver);
+    kot_Sys_CreateThread(proc, (void*) &GetInfoDevice, PriviledgeDriver, NULL, &GetInfoDeviceThread);
+    PciSrv->GetInfoDevice = kot_MakeShareableThread(GetInfoDeviceThread, PriviledgeDriver);
 
     /* GetBAR */
     thread_t GetBARDeviceThread = NULL;
-    Sys_CreateThread(proc, (void*) &GetBARDevice, PriviledgeDriver, NULL, &GetBARDeviceThread);
-    PciSrv->GetBARDevice = MakeShareableThread(GetBARDeviceThread, PriviledgeDriver);
+    kot_Sys_CreateThread(proc, (void*) &GetBARDevice, PriviledgeDriver, NULL, &GetBARDeviceThread);
+    PciSrv->GetBARDevice = kot_MakeShareableThread(GetBARDeviceThread, PriviledgeDriver);
 
     /* BindMSI */
     thread_t BindMSIThread = NULL;
-    Sys_CreateThread(proc, (void*) &BindMSI, PriviledgeDriver, NULL, &BindMSIThread);
-    PciSrv->BindMSI = MakeShareableThread(BindMSIThread, PriviledgeDriver);
+    kot_Sys_CreateThread(proc, (void*) &BindMSI, PriviledgeDriver, NULL, &BindMSIThread);
+    PciSrv->BindMSI = kot_MakeShareableThread(BindMSIThread, PriviledgeDriver);
 
     /* UnbindMSI */
     thread_t UnbindMSIThread = NULL;
-    Sys_CreateThread(proc, (void*) &UnbindMSI, PriviledgeDriver, NULL, &UnbindMSIThread);
-    PciSrv->UnbindMSI = MakeShareableThread(UnbindMSIThread, PriviledgeDriver);
+    kot_Sys_CreateThread(proc, (void*) &UnbindMSI, PriviledgeDriver, NULL, &UnbindMSIThread);
+    PciSrv->UnbindMSI = kot_MakeShareableThread(UnbindMSIThread, PriviledgeDriver);
 
     /* ConfigReadWord */
     thread_t ConfigReadWordThread = NULL;
-    Sys_CreateThread(proc, (void*) &ConfigReadWord, PriviledgeDriver, NULL, &ConfigReadWordThread);
-    PciSrv->ConfigReadWord = MakeShareableThread(ConfigReadWordThread, PriviledgeDriver);
+    kot_Sys_CreateThread(proc, (void*) &ConfigReadWord, PriviledgeDriver, NULL, &ConfigReadWordThread);
+    PciSrv->ConfigReadWord = kot_MakeShareableThread(ConfigReadWordThread, PriviledgeDriver);
 
     /* ConfigWriteWord */
     thread_t ConfigWriteWordThread = NULL;
-    Sys_CreateThread(proc, (void*) &ConfigWriteWord, PriviledgeDriver, NULL, &ConfigWriteWordThread);
-    PciSrv->ConfigWriteWord = MakeShareableThread(ConfigWriteWordThread, PriviledgeDriver);
+    kot_Sys_CreateThread(proc, (void*) &ConfigWriteWord, PriviledgeDriver, NULL, &ConfigWriteWordThread);
+    PciSrv->ConfigWriteWord = kot_MakeShareableThread(ConfigWriteWordThread, PriviledgeDriver);
 }
 
 KResult CountDevices(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters){
     uint64_t NumDeviceFound = Search(SrvDevicesArray, SearchParameters->vendorID, SearchParameters->deviceID, SearchParameters->classID, SearchParameters->subClassID, SearchParameters->progIF);
     
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = KSUCCESS,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NumDeviceFound,   /* NumDeviceFound */
@@ -75,15 +75,15 @@ KResult CountDevices(thread_t Callback, uint64_t CallbackArg, srv_pci_search_par
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }
 
 KResult FindDevice(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters, uint64_t Index){
     PCIDeviceID_t Device = NULL;
     Device = GetDevice(SrvDevicesArray, SearchParameters->vendorID, SearchParameters->deviceID, SearchParameters->classID, SearchParameters->subClassID, SearchParameters->progIF, Index);
 
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = KSUCCESS,         /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = Device,           /* Device */
@@ -92,8 +92,8 @@ KResult FindDevice(thread_t Callback, uint64_t CallbackArg, srv_pci_search_param
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);    
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);    
 }
 
 KResult GetInfoDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex){
@@ -116,7 +116,7 @@ KResult GetInfoDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Dev
         .ParameterPosition = 0x2,
     };
 
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* Data */
@@ -125,8 +125,8 @@ KResult GetInfoDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Dev
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
+    kot_Sys_Close(KSUCCESS);
 }
 
 KResult GetBARDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex, uint8_t BarIndex){
@@ -146,7 +146,7 @@ KResult GetBARDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Devi
         .ParameterPosition = 0x2,
     };
 
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* Data */
@@ -155,8 +155,8 @@ KResult GetBARDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Devi
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
+    kot_Sys_Close(KSUCCESS);
 }
 
 KResult BindMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex, uint8_t IRQVector, uint8_t Processor, uint16_t LocalDeviceVector){
@@ -168,7 +168,7 @@ KResult BindMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceInd
         Status = Device->BindMSI(IRQVector, Processor, LocalDeviceVector,&Version);
     }
 
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = Version,          /* Version */
@@ -177,8 +177,8 @@ KResult BindMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceInd
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }
 
 KResult UnbindMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex, uint16_t LocalDeviceVector){
@@ -188,7 +188,7 @@ KResult UnbindMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceI
         Status = Device->UnbindMSI(LocalDeviceVector);
     }
 
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
@@ -197,8 +197,8 @@ KResult UnbindMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceI
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }
 
 KResult ConfigReadWord(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex, uint16_t Offset){
@@ -209,7 +209,7 @@ KResult ConfigReadWord(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t De
         Status = Device->ConfigReadWord(Offset, &Value);
     }
 
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = Value,            /* Value */
@@ -218,8 +218,8 @@ KResult ConfigReadWord(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t De
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }
 
 KResult ConfigWriteWord(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex, uint16_t Offset, uint16_t Value){
@@ -229,7 +229,7 @@ KResult ConfigWriteWord(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t D
         Status = Device->ConfigWriteWord(Offset, Value);
     }
 
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
@@ -238,6 +238,6 @@ KResult ConfigWriteWord(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t D
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }

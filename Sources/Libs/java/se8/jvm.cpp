@@ -3,8 +3,8 @@
 namespace SE8 {
 
     JavaVM::JavaVM() {
-        ref_sys = vector_create();
-        vector_push(ref_sys, NULL);
+        ref_sys = kot_vector_create();
+        kot_vector_push(ref_sys, NULL);
         this->classes = new Classes(this);
         this->threads = new Threads();
         if (isOpCodeTableNotInit()) {

@@ -46,7 +46,7 @@ void OnOffsetUpdate(){
     }
     atomicUnlock(&OutputDevice->Lock, 0);
 
-    arguments_t Parameters;
+    kot_arguments_t Parameters;
 
     Sys_Event_Trigger(OutputDevice->ClientOnOffsetUpdate, &Parameters);
 
@@ -71,7 +71,7 @@ KResult Outputs::AddOutputDevice(srv_audio_device_t* Device){
     OutputDevice->OutputStream.Format = Device->Info.Format;
 
     // Intialize stream events
-    Sys_CreateThread(Sys_GetProcess(), (void*)&OnOffsetUpdate, PriviledgeApp, (uint64_t)OutputDevice, &OutputDevice->OnOffsetUpdateHandler);
+    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&OnOffsetUpdate, PriviledgeApp, (uint64_t)OutputDevice, &OutputDevice->OnOffsetUpdateHandler);
     Sys_Event_Bind(Device->OnOffsetUpdate, OutputDevice->OnOffsetUpdateHandler, false);
 
     Sys_Event_Create(&OutputDevice->ClientOnOffsetUpdate);
@@ -84,7 +84,7 @@ KResult Outputs::AddOutputDevice(srv_audio_device_t* Device){
     OutputDevice->DeviceID = Devices.push(OutputDevice);
     DeviceCount++;
     {
-        arguments_t Paramters{
+        kot_arguments_t Paramters{
             .arg[0] = OutputDevice->DeviceID,
         };
 
@@ -96,7 +96,7 @@ KResult Outputs::AddOutputDevice(srv_audio_device_t* Device){
         Devices[0] = OutputDevice;
         Devices[0]->Device.Info.IsDefault = true;
 
-        arguments_t Paramters{
+        kot_arguments_t Paramters{
             .arg[0] = 0,
             .arg[1] = OutputDevice->DeviceID,
         };
@@ -148,7 +148,7 @@ StreamRequest_t* Outputs::RequestStream(uint64_t OutputID, process_t ProcessKey,
 
     OutputDevice->InputStreams.push(OutputRequestData);
 
-    Sys_CreateThread(Sys_GetProcess(), (void*)&StreamCommand, PriviledgeApp, (uint64_t)OutputRequestData, &OutputRequestData->StreamCommandThread);
+    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&StreamCommand, PriviledgeApp, (uint64_t)OutputRequestData, &OutputRequestData->StreamCommandThread);
     OutputRequestData->ShareBuffer->StreamCommand = MakeShareableThreadToProcess(OutputRequestData->StreamCommandThread, ProcessKey);
 
     atomicUnlock(&Lock, 0);
@@ -187,7 +187,7 @@ KResult Outputs::SetDefault(uint64_t OutputID){
     Devices[0]->Device.Info.IsDefault = false;
     Devices[0] = Devices[OutputID];
     Devices[0]->Device.Info.IsDefault = true;
-    arguments_t Paramters{
+    kot_arguments_t Paramters{
         .arg[0] = 0,
         .arg[1] = OutputID,
     };

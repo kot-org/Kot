@@ -439,7 +439,7 @@ int fd_file::close() {
 	if(__dirty_begin != __dirty_end)
 		mlibc::infoLogger() << "mlibc warning: File is not flushed before closing"
 				<< frg::endlog;
-	if(int e = mlibc::sys_close(_fd); e)
+	if(int e = mlibc::kot_Sys_Close(_fd); e)
 		return e;
 	return 0;
 }

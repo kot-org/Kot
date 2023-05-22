@@ -40,8 +40,8 @@ struct KernelInfo {
     struct bootframebuffer_t Framebuffer;
     struct initrd_t initrd;
     struct memoryInfo_t* MemoryInfo;
-    uintptr_t Smbios;
-    uintptr_t Rsdp;
+    void* Smbios;
+    void* Rsdp;
 
     uint64_t ProcessorCount;
 
@@ -54,7 +54,7 @@ struct KernelInfo {
 
 struct InfoSlot {
     size64_t size;
-    uintptr_t address;
+    void* address;
 }__attribute__((packed));
 
 extern kot_process_t proc;

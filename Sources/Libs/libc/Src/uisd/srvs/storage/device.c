@@ -18,11 +18,11 @@ KResult Srv_StorageInitializeDeviceAccess(struct srv_storage_space_info_t* Stora
         *StorageDevice = Device;
 
         thread_t CallbackRequestHandlerThread = NULL;
-        Sys_CreateThread(Sys_GetProcess(), (void*)&Srv_CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
+        kot_Sys_CreateThread(Sys_GetProcess(), (void*)&Srv_CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
         Device->CallbackRequestHandlerThread = MakeShareableThreadToProcess(CallbackRequestHandlerThread, Device->SpaceInfo.DriverProc);
 
         thread_t CallbackCreateSpaceHandlerThread = NULL;
-        Sys_CreateThread(Sys_GetProcess(), (void*)&Srv_CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
+        kot_Sys_CreateThread(Sys_GetProcess(), (void*)&Srv_CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
         Device->CallbackCreateSpaceHandlerThread = MakeShareableThreadToProcess(CallbackCreateSpaceHandlerThread, Device->SpaceInfo.DriverProc);
 
         return KSUCCESS;
@@ -34,21 +34,21 @@ KResult Srv_CallbackCreateSpaceHandler(KResult Status, struct srv_storage_device
     CallbackData->Data = malloc(sizeof(struct srv_storage_space_info_t));
     memcpy(CallbackData->Data, SpaceInfo, sizeof(struct srv_storage_space_info_t));
     Sys_Unpause(CallbackData->MainThread);
-    Sys_Close(KSUCCESS);
+    kot_Sys_Close(KSUCCESS);
 }
 
 KResult Srv_CallbackRequestHandler(KResult Status, struct srv_storage_device_callback_t* CallbackData, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     CallbackData->Status = Status;
     CallbackData->Data = GP0;
     Sys_Unpause(CallbackData->MainThread);
-    Sys_Close(KSUCCESS);
+    kot_Sys_Close(KSUCCESS);
 }
 
 KResult Srv_SendRequest(struct srv_storage_device_t* StorageDevice, uint64_t Start, size64_t Size, bool IsWrite){
     struct srv_storage_device_callback_t* callbackData = (struct srv_storage_device_callback_t*)malloc(sizeof(struct srv_storage_device_callback_t));
     callbackData->MainThread = Sys_GetThread();
 
-    struct arguments_t Parameters;
+    struct kot_arguments_t Parameters;
     Parameters.arg[0] = StorageDevice->CallbackRequestHandlerThread;
     Parameters.arg[1] = callbackData;
     Parameters.arg[2] = STORAGE_SINGLE_REQUEST;
@@ -62,13 +62,13 @@ KResult Srv_SendRequest(struct srv_storage_device_t* StorageDevice, uint64_t Sta
 
 struct srv_storage_device_callback_t* Srv_SendMultipleRequests(struct srv_storage_device_t* StorageDevice, srv_storage_multiple_requests_t* Requests){
     if(!ShareableProcessUISDStorage){
-        ShareableProcessUISDStorage = ShareProcessKey(Sys_GetProcess());
+        ShareableProcessUISDStorage = kot_ShareProcessKey(Sys_GetProcess());
     }
     
     struct srv_storage_device_callback_t* callbackData = (struct srv_storage_device_callback_t*)malloc(sizeof(struct srv_storage_device_callback_t));
     callbackData->MainThread = Sys_GetThread();
 
-    struct arguments_t Parameters;
+    struct kot_arguments_t Parameters;
     Parameters.arg[0] = StorageDevice->CallbackRequestHandlerThread;
     Parameters.arg[1] = callbackData;
     Parameters.arg[2] = STORAGE_MULTIPLE_REQUESTS;

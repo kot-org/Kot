@@ -60,7 +60,7 @@ typedef __builtin_va_list	va_list;
 #define va_arg(v,l)			__builtin_va_arg(v,l)
 #define va_copy(d,s)		__builtin_va_copy(d,s)
 
-typedef struct arguments_t{
+typedef struct kot_arguments_t{
     uint64_t arg[6];
 }__attribute__((packed));
 

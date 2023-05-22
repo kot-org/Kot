@@ -6,10 +6,10 @@ process_t ShareProcess = NULL;
 void Srv_Audio_Initialize(){
     uisd_audio_t* AudioData = (uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio);
     process_t proc = Sys_GetProcess();
-    ShareProcess = ShareProcessKey(proc);
+    ShareProcess = kot_ShareProcessKey(proc);
 
     thread_t AudioThreadKeyCallback = NULL;
-    Sys_CreateThread(proc, &Srv_Audio_Callback, PriviledgeDriver, NULL, &AudioThreadKeyCallback);
+    kot_Sys_CreateThread(proc, &Srv_Audio_Callback, PriviledgeDriver, NULL, &AudioThreadKeyCallback);
     srv_audio_callback_thread = MakeShareableThreadToProcess(AudioThreadKeyCallback, AudioData->ControllerHeader.Process);
 }
 
@@ -20,7 +20,7 @@ void Srv_Audio_Callback(KResult Status, struct srv_audio_callback_t* Callback, u
         Sys_Unpause(Callback->Self);
     }
         
-    Sys_Close(KSUCCESS);
+    kot_Sys_Close(KSUCCESS);
 }
 
 /* RequestStream */
@@ -47,7 +47,7 @@ struct srv_audio_callback_t* Srv_Audio_RequestStream(uint64_t OutputID, bool IsA
     callback->Status = KBUSY;
     callback->Handler = &Srv_Audio_RequestStream_Callback; 
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_audio_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = OutputID;
@@ -79,7 +79,7 @@ struct srv_audio_callback_t* Srv_Audio_StreamCommand(audio_share_buffer_t* Share
     callback->Status = KBUSY;
     callback->Handler = &Srv_Audio_StreamCommand_Callback; 
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_audio_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = Command;
@@ -127,7 +127,7 @@ struct srv_audio_callback_t* Srv_Audio_ChangeVolume(uint64_t OutputID, uint8_t V
     callback->Status = KBUSY;
     callback->Handler = &Srv_Audio_ChangeVolume_Callback; 
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_audio_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = OutputID;
@@ -159,7 +159,7 @@ struct srv_audio_callback_t* Srv_Audio_SetDefault(uint64_t OutputID, bool IsAwai
     callback->Status = KBUSY;
     callback->Handler = &Srv_Audio_SetDefault_Callback; 
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_audio_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = OutputID;
@@ -195,7 +195,7 @@ struct srv_audio_callback_t* Srv_Audio_GetDeviceInfo(uint64_t OutputID, bool IsA
     callback->Status = KBUSY;
     callback->Handler = &Srv_Audio_GetDeviceInfo_Callback; 
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_audio_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = OutputID;
@@ -235,7 +235,7 @@ struct srv_audio_callback_t* Srv_Audio_AddDevice(srv_audio_device_t* Device, boo
     data.Size = sizeof(srv_audio_device_t);
     data.ParameterPosition = 0x2;
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_audio_callback_thread;
     parameters.arg[1] = callback;
 

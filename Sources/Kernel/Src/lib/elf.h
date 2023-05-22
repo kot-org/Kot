@@ -119,10 +119,10 @@ typedef struct Elf64_Rela{
 #define PT_HIOS		        0x6fffffff	/* End of OS-specific */
 #define PT_LOPROC	        0x70000000	/* Start of processor-specific */
 #define PT_HIPROC	        0x7fffffff	/* End of processor-specific */
-#define EI_MAG0             0x7f
-#define EI_MAG1             'E'
-#define EI_MAG2             'L'
-#define EI_MAG3             'F'
+#define ELFMAG0             0x7f
+#define ELFMAG1             'E'
+#define ELFMAG2             'L'
+#define ELFMAG3             'F'
 
 #define DT_NULL		        0
 #define DT_NEEDED	        1

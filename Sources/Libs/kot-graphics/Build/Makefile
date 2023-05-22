@@ -1,5 +1,9 @@
 _HOME = ../../../../
 
+INCDIR = $(_HOME)Sysroot/include
+BUILDDIR := $(_HOME)Sysroot/lib
+BINDIR = $(_HOME)Bin/Modules
+
 ASMC = nasm
 CC = kot-x86_64-clang
 AR = llvm-ar-14

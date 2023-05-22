@@ -17,20 +17,20 @@ namespace initrd {
         uint64_t initfile;
     }__attribute__((packed));
 
-    struct File {
+    struct InitrdFile {
         char name[MaxName];
         uint64_t size;
     }__attribute__((packed));  
     
     struct Info {
-        uintptr_t baseAddress;
+        void* baseAddress;
         size64_t size;
         Header* header;
     }__attribute__((packed));
 
-    void Parse(uintptr_t baseAddress, size64_t size);
-    File* Find(char* fileName);
-    File* FindInitFile();
-    bool Read(File* address, uintptr_t buffer);
-    uintptr_t Read(File* file);
+    void Parse(void* baseAddress, size64_t size);
+    InitrdFile* Find(char* fileName);
+    InitrdFile* FindInitFile();
+    bool Read(InitrdFile* address, void* buffer);
+    void* Read(InitrdFile* file);
 }

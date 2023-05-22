@@ -78,7 +78,7 @@ KResult Sys_Event_Close(){
     return Syscall_0(KSys_Event_Close);
 }
 
-KResult Sys_CreateThread(process_t self, void* entryPoint, enum Priviledge privilege, uint64_t externalData, thread_t* result){
+KResult kot_Sys_CreateThread(process_t self, void* entryPoint, enum Priviledge privilege, uint64_t externalData, thread_t* result){
     return Syscall_40(KSys_CreateThread, self, entryPoint, privilege, externalData, result);
 }
 

@@ -9,7 +9,7 @@ void Srv_Time_Initialize(){
     process_t proc = Sys_GetProcess();
 
     thread_t TimeThreadKeyCallback = NULL;
-    Sys_CreateThread(proc, &Srv_Time_Callback, PriviledgeApp, NULL, &TimeThreadKeyCallback);
+    kot_Sys_CreateThread(proc, &Srv_Time_Callback, PriviledgeApp, NULL, &TimeThreadKeyCallback);
     srv_time_callback_thread = MakeShareableThreadToProcess(TimeThreadKeyCallback, TimeData->ControllerHeader.Process);
 }
 
@@ -20,7 +20,7 @@ void Srv_Time_Callback(KResult Status, struct srv_time_callback_t* Callback, uin
         Sys_Unpause(Callback->Self);
     }
         
-    Sys_Close(KSUCCESS);
+    kot_Sys_Close(KSUCCESS);
 }
 
 
@@ -51,7 +51,7 @@ struct srv_time_callback_t* Srv_Time_SetTimePointerKey(time_t** Time, bool IsAwa
     kot_key_mem_t TimePointerKeyShare;
     Sys_Keyhole_CloneModify(TimePointerKey, &TimePointerKeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_time_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = TimePointerKeyShare;
@@ -91,7 +91,7 @@ struct srv_time_callback_t* Srv_Time_SetTickPointerKey(uint64_t* TimePointer, ui
     kot_key_mem_t TickPointerKeyShare;
     Sys_Keyhole_CloneModify(TickPointerKey, &TickPointerKeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
 
-    struct arguments_t parameters;
+    struct kot_arguments_t parameters;
     parameters.arg[0] = srv_time_callback_thread;
     parameters.arg[1] = callback;
     parameters.arg[2] = TickPointerKeyShare;

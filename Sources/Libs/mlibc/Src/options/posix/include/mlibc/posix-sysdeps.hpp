@@ -56,7 +56,7 @@ int sys_write(int fd, const void *buf, size_t count, ssize_t *bytes_written);
 [[gnu::weak]] int sys_pwrite(int fd, const void *buf, size_t n, off_t off, ssize_t *bytes_read);
 
 int sys_seek(int fd, off_t offset, int whence, off_t *new_offset);
-int sys_close(int fd);
+int kot_Sys_Close(int fd);
 
 [[gnu::weak]] int sys_access(const char *path, int mode);
 [[gnu::weak]] int sys_faccessat(int dirfd, const char *pathname, int mode, int flags);

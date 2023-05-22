@@ -55,8 +55,8 @@ component_t* AddComponent(component_t* parent, componentViewParam_t param) {
     cpnt->parent = parent;
     
     if(!parent->childs)
-        parent->childs = vector_create();
-    vector_push(parent->childs, cpnt);
+        parent->childs = kot_vector_create();
+    kot_vector_push(parent->childs, cpnt);
 
     return cpnt;
 }

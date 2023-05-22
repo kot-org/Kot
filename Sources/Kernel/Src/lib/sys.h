@@ -1,5 +1,7 @@
 #pragma once
 
+#include <lib/types.h>
+
 struct kot_SpecificData_t{
     /* Memory */
     uint64_t MMapPageSize;

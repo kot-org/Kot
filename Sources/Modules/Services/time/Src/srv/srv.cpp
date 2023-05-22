@@ -16,18 +16,18 @@ KResult InitialiseServer(){
     SrvData->ControllerHeader.Version = Time_Srv_Version;
     SrvData->ControllerHeader.VendorID = Kot_VendorID;
     SrvData->ControllerHeader.Type = ControllerTypeEnum_Time;
-    SrvData->ControllerHeader.Process = ShareProcessKey(proc);
+    SrvData->ControllerHeader.Process = kot_ShareProcessKey(proc);
 
 
     /* SetTimePointerKey */
     thread_t SetTimePointerKeyThread = NULL;
-    Sys_CreateThread(proc, (void*)&SetTimePointerKeySrv, PriviledgeApp, NULL, &SetTimePointerKeyThread);
-    SrvData->SetTimePointerKey = MakeShareableThread(SetTimePointerKeyThread, PriviledgeDriver);
+    kot_Sys_CreateThread(proc, (void*)&SetTimePointerKeySrv, PriviledgeApp, NULL, &SetTimePointerKeyThread);
+    SrvData->SetTimePointerKey = kot_MakeShareableThread(SetTimePointerKeyThread, PriviledgeDriver);
 
     /* SetTickPointerKey */
     thread_t SetTickPointerKeyThread = NULL;
-    Sys_CreateThread(proc, (void*)&SetTickPointerKeySrv, PriviledgeApp, NULL, &SetTickPointerKeyThread);
-    SrvData->SetTickPointerKey = MakeShareableThread(SetTickPointerKeyThread, PriviledgeDriver);
+    kot_Sys_CreateThread(proc, (void*)&SetTickPointerKeySrv, PriviledgeApp, NULL, &SetTickPointerKeyThread);
+    SrvData->SetTickPointerKey = kot_MakeShareableThread(SetTickPointerKeyThread, PriviledgeDriver);
 
     CreateControllerUISD(ControllerTypeEnum_Time, key, true);
     return KSUCCESS;
@@ -38,7 +38,7 @@ KResult SetTimePointerKeySrv(thread_t Callback, uint64_t CallbackArg, kot_key_me
 
     SrvData->TimePointerKey = TimePointerKey;
     
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
@@ -47,8 +47,8 @@ KResult SetTimePointerKeySrv(thread_t Callback, uint64_t CallbackArg, kot_key_me
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }
 
 KResult SetTickPointerKeySrv(thread_t Callback, uint64_t CallbackArg, kot_key_mem_t TickPointerKey, uint64_t TickPeriod){
@@ -57,7 +57,7 @@ KResult SetTickPointerKeySrv(thread_t Callback, uint64_t CallbackArg, kot_key_me
     SrvData->TickPointerKey = TickPointerKey;
     SrvData->TickPeriod = TickPeriod;
     
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
@@ -66,6 +66,6 @@ KResult SetTickPointerKeySrv(thread_t Callback, uint64_t CallbackArg, kot_key_me
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }
