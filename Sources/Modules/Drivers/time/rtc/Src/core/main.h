@@ -14,6 +14,7 @@
 
 #define RTC_REGA    0xA
 
-#include <kot/sys.h>
 #include <string.h>
+#include <kot/sys.h>
+#include <kot/arch.h>
 #include <kot/uisd/srvs/time.h>

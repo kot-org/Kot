@@ -1,7 +1,8 @@
 #pragma once
 
-#include <kot/sys.h>
 #include <string.h>
+#include <stdlib.h>
+#include <kot/sys.h>
 #include <kot++/printf.h>
 #include <kot/uisd/srvs/time.h>
 #include <kot/uisd/srvs/system.h>
@@ -22,7 +23,7 @@ struct GenericAddressStructure_t{
 }__attribute__((packed));
 
 struct HPETHeader_t{
-    srv_system_sdtheader_t Header;
+    kot_srv_system_sdtheader_t Header;
 
     uint8_t RevisionID;
     uint8_t ComparatorCount:5;

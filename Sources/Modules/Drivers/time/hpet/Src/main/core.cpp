@@ -3,7 +3,7 @@
 extern "C" int main(int argc, char* argv[]){
     kot_Printlog("[TIMER/HPET] Initializing ...");
 
-    srv_system_callback_t* Callback = Srv_System_GetTableInRootSystemDescription("HPET", true);
+    kot_srv_system_callback_t* Callback = kot_Srv_System_GetTableInRootSystemDescription("HPET", true);
     HPETHeader_t* HPETHeader = (HPETHeader_t*)Callback->Data;
     free(Callback);
 
@@ -19,11 +19,11 @@ extern "C" int main(int argc, char* argv[]){
 
     HPET_t* Hpet = (HPET_t*)malloc(sizeof(HPET_t));
     Hpet->Header = HPETHeader;
-    Hpet->RegistersAddress = (void*)MapPhysical((void*)HPETHeader->Address.Address, REGISTER_SIZE);
+    Hpet->RegistersAddress = (void*)kot_MapPhysical((void*)HPETHeader->Address.Address, REGISTER_SIZE);
     Hpet->MainCounterAddress = (uint64_t)Hpet->RegistersAddress + RegisterMainCounterValues;
     Hpet->TickPeriod = Hpet->ReadRegister(RegisterGeneralCapabilitiesAndIDRegister) >> GeneralCapabilitiesAndIDRegisterCounterPeriod;
 
-    Srv_Time_SetTickPointerKey(&Hpet->MainCounterAddress, Hpet->TickPeriod, true);
+    kot_Srv_Time_SetTickPointerKey(&Hpet->MainCounterAddress, Hpet->TickPeriod, true);
 
     kot_Printlog("[TIMER/HPET] Initialized with success");
     return KSUCCESS;

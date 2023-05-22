@@ -7,8 +7,8 @@ using namespace std;
 /* PRIVATE */
 
 uint8_t GetRTCReg(int reg) {
-    IoWrite8(CMOS_ADDR, reg);
-    return IoRead8(CMOS_DATA);
+    kot_IoWrite8(CMOS_ADDR, reg);
+    return kot_IoRead8(CMOS_DATA);
 }
 
 bool isUpdatingRTC() {
@@ -93,10 +93,10 @@ extern "C" int main(int argc, char* argv[]) {
     kot_Printlog("[TIMER/RTC] Driver initialized successfully");
 
     uint64_t TimerState;
-    GetActualTick(&TimerState);
+    kot_GetActualTick(&TimerState);
 
-    time_t* Time;
-    Srv_Time_SetTimePointerKey(&Time, true);
+    kot_time_t* Time;
+    kot_Srv_Time_SetTimePointerKey(&Time, true);
 
     while (true){
         Time->Year = RTCGetYear() + 2000;
@@ -106,7 +106,7 @@ extern "C" int main(int argc, char* argv[]) {
         Time->Hour = RTCGetHour();
         Time->Minute = RTCGetMinute();
         Time->Second = RTCGetSecond();
-        SleepFromTick(&TimerState, 1000);
+        kot_SleepFromTick(&TimerState, 1000);
     }
     return KSUCCESS;
 }
