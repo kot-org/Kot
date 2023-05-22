@@ -201,3 +201,8 @@ bool strcmp(char* a, char* b, size64_t size){
     }
     return true;
 }
+
+void strcpy(char* to, char* from){
+    while(*to++ = *from++);
+    *to = 0;
+}

@@ -588,9 +588,9 @@ struct srv_storage_callback_t* Srv_Storage_Getfilesize(file_t* File, bool IsAwai
 KResult Srv_Storage_Readfile_Callback(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
         uint64_t MemoryType;
-        if(Sys_GetInfoMemoryField((ksmem_t)GP0, &MemoryType, &Callback->Size) == KSUCCESS){
+        if(Sys_GetInfoMemoryField((kot_key_mem_t)GP0, &MemoryType, &Callback->Size) == KSUCCESS){
             if(MemoryType == MemoryFieldTypeSendSpaceRO){
-                return Sys_AcceptMemoryField(Sys_GetProcess(), (ksmem_t)GP0, &Callback->Data);
+                return Sys_AcceptMemoryField(Sys_GetProcess(), (kot_key_mem_t)GP0, &Callback->Data);
             }
         }
     }
@@ -627,7 +627,7 @@ struct srv_storage_callback_t* Srv_Storage_Readfile(file_t* File, uintptr_t Buff
 /* Writefile */
 
 KResult Srv_Storage_Writefile_Callback(KResult Status, struct srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
-    Sys_CloseMemoryField(Sys_GetProcess(), *(ksmem_t*)Callback->Data, *(uintptr_t*)(Callback->Data + 8));
+    Sys_CloseMemoryField(Sys_GetProcess(), *(kot_key_mem_t*)Callback->Data, *(uintptr_t*)(Callback->Data + 8));
     return Status;
 }
 
@@ -639,15 +639,15 @@ struct srv_storage_callback_t* Srv_Storage_Writefile(file_t* File, uintptr_t Buf
     struct srv_storage_callback_t* callback = (struct srv_storage_callback_t*)malloc(sizeof(struct srv_storage_callback_t));
     callback->Self = self;
     callback->Size = NULL;
-    callback->Data = malloc(sizeof(ksmem_t) + sizeof(uintptr_t));
+    callback->Data = malloc(sizeof(kot_key_mem_t) + sizeof(uintptr_t));
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_Readfile_Callback;
 
-    ksmem_t BufferKey;
-    ksmem_t BufferKeyShareable;
+    kot_key_mem_t BufferKey;
+    kot_key_mem_t BufferKeyShareable;
 
-    *(ksmem_t*)callback->Data = BufferKey;
+    *(kot_key_mem_t*)callback->Data = BufferKey;
     *(uintptr_t*)(callback->Data + 8) = Buffer;
 
     Sys_CreateMemoryField(Sys_GetProcess(), Size, &Buffer, &BufferKey, MemoryFieldTypeSendSpaceRO);

@@ -1,6 +1,6 @@
 #include <kot/sys.h>
 
-__attribute__((section(".KotSpecificData"))) struct KotSpecificData_t KotSpecificData;
+__attribute__((section(".KotSpecificData"))) struct kot_SpecificData_t KotSpecificData;
 
 KResult Sys_CreateMemoryField(process_t self, size64_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, enum MemoryFieldType type){
     return Syscall_40(KSys_CreateMemoryField, self, size, virtualAddressPointer, keyPointer, type);
@@ -242,6 +242,6 @@ uint64_t Sys_GetPriviledgeThreadLauncher(){
 }
 
 
-KResult Printlog(char* message){
+KResult kot_Printlog(char* message){
     return Sys_Logs(message, strlen(message));
 }

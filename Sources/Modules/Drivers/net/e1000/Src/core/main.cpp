@@ -3,7 +3,7 @@
 process_t Proc = NULL;
 
 extern "C" int main(int argc, char* argv[]) {
-    Printlog("[NET/E1000] Initialization ...");
+    kot_Printlog("[NET/E1000] Initialization ...");
 
     srv_pci_search_parameters_t SearchParameters{
         .vendorID = INTEL_VEND,
@@ -20,7 +20,7 @@ extern "C" int main(int argc, char* argv[]) {
     free(Callback);
 
     if(DeviceID == NULL) {
-        Printlog("[NET/E1000] Intel network cards not found (exit)");
+        kot_Printlog("[NET/E1000] Intel network cards not found (exit)");
         return KFAIL;
     }
 
@@ -34,7 +34,7 @@ extern "C" int main(int argc, char* argv[]) {
 
     E1000* controller = new E1000(DeviceInfo, BarInfo);
 
-    Printlog("[NET/E1000] Driver initialized successfully");
+    kot_Printlog("[NET/E1000] Driver initialized successfully");
 
     return KSUCCESS;
 }

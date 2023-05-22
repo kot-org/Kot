@@ -1,4 +1,5 @@
 #pragma once
+#include <libgen.h>
 #include <core/main.h>
 #include <kot/uisd/srvs/system.h>
 
@@ -6,18 +7,18 @@
 
 void InitializeSrv(struct KernelInfo* kernelInfo);
 
-KResult LoadExecutable(thread_t Callback, uint64_t CallbackArg, process_t Process, uint64_t Priviledge, char* Path);
-KResult GetFramebuffer(thread_t Callback, uint64_t CallbackArg);
-KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name);
-KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg, char* Name);
-KResult GetSystemManagementBIOSTable(thread_t Callback, uint64_t CallbackArg);
-KResult BindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumber, thread_t Target, bool IgnoreMissedEvents);
-KResult UnbindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumber, thread_t Target);
-KResult BindFreeIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, bool IgnoreMissedEvents);
-KResult UnbindIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, uint8_t Vector);
+KResult LoadExecutable(kot_thread_t Callback, uint64_t CallbackArg, kot_process_t Process, uint64_t Priviledge, char* Path);
+KResult GetFramebuffer(kot_thread_t Callback, uint64_t CallbackArg);
+KResult ReadFileFromInitrd(kot_thread_t Callback, uint64_t CallbackArg, char* Name);
+KResult GetTableInRootSystemDescription(kot_thread_t Callback, uint64_t CallbackArg, char* Name);
+KResult GetSystemManagementBIOSTable(kot_thread_t Callback, uint64_t CallbackArg);
+KResult BindIRQLine(kot_thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumber, kot_thread_t Target, bool IgnoreMissedEvents);
+KResult UnbindIRQLine(kot_thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumber, kot_thread_t Target);
+KResult BindFreeIRQ(kot_thread_t Callback, uint64_t CallbackArg, kot_thread_t Target, bool IgnoreMissedEvents);
+KResult UnbindIRQ(kot_thread_t Callback, uint64_t CallbackArg, kot_thread_t Target, uint8_t Vector);
 
 struct SrvInfo_t{
-    srv_system_framebuffer_t* Framebuffer;
+    kot_srv_system_framebuffer_t* Framebuffer;
 
     uintptr_t Smbios;
 

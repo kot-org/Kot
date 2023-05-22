@@ -17,7 +17,7 @@ namespace initrd {
         uint64_t cursor = sizeof(Header);
         for (uint64_t i = 0; i < info->header->filenumber; i++){
             File* file = (File*) (cursor + (uint64_t)info->baseAddress);
-            if (strcmp(fileName, file->name)) {
+            if (!strcmp(fileName, file->name)) {
                 return file;
             }
             cursor += sizeof(File) + file->size;
@@ -33,8 +33,8 @@ namespace initrd {
 
     bool Read(File* file, uintptr_t buffer) {
         if (info == NULL) return false;
-        uintptr_t fileData = (uintptr_t) ((uint64_t)file + sizeof(File));
-        memcpy(buffer, fileData, file->size);
+        void* fileData = (void*)((uint64_t)file + sizeof(File));
+        memcpy((void*)buffer, fileData, file->size);
         return true;
     }
 

@@ -22,7 +22,7 @@ int64_t kot_map_indexof(kot_vector_t* map, char* key) {
     if (map->length > 0) {
         for (int64_t i = 0; i < map->length; i++) {
             kot_map_item_t* map_item = (kot_map_item_t*)kot_vector_get(map, i);
-            if(strcmp(map_item->key, key)){
+            if(!strcmp(map_item->key, key)){
                 return i;
             }
         }

@@ -40,7 +40,7 @@ typedef struct{
     size64_t TotalSize;
     bool IsWrite;
     // If is write
-    ksmem_t MemoryKey;
+    kot_key_mem_t MemoryKey;
     // Endif
     srv_storage_request_t Requests[];
 }srv_storage_multiple_requests_t;

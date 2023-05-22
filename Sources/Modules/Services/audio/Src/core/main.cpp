@@ -2,9 +2,9 @@
 
 
 extern "C" int main(int argc, char* argv[]){
-    Printlog("[AUDIO] Loading service");
+    kot_Printlog("[AUDIO] Loading service");
     InitialiseServer();
-    Printlog("[AUDIO] Service loaded");
+    kot_Printlog("[AUDIO] Service loaded");
 
 
     return KSUCCESS;

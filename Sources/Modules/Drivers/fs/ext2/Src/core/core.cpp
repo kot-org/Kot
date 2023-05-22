@@ -216,7 +216,7 @@ uint64_t mount_info_t::GetUsedDirCount(ext2_group_descriptor_t* descriptor){
 
 
 /* Inode function */
-KResult mount_info_t::ReadInode(inode_t* inode, ksmem_t* key, uint64_t start, size64_t size){
+KResult mount_info_t::ReadInode(inode_t* inode, kot_key_mem_t* key, uint64_t start, size64_t size){
     uint64_t ReadLimit = start + size;
     uint64_t ReadLimitBlock = GetNextBlockLocation(ReadLimit);
     
@@ -284,13 +284,13 @@ KResult mount_info_t::ReadInode(inode_t* inode, ksmem_t* key, uint64_t start, si
 
     struct srv_storage_device_callback_t* Callback = Srv_SendMultipleRequests(StorageDevice, MultipleRequest);
     KResult Status = Callback->Status;
-    *key = (ksmem_t)Callback->Data;
+    *key = (kot_key_mem_t)Callback->Data;
     free(Callback);
 
     return Status;
 }
 KResult mount_info_t::ReadInode(inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size){
-    ksmem_t Key;
+    kot_key_mem_t Key;
     KResult Status = ReadInode(inode, &Key, start, size);
     if(Status == KSUCCESS){
         Sys_AcceptMemoryField(Sys_GetProcess(), Key, &buffer);
@@ -400,8 +400,8 @@ KResult mount_info_t::WriteInode(inode_t* inode, uintptr_t buffer, uint64_t star
     atomicAcquire(&Lock, 0);
     uint64_t SizeRequested = start + size;
     uint64_t InodeSize = GetSizeFromInode(inode);
-    uint64_t SizeRequestedInBlock = DivideRoundUp(SizeRequested, BlockSize);
-    uint64_t SizeOfInodeInBlock = DivideRoundUp(InodeSize, BlockSize);
+    uint64_t SizeRequestedInBlock = DIV_ROUND_UP(SizeRequested, BlockSize);
+    uint64_t SizeOfInodeInBlock = DIV_ROUND_UP(InodeSize, BlockSize);
     if(SizeRequestedInBlock > SizeOfInodeInBlock){
         // Allocate
         uint64_t BlockToAllocate = SizeRequestedInBlock - SizeOfInodeInBlock;
@@ -584,7 +584,7 @@ inode_t* mount_info_t::FindInodeFromInodeEntryAndPath(inode_t* inode, char* path
 inode_t* mount_info_t::FindInodeInodeAndEntryFromName(inode_t* inode, char* name){
     // Find the directory entry in this inode
     uint64_t Size = GetSizeFromInode(inode);
-    uint64_t NumberOfEntries = DivideRoundUp(Size, BlockSize);
+    uint64_t NumberOfEntries = DIV_ROUND_UP(Size, BlockSize);
     uint64_t NameLenght = strlen(name);
     ext2_directory_entry_t* DirectoryMain = (ext2_directory_entry_t*)malloc(BlockSize);
     for(uint64_t y = 0; y < NumberOfEntries; y++){
@@ -618,7 +618,7 @@ KResult mount_info_t::LinkInodeToDirectory(inode_t* directory_inode, inode_t* in
     }
 
     uint64_t Size = GetSizeFromInode(directory_inode);
-    uint64_t NumberOfEntries = DivideRoundUp(Size, BlockSize);
+    uint64_t NumberOfEntries = DIV_ROUND_UP(Size, BlockSize);
     ext2_directory_entry_t* DirectoryMain = (ext2_directory_entry_t*)malloc(BlockSize);
     ext2_directory_entry_t* Directory;
     for(uint64_t y = 0; y < NumberOfEntries; y++){
@@ -728,7 +728,7 @@ KResult mount_info_t::UnlinkInodeToDirectory(inode_t* inode, char* name){
 KResult mount_info_t::AllocateBlock(uint64_t* block){
     if(!SuperBlock->free_blocks_count) return KFAIL;
 
-    uint64_t NumberOfGroup = DivideRoundUp(SuperBlock->blocks_count, SuperBlock->blocks_per_group);
+    uint64_t NumberOfGroup = DIV_ROUND_UP(SuperBlock->blocks_count, SuperBlock->blocks_per_group);
 
     uint64_t BlockInBitmapBlock = BlockSize * 8;
     uint8_t* BlockBitmap = (uint8_t*)malloc(BlockSize);
@@ -737,8 +737,8 @@ KResult mount_info_t::AllocateBlock(uint64_t* block){
     for(uint64_t i = 0; i < NumberOfGroup; i++){
         ext2_group_descriptor_t* Descriptor = GetDescriptorFromGroup(i);
         if(Descriptor->free_blocks_count){
-            uint64_t BitmapSize = DivideRoundUp(SuperBlock->blocks_per_group, 8);
-            uint64_t BitmapSizeInBlock = DivideRoundUp(BitmapSize, BlockSize);
+            uint64_t BitmapSize = DIV_ROUND_UP(SuperBlock->blocks_per_group, 8);
+            uint64_t BitmapSizeInBlock = DIV_ROUND_UP(BitmapSize, BlockSize);
             for(uint64_t y = 0; y < BitmapSizeInBlock; y++){
                 // Load bitmap
                 ReadBlock(BlockBitmap, Descriptor->block_bitmap + y, NULL, BlockSize);
@@ -817,7 +817,7 @@ KResult mount_info_t::FreeBlock(uint64_t block){
 KResult mount_info_t::AllocateInode(uint64_t* inode){
     if(!SuperBlock->free_inodes_count) return KFAIL;
 
-    uint64_t NumberOfGroup = DivideRoundUp(SuperBlock->inodes_count, SuperBlock->inodes_per_group);
+    uint64_t NumberOfGroup = DIV_ROUND_UP(SuperBlock->inodes_count, SuperBlock->inodes_per_group);
 
     uint64_t InodeInBitmapBlock = BlockSize * 8;
     uint8_t* BlockBitmap = (uint8_t*)malloc(BlockSize);
@@ -828,8 +828,8 @@ KResult mount_info_t::AllocateInode(uint64_t* inode){
         ext2_group_descriptor_t* Descriptor = GetDescriptorFromGroup(i);
         if (Descriptor->free_inodes_count)
         {
-            uint64_t BitmapSize = DivideRoundUp(SuperBlock->inodes_per_group, 8);
-            uint64_t BitmapSizeInBlock = DivideRoundUp(BitmapSize, BlockSize);
+            uint64_t BitmapSize = DIV_ROUND_UP(SuperBlock->inodes_per_group, 8);
+            uint64_t BitmapSizeInBlock = DIV_ROUND_UP(BitmapSize, BlockSize);
             for (uint64_t y = 0; y < BitmapSizeInBlock; y++)
             {
                 // Load bitmap
@@ -902,7 +902,7 @@ KResult mount_info_t::FreeInode(uint64_t inode){
 }
 
 KResult mount_info_t::DeleteInode(struct inode_t* inode){
-    FreeInodeBlocks(inode, NULL, DivideRoundUp(GetSizeFromInode(inode), BlockSize));
+    FreeInodeBlocks(inode, NULL, DIV_ROUND_UP(GetSizeFromInode(inode), BlockSize));
     SetSizeFromInode(inode, NULL);
     
     inode->Inode.dtime = GetPosixTime();
@@ -1504,7 +1504,7 @@ KResult ext_file_t::ReadFile(uintptr_t buffer, uint64_t start, size64_t size){
     return KFAIL;
 }
 
-KResult ext_file_t::ReadFile(ksmem_t* key, uint64_t start, size64_t size){
+KResult ext_file_t::ReadFile(kot_key_mem_t* key, uint64_t start, size64_t size){
     if(Permissions & Storage_Permissions_Read){
         Inode->Inode.atime = GetPosixTime();
         MountInfo->SetInode(Inode);

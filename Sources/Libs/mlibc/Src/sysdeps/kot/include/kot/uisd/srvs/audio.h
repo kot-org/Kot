@@ -62,7 +62,7 @@ typedef struct {
 
     kot_event_t OnOffsetUpdate;
 
-    kot_ksmem_t StreamBufferKey;
+    kot_key_mem_t StreamBufferKey;
 } kot_srv_audio_device_t;
 
 typedef uint8_t kot_audio_volume_t;
@@ -74,7 +74,7 @@ typedef struct{
 } kot_audio_buffer_t;
 
 typedef struct{
-    kot_ksmem_t StreamBufferKey;
+    kot_key_mem_t StreamBufferKey;
     size64_t StreamSize;
     size64_t StreamRealSize;
     size64_t PositionOfStreamData;

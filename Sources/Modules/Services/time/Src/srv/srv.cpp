@@ -6,7 +6,7 @@ KResult InitialiseServer(){
     process_t proc = Sys_GetProcess();
 
     uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_time_t));
-    ksmem_t key = NULL;
+    kot_key_mem_t key = NULL;
     Sys_CreateMemoryField(proc, sizeof(uisd_time_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
     SrvData = (uisd_time_t*)address;
@@ -33,7 +33,7 @@ KResult InitialiseServer(){
     return KSUCCESS;
 }
 
-KResult SetTimePointerKeySrv(thread_t Callback, uint64_t CallbackArg, ksmem_t TimePointerKey){
+KResult SetTimePointerKeySrv(thread_t Callback, uint64_t CallbackArg, kot_key_mem_t TimePointerKey){
     KResult Status = KFAIL;
 
     SrvData->TimePointerKey = TimePointerKey;
@@ -51,7 +51,7 @@ KResult SetTimePointerKeySrv(thread_t Callback, uint64_t CallbackArg, ksmem_t Ti
     Sys_Close(KSUCCESS);
 }
 
-KResult SetTickPointerKeySrv(thread_t Callback, uint64_t CallbackArg, ksmem_t TickPointerKey, uint64_t TickPeriod){
+KResult SetTickPointerKeySrv(thread_t Callback, uint64_t CallbackArg, kot_key_mem_t TickPointerKey, uint64_t TickPeriod){
     KResult Status = KFAIL;
 
     SrvData->TickPointerKey = TickPointerKey;

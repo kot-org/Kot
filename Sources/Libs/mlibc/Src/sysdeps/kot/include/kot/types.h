@@ -23,7 +23,7 @@ typedef uint64_t kot_key_t;
 typedef kot_key_t kot_process_t;
 typedef kot_key_t kot_thread_t;
 typedef kot_key_t kot_event_t;
-typedef kot_key_t kot_ksmem_t;
+typedef kot_key_t kot_key_mem_t;
 
 typedef uint64_t kot_authorization_t;
 typedef uint64_t kot_authorization_type_t;

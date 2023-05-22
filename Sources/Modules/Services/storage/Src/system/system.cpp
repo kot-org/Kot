@@ -93,7 +93,7 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
                     JsonNumber* Priviledge = (JsonNumber*) Service->Get("priviledge"); // default: 3
                     
                     if (File->getType() == JSON_STRING) {
-                        if(strcmp(File->Get(), "")) continue;
+                        if(!strcmp(File->Get(), "")) continue;
                         int32_t ServicePriledge = 3;
                         if(Priviledge != NULL){
                             if(Priviledge->getType() == JSON_NUMBER){ 
@@ -124,7 +124,7 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
                             .Size = SizeMainStackData,
                             .ParameterPosition = 0x0,
                         };
-                        Sys_ExecThread((thread_t)Callback->Data, InitParameters, ExecutionTypeQueu, &Data);
+                        Sys_ExecThread((kot_thread_t)Callback->Data, InitParameters, ExecutionTypeQueu, &Data);
                         free(MainStackData);
                         free(Callback);
                     }

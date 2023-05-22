@@ -209,7 +209,7 @@ button_t* CreateButton(component_t* parent, componentViewParam_t param) {
 
 /*     char* buff[50];
     itoa(parent->type, buff, 10);
-    Printlog(buff); */
+    kot_Printlog(buff); */
 
     uint32_t newWidth = parent->fb->Width + param.Width;
     

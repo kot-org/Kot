@@ -596,9 +596,9 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Getfilesize(kot_file_t* File,
 KResult Srv_Storage_Readfile_Callback(KResult Status, struct kot_srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
         uint64_t MemoryType;
-        if(kot_Sys_GetInfoMemoryField((kot_ksmem_t)GP0, &MemoryType, &Callback->Size) == KSUCCESS){
+        if(kot_Sys_GetInfoMemoryField((kot_key_mem_t)GP0, &MemoryType, &Callback->Size) == KSUCCESS){
             if(MemoryType == MemoryFieldTypeSendSpaceRO){
-                return kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), (kot_ksmem_t)GP0, &Callback->Data);
+                return kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), (kot_key_mem_t)GP0, &Callback->Data);
             }
         }
     }
@@ -635,7 +635,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Readfile(kot_file_t* File, ui
 /* Writefile */
 
 KResult Srv_Storage_Writefile_Callback(KResult Status, struct kot_srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
-    kot_Sys_CloseMemoryField(kot_Sys_GetProcess(), *(kot_ksmem_t*)Callback->Data, *(uintptr_t*)(Callback->Data + 8));
+    kot_Sys_CloseMemoryField(kot_Sys_GetProcess(), *(kot_key_mem_t*)Callback->Data, *(uintptr_t*)(Callback->Data + 8));
     return Status;
 }
 
@@ -647,15 +647,15 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Writefile(kot_file_t* File, u
     struct kot_srv_storage_callback_t* callback = (struct kot_srv_storage_callback_t*)malloc(sizeof(struct kot_srv_storage_callback_t));
     callback->Self = self;
     callback->Size = NULL;
-    callback->Data = (uint64_t)malloc(sizeof(kot_ksmem_t) + sizeof(uintptr_t));
+    callback->Data = (uint64_t)malloc(sizeof(kot_key_mem_t) + sizeof(uintptr_t));
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_Readfile_Callback;
 
-    kot_ksmem_t BufferKey;
-    kot_ksmem_t BufferKeyShareable;
+    kot_key_mem_t BufferKey;
+    kot_key_mem_t BufferKeyShareable;
 
-    *(kot_ksmem_t*)callback->Data = BufferKey;
+    *(kot_key_mem_t*)callback->Data = BufferKey;
     *(uintptr_t*)(callback->Data + 8) = Buffer;
 
     kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), Size, &Buffer, &BufferKey, MemoryFieldTypeSendSpaceRO);

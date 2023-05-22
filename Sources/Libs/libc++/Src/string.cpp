@@ -14,7 +14,7 @@ namespace std {
         if(isRightStart){
             for (int64_t i = Sblenght - len; i != -1; i--) {
                 char* sub = substr(i, i + len);
-                if (strcmp(sub, str)) {
+                if (!strcmp(sub, str)) {
                     free(sub);
                     return i;
                 }
@@ -23,7 +23,7 @@ namespace std {
         }else{
             for (uint64_t i = 0; i < Sblenght; i++) {
                 char* sub = substr(i, i + len);
-                if (strcmp(sub, str)) {
+                if (!strcmp(sub, str)) {
                     free(sub);
                     return i;
                 }

@@ -15,7 +15,7 @@ void MouseHandlerTaskbar(uint64_t EventType, uint64_t PositionX, uint64_t Positi
 }
 
 desktopc::desktopc(orbc* Parent){
-    Printlog("[ORB/DESKTOP] Initializing...");
+    kot_Printlog("[ORB/DESKTOP] Initializing...");
     
     /* Play startup sound */
     Audio::Stream* St = new Audio::Stream(0);
@@ -81,7 +81,7 @@ desktopc::desktopc(orbc* Parent){
 
     fclose(SettingsFile);
 
-    Printlog("[ORB/DESKTOP] Initialized");
+    kot_Printlog("[ORB/DESKTOP] Initialized");
 }
 
 KResult desktopc::AddMonitor(monitorc* Monitor){

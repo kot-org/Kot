@@ -5,7 +5,7 @@ process_t Proc = NULL;
 AHCIController** Controllers = NULL;
 
 extern "C" int main(int argc, char* argv[]) {
-    Printlog("[STORAGE/AHCI] Initialization ...");
+    kot_Printlog("[STORAGE/AHCI] Initialization ...");
 
     Proc = Sys_GetProcess();
 
@@ -35,7 +35,7 @@ extern "C" int main(int argc, char* argv[]) {
         Controllers[i] = new AHCIController(BarInfo);
     }
 
-    Printlog("[STORAGE/AHCI] Driver initialized successfully");
+    kot_Printlog("[STORAGE/AHCI] Driver initialized successfully");
 
     return KSUCCESS;
 }

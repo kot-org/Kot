@@ -18,7 +18,7 @@ hidc::hidc(orbc* Parent){
     file_t* KursorFile = fopen("d0:darkDefault.kursor", "rb"); // todo: kursor settings and use drive to store the cursor to d1:Bin/Kursors/
 
     if(KursorFile == NULL) {
-        Printlog("[GRAPHICS/ORB] \033[0;31mERR:\033[0m Kursor file not found."); // todo: error log
+        kot_Printlog("[GRAPHICS/ORB] \033[0;31mERR:\033[0m Kursor file not found."); // todo: error log
         return;
     }
 
@@ -44,7 +44,7 @@ hidc::hidc(orbc* Parent){
     memcpy(PixelMap, PixelMapTmp, PixelMapSize);
 
     uintptr_t BitmapMaskTmp = (uintptr_t) ((uint64_t)Header + Header->BitmapMaskOffset);
-    size64_t BitmapMaskSize = DivideRoundUp(Height * Pitch, 8);
+    size64_t BitmapMaskSize = DIV_ROUND_UP(Height * Pitch, 8);
     BitmapMask = malloc(BitmapMaskSize);
     memcpy(BitmapMask, BitmapMaskTmp, BitmapMaskSize);
 

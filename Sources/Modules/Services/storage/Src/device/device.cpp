@@ -1,27 +1,27 @@
 #include <device/device.h>
 
-KResult AddDevice(srv_storage_device_info_t* Info, storage_device_t** DevicePointer){
+KResult AddDevice(kot_srv_storage_device_info_t* Info, storage_device_t** DevicePointer){
     uint64_t BufferType = NULL;
     uint64_t BufferSize = NULL;
     
-    Sys_GetInfoMemoryField(Info->MainSpace.BufferRWKey, &BufferType, &BufferSize);
+    kot_Sys_GetInfoMemoryField(Info->MainSpace.BufferRWKey, &BufferType, &BufferSize);
     if(BufferType == MemoryFieldTypeShareSpaceRW){
         storage_device_t* Device = (storage_device_t*)malloc(sizeof(storage_device_t));
-        Device->BufferRWBase = GetFreeAlignedSpace(BufferSize);
+        Device->BufferRWBase = kot_GetFreeAlignedSpace(BufferSize);
         Device->BufferRWSize = BufferSize;
         
-        Sys_AcceptMemoryField(Sys_GetProcess(), Info->MainSpace.BufferRWKey, &Device->BufferRWBase);
+        kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), Info->MainSpace.BufferRWKey, &Device->BufferRWBase);
 
-        memcpy(&Device->Info, Info, sizeof(srv_storage_device_info_t));
+        memcpy(&Device->Info, Info, sizeof(kot_srv_storage_device_info_t));
         *DevicePointer = Device;
 
-        thread_t CallbackRequestHandlerThread = NULL;
-        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
-        Device->CallbackRequestHandlerThread = MakeShareableThreadToProcess(CallbackRequestHandlerThread, Info->MainSpace.DriverProc);
+        kot_thread_t CallbackRequestHandlerThread = NULL;
+        kot_Sys_CreateThread(kot_Sys_GetProcess(), (uintptr_t)&CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
+        Device->CallbackRequestHandlerThread = kot_MakeShareableThreadToProcess(CallbackRequestHandlerThread, Info->MainSpace.DriverProc);
 
-        thread_t CallbackCreateSpaceHandlerThread = NULL;
-        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
-        Device->CallbackCreateSpaceHandlerThread = MakeShareableThreadToProcess(CallbackCreateSpaceHandlerThread, Info->MainSpace.DriverProc);
+        kot_thread_t CallbackCreateSpaceHandlerThread = NULL;
+        kot_Sys_CreateThread(kot_Sys_GetProcess(), (uintptr_t)&CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
+        Device->CallbackCreateSpaceHandlerThread = kot_MakeShareableThreadToProcess(CallbackCreateSpaceHandlerThread, Info->MainSpace.DriverProc);
         LoadPartitionSystem(Device);
 
         return KSUCCESS;
@@ -30,50 +30,50 @@ KResult AddDevice(srv_storage_device_info_t* Info, storage_device_t** DevicePoin
 }
 
 KResult RemoveDevice(storage_device_t* Device){
-    Sys_CloseMemoryField(Sys_GetProcess(), Device->Info.MainSpace.BufferRWKey, Device->BufferRWBase);
+    kot_Sys_CloseMemoryField(kot_Sys_GetProcess(), Device->Info.MainSpace.BufferRWKey, Device->BufferRWBase);
     return KSUCCESS;
 }
 
-KResult CallbackCreateSpaceHandler(KResult Status, storage_callback_t* CallbackData, srv_storage_space_info_t* SpaceInfo){
-    CallbackData->Data = malloc(sizeof(srv_storage_space_info_t));
-    memcpy(CallbackData->Data, SpaceInfo, sizeof(srv_storage_space_info_t));
-    Sys_Unpause(CallbackData->MainThread);
-    Sys_Close(KSUCCESS);
+KResult CallbackCreateSpaceHandler(KResult Status, storage_callback_t* CallbackData, kot_srv_storage_space_info_t* SpaceInfo){
+    CallbackData->Data = (uintptr_t)malloc(sizeof(kot_srv_storage_space_info_t));
+    memcpy((void*)CallbackData->Data, SpaceInfo, sizeof(kot_srv_storage_space_info_t));
+    kot_Sys_Unpause(CallbackData->MainThread);
+    kot_Sys_Close(KSUCCESS);
 }
 
-KResult storage_device_t::CreateSpace(uint64_t Start, size64_t Size, srv_storage_space_info_t** SpaceInfo){
+KResult storage_device_t::CreateSpace(uint64_t Start, size64_t Size, kot_srv_storage_space_info_t** SpaceInfo){
     storage_callback_t* callbackData = (storage_callback_t*)malloc(sizeof(storage_callback_t));
-    callbackData->MainThread = Sys_GetThread();
+    callbackData->MainThread = kot_Sys_GetThread();
 
-    arguments_t parameters;
+    kot_arguments_t parameters;
     parameters.arg[0] = CallbackCreateSpaceHandlerThread;
     parameters.arg[1] = (uint64_t)callbackData;
     parameters.arg[2] = Start;
     parameters.arg[3] = Size;
-    Sys_ExecThread(Info.MainSpace.CreateProtectedDeviceSpaceThread, &parameters, ExecutionTypeQueu, NULL);
-    Sys_Pause(false);
-    *SpaceInfo = (srv_storage_space_info_t*)callbackData->Data;
+    kot_Sys_ExecThread(Info.MainSpace.CreateProtectedDeviceSpaceThread, &parameters, ExecutionTypeQueu, NULL);
+    kot_Sys_Pause(false);
+    *SpaceInfo = (kot_srv_storage_space_info_t*)callbackData->Data;
     return KSUCCESS;
 }
 
-KResult CallbackRequestHandler(KResult Status, thread_t MainThread){
-    Sys_Unpause(MainThread);
-    Sys_Close(KSUCCESS);
+KResult CallbackRequestHandler(KResult Status, kot_thread_t MainThread){
+    kot_Sys_Unpause(MainThread);
+    kot_Sys_Close(KSUCCESS);
 }
 
 KResult storage_device_t::SendRequest(uint64_t Start, size64_t Size, bool IsWrite){
     storage_callback_t* callbackData = (storage_callback_t*)malloc(sizeof(storage_callback_t));
-    callbackData->MainThread = Sys_GetThread();
+    callbackData->MainThread = kot_Sys_GetThread();
 
-    arguments_t parameters;
+    kot_arguments_t parameters;
     parameters.arg[0] = CallbackRequestHandlerThread;
-    parameters.arg[1] = Sys_GetThread();
+    parameters.arg[1] = kot_Sys_GetThread();
     parameters.arg[2] = NULL; // Sigle request
     parameters.arg[3] = Start;
     parameters.arg[4] = Size;
     parameters.arg[5] = IsWrite;
-    Sys_ExecThread(Info.MainSpace.RequestToDeviceThread, &parameters, ExecutionTypeQueu, NULL);
-    Sys_Pause(false);
+    kot_Sys_ExecThread(Info.MainSpace.RequestToDeviceThread, &parameters, ExecutionTypeQueu, NULL);
+    kot_Sys_Pause(false);
     return KSUCCESS;
 }
 
@@ -82,7 +82,7 @@ uint64_t storage_device_t::GetBufferStartingAddress(uint64_t Start){
 }
 
 KResult storage_device_t::ReadDevice(uintptr_t Buffer, uint64_t Start, size64_t Size){
-    uint64_t RequestNum = DivideRoundUp(Size, Info.MainSpace.BufferRWUsableSize);
+    uint64_t RequestNum = DIV_ROUND_UP(Size, Info.MainSpace.BufferRWUsableSize);
     uint64_t StartInIteration = Start;
     uint64_t SizeToRead = Size;
     uint64_t AddressDst = (uint64_t)Buffer;
@@ -97,7 +97,7 @@ KResult storage_device_t::ReadDevice(uintptr_t Buffer, uint64_t Start, size64_t 
 
         atomicAcquire(&Lock, 0);
         SendRequest(StartInIteration, SizeToReadInIteration, false);
-        memcpy((uintptr_t)AddressDst, (uintptr_t)GetBufferStartingAddress(StartInIteration), SizeToReadInIteration);
+        memcpy((void*)AddressDst, (void*)GetBufferStartingAddress(StartInIteration), SizeToReadInIteration);
         atomicUnlock(&Lock, 0);
 
         StartInIteration += SizeToReadInIteration;
@@ -108,7 +108,7 @@ KResult storage_device_t::ReadDevice(uintptr_t Buffer, uint64_t Start, size64_t 
 }
 
 KResult storage_device_t::WriteDevice(uintptr_t Buffer, uint64_t Start, size64_t Size){
-    uint64_t RequestNum = DivideRoundUp(Size, Info.MainSpace.BufferRWUsableSize);
+    uint64_t RequestNum = DIV_ROUND_UP(Size, Info.MainSpace.BufferRWUsableSize);
     uint64_t StartInIteration = Start;
     uint64_t SizeToWrite = Size;
     uint64_t AddressDst = (uint64_t)Buffer;
@@ -122,7 +122,7 @@ KResult storage_device_t::WriteDevice(uintptr_t Buffer, uint64_t Start, size64_t
         }
 
         atomicAcquire(&Lock, 0);
-        memcpy((uintptr_t)GetBufferStartingAddress(StartInIteration), (uintptr_t)AddressDst, SizeToWriteInIteration);
+        memcpy((void*)GetBufferStartingAddress(StartInIteration), (void*)AddressDst, SizeToWriteInIteration);
         SendRequest(StartInIteration, SizeToWriteInIteration, true);
         atomicUnlock(&Lock, 0);
 

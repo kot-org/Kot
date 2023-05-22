@@ -33,7 +33,7 @@ extern "C" int main() {
     InitialiseServer(Orb);
 
     Orb->Render->StartRender();
-    Printlog("[GRAPHICS/ORB] Service started");
+    kot_Printlog("[GRAPHICS/ORB] Service started");
     
     return KSUCCESS;
 }

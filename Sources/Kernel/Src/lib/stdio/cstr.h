@@ -20,4 +20,5 @@ const char* to_string(char c);
 int strlen(char*p);
 bool strcmp(char* a, char* b);
 bool strcmp(char* a, char* b, size64_t size);
+void strcpy(char* to, char* from);
 

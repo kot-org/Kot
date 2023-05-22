@@ -157,7 +157,7 @@ namespace SE8 {
 
         if (magic != 0xCAFEBABE) {
             // todo: create actual error
-            Printlog("invalid file format");
+            kot_Printlog("invalid file format");
             return;
         }
 
@@ -166,7 +166,7 @@ namespace SE8 {
 
         if (majorVersion > 52) {
             // todo: create actual error
-            Printlog("invalid java version");
+            kot_Printlog("invalid java version");
             return;
         }
 
@@ -233,7 +233,7 @@ namespace SE8 {
                 ((Constant_InvokeDynamic*) entry)->name_and_type_index = name_and_type_index;
             } else {
                 // todo: create actual error
-                Printlog("unsupported constant pool tag");
+                kot_Printlog("unsupported constant pool tag");
                 return;
             }
             ((ConstantPoolEntry*) entry)->tag = tag;

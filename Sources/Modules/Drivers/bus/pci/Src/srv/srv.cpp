@@ -6,7 +6,7 @@ void InitSrv(PCIDeviceArrayInfo_t* DevicesArray){
     SrvDevicesArray = DevicesArray;
 
     uintptr_t addr = GetFreeAlignedSpace(sizeof(uisd_pci_t));
-    ksmem_t key = NULL;
+    kot_key_mem_t key = NULL;
     
     process_t proc = Sys_GetProcess();
 

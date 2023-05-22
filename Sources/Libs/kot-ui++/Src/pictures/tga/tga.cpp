@@ -22,7 +22,7 @@ namespace Ui {
         switch (Buffer->ImageType)
         {
             case TGAType::COLORMAP:
-                Printlog("tga type 1");
+                kot_Printlog("tga type 1");
                 break;
             
             case TGAType::RGB:
@@ -61,11 +61,11 @@ namespace Ui {
                 break;
             }
             case TGAType::COLORMAP_RLE:
-                Printlog("tga type 9");
+                kot_Printlog("tga type 9");
                 break;
             
             case TGAType::RGB_RLE:
-                Printlog("tga type 10");
+                kot_Printlog("tga type 10");
                 break;
             
             default:

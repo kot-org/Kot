@@ -1,70 +1,73 @@
 #include <srv/srv.h>
 
 struct SrvInfo_t* SrvInfo;
+kot_process_t ShareProcess;
 
 void InitializeSrv(struct KernelInfo* kernelInfo){
-    uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_system_t));
-    ksmem_t key = NULL;
-    Sys_CreateMemoryField(proc, sizeof(uisd_system_t), &address, &key, MemoryFieldTypeShareSpaceRO);
+    uintptr_t address = kot_GetFreeAlignedSpace(sizeof(kot_uisd_system_t));
+    kot_key_mem_t key = NULL;
+    kot_Sys_CreateMemoryField(proc, sizeof(kot_uisd_system_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
-    uisd_system_t* SystemSrv = (uisd_system_t*)address;
+    ShareProcess = kot_ShareProcessKey(proc);
+
+    kot_uisd_system_t* SystemSrv = (kot_uisd_system_t*)address;
     SystemSrv->ControllerHeader.IsReadWrite = false;
     SystemSrv->ControllerHeader.Version = System_Srv_Version;
     SystemSrv->ControllerHeader.VendorID = Kot_VendorID;
     SystemSrv->ControllerHeader.Type = ControllerTypeEnum_System;
-    SystemSrv->ControllerHeader.Process = ShareProcessKey(proc);
+    SystemSrv->ControllerHeader.Process = ShareProcess;
 
     /* Setup threads */
 
     /* LoadExecutable */
-    thread_t LoadExecutableThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&LoadExecutable, PriviledgeApp, NULL, &LoadExecutableThread);
-    SystemSrv->LoadExecutable = MakeShareableThread(LoadExecutableThread, PriviledgeApp);
+    kot_thread_t LoadExecutableThread = NULL;
+    kot_Sys_CreateThread(proc, (uintptr_t)&LoadExecutable, PriviledgeApp, NULL, &LoadExecutableThread);
+    SystemSrv->LoadExecutable = kot_MakeShareableThread(LoadExecutableThread, PriviledgeApp);
 
     /* GetFramebuffer */
-    thread_t GetFramebufferThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&GetFramebuffer, PriviledgeApp, NULL, &GetFramebufferThread);
-    SystemSrv->GetFramebuffer = MakeShareableThread(GetFramebufferThread, PriviledgeService);
+    kot_thread_t GetFramebufferThread = NULL;
+    kot_Sys_CreateThread(proc, (uintptr_t)&GetFramebuffer, PriviledgeApp, NULL, &GetFramebufferThread);
+    SystemSrv->GetFramebuffer = kot_MakeShareableThread(GetFramebufferThread, PriviledgeService);
 
     /* ReadFileInitrd */
-    thread_t ReadFileFromInitrdThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&ReadFileFromInitrd, PriviledgeApp, NULL, &ReadFileFromInitrdThread);
-    SystemSrv->ReadFileInitrd = MakeShareableThread(ReadFileFromInitrdThread, PriviledgeService);
+    kot_thread_t ReadFileFromInitrdThread = NULL;
+    kot_Sys_CreateThread(proc, (uintptr_t)&ReadFileFromInitrd, PriviledgeApp, NULL, &ReadFileFromInitrdThread);
+    SystemSrv->ReadFileInitrd = kot_MakeShareableThread(ReadFileFromInitrdThread, PriviledgeService);
 
     /* GetTableInRootSystemDescription */
-    thread_t GetTableInRootSystemDescriptionThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&GetTableInRootSystemDescription, PriviledgeApp, NULL, &GetTableInRootSystemDescriptionThread);
-    SystemSrv->GetTableInRootSystemDescription = MakeShareableThread(GetTableInRootSystemDescriptionThread, PriviledgeDriver);
+    kot_thread_t GetTableInRootSystemDescriptionThread = NULL;
+    kot_Sys_CreateThread(proc, (uintptr_t)&GetTableInRootSystemDescription, PriviledgeApp, NULL, &GetTableInRootSystemDescriptionThread);
+    SystemSrv->GetTableInRootSystemDescription = kot_MakeShareableThread(GetTableInRootSystemDescriptionThread, PriviledgeDriver);
 
     /* GetSystemManagementBIOSTable */
-    thread_t GetSystemManagementBIOSTableThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&GetSystemManagementBIOSTable, PriviledgeApp, NULL, &GetSystemManagementBIOSTableThread);
-    SystemSrv->GetSystemManagementBIOSTable = MakeShareableThread(GetSystemManagementBIOSTableThread, PriviledgeDriver);
+    kot_thread_t GetSystemManagementBIOSTableThread = NULL;
+    kot_Sys_CreateThread(proc, (uintptr_t)&GetSystemManagementBIOSTable, PriviledgeApp, NULL, &GetSystemManagementBIOSTableThread);
+    SystemSrv->GetSystemManagementBIOSTable = kot_MakeShareableThread(GetSystemManagementBIOSTableThread, PriviledgeDriver);
 
     /* BindIRQLine */
-    thread_t BindIRQLineThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&BindIRQLine, PriviledgeApp, NULL, &BindIRQLineThread);
-    SystemSrv->BindIRQLine = MakeShareableThread(BindIRQLineThread, PriviledgeDriver);
+    kot_thread_t BindIRQLineThread = NULL;
+    kot_Sys_CreateThread(proc, (uintptr_t)&BindIRQLine, PriviledgeApp, NULL, &BindIRQLineThread);
+    SystemSrv->BindIRQLine = kot_MakeShareableThread(BindIRQLineThread, PriviledgeDriver);
     
     /* UnbindIRQLine */
-    thread_t UnbindIRQLineThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&UnbindIRQLine, PriviledgeApp, NULL, &UnbindIRQLineThread);
-    SystemSrv->UnbindIRQLine = MakeShareableThread(UnbindIRQLineThread, PriviledgeDriver);
+    kot_thread_t UnbindIRQLineThread = NULL;
+    kot_Sys_CreateThread(proc, (uintptr_t)&UnbindIRQLine, PriviledgeApp, NULL, &UnbindIRQLineThread);
+    SystemSrv->UnbindIRQLine = kot_MakeShareableThread(UnbindIRQLineThread, PriviledgeDriver);
 
     /* BindFreeIRQ */
-    thread_t BindFreeIRQThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, NULL, &BindFreeIRQThread);
-    SystemSrv->BindFreeIRQ = MakeShareableThread(BindFreeIRQThread, PriviledgeDriver);
+    kot_thread_t BindFreeIRQThread = NULL;
+    kot_Sys_CreateThread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, NULL, &BindFreeIRQThread);
+    SystemSrv->BindFreeIRQ = kot_MakeShareableThread(BindFreeIRQThread, PriviledgeDriver);
 
     /* UnbindIRQ */
-    thread_t UnbindIRQThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, NULL, &UnbindIRQThread);
-    SystemSrv->UnbindIRQ = MakeShareableThread(UnbindIRQThread, PriviledgeDriver);
+    kot_thread_t UnbindIRQThread = NULL;
+    kot_Sys_CreateThread(proc, (uintptr_t)&BindFreeIRQ, PriviledgeApp, NULL, &UnbindIRQThread);
+    SystemSrv->UnbindIRQ = kot_MakeShareableThread(UnbindIRQThread, PriviledgeDriver);
 
     /* Setup data */
     SrvInfo = (SrvInfo_t*)malloc(sizeof(SrvInfo_t));
 
-    SrvInfo->Framebuffer = (srv_system_framebuffer_t*)malloc(sizeof(srv_system_framebuffer_t));
+    SrvInfo->Framebuffer = (kot_srv_system_framebuffer_t*)malloc(sizeof(kot_srv_system_framebuffer_t));
     SrvInfo->Framebuffer->Address = kernelInfo->Framebuffer.framebuffer_base;
     SrvInfo->Framebuffer->Width = kernelInfo->Framebuffer.framebuffer_Width;
     SrvInfo->Framebuffer->Height = kernelInfo->Framebuffer.framebuffer_Height;
@@ -83,38 +86,38 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
     memcpy(SrvInfo->IRQEvents, &kernelInfo->IRQEvents, sizeof(kot_event_t) * kernelInfo->IRQSize);    
     SrvInfo->IsIRQEventsFree = IsIRQEventsFree;
 
-    CreateControllerUISD(ControllerTypeEnum_System, key, true);
+    kot_CreateControllerUISD(ControllerTypeEnum_System, key, true);
 }
 
-KResult LoadExecutable(thread_t Callback, uint64_t CallbackArg, process_t Process, uint64_t Priviledge, char* Path){
+KResult LoadExecutable(kot_thread_t Callback, uint64_t CallbackArg, kot_process_t Process, uint64_t Priviledge, char* Path){
     // Load filesystem handler
     if(!KotSpecificData.VFSHandler){
-        srv_storage_callback_t* Callback = Srv_Storage_VFSLoginApp(ShareProcessKey(Sys_GetProcess()), FS_AUTHORIZATION_HIGH, Storage_Permissions_Admin | Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, "d0:", true);
+        kot_srv_storage_callback_t* Callback = kot_Srv_Storage_VFSLoginApp(ShareProcess, FS_AUTHORIZATION_HIGH, Storage_Permissions_Admin | Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, "d0:", true);
         KotSpecificData.VFSHandler = Callback->Data;
         free(Callback);
     }
 
     KResult Status = KFAIL;
-    thread_t ThreadOutput;
-    if(Priviledge >= Sys_GetPriviledgeThreadLauncher()){
-        thread_t Thread;
-        file_t* ExecutableFile = fopen(Path, "r");
+    kot_thread_t ThreadOutput;
+    if(Priviledge >= kot_Sys_GetPriviledgeThreadLauncher()){
+        kot_thread_t Thread;
+        FILE* ExecutableFile = fopen(Path, "r");
         if(ExecutableFile){
             fseek(ExecutableFile, 0, SEEK_END);
             size_t ExecutableFileSize = ftell(ExecutableFile);
             fseek(ExecutableFile, 0, SEEK_SET);
 
-            uintptr_t BufferExecutable = malloc(ExecutableFileSize);
+            void* BufferExecutable = malloc(ExecutableFileSize);
             fread(BufferExecutable, ExecutableFileSize, 1, ExecutableFile);
-            Status = ELF::loadElf(BufferExecutable, (enum Priviledge)Priviledge, NULL, &Thread, dirname(Path), true);
+            Status = ELF::loadElf((uintptr_t)BufferExecutable, (enum kot_Priviledge)Priviledge, NULL, &Thread, dirname(Path), true);
             free(BufferExecutable);
-            ThreadOutput = MakeShareableThreadToProcess(Thread, Process);
+            ThreadOutput = kot_MakeShareableThreadToProcess(Thread, Process);
         }
     }
 
 
 
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = ThreadOutput,     /* ThreadOutput */
@@ -123,18 +126,18 @@ KResult LoadExecutable(thread_t Callback, uint64_t CallbackArg, process_t Proces
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }
 
-KResult GetFramebuffer(thread_t Callback, uint64_t CallbackArg){
-    ShareDataWithArguments_t data{
-        .Data = SrvInfo->Framebuffer,
-        .Size = sizeof(srv_system_framebuffer_t),
+KResult GetFramebuffer(kot_thread_t Callback, uint64_t CallbackArg){
+    kot_ShareDataWithArguments_t data{
+        .Data = (uintptr_t)SrvInfo->Framebuffer,
+        .Size = sizeof(kot_srv_system_framebuffer_t),
         .ParameterPosition = 0x2, 
     };
 
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = KSUCCESS,         /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
@@ -143,18 +146,18 @@ KResult GetFramebuffer(thread_t Callback, uint64_t CallbackArg){
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
+    kot_Sys_Close(KSUCCESS);
 }
 
-KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name){
+KResult ReadFileFromInitrd(kot_thread_t Callback, uint64_t CallbackArg, char* Name){
     if(Name != NULL){
         initrd::File* file = initrd::Find(Name);
         uintptr_t fileData = NULL; 
         if(file != NULL){
             fileData = initrd::Read(file);
         }else{
-            arguments_t arguments{
+            kot_arguments_t arguments{
                 .arg[0] = KFAIL,            /* Status */
                 .arg[1] = CallbackArg,      /* CallbackArg */
                 .arg[2] = NULL,             /* Size */
@@ -162,17 +165,17 @@ KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name){
                 .arg[4] = NULL,             /* GP2 */
                 .arg[5] = NULL,             /* GP3 */
             };
-            Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-            Sys_Close(KFAIL);
+            kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+            kot_Sys_Close(KFAIL);
         }
 
-        ShareDataWithArguments_t data{
+        kot_ShareDataWithArguments_t data{
             .Data = fileData,
             .Size = file->size,
             .ParameterPosition = 0x3, 
         };
 
-        arguments_t arguments{
+        kot_arguments_t arguments{
             .arg[0] = KSUCCESS,         /* Status */
             .arg[1] = CallbackArg,      /* CallbackArg */
             .arg[2] = file->size,       /* Size */
@@ -181,10 +184,10 @@ KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name){
             .arg[5] = NULL,             /* GP3 */
         };
         
-        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
-        Sys_Close(KSUCCESS);
+        kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
+        kot_Sys_Close(KSUCCESS);
     }else{
-        arguments_t arguments{
+        kot_arguments_t arguments{
             .arg[0] = KFAIL,            /* Status */
             .arg[1] = CallbackArg,      /* CallbackArg */
             .arg[2] = NULL,             /* Size */
@@ -192,12 +195,12 @@ KResult ReadFileFromInitrd(thread_t Callback, uint64_t CallbackArg, char* Name){
             .arg[4] = NULL,             /* GP2 */
             .arg[5] = NULL,             /* GP3 */
         };
-        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-        Sys_Close(KFAIL);        
+        kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        kot_Sys_Close(KFAIL);        
     }
 }
 
-KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg, char* Name){
+KResult GetTableInRootSystemDescription(kot_thread_t Callback, uint64_t CallbackArg, char* Name){
     if(Name != NULL){
         uint64_t tableIndex = FindTableIndex(Name);
         uintptr_t tableAddress = NULL;
@@ -211,7 +214,7 @@ KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg,
             tableSize = GetTableSize(tableIndex);
         }
 
-        arguments_t arguments{
+        kot_arguments_t arguments{
             .arg[0] = status,                           /* Status */
             .arg[1] = CallbackArg,                      /* CallbackArg */
             .arg[2] = (uint64_t)tableAddress,           /* TableAddress */
@@ -220,10 +223,10 @@ KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg,
             .arg[5] = NULL,                             /* GP3 */
         };
 
-        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-        Sys_Close(KSUCCESS);
+        kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        kot_Sys_Close(KSUCCESS);
     }else{
-        arguments_t arguments{
+        kot_arguments_t arguments{
             .arg[0] = KFAIL,            /* Status */
             .arg[1] = CallbackArg,      /* CallbackArg */
             .arg[2] = NULL,             /* Size */
@@ -231,13 +234,13 @@ KResult GetTableInRootSystemDescription(thread_t Callback, uint64_t CallbackArg,
             .arg[4] = NULL,             /* GP2 */
             .arg[5] = NULL,             /* GP3 */
         };
-        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-        Sys_Close(KFAIL);
+        kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        kot_Sys_Close(KFAIL);
     }
 }
 
-KResult GetSystemManagementBIOSTable(thread_t Callback, uint64_t CallbackArg){
-    arguments_t arguments{
+KResult GetSystemManagementBIOSTable(kot_thread_t Callback, uint64_t CallbackArg){
+    kot_arguments_t arguments{
         .arg[0] = KSUCCESS,                     /* Status */
         .arg[1] = CallbackArg,                  /* CallbackArg */
         .arg[2] = (uint64_t)SrvInfo->Smbios,    /* Smbios physical address */
@@ -246,18 +249,18 @@ KResult GetSystemManagementBIOSTable(thread_t Callback, uint64_t CallbackArg){
         .arg[5] = NULL,                         /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }
 
-KResult BindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumber, thread_t Target, bool IgnoreMissedEvents){
+KResult BindIRQLine(kot_thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumber, kot_thread_t Target, bool IgnoreMissedEvents){
     KResult Status = KFAIL;
     if(IRQLineNumber < SrvInfo->IRQLineSize){
         uint8_t vector = SrvInfo->IRQLineStart + IRQLineNumber;
-        Status = Sys_Event_Bind(SrvInfo->IRQEvents[vector], Target, IgnoreMissedEvents);
+        Status = kot_Sys_Event_Bind(SrvInfo->IRQEvents[vector], Target, IgnoreMissedEvents);
     }
     
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
@@ -266,18 +269,18 @@ KResult BindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumb
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }
 
-KResult UnbindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumber, thread_t Target){
+KResult UnbindIRQLine(kot_thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNumber, kot_thread_t Target){
     KResult Status = KFAIL;
     if(IRQLineNumber < SrvInfo->IRQLineSize){
         uint8_t vector = SrvInfo->IRQLineStart + IRQLineNumber;
-        Status = Sys_Event_Unbind(SrvInfo->IRQEvents[vector], Target);
+        Status = kot_Sys_Event_Unbind(SrvInfo->IRQEvents[vector], Target);
     }
     
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
@@ -286,11 +289,11 @@ KResult UnbindIRQLine(thread_t Callback, uint64_t CallbackArg, uint8_t IRQLineNu
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }
 
-KResult BindFreeIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, bool IgnoreMissedEvents){
+KResult BindFreeIRQ(kot_thread_t Callback, uint64_t CallbackArg, kot_thread_t Target, bool IgnoreMissedEvents){
     kot_event_t Vector = NULL;
     for(size64_t i = 0; i < SrvInfo->IRQSize; i++){
         if(SrvInfo->IsIRQEventsFree[i]){
@@ -300,9 +303,9 @@ KResult BindFreeIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, bo
     }
     KResult Status = KFAIL;
     if(Vector != NULL){
-        Status = Sys_Event_Bind(SrvInfo->IRQEvents[Vector], Target, IgnoreMissedEvents);
+        Status = kot_Sys_Event_Bind(SrvInfo->IRQEvents[Vector], Target, IgnoreMissedEvents);
     }
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = KSUCCESS,         /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = Vector,           /* IRQNumber */
@@ -311,16 +314,16 @@ KResult BindFreeIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, bo
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }
 
-KResult UnbindIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, uint8_t Vector){
+KResult UnbindIRQ(kot_thread_t Callback, uint64_t CallbackArg, kot_thread_t Target, uint8_t Vector){
     KResult Status = KFAIL;
     if(Vector > SrvInfo->IRQLineStart + SrvInfo->IRQLineSize && Vector < SrvInfo->IRQSize){
-        Status = Sys_Event_Unbind(SrvInfo->IRQEvents[Vector], Target);
+        Status = kot_Sys_Event_Unbind(SrvInfo->IRQEvents[Vector], Target);
     }
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = KSUCCESS,         /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
@@ -329,6 +332,6 @@ KResult UnbindIRQ(thread_t Callback, uint64_t CallbackArg, thread_t Target, uint
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }

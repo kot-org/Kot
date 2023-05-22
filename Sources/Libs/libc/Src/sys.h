@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-struct KotSpecificData_t{
+struct kot_SpecificData_t{
     /* Memory */
     uint64_t MMapPageSize;
     /* Heap */
@@ -32,7 +32,7 @@ struct KotSpecificData_t{
     thread_t VFSHandler;
 }__attribute__((aligned(0x1000)));
 
-extern struct KotSpecificData_t KotSpecificData;
+extern struct kot_SpecificData_t KotSpecificData;
 
 struct SelfData{
     /* Self Info */
@@ -110,10 +110,10 @@ enum AllocationType{
 uint64_t DoSyscall(uint64_t syscall, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);
 
 
-KResult Sys_CreateMemoryField(process_t self, size64_t size, uintptr_t* virtualAddressPointer, ksmem_t* keyPointer, enum MemoryFieldType type);
-KResult Sys_AcceptMemoryField(process_t self, ksmem_t key, uintptr_t* virtualAddressPointer);
-KResult Sys_CloseMemoryField(process_t self, ksmem_t key, uintptr_t address);
-KResult Sys_GetInfoMemoryField(ksmem_t key, uint64_t* typePointer, size64_t* sizePointer);
+KResult Sys_CreateMemoryField(process_t self, size64_t size, uintptr_t* virtualAddressPointer, kot_key_mem_t* keyPointer, enum MemoryFieldType type);
+KResult Sys_AcceptMemoryField(process_t self, kot_key_mem_t key, uintptr_t* virtualAddressPointer);
+KResult Sys_CloseMemoryField(process_t self, kot_key_mem_t key, uintptr_t address);
+KResult Sys_GetInfoMemoryField(kot_key_mem_t key, uint64_t* typePointer, size64_t* sizePointer);
 KResult Sys_CreateProc(process_t* key, enum Priviledge privilege, uint64_t data);
 KResult Sys_Fork(process_t* child);
 KResult Sys_CloseProc();
@@ -159,7 +159,7 @@ uint64_t Sys_GetTIDThreadLauncher();
 uint64_t Sys_GetExternalDataProcessLauncher();
 uint64_t Sys_GetPriviledgeThreadLauncher();
 
-KResult Printlog(char* message);
+KResult kot_Printlog(char* message);
 
 #if defined(__cplusplus)
 } 

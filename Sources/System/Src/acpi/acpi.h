@@ -1,8 +1,10 @@
 #pragma once
 
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 #include <kot/types.h>
 #include <kot/memory.h>
-#include <string.h>
 #include <kot/uisd/srvs/system.h>
 
 struct RSDP2{
@@ -18,12 +20,12 @@ struct RSDP2{
 }__attribute__((packed));
 
 struct RSDT{
-    struct srv_system_sdtheader_t header;
+    struct kot_srv_system_sdtheader_t header;
     uint32_t SDTPointer[];
 }__attribute__((packed));
 
 struct XSDT{
-    struct srv_system_sdtheader_t header;
+    struct kot_srv_system_sdtheader_t header;
     uint64_t SDTPointer[];
 }__attribute__((packed));
 

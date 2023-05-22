@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <kot++/new.h>
 #include <kot/cstring.h>
 #include <kot/utils/map.h>
 

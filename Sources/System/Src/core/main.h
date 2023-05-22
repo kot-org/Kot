@@ -1,7 +1,7 @@
 #pragma once
 
-#include <kot/sys.h>
 #include <stdlib.h>
+#include <kot/sys.h>
 #include <kot/types.h>
 #include <kot/memory.h>
 #include <kot++/json.h>
@@ -57,4 +57,4 @@ struct InfoSlot {
     uintptr_t address;
 }__attribute__((packed));
 
-extern process_t proc;
+extern kot_process_t proc;

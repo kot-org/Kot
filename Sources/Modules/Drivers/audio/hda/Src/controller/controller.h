@@ -412,7 +412,7 @@ struct HDAStream{
     uint32_t BufferDescriptorListEntries;
     HDABufferDescriptorEntry* BufferDescriptorList;
 
-    ksmem_t BufferKey;
+    kot_key_mem_t BufferKey;
     uintptr_t Buffer;
     uint64_t CurrentPosition;
     size64_t Size;

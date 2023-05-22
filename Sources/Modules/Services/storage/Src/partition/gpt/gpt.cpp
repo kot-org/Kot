@@ -4,7 +4,7 @@ KResult CheckGPTHeader(GPTHeader_t* GPTHeader){
     if(GPTHeader->Signature == GPT_SIGNATURE){
         uint32_t crc32HeaderTMP = GPTHeader->HeaderCRC32;
         GPTHeader->HeaderCRC32 = 0;
-        uint32_t crc32HeaderCompute = crc32(NULL, (char*)GPTHeader, sizeof(GPTHeader_t));
+        uint32_t crc32HeaderCompute = kot_crc32(NULL, (char*)GPTHeader, sizeof(GPTHeader_t));
         GPTHeader->HeaderCRC32 = crc32HeaderTMP;
 
         if(GPTHeader->HeaderCRC32 == crc32HeaderCompute){
@@ -24,14 +24,14 @@ KResult device_partitions_t::LoadGPTHeader(){
         }
 
         uint64_t GPTHeaderLBAStart = MBRHeader->PartitionRecord[0].StartingLBA;
-        Device->ReadDevice(GPTHeader, ConvertLBAToBytes(GPTHeaderLBAStart), sizeof(GPTHeader_t));
+        Device->ReadDevice((uintptr_t)GPTHeader, ConvertLBAToBytes(GPTHeaderLBAStart), sizeof(GPTHeader_t));
         if(GPTHeader->MyLBA != GPTHeaderLBAStart){
             return KNOTALLOW;
         }
         KResult GPTHeaderStatus = CheckGPTHeader(GPTHeader);
         // Load recovery header
         GPTHeader_t* RecoveryGPTHeader = (GPTHeader_t*)malloc(sizeof(GPTHeader_t));
-        Device->ReadDevice(RecoveryGPTHeader, ConvertLBAToBytes(GPTHeader->AlternateLBA), sizeof(GPTHeader_t));
+        Device->ReadDevice((uintptr_t)RecoveryGPTHeader, ConvertLBAToBytes(GPTHeader->AlternateLBA), sizeof(GPTHeader_t));
         KResult GPTRecoveryHeaderStatus = CheckGPTHeader(RecoveryGPTHeader);
 
         if(GPTHeaderStatus != KSUCCESS){
@@ -41,13 +41,13 @@ KResult device_partitions_t::LoadGPTHeader(){
 
                 // Update checksum
                 RecoveryGPTHeader->HeaderCRC32 = 0;
-                RecoveryGPTHeader->HeaderCRC32 = crc32(NULL, (char*)RecoveryGPTHeader, sizeof(GPTHeader_t));
+                RecoveryGPTHeader->HeaderCRC32 = kot_crc32(NULL, (char*)RecoveryGPTHeader, sizeof(GPTHeader_t));
 
                 // Update GPT Header into the disk
-                Device->WriteDevice(RecoveryGPTHeader, ConvertLBAToBytes(GPTHeaderLBAStart), sizeof(GPTHeader_t));
+                Device->WriteDevice((uintptr_t)RecoveryGPTHeader, ConvertLBAToBytes(GPTHeaderLBAStart), sizeof(GPTHeader_t));
 
                 // Update GPT Header
-                Device->ReadDevice(GPTHeader, ConvertLBAToBytes(GPTHeaderLBAStart), sizeof(GPTHeader_t));
+                Device->ReadDevice((uintptr_t)GPTHeader, ConvertLBAToBytes(GPTHeaderLBAStart), sizeof(GPTHeader_t));
             }else{
                 free(RecoveryGPTHeader);
                 return KMEMORYVIOLATION;
@@ -58,7 +58,7 @@ KResult device_partitions_t::LoadGPTHeader(){
 
             // Update checksum
             RecoveryGPTHeader->HeaderCRC32 = 0;
-            RecoveryGPTHeader->HeaderCRC32 = crc32(NULL, (char*)RecoveryGPTHeader, sizeof(GPTHeader_t));
+            RecoveryGPTHeader->HeaderCRC32 = kot_crc32(NULL, (char*)RecoveryGPTHeader, sizeof(GPTHeader_t));
 
             // Update GPT Recovery Header into the disk
             Device->WriteDevice(RecoveryGPTHeader, ConvertLBAToBytes(GPTHeader->AlternateLBA), sizeof(GPTHeader_t));

@@ -57,7 +57,7 @@ typedef struct {
 
 typedef struct {
     kot_framebuffer_t Framebuffer;
-    ksmem_t BufferKey;
+    kot_key_mem_t BufferKey;
     thread_t GraphicsHandler;
     bool IsVisible;
     thread_t EventHandler;

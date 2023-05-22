@@ -18,7 +18,7 @@ struct GPTHeader_t{
     uint64_t AlternateLBA;
     uint64_t FirstUsableLBA;
     uint64_t LastUsableLBA;
-    GUID_t DiskGUID;
+    kot_GUID_t DiskGUID;
     uint64_t PartitionEntryLBA;
     uint32_t NumberOfPartitionEntries;
     uint32_t SizeOfPartitionEntry;
@@ -26,8 +26,8 @@ struct GPTHeader_t{
 }__attribute__((packed));
 
 struct GPTPartitionEntry_t{
-    GUID_t PartitionTypeGUID;
-    GUID_t UniquePartitionGUID;
+    kot_GUID_t PartitionTypeGUID;
+    kot_GUID_t UniquePartitionGUID;
     uint64_t StartingLBA;
     uint64_t EndingLBA;
     uint64_t Attributes;

@@ -24,7 +24,7 @@ KResult SrvInitalize(){
 
     /* Load uisd controller */
     uintptr_t address = kot_GetFreeAlignedSpace(sizeof(kot_uisd_shell_t));
-    kot_ksmem_t key = NULL;
+    kot_key_mem_t key = NULL;
     kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), sizeof(kot_uisd_shell_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
     kot_uisd_shell_t* ShellSrv = (kot_uisd_shell_t*)address;

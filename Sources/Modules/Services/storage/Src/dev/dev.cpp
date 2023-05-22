@@ -10,13 +10,13 @@ struct dev_t{
 };
 
 KResult InitializeDev(){
-    DevList = vector_create();
+    DevList = kot_vector_create();
     return KSUCCESS;
 }
 
-KResult NewDev(thread_t Callback, uint64_t CallbackArg, uintptr_t Opaque){
-    struct srv_storage_fs_server_functions_t* FSServerFunctions = (srv_storage_fs_server_functions_t*)Opaque;
-    char* Name = (char*)((uint64_t)Opaque + sizeof(struct srv_storage_fs_server_functions_t));
+KResult NewDev(kot_thread_t Callback, uint64_t CallbackArg, uintptr_t Opaque){
+    struct kot_srv_storage_fs_server_functions_t* FSServerFunctions = (kot_srv_storage_fs_server_functions_t*)Opaque;
+    char* Name = (char*)((uint64_t)Opaque + sizeof(struct kot_srv_storage_fs_server_functions_t));
 
     dev_t* Dev = (dev_t*)malloc(sizeof(dev_t));
 
@@ -34,13 +34,13 @@ KResult NewDev(thread_t Callback, uint64_t CallbackArg, uintptr_t Opaque){
     Dev->Name = (char*)malloc(Dev->NameLen * sizeof(char));
     strcpy(Dev->Name, Name);
 
-    memcpy(&Dev->VirtualPartition.FSServerFunctions, FSServerFunctions, sizeof(srv_storage_fs_server_functions_t));
+    memcpy(&Dev->VirtualPartition.FSServerFunctions, FSServerFunctions, sizeof(kot_srv_storage_fs_server_functions_t));
 
     atomicAcquire(&DevListLock, 0);
-    vector_push(DevList, Dev);
+    kot_vector_push(DevList, (uintptr_t)Dev);
     atomicUnlock(&DevListLock, 0);
     
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = KSUCCESS,         /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
@@ -49,15 +49,15 @@ KResult NewDev(thread_t Callback, uint64_t CallbackArg, uintptr_t Opaque){
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }
 
 KResult GetDevAccessData(char** RelativePath, partition_t** Partition, ClientVFSContext* Context, char* Path){
     char* DevNameTarget = Path + DEV_PATH_LEN;
     atomicAcquire(&DevListLock, 0);
     for(uint64_t i = 0; i < DevList->length; i++){
-        dev_t* Dev = (dev_t*)vector_get(DevList, i);
+        dev_t* Dev = (dev_t*)kot_vector_get(DevList, i);
         if(strncmp(DevNameTarget, Dev->Name, Dev->NameLen)){
             *Partition = &Dev->VirtualPartition;
             *RelativePath = (char*)malloc(Dev->NameLen + 1);

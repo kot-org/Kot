@@ -24,7 +24,7 @@ class windowc{
 
         uint64_t Lock;
 
-        ksmem_t FramebufferKey;
+        kot_key_mem_t FramebufferKey;
         uint64_t XPosition;
         uint64_t YPosition;
         uint64_t WindowType;
@@ -43,7 +43,7 @@ class windowc{
         monitorc* FindMonitor();
         kot_framebuffer_t* GetFramebuffer();
         graphiceventbuffer_t* GetEventbuffer();
-        ksmem_t GetFramebufferKey();
+        kot_key_mem_t GetFramebufferKey();
         uint64_t GetHeight();
         uint64_t GetWidth();
         uint64_t GetBpp();

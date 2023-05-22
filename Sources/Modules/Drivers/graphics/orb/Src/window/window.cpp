@@ -44,15 +44,15 @@ windowc::windowc(orbc* Parent, uint64_t WindowType, kot_event_t Event){
 
 KResult windowc::CreateBuffer(){
     uintptr_t OldFramebuffer = this->Framebuffer->Buffer;
-    ksmem_t OldFramebufferKey = this->FramebufferKey;
+    kot_key_mem_t OldFramebufferKey = this->FramebufferKey;
 
     this->Framebuffer->Pitch = this->Framebuffer->Width * this->Framebuffer->Btpp;
     this->Framebuffer->Size = this->Framebuffer->Pitch * this->Framebuffer->Height;
 
     uintptr_t Address = GetFreeAlignedSpace(this->Framebuffer->Size);
-    ksmem_t Key = NULL;
+    kot_key_mem_t Key = NULL;
     Sys_CreateMemoryField(Sys_GetProcess(), this->Framebuffer->Size, &Address, &Key, MemoryFieldTypeShareSpaceRW);
-    ksmem_t KeyShare = NULL;
+    kot_key_mem_t KeyShare = NULL;
     Sys_Keyhole_CloneModify(Key, &KeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
     
     Framebuffer->Buffer = Address;
@@ -96,7 +96,7 @@ kot_framebuffer_t* windowc::GetFramebuffer(){
     return this->Framebuffer;
 }
 
-ksmem_t windowc::GetFramebufferKey(){
+kot_key_mem_t windowc::GetFramebufferKey(){
     return this->FramebufferKey;
 }
 

@@ -1588,7 +1588,7 @@ namespace SE8 {
         }
         while (reader->index < code_length) {
             uint8_t oc = reader->u1();
-            //Printlog(itoa(oc, "    ", 16));
+            //kot_Printlog(itoa(oc, "    ", 16));
             oct[oc](this);
         }
         free(stack);

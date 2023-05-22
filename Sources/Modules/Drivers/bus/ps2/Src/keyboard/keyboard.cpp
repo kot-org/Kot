@@ -12,7 +12,7 @@ static uint64_t KeyboardLock;
 KResult KeyboardInitialize(){
     for(uint8_t i = 0; i < PS2_PORT_NUMBER; i++){
         if(PS2Ports[i].Type == PS2_TYPE_KEYBOARD && PS2Ports[i].IsPresent){
-            Printlog("[BUS/PS2] Keyboard device found");
+            kot_Printlog("[BUS/PS2] Keyboard device found");
 
             KeyboardEventParameters = (arguments_t*)malloc(sizeof(arguments_t));
             KeyboardPS2Port = &PS2Ports[i];

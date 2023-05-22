@@ -91,7 +91,7 @@ KResult ShellSendRequest(shell_t* Shell, read_request_shell_t* Request){
         .arg[5] = NULL,                 /* GP3 */
     };
 
-    kot_ksmem_t BufferKey;
+    kot_key_mem_t BufferKey;
     kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), Request->SizeGet, (uintptr_t*)&Request->Buffer, &BufferKey, MemoryFieldTypeSendSpaceRO);
     kot_Sys_Keyhole_CloneModify(BufferKey, &arguments.arg[2], Shell->Target, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
     

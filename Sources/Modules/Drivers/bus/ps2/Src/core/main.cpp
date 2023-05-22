@@ -9,7 +9,7 @@ thread_t InterruptThreadHandler[PS2_PORT_NUMBER];
 IRQRedirections IRQRedirectionsArray[2];
 
 extern "C" int main(int argc, char* argv[]){
-    Printlog("[BUS/PS2] Initialization ...");
+    kot_Printlog("[BUS/PS2] Initialization ...");
     /* Initialize PS2 drivers */
     self = Sys_GetProcess();
 
@@ -38,7 +38,7 @@ extern "C" int main(int argc, char* argv[]){
 
     EnablePorts();
     
-    Printlog("[BUS/PS2] Driver initialized successfully");
+    kot_Printlog("[BUS/PS2] Driver initialized successfully");
     return KSUCCESS;
 }
 
@@ -79,7 +79,7 @@ KResult PortsInitalize(){
     PS2Ports[1].PortNumber = 1;
 
     if(PS2Ports[0].IsPresent){
-        Printlog("[BUS/PS2] Port 1 is present");
+        kot_Printlog("[BUS/PS2] Port 1 is present");
 
         PS2SendCommand(0xAE); // enable port 1  
 
@@ -114,7 +114,7 @@ KResult PortsInitalize(){
 
 
     if(PS2Ports[1].IsPresent){
-        Printlog("[BUS/PS2] Port 2 is present");
+        kot_Printlog("[BUS/PS2] Port 2 is present");
 
         PS2SendCommand(0xA8); // enable port 2
 

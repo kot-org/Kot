@@ -1,6 +1,6 @@
 #include <vfs/vfs.h>
 
-process_t VFSProcess;
+kot_process_t VFSProcess;
 
 static client_vfs_dispatch_t VFSClientDispatcherFunctions[Client_VFS_Function_Count] = {
     [Client_VFS_File_Remove] = (client_vfs_dispatch_t)VFSFileRemove,
@@ -35,7 +35,7 @@ KResult WriteContextFile(ClientVFSContext* Context){
     return KSUCCESS;
 }
 
-KResult VFSAskForAuthorization(ClientVFSContext* Context, authorization_t authorization){
+KResult VFSAskForAuthorization(ClientVFSContext* Context, kot_authorization_t authorization){
     char Message[1024];
 
     if(authorization == FS_AUTHORIZATION_MEDIUM){
@@ -176,7 +176,7 @@ KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFS
                     free(AccessTypeBuffer);
                     return KFAIL;                
                 }
-                authorization_t AuthorizationNeed = (Volume == Context->StaticVolumeMountPoint) ? FS_AUTHORIZATION_MEDIUM : FS_AUTHORIZATION_HIGH;
+                kot_authorization_t AuthorizationNeed = (Volume == Context->StaticVolumeMountPoint) ? FS_AUTHORIZATION_MEDIUM : FS_AUTHORIZATION_HIGH;
                 if(AuthorizationNeed > Context->Authorization){
                     if(Volume > PartitionsList->length) return KNOTALLOW;
 
@@ -209,7 +209,7 @@ KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFS
     return KSUCCESS;
 }
 
-KResult VFSMount(thread_t Callback, uint64_t CallbackArg, bool IsMount, srv_storage_fs_server_functions_t* StorageFSServerFunctions){
+KResult VFSMount(kot_thread_t Callback, uint64_t CallbackArg, bool IsMount, kot_srv_storage_fs_server_functions_t* StorageFSServerFunctions){
     KResult Status = KFAIL;
 
     partition_t* Partition = (partition_t*)Sys_GetExternalDataThread();
@@ -233,13 +233,13 @@ KResult VFSMount(thread_t Callback, uint64_t CallbackArg, bool IsMount, srv_stor
     Sys_Close(KSUCCESS);
 }
 
-KResult VFSLoginApp(thread_t Callback, uint64_t CallbackArg, process_t Process, authorization_t Authorization, kot_permissions_t Permissions, char* Path){
+KResult VFSLoginApp(kot_thread_t Callback, uint64_t CallbackArg, kot_process_t Process, kot_authorization_t Authorization, kot_permissions_t Permissions, char* Path){
     KResult Status = KFAIL;
     ClientVFSContext* Context = (ClientVFSContext*)malloc(sizeof(ClientVFSContext));
     Context->Authorization = Authorization;
     Context->Permissions = Permissions;
     Context->PathLength = NULL;
-    thread_t VFSClientShareableDispatcherThread = NULL;
+    kot_thread_t VFSClientShareableDispatcherThread = NULL;
     if(GetVFSAbsolutePath(&Context->Path, &Context->Partition, Path) == KSUCCESS){
         Context->PathLength = strlen(Context->Path);
         Context->StaticVolumeMountPoint = Context->Partition->StaticVolumeMountPoint;
@@ -247,7 +247,7 @@ KResult VFSLoginApp(thread_t Callback, uint64_t CallbackArg, process_t Process, 
 
 
         /* VFSClientDispatcher */
-        thread_t VFSClientDispatcherThread = NULL;
+        kot_thread_t VFSClientDispatcherThread = NULL;
         Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&VFSClientDispatcher, PriviledgeApp, (uint64_t)Context, &VFSClientDispatcherThread);
         VFSClientShareableDispatcherThread = MakeShareableThreadToProcess(VFSClientDispatcherThread, Process);
     }
@@ -268,7 +268,7 @@ KResult VFSLoginApp(thread_t Callback, uint64_t CallbackArg, process_t Process, 
 
 // TODO : ChangeUserData
 
-KResult VFSClientDispatcher(thread_t Callback, uint64_t CallbackArg, uint64_t Function, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult VFSClientDispatcher(kot_thread_t Callback, uint64_t CallbackArg, uint64_t Function, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     if(Function >= Client_VFS_Function_Count){
         arguments_t arguments{
             .arg[0] = KFAIL,            /* Status */
@@ -303,7 +303,7 @@ KResult VFSClientDispatcher(thread_t Callback, uint64_t CallbackArg, uint64_t Fu
     Sys_Close(KSUCCESS);
 }
 
-KResult VFSFileRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path){
+KResult VFSFileRemove(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path){
     partition_t* Partition;
     char* RelativePath;
 
@@ -335,7 +335,7 @@ KResult VFSFileRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext*
     return Status; 
 }
 
-KResult VFSFileOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t PermissionsContext, kot_permissions_t Permissions, char* Path, process_t Target){
+KResult VFSFileOpen(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t PermissionsContext, kot_permissions_t Permissions, char* Path, kot_process_t Target){
     partition_t* Partition;
     char* RelativePath;
     
@@ -373,7 +373,7 @@ KResult VFSFileOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* C
 }
 
 
-KResult VFSRename(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, srv_storage_fs_server_rename_t* RenameData){
+KResult VFSRename(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, kot_srv_storage_fs_server_rename_t* RenameData){
     partition_t* PartitionOld;
     partition_t* PartitionNew;
     
@@ -436,7 +436,7 @@ KResult VFSRename(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Con
     return Status; 
 }
 
-KResult VFSDirCreate(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path, mode_t Mode){
+KResult VFSDirCreate(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path, mode_t Mode){
     partition_t* Partition;
     char* RelativePath;
 
@@ -468,7 +468,7 @@ KResult VFSDirCreate(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* 
     return Status; 
 }
 
-KResult VFSDirRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path){
+KResult VFSDirRemove(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path){
     partition_t* Partition;
     char* RelativePath;
 
@@ -500,7 +500,7 @@ KResult VFSDirRemove(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* 
     return Status; 
 }
 
-KResult VFSDirOpen(thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path, process_t Target){
+KResult VFSDirOpen(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path, kot_process_t Target){
     partition_t* Partition;
     char* RelativePath;
 
@@ -546,11 +546,11 @@ static file_dispatch_t FileDispatcher[File_Function_Count] = {
 };
 
 struct InitrdContext{
-    process_t Target;
+    kot_process_t Target;
     char* Path;
 };
 
-KResult VFSfileDispatcherInitrd(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+KResult VFSfileDispatcherInitrd(kot_thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     uint32_t Function = GP0;
 
     if(Function >= File_Function_Count || Function == File_Function_Write){
@@ -571,7 +571,7 @@ KResult VFSfileDispatcherInitrd(thread_t Callback, uint64_t CallbackArg, uint64_
     Sys_Close(FileDispatcher[Function](Callback, CallbackArg, Context, GP1, GP2, GP3));
 }
 
-KResult VFSfileReadInitrd(thread_t Callback, uint64_t CallbackArg,  InitrdContext* Context, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult VFSfileReadInitrd(kot_thread_t Callback, uint64_t CallbackArg,  InitrdContext* Context, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     size64_t Size = GP1;
 
     srv_system_callback_t* CallbackSys = Srv_System_ReadFileInitrd(Context->Path, true);
@@ -603,7 +603,7 @@ KResult VFSfileReadInitrd(thread_t Callback, uint64_t CallbackArg,  InitrdContex
     return KSUCCESS;
 }
 
-KResult VFSGetfilesizeInitrd(thread_t Callback, uint64_t CallbackArg,  InitrdContext* Context, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult VFSGetfilesizeInitrd(kot_thread_t Callback, uint64_t CallbackArg,  InitrdContext* Context, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     srv_system_callback_t* CallbackSys = Srv_System_ReadFileInitrd(Context->Path, true);
 
     KResult Status = CallbackSys->Status;
@@ -625,7 +625,7 @@ KResult VFSGetfilesizeInitrd(thread_t Callback, uint64_t CallbackArg,  InitrdCon
     return KSUCCESS;
 }
 
-KResult VFSfileCloseInitrd(thread_t Callback, uint64_t CallbackArg,  InitrdContext* Context, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult VFSfileCloseInitrd(kot_thread_t Callback, uint64_t CallbackArg,  InitrdContext* Context, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     free(Context->Path);
     free(Context);
 
@@ -643,7 +643,7 @@ KResult VFSfileCloseInitrd(thread_t Callback, uint64_t CallbackArg,  InitrdConte
     Sys_Exit(KSUCCESS);
 }
 
-KResult VFSfileOpenInitrd(thread_t Callback, uint64_t CallbackArg, char* Path, kot_permissions_t Permissions, process_t Target){
+KResult VFSfileOpenInitrd(kot_thread_t Callback, uint64_t CallbackArg, char* Path, kot_permissions_t Permissions, kot_process_t Target){
     srv_system_callback_t* CallbackSys = Srv_System_ReadFileInitrd(Path, true);
     KResult Status = CallbackSys->Status;
     free((uintptr_t)CallbackSys->Data);
@@ -667,7 +667,7 @@ KResult VFSfileOpenInitrd(thread_t Callback, uint64_t CallbackArg, char* Path, k
         memcpy(Context->Path, Path, FilePathSize);
 
         srv_storage_fs_server_open_file_data_t SrvOpenFileData;
-        thread_t DispatcherThread;
+        kot_thread_t DispatcherThread;
 
         Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&VFSfileDispatcherInitrd, PriviledgeDriver, (uint64_t)Context, &DispatcherThread);
 

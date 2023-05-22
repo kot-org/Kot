@@ -81,7 +81,7 @@ kot_uisd_callbackInfo_t* kot_GetControllerUISD(enum kot_uisd_controller_type_enu
     return Info;
 }
 
-kot_uisd_callbackInfo_t* kot_CreateControllerUISD(enum kot_uisd_controller_type_enum Controller, kot_ksmem_t MemoryField, bool AwaitCallback){
+kot_uisd_callbackInfo_t* kot_CreateControllerUISD(enum kot_uisd_controller_type_enum Controller, kot_key_mem_t MemoryField, bool AwaitCallback){
     if(!kot_CallBackUISDThread) kot_InitializeUISD();
     kot_thread_t Self = kot_Sys_GetThread();
     kot_uisd_callbackInfo_t* Info = (kot_uisd_callbackInfo_t*)malloc(sizeof(kot_uisd_callbackInfo_t));
@@ -90,7 +90,7 @@ kot_uisd_callbackInfo_t* kot_CreateControllerUISD(enum kot_uisd_controller_type_
     Info->AwaitCallback = AwaitCallback;
     Info->Status = KBUSY;
 
-    kot_ksmem_t MemoryFieldKey = NULL;
+    kot_key_mem_t MemoryFieldKey = NULL;
     kot_Sys_Keyhole_CloneModify(MemoryField, &MemoryFieldKey, KotSpecificData.UISDHandlerProcess, KeyholeFlagPresent, PriviledgeApp);
 
     struct kot_arguments_t parameters;

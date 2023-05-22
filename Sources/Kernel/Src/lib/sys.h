@@ -1,6 +1,6 @@
 #pragma once
 
-struct KotSpecificData_t{
+struct kot_SpecificData_t{
     /* Memory */
     uint64_t MMapPageSize;
     /* Heap */
@@ -14,7 +14,7 @@ struct KotSpecificData_t{
     thread_t VFSHandler;
 }__attribute__((aligned(0x1000)));
 
-extern struct KotSpecificData_t KotSpecificData;
+extern struct kot_SpecificData_t KotSpecificData;
 
 struct SelfData{
     /* Self Info */

@@ -22,7 +22,7 @@ struct StreamRequest_t{
     uint64_t PID;
     uint64_t OutputID;
     process_t ProcessKey;
-    ksmem_t StreamBufferLocalKey;
+    kot_key_mem_t StreamBufferLocalKey;
     uint64_t Index;
     thread_t StreamCommandThread;
     OutputDevice_t* Device;

@@ -149,17 +149,17 @@ namespace ELF{
             /* Fill KotSpecific */
             if(self->KotSpecificSymbol != NULL){
                 /* Check symbol size */
-                if(self->KotSpecificSymbol->st_size >= sizeof(KotSpecificData_t)){
+                if(self->KotSpecificSymbol->st_size >= sizeof(kot_SpecificData_t)){
                     if(HeapLocation % PAGE_SIZE){
                         HeapLocation -= HeapLocation % PAGE_SIZE;
                         HeapLocation += PAGE_SIZE;
                     }
-                    KotSpecificData_t* KotSpecificData = (KotSpecificData_t*)kcalloc(sizeof(KotSpecificData_t));
+                    kot_SpecificData_t* KotSpecificData = (kot_SpecificData_t*)kcalloc(sizeof(kot_SpecificData_t));
                     KotSpecificData->MMapPageSize = PAGE_SIZE;
                     KotSpecificData->HeapLocation = HeapLocation;
                     KotSpecificData->FreeMemorySpace = (uintptr_t)FreeMemorySpaceAddress;
                     uintptr_t DataAddress = (uintptr_t)vmm_GetVirtualAddress(vmm_GetPhysical(mainthread->Paging, (uintptr_t)self->KotSpecificSymbol->st_value));
-                    memcpy(DataAddress, KotSpecificData, sizeof(KotSpecificData_t));
+                    memcpy(DataAddress, KotSpecificData, sizeof(kot_SpecificData_t));
                     kfree(KotSpecificData);
                 }
             }

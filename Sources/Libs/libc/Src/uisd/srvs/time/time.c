@@ -45,10 +45,10 @@ struct srv_time_callback_t* Srv_Time_SetTimePointerKey(time_t** Time, bool IsAwa
 
     *Time = GetFreeAlignedSpace(sizeof(time_t));
 
-    ksmem_t TimePointerKey;
+    kot_key_mem_t TimePointerKey;
     Sys_CreateMemoryField(Sys_GetProcess(), sizeof(time_t), (uintptr_t*)Time, &TimePointerKey, MemoryFieldTypeShareSpaceRO);
 
-    ksmem_t TimePointerKeyShare;
+    kot_key_mem_t TimePointerKeyShare;
     Sys_Keyhole_CloneModify(TimePointerKey, &TimePointerKeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
 
     struct arguments_t parameters;
@@ -85,10 +85,10 @@ struct srv_time_callback_t* Srv_Time_SetTickPointerKey(uint64_t* TimePointer, ui
     callback->Status = KBUSY;
     callback->Handler = &Srv_Time_SetTickPointerKey_Callback; 
 
-    ksmem_t TickPointerKey;
+    kot_key_mem_t TickPointerKey;
     Sys_CreateMemoryField(Sys_GetProcess(), sizeof(uint64_t), TimePointer, &TickPointerKey, MemoryFieldTypeShareSpaceRO);
 
-    ksmem_t TickPointerKeyShare;
+    kot_key_mem_t TickPointerKeyShare;
     Sys_Keyhole_CloneModify(TickPointerKey, &TickPointerKeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
 
     struct arguments_t parameters;

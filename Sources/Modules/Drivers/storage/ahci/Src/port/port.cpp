@@ -105,8 +105,8 @@ void Device::LoadSpace(Space_t* Self){
 KResult Device::Read(Space_t* Self, uint64_t Start, size64_t Size){
     uint64_t StartAlignement = Start & 0x1FF;
     uint64_t Sector = Start >> 9;
-    uint64_t SectorCount = DivideRoundUp(Size + StartAlignement, ATA_SECTOR_SIZE);
-    uint64_t PRDTLength = DivideRoundUp(SectorCount, HBA_PRDT_ENTRY_SECTOR_SIZE);
+    uint64_t SectorCount = DIV_ROUND_UP(Size + StartAlignement, ATA_SECTOR_SIZE);
+    uint64_t PRDTLength = DIV_ROUND_UP(SectorCount, HBA_PRDT_ENTRY_SECTOR_SIZE);
 
     if(PRDTLength > HBA_PRDT_MAX_ENTRIES){
         return KFAIL;
@@ -186,8 +186,8 @@ KResult Device::Write(Space_t* Self, uint64_t Start, size64_t Size){
     uint64_t BufferSizeUsed = Size + StartAlignement;
     
     uint64_t Sector = Start >> 9;
-    uint64_t SectorCount = DivideRoundUp(BufferSizeUsed, ATA_SECTOR_SIZE);
-    uint64_t PRDTLength = DivideRoundUp(SectorCount, HBA_PRDT_ENTRY_SECTOR_SIZE);
+    uint64_t SectorCount = DIV_ROUND_UP(BufferSizeUsed, ATA_SECTOR_SIZE);
+    uint64_t PRDTLength = DIV_ROUND_UP(SectorCount, HBA_PRDT_ENTRY_SECTOR_SIZE);
 
     if(PRDTLength > HBA_PRDT_MAX_ENTRIES){
         return KFAIL;

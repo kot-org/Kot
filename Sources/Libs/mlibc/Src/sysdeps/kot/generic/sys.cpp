@@ -1,22 +1,23 @@
 #include <kot/sys.h>
+#include <string.h>
 
 extern "C" {
 
-__attribute__((section(".KotSpecificData"))) struct kot_KotSpecificData_t KotSpecificData;
+__attribute__((section(".KotSpecificData"))) struct kot_SpecificData_t KotSpecificData;
 
-KResult kot_Sys_CreateMemoryField(kot_process_t self, size64_t size, uintptr_t* virtualAddressPointer, kot_ksmem_t* keyPointer, enum kot_MemoryFieldType type){
+KResult kot_Sys_CreateMemoryField(kot_process_t self, size64_t size, uintptr_t* virtualAddressPointer, kot_key_mem_t* keyPointer, enum kot_MemoryFieldType type){
     return Syscall_40(KSys_CreateMemoryField, self, size, virtualAddressPointer, keyPointer, type);
 }
 
-KResult kot_Sys_AcceptMemoryField(kot_process_t self, kot_ksmem_t key, uintptr_t* virtualAddressPointer){
+KResult kot_Sys_AcceptMemoryField(kot_process_t self, kot_key_mem_t key, uintptr_t* virtualAddressPointer){
     return Syscall_24(KSys_AcceptMemoryField, self, key, virtualAddressPointer);
 }
 
-KResult kot_Sys_CloseMemoryField(kot_process_t self, kot_ksmem_t key, uintptr_t address){
+KResult kot_Sys_CloseMemoryField(kot_process_t self, kot_key_mem_t key, uintptr_t address){
     return Syscall_24(KSys_CloseMemoryField, self, key, address);
 }
 
-KResult kot_Sys_GetInfoMemoryField(kot_ksmem_t key, uint64_t* typePointer, size64_t* sizePointer){
+KResult kot_Sys_GetInfoMemoryField(kot_key_mem_t key, uint64_t* typePointer, size64_t* sizePointer){
     return Syscall_24(KSys_GetTypeMemoryField, key, typePointer, sizePointer);
 }
 
@@ -248,5 +249,10 @@ uint64_t kot_Sys_GetPriviledgeThreadLauncher(){
     asm("mov %%gs:0x88, %0":"=r"(Priviledge));
     return Priviledge;
 }
+
+KResult kot_Printlog(char* message){
+    return kot_Sys_Logs(message, strlen(message));
+}
+
 
 }

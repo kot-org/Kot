@@ -50,10 +50,10 @@ struct kot_srv_time_callback_t* kot_Srv_Time_SetTimePointerKey(kot_time_t** Time
 
     *Time = (kot_time_t*)kot_GetFreeAlignedSpace(sizeof(kot_time_t));
 
-    kot_ksmem_t TimePointerKey;
+    kot_key_mem_t TimePointerKey;
     kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), sizeof(kot_time_t), (uintptr_t*)Time, &TimePointerKey, MemoryFieldTypeShareSpaceRO);
 
-    kot_ksmem_t TimePointerKeyShare;
+    kot_key_mem_t TimePointerKeyShare;
     kot_Sys_Keyhole_CloneModify(TimePointerKey, &TimePointerKeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
 
     struct kot_arguments_t parameters;
@@ -90,10 +90,10 @@ struct kot_srv_time_callback_t* kot_Srv_Time_SetTickPointerKey(uint64_t* TimePoi
     callback->Status = KBUSY;
     callback->Handler = &Srv_Time_SetTickPointerKey_Callback; 
 
-    kot_ksmem_t TickPointerKey;
+    kot_key_mem_t TickPointerKey;
     kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), sizeof(uint64_t), TimePointer, &TickPointerKey, MemoryFieldTypeShareSpaceRO);
 
-    kot_ksmem_t TickPointerKeyShare;
+    kot_key_mem_t TickPointerKeyShare;
     kot_Sys_Keyhole_CloneModify(TickPointerKey, &TickPointerKeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
 
     struct kot_arguments_t parameters;

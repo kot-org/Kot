@@ -14,7 +14,7 @@ void _assert(int expression, const char* expression_name, const char* file, int 
         strcat(str, expression_name);
         strcat(str, "' failed");
         strcat(str, "\0");
-        Printlog(str);
+        kot_Printlog(str);
         Sys_Close(KFAIL);
     }
 }

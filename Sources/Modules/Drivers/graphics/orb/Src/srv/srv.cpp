@@ -6,7 +6,7 @@ KResult InitialiseServer(orbc* Orb){
     process_t proc = Sys_GetProcess();
 
     uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_graphics_t));
-    ksmem_t key = NULL;
+    kot_key_mem_t key = NULL;
     Sys_CreateMemoryField(proc, sizeof(uisd_graphics_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
     SrvData = (uisd_graphics_t*)address;

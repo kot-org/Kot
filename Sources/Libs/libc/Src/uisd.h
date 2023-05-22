@@ -27,7 +27,7 @@ extern thread_t srv_audio_callback_thread;
 
 #define ControllerCount 0x9
 
-enum ControllerTypeEnum {
+enum kot_uisd_controller_type_enum {
     ControllerTypeEnum_System       = 0x0,
     ControllerTypeEnum_Time         = 0x1,
     ControllerTypeEnum_Hid          = 0x2,
@@ -45,7 +45,7 @@ typedef struct {
     bool IsReadWrite;
     uint64_t Version;
     uint64_t VendorID;
-    enum ControllerTypeEnum Type;
+    enum kot_uisd_controller_type_enum Type;
     process_t Process;
 } uisd_controller_t;
 
@@ -68,10 +68,10 @@ typedef struct {
     thread_t SetTimePointerKey;
     thread_t SetTickPointerKey;
 
-    ksmem_t TimePointerKey;
+    kot_key_mem_t TimePointerKey;
 
     uint64_t TickPeriod;
-    ksmem_t TickPointerKey;
+    kot_key_mem_t TickPointerKey;
 } uisd_time_t;
 
 typedef struct {
@@ -148,8 +148,8 @@ typedef struct {
     KResult Status;
 } uisd_callbackInfo_t;
 
-uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t* Location, bool AwaitCallback);
-uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ksmem_t MemoryField, bool AwaitCallback);
+uisd_callbackInfo_t* GetControllerUISD(enum kot_uisd_controller_type_enum Controller, uintptr_t* Location, bool AwaitCallback);
+uisd_callbackInfo_t* CreateControllerUISD(enum kot_uisd_controller_type_enum Controller, kot_key_mem_t MemoryField, bool AwaitCallback);
 
 thread_t MakeShareableThread(thread_t Thread, enum Priviledge priviledgeRequired);
 thread_t MakeShareableThreadUISDOnly(thread_t Thread);
@@ -157,8 +157,8 @@ thread_t MakeShareableThreadToProcess(thread_t Thread, process_t Process);
 thread_t MakeShareableSpreadThreadToProcess(thread_t Thread, process_t Process);
 process_t ShareProcessKey(process_t Process);
 
-uintptr_t GetControllerLocationUISD(enum ControllerTypeEnum Controller);
-uintptr_t FindControllerUISD(enum ControllerTypeEnum Controller);
+uintptr_t GetControllerLocationUISD(enum kot_uisd_controller_type_enum Controller);
+uintptr_t FindControllerUISD(enum kot_uisd_controller_type_enum Controller);
 
 KResult ResetUISDThreads();
 

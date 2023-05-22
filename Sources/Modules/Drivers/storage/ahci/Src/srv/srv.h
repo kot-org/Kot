@@ -11,7 +11,7 @@ struct Space_t{
     uint64_t Size;      // Size in byte
 
     /* Buffer */
-    ksmem_t BufferKey;
+    kot_key_mem_t BufferKey;
     uintptr_t BufferVirtual;
 }__attribute__((packed));
 

@@ -4,15 +4,16 @@
 
 using namespace std;
 
-process_t proc;
+kot_process_t proc;
 
-extern "C" int main(KernelInfo* kernelInfo) {
+int main(int argc, char* argv[]) {
+    KernelInfo* kernelInfo = (KernelInfo*)argv[0];
 
-    Printlog("[System] Initialization ...");
+    kot_Printlog("[System] Initialization ...");
 
-    proc = Sys_GetProcess();
+    proc = kot_Sys_GetProcess();
 
-    thread_t self = Sys_GetThread();
+    kot_thread_t self = kot_Sys_GetThread();
 
     // parse file system
     initrd::Parse((uintptr_t)kernelInfo->initrd.base, kernelInfo->initrd.size);
@@ -33,15 +34,15 @@ extern "C" int main(KernelInfo* kernelInfo) {
     initrd::File* StarterFile = initrd::Find("Starter.json");
 
     if (StarterFile != NULL) {
-        char* BufferStarterFile = (char*)calloc(StarterFile->size);
-        initrd::Read(StarterFile, BufferStarterFile);
+        char* BufferStarterFile = (char*)calloc(StarterFile->size, sizeof(char));
+        initrd::Read(StarterFile, (uintptr_t)BufferStarterFile);
         
         JsonParser* parser = new JsonParser(BufferStarterFile);
 
         if (parser->getCode() == JSON_SUCCESS && parser->getValue()->getType() == JSON_ARRAY) {
             JsonArray* arr = (JsonArray*) parser->getValue();
 
-            arguments_t* InitParameters = (arguments_t*)calloc(sizeof(arguments_t));
+            kot_arguments_t* InitParameters = (kot_arguments_t*)calloc(sizeof(kot_arguments_t), sizeof(uint64_t));
 
             for (uint64_t i = 0; i < arr->length(); i++) {
                 JsonObject* service = (JsonObject*) arr->Get(i);
@@ -67,12 +68,12 @@ extern "C" int main(KernelInfo* kernelInfo) {
                 }
                 
                 if (file->getType() == JSON_STRING) {
-                    if(strcmp(file->Get(), "")) continue;
+                    if(!strcmp(file->Get(), "")) continue;
                     initrd::File* serviceFile = initrd::Find(file->Get());
                     if (serviceFile != NULL) {
-                        uintptr_t bufferServiceFile = calloc(serviceFile->size);
+                        uintptr_t bufferServiceFile = (uintptr_t)calloc(serviceFile->size, sizeof(uint8_t));
                         initrd::Read(serviceFile, bufferServiceFile);
-                        thread_t thread = NULL;
+                        kot_thread_t thread = NULL;
                         int32_t servicePriledge = 3;
                         if (priviledge != NULL) {
                             if (priviledge->getType() == JSON_NUMBER){ 
@@ -81,8 +82,8 @@ extern "C" int main(KernelInfo* kernelInfo) {
                                 }
                             }
                         }
-                        ELF::loadElf(bufferServiceFile, (enum Priviledge)servicePriledge, NULL, &thread, "d0:", IsVFS);
-                        free(bufferServiceFile);
+                        ELF::loadElf(bufferServiceFile, (enum kot_Priviledge)servicePriledge, NULL, &thread, "d0:", IsVFS);
+                        free((void*)bufferServiceFile);
 
                         size_t filenamelen = strlen(file->Get());
                         char** CharArray = (char**)malloc((sizeof(char*) * 0x1) + (sizeof(char) * filenamelen));
@@ -90,28 +91,28 @@ extern "C" int main(KernelInfo* kernelInfo) {
                         memcpy(CharArray[0], file->Get(), filenamelen);
 
                         InitParameters->arg[0] = 1;
-                        ShareDataWithArguments_t Data{
-                            .Data = &CharArray,
+                        kot_ShareDataWithArguments_t Data{
+                            .Data = (uintptr_t)&CharArray,
                             .Size = (sizeof(char*) * 0x1) + (sizeof(char) * filenamelen),
                             .ParameterPosition = 0x1,
                         };
-                        Sys_ExecThread(thread, InitParameters, ExecutionTypeQueu, &Data);
+                        kot_Sys_ExecThread(thread, InitParameters, ExecutionTypeQueu, &Data);
                     }
                 }
             }
             free(InitParameters);
         } else { 
-            Printlog("[System] Invalid Starter file's JSON body");
+            kot_Printlog("[System] Invalid Starter file's JSON body");
             return KFAIL;
         }
 
     } else {
-        Printlog("[System] 'Starter.json' file not found");
+        kot_Printlog("[System] 'Starter.json' file not found");
         return KFAIL;
     }
 
-    Printlog("[System] All tasks in 'Starter.json' are loaded");
-    Printlog("[System] Service initialized successfully");
+    kot_Printlog("[System] All tasks in 'Starter.json' are loaded");
+    kot_Printlog("[System] Service initialized successfully");
 
     return KSUCCESS;
 

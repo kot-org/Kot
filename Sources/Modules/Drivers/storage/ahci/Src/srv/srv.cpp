@@ -158,7 +158,7 @@ void SrvMultipleRequestHandler(thread_t Callback, uint64_t CallbackArg, srv_stor
             if((Request.Start + (uint64_t)Request.Size) <= Space->StorageDevice->GetSize()){
                 Request.Start += Space->Start;
 
-                uint64_t RequestNum = DivideRoundUp(Request.Size, Space->StorageDevice->BufferUsableSize);
+                uint64_t RequestNum = DIV_ROUND_UP(Request.Size, Space->StorageDevice->BufferUsableSize);
                 uint64_t StartInIteration = Request.Start;
                 uint64_t SizeToRead = Request.Size;
                 uint64_t AddressDst = (uint64_t)Buffer + Request.BufferOffset;
@@ -200,7 +200,7 @@ void SrvMultipleRequestHandler(thread_t Callback, uint64_t CallbackArg, srv_stor
     };
     
     if(!Requests->IsWrite){
-        ksmem_t LocalKey;
+        kot_key_mem_t LocalKey;
         Sys_CreateMemoryField(Sys_GetProcess(), Requests->TotalSize, &Buffer, &LocalKey, MemoryFieldTypeSendSpaceRO);
         Sys_Keyhole_CloneModify(LocalKey, &arguments.arg[2], Process, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
     }

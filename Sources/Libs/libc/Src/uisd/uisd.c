@@ -47,7 +47,7 @@ KResult CallbackUISD(uint64_t Task, KResult Status, uisd_callbackInfo_t* Info, u
     Sys_Close(KSUCCESS);
 }
 
-uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintptr_t* Location, bool AwaitCallback){
+uisd_callbackInfo_t* GetControllerUISD(enum kot_uisd_controller_type_enum Controller, uintptr_t* Location, bool AwaitCallback){
     if(!CallBackUISDThread) InitializeUISD();
     thread_t Self = Sys_GetThread();
     uisd_callbackInfo_t* Info = (uisd_callbackInfo_t*)malloc(sizeof(uisd_callbackInfo_t));
@@ -73,7 +73,7 @@ uisd_callbackInfo_t* GetControllerUISD(enum ControllerTypeEnum Controller, uintp
     return Info;
 }
 
-uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ksmem_t MemoryField, bool AwaitCallback){
+uisd_callbackInfo_t* CreateControllerUISD(enum kot_uisd_controller_type_enum Controller, kot_key_mem_t MemoryField, bool AwaitCallback){
     if(!CallBackUISDThread) InitializeUISD();
     thread_t Self = Sys_GetThread();
     uisd_callbackInfo_t* Info = malloc(sizeof(uisd_callbackInfo_t));
@@ -82,7 +82,7 @@ uisd_callbackInfo_t* CreateControllerUISD(enum ControllerTypeEnum Controller, ks
     Info->AwaitCallback = AwaitCallback;
     Info->Status = KBUSY;
 
-    ksmem_t MemoryFieldKey = NULL;
+    kot_key_mem_t MemoryFieldKey = NULL;
     Sys_Keyhole_CloneModify(MemoryField, &MemoryFieldKey, KotSpecificData.UISDHandlerProcess, KeyholeFlagPresent, PriviledgeApp);
 
     struct arguments_t parameters;
@@ -131,11 +131,11 @@ process_t ShareProcessKey(process_t Process){
     return ReturnValue;
 }
 
-uintptr_t GetControllerLocationUISD(enum ControllerTypeEnum Controller){
+uintptr_t GetControllerLocationUISD(enum kot_uisd_controller_type_enum Controller){
     return ControllerList[Controller];
 }
 
-uintptr_t FindControllerUISD(enum ControllerTypeEnum Controller){
+uintptr_t FindControllerUISD(enum kot_uisd_controller_type_enum Controller){
     uintptr_t ControllerData = GetControllerLocationUISD(Controller);
     if(!ControllerData){
         ControllerData = GetFreeAlignedSpace(ControllerTypeSize[Controller]);

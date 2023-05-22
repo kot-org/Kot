@@ -3,7 +3,7 @@
 uisd_storage_t* SrvData;
 
 KResult InitialiseSrv(){
-    process_t proc = Sys_GetProcess();
+    kot_process_t proc = Sys_GetProcess();
 
     uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_storage_t));
     ksmem_t key = NULL;
@@ -19,27 +19,27 @@ KResult InitialiseSrv(){
     SrvData->ControllerHeader.Process = ShareProcessKey(proc);
 
     /* AddDevice */
-    thread_t AddDeviceThread = NULL;
+    kot_thread_t AddDeviceThread = NULL;
     Sys_CreateThread(proc, (uintptr_t)&AddDeviceSrv, PriviledgeApp, NULL, &AddDeviceThread);
     SrvData->AddDevice = MakeShareableThread(AddDeviceThread, PriviledgeDriver);
 
     /* RemoveDevice */
-    thread_t RemoveDeviceThread = NULL;
+    kot_thread_t RemoveDeviceThread = NULL;
     Sys_CreateThread(proc, (uintptr_t)&RemoveDeviceSrv, PriviledgeApp, NULL, &RemoveDeviceThread);
     SrvData->RemoveDevice = MakeShareableThread(RemoveDeviceThread, PriviledgeDriver);
 
     /* NotifyOnNewPartitionByGUIDType */
-    thread_t CountPartitionByGUIDTypeThread = NULL;
+    kot_thread_t CountPartitionByGUIDTypeThread = NULL;
     Sys_CreateThread(proc, (uintptr_t)&NotifyOnNewPartitionByGUIDTypeSrv, PriviledgeApp, NULL, &CountPartitionByGUIDTypeThread);
     SrvData->NotifyOnNewPartitionByGUIDType = MakeShareableThread(CountPartitionByGUIDTypeThread, PriviledgeDriver);
 
     /* VFSLoginApp */
-    thread_t VFSLoginAppThread = NULL;
+    kot_thread_t VFSLoginAppThread = NULL;
     Sys_CreateThread(proc, (uintptr_t)&VFSLoginApp, PriviledgeApp, NULL, &VFSLoginAppThread);
     SrvData->VFSLoginApp = MakeShareableThread(VFSLoginAppThread, PriviledgeDriver);
 
     /* NewDev */
-    thread_t NewDevThread = NULL;
+    kot_thread_t NewDevThread = NULL;
     Sys_CreateThread(proc, (uintptr_t)&NewDev, PriviledgeApp, NULL, &NewDevThread);
     SrvData->NewDev = MakeShareableThread(NewDevThread, PriviledgeService);
     
@@ -49,7 +49,7 @@ KResult InitialiseSrv(){
     return KSUCCESS;
 }
 
-KResult AddDeviceSrv(thread_t Callback, uint64_t CallbackArg, srv_storage_device_info_t* Info){
+KResult AddDeviceSrv(kot_thread_t Callback, uint64_t CallbackArg, srv_storage_device_info_t* Info){
     KResult Status = KFAIL;
     storage_device_t* Device = NULL;
     if(Info){
@@ -69,7 +69,7 @@ KResult AddDeviceSrv(thread_t Callback, uint64_t CallbackArg, srv_storage_device
     Sys_Close(KSUCCESS);
 }
 
-KResult RemoveDeviceSrv(thread_t Callback, uint64_t CallbackArg, storage_device_t* Device){
+KResult RemoveDeviceSrv(kot_thread_t Callback, uint64_t CallbackArg, storage_device_t* Device){
     KResult Status = RemoveDevice(Device);
     
     arguments_t arguments{
@@ -85,7 +85,7 @@ KResult RemoveDeviceSrv(thread_t Callback, uint64_t CallbackArg, storage_device_
     Sys_Close(KSUCCESS);
 }
 
-KResult NotifyOnNewPartitionByGUIDTypeSrv(thread_t Callback, uint64_t CallbackArg, thread_t ThreadToNotify, process_t ProcessToNotify, GUID_t* PartitionTypeGUID){
+KResult NotifyOnNewPartitionByGUIDTypeSrv(kot_thread_t Callback, uint64_t CallbackArg, kot_thread_t ThreadToNotify, kot_process_t ProcessToNotify, kot_GUID_t* PartitionTypeGUID){
     KResult Status = NotifyOnNewPartitionByGUIDType(PartitionTypeGUID, ThreadToNotify, ProcessToNotify);
     
     arguments_t arguments{

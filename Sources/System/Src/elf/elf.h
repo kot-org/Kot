@@ -1,19 +1,19 @@
 #pragma once
 
 #include <elf.h>
+#include <string.h>
 #include <kot/sys.h>
 #include <stdlib.h>
 #include <kot/math.h>
 #include <kot/utils.h>
-#include <string.h>
 #include <kot/authorization.h>
-#include <stdio.h>
+#include <kot/uisd/srvs/storage.h>
 
 #include "../core/main.h"
 
 namespace ELF {
     
-    KResult loadElf(uintptr_t buffer, enum Priviledge ring, uint64_t identifier, thread_t* mainthread, char* rootpath, bool isVFS);
+    KResult loadElf(uintptr_t buffer, enum kot_Priviledge ring, uint64_t identifier, kot_thread_t* mainthread, char* rootpath, bool isVFS);
     bool Check(struct elf_t* self);
 
     struct elf_t {

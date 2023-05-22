@@ -54,7 +54,7 @@ typedef KResult (*kot_StorageCallbackHandler)(KResult Status, struct kot_srv_sto
 struct kot_srv_storage_space_info_t{
     kot_thread_t CreateProtectedDeviceSpaceThread;
     kot_thread_t RequestToDeviceThread;
-    kot_ksmem_t BufferRWKey;
+    kot_key_mem_t BufferRWKey;
     uint64_t BufferRWAlignement;
     uint64_t BufferRWUsableSize;
     kot_process_t DriverProc;

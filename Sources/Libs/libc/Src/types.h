@@ -35,7 +35,7 @@ typedef uint64_t key_t;
 typedef key_t process_t;
 typedef key_t thread_t;
 typedef key_t kot_event_t;
-typedef key_t ksmem_t;
+typedef key_t kot_key_mem_t;
 
 typedef void*                       uintptr_t;
 

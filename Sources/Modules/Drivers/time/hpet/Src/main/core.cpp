@@ -1,19 +1,19 @@
 #include <main/core.h>
 
 extern "C" int main(int argc, char* argv[]){
-    Printlog("[TIMER/HPET] Initializing ...");
+    kot_Printlog("[TIMER/HPET] Initializing ...");
 
     srv_system_callback_t* Callback = Srv_System_GetTableInRootSystemDescription("HPET", true);
     HPETHeader_t* HPETHeader = (HPETHeader_t*)Callback->Data;
     free(Callback);
 
     if(!HPETHeader){
-        Printlog("[TIMER/HPET] HPET table not found !");
+        kot_Printlog("[TIMER/HPET] HPET table not found !");
         return KFAIL;
     }
 
     if(HPETHeader->Address.AddressSpace != SPACE_MEMORY){
-        Printlog("[TIMER/HPET] Registers acces system not supported");
+        kot_Printlog("[TIMER/HPET] Registers acces system not supported");
         return KFAIL;
     }
 
@@ -25,7 +25,7 @@ extern "C" int main(int argc, char* argv[]){
 
     Srv_Time_SetTickPointerKey(&Hpet->MainCounterAddress, Hpet->TickPeriod, true);
 
-    Printlog("[TIMER/HPET] Initialized with success");
+    kot_Printlog("[TIMER/HPET] Initialized with success");
     return KSUCCESS;
 }
 

@@ -86,11 +86,11 @@ uint8_t RTCGetCentury() {
 extern uint64_t* TickPointer;
 
 extern "C" int main(int argc, char* argv[]) {
-    Printlog("[TIMER/RTC] Initialization ...");
+    kot_Printlog("[TIMER/RTC] Initialization ...");
 
     
 
-    Printlog("[TIMER/RTC] Driver initialized successfully");
+    kot_Printlog("[TIMER/RTC] Driver initialized successfully");
 
     uint64_t TimerState;
     GetActualTick(&TimerState);

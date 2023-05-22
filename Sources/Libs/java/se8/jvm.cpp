@@ -13,7 +13,7 @@ namespace SE8 {
     }
 
     void __default_print(char* str) {
-        Printlog(str);
+        kot_Printlog(str);
     }
     
     print_native JavaVM::getOutput() {

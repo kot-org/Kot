@@ -87,6 +87,7 @@ if not no_headers
 		'include/kot/utils.h',
 		'include/kot/math.h',
 		'include/kot/uisd.h',
+		'include/kot/bits.h',
 		'include/kot/sys.h',
 		subdir: 'kot'
 	)

@@ -1,7 +1,7 @@
 #include <core/main.h>
 
 extern "C" int main(int argc, char* argv[]) {
-    Printlog("[BUS/PCI] Initialization ...");
+    kot_Printlog("[BUS/PCI] Initialization ...");
 
     srv_system_callback_t* Callback = Srv_System_GetTableInRootSystemDescription("MCFG", true);
     uintptr_t MCFGTable = (uintptr_t)Callback->Data;
@@ -21,7 +21,7 @@ extern "C" int main(int argc, char* argv[]) {
 
     InitSrv(PCIDeviceArray);
 
-    Printlog("[BUS/PCI] Driver initialized successfully");
+    kot_Printlog("[BUS/PCI] Driver initialized successfully");
 
     return KSUCCESS;
 }

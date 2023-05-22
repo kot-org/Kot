@@ -9,7 +9,7 @@
 
 KResult InitialiseSrv();
 
-KResult AddDeviceSrv(thread_t Callback, uint64_t CallbackArg, struct srv_storage_device_info_t* Info);
-KResult RemoveDeviceSrv(thread_t Callback, uint64_t CallbackArg, struct storage_device_t* Device);
+KResult AddDeviceSrv(kot_thread_t Callback, uint64_t CallbackArg, struct srv_storage_device_info_t* Info);
+KResult RemoveDeviceSrv(kot_thread_t Callback, uint64_t CallbackArg, struct storage_device_t* Device);
 
-KResult NotifyOnNewPartitionByGUIDTypeSrv(thread_t Callback, uint64_t CallbackArg, thread_t ThreadToNotify, process_t ProcessToNotify, GUID_t* PartitionTypeGUID);
+KResult NotifyOnNewPartitionByGUIDTypeSrv(kot_thread_t Callback, uint64_t CallbackArg, kot_thread_t ThreadToNotify, kot_process_t ProcessToNotify, kot_GUID_t* PartitionTypeGUID);

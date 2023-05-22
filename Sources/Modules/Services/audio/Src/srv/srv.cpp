@@ -7,7 +7,7 @@ KResult InitialiseServer(){
     process_t proc = Sys_GetProcess();
 
     uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_audio_t));
-    ksmem_t key = NULL;
+    kot_key_mem_t key = NULL;
     Sys_CreateMemoryField(proc, sizeof(uisd_audio_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
     SrvData = (uisd_audio_t*)address;
