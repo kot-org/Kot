@@ -5,14 +5,14 @@ PCIDeviceArrayInfo_t* SrvDevicesArray;
 void InitSrv(PCIDeviceArrayInfo_t* DevicesArray){
     SrvDevicesArray = DevicesArray;
 
-    void* addr = GetFreeAlignedSpace(sizeof(uisd_pci_t));
+    void* addr = kot_GetFreeAlignedSpace(sizeof(kot_uisd_pci_t));
     kot_key_mem_t key = NULL;
     
-    process_t proc = Sys_GetProcess();
+    kot_process_t proc = kot_Sys_GetProcess();
 
-    Sys_CreateMemoryField(proc, sizeof(uisd_pci_t), &addr, &key, MemoryFieldTypeShareSpaceRO);
+    kot_Sys_CreateMemoryField(proc, sizeof(kot_uisd_pci_t), &addr, &key, MemoryFieldTypeShareSpaceRO);
 
-    uisd_pci_t* PciSrv = (uisd_pci_t*) addr;
+    kot_uisd_pci_t* PciSrv = (kot_uisd_pci_t*) addr;
     PciSrv->ControllerHeader.IsReadWrite = false;
     PciSrv->ControllerHeader.Version = Pci_Srv_Version;
     PciSrv->ControllerHeader.VendorID = Kot_VendorID;
@@ -20,50 +20,50 @@ void InitSrv(PCIDeviceArrayInfo_t* DevicesArray){
     PciSrv->ControllerHeader.Process = kot_ShareProcessKey(proc);
 
     /* Setup thread */
-    CreateControllerUISD(ControllerTypeEnum_PCI, key, true);
+    kot_CreateControllerUISD(ControllerTypeEnum_PCI, key, true);
     
     /* CountDevices */
-    thread_t CountDevicesThread = NULL;
+    kot_thread_t CountDevicesThread = NULL;
     kot_Sys_CreateThread(proc, (void*) &CountDevices, PriviledgeDriver, NULL, &CountDevicesThread);
     PciSrv->CountDevices = kot_MakeShareableThread(CountDevicesThread, PriviledgeDriver);
 
     /* FindDevice */
-    thread_t FindDeviceThread = NULL;
+    kot_thread_t FindDeviceThread = NULL;
     kot_Sys_CreateThread(proc, (void*) &FindDevice, PriviledgeDriver, NULL, &FindDeviceThread);
     PciSrv->FindDevice = kot_MakeShareableThread(FindDeviceThread, PriviledgeDriver);
 
     /* GetInfo */
-    thread_t GetInfoDeviceThread = NULL;
+    kot_thread_t GetInfoDeviceThread = NULL;
     kot_Sys_CreateThread(proc, (void*) &GetInfoDevice, PriviledgeDriver, NULL, &GetInfoDeviceThread);
     PciSrv->GetInfoDevice = kot_MakeShareableThread(GetInfoDeviceThread, PriviledgeDriver);
 
     /* GetBAR */
-    thread_t GetBARDeviceThread = NULL;
+    kot_thread_t GetBARDeviceThread = NULL;
     kot_Sys_CreateThread(proc, (void*) &GetBARDevice, PriviledgeDriver, NULL, &GetBARDeviceThread);
     PciSrv->GetBARDevice = kot_MakeShareableThread(GetBARDeviceThread, PriviledgeDriver);
 
     /* BindMSI */
-    thread_t BindMSIThread = NULL;
+    kot_thread_t BindMSIThread = NULL;
     kot_Sys_CreateThread(proc, (void*) &BindMSI, PriviledgeDriver, NULL, &BindMSIThread);
     PciSrv->BindMSI = kot_MakeShareableThread(BindMSIThread, PriviledgeDriver);
 
     /* UnbindMSI */
-    thread_t UnbindMSIThread = NULL;
+    kot_thread_t UnbindMSIThread = NULL;
     kot_Sys_CreateThread(proc, (void*) &UnbindMSI, PriviledgeDriver, NULL, &UnbindMSIThread);
     PciSrv->UnbindMSI = kot_MakeShareableThread(UnbindMSIThread, PriviledgeDriver);
 
     /* ConfigReadWord */
-    thread_t ConfigReadWordThread = NULL;
+    kot_thread_t ConfigReadWordThread = NULL;
     kot_Sys_CreateThread(proc, (void*) &ConfigReadWord, PriviledgeDriver, NULL, &ConfigReadWordThread);
     PciSrv->ConfigReadWord = kot_MakeShareableThread(ConfigReadWordThread, PriviledgeDriver);
 
     /* ConfigWriteWord */
-    thread_t ConfigWriteWordThread = NULL;
+    kot_thread_t ConfigWriteWordThread = NULL;
     kot_Sys_CreateThread(proc, (void*) &ConfigWriteWord, PriviledgeDriver, NULL, &ConfigWriteWordThread);
     PciSrv->ConfigWriteWord = kot_MakeShareableThread(ConfigWriteWordThread, PriviledgeDriver);
 }
 
-KResult CountDevices(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters){
+KResult CountDevices(kot_thread_t Callback, uint64_t CallbackArg, kot_srv_pci_search_parameters_t* SearchParameters){
     uint64_t NumDeviceFound = Search(SrvDevicesArray, SearchParameters->vendorID, SearchParameters->deviceID, SearchParameters->classID, SearchParameters->subClassID, SearchParameters->progIF);
     
     kot_arguments_t arguments{
@@ -79,8 +79,8 @@ KResult CountDevices(thread_t Callback, uint64_t CallbackArg, srv_pci_search_par
     kot_Sys_Close(KSUCCESS);
 }
 
-KResult FindDevice(thread_t Callback, uint64_t CallbackArg, srv_pci_search_parameters_t* SearchParameters, uint64_t Index){
-    PCIDeviceID_t Device = NULL;
+KResult FindDevice(kot_thread_t Callback, uint64_t CallbackArg, kot_srv_pci_search_parameters_t* SearchParameters, uint64_t Index){
+    kot_PCIDeviceID_t Device = NULL;
     Device = GetDevice(SrvDevicesArray, SearchParameters->vendorID, SearchParameters->deviceID, SearchParameters->classID, SearchParameters->subClassID, SearchParameters->progIF, Index);
 
     kot_arguments_t arguments{
@@ -96,9 +96,9 @@ KResult FindDevice(thread_t Callback, uint64_t CallbackArg, srv_pci_search_param
     kot_Sys_Close(KSUCCESS);    
 }
 
-KResult GetInfoDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex){
+KResult GetInfoDevice(kot_thread_t Callback, uint64_t CallbackArg, kot_PCIDeviceID_t DeviceIndex){
     KResult Status = KFAIL;
-    srv_pci_device_info_t DeviceInfo;
+    kot_srv_pci_device_info_t DeviceInfo;
     if(CheckDevice(SrvDevicesArray, DeviceIndex)){
         PCIDevice_t* Device = GetDeviceFromIndex(SrvDevicesArray, DeviceIndex);
         PCIDeviceHeader_t* Header = (PCIDeviceHeader_t*)Device->ConfigurationSpace;
@@ -110,9 +110,9 @@ KResult GetInfoDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Dev
         Status = KSUCCESS;
     }
 
-    ShareDataWithArguments_t data{
+    kot_ShareDataWithArguments_t data{
         .Data = &DeviceInfo,
-        .Size = sizeof(srv_pci_device_info_t),
+        .Size = sizeof(kot_srv_pci_device_info_t),
         .ParameterPosition = 0x2,
     };
 
@@ -129,9 +129,9 @@ KResult GetInfoDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Dev
     kot_Sys_Close(KSUCCESS);
 }
 
-KResult GetBARDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex, uint8_t BarIndex){
+KResult GetBARDevice(kot_thread_t Callback, uint64_t CallbackArg, kot_PCIDeviceID_t DeviceIndex, uint8_t BarIndex){
     KResult Status = KFAIL;
-    srv_pci_bar_info_t BARInfo;
+    kot_srv_pci_bar_info_t BARInfo;
     if(CheckDevice(SrvDevicesArray, DeviceIndex)){
         PCIDevice_t* Device = GetDeviceFromIndex(SrvDevicesArray, DeviceIndex);
         BARInfo.Address = Device->GetBarAddress(BarIndex);
@@ -140,9 +140,9 @@ KResult GetBARDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Devi
         Status = KSUCCESS;
     }
 
-    ShareDataWithArguments_t data{
+    kot_ShareDataWithArguments_t data{
         .Data = &BARInfo,
-        .Size = sizeof(srv_pci_bar_info_t),
+        .Size = sizeof(kot_srv_pci_bar_info_t),
         .ParameterPosition = 0x2,
     };
 
@@ -159,9 +159,9 @@ KResult GetBARDevice(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t Devi
     kot_Sys_Close(KSUCCESS);
 }
 
-KResult BindMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex, uint8_t IRQVector, uint8_t Processor, uint16_t LocalDeviceVector){
+KResult BindMSI(kot_thread_t Callback, uint64_t CallbackArg, kot_PCIDeviceID_t DeviceIndex, uint8_t IRQVector, uint8_t Processor, uint16_t LocalDeviceVector){
     KResult Status = KFAIL;
-    srv_pci_bar_info_t BARInfo;
+    kot_srv_pci_bar_info_t BARInfo;
     uint64_t Version = 0;
     if(CheckDevice(SrvDevicesArray, DeviceIndex)){
         PCIDevice_t* Device = GetDeviceFromIndex(SrvDevicesArray, DeviceIndex);
@@ -181,7 +181,7 @@ KResult BindMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceInd
     kot_Sys_Close(KSUCCESS);
 }
 
-KResult UnbindMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex, uint16_t LocalDeviceVector){
+KResult UnbindMSI(kot_thread_t Callback, uint64_t CallbackArg, kot_PCIDeviceID_t DeviceIndex, uint16_t LocalDeviceVector){
     KResult Status = KFAIL;
     if(CheckDevice(SrvDevicesArray, DeviceIndex)){
         PCIDevice_t* Device = GetDeviceFromIndex(SrvDevicesArray, DeviceIndex);
@@ -201,7 +201,7 @@ KResult UnbindMSI(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceI
     kot_Sys_Close(KSUCCESS);
 }
 
-KResult ConfigReadWord(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex, uint16_t Offset){
+KResult ConfigReadWord(kot_thread_t Callback, uint64_t CallbackArg, kot_PCIDeviceID_t DeviceIndex, uint16_t Offset){
     KResult Status = KFAIL;
     uint16_t Value;
     if(CheckDevice(SrvDevicesArray, DeviceIndex)){
@@ -222,7 +222,7 @@ KResult ConfigReadWord(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t De
     kot_Sys_Close(KSUCCESS);
 }
 
-KResult ConfigWriteWord(thread_t Callback, uint64_t CallbackArg, PCIDeviceID_t DeviceIndex, uint16_t Offset, uint16_t Value){
+KResult ConfigWriteWord(kot_thread_t Callback, uint64_t CallbackArg, kot_PCIDeviceID_t DeviceIndex, uint16_t Offset, uint16_t Value){
     KResult Status = KFAIL;
     if(CheckDevice(SrvDevicesArray, DeviceIndex)){
         PCIDevice_t* Device = GetDeviceFromIndex(SrvDevicesArray, DeviceIndex);

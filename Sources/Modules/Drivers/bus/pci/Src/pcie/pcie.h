@@ -12,7 +12,7 @@ struct DeviceConfig_t{
 }__attribute__((packed));
 
 struct MCFGHeader_t{
-    srv_system_sdtheader_t Header;
+    kot_srv_system_sdtheader_t Header;
     uint64_t Reserved;
     DeviceConfig_t ConfigurationSpace[];
 }__attribute__((packed));

@@ -21,7 +21,7 @@ extern "C" {
 
 typedef KResult (*PCICallbackHandler)(KResult Status, struct srv_pci_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
-typedef uint64_t PCIDeviceID_t;
+typedef uint64_t kot_PCIDeviceID_t;
 
 typedef struct {
     uint16_t vendorID;
@@ -93,39 +93,39 @@ void Srv_Pci_Callback(KResult Status, struct srv_pci_callback_t* Callback, uint6
 
 struct srv_pci_callback_t* Srv_Pci_CountDevices(srv_pci_search_parameters_t* SearchParameters, bool IsAwait);
 struct srv_pci_callback_t* Srv_Pci_FindDevice(srv_pci_search_parameters_t* SearchParameters, uint64_t Index, bool IsAwait);
-struct srv_pci_callback_t* Srv_Pci_GetInfoDevice(PCIDeviceID_t Device, bool IsAwait);
-struct srv_pci_callback_t* Srv_Pci_GetBAR(PCIDeviceID_t Device, uint8_t BarIndex, bool IsAwait);
-struct srv_pci_callback_t* Srv_Pci_BindMSI(PCIDeviceID_t Device, uint8_t IRQVector, uint8_t Processor, uint16_t LocalDeviceVector, bool IsAwait);
-struct srv_pci_callback_t* Srv_Pci_UnbindMSI(PCIDeviceID_t Device, uint16_t LocalDeviceVector, bool IsAwait);
-struct srv_pci_callback_t* Srv_Pci_ConfigReadWord(PCIDeviceID_t Device, uint16_t Offset, bool IsAwait);
-struct srv_pci_callback_t* Srv_Pci_ConfigWriteWord(PCIDeviceID_t Device, uint16_t Offset, uint16_t Value, bool IsAwait);
+struct srv_pci_callback_t* Srv_Pci_GetInfoDevice(kot_PCIDeviceID_t Device, bool IsAwait);
+struct srv_pci_callback_t* Srv_Pci_GetBAR(kot_PCIDeviceID_t Device, uint8_t BarIndex, bool IsAwait);
+struct srv_pci_callback_t* Srv_Pci_BindMSI(kot_PCIDeviceID_t Device, uint8_t IRQVector, uint8_t Processor, uint16_t LocalDeviceVector, bool IsAwait);
+struct srv_pci_callback_t* Srv_Pci_UnbindMSI(kot_PCIDeviceID_t Device, uint16_t LocalDeviceVector, bool IsAwait);
+struct srv_pci_callback_t* Srv_Pci_ConfigReadWord(kot_PCIDeviceID_t Device, uint16_t Offset, bool IsAwait);
+struct srv_pci_callback_t* Srv_Pci_ConfigWriteWord(kot_PCIDeviceID_t Device, uint16_t Offset, uint16_t Value, bool IsAwait);
 
-inline uint16_t PCIGetCommand(PCIDeviceID_t Device){ 
+inline uint16_t PCIGetCommand(kot_PCIDeviceID_t Device){ 
     struct srv_pci_callback_t* Callback = Srv_Pci_ConfigReadWord(Device, PCI_REGISTERS_Command, true);
     uint16_t Value = Callback->Data;
     free(Callback);
     return Value;
 }
 
-inline uint16_t PCISetCommand(PCIDeviceID_t Device, uint16_t Value){ 
+inline uint16_t PCISetCommand(kot_PCIDeviceID_t Device, uint16_t Value){ 
     struct srv_pci_callback_t* Callback = Srv_Pci_ConfigWriteWord(Device, PCI_REGISTERS_Command, Value, true);
     free(Callback);
     return Value;
 }
 
-inline void PCIEnableBusMastering(PCIDeviceID_t Device){ 
+inline void PCIEnableBusMastering(kot_PCIDeviceID_t Device){ 
     PCISetCommand(Device, PCIGetCommand(Device) | PCI_COMMAND_BusMastering); 
 }
 
-inline void PCIEnableInterrupts(PCIDeviceID_t Device){ 
+inline void PCIEnableInterrupts(kot_PCIDeviceID_t Device){ 
     PCISetCommand(Device, PCIGetCommand(Device) & (~PCI_COMMAND_InterruptDisable)); 
 }
 
-inline void PCIEnableMemorySpace(PCIDeviceID_t Device){ 
+inline void PCIEnableMemorySpace(kot_PCIDeviceID_t Device){ 
     PCISetCommand(Device, PCIGetCommand(Device) | PCI_COMMAND_MemorySpace); 
 }
 
-inline void PCIEnableIOSpace(PCIDeviceID_t Device){ 
+inline void PCIEnableIOSpace(kot_PCIDeviceID_t Device){ 
     PCISetCommand(Device, PCIGetCommand(Device) | PCI_COMMAND_IoSpace); 
 }
 

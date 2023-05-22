@@ -32,7 +32,7 @@ void HDAControllerOnInterrupt(){
     Sys_Event_Close();
 }
 
-HDAController::HDAController(PCIDeviceID_t DeviceID){
+HDAController::HDAController(kot_PCIDeviceID_t DeviceID){
     // Clear lock
     Lock = NULL;
 

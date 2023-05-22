@@ -449,7 +449,7 @@ class HDAController{
         KResult SetupCORB();
         KResult SetupRIRB();
 
-        HDAController(PCIDeviceID_t Device);
+        HDAController(kot_PCIDeviceID_t Device);
         ~HDAController();
 
         KResult ConfigureStreamFormat(HDAOutput* Output);

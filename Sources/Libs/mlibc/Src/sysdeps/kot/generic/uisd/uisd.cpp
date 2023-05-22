@@ -33,7 +33,6 @@ KResult kot_InitializeUISD(){
     kot_process_t Proc = kot_Sys_GetProcess();
 
     kot_Sys_CreateThread(Proc, (void*)&kot_CallbackUISD, PriviledgeApp, NULL, &UISDthreadKeyCallback);
-    kot_InitializeThread(UISDthreadKeyCallback);
     kot_CallBackUISDThread = kot_MakeShareableThreadToProcess(UISDthreadKeyCallback, KotSpecificData.UISDHandlerProcess);
 
     kot_Sys_Keyhole_CloneModify(Proc, &kot_ProcessKeyForUISD, KotSpecificData.UISDHandlerProcess, KeyholeFlagPresent | KeyholeFlagDataTypeProcessMemoryAccessible, PriviledgeApp);

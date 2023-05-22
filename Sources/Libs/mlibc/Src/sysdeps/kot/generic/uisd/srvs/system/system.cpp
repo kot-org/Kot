@@ -16,7 +16,6 @@ void kot_Srv_System_Initialize(){
 
         kot_thread_t SystemthreadKeyCallback = NULL;
         kot_Sys_CreateThread(Proc, (void*)&kot_Srv_System_Callback, PriviledgeMax, NULL, &SystemthreadKeyCallback);
-        kot_InitializeThread(SystemthreadKeyCallback);
         kot_srv_system_callback_thread = kot_MakeShareableThreadToProcess(SystemthreadKeyCallback, kot_SystemData->ControllerHeader.Process);
     }else{
         kot_Sys_Close(KFAIL);

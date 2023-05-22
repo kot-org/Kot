@@ -15,7 +15,6 @@ void Srv_Graphics_Initialize(){
 
     kot_thread_t GraphicsThreadKeyCallback = NULL;
     kot_Sys_CreateThread(Process, (void*)&kot_Srv_Graphics_Callback, PriviledgeDriver, NULL, &GraphicsThreadKeyCallback);
-    kot_InitializeThread(GraphicsThreadKeyCallback);
     kot_srv_graphics_callback_thread = kot_MakeShareableThreadToProcess(GraphicsThreadKeyCallback, kot_GraphicsData->ControllerHeader.Process);
 }
 

@@ -14,7 +14,6 @@ void kot_Srv_Audio_Initialize(){
 
     kot_thread_t AudioThreadKeyCallback = NULL;
     kot_Sys_CreateThread(proc, (void*)&kot_Srv_Audio_Callback, PriviledgeDriver, NULL, &AudioThreadKeyCallback);
-    kot_InitializeThread(AudioThreadKeyCallback);
     kot_srv_audio_callback_thread = kot_MakeShareableThreadToProcess(AudioThreadKeyCallback, AudioData->ControllerHeader.Process);
 }
 

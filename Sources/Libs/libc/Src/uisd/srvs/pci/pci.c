@@ -111,7 +111,7 @@ KResult Srv_Pci_GetInfoDevice_Callback(KResult Status, struct srv_pci_callback_t
     return Status;
 }
 
-struct srv_pci_callback_t* Srv_Pci_GetInfoDevice(PCIDeviceID_t Device, bool IsAwait){
+struct srv_pci_callback_t* Srv_Pci_GetInfoDevice(kot_PCIDeviceID_t Device, bool IsAwait){
     if(!srv_pci_callback_thread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
@@ -147,7 +147,7 @@ KResult Srv_Pci_GetBAR_Callback(KResult Status, struct srv_pci_callback_t* Callb
     return Status;
 }
 
-struct srv_pci_callback_t* Srv_Pci_GetBAR(PCIDeviceID_t Device, uint8_t BarIndex, bool IsAwait){
+struct srv_pci_callback_t* Srv_Pci_GetBAR(kot_PCIDeviceID_t Device, uint8_t BarIndex, bool IsAwait){
     if(!srv_pci_callback_thread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
@@ -183,7 +183,7 @@ KResult Srv_Pci_BindMSI_Callback(KResult Status, struct srv_pci_callback_t* Call
     return Status;
 }
 
-struct srv_pci_callback_t* Srv_Pci_BindMSI(PCIDeviceID_t Device, uint8_t IRQVector, uint8_t Processor, uint16_t LocalDeviceVector, bool IsAwait){
+struct srv_pci_callback_t* Srv_Pci_BindMSI(kot_PCIDeviceID_t Device, uint8_t IRQVector, uint8_t Processor, uint16_t LocalDeviceVector, bool IsAwait){
     if(!srv_pci_callback_thread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
@@ -218,7 +218,7 @@ KResult Srv_Pci_UnbindMSI_Callback(KResult Status, struct srv_pci_callback_t* Ca
     return Status;
 }
 
-struct srv_pci_callback_t* Srv_Pci_UnbindMSI(PCIDeviceID_t Device, uint16_t LocalDeviceVector, bool IsAwait){
+struct srv_pci_callback_t* Srv_Pci_UnbindMSI(kot_PCIDeviceID_t Device, uint16_t LocalDeviceVector, bool IsAwait){
     if(!srv_pci_callback_thread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
@@ -255,7 +255,7 @@ KResult Srv_Pci_ConfigReadWord_Callback(KResult Status, struct srv_pci_callback_
     return Status;
 }
 
-struct srv_pci_callback_t* Srv_Pci_ConfigReadWord(PCIDeviceID_t Device, uint16_t Offset, bool IsAwait){
+struct srv_pci_callback_t* Srv_Pci_ConfigReadWord(kot_PCIDeviceID_t Device, uint16_t Offset, bool IsAwait){
     if(!srv_pci_callback_thread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 
@@ -288,7 +288,7 @@ KResult Srv_Pci_ConfigWriteWord_Callback(KResult Status, struct srv_pci_callback
     return Status;
 }
 
-struct srv_pci_callback_t* Srv_Pci_ConfigWriteWord(PCIDeviceID_t Device, uint16_t Offset, uint16_t Value, bool IsAwait){
+struct srv_pci_callback_t* Srv_Pci_ConfigWriteWord(kot_PCIDeviceID_t Device, uint16_t Offset, uint16_t Value, bool IsAwait){
     if(!srv_pci_callback_thread) Srv_Pci_Initialize();
     uisd_pci_t* PciData = (uisd_pci_t*)FindControllerUISD(ControllerTypeEnum_PCI);
 

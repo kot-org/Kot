@@ -14,7 +14,6 @@ void kot_Srv_Time_Initialize(){
 
     kot_thread_t TimeThreadKeyCallback = NULL;
     kot_Sys_CreateThread(proc, (void*)&kot_Srv_Time_Callback, PriviledgeApp, NULL, &TimeThreadKeyCallback);
-    kot_InitializeThread(TimeThreadKeyCallback);
     kot_srv_time_callback_thread = kot_MakeShareableThreadToProcess(TimeThreadKeyCallback, TimeData->ControllerHeader.Process);
 }
 

@@ -24,12 +24,10 @@ KResult Srv_StorageInitializeDeviceAccess(struct kot_srv_storage_space_info_t* S
 
         kot_thread_t CallbackRequestHandlerThread = NULL;
         kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&Srv_CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
-        kot_InitializeThread(CallbackRequestHandlerThread);
         Device->CallbackRequestHandlerThread = kot_MakeShareableThreadToProcess(CallbackRequestHandlerThread, Device->SpaceInfo.DriverProc);
 
         kot_thread_t CallbackCreateSpaceHandlerThread = NULL;
         kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&Srv_CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
-        kot_InitializeThread(CallbackCreateSpaceHandlerThread);
         Device->CallbackCreateSpaceHandlerThread = kot_MakeShareableThreadToProcess(CallbackCreateSpaceHandlerThread, Device->SpaceInfo.DriverProc);
 
         return KSUCCESS;

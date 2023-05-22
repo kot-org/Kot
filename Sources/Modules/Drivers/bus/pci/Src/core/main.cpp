@@ -3,7 +3,7 @@
 extern "C" int main(int argc, char* argv[]) {
     kot_Printlog("[BUS/PCI] Initialization ...");
 
-    srv_system_callback_t* Callback = Srv_System_GetTableInRootSystemDescription("MCFG", true);
+    kot_srv_system_callback_t* Callback = kot_Srv_System_GetTableInRootSystemDescription("MCFG", true);
     void* MCFGTable = (void*)Callback->Data;
     free(Callback);
 
@@ -56,14 +56,14 @@ void ConvertListToArray(PCIDeviceListInfo_t* DevicesList, PCIDeviceArrayInfo_t* 
 
 /* Devices function */
 
-bool CheckDevice(PCIDeviceArrayInfo_t* DevicesArray, PCIDeviceID_t device){
+bool CheckDevice(PCIDeviceArrayInfo_t* DevicesArray, kot_PCIDeviceID_t device){
     if(DevicesArray->DevicesNum != NULL && device < DevicesArray->DevicesNum){
         return true;
     }
     return false;
 }
 
-PCIDevice_t* GetDeviceFromIndex(PCIDeviceArrayInfo_t* DevicesArray, PCIDeviceID_t device){
+PCIDevice_t* GetDeviceFromIndex(PCIDeviceArrayInfo_t* DevicesArray, kot_PCIDeviceID_t device){
     return DevicesArray->Devices[device];
 }
 
@@ -103,7 +103,7 @@ uint64_t Search(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, uint16_t 
     return deviceNum;
 }
 
-PCIDeviceID_t GetDevice(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, uint16_t deviceID, uint16_t classID, uint16_t subClassID, uint16_t progIF, uint64_t index){
+kot_PCIDeviceID_t GetDevice(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, uint16_t deviceID, uint16_t classID, uint16_t subClassID, uint16_t progIF, uint64_t index){
     uint8_t checkRequired = 0;
     uint32_t deviceNum = 0;
 
@@ -291,7 +291,7 @@ KResult PCIDevice_t::BindMSI(uint8_t IRQVector, uint8_t processor, uint16_t loca
             }
             if(CapabilityMSIX){
                 CapabilityMSI->MSIX.Control |= 1 << 15; // enable MsiX
-                uint64_t TableAddress = ((uint64_t)MapPhysical(GetBarAddress(CapabilityMSIX->MSIX.BIR), GetBarSize(CapabilityMSIX->MSIX.BIR)) + (uint64_t)CapabilityMSIX->MSIX.TableOffset);
+                uint64_t TableAddress = ((uint64_t)kot_MapPhysical(GetBarAddress(CapabilityMSIX->MSIX.BIR), GetBarSize(CapabilityMSIX->MSIX.BIR)) + (uint64_t)CapabilityMSIX->MSIX.TableOffset);
                 uint16_t Entries = CapabilityMSI->MSIX.Control & 0x7FF;
                 if(Entries <= localDeviceVector){
                     PCIMSIXTable_t* Table = (PCIMSIXTable_t*)(TableAddress + sizeof(PCIMSIXTable_t) * localDeviceVector);
@@ -344,7 +344,7 @@ KResult PCIDevice_t::UnbindMSI(uint16_t localDeviceVector){
             }
             if(CapabilityMSIX){
                 CapabilityMSI->MSIX.Control |= 1 << 15; // enable MsiX
-                uint64_t TableAddress = ((uint64_t)MapPhysical(GetBarAddress(CapabilityMSIX->MSIX.BIR), GetBarSize(CapabilityMSIX->MSIX.BIR)) + (uint64_t)CapabilityMSIX->MSIX.TableOffset);
+                uint64_t TableAddress = ((uint64_t)kot_MapPhysical(GetBarAddress(CapabilityMSIX->MSIX.BIR), GetBarSize(CapabilityMSIX->MSIX.BIR)) + (uint64_t)CapabilityMSIX->MSIX.TableOffset);
                 uint16_t Entries = CapabilityMSI->MSIX.Control & 0x7FF;
                 if(Entries <= localDeviceVector){
                     PCIMSIXTable_t* Table = (PCIMSIXTable_t*)(TableAddress + sizeof(PCIMSIXTable_t) * localDeviceVector);

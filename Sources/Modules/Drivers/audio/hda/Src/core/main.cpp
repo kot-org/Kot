@@ -21,7 +21,7 @@ extern "C" int main(int argc, char* argv[]) {
 
     for(uint64_t i = 0; i < DevicesNumber; i++){
         Callback = Srv_Pci_FindDevice(&SearchParameters, i, true);
-        PCIDeviceID_t DeviceID = (PCIDeviceID_t)Callback->Data;
+        kot_PCIDeviceID_t DeviceID = (kot_PCIDeviceID_t)Callback->Data;
         free(Callback);
         new HDAController(DeviceID);
     }

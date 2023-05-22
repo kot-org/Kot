@@ -12,7 +12,6 @@ void kot_Srv_Pci_Initialize(){
 
     kot_thread_t PciThreadKeyCallback = NULL;
     kot_Sys_CreateThread(proc, (void*)&kot_Srv_Pci_Callback, PriviledgeDriver, NULL, &PciThreadKeyCallback);
-    kot_InitializeThread(PciThreadKeyCallback);
     kot_srv_pci_callback_thread = kot_MakeShareableThreadToProcess(PciThreadKeyCallback, PciData->ControllerHeader.Process);
 }
 

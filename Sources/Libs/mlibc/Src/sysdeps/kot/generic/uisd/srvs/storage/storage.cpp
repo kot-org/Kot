@@ -17,7 +17,6 @@ void Srv_Storage_Initialize(){
 
         kot_thread_t StoragethreadKeyCallback = NULL;
         kot_Sys_CreateThread(Proc, (void*)&kot_Srv_Storage_Callback, PriviledgeApp, NULL, &StoragethreadKeyCallback);
-        kot_InitializeThread(StoragethreadKeyCallback);
         kot_srv_storage_callback_thread = kot_MakeShareableThread(StoragethreadKeyCallback, PriviledgeService);
     }else{
         kot_Sys_Close(KFAIL);

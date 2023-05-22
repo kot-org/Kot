@@ -1,5 +1,5 @@
-#ifndef _ATOMIC_H
-#define _ATOMIC_H 1
+#ifndef KOT_ATOMIC_H
+#define KOT_ATOMIC_H 1
 
 #include <kot/types.h>
 

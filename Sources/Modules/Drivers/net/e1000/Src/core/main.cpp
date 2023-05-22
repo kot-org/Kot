@@ -16,7 +16,7 @@ extern "C" int main(int argc, char* argv[]) {
     Proc = Sys_GetProcess();
 
     srv_pci_callback_t* Callback = Srv_Pci_FindDevice(&SearchParameters, 0, true);
-    PCIDeviceID_t DeviceID = (PCIDeviceID_t)Callback->Data;
+    kot_PCIDeviceID_t DeviceID = (kot_PCIDeviceID_t)Callback->Data;
     free(Callback);
 
     if(DeviceID == NULL) {

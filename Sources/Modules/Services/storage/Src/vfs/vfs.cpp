@@ -241,15 +241,16 @@ KResult VFSLoginApp(kot_thread_t Callback, uint64_t CallbackArg, kot_process_t P
     Context->PathLength = NULL;
     kot_thread_t VFSClientShareableDispatcherThread = NULL;
     if(GetVFSAbsolutePath(&Context->Path, &Context->Partition, Path) == KSUCCESS){
-        Context->PathLength = strlen(Context->Path);
-        Context->StaticVolumeMountPoint = Context->Partition->StaticVolumeMountPoint;
-        Context->DynamicVolumeMountPoint = Context->Partition->DynamicVolumeMountPoint;
+        if(Context->Path){
+            Context->PathLength = strlen(Context->Path);
+            Context->StaticVolumeMountPoint = Context->Partition->StaticVolumeMountPoint;
+            Context->DynamicVolumeMountPoint = Context->Partition->DynamicVolumeMountPoint;
 
-
-        /* VFSClientDispatcher */
-        kot_thread_t VFSClientDispatcherThread = NULL;
-        kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&VFSClientDispatcher, PriviledgeApp, (uint64_t)Context, &VFSClientDispatcherThread);
-        VFSClientShareableDispatcherThread = kot_MakeShareableThreadToProcess(VFSClientDispatcherThread, Process);
+            /* VFSClientDispatcher */
+            kot_thread_t VFSClientDispatcherThread = NULL;
+            kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&VFSClientDispatcher, PriviledgeApp, (uint64_t)Context, &VFSClientDispatcherThread);
+            VFSClientShareableDispatcherThread = kot_MakeShareableThreadToProcess(VFSClientDispatcherThread, Process);
+        }
     }
     
     kot_arguments_t arguments{

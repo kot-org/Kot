@@ -3,17 +3,17 @@
 void PCIWrite32(uint32_t addr, uint32_t data) {
     addr &= ~(0b11);
     /* Write address */
-    IoWrite32(PCI_CONFIG_ADDR, addr);
+    kot_IoWrite32(PCI_CONFIG_ADDR, addr);
     /* Write data */
-    IoWrite32(PCI_CONFIG_DATA, data);
+    kot_IoWrite32(PCI_CONFIG_DATA, data);
 }
 
 uint32_t PCIRead32(uint32_t addr) {
     addr &= ~(0b11);
     /* Write address */
-    IoWrite32(PCI_CONFIG_ADDR, addr);
+    kot_IoWrite32(PCI_CONFIG_ADDR, addr);
     /* Read data */
-    return IoRead32(PCI_CONFIG_DATA);
+    return kot_IoRead32(PCI_CONFIG_DATA);
 }
 
 uint16_t PCIRead16(uint32_t addr) {

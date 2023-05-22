@@ -29,6 +29,7 @@
 #include <kot/utils.h>
 #include <kot/memory.h>
 #include <string.h>
+#include <kot++/new.h>
 #include <kot++/stack.h>
 #include <kot++/printf.h>
 #include <kot/uisd/srvs/pci.h>
@@ -126,7 +127,7 @@ struct PCIDeviceListInfo_t{
 
 struct PCIDeviceArrayInfo_t{
     struct PCIDevice_t** Devices;
-    PCIDeviceID_t DevicesNum;
+    kot_PCIDeviceID_t DevicesNum;
 };
 
 struct PCIBar_t{
@@ -163,7 +164,7 @@ PCIDeviceListInfo_t* InitPCIList();
 void AddPCIDevice(PCIDeviceListInfo_t* DevicesList, struct PCIDevice_t* Device);
 void ConvertListToArray(PCIDeviceListInfo_t* DevicesList, PCIDeviceArrayInfo_t* DevicesArray);
 
-bool CheckDevice(PCIDeviceArrayInfo_t* DevicesArray, PCIDeviceID_t device);
-struct PCIDevice_t* GetDeviceFromIndex(PCIDeviceArrayInfo_t* DevicesArray, PCIDeviceID_t device);
+bool CheckDevice(PCIDeviceArrayInfo_t* DevicesArray, kot_PCIDeviceID_t device);
+struct PCIDevice_t* GetDeviceFromIndex(PCIDeviceArrayInfo_t* DevicesArray, kot_PCIDeviceID_t device);
 uint64_t Search(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIF);
-PCIDeviceID_t GetDevice(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIF, PCIDeviceID_t index);
+kot_PCIDeviceID_t GetDevice(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, uint16_t deviceID, uint16_t subClassID, uint16_t classID, uint16_t progIF, kot_PCIDeviceID_t index);
