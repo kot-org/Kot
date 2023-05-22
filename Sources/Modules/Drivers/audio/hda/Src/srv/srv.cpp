@@ -1,9 +1,9 @@
 #include <srv/srv.h>
 
 KResult InitializeSrv(HDAOutput* Output){
-    process_t ProcessToShareData = ((uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio))->ControllerHeader.Process;
+    kot_process_t ProcessToShareData = ((uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio))->ControllerHeader.Process;
 
-    thread_t ChangeStatusThread;
+    kot_thread_t ChangeStatusThread;
     kot_Sys_CreateThread(Sys_GetProcess(), (void*)&ChangeStatus, PriviledgeDriver, (uint64_t)Output, &ChangeStatusThread);
     Output->AudioDevice.ChangeStatus = MakeShareableThreadToProcess(ChangeStatusThread, ProcessToShareData);
 
@@ -38,7 +38,7 @@ KResult InitializeSrv(HDAOutput* Output){
     return KSUCCESS;
 }
 
-KResult ChangeStatus(thread_t Callback, uint64_t CallbackArg, enum AudioSetStatus Function, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult ChangeStatus(kot_thread_t Callback, uint64_t CallbackArg, enum AudioSetStatus Function, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     KResult Status = KFAIL;
 
     HDAOutput* Output = (HDAOutput*)Sys_GetExternalDataThread();

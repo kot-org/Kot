@@ -8,10 +8,10 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
 
     // Rebase port
     StopCMD();
-    CommandHeader = (HBACommandHeader_t*)GetPhysical((void**)&HbaPort->CommandListBase, 1024);
+    CommandHeader = (HBACommandHeader_t*)kot_GetPhysical((void**)&HbaPort->CommandListBase, 1024);
     memset((void*)CommandHeader, NULL, 1024);
 
-    void* FISBaseVirtual = GetPhysical((void**)&HbaPort->FisBaseAddress, 256);
+    void* FISBaseVirtual = kot_GetPhysical((void**)&HbaPort->FisBaseAddress, 256);
     memset(FISBaseVirtual, NULL, 256);
 
     BufferRealSize = HBA_PRDT_MAX_ENTRIES * HBA_PRDT_ENTRY_ADDRESS_SIZE;
@@ -30,7 +30,7 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
     StartCMD();
 
     // Identify disk
-    IdentifyInfo = (IdentifyInfo_t*)calloc(sizeof(IdentifyInfo_t));
+    IdentifyInfo = (IdentifyInfo_t*)calloc(sizeof(IdentifyInfo_t), sizeof(IdentifyInfo));
     GetIdentifyInfo(DefaultSpace);
 
     // Update space size
@@ -82,15 +82,15 @@ Space_t* Device::CreateSpace(uint64_t Start, uint64_t Size){
     Self->StorageDevice = this;
 
     // Allocate buffer
-    Self->BufferVirtual = GetFreeAlignedSpace(BufferRealSize);
-    Sys_CreateMemoryField(Proc, BufferRealSize, &Self->BufferVirtual, &Self->BufferKey, MemoryFieldTypeShareSpaceRW);
+    Self->BufferVirtual = kot_GetFreeAlignedSpace(BufferRealSize);
+    kot_Sys_CreateMemoryField(Proc, BufferRealSize, &Self->BufferVirtual, &Self->BufferKey, MemoryFieldTypeShareSpaceRW);
 
     // Load command header main
-    Self->CommandAddressTable = (HBACommandTable_t*)GetPhysical((void**)&CommandHeader[0].CommandTableBaseAddress, HBA_COMMAND_TABLE_SIZE);
+    Self->CommandAddressTable = (HBACommandTable_t*)kot_GetPhysical((void**)&CommandHeader[0].CommandTableBaseAddress, HBA_COMMAND_TABLE_SIZE);
 
     uint64_t BufferInteration = (uint64_t)Self->BufferVirtual;
     for(size64_t i = 0; i < HBA_PRDT_MAX_ENTRIES; i++){
-        Self->CommandAddressTable->PrdtEntry[i].DataBaseAddress = (uint64_t)Sys_GetPhysical((void*)BufferInteration);
+        Self->CommandAddressTable->PrdtEntry[i].DataBaseAddress = (uint64_t)kot_Sys_GetPhysical((void*)BufferInteration);
         BufferInteration = (uint64_t)BufferInteration + HBA_PRDT_ENTRY_ADDRESS_SIZE;
     }
 

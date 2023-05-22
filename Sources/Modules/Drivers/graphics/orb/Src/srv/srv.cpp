@@ -3,7 +3,7 @@
 uisd_graphics_t* SrvData;
 
 KResult InitialiseServer(orbc* Orb){
-    process_t proc = Sys_GetProcess();
+    kot_process_t proc = Sys_GetProcess();
 
     void* address = GetFreeAlignedSpace(sizeof(uisd_graphics_t));
     kot_key_mem_t key = NULL;
@@ -19,7 +19,7 @@ KResult InitialiseServer(orbc* Orb){
     SrvData->ControllerHeader.Process = kot_ShareProcessKey(proc);
 
     /* CreateWindow */
-    thread_t CreateWindowThread = NULL;
+    kot_thread_t CreateWindowThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&CreateWindowSrv, PriviledgeApp, (uint64_t)Orb, &CreateWindowThread);
     SrvData->CreateWindow = kot_MakeShareableThread(CreateWindowThread, PriviledgeApp);
 
@@ -30,7 +30,7 @@ KResult InitialiseServer(orbc* Orb){
     return Status;
 }
 
-KResult CreateWindowSrv(thread_t Callback, uint64_t CallbackArg, process_t Target, kot_event_t Event, uint64_t WindowType){
+KResult CreateWindowSrv(kot_thread_t Callback, uint64_t CallbackArg, kot_process_t Target, kot_event_t Event, uint64_t WindowType){
     orbc* Orb = (orbc*)Sys_GetExternalDataThread();
 
     windowc* Window = NULL;
@@ -44,9 +44,9 @@ KResult CreateWindowSrv(thread_t Callback, uint64_t CallbackArg, process_t Targe
 
         Window->Target = Target;
 
-        thread_t GraphicsHandlerThread = NULL;
+        kot_thread_t GraphicsHandlerThread = NULL;
         kot_Sys_CreateThread(Sys_GetProcess(), (void*)&WindowGraphicsHandler, PriviledgeApp, (uint64_t)Window, &GraphicsHandlerThread);
-        thread_t ShareableGraphicsHandlerThread = MakeShareableThreadToProcess(GraphicsHandlerThread, Window->Target);
+        kot_thread_t ShareableGraphicsHandlerThread = MakeShareableThreadToProcess(GraphicsHandlerThread, Window->Target);
         
         kot_arguments_t Arguments{
             .arg[0] = KSUCCESS,                         /* Status */
@@ -81,7 +81,7 @@ static window_dispatch_t WindowDispatcher[Window_Function_Count] = {
     [Window_Function_ChangeVisibility] = WindowChangeVisibility,    
 };
 
-KResult WindowGraphicsHandler(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+KResult WindowGraphicsHandler(kot_thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     uint64_t Function = GP0;
 
     if(Function >= Window_Function_Count){
@@ -102,7 +102,7 @@ KResult WindowGraphicsHandler(thread_t Callback, uint64_t CallbackArg, uint64_t 
     kot_Sys_Close(WindowDispatcher[Function](Callback, CallbackArg, Window, GP1, GP2, GP3));
 }
 
-KResult WindowClose(thread_t Callback, uint64_t CallbackArg, windowc* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult WindowClose(kot_thread_t Callback, uint64_t CallbackArg, windowc* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     KResult Status = Window->Close();
     kot_arguments_t Arguments{
         .arg[0] = Status,               /* Status */
@@ -117,7 +117,7 @@ KResult WindowClose(thread_t Callback, uint64_t CallbackArg, windowc* Window, ui
     return KSUCCESS;    
 }
 
-KResult WindowResize(thread_t Callback, uint64_t CallbackArg, windowc* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult WindowResize(kot_thread_t Callback, uint64_t CallbackArg, windowc* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     KResult Status = Window->Resize(GP0, GP1);
     if(Status == KSUCCESS){
         ShareDataWithArguments_t Data{
@@ -126,9 +126,9 @@ KResult WindowResize(thread_t Callback, uint64_t CallbackArg, windowc* Window, u
             .Size = sizeof(kot_framebuffer_t),
         };
 
-        thread_t GraphicsHandlerThread = NULL;
+        kot_thread_t GraphicsHandlerThread = NULL;
         kot_Sys_CreateThread(Sys_GetProcess(), (void*)&WindowGraphicsHandler, PriviledgeApp, (uint64_t)Window, &GraphicsHandlerThread);
-        thread_t ShareableGraphicsHandlerThread = MakeShareableThreadToProcess(GraphicsHandlerThread, Window->Target);
+        kot_thread_t ShareableGraphicsHandlerThread = MakeShareableThreadToProcess(GraphicsHandlerThread, Window->Target);
         
         kot_arguments_t Arguments{
             .arg[0] = Status,                           /* Status */
@@ -156,7 +156,7 @@ KResult WindowResize(thread_t Callback, uint64_t CallbackArg, windowc* Window, u
     return KSUCCESS;    
 }
 
-KResult WindowChangePostion(thread_t Callback, uint64_t CallbackArg, windowc* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult WindowChangePostion(kot_thread_t Callback, uint64_t CallbackArg, windowc* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     KResult Status = Window->Move(GP0, GP1);
     kot_arguments_t Arguments{
         .arg[0] = Status,               /* Status */
@@ -171,7 +171,7 @@ KResult WindowChangePostion(thread_t Callback, uint64_t CallbackArg, windowc* Wi
     return KSUCCESS;    
 }
 
-KResult WindowChangeVisibility(thread_t Callback, uint64_t CallbackArg, windowc* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult WindowChangeVisibility(kot_thread_t Callback, uint64_t CallbackArg, windowc* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     bool IsVisible = Window->SetVisible(GP0);
     KResult Status = (IsVisible == GP0) ? KSUCCESS : KFAIL;
 

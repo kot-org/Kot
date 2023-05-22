@@ -1,6 +1,6 @@
 #include <core/main.h>
 
-process_t Proc = NULL;
+kot_process_t Proc = NULL;
 
 extern "C" int main(int argc, char* argv[]) {
     kot_Printlog("[AUDIO/HDA] Initialization ...");

@@ -4,7 +4,7 @@ uisd_audio_t* SrvData;
 
 KResult InitialiseServer(){
     AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)malloc(sizeof(AddDeviceExternalData));
-    process_t proc = Sys_GetProcess();
+    kot_process_t proc = Sys_GetProcess();
 
     void* address = GetFreeAlignedSpace(sizeof(uisd_audio_t));
     kot_key_mem_t key = NULL;
@@ -27,32 +27,32 @@ KResult InitialiseServer(){
     ExternalDataAddDevice->OutputsClass = new Outputs(SrvData->OnDeviceChanged);
 
     /* RequestStream */
-    thread_t RequestStreamThread = NULL;
+    kot_thread_t RequestStreamThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&RequestStream, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &RequestStreamThread);
     SrvData->RequestStream = kot_MakeShareableThread(RequestStreamThread, PriviledgeApp);
 
     /* ChangeVolume */
-    thread_t ChangeVolumeThread = NULL;
+    kot_thread_t ChangeVolumeThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&ChangeVolume, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &ChangeVolumeThread);
     SrvData->ChangeVolume = kot_MakeShareableThread(ChangeVolumeThread, PriviledgeService);
 
     /* SetDefault */
-    thread_t SetDefaultThread = NULL;
+    kot_thread_t SetDefaultThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&SetDefault, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &SetDefaultThread);
     SrvData->SetDefault = kot_MakeShareableThread(SetDefaultThread, PriviledgeService);
 
     /* GetDeviceCount */
-    thread_t GetDeviceCountThread = NULL;
+    kot_thread_t GetDeviceCountThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&GetDeviceCount, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &GetDeviceCountThread);
     SrvData->GetDeviceCount = kot_MakeShareableThread(GetDeviceCountThread, PriviledgeService);
 
     /* GetDeviceInfo */
-    thread_t GetDeviceInfoThread = NULL;
+    kot_thread_t GetDeviceInfoThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&GetDeviceInfo, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &GetDeviceInfoThread);
     SrvData->GetDeviceInfo = kot_MakeShareableThread(GetDeviceInfoThread, PriviledgeService);
 
     /* AddDevice */
-    thread_t AddDeviceThread = NULL;
+    kot_thread_t AddDeviceThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&AddDevice, PriviledgeApp, (uint64_t)ExternalDataAddDevice, &AddDeviceThread);
     SrvData->AddDevice = kot_MakeShareableThread(AddDeviceThread, PriviledgeDriver);
     
@@ -61,7 +61,7 @@ KResult InitialiseServer(){
 }
 
 /* Input part of server */
-UISDServerEntry KResult RequestStream(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID, process_t ProcessKey){
+UISDServerEntry KResult RequestStream(kot_thread_t Callback, uint64_t CallbackArg, uint64_t OutputID, kot_process_t ProcessKey){
     KResult Status = KFAIL;
 
     uint64_t PID = Sys_GetPIDThreadLauncher();
@@ -103,7 +103,7 @@ UISDServerEntry KResult RequestStream(thread_t Callback, uint64_t CallbackArg, u
     kot_Sys_Close(KSUCCESS);
 }
 
-KResult StreamCommand(thread_t Callback, uint64_t CallbackArg, uint64_t Command, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult StreamCommand(kot_thread_t Callback, uint64_t CallbackArg, uint64_t Command, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     StreamRequest_t* Stream = (StreamRequest_t*)Sys_GetExternalDataThread();
 
     KResult Status = KFAIL;
@@ -140,7 +140,7 @@ KResult StreamCommand(thread_t Callback, uint64_t CallbackArg, uint64_t Command,
     }
 }
 
-UISDServerEntry KResult ChangeVolume(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID, uint8_t Volume){
+UISDServerEntry KResult ChangeVolume(kot_thread_t Callback, uint64_t CallbackArg, uint64_t OutputID, uint8_t Volume){
     AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)Sys_GetExternalDataThread();
 
     KResult Status = ExternalDataAddDevice->OutputsClass->ChangeVolume(OutputID, Volume);
@@ -158,7 +158,7 @@ UISDServerEntry KResult ChangeVolume(thread_t Callback, uint64_t CallbackArg, ui
     kot_Sys_Close(KSUCCESS);
 }
 
-UISDServerEntry KResult SetDefault(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID){
+UISDServerEntry KResult SetDefault(kot_thread_t Callback, uint64_t CallbackArg, uint64_t OutputID){
     AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)Sys_GetExternalDataThread();
 
     KResult Status = ExternalDataAddDevice->OutputsClass->SetDefault(OutputID);
@@ -176,7 +176,7 @@ UISDServerEntry KResult SetDefault(thread_t Callback, uint64_t CallbackArg, uint
     kot_Sys_Close(KSUCCESS);
 }
 
-UISDServerEntry KResult GetDeviceCount(thread_t Callback, uint64_t CallbackArg){
+UISDServerEntry KResult GetDeviceCount(kot_thread_t Callback, uint64_t CallbackArg){
     AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)Sys_GetExternalDataThread();
 
     kot_arguments_t arguments{
@@ -192,7 +192,7 @@ UISDServerEntry KResult GetDeviceCount(thread_t Callback, uint64_t CallbackArg){
     kot_Sys_Close(KSUCCESS);
 }
 
-UISDServerEntry KResult GetDeviceInfo(thread_t Callback, uint64_t CallbackArg, uint64_t OutputID){
+UISDServerEntry KResult GetDeviceInfo(kot_thread_t Callback, uint64_t CallbackArg, uint64_t OutputID){
     AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)Sys_GetExternalDataThread();
 
     srv_audio_device_info_t Info;
@@ -218,7 +218,7 @@ UISDServerEntry KResult GetDeviceInfo(thread_t Callback, uint64_t CallbackArg, u
 }
 
 /* Output part of server */
-UISDServerEntry KResult AddDevice(thread_t Callback, uint64_t CallbackArg, srv_audio_device_t* Device){
+UISDServerEntry KResult AddDevice(kot_thread_t Callback, uint64_t CallbackArg, srv_audio_device_t* Device){
     KResult Status = KFAIL;
 
     AddDeviceExternalData* ExternalDataAddDevice = (AddDeviceExternalData*)Sys_GetExternalDataThread();
@@ -249,7 +249,7 @@ UISDServerEntry KResult AddDevice(thread_t Callback, uint64_t CallbackArg, srv_a
     kot_Sys_Close(KSUCCESS);
 }
 
-thread_t ChangeStatusCallbackThread = NULL;
+kot_thread_t ChangeStatusCallbackThread = NULL;
 
 void ChangeStatusCallback(KResult Status, struct CallbackAudio* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     Callback->Status = Status;
@@ -259,7 +259,7 @@ void ChangeStatusCallback(KResult Status, struct CallbackAudio* Callback, uint64
 
 CallbackAudio* ChangeStatus(srv_audio_device_t* Device, enum AudioSetStatus Function, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     if(!ChangeStatusCallbackThread){
-        thread_t AudioThreadKeyCallback = NULL;
+        kot_thread_t AudioThreadKeyCallback = NULL;
         kot_Sys_CreateThread(Sys_GetProcess(), (void*)&ChangeStatusCallback, PriviledgeDriver, NULL, &AudioThreadKeyCallback);
         ChangeStatusCallbackThread = kot_MakeShareableThread(AudioThreadKeyCallback, PriviledgeDriver);
     }

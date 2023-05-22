@@ -14,7 +14,7 @@
 
 #include <srv/srv.h>
 
-extern process_t Proc;
+extern kot_process_t Proc;
 
 #define HDA_CLASS           0x4
 #define HDA_SUBCLASS        0x3
@@ -440,7 +440,7 @@ class HDAController{
 
         uint64_t Lock;
 
-        thread_t InterruptThread;
+        kot_thread_t InterruptThread;
 
         HDACodec Codecs[HDA_MAX_CODECS];
 

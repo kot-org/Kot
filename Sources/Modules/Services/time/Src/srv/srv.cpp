@@ -3,7 +3,7 @@
 uisd_time_t* SrvData;
 
 KResult InitialiseServer(){
-    process_t proc = Sys_GetProcess();
+    kot_process_t proc = Sys_GetProcess();
 
     void* address = GetFreeAlignedSpace(sizeof(uisd_time_t));
     kot_key_mem_t key = NULL;
@@ -20,12 +20,12 @@ KResult InitialiseServer(){
 
 
     /* SetTimePointerKey */
-    thread_t SetTimePointerKeyThread = NULL;
+    kot_thread_t SetTimePointerKeyThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&SetTimePointerKeySrv, PriviledgeApp, NULL, &SetTimePointerKeyThread);
     SrvData->SetTimePointerKey = kot_MakeShareableThread(SetTimePointerKeyThread, PriviledgeDriver);
 
     /* SetTickPointerKey */
-    thread_t SetTickPointerKeyThread = NULL;
+    kot_thread_t SetTickPointerKeyThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&SetTickPointerKeySrv, PriviledgeApp, NULL, &SetTickPointerKeyThread);
     SrvData->SetTickPointerKey = kot_MakeShareableThread(SetTickPointerKeyThread, PriviledgeDriver);
 
@@ -33,7 +33,7 @@ KResult InitialiseServer(){
     return KSUCCESS;
 }
 
-KResult SetTimePointerKeySrv(thread_t Callback, uint64_t CallbackArg, kot_key_mem_t TimePointerKey){
+KResult SetTimePointerKeySrv(kot_thread_t Callback, uint64_t CallbackArg, kot_key_mem_t TimePointerKey){
     KResult Status = KFAIL;
 
     SrvData->TimePointerKey = TimePointerKey;
@@ -51,7 +51,7 @@ KResult SetTimePointerKeySrv(thread_t Callback, uint64_t CallbackArg, kot_key_me
     kot_Sys_Close(KSUCCESS);
 }
 
-KResult SetTickPointerKeySrv(thread_t Callback, uint64_t CallbackArg, kot_key_mem_t TickPointerKey, uint64_t TickPeriod){
+KResult SetTickPointerKeySrv(kot_thread_t Callback, uint64_t CallbackArg, kot_key_mem_t TickPointerKey, uint64_t TickPeriod){
     KResult Status = KFAIL;
 
     SrvData->TickPointerKey = TickPointerKey;

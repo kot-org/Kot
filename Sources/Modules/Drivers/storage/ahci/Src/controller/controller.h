@@ -57,7 +57,7 @@ struct HBAMemory_t{
 
 class AHCIController{
     public:
-        AHCIController(srv_pci_bar_info_t* BarInfo);
+        AHCIController(kot_srv_pci_bar_info_t* BarInfo);
         ~AHCIController();
         void FindPorts();
         HBAMemory_t* ABAR;

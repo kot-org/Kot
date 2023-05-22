@@ -2,7 +2,7 @@
 
 using namespace std;
 
-process_t ShareableProcess;
+kot_process_t ShareableProcess;
 
 orbc::orbc(){
     ShareableProcess = kot_ShareProcessKey(Sys_GetProcess());

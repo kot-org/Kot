@@ -110,7 +110,7 @@ KResult Outputs::AddOutputDevice(srv_audio_device_t* Device){
     return KSUCCESS;
 }
 
-StreamRequest_t* Outputs::RequestStream(uint64_t OutputID, process_t ProcessKey, uint64_t PID){
+StreamRequest_t* Outputs::RequestStream(uint64_t OutputID, kot_process_t ProcessKey, uint64_t PID){
     if(OutputID >= Devices.size()){
         return NULL;
     }

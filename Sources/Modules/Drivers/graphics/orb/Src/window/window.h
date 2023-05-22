@@ -17,7 +17,7 @@ struct Cursor{
 class windowc{
     public:
         orbc* Orb;
-        process_t Target;
+        kot_process_t Target;
 
         kot_framebuffer_t* Framebuffer;
         graphiceventbuffer_t* Eventbuffer;

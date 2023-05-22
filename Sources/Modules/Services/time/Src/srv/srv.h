@@ -7,5 +7,5 @@
 
 KResult InitialiseServer();
 
-KResult SetTimePointerKeySrv(thread_t Callback, uint64_t CallbackArg, kot_key_mem_t TimePointerKey);
-KResult SetTickPointerKeySrv(thread_t Callback, uint64_t CallbackArg, kot_key_mem_t TickPointerKey, uint64_t TickPeriod);
+KResult SetTimePointerKeySrv(kot_thread_t Callback, uint64_t CallbackArg, kot_key_mem_t TimePointerKey);
+KResult SetTickPointerKeySrv(kot_thread_t Callback, uint64_t CallbackArg, kot_key_mem_t TickPointerKey, uint64_t TickPeriod);

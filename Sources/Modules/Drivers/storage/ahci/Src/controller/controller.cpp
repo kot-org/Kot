@@ -1,7 +1,7 @@
 #include <controller/controller.h>
 
-AHCIController::AHCIController(srv_pci_bar_info_t* BarInfo){
-    ABAR = (HBAMemory_t*)MapPhysical(BarInfo->Address, BarInfo->Size);
+AHCIController::AHCIController(kot_srv_pci_bar_info_t* BarInfo){
+    ABAR = (HBAMemory_t*)kot_MapPhysical(BarInfo->Address, BarInfo->Size);
     FindPorts();
 }
 

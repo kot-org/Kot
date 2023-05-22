@@ -1,10 +1,10 @@
 #include <core/main.h>
 
-process_t self;
+kot_process_t self;
 
 PS2Port_t PS2Ports[2];
 
-thread_t InterruptThreadHandler[PS2_PORT_NUMBER];
+kot_thread_t InterruptThreadHandler[PS2_PORT_NUMBER];
 
 IRQRedirections IRQRedirectionsArray[2];
 

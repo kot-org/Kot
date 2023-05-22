@@ -41,7 +41,7 @@ class hidc{
 
         orbc* Orb;
 
-        thread_t KeyboardInterruptThread;
+        kot_thread_t KeyboardInterruptThread;
 
         point_t CursorPosition;
         point_t CursorMaxPosition;
@@ -55,7 +55,7 @@ class hidc{
         void* PixelMap;
         void* BitmapMask;
 
-        thread_t MouseRelativeInterruptThread;
+        kot_thread_t MouseRelativeInterruptThread;
 
         bool IsLastLeftClick = false;
 };

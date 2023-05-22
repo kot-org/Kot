@@ -38,7 +38,7 @@ class renderc;
 class hidc;
 
 
-extern process_t ShareableProcess;
+extern kot_process_t ShareableProcess;
 
 class orbc{
     public:

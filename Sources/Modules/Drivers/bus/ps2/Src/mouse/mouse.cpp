@@ -6,7 +6,7 @@ uint8_t MouseCycle = 0;
 
 PS2Port_t* MousePS2Port;
 kot_arguments_t* MouseEventParameters;
-thread_t Mousethread = NULL;
+kot_thread_t Mousethread = NULL;
 
 #include <kot++/printf.h>
 

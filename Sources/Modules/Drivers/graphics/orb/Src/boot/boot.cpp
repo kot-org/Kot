@@ -62,7 +62,7 @@ void ParseBootImage(kot_framebuffer_t* Framebuffer, uint8_t* IGA, uint32_t Width
     }
 }
 
-thread_t bootAnimationThread = NULL;
+kot_thread_t bootAnimationThread = NULL;
 
 void LoadBootAnimation(kot_framebuffer_t* Framebuffer, uint64_t XPosition, uint64_t YPosition, uint64_t Width, uint64_t Height){
     kot_Sys_CreateThread(Sys_GetProcess(), (void*)&BootAnimation, PriviledgeDriver, NULL, &bootAnimationThread);

@@ -3,7 +3,7 @@
 extern "C" int main(int argc, char* argv[]){
     kot_Printlog("[Test1] Hello world");
 
-    process_t proc = Sys_GetProcess();
+    kot_process_t proc = Sys_GetProcess();
 
     void* addressReceive = GetFreeAlignedSpace(sizeof(uisd_test_t));
     GetControllerUISD(ControllerTypeEnum_Test, &addressReceive, true);

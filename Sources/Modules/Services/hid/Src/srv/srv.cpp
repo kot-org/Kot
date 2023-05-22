@@ -3,7 +3,7 @@
 uisd_hid_t* SrvData;
 
 KResult InitialiseServer(){
-    process_t proc = Sys_GetProcess();
+    kot_process_t proc = Sys_GetProcess();
 
     void* address = GetFreeAlignedSpace(sizeof(uisd_hid_t));
     kot_key_mem_t key = NULL;

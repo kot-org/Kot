@@ -5,7 +5,7 @@
 
 #include <kot/uisd/srvs/pci.h>
 
-extern process_t Proc;
+extern kot_process_t Proc;
 
 #define E1000_DEV      0x100E  // Device ID for the e1000 Qemu, Bochs, and VirtualBox emmulated NICs
 #define E1000_I217     0x153A  // Device ID for Intel I217

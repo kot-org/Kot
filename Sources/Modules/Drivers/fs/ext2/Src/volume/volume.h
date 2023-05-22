@@ -8,7 +8,7 @@
 
 #define GUIDToListenSize 0x1
 
-extern process_t ProcessKey;
+extern kot_process_t ProcessKey;
 
 void InitializeVolumeListener();
-void ListenerEvent(uint64_t VolumeID, struct srv_storage_space_info_t* StorageSpace, process_t VFSProcess, thread_t VFSConnect);
+void ListenerEvent(uint64_t VolumeID, struct srv_storage_space_info_t* StorageSpace, kot_process_t VFSProcess, kot_thread_t VFSConnect);

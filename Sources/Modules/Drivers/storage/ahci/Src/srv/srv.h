@@ -16,8 +16,8 @@ struct Space_t{
 }__attribute__((packed));
 
 void SrvAddDevice(class Device* Device);
-void SrvRemoveDevice(thread_t Callback, uint64_t CallbackArg);
+void SrvRemoveDevice(kot_thread_t Callback, uint64_t CallbackArg);
 
-void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t Start, uint64_t Size);
+void SrvCreateProtectedSpace(kot_thread_t Callback, uint64_t CallbackArg, uint64_t Start, uint64_t Size);
 
-void SrvRequestHandler(thread_t Callback, uint64_t CallbackArg, uint64_t RequestType, uint64_t GP0, uint64_t GP1, uint64_t GP2);
+void SrvRequestHandler(kot_thread_t Callback, uint64_t CallbackArg, uint64_t RequestType, uint64_t GP0, uint64_t GP1, uint64_t GP2);

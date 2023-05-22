@@ -1,28 +1,28 @@
 #include <srv/srv.h>
 
 uint64_t SrvLock;
-uisd_storage_t* StorageHandler;
+kot_uisd_storage_t* StorageHandler;
 
 void SrvAddDevice(Device* Device){
     atomicAcquire(&SrvLock, 0);
 
     // Add device to external handler
-    srv_storage_device_info_t Info;
+    kot_srv_storage_device_info_t Info;
 
-    StorageHandler = (uisd_storage_t*)FindControllerUISD(ControllerTypeEnum_Storage);
+    StorageHandler = (kot_uisd_storage_t*)kot_FindControllerUISD(ControllerTypeEnum_Storage);
 
     // Create threads handler
-    process_t Proc = Sys_GetProcess();
+    kot_process_t Proc = kot_Sys_GetProcess();
 
     /* CreateProtectedDeviceSpaceThread */
-    thread_t SrvCreateProtectedSpaceThread = NULL;
+    kot_thread_t SrvCreateProtectedSpaceThread = NULL;
     kot_Sys_CreateThread(Proc, (void*)&SrvCreateProtectedSpace, PriviledgeDriver, (uint64_t)Device->DefaultSpace, &SrvCreateProtectedSpaceThread);
-    Info.MainSpace.CreateProtectedDeviceSpaceThread = MakeShareableThreadToProcess(SrvCreateProtectedSpaceThread, StorageHandler->ControllerHeader.Process);
+    Info.MainSpace.CreateProtectedDeviceSpaceThread = kot_MakeShareableThreadToProcess(SrvCreateProtectedSpaceThread, StorageHandler->ControllerHeader.Process);
 
     /* RequestToDeviceThread */
-    thread_t SrvRequestHandlerThread = NULL;
+    kot_thread_t SrvRequestHandlerThread = NULL;
     kot_Sys_CreateThread(Proc, (void*)&SrvRequestHandler, PriviledgeApp, (uint64_t)Device->DefaultSpace, &SrvRequestHandlerThread);
-    Info.MainSpace.RequestToDeviceThread = MakeShareableThreadToProcess(SrvRequestHandlerThread, StorageHandler->ControllerHeader.Process);
+    Info.MainSpace.RequestToDeviceThread = kot_MakeShareableThreadToProcess(SrvRequestHandlerThread, StorageHandler->ControllerHeader.Process);
 
     Info.MainSpace.BufferRWKey = Device->DefaultSpace->BufferKey;
     Info.MainSpace.SpaceSize = Device->DefaultSpace->Size;
@@ -35,25 +35,25 @@ void SrvAddDevice(Device* Device){
     memcpy(&Info.DriveModelNumber, Device->GetSerialNumber(), Drive_Model_Number_Size);
     
 
-    srv_storage_callback_t* callback = Srv_Storage_AddDevice(&Info, true);
+    kot_srv_storage_callback_t* callback = kot_Srv_Storage_AddDevice(&Info, true);
     Device->ExternalID = (uint64_t)callback->Data;
 
     free(callback);
     atomicUnlock(&SrvLock, 0);
 }
 
-void SrvRemoveDevice(thread_t Callback, uint64_t CallbackArg){
+void SrvRemoveDevice(kot_thread_t Callback, uint64_t CallbackArg){
     atomicAcquire(&SrvLock, 0);
-    Space_t* Space = (Space_t*)Sys_GetExternalDataThread();
+    Space_t* Space = (Space_t*)kot_Sys_GetExternalDataThread();
     // Remove device to external handler
-    srv_storage_callback_t* callback = Srv_Storage_RemoveDevice(Space->StorageDevice->ExternalID, true);
+    kot_srv_storage_callback_t* callback = kot_Srv_Storage_RemoveDevice(Space->StorageDevice->ExternalID, true);
     atomicUnlock(&SrvLock, 0);
 }
 
-void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t Start, uint64_t Size){
+void SrvCreateProtectedSpace(kot_thread_t Callback, uint64_t CallbackArg, uint64_t Start, uint64_t Size){
     KResult Status = KFAIL;
 
-    Space_t* ActualSpaceLocalInfo = (Space_t*)Sys_GetExternalDataThread();
+    Space_t* ActualSpaceLocalInfo = (Space_t*)kot_Sys_GetExternalDataThread();
 
     if(ActualSpaceLocalInfo->Start > Start){
         Start = ActualSpaceLocalInfo->Start;
@@ -64,28 +64,28 @@ void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t S
     }
     Space_t* SpaceLocalInfo = ActualSpaceLocalInfo->StorageDevice->CreateSpace(Start, Size);
 
-    srv_storage_space_info_t SpaceInfo;
+    kot_srv_storage_space_info_t SpaceInfo;
 
-    process_t Proc = Sys_GetProcess();
+    kot_process_t Proc = kot_Sys_GetProcess();
 
     /* CreateProtectedDeviceSpaceThread */
-    thread_t SrvCreateProtectedSpaceThread = NULL;
+    kot_thread_t SrvCreateProtectedSpaceThread = NULL;
     kot_Sys_CreateThread(Proc, (void*)&SrvCreateProtectedSpace, PriviledgeApp, (uint64_t)SpaceLocalInfo, &SrvCreateProtectedSpaceThread);
-    SpaceInfo.CreateProtectedDeviceSpaceThread = MakeShareableSpreadThreadToProcess(SrvCreateProtectedSpaceThread, StorageHandler->ControllerHeader.Process);
+    SpaceInfo.CreateProtectedDeviceSpaceThread = kot_MakeShareableSpreadThreadToProcess(SrvCreateProtectedSpaceThread, StorageHandler->ControllerHeader.Process);
 
     /* RequestToDeviceThread */
-    thread_t SrvRequestHandlerThread = NULL;
+    kot_thread_t SrvRequestHandlerThread = NULL;
     kot_Sys_CreateThread(Proc, (void*)&SrvRequestHandler, PriviledgeApp, (uint64_t)SpaceLocalInfo, &SrvRequestHandlerThread);
-    SpaceInfo.RequestToDeviceThread = MakeShareableSpreadThreadToProcess(SrvRequestHandlerThread, StorageHandler->ControllerHeader.Process);
+    SpaceInfo.RequestToDeviceThread = kot_MakeShareableSpreadThreadToProcess(SrvRequestHandlerThread, StorageHandler->ControllerHeader.Process);
 
     SpaceInfo.BufferRWKey = SpaceLocalInfo->BufferKey;
     SpaceInfo.BufferRWAlignement = ActualSpaceLocalInfo->StorageDevice->BufferAlignement;
     SpaceInfo.BufferRWUsableSize = ActualSpaceLocalInfo->StorageDevice->BufferUsableSize;
     SpaceInfo.SpaceSize = Size;
 
-    ShareDataWithArguments_t data{
+    kot_ShareDataWithArguments_t data{
         .Data = &SpaceInfo,
-        .Size = sizeof(srv_storage_space_info_t),
+        .Size = sizeof(kot_srv_storage_space_info_t),
         .ParameterPosition = 0x2,
     };
     
@@ -102,10 +102,10 @@ void SrvCreateProtectedSpace(thread_t Callback, uint64_t CallbackArg, uint64_t S
     kot_Sys_Close(KSUCCESS);
 }
 
-void SrvSingleRequestHandler(thread_t Callback, uint64_t CallbackArg, uint64_t Start, size64_t Size, bool IsWrite){
+void SrvSingleRequestHandler(kot_thread_t Callback, uint64_t CallbackArg, uint64_t Start, size64_t Size, bool IsWrite){
     KResult Status = KFAIL;
 
-    Space_t* Space = (Space_t*)Sys_GetExternalDataThread();
+    Space_t* Space = (Space_t*)kot_Sys_GetExternalDataThread();
 
     if(Size <= Space->StorageDevice->BufferUsableSize){
         if((Start + (uint64_t)Size) <= Space->StorageDevice->GetSize()){
@@ -134,17 +134,17 @@ void SrvSingleRequestHandler(thread_t Callback, uint64_t CallbackArg, uint64_t S
     kot_Sys_Close(KSUCCESS);
 }
 
-void SrvMultipleRequestHandler(thread_t Callback, uint64_t CallbackArg, srv_storage_multiple_requests_t* Requests, process_t Process){
+void SrvMultipleRequestHandler(kot_thread_t Callback, uint64_t CallbackArg, kot_srv_storage_multiple_requests_t* Requests, kot_process_t Process){
     KResult Status = KFAIL;
 
-    Space_t* Space = (Space_t*)Sys_GetExternalDataThread();
+    Space_t* Space = (Space_t*)kot_Sys_GetExternalDataThread();
     void* Buffer = malloc(Requests->TotalSize);
     if(Requests->IsWrite){
         uint64_t Type;
         size64_t Size;
-        Sys_GetInfoMemoryField(Requests->MemoryKey, &Type, &Size);
+        kot_Sys_GetInfoMemoryField(Requests->MemoryKey, &Type, &Size);
         if(Type == MemoryFieldTypeSendSpaceRO && Size == Requests->TotalSize){
-            Sys_AcceptMemoryField(Sys_GetProcess(), Requests->MemoryKey, &Buffer);
+            kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), Requests->MemoryKey, &Buffer);
         }else{
             free(Buffer);
             return;
@@ -152,7 +152,7 @@ void SrvMultipleRequestHandler(thread_t Callback, uint64_t CallbackArg, srv_stor
     }
 
     for(uint64_t i = 0; i < Requests->RequestsCount; i++){
-        srv_storage_request_t Request = Requests->Requests[i];
+        kot_srv_storage_request_t Request = Requests->Requests[i];
 
         if(Request.Size <= Space->StorageDevice->BufferUsableSize){
             if((Request.Start + (uint64_t)Request.Size) <= Space->StorageDevice->GetSize()){
@@ -201,19 +201,19 @@ void SrvMultipleRequestHandler(thread_t Callback, uint64_t CallbackArg, srv_stor
     
     if(!Requests->IsWrite){
         kot_key_mem_t LocalKey;
-        Sys_CreateMemoryField(Sys_GetProcess(), Requests->TotalSize, &Buffer, &LocalKey, MemoryFieldTypeSendSpaceRO);
-        Sys_Keyhole_CloneModify(LocalKey, &arguments.arg[2], Process, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
+        kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), Requests->TotalSize, &Buffer, &LocalKey, MemoryFieldTypeSendSpaceRO);
+        kot_Sys_Keyhole_CloneModify(LocalKey, &arguments.arg[2], Process, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
     }
 
     kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     kot_Sys_Close(KSUCCESS);
 }
 
-void SrvRequestHandler(thread_t Callback, uint64_t CallbackArg, uint64_t RequestType, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+void SrvRequestHandler(kot_thread_t Callback, uint64_t CallbackArg, uint64_t RequestType, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     if(RequestType == STORAGE_SINGLE_REQUEST){
         SrvSingleRequestHandler(Callback, CallbackArg, GP0, GP1, GP2);
     }else if(RequestType == STORAGE_MULTIPLE_REQUESTS){
-        SrvMultipleRequestHandler(Callback, CallbackArg, (srv_storage_multiple_requests_t*)GP0, GP1);
+        SrvMultipleRequestHandler(Callback, CallbackArg, (kot_srv_storage_multiple_requests_t*)GP0, GP1);
     }
 
     kot_arguments_t arguments{
