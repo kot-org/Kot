@@ -16,46 +16,46 @@ static dir_dispatch_t DirDispatcher[Dir_Function_Count] = {
 
 
 KResult MountToVFS(mount_info_t* MountInfo, kot_process_t VFSProcess, kot_thread_t VFSMountThread){
-    srv_storage_fs_server_functions_t FSServerFunctions;
+    kot_srv_storage_fs_server_functions_t FSServerFunctions;
 
-    kot_process_t proc = Sys_GetProcess();
+    kot_process_t proc = kot_Sys_GetProcess();
 
     /* ChangeUserData */
     kot_thread_t ChangeUserDataThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&ChangeUserData, PriviledgeDriver, (uint64_t)MountInfo, &ChangeUserDataThread);
-    FSServerFunctions.ChangeUserData = MakeShareableThreadToProcess(ChangeUserDataThread, VFSProcess);
+    FSServerFunctions.ChangeUserData = kot_MakeShareableThreadToProcess(ChangeUserDataThread, VFSProcess);
 
     /* Removefile */
     kot_thread_t RemovefileThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&Removefile, PriviledgeDriver, (uint64_t)MountInfo, &RemovefileThread);
-    FSServerFunctions.Removefile = MakeShareableThreadToProcess(RemovefileThread, VFSProcess);
+    FSServerFunctions.Removefile = kot_MakeShareableThreadToProcess(RemovefileThread, VFSProcess);
 
     /* Openfile */
     kot_thread_t OpenfileThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&Openfile, PriviledgeDriver, (uint64_t)MountInfo, &OpenfileThread);
-    FSServerFunctions.Openfile = MakeShareableThreadToProcess(OpenfileThread, VFSProcess);
+    FSServerFunctions.Openfile = kot_MakeShareableThreadToProcess(OpenfileThread, VFSProcess);
 
     /* Rename */
     kot_thread_t RenameThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&Rename, PriviledgeDriver, (uint64_t)MountInfo, &RenameThread);
-    FSServerFunctions.Rename = MakeShareableThreadToProcess(RenameThread, VFSProcess);
+    FSServerFunctions.Rename = kot_MakeShareableThreadToProcess(RenameThread, VFSProcess);
 
     /* Mkdir */
     kot_thread_t MkdirThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&Mkdir, PriviledgeDriver, (uint64_t)MountInfo, &MkdirThread);
-    FSServerFunctions.Mkdir = MakeShareableThreadToProcess(MkdirThread, VFSProcess);
+    FSServerFunctions.Mkdir = kot_MakeShareableThreadToProcess(MkdirThread, VFSProcess);
 
     /* Rmdir */
     kot_thread_t RmdirThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&Rmdir, PriviledgeDriver, (uint64_t)MountInfo, &RmdirThread);
-    FSServerFunctions.Rmdir = MakeShareableThreadToProcess(RmdirThread, VFSProcess);
+    FSServerFunctions.Rmdir = kot_MakeShareableThreadToProcess(RmdirThread, VFSProcess);
 
     /* Opendir */
     kot_thread_t OpendirThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&Opendir, PriviledgeDriver, (uint64_t)MountInfo, &OpendirThread);
-    FSServerFunctions.Opendir = MakeShareableThreadToProcess(OpendirThread, VFSProcess);
+    FSServerFunctions.Opendir = kot_MakeShareableThreadToProcess(OpendirThread, VFSProcess);
 
-    Srv_Storage_MountPartition(VFSMountThread, &FSServerFunctions, true);
+    kot_Srv_Storage_MountPartition(VFSMountThread, &FSServerFunctions, true);
 
     return KSUCCESS;
 }
@@ -63,7 +63,7 @@ KResult MountToVFS(mount_info_t* MountInfo, kot_process_t VFSProcess, kot_thread
 
 /* VFS access */
 KResult ChangeUserData(kot_thread_t Callback, uint64_t CallbackArg, uint64_t UID, uint64_t GID, char* UserName){
-    mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
+    mount_info_t* MountInfo = (mount_info_t*)kot_Sys_GetExternalDataThread();
     
     MountInfo->UID = UID;
     MountInfo->GID = GID;
@@ -86,7 +86,7 @@ KResult ChangeUserData(kot_thread_t Callback, uint64_t CallbackArg, uint64_t UID
 
 /* VFS access */
 KResult Removefile(kot_thread_t Callback, uint64_t CallbackArg, char* Path, kot_permissions_t Permissions){
-    mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
+    mount_info_t* MountInfo = (mount_info_t*)kot_Sys_GetExternalDataThread();
     KResult Status = MountInfo->RemoveFile(Path, Permissions);
     
     kot_arguments_t arguments{
@@ -104,7 +104,7 @@ KResult Removefile(kot_thread_t Callback, uint64_t CallbackArg, char* Path, kot_
 
 /* VFS access */
 KResult Openfile(kot_thread_t Callback, uint64_t CallbackArg, char* Path, kot_permissions_t Permissions, kot_process_t Target){
-    mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
+    mount_info_t* MountInfo = (mount_info_t*)kot_Sys_GetExternalDataThread();
     KResult Status = KFAIL;
 
     ext_file_t* File = NULL;
@@ -125,18 +125,18 @@ KResult Openfile(kot_thread_t Callback, uint64_t CallbackArg, char* Path, kot_pe
     };
 
     if(Status == KSUCCESS){
-        srv_storage_fs_server_open_file_data_t SrvOpenFileData;
+        kot_srv_storage_fs_server_open_file_data_t SrvOpenFileData;
         kot_thread_t DispatcherThread;
 
-        kot_Sys_CreateThread(Sys_GetProcess(), (void*)&FileDispatch, PriviledgeDriver, (uint64_t)File, &DispatcherThread);
+        kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&FileDispatch, PriviledgeDriver, (uint64_t)File, &DispatcherThread);
 
-        SrvOpenFileData.Dispatcher = MakeShareableThreadToProcess(DispatcherThread, Target);
+        SrvOpenFileData.Dispatcher = kot_MakeShareableThreadToProcess(DispatcherThread, Target);
 
         SrvOpenFileData.FSDriverProc = ProcessKey;
         
-        ShareDataWithArguments_t ShareDataWithArguments{
+        kot_ShareDataWithArguments_t ShareDataWithArguments{
             .Data = &SrvOpenFileData,
-            .Size = sizeof(srv_storage_fs_server_open_file_data_t),
+            .Size = sizeof(kot_srv_storage_fs_server_open_file_data_t),
             .ParameterPosition = 0x2,
         };
         kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &ShareDataWithArguments);
@@ -164,7 +164,7 @@ KResult FileDispatch(kot_thread_t Callback, uint64_t CallbackArg, uint64_t GP0, 
         kot_Sys_Close(KSUCCESS);
     }
 
-    ext_file_t* File = (ext_file_t*)Sys_GetExternalDataThread();
+    ext_file_t* File = (ext_file_t*)kot_Sys_GetExternalDataThread();
     kot_Sys_Close(FileDispatcher[Function](Callback, CallbackArg, File, GP1, GP2, GP3)); // It'll call the callback in the function
 }
 
@@ -184,7 +184,7 @@ KResult Closefile(kot_thread_t Callback, uint64_t CallbackArg, ext_file_t* File,
     kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     
     if(Status == KSUCCESS){
-        Sys_Exit(KSUCCESS);
+        kot_Sys_Exit(KSUCCESS);
     }
 
     return KSUCCESS;
@@ -221,7 +221,7 @@ KResult Readfile(kot_thread_t Callback, uint64_t CallbackArg, ext_file_t* File, 
     };
 
     if(Status == KSUCCESS){
-        Sys_Keyhole_CloneModify(BufferKey, &arguments.arg[2], File->Target, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
+        kot_Sys_Keyhole_CloneModify(BufferKey, &arguments.arg[2], File->Target, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
         kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     }else{
         kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
@@ -236,10 +236,10 @@ KResult Writefile(kot_thread_t Callback, uint64_t CallbackArg, ext_file_t* File,
     
     uint64_t TypePointer;
     uint64_t Size;
-    if(Sys_GetInfoMemoryField(GP0, &TypePointer, &Size) == KSUCCESS){
+    if(kot_Sys_GetInfoMemoryField(GP0, &TypePointer, &Size) == KSUCCESS){
         if(TypePointer == MemoryFieldTypeSendSpaceRO){            
             void* Buffer = malloc(Size);
-            assert(Sys_AcceptMemoryField(Sys_GetProcess(), GP0, &Buffer) == KSUCCESS);
+            assert(kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), GP0, &Buffer) == KSUCCESS);
 
             Status = File->WriteFile(Buffer, GP1, Size, GP2);
         }
@@ -263,11 +263,11 @@ KResult Writefile(kot_thread_t Callback, uint64_t CallbackArg, ext_file_t* File,
 /* Files and directories */
 
 /* VFS access */
-KResult Rename(kot_thread_t Callback, uint64_t CallbackArg, srv_storage_fs_server_rename_t* RenameData, kot_permissions_t Permissions){
+KResult Rename(kot_thread_t Callback, uint64_t CallbackArg, kot_srv_storage_fs_server_rename_t* RenameData, kot_permissions_t Permissions){
     char* OldPath = (char*)((uint64_t)RenameData + RenameData->OldPathPosition);
     char* NewPath = (char*)((uint64_t)RenameData + RenameData->NewPathPosition);
     
-    mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
+    mount_info_t* MountInfo = (mount_info_t*)kot_Sys_GetExternalDataThread();
 
     KResult Status = MountInfo->Rename(OldPath, NewPath, Permissions);
     
@@ -289,7 +289,7 @@ KResult Rename(kot_thread_t Callback, uint64_t CallbackArg, srv_storage_fs_serve
 
 /* VFS access */
 KResult Mkdir(kot_thread_t Callback, uint64_t CallbackArg, char* Path, mode_t Mode, kot_permissions_t Permissions){
-    mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
+    mount_info_t* MountInfo = (mount_info_t*)kot_Sys_GetExternalDataThread();
 
     KResult Status = MountInfo->CreateDir(Path, Mode, Permissions);
     
@@ -308,7 +308,7 @@ KResult Mkdir(kot_thread_t Callback, uint64_t CallbackArg, char* Path, mode_t Mo
 
 /* VFS access */
 KResult Rmdir(kot_thread_t Callback, uint64_t CallbackArg, char* Path, kot_permissions_t Permissions){
-    mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
+    mount_info_t* MountInfo = (mount_info_t*)kot_Sys_GetExternalDataThread();
     KResult Status = MountInfo->RemoveDir(Path, Permissions);
     
     kot_arguments_t arguments{
@@ -326,7 +326,7 @@ KResult Rmdir(kot_thread_t Callback, uint64_t CallbackArg, char* Path, kot_permi
 
 /* VFS access */
 KResult Opendir(kot_thread_t Callback, uint64_t CallbackArg, char* Path, kot_permissions_t Permissions, kot_process_t Target){
-    mount_info_t* MountInfo = (mount_info_t*)Sys_GetExternalDataThread();
+    mount_info_t* MountInfo = (mount_info_t*)kot_Sys_GetExternalDataThread();
     KResult Status = KFAIL;
 
     ext_directory_t* Directory = NULL;
@@ -345,18 +345,18 @@ KResult Opendir(kot_thread_t Callback, uint64_t CallbackArg, char* Path, kot_per
     };
 
     if(Status == KSUCCESS){
-        srv_storage_fs_server_open_dir_data_t SrvOpenDirData;
+        kot_srv_storage_fs_server_open_dir_data_t SrvOpenDirData;
         kot_thread_t DispatcherThread;
 
-        kot_Sys_CreateThread(Sys_GetProcess(), (void*)&DirDispatch, PriviledgeDriver, (uint64_t)Directory, &DispatcherThread);
+        kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&DirDispatch, PriviledgeDriver, (uint64_t)Directory, &DispatcherThread);
 
-        Sys_Keyhole_CloneModify(DispatcherThread, &SrvOpenDirData.Dispatcher, Target, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsExecutableWithQueue, PriviledgeApp);
+        kot_Sys_Keyhole_CloneModify(DispatcherThread, &SrvOpenDirData.Dispatcher, Target, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsExecutableWithQueue, PriviledgeApp);
 
         SrvOpenDirData.FSDriverProc = ProcessKey;
         
-        ShareDataWithArguments_t ShareDataWithArguments{
+        kot_ShareDataWithArguments_t ShareDataWithArguments{
             .Data = &SrvOpenDirData,
-            .Size = sizeof(srv_storage_fs_server_open_dir_data_t),
+            .Size = sizeof(kot_srv_storage_fs_server_open_dir_data_t),
             .ParameterPosition = 0x2,
         };
         kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &ShareDataWithArguments);
@@ -384,7 +384,7 @@ KResult DirDispatch(kot_thread_t Callback, uint64_t CallbackArg, uint64_t GP0, u
         kot_Sys_Close(KSUCCESS);
     }
 
-    ext_directory_t* Directory = (ext_directory_t*)Sys_GetExternalDataThread();
+    ext_directory_t* Directory = (ext_directory_t*)kot_Sys_GetExternalDataThread();
 
     kot_Sys_Close(DirDispatcher[Function](Callback, CallbackArg, Directory, GP1, GP2, GP3));
 }
@@ -399,31 +399,31 @@ KResult Readdir(kot_thread_t Callback, uint64_t CallbackArg, ext_directory_t* Di
     KResult Status = KSUCCESS;
 
     uint64_t EntryCount = 0;
-    size64_t DataSize = sizeof(directory_entries_t);
+    size64_t DataSize = sizeof(kot_directory_entries_t);
     for(uint64_t i = 0; i < IndexCount; i++){
         ReadirData[i] = Directory->ReadDir(IndexStart + i);
         if(ReadirData[i] == NULL){
             Status = KFAIL;
             break;
         } 
-        DataSize += sizeof(directory_entry_t);
+        DataSize += sizeof(kot_directory_entry_t);
         DataSize += ReadirData[i]->NameLength + 1;
         EntryCount++;
     }
 
-    directory_entries_t* Data = (directory_entries_t*)malloc(DataSize);
+    kot_directory_entries_t* Data = (kot_directory_entries_t*)malloc(DataSize);
     Data->EntryCount = EntryCount;
 
     uint64_t NextEntryPosition = 0;
-    directory_entry_t* Entry = &Data->FirstEntry;
+    kot_directory_entry_t* Entry = &Data->FirstEntry;
     for(uint64_t i = 0; i < EntryCount; i++){
-        NextEntryPosition += sizeof(directory_entry_t) + ReadirData[i]->NameLength + 1;
+        NextEntryPosition += sizeof(kot_directory_entry_t) + ReadirData[i]->NameLength + 1;
         Entry->NextEntryPosition = NextEntryPosition;
         Entry->IsFile = ReadirData[i]->IsFile;
         memcpy(&Entry->Name, ReadirData[i]->Name, ReadirData[i]->NameLength + 1);
         free(ReadirData[i]->Name);
         free(ReadirData[i]);
-        Entry = (directory_entry_t*)((uint64_t)&Data->FirstEntry + (uint64_t)NextEntryPosition);
+        Entry = (kot_directory_entry_t*)((uint64_t)&Data->FirstEntry + (uint64_t)NextEntryPosition);
     }
 
     Entry->NextEntryPosition = NULL;
@@ -440,7 +440,7 @@ KResult Readdir(kot_thread_t Callback, uint64_t CallbackArg, ext_directory_t* Di
         .arg[5] = NULL,             /* GP3 */
     };
 
-    ShareDataWithArguments_t ShareDataWithArguments{
+    kot_ShareDataWithArguments_t ShareDataWithArguments{
         .Data = Data,
         .Size = DataSize,
         .ParameterPosition = 0x2,
@@ -479,5 +479,5 @@ KResult Closedir(kot_thread_t Callback, uint64_t CallbackArg, ext_directory_t* D
     };
 
     kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Exit(KSUCCESS);
+    kot_Sys_Exit(KSUCCESS);
 }

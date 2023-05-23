@@ -36,7 +36,7 @@ void* ParseRSDP(void* rsdpPhysical){
 
 uint64_t FindTableIndex(char* signature){
     for(uint64_t i = 0; i < entries; i++){
-        if(strncmp((char*)headers[i]->Signature, signature, 4)){
+        if(!strncmp((char*)headers[i]->Signature, signature, 4)){
             return i;
         }
     }

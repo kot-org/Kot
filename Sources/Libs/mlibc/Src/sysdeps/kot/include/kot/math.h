@@ -19,6 +19,8 @@ typedef struct{
     int64_t y;
 }kot_point_t;
 
+int ipow(int base, int exp);
+
 #if defined(__cplusplus)
 } 
 #endif

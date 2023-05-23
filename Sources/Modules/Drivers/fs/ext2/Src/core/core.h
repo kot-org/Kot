@@ -4,9 +4,10 @@
 #include <kot/math.h>
 #include <main/main.h>
 #include <kot/uisd/srvs/time.h>
-#include <stdio.h>
+#include <kot/uisd/srvs/storage.h>
 #include <kot/uisd/srvs/storage/device.h>
 
+#include <kot++/new.h>
 #include <kot++/printf.h>
 #include <kot++/string.h>
 
@@ -66,14 +67,14 @@ struct super_block_ext2_dynamic_t{
     uint32_t optional_features; /* Optional features present */
     uint32_t required_features; /* Required features present */
     uint32_t mro_features; /* Features that if not supported the volume must be mounted read-only */
-    UUID_t uuid; /*	File system UUID */
+    kot_UUID_t uuid; /*	File system UUID */
     char volume_name[16]; /* Volume name */
     char last_mounted[64]; /* Path Volume was last mounted to */
     uint32_t algo_bitmap; /* Compression algorithm used*/
     uint8_t prealloc_blocks; /* Amount of blocks to preallocate for files */
     uint8_t prealloc_dir_blocks; /* Amount of blocks to preallocate for directories */
     uint8_t reserved_GDT_filesystem_expansion; /* Amount of reserved GDT entries for filesystem expansion */
-    UUID_t journal_uuid; /* Journal UUID */
+    kot_UUID_t journal_uuid; /* Journal UUID */
     uint32_t journal_inum; /* Journal Inode */
     uint32_t journal_dev; /* Journal Device number */
     uint32_t last_orphan; /* Head of orphan inode list */
@@ -233,7 +234,7 @@ struct read_dir_data{
 };
 
 struct mount_info_t{
-	struct srv_storage_device_t* StorageDevice;
+	struct kot_srv_storage_device_t* StorageDevice;
     struct super_block_t* SuperBlock;
 
 	uint32_t RequiredFeature;
@@ -340,4 +341,4 @@ struct mount_info_t{
 };
 
 
-struct mount_info_t* InitializeMount(struct srv_storage_device_t* StorageDevice);
+struct mount_info_t* InitializeMount(struct kot_srv_storage_device_t* StorageDevice);

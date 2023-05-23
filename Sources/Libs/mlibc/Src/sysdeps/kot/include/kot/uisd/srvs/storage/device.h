@@ -45,17 +45,17 @@ typedef struct{
     kot_srv_storage_request_t Requests[];
 }kot_srv_storage_multiple_requests_t;
 
-KResult Srv_StorageInitializeDeviceAccess(struct kot_srv_storage_space_info_t* StorageSpace, struct kot_srv_storage_device_t** StorageDevice);
-KResult Srv_CallbackCreateSpaceHandler(KResult Status, struct kot_srv_storage_device_callback_t* CallbackData, struct kot_srv_storage_space_info_t* SpaceInfo);
+KResult kot_Srv_StorageInitializeDeviceAccess(struct kot_srv_storage_space_info_t* StorageSpace, struct kot_srv_storage_device_t** StorageDevice);
+KResult kot_Srv_CallbackCreateSpaceHandler(KResult Status, struct kot_srv_storage_device_callback_t* CallbackData, struct kot_srv_storage_space_info_t* SpaceInfo);
 
 
-KResult Srv_CallbackCreateSpaceHandler(KResult Status, struct kot_srv_storage_device_callback_t* CallbackData, struct kot_srv_storage_space_info_t* SpaceInfo);
-KResult Srv_CallbackRequestHandler(KResult Status, struct kot_srv_storage_device_callback_t* CallbackData, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
-KResult Srv_SendRequest(struct kot_srv_storage_device_t* StorageDevice, uint64_t Start, size64_t Size, bool IsWrite);
-struct kot_srv_storage_device_callback_t* Srv_SendMultipleRequests(struct kot_srv_storage_device_t* StorageDevice, kot_srv_storage_multiple_requests_t* Requests);
-uint64_t Srv_GetBufferStartingAddress(struct kot_srv_storage_device_t* StorageDevice, uint64_t Start);
-KResult Srv_ReadDevice(struct kot_srv_storage_device_t* StorageDevice, void* Buffer, uint64_t Start, size64_t Size);
-KResult Srv_WriteDevice(struct kot_srv_storage_device_t* StorageDevice, void* Buffer, uint64_t Start, size64_t Size);
+KResult kot_Srv_CallbackCreateSpaceHandler(KResult Status, struct kot_srv_storage_device_callback_t* CallbackData, struct kot_srv_storage_space_info_t* SpaceInfo);
+KResult kot_Srv_CallbackRequestHandler(KResult Status, struct kot_srv_storage_device_callback_t* CallbackData, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
+KResult kot_Srv_SendRequest(struct kot_srv_storage_device_t* StorageDevice, uint64_t Start, size64_t Size, bool IsWrite);
+struct kot_srv_storage_device_callback_t* kot_Srv_SendMultipleRequests(struct kot_srv_storage_device_t* StorageDevice, kot_srv_storage_multiple_requests_t* Requests);
+uint64_t kot_Srv_GetBufferStartingAddress(struct kot_srv_storage_device_t* StorageDevice, uint64_t Start);
+KResult kot_Srv_ReadDevice(struct kot_srv_storage_device_t* StorageDevice, void* Buffer, uint64_t Start, size64_t Size);
+KResult kot_Srv_WriteDevice(struct kot_srv_storage_device_t* StorageDevice, void* Buffer, uint64_t Start, size64_t Size);
 
 #if defined(__cplusplus)
 } 

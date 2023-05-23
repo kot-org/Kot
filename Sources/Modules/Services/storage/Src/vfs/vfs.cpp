@@ -133,7 +133,7 @@ KResult GetVFSAbsolutePath(char** AbsolutePath, partition_t** Partition, char* P
 
 KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFSContext* Context, char* Path){
     if(Path[0] == '/'){
-        if(strncmp(Path, DEV_PATH, DEV_PATH_LEN)){
+        if(!strncmp(Path, DEV_PATH, DEV_PATH_LEN)){
             // OS Services
             return GetDevAccessData(RelativePath, Partition, Context, Path);
         }else{
@@ -167,7 +167,7 @@ KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFS
             // TODO
             assert(0);
         }else if(*AccessTypeBuffer == 'd'){
-            if(Context->DynamicVolumeMountPoint == Volume && strncmp(*RelativePath, Context->Path, Context->PathLength)){
+            if(Context->DynamicVolumeMountPoint == Volume && !strncmp(*RelativePath, Context->Path, Context->PathLength)){
                 PartitionContext = Context->Partition;
             }else{
                 if(Volume >= PartitionsList->length){

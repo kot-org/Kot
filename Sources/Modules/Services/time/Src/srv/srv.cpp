@@ -1,16 +1,16 @@
 #include <srv/srv.h>
 
-uisd_time_t* SrvData;
+kot_uisd_time_t* SrvData;
 
 KResult InitialiseServer(){
-    kot_process_t proc = Sys_GetProcess();
+    kot_process_t proc = kot_Sys_GetProcess();
 
-    void* address = GetFreeAlignedSpace(sizeof(uisd_time_t));
+    void* address = kot_GetFreeAlignedSpace(sizeof(kot_uisd_time_t));
     kot_key_mem_t key = NULL;
-    Sys_CreateMemoryField(proc, sizeof(uisd_time_t), &address, &key, MemoryFieldTypeShareSpaceRO);
+    kot_Sys_CreateMemoryField(proc, sizeof(kot_uisd_time_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
-    SrvData = (uisd_time_t*)address;
-    memset(SrvData, 0, sizeof(uisd_time_t)); // Clear data
+    SrvData = (kot_uisd_time_t*)address;
+    memset(SrvData, 0, sizeof(kot_uisd_time_t)); // Clear data
 
     SrvData->ControllerHeader.IsReadWrite = false;
     SrvData->ControllerHeader.Version = Time_Srv_Version;
@@ -29,7 +29,7 @@ KResult InitialiseServer(){
     kot_Sys_CreateThread(proc, (void*)&SetTickPointerKeySrv, PriviledgeApp, NULL, &SetTickPointerKeyThread);
     SrvData->SetTickPointerKey = kot_MakeShareableThread(SetTickPointerKeyThread, PriviledgeDriver);
 
-    CreateControllerUISD(ControllerTypeEnum_Time, key, true);
+    kot_CreateControllerUISD(ControllerTypeEnum_Time, key, true);
     return KSUCCESS;
 }
 

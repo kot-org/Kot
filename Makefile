@@ -40,7 +40,7 @@ deps-llvm-toolchain: deps-ninja
 	mkdir -m 777 -p "Toolchain"
 	cd "Toolchain" && \
 	git clone https://github.com/kot-org/llvm-project && \
-	cd llvm-project && \
+	cd "llvm-project" && \
 	git checkout release/14.x && \
 	mkdir -m 777 -p "build" && \
 	cd "build" && \

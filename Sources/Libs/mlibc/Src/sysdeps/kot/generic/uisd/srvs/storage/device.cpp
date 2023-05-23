@@ -7,7 +7,7 @@ extern "C" {
 
 kot_process_t kot_ShareableProcessUISDStorage;
 
-KResult Srv_StorageInitializeDeviceAccess(struct kot_srv_storage_space_info_t* StorageSpace, struct kot_srv_storage_device_t** StorageDevice){
+KResult kot_Srv_StorageInitializeDeviceAccess(struct kot_srv_storage_space_info_t* StorageSpace, struct kot_srv_storage_device_t** StorageDevice){
     uint64_t BufferType = NULL;
     uint64_t BufferSize = NULL;
     
@@ -23,11 +23,11 @@ KResult Srv_StorageInitializeDeviceAccess(struct kot_srv_storage_space_info_t* S
         *StorageDevice = Device;
 
         kot_thread_t CallbackRequestHandlerThread = NULL;
-        kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&Srv_CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
+        kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&kot_Srv_CallbackRequestHandler, PriviledgeApp, NULL, &CallbackRequestHandlerThread);
         Device->CallbackRequestHandlerThread = kot_MakeShareableThreadToProcess(CallbackRequestHandlerThread, Device->SpaceInfo.DriverProc);
 
         kot_thread_t CallbackCreateSpaceHandlerThread = NULL;
-        kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&Srv_CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
+        kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&kot_Srv_CallbackCreateSpaceHandler, PriviledgeApp, NULL, &CallbackCreateSpaceHandlerThread);
         Device->CallbackCreateSpaceHandlerThread = kot_MakeShareableThreadToProcess(CallbackCreateSpaceHandlerThread, Device->SpaceInfo.DriverProc);
 
         return KSUCCESS;
@@ -35,21 +35,21 @@ KResult Srv_StorageInitializeDeviceAccess(struct kot_srv_storage_space_info_t* S
     return KFAIL;
 }
 
-KResult Srv_CallbackCreateSpaceHandler(KResult Status, struct kot_srv_storage_device_callback_t* CallbackData, struct kot_srv_storage_space_info_t* SpaceInfo){
+KResult kot_Srv_CallbackCreateSpaceHandler(KResult Status, struct kot_srv_storage_device_callback_t* CallbackData, struct kot_srv_storage_space_info_t* SpaceInfo){
     CallbackData->Data = (void*)malloc(sizeof(struct kot_srv_storage_space_info_t));
     memcpy((void*)CallbackData->Data, (void*)SpaceInfo, sizeof(struct kot_srv_storage_space_info_t));
     kot_Sys_Unpause(CallbackData->MainThread);
     kot_Sys_Close(KSUCCESS);
 }
 
-KResult Srv_CallbackRequestHandler(KResult Status, struct kot_srv_storage_device_callback_t* CallbackData, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+KResult kot_Srv_CallbackRequestHandler(KResult Status, struct kot_srv_storage_device_callback_t* CallbackData, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     CallbackData->Status = Status;
     CallbackData->Data = (void*)GP0;
     kot_Sys_Unpause(CallbackData->MainThread);
     kot_Sys_Close(KSUCCESS);
 }
 
-KResult Srv_SendRequest(struct kot_srv_storage_device_t* StorageDevice, uint64_t Start, size64_t Size, bool IsWrite){
+KResult kot_Srv_SendRequest(struct kot_srv_storage_device_t* StorageDevice, uint64_t Start, size64_t Size, bool IsWrite){
     struct kot_srv_storage_device_callback_t* callbackData = (struct kot_srv_storage_device_callback_t*)malloc(sizeof(struct kot_srv_storage_device_callback_t));
     callbackData->MainThread = kot_Sys_GetThread();
 
@@ -65,7 +65,7 @@ KResult Srv_SendRequest(struct kot_srv_storage_device_t* StorageDevice, uint64_t
     return KSUCCESS;
 }
 
-struct kot_srv_storage_device_callback_t* Srv_SendMultipleRequests(struct kot_srv_storage_device_t* StorageDevice, kot_srv_storage_multiple_requests_t* Requests){
+struct kot_srv_storage_device_callback_t* kot_Srv_SendMultipleRequests(struct kot_srv_storage_device_t* StorageDevice, kot_srv_storage_multiple_requests_t* Requests){
     if(!kot_ShareableProcessUISDStorage){
         kot_ShareableProcessUISDStorage = kot_ShareProcessKey(kot_Sys_GetProcess());
     }
@@ -91,11 +91,11 @@ struct kot_srv_storage_device_callback_t* Srv_SendMultipleRequests(struct kot_sr
     return callbackData;
 }
 
-uint64_t Srv_GetBufferStartingAddress(struct kot_srv_storage_device_t* StorageDevice, uint64_t Start){
+uint64_t kot_Srv_GetBufferStartingAddress(struct kot_srv_storage_device_t* StorageDevice, uint64_t Start){
     return (uint64_t)StorageDevice->BufferRWBase + (Start % StorageDevice->SpaceInfo.BufferRWAlignement);
 }
 
-KResult Srv_ReadDevice(struct kot_srv_storage_device_t* StorageDevice, void* Buffer, uint64_t Start, size64_t Size){
+KResult kot_Srv_ReadDevice(struct kot_srv_storage_device_t* StorageDevice, void* Buffer, uint64_t Start, size64_t Size){
     uint64_t RequestNum = DIV_ROUND_UP(Size, StorageDevice->SpaceInfo.BufferRWUsableSize);
     uint64_t StartInIteration = Start;
     uint64_t SizeToRead = Size;
@@ -110,8 +110,8 @@ KResult Srv_ReadDevice(struct kot_srv_storage_device_t* StorageDevice, void* Buf
         }
 
         atomicAcquire(&StorageDevice->Lock, 0);
-        Srv_SendRequest(StorageDevice, StartInIteration, SizeToReadInIteration, false);
-        memcpy((void*)AddressDst, (void*)Srv_GetBufferStartingAddress(StorageDevice, StartInIteration), SizeToReadInIteration);
+        kot_Srv_SendRequest(StorageDevice, StartInIteration, SizeToReadInIteration, false);
+        memcpy((void*)AddressDst, (void*)kot_Srv_GetBufferStartingAddress(StorageDevice, StartInIteration), SizeToReadInIteration);
         atomicUnlock(&StorageDevice->Lock, 0);
 
         StartInIteration += SizeToReadInIteration;
@@ -121,7 +121,7 @@ KResult Srv_ReadDevice(struct kot_srv_storage_device_t* StorageDevice, void* Buf
     return KSUCCESS;
 }
 
-KResult Srv_WriteDevice(struct kot_srv_storage_device_t* StorageDevice, void* Buffer, uint64_t Start, size64_t Size){
+KResult kot_Srv_WriteDevice(struct kot_srv_storage_device_t* StorageDevice, void* Buffer, uint64_t Start, size64_t Size){
     uint64_t RequestNum = DIV_ROUND_UP(Size, StorageDevice->SpaceInfo.BufferRWUsableSize);
     uint64_t StartInIteration = Start;
     uint64_t SizeToWrite = Size;
@@ -136,8 +136,8 @@ KResult Srv_WriteDevice(struct kot_srv_storage_device_t* StorageDevice, void* Bu
         }
 
         atomicAcquire(&StorageDevice->Lock, 0);
-        memcpy((void*)Srv_GetBufferStartingAddress(StorageDevice, StartInIteration), (void*)AddressDst, SizeToWriteInIteration);
-        Srv_SendRequest(StorageDevice, StartInIteration, SizeToWriteInIteration, true);
+        memcpy((void*)kot_Srv_GetBufferStartingAddress(StorageDevice, StartInIteration), (void*)AddressDst, SizeToWriteInIteration);
+        kot_Srv_SendRequest(StorageDevice, StartInIteration, SizeToWriteInIteration, true);
         atomicUnlock(&StorageDevice->Lock, 0);
 
         StartInIteration += SizeToWriteInIteration;
