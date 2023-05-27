@@ -26,7 +26,7 @@ void MixAudio(size64_t Size, uint64_t Offset, audio_buffer_t* Dst, std::vector<S
 }
 
 Outputs::Outputs(kot_event_t OnDeviceChangedEvent){
-    NullDevice = (OutputDevice_t*)calloc(sizeof(OutputDevice_t));
+    NullDevice = (OutputDevice_t*)calloc(1, sizeof(OutputDevice_t));
     Devices.push(NullDevice); // default output
     OnDeviceChanged = OnDeviceChangedEvent;
     DeviceCount = 0;
@@ -149,7 +149,7 @@ StreamRequest_t* Outputs::RequestStream(uint64_t OutputID, kot_process_t Process
     OutputDevice->InputStreams.push(OutputRequestData);
 
     kot_Sys_CreateThread(Sys_GetProcess(), (void*)&StreamCommand, PriviledgeApp, (uint64_t)OutputRequestData, &OutputRequestData->StreamCommandThread);
-    OutputRequestData->ShareBuffer->StreamCommand = MakeShareableThreadToProcess(OutputRequestData->StreamCommandThread, ProcessKey);
+    OutputRequestData->ShareBuffer->StreamCommand = kot_MakeShareableThreadToProcess(OutputRequestData->StreamCommandThread, ProcessKey);
 
     atomicUnlock(&Lock, 0);
 

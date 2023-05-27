@@ -3,7 +3,7 @@ _HOME = ../../../../../../
 CC = kot-x86_64-clang
 ASMC = nasm
 
-CFLAGS = -O3 -I../Src -fno-exceptions
+CFLAGS = -I../Src -fno-exceptions
 LINKERFLAGS = -Wall -lc -lkot-c++
 ASMFLAGS = 
 

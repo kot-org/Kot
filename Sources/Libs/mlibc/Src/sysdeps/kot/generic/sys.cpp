@@ -73,7 +73,7 @@ KResult kot_Sys_Event_Unbind(kot_event_t self, kot_thread_t task){
     return Syscall_16(KSys_Event_Unbind, self, task);
 }
 
-KResult kot_Sys_kot_event_trigger(kot_event_t self, struct kot_arguments_t* parameters){
+KResult kot_Sys_Event_Trigger(kot_event_t self, struct kot_arguments_t* parameters){
     return Syscall_16(KSys_Event_Trigger, self, parameters);
 }
 

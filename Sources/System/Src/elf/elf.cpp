@@ -35,7 +35,7 @@ namespace ELF {
     }
 
     KResult loadElf(void* buffer, enum kot_Priviledge privilege, uint64_t identifier, kot_thread_t* mainthread, char* rootpath, bool isVFS) {
-        elf_t* self = (elf_t*)calloc(sizeof(elf_t), sizeof(elf_t));
+        elf_t* self = (elf_t*)calloc(1, sizeof(elf_t));
         self->Buffer = buffer;
         self->Header = (Elf64_Ehdr*)buffer;
 
@@ -80,7 +80,7 @@ namespace ELF {
                     HeapLocation -= HeapLocation % KotSpecificData.MMapPageSize;
                     HeapLocation += KotSpecificData.MMapPageSize;
                 }
-                KotSpecificDataClient = (kot_SpecificData_t*)calloc(sizeof(kot_SpecificData_t), sizeof(kot_SpecificData_t));
+                KotSpecificDataClient = (kot_SpecificData_t*)calloc(1, sizeof(kot_SpecificData_t));
                 KotSpecificDataClient->MMapPageSize = KotSpecificData.MMapPageSize;
                 KotSpecificDataClient->HeapLocation = HeapLocation;
                 KotSpecificDataClient->FreeMemorySpace = KotSpecificData.FreeMemorySpace;

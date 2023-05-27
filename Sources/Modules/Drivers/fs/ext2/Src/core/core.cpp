@@ -106,7 +106,7 @@ uint64_t mount_info_t::GetIndexInodeInsideBlockGroupFromInode(uint64_t inode){
 
 /* Inode functions */
 inode_t* mount_info_t::GetInode(uint64_t position){
-    inode_t* Inode = (inode_t*)calloc(InodeSize + INODE_EXTRA_SIZE, sizeof(uint8_t));
+    inode_t* Inode = (inode_t*)calloc(1, InodeSize + INODE_EXTRA_SIZE);
     ext2_group_descriptor_t* DescriptorGroup = GetDescriptorFromInode(position);
 
     uint64_t InodeTableBlock = GetInodeTable(DescriptorGroup);

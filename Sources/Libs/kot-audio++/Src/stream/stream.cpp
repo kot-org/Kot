@@ -3,15 +3,15 @@
 namespace Audio{
     
     void OnDeviceUpdateHandler(uint64_t DeviceID, uint64_t OldDeviceID){
-        Stream* AudioStream = (Stream*)Sys_GetExternalDataThread();
+        Stream* AudioStream = (Stream*)kot_Sys_GetExternalDataThread();
         AudioStream->OnDeviceUpdate(DeviceID, OldDeviceID);
-        Sys_Event_Close();
+        kot_Sys_Event_Close();
     }
 
     void OnOffsetUpdateHandler(){
-        Stream* AudioStream = (Stream*)Sys_GetExternalDataThread();
+        Stream* AudioStream = (Stream*)kot_Sys_GetExternalDataThread();
         AudioStream->OnOffsetUpdate();
-        Sys_Event_Close();        
+        kot_Sys_Event_Close();        
     }
 
     Stream::Stream(uint64_t DeviceID){
@@ -21,59 +21,59 @@ namespace Audio{
         Lock = NULL;
 
         /* Initialize offset update */
-        kot_Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&OnOffsetUpdateHandler, PriviledgeApp, (uint64_t)this, &OffsetUpdate);
+        kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&OnOffsetUpdateHandler, PriviledgeApp, (uint64_t)this, &OffsetUpdate);
 
         /* Initialize device update */
-        kot_Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&OnDeviceUpdateHandler, PriviledgeApp, (uint64_t)this, &DeviceUpdate);
+        kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&OnDeviceUpdateHandler, PriviledgeApp, (uint64_t)this, &DeviceUpdate);
         StreamBuffer = NULL;
-        Sys_Event_Bind(((uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio))->OnDeviceChanged, DeviceUpdate, false);
+        kot_Sys_Event_Bind(((kot_uisd_audio_t*)kot_FindControllerUISD(ControllerTypeEnum_Audio))->OnDeviceChanged, DeviceUpdate, false);
 
         /* Request stream, if event didn't do it before */
         atomicAcquire(&Lock, 0);
         if(!StreamBuffer){
-            struct srv_audio_callback_t* Callback = Srv_Audio_RequestStream(DeviceID, true);
-            StreamBuffer = (audio_share_buffer_t*)Callback->Data;
+            struct kot_srv_audio_callback_t* Callback = kot_Srv_Audio_RequestStream(DeviceID, true);
+            StreamBuffer = (kot_audio_share_buffer_t*)Callback->Data;
             free(Callback);
-            Sys_AcceptMemoryField(Sys_GetProcess(), StreamBuffer->StreamBufferKey, &LocalStreamBuffer.Base);
+            kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), StreamBuffer->StreamBufferKey, &LocalStreamBuffer.Base);
             LocalStreamBuffer.Size = StreamBuffer->StreamRealSize;
-            Sys_Event_Bind(StreamBuffer->OnOffsetUpdate, OffsetUpdate, false);
+            kot_Sys_Event_Bind(StreamBuffer->OnOffsetUpdate, OffsetUpdate, false);
         }
         atomicUnlock(&Lock, 0);
 
     }
 
     Stream::~Stream(){
-        CloseStream(StreamBuffer);
+        kot_CloseStream(StreamBuffer);
         free(StreamBuffer);
     }
 
-    srv_audio_device_info_t* Stream::GetDeviceInfoStream(){
-        srv_audio_callback_t* Callback = Srv_Audio_GetDeviceInfo(OutputID, true);
+    kot_srv_audio_device_info_t* Stream::GetDeviceInfoStream(){
+        kot_srv_audio_callback_t* Callback = kot_Srv_Audio_GetDeviceInfo(OutputID, true);
         if(Callback->Status != KSUCCESS){
             free(Callback);
             return NULL;
         }
-        srv_audio_device_info_t* Info = (srv_audio_device_info_t*)Callback->Data;
+        kot_srv_audio_device_info_t* Info = (kot_srv_audio_device_info_t*)Callback->Data;
         free(Callback);
         return Info;
     }
 
     KResult Stream::SetVolume(uint8_t Volume){
-        return ChangeVolumeStream(StreamBuffer, Volume);
+        return kot_ChangeVolumeStream(StreamBuffer, Volume);
     }
 
     KResult Stream::OnDeviceUpdate(uint64_t DeviceID, uint64_t OldDeviceID){
         if(DeviceID == OutputID){
             atomicAcquire(&Lock, 0);
             if(StreamBuffer){
-                Sys_CloseMemoryField(Sys_GetProcess(), StreamBuffer->StreamBufferKey, LocalStreamBuffer.Base);
+                kot_Sys_CloseMemoryField(kot_Sys_GetProcess(), StreamBuffer->StreamBufferKey, LocalStreamBuffer.Base);
                 free(StreamBuffer);
             }
-            struct srv_audio_callback_t* Callback = Srv_Audio_RequestStream(OutputID, true);
-            StreamBuffer = (audio_share_buffer_t*)Callback->Data;      
-            Sys_AcceptMemoryField(Sys_GetProcess(), StreamBuffer->StreamBufferKey, &LocalStreamBuffer.Base);
+            struct kot_srv_audio_callback_t* Callback = kot_Srv_Audio_RequestStream(OutputID, true);
+            StreamBuffer = (kot_audio_share_buffer_t*)Callback->Data;      
+            kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), StreamBuffer->StreamBufferKey, &LocalStreamBuffer.Base);
             LocalStreamBuffer.Size = StreamBuffer->StreamRealSize; 
-            Sys_Event_Bind(StreamBuffer->OnOffsetUpdate, OffsetUpdate, false);     
+            kot_Sys_Event_Bind(StreamBuffer->OnOffsetUpdate, OffsetUpdate, false);     
             atomicUnlock(&Lock, 0);
         }
         return KSUCCESS;
@@ -112,7 +112,7 @@ namespace Audio{
         return KSUCCESS;
     }
 
-    KResult Stream::AddBuffer(uintptr_t Base, size64_t Size){
+    KResult Stream::AddBuffer(void* Base, size64_t Size){
         Buffer NewBuffer{
             .Buffer{
                 .Base = Base,

@@ -25,6 +25,7 @@ struct LibraryGuard {
 	LibraryGuard();
 };
 
+uint64_t ExecFlags = 0;
 
 static LibraryGuard guard;
 
@@ -50,9 +51,16 @@ LibraryGuard::LibraryGuard() {
 			__mlibc_stack_data.envp);
 }
 
+extern int kot_InitFS();
+
 extern "C" void __mlibc_entry(uintptr_t *entry_stack, int (*main_fn)(int argc, char *argv[], char *env[]), uint64_t Flags) {
 	__dlapi_enter(entry_stack);
-	if(!(Flags & (1 << 0))){
+
+	ExecFlags = Flags;
+
+	kot_InitFS();
+
+	if(!(Flags & EXEC_FLAGS_SHELL_DISABLED)){
 		kot_InitializeShell();
 	}
 	auto result = main_fn(__mlibc_stack_data.argc, __mlibc_stack_data.argv, environ);

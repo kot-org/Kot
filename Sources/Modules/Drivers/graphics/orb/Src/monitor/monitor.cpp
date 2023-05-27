@@ -9,8 +9,8 @@ monitorc::monitorc(orbc* Parent, void* FbBase, uint64_t Width, uint64_t Height, 
     this->YPosition = YPosition;
     this->YMaxPosition = YPosition + Height;
 
-    MainFramebuffer = (kot_framebuffer_t*)calloc(sizeof(kot_framebuffer_t));
-    BackFramebuffer = (kot_framebuffer_t*)calloc(sizeof(kot_framebuffer_t));
+    MainFramebuffer = (kot_framebuffer_t*)calloc(1, sizeof(kot_framebuffer_t));
+    BackFramebuffer = (kot_framebuffer_t*)calloc(1, sizeof(kot_framebuffer_t));
 
     MainFramebuffer->Buffer = FbBase;
     MainFramebuffer->Width = Width;
@@ -20,7 +20,7 @@ monitorc::monitorc(orbc* Parent, void* FbBase, uint64_t Width, uint64_t Height, 
     MainFramebuffer->Btpp = Bpp / 8;
     MainFramebuffer->Size = MainFramebuffer->Pitch * Height;
 
-    BackFramebuffer->Buffer = calloc(MainFramebuffer->Pitch * Height);
+    BackFramebuffer->Buffer = calloc(Height, MainFramebuffer->Pitch);
     BackFramebuffer->Width = Width;
     BackFramebuffer->Height = Height;
     BackFramebuffer->Pitch = MainFramebuffer->Pitch;

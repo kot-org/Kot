@@ -43,8 +43,8 @@ class hidc{
 
         kot_thread_t KeyboardInterruptThread;
 
-        point_t CursorPosition;
-        point_t CursorMaxPosition;
+        kot_point_t CursorPosition;
+        kot_point_t CursorMaxPosition;
 
         uint64_t CursorWidth;
         uint64_t CursorHeight;

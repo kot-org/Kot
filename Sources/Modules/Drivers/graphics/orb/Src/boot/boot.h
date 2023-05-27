@@ -3,7 +3,7 @@
 #include <core/main.h>
 
 struct BGRTHeader_t{
-    srv_system_sdtheader_t Header;
+    kot_srv_system_sdtheader_t Header;
     uint16_t VendorID;
     uint8_t Status;
     uint8_t PictureboxType;

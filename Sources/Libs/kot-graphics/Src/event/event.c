@@ -11,7 +11,7 @@ graphiceventbuffer_t* CreateEventBuffer(uint64_t Width, uint64_t Height){
 
     EventBuffer->Pitch = EventBuffer->Width * EventBuffer->Btpp;
     EventBuffer->Size = EventBuffer->Pitch * EventBuffer->Height;
-    EventBuffer->Buffer = calloc(EventBuffer->Size, sizeof(uint64_t));
+    EventBuffer->Buffer = calloc(1, EventBuffer->Size);
 
     return EventBuffer;
 }
@@ -41,7 +41,7 @@ void SetGraphicEventbuffer(graphiceventbuffer_t* Framebuffer, uint64_t Value, ui
     uint64_t PitchCopy = WithCopy * Framebuffer->Btpp;
 
     for(uint64_t H = 0; H < HeightCopy; H++){
-        memset64((void*)Buffer, Value, PitchCopy);
+        kot_memset64((void*)Buffer, Value, PitchCopy);
         Buffer += Framebuffer->Pitch;
     }
 }

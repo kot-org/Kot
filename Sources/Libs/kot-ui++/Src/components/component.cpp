@@ -74,7 +74,7 @@ namespace Ui {
         uint32_t Pitch = Width * Btpp;
 
         CpntFb->Size = Height * Pitch;
-        CpntFb->Buffer = calloc(CpntFb->Size, Btpp);
+        CpntFb->Buffer = calloc(1, CpntFb->Size);
         CpntFb->Pitch = Pitch;
         CpntFb->Width = Width;
         CpntFb->Height = Height;
@@ -95,7 +95,7 @@ namespace Ui {
 
                 Framebuffer->Size = Height * Pitch;
                 void* OldBuffer = Framebuffer->Buffer;
-                Framebuffer->Buffer = calloc(Framebuffer->Size, Framebuffer->Btpp);
+                Framebuffer->Buffer = calloc(1, Framebuffer->Size);
                 free(OldBuffer);
                 Framebuffer->Pitch = Pitch;
                 Framebuffer->Width = Width;

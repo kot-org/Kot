@@ -1,16 +1,16 @@
 #include <core/main.h>
 
-uisd_graphics_t* SrvData;
+kot_uisd_graphics_t* SrvData;
 
 KResult InitialiseServer(orbc* Orb){
-    kot_process_t proc = Sys_GetProcess();
+    kot_process_t proc = kot_Sys_GetProcess();
 
-    void* address = GetFreeAlignedSpace(sizeof(uisd_graphics_t));
+    void* address = kot_GetFreeAlignedSpace(sizeof(kot_uisd_graphics_t));
     kot_key_mem_t key = NULL;
-    Sys_CreateMemoryField(proc, sizeof(uisd_graphics_t), &address, &key, MemoryFieldTypeShareSpaceRO);
+    kot_Sys_CreateMemoryField(proc, sizeof(kot_uisd_graphics_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
-    SrvData = (uisd_graphics_t*)address;
-    memset(SrvData, 0, sizeof(uisd_graphics_t)); // Clear data
+    SrvData = (kot_uisd_graphics_t*)address;
+    memset(SrvData, 0, sizeof(kot_uisd_graphics_t)); // Clear data
 
     SrvData->ControllerHeader.IsReadWrite = false;
     SrvData->ControllerHeader.Version = ORB_Srv_Version;
@@ -23,7 +23,7 @@ KResult InitialiseServer(orbc* Orb){
     kot_Sys_CreateThread(proc, (void*)&CreateWindowSrv, PriviledgeApp, (uint64_t)Orb, &CreateWindowThread);
     SrvData->CreateWindow = kot_MakeShareableThread(CreateWindowThread, PriviledgeApp);
 
-    kot_uisd_callbackInfo_t* Callback = CreateControllerUISD(ControllerTypeEnum_Graphics, key, true);
+    kot_uisd_callbackInfo_t* Callback = kot_CreateControllerUISD(ControllerTypeEnum_Graphics, key, true);
     KResult Status = Callback->Status;
     free(Callback);
     
@@ -31,12 +31,12 @@ KResult InitialiseServer(orbc* Orb){
 }
 
 KResult CreateWindowSrv(kot_thread_t Callback, uint64_t CallbackArg, kot_process_t Target, kot_event_t Event, uint64_t WindowType){
-    orbc* Orb = (orbc*)Sys_GetExternalDataThread();
+    orbc* Orb = (orbc*)kot_Sys_GetExternalDataThread();
 
     windowc* Window = NULL;
     
     if((Window = new windowc(Orb, WindowType, Event)) != NULL){
-        ShareDataWithArguments_t Data{
+        kot_ShareDataWithArguments_t Data{
             .ParameterPosition = 0x3,
             .Data = Window->GetFramebuffer(),
             .Size = sizeof(kot_framebuffer_t),
@@ -45,8 +45,8 @@ KResult CreateWindowSrv(kot_thread_t Callback, uint64_t CallbackArg, kot_process
         Window->Target = Target;
 
         kot_thread_t GraphicsHandlerThread = NULL;
-        kot_Sys_CreateThread(Sys_GetProcess(), (void*)&WindowGraphicsHandler, PriviledgeApp, (uint64_t)Window, &GraphicsHandlerThread);
-        kot_thread_t ShareableGraphicsHandlerThread = MakeShareableThreadToProcess(GraphicsHandlerThread, Window->Target);
+        kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&WindowGraphicsHandler, PriviledgeApp, (uint64_t)Window, &GraphicsHandlerThread);
+        kot_thread_t ShareableGraphicsHandlerThread = kot_MakeShareableThreadToProcess(GraphicsHandlerThread, Window->Target);
         
         kot_arguments_t Arguments{
             .arg[0] = KSUCCESS,                         /* Status */
@@ -98,7 +98,7 @@ KResult WindowGraphicsHandler(kot_thread_t Callback, uint64_t CallbackArg, uint6
         kot_Sys_Close(KSUCCESS);
     }
 
-    windowc* Window = (windowc*)Sys_GetExternalDataThread();
+    windowc* Window = (windowc*)kot_Sys_GetExternalDataThread();
     kot_Sys_Close(WindowDispatcher[Function](Callback, CallbackArg, Window, GP1, GP2, GP3));
 }
 
@@ -120,15 +120,15 @@ KResult WindowClose(kot_thread_t Callback, uint64_t CallbackArg, windowc* Window
 KResult WindowResize(kot_thread_t Callback, uint64_t CallbackArg, windowc* Window, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     KResult Status = Window->Resize(GP0, GP1);
     if(Status == KSUCCESS){
-        ShareDataWithArguments_t Data{
+        kot_ShareDataWithArguments_t Data{
             .ParameterPosition = 0x3,
             .Data = Window->GetFramebuffer(),
             .Size = sizeof(kot_framebuffer_t),
         };
 
         kot_thread_t GraphicsHandlerThread = NULL;
-        kot_Sys_CreateThread(Sys_GetProcess(), (void*)&WindowGraphicsHandler, PriviledgeApp, (uint64_t)Window, &GraphicsHandlerThread);
-        kot_thread_t ShareableGraphicsHandlerThread = MakeShareableThreadToProcess(GraphicsHandlerThread, Window->Target);
+        kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&WindowGraphicsHandler, PriviledgeApp, (uint64_t)Window, &GraphicsHandlerThread);
+        kot_thread_t ShareableGraphicsHandlerThread = kot_MakeShareableThreadToProcess(GraphicsHandlerThread, Window->Target);
         
         kot_arguments_t Arguments{
             .arg[0] = Status,                           /* Status */

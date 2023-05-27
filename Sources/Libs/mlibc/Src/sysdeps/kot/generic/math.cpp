@@ -17,4 +17,8 @@ int ipow(int base, int exp){
     return result;
 }
 
+int8_t kot_sgn(int64_t x){
+    return (x > 0) - (x < 0);
+}
+
 }

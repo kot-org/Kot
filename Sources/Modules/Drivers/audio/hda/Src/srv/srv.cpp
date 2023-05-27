@@ -5,7 +5,7 @@ KResult InitializeSrv(HDAOutput* Output){
 
     kot_thread_t ChangeStatusThread;
     kot_Sys_CreateThread(Sys_GetProcess(), (void*)&ChangeStatus, PriviledgeDriver, (uint64_t)Output, &ChangeStatusThread);
-    Output->AudioDevice.ChangeStatus = MakeShareableThreadToProcess(ChangeStatusThread, ProcessToShareData);
+    Output->AudioDevice.ChangeStatus = kot_MakeShareableThreadToProcess(ChangeStatusThread, ProcessToShareData);
 
     Sys_Event_Create(&Output->OffsetUpdateEvent);
     Sys_Keyhole_CloneModify(Output->OffsetUpdateEvent, &Output->AudioDevice.OnOffsetUpdate, ProcessToShareData, KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeApp);

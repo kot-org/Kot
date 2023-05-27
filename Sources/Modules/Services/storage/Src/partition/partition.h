@@ -44,7 +44,7 @@ struct partition_t{
 };
 
 struct notify_info_t{
-    kot_GUID_t* GUIDTarget;
+    kot_GUID_t GUIDTarget;
     kot_thread_t ThreadToNotify;
     kot_process_t ProcessToNotify;
 };

@@ -34,25 +34,25 @@ typedef struct kot_arguments_t{
     uint64_t arg[6];
 }__attribute__((packed));
 
-typedef struct{
-    uint32_t Data0:32;
+typedef struct kot_GUID_t{
+    uint32_t Data0;
 
-    uint16_t Data1:16;
-    uint16_t Data2:16;
-    uint16_t Data3:16;
+    uint16_t Data1;
+    uint16_t Data2;
+    uint16_t Data3;
 
-    uint64_t Data4:48;
-}kot_GUID_t;
+    uint8_t Data4[6];
+}__attribute__((packed));
 
-typedef struct{
-    uint32_t Data0:32;
+typedef struct kot_UUID_t{
+    uint32_t Data0;
 
-    uint16_t Data1:16;
-    uint16_t Data2:16;
-    uint16_t Data3:16;
+    uint16_t Data1;
+    uint16_t Data2;
+    uint16_t Data3;
 
-    uint64_t Data4:48;
-}kot_UUID_t;
+    uint8_t Data4[6];
+}__attribute__((packed));
 
 // cyclic buffer
 typedef struct{

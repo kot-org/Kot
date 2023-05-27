@@ -3,7 +3,7 @@
 kot_thread_t ListenerEventThread;
 
 kot_GUID_t GUIDToListen[]{
-    {.Data0 = 0x0FC63DAF, .Data1 = 0x8483, .Data2 = 0x4772, .Data3 = 0x8E79, .Data4 = 0x3D69D8477DE4}
+    {.Data0 = 0x0FC63DAF, .Data1 = 0x8483, .Data2 = 0x4772, .Data3 = 0x798E, .Data4{0x3D, 0x69, 0xD8, 0x47, 0x7D, 0xE4}}
 };
 
 kot_process_t ProcessKey;

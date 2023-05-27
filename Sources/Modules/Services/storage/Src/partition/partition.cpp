@@ -27,7 +27,7 @@ partition_t* NewPartition(storage_device_t* Device, uint64_t Start, uint64_t Siz
 
     for(uint64_t i = 0; i < PartitionsListNotify->length; i++){
         notify_info_t* NotifyInfo = (notify_info_t*)kot_vector_get(PartitionsListNotify, i);
-        if(memcmp(&Self->PartitionTypeGUID, NotifyInfo->GUIDTarget, sizeof(kot_GUID_t))){
+        if(!memcmp(&Self->PartitionTypeGUID, &NotifyInfo->GUIDTarget, sizeof(kot_GUID_t))){
             kot_srv_storage_space_info_t* Space;
             Self->Device->CreateSpace(Start, Size, &Space);
             kot_vector_push(Self->SpaceList, Space);
@@ -75,21 +75,21 @@ uint64_t NotifyOnNewPartitionByGUIDType(kot_GUID_t* GUIDTarget, kot_thread_t Thr
         atomicAcquire(&PartitionLock, 0);
         for(uint64_t i = 0; i < PartitionsListNotify->length; i++){
             notify_info_t* NotifyInfo = (notify_info_t*)kot_vector_get(PartitionsListNotify, i);
-            if(memcmp(&GUIDTarget, NotifyInfo->GUIDTarget, sizeof(kot_GUID_t))){
+            if(!memcmp(GUIDTarget, &NotifyInfo->GUIDTarget, sizeof(kot_GUID_t))){
                 atomicUnlock(&PartitionLock, 0);
                 return KFAIL;
             }
         }
     
         notify_info_t* NotifyInfo = (notify_info_t*)malloc(sizeof(notify_info_t));
-        NotifyInfo->GUIDTarget = GUIDTarget;
+        memcpy(&NotifyInfo->GUIDTarget, GUIDTarget, sizeof(kot_GUID_t));
         NotifyInfo->ThreadToNotify = ThreadToNotify;
         NotifyInfo->ProcessToNotify = ProcessToNotify;
         kot_vector_push(PartitionsListNotify, NotifyInfo);
 
         for(uint64_t i = 1; i < PartitionsList->length; i++){
             partition_t* Partition = (partition_t*)kot_vector_get(PartitionsList, i);
-            if(memcmp(&Partition->PartitionTypeGUID, NotifyInfo->GUIDTarget, sizeof(kot_GUID_t))){
+            if(!memcmp(&Partition->PartitionTypeGUID, &NotifyInfo->GUIDTarget, sizeof(kot_GUID_t))){
                 kot_srv_storage_space_info_t* Space;
                 Partition->Device->CreateSpace(Partition->Start, Partition->Size, &Space);
                 kot_vector_push(Partition->SpaceList, Space);
@@ -159,7 +159,7 @@ KResult UnmountPartition(uint64_t PartitonID){
 }
 
 void LoadPartitionSystem(storage_device_t* Device){
-    device_partitions_t* Partitons = (device_partitions_t*)calloc(sizeof(device_partitions_t), sizeof(device_partitions_t));
+    device_partitions_t* Partitons = (device_partitions_t*)calloc(1, sizeof(device_partitions_t));
     Partitons->Device = Device;
     Partitons->LoadPartitions();
 }

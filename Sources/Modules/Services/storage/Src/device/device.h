@@ -3,11 +3,13 @@
 #include <core/main.h>
 #include <partition/partition.h>
 #include <kot/uisd/srvs/storage.h>
+#include <kot/uisd/srvs/storage/device.h>
 
 struct storage_callback_t{
     kot_thread_t MainThread;
     void* Data;
     size64_t Size;
+    KResult Status;
 };
 
 struct storage_device_t{
@@ -29,7 +31,7 @@ struct storage_device_t{
 };
 
 KResult CallbackCreateSpaceHandler(KResult Status, storage_callback_t* CallbackData, kot_srv_storage_space_info_t* SpaceInfo);
-KResult CallbackRequestHandler(KResult Status, kot_thread_t MainThread);
+KResult CallbackRequestHandler(KResult Status, storage_callback_t* CallbackData);
 
 KResult AddDevice(kot_srv_storage_device_info_t* Info, storage_device_t** DevicePointer);
 KResult RemoveDevice(storage_device_t* Device);

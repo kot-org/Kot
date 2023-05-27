@@ -24,7 +24,7 @@ KResult NewDev(kot_thread_t Callback, uint64_t CallbackArg, void* Opaque){
     Dev->VirtualPartition.IsMount = true;
     Dev->VirtualPartition.Start = 0;
     Dev->VirtualPartition.Size = 0;
-    Dev->VirtualPartition.PartitionTypeGUID = {.Data0 = 0, .Data1 = 0, .Data2 = 0, .Data3 = 0, .Data4 = 0};
+    memset(&Dev->VirtualPartition.PartitionTypeGUID, 0, sizeof(kot_GUID_t));
     Dev->VirtualPartition.Device = 0;
     Dev->VirtualPartition.SpaceList = 0;
     Dev->VirtualPartition.StaticVolumeMountPoint = 0;

@@ -56,25 +56,30 @@ KResult storage_device_t::CreateSpace(uint64_t Start, size64_t Size, kot_srv_sto
     return KSUCCESS;
 }
 
-KResult CallbackRequestHandler(KResult Status, kot_thread_t MainThread){
-    kot_Sys_Unpause(MainThread);
+KResult CallbackRequestHandler(KResult Status, storage_callback_t* CallbackData){
+    CallbackData->Status = Status;
+    kot_Sys_Unpause(CallbackData->MainThread);
     kot_Sys_Close(KSUCCESS);
 }
 
 KResult storage_device_t::SendRequest(uint64_t Start, size64_t Size, bool IsWrite){
-    storage_callback_t* callbackData = (storage_callback_t*)malloc(sizeof(storage_callback_t));
-    callbackData->MainThread = kot_Sys_GetThread();
+    storage_callback_t* CallbackData = (storage_callback_t*)malloc(sizeof(storage_callback_t));
+    CallbackData->Status = KBUSY;
+    CallbackData->MainThread = kot_Sys_GetThread();
 
     kot_arguments_t parameters;
     parameters.arg[0] = CallbackRequestHandlerThread;
-    parameters.arg[1] = kot_Sys_GetThread();
-    parameters.arg[2] = NULL; // Sigle request
+    parameters.arg[1] = (uint64_t)CallbackData;
+    parameters.arg[2] = STORAGE_SINGLE_REQUEST;
     parameters.arg[3] = Start;
     parameters.arg[4] = Size;
     parameters.arg[5] = IsWrite;
     kot_Sys_ExecThread(Info.MainSpace.RequestToDeviceThread, &parameters, ExecutionTypeQueu, NULL);
     kot_Sys_Pause(false);
-    return KSUCCESS;
+
+    KResult Status = CallbackData->Status;
+    free(CallbackData);
+    return Status;
 }
 
 uint64_t storage_device_t::GetBufferStartingAddress(uint64_t Start){
@@ -88,6 +93,8 @@ KResult storage_device_t::ReadDevice(void* Buffer, uint64_t Start, size64_t Size
     uint64_t AddressDst = (uint64_t)Buffer;
     uint64_t SizeToReadInIteration = SizeToRead;
 
+    KResult Status = KSUCCESS;
+
     for(uint64_t i = 0; i < RequestNum; i++){
         if(SizeToRead > Info.MainSpace.BufferRWUsableSize){
             SizeToReadInIteration = Info.MainSpace.BufferRWUsableSize;
@@ -96,7 +103,11 @@ KResult storage_device_t::ReadDevice(void* Buffer, uint64_t Start, size64_t Size
         }
 
         atomicAcquire(&Lock, 0);
-        SendRequest(StartInIteration, SizeToReadInIteration, false);
+        Status = SendRequest(StartInIteration, SizeToReadInIteration, false);
+        if(Status != KSUCCESS){
+            atomicUnlock(&Lock, 0);
+            return Status;
+        }
         memcpy((void*)AddressDst, (void*)GetBufferStartingAddress(StartInIteration), SizeToReadInIteration);
         atomicUnlock(&Lock, 0);
 

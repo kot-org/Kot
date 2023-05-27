@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdlib.h>
 #include <kot/types.h>
 #include <kot/memory.h>

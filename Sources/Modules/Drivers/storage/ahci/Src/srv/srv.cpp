@@ -106,9 +106,8 @@ void SrvSingleRequestHandler(kot_thread_t Callback, uint64_t CallbackArg, uint64
     KResult Status = KFAIL;
 
     Space_t* Space = (Space_t*)kot_Sys_GetExternalDataThread();
-
     if(Size <= Space->StorageDevice->BufferUsableSize){
-        if((Start + (uint64_t)Size) <= Space->StorageDevice->GetSize()){
+        if((Start + (uint64_t)Size) <= Space->Size){
             Start += Space->Start;
             atomicAcquire(&Space->StorageDevice->DeviceLock, 0);
             Space->StorageDevice->LoadSpace(Space);
@@ -155,7 +154,7 @@ void SrvMultipleRequestHandler(kot_thread_t Callback, uint64_t CallbackArg, kot_
         kot_srv_storage_request_t Request = Requests->Requests[i];
 
         if(Request.Size <= Space->StorageDevice->BufferUsableSize){
-            if((Request.Start + (uint64_t)Request.Size) <= Space->StorageDevice->GetSize()){
+            if((Request.Start + (uint64_t)Request.Size) <= Space->Size){
                 Request.Start += Space->Start;
 
                 uint64_t RequestNum = DIV_ROUND_UP(Request.Size, Space->StorageDevice->BufferUsableSize);

@@ -17,10 +17,20 @@
 
 uint64_t kot_LockFDList;
 kot_file_t* kot_FDList[MAX_OPEN_FILES];
-int kot_FDCount = 0;
+int kot_FDCount;
 uint64_t kot_LockHandleList;
 kot_directory_t* kot_HandleList[MAX_OPEN_DIRS];
-int kot_HandleCount = 0;
+int kot_HandleCount;
+
+extern uint64_t ExecFlags;
+
+int kot_InitFS(){
+    kot_LockFDList = 0;
+    kot_LockHandleList = 0;
+    kot_HandleCount = 0;
+    kot_FDCount = 3;
+    return 0;
+}
 
 extern "C" int kot_OpenShellFile(const char *pathname){
     kot_file_t* Shell = kot_fopenmf((char*)pathname, 0, O_CREAT | O_RDWR);
@@ -33,7 +43,6 @@ extern "C" int kot_OpenShellFile(const char *pathname){
     kot_FDList[1] = Shell;      // stdout
     kot_FDList[2] = Shell;      // stderr
 
-    kot_FDCount = 3;
     return 0;
 }
 
@@ -54,6 +63,12 @@ namespace mlibc{
     }
 
     int sys_read(int fd, void *buf, size_t count, ssize_t *bytes_read){
+        if(ExecFlags & EXEC_FLAGS_SHELL_DISABLED){
+            if(fd <= 2){ // Is Shell file 
+                *bytes_read = 0;
+                return 0;
+            }
+        }
         if(fd >= MAX_OPEN_FILES) return EBADF;
         atomicAcquire(&kot_LockFDList, 0);
         kot_file_t* File = kot_FDList[fd];
@@ -78,6 +93,12 @@ namespace mlibc{
     }
 
     int sys_write(int fd, const void *buf, size_t count, ssize_t *bytes_written){
+        if(ExecFlags & EXEC_FLAGS_SHELL_DISABLED){
+            if(fd <= 2){ // Is Shell file 
+                *bytes_written = 0;
+                return 0;
+            }
+        }
         if(count > SSIZE_MAX) return -1;
         if(fd >= MAX_OPEN_FILES) return EBADF;
         atomicAcquire(&kot_LockFDList, 0);
@@ -93,6 +114,12 @@ namespace mlibc{
     }
 
     int sys_seek(int fd, off_t offset, int whence, off_t *new_offset){
+        if(ExecFlags & EXEC_FLAGS_SHELL_DISABLED){
+            if(fd <= 2){ // Is Shell file 
+                *new_offset = 0;
+                return 0;
+            }
+        }
         if(fd >= MAX_OPEN_FILES) return EBADF;
         atomicAcquire(&kot_LockFDList, 0);
         kot_file_t* File = kot_FDList[fd];
@@ -134,6 +161,11 @@ namespace mlibc{
     }
 
     int kot_Sys_Close(int fd){
+        if(ExecFlags & EXEC_FLAGS_SHELL_DISABLED){
+            if(fd <= 2){ // Is Shell file 
+                return 0;
+            }
+        }
         if(fd < MAX_OPEN_FILES){
             atomicAcquire(&kot_LockFDList, 0);
             if(!kot_FDList[fd]){

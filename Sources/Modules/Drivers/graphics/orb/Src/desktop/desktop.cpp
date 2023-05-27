@@ -3,15 +3,15 @@
 #include <kot++/printf.h>
 
 void MouseHandlerDesktop(uint64_t EventType, uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status){
-    monitorc* Monitor = (monitorc*)Sys_GetExternalDataThread();
+    monitorc* Monitor = (monitorc*)kot_Sys_GetExternalDataThread();
     Monitor->DesktopData->Desktop->MouseHandler(PositionX, PositionY, ZValue, Status);
-    Sys_Event_Close();
+    kot_Sys_Event_Close();
 }
 
 void MouseHandlerTaskbar(uint64_t EventType, uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status){
-    monitorc* Monitor = (monitorc*)Sys_GetExternalDataThread();
+    monitorc* Monitor = (monitorc*)kot_Sys_GetExternalDataThread();
     Monitor->DesktopData->Taskbar->MouseHandler(PositionX, PositionY, ZValue, Status);
-    Sys_Event_Close();
+    kot_Sys_Event_Close();
 }
 
 desktopc::desktopc(orbc* Parent){
@@ -96,7 +96,7 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
     /* Desktop */
     Monitor->DesktopData->Desktop = (desktopcomponent*)malloc(sizeof(desktopcomponent));
     Monitor->DesktopData->Desktop->Fb = (kot_framebuffer_t*)malloc(sizeof(kot_framebuffer_t));
-    Monitor->DesktopData->Desktop->Fb->Buffer = calloc(Monitor->BackFramebuffer->Size);
+    Monitor->DesktopData->Desktop->Fb->Buffer = calloc(1, Monitor->BackFramebuffer->Size);
     Monitor->DesktopData->Desktop->Fb->Width = Monitor->BackFramebuffer->Width;
     Monitor->DesktopData->Desktop->Fb->Height = Monitor->BackFramebuffer->Height;
     Monitor->DesktopData->Desktop->Fb->Pitch = Monitor->BackFramebuffer->Pitch;
@@ -105,15 +105,15 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
     Monitor->DesktopData->Desktop->Fb->Size = Monitor->BackFramebuffer->Size;
 
     Monitor->DesktopData->Desktop->MouseEvent = (hid_event_t*)malloc(sizeof(hid_event_t));
-    Sys_Event_Create(&Monitor->DesktopData->Desktop->MouseEvent->Event);
-    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&MouseHandlerDesktop, PriviledgeApp, (uint64_t)Monitor, &Monitor->DesktopData->Desktop->MouseEventThread);
-    Sys_Event_Bind(Monitor->DesktopData->Desktop->MouseEvent->Event, Monitor->DesktopData->Desktop->MouseEventThread, true);
+    kot_Sys_Event_Create(&Monitor->DesktopData->Desktop->MouseEvent->Event);
+    kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&MouseHandlerDesktop, PriviledgeApp, (uint64_t)Monitor, &Monitor->DesktopData->Desktop->MouseEventThread);
+    kot_Sys_Event_Bind(Monitor->DesktopData->Desktop->MouseEvent->Event, Monitor->DesktopData->Desktop->MouseEventThread, true);
 
     Monitor->DesktopData->Desktop->MouseEvent->ParentType = MOUSE_EVENT_PARENT_TYPE_WIDGET;
     Monitor->DesktopData->Desktop->MouseEvent->Parent = Monitor;
 
     Monitor->DesktopData->Desktop->Eventbuffer = CreateEventBuffer(Monitor->DesktopData->Desktop->Fb->Width, Monitor->DesktopData->Desktop->Fb->Height);
-    memset64(Monitor->DesktopData->Desktop->Eventbuffer->Buffer, (uint64_t)Monitor->DesktopData->Desktop->MouseEvent, Monitor->DesktopData->Desktop->Eventbuffer->Size);
+    kot_memset64(Monitor->DesktopData->Desktop->Eventbuffer->Buffer, (uint64_t)Monitor->DesktopData->Desktop->MouseEvent, Monitor->DesktopData->Desktop->Eventbuffer->Size);
     
     Monitor->DesktopData->Desktop->UiCtx = new Ui::UiContext(Monitor->DesktopData->Desktop->Fb);
 
@@ -139,7 +139,7 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
     /* Taskbar */
     Monitor->DesktopData->Taskbar = (desktopcomponent*)malloc(sizeof(desktopcomponent));
     Monitor->DesktopData->Taskbar->Fb = (kot_framebuffer_t*)malloc(sizeof(kot_framebuffer_t));
-    Monitor->DesktopData->Taskbar->Fb->Buffer = calloc(Taskbar->Height * Monitor->BackFramebuffer->Pitch);
+    Monitor->DesktopData->Taskbar->Fb->Buffer = calloc(Taskbar->Height, Monitor->BackFramebuffer->Pitch);
     Monitor->DesktopData->Taskbar->Fb->Width = Monitor->BackFramebuffer->Width;
     Monitor->DesktopData->Taskbar->Fb->Height = Taskbar->Height;
     Monitor->DesktopData->Taskbar->Fb->Pitch = Monitor->BackFramebuffer->Pitch;
@@ -148,15 +148,15 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
     Monitor->DesktopData->Taskbar->Fb->Size = Taskbar->Height * Monitor->BackFramebuffer->Pitch;
 
     Monitor->DesktopData->Taskbar->MouseEvent = (hid_event_t*)malloc(sizeof(hid_event_t));
-    Sys_Event_Create(&Monitor->DesktopData->Taskbar->MouseEvent->Event);
-    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&MouseHandlerTaskbar, PriviledgeApp, (uint64_t)Monitor, &Monitor->DesktopData->Taskbar->MouseEventThread);
-    Sys_Event_Bind(Monitor->DesktopData->Taskbar->MouseEvent->Event, Monitor->DesktopData->Taskbar->MouseEventThread, true);
+    kot_Sys_Event_Create(&Monitor->DesktopData->Taskbar->MouseEvent->Event);
+    kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&MouseHandlerTaskbar, PriviledgeApp, (uint64_t)Monitor, &Monitor->DesktopData->Taskbar->MouseEventThread);
+    kot_Sys_Event_Bind(Monitor->DesktopData->Taskbar->MouseEvent->Event, Monitor->DesktopData->Taskbar->MouseEventThread, true);
 
     Monitor->DesktopData->Taskbar->MouseEvent->ParentType = MOUSE_EVENT_PARENT_TYPE_WIDGET;
     Monitor->DesktopData->Taskbar->MouseEvent->Parent = Monitor;
 
     Monitor->DesktopData->Taskbar->Eventbuffer = CreateEventBuffer(Monitor->DesktopData->Taskbar->Fb->Width, Monitor->DesktopData->Taskbar->Fb->Height);
-    memset64(Monitor->DesktopData->Taskbar->Eventbuffer->Buffer, (uint64_t)Monitor->DesktopData->Taskbar->MouseEvent, Monitor->DesktopData->Taskbar->Eventbuffer->Size);
+    kot_memset64(Monitor->DesktopData->Taskbar->Eventbuffer->Buffer, (uint64_t)Monitor->DesktopData->Taskbar->MouseEvent, Monitor->DesktopData->Taskbar->Eventbuffer->Size);
 
     Monitor->DesktopData->Taskbar->UiCtx = new UiContext(Monitor->DesktopData->Taskbar->Fb);
 
@@ -313,17 +313,17 @@ void UpdateClock(Ui::Label_t* Time, Ui::Label_t* Date){
     char DateStr[1024];
     uint64_t TimerState;
 
-    if(GetSecond()){
-        Sleep((60 - GetSecond()) * 1000);
+    if(kot_GetSecond()){
+        kot_Sleep((60 - kot_GetSecond()) * 1000);
     }
-    GetActualTick(&TimerState);
+    kot_GetActualTick(&TimerState);
 
     while(true){
-        sprintf((char*)&TimeStr, "%d:%d", GetHour(), GetMinute());
+        sprintf((char*)&TimeStr, "%d:%d", kot_GetHour(), kot_GetMinute());
         Time->UpdateText((char*)&TimeStr);
-        sprintf((char*)&DateStr, "%d %s, %d", GetDay(), MonthString[GetMonth()-1], 2023);
+        sprintf((char*)&DateStr, "%d %s, %d", kot_GetDay(), MonthString[kot_GetMonth()-1], 2023);
         Date->UpdateText((char*)&DateStr);
-        SleepFromTick(&TimerState, 60000);
+        kot_SleepFromTick(&TimerState, 60000);
     }
     
     kot_Sys_Close(KSUCCESS);
@@ -350,7 +350,7 @@ void desktopmonitor::InitalizeClock(char* FontPath){
     , Desktop->UiCtx->Cpnt);
 
     char TimeStr[1024];
-    sprintf((char*)&TimeStr, "%d:%d", GetHour(), GetMinute());
+    sprintf((char*)&TimeStr, "%d:%d", kot_GetHour(), kot_GetMinute());
 
     Ui::Label_t* Time = Ui::Label(
         {
@@ -372,7 +372,7 @@ void desktopmonitor::InitalizeClock(char* FontPath){
     , ClockContainer->Cpnt);
 
     char DateStr[1024];
-    sprintf((char*)&DateStr, "%d %s, %d", GetDay(), MonthString[GetMonth()-1], 2023);
+    sprintf((char*)&DateStr, "%d %s, %d", kot_GetDay(), MonthString[kot_GetMonth()-1], 2023);
 
     Ui::Label_t* Date = Ui::Label(
         {
@@ -393,7 +393,7 @@ void desktopmonitor::InitalizeClock(char* FontPath){
         }
     , ClockContainer->Cpnt);
 
-    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&UpdateClock, PriviledgeApp, NULL, &ClockThread);
+    kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&UpdateClock, PriviledgeApp, NULL, &ClockThread);
     
     kot_arguments_t Parameters{
         .arg[0] = (uint64_t)Time,

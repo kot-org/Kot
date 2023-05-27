@@ -56,7 +56,7 @@ struct desktopcomponent{
     struct hid_event_t* MouseEvent;
     kot_thread_t MouseEventThread;
     bool IsCpntFocus;
-    point_t Position;
+    kot_point_t Position;
     void MouseHandler(uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status);
 };
 

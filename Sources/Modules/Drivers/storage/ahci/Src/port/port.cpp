@@ -30,7 +30,7 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
     StartCMD();
 
     // Identify disk
-    IdentifyInfo = (IdentifyInfo_t*)calloc(sizeof(IdentifyInfo_t), sizeof(IdentifyInfo));
+    IdentifyInfo = (IdentifyInfo_t*)calloc(1, sizeof(IdentifyInfo_t));
     GetIdentifyInfo(DefaultSpace);
 
     // Update space size

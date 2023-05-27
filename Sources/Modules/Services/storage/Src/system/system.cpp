@@ -85,7 +85,7 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
             if(Parser->getCode() == JSON_SUCCESS && Parser->getValue()->getType() == JSON_ARRAY){
                 JsonArray* Array = (JsonArray*) Parser->getValue();
 
-                kot_arguments_t* InitParameters = (kot_arguments_t*)calloc(sizeof(kot_arguments_t), sizeof(kot_arguments_t));
+                kot_arguments_t* InitParameters = (kot_arguments_t*)calloc(1, sizeof(kot_arguments_t));
 
                 for(uint64_t i = 0; i < Array->length(); i++){
                     JsonObject* Service = (JsonObject*) Array->Get(i);

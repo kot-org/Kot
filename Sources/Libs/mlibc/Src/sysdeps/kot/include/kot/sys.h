@@ -16,6 +16,8 @@ extern struct kot_SpecificData_t KotSpecificData;
 extern "C" {
 #endif
 
+#define EXEC_FLAGS_SHELL_DISABLED (1 << 0)
+
 struct kot_SpecificData_t{
     /* Memory */
     uint64_t MMapPageSize;
@@ -123,7 +125,7 @@ void* kot_Sys_GetPhysical(void* addressVirtual);
 KResult kot_Sys_Event_Create(kot_event_t* self);
 KResult kot_Sys_Event_Bind(kot_event_t self, kot_thread_t task, bool IgnoreMissedEvents);
 KResult kot_Sys_Event_Unbind(kot_event_t self, kot_thread_t task);
-KResult kot_Sys_kot_event_trigger(kot_event_t self, struct kot_arguments_t* parameters);
+KResult kot_Sys_Event_Trigger(kot_event_t self, struct kot_arguments_t* parameters);
 KResult kot_Sys_Event_Close();
 KResult kot_Sys_CreateThread(kot_process_t self, void* entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result); // TODO make external data field
 KResult kot_Sys_CreateThreadWithoutAutoInit(kot_process_t self, void* entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result); // TODO make external data field

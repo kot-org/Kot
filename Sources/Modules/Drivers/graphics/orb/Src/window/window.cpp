@@ -12,7 +12,7 @@ windowc* WindowForegroundEnd = NULL;
 windowc::windowc(orbc* Parent, uint64_t WindowType, kot_event_t Event){
     Orb = Parent;
 
-    this->Framebuffer = (kot_framebuffer_t*)calloc(sizeof(kot_framebuffer_t));
+    this->Framebuffer = (kot_framebuffer_t*)calloc(1, sizeof(kot_framebuffer_t));
 
     this->Framebuffer->Bpp = DEFAUT_BPP;
     this->Framebuffer->Btpp = DEFAUT_BPP / 8;
@@ -49,17 +49,17 @@ KResult windowc::CreateBuffer(){
     this->Framebuffer->Pitch = this->Framebuffer->Width * this->Framebuffer->Btpp;
     this->Framebuffer->Size = this->Framebuffer->Pitch * this->Framebuffer->Height;
 
-    void* Address = GetFreeAlignedSpace(this->Framebuffer->Size);
+    void* Address = kot_GetFreeAlignedSpace(this->Framebuffer->Size);
     kot_key_mem_t Key = NULL;
-    Sys_CreateMemoryField(Sys_GetProcess(), this->Framebuffer->Size, &Address, &Key, MemoryFieldTypeShareSpaceRW);
+    kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), this->Framebuffer->Size, &Address, &Key, MemoryFieldTypeShareSpaceRW);
     kot_key_mem_t KeyShare = NULL;
-    Sys_Keyhole_CloneModify(Key, &KeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
+    kot_Sys_Keyhole_CloneModify(Key, &KeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
     
     Framebuffer->Buffer = Address;
     FramebufferKey = KeyShare;
 
     if(OldFramebuffer != NULL && OldFramebufferKey != NULL){
-        Sys_CloseMemoryField(Sys_GetProcess(), OldFramebufferKey, OldFramebuffer);
+        kot_Sys_CloseMemoryField(kot_Sys_GetProcess(), OldFramebufferKey, OldFramebuffer);
     }
     // clear window buffer
     memset(Framebuffer->Buffer, NULL, Framebuffer->Size);
@@ -70,7 +70,7 @@ KResult windowc::CreateBuffer(){
 
     void* OldEventBuffer = Eventbuffer->Buffer;
     Eventbuffer->Buffer = malloc(Eventbuffer->Size);
-    memset64(Eventbuffer->Buffer, (uint64_t)this->MouseEvent, Eventbuffer->Size);
+    kot_memset64(Eventbuffer->Buffer, (uint64_t)this->MouseEvent, Eventbuffer->Size);
     free(OldEventBuffer);
 
     return KSUCCESS;
@@ -80,7 +80,7 @@ monitorc* windowc::FindMonitor(){
     for(uint64_t i = 0; i < Orb->Render->Monitors->length; i++){
         monitorc* Monitor = (monitorc*)kot_vector_get(Orb->Render->Monitors, i);
         if(Monitor != NULL){
-            if(IsBeetween(Monitor->YPosition, this->YPosition, Monitor->YMaxPosition)){
+            if(kot_IsBeetween(Monitor->YPosition, this->YPosition, Monitor->YMaxPosition)){
                 return Monitor;
             }
         }
@@ -193,7 +193,7 @@ bool windowc::SetFocusState(bool IsFocus){
             .arg[0] = Window_Event_Focus,   // Event type
             .arg[1] = IsFocus,              // Focus state
         };
-        Sys_Event_Trigger(Event, &Parameters);
+        kot_Sys_Event_Trigger(Event, &Parameters);
     }
 
     return this->IsFocus;

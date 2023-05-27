@@ -25,7 +25,7 @@ shell_t* NewShell(kot_process_t Target){
     Shell->Backbuffer = (kot_framebuffer_t*)malloc(sizeof(kot_framebuffer_t));
 
     memcpy(Shell->Backbuffer, Shell->Framebuffer, sizeof(kot_framebuffer_t));
-    Shell->Backbuffer->Buffer = (void*)calloc(Shell->Framebuffer->Size, sizeof(uint8_t));
+    Shell->Backbuffer->Buffer = (void*)calloc(1, Shell->Framebuffer->Size);
 
     // Load font
     FILE* FontFile = fopen("d0:default-font.sfn", "r");

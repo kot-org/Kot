@@ -1,7 +1,7 @@
 #include <render/render.h>
 
 void ThreadRenderEntry(){
-    renderc* Render = (renderc*)Sys_GetExternalDataThread();
+    renderc* Render = (renderc*)kot_Sys_GetExternalDataThread();
     Render->ThreadRender();
     kot_Sys_Close(KSUCCESS);
 }

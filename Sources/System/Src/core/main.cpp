@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
     initrd::InitrdFile* StarterFile = initrd::Find("Starter.json");
 
     if (StarterFile != NULL) {
-        char* BufferStarterFile = (char*)calloc(StarterFile->size, sizeof(char));
+        char* BufferStarterFile = (char*)calloc(1, StarterFile->size);
         initrd::Read(StarterFile, (void*)BufferStarterFile);
         
         JsonParser* parser = new JsonParser(BufferStarterFile);
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
         if (parser->getCode() == JSON_SUCCESS && parser->getValue()->getType() == JSON_ARRAY) {
             JsonArray* arr = (JsonArray*) parser->getValue();
 
-            kot_arguments_t* InitParameters = (kot_arguments_t*)calloc(sizeof(kot_arguments_t), sizeof(uint64_t));
+            kot_arguments_t* InitParameters = (kot_arguments_t*)calloc(1, sizeof(kot_arguments_t));
 
             InitParameters->arg[2] = 1; // Disable shell
             
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
                     if(!strcmp(file->Get(), "")) continue;
                     initrd::InitrdFile* serviceFile = initrd::Find(file->Get());
                     if (serviceFile != NULL) {
-                        void* bufferServiceFile = (void*)calloc(serviceFile->size, sizeof(uint8_t));
+                        void* bufferServiceFile = (void*)calloc(1, serviceFile->size);
                         initrd::Read(serviceFile, bufferServiceFile);
                         kot_thread_t thread = NULL;
                         int32_t servicePriledge = 3;

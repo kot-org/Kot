@@ -14,7 +14,7 @@ kot_thread_t UISDInitialize(kot_process_t* process) {
     kot_Sys_CreateThread(proc, (void*)UISDHandler, PriviledgeService, NULL, &UISDHandlerThread);
     kot_Sys_Keyhole_CloneModify(UISDHandlerThread, &UISDthreadKey, NULL, KeyholeFlagPresent | KeyholeFlagDataTypeThreadIsExecutableWithQueue, PriviledgeApp);
 
-    UISDControllers = (controller_info_t**)calloc(sizeof(controller_info_t*) * UISDMaxController, sizeof(controller_info_t*));
+    UISDControllers = (controller_info_t**)calloc(UISDMaxController, sizeof(controller_info_t*));
 
     kot_Sys_Keyhole_CloneModify(proc, process, NULL, KeyholeFlagPresent, PriviledgeApp);
 

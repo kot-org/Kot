@@ -21,6 +21,8 @@ typedef struct{
 
 int ipow(int base, int exp);
 
+int8_t kot_sgn(int64_t x);
+
 #if defined(__cplusplus)
 } 
 #endif

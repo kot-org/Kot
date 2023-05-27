@@ -143,8 +143,8 @@ void DrawLine(kot_framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint
     int32_t dx = x2-x1;
     int32_t dy = y2-y1;
 
-    int8_t sx = sgn(dx);
-    int8_t sy = sgn(dy);
+    int8_t sx = kot_sgn(dx);
+    int8_t sy = kot_sgn(dy);
 
     int32_t x = x1;
     int32_t y = y1;

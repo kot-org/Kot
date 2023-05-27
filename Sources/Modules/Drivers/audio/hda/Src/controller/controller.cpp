@@ -330,7 +330,7 @@ void HDAController::WidgetInitialize(HDAFunction* Function, uint8_t WidgetNode){
 }
 
 void HDAController::AddOutputFunction(HDAFunction* Function){
-    HDAOutput* Output = (HDAOutput*)calloc(sizeof(HDAOutput));
+    HDAOutput* Output = (HDAOutput*)calloc(1, sizeof(HDAOutput));
     Output->ControllerParent = this;
     Output->Function = Function;
     Output->IsCurrentRunning = false;
@@ -364,7 +364,7 @@ void HDAController::AddOutputFunction(HDAFunction* Function){
 }
 
 HDAStream* HDAController::CreateStream(HDACodec* Codec, StreamType Type){
-    HDAStream* Stream = (HDAStream*)calloc(sizeof(HDAStream));
+    HDAStream* Stream = (HDAStream*)calloc(1, sizeof(HDAStream));
 
     // Calculate descriptor location
     if(Type == StreamType::Input){

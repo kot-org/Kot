@@ -1,15 +1,15 @@
 #include <hid/hid.h>
 
 void KeyboardInterruptEntry(uint64_t KeyCode){
-    hidc* Hid = (hidc*)Sys_GetExternalDataThread();
+    hidc* Hid = (hidc*)kot_Sys_GetExternalDataThread();
     Hid->KeyboardInterrupt(KeyCode);
-    Sys_Event_Close();   
+    kot_Sys_Event_Close();   
 }
 
 void CursorInterruptEntry(int64_t x, int64_t y, int64_t z, uint64_t status){
-    hidc* Hid = (hidc*)Sys_GetExternalDataThread();
+    hidc* Hid = (hidc*)kot_Sys_GetExternalDataThread();
     Hid->CursorInterrupt(x, y, z, status);
-    Sys_Event_Close();
+    kot_Sys_Event_Close();
 }
 
 hidc::hidc(orbc* Parent){
@@ -51,13 +51,13 @@ hidc::hidc(orbc* Parent){
     free(Header);
     fclose(KursorFile);
 
-    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&CursorInterruptEntry, PriviledgeApp, (uint64_t)this, &MouseRelativeInterruptThread);
+    kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&CursorInterruptEntry, PriviledgeApp, (uint64_t)this, &MouseRelativeInterruptThread);
 
-    BindMouseRelative(MouseRelativeInterruptThread, false);
+    kot_BindMouseRelative(MouseRelativeInterruptThread, false);
 
-    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&KeyboardInterruptEntry, PriviledgeApp, (uint64_t)this, &KeyboardInterruptThread);
+    kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&KeyboardInterruptEntry, PriviledgeApp, (uint64_t)this, &KeyboardInterruptThread);
 
-    BindKeyboardEvent(KeyboardInterruptThread, false);
+    kot_BindKeyboardEvent(KeyboardInterruptThread, false);
 }
 
 void hidc::KeyboardInterrupt(uint64_t KeyCode){
@@ -66,7 +66,7 @@ void hidc::KeyboardInterrupt(uint64_t KeyCode){
             .arg[0] = Window_Event_Keyboard,            // Event type
             .arg[1] = (uint64_t)KeyCode,                // KeyCode
         };
-        Sys_Event_Trigger(CurrentFocusEvent->Event, &Parameters);
+        kot_Sys_Event_Trigger(CurrentFocusEvent->Event, &Parameters);
     }    
 }
 
@@ -117,7 +117,7 @@ void hidc::CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
         for(uint64_t i = 0; i < Orb->Render->Monitors->length; i++){
             monitorc* Monitor = (monitorc*)kot_vector_get(Orb->Render->Monitors, i);
             if(Monitor != NULL){
-                if(IsBeetween(Monitor->XPosition, CursorPosition.x, Monitor->XMaxPosition) && IsBeetween(Monitor->YPosition, CursorPosition.y, Monitor->YMaxPosition)){
+                if(kot_IsBeetween(Monitor->XPosition, CursorPosition.x, Monitor->XMaxPosition) && kot_IsBeetween(Monitor->YPosition, CursorPosition.y, Monitor->YMaxPosition)){
                     hid_event_t* EventData = (hid_event_t*)GetEventData(Monitor->Eventbuffer, CursorPosition.x, CursorPosition.y);
                     CurrentFocusEvent = EventData;
                     if(EventData){
@@ -140,7 +140,7 @@ void hidc::CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status){
             .arg[3] = (uint64_t)z,                      // Z position (scroll)
             .arg[4] = status,                           // Status of buttons
         };
-        Sys_Event_Trigger(CurrentFocusEvent->Event, &Parameters);
+        kot_Sys_Event_Trigger(CurrentFocusEvent->Event, &Parameters);
     }
 }
 

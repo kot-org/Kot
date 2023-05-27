@@ -238,19 +238,20 @@ KResult VFSLoginApp(kot_thread_t Callback, uint64_t CallbackArg, kot_process_t P
     ClientVFSContext* Context = (ClientVFSContext*)malloc(sizeof(ClientVFSContext));
     Context->Authorization = Authorization;
     Context->Permissions = Permissions;
-    Context->PathLength = NULL;
     kot_thread_t VFSClientShareableDispatcherThread = NULL;
     if(GetVFSAbsolutePath(&Context->Path, &Context->Partition, Path) == KSUCCESS){
         if(Context->Path){
             Context->PathLength = strlen(Context->Path);
-            Context->StaticVolumeMountPoint = Context->Partition->StaticVolumeMountPoint;
-            Context->DynamicVolumeMountPoint = Context->Partition->DynamicVolumeMountPoint;
-
-            /* VFSClientDispatcher */
-            kot_thread_t VFSClientDispatcherThread = NULL;
-            kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&VFSClientDispatcher, PriviledgeApp, (uint64_t)Context, &VFSClientDispatcherThread);
-            VFSClientShareableDispatcherThread = kot_MakeShareableThreadToProcess(VFSClientDispatcherThread, Process);
+        }else{
+            Context->PathLength = NULL;
         }
+        Context->StaticVolumeMountPoint = Context->Partition->StaticVolumeMountPoint;
+        Context->DynamicVolumeMountPoint = Context->Partition->DynamicVolumeMountPoint;
+
+        /* VFSClientDispatcher */
+        kot_thread_t VFSClientDispatcherThread = NULL;
+        kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&VFSClientDispatcher, PriviledgeApp, (uint64_t)Context, &VFSClientDispatcherThread);
+        VFSClientShareableDispatcherThread = kot_MakeShareableThreadToProcess(VFSClientDispatcherThread, Process);
     }
     
     kot_arguments_t arguments{
@@ -336,7 +337,7 @@ KResult VFSFileRemove(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSCont
     return Status; 
 }
 
-KResult VFSFileOpen(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t PermissionsContext, kot_permissions_t Permissions, char* Path, kot_process_t Target){
+KResult VFSFileOpen(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t PermissionsContext, kot_permissions_t Permissions, char* Path, kot_process_t Target){    
     partition_t* Partition;
     char* RelativePath;
     
