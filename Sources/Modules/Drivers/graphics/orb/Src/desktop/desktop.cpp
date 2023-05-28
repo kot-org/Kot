@@ -134,6 +134,8 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
     if(IsClock)
         Monitor->DesktopData->InitalizeClock(FontPathClock);
 
+    Monitor->DesktopData->Desktop->UiCtx->UiStartRenderer();
+
     /* Taskbar */
     Monitor->DesktopData->Taskbar = (desktopcomponent*)malloc(sizeof(desktopcomponent));
     Monitor->DesktopData->Taskbar->Fb = (kot_framebuffer_t*)malloc(sizeof(kot_framebuffer_t));
