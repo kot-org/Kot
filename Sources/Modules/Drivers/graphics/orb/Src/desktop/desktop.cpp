@@ -18,18 +18,18 @@ desktopc::desktopc(orbc* Parent){
     kot_Printlog("[ORB/DESKTOP] Initializing...");
     
     /* Play startup sound */
-    Audio::Stream* St = new Audio::Stream(0);
+    // Audio::Stream* St = new Audio::Stream(0);
 
-    FILE* MusicFile = fopen("d1:Kot/Sounds/startup.bin", "r");
+    // FILE* MusicFile = fopen("d1:Kot/Sounds/startup.bin", "r");
 
-    fseek(MusicFile, 0, SEEK_END);
-    size64_t FileSize = ftell(MusicFile);
-    fseek(MusicFile, 0, SEEK_SET); 
+    // fseek(MusicFile, 0, SEEK_END);
+    // size64_t FileSize = ftell(MusicFile);
+    // fseek(MusicFile, 0, SEEK_SET); 
 
-    void* FileBuf = malloc(FileSize);
-    fread(FileBuf, FileSize, 1, MusicFile);
+    // void* FileBuf = malloc(FileSize);
+    // fread(FileBuf, FileSize, 1, MusicFile);
 
-    St->AddBuffer(FileBuf, FileSize);
+    // St->AddBuffer(FileBuf, FileSize);
 
     /* Load desktopUserSettings.json */
 
@@ -133,8 +133,6 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
 
     if(IsClock)
         Monitor->DesktopData->InitalizeClock(FontPathClock);
-
-    Monitor->DesktopData->Desktop->UiCtx->UiStartRenderer();
 
     /* Taskbar */
     Monitor->DesktopData->Taskbar = (desktopcomponent*)malloc(sizeof(desktopcomponent));

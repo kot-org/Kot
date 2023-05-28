@@ -8,7 +8,6 @@ monitorc::monitorc(orbc* Parent, void* FbBase, uint64_t Width, uint64_t Height, 
 
     this->YPosition = YPosition;
     this->YMaxPosition = YPosition + Height;
-
     MainFramebuffer = (kot_framebuffer_t*)calloc(1, sizeof(kot_framebuffer_t));
     BackFramebuffer = (kot_framebuffer_t*)calloc(1, sizeof(kot_framebuffer_t));
 

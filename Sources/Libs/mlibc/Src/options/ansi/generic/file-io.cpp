@@ -623,7 +623,7 @@ FILE *fopen(const char *path, const char *mode) {
 	}
 
 	return frg::construct<mlibc::fd_file>(getAllocator(), fd,
-			mlibc::file_dispose_cb<mlibc::fd_file>);
+			mlibc::file_dispose_cb<mlibc::fd_file>, true);
 }
 
 int fclose(FILE *file_base) {

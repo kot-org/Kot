@@ -62,6 +62,7 @@ KResult kot_Srv_SendRequest(struct kot_srv_storage_device_t* StorageDevice, uint
     Parameters.arg[5] = IsWrite;
     kot_Sys_ExecThread(StorageDevice->SpaceInfo.RequestToDeviceThread, &Parameters, ExecutionTypeQueu, NULL);
     kot_Sys_Pause(false);
+    free(callbackData);
     return KSUCCESS;
 }
 

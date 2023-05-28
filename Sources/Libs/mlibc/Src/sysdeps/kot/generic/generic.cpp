@@ -15,6 +15,8 @@
 extern char **environ;
 extern mlibc::exec_stack_data __mlibc_stack_data;
 
+uint64_t KotAnonAllocateLock = 0;
+
 namespace mlibc{
     void sys_libc_log(const char *message){
         kot_Sys_Logs((char*)message, strlen(message));
@@ -44,12 +46,18 @@ namespace mlibc{
         __ensure(!"Not implemented");
     }
 
-
     int sys_anon_allocate(size_t size, void **pointer){
         // TODO
+        if(size % KotSpecificData.MMapPageSize){
+            size -= size % KotSpecificData.MMapPageSize;
+            size += KotSpecificData.MMapPageSize;
+        }
+        atomicAcquire(&KotAnonAllocateLock, 0);
         *pointer = (void*)KotSpecificData.HeapLocation;
+        int Status = (Syscall_48(KSys_Map, kot_Sys_GetProcess(), (uint64_t)pointer, 0, 0, (uint64_t)&size, false) != KSUCCESS);
         KotSpecificData.HeapLocation += size;
-        return (Syscall_48(KSys_Map, kot_Sys_GetProcess(), (uint64_t)pointer, 0, 0, (uint64_t)&size, true) != KSUCCESS);
+        atomicUnlock(&KotAnonAllocateLock, 0);
+        return Status;
     }
 
     int sys_anon_free(void *pointer, size_t size){

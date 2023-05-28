@@ -87,6 +87,8 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
 
                 kot_arguments_t* InitParameters = (kot_arguments_t*)calloc(1, sizeof(kot_arguments_t));
 
+                InitParameters->arg[2] = 1; // Disable shell
+
                 for(uint64_t i = 0; i < Array->length(); i++){
                     JsonObject* Service = (JsonObject*) Array->Get(i);
                     JsonString* File = (JsonString*) Service->Get("file");
@@ -112,21 +114,26 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
 
                         kot_srv_system_callback_t* Callback = kot_Srv_System_LoadExecutable(Priviledge->Get(), FilePath, true);
 
-                        void* MainStackData;
-                        size64_t SizeMainStackData;
-                        char* Argv[] = {FilePath, NULL};
-                        char* Env[] = {NULL};
-                        SetupStack(&MainStackData, &SizeMainStackData, 1, Argv, Env);
-                        free(FilePath);
+                        if(Callback->Status == KSUCCESS){
+                            void* MainStackData;
+                            size64_t SizeMainStackData;
+                            char* Argv[] = {FilePath, NULL};
+                            char* Env[] = {NULL};
+                            SetupStack(&MainStackData, &SizeMainStackData, 1, Argv, Env);
+                            free(FilePath);
 
-                        kot_ShareDataWithArguments_t Data{
-                            .Data = MainStackData,
-                            .Size = SizeMainStackData,
-                            .ParameterPosition = 0x0,
-                        };
-                        kot_Sys_ExecThread((kot_thread_t)Callback->Data, InitParameters, ExecutionTypeQueu, &Data);
-                        free(MainStackData);
-                        free(Callback);
+                            kot_ShareDataWithArguments_t Data{
+                                .Data = MainStackData,
+                                .Size = SizeMainStackData,
+                                .ParameterPosition = 0x0,
+                            };
+                            assert(kot_Sys_ExecThread((kot_thread_t)Callback->Data, InitParameters, ExecutionTypeQueu, &Data) == KSUCCESS);
+                            free(MainStackData);
+                            free(Callback);
+                        }else{
+                            free(FilePath);
+                            free(Callback);
+                        }
                     }
                 }
                 free(InitParameters);

@@ -28,7 +28,7 @@ orbc::orbc(){
     free(bootframebuffer);
 }
 
-extern "C" int main() {
+int main(){
     orbc* Orb = new orbc();
     InitialiseServer(Orb);
 

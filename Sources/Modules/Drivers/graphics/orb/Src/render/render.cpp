@@ -8,6 +8,7 @@ void ThreadRenderEntry(){
 
 renderc::renderc(orbc* Parent){
     Monitors = kot_vector_create();
+    FirstWindowNode = NULL;
     kot_Sys_CreateThread(ShareableProcess, (void*) &ThreadRenderEntry, PriviledgeDriver, (uint64_t)this, &RenderThread);
 }
 
