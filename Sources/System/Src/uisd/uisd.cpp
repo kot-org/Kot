@@ -67,7 +67,9 @@ KResult UISDCreate(enum kot_uisd_controller_type_enum Controller, kot_thread_t C
         kot_process_t Target = NULL;
         uint64_t Flags = NULL;
         uint64_t Priviledge = NULL;
-        if(kot_Sys_Keyhole_Verify(DataKey, DataTypeSharedMemory, &Target, &Flags, &Priviledge) != KSUCCESS) return KKEYVIOLATION;
+        if(kot_Sys_Keyhole_Verify(DataKey, DataTypeSharedMemory, &Target, &Flags, &Priviledge) != KSUCCESS){
+            return UISDCallbackStatu(UISDCreateTask, Callback, Callbackarg, KKEYVIOLATION);
+        }
         if(kot_Sys_GetInfoMemoryField(DataKey, (uint64_t*)&Type, &Size) == KSUCCESS){
             if(Type == MemoryFieldTypeShareSpaceRW || Type == MemoryFieldTypeShareSpaceRO){
                 if(Size == kot_ControllerTypeSize[Controller]){

@@ -1,8 +1,12 @@
 #pragma once
 
-#include <kot/sys.h>
-#include <assert.h>
 #include <stdio.h>
+#include <assert.h>
+
+#include <kot/sys.h>
+#include <kot/cstring.h>
+
+#include <kot++/new.h>
 
 #include <kot-ui++/window.h>
 

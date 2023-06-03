@@ -1,6 +1,6 @@
 #include <core/main.h>
 
-extern "C" int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     kot_Printlog("[BUS/PCI] Initialization ...");
 
     kot_srv_system_callback_t* Callback = kot_Srv_System_GetTableInRootSystemDescription("MCFG", true);

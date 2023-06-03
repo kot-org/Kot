@@ -207,6 +207,11 @@ KResult Getfilesize(kot_thread_t Callback, uint64_t CallbackArg, ext_file_t* Fil
 /* Direct access */
 KResult Readfile(kot_thread_t Callback, uint64_t CallbackArg, ext_file_t* File, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     size64_t Size = GP1;
+
+    if((GP0 + Size) > File->GetSize()){
+        Size = File->GetSize() - GP0;
+    }
+    
     kot_key_mem_t BufferKey;
 
     KResult Status = File->ReadFile(&BufferKey, GP0, Size);

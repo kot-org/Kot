@@ -18,7 +18,8 @@ size64_t kot_ControllerTypeSize[ControllerCount] = {
     sizeof(kot_uisd_storage_t),
     sizeof(kot_uisd_audio_t),
     sizeof(kot_uisd_usb_t),
-    sizeof(kot_uisd_pci_t)
+    sizeof(kot_uisd_pci_t),
+    sizeof(kot_uisd_shell_t)
 };
 
 kot_thread_t kot_CallBackUISDThread = NULL;

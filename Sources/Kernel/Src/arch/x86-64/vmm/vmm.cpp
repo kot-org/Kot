@@ -296,6 +296,10 @@ void vmm_Unmap(pagetable_t table, uintptr_t Address){
     PTVirtualAddress->entries[indexer.P_i] = NULL;  
 }
 
+uintptr_t vmm_GetPhysical(uintptr_t Address){
+    return vmm_GetPhysical(vmm_PageTable, Address);
+}
+
 uintptr_t vmm_GetPhysical(pagetable_t table, uintptr_t Address){
     vmm_index indexer = vmm_Index((uint64_t)Address);
     uint64_t PDE;

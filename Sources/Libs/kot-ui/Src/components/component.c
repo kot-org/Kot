@@ -27,7 +27,7 @@ component_t* AddComponent(component_t* parent, componentViewParam_t param) {
     uint32_t Pitch = param.Width * parent->fb->Btpp;
 
     fb->Size = param.Height * Pitch;
-    fb->Buffer = calloc(fb->Size);
+    fb->Buffer = calloc(1, fb->Size);
     fb->Pitch = Pitch;
     fb->Width = param.Width;
     fb->Height = param.Height;

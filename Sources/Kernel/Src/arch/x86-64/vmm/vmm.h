@@ -51,6 +51,7 @@ void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bo
 
 void vmm_Unmap(uintptr_t Address);
 void vmm_Unmap(pagetable_t table, uintptr_t Address);
+uintptr_t vmm_GetPhysical(uintptr_t Address);
 uintptr_t vmm_GetPhysical(pagetable_t table, uintptr_t Address);
 
 void vmm_CopyPageTable(pagetable_t tableSource, pagetable_t tableDestination, uint64_t from, uint64_t to);

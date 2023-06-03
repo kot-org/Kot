@@ -22,13 +22,14 @@ uint64_t kot_LockHandleList;
 kot_directory_t* kot_HandleList[MAX_OPEN_DIRS];
 int kot_HandleCount;
 
-extern uint64_t ExecFlags;
+uint64_t FSExecFlags;
 
-int kot_InitFS(){
+int kot_InitFS(uint64_t Flags){
     kot_LockFDList = 0;
     kot_LockHandleList = 0;
     kot_HandleCount = 0;
     kot_FDCount = 3;
+    FSExecFlags = Flags;
     return 0;
 }
 
@@ -49,11 +50,15 @@ extern "C" int kot_OpenShellFile(const char *pathname){
 namespace mlibc{
     int sys_open(const char *pathname, int flags, mode_t mode, int *fd){
         kot_file_t* File = kot_fopenmf((char*)pathname, flags, mode);
-        if(!File) return -1;
+        if(!File){
+            *fd = 0;
+            return -1; 
+        } 
         atomicAcquire(&kot_LockFDList, 0);
         if(kot_FDCount >= MAX_OPEN_FILES){
             kot_fclose(File);
             atomicUnlock(&kot_LockFDList, 0);
+            *fd = 0;
             return -1; // Too many open files
         }
         kot_FDList[kot_FDCount++] = File;
@@ -63,9 +68,9 @@ namespace mlibc{
     }
 
     int sys_read(int fd, void *buf, size_t count, ssize_t *bytes_read){
-        if(ExecFlags & EXEC_FLAGS_SHELL_DISABLED){
+        if(FSExecFlags & EXEC_FLAGS_SHELL_DISABLED){
             if(fd <= 2){ // Is Shell file 
-                *bytes_read = 0;
+                *bytes_read = count;
                 return 0;
             }
         }
@@ -86,16 +91,17 @@ namespace mlibc{
             free(CallbackReadFile);
             return 0;
         }else{
-            *bytes_read = NULL;
+            *bytes_read = 0;
             free(CallbackReadFile);
             return -1;
         }
     }
 
     int sys_write(int fd, const void *buf, size_t count, ssize_t *bytes_written){
-        if(ExecFlags & EXEC_FLAGS_SHELL_DISABLED){
+        if(FSExecFlags & EXEC_FLAGS_SHELL_DISABLED){
             if(fd <= 2){ // Is Shell file 
-                *bytes_written = 0;
+                mlibc::infoLogger() << "mlibc warning: shell is not enabled by the launcher" << frg::endlog;
+                *bytes_written = count;
                 return 0;
             }
         }
@@ -105,16 +111,25 @@ namespace mlibc{
         kot_file_t* File = kot_FDList[fd];
         atomicUnlock(&kot_LockFDList, 0);
         if(File == NULL) return EBADF;
-        if(kot_fwrite((void*)buf, count, 1, File) == KSUCCESS){
+        atomicAcquire(&File->Lock, 0);
+        struct kot_srv_storage_callback_t* CallbackWriteFile = kot_Srv_Storage_Writefile(File, (void*)buf, File->Position, count, File->IsDataEnd, true);
+        KResult Status = CallbackWriteFile->Status;
+        if(Status == KSUCCESS){
+            File->Position += count;
+            atomicUnlock(&File->Lock, 0);
+            free(CallbackWriteFile);
             *bytes_written = count;
             return 0;
         }else{
+            atomicUnlock(&File->Lock, 0);
+            free(CallbackWriteFile);
+            *bytes_written = 0;
             return -1;
         }
     }
 
     int sys_seek(int fd, off_t offset, int whence, off_t *new_offset){
-        if(ExecFlags & EXEC_FLAGS_SHELL_DISABLED){
+        if(FSExecFlags & EXEC_FLAGS_SHELL_DISABLED){
             if(fd <= 2){ // Is Shell file 
                 *new_offset = 0;
                 return 0;
@@ -161,7 +176,7 @@ namespace mlibc{
     }
 
     int kot_Sys_Close(int fd){
-        if(ExecFlags & EXEC_FLAGS_SHELL_DISABLED){
+        if(FSExecFlags & EXEC_FLAGS_SHELL_DISABLED){
             if(fd <= 2){ // Is Shell file 
                 return 0;
             }
@@ -255,6 +270,11 @@ namespace mlibc{
     // In contrast to the isatty() library function, the sysdep function uses return value
     // zero (and not one) to indicate that the file is a terminal.
     int sys_isatty(int fd){
+        if(FSExecFlags & EXEC_FLAGS_SHELL_DISABLED){
+            if(fd <= 2){ // Is Shell file 
+                return 0;
+            }
+        }
         if(fd >= MAX_OPEN_FILES) return EBADF;
         atomicAcquire(&kot_LockFDList, 0);
         kot_file_t* File = kot_FDList[fd];

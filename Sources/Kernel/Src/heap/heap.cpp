@@ -6,6 +6,8 @@ Heap globalHeap;
 void InitializeHeap(uintptr_t heapAddress, uintptr_t stackAddress, size64_t pageCount){
     globalHeap.heapEnd = heapAddress;
     globalHeap.lastStack = stackAddress;
+    AtomicClearLock(&globalHeap.lock);
+    #ifndef HEAP_DEBUG
     uintptr_t NewPhysicalAddress = Pmm_RequestPage();
     globalHeap.heapEnd = (uintptr_t)((uint64_t)globalHeap.heapEnd - PAGE_SIZE);
     vmm_Map(vmm_PageTable, globalHeap.heapEnd, NewPhysicalAddress, false, true, true);
@@ -27,6 +29,7 @@ void InitializeHeap(uintptr_t heapAddress, uintptr_t stackAddress, size64_t page
 
     globalHeap.TotalSize += PAGE_SIZE;     
     globalHeap.FreeSize += PAGE_SIZE;  
+    #endif
 }
 
 uintptr_t kcalloc(size64_t size){
@@ -36,7 +39,26 @@ uintptr_t kcalloc(size64_t size){
 }
 
 uintptr_t kmalloc(size64_t size){
-    if (size == 0) return NULL;
+    #ifdef HEAP_DEBUG
+    if(size == 0) return NULL;
+    AtomicAquire(&globalHeap.lock);
+    size64_t SizeToAlloc = size + sizeof(HeapSegmentHeader);
+    if(SizeToAlloc % PAGE_SIZE){
+        SizeToAlloc -= SizeToAlloc % PAGE_SIZE;
+        SizeToAlloc += PAGE_SIZE;
+    }
+    HeapSegmentHeader* currentSeg = (HeapSegmentHeader*)((uint64_t)globalHeap.heapEnd - SizeToAlloc);
+    uintptr_t Buffer = (uintptr_t)((uint64_t)globalHeap.heapEnd - size);
+    globalHeap.heapEnd = (uintptr_t)((uint64_t)currentSeg - HEAP_DEBUG_GUARD_SIZE); // Add page size for the guard
+    assert(globalHeap.heapEnd < globalHeap.lastStack);
+    for(size64_t i = 0; i < SizeToAlloc; i += PAGE_SIZE){
+        vmm_Map((uintptr_t)((uint64_t)currentSeg + i), Pmm_RequestPage());
+    }
+    currentSeg->length = SizeToAlloc;
+    AtomicRelease(&globalHeap.lock);
+    return Buffer;
+    #else
+    if(size == 0) return NULL;
 
     if(size % 0x10 > 0){ // it is not a multiple of 0x10
         size -= (size % 0x10);
@@ -71,8 +93,10 @@ uintptr_t kmalloc(size64_t size){
     ExpandHeap(size);
     AtomicRelease(&globalHeap.lock);
     return kmalloc(size);
+    #endif
 }
 
+#ifndef HEAP_DEBUG
 void MergeThisToNext(HeapSegmentHeader* header){
     // merge this segment into the last segment
     HeapSegmentHeader* headerNext = header->next;
@@ -82,7 +106,9 @@ void MergeThisToNext(HeapSegmentHeader* header){
 
     memset(header, 0, sizeof(HeapSegmentHeader));
 }
+#endif
 
+#ifndef HEAP_DEBUG
 void MergeLastToThis(HeapSegmentHeader* header){
     // merge this segment into the next segment
 
@@ -93,14 +119,27 @@ void MergeLastToThis(HeapSegmentHeader* header){
 
     memset(headerLast, 0, sizeof(HeapSegmentHeader));
 }
+#endif
 
+#ifndef HEAP_DEBUG
 void MergeLastAndThisToNext(HeapSegmentHeader* header){
     // merge this segment into the last segment
     MergeLastToThis(header);
     MergeThisToNext(header);
 }
+#endif
+
 
 void kfree(uintptr_t address){
+    #ifdef HEAP_DEBUG
+    HeapSegmentHeader* header = (HeapSegmentHeader*)(uintptr_t)((uint64_t)address - sizeof(HeapSegmentHeader));
+    size64_t SizeToFree = header->length;
+    for(size64_t i = 0; i < SizeToFree; i += PAGE_SIZE){
+        uintptr_t PhysicalPage = vmm_GetPhysical((uintptr_t)((uint64_t)header + i));
+        vmm_Unmap((uintptr_t)((uint64_t)header + i));
+        Pmm_FreePage(PhysicalPage);
+    }
+    #else
     if(address != NULL){
         AtomicAquire(&globalHeap.lock);
         HeapSegmentHeader* header = (HeapSegmentHeader*)(uintptr_t)((uint64_t)address - sizeof(HeapSegmentHeader));
@@ -108,7 +147,7 @@ void kfree(uintptr_t address){
         globalHeap.FreeSize += header->length + sizeof(HeapSegmentHeader);
         globalHeap.UsedSize -= header->length + sizeof(HeapSegmentHeader);
 
-        if(header->next != NULL  && header->last != NULL){
+        if(header->next != NULL && header->last != NULL){
             if(header->next->IsFree && header->last->IsFree){
                 // merge this segment and next segment into the last segment
                 MergeLastAndThisToNext(header);
@@ -136,6 +175,7 @@ void kfree(uintptr_t address){
         }
         AtomicRelease(&globalHeap.lock);
     }
+    #endif
 }
 
 uintptr_t krealloc(uintptr_t buffer, size64_t size){
@@ -154,6 +194,7 @@ uintptr_t krealloc(uintptr_t buffer, size64_t size){
     return newBuffer;
 }
 
+#ifndef HEAP_DEBUG
 HeapSegmentHeader* SplitSegment(HeapSegmentHeader* segment, size64_t size){
     if(segment->length > size + sizeof(HeapSegmentHeader)){
         HeapSegmentHeader* newSegment = (HeapSegmentHeader*)(uintptr_t)((uint64_t)segment + segment->length - size);
@@ -178,7 +219,9 @@ HeapSegmentHeader* SplitSegment(HeapSegmentHeader* segment, size64_t size){
     }
     return NULL;
 }
+#endif
 
+#ifndef HEAP_DEBUG
 void ExpandHeap(size64_t length){
     length += sizeof(HeapSegmentHeader);
     if(length % PAGE_SIZE){
@@ -223,6 +266,7 @@ void ExpandHeap(size64_t length){
     globalHeap.TotalSize += length + sizeof(HeapSegmentHeader);     
     globalHeap.FreeSize += length + sizeof(HeapSegmentHeader);     
 }
+#endif
 
 uintptr_t stackalloc(size64_t size){
     AtomicAquire(&globalHeap.lockStack);

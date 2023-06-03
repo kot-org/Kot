@@ -1,6 +1,6 @@
 #include <main/core.h>
 
-extern "C" int main(int argc, char* argv[]){
+int main(int argc, char* argv[]){
     kot_Printlog("[TIMER/HPET] Initializing ...");
 
     kot_srv_system_callback_t* Callback = kot_Srv_System_GetTableInRootSystemDescription("HPET", true);

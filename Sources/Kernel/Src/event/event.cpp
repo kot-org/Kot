@@ -9,7 +9,7 @@ namespace Event{
         switch (Type){
             case EventTypeIRQLines: {
                 IRQLinekevent_t* event = (IRQLinekevent_t*)kmalloc(sizeof(IRQLinekevent_t));
-                self = &event->Header;
+                self = (kevent_t*)event;
                 event->IRQLine = (uint8_t)AdditionnalData;
                 event->IsEnable = false;
                 self->Parameters.arg[0] = AdditionnalData;
@@ -17,14 +17,14 @@ namespace Event{
             }                
             case EventTypeIRQ: {
                 IRQkevent_t* event = (IRQkevent_t*)kmalloc(sizeof(IRQkevent_t));
-                self = &event->header;
+                self = (kevent_t*)event;
                 event->IRQ = (uint8_t)AdditionnalData;
                 self->Parameters.arg[0] = AdditionnalData;
                 break;                
             }
             case EventTypeIPC: {
                 IPCkevent_t* event = (IPCkevent_t*)kmalloc(sizeof(IPCkevent_t));
-                self = &event->header;
+                self = (kevent_t*)event;
                 event->master = (kthread_t*)AdditionnalData;
                 self->Parameters.arg[0] = NULL;
                 break;                
@@ -49,14 +49,6 @@ namespace Event{
     uint64_t Bind(kthread_t* task, kevent_t* self, bool IgnoreMissedEvents){
         if(task->IsEvent) return KFAIL;
         AtomicAquire(&self->Lock);
-
-        if(self->Type == EventTypeIRQLines){
-            IRQLinekevent_t* event = (IRQLinekevent_t*)self;
-            if(!event->IsEnable){
-                event->IsEnable = true;
-                APIC::IoChangeIrqState(event->IRQLine, 0, event->IsEnable);
-            }
-        }
         
         self->NumTask++;
         self->Tasks = (kevent_tasks_t**)krealloc(self->Tasks, self->NumTask * sizeof(kevent_tasks_t*));
@@ -65,16 +57,15 @@ namespace Event{
         TasksEvent->thread = task;
         TasksEvent->Event = self;
 
-        if(!task->IsEvent){
-            task->EventDataNode = (event_data_node_t*)kcalloc(sizeof(event_data_node_t));
-            if(self->Type == EventTypeIRQLines){
-                IRQLinekevent_t* event = (IRQLinekevent_t*)self;
-            }
-            task->EventDataNode->Event = self;
-            task->EventDataNode->LastData = (event_data_t*)kmalloc(sizeof(event_data_t));
-            task->EventDataNode->LastData->Next = (event_data_t*)kmalloc(sizeof(event_data_t));
-            task->EventDataNode->CurrentData = task->EventDataNode->LastData;
+        task->EventDataNode = (event_data_node_t*)kcalloc(sizeof(event_data_node_t));
+        if(self->Type == EventTypeIRQLines){
+            IRQLinekevent_t* event = (IRQLinekevent_t*)self;
         }
+        task->EventDataNode->Event = self;
+        task->EventDataNode->LastData = (event_data_t*)kmalloc(sizeof(event_data_t));
+        task->EventDataNode->LastData->Next = (event_data_t*)kmalloc(sizeof(event_data_t));
+        task->EventDataNode->CurrentData = task->EventDataNode->LastData;
+
         TasksEvent->DataNode = task->EventDataNode;
 
         TasksEvent->IgnoreMissedEvents = IgnoreMissedEvents;
@@ -83,6 +74,13 @@ namespace Event{
 
         self->Tasks[self->NumTask - 1] = TasksEvent;
 
+        if(self->Type == EventTypeIRQLines){
+            IRQLinekevent_t* event = (IRQLinekevent_t*)self;
+            if(!event->IsEnable){
+                event->IsEnable = true;
+                APIC::IoChangeIrqState(event->IRQLine, 0, event->IsEnable);
+            }
+        }
         AtomicRelease(&self->Lock);
         return KSUCCESS;
     }
@@ -94,11 +92,12 @@ namespace Event{
         self->NumTask--;
         for(size64_t i = 0; i < self->NumTask; i++){
             if(self->Tasks[i]->thread == task){
-                uintptr_t newPos = kmalloc(self->NumTask * sizeof(kevent_tasks_t));
-                memcpy(newPos, self->Tasks[i], sizeof(kevent_tasks_t) * i);
+                uintptr_t newPos = kmalloc(self->NumTask * sizeof(kevent_tasks_t*));
+                memcpy(newPos, self->Tasks[i], sizeof(kevent_tasks_t*) * i);
                 i++;
                 memcpy((uintptr_t)((uint64_t)newPos + sizeof(kevent_tasks_t) * (i - 1)), (uintptr_t)((uint64_t)self->Tasks[i] + sizeof(kevent_tasks_t) * i), sizeof(kevent_tasks_t) * i);
                 self->Tasks = (kevent_tasks_t**)newPos;
+                break;
             }
         }
 
@@ -114,6 +113,7 @@ namespace Event{
     }
     
     uint64_t Trigger(kevent_t* self, arguments_t* parameters){
+        if(self->Type != EventTypeIPC) return KFAIL;
         AtomicAquire(&self->Lock);
         for(size64_t i = 0; i < self->NumTask; i++){
             kevent_tasks_t* task = self->Tasks[i];
@@ -174,6 +174,9 @@ namespace Event{
             AtomicRelease(&Thread->EventLock);
             ForceSelfDestruction();
         }else if(Thread->EventDataNode->NumberOfMissedEvents){
+            if(Thread->EventDataNode->NumberOfMissedEvents > 1000){
+                Message("%s", Thread->EventDataNode->NumberOfMissedEvents);
+            }
             event_data_t* Next = Thread->EventDataNode->CurrentData->Next;
             kfree(Thread->EventDataNode->CurrentData);
             Thread->EventDataNode->CurrentData = Next;

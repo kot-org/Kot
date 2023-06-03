@@ -396,11 +396,11 @@ struct HDAOutput{
 
     HDAStreamFormat Format;
 
-    AudioEncoding SampleFormat;
+    kot_AudioEncoding SampleFormat;
 
     kot_event_t OffsetUpdateEvent;
 
-    srv_audio_device_t AudioDevice;
+    kot_srv_audio_device_t AudioDevice;
 };
 
 struct HDAStream{
@@ -455,8 +455,8 @@ class HDAController{
         KResult ConfigureStreamFormat(HDAOutput* Output);
         KResult SetSampleRate(HDAOutput* Output, uint32_t SampleRate);
         KResult SetChannel(HDAOutput* Output, uint8_t Channels);
-        KResult SetVolume(HDAOutput* Output, audio_volume_t Volume);
-        KResult SetSoundEncoding(HDAOutput* Output, AudioEncoding Encoding);
+        KResult SetVolume(HDAOutput* Output, kot_audio_volume_t Volume);
+        KResult SetSoundEncoding(HDAOutput* Output, kot_AudioEncoding Encoding);
         KResult GetNodeConfiguration(HDAWidget* Widget, NodeConfiguration* Config);
 
         KResult ChangeStatus(HDAOutput* Output, bool IsRunning);

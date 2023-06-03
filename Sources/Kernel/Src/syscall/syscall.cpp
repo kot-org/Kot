@@ -267,7 +267,6 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* Thread){
                 uintptr_t virtualAddress = (uintptr_t)(*addressVirtual + i * PAGE_SIZE);
                 if(type == AllocationTypePhysical){
                     vmm_Map(pageTable, virtualAddress, (uintptr_t)((uint64_t)*addressPhysical + i * PAGE_SIZE), true, true, false);
-                    vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_IsPureMemory, false); // remove master state
                 }else if(!vmm_GetFlags(pageTable, (uintptr_t)(*addressVirtual + i * PAGE_SIZE), vmm_flag::vmm_IsPureMemory)){
                     uintptr_t physicalAddressAllocated = (uintptr_t)Pmm_RequestPage();
                     if(IsPhysicalAddress){
@@ -276,7 +275,6 @@ KResult Sys_Map(SyscallStack* Registers, kthread_t* Thread){
                         IsPhysicalAddress = false; 
                     }
                     vmm_Map(pageTable, virtualAddress, physicalAddressAllocated, true, true, true);
-                    vmm_SetFlags(pageTable, virtualAddress, vmm_flag::vmm_IsPureMemory, true); // set master state
                     processkey->MemoryAllocated += PAGE_SIZE;
                     *size += PAGE_SIZE;      
                 }

@@ -1,6 +1,5 @@
 _HOME = ../../../../../../
 
-
 CC = kot-x86_64-clang
 ASMC = nasm
 

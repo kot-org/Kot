@@ -85,7 +85,7 @@ uint8_t RTCGetCentury() {
 
 extern uint64_t* TickPointer;
 
-extern "C" int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     kot_Printlog("[TIMER/RTC] Initialization ...");
 
     

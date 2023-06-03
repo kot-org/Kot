@@ -108,7 +108,7 @@ void draw(ctxg_t* ctx, uint32_t color) {
 void resetCtx(ctxg_t* ctx) {
     ctx->x = 0;
     ctx->y = 0;
-    vector_clear(ctx->poses);
+    kot_vector_clear(ctx->poses);
 }
 
 // ## absolute ##
@@ -218,8 +218,8 @@ void ctxDrawLine(ctxg_t* ctx, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2
     int32_t dx = x2-x1;
     int32_t dy = y2-y1;
 
-    int8_t sx = sgn(dx);
-    int8_t sy = sgn(dy);
+    int8_t sx = kot_sgn(dx);
+    int8_t sy = kot_sgn(dy);
 
     int32_t x = x1;
     int32_t y = y1;
@@ -287,7 +287,7 @@ void clear(ctxg_t* ctx) {
 } 
 
 void clearColor(ctxg_t* ctx, uint32_t color) {
-    memset32(ctx->FbBase, color, ctx->FbSize);
+    kot_memset32(ctx->FbBase, color, ctx->FbSize);
 } 
 
 void* GetFramebuffer(ctxg_t* ctx) {

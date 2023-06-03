@@ -107,7 +107,7 @@ void CreateDisplay(Component* Window) {
     fseek(FontFile, 0, SEEK_END);
     size_t FontFileSize = ftell(FontFile);
     fseek(FontFile, 0, SEEK_SET);
-    uintptr_t Font = malloc(FontFileSize);
+    void* Font = malloc(FontFileSize);
     fread(Font, FontFileSize, 1, FontFile);
 
     /* Draw the grid with buttons */

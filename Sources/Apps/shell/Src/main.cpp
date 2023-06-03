@@ -29,7 +29,7 @@ void GetInput() {
 }
 
 int main(int argc, char* argv[], char* envp[]) {
-    setenv("USER", "seb", 1);
+    //setenv("USER", "seb", 1);
 
     while(true) {
         // prompt
@@ -37,18 +37,18 @@ int main(int argc, char* argv[], char* envp[]) {
 
         GetInput();
 
-/*         pid_t pid = fork();
+        pid_t pid = fork();
 
         if(pid == -1) {
             printf("CHILD NOT CREATED");
             break;
-        } else if(pid == 0) {
+        }else if(pid == 0){
 
             if(execvp("d1:Kot/System/Apps/echo.elf", NULL) == -1) {
                 printf("Command not found");
                 //kill(pid, SIGINT);
             }
-        } */
+        }
 
         execvpe("d1:Kot/System/Apps/ls.elf", Args, envp);
 

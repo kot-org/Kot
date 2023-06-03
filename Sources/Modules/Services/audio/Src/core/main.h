@@ -9,8 +9,8 @@
 #include <kot/keyhole.h>
 #include <kot/utils/vector.h>
 #include <kot/uisd/srvs/audio.h>
-#include <stdio.h>
 
+#include <kot++/new.h>
 #include <kot++/vector.h>
 #include <kot++/printf.h>
 

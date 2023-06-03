@@ -14,7 +14,7 @@ void GetMemory(){
     kot_Sys_Close(KeyShare);
 }
 
-extern "C" int main(int argc, char* argv[]){
+int main(int argc, char* argv[]){
     kot_Printlog("[Test] Hello world");
 
     kot_process_t proc = Sys_GetProcess();

@@ -41,10 +41,8 @@ char* ExceptionList[32] = {
 };
 
 void InitializeInterrupts(ArchInfo_t* ArchInfo){
-    if(idtr.Limit == 0){
-        idtr.Limit = 0xFFF;
-        idtr.Offset = (uint64_t)&IDTData[0];
-    }
+    idtr.Limit = 0xFFF;
+    idtr.Offset = (uint64_t)&IDTData[0];
 
     for(int i = 0; i < ArchInfo->IRQSize; i++){
         SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);

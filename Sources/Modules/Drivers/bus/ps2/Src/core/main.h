@@ -1,8 +1,9 @@
 #pragma once
 
+#include <string.h>
 #include <kot/sys.h>
 #include <kot/bits.h>
-#include <string.h>
+#include <kot/arch.h>
 #include <mouse/mouse.h>
 #include <kot++/printf.h>
 #include <keyboard/keyboard.h>
@@ -52,7 +53,7 @@ struct PS2Port_t{
     void PS2SendDataPort(uint8_t data); 
 };
 
-extern "C" int main(int argc, char* argv[]);
+int main(int argc, char* argv[]);
 
 KResult PortsInitalize();
 

@@ -8,13 +8,13 @@ char* MainPath;
 void LoadFiles(char* Path){
     ExplorerWindow->Cpnt->ClearChilds();
 
-    directory_t* Dir = opendir(Path);
+    kot_directory_t* Dir = kot_opendir(Path);
     MainPath = Path;
     uint64_t FilesCount;
-    filecount(Dir, &FilesCount);
+    kot_filecount(Dir, &FilesCount);
 
-    directory_entries_t* Directories = mreaddir(Dir, 0, FilesCount);
-    directory_entry_t* Entry = &Directories->FirstEntry;
+    kot_directory_entries_t* Directories = kot_mreaddir(Dir, 0, FilesCount);
+    kot_directory_entry_t* Entry = &Directories->FirstEntry;
 
     for(uint64_t i = 0; i < Directories->EntryCount; i++){
         Explorer_File_Data* FileData = (Explorer_File_Data*)malloc(sizeof(Explorer_File_Data));
@@ -84,13 +84,13 @@ void LoadFiles(char* Path){
             }
         , Filebox->Cpnt);
 
-        Entry = (directory_entry_t*)((uint64_t)&Directories->FirstEntry + Entry->NextEntryPosition);
+        Entry = (kot_directory_entry_t*)((uint64_t)&Directories->FirstEntry + Entry->NextEntryPosition);
     }
 
     free(Directories);
 }
 
-extern "C" int main() {
+int main() {
     ExplorerWindow = new UiWindow::Window("File explorer", "d0:explorer.tga", 600, 600, 600, 10);
     IsRoot = true;
     LoadFiles("d1:");

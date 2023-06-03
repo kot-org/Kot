@@ -5,6 +5,7 @@
 #include <kot/types.h>
 #include <kot/utils/vector.h>
 
+#include <kot++/new.h>
 #include <kot++/function.h>
 
 #include <kot-graphics/orb.h>

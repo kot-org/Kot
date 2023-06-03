@@ -26,7 +26,7 @@ KResult MouseInitalize(){
                 MousePS2Port = &PS2Ports[i];
                 IRQRedirectionsArray[MousePS2Port->PortNumber] = MouseHandler;
                 
-                MouseRelativeEvent = GetMouseRelativeEvent();
+                MouseRelativeEvent = kot_GetMouseRelativeEvent();
 
                 MouseMaxCycles = 3;
 
@@ -44,7 +44,7 @@ KResult MouseInitalize(){
                 // clear mouse packet data
                 memset(MousePacket, NULL, sizeof(uint8_t) * 4);
 
-                Srv_System_BindIRQLine(MousePS2Port->IRQ, InterruptThreadHandler[i], false, true);
+                kot_Srv_System_BindIRQLine(MousePS2Port->IRQ, InterruptThreadHandler[i], false, true);
 
                 break; // Enable only one mouse
             }            
@@ -137,7 +137,7 @@ void MouseParser(uint8_t data){
         MouseEventParameters->arg[3] |= button4Click << 3;
         MouseEventParameters->arg[3] |= button5Click << 4;
 
-        Sys_Event_Trigger(MouseRelativeEvent, MouseEventParameters);
+        kot_Sys_Event_Trigger(MouseRelativeEvent, MouseEventParameters);
     }
 }
 

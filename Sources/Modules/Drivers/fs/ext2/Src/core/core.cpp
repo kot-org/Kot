@@ -555,16 +555,16 @@ inode_t* mount_info_t::FindInodeFromInodeEntryAndPath(inode_t* inode, char* path
     inode_t* InodeIteration = inode;
     if(path != NULL){
         uint64_t PathEntriesCount;
-        char* PathEntry = strtok(path, "/");
+        char** PathEntries = strsplit(path, "/", &PathEntriesCount);
 
-
-        while(PathEntry != NULL){
+        for(uint64_t i = 0; i < PathEntriesCount; i++){
             // Find the directory entry in this inode
             if(!(InodeIteration->Inode.mode & INODE_TYPE_DIRECTORY)){
                 free(InodeIteration);
+                freestrsplit(PathEntries);
                 return NULL;
             }
-            inode_t* InodeFind = FindInodeInodeAndEntryFromName(InodeIteration, PathEntry);
+            inode_t* InodeFind = FindInodeInodeAndEntryFromName(InodeIteration, PathEntries[i]);
             if(InodeFind != NULL){
                 if(InodeIteration != inode){
                     free(InodeIteration);
@@ -574,10 +574,12 @@ inode_t* mount_info_t::FindInodeFromInodeEntryAndPath(inode_t* inode, char* path
                 if(InodeIteration != inode){
                     free(InodeIteration);
                 }
+                freestrsplit(PathEntries);
                 return NULL;
             }
-            PathEntry = strtok(NULL, "/");
         }
+
+        freestrsplit(PathEntries);
     }
     return InodeIteration;
 }

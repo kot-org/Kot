@@ -4,7 +4,7 @@ kot_process_t Proc = NULL;
 
 AHCIController** Controllers = NULL;
 
-extern "C" int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     kot_Printlog("[STORAGE/AHCI] Initialization ...");
 
     Proc = kot_Sys_GetProcess();

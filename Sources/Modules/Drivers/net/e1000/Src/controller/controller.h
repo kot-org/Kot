@@ -1,6 +1,7 @@
 #pragma once
 
 #include <kot/sys.h>
+#include <kot/arch.h>
 #include <kot/bits.h>
 
 #include <kot/uisd/srvs/pci.h>
@@ -121,7 +122,7 @@ class E1000 {
         uint8_t* RXPacketBuffer;
 
     public:
-        E1000(srv_pci_device_info_t* DeviceInfo, srv_pci_bar_info_t* BarInfo);
+        E1000(kot_srv_pci_device_info_t* DeviceInfo, kot_srv_pci_bar_info_t* BarInfo);
         ~E1000();
 
         void SendPacket(uint8_t* Data, uint32_t Size);

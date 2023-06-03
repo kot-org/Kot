@@ -51,15 +51,14 @@ LibraryGuard::LibraryGuard() {
 			__mlibc_stack_data.envp);
 }
 
-extern int kot_InitFS();
+extern int kot_InitFS(uint64_t Flags);
 
 extern "C" void __mlibc_entry(uintptr_t *entry_stack, int (*main_fn)(int argc, char *argv[], char *env[]), uint64_t Flags) {
 	__dlapi_enter(entry_stack);
 
 	ExecFlags = Flags;
 
-	kot_InitFS();
-
+	kot_InitFS(Flags);
 	if(!(Flags & EXEC_FLAGS_SHELL_DISABLED)){
 		kot_InitializeShell();
 	}

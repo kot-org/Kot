@@ -51,13 +51,12 @@ namespace APIC{
                 }                                      
             }
         }
+        Processor = (LocalProcessor**)kmalloc(sizeof(LocalProcessor*) * ProcessorCount);
+        lapicAddress = (LapicAddress**)kmalloc(sizeof(LapicAddress*) * (MaxAPICID + 1));
 
-        Processor = (LocalProcessor**)kmalloc(sizeof(LocalProcessor) * ProcessorCount);
-        lapicAddress = (LapicAddress**)kmalloc(sizeof(LapicAddress) * MaxAPICID);
+        IOapic = (IOAPIC**)kmalloc(sizeof(IOAPIC*) * IOAPICCount);
 
-        IOapic = (IOAPIC**)kmalloc(sizeof(IOAPIC) * IOAPICCount);
-
-        Iso = (InterruptSourceOverride**)kmalloc(sizeof(InterruptSourceOverride) * IsoCount);
+        Iso = (InterruptSourceOverride**)kmalloc(sizeof(InterruptSourceOverride*) * IsoCount);
 
         uint8_t ProcessorCountTmp = 0;
         uint64_t IsoCountTmp = 0;

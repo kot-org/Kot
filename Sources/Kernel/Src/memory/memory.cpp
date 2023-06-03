@@ -275,7 +275,7 @@ uint64_t AcceptMemoryField(kthread_t* self, kprocess_t* process, MemoryShareInfo
         }
     }
 
-    SlaveInfo_t* SlaveInfo = (SlaveInfo_t*)kmalloc(sizeof(SlaveInfo));
+    SlaveInfo_t* SlaveInfo = (SlaveInfo_t*)kmalloc(sizeof(SlaveInfo_t));
     SlaveInfo->process = process;
     SlaveInfo->virtualAddress = virtualAddress;
     shareInfo->SlavesList->push64((uint64_t)SlaveInfo);

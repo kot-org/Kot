@@ -87,12 +87,12 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
 
                 kot_arguments_t* InitParameters = (kot_arguments_t*)calloc(1, sizeof(kot_arguments_t));
 
-                InitParameters->arg[2] = 1; // Disable shell
 
                 for(uint64_t i = 0; i < Array->length(); i++){
                     JsonObject* Service = (JsonObject*) Array->Get(i);
                     JsonString* File = (JsonString*) Service->Get("file");
                     JsonNumber* Priviledge = (JsonNumber*) Service->Get("priviledge"); // default: 3
+                    JsonNumber* FlagsJson = (JsonNumber*) Service->Get("flags"); // launch flags 
                     
                     if (File->getType() == JSON_STRING) {
                         if(!strcmp(File->Get(), "")) continue;
@@ -102,6 +102,12 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
                                 if(Priviledge->Get() >= 1 && Priviledge->Get() <= 3){
                                     ServicePriledge = Priviledge->Get();
                                 }
+                            }
+                        }
+                        uint64_t Flags = 0;
+                        if(FlagsJson != NULL){
+                            if(FlagsJson->getType() == JSON_NUMBER){ 
+                                Flags = FlagsJson->Get();
                             }
                         }
 
@@ -127,6 +133,8 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
                                 .Size = SizeMainStackData,
                                 .ParameterPosition = 0x0,
                             };
+                            InitParameters->arg[2] = Flags;
+
                             assert(kot_Sys_ExecThread((kot_thread_t)Callback->Data, InitParameters, ExecutionTypeQueu, &Data) == KSUCCESS);
                             free(MainStackData);
                             free(Callback);

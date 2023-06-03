@@ -12,7 +12,7 @@ uint64_t FirstOffset = 0;
 /// @param Dst 
 /// @param Src 
 template <typename T> 
-void MixAudio(size64_t Size, uint64_t Offset, audio_buffer_t* Dst, std::vector<StreamRequest_t*> Src){
+void MixAudio(size64_t Size, uint64_t Offset, kot_audio_buffer_t* Dst, std::vector<StreamRequest_t*> Src){
     // TODO mix
     assert(Size <= Dst->Buffer.Size);
 
@@ -34,7 +34,7 @@ Outputs::Outputs(kot_event_t OnDeviceChangedEvent){
 }
 
 void OnOffsetUpdate(){
-    OutputDevice_t* OutputDevice = (OutputDevice_t*)Sys_GetExternalDataThread();
+    OutputDevice_t* OutputDevice = (OutputDevice_t*)kot_Sys_GetExternalDataThread();
     uint64_t Offset = (*(uint64_t*)((uint64_t)OutputDevice->OutputStream.Buffer.Base + OutputDevice->Device.Info.PositionOfStreamData) + (OutputDevice->Device.Info.SizeOffsetUpdateToTrigger * 2)) % OutputDevice->Device.Info.StreamSize;
     
     atomicAcquire(&OutputDevice->Lock, 0);
@@ -48,12 +48,12 @@ void OnOffsetUpdate(){
 
     kot_arguments_t Parameters;
 
-    Sys_Event_Trigger(OutputDevice->ClientOnOffsetUpdate, &Parameters);
+    kot_Sys_Event_Trigger(OutputDevice->ClientOnOffsetUpdate, &Parameters);
 
-    Sys_Event_Close();
+    kot_Sys_Event_Close();
 }
 
-KResult Outputs::AddOutputDevice(srv_audio_device_t* Device){
+KResult Outputs::AddOutputDevice(kot_srv_audio_device_t* Device){
     atomicAcquire(&Lock, 0);
 
     OutputDevice_t* OutputDevice = new OutputDevice_t;
@@ -61,21 +61,21 @@ KResult Outputs::AddOutputDevice(srv_audio_device_t* Device){
     // Reset lock
     OutputDevice->Lock = NULL;
 
-    memcpy(&OutputDevice->Device, Device, sizeof(srv_audio_device_t));
+    memcpy(&OutputDevice->Device, Device, sizeof(kot_srv_audio_device_t));
 
     // Intialize stream buffer
-    OutputDevice->OutputStream.Buffer.Base = GetFreeAlignedSpace(Device->Info.StreamRealSize);
-    Sys_AcceptMemoryField(Sys_GetProcess(), Device->StreamBufferKey, &OutputDevice->OutputStream.Buffer.Base);
+    OutputDevice->OutputStream.Buffer.Base = kot_GetFreeAlignedSpace(Device->Info.StreamRealSize);
+    kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), Device->StreamBufferKey, &OutputDevice->OutputStream.Buffer.Base);
     OutputDevice->OutputStream.Buffer.Size = Device->Info.StreamSize;
 
     OutputDevice->OutputStream.Format = Device->Info.Format;
 
     // Intialize stream events
-    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&OnOffsetUpdate, PriviledgeApp, (uint64_t)OutputDevice, &OutputDevice->OnOffsetUpdateHandler);
-    Sys_Event_Bind(Device->OnOffsetUpdate, OutputDevice->OnOffsetUpdateHandler, false);
+    kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&OnOffsetUpdate, PriviledgeApp, (uint64_t)OutputDevice, &OutputDevice->OnOffsetUpdateHandler);
+    kot_Sys_Event_Bind(Device->OnOffsetUpdate, OutputDevice->OnOffsetUpdateHandler, false);
 
-    Sys_Event_Create(&OutputDevice->ClientOnOffsetUpdate);
-    Sys_Keyhole_CloneModify(OutputDevice->ClientOnOffsetUpdate, &OutputDevice->ClientOnOffsetUpdateShareableKey, NULL, KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeApp);
+    kot_Sys_Event_Create(&OutputDevice->ClientOnOffsetUpdate);
+    kot_Sys_Keyhole_CloneModify(OutputDevice->ClientOnOffsetUpdate, &OutputDevice->ClientOnOffsetUpdateShareableKey, NULL, KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeApp);
 
     // Intialize stream status
     OutputDevice->OutputStream.Volume = 255;
@@ -88,7 +88,7 @@ KResult Outputs::AddOutputDevice(srv_audio_device_t* Device){
             .arg[0] = OutputDevice->DeviceID,
         };
 
-        Sys_Event_Trigger(OnDeviceChanged, &Paramters);
+        kot_Sys_Event_Trigger(OnDeviceChanged, &Paramters);
     }
 
     // Set default
@@ -100,7 +100,7 @@ KResult Outputs::AddOutputDevice(srv_audio_device_t* Device){
             .arg[0] = 0,
             .arg[1] = OutputDevice->DeviceID,
         };
-        Sys_Event_Trigger(OnDeviceChanged, &Paramters);
+        kot_Sys_Event_Trigger(OnDeviceChanged, &Paramters);
     }
 
     OutputDevice->StreamIsRunning = true;
@@ -119,8 +119,8 @@ StreamRequest_t* Outputs::RequestStream(uint64_t OutputID, kot_process_t Process
 
     OutputDevice_t* OutputDevice = Devices[OutputID];
     StreamRequest_t* OutputRequestData = (StreamRequest_t*)malloc(sizeof(StreamRequest_t));
-    audio_share_buffer_t* ShareBuffer = (audio_share_buffer_t*)malloc(sizeof(audio_share_buffer_t));
-    audio_buffer_t* LocalBuffer = (audio_buffer_t*)malloc(sizeof(audio_buffer_t));
+    kot_audio_share_buffer_t* ShareBuffer = (kot_audio_share_buffer_t*)malloc(sizeof(kot_audio_share_buffer_t));
+    kot_audio_buffer_t* LocalBuffer = (kot_audio_buffer_t*)malloc(sizeof(kot_audio_buffer_t));
 
     OutputRequestData->ShareBuffer = ShareBuffer;
     OutputRequestData->LocalBuffer = LocalBuffer;
@@ -141,14 +141,14 @@ StreamRequest_t* Outputs::RequestStream(uint64_t OutputID, kot_process_t Process
     LocalBuffer->Format = OutputDevice->OutputStream.Format;
     LocalBuffer->Volume = 255;
 
-    LocalBuffer->Buffer.Base = GetFreeAlignedSpace(ShareBuffer->StreamRealSize);
-    Sys_CreateMemoryField(Sys_GetProcess(), ShareBuffer->StreamRealSize, &LocalBuffer->Buffer.Base, &OutputRequestData->StreamBufferLocalKey, MemoryFieldTypeShareSpaceRW);
-    Sys_Keyhole_CloneModify(OutputRequestData->StreamBufferLocalKey, &ShareBuffer->StreamBufferKey, ProcessKey, KeyholeFlagPresent, PriviledgeApp);
+    LocalBuffer->Buffer.Base = kot_GetFreeAlignedSpace(ShareBuffer->StreamRealSize);
+    kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), ShareBuffer->StreamRealSize, &LocalBuffer->Buffer.Base, &OutputRequestData->StreamBufferLocalKey, MemoryFieldTypeShareSpaceRW);
+    kot_Sys_Keyhole_CloneModify(OutputRequestData->StreamBufferLocalKey, &ShareBuffer->StreamBufferKey, ProcessKey, KeyholeFlagPresent, PriviledgeApp);
     memset(LocalBuffer->Buffer.Base, 0, LocalBuffer->Buffer.Size);
 
     OutputDevice->InputStreams.push(OutputRequestData);
 
-    kot_Sys_CreateThread(Sys_GetProcess(), (void*)&StreamCommand, PriviledgeApp, (uint64_t)OutputRequestData, &OutputRequestData->StreamCommandThread);
+    kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&StreamCommand, PriviledgeApp, (uint64_t)OutputRequestData, &OutputRequestData->StreamCommandThread);
     OutputRequestData->ShareBuffer->StreamCommand = kot_MakeShareableThreadToProcess(OutputRequestData->StreamCommandThread, ProcessKey);
 
     atomicUnlock(&Lock, 0);
@@ -160,7 +160,7 @@ KResult Outputs::CloseStream(StreamRequest_t* Stream){
     atomicAcquire(&Stream->Device->Lock, 0);
     Stream->Device->InputStreams.remove(Stream->Index);
     atomicUnlock(&Stream->Device->Lock, 0);
-    Sys_CloseMemoryField(Sys_GetProcess(), Stream->StreamBufferLocalKey, Stream->LocalBuffer->Buffer.Base);
+    kot_Sys_CloseMemoryField(kot_Sys_GetProcess(), Stream->StreamBufferLocalKey, Stream->LocalBuffer->Buffer.Base);
     free(Stream->ShareBuffer);
     free(Stream->LocalBuffer);
     free(Stream);
@@ -192,7 +192,7 @@ KResult Outputs::SetDefault(uint64_t OutputID){
         .arg[1] = OutputID,
     };
 
-    Sys_Event_Trigger(OnDeviceChanged, &Paramters);
+    kot_Sys_Event_Trigger(OnDeviceChanged, &Paramters);
     atomicUnlock(&Lock, 0);
     return KSUCCESS;
 }
@@ -204,13 +204,13 @@ uint64_t Outputs::GetDeviceCount(){
     return Count;
 }
 
-KResult Outputs::GetDeviceInfo(uint64_t OutputID, srv_audio_device_info_t* Info){
+KResult Outputs::GetDeviceInfo(uint64_t OutputID, kot_srv_audio_device_info_t* Info){
     if(OutputID >= Devices.size()){
         return KFAIL;
     }
     atomicAcquire(&Lock, 0);
 
-    memcpy(Info, &Devices[OutputID]->Device.Info, sizeof(srv_audio_device_info_t));
+    memcpy(Info, &Devices[OutputID]->Device.Info, sizeof(kot_srv_audio_device_info_t));
 
     atomicUnlock(&Lock, 0);
     return KSUCCESS;    

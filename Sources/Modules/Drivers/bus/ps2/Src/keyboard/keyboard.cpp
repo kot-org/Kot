@@ -18,9 +18,9 @@ KResult KeyboardInitialize(){
             KeyboardPS2Port = &PS2Ports[i];
             IRQRedirectionsArray[KeyboardPS2Port->PortNumber] = KeyboardHandler;
 
-            KeyboardEvent = GetKeyboardEvent();
+            KeyboardEvent = kot_GetKeyboardEvent();
 
-            Srv_System_BindIRQLine(KeyboardPS2Port->IRQ, InterruptThreadHandler[i], false, true);
+            kot_Srv_System_BindIRQLine(KeyboardPS2Port->IRQ, InterruptThreadHandler[i], false, true);
             
             break;
         }
@@ -31,7 +31,7 @@ KResult KeyboardInitialize(){
 
 KResult KeyboardHandler(uint8_t data){
     KeyboardEventParameters->arg[0] = (uint64_t)data;
-    Sys_Event_Trigger(KeyboardEvent, KeyboardEventParameters);
+    kot_Sys_Event_Trigger(KeyboardEvent, KeyboardEventParameters);
 
     return KSUCCESS;
 }

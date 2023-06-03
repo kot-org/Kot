@@ -8,10 +8,10 @@ kot_thread_t InterruptThreadHandler[PS2_PORT_NUMBER];
 
 IRQRedirections IRQRedirectionsArray[2];
 
-extern "C" int main(int argc, char* argv[]){
+int main(int argc, char* argv[]){
     kot_Printlog("[BUS/PS2] Initialization ...");
     /* Initialize PS2 drivers */
-    self = Sys_GetProcess();
+    self = kot_Sys_GetProcess();
 
     for(uint8_t i = 0; i < PS2_PORT_NUMBER; i++){
         kot_Sys_CreateThread(self, (void*)&PS2InterruptHandler, PriviledgeDriver, NULL, &InterruptThreadHandler[i]);
@@ -48,8 +48,8 @@ void DisablePorts(){
 }
 
 void EnablePorts(){
-    PS2SendCommand(0xAE); // disable port 1
-    PS2SendCommand(0xA8); // disable port 2
+    PS2SendCommand(0xAE); // enable port 1
+    PS2SendCommand(0xA8); // enable port 2
 }
 
 KResult PortsInitalize(){
@@ -171,27 +171,27 @@ void PS2InterruptHandler(uint8_t interrupt){
                 break;
         }
     }
-    Sys_Event_Close();
+    kot_Sys_Event_Close();
 }
 
 void PS2SendCommand(uint8_t command){
-    IoWrite8(PS2_COMMAND, command);
+    kot_IoWrite8(PS2_COMMAND, command);
     PS2WaitInput();
 }
 
 
 uint8_t PS2GetStatus(){
-    return IoRead8(PS2_STATUS);
+    return kot_IoRead8(PS2_STATUS);
 }
 
 void PS2SendData(uint8_t data){
-    IoWrite8(PS2_DATA, data);
+    kot_IoWrite8(PS2_DATA, data);
     PS2WaitInput();
 }
 
 
 uint8_t PS2GetData(){
-    return IoRead8(PS2_DATA);
+    return kot_IoRead8(PS2_DATA);
 }
 
 void PS2WaitOutput(){

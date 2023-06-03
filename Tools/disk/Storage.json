@@ -56,15 +56,11 @@
         "destination": "Kot/System/Apps/Explorer/Explorer.elf"
     },
     {
-        "source": "Sources/Apps/shell/Bin/core/main.elf",
+        "source": "Sources/Apps/shell/Bin/Shell.elf",
         "destination": "Kot/System/Apps/Shell/Shell.elf"
     },
     {
-        "source": "Sources/Apps/shell/Bin/utils/echo.elf",
-        "destination": "Kot/System/Apps/echo.elf"
-    },
-    {
-        "source": "Sources/Apps/shell/Bin/utils/ls.elf",
-        "destination": "Kot/System/Apps/ls.elf"
+        "source": "Sources/Apps/shell/Bin/utils",
+        "destination": "Kot/System/Apps/Shell/"
     }
 ]

@@ -1,8 +1,10 @@
 #pragma once
 
+#include <main/main.h>
+
 #include <kot/bits.h>
 #include <kot/math.h>
-#include <main/main.h>
+#include <kot/cstring.h>
 #include <kot/uisd/srvs/time.h>
 #include <kot/uisd/srvs/storage.h>
 #include <kot/uisd/srvs/storage/device.h>
