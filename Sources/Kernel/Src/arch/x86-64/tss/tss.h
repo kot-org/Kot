@@ -26,7 +26,7 @@ struct TSS{
 void TSSInit();
 uint16_t TSSInstall(uint8_t numCPU);
 
-void TSSSetStack(uint8_t numCPU, uintptr_t stack);
+void TSSSetStack(uint8_t numCPU, void* stack);
 uint64_t TSSGetStack(uint8_t numCPU);
 
 void TSSSetIST(uint8_t numCPU, uint8_t position, uint64_t value);

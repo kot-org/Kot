@@ -7,9 +7,9 @@
 #include <arch/arch.h>
 
 struct Heap{
-    uintptr_t lastStack;
+    void* lastStack;
     locker_t lockStack;
-    uintptr_t heapEnd = 0;
+    void* heapEnd = 0;
     struct HeapSegmentHeader* lastSegment = NULL;
     struct HeapSegmentHeader* mainSegment = NULL;
     size64_t TotalSize;
@@ -35,17 +35,17 @@ struct HeapSegmentHeader{
 
 extern Heap globalHeap;
 
-void InitializeHeap(uintptr_t heapAddress, uintptr_t stackAddress, size64_t pageCount);
+void InitializeHeap(void* heapAddress, void* stackAddress, size64_t pageCount);
 
-uintptr_t kcalloc(size64_t size);
-uintptr_t kmalloc(size64_t size);
-uintptr_t krealloc(uintptr_t buffer, size64_t size);
+void* kcalloc(size64_t size);
+void* kmalloc(size64_t size);
+void* krealloc(void* buffer, size64_t size);
 
-void kfree(uintptr_t address);
+void kfree(void* address);
 
-uintptr_t stackalloc(size64_t size);
+void* stackalloc(size64_t size);
 
 HeapSegmentHeader* SplitSegment(HeapSegmentHeader* segment, size64_t size);
 void  ExpandHeap(size64_t lenght);
 
-HeapSegmentHeader* GetHeapSegmentHeader(uintptr_t address);
+HeapSegmentHeader* GetHeapSegmentHeader(void* address);

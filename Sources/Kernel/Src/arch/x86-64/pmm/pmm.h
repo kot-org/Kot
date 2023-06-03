@@ -5,14 +5,14 @@ extern Bitmap Pmm_Bitmap;
 void Pmm_Init(struct ukl_memmory_info_t* Map);
 
 uint64_t Pmm_GetMemorySize(struct ukl_memmory_info_t* Map);
-void Pmm_FreePage(uintptr_t address);
-void Pmm_FreePages(uintptr_t address, uint64_t pageCount);
-void Pmm_LockPage(uintptr_t address);
-void Pmm_LockPages(uintptr_t address, uint64_t pageCount);
-void Pmm_ReservePage(uintptr_t address);
-void Pmm_ReservePages(uintptr_t address, uint64_t pageCount);
-void Pmm_UnreservePage(uintptr_t address);
-void Pmm_UnreservePages(uintptr_t address, uint64_t pageCount);
+void Pmm_FreePage(void* address);
+void Pmm_FreePages(void* address, uint64_t pageCount);
+void Pmm_LockPage(void* address);
+void Pmm_LockPages(void* address, uint64_t pageCount);
+void Pmm_ReservePage(void* address);
+void Pmm_ReservePages(void* address, uint64_t pageCount);
+void Pmm_UnreservePage(void* address);
+void Pmm_UnreservePages(void* address, uint64_t pageCount);
 
 void Pmm_FreePage_WI(uint64_t index);
 void Pmm_FreePages_WI(uint64_t index, uint64_t pageCount);
@@ -22,14 +22,14 @@ void Pmm_ReservePage_WI(uint64_t index);
 void Pmm_ReservePages_WI(uint64_t index, uint64_t pageCount);
 void Pmm_UnreservePage_WI(uint64_t index);
 void Pmm_UnreservePages_WI(uint64_t index, uint64_t pageCount);
-uintptr_t Pmm_RequestPage();
-uintptr_t Pmm_RequestPages(uint64_t pages);
+void* Pmm_RequestPage();
+void* Pmm_RequestPages(uint64_t pages);
 uint64_t Pmm_GetTotalRAM();
 uint64_t Pmm_GetFreeRAM();
 uint64_t Pmm_GetUsedRAM();
 uint64_t Pmm_GetReservedRAM();
 
-void Pmm_InitBitmap(uintptr_t bufferAddress, size64_t bitmapSize);
+void Pmm_InitBitmap(void* bufferAddress, size64_t bitmapSize);
 
 
 struct memoryInfo_t{

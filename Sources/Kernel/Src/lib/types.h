@@ -36,8 +36,6 @@ typedef key_t thread_t;
 typedef key_t kot_event_t;
 typedef key_t kot_key_mem_t;
 
-typedef void*                       uintptr_t;
-
 typedef long unsigned int           size_t;
 typedef uint64_t                    size64_t;
 
@@ -86,13 +84,13 @@ typedef struct{
 
 // cyclic buffer
 typedef struct{
-    uintptr_t Base;
+    void* Base;
     size64_t Size;
 }cyclic_t;
 
 typedef struct{
-    uintptr_t Base;
+    void* Base;
     size64_t Size;
 }memory_buffer_t;
 
-typedef uintptr_t pagetable_t;
+typedef void* pagetable_t;

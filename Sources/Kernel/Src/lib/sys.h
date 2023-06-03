@@ -11,7 +11,7 @@ struct kot_SpecificData_t{
     thread_t UISDHandler;
     process_t UISDHandlerProcess;
     /* FreeMemorySpace */
-    uintptr_t FreeMemorySpace;
+    void* FreeMemorySpace;
     /* VFS */
     thread_t VFSHandler;
 }__attribute__((aligned(0x1000)));
@@ -46,7 +46,7 @@ struct SelfData{
 
 struct ShareDataWithArguments_t{
     size64_t Size;
-    uintptr_t Data;
+    void* Data;
     uint8_t ParameterPosition;
 }__attribute__((packed));
 

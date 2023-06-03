@@ -67,5 +67,5 @@ namespace ACPI{
         uint8_t PageProtection;
     }__attribute__((packed));
 
-    uintptr_t FindTable(RSDP2* rsdp, char* signature);
+    void* FindTable(RSDP2* rsdp, char* signature);
 }

@@ -4,7 +4,7 @@
 static locker_t mutexKeyhole;
 
 KResult Keyhole_Create(key_t* key, kprocess_t* parent, kprocess_t* target, enum DataType type, uint64_t data, uint64_t flags, enum Priviledge minpriviledge){
-    if(!CheckAddress((uintptr_t)key, sizeof(key))) return KFAIL;
+    if(!CheckAddress((void*)key, sizeof(key))) return KFAIL;
     
     AtomicAquire(&mutexKeyhole);
     
@@ -17,12 +17,12 @@ KResult Keyhole_Create(key_t* key, kprocess_t* parent, kprocess_t* target, enum 
     uint64_t Offset = (Address % PAGE_SIZE) / sizeof(uint64_t);
     lockreference_t* AccessAddress = NULL;
     
-    if(!vmm_GetFlags(parent->SharedPaging, (uintptr_t)Page, vmm_flag::vmm_Present)){
-        vmm_Map(parent->SharedPaging, (uintptr_t)Page, Pmm_RequestPage());
-        AccessAddress = (lockreference_t*)vmm_GetVirtualAddress(vmm_GetPhysical(parent->SharedPaging, (uintptr_t)Page));
-        memset((uintptr_t)AccessAddress, 0, PAGE_SIZE);
+    if(!vmm_GetFlags(parent->SharedPaging, (void*)Page, vmm_flag::vmm_Present)){
+        vmm_Map(parent->SharedPaging, (void*)Page, Pmm_RequestPage());
+        AccessAddress = (lockreference_t*)vmm_GetVirtualAddress(vmm_GetPhysical(parent->SharedPaging, (void*)Page));
+        memset((void*)AccessAddress, 0, PAGE_SIZE);
     }else{
-        AccessAddress = (lockreference_t*)vmm_GetVirtualAddress(vmm_GetPhysical(parent->SharedPaging, (uintptr_t)Page));
+        AccessAddress = (lockreference_t*)vmm_GetVirtualAddress(vmm_GetPhysical(parent->SharedPaging, (void*)Page));
     }
     AccessAddress->LockOffset[Offset] = Lock;
     
@@ -68,7 +68,7 @@ KResult Keyhole_Verify(kthread_t* caller, key_t key, enum DataType type){
     // Get lock
     lock_t* lock = (lock_t*)key;
     // check lock
-    if(!CheckAddress((uintptr_t)lock, sizeof(lock_t))) return KFAIL;
+    if(!CheckAddress((void*)lock, sizeof(lock_t))) return KFAIL;
     if(lock->Signature0 != 'L' || lock->Signature1 != 'O' || lock->Signature2 != 'K') return KFAIL;
     if(lock->Target != NULL){
         if(lock->Target->PID != caller->Parent->PID) return KFAIL; // Just check the PID, to share key beetween fork process
@@ -80,14 +80,14 @@ KResult Keyhole_Verify(kthread_t* caller, key_t key, enum DataType type){
         return KFAIL;
     }
     // check parent
-    if(!CheckAddress((uintptr_t)lock->Parent, sizeof(kprocess_t))) return KFAIL;
+    if(!CheckAddress((void*)lock->Parent, sizeof(kprocess_t))) return KFAIL;
     
     uint64_t VirtualAddress = (uint64_t)vmm_GetVirtualAddress(lock->Parent->SharedPaging);
     
     uint64_t PageAddress = lock->Address - (lock->Address % PAGE_SIZE);
     uint64_t Offset = (lock->Address % PAGE_SIZE) / sizeof(uint64_t);
-    if(!vmm_GetFlags(lock->Parent->SharedPaging, (uintptr_t)PageAddress, vmm_flag::vmm_Present)) return KFAIL;
-    lockreference_t* AccessAddress = (lockreference_t*)(vmm_GetVirtualAddress(vmm_GetPhysical(lock->Parent->SharedPaging, (uintptr_t)PageAddress)));
+    if(!vmm_GetFlags(lock->Parent->SharedPaging, (void*)PageAddress, vmm_flag::vmm_Present)) return KFAIL;
+    lockreference_t* AccessAddress = (lockreference_t*)(vmm_GetVirtualAddress(vmm_GetPhysical(lock->Parent->SharedPaging, (void*)PageAddress)));
     return KSUCCESS;
 }
 

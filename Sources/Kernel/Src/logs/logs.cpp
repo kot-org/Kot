@@ -40,7 +40,7 @@ void Message(const char* str, ...){
             SerialPort::Print(va_arg(args, const char*)); //string
             index++;
         } else if (str[index] == '%' && str[index+1] == 'p') {
-            SerialPort::Print(to_string((uint64_t)va_arg(args, uintptr_t))); //address
+            SerialPort::Print(to_string((uint64_t)va_arg(args, void*))); //address
             index++;
         } else {
             SerialPort::Print(to_string(str[index])); //char
@@ -105,7 +105,7 @@ void Successful(const char* str, ...){
             SerialPort::Print(va_arg(args, const char*)); //string
             index++;
         } else if (str[index] == '%' && str[index+1] == 'p') {
-            SerialPort::Print(to_string((uint64_t)va_arg(args, uintptr_t))); //address
+            SerialPort::Print(to_string((uint64_t)va_arg(args, void*))); //address
             index++;
         } else {
             SerialPort::Print(to_string(str[index])); //char
@@ -156,7 +156,7 @@ void Warning(const char* str, ...){
             SerialPort::Print(va_arg(args, const char*)); //string
             index++;
         } else if (str[index] == '%' && str[index+1] == 'p') {
-            SerialPort::Print(to_string((uint64_t)va_arg(args, uintptr_t))); //address
+            SerialPort::Print(to_string((uint64_t)va_arg(args, void*))); //address
             index++;
         } else {
             SerialPort::Print(to_string(str[index])); //char
@@ -206,7 +206,7 @@ void Error(const char * str, ...){
             SerialPort::Print(va_arg(args, const char*)); //string
             index++;
         } else if (str[index] == '%' && str[index+1] == 'p') {
-            SerialPort::Print(to_string((uint64_t)va_arg(args, uintptr_t))); //address
+            SerialPort::Print(to_string((uint64_t)va_arg(args, void*))); //address
             index++;
         } else {
             SerialPort::Print(to_string(str[index])); //char

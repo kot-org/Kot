@@ -1,11 +1,11 @@
 #include <core/core.h>
 
 struct arg_t{
-    uintptr_t Data;
+    void* Data;
     size64_t Size;
 };
 
-KResult SetupStack(uintptr_t* Data, size64_t* Size, int argc, arg_t* argv, char** envp){
+KResult SetupStack(void** Data, size64_t* Size, int argc, arg_t* argv, char** envp){
     size64_t args = 0;
     for(int i = 0; i < argc; i++){
         args += argv[i].Size;
@@ -18,36 +18,36 @@ KResult SetupStack(uintptr_t* Data, size64_t* Size, int argc, arg_t* argv, char*
         envs += strlen(*ev) + 1; // Add NULL char at the end
 	}
 
-    *Size = sizeof(uintptr_t) + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*) + args + envs;
-    uintptr_t Buffer = kmalloc(*Size);
+    *Size = sizeof(void*) + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*) + args + envs;
+    void* Buffer = kmalloc(*Size);
     
-    uintptr_t StackDst = Buffer;
+    void* StackDst = Buffer;
 
-    *(uintptr_t*)StackDst = (uintptr_t)argc;
-    StackDst = (uintptr_t)((uint64_t)StackDst + sizeof(uintptr_t));
+    *(void**)StackDst = (void*)argc;
+    StackDst = (void*)((uint64_t)StackDst + sizeof(void*));
 
-    uintptr_t OffsetDst = StackDst;
-    StackDst = (uintptr_t)((uint64_t)StackDst + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*));
+    void* OffsetDst = StackDst;
+    StackDst = (void*)((uint64_t)StackDst + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*));
 
     for(int i = 0; i < argc; i++){
-        *((uintptr_t*)OffsetDst) = (uintptr_t)((uint64_t)StackDst - (uint64_t)Buffer);
-        OffsetDst = (uintptr_t)((uint64_t)OffsetDst + sizeof(uintptr_t));
+        *((void**)OffsetDst) = (void*)((uint64_t)StackDst - (uint64_t)Buffer);
+        OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
         memcpy((char*)StackDst, argv[i].Data, argv[i].Size);
-        StackDst = (uintptr_t)((uint64_t)StackDst + argv[i].Size);
+        StackDst = (void*)((uint64_t)StackDst + argv[i].Size);
     }
 
     // Null argument
-    *(uintptr_t*)OffsetDst = NULL;
-    OffsetDst = (uintptr_t)((uint64_t)OffsetDst + sizeof(uintptr_t));
+    *(void**)OffsetDst = NULL;
+    OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
 
     for(int i = 0; i < envc; i++){
-        *(uintptr_t*)OffsetDst = (uintptr_t)((uint64_t)StackDst - (uint64_t)Buffer);
-        OffsetDst = (uintptr_t)((uint64_t)OffsetDst + sizeof(uintptr_t));
+        *(void**)OffsetDst = (void*)((uint64_t)StackDst - (uint64_t)Buffer);
+        OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
         strcpy((char*)StackDst, envp[i]);
-        StackDst = (uintptr_t)((uint64_t)StackDst + strlen(envp[i]) + 1); // Add NULL char at the end
+        StackDst = (void*)((uint64_t)StackDst + strlen(envp[i]) + 1); // Add NULL char at the end
     }
     // Null argument
-    *(uintptr_t*)OffsetDst = NULL;
+    *(void**)OffsetDst = NULL;
 
     *Data = Buffer;
 
@@ -64,17 +64,17 @@ extern "C" void main(ukl_boot_structure_t* BootData){
     initrd::File* InitFile = initrd::FindInitFile();
     
     if(InitFile != NULL){
-        uintptr_t BufferInitFile = kmalloc(InitFile->size);
+        void* BufferInitFile = kmalloc(InitFile->size);
         initrd::Read(InitFile, BufferInitFile);
         kthread_t* mainthread;
         ELF::loadElf(BufferInitFile, PriviledgeDriver, &mainthread);
         arguments_t* InitParameters = (arguments_t*)kmalloc(sizeof(arguments_t));
 
         size64_t Size;
-        uintptr_t Data;
+        void* Data;
         GetDataToStartService(ArchInfo, mainthread, InitParameters, &Data, &Size);
 
-        uintptr_t MainStackData;
+        void* MainStackData;
         size64_t SizeMainStackData;
 
         arg_t Argv[1];
@@ -94,6 +94,8 @@ extern "C" void main(ukl_boot_structure_t* BootData){
         InitParameters->arg[2] = 1; // Disable shell
 
         globalTaskManager->Execthread(mainthread, mainthread, ExecutionTypeQueu, InitParameters, &DataInfo, NULL);
+
+        kfree(Data);
         kfree(InitParameters);
     }else{
         Error("Can't load initialization file");

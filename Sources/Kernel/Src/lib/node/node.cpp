@@ -1,7 +1,7 @@
 #include <lib/node/node.h>
 #include <heap/heap.h>
 
-Node* CreateNode(uintptr_t data){
+Node* CreateNode(void* data){
     Node* node = (Node*)kmalloc(sizeof(Node));
     node->data = data;
     node->parent = node;
@@ -41,7 +41,7 @@ uint64_t Node::GetSize(){
     AtomicRelease(&lock);
 }
 
-Node* Node::Add(uintptr_t data){
+Node* Node::Add(void* data){
     AtomicAquire(&lock);
     Node* newNode = (Node*)kmalloc(sizeof(Node));
     newNode->data = data;
@@ -54,7 +54,7 @@ Node* Node::Add(uintptr_t data){
     return newNode;    
 }
 
-void Node::ModifyData(uintptr_t data){
+void Node::ModifyData(void* data){
     AtomicAquire(&lock);
     this->data = data;
     AtomicRelease(&lock);

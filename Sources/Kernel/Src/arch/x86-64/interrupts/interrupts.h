@@ -23,5 +23,5 @@ bool PageFaultHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID);
 void KernelUnrecovorable(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID);
 
 extern struct IDTR idtr;
-extern uintptr_t InterruptEntryList[256];
+extern void* InterruptEntryList[256];
 extern struct kevent_t* InterruptEventList[256];

@@ -92,10 +92,10 @@ namespace Event{
         self->NumTask--;
         for(size64_t i = 0; i < self->NumTask; i++){
             if(self->Tasks[i]->thread == task){
-                uintptr_t newPos = kmalloc(self->NumTask * sizeof(kevent_tasks_t*));
+                void* newPos = kmalloc(self->NumTask * sizeof(kevent_tasks_t*));
                 memcpy(newPos, self->Tasks[i], sizeof(kevent_tasks_t*) * i);
                 i++;
-                memcpy((uintptr_t)((uint64_t)newPos + sizeof(kevent_tasks_t) * (i - 1)), (uintptr_t)((uint64_t)self->Tasks[i] + sizeof(kevent_tasks_t) * i), sizeof(kevent_tasks_t) * i);
+                memcpy((void*)((uint64_t)newPos + sizeof(kevent_tasks_t) * (i - 1)), (void*)((uint64_t)self->Tasks[i] + sizeof(kevent_tasks_t) * i), sizeof(kevent_tasks_t) * i);
                 self->Tasks = (kevent_tasks_t**)newPos;
                 break;
             }
@@ -174,9 +174,6 @@ namespace Event{
             AtomicRelease(&Thread->EventLock);
             ForceSelfDestruction();
         }else if(Thread->EventDataNode->NumberOfMissedEvents){
-            if(Thread->EventDataNode->NumberOfMissedEvents > 1000){
-                Message("%s", Thread->EventDataNode->NumberOfMissedEvents);
-            }
             event_data_t* Next = Thread->EventDataNode->CurrentData->Next;
             kfree(Thread->EventDataNode->CurrentData);
             Thread->EventDataNode->CurrentData = Next;

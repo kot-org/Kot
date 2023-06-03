@@ -56,9 +56,9 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
     }
 
     /* Shedule */
-    SetIDTGate((uintptr_t)InterruptEntryList[INT_ScheduleAPIC], INT_ScheduleAPIC, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_SchedulerAPIC, idtr);
-    SetIDTGate((uintptr_t)InterruptEntryList[INT_Schedule], INT_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
-    SetIDTGate((uintptr_t)InterruptEntryList[INT_DestroySelf], INT_DestroySelf, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_DestroySelf, idtr); // Interrupt gate type because interrupt should be disable before
+    SetIDTGate((void*)InterruptEntryList[INT_ScheduleAPIC], INT_ScheduleAPIC, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_SchedulerAPIC, idtr);
+    SetIDTGate((void*)InterruptEntryList[INT_Schedule], INT_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
+    SetIDTGate((void*)InterruptEntryList[INT_DestroySelf], INT_DestroySelf, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_DestroySelf, idtr); // Interrupt gate type because interrupt should be disable before
 
     uint64_t stackSchedulerAPIC = (uint64_t)stackalloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
     TSSSetIST(CPU::GetAPICID(), IST_SchedulerAPIC, stackSchedulerAPIC);

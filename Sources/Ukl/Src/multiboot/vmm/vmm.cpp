@@ -339,7 +339,7 @@ uint64_t vmm_GetPhysical(pagetable_t table, uint64_t Address){
 
 void vmm_Init(struct multiboot_tag_mmap* Map, uint64_t* Stack){
     vmm_PageTable = (pagetable_t)Pmm_RequestPage();
-    memset((uintptr_t)vmm_PageTable, 0, PAGE_SIZE);
+    memset((void*)vmm_PageTable, 0, PAGE_SIZE);
 
     vmm_HHDMAdress = PML4_HIGHER_HALF_ADDRESS;
 
