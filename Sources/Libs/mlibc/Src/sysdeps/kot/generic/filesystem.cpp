@@ -175,7 +175,7 @@ namespace mlibc{
         }
     }
 
-    int kot_Sys_Close(int fd){
+    int sys_close(int fd){
         if(FSExecFlags & EXEC_FLAGS_SHELL_DISABLED){
             if(fd <= 2){ // Is Shell file 
                 return 0;

@@ -906,7 +906,7 @@ off64_t lseek64(int fd, off64_t offset, int whence) {
 }
 
 int close(int fd) {
-	return mlibc::kot_Sys_Close(fd);
+	return mlibc::sys_close(fd);
 }
 
 unsigned int sleep(unsigned int secs) {

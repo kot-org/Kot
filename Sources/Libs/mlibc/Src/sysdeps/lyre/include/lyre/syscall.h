@@ -6,7 +6,7 @@
 #define SYS_debug 0
 #define SYS_mmap 1
 #define SYS_openat 2
-#define kot_Sys_Close 3
+#define SYS_CLOSE 3
 #define SYS_read 4
 #define SYS_write 5
 #define SYS_seek 6

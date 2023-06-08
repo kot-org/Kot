@@ -33,7 +33,7 @@ int sys_write(int fd, const void *buf, size_t count, ssize_t *bytes_written);
 [[gnu::weak]] int sys_pread(int fd, void *buf, size_t n, off_t off, ssize_t *bytes_read);
 
 int sys_seek(int fd, off_t offset, int whence, off_t *new_offset);
-int kot_Sys_Close(int fd);
+int sys_close(int fd);
 
 int sys_clock_get(int clock, time_t *secs, long *nanos);
 [[gnu::weak]] int sys_clock_getres(int clock, time_t *secs, long *nanos);

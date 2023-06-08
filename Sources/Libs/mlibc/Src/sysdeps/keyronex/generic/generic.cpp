@@ -299,7 +299,7 @@ sys_read_entries(int fd, void *buffer, size_t max_size, size_t *bytes_read)
 }
 
 int
-kot_Sys_Close(int fd)
+sys_close(int fd)
 {
 	return (int)syscall1(kPXSysClose, fd, NULL);
 }

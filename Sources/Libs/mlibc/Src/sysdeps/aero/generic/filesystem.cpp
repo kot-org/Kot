@@ -69,8 +69,8 @@ int sys_open(const char *filename, int flags, mode_t mode, int *fd) {
     return 0;
 }
 
-int kot_Sys_Close(int fd) {
-    auto result = syscall(kot_Sys_Close, fd);
+int sys_close(int fd) {
+    auto result = syscall(SYS_CLOSE, fd);
 
     if (result < 0) {
         return -result;

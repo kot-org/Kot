@@ -135,7 +135,7 @@
 #	define SYS_clone3 __NR_clone3
 #endif
 #ifdef	__NR_close
-#	define kot_Sys_Close __NR_close
+#	define SYS_close __NR_close
 #endif
 #ifdef	__NR_close_range
 #	define SYS_close_range __NR_close_range

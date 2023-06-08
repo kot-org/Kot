@@ -72,8 +72,8 @@ void readExactlyOrDie(int fd, void *data, size_t length) {
 }
 
 void closeOrDie(int fd) {
-	if(mlibc::kot_Sys_Close(fd))
-		__ensure(!"kot_Sys_Close() failed");
+	if(mlibc::sys_close(fd))
+		__ensure(!"sys_close() failed");
 }
 
 uintptr_t alignUp(uintptr_t address, size_t align) {

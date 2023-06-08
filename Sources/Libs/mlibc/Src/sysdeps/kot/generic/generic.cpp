@@ -172,6 +172,7 @@ namespace mlibc{
         free((void*)MainStackData);
         free((void*)Callback);
         kot_Sys_Close(KSUCCESS);
+        __builtin_unreachable();
     }
 
     pid_t sys_getpid(){

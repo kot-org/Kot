@@ -377,7 +377,7 @@ int sys_vm_map(void *hint, size_t size, int prot, int flags, int fd, off_t offse
 	return 0;
 }
 
-int kot_Sys_Close(int fd) {
+int sys_close(int fd) {
 	cacheFileTable();
 	HelAction actions[3];
 

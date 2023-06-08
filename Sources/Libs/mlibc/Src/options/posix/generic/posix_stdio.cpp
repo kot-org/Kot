@@ -104,20 +104,20 @@ FILE *popen(const char *command, const char *typestr) {
 
 	if (int e = mlibc::sys_fork(&child)) {
 		errno = e;
-		mlibc::kot_Sys_Close(fds[0]);
-		mlibc::kot_Sys_Close(fds[1]);
+		mlibc::sys_close(fds[0]);
+		mlibc::sys_close(fds[1]);
 	} else if (!child) {
 		// For the child
 		mlibc::sys_sigaction(SIGINT, &old_int, nullptr);
 		mlibc::sys_sigaction(SIGQUIT, &old_quit, nullptr);
 		mlibc::sys_sigprocmask(SIG_SETMASK, &old_mask, nullptr);
 
-		mlibc::kot_Sys_Close(fds[parent_end]);
+		mlibc::sys_close(fds[parent_end]);
 
 		if (mlibc::sys_dup2(fds[child_end], 0, is_write ? 0 : 1)) {
 			__ensure(!"sys_dup2() failed in popen()");
 		}
-		mlibc::kot_Sys_Close(fds[child_end]);
+		mlibc::sys_close(fds[child_end]);
 
 		const char *args[] = {
 			"sh", "-c", command, nullptr
@@ -127,7 +127,7 @@ FILE *popen(const char *command, const char *typestr) {
 		_Exit(127);
 	} else {
 		// For the parent
-		mlibc::kot_Sys_Close(fds[child_end]);
+		mlibc::sys_close(fds[child_end]);
 
 		ret = frg::construct<popen_file>(
 			getAllocator(),

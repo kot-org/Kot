@@ -8,7 +8,7 @@
 #define SYS_READ 3
 #define SYS_WRITE 4
 #define SYS_OPEN 5
-#define kot_Sys_Close 6
+#define SYS_CLOSE 6
 #define SYS_SLEEP 7
 #define SYS_CREATE 8
 #define SYS_LINK 9

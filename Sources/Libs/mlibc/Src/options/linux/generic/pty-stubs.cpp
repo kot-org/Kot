@@ -65,7 +65,7 @@ int login_tty(int fd) {
 		return -1;
 	}
 
-	if(int e = mlibc::kot_Sys_Close(fd); e) {
+	if(int e = mlibc::sys_close(fd); e) {
 		errno = e;
 		return -1;
 	}
@@ -88,7 +88,7 @@ int forkpty(int *mfd, char *name, const struct termios *ios, const struct winsiz
 		if(login_tty(sfd))
 			mlibc::panicLogger() << "mlibc: TTY login fail in forkpty() child" << frg::endlog;
 	}else{
-		if(int e = mlibc::kot_Sys_Close(sfd); e) {
+		if(int e = mlibc::sys_close(sfd); e) {
 			errno = e;
 			return -1;
 		}

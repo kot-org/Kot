@@ -27,7 +27,7 @@ int sys_anon_free(void *pointer, size_t size);
 int sys_open(const char *pathname, int flags, mode_t mode, int *fd);
 int sys_read(int fd, void *buf, size_t count, ssize_t *bytes_read);
 int sys_seek(int fd, off_t offset, int whence, off_t *new_offset);
-int kot_Sys_Close(int fd);
+int sys_close(int fd);
 
 [[gnu::weak]] int sys_stat(fsfd_target fsfdt, int fd, const char *path, int flags,
 		struct stat *statbuf);

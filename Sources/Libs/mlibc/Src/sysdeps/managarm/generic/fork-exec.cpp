@@ -663,7 +663,7 @@ int sys_thread_setname(void *tcb, const char *name) {
 		return e;
 	}
 
-	kot_Sys_Close(fd);
+	sys_close(fd);
 
 	pthread_setcancelstate(cs, 0);
 
@@ -692,7 +692,7 @@ int sys_thread_getname(void *tcb, char *name, size_t size) {
 	}
 
 	name[real_size - 1] = 0;
-	kot_Sys_Close(fd);
+	sys_close(fd);
 
 	pthread_setcancelstate(cs, 0);
 
