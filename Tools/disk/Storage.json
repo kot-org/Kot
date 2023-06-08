@@ -36,6 +36,10 @@
         "destination": "Kot/System/Services/Shell/Shell.elf"
     },
     {
+        "source": "Sources/Apps/doom/Bin/Doom.elf",
+        "destination": "Kot/System/Apps/Shell/utils/doom.elf"
+    },
+    {
         "source": "Sources/Apps/tcc/Bin/Tcc.elf",
         "destination": "Kot/System/Apps/Shell/utils/tcc.elf"
     },
