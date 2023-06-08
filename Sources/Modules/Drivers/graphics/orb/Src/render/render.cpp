@@ -14,17 +14,21 @@ renderc::renderc(orbc* Parent){
 
 void renderc::RenderWindows(){
     // todo: multi threads monitor rendering
+    atomicAcquire(&RenderLock, 0);
     for(uint64_t i = 0; i < Monitors->length; i++){
         monitorc* Monitor = (monitorc*)kot_vector_get(Monitors, i);
         Monitor->Update(FirstWindowNode);
     }
+    atomicUnlock(&RenderLock, 0);
 }
 
 void renderc::UpdateAllEvents(){
+    atomicAcquire(&RenderLock, 0);
     for(uint64_t i = 0; i < Monitors->length; i++){
         monitorc* Monitor = (monitorc*)kot_vector_get(Monitors, i);
         Monitor->UpdateEvents(FirstWindowNode);
     }
+    atomicUnlock(&RenderLock, 0);
 }
 
 

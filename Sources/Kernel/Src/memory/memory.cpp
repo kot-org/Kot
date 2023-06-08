@@ -65,9 +65,7 @@ bool CheckAddress(void* address, size64_t size, void* pagingEntry){
 }
 
 bool CheckAddress(void* address, size64_t size){
-    void* PagingEntry = NULL;
-    __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(PagingEntry));
-    return CheckAddress(address, size, PagingEntry);
+    return CheckAddress(address, size, ASMGetPagingEntry());
 }
 
 bool CheckUserAddress(void* address, size64_t size, void* pagingEntry){
@@ -179,7 +177,7 @@ uint64_t AcceptMemoryField(kthread_t* self, kprocess_t* process, MemoryShareInfo
 
     if(shareInfo->signature0 != 'S' || shareInfo->signature1 != 'M') return KFAIL;
 
-    AtomicAquire(&shareInfo->Lock);
+    AtomicAcquire(&shareInfo->Lock);
 
     void* virtualAddress = (void*)*virtualAddressPointer;
     
@@ -300,7 +298,7 @@ uint64_t CloseMemoryField(kthread_t* self, kprocess_t* process, MemoryShareInfo*
         }        
     }
 
-    AtomicAquire(&shareInfo->Lock);
+    AtomicAcquire(&shareInfo->Lock);
 
     switch(shareInfo->Type){
         case MemoryFieldTypeShareSpaceRW:{
@@ -336,10 +334,11 @@ uint64_t CloseMemoryField(kthread_t* self, kprocess_t* process, MemoryShareInfo*
         }
     }
     
+    AtomicRelease(&shareInfo->Lock);
+    
     if(IsParent){
         kfree((void*)shareInfo);
     }
-    AtomicRelease(&shareInfo->Lock);
     
     return KSUCCESS;
 }

@@ -19,3 +19,8 @@ struct ArchInfo_t{
     size64_t IRQSize;
     kot_event_t IRQEvents[];
 }__attribute__((packed));
+
+struct StackFrame_t{
+  struct StackFrame_t* Next;
+  void* InstructionPointer;
+};

@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include <kot/sys.h>
+
 #define MAX_ARGS    255
 #define MAX_CHAR    1024
 
@@ -29,30 +31,29 @@ void GetInput() {
 }
 
 int main(int argc, char* argv[], char* envp[]) {
-    //setenv("USER", "seb", 1);
-
+    char* Prefix = "d1:Kot/System/Apps/Shell/utils/";
+    char* Suffix = ".elf";
     while(true) {
         // prompt
         printf("> ");
 
         GetInput();
 
+        if(!Args[0]) continue;
+
         pid_t pid = fork();
 
-        if(pid == -1) {
-            printf("CHILD NOT CREATED");
-            break;
-        }else if(pid == 0){
-
-            if(execvp("d1:Kot/System/Apps/echo.elf", NULL) == -1) {
-                printf("Command not found");
-                //kill(pid, SIGINT);
+        if(pid == 0){
+            size_t PathSize = strlen(Prefix) + strlen(Suffix) + strlen(Args[0]) + 1;
+            char* Path = (char*)malloc(PathSize);
+            strcat(Path, Prefix);
+            strcat(Path, Args[0]);
+            strcat(Path, Suffix);
+            if(execvp(Path, Args) == -1){
+                printf("Unknow command : %s\n", Args[0]);
+                kot_Sys_Close(KSUCCESS);
             }
         }
-
-        execvpe("d1:Kot/System/Apps/ls.elf", Args, envp);
-
-        memset(Args, '\0', MAX_ARGS);
     }
     
     return 0;

@@ -11,15 +11,11 @@ void* ParseRSDP(void* rsdpPhysical){
     bool IsXSDT = (rsdp->Revision >= 1);
     if(IsXSDT){
         sdt = (kot_srv_system_sdtheader_t*)kot_MapPhysical((void*)rsdp->XSDTAddress, sizeof(kot_srv_system_sdtheader_t));
-        kot_Printlog("0");
         entries = (sdt->Length - sizeof(kot_srv_system_sdtheader_t)) / sizeof(uint64_t);
-        kot_Printlog("1");
         sdt = (kot_srv_system_sdtheader_t*)kot_MapPhysical((void*)rsdp->XSDTAddress, sizeof(uint64_t) * entries + sizeof(kot_srv_system_sdtheader_t));
     }else{
         sdt = (kot_srv_system_sdtheader_t*)kot_MapPhysical((void*)rsdp->RSDTAddress, sizeof(kot_srv_system_sdtheader_t));
-        kot_Printlog("0");
         entries = (sdt->Length - sizeof(kot_srv_system_sdtheader_t)) / sizeof(uint32_t);
-        kot_Printlog("1");
         sdt = (kot_srv_system_sdtheader_t*)kot_MapPhysical((void*)rsdp->RSDTAddress, sizeof(uint32_t) * entries + sizeof(kot_srv_system_sdtheader_t));
     }        
 

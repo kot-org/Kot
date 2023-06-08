@@ -294,6 +294,10 @@ void vmm_Unmap(pagetable_t table, void* Address){
     }
 
     PTVirtualAddress->entries[indexer.P_i] = NULL;  
+
+    if(table == ASMGetPagingEntry()){
+        ASMFlushTLB(Address);
+    }
 }
 
 void* vmm_GetPhysical(void* Address){

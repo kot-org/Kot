@@ -22,8 +22,6 @@ class windowc{
         kot_framebuffer_t* Framebuffer;
         graphiceventbuffer_t* Eventbuffer;
 
-        uint64_t Lock;
-
         kot_key_mem_t FramebufferKey;
         uint64_t XPosition;
         uint64_t YPosition;

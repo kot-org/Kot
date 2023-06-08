@@ -58,6 +58,11 @@ int sys_clock_get(int clock, time_t *secs, long *nanos);
 [[gnu::weak]] pid_t sys_getpid();
 [[gnu::weak]] int sys_kill(int, int);
 
+// debug
+void *sys_debug_malloc(size_t size);
+void *sys_debug_realloc(void *ptr, size_t size);
+void sys_debug_free(void *ptr);
+
 } //namespace mlibc
 
 #endif // MLIBC_ANSI_SYSDEPS

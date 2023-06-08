@@ -97,7 +97,6 @@ namespace ELF {
         }else{
             kot_Printlog("WARNING : This ELF seems not to be compatible with KOT");
         }
-
         for(uint64_t i = 0; i < self->Header->e_phnum; i++){
             Elf64_Phdr* phdr = (Elf64_Phdr*)((uint64_t)self->phdrs + (i * self->Header->e_phentsize));
             if(phdr->p_type == PT_LOAD){

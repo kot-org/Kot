@@ -21,6 +21,9 @@ struct Heap{
 #ifdef HEAP_DEBUG
 struct HeapSegmentHeader{
     size64_t length;
+    #ifdef HEAP_TRACE
+    void* TraceData;
+    #endif
 }__attribute__((aligned(0x10)));
 #else
 struct HeapSegmentHeader{
@@ -29,6 +32,9 @@ struct HeapSegmentHeader{
     struct HeapSegmentHeader* next;
     struct HeapSegmentHeader* last;
     bool IsStack;
+    #ifdef HEAP_TRACE
+    void* TraceData;
+    #endif
     uint32_t signature;
 }__attribute__((aligned(0x10)));
 #endif
@@ -37,9 +43,21 @@ extern Heap globalHeap;
 
 void InitializeHeap(void* heapAddress, void* stackAddress, size64_t pageCount);
 
-void* kcalloc(size64_t size);
-void* kmalloc(size64_t size);
-void* krealloc(void* buffer, size64_t size);
+#ifdef HEAP_TRACE
+void* _kcallocd(size64_t size, void* data);
+void* _kmallocd(size64_t size, void* data);
+void* _kreallocd(void* buffer, size64_t size, void* data);
+#define kcalloc(size) _kcallocd(size, (void*)__FILE__);
+#define kmalloc(size) _kmallocd(size, (void*)__FILE__);
+#define krealloc(buffer, size) _kreallocd(buffer, size, (void*)__FILE__);
+#else
+void* _kcalloc(size64_t size);
+void* _kmalloc(size64_t size);
+void* _krealloc(void* buffer, size64_t size);
+#define kcalloc(size) _kcalloc(size);
+#define kmalloc(size) _kmalloc(size);
+#define krealloc(buffer, size) _krealloc(buffer, size);
+#endif
 
 void kfree(void* address);
 

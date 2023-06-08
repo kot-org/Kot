@@ -252,7 +252,7 @@ KResult TaskManager::Execthread(kthread_t* Caller, kthread_t* Self, enum Executi
     if(Self->IsEvent) return KFAIL;
 
     ThreadQueu_t* queu = Self->Queu;
-    AtomicAquire(&queu->Lock);
+    AtomicAcquire(&queu->Lock);
     switch (Type){
         case ExecutionTypeQueu:{
             queu->SetThreadInQueu(Caller, Self, FunctionParameters, false, Data);
@@ -312,7 +312,7 @@ KResult TaskManager::Unpause_WL(kthread_t* task){
 } 
 
 KResult TaskManager::Exit(ContextStack* Registers, kthread_t* task, uint64_t ReturnValue){   
-    AtomicAquire(&task->Queu->Lock);
+    AtomicAcquire(&task->Queu->Lock);
     if(task->CloseQueu(ReturnValue) == KSUCCESS){
         AtomicRelease(&task->Queu->Lock);
         ForceSelfDestruction(); /* Unlock MutexScheduler */
@@ -341,7 +341,7 @@ KResult TaskManager::Exit(ContextStack* Registers, kthread_t* task, uint64_t Ret
 KResult TaskManager::CreateProcessWithoutPaging(kprocess_t** key, enum Priviledge priviledge, uint64_t externalData){
     kprocess_t* proc = (kprocess_t*)kcalloc(sizeof(kprocess_t));
 
-    AtomicAquire(&CreateProcessLock);
+    AtomicAcquire(&CreateProcessLock);
     if(ProcessList == NULL){
         ProcessList = CreateNode((void*)0);
         proc->NodeParent = ProcessList->Add(proc);
@@ -414,7 +414,7 @@ kthread_t* kprocess_t::Createthread(void* entryPoint, uint64_t externalData){
 kthread_t* kprocess_t::Createthread(void* entryPoint, enum Priviledge priviledge, uint64_t externalData){
     kthread_t* thread = (kthread_t*)kcalloc(sizeof(kthread_t));
 
-    AtomicAquire(&CreateThreadLocker);
+    AtomicAcquire(&CreateThreadLocker);
     if(Childs == NULL){
         Childs = CreateNode((void*)0);
         thread->ThreadNode = Childs->Add(thread);
@@ -495,7 +495,7 @@ kthread_t* kprocess_t::Createthread(void* entryPoint, enum Priviledge priviledge
 kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
     kthread_t* thread = (kthread_t*)kcalloc(sizeof(kthread_t));
 
-    AtomicAquire(&CreateThreadLocker);
+    AtomicAcquire(&CreateThreadLocker);
     if(Childs == NULL){
         Childs = CreateNode((void*)0);
         thread->ThreadNode = Childs->Add(thread);
@@ -576,7 +576,7 @@ KResult kprocess_t::Fork(ContextStack* Registers, kthread_t* Caller, kprocess_t*
     
     *Child = (kprocess_t*)kcalloc(sizeof(kprocess_t));
 
-    AtomicAquire(&TaskManagerParent->CreateProcessLock);
+    AtomicAcquire(&TaskManagerParent->CreateProcessLock);
     if(TaskManagerParent->ProcessList == NULL){
         TaskManagerParent->ProcessList = CreateNode((void*)0);
         (*Child)->NodeParent = TaskManagerParent->ProcessList->Add((*Child));
@@ -694,7 +694,7 @@ kthread_t* TaskManager::GetCurrentthread(uint64_t CoreID){
 }
 
 void TaskManager::AcquireScheduler(){
-    AtomicAquireCli(&SchedulerLock);
+    AtomicAcquireCli(&SchedulerLock);
 }
 
 void TaskManager::ReleaseScheduler(){
@@ -932,7 +932,7 @@ bool kthread_t::Pause_WL(ContextStack* Registers, bool force){
 KResult kthread_t::Close(ContextStack* Registers, uint64_t ReturnValue){
     if(IsEvent) return KFAIL;
 
-    AtomicAquire(&Queu->Lock);
+    AtomicAcquire(&Queu->Lock);
     
     KResult Status = CloseQueu(ReturnValue);
 
@@ -989,6 +989,8 @@ kthread_t* kthread_t::ForkThread(ContextStack* Registers, kprocess_t* Child){
     ChildThread->Regs->GlobalPurpose = KSUCCESS,
 
     // Start child thread
+    ChildThread->IsClose = false;
+    ChildThread->IsBlock = false;
     Child->TaskManagerParent->EnqueueTask(ChildThread);
 
     return ChildThread;

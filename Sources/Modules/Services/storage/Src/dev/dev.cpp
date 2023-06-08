@@ -32,7 +32,7 @@ KResult NewDev(kot_thread_t Callback, uint64_t CallbackArg, void* Opaque){
 
     Dev->NameLen = strlen(Name);
     Dev->Name = (char*)malloc(Dev->NameLen * sizeof(char));
-    strcpy(Dev->Name, Name);
+    strncpy(Dev->Name, Name, Dev->NameLen);
 
     memcpy(&Dev->VirtualPartition.FSServerFunctions, FSServerFunctions, sizeof(kot_srv_storage_fs_server_functions_t));
 

@@ -6,7 +6,7 @@ static locker_t mutexKeyhole;
 KResult Keyhole_Create(key_t* key, kprocess_t* parent, kprocess_t* target, enum DataType type, uint64_t data, uint64_t flags, enum Priviledge minpriviledge){
     if(!CheckAddress((void*)key, sizeof(key))) return KFAIL;
     
-    AtomicAquire(&mutexKeyhole);
+    AtomicAcquire(&mutexKeyhole);
     
     parent->LockIndex++;
     // alloc lock

@@ -2,14 +2,73 @@
 
 static locker_t MutexLog;
 
-void Message(const char* str, ...){
-    AtomicAquire(&MutexLog);
+void TraceBegin(){
+    AtomicAcquire(&MutexLog);
+    Trace("___ TRACE ___");
+}
+
+void TraceEnd(){
+    Trace("___ TRACE END ___");
+    AtomicRelease(&MutexLog);
+}
+
+void Trace(const char* str, ...){
     va_list args;
     va_start(args, str);
 
-    SerialPort::Print(SerialCYAN);
+    SerialPort::Print(SERIAL_PINK);
+    SerialPort::Print("[_] ");
+    SerialPort::Print(SERIAL_RESET);
+    
+    int index = 0;
+    while(str[index] != 0) {
+        if(str[index] == '%' && (str[index + 1] == 'd' || str[index + 1] == 'i')) {
+            SerialPort::Print(to_string(va_arg(args, int))); //int or decimal
+            index++;
+        } else if (str[index] == '%' && str[index+1] == 'u') {
+            SerialPort::Print(to_string(va_arg(args, uint64_t))); //uint
+            index++;
+        } else if (str[index] == '%' && (str[index+1] == 'x' || str[index+1] == 'X')) {
+            uint64_t val = va_arg(args, uint64_t); //hex
+            if(val > uint32_Limit)
+                SerialPort::Print(to_hstring(val)); 
+            else if (val > uint16_Limit) 
+                SerialPort::Print(to_hstring((uint32_t)val));
+            else if (val > uint8_Limit) 
+                SerialPort::Print(to_hstring((uint16_t)val));
+            else
+                SerialPort::Print(to_hstring((uint8_t)val));                
+            index++;    
+        } else if (str[index] == '%' && (str[index + 1] == 'f' || str[index+1] == 'F')) {
+            SerialPort::Print(to_string(va_arg(args, double))); //float
+            index++;
+        } else if (str[index] == '%' && str[index+1] == 'c' && str[index+2] != 'o') {
+            SerialPort::Print(to_string(va_arg(args, int))); //char
+            index++;
+        } else if (str[index] == '%' && str[index+1] == 's') {
+            SerialPort::Print(va_arg(args, const char*)); //string
+            index++;
+        } else if (str[index] == '%' && str[index+1] == 'p') {
+            SerialPort::Print(to_string((uint64_t)va_arg(args, void*))); //address
+            index++;
+        } else {
+            SerialPort::Print(to_string(str[index])); //char
+        }
+        index++;
+    }
+
+    SerialPort::Print("\n");
+    va_end(args);
+}   
+
+void Message(const char* str, ...){
+    AtomicAcquire(&MutexLog);
+    va_list args;
+    va_start(args, str);
+
+    SerialPort::Print(SERIAL_CYAN);
     SerialPort::Print("[*] ");
-    SerialPort::Print(SerialReset);
+    SerialPort::Print(SERIAL_RESET);
     
     int index = 0;
     while(str[index] != 0) {
@@ -54,11 +113,11 @@ void Message(const char* str, ...){
 }   
 
 void MessageProcess(const char* str, uint64_t charNum, uint64_t PID, uint64_t PPID, uint64_t TID){
-    AtomicAquire(&MutexLog);
+    AtomicAcquire(&MutexLog);
 
-    SerialPort::Print(SerialCYAN);
+    SerialPort::Print(SERIAL_CYAN);
     SerialPort::Print("[*]");
-    SerialPort::Print(SerialReset);
+    SerialPort::Print(SERIAL_RESET);
     SerialPort::Printf("[Process %x:%x:%x]", PID, PPID, TID);
     SerialPort::Print(str, charNum);
     
@@ -68,13 +127,13 @@ void MessageProcess(const char* str, uint64_t charNum, uint64_t PID, uint64_t PP
 }   
 
 void Successful(const char* str, ...){
-    AtomicAquire(&MutexLog);
+    AtomicAcquire(&MutexLog);
     va_list args;
     va_start(args, str);
     
-    SerialPort::Print(SerialGREEN);
+    SerialPort::Print(SERIAL_GREEN);
     SerialPort::Print("[$]");
-    SerialPort::Print(SerialReset);
+    SerialPort::Print(SERIAL_RESET);
     
     int index = 0;
     while(str[index] != 0) {
@@ -119,13 +178,13 @@ void Successful(const char* str, ...){
 }
 
 void Warning(const char* str, ...){
-    AtomicAquire(&MutexLog);
+    AtomicAcquire(&MutexLog);
     va_list args;
     va_start(args, str);
     
-    SerialPort::Print(SerialYELLOW);
+    SerialPort::Print(SERIAL_YELLOW);
     SerialPort::Print("[%]");
-    SerialPort::Print(SerialReset);
+    SerialPort::Print(SERIAL_RESET);
     
     int index = 0;
     while(str[index] != 0) {
@@ -170,12 +229,12 @@ void Warning(const char* str, ...){
 }
 
 void Error(const char * str, ...){
-    AtomicAquire(&MutexLog);
+    AtomicAcquire(&MutexLog);
     va_list args;
     va_start(args, str);
-    SerialPort::Print(SerialRED);
+    SerialPort::Print(SERIAL_RED);
     SerialPort::Print("[~]");
-    SerialPort::Print(SerialReset);
+    SerialPort::Print(SERIAL_RESET);
     
     int index = 0;
     while(str[index] != 0) {

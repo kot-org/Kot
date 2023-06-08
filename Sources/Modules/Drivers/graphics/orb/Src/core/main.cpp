@@ -30,9 +30,9 @@ orbc::orbc(){
 
 int main(){
     orbc* Orb = new orbc();
-    InitialiseServer(Orb);
 
     Orb->Render->StartRender();
+    InitialiseServer(Orb);
     kot_Printlog("[GRAPHICS/ORB] Service started");
     
     return KSUCCESS;

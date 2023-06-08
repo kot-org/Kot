@@ -7,7 +7,9 @@
 // TODO: usage
 
 int main(int argc, char* argv[]) {
-    while(argc > 0) {        
+    argv++;
+    argc--;
+    while(argc > 0) {      
         fputs(argv[0], stdout);
     
         argv++;

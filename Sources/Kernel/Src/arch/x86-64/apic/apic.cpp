@@ -233,7 +233,7 @@ namespace APIC{
     static locker_t mutexSLT;
 
     void StartLapicTimer(){
-        AtomicAquire(&mutexSLT);
+        AtomicAcquire(&mutexSLT);
 
         // Setup Local APIC timer
         localAPICWriteRegister(LocalAPICRegisterOffsetDivide, 4);        

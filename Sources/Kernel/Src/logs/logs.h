@@ -3,6 +3,9 @@
 #include <arch/x86-64/atomic/atomic.h>
 #include <arch/x86-64/io/serial/serial.h>
 
+void TraceBegin();
+void TraceEnd();
+void Trace(const char* str, ...);
 void Message(const char* str, ...);
 void MessageProcess(const char* str, uint64_t charNum, uint64_t PID, uint64_t PPID, uint64_t TID);
 void Successful(const char* str, ...);

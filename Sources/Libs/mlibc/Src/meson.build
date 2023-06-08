@@ -97,6 +97,7 @@ internal_conf.set10('MLIBC_MAP_DSO_SEGMENTS', false)
 internal_conf.set10('MLIBC_MMAP_ALLOCATE_DSO', false)
 internal_conf.set10('MLIBC_MAP_FILE_WINDOWS', false)
 internal_conf.set10('MLIBC_DEBUG_ALLOCATOR', get_option('debug_allocator'))
+internal_conf.set10('MLIBC_DEBUG_HEAP', get_option('debug_heap'))
 
 #----------------------------------------------------------------------------------------
 # Configuration based on sysdeps.

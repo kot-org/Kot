@@ -48,20 +48,20 @@ void Pmm_Init(ukl_memmory_info_t* MemoryInfo){
 void Pmm_RemovePagesToFreeList(uint64_t index, uint64_t pageCount){
     freelistinfo_t* FreeListInfo = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index));
     if(FreeListInfo->PageSize == pageCount){
+        if(FreeListInfo == Pmm_LastFreeListInfo){
+            if(FreeListInfo->Next != NULL){
+                Pmm_LastFreeListInfo = FreeListInfo->Next;
+            }else if(FreeListInfo->Last != NULL){
+                Pmm_LastFreeListInfo = FreeListInfo->Last;
+            }else{
+                Pmm_LastFreeListInfo = NULL;
+            }
+        }
         if(FreeListInfo->Last != NULL){
             FreeListInfo->Last->Next = FreeListInfo->Next;
         }
         if(FreeListInfo->Next != NULL){
             FreeListInfo->Next->Last = FreeListInfo->Last;
-        }
-        if(FreeListInfo == Pmm_LastFreeListInfo){
-            Pmm_LastFreeListInfo = NULL;
-            if(FreeListInfo->Last != NULL){
-                Pmm_LastFreeListInfo = FreeListInfo->Next;
-            }
-            if(FreeListInfo->Next != NULL){
-                Pmm_LastFreeListInfo = FreeListInfo->Last;
-            }
         }
     }else{
         freelistinfo_t* NewFreeListInfo = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount));
@@ -92,8 +92,10 @@ void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
             freelistinfo_t* FreeListInfoLast = FreeListInfoEnd->Start; /* We can Get start because we are at the end of the freelist segment */
             
             FreeListInfoLast->Next = FreeListInfoNext->Next;
-            FreeListInfoNext->PageSize += pageCount + FreeListInfoNext->PageSize;
+            FreeListInfoNext->PageSize += pageCount + FreeListInfoLast->PageSize;
+            FreeListInfoLast->PageSize += pageCount + FreeListInfoNext->PageSize;
 
+            FreeListInfoLast->IndexEnd = FreeListInfoNext->IndexEnd;
             FreeListInfoLast->Header.End = FreeListInfoNext->Header.End;
             FreeListInfoLast->Header.End->Start = FreeListInfoLast;
 
@@ -140,6 +142,12 @@ void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
         FreeListInfo->Next = NULL;
         FreeListInfo->PageSize = pageCount;
         FreeListInfoEnd->Start = FreeListInfo;
+
+        if(Pmm_LastFreeListInfo != NULL){
+            Pmm_LastFreeListInfo->Next = FreeListInfo;
+        }
+
+        /* Update last link */
         Pmm_LastFreeListInfo = FreeListInfo;
     }
 }
@@ -155,7 +163,7 @@ void Pmm_InitBitmap(void* bufferAddress, size64_t bitmapSize){
 }
 
 void* Pmm_RequestPage(){
-    AtomicAquire(&Pmm_Mutex);
+    AtomicAcquire(&Pmm_Mutex);
     for (uint64_t index = Pmm_FirstFreePageIndex; index < Pmm_MemoryInfo.totalPageMemory; index++){
         if(!Pmm_Bitmap.GetAndSet(index, true)){
             Pmm_FirstFreePageIndex = index;
@@ -174,12 +182,13 @@ void* Pmm_RequestPage(){
 }
 
 void* Pmm_RequestPages(uint64_t pageCount){
-    AtomicAquire(&Pmm_Mutex);
+    AtomicAcquire(&Pmm_Mutex);
     freelistinfo_t* Pmm_FreeList = Pmm_LastFreeListInfo;
 	while(Pmm_FreeList->PageSize < pageCount){
         if(Pmm_FreeList->Last != NULL){
             Pmm_FreeList = Pmm_FreeList->Last;
         }else{
+            KernelPanic("Not enough memory available");
             AtomicRelease(&Pmm_Mutex);
 	        return NULL;
         }
@@ -193,7 +202,7 @@ void* Pmm_RequestPages(uint64_t pageCount){
 }
 
 void Pmm_FreePage_WI(uint64_t index){
-    AtomicAquire(&Pmm_Mutex);
+    AtomicAcquire(&Pmm_Mutex);
     if(Pmm_Bitmap.GetAndSet(index, false)){
         Pmm_AddPageToFreeList(index, 1);
         Pmm_MemoryInfo.freePageMemory++;
@@ -206,7 +215,7 @@ void Pmm_FreePage_WI(uint64_t index){
 }
 
 void Pmm_FreePages_WI(uint64_t index, uint64_t pageCount){
-    AtomicAquire(&Pmm_Mutex);
+    AtomicAcquire(&Pmm_Mutex);
     Pmm_AddPageToFreeList(index, pageCount);
     uint64_t indexEnd = index + pageCount;
     for (uint64_t t = index; t < indexEnd; t++){

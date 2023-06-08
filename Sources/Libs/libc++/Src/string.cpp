@@ -1,5 +1,5 @@
 #include "string.h"
-
+#include <kot/sys.h>
 #include <string.h>
 
 namespace std {

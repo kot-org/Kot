@@ -71,10 +71,7 @@ void monitorc::Update(windowc* FirstWindowNode){
     Orb->Desktop->UpdateBackground(this);
 
     while(Window){
-        if(atomicLock(&Window->Lock, 0)){
-            DynamicBlit(this->BackFramebuffer, Window->GetFramebuffer(), Window->GetX(), Window->GetY(), this->XPosition, this->YPosition);
-            atomicUnlock(&Window->Lock, 0);
-        }
+        DynamicBlit(this->BackFramebuffer, Window->GetFramebuffer(), Window->GetX(), Window->GetY(), this->XPosition, this->YPosition);
         Window = Window->Next;
     }
 

@@ -111,6 +111,14 @@ void ExceptionHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
     }else{
         Error("Thread error, PID : 0x%x | PPID : 0x%x | TID : 0x%x \nWith exception : '%s' | Error code : 0x%x", Registers->threadInfo->thread->Parent->PID, Registers->threadInfo->thread->Parent->PPID, Registers->threadInfo->thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
         PrintRegisters(Registers);
+        StackFrame_t* Frame = (StackFrame_t*)Registers->rbp;
+        TraceBegin();
+        while(Frame){
+            if(!Frame->InstructionPointer) break;
+            Trace("0x%x", Frame->InstructionPointer);
+            Frame = Frame->Next;
+        }
+        TraceEnd();
         if(Registers->threadInfo->thread->IsEvent){
             Event::Close(Registers, Registers->threadInfo->thread);
         }else{

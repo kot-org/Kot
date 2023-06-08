@@ -1,4 +1,6 @@
 #include <mouse/mouse.h>
+#include <kot++/printf.h>
+
 
 uint8_t MouseMaxCycles = 0;
 uint8_t MousePacket[4];
@@ -7,8 +9,6 @@ uint8_t MouseCycle = 0;
 PS2Port_t* MousePS2Port;
 kot_arguments_t* MouseEventParameters;
 kot_thread_t Mousethread = NULL;
-
-#include <kot++/printf.h>
 
 kot_event_t MouseRelativeEvent; // We don't use absolute for ps2
 

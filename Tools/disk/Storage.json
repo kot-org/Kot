@@ -37,11 +37,11 @@
     },
     {
         "source": "Sources/Apps/tcc/Bin/Tcc.elf",
-        "destination": "Kot/System/Apps/Tcc/Tcc.elf"
+        "destination": "Kot/System/Apps/Shell/utils/tcc.elf"
     },
     {
         "source": "Sources/Apps/lua/Bin/Lua.elf",
-        "destination": "Kot/System/Apps/Lua/Lua.elf"
+        "destination": "Kot/System/Apps/Shell/utils/lua.elf"
     },
     {
         "source": "Sources/Apps/test/Bin/Test.elf",
