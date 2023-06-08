@@ -10,10 +10,10 @@ extern "C" {
 #endif
 
 typedef struct {
-    framebuffer_t* fb;
+    kot_framebuffer_t* fb;
 } ContextUi_t;
 
-ContextUi_t* CreateUiContext(framebuffer_t* fb);
+ContextUi_t* CreateUiContext(kot_framebuffer_t* fb);
 
 #if defined(__cplusplus)
 }

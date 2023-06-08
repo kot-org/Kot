@@ -6,29 +6,29 @@ static uint64_t E1000Lock;
 
 void E1000::WriteRegister(uint16_t Reg, uint32_t Value) {
     if(BarType == PCI_BAR_TYPE_IO) {
-        IoWrite32(IoBase, Reg);
-        IoWrite32(IoBase + sizeof(uint32_t), Value);
+        kot_IoWrite32(IoBase, Reg);
+        kot_IoWrite32(IoBase + sizeof(uint32_t), Value);
     } else {
-        MmioWrite32((uintptr_t) ((uint64_t)MemoryBase + Reg), Value);
+        kot_MmioWrite32((void*) ((uint64_t)MemoryBase + Reg), Value);
     }
 }
 
 uint32_t E1000::ReadRegister(uint16_t Reg) {
     if(BarType == PCI_BAR_TYPE_IO) {
-        IoWrite32(IoBase, Reg);
-        return IoRead32(IoBase + sizeof(uint32_t));
+        kot_IoWrite32(IoBase, Reg);
+        return kot_IoRead32(IoBase + sizeof(uint32_t));
     } else {
-        return MmioRead32((uintptr_t) ((uint64_t)MemoryBase + Reg));
+        return kot_MmioRead32((void*) ((uint64_t)MemoryBase + Reg));
     }
 }
 
-E1000::E1000(srv_pci_device_info_t* DeviceInfo, srv_pci_bar_info_t* BarInfo) {
+E1000::E1000(kot_srv_pci_device_info_t* DeviceInfo, kot_srv_pci_bar_info_t* BarInfo) {
     BarType = BarInfo->Type;
 
     if(BarType == PCI_BAR_TYPE_IO)
         IoBase = (uint64_t) BarInfo->Address;
     else
-        MemoryBase = MapPhysical(BarInfo->Address, BarInfo->Size);
+        MemoryBase = kot_MapPhysical(BarInfo->Address, BarInfo->Size);
 
     ChipInfo = GetChipInfo(DeviceInfo->deviceID);
 
@@ -69,20 +69,20 @@ E1000::E1000(srv_pci_device_info_t* DeviceInfo, srv_pci_bar_info_t* BarInfo) {
     uint8_t arp_buffer[42];
 
     // Ethernet header
-    memcpy((uintptr_t)&arp_buffer[0], (uintptr_t)"\xff\xff\xff\xff\xff\xff", 6); // Destination MAC address (broadcast)
-    memcpy((uintptr_t)&arp_buffer[6], (uintptr_t)MACAddr, 6); // Source MAC address
-    memcpy((uintptr_t)&arp_buffer[12], (uintptr_t)"\x08\x06", 2); // Ethernet Type: ARP
+    memcpy((void*)&arp_buffer[0], (void*)"\xff\xff\xff\xff\xff\xff", 6); // Destination MAC address (broadcast)
+    memcpy((void*)&arp_buffer[6], (void*)MACAddr, 6); // Source MAC address
+    memcpy((void*)&arp_buffer[12], (void*)"\x08\x06", 2); // Ethernet Type: ARP
 
     // ARP header
-    memcpy((uintptr_t)&arp_buffer[14], (uintptr_t)"\x00\x01", 2); // Hardware Type: Ethernet
-    memcpy((uintptr_t)&arp_buffer[16], (uintptr_t)"\x08\x00", 2); // Protocol Type: IPv4
+    memcpy((void*)&arp_buffer[14], (void*)"\x00\x01", 2); // Hardware Type: Ethernet
+    memcpy((void*)&arp_buffer[16], (void*)"\x08\x00", 2); // Protocol Type: IPv4
     arp_buffer[18] = 6; // Hardware Address Length: 6 (Ethernet MAC address)
     arp_buffer[19] = 4; // Protocol Address Length: 4 (IPv4 address)
-    memcpy((uintptr_t)&arp_buffer[20], (uintptr_t)"\x00\x01", 2); // Operation: ARP Request
-    memcpy((uintptr_t)&arp_buffer[22], (uintptr_t)MACAddr, 6); // Sender Hardware Address: Source MAC address
-    memcpy((uintptr_t)&arp_buffer[28], (uintptr_t)&ipsrc, 4); // Sender Protocol Address: Source IP address
-    memcpy((uintptr_t)&arp_buffer[32], (uintptr_t)"\x00\x00\x00\x00\x00\x00", 6); // Target Hardware Address: zero (unknown)
-    memcpy((uintptr_t)&arp_buffer[38], (uintptr_t)&ipdest, 4); // Target Protocol Address: Destination IP address
+    memcpy((void*)&arp_buffer[20], (void*)"\x00\x01", 2); // Operation: ARP Request
+    memcpy((void*)&arp_buffer[22], (void*)MACAddr, 6); // Sender Hardware Address: Source MAC address
+    memcpy((void*)&arp_buffer[28], (void*)&ipsrc, 4); // Sender Protocol Address: Source IP address
+    memcpy((void*)&arp_buffer[32], (void*)"\x00\x00\x00\x00\x00\x00", 6); // Target Hardware Address: zero (unknown)
+    memcpy((void*)&arp_buffer[38], (void*)&ipdest, 4); // Target Protocol Address: Destination IP address
 
     memcpy(bufferExample, arp_buffer, 42);
 
@@ -97,15 +97,15 @@ E1000::~E1000() {
 }
 
 void E1000::InitTX() {
-    uintptr_t TXDescPhysicalAddr;
-    TXDesc = (TXDescriptor*) GetPhysical((uintptr_t*) &TXDescPhysicalAddr, ChipInfo->NumTXDesc * sizeof(TXDescriptor));
+    void* TXDescPhysicalAddr;
+    TXDesc = (TXDescriptor*) kot_GetPhysical((void**) &TXDescPhysicalAddr, ChipInfo->NumTXDesc * sizeof(TXDescriptor));
 
     uint32_t PacketBufferSize = ChipInfo->NumTXDesc * PACKET_SIZE;
-    TXPacketBuffer = (uint8_t*) GetFreeAlignedSpace(PacketBufferSize);
-    Sys_CreateMemoryField(Proc, PacketBufferSize, (uintptr_t*) &TXPacketBuffer, NULL, MemoryFieldTypeShareSpaceRW);
+    TXPacketBuffer = (uint8_t*) kot_GetFreeAlignedSpace(PacketBufferSize);
+    kot_Sys_CreateMemoryField(Proc, PacketBufferSize, (void**) &TXPacketBuffer, NULL, MemoryFieldTypeShareSpaceRW);
 
     for(uint8_t i = 0; i < ChipInfo->NumTXDesc; i++) {
-        TXDesc[i].BufferAddress = (uint64_t) Sys_GetPhysical(&TXPacketBuffer[i * PACKET_SIZE]);
+        TXDesc[i].BufferAddress = (uint64_t) kot_Sys_GetPhysical(&TXPacketBuffer[i * PACKET_SIZE]);
         TXDesc[i].Length = 0;
         TXDesc[i].Cso = 0;
         TXDesc[i].Cmd = TX_CMD_EOP | TX_CMD_IFCS /* insert FCS (Frame Check Sequence) */ | TX_CMD_RS; 
@@ -128,15 +128,15 @@ void E1000::InitTX() {
 }
 
 void E1000::InitRX() {
-    uintptr_t RXDescPhysicalAddr;
-    RXDesc = (RXDescriptor*) GetPhysical((uintptr_t*) &RXDescPhysicalAddr, ChipInfo->NumRXDesc * sizeof(RXDescriptor));
+    void* RXDescPhysicalAddr;
+    RXDesc = (RXDescriptor*) kot_GetPhysical((void**) &RXDescPhysicalAddr, ChipInfo->NumRXDesc * sizeof(RXDescriptor));
 
     uint32_t PacketBufferSize = ChipInfo->NumRXDesc * PACKET_SIZE;
-    RXPacketBuffer = (uint8_t*) GetFreeAlignedSpace(PacketBufferSize);
-    Sys_CreateMemoryField(Proc, PacketBufferSize, (uintptr_t*) &RXPacketBuffer, NULL, MemoryFieldTypeShareSpaceRW);
+    RXPacketBuffer = (uint8_t*) kot_GetFreeAlignedSpace(PacketBufferSize);
+    kot_Sys_CreateMemoryField(Proc, PacketBufferSize, (void**) &RXPacketBuffer, NULL, MemoryFieldTypeShareSpaceRW);
 
     for(uint8_t i = 0; i < ChipInfo->NumRXDesc; i++) {
-        RXDesc[i].BufferAddress = (uint64_t) Sys_GetPhysical(&RXPacketBuffer[i * PACKET_SIZE]);
+        RXDesc[i].BufferAddress = (uint64_t) kot_Sys_GetPhysical(&RXPacketBuffer[i * PACKET_SIZE]);
         RXDesc[i].Length = 0;
         RXDesc[i].Checksum = 0;
         RXDesc[i].Status = 0;
@@ -170,7 +170,7 @@ void E1000::SendPacket(uint8_t* Data, uint32_t Size) {
     }
 
     // copy data to the correct buffer of the correct tx descriptor
-    memcpy((uintptr_t)(&TXPacketBuffer[Index * PACKET_SIZE]), (uintptr_t) Data, Size);
+    memcpy((void*)(&TXPacketBuffer[Index * PACKET_SIZE]), (void*) Data, Size);
 
     TXDesc[Index].Length = Size;
     TXDesc[Index].Status &= ~TX_STATUS_DD; // undone -> status = 0
@@ -235,8 +235,8 @@ ChipInfo_t* GetChipInfo(uint16_t DeviceID) {
         // todo
 
         default:
-            Printlog("[NET/E1000] This DeviceID does not exist. (exit)");
-            Sys_Close(KFAIL);
+            kot_Printlog("[NET/E1000] This DeviceID does not exist. (exit)");
+            kot_Sys_Close(KFAIL);
             break;
     }
 

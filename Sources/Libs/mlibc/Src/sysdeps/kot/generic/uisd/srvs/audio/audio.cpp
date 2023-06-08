@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern "C" {
+
 kot_thread_t kot_srv_audio_callback_thread = NULL;
 kot_process_t kot_ShareProcess = NULL;
 
@@ -11,8 +13,7 @@ void kot_Srv_Audio_Initialize(){
     kot_ShareProcess = kot_ShareProcessKey(proc);
 
     kot_thread_t AudioThreadKeyCallback = NULL;
-    kot_Sys_CreateThread(proc, (uintptr_t)&kot_Srv_Audio_Callback, PriviledgeDriver, NULL, &AudioThreadKeyCallback);
-    kot_InitializeThread(AudioThreadKeyCallback);
+    kot_Sys_CreateThread(proc, (void*)&kot_Srv_Audio_Callback, PriviledgeDriver, NULL, &AudioThreadKeyCallback);
     kot_srv_audio_callback_thread = kot_MakeShareableThreadToProcess(AudioThreadKeyCallback, AudioData->ControllerHeader.Process);
 }
 
@@ -234,7 +235,7 @@ struct kot_srv_audio_callback_t* kot_Srv_Audio_AddDevice(kot_srv_audio_device_t*
     callback->Handler = &Srv_Audio_AddDevice_Callback; 
 
     struct kot_ShareDataWithArguments_t data;
-    data.Data = (uintptr_t)Device;
+    data.Data = (void*)Device;
     data.Size = sizeof(kot_srv_audio_device_t);
     data.ParameterPosition = 0x2;
 
@@ -247,4 +248,6 @@ struct kot_srv_audio_callback_t* kot_Srv_Audio_AddDevice(kot_srv_audio_device_t*
         kot_Sys_Pause(false);
     }
     return callback;
+}
+
 }

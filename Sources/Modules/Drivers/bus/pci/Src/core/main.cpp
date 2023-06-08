@@ -1,10 +1,10 @@
 #include <core/main.h>
 
-extern "C" int main(int argc, char* argv[]) {
-    Printlog("[BUS/PCI] Initialization ...");
+int main(int argc, char* argv[]) {
+    kot_Printlog("[BUS/PCI] Initialization ...");
 
-    srv_system_callback_t* Callback = Srv_System_GetTableInRootSystemDescription("MCFG", true);
-    uintptr_t MCFGTable = (uintptr_t)Callback->Data;
+    kot_srv_system_callback_t* Callback = kot_Srv_System_GetTableInRootSystemDescription("MCFG", true);
+    void* MCFGTable = (void*)Callback->Data;
     free(Callback);
 
     PCIDeviceListInfo_t* PCIDeviceList = InitPCIList();
@@ -21,7 +21,7 @@ extern "C" int main(int argc, char* argv[]) {
 
     InitSrv(PCIDeviceArray);
 
-    Printlog("[BUS/PCI] Driver initialized successfully");
+    kot_Printlog("[BUS/PCI] Driver initialized successfully");
 
     return KSUCCESS;
 }
@@ -56,14 +56,14 @@ void ConvertListToArray(PCIDeviceListInfo_t* DevicesList, PCIDeviceArrayInfo_t* 
 
 /* Devices function */
 
-bool CheckDevice(PCIDeviceArrayInfo_t* DevicesArray, PCIDeviceID_t device){
+bool CheckDevice(PCIDeviceArrayInfo_t* DevicesArray, kot_PCIDeviceID_t device){
     if(DevicesArray->DevicesNum != NULL && device < DevicesArray->DevicesNum){
         return true;
     }
     return false;
 }
 
-PCIDevice_t* GetDeviceFromIndex(PCIDeviceArrayInfo_t* DevicesArray, PCIDeviceID_t device){
+PCIDevice_t* GetDeviceFromIndex(PCIDeviceArrayInfo_t* DevicesArray, kot_PCIDeviceID_t device){
     return DevicesArray->Devices[device];
 }
 
@@ -103,7 +103,7 @@ uint64_t Search(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, uint16_t 
     return deviceNum;
 }
 
-PCIDeviceID_t GetDevice(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, uint16_t deviceID, uint16_t classID, uint16_t subClassID, uint16_t progIF, uint64_t index){
+kot_PCIDeviceID_t GetDevice(PCIDeviceArrayInfo_t* DevicesArray, uint16_t vendorID, uint16_t deviceID, uint16_t classID, uint16_t subClassID, uint16_t progIF, uint64_t index){
     uint8_t checkRequired = 0;
     uint32_t deviceNum = 0;
 
@@ -162,7 +162,7 @@ uint8_t GetBarTypeWithBARValue(uint32_t Value){
     return PCI_BAR_TYPE_NULL;
 }
 
-uintptr_t PCIDevice_t::GetBarAddress(uint8_t index){
+void* PCIDevice_t::GetBarAddress(uint8_t index){
     PCIDeviceHeader_t* Header = (PCIDeviceHeader_t*)ConfigurationSpace;
     switch (Header->HeaderType & 0x7F){
         case 0x0:{
@@ -170,11 +170,11 @@ uintptr_t PCIDevice_t::GetBarAddress(uint8_t index){
                 PCIHeader0_t* Header0 = (PCIHeader0_t*)Header;
                 switch (GetBarTypeWithBARValue(Header0->BAR[index])){
                     case PCI_BAR_TYPE_IO:
-                        return (uintptr_t)(Header0->BAR[index] & 0xFFFFFFFC);
+                        return (void*)(Header0->BAR[index] & 0xFFFFFFFC);
                     case PCI_BAR_TYPE_32:
-                        return (uintptr_t)(Header0->BAR[index] & 0xFFFFFFF0);
+                        return (void*)(Header0->BAR[index] & 0xFFFFFFF0);
                     case PCI_BAR_TYPE_64:
-                        return (uintptr_t)((Header0->BAR[index] & 0xFFFFFFF0) | ((Header0->BAR[index + 1] & 0xFFFFFFFF) << 32));
+                        return (void*)((Header0->BAR[index] & 0xFFFFFFF0) | ((Header0->BAR[index + 1] & 0xFFFFFFFF) << 32));
                     default:
                         break;
                 }
@@ -187,7 +187,7 @@ uintptr_t PCIDevice_t::GetBarAddress(uint8_t index){
     return NULL;
 }
 
-size64_t PCIDevice_t::GetBarSizeWithAddress(uintptr_t addresslow){
+size64_t PCIDevice_t::GetBarSizeWithAddress(void* addresslow){
     uint32_t BARValueLow = *(uint32_t*)addresslow;
     uint8_t Type = GetBarTypeWithBARValue(BARValueLow);
 
@@ -210,7 +210,7 @@ size64_t PCIDevice_t::GetBarSizeWithAddress(uintptr_t addresslow){
         uint32_t SizeHigh = 0xFFFFFFFF;
 
         if(Type == PCI_BAR_TYPE_64){
-            uintptr_t addresshigh = (uintptr_t)((uint64_t)addresslow + 0x4);
+            void* addresshigh = (void*)((uint64_t)addresslow + 0x4);
 
             uint32_t BARValueHigh = *(uint32_t*)addresshigh;
             /* Write into bar high */
@@ -291,7 +291,7 @@ KResult PCIDevice_t::BindMSI(uint8_t IRQVector, uint8_t processor, uint16_t loca
             }
             if(CapabilityMSIX){
                 CapabilityMSI->MSIX.Control |= 1 << 15; // enable MsiX
-                uint64_t TableAddress = ((uint64_t)MapPhysical(GetBarAddress(CapabilityMSIX->MSIX.BIR), GetBarSize(CapabilityMSIX->MSIX.BIR)) + (uint64_t)CapabilityMSIX->MSIX.TableOffset);
+                uint64_t TableAddress = ((uint64_t)kot_MapPhysical(GetBarAddress(CapabilityMSIX->MSIX.BIR), GetBarSize(CapabilityMSIX->MSIX.BIR)) + (uint64_t)CapabilityMSIX->MSIX.TableOffset);
                 uint16_t Entries = CapabilityMSI->MSIX.Control & 0x7FF;
                 if(Entries <= localDeviceVector){
                     PCIMSIXTable_t* Table = (PCIMSIXTable_t*)(TableAddress + sizeof(PCIMSIXTable_t) * localDeviceVector);
@@ -344,7 +344,7 @@ KResult PCIDevice_t::UnbindMSI(uint16_t localDeviceVector){
             }
             if(CapabilityMSIX){
                 CapabilityMSI->MSIX.Control |= 1 << 15; // enable MsiX
-                uint64_t TableAddress = ((uint64_t)MapPhysical(GetBarAddress(CapabilityMSIX->MSIX.BIR), GetBarSize(CapabilityMSIX->MSIX.BIR)) + (uint64_t)CapabilityMSIX->MSIX.TableOffset);
+                uint64_t TableAddress = ((uint64_t)kot_MapPhysical(GetBarAddress(CapabilityMSIX->MSIX.BIR), GetBarSize(CapabilityMSIX->MSIX.BIR)) + (uint64_t)CapabilityMSIX->MSIX.TableOffset);
                 uint16_t Entries = CapabilityMSI->MSIX.Control & 0x7FF;
                 if(Entries <= localDeviceVector){
                     PCIMSIXTable_t* Table = (PCIMSIXTable_t*)(TableAddress + sizeof(PCIMSIXTable_t) * localDeviceVector);

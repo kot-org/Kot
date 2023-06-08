@@ -1,11 +1,10 @@
 #include <core/main.h>
 
 
-extern "C" int main(int argc, char* argv[]){
-    Printlog("[AUDIO] Loading service");
+int main(int argc, char* argv[]){
+    kot_Printlog("[AUDIO] Loading service");
     InitialiseServer();
-    Printlog("[AUDIO] Service loaded");
-
+    kot_Printlog("[AUDIO] Service loaded");
 
     return KSUCCESS;
 }

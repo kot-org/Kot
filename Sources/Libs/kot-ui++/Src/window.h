@@ -21,10 +21,10 @@ namespace UiWindow {
             ctxg_t* BordersCtx;
 
             bool IsListeningEvents;
-            event_t WindowEvent;
-            thread_t WindowHandlerThread;
+            kot_event_t WindowEvent;
+            kot_thread_t WindowHandlerThread;
 
-            point_t WindowNormalPosition;
+            kot_point_t WindowNormalPosition;
             uint64_t WindowNormalWidth;
             uint64_t WindowNormalHeight;
 
@@ -34,7 +34,7 @@ namespace UiWindow {
 
         public:
             bool IsFullscreen;
-            window_t* Wid;
+            kot_window_t* Wid;
             ctxg_t* GraphicCtx;
             class Ui::UiContext* UiCtx;
             Ui::Component* Cpnt; 
@@ -47,7 +47,7 @@ namespace UiWindow {
 
             void DrawBorders(uint32_t Color);
 
-            void Handler(enum Window_Event EventType, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3, uint64_t GP4);
+            void Handler(enum kot_Window_Event EventType, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3, uint64_t GP4);
     };
 
 }

@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern "C" {
+
 kot_thread_t kot_srv_pci_callback_thread = NULL;
 
 void kot_Srv_Pci_Initialize(){
@@ -9,8 +11,7 @@ void kot_Srv_Pci_Initialize(){
     kot_process_t proc = kot_Sys_GetProcess();
 
     kot_thread_t PciThreadKeyCallback = NULL;
-    kot_Sys_CreateThread(proc, (uintptr_t)&kot_Srv_Pci_Callback, PriviledgeDriver, NULL, &PciThreadKeyCallback);
-    kot_InitializeThread(PciThreadKeyCallback);
+    kot_Sys_CreateThread(proc, (void*)&kot_Srv_Pci_Callback, PriviledgeDriver, NULL, &PciThreadKeyCallback);
     kot_srv_pci_callback_thread = kot_MakeShareableThreadToProcess(PciThreadKeyCallback, PciData->ControllerHeader.Process);
 }
 
@@ -48,7 +49,7 @@ struct kot_srv_pci_callback_t* kot_Srv_Pci_CountDevices(kot_srv_pci_search_param
     callback->Handler = &Srv_Pci_CountDevices_Callback; 
 
     struct kot_ShareDataWithArguments_t data;
-    data.Data = (uintptr_t)SearchParameters;
+    data.Data = (void*)SearchParameters;
     data.Size = sizeof(kot_srv_pci_search_parameters_t);
     data.ParameterPosition = 0x2;
 
@@ -87,7 +88,7 @@ struct kot_srv_pci_callback_t* kot_Srv_Pci_FindDevice(kot_srv_pci_search_paramet
     callback->Handler = &Srv_Pci_FindDevice_Callback; 
 
     struct kot_ShareDataWithArguments_t data;
-    data.Data = (uintptr_t)SearchParameters;
+    data.Data = (void*)SearchParameters;
     data.Size = sizeof(kot_srv_pci_search_parameters_t);
     data.ParameterPosition = 0x2;
 
@@ -318,4 +319,6 @@ struct kot_srv_pci_callback_t* kot_Srv_Pci_ConfigWriteWord(kot_PCIDeviceID_t Dev
         kot_Sys_Pause(false);
     }
     return callback;
+}
+
 }

@@ -1,10 +1,10 @@
 #include <core/main.h>
 
-uintptr_t TableConverter;
+void* TableConverter;
 size64_t TableConverterCharCount;
 
-extern "C" int main(){
-    GetTableConverter("d0:azerty.bin", &TableConverter, &TableConverterCharCount);
+int main(){
+    kot_GetTableConverter("d0:azerty.bin", &TableConverter, &TableConverterCharCount);
 
     SrvInitalize();
 

@@ -44,7 +44,7 @@ namespace ELF{
     }
 
 
-    KResult loadElf(uintptr_t buffer, enum Priviledge ring, kthread_t** selfthread){
+    KResult loadElf(void* buffer, enum Priviledge ring, kthread_t** selfthread){
         elf_t* self = (elf_t*)kcalloc(sizeof(elf_t));
         self->Buffer = buffer;
         self->Header = (Elf64_Ehdr*)buffer;
@@ -57,11 +57,11 @@ namespace ELF{
         
         kprocess_t* proc = NULL;
         globalTaskManager->CreateProcess(&proc, ring, 0);
-        kthread_t* mainthread = proc->Createthread((uintptr_t)self->Header->e_entry, NULL);
+        kthread_t* mainthread = proc->Createthread((void*)self->Header->e_entry, NULL);
         
         /* Load the elf */
-        self->phdrs = (uintptr_t)((uint64_t)buffer + self->Header->e_phoff);
-        self->shdrs = (uintptr_t)((uint64_t)buffer + self->Header->e_shoff);
+        self->phdrs = (void*)((uint64_t)buffer + self->Header->e_phoff);
+        self->shdrs = (void*)((uint64_t)buffer + self->Header->e_shoff);
         
         self->shstr = GetSectionHeaderIndex(self, self->Header->e_shstrndx);
         self->str = GetSectionHeaderName(self, ".strtab");
@@ -92,18 +92,18 @@ namespace ELF{
                         sizeToCopy = size;
                     }
 
-                    uintptr_t physicalPage = NULL;
-                    if(!vmm_GetFlags(mainthread->Paging, (uintptr_t)virtualAddressIterator, vmm_Present)){
+                    void* physicalPage = NULL;
+                    if(!vmm_GetFlags(mainthread->Paging, (void*)virtualAddressIterator, vmm_Present)){
                         physicalPage = Pmm_RequestPage();
-                        vmm_Map(mainthread->Paging, (uintptr_t)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
-                        physicalPage = (uintptr_t)((uint64_t)physicalPage + alignement);
+                        vmm_Map(mainthread->Paging, (void*)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
+                        physicalPage = (void*)((uint64_t)physicalPage + alignement);
                     }else{
-                        physicalPage = vmm_GetPhysical(mainthread->Paging, (uintptr_t)virtualAddressIterator);
+                        physicalPage = vmm_GetPhysical(mainthread->Paging, (void*)virtualAddressIterator);
                     }
                     if(totalSizeCopy < phdr->p_filesz){
-                        memcpy((uintptr_t)(vmm_GetVirtualAddress(physicalPage)), (uintptr_t)virtualAddressParentIterator, sizeToCopy);
+                        memcpy((void*)(vmm_GetVirtualAddress(physicalPage)), (void*)virtualAddressParentIterator, sizeToCopy);
                     }else{
-                        memset((uintptr_t)(vmm_GetVirtualAddress(physicalPage)), NULL, sizeToCopy);
+                        memset((void*)(vmm_GetVirtualAddress(physicalPage)), NULL, sizeToCopy);
                     }
 
                     virtualAddressParentIterator += sizeToCopy;
@@ -120,17 +120,17 @@ namespace ELF{
                         sizeToCopy = size;
                     }
                 
-                    uintptr_t physicalPage = NULL;
-                    if(!vmm_GetFlags(mainthread->Paging, (uintptr_t)virtualAddressIterator, vmm_Present)){
+                    void* physicalPage = NULL;
+                    if(!vmm_GetFlags(mainthread->Paging, (void*)virtualAddressIterator, vmm_Present)){
                         physicalPage = Pmm_RequestPage();
-                        vmm_Map(mainthread->Paging, (uintptr_t)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
+                        vmm_Map(mainthread->Paging, (void*)((uint64_t)virtualAddressIterator), physicalPage, true, true, true);
                     }else{
-                        physicalPage = vmm_GetPhysical(mainthread->Paging, (uintptr_t)virtualAddressIterator);
+                        physicalPage = vmm_GetPhysical(mainthread->Paging, (void*)virtualAddressIterator);
                     }
                     if(totalSizeCopy < phdr->p_filesz){
-                        memcpy((uintptr_t)(vmm_GetVirtualAddress(physicalPage)), (uintptr_t)virtualAddressParentIterator, sizeToCopy);
+                        memcpy((void*)(vmm_GetVirtualAddress(physicalPage)), (void*)virtualAddressParentIterator, sizeToCopy);
                     }else{
-                        memset((uintptr_t)(vmm_GetVirtualAddress(physicalPage)), NULL, sizeToCopy);
+                        memset((void*)(vmm_GetVirtualAddress(physicalPage)), NULL, sizeToCopy);
                     }
 
                     virtualAddressIterator += sizeToCopy;
@@ -149,17 +149,17 @@ namespace ELF{
             /* Fill KotSpecific */
             if(self->KotSpecificSymbol != NULL){
                 /* Check symbol size */
-                if(self->KotSpecificSymbol->st_size >= sizeof(KotSpecificData_t)){
+                if(self->KotSpecificSymbol->st_size >= sizeof(kot_SpecificData_t)){
                     if(HeapLocation % PAGE_SIZE){
                         HeapLocation -= HeapLocation % PAGE_SIZE;
                         HeapLocation += PAGE_SIZE;
                     }
-                    KotSpecificData_t* KotSpecificData = (KotSpecificData_t*)kcalloc(sizeof(KotSpecificData_t));
+                    kot_SpecificData_t* KotSpecificData = (kot_SpecificData_t*)kcalloc(sizeof(kot_SpecificData_t));
                     KotSpecificData->MMapPageSize = PAGE_SIZE;
                     KotSpecificData->HeapLocation = HeapLocation;
-                    KotSpecificData->FreeMemorySpace = (uintptr_t)FreeMemorySpaceAddress;
-                    uintptr_t DataAddress = (uintptr_t)vmm_GetVirtualAddress(vmm_GetPhysical(mainthread->Paging, (uintptr_t)self->KotSpecificSymbol->st_value));
-                    memcpy(DataAddress, KotSpecificData, sizeof(KotSpecificData_t));
+                    KotSpecificData->FreeMemorySpace = (void*)FreeMemorySpaceAddress;
+                    void* DataAddress = (void*)vmm_GetVirtualAddress(vmm_GetPhysical(mainthread->Paging, (void*)self->KotSpecificSymbol->st_value));
+                    memcpy(DataAddress, KotSpecificData, sizeof(kot_SpecificData_t));
                     kfree(KotSpecificData);
                 }
             }
@@ -171,6 +171,6 @@ namespace ELF{
     }
 
     bool Check(elf_t* self){
-        return (self->Header->e_ident[0] != EI_MAG0 || self->Header->e_ident[1] != EI_MAG1 || self->Header->e_ident[2] != EI_MAG2 || self->Header->e_ident[3] != EI_MAG3);
+        return (self->Header->e_ident[0] != ELFMAG0 || self->Header->e_ident[1] != ELFMAG1 || self->Header->e_ident[2] != ELFMAG2 || self->Header->e_ident[3] != ELFMAG3);
     }
 }

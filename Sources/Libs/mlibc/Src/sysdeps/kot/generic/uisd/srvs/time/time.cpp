@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern "C" {
+
 kot_thread_t kot_srv_time_callback_thread = NULL;
 kot_time_t* kot_TimePointer = NULL;
 uint64_t* kot_TickPointer = NULL;
@@ -11,8 +13,7 @@ void kot_Srv_Time_Initialize(){
     kot_process_t proc = kot_Sys_GetProcess();
 
     kot_thread_t TimeThreadKeyCallback = NULL;
-    kot_Sys_CreateThread(proc, (uintptr_t)&kot_Srv_Time_Callback, PriviledgeApp, NULL, &TimeThreadKeyCallback);
-    kot_InitializeThread(TimeThreadKeyCallback);
+    kot_Sys_CreateThread(proc, (void*)&kot_Srv_Time_Callback, PriviledgeApp, NULL, &TimeThreadKeyCallback);
     kot_srv_time_callback_thread = kot_MakeShareableThreadToProcess(TimeThreadKeyCallback, TimeData->ControllerHeader.Process);
 }
 
@@ -48,10 +49,10 @@ struct kot_srv_time_callback_t* kot_Srv_Time_SetTimePointerKey(kot_time_t** Time
 
     *Time = (kot_time_t*)kot_GetFreeAlignedSpace(sizeof(kot_time_t));
 
-    kot_ksmem_t TimePointerKey;
-    kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), sizeof(kot_time_t), (uintptr_t*)Time, &TimePointerKey, MemoryFieldTypeShareSpaceRO);
+    kot_key_mem_t TimePointerKey;
+    kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), sizeof(kot_time_t), (void**)Time, &TimePointerKey, MemoryFieldTypeShareSpaceRO);
 
-    kot_ksmem_t TimePointerKeyShare;
+    kot_key_mem_t TimePointerKeyShare;
     kot_Sys_Keyhole_CloneModify(TimePointerKey, &TimePointerKeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
 
     struct kot_arguments_t parameters;
@@ -88,10 +89,10 @@ struct kot_srv_time_callback_t* kot_Srv_Time_SetTickPointerKey(uint64_t* TimePoi
     callback->Status = KBUSY;
     callback->Handler = &Srv_Time_SetTickPointerKey_Callback; 
 
-    kot_ksmem_t TickPointerKey;
-    kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), sizeof(uint64_t), TimePointer, &TickPointerKey, MemoryFieldTypeShareSpaceRO);
+    kot_key_mem_t TickPointerKey;
+    kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), sizeof(uint64_t), (void**)TimePointer, &TickPointerKey, MemoryFieldTypeShareSpaceRO);
 
-    kot_ksmem_t TickPointerKeyShare;
+    kot_key_mem_t TickPointerKeyShare;
     kot_Sys_Keyhole_CloneModify(TickPointerKey, &TickPointerKeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
 
     struct kot_arguments_t parameters;
@@ -117,7 +118,7 @@ KResult Get_Time_Initialize(){
     while(!TimeData->TimePointerKey) kot_Sys_Schedule(); // Wait dirver
     
     kot_TimePointer = (kot_time_t*)kot_GetFreeAlignedSpace(sizeof(kot_time_t));
-    kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), TimeData->TimePointerKey, (uintptr_t*)&kot_TimePointer);
+    kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), TimeData->TimePointerKey, (void**)&kot_TimePointer);
     return KSUCCESS;
 }
 
@@ -126,7 +127,7 @@ KResult Get_Tick_Initialize(){
     while(!TimeData->TickPointerKey) kot_Sys_Schedule(); // Wait driver
 
     kot_TickPointer = (uint64_t*)kot_GetFreeAlignedSpace(sizeof(uint64_t));
-    kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), TimeData->TickPointerKey, (uintptr_t*)&kot_TickPointer);
+    kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), TimeData->TickPointerKey, (void**)&kot_TickPointer);
     return KSUCCESS;
 }
 
@@ -308,4 +309,6 @@ KResult kot_CompareTime(uint64_t* compare, uint64_t time0, uint64_t time1){
 uint64_t kot_GetPosixTime(){
     // TODO
     return NULL;
+}
+
 }

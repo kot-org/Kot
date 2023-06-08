@@ -92,7 +92,7 @@ int sys_open(const char *path, int flags, mode_t mode, int *fd) {
 	return 0;
 }
 
-int sys_close(int fd) {
+int kot_Sys_Close(int fd) {
 	int ret;
 	int sys_errno;
 

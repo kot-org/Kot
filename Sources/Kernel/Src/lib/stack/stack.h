@@ -5,8 +5,8 @@
 struct KStack{
     uint64_t top;
     uint64_t sector_size;
-    uintptr_t current_sector = NULL;
-    void sinkInto(uintptr_t dest, uint64_t size);
+    void* current_sector = NULL;
+    void sinkInto(void* dest, uint64_t size);
     uint8_t pop8();
     uint16_t pop16();
     uint32_t pop32();

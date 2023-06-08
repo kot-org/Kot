@@ -1,10 +1,11 @@
 #ifndef _UIPP_COMPONENT_H_
 #define _UIPP_COMPONENT_H_
 
+#include <kot/math.h>
 #include <kot/types.h>
-#include <kot/stdio.h>
 #include <kot/utils/vector.h>
 
+#include <kot++/new.h>
 #include <kot++/function.h>
 
 #include <kot-graphics/orb.h>
@@ -118,7 +119,7 @@ namespace Ui {
 
         bool AutoPosition = true;
 
-        point_t Position{
+        kot_point_t Position{
             .x = 0,
             .y = 0,
         };
@@ -126,7 +127,7 @@ namespace Ui {
         uint64_t ZIndex = 0; // TODO
 
         uint64_t ExternalStyleType = 0;
-        uintptr_t ExternalStyleData = 0;
+        void* ExternalStyleData = 0;
 
         bool IsHidden = false;
 
@@ -136,15 +137,15 @@ namespace Ui {
 
     class Component {
         public:
-            Component(ComponentGeneralStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, uintptr_t ExternalData, class Component* ParentCpnt, bool IsOwnFb);
+            Component(ComponentGeneralStyle Style, UpdateHandler HandlerUpdate, MouseEventHandler HandlerMouseEvent, void* ExternalData, class Component* ParentCpnt, bool IsOwnFb);
 
             /* Component Framebuffer */
             void CreateFramebuffer(uint32_t Width, uint32_t Height);
             void UpdateFramebuffer(uint32_t Width, uint32_t Height);
 
-            framebuffer_t* GetFramebuffer();
+            kot_framebuffer_t* GetFramebuffer();
             ComponentGeneralStyle* GetStyle();
-            vector_t* GetChilds();
+            kot_vector_t* GetChilds();
 
             void Update();
 
@@ -154,16 +155,16 @@ namespace Ui {
 
             MouseEventHandler MouseEvent;
             UpdateHandler UpdateFunction;
-            uintptr_t ExternalData;
+            void* ExternalData;
             Component* Parent;
             class UiContext* UiCtx;
             bool IsFramebufferUpdate;
             bool IsRedraw;
             bool IsDrawUpdate;
 
-            point_t DrawPosition; 
-            point_t AbsolutePosition;     
-            point_t FramebufferRelativePosition;
+            kot_point_t DrawPosition; 
+            kot_point_t AbsolutePosition;     
+            kot_point_t FramebufferRelativePosition;
 
             Component* VerticalOverflow;
             Component* HorizontalOverflow;
@@ -173,10 +174,10 @@ namespace Ui {
 
             uint64_t Index;
 
-            framebuffer_t* Framebuffer;
+            kot_framebuffer_t* Framebuffer;
             bool OwnFb;
             
-            vector_t* Childs;
+            kot_vector_t* Childs;
 
             // Component.cpp private function
             void AddChild(Component* Child);
@@ -199,7 +200,7 @@ namespace Ui {
         Component* Cpnt;
         color_t CurrentColor;
         void UpdateSize(uint64_t Width, uint64_t Height);
-        void UpdatePosition(point_t Position);
+        void UpdatePosition(kot_point_t Position);
     };
 
     Flexbox_t* Flexbox(FlexboxStyle_t Style, class Component* ParentCpnt);
@@ -218,7 +219,7 @@ namespace Ui {
         GridboxStyle_t Style;
         Component* Cpnt;
         void UpdateSize(uint64_t Width, uint64_t Height);
-        void UpdatePosition(point_t Position);
+        void UpdatePosition(kot_point_t Position);
     };
 
     Gridbox_t* Gridbox(GridboxStyle_t Style, class Component* ParentCpnt); 
@@ -248,9 +249,9 @@ namespace Ui {
         PictureboxType Type;
         PictureboxStyle_t Style;
         Component* Cpnt;
-        uintptr_t Image;
+        void* Image;
         void UpdateSize(uint64_t Width, uint64_t Height);
-        void UpdatePosition(point_t Position);
+        void UpdatePosition(kot_point_t Position);
     };
     Picturebox_t* Picturebox(char* Path, PictureboxType Type, PictureboxStyle_t Style, class Component* ParentCpnt);
 
@@ -268,7 +269,7 @@ namespace Ui {
         Component* Cpnt;
         color_t CurrentColor;
         void UpdateSize(uint64_t Width, uint64_t Height);
-        void UpdatePosition(point_t Position);
+        void UpdatePosition(kot_point_t Position);
     };
 
     Box_t* Box(BoxStyle_t Style, class Component* ParentCpnt);
@@ -296,7 +297,7 @@ namespace Ui {
         ButtonEvent_t Event;
         
         void UpdateSize(uint64_t Width, uint64_t Height);
-        void UpdatePosition(point_t Position);
+        void UpdatePosition(kot_point_t Position);
     };
 
     Button_t* Button(ButtonEvent_t Event, ButtonStyle_t Style, class Component* ParentCpnt);
@@ -307,7 +308,7 @@ namespace Ui {
         ComponentGeneralStyle G;
         char* Text = NULL;
         char* FontPath = "d0:default-font.sfn";
-        uintptr_t FontBuffer = 0;
+        void* FontBuffer = 0;
         int16_t FontSize = 8;
         color_t ForegroundColor = 0;
         bool AutoWidth = true;
@@ -326,7 +327,7 @@ namespace Ui {
         uint64_t Lock;
         void UpdateText(char* Text);
         void UpdateSize(uint64_t Width, uint64_t Height);
-        void UpdatePosition(point_t Position);
+        void UpdatePosition(kot_point_t Position);
     };
 
     Label_t* Label(LabelStyle_t Style, class Component* ParentCpnt);
@@ -341,14 +342,14 @@ namespace Ui {
     } TitlebarStyle_t;
 
     struct Titlebar_t{
-        uintptr_t Window;
+        void* Window;
         TitlebarStyle_t Style;
         color_t CurrentColor;
 
         /* Titlebar move */
         bool IsMouseDrag;
-        point_t MousePosition;
-        point_t WindowInitialPosition;
+        kot_point_t MousePosition;
+        kot_point_t WindowInitialPosition;
 
         Component* Cpnt;
         Box_t* MainBox;
@@ -364,10 +365,10 @@ namespace Ui {
         Button_t* MinimizeBtn;
 
         void UpdateSize(uint64_t Width, uint64_t Height);
-        void UpdatePosition(point_t Position);
+        void UpdatePosition(kot_point_t Position);
     };
 
-    Titlebar_t* Titlebar(uintptr_t Window, char* Title, char* Icon, TitlebarStyle_t Style, class Component* ParentCpnt);   
+    Titlebar_t* Titlebar(void* Window, char* Title, char* Icon, TitlebarStyle_t Style, class Component* ParentCpnt);   
 
 }
 

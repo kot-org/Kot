@@ -1,5 +1,5 @@
 #pragma once
-#include <kot/types.h>
+#include <lib/types.h>
 #include <lib/lib.h>
 
 class Bitmap{

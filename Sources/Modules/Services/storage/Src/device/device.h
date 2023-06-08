@@ -3,33 +3,35 @@
 #include <core/main.h>
 #include <partition/partition.h>
 #include <kot/uisd/srvs/storage.h>
+#include <kot/uisd/srvs/storage/device.h>
 
 struct storage_callback_t{
-    thread_t MainThread;
-    uintptr_t Data;
+    kot_thread_t MainThread;
+    void* Data;
     size64_t Size;
+    KResult Status;
 };
 
 struct storage_device_t{
-    uintptr_t BufferRWBase;
+    void* BufferRWBase;
     size_t BufferRWSize;
-    srv_storage_device_info_t Info;
-    thread_t CallbackRequestHandlerThread;
-    thread_t CallbackCreateSpaceHandlerThread;
+    kot_srv_storage_device_info_t Info;
+    kot_thread_t CallbackRequestHandlerThread;
+    kot_thread_t CallbackCreateSpaceHandlerThread;
     uint64_t Lock;
 
-    KResult CreateSpace(uint64_t Start, size64_t Size, srv_storage_space_info_t** SpaceInfo);
+    KResult CreateSpace(uint64_t Start, size64_t Size, kot_srv_storage_space_info_t** SpaceInfo);
 
     KResult SendRequest(uint64_t Start, size64_t Size, bool IsWrite);
 
     uint64_t GetBufferStartingAddress(uint64_t Start);
 
-    KResult ReadDevice(uintptr_t Buffer, uint64_t Start, size64_t Size);
-    KResult WriteDevice(uintptr_t Buffer, uint64_t Start, size64_t Size);
+    KResult ReadDevice(void* Buffer, uint64_t Start, size64_t Size);
+    KResult WriteDevice(void* Buffer, uint64_t Start, size64_t Size);
 };
 
-KResult CallbackCreateSpaceHandler(KResult Status, storage_callback_t* CallbackData, srv_storage_space_info_t* SpaceInfo);
-KResult CallbackRequestHandler(KResult Status, thread_t MainThread);
+KResult CallbackCreateSpaceHandler(KResult Status, storage_callback_t* CallbackData, kot_srv_storage_space_info_t* SpaceInfo);
+KResult CallbackRequestHandler(KResult Status, storage_callback_t* CallbackData);
 
-KResult AddDevice(srv_storage_device_info_t* Info, storage_device_t** DevicePointer);
+KResult AddDevice(kot_srv_storage_device_info_t* Info, storage_device_t** DevicePointer);
 KResult RemoveDevice(storage_device_t* Device);

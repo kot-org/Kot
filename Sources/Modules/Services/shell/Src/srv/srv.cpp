@@ -7,27 +7,27 @@ static shell_dispatch_t ShellDispatcher[File_Function_Count] = {
     [File_Function_Write] = Writeshell,
 };
 
-process_t ProcessKey;
+kot_process_t ProcessKey;
 
 KResult SrvInitalize(){
-    ProcessKey = ShareProcessKey(Sys_GetProcess());
+    ProcessKey = kot_ShareProcessKey(kot_Sys_GetProcess());
 
     /* Enable shell as file */
-    srv_storage_fs_server_functions_t FSServerFunctions;
+    kot_srv_storage_fs_server_functions_t FSServerFunctions;
 
-    thread_t ThreadOpenfile;
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&OpenShell, PriviledgeApp, NULL, &ThreadOpenfile);
-    FSServerFunctions.Openfile = MakeShareableSpreadThreadToProcess(ThreadOpenfile, ((uisd_storage_t*)FindControllerUISD(ControllerTypeEnum_Storage))->ControllerHeader.Process);
+    kot_thread_t ThreadOpenfile;
+    kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&OpenShell, PriviledgeApp, NULL, &ThreadOpenfile);
+    FSServerFunctions.Openfile = kot_MakeShareableSpreadThreadToProcess(ThreadOpenfile, ((kot_uisd_storage_t*)kot_FindControllerUISD(ControllerTypeEnum_Storage))->ControllerHeader.Process);
 
-    srv_storage_callback_t* StorageCallback = Srv_Storage_NewDev("tty", &FSServerFunctions, true);
+    kot_srv_storage_callback_t* StorageCallback = kot_Srv_Storage_NewDev("tty", &FSServerFunctions, true);
 
 
     /* Load uisd controller */
-    uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_shell_t));
-    ksmem_t key = NULL;
-    Sys_CreateMemoryField(Sys_GetProcess(), sizeof(uisd_shell_t), &address, &key, MemoryFieldTypeShareSpaceRO);
+    void* address = kot_GetFreeAlignedSpace(sizeof(kot_uisd_shell_t));
+    kot_key_mem_t key = NULL;
+    kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), sizeof(kot_uisd_shell_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
-    uisd_shell_t* ShellSrv = (uisd_shell_t*)address;
+    kot_uisd_shell_t* ShellSrv = (kot_uisd_shell_t*)address;
     ShellSrv->ControllerHeader.IsReadWrite = false;
     ShellSrv->ControllerHeader.Version = Shell_Srv_Version;
     ShellSrv->ControllerHeader.VendorID = Kot_VendorID;
@@ -35,25 +35,25 @@ KResult SrvInitalize(){
 
     ShellSrv->IsAvailableAsFile = (StorageCallback->Status == KSUCCESS);
 
-    uisd_callbackInfo_t* info = CreateControllerUISD(ControllerTypeEnum_Shell, key, true);
+    kot_uisd_callbackInfo_t* info = kot_CreateControllerUISD(ControllerTypeEnum_Shell, key, true);
     free(info);
 
     return KSUCCESS;
 }
 
-KResult OpenShell(thread_t Callback, uint64_t CallbackArg, char* Path, permissions_t Permissions, process_t Target){
+KResult OpenShell(kot_thread_t Callback, uint64_t CallbackArg, char* Path, kot_permissions_t Permissions, kot_process_t Target){
     shell_t* Shell = NewShell(Target);
     
-    srv_storage_fs_server_open_file_data_t SrvOpenFileData;
-    thread_t DispatcherThread;
+    kot_srv_storage_fs_server_open_file_data_t SrvOpenFileData;
+    kot_thread_t DispatcherThread;
 
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&ShellDispatch, PriviledgeDriver, (uint64_t)Shell, &DispatcherThread);
+    kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&ShellDispatch, PriviledgeDriver, (uint64_t)Shell, &DispatcherThread);
 
-    SrvOpenFileData.Dispatcher = MakeShareableThreadToProcess(DispatcherThread, Target);
+    SrvOpenFileData.Dispatcher = kot_MakeShareableThreadToProcess(DispatcherThread, Target);
 
     SrvOpenFileData.FSDriverProc = ProcessKey;
 
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = KSUCCESS,         /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* Data */
@@ -62,21 +62,21 @@ KResult OpenShell(thread_t Callback, uint64_t CallbackArg, char* Path, permissio
         .arg[5] = NULL,             /* GP3 */
     };
     
-    ShareDataWithArguments_t ShareDataWithArguments{
-        .Data = &SrvOpenFileData,
-        .Size = sizeof(srv_storage_fs_server_open_file_data_t),
+    kot_ShareDataWithArguments_t ShareDataWithArguments{
+        .Data = (void*)&SrvOpenFileData,
+        .Size = sizeof(kot_srv_storage_fs_server_open_file_data_t),
         .ParameterPosition = 0x2,
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &ShareDataWithArguments);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &ShareDataWithArguments);
+    kot_Sys_Close(KSUCCESS);
 }
 
-KResult ShellDispatch(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+KResult ShellDispatch(kot_thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     uint64_t Function = GP0;
 
     if(Function >= File_Function_Count){
-        arguments_t arguments{
+        kot_arguments_t arguments{
             .arg[0] = KFAIL,            /* Status */
             .arg[1] = CallbackArg,      /* CallbackArg */
             .arg[2] = NULL,             /* GP0 */
@@ -85,19 +85,19 @@ KResult ShellDispatch(thread_t Callback, uint64_t CallbackArg, uint64_t GP0, uin
             .arg[5] = NULL,             /* GP3 */
         };
 
-        Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-        Sys_Close(KSUCCESS);
+        kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+        kot_Sys_Close(KSUCCESS);
     }
 
-    shell_t* Shell = (shell_t*)Sys_GetExternalDataThread();
-    Sys_Close(ShellDispatcher[Function](Callback, CallbackArg, Shell, GP1, GP2, GP3)); // It'll call the callback in the function
+    shell_t* Shell = (shell_t*)kot_Sys_GetExternalDataThread();
+    kot_Sys_Close(ShellDispatcher[Function](Callback, CallbackArg, Shell, GP1, GP2, GP3)); // It'll call the callback in the function
 }
 
 /* Direct access */
-KResult Closeshell(thread_t Callback, uint64_t CallbackArg, shell_t* Shell, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult Closeshell(kot_thread_t Callback, uint64_t CallbackArg, shell_t* Shell, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     KResult Status = KSUCCESS;
     
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,           /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
@@ -106,18 +106,18 @@ KResult Closeshell(thread_t Callback, uint64_t CallbackArg, shell_t* Shell, uint
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     
     if(Status == KSUCCESS){
-        Sys_Exit(KSUCCESS);
+        kot_Sys_Exit(KSUCCESS);
     }
 
     return KSUCCESS;
 }
 
 /* Direct access */
-KResult Getshellsize(thread_t Callback, uint64_t CallbackArg, shell_t* Shell, uint64_t GP0, uint64_t GP1, uint64_t GP2){
-    arguments_t arguments{
+KResult Getshellsize(kot_thread_t Callback, uint64_t CallbackArg, shell_t* Shell, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+    kot_arguments_t arguments{
         .arg[0] = KSUCCESS,             /* Status */
         .arg[1] = CallbackArg,          /* CallbackArg */
         .arg[2] = 0,                    /* FileSize */
@@ -125,33 +125,33 @@ KResult Getshellsize(thread_t Callback, uint64_t CallbackArg, shell_t* Shell, ui
         .arg[4] = NULL,                 /* GP2 */
         .arg[5] = NULL,                 /* GP3 */
     };
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     return KSUCCESS;
 }
 
 /* Direct access */
-KResult Readshell(thread_t Callback, uint64_t CallbackArg, shell_t* Shell, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult Readshell(kot_thread_t Callback, uint64_t CallbackArg, shell_t* Shell, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     // Ignore GP0 : start
     return ShellCreateRequest(Shell, Callback, CallbackArg, GP1);
 }
 
 /* Direct access */
-KResult Writeshell(thread_t Callback, uint64_t CallbackArg, shell_t* Shell, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult Writeshell(kot_thread_t Callback, uint64_t CallbackArg, shell_t* Shell, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     KResult Status = KFAIL;
     
     uint64_t TypePointer;
     uint64_t Size;
-    if(Sys_GetInfoMemoryField(GP0, &TypePointer, &Size) == KSUCCESS){
+    if(kot_Sys_GetInfoMemoryField(GP0, &TypePointer, &Size) == KSUCCESS){
         if(TypePointer == MemoryFieldTypeSendSpaceRO){            
-            uintptr_t Buffer = malloc(Size);
-            assert(Sys_AcceptMemoryField(Sys_GetProcess(), GP0, &Buffer) == KSUCCESS);
-            ShellPrint(Shell, Buffer, Size);
+            void* Buffer = malloc(Size);
+            assert(kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), GP0, (void**)&Buffer) == KSUCCESS);
+            ShellPrint(Shell, (void*)Buffer, Size);
 
             Status = KSUCCESS;
         }
     }
     
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
@@ -160,7 +160,7 @@ KResult Writeshell(thread_t Callback, uint64_t CallbackArg, shell_t* Shell, uint
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
 
     return KSUCCESS;
 }

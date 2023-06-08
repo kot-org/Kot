@@ -2,7 +2,7 @@
 
 %include "Src/arch/x86-64/cpu/cpu.inc"
 
-GLOBAL AtomicClearLock, AtomicLock, AtomicRelease, AtomicAquire, AtomicAquireCli
+GLOBAL AtomicClearLock, AtomicLock, AtomicRelease, AtomicAcquire, AtomicAcquireCli
 
 %macro	CF_RESULT	0
 	mov		rcx, 1
@@ -24,7 +24,7 @@ AtomicRelease:	; rdi = mutex location memory , 0x0 = location of the bit where w
 	CF_RESULT
 	ret
 
-AtomicAquire:		; rdi = mutex location memory , 0x0 = location of the bit where we store the statu
+AtomicAcquire:		; rdi = mutex location memory , 0x0 = location of the bit where we store the statu
 	.acquire:
 		lock bts	QWORD [rdi], 0x0
 		jnc			.exit				; CF = 0 to begin with
@@ -36,7 +36,7 @@ AtomicAquire:		; rdi = mutex location memory , 0x0 = location of the bit where w
 	.exit:
 		ret
 
-AtomicAquireCli:		; rdi = mutex location memory , 0x0 = location of the bit where we store the statu
+AtomicAcquireCli:		; rdi = mutex location memory , 0x0 = location of the bit where we store the statu
 	.acquire:
 		cli
 		lock bts	QWORD [rdi], 0x0

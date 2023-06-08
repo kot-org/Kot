@@ -1,11 +1,11 @@
 #include <core/main.h>
 
-extern "C" int main(int argc, char* argv[]) {
-    Printlog("[USB/XHCI] Initialization ...");
+int main(int argc, char* argv[]) {
+    kot_Printlog("[USB/XHCI] Initialization ...");
 
     
 
-    Printlog("[USB/XHCI] Driver initialized successfully");
+    kot_Printlog("[USB/XHCI] Driver initialized successfully");
 
     return KSUCCESS;
 }

@@ -12,16 +12,16 @@ struct DeviceConfig_t{
 }__attribute__((packed));
 
 struct MCFGHeader_t{
-    srv_system_sdtheader_t Header;
+    kot_srv_system_sdtheader_t Header;
     uint64_t Reserved;
     DeviceConfig_t ConfigurationSpace[];
 }__attribute__((packed));
 
-void InitPCIe(struct PCIDeviceListInfo_t* PCIDeviceList, uintptr_t mcfgAddress);
+void InitPCIe(struct PCIDeviceListInfo_t* PCIDeviceList, void* mcfgAddress);
 
-void EnumerateBus(struct PCIDeviceListInfo_t* PCIDeviceList, uintptr_t baseAddress, uint64_t bus);
-void EnumerateDevice(struct PCIDeviceListInfo_t* PCIDeviceList, uintptr_t busAddress, uint64_t device);
-void EnumerateFunction(struct PCIDeviceListInfo_t* PCIDeviceList, uintptr_t deviceAddress, uint64_t function);
+void EnumerateBus(struct PCIDeviceListInfo_t* PCIDeviceList, void* baseAddress, uint64_t bus);
+void EnumerateDevice(struct PCIDeviceListInfo_t* PCIDeviceList, void* busAddress, uint64_t device);
+void EnumerateFunction(struct PCIDeviceListInfo_t* PCIDeviceList, void* deviceAddress, uint64_t function);
 
 void ReceiveConfigurationSpacePCIe(struct PCIDevice_t* Device);
 void SendConfigurationSpacePCIe(struct PCIDevice_t* Device);

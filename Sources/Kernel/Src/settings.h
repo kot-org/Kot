@@ -1,2 +1,6 @@
 #define USE_COM_1 1
 #define DEBUG_WITH_BOCHS 1
+
+// #define HEAP_DEBUG 1
+// #define HEAP_TRACE 1
+#define HEAP_DEBUG_GUARD_SIZE PAGE_SIZE

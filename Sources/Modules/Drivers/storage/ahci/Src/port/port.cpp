@@ -8,10 +8,10 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
 
     // Rebase port
     StopCMD();
-    CommandHeader = (HBACommandHeader_t*)GetPhysical((uintptr_t*)&HbaPort->CommandListBase, 1024);
-    memset((uintptr_t)CommandHeader, NULL, 1024);
+    CommandHeader = (HBACommandHeader_t*)kot_GetPhysical((void**)&HbaPort->CommandListBase, 1024);
+    memset((void*)CommandHeader, NULL, 1024);
 
-    uintptr_t FISBaseVirtual = GetPhysical((uintptr_t*)&HbaPort->FisBaseAddress, 256);
+    void* FISBaseVirtual = kot_GetPhysical((void**)&HbaPort->FisBaseAddress, 256);
     memset(FISBaseVirtual, NULL, 256);
 
     BufferRealSize = HBA_PRDT_MAX_ENTRIES * HBA_PRDT_ENTRY_ADDRESS_SIZE;
@@ -30,7 +30,7 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
     StartCMD();
 
     // Identify disk
-    IdentifyInfo = (IdentifyInfo_t*)calloc(sizeof(IdentifyInfo_t));
+    IdentifyInfo = (IdentifyInfo_t*)calloc(1, sizeof(IdentifyInfo_t));
     GetIdentifyInfo(DefaultSpace);
 
     // Update space size
@@ -82,15 +82,15 @@ Space_t* Device::CreateSpace(uint64_t Start, uint64_t Size){
     Self->StorageDevice = this;
 
     // Allocate buffer
-    Self->BufferVirtual = GetFreeAlignedSpace(BufferRealSize);
-    Sys_CreateMemoryField(Proc, BufferRealSize, &Self->BufferVirtual, &Self->BufferKey, MemoryFieldTypeShareSpaceRW);
+    Self->BufferVirtual = kot_GetFreeAlignedSpace(BufferRealSize);
+    kot_Sys_CreateMemoryField(Proc, BufferRealSize, &Self->BufferVirtual, &Self->BufferKey, MemoryFieldTypeShareSpaceRW);
 
     // Load command header main
-    Self->CommandAddressTable = (HBACommandTable_t*)GetPhysical((uintptr_t*)&CommandHeader[0].CommandTableBaseAddress, HBA_COMMAND_TABLE_SIZE);
+    Self->CommandAddressTable = (HBACommandTable_t*)kot_GetPhysical((void**)&CommandHeader[0].CommandTableBaseAddress, HBA_COMMAND_TABLE_SIZE);
 
     uint64_t BufferInteration = (uint64_t)Self->BufferVirtual;
     for(size64_t i = 0; i < HBA_PRDT_MAX_ENTRIES; i++){
-        Self->CommandAddressTable->PrdtEntry[i].DataBaseAddress = (uint64_t)Sys_GetPhysical((uintptr_t)BufferInteration);
+        Self->CommandAddressTable->PrdtEntry[i].DataBaseAddress = (uint64_t)kot_Sys_GetPhysical((void*)BufferInteration);
         BufferInteration = (uint64_t)BufferInteration + HBA_PRDT_ENTRY_ADDRESS_SIZE;
     }
 
@@ -105,8 +105,8 @@ void Device::LoadSpace(Space_t* Self){
 KResult Device::Read(Space_t* Self, uint64_t Start, size64_t Size){
     uint64_t StartAlignement = Start & 0x1FF;
     uint64_t Sector = Start >> 9;
-    uint64_t SectorCount = DivideRoundUp(Size + StartAlignement, ATA_SECTOR_SIZE);
-    uint64_t PRDTLength = DivideRoundUp(SectorCount, HBA_PRDT_ENTRY_SECTOR_SIZE);
+    uint64_t SectorCount = DIV_ROUND_UP(Size + StartAlignement, ATA_SECTOR_SIZE);
+    uint64_t PRDTLength = DIV_ROUND_UP(SectorCount, HBA_PRDT_ENTRY_SECTOR_SIZE);
 
     if(PRDTLength > HBA_PRDT_MAX_ENTRIES){
         return KFAIL;
@@ -186,29 +186,29 @@ KResult Device::Write(Space_t* Self, uint64_t Start, size64_t Size){
     uint64_t BufferSizeUsed = Size + StartAlignement;
     
     uint64_t Sector = Start >> 9;
-    uint64_t SectorCount = DivideRoundUp(BufferSizeUsed, ATA_SECTOR_SIZE);
-    uint64_t PRDTLength = DivideRoundUp(SectorCount, HBA_PRDT_ENTRY_SECTOR_SIZE);
+    uint64_t SectorCount = DIV_ROUND_UP(BufferSizeUsed, ATA_SECTOR_SIZE);
+    uint64_t PRDTLength = DIV_ROUND_UP(SectorCount, HBA_PRDT_ENTRY_SECTOR_SIZE);
 
     if(PRDTLength > HBA_PRDT_MAX_ENTRIES){
         return KFAIL;
     }
 
     if((StartAlignement && SectorCount == 0x1) || (EndAlignement && SectorCount == 0x1)){
-        uintptr_t BufferTmp = (uintptr_t)((uint64_t)Self->BufferVirtual + StartAlignement);
+        void* BufferTmp = (void*)((uint64_t)Self->BufferVirtual + StartAlignement);
         memcpy(BufferAlignementBottom, BufferTmp, Size);
         Read(Self, Start, ATA_SECTOR_SIZE);
         memcpy(BufferTmp, BufferAlignementBottom, Size);
     }else{
         if(StartAlignement){
-            uintptr_t BufferTmp = (uintptr_t)((uint64_t)Self->BufferVirtual + StartAlignement);
+            void* BufferTmp = (void*)((uint64_t)Self->BufferVirtual + StartAlignement);
             memcpy(BufferAlignementBottom, BufferTmp, StartAlignementFill);
             Read(Self, Start, ATA_SECTOR_SIZE);
             memcpy(BufferTmp, BufferAlignementBottom, StartAlignementFill);
         }else if(EndAlignement){
             memcpy(BufferAlignementBottom, Self->BufferVirtual, ATA_SECTOR_SIZE);
             uint64_t EndLocation = Start + Size - EndAlignement;
-            uintptr_t BufferTmp = (uintptr_t)((uint64_t)Self->BufferVirtual + EndAlignement);
-            uintptr_t BufferDst = (uintptr_t)((uint64_t)Self->BufferVirtual + Size);
+            void* BufferTmp = (void*)((uint64_t)Self->BufferVirtual + EndAlignement);
+            void* BufferDst = (void*)((uint64_t)Self->BufferVirtual + Size);
             Read(Self, EndLocation, ATA_SECTOR_SIZE);
             memcpy(BufferDst, BufferTmp, EndAlignementFill);
             memcpy(Self->BufferVirtual, BufferAlignementBottom, ATA_SECTOR_SIZE);

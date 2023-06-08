@@ -33,7 +33,7 @@ int sys_write(int fd, const void *buf, size_t count, ssize_t *bytes_written);
 [[gnu::weak]] int sys_pread(int fd, void *buf, size_t n, off_t off, ssize_t *bytes_read);
 
 int sys_seek(int fd, off_t offset, int whence, off_t *new_offset);
-int sys_close(int fd);
+int kot_Sys_Close(int fd);
 
 int sys_clock_get(int clock, time_t *secs, long *nanos);
 [[gnu::weak]] int sys_clock_getres(int clock, time_t *secs, long *nanos);
@@ -57,6 +57,11 @@ int sys_clock_get(int clock, time_t *secs, long *nanos);
 
 [[gnu::weak]] pid_t sys_getpid();
 [[gnu::weak]] int sys_kill(int, int);
+
+// debug
+void *sys_debug_malloc(size_t size);
+void *sys_debug_realloc(void *ptr, size_t size);
+void sys_debug_free(void *ptr);
 
 } //namespace mlibc
 

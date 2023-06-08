@@ -1,7 +1,6 @@
 #include <kot-ui++/component.h>
-#include <kot/uisd/srvs/storage.h>
-
-#include <kot/stdio.h>
+#include <string.h>
+#include <stdio.h>
 
 namespace Ui {
     void LabelDraw(Label_t* Label) {
@@ -79,7 +78,7 @@ namespace Ui {
                 return NULL;
             }
             // Load font
-            file_t* FontFile = fopen(Style.FontPath, "rb");
+            FILE* FontFile = fopen(Style.FontPath, "rb");
 
             if(FontFile == NULL){
                 free(Label);
@@ -90,7 +89,7 @@ namespace Ui {
             size_t FontFileSize = ftell(FontFile);
             fseek(FontFile, 0, SEEK_SET);
 
-            uintptr_t Font = malloc(FontFileSize);
+            void* Font = malloc(FontFileSize);
             fread(Font, FontFileSize, 1, FontFile);
 
             Label->Font = LoadFont(Font);
@@ -109,7 +108,7 @@ namespace Ui {
 
         atomicAcquire(&Label->Lock, 0);
         
-        Label->Cpnt = new Component(Style.G, LabelUpdate, (Ui::MouseEventHandler)LabelUpdate, (uintptr_t)Label, ParentCpnt, false);
+        Label->Cpnt = new Component(Style.G, LabelUpdate, (Ui::MouseEventHandler)LabelUpdate, (void*)Label, ParentCpnt, false);
 
         font_fb_t FontBuffer = {.Address = Label->Cpnt->Framebuffer->Buffer, .Width = Label->Cpnt->Parent->Framebuffer->Width, .Height = Label->Cpnt->Parent->Framebuffer->Height, .Pitch = Label->Cpnt->Parent->Framebuffer->Pitch};
 
@@ -134,7 +133,7 @@ namespace Ui {
     void Label_t::UpdateText(char* Text) {
         atomicAcquire(&Lock, 0);
 
-        uintptr_t OldText = (uintptr_t)this->Style.Text;
+        void* OldText = (void*)this->Style.Text;
         
         size_t Lenght = strlen(Text);
         this->Style.Text = (char*)malloc(Lenght + 1);

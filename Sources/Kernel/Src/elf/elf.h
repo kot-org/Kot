@@ -1,19 +1,19 @@
 #pragma once
-#include <kot/elf.h>
+#include <lib/elf.h>
 #include <core/core.h>
 #include <scheduler/scheduler.h>
 
 namespace ELF{
     /* Function */
-    KResult loadElf(uintptr_t buffer, enum Priviledge ring, struct kthread_t** selfthread);
+    KResult loadElf(void* buffer, enum Priviledge ring, struct kthread_t** selfthread);
 
     bool Check(struct elf_t* self);
 
     struct elf_t{
-        uintptr_t Buffer;
+        void* Buffer;
         Elf64_Ehdr* Header;
-        uintptr_t phdrs;
-        uintptr_t shdrs;
+        void* phdrs;
+        void* shdrs;
         Elf64_Shdr* str;
         Elf64_Shdr* shstr;
         Elf64_Shdr* symtab;

@@ -15,6 +15,8 @@
 extern char **environ;
 extern mlibc::exec_stack_data __mlibc_stack_data;
 
+uint64_t KotAnonAllocateLock = 0;
+
 namespace mlibc{
     void sys_libc_log(const char *message){
         kot_Sys_Logs((char*)message, strlen(message));
@@ -27,7 +29,7 @@ namespace mlibc{
     }
 
     int sys_tcb_set(void *pointer){
-        return (kot_Sys_SetTCB(kot_Sys_GetThread(), (uintptr_t)pointer) != KSUCCESS);
+        return (kot_Sys_SetTCB(kot_Sys_GetThread(), (void*)pointer) != KSUCCESS);
     }
 
     int sys_futex_tid(){
@@ -44,12 +46,18 @@ namespace mlibc{
         __ensure(!"Not implemented");
     }
 
-
     int sys_anon_allocate(size_t size, void **pointer){
         // TODO
+        if(size % KotSpecificData.MMapPageSize){
+            size -= size % KotSpecificData.MMapPageSize;
+            size += KotSpecificData.MMapPageSize;
+        }
+        atomicAcquire(&KotAnonAllocateLock, 0);
         *pointer = (void*)KotSpecificData.HeapLocation;
+        int Status = (Syscall_48(KSys_Map, kot_Sys_GetProcess(), (uint64_t)pointer, 0, 0, (uint64_t)&size, false) != KSUCCESS);
         KotSpecificData.HeapLocation += size;
-        return (Syscall_48(KSys_Map, kot_Sys_GetProcess(), (uint64_t)pointer, 0, 0, (uint64_t)&size, true) != KSUCCESS);
+        atomicUnlock(&KotAnonAllocateLock, 0);
+        return Status;
     }
 
     int sys_anon_free(void *pointer, size_t size){
@@ -59,11 +67,12 @@ namespace mlibc{
 
     int sys_vm_map(void *hint, size_t size, int prot, int flags, int fd, off_t offset, void **window){
         // TODO
+        __ensure(!"Not implemented");
         return (Syscall_48(KSys_Map, kot_Sys_GetProcess(), (uint64_t)&hint, 0, 0, (uint64_t)&size, false) != KSUCCESS);
     }
 
     int sys_vm_unmap(void *pointer, size_t size){
-        return (kot_Sys_Unmap(kot_Sys_GetThread(), (uintptr_t)pointer, static_cast<size64_t>(size)) != KSUCCESS);
+        return (kot_Sys_Unmap(kot_Sys_GetThread(), (void*)pointer, static_cast<size64_t>(size)) != KSUCCESS);
     }
 
     int sys_vm_protect(void *pointer, size_t size, int prot){
@@ -146,7 +155,7 @@ namespace mlibc{
             return -1;
         }
 
-        uintptr_t MainStackData;
+        void* MainStackData;
         size64_t SizeMainStackData;
         uint64_t argc = 0;
         for(; argv[argc] != NULL; argc++);
@@ -172,5 +181,52 @@ namespace mlibc{
     int sys_kill(int, int){
         // TODO
         __ensure(!"Not implemented");
+    }
+
+    uint64_t sys_debug_malloc_lock = 0;
+
+    void *sys_debug_malloc(size_t size){
+        if(size == 0) return NULL;
+        atomicAcquire(&sys_debug_malloc_lock, 0);
+        size64_t SizeToAlloc = size + sizeof(size64_t);
+        if(SizeToAlloc % KotSpecificData.MMapPageSize){
+            SizeToAlloc -= SizeToAlloc % KotSpecificData.MMapPageSize;
+            SizeToAlloc += KotSpecificData.MMapPageSize;
+        }
+        size64_t* CurrentSeg = (size64_t*)((uintptr_t)KotSpecificData.HeapLocation + KotSpecificData.MMapPageSize - ((size + sizeof(size64_t)) % KotSpecificData.MMapPageSize));
+        void* VirtualAddress = (void*)CurrentSeg;
+        __ensure(kot_Sys_Map(kot_Sys_GetProcess(), (void**)&VirtualAddress, AllocationTypeBasic, NULL, (size64_t*)&SizeToAlloc, false) == KSUCCESS);
+        void* Buffer = (void*)((uintptr_t)CurrentSeg + sizeof(size64_t));
+        KotSpecificData.HeapLocation = (uint64_t)((uintptr_t)KotSpecificData.HeapLocation + SizeToAlloc + KotSpecificData.MMapPageSize); // Add page size for the guard
+        *CurrentSeg = SizeToAlloc;
+        atomicUnlock(&sys_debug_malloc_lock, 0);
+        return Buffer;
+    }
+
+    void *sys_debug_realloc(void *ptr, size_t size){
+        void* newBuffer = sys_debug_malloc(size);
+        if(newBuffer == NULL){
+            return NULL;
+        }
+        if(ptr != NULL){
+            uint64_t oldSize = *(uint64_t*)((uintptr_t)ptr - sizeof(uint64_t));
+            if (size < oldSize) {
+                oldSize = size;
+            }
+            memcpy(newBuffer, ptr, oldSize);
+            sys_debug_free(ptr);
+        }
+        return newBuffer;
+    }
+
+    void sys_debug_free(void *ptr){
+        if(ptr == NULL) return;
+        size64_t SizeToFree = *(size64_t*)(void*)((uintptr_t)ptr - sizeof(size64_t));
+        uintptr_t StartAdress = (uintptr_t)((uintptr_t)ptr - sizeof(size64_t));
+        if(StartAdress % KotSpecificData.MMapPageSize){
+            SizeToFree += StartAdress % KotSpecificData.MMapPageSize;
+            StartAdress -= StartAdress % KotSpecificData.MMapPageSize;
+        }
+        kot_Sys_Unmap(kot_Sys_GetProcess(), (void*)StartAdress, SizeToFree);
     }
 }

@@ -1,11 +1,15 @@
 #ifndef KOT_SYSCALL_H
 #define KOT_SYSCALL_H
 
-#include "../../../../../../libc/Src/sys/list.h"
+#include <kot/syscall/list.h>
 
 #include <stdint.h>
 #include <kot/sys.h>
 #include <kot/types.h>
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 #define Syscall_48(syscall, arg0, arg1, arg2, arg3, arg4, arg5) (DoSyscall48(syscall, (uint64_t)arg0, (uint64_t)arg1, (uint64_t)arg2, (uint64_t)arg3, (uint64_t)arg4, (uint64_t)arg5))
 #define Syscall_40(syscall, arg0, arg1, arg2, arg3, arg4) (DoSyscall40(syscall, (uint64_t)arg0, (uint64_t)arg1, (uint64_t)arg2, (uint64_t)arg3, (uint64_t)arg4))
@@ -69,5 +73,9 @@ static uint64_t DoSyscall48(uint64_t call, uint64_t arg0, uint64_t arg1, uint64_
     asm volatile("syscall" : "=a"(ret) : "a"(call), "D"(arg0), "S"(arg1), "d"(arg2), "r"(arg3r), "r"(arg4r), "r"(arg5r) : "memory"); 
     return ret;
 }
+
+#if defined(__cplusplus)
+} 
+#endif
 
 #endif

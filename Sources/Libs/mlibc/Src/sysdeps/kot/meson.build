@@ -4,17 +4,22 @@ rtdl_sources += files(
 
 libc_sources += files(
 	'generic/sys.cpp',
+	'generic/math.cpp',
 	'generic/shell.cpp',
 	'generic/atomic.S',
 	'generic/entry.cpp',
 	'generic/thread.cpp',
 	'generic/memory.cpp',
+	'generic/cstring.cpp',
 	'generic/generic.cpp',
 	'generic/uisd/uisd.cpp',
 	'generic/filesystem.cpp',
+	'generic/utils/utils.cpp',
+	'generic/utils/map/map.cpp',
 	'generic/uisd/srvs/pci/pci.cpp',
 	'generic/uisd/srvs/hid/hid.cpp',
 	'generic/uisd/srvs/time/time.cpp',
+	'generic/utils/vector/vector.cpp',
 	'generic/uisd/srvs/storage/fs.cpp',
 	'generic/uisd/srvs/audio/audio.cpp',
 	'generic/uisd/srvs/system/system.cpp',
@@ -73,15 +78,43 @@ if not no_headers
 		'include/kot/authorization.h',
 		'include/kot/keyhole.h',
 		'include/kot/syscall.h',
+		'include/kot/cstring.h',
 		'include/kot/memory.h',
 		'include/kot/atomic.h',
 		'include/kot/thread.h',
+		'include/kot/x86_64.h',
 		'include/kot/shell.h',
 		'include/kot/types.h',
+		'include/kot/utils.h',
 		'include/kot/math.h',
 		'include/kot/uisd.h',
+		'include/kot/bits.h',
+		'include/kot/arch.h',
 		'include/kot/sys.h',
-		subdir: 'sys-kot'
+		subdir: 'kot'
+	)
+	install_headers(
+		'include/kot/syscall/list.h',
+		subdir: 'kot/syscall'
+	)
+	install_headers(
+		'include/kot/utils/map.h',
+		'include/kot/utils/vector.h',
+		subdir: 'kot/utils'
+	)
+	install_headers(
+		'include/kot/uisd/srvs/audio.h',
+		'include/kot/uisd/srvs/graphics.h',
+		'include/kot/uisd/srvs/hid.h',
+		'include/kot/uisd/srvs/pci.h',
+		'include/kot/uisd/srvs/storage.h',
+		'include/kot/uisd/srvs/system.h',
+		'include/kot/uisd/srvs/time.h',
+		subdir: 'kot/uisd/srvs'
+	)
+	install_headers(
+		'include/kot/uisd/srvs/storage/device.h',
+		subdir: 'kot/uisd/srvs/storage'
 	)
 endif
 

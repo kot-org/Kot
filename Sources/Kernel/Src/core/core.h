@@ -2,7 +2,7 @@
 
 #include <settings.h>
 #include <arch/arch.h>
-#include <kot/types.h>
+#include <lib/types.h>
 #include <memory/memory.h>
 #include <lib/stdio/cstr.h>
 #include <misc/bitmap/bitmap.h>

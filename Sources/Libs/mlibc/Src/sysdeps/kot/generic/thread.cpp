@@ -18,7 +18,9 @@
 #include <mlibc/allocator.hpp>
 #include <mlibc/posix-sysdeps.hpp>
 
-extern "C" Tcb *__rtdl_allocateTcb();
+extern "C" {
+
+Tcb *__rtdl_allocateTcb();
 
 // Warning: This function must be used after each kot_Sys_CreateThread unless another initialization for the thread has been performed
 KResult kot_InitializeThread(kot_thread_t thread){
@@ -44,11 +46,11 @@ KResult kot_InitializeThread(kot_thread_t thread){
 
     new_tcb->stackAddr = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(stack) - attr.__mlibc_stacksize - attr.__mlibc_guardsize);      
 
-    kot_Sys_SetTCB(thread, (uintptr_t)new_tcb);
+    kot_Sys_SetTCB(thread, (void*)new_tcb);
     return KSUCCESS; 
 }
 
-KResult kot_SetupStack(uintptr_t* Data, size64_t* Size, int argc, char** argv, char** envp){
+KResult kot_SetupStack(void** Data, size64_t* Size, int argc, char** argv, char** envp){
     size64_t args = 0;
     for(int i = 0; i < argc; i++){
         args += strlen(argv[i]) + 1; // Add NULL char at the end
@@ -61,40 +63,42 @@ KResult kot_SetupStack(uintptr_t* Data, size64_t* Size, int argc, char** argv, c
         envs += strlen(*ev) + 1; // Add NULL char at the end
     }
 
-    *Size = sizeof(uintptr_t) + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*) + args + envs;
-    uintptr_t Buffer = (uintptr_t)malloc(*Size);
+    *Size = sizeof(void*) + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*) + args + envs;
+    void* Buffer = (void*)malloc(*Size);
     
-    uintptr_t StackDst = Buffer;
+    void* StackDst = Buffer;
 
-    *(uintptr_t*)StackDst = (uintptr_t)argc;
-    StackDst = (uintptr_t)((uint64_t)StackDst + sizeof(uintptr_t));
+    *(void**)StackDst = (void*)argc;
+    StackDst = (void*)((uint64_t)StackDst + sizeof(void*));
 
-    uintptr_t OffsetDst = StackDst;
-    StackDst = (uintptr_t)((uint64_t)StackDst + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*));
+    void* OffsetDst = StackDst;
+    StackDst = (void*)((uint64_t)StackDst + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*));
 
     for(int i = 0; i < argc; i++){
-        *((uintptr_t*)OffsetDst) = (uintptr_t)((uint64_t)StackDst - (uint64_t)Buffer);
-        OffsetDst = (uintptr_t)((uint64_t)OffsetDst + sizeof(uintptr_t));
+        *((void**)OffsetDst) = (void*)((uint64_t)StackDst - (uint64_t)Buffer);
+        OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
         strcpy((char*)StackDst, argv[i]);
-        StackDst = (uintptr_t)((uint64_t)StackDst + strlen(argv[i]) + 1); // Add NULL char at the end
+        StackDst = (void*)((uint64_t)StackDst + strlen(argv[i]) + 1); // Add NULL char at the end
     }
 
     // Null argument
-    *(uintptr_t*)OffsetDst = NULL;
-    OffsetDst = (uintptr_t)((uint64_t)OffsetDst + sizeof(uintptr_t));
+    *(void**)OffsetDst = NULL;
+    OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
 
     for(int i = 0; i < envc; i++){
-        *(uintptr_t*)OffsetDst = (uintptr_t)((uint64_t)StackDst - (uint64_t)Buffer);
-        OffsetDst = (uintptr_t)((uint64_t)OffsetDst + sizeof(uintptr_t));
+        *(void**)OffsetDst = (void*)((uint64_t)StackDst - (uint64_t)Buffer);
+        OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
         strcpy((char*)StackDst, envp[i]);
-        StackDst = (uintptr_t)((uint64_t)StackDst + strlen(envp[i]) + 1); // Add NULL char at the end
+        StackDst = (void*)((uint64_t)StackDst + strlen(envp[i]) + 1); // Add NULL char at the end
     }
     // Null argument
-    *(uintptr_t*)OffsetDst = NULL;
+    *(void**)OffsetDst = NULL;
 
     *Data = Buffer;
 
     return KSUCCESS;
+}
+
 }
 
 namespace mlibc{

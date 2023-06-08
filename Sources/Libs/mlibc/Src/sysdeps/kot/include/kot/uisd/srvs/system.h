@@ -6,6 +6,10 @@
 #include <kot/types.h>
 #include <kot/memory.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 typedef KResult (*kot_SystemCallbackHandler)(KResult Status, struct kot_srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
 typedef struct {
@@ -30,7 +34,7 @@ struct kot_srv_system_sdtheader_t {
 
 struct kot_srv_system_callback_t{
     kot_thread_t Self;
-    uint64_t Data;
+    uintptr_t Data;
     size64_t Size;
     bool IsAwait;
     KResult Status;
@@ -50,5 +54,9 @@ struct kot_srv_system_callback_t* kot_Srv_System_BindIRQLine(uint8_t IRQLineNumb
 struct kot_srv_system_callback_t* kot_Srv_System_UnbindIRQLine(uint8_t IRQLineNumber, kot_thread_t Target, bool IsAwait);
 struct kot_srv_system_callback_t* kot_Srv_System_BindFreeIRQ(kot_thread_t Target, bool IgnoreMissedEvents, bool IsAwait);
 struct kot_srv_system_callback_t* kot_Srv_System_UnbindIRQ(uint8_t Vector, kot_thread_t Target, bool IsAwait);
+
+#if defined(__cplusplus)
+} 
+#endif
 
 #endif

@@ -8,18 +8,18 @@
 
 namespace UiWindow {
 
-    void EventHandler(enum Window_Event EventType, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3, uint64_t GP4){
-        Window* Wid = (Window*)Sys_GetExternalDataThread();
+    void EventHandler(enum kot_Window_Event EventType, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3, uint64_t GP4){
+        Window* Wid = (Window*)kot_Sys_GetExternalDataThread();
         Wid->Handler(EventType, GP0, GP1, GP2, GP3, GP4);
-        Sys_Event_Close();
+        kot_Sys_Event_Close();
     }
 
     Window::Window(char* Title, char* Icon, uint32_t Width, uint32_t Height, uint32_t XPosition, uint32_t YPosition){
         IsFullscreen = false;
         // Setup event
-        Sys_Event_Create(&WindowEvent);
-        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&EventHandler, PriviledgeApp, (uint64_t)this, &WindowHandlerThread);
-        Sys_Event_Bind(WindowEvent, WindowHandlerThread, false);
+        kot_Sys_Event_Create(&WindowEvent);
+        kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&EventHandler, PriviledgeApp, (uint64_t)this, &WindowHandlerThread);
+        kot_Sys_Event_Bind(WindowEvent, WindowHandlerThread, false);
         IsListeningEvents = false;
 
         // Setup window
@@ -30,13 +30,13 @@ namespace UiWindow {
         if(IsBorders){
             ResizeWindow(this->Wid, Width + 2, Height + 2);
             BordersCtx = CreateGraphicContext(&Wid->Framebuffer);
-            framebuffer_t* FramebufferWithoutBorder = (framebuffer_t*)malloc(sizeof(framebuffer_t));
+            kot_framebuffer_t* FramebufferWithoutBorder = (kot_framebuffer_t*)malloc(sizeof(kot_framebuffer_t));
             FramebufferWithoutBorder->Bpp = Wid->Framebuffer.Bpp;
             FramebufferWithoutBorder->Btpp = Wid->Framebuffer.Btpp;
             FramebufferWithoutBorder->Width = Wid->Framebuffer.Width - 2;
             FramebufferWithoutBorder->Height = Wid->Framebuffer.Height - 2;
             FramebufferWithoutBorder->Pitch = Wid->Framebuffer.Pitch;
-            FramebufferWithoutBorder->Buffer = (uintptr_t)((uint64_t)Wid->Framebuffer.Buffer + Wid->Framebuffer.Btpp + Wid->Framebuffer.Pitch);
+            FramebufferWithoutBorder->Buffer = (void*)((uint64_t)Wid->Framebuffer.Buffer + Wid->Framebuffer.Btpp + Wid->Framebuffer.Pitch);
             DrawBorders(WIN_BDCOLOR_ONBLUR);
 
             GraphicCtx = CreateGraphicContext(FramebufferWithoutBorder);
@@ -51,7 +51,7 @@ namespace UiWindow {
             Icon = "kotlogo.tga"; // changer le logo par défaut
         }
 
-        Titlebar = Ui::Titlebar((uintptr_t)this, Title, Icon, {.BackgroundColor = WIN_TBCOLOR_ONBLUR, .ForegroundColor = 0xffffffff}, UiCtx->Cpnt);
+        Titlebar = Ui::Titlebar((void*)this, Title, Icon, {.BackgroundColor = WIN_TBCOLOR_ONBLUR, .ForegroundColor = 0xffffffff}, UiCtx->Cpnt);
 
         // Content
         Cpnt = Ui::Box(
@@ -112,7 +112,7 @@ namespace UiWindow {
         }
     }
 
-    void Window::Handler(enum Window_Event EventType, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3, uint64_t GP4){
+    void Window::Handler(enum kot_Window_Event EventType, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3, uint64_t GP4){
         if(IsListeningEvents && UiCtx->IsListeningEvents){
             switch (EventType){
                 case Window_Event_Focus:

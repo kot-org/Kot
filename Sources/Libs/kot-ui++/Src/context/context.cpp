@@ -2,7 +2,7 @@
 
 namespace Ui {
     void UiContextRenderer(){
-        UiContext* Context = (UiContext*)Sys_GetExternalDataThread();
+        UiContext* Context = (UiContext*)kot_Sys_GetExternalDataThread();
         Context->IsRendering = true;
         while(Context->Renderer){
             SetGraphicEventbuffer(Context->EventBuffer, (uint64_t)Context->Cpnt, Context->Fb->Width, Context->Fb->Height, NULL, NULL);
@@ -11,7 +11,7 @@ namespace Ui {
             BlitFramebuffer(Context->Fb, Context->Cpnt->GetFramebuffer(), NULL, NULL);
         }
         Context->IsRendering = false;
-        Sys_Close(KSUCCESS);
+        kot_Sys_Close(KSUCCESS);
     }
 
     void UiContextUpdate(Component* Cpnt){
@@ -31,7 +31,7 @@ namespace Ui {
         }
     }
 
-    UiContext::UiContext(framebuffer_t* fb) {
+    UiContext::UiContext(kot_framebuffer_t* fb) {
         this->Fb = fb;
         this->EventBuffer = CreateEventBuffer(fb->Width, fb->Height);
         this->EventBufferUse = CreateEventBuffer(fb->Width, fb->Height);
@@ -39,10 +39,10 @@ namespace Ui {
         this->Cpnt->UiCtx = this;
         this->FocusCpnt = Cpnt;
         this->Renderer = false;
-        Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&UiContextRenderer, PriviledgeApp, (uint64_t)this, &ThreadRenderer);
+        kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&UiContextRenderer, PriviledgeApp, (uint64_t)this, &ThreadRenderer);
     }
 
-    void UiContext::UpdateFramebuffer(framebuffer_t* fb){
+    void UiContext::UpdateFramebuffer(kot_framebuffer_t* fb){
         // Warning : Don't forget to stop renderer before
         this->Fb = fb;
         this->Cpnt->UpdateFramebuffer(fb->Width, fb->Height);
@@ -56,7 +56,7 @@ namespace Ui {
         if(!Renderer){
             Renderer = true;
             IsListeningEvents = true;
-            Sys_ExecThread(ThreadRenderer, NULL, ExecutionTypeQueu, NULL);
+            kot_Sys_ExecThread(ThreadRenderer, NULL, ExecutionTypeQueu, NULL);
         }
     }
 

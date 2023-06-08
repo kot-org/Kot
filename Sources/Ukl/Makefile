@@ -5,7 +5,7 @@ CC = clang-14
 LD = ld.lld-14
 ASMC = nasm
 
-CFLAGS = -I$(_HOME)Sysroot/include -ISrc -m32 -fno-rtti -ffreestanding -fno-builtin -nostdlib -nostdinc -nostdinc++ -fshort-wchar -g -mno-red-zone -fno-exceptions -fPIC
+CFLAGS = -ISrc -m32 -fno-rtti -ffreestanding -fno-builtin -nostdlib -nostdinc -nostdinc++ -fshort-wchar -g -mno-red-zone -fno-exceptions -fPIC
 ASMFLAGS = 
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib --no-relax -z max-page-size=0x1000
 

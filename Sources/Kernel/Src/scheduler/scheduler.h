@@ -1,6 +1,6 @@
 #pragma once
 #include <arch/arch.h>
-#include <kot/types.h>
+#include <lib/types.h>
 #include <heap/heap.h>
 #include <lib/limits.h>
 #include <event/event.h>
@@ -65,7 +65,7 @@ struct ThreadQueuData_t{
 
 struct ThreadShareData_t{
     size64_t Size;
-    uintptr_t Data;
+    void* Data;
     uint8_t ParameterPosition;
 }__attribute__((packed));
 
@@ -96,7 +96,7 @@ struct kprocess_t{
     uint64_t CreationTime;
 
     /* Keyhole */
-    uintptr_t Locks;
+    void* Locks;
     uint64_t LockIndex;
     uint64_t LockLimit;
     key_t ProcessKey;
@@ -116,8 +116,8 @@ struct kprocess_t{
     /* External data */
     uint64_t ExternalData_P;
 
-    kthread_t* Createthread(uintptr_t entryPoint, uint64_t externalData);
-    kthread_t* Createthread(uintptr_t entryPoint, enum Priviledge priviledge, uint64_t externalData);
+    kthread_t* Createthread(void* entryPoint, uint64_t externalData);
+    kthread_t* Createthread(void* entryPoint, enum Priviledge priviledge, uint64_t externalData);
     kthread_t* Duplicatethread(kthread_t* source);
     KResult Fork(struct ContextStack* Registers, kthread_t* Caller, kprocess_t** Child, kthread_t** ChildThread);
 }__attribute__((packed));  
@@ -128,12 +128,12 @@ struct kthread_t{
     SelfData* threadData;
 
     /* KernelInternalStack */
-    uintptr_t KernelInternalStack;
-    uintptr_t FSBase;
+    void* KernelInternalStack;
+    void* FSBase;
 
     /* Thread infos */
     threadInfo_t* Info;
-    uintptr_t EntryPoint;
+    void* EntryPoint;
 
     /* Memory */
     pagetable_t Paging;
@@ -141,7 +141,7 @@ struct kthread_t{
 
     /* Context info */
     struct ContextStack* Regs; 
-    uintptr_t SIMDSaver;
+    void* SIMDSaver;
     StackInfo* Stack; 
     uint64_t CoreID;
     bool IsBlock;
@@ -192,7 +192,7 @@ struct kthread_t{
     void CopyStack(kthread_t* source);
     bool ExtendStack(uint64_t address);
     bool ExtendStack(uint64_t address, size64_t size);
-    KResult ShareDataUsingStackSpace(uintptr_t data, size64_t size, uintptr_t* location);
+    KResult ShareDataUsingStackSpace(void* data, size64_t size, void** location);
 
     bool Launch(arguments_t* FunctionParameters);  
     bool Launch_WL(arguments_t* FunctionParameters);  
@@ -219,8 +219,8 @@ class TaskManager{
 
         // threads
         kthread_t* GetTread_WL();
-        KResult Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, uint64_t externalData);
-        KResult Createthread(kthread_t** self, kprocess_t* proc, uintptr_t entryPoint, enum Priviledge priviledge, uint64_t externalData);
+        KResult Createthread(kthread_t** self, kprocess_t* proc, void* entryPoint, uint64_t externalData);
+        KResult Createthread(kthread_t** self, kprocess_t* proc, void* entryPoint, enum Priviledge priviledge, uint64_t externalData);
         KResult Duplicatethread(kthread_t** self, kprocess_t* proc, kthread_t* source);
         KResult Execthread(kthread_t* Caller, kthread_t* Self, enum ExecutionType Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers);
         KResult Unpause(kthread_t* task); 
@@ -234,7 +234,7 @@ class TaskManager{
 
         void CreateIddleTask();   
 
-        void InitScheduler(uint8_t NumberOfCores, uintptr_t IddleTaskFunction); 
+        void InitScheduler(uint8_t NumberOfCores, void* IddleTaskFunction); 
         void EnabledScheduler(uint64_t CoreID);
         kthread_t* GetCurrentthread(uint64_t CoreID);
 
@@ -254,7 +254,7 @@ class TaskManager{
         uint64_t NumberOfCPU = 0;
         uint64_t CurrentTaskExecute = 0;
         uint64_t IddleTaskNumber = 0;
-        uintptr_t IddleTaskPointer = 0;
+        void* IddleTaskPointer = 0;
         uint64_t PID = 0;
 
         kthread_t* FirstNode;

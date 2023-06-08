@@ -10,6 +10,10 @@
 #include <kot/atomic.h>
 #include <kot/memory.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #define PCI_BAR_TYPE_NULL           0x0
 #define PCI_BAR_TYPE_IO             0x1
 #define PCI_BAR_TYPE_32             0x2
@@ -41,14 +45,14 @@ typedef struct {
 } kot_srv_pci_device_info_t;
 
 typedef struct {
-    uintptr_t Address;
+    void* Address;
     size64_t Size;
     uint8_t Type;
 } kot_srv_pci_bar_info_t;
 
 struct kot_srv_pci_callback_t{
     kot_thread_t Self;
-    uint64_t Data;
+    uintptr_t Data;
     size64_t Size;
     bool IsAwait;
     KResult Status;
@@ -129,5 +133,9 @@ inline void kot_PCIEnableMemorySpace(kot_PCIDeviceID_t Device){
 inline void kot_PCIEnableIOSpace(kot_PCIDeviceID_t Device){ 
     kot_PCISetCommand(Device, kot_PCIGetCommand(Device) | PCI_COMMAND_IoSpace); 
 }
+
+#if defined(__cplusplus)
+} 
+#endif
 
 #endif

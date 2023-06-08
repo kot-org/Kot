@@ -1,7 +1,7 @@
 #pragma once
-#include <kot/types.h>
+#include <lib/types.h>
 #include <event/event.h>
-#include <kot/sys/list.h>
+#include <kot/syscall/list.h>
 #include <memory/memory.h>
 #include <scheduler/scheduler.h>
 #include <arch/x86-64/interrupts/interrupts.h>

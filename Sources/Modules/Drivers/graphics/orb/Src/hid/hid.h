@@ -2,7 +2,7 @@
 
 #include <core/main.h>
 
-#include <kot/uisd/srvs/storage.h>
+#include <stdio.h>
 
 class orbc;
 class windowc;
@@ -24,9 +24,9 @@ typedef struct {
 #define MOUSE_EVENT_PARENT_TYPE_WIDGET  0x1
 
 struct hid_event_t{
-    event_t Event;
+    kot_event_t Event;
     uint64_t ParentType;
-    uintptr_t Parent;
+    void* Parent;
 };
 
 
@@ -35,16 +35,16 @@ class hidc{
         hidc(orbc* Parent);
         void KeyboardInterrupt(uint64_t KeyCode);
         void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status);
-        void DrawCursor(framebuffer_t* fb);
+        void DrawCursor(kot_framebuffer_t* fb);
 
         hid_event_t* CurrentFocusEvent;
 
         orbc* Orb;
 
-        thread_t KeyboardInterruptThread;
+        kot_thread_t KeyboardInterruptThread;
 
-        point_t CursorPosition;
-        point_t CursorMaxPosition;
+        kot_point_t CursorPosition;
+        kot_point_t CursorMaxPosition;
 
         uint64_t CursorWidth;
         uint64_t CursorHeight;
@@ -52,10 +52,10 @@ class hidc{
         int64_t Width;
         int64_t Height;
 
-        uintptr_t PixelMap;
-        uintptr_t BitmapMask;
+        void* PixelMap;
+        void* BitmapMask;
 
-        thread_t MouseRelativeInterruptThread;
+        kot_thread_t MouseRelativeInterruptThread;
 
         bool IsLastLeftClick = false;
 };

@@ -36,22 +36,23 @@ void vmm_SetAddress(uint64_t* entry, uint64_t address);
 struct vmm_index vmm_Index(uint64_t virtualAddress);
 uint64_t vmm_MapAddress(uint64_t PDP_i, uint64_t PD_i, uint64_t PT_i, uint64_t P_i);
 
-uint64_t vmm_GetVirtualAddress(uintptr_t PhysicalAddress);
+uint64_t vmm_GetVirtualAddress(void* PhysicalAddress);
 
-bool vmm_GetFlags(pagetable_t table, uintptr_t Address, vmm_flag flags);
-void vmm_SetFlags(pagetable_t table, uintptr_t Address, vmm_flag flags, bool enabled);
+bool vmm_GetFlags(pagetable_t table, void* Address, vmm_flag flags);
+void vmm_SetFlags(pagetable_t table, void* Address, vmm_flag flags, bool enabled);
 
-uint64_t vmm_Map(uintptr_t physicalAddress);
-uint64_t vmm_Map(uintptr_t physicalAddress, size64_t size);
-void vmm_Map(uintptr_t Address, uintptr_t physicalAddress);
-void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress);
-void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bool user);
-void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bool user, bool readWrite);
-void vmm_Map(pagetable_t table, uintptr_t Address, uintptr_t physicalAddress, bool user, bool readWrite, bool isPureMemory);
+uint64_t vmm_Map(void* physicalAddress);
+uint64_t vmm_Map(void* physicalAddress, size64_t size);
+void vmm_Map(void* Address, void* physicalAddress);
+void vmm_Map(pagetable_t table, void* Address, void* physicalAddress);
+void vmm_Map(pagetable_t table, void* Address, void* physicalAddress, bool user);
+void vmm_Map(pagetable_t table, void* Address, void* physicalAddress, bool user, bool readWrite);
+void vmm_Map(pagetable_t table, void* Address, void* physicalAddress, bool user, bool readWrite, bool isPureMemory);
 
-void vmm_Unmap(uintptr_t Address);
-void vmm_Unmap(pagetable_t table, uintptr_t Address);
-uintptr_t vmm_GetPhysical(pagetable_t table, uintptr_t Address);
+void vmm_Unmap(void* Address);
+void vmm_Unmap(pagetable_t table, void* Address);
+void* vmm_GetPhysical(void* Address);
+void* vmm_GetPhysical(pagetable_t table, void* Address);
 
 void vmm_CopyPageTable(pagetable_t tableSource, pagetable_t tableDestination, uint64_t from, uint64_t to);
 void vmm_Fill(pagetable_t table, uint64_t from, uint64_t to, bool user);

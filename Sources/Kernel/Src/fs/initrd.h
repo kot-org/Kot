@@ -18,14 +18,14 @@ namespace initrd{
     }__attribute__((packed));  
     
     struct Info{
-        uintptr_t baseAddress;
+        void* baseAddress;
         size64_t size;
         Header* header;
     }__attribute__((packed));
 
-    void Parse(uintptr_t baseAddress, size64_t size);
+    void Parse(void* baseAddress, size64_t size);
     File* Find(char* fileName);
     File* FindInitFile();
-    bool Read(File* address, uintptr_t buffer);
+    bool Read(File* address, void* buffer);
 }
 

@@ -1,6 +1,6 @@
 #include <arch/x86-64/gdt/gdt.h>
 #include <arch/x86-64/tss/tss.h>
-#include <kot/sys.h>
+#include <lib/sys.h>
 
 
 static __attribute__((aligned(PAGE_SIZE)))GDTEntry GDTEntries[GDT_MAX_DESCRIPTORS];

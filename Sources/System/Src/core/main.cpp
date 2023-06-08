@@ -4,18 +4,69 @@
 
 using namespace std;
 
-process_t proc;
+kot_process_t proc;
 
-extern "C" int main(KernelInfo* kernelInfo) {
 
-    Printlog("[System] Initialization ...");
+KResult SetupStack(void** Data, size64_t* Size, int argc, char** argv, char** envp){
+    size64_t args = 0;
+    for(int i = 0; i < argc; i++){
+        args += strlen(argv[i]) + 1; // Add NULL char at the end
+    }
+    size64_t envc = 0;
+    size64_t envs = 0;
+    auto ev = envp;
+	while(*ev){
+		envc++;
+        envs += strlen(*ev) + 1; // Add NULL char at the end
+	}
 
-    proc = Sys_GetProcess();
+    *Size = sizeof(void*) + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*) + args + envs;
+    void* Buffer = malloc(*Size);
+    
+    void* StackDst = Buffer;
 
-    thread_t self = Sys_GetThread();
+    *(void**)StackDst = (void*)argc;
+    StackDst = (void*)((uint64_t)StackDst + sizeof(void*));
+
+    void* OffsetDst = StackDst;
+    StackDst = (void*)((uint64_t)StackDst + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*));
+
+    for(int i = 0; i < argc; i++){
+        *((void**)OffsetDst) = (void*)((uint64_t)StackDst - (uint64_t)Buffer);
+        OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
+        strcpy((char*)StackDst, argv[i]);
+        StackDst = (void*)((uint64_t)StackDst + strlen(argv[i]) + 1); // Add NULL char at the end
+    }
+
+    // Null argument
+    *(void**)OffsetDst = NULL;
+    OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
+
+    for(int i = 0; i < envc; i++){
+        *(void**)OffsetDst = (void*)((uint64_t)StackDst - (uint64_t)Buffer);
+        OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
+        strcpy((char*)StackDst, envp[i]);
+        StackDst = (void*)((uint64_t)StackDst + strlen(envp[i]) + 1); // Add NULL char at the end
+    }
+    // Null argument
+    *(void**)OffsetDst = NULL;
+
+    *Data = Buffer;
+
+    return KSUCCESS;
+}
+
+int main(int argc, char* argv[]) {
+    KernelInfo* kernelInfo = (KernelInfo*)argv[0];
+
+    kot_Printlog("[System] Initialization ...");
+
+    proc = kot_Sys_GetProcess();
+
+    kot_thread_t self = kot_Sys_GetThread();
 
     // parse file system
-    initrd::Parse((uintptr_t)kernelInfo->initrd.base, kernelInfo->initrd.size);
+    initrd::Parse((void*)kernelInfo->initrd.base, kernelInfo->initrd.size);
 
     // parse rsdp
     ParseRSDP(kernelInfo->Rsdp);
@@ -30,19 +81,21 @@ extern "C" int main(KernelInfo* kernelInfo) {
     InitializeSrv(kernelInfo);
 
     // load starter file
-    initrd::File* StarterFile = initrd::Find("Starter.json");
+    initrd::InitrdFile* StarterFile = initrd::Find("Starter.json");
 
     if (StarterFile != NULL) {
-        char* BufferStarterFile = (char*)calloc(StarterFile->size);
-        initrd::Read(StarterFile, BufferStarterFile);
+        char* BufferStarterFile = (char*)calloc(1, StarterFile->size);
+        initrd::Read(StarterFile, (void*)BufferStarterFile);
         
         JsonParser* parser = new JsonParser(BufferStarterFile);
 
         if (parser->getCode() == JSON_SUCCESS && parser->getValue()->getType() == JSON_ARRAY) {
             JsonArray* arr = (JsonArray*) parser->getValue();
 
-            arguments_t* InitParameters = (arguments_t*)calloc(sizeof(arguments_t));
+            kot_arguments_t* InitParameters = (kot_arguments_t*)calloc(1, sizeof(kot_arguments_t));
 
+            InitParameters->arg[2] = 1; // Disable shell
+            
             for (uint64_t i = 0; i < arr->length(); i++) {
                 JsonObject* service = (JsonObject*) arr->Get(i);
                 JsonString* file = (JsonString*) service->Get("file");
@@ -67,12 +120,12 @@ extern "C" int main(KernelInfo* kernelInfo) {
                 }
                 
                 if (file->getType() == JSON_STRING) {
-                    if(strcmp(file->Get(), "")) continue;
-                    initrd::File* serviceFile = initrd::Find(file->Get());
+                    if(!strcmp(file->Get(), "")) continue;
+                    initrd::InitrdFile* serviceFile = initrd::Find(file->Get());
                     if (serviceFile != NULL) {
-                        uintptr_t bufferServiceFile = calloc(serviceFile->size);
+                        void* bufferServiceFile = (void*)calloc(1, serviceFile->size);
                         initrd::Read(serviceFile, bufferServiceFile);
-                        thread_t thread = NULL;
+                        kot_thread_t thread = NULL;
                         int32_t servicePriledge = 3;
                         if (priviledge != NULL) {
                             if (priviledge->getType() == JSON_NUMBER){ 
@@ -81,37 +134,37 @@ extern "C" int main(KernelInfo* kernelInfo) {
                                 }
                             }
                         }
-                        ELF::loadElf(bufferServiceFile, (enum Priviledge)servicePriledge, NULL, &thread, "d0:", IsVFS);
-                        free(bufferServiceFile);
+                        ELF::loadElf(bufferServiceFile, (enum kot_Priviledge)servicePriledge, NULL, &thread, "d0:", IsVFS);
+                        free((void*)bufferServiceFile);
 
-                        size_t filenamelen = strlen(file->Get());
-                        char** CharArray = (char**)malloc((sizeof(char*) * 0x1) + (sizeof(char) * filenamelen));
-                        CharArray[0] = (char*)&CharArray[1];
-                        memcpy(CharArray[0], file->Get(), filenamelen);
+                        void* MainStackData;
+                        size64_t SizeMainStackData;
+                        char* Argv[] = {file->Get(), NULL};
+                        char* Env[] = {NULL};
+                        SetupStack(&MainStackData, &SizeMainStackData, 1, Argv, Env);
 
-                        InitParameters->arg[0] = 1;
-                        ShareDataWithArguments_t Data{
-                            .Data = &CharArray,
-                            .Size = (sizeof(char*) * 0x1) + (sizeof(char) * filenamelen),
-                            .ParameterPosition = 0x1,
+                        kot_ShareDataWithArguments_t Data{
+                            .Data = MainStackData,
+                            .Size = SizeMainStackData,
+                            .ParameterPosition = 0x0,
                         };
-                        Sys_ExecThread(thread, InitParameters, ExecutionTypeQueu, &Data);
+                        kot_Sys_ExecThread(thread, InitParameters, ExecutionTypeQueu, &Data);
                     }
                 }
             }
             free(InitParameters);
         } else { 
-            Printlog("[System] Invalid Starter file's JSON body");
+            kot_Printlog("[System] Invalid Starter file's JSON body");
             return KFAIL;
         }
 
     } else {
-        Printlog("[System] 'Starter.json' file not found");
+        kot_Printlog("[System] 'Starter.json' file not found");
         return KFAIL;
     }
 
-    Printlog("[System] All tasks in 'Starter.json' are loaded");
-    Printlog("[System] Service initialized successfully");
+    kot_Printlog("[System] All tasks in 'Starter.json' are loaded");
+    kot_Printlog("[System] Service initialized successfully");
 
     return KSUCCESS;
 

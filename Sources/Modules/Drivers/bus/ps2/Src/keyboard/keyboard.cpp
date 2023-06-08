@@ -2,8 +2,8 @@
 
 
 PS2Port_t* KeyboardPS2Port;
-arguments_t* KeyboardEventParameters;
-event_t KeyboardEvent;
+kot_arguments_t* KeyboardEventParameters;
+kot_event_t KeyboardEvent;
 
 uint8_t LedStateSaver = 0;
 
@@ -12,15 +12,15 @@ static uint64_t KeyboardLock;
 KResult KeyboardInitialize(){
     for(uint8_t i = 0; i < PS2_PORT_NUMBER; i++){
         if(PS2Ports[i].Type == PS2_TYPE_KEYBOARD && PS2Ports[i].IsPresent){
-            Printlog("[BUS/PS2] Keyboard device found");
+            kot_Printlog("[BUS/PS2] Keyboard device found");
 
-            KeyboardEventParameters = (arguments_t*)malloc(sizeof(arguments_t));
+            KeyboardEventParameters = (kot_arguments_t*)malloc(sizeof(kot_arguments_t));
             KeyboardPS2Port = &PS2Ports[i];
             IRQRedirectionsArray[KeyboardPS2Port->PortNumber] = KeyboardHandler;
 
-            KeyboardEvent = GetKeyboardEvent();
+            KeyboardEvent = kot_GetKeyboardEvent();
 
-            Srv_System_BindIRQLine(KeyboardPS2Port->IRQ, InterruptThreadHandler[i], false, true);
+            kot_Srv_System_BindIRQLine(KeyboardPS2Port->IRQ, InterruptThreadHandler[i], false, true);
             
             break;
         }
@@ -31,7 +31,7 @@ KResult KeyboardInitialize(){
 
 KResult KeyboardHandler(uint8_t data){
     KeyboardEventParameters->arg[0] = (uint64_t)data;
-    Sys_Event_Trigger(KeyboardEvent, KeyboardEventParameters);
+    kot_Sys_Event_Trigger(KeyboardEvent, KeyboardEventParameters);
 
     return KSUCCESS;
 }

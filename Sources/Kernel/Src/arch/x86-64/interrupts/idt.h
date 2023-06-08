@@ -1,5 +1,5 @@
 #pragma once
-#include <kot/types.h>
+#include <lib/types.h>
 #include <lib/stdio.h>
 
 #define IDT_TA_InterruptGate            0b10001110 /* P=1, DPL=00b, S=0b, type=1110b */
@@ -37,5 +37,5 @@ struct IDTR{
 }__attribute__((packed));
 
 /* functions */
-void SetIDTGate(uintptr_t handler, uint8_t entryOffset, uint8_t GateType, int DPL, uint8_t selector, uint8_t ist, IDTR idtrl);
+void SetIDTGate(void* handler, uint8_t entryOffset, uint8_t GateType, int DPL, uint8_t selector, uint8_t ist, IDTR idtrl);
 IDTDescEntry* GetIdtGate(uint8_t entryOffset, IDTR idtrl);

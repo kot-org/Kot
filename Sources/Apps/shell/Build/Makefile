@@ -2,30 +2,24 @@ _HOME = ../../../../
 
 CC = kot-x86_64-clang
 
-CFLAGS = -O3 -I../Src
-LINKERFLAGS = -nostartfiles -Wall -static
+CFLAGS = -O3
+LINKERFLAGS = -Wall -lc
 
 SRCDIR := ../Src
-OBJDIR := ../Lib
 BINDIR := ../Bin
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
-SRCCPP = $(call rwildcard,$(SRCDIR),*.cpp)
-OBJS += $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCCPP))
+SRCCPP = $(call rwildcard,$(SRCDIR)/utils,*.cpp)
+OBJS += $(patsubst $(SRCDIR)/utils/%.cpp, $(BINDIR)/utils/%.elf, $(SRCCPP))
 
-main: $(OBJS)
+all: utils main
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	@ echo !==== COMPILING $^
+utils: $(OBJS)
+
+$(BINDIR)/utils/%.elf: $(SRCDIR)/utils/%.cpp
 	@ mkdir -p $(@D)
-	$(CC) $(CFLAGS) -c $^ -o $@
+	$(CC) -I$(@D) $(LINKERFLAGS) -o $(BINDIR)/utils/$*.elf $^
 
-
-	@ echo !==== LINKING
-	@ mkdir -p $(BINDIR)
-
-	@ mkdir -p $(BINDIR)/core
-	@ mkdir -p $(BINDIR)/utils
-
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/$*.elf $@ $(_HOME)Sysroot/lib/crt0.o
+main:
+	$(CC) -I$(SRCDIR) $(LINKERFLAGS) -o $(BINDIR)/Shell.elf $(SRCDIR)/main.cpp

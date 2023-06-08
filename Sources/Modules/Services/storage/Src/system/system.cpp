@@ -1,6 +1,6 @@
 #include <system/system.h>
 
-KResult SetupStack(uintptr_t* Data, size64_t* Size, int argc, char** argv, char** envp){
+KResult SetupStack(void** Data, size64_t* Size, int argc, char** argv, char** envp){
     size64_t args = 0;
     for(int i = 0; i < argc; i++){
         args += strlen(argv[i]) + 1; // Add NULL char at the end
@@ -13,36 +13,36 @@ KResult SetupStack(uintptr_t* Data, size64_t* Size, int argc, char** argv, char*
         envs += strlen(*ev) + 1; // Add NULL char at the end
 	}
 
-    *Size = sizeof(uintptr_t) + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*) + args + envs;
-    uintptr_t Buffer = malloc(*Size);
+    *Size = sizeof(void*) + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*) + args + envs;
+    void* Buffer = malloc(*Size);
     
-    uintptr_t StackDst = Buffer;
+    void* StackDst = Buffer;
 
-    *(uintptr_t*)StackDst = (uintptr_t)argc;
-    StackDst = (uintptr_t)((uint64_t)StackDst + sizeof(uintptr_t));
+    *(void**)StackDst = (void*)argc;
+    StackDst = (void*)((uint64_t)StackDst + sizeof(void*));
 
-    uintptr_t OffsetDst = StackDst;
-    StackDst = (uintptr_t)((uint64_t)StackDst + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*));
+    void* OffsetDst = StackDst;
+    StackDst = (void*)((uint64_t)StackDst + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*));
 
     for(int i = 0; i < argc; i++){
-        *((uintptr_t*)OffsetDst) = (uintptr_t)((uint64_t)StackDst - (uint64_t)Buffer);
-        OffsetDst = (uintptr_t)((uint64_t)OffsetDst + sizeof(uintptr_t));
+        *((void**)OffsetDst) = (void*)((uint64_t)StackDst - (uint64_t)Buffer);
+        OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
         strcpy((char*)StackDst, argv[i]);
-        StackDst = (uintptr_t)((uint64_t)StackDst + strlen(argv[i]) + 1); // Add NULL char at the end
+        StackDst = (void*)((uint64_t)StackDst + strlen(argv[i]) + 1); // Add NULL char at the end
     }
 
     // Null argument
-    *(uintptr_t*)OffsetDst = NULL;
-    OffsetDst = (uintptr_t)((uint64_t)OffsetDst + sizeof(uintptr_t));
+    *(void**)OffsetDst = NULL;
+    OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
 
     for(int i = 0; i < envc; i++){
-        *(uintptr_t*)OffsetDst = (uintptr_t)((uint64_t)StackDst - (uint64_t)Buffer);
-        OffsetDst = (uintptr_t)((uint64_t)OffsetDst + sizeof(uintptr_t));
+        *(void**)OffsetDst = (void*)((uint64_t)StackDst - (uint64_t)Buffer);
+        OffsetDst = (void*)((uint64_t)OffsetDst + sizeof(void*));
         strcpy((char*)StackDst, envp[i]);
-        StackDst = (uintptr_t)((uint64_t)StackDst + strlen(envp[i]) + 1); // Add NULL char at the end
+        StackDst = (void*)((uint64_t)StackDst + strlen(envp[i]) + 1); // Add NULL char at the end
     }
     // Null argument
-    *(uintptr_t*)OffsetDst = NULL;
+    *(void**)OffsetDst = NULL;
 
     *Data = Buffer;
 
@@ -52,7 +52,7 @@ KResult SetupStack(uintptr_t* Data, size64_t* Size, int argc, char** argv, char*
 KResult ExecuteSystemAction(uint64_t PartitonID){
     // Load filesystem handler
     if(!KotSpecificData.VFSHandler){
-        srv_storage_callback_t* Callback = Srv_Storage_VFSLoginApp(Sys_GetProcess(), FS_AUTHORIZATION_HIGH, Storage_Permissions_Admin | Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, "d0:", true);
+        kot_srv_storage_callback_t* Callback = kot_Srv_Storage_VFSLoginApp(kot_Sys_GetProcess(), FS_AUTHORIZATION_HIGH, Storage_Permissions_Admin | Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, "d0:", true);
         KotSpecificData.VFSHandler = Callback->Data;
         free(Callback);
     }
@@ -70,7 +70,7 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
         SystemDataPathBuilder->append(":Kot/System/Starter.json");
         char* SystemDataPath = SystemDataPathBuilder->toString();
         delete SystemDataPathBuilder;
-        file_t* SystemDataFile = fopen(SystemDataPath, "r");
+        FILE* SystemDataFile = fopen(SystemDataPath, "r");
         if(SystemDataFile){
             fseek(SystemDataFile, 0, SEEK_END);
             size_t SystemDataFileSize = ftell(SystemDataFile);
@@ -85,21 +85,29 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
             if(Parser->getCode() == JSON_SUCCESS && Parser->getValue()->getType() == JSON_ARRAY){
                 JsonArray* Array = (JsonArray*) Parser->getValue();
 
-                arguments_t* InitParameters = (arguments_t*)calloc(sizeof(arguments_t));
+                kot_arguments_t* InitParameters = (kot_arguments_t*)calloc(1, sizeof(kot_arguments_t));
+
 
                 for(uint64_t i = 0; i < Array->length(); i++){
                     JsonObject* Service = (JsonObject*) Array->Get(i);
                     JsonString* File = (JsonString*) Service->Get("file");
                     JsonNumber* Priviledge = (JsonNumber*) Service->Get("priviledge"); // default: 3
+                    JsonNumber* FlagsJson = (JsonNumber*) Service->Get("flags"); // launch flags 
                     
                     if (File->getType() == JSON_STRING) {
-                        if(strcmp(File->Get(), "")) continue;
+                        if(!strcmp(File->Get(), "")) continue;
                         int32_t ServicePriledge = 3;
                         if(Priviledge != NULL){
                             if(Priviledge->getType() == JSON_NUMBER){ 
                                 if(Priviledge->Get() >= 1 && Priviledge->Get() <= 3){
                                     ServicePriledge = Priviledge->Get();
                                 }
+                            }
+                        }
+                        uint64_t Flags = 0;
+                        if(FlagsJson != NULL){
+                            if(FlagsJson->getType() == JSON_NUMBER){ 
+                                Flags = FlagsJson->Get();
                             }
                         }
 
@@ -110,23 +118,30 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
                         char* FilePath = ServicePathBuilder->toString();
                         delete ServicePathBuilder;
 
-                        srv_system_callback_t* Callback = Srv_System_LoadExecutable(Priviledge->Get(), FilePath, true);
+                        kot_srv_system_callback_t* Callback = kot_Srv_System_LoadExecutable(Priviledge->Get(), FilePath, true);
 
-                        uintptr_t MainStackData;
-                        size64_t SizeMainStackData;
-                        char* Argv[] = {FilePath, NULL};
-                        char* Env[] = {NULL};
-                        SetupStack(&MainStackData, &SizeMainStackData, 1, Argv, Env);
-                        free(FilePath);
+                        if(Callback->Status == KSUCCESS){
+                            void* MainStackData;
+                            size64_t SizeMainStackData;
+                            char* Argv[] = {FilePath, NULL};
+                            char* Env[] = {NULL};
+                            SetupStack(&MainStackData, &SizeMainStackData, 1, Argv, Env);
+                            free(FilePath);
 
-                        ShareDataWithArguments_t Data{
-                            .Data = MainStackData,
-                            .Size = SizeMainStackData,
-                            .ParameterPosition = 0x0,
-                        };
-                        Sys_ExecThread((thread_t)Callback->Data, InitParameters, ExecutionTypeQueu, &Data);
-                        free(MainStackData);
-                        free(Callback);
+                            kot_ShareDataWithArguments_t Data{
+                                .Data = MainStackData,
+                                .Size = SizeMainStackData,
+                                .ParameterPosition = 0x0,
+                            };
+                            InitParameters->arg[2] = Flags;
+
+                            assert(kot_Sys_ExecThread((kot_thread_t)Callback->Data, InitParameters, ExecutionTypeQueu, &Data) == KSUCCESS);
+                            free(MainStackData);
+                            free(Callback);
+                        }else{
+                            free(FilePath);
+                            free(Callback);
+                        }
                     }
                 }
                 free(InitParameters);

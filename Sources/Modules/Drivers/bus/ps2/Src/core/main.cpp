@@ -1,20 +1,20 @@
 #include <core/main.h>
 
-process_t self;
+kot_process_t self;
 
 PS2Port_t PS2Ports[2];
 
-thread_t InterruptThreadHandler[PS2_PORT_NUMBER];
+kot_thread_t InterruptThreadHandler[PS2_PORT_NUMBER];
 
 IRQRedirections IRQRedirectionsArray[2];
 
-extern "C" int main(int argc, char* argv[]){
-    Printlog("[BUS/PS2] Initialization ...");
+int main(int argc, char* argv[]){
+    kot_Printlog("[BUS/PS2] Initialization ...");
     /* Initialize PS2 drivers */
-    self = Sys_GetProcess();
+    self = kot_Sys_GetProcess();
 
     for(uint8_t i = 0; i < PS2_PORT_NUMBER; i++){
-        Sys_CreateThread(self, (uintptr_t)&PS2InterruptHandler, PriviledgeDriver, NULL, &InterruptThreadHandler[i]);
+        kot_Sys_CreateThread(self, (void*)&PS2InterruptHandler, PriviledgeDriver, NULL, &InterruptThreadHandler[i]);
     }
 
     KResult status = KSUCCESS;
@@ -38,7 +38,7 @@ extern "C" int main(int argc, char* argv[]){
 
     EnablePorts();
     
-    Printlog("[BUS/PS2] Driver initialized successfully");
+    kot_Printlog("[BUS/PS2] Driver initialized successfully");
     return KSUCCESS;
 }
 
@@ -48,8 +48,8 @@ void DisablePorts(){
 }
 
 void EnablePorts(){
-    PS2SendCommand(0xAE); // disable port 1
-    PS2SendCommand(0xA8); // disable port 2
+    PS2SendCommand(0xAE); // enable port 1
+    PS2SendCommand(0xA8); // enable port 2
 }
 
 KResult PortsInitalize(){
@@ -79,7 +79,7 @@ KResult PortsInitalize(){
     PS2Ports[1].PortNumber = 1;
 
     if(PS2Ports[0].IsPresent){
-        Printlog("[BUS/PS2] Port 1 is present");
+        kot_Printlog("[BUS/PS2] Port 1 is present");
 
         PS2SendCommand(0xAE); // enable port 1  
 
@@ -114,7 +114,7 @@ KResult PortsInitalize(){
 
 
     if(PS2Ports[1].IsPresent){
-        Printlog("[BUS/PS2] Port 2 is present");
+        kot_Printlog("[BUS/PS2] Port 2 is present");
 
         PS2SendCommand(0xA8); // enable port 2
 
@@ -171,27 +171,27 @@ void PS2InterruptHandler(uint8_t interrupt){
                 break;
         }
     }
-    Sys_Event_Close();
+    kot_Sys_Event_Close();
 }
 
 void PS2SendCommand(uint8_t command){
-    IoWrite8(PS2_COMMAND, command);
+    kot_IoWrite8(PS2_COMMAND, command);
     PS2WaitInput();
 }
 
 
 uint8_t PS2GetStatus(){
-    return IoRead8(PS2_STATUS);
+    return kot_IoRead8(PS2_STATUS);
 }
 
 void PS2SendData(uint8_t data){
-    IoWrite8(PS2_DATA, data);
+    kot_IoWrite8(PS2_DATA, data);
     PS2WaitInput();
 }
 
 
 uint8_t PS2GetData(){
-    return IoRead8(PS2_DATA);
+    return kot_IoRead8(PS2_DATA);
 }
 
 void PS2WaitOutput(){

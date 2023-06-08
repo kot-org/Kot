@@ -48,7 +48,7 @@ namespace Event{
 
     uint64_t Bind(kthread_t* task, kevent_t* self, bool IgnoreMissedEvents){
         if(task->IsEvent) return KFAIL;
-        AtomicAquire(&self->Lock);
+        AtomicAcquire(&self->Lock);
 
         if(self->Type == EventTypeIRQLines){
             IRQLinekevent_t* event = (IRQLinekevent_t*)self;
@@ -89,15 +89,15 @@ namespace Event{
 
     uint64_t Unbind(kthread_t* task, kevent_t* self){
         if(self->NumTask <= 0) return KFAIL;
-        AtomicAquire(&self->Lock);
+        AtomicAcquire(&self->Lock);
 
         self->NumTask--;
         for(size64_t i = 0; i < self->NumTask; i++){
             if(self->Tasks[i]->thread == task){
-                uintptr_t newPos = kmalloc(self->NumTask * sizeof(kevent_tasks_t));
+                void* newPos = kmalloc(self->NumTask * sizeof(kevent_tasks_t));
                 memcpy(newPos, self->Tasks[i], sizeof(kevent_tasks_t) * i);
                 i++;
-                memcpy((uintptr_t)((uint64_t)newPos + sizeof(kevent_tasks_t) * (i - 1)), (uintptr_t)((uint64_t)self->Tasks[i] + sizeof(kevent_tasks_t) * i), sizeof(kevent_tasks_t) * i);
+                memcpy((void*)((uint64_t)newPos + sizeof(kevent_tasks_t) * (i - 1)), (void*)((uint64_t)self->Tasks[i] + sizeof(kevent_tasks_t) * i), sizeof(kevent_tasks_t) * i);
                 self->Tasks = (kevent_tasks_t**)newPos;
             }
         }
@@ -114,10 +114,10 @@ namespace Event{
     }
     
     uint64_t Trigger(kevent_t* self, arguments_t* parameters){
-        AtomicAquire(&self->Lock);
+        AtomicAcquire(&self->Lock);
         for(size64_t i = 0; i < self->NumTask; i++){
             kevent_tasks_t* task = self->Tasks[i];
-            AtomicAquire(&task->thread->EventLock);
+            AtomicAcquire(&task->thread->EventLock);
             if(task->thread->IsClose){
                 task->DataNode->CurrentData->Task = task;
                 task->thread->Launch(parameters);
@@ -143,12 +143,12 @@ namespace Event{
     } 
     
     uint64_t TriggerIRQ(kevent_t* self){
-        AtomicAquire(&self->Lock);
+        AtomicAcquire(&self->Lock);
         for(size64_t i = 0; i < self->NumTask; i++){
             kevent_tasks_t* task = self->Tasks[i];
-            AtomicAquire(&task->thread->EventLock);
+            AtomicAcquire(&task->thread->EventLock);
             if(task->thread->IsClose){
-                AtomicAquire(&globalTaskManager->SchedulerLock);
+                AtomicAcquire(&globalTaskManager->SchedulerLock);
                 task->thread->Launch_WL(&task->DataNode->Event->Parameters);
                 AtomicRelease(&globalTaskManager->SchedulerLock);
             }else{
@@ -164,7 +164,7 @@ namespace Event{
     } 
 
     uint64_t Close(ContextStack* Registers, kthread_t* Thread){
-        AtomicAquireCli(&Thread->EventLock);
+        AtomicAcquireCli(&Thread->EventLock);
 
         if(Thread->EventDataNode->IRQNumberOfMissedEvents){
             Thread->EventDataNode->IRQNumberOfMissedEvents--;

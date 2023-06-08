@@ -41,10 +41,8 @@ char* ExceptionList[32] = {
 };
 
 void InitializeInterrupts(ArchInfo_t* ArchInfo){
-    if(idtr.Limit == 0){
-        idtr.Limit = 0xFFF;
-        idtr.Offset = (uint64_t)&IDTData[0];
-    }
+    idtr.Limit = 0xFFF;
+    idtr.Offset = (uint64_t)&IDTData[0];
 
     for(int i = 0; i < ArchInfo->IRQSize; i++){
         SetIDTGate(InterruptEntryList[i], i, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Interrupts, idtr);
@@ -58,9 +56,9 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
     }
 
     /* Shedule */
-    SetIDTGate((uintptr_t)InterruptEntryList[INT_ScheduleAPIC], INT_ScheduleAPIC, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_SchedulerAPIC, idtr);
-    SetIDTGate((uintptr_t)InterruptEntryList[INT_Schedule], INT_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
-    SetIDTGate((uintptr_t)InterruptEntryList[INT_DestroySelf], INT_DestroySelf, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_DestroySelf, idtr); // Interrupt gate type because interrupt should be disable before
+    SetIDTGate((void*)InterruptEntryList[INT_ScheduleAPIC], INT_ScheduleAPIC, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_SchedulerAPIC, idtr);
+    SetIDTGate((void*)InterruptEntryList[INT_Schedule], INT_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
+    SetIDTGate((void*)InterruptEntryList[INT_DestroySelf], INT_DestroySelf, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_DestroySelf, idtr); // Interrupt gate type because interrupt should be disable before
 
     uint64_t stackSchedulerAPIC = (uint64_t)stackalloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
     TSSSetIST(CPU::GetAPICID(), IST_SchedulerAPIC, stackSchedulerAPIC);
@@ -113,6 +111,14 @@ void ExceptionHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
     }else{
         Error("Thread error, PID : 0x%x | PPID : 0x%x | TID : 0x%x \nWith exception : '%s' | Error code : 0x%x", Registers->threadInfo->thread->Parent->PID, Registers->threadInfo->thread->Parent->PPID, Registers->threadInfo->thread->TID, ExceptionList[Registers->InterruptNumber], Registers->ErrorCode);
         PrintRegisters(Registers);
+        StackFrame_t* Frame = (StackFrame_t*)Registers->rbp;
+        TraceBegin();
+        while(Frame){
+            if(!Frame->InstructionPointer) break;
+            Trace("0x%x", Frame->InstructionPointer);
+            Frame = Frame->Next;
+        }
+        TraceEnd();
         if(Registers->threadInfo->thread->IsEvent){
             Event::Close(Registers, Registers->threadInfo->thread);
         }else{

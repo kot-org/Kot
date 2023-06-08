@@ -1,7 +1,7 @@
 #include <controller/controller.h>
 
 void HDAControllerOnInterrupt(){
-    HDAController* Controller = (HDAController*)Sys_GetExternalDataThread();
+    HDAController* Controller = (HDAController*)kot_Sys_GetExternalDataThread();
 
     for(uint8_t i = 0; i < Controller->StreamCount; i++){
         if(Controller->Registers->InterruptStatus & (1 << i)){
@@ -13,10 +13,10 @@ void HDAControllerOnInterrupt(){
                 }
                 Controller->Registers->Streams[i].Status |= HDA_STREAM_STS_BCIS; // Clear
                 *(uint64_t*)((uint64_t)Controller->Outputs[i]->Stream->Buffer + Controller->Outputs[i]->Stream->PositionOfStreamData) = Controller->Outputs[i]->Stream->CurrentPosition; // Set the offset
-                arguments_t Parameters{
+                kot_arguments_t Parameters{
                     .arg[0] = Controller->Outputs[i]->Stream->CurrentPosition,
                 };
-                Sys_Event_Trigger(Controller->Outputs[i]->OffsetUpdateEvent, &Parameters);
+                kot_Sys_Event_Trigger(Controller->Outputs[i]->OffsetUpdateEvent, &Parameters);
             }
             Controller->Registers->InterruptStatus |= (1 << i);
         }
@@ -29,31 +29,31 @@ void HDAControllerOnInterrupt(){
     // Interrupt flags
     Controller->Registers->RIRBStatus |= HDA_RIRB_RESPONSEINTERRUPT;
 
-    Sys_Event_Close();
+    kot_Sys_Event_Close();
 }
 
-HDAController::HDAController(PCIDeviceID_t DeviceID){
+HDAController::HDAController(kot_PCIDeviceID_t DeviceID){
     // Clear lock
     Lock = NULL;
 
-    PCIEnableMemorySpace(DeviceID);
-    PCIEnableBusMastering(DeviceID);
-    PCIEnableInterrupts(DeviceID);
+    kot_PCIEnableMemorySpace(DeviceID);
+    kot_PCIEnableBusMastering(DeviceID);
+    kot_PCIEnableInterrupts(DeviceID);
 
-    srv_pci_callback_t* CallbackPCI = Srv_Pci_GetBAR(DeviceID, 0x0, true);
-    srv_pci_bar_info_t* BarInfo = (srv_pci_bar_info_t*)CallbackPCI->Data;
+    kot_srv_pci_callback_t* CallbackPCI = kot_Srv_Pci_GetBAR(DeviceID, 0x0, true);
+    kot_srv_pci_bar_info_t* BarInfo = (kot_srv_pci_bar_info_t*)CallbackPCI->Data;
     free(CallbackPCI);
 
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&HDAControllerOnInterrupt, PriviledgeDriver, (uint64_t)this, &InterruptThread);
+    kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&HDAControllerOnInterrupt, PriviledgeDriver, (uint64_t)this, &InterruptThread);
 
-    srv_system_callback_t* CallbackSys = Srv_System_BindFreeIRQ(InterruptThread, true, true);
+    kot_srv_system_callback_t* CallbackSys = kot_Srv_System_BindFreeIRQ(InterruptThread, true, true);
     uint64_t Vector = CallbackSys->Data;
     free(CallbackSys);
 
-    CallbackPCI = Srv_Pci_BindMSI(DeviceID, Vector, 0x0, 0x0, true);
+    CallbackPCI = kot_Srv_Pci_BindMSI(DeviceID, Vector, 0x0, 0x0, true);
     free(CallbackPCI);
 
-    HDABaseAddress = MapPhysical(BarInfo->Address, BarInfo->Size);
+    HDABaseAddress = kot_MapPhysical(BarInfo->Address, BarInfo->Size);
     Registers = (HDAControllerRegs*)HDABaseAddress;
     // Start reset
     Registers->GlobalControl &= ~HDA_GCTL_RESET;
@@ -62,10 +62,10 @@ HDAController::HDAController(PCIDeviceID_t DeviceID){
 
     int64_t Timer = 200;
     while(!(Registers->GlobalControl & 0x1) && Timer--){
-        Sleep(1);
+        kot_Sleep(1);
     }
     if(Timer < 0){
-        std::printf("[AUDIO/HDA] Timed out waiting for controller");
+        kot_Printlog("[AUDIO/HDA] Timed out waiting for controller");
         return;
     }
 
@@ -79,9 +79,9 @@ HDAController::HDAController(PCIDeviceID_t DeviceID){
 
     Timer = 200;
     while (((Registers->CORBControl | Registers->RIRBControl) & HDA_RIRB_AND_CORB_DMA) && Timer--)
-        Sleep(1);
+        kot_Sleep(1);
     if (Timer < 0) {
-        std::printf("[AUDIO/HDA] Timed out waiting for controller");
+        kot_Printlog("[AUDIO/HDA] Timed out waiting for controller");
         return;
     }
 
@@ -94,13 +94,13 @@ HDAController::HDAController(PCIDeviceID_t DeviceID){
 
     /* Setup CORB */
     if(SetupCORB() != KSUCCESS){
-        std::printf("[AUDIO/HDA] Error while setting the CORB");
+        kot_Printlog("[AUDIO/HDA] Error while setting the CORB");
         return;
     }
 
     /* Setup RIRB */
     if(SetupRIRB() != KSUCCESS){
-        std::printf("[AUDIO/HDA] Error while setting the RIRB");
+        kot_Printlog("[AUDIO/HDA] Error while setting the RIRB");
         return;
     }
 
@@ -166,7 +166,7 @@ KResult HDAController::SetSampleRate(HDAOutput* Output, uint32_t SampleRate){
     return ConfigureStreamFormat(Output);
 }
 
-KResult HDAController::SetSoundEncoding(HDAOutput* Output, AudioEncoding Encoding){
+KResult HDAController::SetSoundEncoding(HDAOutput* Output, kot_AudioEncoding Encoding){
     switch(Encoding){
         case AudioEncodingPCMS8LE:{
             Output->Format.BitsPerSample = 0b000; // 8 bits
@@ -202,7 +202,7 @@ KResult HDAController::SetChannel(HDAOutput* Output, uint8_t Channels){
     return ConfigureStreamFormat(Output);
 }
 
-KResult HDAController::SetVolume(HDAOutput* Output, audio_volume_t Volume){
+KResult HDAController::SetVolume(HDAOutput* Output, kot_audio_volume_t Volume){
     uint32_t Data = (1 << 13) | (1 << 12); // left and right
     if(Volume == 0){
         Data |= (1 << 7); // mute
@@ -244,7 +244,7 @@ KResult HDAController::GetOffset(HDAOutput* Output, uint64_t* Offset){
 
 void HDAController::DetectCodec(uint8_t Codec){
     Codecs[Codec].Index = Codec;
-    Codecs[Codec].Functions = vector_create();
+    Codecs[Codec].Functions = kot_vector_create();
 
     uint32_t VendorID = GetCodecParameter(Codec, 0, HDA_PARAMETER_VENDOR_ID);
     if (VendorID == 0xffffffff) {
@@ -258,7 +258,7 @@ void HDAController::DetectCodec(uint8_t Codec){
     Codecs[Codec].FunctionsCount = SubNodes & 0xff;
 
 
-    std::printf("[AUDIO/HDA] Codec %d, VendorID: %x, RevisionID: %x, Sub Nodes: %d", Codec, VendorID, RevisionID, SubNodes & 0xff);
+    // std::printf("[AUDIO/HDA] Codec %d, VendorID: %x, RevisionID: %x, Sub Nodes: %d", Codec, VendorID, RevisionID, SubNodes & 0xff);
 
     for(uint8_t Node = Codecs[Codec].FunctionsStart; Node < Codecs[Codec].FunctionsStart + Codecs[Codec].FunctionsCount; Node++){
         uint8_t FunctionType = GetCodecParameter(Codec, Node, HDA_PARAMETER_FUNCTION_TYPE) & 0xff;
@@ -273,7 +273,7 @@ void HDAController::DetectCodec(uint8_t Codec){
 
         Function->WidgetsStart = (WidgetNodeCount >> 16) & 0xff;
         Function->WidgetsCount = WidgetNodeCount & 0xff;
-        Function->Widgets = vector_create();
+        Function->Widgets = kot_vector_create();
 
         Function->Node = Node;
 
@@ -290,7 +290,7 @@ void HDAController::DetectCodec(uint8_t Codec){
         if(Function->Type == HDA_W_AUDIO_OUTPUT){
             AddOutputFunction(Function);
         }
-        vector_push(Codecs[Codec].Functions, Function);
+        kot_vector_push(Codecs[Codec].Functions, Function);
     }
 }
 
@@ -326,11 +326,11 @@ void HDAController::WidgetInitialize(HDAFunction* Function, uint8_t WidgetNode){
             break;
     }
 
-    vector_push(Function->Widgets, Widget);
+    kot_vector_push(Function->Widgets, Widget);
 }
 
 void HDAController::AddOutputFunction(HDAFunction* Function){
-    HDAOutput* Output = (HDAOutput*)calloc(sizeof(HDAOutput));
+    HDAOutput* Output = (HDAOutput*)calloc(1, sizeof(HDAOutput));
     Output->ControllerParent = this;
     Output->Function = Function;
     Output->IsCurrentRunning = false;
@@ -360,11 +360,11 @@ void HDAController::AddOutputFunction(HDAFunction* Function){
 
     InitializeSrv(Output);
 
-    Srv_Audio_AddDevice(&Output->AudioDevice, true);
+    kot_Srv_Audio_AddDevice(&Output->AudioDevice, true);
 }
 
 HDAStream* HDAController::CreateStream(HDACodec* Codec, StreamType Type){
-    HDAStream* Stream = (HDAStream*)calloc(sizeof(HDAStream));
+    HDAStream* Stream = (HDAStream*)calloc(1, sizeof(HDAStream));
 
     // Calculate descriptor location
     if(Type == StreamType::Input){
@@ -379,20 +379,20 @@ HDAStream* HDAController::CreateStream(HDACodec* Codec, StreamType Type){
 
     Stream->Descriptor = Descriptor;
     Stream->BufferDescriptorListEntries = HDA_BDL_ENTRY_COUNT;
-    Stream->BufferDescriptorList = (HDABufferDescriptorEntry*)GetPhysical((uintptr_t*)&Stream->BufferDescriptorListPhysicalAddress, HDA_BDL_ENTRY_COUNT * sizeof(HDABufferDescriptorEntry));
+    Stream->BufferDescriptorList = (HDABufferDescriptorEntry*)kot_GetPhysical((void**)&Stream->BufferDescriptorListPhysicalAddress, HDA_BDL_ENTRY_COUNT * sizeof(HDABufferDescriptorEntry));
     Stream->Size = Stream->BufferDescriptorListEntries * HDA_BDL_ENTRY_SIZE;
     Stream->PositionOfStreamData = Stream->Size + sizeof(uint64_t); // add the offset field
 
     Stream->RealSize = Stream->Size + sizeof(uint64_t); // add the offset field
-    Stream->Buffer = GetFreeAlignedSpace(Stream->RealSize);
-    Sys_CreateMemoryField(Sys_GetProcess(), Stream->RealSize, &Stream->Buffer, &Stream->BufferKey, MemoryFieldTypeShareSpaceRW);
+    Stream->Buffer = kot_GetFreeAlignedSpace(Stream->RealSize);
+    kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), Stream->RealSize, &Stream->Buffer, &Stream->BufferKey, MemoryFieldTypeShareSpaceRW);
 
     Stream->SizeIOCToTrigger = HDA_INTERRUPT_ON_COMPLETION_BDL_COUNT * HDA_BDL_ENTRY_SIZE;
     for(uint64_t i = 0; i < Stream->BufferDescriptorListEntries; i++){
         Stream->BufferDescriptorList[i].Reserved = 0; // Clear reserved
         Stream->BufferDescriptorList[i].Length = HDA_BDL_ENTRY_SIZE;
         Stream->BufferDescriptorList[i].InterruptOnCompletion = ((i % HDA_INTERRUPT_ON_COMPLETION_BDL_COUNT) == 0) ? 1 : 0;
-        Stream->BufferDescriptorList[i].Address = (uint64_t)Sys_GetPhysical((uintptr_t)((uint64_t)Stream->Buffer + i * HDA_BDL_ENTRY_SIZE));
+        Stream->BufferDescriptorList[i].Address = (uint64_t)kot_Sys_GetPhysical((void*)((uint64_t)Stream->Buffer + i * HDA_BDL_ENTRY_SIZE));
     }
     memset(Stream->Buffer, 0x0, Stream->RealSize);
 
@@ -403,7 +403,7 @@ HDAStream* HDAController::CreateStream(HDACodec* Codec, StreamType Type){
 
     int64_t Timer = 200;
     while ((Descriptor->Control & HDA_STREAM_CTL_RST) && Timer--) {
-        Sleep(2);
+        kot_Sleep(2);
     }
     assert(Timer > 0);
 
@@ -438,7 +438,7 @@ uint32_t HDAController::GetCodecParameter(uint32_t Codec, uint32_t Node, uint32_
 KResult HDAController::SendVerb(uint32_t Verb, uint64_t* Response){
     atomicAcquire(&Lock, 0);
     while(Registers->RIRBStatus & HDA_RIRB_RESPONSEINTERRUPT){
-        Sleep(1);
+        kot_Sleep(1);
     }
     uint16_t WritePointer = (Registers->CORBWritePointer + 1) % CORBEntries;
     uint16_t ReadPointer = Registers->RIRBWritePointer;
@@ -449,7 +449,7 @@ KResult HDAController::SendVerb(uint32_t Verb, uint64_t* Response){
     int64_t Timer = 200;
 
     while(Registers->RIRBWritePointer == ReadPointer && Timer--){
-        Sleep(1);
+        kot_Sleep(1);
     }
 
     if(Timer < 0){
@@ -479,7 +479,7 @@ KResult HDAController::SetupCORB(){
         CORBEntries = 2;
     }
 
-    CORB = (uint32_t*)GetPhysical((uintptr_t*)&Registers->CORBBaseAddress, CORBEntries * sizeof(uint32_t));
+    CORB = (uint32_t*)kot_GetPhysical((void**)&Registers->CORBBaseAddress, CORBEntries * sizeof(uint32_t));
     Registers->CORBWritePointer &= ~HDA_CORB_WRITEP_MASK;
     // Reset CORB pointer : sofwate set bit to 1, hardware will clear it and set it when reset is finish
     Registers->CORBReadPointer |= HDA_CORB_READP_RESET;
@@ -487,7 +487,7 @@ KResult HDAController::SetupCORB(){
     // Reset CORB pointer : Clear back reset bit
     Timer = 200;
     while(!(Registers->CORBReadPointer & HDA_CORB_READP_RESET) && Timer--){
-        Sleep(1);
+        kot_Sleep(1);
     }
     if(Timer < 0){
         return KFAIL;
@@ -498,7 +498,7 @@ KResult HDAController::SetupCORB(){
 
     Timer = 200;
     while((Registers->CORBReadPointer & HDA_CORB_READP_RESET) && Timer--){
-        Sleep(1);
+        kot_Sleep(1);
     }
     if(Timer < 0){
         return KFAIL;
@@ -508,12 +508,12 @@ KResult HDAController::SetupCORB(){
 
     Timer = 200;
     while(!(Registers->CORBControl) && Timer--){
-        Sleep(1);
+        kot_Sleep(1);
     }
     if(Timer < 0){
         return KFAIL;
     }
-    std::printf("[AUDIO/HDA] CORB setup with %d entries with value of %d", CORBEntries, Registers->CORBSize);
+    // std::printf("[AUDIO/HDA] CORB setup with %d entries with value of %d", CORBEntries, Registers->CORBSize);
     return KSUCCESS;
 }
 
@@ -534,13 +534,13 @@ KResult HDAController::SetupRIRB(){
         RIRBEntries = 2;
     }
 
-    RIRB = (uint64_t*)GetPhysical((uintptr_t*)&Registers->RIRBBaseAddress, RIRBEntries * sizeof(uint64_t));
+    RIRB = (uint64_t*)kot_GetPhysical((void**)&Registers->RIRBBaseAddress, RIRBEntries * sizeof(uint64_t));
 
     // Start RIRB
     Registers->RIRBControl |= HDA_RIRB_AND_CORB_DMA | HDA_RIRB_GENERATE_RESPONSE_INTERRUPT;
-    Sleep(10);
+    kot_Sleep(10);
 
-    std::printf("[AUDIO/HDA] RIRB setup with %d entries with value of %d", RIRBEntries, Registers->RIRBSize);
+    // std::printf("[AUDIO/HDA] RIRB setup with %d entries with value of %d", RIRBEntries, Registers->RIRBSize);
 
     return KSUCCESS;
 }

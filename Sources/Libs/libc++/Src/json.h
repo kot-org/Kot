@@ -1,6 +1,9 @@
 #pragma once
 
-#include <kot/heap.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <kot++/new.h>
 #include <kot/cstring.h>
 #include <kot/utils/map.h>
 
@@ -90,7 +93,7 @@ namespace std {
 
     class JsonObject : public JsonValue {
     private:
-        vector_t* obj = map_create();
+        kot_vector_t* obj = kot_map_create();
         JsonParsingCode code = JSON_SUCCESS;
     public:
         JsonObject(JsonLexer* lexer);
@@ -115,7 +118,7 @@ namespace std {
 
     class JsonArray : public JsonValue {
     private:
-        vector_t* arr = vector_create();
+        kot_vector_t* arr = kot_vector_create();
         JsonParsingCode code = JSON_SUCCESS;
     public:
         JsonArray(JsonLexer* lexer);

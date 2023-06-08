@@ -9,15 +9,13 @@ windowc* WindowBackgroundEnd = NULL;
 windowc* WindowDefaultEnd = NULL;
 windowc* WindowForegroundEnd = NULL;
 
-windowc::windowc(orbc* Parent, uint64_t WindowType, event_t Event){
+windowc::windowc(orbc* Parent, uint64_t WindowType, kot_event_t Event){
     Orb = Parent;
 
-    this->Framebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
+    this->Framebuffer = (kot_framebuffer_t*)calloc(1, sizeof(kot_framebuffer_t));
 
     this->Framebuffer->Bpp = DEFAUT_BPP;
     this->Framebuffer->Btpp = DEFAUT_BPP / 8;
-    
-    this->Lock = 0;
     
     this->Eventbuffer = CreateEventBuffer(NULL, NULL);
 
@@ -35,31 +33,33 @@ windowc::windowc(orbc* Parent, uint64_t WindowType, event_t Event){
 
     this->Next = NULL;
     this->Last = NULL;
+
+    this->IsVisible = false;
+
+    CreateBuffer();
     
     this->SetFocusState(false);
     this->SetVisible(false);
-
-    CreateBuffer();
 }
 
 KResult windowc::CreateBuffer(){
-    uintptr_t OldFramebuffer = this->Framebuffer->Buffer;
-    ksmem_t OldFramebufferKey = this->FramebufferKey;
+    void* OldFramebuffer = this->Framebuffer->Buffer;
+    kot_key_mem_t OldFramebufferKey = this->FramebufferKey;
 
     this->Framebuffer->Pitch = this->Framebuffer->Width * this->Framebuffer->Btpp;
     this->Framebuffer->Size = this->Framebuffer->Pitch * this->Framebuffer->Height;
 
-    uintptr_t Address = GetFreeAlignedSpace(this->Framebuffer->Size);
-    ksmem_t Key = NULL;
-    Sys_CreateMemoryField(Sys_GetProcess(), this->Framebuffer->Size, &Address, &Key, MemoryFieldTypeShareSpaceRW);
-    ksmem_t KeyShare = NULL;
-    Sys_Keyhole_CloneModify(Key, &KeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
+    void* Address = kot_GetFreeAlignedSpace(this->Framebuffer->Size);
+    kot_key_mem_t Key = NULL;
+    kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), this->Framebuffer->Size, &Address, &Key, MemoryFieldTypeShareSpaceRW);
+    kot_key_mem_t KeyShare = NULL;
+    kot_Sys_Keyhole_CloneModify(Key, &KeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
     
     Framebuffer->Buffer = Address;
     FramebufferKey = KeyShare;
 
     if(OldFramebuffer != NULL && OldFramebufferKey != NULL){
-        Sys_CloseMemoryField(Sys_GetProcess(), OldFramebufferKey, OldFramebuffer);
+        kot_Sys_CloseMemoryField(kot_Sys_GetProcess(), OldFramebufferKey, OldFramebuffer);
     }
     // clear window buffer
     memset(Framebuffer->Buffer, NULL, Framebuffer->Size);
@@ -68,9 +68,9 @@ KResult windowc::CreateBuffer(){
     Eventbuffer->Pitch = Eventbuffer->Width * Eventbuffer->Btpp;
     Eventbuffer->Size = Eventbuffer->Pitch * Eventbuffer->Height;
 
-    uintptr_t OldEventBuffer = Eventbuffer->Buffer;
+    void* OldEventBuffer = Eventbuffer->Buffer;
     Eventbuffer->Buffer = malloc(Eventbuffer->Size);
-    memset64(Eventbuffer->Buffer, (uint64_t)this->MouseEvent, Eventbuffer->Size);
+    kot_memset64(Eventbuffer->Buffer, (uint64_t)this->MouseEvent, Eventbuffer->Size);
     free(OldEventBuffer);
 
     return KSUCCESS;
@@ -78,9 +78,9 @@ KResult windowc::CreateBuffer(){
 
 monitorc* windowc::FindMonitor(){
     for(uint64_t i = 0; i < Orb->Render->Monitors->length; i++){
-        monitorc* Monitor = (monitorc*)vector_get(Orb->Render->Monitors, i);
+        monitorc* Monitor = (monitorc*)kot_vector_get(Orb->Render->Monitors, i);
         if(Monitor != NULL){
-            if(IsBeetween(Monitor->YPosition, this->YPosition, Monitor->YMaxPosition)){
+            if(kot_IsBeetween(Monitor->YPosition, this->YPosition, Monitor->YMaxPosition)){
                 return Monitor;
             }
         }
@@ -92,11 +92,11 @@ graphiceventbuffer_t* windowc::GetEventbuffer(){
     return this->Eventbuffer;
 }
 
-framebuffer_t* windowc::GetFramebuffer(){
+kot_framebuffer_t* windowc::GetFramebuffer(){
     return this->Framebuffer;
 }
 
-ksmem_t windowc::GetFramebufferKey(){
+kot_key_mem_t windowc::GetFramebufferKey(){
     return this->FramebufferKey;
 }
 
@@ -119,14 +119,14 @@ KResult windowc::Resize(int64_t Width, int64_t Height){
         }
     }
 
-    atomicAcquire(&Lock, 0);
+    atomicAcquire(&Orb->Render->RenderLock, 0);
     Framebuffer->Width = Width;
     Framebuffer->Height = Height;
     Eventbuffer->Width = Width;
     Eventbuffer->Height = Height;
 
     CreateBuffer();
-    atomicUnlock(&Lock, 0);
+    atomicUnlock(&Orb->Render->RenderLock, 0);
 
     if(GetVisible()){
         Orb->Render->UpdateAllEvents();
@@ -175,25 +175,29 @@ bool windowc::SetFocusState(bool IsFocus){
     if(this->IsFocus != IsFocus){
         this->IsFocus = IsFocus;
         if(this->IsFocus){
-            if(CurrentFocusWindow != NULL) CurrentFocusWindow->SetFocusState(false);
+            if(CurrentFocusWindow != NULL){
+                if(CurrentFocusWindow != this){
+                    CurrentFocusWindow->SetFocusState(false);
+                }
+            } 
             CurrentFocusWindow = this;
             if(WindowType == Window_Type_Default && IsVisible){
-                atomicAcquire(&Orb->Render->RenderMutex, 0);
+                atomicAcquire(&Orb->Render->RenderLock, 0);
                 
                 this->DequeuWL();
                 this->EnqueuWL();
 
-                atomicUnlock(&Orb->Render->RenderMutex, 0);
+                atomicUnlock(&Orb->Render->RenderLock, 0);
 
                 Orb->Render->UpdateAllEvents();
             }
         }
 
-        arguments_t Parameters{
+        kot_arguments_t Parameters{
             .arg[0] = Window_Event_Focus,   // Event type
             .arg[1] = IsFocus,              // Focus state
         };
-        Sys_Event_Trigger(Event, &Parameters);
+        kot_Sys_Event_Trigger(Event, &Parameters);
     }
 
     return this->IsFocus;
@@ -234,9 +238,9 @@ KResult windowc::Close() {
 }
 
 KResult windowc::Enqueu(){
-    atomicAcquire(&Orb->Render->RenderMutex, 0);
+    atomicAcquire(&Orb->Render->RenderLock, 0);
     KResult Status = EnqueuWL();
-    atomicUnlock(&Orb->Render->RenderMutex, 0);
+    atomicUnlock(&Orb->Render->RenderLock, 0);
     return Status;
 }
 
@@ -287,9 +291,9 @@ KResult windowc::EnqueuWL(){
 }
 
 KResult windowc::Dequeu(){
-    atomicAcquire(&Orb->Render->RenderMutex, 0);
+    atomicAcquire(&Orb->Render->RenderLock, 0);
     KResult Status = DequeuWL();
-    atomicUnlock(&Orb->Render->RenderMutex, 0);
+    atomicUnlock(&Orb->Render->RenderLock, 0);
     return Status;
 }
 

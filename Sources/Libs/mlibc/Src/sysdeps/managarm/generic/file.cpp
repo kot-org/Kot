@@ -1812,7 +1812,7 @@ int sys_seek(int fd, off_t offset, int whence, off_t *new_offset) {
 }
 
 
-int sys_close(int fd) {
+int kot_Sys_Close(int fd) {
 	SignalGuard sguard;
 
 	managarm::posix::CloseRequest<MemoryAllocator> req(getSysdepsAllocator());

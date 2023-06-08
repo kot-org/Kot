@@ -23,17 +23,17 @@ namespace Ui {
 
     class UiContext {
         private:
-            thread_t ThreadRenderer;
+            kot_thread_t ThreadRenderer;
         public:
-            UiContext(framebuffer_t* Fb);
-            void UpdateFramebuffer(framebuffer_t* fb);
+            UiContext(kot_framebuffer_t* Fb);
+            void UpdateFramebuffer(kot_framebuffer_t* fb);
             void UiStartRenderer();
             void UiStopRenderer();
 
             bool IsRendering;
             bool Renderer;
             bool IsListeningEvents;
-            framebuffer_t* Fb;
+            kot_framebuffer_t* Fb;
             class Component* Cpnt;
             class Component* FocusCpnt;
             graphiceventbuffer_t* EventBuffer;

@@ -1,7 +1,7 @@
 #include <lib/node/node.h>
 #include <heap/heap.h>
 
-Node* CreateNode(uintptr_t data){
+Node* CreateNode(void* data){
     Node* node = (Node*)kmalloc(sizeof(Node));
     node->data = data;
     node->parent = node;
@@ -11,22 +11,22 @@ Node* CreateNode(uintptr_t data){
 }
 
 Node* Node::GetNode(uint64_t position){
-    AtomicAquire(&lock);
+    AtomicAcquire(&parent->lock);
     Node* node = this->parent;
     for(int i = 0; i < position; i++){
         if(node->next != NULL){
             node = node->next;
         }else{
-            AtomicRelease(&lock);
+            AtomicRelease(&parent->lock);
             return 0;
         }
     }
-    AtomicRelease(&lock);
+    AtomicRelease(&parent->lock);
     return node;
 }
 
 uint64_t Node::GetSize(){
-    AtomicAquire(&lock);
+    AtomicAcquire(&parent->lock);
     uint64_t size = 1;
     Node* node = this->parent;
     while(true){
@@ -34,34 +34,34 @@ uint64_t Node::GetSize(){
             node = node->next;
             size++;
         }else{
-            AtomicRelease(&lock);
+            AtomicRelease(&parent->lock);
             return size;
         }
     }
-    AtomicRelease(&lock);
+    AtomicRelease(&parent->lock);
 }
 
-Node* Node::Add(uintptr_t data){
-    AtomicAquire(&lock);
+Node* Node::Add(void* data){
+    AtomicAcquire(&parent->lock);
     Node* newNode = (Node*)kmalloc(sizeof(Node));
     newNode->data = data;
     parent->lastNodeCreate->next = newNode;
-    newNode->last = newNode;
+    newNode->last = this;
     newNode->next = NULL;
     newNode->parent = this->parent;
     parent->lastNodeCreate = newNode;
-    AtomicRelease(&lock);
+    AtomicRelease(&parent->lock);
     return newNode;    
 }
 
-void Node::ModifyData(uintptr_t data){
-    AtomicAquire(&lock);
+void Node::ModifyData(void* data){
+    AtomicAcquire(&parent->lock);
     this->data = data;
-    AtomicRelease(&lock);
+    AtomicRelease(&parent->lock);
 }
 
 void Node::Delete(){
-    AtomicAquire(&lock);
+    AtomicAcquire(&parent->lock);
     if(parent->lastNodeCreate == this){
         parent->lastNodeCreate = this->last;
     }
@@ -79,7 +79,7 @@ void Node::Delete(){
             next->parent = next;
         }        
     }
-    AtomicRelease(&lock);
+    AtomicRelease(&parent->lock);
 
     kfree(this);
 }

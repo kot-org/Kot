@@ -2,7 +2,8 @@
 
 #include <kot-ui++/pictures/picture.h>
 
-#include <kot/uisd/srvs/storage.h>
+#include <string.h>
+#include <stdio.h>
 
 namespace Ui {
     void PictureboxDraw(Picturebox_t* Picturebox) {
@@ -41,12 +42,12 @@ namespace Ui {
                         uint16_t _Width;
                         uint16_t _Height;
 
-                        _Width = DivideRoundUp(Picturebox->Cpnt->Style->Currentheight * ImageRead->Width, ImageRead->Height);
+                        _Width = DIV_ROUND_UP(Picturebox->Cpnt->Style->Currentheight * ImageRead->Width, ImageRead->Height);
                         if(Picturebox->Cpnt->Style->Currentwidth < _Width){
                             _Height = Picturebox->Cpnt->Style->Currentheight;              
                         }else{
                             _Width = Picturebox->Cpnt->Style->Currentwidth;
-                            _Height = DivideRoundUp(_Width * ImageRead->Height, ImageRead->Width);
+                            _Height = DIV_ROUND_UP(_Width * ImageRead->Height, ImageRead->Width);
                         }
                     
                         TGA_t* ImageResize = TGAResize(ImageRead, _Width, _Height, false);
@@ -186,7 +187,7 @@ namespace Ui {
         if(Path == NULL)
             return NULL;
         
-        file_t* ImageFile = fopen(Path, "rb");
+        FILE* ImageFile = fopen(Path, "rb");
 
         if(ImageFile == NULL)
             return NULL;
@@ -195,7 +196,7 @@ namespace Ui {
         size_t ImageFileSize = ftell(ImageFile);
         fseek(ImageFile, 0, SEEK_SET);
 
-        uintptr_t Image = malloc(ImageFileSize);
+        void* Image = malloc(ImageFileSize);
         fread(Image, ImageFileSize, 1, ImageFile);
 
         uint16_t Width;
@@ -228,9 +229,9 @@ namespace Ui {
         Picturebox->Type = Type;
         Picturebox->Image = Image;
 
-        memcpy(&Picturebox->Style, &Style, sizeof(PictureboxStyle_t));
+        memcpy((void*)&Picturebox->Style, (void*)&Style, sizeof(PictureboxStyle_t));
 
-        Picturebox->Cpnt = new Component(Style.G, PictureboxUpdate, PictureboxMouseEvent, (uintptr_t)Picturebox, ParentCpnt, !Style.Transparency);
+        Picturebox->Cpnt = new Component(Style.G, PictureboxUpdate, PictureboxMouseEvent, (void*)Picturebox, ParentCpnt, !Style.Transparency);
         Picturebox->Cpnt->IsDrawUpdate = true;
 
         fclose(ImageFile);

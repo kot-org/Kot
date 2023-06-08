@@ -19,9 +19,9 @@ class renderc{
         KResult AddMonitor(class monitorc* Monitor);
         KResult RemoveMonitor();
 
-        vector_t* Monitors = NULL;
+        kot_vector_t* Monitors = NULL;
         windowc* FirstWindowNode;
-        uint64_t RenderMutex = NULL;
-        thread_t RenderThread = NULL;
+        uint64_t RenderLock = NULL;
+        kot_thread_t RenderThread = NULL;
         bool IsRendering = false;   
 };

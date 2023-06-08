@@ -1,6 +1,6 @@
 #pragma once
 
-#include <kot/heap.h>
+#include <stdlib.h>
 #include <core/main.h>
 #include <kot/utils/vector.h>
 
@@ -14,8 +14,8 @@ class hidc;
 
 class monitorc {
     public:
-        framebuffer_t* MainFramebuffer;
-        framebuffer_t* BackFramebuffer;
+        kot_framebuffer_t* MainFramebuffer;
+        kot_framebuffer_t* BackFramebuffer;
 
         graphiceventbuffer_t* Eventbuffer;
 
@@ -35,7 +35,7 @@ class monitorc {
 
         orbc* Orb;
         
-        monitorc(orbc* Parent, uintptr_t FbBase, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition);
+        monitorc(orbc* Parent, void* FbBase, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition);
         uint64_t GetWidth();
         uint64_t GetHeight();
 

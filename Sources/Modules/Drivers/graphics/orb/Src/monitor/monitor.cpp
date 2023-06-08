@@ -1,6 +1,6 @@
 #include <monitor/monitor.h>
 
-monitorc::monitorc(orbc* Parent, uintptr_t FbBase, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition){
+monitorc::monitorc(orbc* Parent, void* FbBase, uint64_t Width, uint64_t Height, uint64_t Pitch, uint64_t Bpp, uint32_t XPosition, uint32_t YPosition){
     this->Orb = Parent;
     
     this->XPosition = XPosition;
@@ -8,9 +8,8 @@ monitorc::monitorc(orbc* Parent, uintptr_t FbBase, uint64_t Width, uint64_t Heig
 
     this->YPosition = YPosition;
     this->YMaxPosition = YPosition + Height;
-
-    MainFramebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
-    BackFramebuffer = (framebuffer_t*)calloc(sizeof(framebuffer_t));
+    MainFramebuffer = (kot_framebuffer_t*)calloc(1, sizeof(kot_framebuffer_t));
+    BackFramebuffer = (kot_framebuffer_t*)calloc(1, sizeof(kot_framebuffer_t));
 
     MainFramebuffer->Buffer = FbBase;
     MainFramebuffer->Width = Width;
@@ -20,7 +19,7 @@ monitorc::monitorc(orbc* Parent, uintptr_t FbBase, uint64_t Width, uint64_t Heig
     MainFramebuffer->Btpp = Bpp / 8;
     MainFramebuffer->Size = MainFramebuffer->Pitch * Height;
 
-    BackFramebuffer->Buffer = calloc(MainFramebuffer->Pitch * Height);
+    BackFramebuffer->Buffer = calloc(Height, MainFramebuffer->Pitch);
     BackFramebuffer->Width = Width;
     BackFramebuffer->Height = Height;
     BackFramebuffer->Pitch = MainFramebuffer->Pitch;
@@ -49,7 +48,7 @@ void monitorc::Move(uint64_t XPosition, uint64_t YPosition) {
     this->YPosition = YPosition;
 }
 
-void DynamicBlit(framebuffer_t* to, framebuffer_t* from, uint64_t x, uint64_t y, uint64_t MonitorXoffset, uint64_t MonitorYoffset) {
+void DynamicBlit(kot_framebuffer_t* to, kot_framebuffer_t* from, uint64_t x, uint64_t y, uint64_t MonitorXoffset, uint64_t MonitorYoffset) {
     BlitFramebuffer(to, from, x, y);
 }
 
@@ -72,10 +71,7 @@ void monitorc::Update(windowc* FirstWindowNode){
     Orb->Desktop->UpdateBackground(this);
 
     while(Window){
-        if(atomicLock(&Window->Lock, 0)){
-            DynamicBlit(this->BackFramebuffer, Window->GetFramebuffer(), Window->GetX(), Window->GetY(), this->XPosition, this->YPosition);
-            atomicUnlock(&Window->Lock, 0);
-        }
+        DynamicBlit(this->BackFramebuffer, Window->GetFramebuffer(), Window->GetX(), Window->GetY(), this->XPosition, this->YPosition);
         Window = Window->Next;
     }
 

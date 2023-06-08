@@ -6,6 +6,10 @@
 #include <kot/types.h>
 #include <kot/memory.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #define FEMOSECOND_IN_NANOSECOND     1000000 // femosecond 10E15 to nanosecond 10E9
 
 typedef KResult (*kot_TimeCallbackHandler)(KResult Status, struct kot_srv_time_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
@@ -22,7 +26,7 @@ typedef struct{
 
 struct kot_srv_time_callback_t{
     kot_thread_t Self;
-    uint64_t Data;
+    uintptr_t Data;
     size64_t Size;
     bool IsAwait;
     KResult Status;
@@ -54,5 +58,9 @@ KResult kot_GetTime(uint64_t* time);
 KResult kot_CompareTime(uint64_t* compare, uint64_t time0, uint64_t time1);
 
 uint64_t kot_GetPosixTime();
+
+#if defined(__cplusplus)
+} 
+#endif
 
 #endif

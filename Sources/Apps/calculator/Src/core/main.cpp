@@ -84,7 +84,7 @@ void ClearCalculator() {
     DecimalMultiplier = 0.1;
 }
 
-extern "C" int main() {
+int main() {
     UiWindow::Window* CalculatorWindow = new UiWindow::Window("Calculator", "d0:calculator.tga", 400, 600, 10, 10);
 
     CreateDisplay(CalculatorWindow->Cpnt);

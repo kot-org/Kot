@@ -1,5 +1,5 @@
 #pragma once
-#include <kot/types.h>
+#include <lib/types.h>
 
 namespace ACPI{
     struct RSDP2{
@@ -67,5 +67,5 @@ namespace ACPI{
         uint8_t PageProtection;
     }__attribute__((packed));
 
-    uintptr_t FindTable(RSDP2* rsdp, char* signature);
+    void* FindTable(RSDP2* rsdp, char* signature);
 }

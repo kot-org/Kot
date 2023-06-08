@@ -1,4 +1,5 @@
-#include <kot/heap.h>
+#include <stdlib.h>
+#include <stdint.h>
 #include <kot++/printf.h>
 
 #ifndef __LIBCPP__STACK__
@@ -10,10 +11,10 @@ namespace std {
     private:
         uint64_t top;
         uint64_t sector_size;
-        uintptr_t current_sector = NULL;
+        void* current_sector = NULL;
     public:
         Stack(uint64_t sector_size);
-        void sinkInto(uintptr_t dest, uint64_t size);
+        void sinkInto(void* dest, uint64_t size);
         uint8_t pop8();
         uint16_t pop16();
         uint32_t pop32();

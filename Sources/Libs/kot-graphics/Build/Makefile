@@ -1,13 +1,17 @@
 _HOME = ../../../../
 
-CC = clang-14
+INCDIR = $(_HOME)Sysroot/include
+BUILDDIR := $(_HOME)Sysroot/lib
+BINDIR = $(_HOME)Bin/Modules
+
 ASMC = nasm
+CC = kot-x86_64-clang
 AR = llvm-ar-14
+
+CFLAGS = -O3 -I../Src -fno-exceptions
 
 INCDIR = $(_HOME)Sysroot/include
 BUILDDIR = $(_HOME)Sysroot/lib/
-
-CFLAGS = -O3 --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-wchar -fno-exceptions -fPIC -I$(INCDIR)
 
 SRCDIR := ../Src
 OBJDIR := ../Lib
@@ -44,4 +48,4 @@ $(INCDIR)/kot-graphics/%.h : $(SRCDIR)/%.h
 
 link:
 	@ echo !==== LINKING
-	$(AR) rcs $(BUILDDIR)kot/graphics.a $(OBJS)
+	$(AR) rcs $(BUILDDIR)libkot-graphics.a $(OBJS)

@@ -1,7 +1,7 @@
 #include <kot-graphics/utils.h>
 #include <kot-graphics/context.h>
 
-int8_t PixelExist(framebuffer_t* fb, uint32_t x, uint32_t y) {
+int8_t PixelExist(kot_framebuffer_t* fb, uint32_t x, uint32_t y) {
     if (x < 0 || y < 0) return -1;
     if (x > fb->Width || y > fb->Height) return -1;
     return 1;
@@ -18,17 +18,17 @@ void inline BlendAlpha(uint32_t* pixel, uint32_t color){
     }
 }
 
-void PutPixel(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t color) {
+void PutPixel(kot_framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t color) {
     uint64_t index = x * 4 + y * fb->Pitch;
     BlendAlpha((uint32_t*)((uint64_t)fb->Buffer + index), color);
 }
 
-uint32_t GetPixel(framebuffer_t* fb, uint32_t x, uint32_t y) {
+uint32_t GetPixel(kot_framebuffer_t* fb, uint32_t x, uint32_t y) {
     uint64_t index = x * 4 + y * fb->Pitch;
     return *(uint32_t*)((uint64_t)fb->Buffer + index);
 }
 
-void BlitFramebuffer(framebuffer_t* To, framebuffer_t* From, uint64_t PositionX, uint64_t PositionY){
+void BlitFramebuffer(kot_framebuffer_t* To, kot_framebuffer_t* From, uint64_t PositionX, uint64_t PositionY){
     uint64_t ToBuffer = (uint64_t)To->Buffer;
     uint64_t FromBuffer = (uint64_t)From->Buffer;
 
@@ -49,14 +49,14 @@ void BlitFramebuffer(framebuffer_t* To, framebuffer_t* From, uint64_t PositionX,
     uint64_t PitchCopy = WidthCopy * To->Btpp;
 
     for(uint64_t H = 0; H < HeightCopy; H++){
-        memcpy((uintptr_t)ToBuffer, (uintptr_t)FromBuffer, PitchCopy);
+        memcpy((void*)ToBuffer, (void*)FromBuffer, PitchCopy);
         ToBuffer += To->Pitch;
         FromBuffer += From->Pitch;
     }
 }
 
 
-void BlitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint64_t PositionX, uint64_t PositionY, uint64_t BorderRadius) {
+void BlitFramebufferRadius(kot_framebuffer_t* to, kot_framebuffer_t* from, uint64_t PositionX, uint64_t PositionY, uint64_t BorderRadius) {
     BlitFramebuffer(to, from, PositionX, PositionY);
     return;
     uint64_t ToBuffer = (uint64_t) to->Buffer;
@@ -85,13 +85,13 @@ void BlitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint64_t Posi
         if (LeftOffset < 0) {
             LeftOffset = 0;
         }
-        memcpy((uintptr_t) (ToBuffer + LeftOffset), (uintptr_t) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
+        memcpy((void*) (ToBuffer + LeftOffset), (void*) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
         ToBuffer += to->Pitch;
         FromBuffer += from->Pitch;
     }
 
     for (uint64_t h = Ray; h < HeightCopy - Ray && h < HeightCopy; h++) {
-        memcpy((uintptr_t) ToBuffer, (uintptr_t) FromBuffer, PitchCopy);
+        memcpy((void*) ToBuffer, (void*) FromBuffer, PitchCopy);
         ToBuffer += to->Pitch;
         FromBuffer += from->Pitch;
     }
@@ -103,14 +103,14 @@ void BlitFramebufferRadius(framebuffer_t* to, framebuffer_t* from, uint64_t Posi
         if (LeftOffset < 0) {
             LeftOffset = 0;
         }
-        memcpy((uintptr_t) (ToBuffer + LeftOffset), (uintptr_t) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
+        memcpy((void*) (ToBuffer + LeftOffset), (void*) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
         ToBuffer += to->Pitch;
         FromBuffer += from->Pitch;
     }
 }
 
 
-void FillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color) {
+void FillRect(kot_framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color) {
     uint32_t _h = Height+y;
     uint32_t _w = Width+x;
 
@@ -123,12 +123,12 @@ void FillRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_
             uint64_t XPosition = w * fb->Btpp;
             uint64_t index = YPosition + XPosition;
             *(uint32_t*)((uint64_t)fb->Buffer + index) = color;
-            //blendAlpha((uintptr_t)((uint64_t)fb->Buffer + index), color);
+            //blendAlpha((void*)((uint64_t)fb->Buffer + index), color);
         }
     }
 }
 
-void DrawLine(framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color) {
+void DrawLine(kot_framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color) {
 
     if (x1 > fb->Width) { x1 = fb->Width; }
     if (y1 > fb->Height) { y1 = fb->Height; }
@@ -143,8 +143,8 @@ void DrawLine(framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t
     int32_t dx = x2-x1;
     int32_t dy = y2-y1;
 
-    int8_t sx = sgn(dx);
-    int8_t sy = sgn(dy);
+    int8_t sx = kot_sgn(dx);
+    int8_t sy = kot_sgn(dy);
 
     int32_t x = x1;
     int32_t y = y1;
@@ -182,7 +182,7 @@ void DrawLine(framebuffer_t* fb, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t
 
 }
 
-void DrawRect(framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color) {
+void DrawRect(kot_framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t Width, uint32_t Height, uint32_t color) {
     DrawLine(fb, x, y, x+Width, y, color); // top
     DrawLine(fb, x, y+Height, x+Width, y+Height, color); // bottom
     DrawLine(fb, x, y, x, y+Height, color); // left

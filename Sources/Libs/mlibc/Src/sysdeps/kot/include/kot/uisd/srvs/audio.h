@@ -7,6 +7,10 @@
 #include <kot/atomic.h>
 #include <kot/memory.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #define AUDIO_STREAM_CLOSE          0x0
 #define AUDIO_STREAM_SET_VOLUME     0x1
 
@@ -58,7 +62,7 @@ typedef struct {
 
     kot_event_t OnOffsetUpdate;
 
-    kot_ksmem_t StreamBufferKey;
+    kot_key_mem_t StreamBufferKey;
 } kot_srv_audio_device_t;
 
 typedef uint8_t kot_audio_volume_t;
@@ -70,7 +74,7 @@ typedef struct{
 } kot_audio_buffer_t;
 
 typedef struct{
-    kot_ksmem_t StreamBufferKey;
+    kot_key_mem_t StreamBufferKey;
     size64_t StreamSize;
     size64_t StreamRealSize;
     size64_t PositionOfStreamData;
@@ -84,7 +88,7 @@ typedef struct{
 
 struct kot_srv_audio_callback_t{
     kot_thread_t Self;
-    uint64_t Data;
+    uintptr_t Data;
     size64_t Size;
     bool IsAwait;
     KResult Status;
@@ -107,5 +111,9 @@ struct kot_srv_audio_callback_t* kot_Srv_Audio_GetDeviceInfo(uint64_t OutputID, 
 
 struct kot_srv_audio_callback_t* kot_Srv_Audio_AddDevice(kot_srv_audio_device_t* Device, bool IsAwait);
 
+
+#if defined(__cplusplus)
+} 
+#endif
 
 #endif

@@ -1,5 +1,5 @@
-#include "json.h"
-#include "string.h"
+#include <kot++/json.h>
+#include <kot++/string.h>
 
 namespace std {
 
@@ -200,7 +200,7 @@ namespace std {
         }
         uint16_t size = lexer->index - start;
         char* temp = (char*) malloc(size + 1);
-        memcpy(temp, (uintptr_t)((uint64_t) lexer->buffer + start), size);
+        memcpy(temp, (void*)((uint64_t) lexer->buffer + start), size);
         temp[size] = '\0';
         this->number = atoi(temp);
         free(temp);
@@ -243,7 +243,7 @@ namespace std {
         }
         uint64_t size = lexer->index - start;
         this->buffer = (char*) malloc(size + 1);
-        memcpy(this->buffer, (uintptr_t)((uint64_t) lexer->buffer + start), size);
+        memcpy(this->buffer, (void*)((uint64_t) lexer->buffer + start), size);
         this->buffer[size] = '\0';
         lexer->index++;
     }
@@ -303,7 +303,7 @@ namespace std {
                 code = JSON_FAILED;
                 return;
             }
-            map_set(this->obj, key->Get(), parser2->getValue());
+            kot_map_set(this->obj, key->Get(), (void*)parser2->getValue());
             lexer->skipUseless();
             if (lexer->buffer[lexer->index] == '}') {
                 lexer->index++;
@@ -320,11 +320,11 @@ namespace std {
     char* JsonObject::serealize() {
         StringBuilder* builder = new StringBuilder("{");
         for (uint64_t i = 0; i < obj->length; i++) {
-            char* key = (char*) map_key(obj, i);
+            char* key = (char*) kot_map_key(obj, i);
             builder->append("\"");
             builder->append(key);
             builder->append("\":");
-            JsonValue* val = (JsonValue*) map_geti(obj, i);
+            JsonValue* val = (JsonValue*) kot_map_geti(obj, i);
             char* deserialized = val->serealize();
             builder->append(deserialized);
             if (val->getType() == JSON_STRING || val->getType() == JSON_NUMBER) {
@@ -339,11 +339,11 @@ namespace std {
     }
 
     JsonValue* JsonObject::Get(char* key) {
-        return (JsonValue*) map_get(obj, key);
+        return (JsonValue*) kot_map_get(obj, key);
     }
 
     void JsonObject::set(char* key, JsonValue* value) {
-        map_set(obj, key, value);
+        kot_map_set(obj, key, (void*)value);
     }
 
     JsonParsingCode JsonObject::getCode() {
@@ -374,7 +374,7 @@ namespace std {
                 code = JSON_FAILED;
                 return;
             }
-            vector_push(this->arr, parser->getValue());
+            kot_vector_push(this->arr, (void*)parser->getValue());
             lexer->skipUseless();
             if (lexer->buffer[lexer->index] == ']') {
                 lexer->index++;
@@ -389,15 +389,15 @@ namespace std {
     }
 
     JsonValue* JsonArray::Get(uint64_t index) {
-        return (JsonValue*) vector_get(this->arr, index);
+        return (JsonValue*) kot_vector_get(this->arr, index);
     }
 
     void JsonArray::set(uint64_t index, JsonValue* value) {
-        vector_set(this->arr, index, value);
+        kot_vector_set(this->arr, index, (void*)value);
     }
 
     void JsonArray::push(JsonValue* value) {
-        vector_push(this->arr, value);
+        kot_vector_push(this->arr, (void*)value);
     }
 
     uint64_t JsonArray::length() {

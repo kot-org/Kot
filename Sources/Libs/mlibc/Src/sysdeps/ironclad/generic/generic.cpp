@@ -56,7 +56,7 @@ int sys_open_dir(const char *path, int *handle) {
 	return sys_open(path, O_RDONLY, 0660, handle);
 }
 
-int sys_close(int fd) {
+int kot_Sys_Close(int fd) {
 	int ret, errno;
 	SYSCALL1(SYSCALL_CLOSE, fd);
 	return errno;

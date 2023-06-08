@@ -11,7 +11,7 @@ graphiceventbuffer_t* CreateEventBuffer(uint64_t Width, uint64_t Height){
 
     EventBuffer->Pitch = EventBuffer->Width * EventBuffer->Btpp;
     EventBuffer->Size = EventBuffer->Pitch * EventBuffer->Height;
-    EventBuffer->Buffer = calloc(EventBuffer->Size);
+    EventBuffer->Buffer = calloc(1, EventBuffer->Size);
 
     return EventBuffer;
 }
@@ -41,7 +41,7 @@ void SetGraphicEventbuffer(graphiceventbuffer_t* Framebuffer, uint64_t Value, ui
     uint64_t PitchCopy = WithCopy * Framebuffer->Btpp;
 
     for(uint64_t H = 0; H < HeightCopy; H++){
-        memset64((uintptr_t)Buffer, Value, PitchCopy);
+        kot_memset64((void*)Buffer, Value, PitchCopy);
         Buffer += Framebuffer->Pitch;
     }
 }
@@ -68,12 +68,12 @@ void SetGraphicEventbufferRadius(graphiceventbuffer_t* Framebuffer, uint64_t Val
         uint64_t CircleH = h;
         uint64_t Height = (Ray - CircleH);
         uint64_t LeftOffset = (uint64_t)(Ray - sqrt(Ray*Ray-Height*Height)) * Framebuffer->Btpp;
-        memset64((uintptr_t) (ToBuffer + LeftOffset), Value, PitchCopy - (LeftOffset * 2));
+        memset64((void*) (ToBuffer + LeftOffset), Value, PitchCopy - (LeftOffset * 2));
         ToBuffer += Framebuffer->Pitch;
     }
 
     for (uint64_t h = Ray; h < Height - Ray && h < Height; h++) {
-        memset64((uintptr_t) ToBuffer, Value, PitchCopy);
+        memset64((void*) ToBuffer, Value, PitchCopy);
         ToBuffer += Framebuffer->Pitch;
     }
 
@@ -81,7 +81,7 @@ void SetGraphicEventbufferRadius(graphiceventbuffer_t* Framebuffer, uint64_t Val
         uint64_t CircleH = Height - h;
         uint64_t Height = (Ray - CircleH);
         uint64_t LeftOffset = (uint64_t)(Ray - sqrt(Ray*Ray-Height*Height)) * Framebuffer->Btpp;
-        memset64((uintptr_t) (ToBuffer + LeftOffset), Value, PitchCopy - (LeftOffset * 2));
+        memset64((void*) (ToBuffer + LeftOffset), Value, PitchCopy - (LeftOffset * 2));
         ToBuffer += Framebuffer->Pitch;
     }
 }
@@ -107,7 +107,7 @@ void BlitGraphicEventbuffer(graphiceventbuffer_t* To, graphiceventbuffer_t* From
     uint64_t PitchCopy = WithCopy * To->Btpp;
 
     for(uint64_t H = 0; H < HeightCopy; H++){
-        memcpy((uintptr_t)ToBuffer, (uintptr_t)FromBuffer, PitchCopy);
+        memcpy((void*)ToBuffer, (void*)FromBuffer, PitchCopy);
         ToBuffer += To->Pitch;
         FromBuffer += From->Pitch;
     }
@@ -144,13 +144,13 @@ void BlitGraphicEventbufferRadius(graphiceventbuffer_t* To, graphiceventbuffer_t
         if (LeftOffset < 0) {
             LeftOffset = 0;
         }
-        memcpy((uintptr_t) (ToBuffer + LeftOffset), (uintptr_t) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
+        memcpy((void*) (ToBuffer + LeftOffset), (void*) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
         ToBuffer += To->Pitch;
         FromBuffer += From->Pitch;
     }
 
     for (uint64_t h = Ray; h < HeightCopy - Ray && h < HeightCopy; h++) {
-        memcpy((uintptr_t) ToBuffer, (uintptr_t) FromBuffer, PitchCopy);
+        memcpy((void*) ToBuffer, (void*) FromBuffer, PitchCopy);
         ToBuffer += To->Pitch;
         FromBuffer += From->Pitch;
     }
@@ -162,7 +162,7 @@ void BlitGraphicEventbufferRadius(graphiceventbuffer_t* To, graphiceventbuffer_t
         if (LeftOffset < 0) {
             LeftOffset = 0;
         }
-        memcpy((uintptr_t) (ToBuffer + LeftOffset), (uintptr_t) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
+        memcpy((void*) (ToBuffer + LeftOffset), (void*) (FromBuffer + LeftOffset), PitchCopy - (LeftOffset * 2));
         ToBuffer += To->Pitch;
         FromBuffer += From->Pitch;
     }

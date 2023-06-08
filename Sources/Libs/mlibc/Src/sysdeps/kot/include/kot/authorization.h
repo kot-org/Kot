@@ -1,7 +1,11 @@
-#ifndef _AUTHORIZATION_H
-#define _AUTHORIZATION_H 1
+#ifndef KOT_AUTHORIZATION_H
+#define KOT_AUTHORIZATION_H 1
 
 #include <kot/types.h>
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 #define AUTHORIZATION_FS                0x0
 
@@ -27,5 +31,9 @@ typedef struct{
 }kot_autorization_field_t;
 
 KResult kot_GetAuthorization(kot_autorization_field_t* data, bool IsAwait);
+
+#if defined(__cplusplus)
+} 
+#endif
 
 #endif

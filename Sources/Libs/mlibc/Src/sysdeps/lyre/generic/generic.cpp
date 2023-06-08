@@ -341,8 +341,8 @@ retry:
 
 #endif
 
-int sys_close(int fd) {
-	__syscall_ret ret = __syscall(SYS_close, fd);
+int kot_Sys_Close(int fd) {
+	__syscall_ret ret = __syscall(kot_Sys_Close, fd);
 	if ((int)ret.ret == -1) {
 		return ret.errno;
 	}

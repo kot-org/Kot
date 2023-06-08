@@ -1,44 +1,44 @@
 #include <srv/srv.h>
 
-uisd_time_t* SrvData;
+kot_uisd_time_t* SrvData;
 
 KResult InitialiseServer(){
-    process_t proc = Sys_GetProcess();
+    kot_process_t proc = kot_Sys_GetProcess();
 
-    uintptr_t address = GetFreeAlignedSpace(sizeof(uisd_time_t));
-    ksmem_t key = NULL;
-    Sys_CreateMemoryField(proc, sizeof(uisd_time_t), &address, &key, MemoryFieldTypeShareSpaceRO);
+    void* address = kot_GetFreeAlignedSpace(sizeof(kot_uisd_time_t));
+    kot_key_mem_t key = NULL;
+    kot_Sys_CreateMemoryField(proc, sizeof(kot_uisd_time_t), &address, &key, MemoryFieldTypeShareSpaceRO);
 
-    SrvData = (uisd_time_t*)address;
-    memset(SrvData, 0, sizeof(uisd_time_t)); // Clear data
+    SrvData = (kot_uisd_time_t*)address;
+    memset(SrvData, 0, sizeof(kot_uisd_time_t)); // Clear data
 
     SrvData->ControllerHeader.IsReadWrite = false;
     SrvData->ControllerHeader.Version = Time_Srv_Version;
     SrvData->ControllerHeader.VendorID = Kot_VendorID;
     SrvData->ControllerHeader.Type = ControllerTypeEnum_Time;
-    SrvData->ControllerHeader.Process = ShareProcessKey(proc);
+    SrvData->ControllerHeader.Process = kot_ShareProcessKey(proc);
 
 
     /* SetTimePointerKey */
-    thread_t SetTimePointerKeyThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&SetTimePointerKeySrv, PriviledgeApp, NULL, &SetTimePointerKeyThread);
-    SrvData->SetTimePointerKey = MakeShareableThread(SetTimePointerKeyThread, PriviledgeDriver);
+    kot_thread_t SetTimePointerKeyThread = NULL;
+    kot_Sys_CreateThread(proc, (void*)&SetTimePointerKeySrv, PriviledgeApp, NULL, &SetTimePointerKeyThread);
+    SrvData->SetTimePointerKey = kot_MakeShareableThread(SetTimePointerKeyThread, PriviledgeDriver);
 
     /* SetTickPointerKey */
-    thread_t SetTickPointerKeyThread = NULL;
-    Sys_CreateThread(proc, (uintptr_t)&SetTickPointerKeySrv, PriviledgeApp, NULL, &SetTickPointerKeyThread);
-    SrvData->SetTickPointerKey = MakeShareableThread(SetTickPointerKeyThread, PriviledgeDriver);
+    kot_thread_t SetTickPointerKeyThread = NULL;
+    kot_Sys_CreateThread(proc, (void*)&SetTickPointerKeySrv, PriviledgeApp, NULL, &SetTickPointerKeyThread);
+    SrvData->SetTickPointerKey = kot_MakeShareableThread(SetTickPointerKeyThread, PriviledgeDriver);
 
-    CreateControllerUISD(ControllerTypeEnum_Time, key, true);
+    kot_CreateControllerUISD(ControllerTypeEnum_Time, key, true);
     return KSUCCESS;
 }
 
-KResult SetTimePointerKeySrv(thread_t Callback, uint64_t CallbackArg, ksmem_t TimePointerKey){
+KResult SetTimePointerKeySrv(kot_thread_t Callback, uint64_t CallbackArg, kot_key_mem_t TimePointerKey){
     KResult Status = KFAIL;
 
     SrvData->TimePointerKey = TimePointerKey;
     
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
@@ -47,17 +47,17 @@ KResult SetTimePointerKeySrv(thread_t Callback, uint64_t CallbackArg, ksmem_t Ti
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }
 
-KResult SetTickPointerKeySrv(thread_t Callback, uint64_t CallbackArg, ksmem_t TickPointerKey, uint64_t TickPeriod){
+KResult SetTickPointerKeySrv(kot_thread_t Callback, uint64_t CallbackArg, kot_key_mem_t TickPointerKey, uint64_t TickPeriod){
     KResult Status = KFAIL;
 
     SrvData->TickPointerKey = TickPointerKey;
     SrvData->TickPeriod = TickPeriod;
     
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,            /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = NULL,             /* GP0 */
@@ -66,6 +66,6 @@ KResult SetTickPointerKeySrv(thread_t Callback, uint64_t CallbackArg, ksmem_t Ti
         .arg[5] = NULL,             /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }

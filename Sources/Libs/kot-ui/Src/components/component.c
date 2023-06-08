@@ -22,12 +22,12 @@ void blitComponentFramebuffer(component_t* component) {
 
 component_t* AddComponent(component_t* parent, componentViewParam_t param) {
     /* framebuffer */
-    framebuffer_t* fb = malloc(sizeof(framebuffer_t));
+    kot_framebuffer_t* fb = malloc(sizeof(kot_framebuffer_t));
 
     uint32_t Pitch = param.Width * parent->fb->Btpp;
 
     fb->Size = param.Height * Pitch;
-    fb->Buffer = calloc(fb->Size);
+    fb->Buffer = calloc(1, fb->Size);
     fb->Pitch = Pitch;
     fb->Width = param.Width;
     fb->Height = param.Height;
@@ -55,8 +55,8 @@ component_t* AddComponent(component_t* parent, componentViewParam_t param) {
     cpnt->parent = parent;
     
     if(!parent->childs)
-        parent->childs = vector_create();
-    vector_push(parent->childs, cpnt);
+        parent->childs = kot_vector_create();
+    kot_vector_push(parent->childs, cpnt);
 
     return cpnt;
 }
@@ -89,7 +89,7 @@ void RemoveComponent(component_t* cpnt) {
     free(cpnt);
 }
 
-component_t* GetMainParent(framebuffer_t* fb) {
+component_t* GetMainParent(kot_framebuffer_t* fb) {
     component_t* parent = malloc(sizeof(component_t));
     componentViewParam_t* param = malloc(sizeof(componentViewParam_t));
 
@@ -209,7 +209,7 @@ button_t* CreateButton(component_t* parent, componentViewParam_t param) {
 
 /*     char* buff[50];
     itoa(parent->type, buff, 10);
-    Printlog(buff); */
+    kot_Printlog(buff); */
 
     uint32_t newWidth = parent->fb->Width + param.Width;
     

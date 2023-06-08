@@ -2,7 +2,7 @@
 
 namespace initrd{
     Info* info;
-    void Parse(uintptr_t baseAddress, size64_t size){
+    void Parse(void* baseAddress, size64_t size){
         if(size == NULL) return;
         info = (Info*)kmalloc(sizeof(Info));
         info->baseAddress = baseAddress;
@@ -32,9 +32,9 @@ namespace initrd{
         return file;
     }
 
-    bool Read(File* file, uintptr_t buffer){
+    bool Read(File* file, void* buffer){
         if(info == NULL) return false;
-        uintptr_t fileData = (uintptr_t)((uint64_t)file + sizeof(File));
+        void* fileData = (void*)((uint64_t)file + sizeof(File));
         memcpy(buffer, fileData, file->size);
         return true;
     }

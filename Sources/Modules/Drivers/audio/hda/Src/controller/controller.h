@@ -2,7 +2,7 @@
 
 #include <kot/sys.h>
 #include <kot/bits.h>
-#include <kot/assert.h>
+#include <assert.h>
 #include <kot/utils/vector.h>
 
 #include <kot/uisd/srvs/pci.h>
@@ -14,7 +14,7 @@
 
 #include <srv/srv.h>
 
-extern process_t Proc;
+extern kot_process_t Proc;
 
 #define HDA_CLASS           0x4
 #define HDA_SUBCLASS        0x3
@@ -369,7 +369,7 @@ struct HDAFunction{
     uint8_t Type;
     uint32_t WidgetsStart;
     uint32_t WidgetsCount;
-    vector_t* Widgets;
+    kot_vector_t* Widgets;
     uint32_t GainStepOut;
     uint32_t AMPOutNode;
     NodeConfiguration Configuration;
@@ -380,7 +380,7 @@ struct HDACodec{
     uint32_t Index;
     uint32_t FunctionsStart;
     uint32_t FunctionsCount;
-    vector_t* Functions;
+    kot_vector_t* Functions;
 };
 
 struct HDAOutput{
@@ -396,11 +396,11 @@ struct HDAOutput{
 
     HDAStreamFormat Format;
 
-    AudioEncoding SampleFormat;
+    kot_AudioEncoding SampleFormat;
 
-    event_t OffsetUpdateEvent;
+    kot_event_t OffsetUpdateEvent;
 
-    srv_audio_device_t AudioDevice;
+    kot_srv_audio_device_t AudioDevice;
 };
 
 struct HDAStream{
@@ -408,12 +408,12 @@ struct HDAStream{
 
     uint32_t StreamNumber;
 
-    uintptr_t BufferDescriptorListPhysicalAddress;
+    void* BufferDescriptorListPhysicalAddress;
     uint32_t BufferDescriptorListEntries;
     HDABufferDescriptorEntry* BufferDescriptorList;
 
-    ksmem_t BufferKey;
-    uintptr_t Buffer;
+    kot_key_mem_t BufferKey;
+    void* Buffer;
     uint64_t CurrentPosition;
     size64_t Size;
     size64_t RealSize;
@@ -423,7 +423,7 @@ struct HDAStream{
 
 class HDAController{
     public:
-        uintptr_t HDABaseAddress;
+        void* HDABaseAddress;
         HDAControllerRegs* Registers;
 
         bool Supports64Bit;
@@ -440,7 +440,7 @@ class HDAController{
 
         uint64_t Lock;
 
-        thread_t InterruptThread;
+        kot_thread_t InterruptThread;
 
         HDACodec Codecs[HDA_MAX_CODECS];
 
@@ -449,14 +449,14 @@ class HDAController{
         KResult SetupCORB();
         KResult SetupRIRB();
 
-        HDAController(PCIDeviceID_t Device);
+        HDAController(kot_PCIDeviceID_t Device);
         ~HDAController();
 
         KResult ConfigureStreamFormat(HDAOutput* Output);
         KResult SetSampleRate(HDAOutput* Output, uint32_t SampleRate);
         KResult SetChannel(HDAOutput* Output, uint8_t Channels);
-        KResult SetVolume(HDAOutput* Output, audio_volume_t Volume);
-        KResult SetSoundEncoding(HDAOutput* Output, AudioEncoding Encoding);
+        KResult SetVolume(HDAOutput* Output, kot_audio_volume_t Volume);
+        KResult SetSoundEncoding(HDAOutput* Output, kot_AudioEncoding Encoding);
         KResult GetNodeConfiguration(HDAWidget* Widget, NodeConfiguration* Config);
 
         KResult ChangeStatus(HDAOutput* Output, bool IsRunning);

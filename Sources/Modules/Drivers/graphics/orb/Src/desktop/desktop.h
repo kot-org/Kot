@@ -51,12 +51,12 @@ class desktopc{
 
 struct desktopcomponent{
     Ui::UiContext* UiCtx;
-    framebuffer_t* Fb;
+    kot_framebuffer_t* Fb;
     graphiceventbuffer_t* Eventbuffer;
     struct hid_event_t* MouseEvent;
-    thread_t MouseEventThread;
+    kot_thread_t MouseEventThread;
     bool IsCpntFocus;
-    point_t Position;
+    kot_point_t Position;
     void MouseHandler(uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status);
 };
 
@@ -66,7 +66,7 @@ struct desktopmonitor{
 
     Ui::Picturebox_t* Wallpaper;
     desktopc* Parent;
-    thread_t ClockThread;
+    kot_thread_t ClockThread;
 
     void SetWallpaper(char* Path, Ui::PictureboxFit Fit);
     void SetSolidColor(uint32_t Color);

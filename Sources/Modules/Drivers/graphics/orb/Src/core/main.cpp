@@ -2,25 +2,25 @@
 
 using namespace std;
 
-process_t ShareableProcess;
+kot_process_t ShareableProcess;
 
 orbc::orbc(){
-    ShareableProcess = ShareProcessKey(Sys_GetProcess());
+    ShareableProcess = kot_ShareProcessKey(kot_Sys_GetProcess());
 
     Render = new renderc(this);
     Hid = new hidc(this);
     Desktop = new desktopc(this);
 
-    srv_system_callback_t* callback = Srv_System_GetFramebuffer(true);
-    srv_system_framebuffer_t* bootframebuffer = (srv_system_framebuffer_t*)callback->Data;
+    kot_srv_system_callback_t* callback = kot_Srv_System_GetFramebuffer(true);
+    kot_srv_system_framebuffer_t* bootframebuffer = (kot_srv_system_framebuffer_t*)callback->Data;
     free(callback);
 
     size64_t FbSize = bootframebuffer->Pitch * bootframebuffer->Height;
 
-    uint64_t virtualAddress = (uint64_t)MapPhysical((uintptr_t)bootframebuffer->Address, FbSize);
+    uint64_t virtualAddress = (uint64_t)kot_MapPhysical((void*)bootframebuffer->Address, FbSize);
 
     
-    monitorc* monitor0 = new monitorc(this, (uintptr_t)virtualAddress, bootframebuffer->Width, bootframebuffer->Height, bootframebuffer->Pitch, bootframebuffer->Bpp, 0, 0);
+    monitorc* monitor0 = new monitorc(this, (void*)virtualAddress, bootframebuffer->Width, bootframebuffer->Height, bootframebuffer->Pitch, bootframebuffer->Bpp, 0, 0);
 
     Hid->CursorMaxPosition.x = monitor0->GetWidth()-1;
     Hid->CursorMaxPosition.y = monitor0->GetHeight()-1;
@@ -28,12 +28,12 @@ orbc::orbc(){
     free(bootframebuffer);
 }
 
-extern "C" int main() {
+int main(){
     orbc* Orb = new orbc();
-    InitialiseServer(Orb);
 
     Orb->Render->StartRender();
-    Printlog("[GRAPHICS/ORB] Service started");
+    InitialiseServer(Orb);
+    kot_Printlog("[GRAPHICS/ORB] Service started");
     
     return KSUCCESS;
 }

@@ -2,10 +2,10 @@
 
 void ctxSubSeqCircle(ctxg_t* ctx, uint32_t xc, uint32_t yc, uint32_t x, uint32_t y, uint32_t color);
 
-ctxg_t* CreateGraphicContext(framebuffer_t* fb) {
+ctxg_t* CreateGraphicContext(kot_framebuffer_t* fb) {
     ctxg_t* ctx = malloc(sizeof(ctxg_t));
     ctx->FbBase = fb->Buffer;
-    ctx->poses = vector_create();
+    ctx->poses = kot_vector_create();
     ctx->Width = fb->Width;
     ctx->Height = fb->Height;
     ctx->Bpp = fb->Bpp;
@@ -46,7 +46,7 @@ void auto_pos(ctxg_t* ctx, bool _auto) {
 }
 
 pos_t* get_pos(ctxg_t* ctx, uint16_t index) {
-    return (pos_t*) vector_get(ctx->poses, index);
+    return (pos_t*) kot_vector_get(ctx->poses, index);
 }
 
 void scale_pos(ctxg_t* ctx, bool _scaling) {
@@ -81,16 +81,16 @@ void add_pos(ctxg_t* ctx) {
     pos_t* pos = (pos_t*) malloc(sizeof(pos_t));
     pos->x = ctx->x;
     pos->y = ctx->y;
-    vector_push(ctx->poses, pos);
+    kot_vector_push(ctx->poses, pos);
 }
 
 void end_path(ctxg_t* ctx) {
     if (ctx->poses->length > 0) {
         pos_t* to = (pos_t*) malloc(sizeof(pos_t));
-        pos_t* from = (pos_t*) vector_get(ctx->poses, 0);
+        pos_t* from = (pos_t*) kot_vector_get(ctx->poses, 0);
         to->x = from->x;
         to->y = from->y;
-        vector_push(ctx->poses, to);
+        kot_vector_push(ctx->poses, to);
     }
 }
 
@@ -99,8 +99,8 @@ void draw(ctxg_t* ctx, uint32_t color) {
         end_path(ctx);
     }
     for (uint64_t i = 0; i < ctx->poses->length-1; i++) {
-        pos_t* pos1 = (pos_t*) vector_get(ctx->poses, i);
-        pos_t* pos2 = (pos_t*) vector_get(ctx->poses, i+1);
+        pos_t* pos1 = (pos_t*) kot_vector_get(ctx->poses, i);
+        pos_t* pos2 = (pos_t*) kot_vector_get(ctx->poses, i+1);
         ctxDrawLine(ctx, pos1->x, pos1->y, pos2->x, pos2->y, color);
     }
 }
@@ -108,7 +108,7 @@ void draw(ctxg_t* ctx, uint32_t color) {
 void resetCtx(ctxg_t* ctx) {
     ctx->x = 0;
     ctx->y = 0;
-    vector_clear(ctx->poses);
+    kot_vector_clear(ctx->poses);
 }
 
 // ## absolute ##
@@ -218,8 +218,8 @@ void ctxDrawLine(ctxg_t* ctx, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2
     int32_t dx = x2-x1;
     int32_t dy = y2-y1;
 
-    int8_t sx = sgn(dx);
-    int8_t sy = sgn(dy);
+    int8_t sx = kot_sgn(dx);
+    int8_t sy = kot_sgn(dy);
 
     int32_t x = x1;
     int32_t y = y1;
@@ -266,11 +266,11 @@ void ctxDrawRect(ctxg_t* ctx, uint32_t x, uint32_t y, uint32_t Width, uint32_t H
 
 // ## frame buffer ##
 
-void swapTo(ctxg_t* ctx, uintptr_t to) {
+void swapTo(ctxg_t* ctx, void* to) {
     memcpy(to, ctx->FbBase, ctx->FbSize);
 }
 
-void swapFrom(ctxg_t* ctx, uintptr_t from) {
+void swapFrom(ctxg_t* ctx, void* from) {
     memcpy(ctx->FbBase, from, ctx->FbSize);
 }
 
@@ -287,9 +287,9 @@ void clear(ctxg_t* ctx) {
 } 
 
 void clearColor(ctxg_t* ctx, uint32_t color) {
-    memset32(ctx->FbBase, color, ctx->FbSize);
+    kot_memset32(ctx->FbBase, color, ctx->FbSize);
 } 
 
-uintptr_t GetFramebuffer(ctxg_t* ctx) {
+void* GetFramebuffer(ctxg_t* ctx) {
     return ctx->FbBase;
 }

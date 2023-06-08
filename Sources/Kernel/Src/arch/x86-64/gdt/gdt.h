@@ -1,5 +1,5 @@
 #pragma once
-#include <kot/types.h>
+#include <lib/types.h>
 #include <lib/limits.h>
 #include <arch/x86-64/smp/smp.h>
 

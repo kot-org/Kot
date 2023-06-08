@@ -15,7 +15,7 @@ void InitializeACPI(ukl_boot_structure_t* BootData, ArchInfo_t* ArchInfo){
         KernelPanic("RSDP not found");
     }
 
-    ACPI::RSDP2* RSDP = (ACPI::RSDP2*)vmm_Map((uintptr_t)BootData->RSDP.base, BootData->RSDP.size);
+    ACPI::RSDP2* RSDP = (ACPI::RSDP2*)vmm_Map((void*)BootData->RSDP.base, BootData->RSDP.size);
 
     ACPI::MADTHeader* madt = (ACPI::MADTHeader*)ACPI::FindTable(RSDP, (char*)"APIC");
 
@@ -53,7 +53,7 @@ ArchInfo_t* arch_initialize(ukl_boot_structure_t* BootData){
     uint64_t LastAddressUsed = vmm_Init(BootData);
     Successful("VMM initialized");
     
-    InitializeHeap((uintptr_t)LastAddressUsed, (uintptr_t)0xFFFFFFFFFFFFF000, 0x10);
+    InitializeHeap((void*)LastAddressUsed, (void*)0xFFFFFFFFFFFFF000, 0x10);
     Successful("Heap initialized");
 
     ArchInfo_t* ArchInfo = (ArchInfo_t*)kmalloc(sizeof(ArchInfo_t));
@@ -71,7 +71,7 @@ ArchInfo_t* arch_initialize(ukl_boot_structure_t* BootData){
     
 
     globalTaskManager = (TaskManager*)kcalloc(sizeof(TaskManager));
-    globalTaskManager->InitScheduler(APIC::ProcessorCount, (uintptr_t)&IdleTask);
+    globalTaskManager->InitScheduler(APIC::ProcessorCount, (void*)&IdleTask);
 
 
     APIC::EnableAPIC(CPU::GetAPICID());
@@ -90,26 +90,26 @@ ArchInfo_t* arch_initialize(ukl_boot_structure_t* BootData){
     ArchInfo->memoryInfo = (memoryInfo_t*)vmm_GetPhysical(vmm_PageTable, &Pmm_MemoryInfo);
 
     //smbios
-    ArchInfo->smbios = (uintptr_t)BootData->SMBIOS.base;
+    ArchInfo->smbios = (void*)BootData->SMBIOS.base;
     
-    ArchInfo->rsdp = (uintptr_t)BootData->RSDP.base;
+    ArchInfo->rsdp = (void*)BootData->RSDP.base;
 
 
-    initrd::Parse((uintptr_t)ArchInfo->initrd.base, ArchInfo->initrd.size);
+    initrd::Parse((void*)ArchInfo->initrd.base, ArchInfo->initrd.size);
     Successful("Initrd initialized");
     return ArchInfo;
 }
 
-KResult GetDataToStartService(ArchInfo_t* ArchInfo, kthread_t* thread, arguments_t* Parameters, uintptr_t* Data, size64_t* Size){
+KResult GetDataToStartService(ArchInfo_t* ArchInfo, kthread_t* thread, arguments_t* Parameters, void** Data, size64_t* Size){
     KResult Status = KFAIL;
-    ArchInfo = (ArchInfo_t*)krealloc(ArchInfo, sizeof(ArchInfo_t) + ArchInfo->IRQSize * sizeof(event_t));
+    *Size = sizeof(ArchInfo_t) + ArchInfo->IRQSize * sizeof(kot_event_t);
+    *Data = (ArchInfo_t*)kmalloc(*Size);
+    memcpy(*Data, ArchInfo, sizeof(ArchInfo_t));
     for(uint64_t i = 0; i < ArchInfo->IRQSize; i++){
         if(InterruptEventList[i] != NULL){
-            Keyhole_Create((key_t*)&ArchInfo->IRQEvents[i], thread->Parent, thread->Parent, DataTypeEvent, (uint64_t)InterruptEventList[i], KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeApp);
+            Keyhole_Create((key_t*)&((ArchInfo_t*)*Data)->IRQEvents[i], thread->Parent, thread->Parent, DataTypeEvent, (uint64_t)InterruptEventList[i], KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeApp);
         }
     }
-    *Data = ArchInfo;
-    *Size = sizeof(ArchInfo_t) + ArchInfo->IRQSize * sizeof(event_t);
     return Status;
 }
 

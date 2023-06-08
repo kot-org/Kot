@@ -1,7 +1,9 @@
 #pragma once
 
-#include <kot/heap.h>
-#include <kot/assert.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <assert.h>
 
 #include <kot++/printf.h>
 

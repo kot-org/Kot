@@ -2,7 +2,7 @@
 
 /* TODO test driver with : sudo e2fsck -f <partition> */
 
-mount_info_t* InitializeMount(srv_storage_device_t* StorageDevice){
+mount_info_t* InitializeMount(kot_srv_storage_device_t* StorageDevice){
     mount_info_t* MountInfo = (mount_info_t*)malloc(sizeof(mount_info_t));
     MountInfo->StorageDevice = StorageDevice;
 
@@ -16,7 +16,7 @@ mount_info_t* InitializeMount(srv_storage_device_t* StorageDevice){
 
     if(MountInfo->SuperBlock->rev_level >= EXT_DYNAMIC_REV){
         super_block_ext2_dynamic_t* SuperBlockDynamic = (super_block_ext2_dynamic_t*)malloc(sizeof(super_block_ext2_dynamic_t));
-        Srv_ReadDevice(StorageDevice, SuperBlockDynamic, EXT_SUPERBLOCK_START + sizeof(super_block_t), sizeof(super_block_ext2_dynamic_t));
+        kot_Srv_ReadDevice(StorageDevice, SuperBlockDynamic, EXT_SUPERBLOCK_START + sizeof(super_block_t), sizeof(super_block_ext2_dynamic_t));
         MountInfo->FirstInode = SuperBlockDynamic->first_ino;
         MountInfo->InodeSize = SuperBlockDynamic->inode_size;
         MountInfo->RequiredFeature = SuperBlockDynamic->required_features;
@@ -47,11 +47,11 @@ uint64_t mount_info_t::GetSpaceFree(){
 
 KResult mount_info_t::ReadSuperBlock(){
     SuperBlock = (super_block_t*)malloc(sizeof(super_block_t));
-    return Srv_ReadDevice(StorageDevice, SuperBlock, EXT_SUPERBLOCK_START, sizeof(super_block_t));
+    return kot_Srv_ReadDevice(StorageDevice, SuperBlock, EXT_SUPERBLOCK_START, sizeof(super_block_t));
 }
 
 KResult mount_info_t::WriteSuperBlock(){
-    return Srv_WriteDevice(StorageDevice, SuperBlock, EXT_SUPERBLOCK_START, sizeof(super_block_t));
+    return kot_Srv_WriteDevice(StorageDevice, SuperBlock, EXT_SUPERBLOCK_START, sizeof(super_block_t));
 }
 
 KResult mount_info_t::ReadGroupDescriptors(){
@@ -60,7 +60,7 @@ KResult mount_info_t::ReadGroupDescriptors(){
 	GroupsCount = (i > j) ? i : j;
     GroupDescriptors = malloc(sizeof(ext2_group_descriptor_t) * GroupsCount);
     uint64_t DescriptorGroupOffset = GetLocationFromBlock(FirstBlock);
-    return Srv_ReadDevice(StorageDevice, GroupDescriptors, DescriptorGroupOffset, sizeof(ext2_group_descriptor_t) * GroupsCount);
+    return kot_Srv_ReadDevice(StorageDevice, GroupDescriptors, DescriptorGroupOffset, sizeof(ext2_group_descriptor_t) * GroupsCount);
 }
 
 uint64_t mount_info_t::GetLocationFromBlock(uint64_t block){
@@ -106,19 +106,19 @@ uint64_t mount_info_t::GetIndexInodeInsideBlockGroupFromInode(uint64_t inode){
 
 /* Inode functions */
 inode_t* mount_info_t::GetInode(uint64_t position){
-    inode_t* Inode = (inode_t*)calloc(InodeSize + INODE_EXTRA_SIZE);
+    inode_t* Inode = (inode_t*)calloc(1, InodeSize + INODE_EXTRA_SIZE);
     ext2_group_descriptor_t* DescriptorGroup = GetDescriptorFromInode(position);
 
     uint64_t InodeTableBlock = GetInodeTable(DescriptorGroup);
     uint64_t LocationOfInode = GetLocationFromBlock(InodeTableBlock) + GetIndexInodeInsideBlockGroupFromInode(position) * InodeSize;
     Inode->InodeLocation = LocationOfInode;
 
-    Srv_ReadDevice(StorageDevice, &Inode->Inode, LocationOfInode, InodeSize);
+    kot_Srv_ReadDevice(StorageDevice, &Inode->Inode, LocationOfInode, InodeSize);
     return Inode;
 }
 
 KResult mount_info_t::SetInode(inode_t* inode){
-    Srv_WriteDevice(StorageDevice, &inode->Inode, inode->InodeLocation, InodeSize);
+    kot_Srv_WriteDevice(StorageDevice, &inode->Inode, inode->InodeLocation, InodeSize);
     return KSUCCESS;
 }
 
@@ -180,7 +180,7 @@ KResult mount_info_t::SetDescriptorFromGroup(uint64_t group, ext2_group_descript
     uint64_t DescriptorGroupBlock = GetBlockGroupStartBlock(group) + FirstBlock;
     uint64_t DescriptorGroupOffset = GetLocationFromBlock(DescriptorGroupBlock);
 
-    Srv_WriteDevice(StorageDevice, descriptor, DescriptorGroupOffset, sizeof(ext2_group_descriptor_t));
+    kot_Srv_WriteDevice(StorageDevice, descriptor, DescriptorGroupOffset, sizeof(ext2_group_descriptor_t));
     return KSUCCESS;
 }
 
@@ -216,7 +216,7 @@ uint64_t mount_info_t::GetUsedDirCount(ext2_group_descriptor_t* descriptor){
 
 
 /* Inode function */
-KResult mount_info_t::ReadInode(inode_t* inode, ksmem_t* key, uint64_t start, size64_t size){
+KResult mount_info_t::ReadInode(inode_t* inode, kot_key_mem_t* key, uint64_t start, size64_t size){
     uint64_t ReadLimit = start + size;
     uint64_t ReadLimitBlock = GetNextBlockLocation(ReadLimit);
     
@@ -234,7 +234,7 @@ KResult mount_info_t::ReadInode(inode_t* inode, ksmem_t* key, uint64_t start, si
     uint32_t* redirectioncache2 = NULL;
 
     // Allocate multiple request struct
-    srv_storage_multiple_requests_t* MultipleRequest = (srv_storage_multiple_requests_t*)malloc(sizeof(srv_storage_multiple_requests_t) + NumberOfBlockToRead * sizeof(srv_storage_request_t));
+    kot_srv_storage_multiple_requests_t* MultipleRequest = (kot_srv_storage_multiple_requests_t*)malloc(sizeof(kot_srv_storage_multiple_requests_t) + NumberOfBlockToRead * sizeof(kot_srv_storage_request_t));
     MultipleRequest->RequestsCount = NumberOfBlockToRead;
     MultipleRequest->TotalSize = SizeToRead;
     MultipleRequest->IsWrite = false;
@@ -282,23 +282,23 @@ KResult mount_info_t::ReadInode(inode_t* inode, ksmem_t* key, uint64_t start, si
     free(redirectioncache1);
     free(redirectioncache2);
 
-    struct srv_storage_device_callback_t* Callback = Srv_SendMultipleRequests(StorageDevice, MultipleRequest);
+    struct kot_srv_storage_device_callback_t* Callback = kot_Srv_SendMultipleRequests(StorageDevice, MultipleRequest);
     KResult Status = Callback->Status;
-    *key = (ksmem_t)Callback->Data;
+    *key = (kot_key_mem_t)Callback->Data;
     free(Callback);
 
     return Status;
 }
-KResult mount_info_t::ReadInode(inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size){
-    ksmem_t Key;
+KResult mount_info_t::ReadInode(inode_t* inode, void* buffer, uint64_t start, size64_t size){
+    kot_key_mem_t Key;
     KResult Status = ReadInode(inode, &Key, start, size);
     if(Status == KSUCCESS){
-        Sys_AcceptMemoryField(Sys_GetProcess(), Key, &buffer);
+        kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), Key, &buffer);
     }
     return Status;
 }
 
-KResult mount_info_t::ReadInodeBlock(struct inode_t* inode, uintptr_t buffer, uint64_t block, uint64_t start, size64_t size){
+KResult mount_info_t::ReadInodeBlock(struct inode_t* inode, void* buffer, uint64_t block, uint64_t start, size64_t size){
     uint64_t redirection0 = 0;
     uint64_t redirection1 = 0;
     uint64_t redirection2 = 0;
@@ -335,7 +335,7 @@ int64_t mount_info_t::GetInodeBlock(inode_t* inode, uint64_t block, uint64_t* re
             return(*redirectioncache0)[block];
         }else{
             block -= SingleRedirectionLimit;
-            uint64_t DoubleRedirectionLimit = exponentInt(EntryPerBlock, 2);
+            uint64_t DoubleRedirectionLimit = ipow(EntryPerBlock, 2);
 
             if(block < DoubleRedirectionLimit){
                 // Double redirection
@@ -359,7 +359,7 @@ int64_t mount_info_t::GetInodeBlock(inode_t* inode, uint64_t block, uint64_t* re
                 return (*redirectioncache1)[block % EntryPerBlock];
             }else{
                 block -= DoubleRedirectionLimit;
-                uint64_t TripleRedirectionLimit = exponentInt(EntryPerBlock, 3);
+                uint64_t TripleRedirectionLimit = ipow(EntryPerBlock, 3);
 
                 if(block < TripleRedirectionLimit){
                     // Triple redirection
@@ -395,13 +395,13 @@ int64_t mount_info_t::GetInodeBlock(inode_t* inode, uint64_t block, uint64_t* re
     return -1;
 }
 
-KResult mount_info_t::WriteInode(inode_t* inode, uintptr_t buffer, uint64_t start, size64_t size, bool is_data_end){
+KResult mount_info_t::WriteInode(inode_t* inode, void* buffer, uint64_t start, size64_t size, bool is_data_end){
     // Allocate or free if necessary
     atomicAcquire(&Lock, 0);
     uint64_t SizeRequested = start + size;
     uint64_t InodeSize = GetSizeFromInode(inode);
-    uint64_t SizeRequestedInBlock = DivideRoundUp(SizeRequested, BlockSize);
-    uint64_t SizeOfInodeInBlock = DivideRoundUp(InodeSize, BlockSize);
+    uint64_t SizeRequestedInBlock = DIV_ROUND_UP(SizeRequested, BlockSize);
+    uint64_t SizeOfInodeInBlock = DIV_ROUND_UP(InodeSize, BlockSize);
     if(SizeRequestedInBlock > SizeOfInodeInBlock){
         // Allocate
         uint64_t BlockToAllocate = SizeRequestedInBlock - SizeOfInodeInBlock;
@@ -439,7 +439,7 @@ KResult mount_info_t::WriteInode(inode_t* inode, uintptr_t buffer, uint64_t star
         if(SizeWrite > BlockSize){
             SizeWrite = BlockSize;
         }
-        WriteInodeBlock(inode, (uintptr_t)BufferPosition, StartBlock, start % BlockSize, SizeWrite - (start % SizeWrite));
+        WriteInodeBlock(inode, (void*)BufferPosition, StartBlock, start % BlockSize, SizeWrite - (start % SizeWrite));
         BufferPosition += start % BlockSize;
         SizeToWrite -= SizeWrite;
         NumberOfBlockToWrite--;
@@ -451,14 +451,14 @@ KResult mount_info_t::WriteInode(inode_t* inode, uintptr_t buffer, uint64_t star
         if(SizeWrite > BlockSize){
             SizeWrite = BlockSize;
         }
-        WriteInodeBlock(inode, (uintptr_t)BufferPosition, StartBlock + i, NULL, SizeWrite);
+        WriteInodeBlock(inode, (void*)BufferPosition, StartBlock + i, NULL, SizeWrite);
         BufferPosition += BlockSize;
         SizeToWrite -= SizeWrite;
     }
     return KSUCCESS;
 }
 
-KResult mount_info_t::WriteInodeBlock(inode_t* inode, uintptr_t buffer, uint64_t block, uint64_t start, size64_t size){
+KResult mount_info_t::WriteInodeBlock(inode_t* inode, void* buffer, uint64_t block, uint64_t start, size64_t size){
     uint64_t EntryPerBlock = BlockSize / sizeof(uint32_t); 
     if(block < INODE_BLOCK_POINTER_SINGLY_INDIRECT_ACCESS){
         // No redirection
@@ -480,7 +480,7 @@ KResult mount_info_t::WriteInodeBlock(inode_t* inode, uintptr_t buffer, uint64_t
             return KSUCCESS;
         }else{
             block -= SingleRedirectionLimit;
-            uint64_t DoubleRedirectionLimit = exponentInt(EntryPerBlock, 2);
+            uint64_t DoubleRedirectionLimit = ipow(EntryPerBlock, 2);
 
             if(block < DoubleRedirectionLimit){
                 // Double redirection
@@ -497,7 +497,7 @@ KResult mount_info_t::WriteInodeBlock(inode_t* inode, uintptr_t buffer, uint64_t
                 return KSUCCESS;
             }else{
                 block -= DoubleRedirectionLimit;
-                uint64_t TripleRedirectionLimit = exponentInt(EntryPerBlock, 3);
+                uint64_t TripleRedirectionLimit = ipow(EntryPerBlock, 3);
 
                 if(block < TripleRedirectionLimit){
                     // Triple redirection
@@ -523,14 +523,14 @@ KResult mount_info_t::WriteInodeBlock(inode_t* inode, uintptr_t buffer, uint64_t
 
 
 
-KResult mount_info_t::ReadBlock(uintptr_t buffer, uint64_t block, uint64_t start, size64_t size){
+KResult mount_info_t::ReadBlock(void* buffer, uint64_t block, uint64_t start, size64_t size){
     uint64_t StartByte = GetLocationFromBlock(block) + start;
-    return Srv_ReadDevice(StorageDevice, buffer, StartByte, size);
+    return kot_Srv_ReadDevice(StorageDevice, buffer, StartByte, size);
 }
 
-KResult mount_info_t::WriteBlock(uintptr_t buffer, uint64_t block, uint64_t start, size64_t size){
+KResult mount_info_t::WriteBlock(void* buffer, uint64_t block, uint64_t start, size64_t size){
     uint64_t StartByte = GetLocationFromBlock(block) + start;
-    return Srv_WriteDevice(StorageDevice, buffer, StartByte, size);
+    return kot_Srv_WriteDevice(StorageDevice, buffer, StartByte, size);
 }
 
 
@@ -539,7 +539,7 @@ uint64_t mount_info_t::GetLocationFromInode(uint64_t inode){
     uint64_t DescriptorGroupBlock = GetBlockGroupStartBlock(GetBlockGroupFromInode(inode)) + SuperBlock->first_data_block;
     uint64_t DescriptorGroupOffset = GetLocationFromBlock(DescriptorGroupBlock);
 
-    Srv_ReadDevice(StorageDevice, DescriptorGroup, DescriptorGroupOffset, sizeof(ext2_group_descriptor_t));
+    kot_Srv_ReadDevice(StorageDevice, DescriptorGroup, DescriptorGroupOffset, sizeof(ext2_group_descriptor_t));
 
     uint64_t InodeTableBlock = (uint64_t)DescriptorGroup->inode_table;
     uint64_t LocationOfInode = DescriptorGroupOffset + GetIndexInodeInsideBlockGroupFromInode(inode) * InodeSize;
@@ -557,11 +557,11 @@ inode_t* mount_info_t::FindInodeFromInodeEntryAndPath(inode_t* inode, char* path
         uint64_t PathEntriesCount;
         char** PathEntries = strsplit(path, "/", &PathEntriesCount);
 
-
         for(uint64_t i = 0; i < PathEntriesCount; i++){
             // Find the directory entry in this inode
             if(!(InodeIteration->Inode.mode & INODE_TYPE_DIRECTORY)){
                 free(InodeIteration);
+                freestrsplit(PathEntries);
                 return NULL;
             }
             inode_t* InodeFind = FindInodeInodeAndEntryFromName(InodeIteration, PathEntries[i]);
@@ -574,9 +574,12 @@ inode_t* mount_info_t::FindInodeFromInodeEntryAndPath(inode_t* inode, char* path
                 if(InodeIteration != inode){
                     free(InodeIteration);
                 }
+                freestrsplit(PathEntries);
                 return NULL;
             }
         }
+
+        freestrsplit(PathEntries);
     }
     return InodeIteration;
 }
@@ -584,7 +587,7 @@ inode_t* mount_info_t::FindInodeFromInodeEntryAndPath(inode_t* inode, char* path
 inode_t* mount_info_t::FindInodeInodeAndEntryFromName(inode_t* inode, char* name){
     // Find the directory entry in this inode
     uint64_t Size = GetSizeFromInode(inode);
-    uint64_t NumberOfEntries = DivideRoundUp(Size, BlockSize);
+    uint64_t NumberOfEntries = DIV_ROUND_UP(Size, BlockSize);
     uint64_t NameLenght = strlen(name);
     ext2_directory_entry_t* DirectoryMain = (ext2_directory_entry_t*)malloc(BlockSize);
     for(uint64_t y = 0; y < NumberOfEntries; y++){
@@ -592,7 +595,7 @@ inode_t* mount_info_t::FindInodeInodeAndEntryFromName(inode_t* inode, char* name
         ReadInodeBlock(inode, Directory, y, NULL, BlockSize);
         while(Directory->type_indicator != 0 && ((uint64_t)Directory - (uint64_t)DirectoryMain) < BlockSize){
             if(NameLenght == Directory->name_length){
-                if(strncmp(Directory->name, name, Directory->name_length)){
+                if(!strncmp(Directory->name, name, Directory->name_length)){
                     uint32_t inode = Directory->inode;
                     free(DirectoryMain);
                     return GetInode(inode);
@@ -607,7 +610,7 @@ inode_t* mount_info_t::FindInodeInodeAndEntryFromName(inode_t* inode, char* name
 }
 
 KResult mount_info_t::LinkInodeToDirectory(inode_t* directory_inode, inode_t* inode, char* name){
-    directory_inode->Inode.atime = GetPosixTime();
+    directory_inode->Inode.atime = kot_GetPosixTime();
     SetInode(directory_inode);
     // Find the directory entry in this inode
     uint64_t NameLenght = strlen(name);
@@ -618,7 +621,7 @@ KResult mount_info_t::LinkInodeToDirectory(inode_t* directory_inode, inode_t* in
     }
 
     uint64_t Size = GetSizeFromInode(directory_inode);
-    uint64_t NumberOfEntries = DivideRoundUp(Size, BlockSize);
+    uint64_t NumberOfEntries = DIV_ROUND_UP(Size, BlockSize);
     ext2_directory_entry_t* DirectoryMain = (ext2_directory_entry_t*)malloc(BlockSize);
     ext2_directory_entry_t* Directory;
     for(uint64_t y = 0; y < NumberOfEntries; y++){
@@ -694,14 +697,14 @@ KResult mount_info_t::UnlinkInodeToDirectory(inode_t* inode, char* name){
     uint64_t NameLenght = strlen(name);
     uint64_t SizeRequestByTheEntry = sizeof(ext2_directory_entry_t) + NameLenght;
     uint64_t Size = GetSizeFromInode(inode);
-    uintptr_t Buffer = malloc(Size);
+    void* Buffer = malloc(Size);
     ext2_directory_entry_t* EntryToDelete = NULL;
     ext2_directory_entry_t* Directory = (ext2_directory_entry_t*)Buffer;
     ReadInode(inode, Directory, NULL, Size);
 
     while(Directory->type_indicator != 0){
         if(NameLenght == Directory->name_length){
-            if(strncmp(Directory->name, name, Directory->name_length)){
+            if(!strncmp(Directory->name, name, Directory->name_length)){
                 EntryToDelete = Directory;
             }
         }
@@ -728,7 +731,7 @@ KResult mount_info_t::UnlinkInodeToDirectory(inode_t* inode, char* name){
 KResult mount_info_t::AllocateBlock(uint64_t* block){
     if(!SuperBlock->free_blocks_count) return KFAIL;
 
-    uint64_t NumberOfGroup = DivideRoundUp(SuperBlock->blocks_count, SuperBlock->blocks_per_group);
+    uint64_t NumberOfGroup = DIV_ROUND_UP(SuperBlock->blocks_count, SuperBlock->blocks_per_group);
 
     uint64_t BlockInBitmapBlock = BlockSize * 8;
     uint8_t* BlockBitmap = (uint8_t*)malloc(BlockSize);
@@ -737,8 +740,8 @@ KResult mount_info_t::AllocateBlock(uint64_t* block){
     for(uint64_t i = 0; i < NumberOfGroup; i++){
         ext2_group_descriptor_t* Descriptor = GetDescriptorFromGroup(i);
         if(Descriptor->free_blocks_count){
-            uint64_t BitmapSize = DivideRoundUp(SuperBlock->blocks_per_group, 8);
-            uint64_t BitmapSizeInBlock = DivideRoundUp(BitmapSize, BlockSize);
+            uint64_t BitmapSize = DIV_ROUND_UP(SuperBlock->blocks_per_group, 8);
+            uint64_t BitmapSizeInBlock = DIV_ROUND_UP(BitmapSize, BlockSize);
             for(uint64_t y = 0; y < BitmapSizeInBlock; y++){
                 // Load bitmap
                 ReadBlock(BlockBitmap, Descriptor->block_bitmap + y, NULL, BlockSize);
@@ -817,7 +820,7 @@ KResult mount_info_t::FreeBlock(uint64_t block){
 KResult mount_info_t::AllocateInode(uint64_t* inode){
     if(!SuperBlock->free_inodes_count) return KFAIL;
 
-    uint64_t NumberOfGroup = DivideRoundUp(SuperBlock->inodes_count, SuperBlock->inodes_per_group);
+    uint64_t NumberOfGroup = DIV_ROUND_UP(SuperBlock->inodes_count, SuperBlock->inodes_per_group);
 
     uint64_t InodeInBitmapBlock = BlockSize * 8;
     uint8_t* BlockBitmap = (uint8_t*)malloc(BlockSize);
@@ -828,8 +831,8 @@ KResult mount_info_t::AllocateInode(uint64_t* inode){
         ext2_group_descriptor_t* Descriptor = GetDescriptorFromGroup(i);
         if (Descriptor->free_inodes_count)
         {
-            uint64_t BitmapSize = DivideRoundUp(SuperBlock->inodes_per_group, 8);
-            uint64_t BitmapSizeInBlock = DivideRoundUp(BitmapSize, BlockSize);
+            uint64_t BitmapSize = DIV_ROUND_UP(SuperBlock->inodes_per_group, 8);
+            uint64_t BitmapSizeInBlock = DIV_ROUND_UP(BitmapSize, BlockSize);
             for (uint64_t y = 0; y < BitmapSizeInBlock; y++)
             {
                 // Load bitmap
@@ -843,7 +846,7 @@ KResult mount_info_t::AllocateInode(uint64_t* inode){
                     {
                         // Update bitmap
                         BIT_SET(BlockBitmap[TargetByte], TargetBit);
-                        Srv_WriteDevice(StorageDevice, &BlockBitmap[TargetByte], Descriptor->inode_bitmap + y + TargetByte, 1);
+                        kot_Srv_WriteDevice(StorageDevice, &BlockBitmap[TargetByte], Descriptor->inode_bitmap + y + TargetByte, 1);
 
                         // Update descriptor
                         Descriptor->free_inodes_count--;
@@ -902,10 +905,10 @@ KResult mount_info_t::FreeInode(uint64_t inode){
 }
 
 KResult mount_info_t::DeleteInode(struct inode_t* inode){
-    FreeInodeBlocks(inode, NULL, DivideRoundUp(GetSizeFromInode(inode), BlockSize));
+    FreeInodeBlocks(inode, NULL, DIV_ROUND_UP(GetSizeFromInode(inode), BlockSize));
     SetSizeFromInode(inode, NULL);
     
-    inode->Inode.dtime = GetPosixTime();
+    inode->Inode.dtime = kot_GetPosixTime();
 
     SetInode(inode);
 
@@ -961,7 +964,7 @@ KResult mount_info_t::AllocateInodeBlock(inode_t* inode, uint64_t block){
             return KSUCCESS;
         }else{
             block -= SingleRedirectionLimit;
-            uint64_t DoubleRedirectionLimit = exponentInt(EntryPerBlock, 2);
+            uint64_t DoubleRedirectionLimit = ipow(EntryPerBlock, 2);
 
             if(block < DoubleRedirectionLimit){
                 // Double redirection
@@ -995,7 +998,7 @@ KResult mount_info_t::AllocateInodeBlock(inode_t* inode, uint64_t block){
                 return KSUCCESS;
             }else{
                 block -= DoubleRedirectionLimit;
-                uint64_t TripleRedirectionLimit = exponentInt(EntryPerBlock, 3);
+                uint64_t TripleRedirectionLimit = ipow(EntryPerBlock, 3);
 
                 if(block < TripleRedirectionLimit){
                     // Triple redirection
@@ -1081,7 +1084,7 @@ KResult mount_info_t::FreeInodeBlock(inode_t* inode, uint64_t block){
             return KSUCCESS;
         }else{
             block -= SingleRedirectionLimit;
-            uint64_t DoubleRedirectionLimit = exponentInt(EntryPerBlock, 2);
+            uint64_t DoubleRedirectionLimit = ipow(EntryPerBlock, 2);
 
             if(block < DoubleRedirectionLimit){
                 // Double redirection
@@ -1119,7 +1122,7 @@ KResult mount_info_t::FreeInodeBlock(inode_t* inode, uint64_t block){
                 return KSUCCESS;
             }else{
                 block -= DoubleRedirectionLimit;
-                uint64_t TripleRedirectionLimit = exponentInt(EntryPerBlock, 3);
+                uint64_t TripleRedirectionLimit = ipow(EntryPerBlock, 3);
 
                 if(block < TripleRedirectionLimit){
                     // Triple redirection
@@ -1174,13 +1177,13 @@ KResult mount_info_t::FreeInodeBlock(inode_t* inode, uint64_t block){
     return KFAIL;
 }
 
-KResult mount_info_t::CheckPermissions(inode_t* inode, permissions_t permissions, permissions_t permissions_requested){
+KResult mount_info_t::CheckPermissions(inode_t* inode, kot_permissions_t permissions, kot_permissions_t permissions_requested){
     // TODO
     return KSUCCESS;
 }
 
 
-KResult mount_info_t::CreateDir(char* path, mode_t mode, permissions_t permissions){
+KResult mount_info_t::CreateDir(char* path, mode_t mode, kot_permissions_t permissions){
     // TODO : mode
     std::StringBuilder* CreatePathSB = new std::StringBuilder(path);
     char* CreatePathDirectory = CreatePathSB->substr(NULL, CreatePathSB->indexOf("/", 0, true));
@@ -1201,7 +1204,7 @@ KResult mount_info_t::CreateDir(char* path, mode_t mode, permissions_t permissio
 
     memset(&Inode->Inode, 0, sizeof(ext2_inode_t));
 
-    Inode->Inode.ctime = GetPosixTime();
+    Inode->Inode.ctime = kot_GetPosixTime();
     Inode->Inode.links_count = 1;
     Inode->Inode.mode = INODE_TYPE_DIRECTORY;
     Inode->Inode.mode |= 0xfff;
@@ -1219,7 +1222,7 @@ KResult mount_info_t::CreateDir(char* path, mode_t mode, permissions_t permissio
     return KSUCCESS;
 }
 
-KResult mount_info_t::RemoveDir(char* path, permissions_t permissions){
+KResult mount_info_t::RemoveDir(char* path, kot_permissions_t permissions){
     inode_t* Inode = FindInodeFromPath(path);
     if(Inode->Inode.mode != INODE_TYPE_DIRECTORY){
         free(Inode);
@@ -1245,14 +1248,14 @@ KResult mount_info_t::RemoveDir(char* path, permissions_t permissions){
     return KSUCCESS;  
 }
 
-ext_directory_t* mount_info_t::OpenDir(char* path, permissions_t permissions){
+ext_directory_t* mount_info_t::OpenDir(char* path, kot_permissions_t permissions){
     inode_t* RootInode = GetInode(EXT_ROOT_INO);
     ext_directory_t* Target = OpenDir(GetInode(EXT_ROOT_INO), path, permissions);
     free(RootInode);
     return Target;
 }
 
-ext_directory_t* mount_info_t::OpenDir(inode_t* inode, char* path, permissions_t permissions){
+ext_directory_t* mount_info_t::OpenDir(inode_t* inode, char* path, kot_permissions_t permissions){
     inode_t* Target = FindInodeFromInodeEntryAndPath(inode, path);
     if(Target){
         if(Target->Inode.mode & INODE_TYPE_DIRECTORY && CheckPermissions(Target, permissions, Storage_Permissions_Read) == KSUCCESS){
@@ -1269,7 +1272,7 @@ ext_directory_t* mount_info_t::OpenDir(inode_t* inode, char* path, permissions_t
 }
 
 read_dir_data* ext_directory_t::ReadDir(uint64_t index){
-    Inode->Inode.atime = GetPosixTime();
+    Inode->Inode.atime = kot_GetPosixTime();
     MountInfo->SetInode(Inode);
 
     uint64_t Size = MountInfo->GetSizeFromInode(Inode);
@@ -1327,7 +1330,7 @@ size64_t ext_directory_t::GetDirCount(){
 }
 
 
-KResult mount_info_t::Rename(char* old_path, char* new_path, permissions_t permissions){
+KResult mount_info_t::Rename(char* old_path, char* new_path, kot_permissions_t permissions){
     inode_t* Inode = FindInodeFromPath(old_path);
     if(Inode->Inode.mode != INODE_TYPE_DIRECTORY && !(Inode->Inode.mode & INODE_TYPE_REGULAR_FILE)){
         free(Inode);
@@ -1381,7 +1384,7 @@ KResult mount_info_t::Rename(char* old_path, char* new_path, permissions_t permi
     return KSUCCESS;
 }
 
-KResult mount_info_t::CreateFile(char* path, char* name, permissions_t permissions){
+KResult mount_info_t::CreateFile(char* path, char* name, kot_permissions_t permissions){
     inode_t* Directory = FindInodeFromPath(path);
     if(CheckPermissions(Directory, permissions, Storage_Permissions_Create) != KSUCCESS){
         free(Directory);
@@ -1397,7 +1400,7 @@ KResult mount_info_t::CreateFile(char* path, char* name, permissions_t permissio
 
     memset(&Inode->Inode, 0, sizeof(ext2_inode_t));
 
-    Inode->Inode.ctime = GetPosixTime();
+    Inode->Inode.ctime = kot_GetPosixTime();
     Inode->Inode.links_count = 1;
     Inode->Inode.mode = INODE_TYPE_REGULAR_FILE;
     Inode->Inode.mode |= 0xfff;
@@ -1412,7 +1415,7 @@ KResult mount_info_t::CreateFile(char* path, char* name, permissions_t permissio
     return KSUCCESS;
 }
 
-KResult mount_info_t::RemoveFile(char* path, permissions_t permissions){
+KResult mount_info_t::RemoveFile(char* path, kot_permissions_t permissions){
     inode_t* Inode = FindInodeFromPath(path);
 
     if(!Inode){
@@ -1457,14 +1460,14 @@ KResult mount_info_t::RemoveFile(char* path, permissions_t permissions){
     return KSUCCESS; 
 }
 
-ext_file_t* mount_info_t::OpenFile(char* path, permissions_t permissions){
+ext_file_t* mount_info_t::OpenFile(char* path, kot_permissions_t permissions){
     inode_t* RootInode = GetInode(EXT_ROOT_INO);
     ext_file_t* Target = OpenFile(RootInode, path, permissions);
     free(RootInode);
     return Target;
 }
 
-ext_file_t* mount_info_t::OpenFile(inode_t* inode, char* path, permissions_t permissions){
+ext_file_t* mount_info_t::OpenFile(inode_t* inode, char* path, kot_permissions_t permissions){
     inode_t* Target = FindInodeFromInodeEntryAndPath(inode, path);
     if(!Target){
         if(permissions & Storage_Permissions_Create){
@@ -1495,27 +1498,27 @@ ext_file_t* mount_info_t::OpenFile(inode_t* inode, char* path, permissions_t per
     return NULL;
 }
 
-KResult ext_file_t::ReadFile(uintptr_t buffer, uint64_t start, size64_t size){
+KResult ext_file_t::ReadFile(void* buffer, uint64_t start, size64_t size){
     if(Permissions & Storage_Permissions_Read){
-        Inode->Inode.atime = GetPosixTime();
+        Inode->Inode.atime = kot_GetPosixTime();
         MountInfo->SetInode(Inode);
         return MountInfo->ReadInode(Inode, buffer, start, size);
     }
     return KFAIL;
 }
 
-KResult ext_file_t::ReadFile(ksmem_t* key, uint64_t start, size64_t size){
+KResult ext_file_t::ReadFile(kot_key_mem_t* key, uint64_t start, size64_t size){
     if(Permissions & Storage_Permissions_Read){
-        Inode->Inode.atime = GetPosixTime();
+        Inode->Inode.atime = kot_GetPosixTime();
         MountInfo->SetInode(Inode);
         return MountInfo->ReadInode(Inode, key, start, size);
     }
     return KFAIL;
 }
 
-KResult ext_file_t::WriteFile(uintptr_t buffer, uint64_t start, size64_t size, bool is_data_end){
+KResult ext_file_t::WriteFile(void* buffer, uint64_t start, size64_t size, bool is_data_end){
     if(Permissions & Storage_Permissions_Write){
-        Inode->Inode.mtime = GetPosixTime();
+        Inode->Inode.mtime = kot_GetPosixTime();
         MountInfo->SetInode(Inode);
         return MountInfo->WriteInode(Inode, buffer, start, size, is_data_end);
     }

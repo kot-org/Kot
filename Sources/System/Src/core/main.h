@@ -1,7 +1,7 @@
 #pragma once
 
+#include <stdlib.h>
 #include <kot/sys.h>
-#include <kot/heap.h>
 #include <kot/types.h>
 #include <kot/memory.h>
 #include <kot++/json.h>
@@ -40,8 +40,8 @@ struct KernelInfo {
     struct bootframebuffer_t Framebuffer;
     struct initrd_t initrd;
     struct memoryInfo_t* MemoryInfo;
-    uintptr_t Smbios;
-    uintptr_t Rsdp;
+    void* Smbios;
+    void* Rsdp;
 
     uint64_t ProcessorCount;
 
@@ -49,12 +49,12 @@ struct KernelInfo {
     uint8_t IRQLineSize;
 
     size64_t IRQSize;
-    event_t IRQEvents[];
+    kot_event_t IRQEvents[];
 }__attribute__((packed));
 
 struct InfoSlot {
     size64_t size;
-    uintptr_t address;
+    void* address;
 }__attribute__((packed));
 
-extern process_t proc;
+extern kot_process_t proc;

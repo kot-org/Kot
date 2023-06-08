@@ -6,6 +6,6 @@
 
 void InitializeMemory(uint32_t MbHeader, struct multiboot_tag_mmap* Map, uint64_t* Stack);
 
-void memcpy(uintptr_t destination, uintptr_t source, size64_t size);
+void memcpy(void* destination, void* source, size64_t size);
 
-void memset(uintptr_t start, uint8_t value, size64_t size);
+void memset(void* start, uint8_t value, size64_t size);

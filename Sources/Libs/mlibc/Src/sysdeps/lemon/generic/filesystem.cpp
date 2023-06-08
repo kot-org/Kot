@@ -97,8 +97,8 @@ int sys_open(const char* filename, int flags, mode_t mode, int* fd){
 	return 0;
 }
 
-int sys_close(int fd){
-	syscall(SYS_CLOSE, fd);
+int kot_Sys_Close(int fd){
+	syscall(kot_Sys_Close, fd);
 	return 0;
 }
 
@@ -108,7 +108,7 @@ int sys_access(const char* filename, int mode){
 		return e;
 	}
 
-	sys_close(fd);
+	kot_Sys_Close(fd);
 	return 0;
 }
 

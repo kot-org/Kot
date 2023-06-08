@@ -1,17 +1,17 @@
 #include <srv/srv.h>
 
 KResult InitializeSrv(HDAOutput* Output){
-    process_t ProcessToShareData = ((uisd_audio_t*)FindControllerUISD(ControllerTypeEnum_Audio))->ControllerHeader.Process;
+    kot_process_t ProcessToShareData = ((kot_uisd_audio_t*)kot_FindControllerUISD(ControllerTypeEnum_Audio))->ControllerHeader.Process;
 
-    thread_t ChangeStatusThread;
-    Sys_CreateThread(Sys_GetProcess(), (uintptr_t)&ChangeStatus, PriviledgeDriver, (uint64_t)Output, &ChangeStatusThread);
-    Output->AudioDevice.ChangeStatus = MakeShareableThreadToProcess(ChangeStatusThread, ProcessToShareData);
+    kot_thread_t ChangeStatusThread;
+    kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&ChangeStatus, PriviledgeDriver, (uint64_t)Output, &ChangeStatusThread);
+    Output->AudioDevice.ChangeStatus = kot_MakeShareableThreadToProcess(ChangeStatusThread, ProcessToShareData);
 
-    Sys_Event_Create(&Output->OffsetUpdateEvent);
-    Sys_Keyhole_CloneModify(Output->OffsetUpdateEvent, &Output->AudioDevice.OnOffsetUpdate, ProcessToShareData, KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeApp);
+    kot_Sys_Event_Create(&Output->OffsetUpdateEvent);
+    kot_Sys_Keyhole_CloneModify(Output->OffsetUpdateEvent, &Output->AudioDevice.OnOffsetUpdate, ProcessToShareData, KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeApp);
     Output->AudioDevice.Info.SizeOffsetUpdateToTrigger = Output->Stream->SizeIOCToTrigger;
     
-    Sys_Keyhole_CloneModify(Output->Stream->BufferKey, &Output->AudioDevice.StreamBufferKey, ProcessToShareData, KeyholeFlagPresent, PriviledgeApp);
+    kot_Sys_Keyhole_CloneModify(Output->Stream->BufferKey, &Output->AudioDevice.StreamBufferKey, ProcessToShareData, KeyholeFlagPresent, PriviledgeApp);
     Output->AudioDevice.Info.StreamSize = Output->Stream->Size;
     Output->AudioDevice.Info.PositionOfStreamData = Output->Stream->PositionOfStreamData;
     Output->AudioDevice.Info.StreamRealSize = Output->Stream->RealSize;
@@ -38,10 +38,10 @@ KResult InitializeSrv(HDAOutput* Output){
     return KSUCCESS;
 }
 
-KResult ChangeStatus(thread_t Callback, uint64_t CallbackArg, enum AudioSetStatus Function, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+KResult ChangeStatus(kot_thread_t Callback, uint64_t CallbackArg, enum kot_AudioSetStatus Function, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     KResult Status = KFAIL;
 
-    HDAOutput* Output = (HDAOutput*)Sys_GetExternalDataThread();
+    HDAOutput* Output = (HDAOutput*)kot_Sys_GetExternalDataThread();
 
     switch (Function){
         case AudioSetStatusRunningState:{
@@ -57,7 +57,7 @@ KResult ChangeStatus(thread_t Callback, uint64_t CallbackArg, enum AudioSetStatu
         }
     }
 
-    arguments_t arguments{
+    kot_arguments_t arguments{
         .arg[0] = Status,               /* Status */
         .arg[1] = CallbackArg,          /* CallbackArg */
         .arg[2] = NULL,                 /* GP0 */
@@ -66,6 +66,6 @@ KResult ChangeStatus(thread_t Callback, uint64_t CallbackArg, enum AudioSetStatu
         .arg[5] = NULL,                 /* GP3 */
     };
 
-    Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
-    Sys_Close(KSUCCESS);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
 }

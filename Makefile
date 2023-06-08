@@ -16,7 +16,6 @@ QEMUFLAGS =	-no-reboot 														\
 			-device e1000,netdev=net0,romfile=Bin/Firmwares/efi-e1000.rom	\
 			-netdev user,id=net0											\
 			-object filter-dump,id=f1,netdev=net0,file=dump.dat				\
-			-accel kvm
 
 # -audiodev wav,id=snd0,path=output.wav 	 ,audiodev=snd0		
 
@@ -40,7 +39,7 @@ deps-llvm-toolchain: deps-ninja
 	mkdir -m 777 -p "Toolchain"
 	cd "Toolchain" && \
 	git clone https://github.com/kot-org/llvm-project && \
-	cd llvm-project && \
+	cd "llvm-project" && \
 	git checkout release/14.x && \
 	mkdir -m 777 -p "build" && \
 	cd "build" && \

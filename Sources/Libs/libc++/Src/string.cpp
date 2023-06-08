@@ -1,6 +1,6 @@
 #include "string.h"
-
-#include <kot/cstring.h>
+#include <kot/sys.h>
+#include <string.h>
 
 namespace std {
 
@@ -14,7 +14,7 @@ namespace std {
         if(isRightStart){
             for (int64_t i = Sblenght - len; i != -1; i--) {
                 char* sub = substr(i, i + len);
-                if (strcmp(sub, str)) {
+                if (!strcmp(sub, str)) {
                     free(sub);
                     return i;
                 }
@@ -23,7 +23,7 @@ namespace std {
         }else{
             for (uint64_t i = 0; i < Sblenght; i++) {
                 char* sub = substr(i, i + len);
-                if (strcmp(sub, str)) {
+                if (!strcmp(sub, str)) {
                     free(sub);
                     return i;
                 }
@@ -54,7 +54,7 @@ namespace std {
         }
         uint64_t size = endingAt - startingAt;
         char* temp = (char*) malloc(size+1);
-        memcpy(temp, (uintptr_t)((uint64_t) buffer + startingAt), size);
+        memcpy(temp, (void*)((uint64_t) buffer + startingAt), size);
         temp[size] = '\0';
         return temp;
     }
@@ -78,7 +78,7 @@ namespace std {
                 uint64_t newSize = toSize+fromSize;
                 char* temp = (char*) malloc(newSize+1);
                 memcpy(temp, buffer, toSize);
-                memcpy((uintptr_t)((uint64_t)temp + toSize), str, fromSize);
+                memcpy((void*)((uint64_t)temp + toSize), str, fromSize);
                 temp[newSize] = '\0';
                 free(buffer);
                 buffer = temp;
@@ -100,8 +100,8 @@ namespace std {
                 assert(newSize >= position);
                 char* temp = (char*) malloc(newSize+1);
                 memcpy(temp, buffer, position);
-                memcpy((uintptr_t)((uint64_t) temp + position), str, fromSize);
-                memcpy((uintptr_t)((uint64_t) temp + position + fromSize), buffer, toSize - position);
+                memcpy((void*)((uint64_t) temp + position), str, fromSize);
+                memcpy((void*)((uint64_t) temp + position + fromSize), buffer, toSize - position);
                 temp[newSize] = '\0';
                 free(buffer);
                 buffer = temp;

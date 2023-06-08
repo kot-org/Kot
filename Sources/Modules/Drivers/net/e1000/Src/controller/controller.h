@@ -1,11 +1,12 @@
 #pragma once
 
 #include <kot/sys.h>
+#include <kot/arch.h>
 #include <kot/bits.h>
 
 #include <kot/uisd/srvs/pci.h>
 
-extern process_t Proc;
+extern kot_process_t Proc;
 
 #define E1000_DEV      0x100E  // Device ID for the e1000 Qemu, Bochs, and VirtualBox emmulated NICs
 #define E1000_I217     0x153A  // Device ID for Intel I217
@@ -102,7 +103,7 @@ class E1000 {
     private:
         uint8_t BarType;
 
-        uintptr_t MemoryBase;
+        void* MemoryBase;
         uint64_t IoBase;
 
         uint8_t MACAddr[5];
@@ -121,7 +122,7 @@ class E1000 {
         uint8_t* RXPacketBuffer;
 
     public:
-        E1000(srv_pci_device_info_t* DeviceInfo, srv_pci_bar_info_t* BarInfo);
+        E1000(kot_srv_pci_device_info_t* DeviceInfo, kot_srv_pci_bar_info_t* BarInfo);
         ~E1000();
 
         void SendPacket(uint8_t* Data, uint32_t Size);

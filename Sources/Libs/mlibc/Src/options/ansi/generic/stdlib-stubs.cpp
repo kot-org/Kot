@@ -444,6 +444,9 @@ size_t wcstombs(char *mb_string, const wchar_t *wc_string, size_t max_size) {
 }
 
 void free(void *ptr) {
+	#if MLIBC_DEBUG_HEAP
+	return mlibc::sys_debug_free(ptr);
+	#else
 	// TODO: Print PID only if POSIX option is enabled.
 	if (mlibc::globalConfig().debugMalloc) {
 		mlibc::infoLogger() << "mlibc (PID ?): free() on "
@@ -452,24 +455,33 @@ void free(void *ptr) {
 			mlibc::infoLogger() << __builtin_return_address(0) << frg::endlog;
 	}
 	getAllocator().free(ptr);
+	#endif
 }
 
 void *malloc(size_t size) {
+	#if MLIBC_DEBUG_HEAP
+	return mlibc::sys_debug_malloc(size);
+	#else
 	auto nptr = getAllocator().allocate(size);
 	// TODO: Print PID only if POSIX option is enabled.
 	if (mlibc::globalConfig().debugMalloc)
 		mlibc::infoLogger() << "mlibc (PID ?): malloc() returns "
 				<< nptr << frg::endlog;
 	return nptr;
+	#endif
 }
 
 void *realloc(void *ptr, size_t size) {
+	#if MLIBC_DEBUG_HEAP
+	return mlibc::sys_debug_realloc(ptr, size);
+	#else
 	auto nptr = getAllocator().reallocate(ptr, size);
 	// TODO: Print PID only if POSIX option is enabled.
 	if (mlibc::globalConfig().debugMalloc)
 		mlibc::infoLogger() << "mlibc (PID ?): realloc() on "
 				<< ptr << " returns " << nptr << frg::endlog;
 	return nptr;
+	#endif
 }
 
 int posix_memalign(void **out, size_t align, size_t size) {

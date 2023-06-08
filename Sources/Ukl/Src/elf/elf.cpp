@@ -1,6 +1,6 @@
 #include <elf/elf.h>
 
-KResult loadElf(uintptr_t buffer, uint64_t* entrypoint, ukl_kernel_address_t* kernelinfo){
+KResult loadElf(void* buffer, uint64_t* entrypoint, ukl_kernel_address_t* kernelinfo){
     /* Set kernel info to NULL */
     kernelinfo->virtual_base_address = NULL;
     kernelinfo->virtual_end_address = NULL;
@@ -8,7 +8,7 @@ KResult loadElf(uintptr_t buffer, uint64_t* entrypoint, ukl_kernel_address_t* ke
     Elf64_Ehdr* Header = (Elf64_Ehdr*)buffer;
     
     /* Check elf */
-    if(Header->e_ident[0] != EI_MAG0 || Header->e_ident[1] != EI_MAG1 || Header->e_ident[2] != EI_MAG2 || Header->e_ident[3] != EI_MAG3){
+    if(Header->e_ident[0] != ELFMAG0 || Header->e_ident[1] != ELFMAG1 || Header->e_ident[2] != ELFMAG2 || Header->e_ident[3] != ELFMAG3){
         return KFAIL;
     }
     
@@ -53,9 +53,9 @@ KResult loadElf(uintptr_t buffer, uint64_t* entrypoint, ukl_kernel_address_t* ke
                     physicalPage = vmm_GetPhysical(vmm_PageTable, virtualAddressIterator);
                 }
                 if(totalSizeCopy < phdr->p_filesz){
-                    memcpy((uintptr_t)(vmm_GetVirtualAddress(physicalPage)), (uintptr_t)virtualAddressParentIterator, sizeToCopy);
+                    memcpy((void*)(vmm_GetVirtualAddress(physicalPage)), (void*)virtualAddressParentIterator, sizeToCopy);
                 }else{
-                    memset((uintptr_t)(vmm_GetVirtualAddress(physicalPage)), NULL, sizeToCopy);
+                    memset((void*)(vmm_GetVirtualAddress(physicalPage)), NULL, sizeToCopy);
                 }
 
                 virtualAddressParentIterator += sizeToCopy;
@@ -80,9 +80,9 @@ KResult loadElf(uintptr_t buffer, uint64_t* entrypoint, ukl_kernel_address_t* ke
                     physicalPage = vmm_GetPhysical(vmm_PageTable, virtualAddressIterator);
                 }
                 if(totalSizeCopy < phdr->p_filesz){
-                    memcpy((uintptr_t)(vmm_GetVirtualAddress(physicalPage)), (uintptr_t)virtualAddressParentIterator, sizeToCopy);
+                    memcpy((void*)(vmm_GetVirtualAddress(physicalPage)), (void*)virtualAddressParentIterator, sizeToCopy);
                 }else{
-                    memset((uintptr_t)(vmm_GetVirtualAddress(physicalPage)), NULL, sizeToCopy);
+                    memset((void*)(vmm_GetVirtualAddress(physicalPage)), NULL, sizeToCopy);
                 }
 
                 virtualAddressIterator += sizeToCopy;

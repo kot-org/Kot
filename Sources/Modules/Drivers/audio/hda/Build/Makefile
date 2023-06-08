@@ -1,10 +1,10 @@
 _HOME = ../../../../../../
 
-CC = clang-14
+CC = kot-x86_64-clang
 ASMC = nasm
 
-CFLAGS = -O3 --target=x86_64-unknown-none-elf -ffreestanding -fshort-wchar -fno-rtti -fno-exceptions -fPIC -I../Src -I$(_HOME)Sysroot/include
-LINKERFLAGS = -nostartfiles -Wall -static -L$(_HOME)Sysroot/lib/kot -lc
+CFLAGS = -O3 -I../Src -fno-exceptions
+LINKERFLAGS = -Wall -lc -lkot-c++
 ASMFLAGS = 
 
 SRCDIR := ../Src
@@ -35,4 +35,4 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 link:
 	@ echo !==== LINKING
 	@ mkdir -p $(BINDIR)
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Hda.elf $(OBJS) $(_HOME)Sysroot/lib/kot/crt0.o  $(_HOME)Sysroot/lib/kot/libcpp.a
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Hda.elf $(OBJS)

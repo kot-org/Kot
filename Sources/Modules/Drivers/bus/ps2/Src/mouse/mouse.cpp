@@ -1,16 +1,16 @@
 #include <mouse/mouse.h>
+#include <kot++/printf.h>
+
 
 uint8_t MouseMaxCycles = 0;
 uint8_t MousePacket[4];
 uint8_t MouseCycle = 0;
 
 PS2Port_t* MousePS2Port;
-arguments_t* MouseEventParameters;
-thread_t Mousethread = NULL;
+kot_arguments_t* MouseEventParameters;
+kot_thread_t Mousethread = NULL;
 
-#include <kot++/printf.h>
-
-event_t MouseRelativeEvent; // We don't use absolute for ps2
+kot_event_t MouseRelativeEvent; // We don't use absolute for ps2
 
 KResult MouseInitalize(){
     for(uint8_t i = 0; i < PS2_PORT_NUMBER; i++){
@@ -18,15 +18,15 @@ KResult MouseInitalize(){
             if(PS2Ports[i].Type == PS2_TYPE_MOUSE
             || PS2Ports[i].Type == PS2_TYPE_MOUSE_SCROLL
             || PS2Ports[i].Type == PS2_TYPE_MOUSE_5BUTTONS){
-                Printlog("[BUS/PS2] Mouse device found");
+                kot_Printlog("[BUS/PS2] Mouse device found");
                 
-                MouseEventParameters = (arguments_t*)malloc(sizeof(arguments_t));
+                MouseEventParameters = (kot_arguments_t*)malloc(sizeof(kot_arguments_t));
 
 
                 MousePS2Port = &PS2Ports[i];
                 IRQRedirectionsArray[MousePS2Port->PortNumber] = MouseHandler;
                 
-                MouseRelativeEvent = GetMouseRelativeEvent();
+                MouseRelativeEvent = kot_GetMouseRelativeEvent();
 
                 MouseMaxCycles = 3;
 
@@ -44,7 +44,7 @@ KResult MouseInitalize(){
                 // clear mouse packet data
                 memset(MousePacket, NULL, sizeof(uint8_t) * 4);
 
-                Srv_System_BindIRQLine(MousePS2Port->IRQ, InterruptThreadHandler[i], false, true);
+                kot_Srv_System_BindIRQLine(MousePS2Port->IRQ, InterruptThreadHandler[i], false, true);
 
                 break; // Enable only one mouse
             }            
@@ -137,7 +137,7 @@ void MouseParser(uint8_t data){
         MouseEventParameters->arg[3] |= button4Click << 3;
         MouseEventParameters->arg[3] |= button5Click << 4;
 
-        Sys_Event_Trigger(MouseRelativeEvent, MouseEventParameters);
+        kot_Sys_Event_Trigger(MouseRelativeEvent, MouseEventParameters);
     }
 }
 

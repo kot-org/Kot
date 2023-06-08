@@ -1,6 +1,6 @@
 #pragma once
 #include <core/core.h>
-#include <kot/sys.h>
+#include <lib/sys.h>
 #include <kot/keyhole.h>
 
 

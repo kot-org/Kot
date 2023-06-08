@@ -1,12 +1,18 @@
 #ifndef KOT_SRV_GRAPHICS_H
 #define KOT_SRV_GRAPHICS_H 1
 
+#include <stdbool.h>
+
 #include <kot/sys.h>
 #include <kot/uisd.h>
 #include <kot/math.h>
 #include <kot/types.h>
 #include <kot/atomic.h>
 #include <kot/memory.h>
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 #define Window_Function_Close               0x0
 #define Window_Function_Resize              0x1
@@ -36,7 +42,7 @@ enum kot_Window_Event{
 
 struct kot_srv_graphics_callback_t{
     kot_thread_t Self;
-    uint64_t Data;
+    uintptr_t Data;
     size64_t Size;
     bool IsAwait;
     KResult Status;
@@ -44,7 +50,7 @@ struct kot_srv_graphics_callback_t{
 };
 
 typedef struct {
-    uintptr_t Buffer;
+    void* Buffer;
     size64_t Size;
     uint64_t Pitch;
     uint64_t Width;
@@ -55,7 +61,7 @@ typedef struct {
 
 typedef struct {
     kot_framebuffer_t Framebuffer;
-    kot_ksmem_t BufferKey;
+    kot_key_mem_t BufferKey;
     kot_thread_t GraphicsHandler;
     bool IsVisible;
     kot_thread_t EventHandler;
@@ -73,5 +79,9 @@ struct kot_srv_graphics_callback_t* kot_Srv_Graphics_ChangePostionWindow(kot_win
 struct kot_srv_graphics_callback_t* kot_Srv_Graphics_ChangeVisibility(kot_window_t* Window, bool IsVisible, bool IsAwait);
 
 
+
+#if defined(__cplusplus)
+} 
+#endif
 
 #endif

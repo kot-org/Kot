@@ -8,19 +8,19 @@ extern "C" {
 #endif
 
 typedef struct {
-    uintptr_t FontContext;
+    void* FontContext;
     bool IsPen;
-    uintptr_t PenContext;
+    void* PenContext;
 } kfont_t;
 
 typedef struct {
-    uintptr_t Address;
+    void* Address;
     uint64_t Width;
     uint64_t Height;
     uint64_t Pitch;
 } font_fb_t;
 
-kfont_t* LoadFont(uintptr_t data);
+kfont_t* LoadFont(void* data);
 void FreeFont(kfont_t* font);
 
 void LoadPen(kfont_t* font, font_fb_t* buffer, int64_t x, int64_t y, int16_t size, int32_t style, int64_t color);

@@ -46,7 +46,7 @@ struct file_window {
 					<< progress << " bytes" << frg::endlog;
 #endif
 
-		if(mlibc::sys_close(fd))
+		if(mlibc::kot_Sys_Close(fd))
 			mlibc::panicLogger() << "mlibc: Error closing TZinfo" << frg::endlog;
 	}
 

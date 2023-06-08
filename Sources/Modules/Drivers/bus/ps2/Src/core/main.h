@@ -1,8 +1,9 @@
 #pragma once
 
+#include <string.h>
 #include <kot/sys.h>
 #include <kot/bits.h>
-#include <kot/cstring.h>
+#include <kot/arch.h>
 #include <mouse/mouse.h>
 #include <kot++/printf.h>
 #include <keyboard/keyboard.h>
@@ -36,9 +37,9 @@
 #define PS2_STATU_TIMEOUTERROR      1 << 6
 #define PS2_STATU_PARTYERROR        1 << 7
 
-extern process_t self;
+extern kot_process_t self;
 extern struct PS2Port_t PS2Ports[2];
-extern thread_t InterruptThreadHandler[];
+extern kot_thread_t InterruptThreadHandler[];
 typedef KResult (*IRQRedirections)(uint8_t data);
 extern IRQRedirections IRQRedirectionsArray[2];
 
@@ -52,7 +53,7 @@ struct PS2Port_t{
     void PS2SendDataPort(uint8_t data); 
 };
 
-extern "C" int main(int argc, char* argv[]);
+int main(int argc, char* argv[]);
 
 KResult PortsInitalize();
 

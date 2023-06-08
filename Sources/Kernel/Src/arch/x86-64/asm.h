@@ -16,6 +16,10 @@ static inline uint64_t ASMReadCr3(){
     asm volatile("mov %%cr3, %0" : "=r"(value));                     
     return value;                                  
 }                                                  
+
+static inline pagetable_t ASMGetPagingEntry(){              
+    return (pagetable_t)(ASMReadCr3() & ~(0b1111));                                  
+}                                                  
                                                    
 static inline void ASMWriteCr3(uint64_t value){                                                  
     asm volatile("mov %0, %%cr3" ::"r"(value));  
@@ -33,4 +37,8 @@ static inline void ASMWriteCr4(uint64_t value){
 
 static inline void ASMFninit(){                                                  
     asm volatile("fninit");  
+}
+
+static inline void ASMFlushTLB(void* address){
+   asm volatile("invlpg (%0)" ::"r" (address) : "memory");
 }

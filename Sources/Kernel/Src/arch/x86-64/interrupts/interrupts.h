@@ -1,7 +1,7 @@
 #pragma once
 #include <arch/arch.h>
-#include <kot/types.h>
-#include <kot/x86_64.h>
+#include <lib/types.h>
+#include <lib/x86_64.h>
 #include <logs/logs.h>
 #include <event/event.h>
 #include <scheduler/scheduler.h>
@@ -23,5 +23,5 @@ bool PageFaultHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID);
 void KernelUnrecovorable(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID);
 
 extern struct IDTR idtr;
-extern uintptr_t InterruptEntryList[256];
+extern void* InterruptEntryList[256];
 extern struct kevent_t* InterruptEventList[256];

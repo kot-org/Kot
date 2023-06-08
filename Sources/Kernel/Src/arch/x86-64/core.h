@@ -8,8 +8,8 @@ struct ArchInfo_t{
     struct ukl_framebuffer_t framebuffer;
     struct ukl_initrd_t initrd;
     struct memoryInfo_t* memoryInfo;
-    uintptr_t smbios;
-    uintptr_t rsdp;
+    void* smbios;
+    void* rsdp;
 
     uint64_t ProcessorCount;
 
@@ -17,5 +17,10 @@ struct ArchInfo_t{
     uint8_t IRQLineSize;
 
     size64_t IRQSize;
-    event_t IRQEvents[];
+    kot_event_t IRQEvents[];
 }__attribute__((packed));
+
+struct StackFrame_t{
+  struct StackFrame_t* Next;
+  void* InstructionPointer;
+};
