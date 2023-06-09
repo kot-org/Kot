@@ -28,96 +28,73 @@ size64_t TableConverterCharCount;
 static uint8_t ConvertToDoomKey(char key){
   switch (key){
     case 0x1C:
-      kot_Printlog("KEY_ENTER");
       key = KEY_ENTER;
       break;
     case 0x01:
-      kot_Printlog("KEY_ESCAPE");
       key = KEY_ESCAPE;
       break;
     case 0x4B:
-      kot_Printlog("KEY_LEFTARROW");
       key = KEY_LEFTARROW;
       break;
     case 0x4D:
-      kot_Printlog("KEY_RIGHTARROW");
       key = KEY_RIGHTARROW;
       break;
     case 0x48:
-      kot_Printlog("KEY_UPARROW");
       key = KEY_UPARROW;
       break;
     case 0x50:
-      kot_Printlog("KEY_DOWNARROW");
       key = KEY_DOWNARROW;
       break;
-    case 0x1D:
-      kot_Printlog("KEY_FIRE");
+    case 0x39:
       key = KEY_FIRE;
       break;
-    case 0x39:
-      kot_Printlog("KEY_USE");
+    case 0x1D:
       key = KEY_USE;
       break;
     case 0x2A:
     case 0x26:
-      kot_Printlog("KEY_RSHIFT");
       key = KEY_RSHIFT;
       break;
     case 0x38:
-      kot_Printlog("KEY_LALT");
       key = KEY_LALT;
       break;
     case 0x3B:
-      kot_Printlog("KEY_F1");
       key = KEY_F1;
       break;
     case 0x3C:
-      kot_Printlog("KEY_F2");
       key = KEY_F2;
       break;
     case 0x3D:
-      kot_Printlog("KEY_F3");
       key = KEY_F3;
       break;
     case 0x3E:
-      kot_Printlog("KEY_F4");
       key = KEY_F4;
       break;
     case 0x3F:
-      kot_Printlog("KEY_F5");
       key = KEY_F5;
       break;
     case 0x40:
-      kot_Printlog("KEY_F6");
       key = KEY_F6;
       break;
     case 0x41:
-      kot_Printlog("KEY_F7");
       key = KEY_F7;
       break;
     case 0x42:
-      kot_Printlog("KEY_F8");
       key = KEY_F8;
       break;
     case 0x13:
-      kot_Printlog("KEY_F9");
       key = KEY_F9;
       break;
     case 0x44:
-      kot_Printlog("KEY_F10");
       key = KEY_F10;
       break;
     case 0x57:
-      kot_Printlog("KEY_F11");
       key = KEY_F11;
       break;
     case 0x58:
-      kot_Printlog("KEY_F12");
       key = KEY_F12;
       break;
     case 0xD:
-      kot_Printlog("KEY_EQUALS");
       key = KEY_EQUALS;
       break;
     default:{
@@ -125,7 +102,6 @@ static uint8_t ConvertToDoomKey(char key){
       uint64_t Cache;
       char ScanCode = key;
       kot_GetCharFromScanCode(ScanCode, TableConverter, TableConverterCharCount, &key, &IsPressed, &Cache);
-      kot_Printlog(&key);
       break;
     }
 

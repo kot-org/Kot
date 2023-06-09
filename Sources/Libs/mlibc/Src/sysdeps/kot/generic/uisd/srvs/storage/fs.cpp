@@ -225,12 +225,10 @@ kot_file_t* kot_fopenmf(char* Path, int Flags, mode_t Mode){
 
     if(Flags & O_TRUNC){
         // TODO
-        __ensure(!"O_TRUNC : Not implemented");
     }
 
     if(Flags & O_CLOEXEC){
         // TODO
-        __ensure(!"O_CLOEXEC : Not implemented");
     }
     struct kot_srv_storage_callback_t* CallbackFile = kot_Srv_Storage_Openfile(Path, Permissions, kot_ShareProcessFS, true);
     if(CallbackFile->Status != KSUCCESS){
