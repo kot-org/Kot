@@ -157,7 +157,7 @@ namespace ELF{
                     kot_SpecificData_t* KotSpecificData = (kot_SpecificData_t*)kcalloc(sizeof(kot_SpecificData_t));
                     KotSpecificData->MMapPageSize = PAGE_SIZE;
                     KotSpecificData->HeapLocation = HeapLocation;
-                    KotSpecificData->FreeMemorySpace = (void*)FreeMemorySpaceAddress;
+                    KotSpecificData->FreeMemorySpace = (void*)FREE_MEMORY_SPACE_ADDRESS;
                     void* DataAddress = (void*)vmm_GetVirtualAddress(vmm_GetPhysical(mainthread->Paging, (void*)self->KotSpecificSymbol->st_value));
                     memcpy(DataAddress, KotSpecificData, sizeof(kot_SpecificData_t));
                     kfree(KotSpecificData);

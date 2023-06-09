@@ -16,7 +16,7 @@ CC=kot-x86_64-clang  # gcc or g++
 CFLAGS+=-ggdb3 -Os
 LDFLAGS+=-Wl,--gc-sections
 CFLAGS+=-ggdb3 -Wall -DNORMALUNIX -DLINUX -DSNDSERV -D_DEFAULT_SOURCE # -DUSEASM
-LIBS+=-lm -lc
+LIBS+=-lm -lc -lkot-graphics
 
 # subdirectory for objects
 OBJDIR=../Lib

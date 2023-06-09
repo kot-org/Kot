@@ -11,7 +11,7 @@
 
 kot_thread_t UISDInitialize(kot_process_t* process);
 
-KResult UISDCallbackStatu(uint64_t IPCTask, kot_thread_t Callback, uint64_t Callbackarg, KResult Status);
+KResult UISDCallbackStatus(uint64_t IPCTask, kot_thread_t Callback, uint64_t Callbackarg, KResult Status);
 void UISDHandler(uint64_t IPCTask, enum kot_uisd_controller_type_enum Controller, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
 struct controller_info_t {

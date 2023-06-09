@@ -437,6 +437,12 @@ pagetable_t vmm_Setupthread(pagetable_t parent){
     vmm_CopyPageTable(parent, PageTable, VMM_STARTRHALF, VMM_LOWERHALF);
     vmm_CopyPageTable(vmm_PageTable, PageTable, VMM_LOWERHALF, VMM_HIGHERALF);
 
+    /* Clear thread data */
+    vmm_page_table* PML4VirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PageTable);
+    void* Page = (void*)PML4VirtualAddress->entries[0xfe];
+    PML4VirtualAddress->entries[0xfe] = NULL;
+    Pmm_FreePage(Page);
+
     return PageTable;      
 }
 

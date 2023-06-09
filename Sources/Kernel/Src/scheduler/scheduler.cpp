@@ -358,13 +358,15 @@ KResult TaskManager::CreateProcessWithoutPaging(kprocess_t** key, enum Priviledg
 
     /* Other data */
     proc->TaskManagerParent = this;
-    proc->Locks = (lock_t*)LockAddress;
-    proc->LockLimit = StackBottom;
+    proc->Locks = (lock_t*)LOCK_ADDRESS;
+    proc->LockLimit = SELF_DATA_START_ADDRESS;
     proc->LockIndex = 0;
     proc->ExternalData_P = externalData;
 
     proc->Parent = NULL;
 
+    proc->StackIterator = STACK_TOP;
+    AtomicClearLock(&proc->StackIteratorLock);
 
     proc->PID = PID; 
     proc->PPID = 0; 
@@ -391,7 +393,7 @@ KResult TaskManager::CreateProcess(kprocess_t** key, enum Priviledge priviledge,
     KResult status = CreateProcessWithoutPaging(key, priviledge, externalData);
     if(status == KSUCCESS){
         (*key)->SharedPaging = vmm_SetupProcess();
-        Keyhole_Create(&(*key)->ProcessKey, (*key), (*key), DataTypeProcess, (uint64_t)(*key), DefaultFlagsKey, PriviledgeApp);
+        Keyhole_Create(&(*key)->ProcessKey, (*key), (*key), DataTypeProcess, (uint64_t)(*key), DEFAULT_FLAGS_KEY, PriviledgeApp, false);
     }
     return status;
 }
@@ -448,8 +450,16 @@ kthread_t* kprocess_t::Createthread(void* entryPoint, enum Priviledge priviledge
     thread->Info->thread = thread;
     thread->Regs->threadInfo = thread->Info;
 
+    thread->Parent = this;
+
     /* Load new stack */
-    thread->SetupStack();
+    if(thread->SetupStack() != KSUCCESS){
+        kfree(thread->SIMDSaver);
+        kfree(thread->Info);
+        kfree(thread->Regs);
+        kfree(thread);
+        return NULL;
+    }
 
     /* Other data */
     thread->CreationTime = HPET::GetTime();
@@ -458,7 +468,6 @@ kthread_t* kprocess_t::Createthread(void* entryPoint, enum Priviledge priviledge
     thread->IsBlock = true;
     thread->IsClose = true;
     thread->IsFork = false;
-    thread->Parent = this;
     thread->Queu = (ThreadQueu_t*)kcalloc(sizeof(ThreadQueu_t));
     thread->ExternalData_T = externalData;
 
@@ -467,8 +476,8 @@ kthread_t* kprocess_t::Createthread(void* entryPoint, enum Priviledge priviledge
     thread->MemoryAllocated += PAGE_SIZE;
     thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
-    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey, PriviledgeApp);
-    vmm_Map(thread->Paging, (void*)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
+    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DEFAULT_FLAGS_KEY, PriviledgeApp, false);
+    vmm_Map(thread->Paging, (void*)SELF_DATA_START_ADDRESS, threadDataPA, thread->RingPL == UserAppRing);
     
     /* ID */
     thread->TID = this->TID; 
@@ -520,8 +529,16 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
     thread->Info->thread = thread;
     thread->EntryPoint = source->EntryPoint;
 
+    thread->Parent = this;
+
     /* Load new stack */
-    thread->SetupStack();
+    if(thread->SetupStack() != KSUCCESS){
+        kfree(thread->SIMDSaver);
+        kfree(thread->Info);
+        kfree(thread->Regs);
+        kfree(thread);
+        return NULL;
+    }
 
     /* Setup priviledge */
     thread->Priviledge = source->Priviledge;
@@ -538,7 +555,6 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
     thread->IsBlock = true;
     thread->IsClose = true;
     thread->IsFork = false;
-    thread->Parent = this;
     thread->Queu = (ThreadQueu_t*)kcalloc(sizeof(ThreadQueu_t)); 
 
     /* Thread Data */
@@ -546,8 +562,8 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
     thread->MemoryAllocated += PAGE_SIZE;
     thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
-    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DefaultFlagsKey, PriviledgeApp);
-    vmm_Map(thread->Paging, (void*)SelfDataStartAddress, threadDataPA, thread->RingPL == UserAppRing);
+    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DEFAULT_FLAGS_KEY, PriviledgeApp, false);
+    vmm_Map(thread->Paging, (void*)SELF_DATA_START_ADDRESS, threadDataPA, thread->RingPL == UserAppRing);
     
     thread->threadData->ProcessKey = ProcessKey;
     thread->threadData->PID = PID;
@@ -585,6 +601,11 @@ KResult kprocess_t::Fork(ContextStack* Registers, kthread_t* Caller, kprocess_t*
     }
     AtomicRelease(&TaskManagerParent->CreateProcessLock);
 
+    AtomicAcquire(&StackIteratorLock);
+    (*Child)->StackIterator = StackIterator;
+    AtomicClearLock(&(*Child)->StackIteratorLock);
+    AtomicRelease(&StackIteratorLock);
+
     /* Setup default priviledge */
     (*Child)->DefaultPriviledge = DefaultPriviledge;
 
@@ -593,8 +614,8 @@ KResult kprocess_t::Fork(ContextStack* Registers, kthread_t* Caller, kprocess_t*
 
     /* Other data */
     (*Child)->TaskManagerParent = TaskManagerParent;
-    (*Child)->Locks = (lock_t*)LockAddress;
-    (*Child)->LockLimit = StackBottom;
+    (*Child)->Locks = (lock_t*)LOCK_ADDRESS;
+    (*Child)->LockLimit = SELF_DATA_START_ADDRESS;
     (*Child)->LockIndex = 0;
     (*Child)->ExternalData_P = ExternalData_P;
     (*Child)->PID = PID; 
@@ -611,28 +632,32 @@ KResult kprocess_t::Fork(ContextStack* Registers, kthread_t* Caller, kprocess_t*
 
     vmm_ForkMemory(this, *Child);
 
-    Keyhole_Create(&(*Child)->ProcessKey, (*Child), (*Child), DataTypeProcess, (uint64_t)(*Child), DefaultFlagsKey, PriviledgeApp);
+    Keyhole_Create(&(*Child)->ProcessKey, (*Child), (*Child), DataTypeProcess, (uint64_t)(*Child), DEFAULT_FLAGS_KEY, PriviledgeApp, false);
     
     *ChildThread = Caller->ForkThread(Registers, *Child);
 
     return KSUCCESS;
 }
 
-void kthread_t::SetupStack(){
-    uint64_t StackLocation = StackTop;
+KResult kthread_t::SetupStack(){
+    AtomicAcquire(&Parent->StackIteratorLock);
+    if(Parent->StackIterator - APP_STACK_MAX_SIZE < SELF_DATA_END_ADDRESS){
+        AtomicRelease(&Parent->StackIteratorLock);
+        return KFAIL;
+    } 
+    uint64_t StackLocation = Parent->StackIterator;
+    Parent->StackIterator -= APP_STACK_MAX_SIZE;
+    AtomicRelease(&Parent->StackIteratorLock);
     this->Regs->rsp = StackAlignToJmp(StackLocation);
     this->Stack = (StackInfo*)kmalloc(sizeof(StackInfo));
     this->Stack->StackStart = StackLocation;
-    this->Stack->StackEndMax = StackBottom;
+    this->Stack->StackEndMax = StackLocation - APP_STACK_MAX_SIZE;
     this->Stack->LastStackUsed = StackLocation;
     
     this->KernelInternalStack = (void*)((uint64_t)stackalloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE);
 
     this->Info->SyscallStack = (uint64_t)stackalloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
-
-    /* Clear stack */
-    vmm_page_table* PML4VirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((void*)Paging);
-    PML4VirtualAddress->entries[0xff] = NULL;
+    return KSUCCESS;
 }
 
 
@@ -681,7 +706,7 @@ void TaskManager::EnabledScheduler(uint64_t CoreID){
     if(TaskManagerInit){
         ThreadExecutePerCore[CoreID] = NULL;
 
-        CPU::SetCPUGSKernelBase((uint64_t)SelfDataStartAddress); // keys position
+        CPU::SetCPUGSKernelBase((uint64_t)SELF_DATA_START_ADDRESS); // keys position
 
         SyscallEnable(GDTInfoSelectorsRing[KernelRing].Code, GDTInfoSelectorsRing[UserAppRing].Code); 
 
@@ -723,7 +748,7 @@ void kthread_t::CreateContext(ContextStack* Registers, uint64_t CoreID){
 }
 
 void kthread_t::ResetContext(ContextStack* Registers){
-    Registers->rsp = StackAlignToJmp((uint64_t)StackTop);
+    Registers->rsp = StackAlignToJmp((uint64_t)Stack->StackStart);
     Registers->rip = (uint64_t)EntryPoint;
     Registers->cs = (uint64_t)Registers->threadInfo->CS;
     Registers->ss = (uint64_t)Registers->threadInfo->SS;
@@ -751,13 +776,6 @@ bool kthread_t::PageFaultHandler(bool IsWriting, uint64_t Address){
     }else{
         return false;
     }
-}
-
-void kthread_t::CopyStack(kthread_t* source){
-    vmm_page_table* PML4VirtualAddressSource = (vmm_page_table*)vmm_GetVirtualAddress((void*)source->Paging);
-    vmm_page_table* PML4VirtualAddressDestination = (vmm_page_table*)vmm_GetVirtualAddress((void*)Paging);
-    PML4VirtualAddressSource->entries[0xff] = PML4VirtualAddressDestination->entries[0xff];
-    Stack = source->Stack;
 }
 
 bool kthread_t::ExtendStack(uint64_t address){
@@ -975,9 +993,10 @@ kthread_t* kthread_t::ForkThread(ContextStack* Registers, kprocess_t* Child){
     kthread_t* ChildThread = Child->Createthread(this->EntryPoint, this->Priviledge, this->ExternalData_T);
     ChildThread->IsFork = true;
 
+    memcpy(ChildThread->Stack, this->Stack, sizeof(StackInfo));
+
     // Copy stack and context
     uint64_t DataLocation = ChildThread->Stack->StackStart;
-    ChildThread->ShareDataUsingStackSpace((void*)this->Stack->LastStackUsed, this->Stack->StackStart - this->Stack->LastStackUsed, (void**)&DataLocation);
     ChildThread->SaveContext(Registers);
     ChildThread->FSBase = FSBase;
 

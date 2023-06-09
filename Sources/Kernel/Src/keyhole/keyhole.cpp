@@ -3,7 +3,26 @@
 
 static locker_t mutexKeyhole;
 
-KResult Keyhole_Create(key_t* key, kprocess_t* parent, kprocess_t* target, enum DataType type, uint64_t data, uint64_t flags, enum Priviledge minpriviledge){
+KResult Keyhole_GetAddressFromIndex(key_t* key, uint64_t index, kprocess_t* parent){
+    if(index > parent->LockIndex) return KFAIL;
+
+    uint64_t Address = (index * sizeof(uint64_t)) + (uint64_t)parent->Locks;
+    uint64_t Page = Address - (Address % PAGE_SIZE);
+    uint64_t Offset = (Address % PAGE_SIZE) / sizeof(uint64_t);
+    lockreference_t* AccessAddress = NULL;
+    
+    if(!vmm_GetFlags(parent->SharedPaging, (void*)Page, vmm_flag::vmm_Present)){
+        vmm_Map(parent->SharedPaging, (void*)Page, Pmm_RequestPage());
+        AccessAddress = (lockreference_t*)vmm_GetVirtualAddress(vmm_GetPhysical(parent->SharedPaging, (void*)Page));
+        memset((void*)AccessAddress, 0, PAGE_SIZE);
+    }else{
+        AccessAddress = (lockreference_t*)vmm_GetVirtualAddress(vmm_GetPhysical(parent->SharedPaging, (void*)Page));
+    }
+    *key = (key_t)AccessAddress->LockOffset[Offset];
+    return KSUCCESS;
+}
+
+KResult Keyhole_Create(key_t* key, kprocess_t* parent, kprocess_t* target, enum DataType type, uint64_t data, uint64_t flags, enum Priviledge minpriviledge, bool islocal){
     if(!CheckAddress((void*)key, sizeof(key))) return KFAIL;
     
     AtomicAcquire(&mutexKeyhole);
@@ -28,6 +47,7 @@ KResult Keyhole_Create(key_t* key, kprocess_t* parent, kprocess_t* target, enum 
     
     // fill data
     flags |= ~(1 << KeyholeFlagOriginal);
+    Lock->Index = parent->LockIndex;
     Lock->Type = type;
     Lock->Target = target;
     Lock->Address = Address;
@@ -41,14 +61,23 @@ KResult Keyhole_Create(key_t* key, kprocess_t* parent, kprocess_t* target, enum 
     Lock->Signature1 = 'O';
     Lock->Signature2 = 'K';
     // setup key data
-    *key = (uint64_t)Lock;
+    if(islocal){
+        *key = (uint64_t)Lock->Index;
+    }else{
+        *key = (uint64_t)Lock;
+    }
     AtomicRelease(&mutexKeyhole);
     return KSUCCESS;
 }
 
-KResult Keyhole_CloneModify(kthread_t* caller, key_t key, key_t* newKey, kprocess_t* target, uint64_t flags, enum Priviledge minpriviledge){
+KResult Keyhole_CloneModify(kthread_t* caller, key_t key, key_t* newKey, kprocess_t* target, uint64_t flags, enum Priviledge minpriviledge, bool islocal){
+    if(islocal){
+        key_t TmpKey = key;
+        if(Keyhole_GetAddressFromIndex(&key, TmpKey, caller->Parent) != KSUCCESS) return KKEYVIOLATION;
+    } 
+
     lock_t* data;
-    if(Keyhole_Get(caller, key, DataTypeUnknow, &data) != KSUCCESS) return KKEYVIOLATION;
+    if(Keyhole_Get(caller, key, DataTypeUnknow, &data, false) != KSUCCESS) return KKEYVIOLATION;
     lock_t* lock = (lock_t*)key;
     if(!(data->Flags & KeyholeFlagCloneable)) return KKEYVIOLATION;
     if(flags & KeyholeFlagPresent){
@@ -61,10 +90,15 @@ KResult Keyhole_CloneModify(kthread_t* caller, key_t key, key_t* newKey, kproces
 
     flags &= ~(1 << KeyholeFlagOriginal);
 
-    return Keyhole_Create(newKey, data->Parent, target, data->Type, data->Data, flags, minpriviledge);
+    return Keyhole_Create(newKey, data->Parent, target, data->Type, data->Data, flags, minpriviledge, false);
 }
 
-KResult Keyhole_Verify(kthread_t* caller, key_t key, enum DataType type){
+KResult Keyhole_Verify(kthread_t* caller, key_t key, enum DataType type, bool islocal){
+    if(islocal){
+        key_t TmpKey = key;
+        if(Keyhole_GetAddressFromIndex(&key, TmpKey, caller->Parent) != KSUCCESS) return KKEYVIOLATION;
+    }
+
     // Get lock
     lock_t* lock = (lock_t*)key;
     // check lock
@@ -91,8 +125,13 @@ KResult Keyhole_Verify(kthread_t* caller, key_t key, enum DataType type){
     return KSUCCESS;
 }
 
-KResult Keyhole_Get(kthread_t* caller, key_t key, enum DataType type, uint64_t* data, uint64_t* flags){        
-    uint64_t Status = Keyhole_Verify(caller, key, type);
+KResult Keyhole_Get(kthread_t* caller, key_t key, enum DataType type, uint64_t* data, uint64_t* flags, bool islocal){       
+    if(islocal){
+        key_t TmpKey = key;
+        if(Keyhole_GetAddressFromIndex(&key, TmpKey, caller->Parent) != KSUCCESS) return KKEYVIOLATION;
+    }
+      
+    uint64_t Status = Keyhole_Verify(caller, key, type, false);
     if(Status != KSUCCESS) return Status;
     lock_t* lock = (lock_t*)key;
     *data = lock->Data;
@@ -100,8 +139,8 @@ KResult Keyhole_Get(kthread_t* caller, key_t key, enum DataType type, uint64_t* 
     return KSUCCESS;
 }
 
-KResult Keyhole_Get(kthread_t* caller, key_t key, enum DataType type, lock_t** lock){        
-    uint64_t Status = Keyhole_Verify(caller, key, type);
+KResult Keyhole_Get(kthread_t* caller, key_t key, enum DataType type, lock_t** lock, bool islocal){        
+    uint64_t Status = Keyhole_Verify(caller, key, type, islocal);
     if(Status != KSUCCESS) return Status;
     *lock = (lock_t*)key;
     return KSUCCESS;

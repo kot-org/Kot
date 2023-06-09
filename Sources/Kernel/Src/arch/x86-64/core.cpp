@@ -107,7 +107,7 @@ KResult GetDataToStartService(ArchInfo_t* ArchInfo, kthread_t* thread, arguments
     memcpy(*Data, ArchInfo, sizeof(ArchInfo_t));
     for(uint64_t i = 0; i < ArchInfo->IRQSize; i++){
         if(InterruptEventList[i] != NULL){
-            Keyhole_Create((key_t*)&((ArchInfo_t*)*Data)->IRQEvents[i], thread->Parent, thread->Parent, DataTypeEvent, (uint64_t)InterruptEventList[i], KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeApp);
+            Keyhole_Create((key_t*)&((ArchInfo_t*)*Data)->IRQEvents[i], thread->Parent, thread->Parent, DataTypeEvent, (uint64_t)InterruptEventList[i], KeyholeFlagPresent | KeyholeFlagDataTypeEventIsBindable, PriviledgeApp, false);
         }
     }
     return Status;

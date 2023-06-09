@@ -63,6 +63,8 @@ KResult kot_GetCharFromScanCode(uint64_t ScanCode, void* TableConverter, size64_
     }else{
         *IsPressed = true;
     }
+
+    if(!Char) return KSUCCESS;
     
     if(ScanCode > TableConverterCharCount){
         return KFAIL;

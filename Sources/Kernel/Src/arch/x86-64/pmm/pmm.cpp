@@ -203,14 +203,14 @@ void* Pmm_RequestPages(uint64_t pageCount){
 
 void Pmm_FreePage_WI(uint64_t index){
     AtomicAcquire(&Pmm_Mutex);
-    if(Pmm_Bitmap.GetAndSet(index, false)){
-        Pmm_AddPageToFreeList(index, 1);
-        Pmm_MemoryInfo.freePageMemory++;
-        Pmm_MemoryInfo.usedPageMemory--;
-        if(Pmm_FirstFreePageIndex > index){
-            Pmm_FirstFreePageIndex = index;
-        }
-    }
+    // if(Pmm_Bitmap.GetAndSet(index, false)){
+    //     Pmm_AddPageToFreeList(index, 1);
+    //     Pmm_MemoryInfo.freePageMemory++;
+    //     Pmm_MemoryInfo.usedPageMemory--;
+    //     if(Pmm_FirstFreePageIndex > index){
+    //         Pmm_FirstFreePageIndex = index;
+    //     }
+    // }
     AtomicRelease(&Pmm_Mutex);
 }
 

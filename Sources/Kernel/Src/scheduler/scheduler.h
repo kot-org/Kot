@@ -10,16 +10,18 @@ struct TaskQueuNode;
 struct Task;
 class TaskManager;
 
-#define SelfDataStartAddress vmm_MapAddress(0xff, 0, 0, 0)  
-#define SelfDataEndAddress SelfDataStartAddress + sizeof(SelfData)
-#define StackTop vmm_MapAddress(0x100, 0, 0, 0)
-#define StackBottom SelfDataEndAddress 
-#define LockAddress vmm_MapAddress(0xfe, 0, 0, 0) 
-#define FreeMemorySpaceAddress vmm_MapAddress(0xfe, 0, 0, 0) 
-#define DefaultFlagsKey 0xff
+#define SELF_DATA_START_ADDRESS vmm_MapAddress(0xfe, 0, 0, 0)  
+#define SELF_DATA_END_ADDRESS vmm_MapAddress(0xff, 0, 0, 0)  
+#define STACK_TOP vmm_MapAddress(0x100, 0, 0, 0)
+#define STACK_BOTTOM SELF_DATA_END_ADDRESS 
+#define LOCK_ADDRESS vmm_MapAddress(0xfd, 0, 0, 0) 
+#define FREE_MEMORY_SPACE_ADDRESS LOCK_ADDRESS
+#define APP_STACK_MAX_SIZE vmm_MapAddress(0, 0, 1, 0)
+#define DEFAULT_FLAGS_KEY 0xff
+
 
 inline uint64_t StackAlignToJmp(uint64_t Stack){
-     // Have to be 16 byte aligned before call so if we jump we have to be non 16 bytes aligned but 8 bytes aligned
+    // Have to be 16 byte aligned before call so if we jump we have to be non 16 bytes aligned but 8 bytes aligned
     if((Stack & 0xfffffffffffffff0) != 0 && (Stack & 0xfffffffffffffff0) != 8){
         Stack = (Stack & 0xfffffffffffffff0) - 8;
     }else if(Stack & 0xfffffffffffffff0 != 8){
@@ -116,6 +118,10 @@ struct kprocess_t{
     /* External data */
     uint64_t ExternalData_P;
 
+    /* Stack thread */
+    locker_t StackIteratorLock;
+    uintptr_t StackIterator;
+
     kthread_t* Createthread(void* entryPoint, uint64_t externalData);
     kthread_t* Createthread(void* entryPoint, enum Priviledge priviledge, uint64_t externalData);
     kthread_t* Duplicatethread(kthread_t* source);
@@ -188,8 +194,7 @@ struct kthread_t{
 
     bool PageFaultHandler(bool IsWriting, uint64_t Address);
 
-    void SetupStack();
-    void CopyStack(kthread_t* source);
+    KResult SetupStack();
     bool ExtendStack(uint64_t address);
     bool ExtendStack(uint64_t address, size64_t size);
     KResult ShareDataUsingStackSpace(void* data, size64_t size, void** location);

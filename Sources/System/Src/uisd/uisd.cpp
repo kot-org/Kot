@@ -6,6 +6,8 @@ controller_info_t** UISDControllers;
 
 extern size64_t kot_ControllerTypeSize[ControllerCount];
 
+static uint64_t UISDLock;
+
 kot_thread_t UISDInitialize(kot_process_t* process) {
     kot_thread_t UISDthreadKey;
 
@@ -68,7 +70,7 @@ KResult UISDCreate(enum kot_uisd_controller_type_enum Controller, kot_thread_t C
         uint64_t Flags = NULL;
         uint64_t Priviledge = NULL;
         if(kot_Sys_Keyhole_Verify(DataKey, DataTypeSharedMemory, &Target, &Flags, &Priviledge) != KSUCCESS){
-            return UISDCallbackStatu(UISDCreateTask, Callback, Callbackarg, KKEYVIOLATION);
+            return UISDCallbackStatus(UISDCreateTask, Callback, Callbackarg, KKEYVIOLATION);
         }
         if(kot_Sys_GetInfoMemoryField(DataKey, (uint64_t*)&Type, &Size) == KSUCCESS){
             if(Type == MemoryFieldTypeShareSpaceRW || Type == MemoryFieldTypeShareSpaceRO){
@@ -88,15 +90,15 @@ KResult UISDCreate(enum kot_uisd_controller_type_enum Controller, kot_thread_t C
             }
         }
     }   
-    return UISDCallbackStatu(UISDCreateTask, Callback, Callbackarg, Status);
+    return UISDCallbackStatus(UISDCreateTask, Callback, Callbackarg, Status);
 }
 
 KResult UISDGet(enum kot_uisd_controller_type_enum Controller, kot_thread_t Callback, uint64_t Callbackarg, kot_process_t Self, void* Address){
     kot_process_t Target = NULL;
     uint64_t Flags = NULL;
     uint64_t Priviledge = NULL;
-    if(kot_Sys_Keyhole_Verify(Self, DataTypeProcess, &Target, &Flags, &Priviledge) != KSUCCESS) return UISDCallbackStatu(UISDGetTask, Callback, Callbackarg, KFAIL);
-    if(!(Flags & KeyholeFlagDataTypeProcessMemoryAccessible)) return UISDCallbackStatu(UISDGetTask, Callback, Callbackarg, KFAIL);
+    if(kot_Sys_Keyhole_Verify(Self, DataTypeProcess, &Target, &Flags, &Priviledge) != KSUCCESS) return UISDCallbackStatus(UISDGetTask, Callback, Callbackarg, KFAIL);
+    if(!(Flags & KeyholeFlagDataTypeProcessMemoryAccessible)) return UISDCallbackStatus(UISDGetTask, Callback, Callbackarg, KFAIL);
     if(UISDControllers[Controller] != NULL){
         if(UISDControllers[Controller]->IsLoad){
             callbackget_info_t info{
@@ -114,7 +116,7 @@ KResult UISDGet(enum kot_uisd_controller_type_enum Controller, kot_thread_t Call
     return KSUCCESS;
 }
 
-KResult UISDCallbackStatu(uint64_t IPCTask, kot_thread_t Callback, uint64_t Callbackarg, KResult Status){
+KResult UISDCallbackStatus(uint64_t IPCTask, kot_thread_t Callback, uint64_t Callbackarg, KResult Status){
     kot_arguments_t parameters{
         .arg[0] = IPCTask,
         .arg[1] = (uint64_t)Status,
@@ -129,13 +131,17 @@ void UISDHandler(uint64_t IPCTask, enum kot_uisd_controller_type_enum Controller
     if(Controller < ControllerCount && IPCTask <= 0x2){
         switch (IPCTask) {
         case UISDCreateTask:
+            atomicAcquire(&UISDLock, 0);
             Status = (KResult)UISDCreate(Controller, Callback, Callbackarg, (kot_key_mem_t)GP0);
+            atomicUnlock(&UISDLock, 0);
             break;
         case UISDGetTask:
+            atomicAcquire(&UISDLock, 0);
             Status = (KResult)UISDGet(Controller, Callback, Callbackarg, (kot_process_t)GP0, (void*)GP1);
+            atomicUnlock(&UISDLock, 0);
             break;
         default: /* TODO add free task */
-            UISDCallbackStatu(IPCTask, Callback, Callbackarg, Status);
+            UISDCallbackStatus(IPCTask, Callback, Callbackarg, Status);
             break;
         }
     }

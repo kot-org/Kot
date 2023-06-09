@@ -170,6 +170,11 @@ void SrvMultipleRequestHandler(kot_thread_t Callback, uint64_t CallbackArg, kot_
                         SizeToProcessInIteration = SizeToRead;
                     }
 
+                    if(SizeToProcessInIteration + AddressDst > (uintptr_t)Buffer + Requests->TotalSize){
+                        Status = KBUSY;
+                        break;
+                    }
+
                     atomicAcquire(&Space->StorageDevice->DeviceLock, 0);
                     Space->StorageDevice->LoadSpace(Space);
                     if(Requests->IsWrite){
@@ -188,6 +193,7 @@ void SrvMultipleRequestHandler(kot_thread_t Callback, uint64_t CallbackArg, kot_
             }
         }
     }
+
 
     kot_arguments_t arguments{
         .arg[0] = Status,           /* Status */

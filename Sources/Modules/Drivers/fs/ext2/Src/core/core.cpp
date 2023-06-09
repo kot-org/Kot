@@ -243,18 +243,18 @@ KResult mount_info_t::ReadInode(inode_t* inode, kot_key_mem_t* key, uint64_t sta
     uint64_t RequestCount = 0;
 
     if(start % BlockSize){
-        uint64_t SizeRead = SizeToRead;
-        if(SizeRead > BlockSize){
-            SizeRead = BlockSize;
+        uint64_t SizeRead = BlockSize - (start % BlockSize);
+        if(SizeRead > SizeToRead){
+            SizeRead = SizeToRead;
         }
         int64_t BlockToRead = GetInodeBlock(inode, StartBlock, &redirection0, &redirection1, &redirection2, &redirectioncache0, &redirectioncache1, &redirectioncache2);
         uint64_t PositionToRead = GetLocationFromBlock(BlockToRead) + start % BlockSize;
 
         MultipleRequest->Requests[RequestCount].Start = PositionToRead;
-        MultipleRequest->Requests[RequestCount].Size = SizeRead - (start % SizeRead);
+        MultipleRequest->Requests[RequestCount].Size = SizeRead;
         MultipleRequest->Requests[RequestCount].BufferOffset = BufferPosition;
 
-        BufferPosition += start % BlockSize;
+        BufferPosition += SizeRead;
         SizeToRead -= SizeRead;
         NumberOfBlockToRead--;
         StartBlock++;
@@ -273,7 +273,7 @@ KResult mount_info_t::ReadInode(inode_t* inode, kot_key_mem_t* key, uint64_t sta
         MultipleRequest->Requests[RequestCount].Size = SizeRead;
         MultipleRequest->Requests[RequestCount].BufferOffset = BufferPosition;
 
-        BufferPosition += BlockSize;
+        BufferPosition += SizeRead;
         SizeToRead -= SizeRead;
         RequestCount++;
     }

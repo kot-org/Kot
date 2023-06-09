@@ -113,7 +113,8 @@ namespace mlibc{
 
     int sys_sigprocmask(int how, const sigset_t *__restrict set, sigset_t *__restrict retrieve){
         // TODO
-        __ensure(!"Not implemented");
+        //__ensure(!"Not implemented");
+        return 0;
     }
 
     int sys_sigaction(int, const struct sigaction *__restrict, struct sigaction *__restrict){
@@ -143,7 +144,8 @@ namespace mlibc{
 
     int sys_waitpid(pid_t pid, int *status, int flags, struct rusage *ru, pid_t *ret_pid){
         // TODO
-        __ensure(!"Not implemented");
+        //__ensure(!"Not implemented");
+        return 0;
     }
 
     int sys_execve(const char *path, char *const argv[], char *const envp[]){

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <assert.h>
 #include <srv/srv.h>
 #include <kot/sys.h>
 #include <kot/math.h>
