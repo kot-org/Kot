@@ -72,7 +72,7 @@ namespace mlibc{
     }
 
     int sys_vm_unmap(void *pointer, size_t size){
-        return (kot_Sys_Unmap(kot_Sys_GetThread(), (void*)pointer, static_cast<size64_t>(size)) != KSUCCESS);
+        return (kot_Sys_Unmap(kot_Sys_GetProcess(), (void*)pointer, static_cast<size64_t>(size)) != KSUCCESS);
     }
 
     int sys_vm_protect(void *pointer, size_t size, int prot){

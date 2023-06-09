@@ -46,37 +46,48 @@ void Pmm_Init(ukl_memmory_info_t* MemoryInfo){
 }
 
 void Pmm_RemovePagesToFreeList(uint64_t index, uint64_t pageCount){
+    /* In this function we want to destroy everything but with some pity for the kernel so we will only destroy what we need to destroy */
     freelistinfo_t* FreeListInfo = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index));
     if(FreeListInfo->PageSize == pageCount){
-        if(FreeListInfo == Pmm_LastFreeListInfo){
-            if(FreeListInfo->Next != NULL){
-                Pmm_LastFreeListInfo = FreeListInfo->Next;
-            }else if(FreeListInfo->Last != NULL){
-                Pmm_LastFreeListInfo = FreeListInfo->Last;
-            }else{
-                Pmm_LastFreeListInfo = NULL;
-            }
-        }
+        /* So here our caller are asking us to destroy the all segments */
+        /* So we just need to relink to create a world where this segment have never existed... */
         if(FreeListInfo->Last != NULL){
             FreeListInfo->Last->Next = FreeListInfo->Next;
         }
         if(FreeListInfo->Next != NULL){
             FreeListInfo->Next->Last = FreeListInfo->Last;
         }
+
+        /* Check if it's not the entry */
+        if(FreeListInfo == Pmm_LastFreeListInfo){
+            /* So if it's last of the list we just need to update the entry to the last field because it's the only field of the free list info that's abble to be not NULL */
+            Pmm_LastFreeListInfo = FreeListInfo->Last;
+        }
     }else{
+        /* We have to move forward the header */
         freelistinfo_t* NewFreeListInfo = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount));
-        if(FreeListInfo->Last != NULL){
-            FreeListInfo->Last->Next = NewFreeListInfo;
-        }
-        if(FreeListInfo->Next != NULL){
-            FreeListInfo->Next->Last = NewFreeListInfo;
-        }
+        
+        /* Steal the link like good stealer */
+        NewFreeListInfo->Next = FreeListInfo->Next;
+        NewFreeListInfo->Last = FreeListInfo->Last;
+
+        /* Check if the segment that we're stealing have still link in his pocket */
         if(FreeListInfo == Pmm_LastFreeListInfo){
             Pmm_LastFreeListInfo = NewFreeListInfo;
         }
-        memcpy(NewFreeListInfo, FreeListInfo, sizeof(freelistinfo_t));
-        NewFreeListInfo->PageSize -= pageCount;
-        NewFreeListInfo->IndexStart += pageCount;
+
+        /* Update some trivial numbers */
+        /* Remove some size */
+        NewFreeListInfo->PageSize =  FreeListInfo->PageSize - pageCount;
+        NewFreeListInfo->IndexStart = FreeListInfo->IndexStart + pageCount;
+
+        /* We keep the position of the end segment */
+        NewFreeListInfo->IndexEnd = FreeListInfo->IndexEnd;
+
+        /* Save the end position in the new struct */
+        NewFreeListInfo->Header.End = FreeListInfo->Header.End;
+
+        /* Update the end */
         NewFreeListInfo->Header.End->Start = NewFreeListInfo;
     }
 }
@@ -87,62 +98,107 @@ void Pmm_AddPageToFreeList(uint64_t index, uint64_t pageCount){
     bool IsLastFree = !Pmm_Bitmap.Get(index - 1);
     if(IsNextFree){
         if(IsLastFree){
+            /* So we have next and last, and this we need to merge them */
+            /* Get next structure start which we can locate at the end of this (index + pageCount)*/
             freelistinfo_t* FreeListInfoNext = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount)); /* We can Get start because we are at the start of the freelist segment */
-            freelistinfoend_t* FreeListInfoEnd = (freelistinfoend_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index - 1));
-            freelistinfo_t* FreeListInfoLast = FreeListInfoEnd->Start; /* We can Get start because we are at the end of the freelist segment */
             
-            FreeListInfoLast->Next = FreeListInfoNext->Next;
-            FreeListInfoNext->PageSize += pageCount + FreeListInfoLast->PageSize;
-            FreeListInfoLast->PageSize += pageCount + FreeListInfoNext->PageSize;
+            /* Locate end of the last to find the start header to have necessary informations */
+            freelistinfoend_t* FreeListInfoEnd = (freelistinfoend_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index - 1));
+            
+            /* As I said before we want to locate the last headers which will be the main header of the new segment*/
+            freelistinfo_t* FreeListInfoLast = FreeListInfoEnd->Start; 
 
-            FreeListInfoLast->IndexEnd = FreeListInfoNext->IndexEnd;
+            /* Here we will destory last end and next start structure because we don't need them anymore */
+
+            /* Update the main structures */
+            /* As I said before we only keep the main structure and the end structure so link them together */
             FreeListInfoLast->Header.End = FreeListInfoNext->Header.End;
             FreeListInfoLast->Header.End->Start = FreeListInfoLast;
+            FreeListInfoLast->IndexEnd = FreeListInfoNext->IndexEnd;
 
-            /* Relink */
+            /* Update size */
+            FreeListInfoLast->PageSize += pageCount + FreeListInfoNext->PageSize;
+
+            /* Relink, I mean here we destroy segment so we have to be CAREFUL to not destroy the main list */
+            /* So as we destroy the next start structure let's remove it from the list*/
+            if(FreeListInfoNext->Last){
+                FreeListInfoNext->Last->Next = FreeListInfoNext->Next;
+            }
+            if(FreeListInfoNext->Next){
+                FreeListInfoNext->Next->Last = FreeListInfoNext->Last;
+            }
+
+            /* Don't be happy now we have still work to do, if the entry Pmm_LastFreeListInfo is the segment to destroy */
             if(FreeListInfoNext == Pmm_LastFreeListInfo){
-                Pmm_LastFreeListInfo = FreeListInfoLast;
+                /* If it's the case the next field will be null so we can only use the last field of the struct */
+                Pmm_LastFreeListInfo = FreeListInfoNext->Last;
             }
         }else{
+            /* So here only next is free let's destroy the next start structure */
+            /* Locate useful structures */
             freelistinfo_t* FreeListInfoNext = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount));
             freelistinfo_t* NewFreeListInfo = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index));
+
+            /* And link the start struct with the end*/
+            NewFreeListInfo->Header.End = FreeListInfoNext->Header.End;
             
-            /* Relink */
-            if(FreeListInfoNext->Last != NULL){
-                FreeListInfoNext->Last->Next = NewFreeListInfo;
-            }
-            if(FreeListInfoNext->Next != NULL){
-                FreeListInfoNext->Next->Last = NewFreeListInfo;
-            }
+            /* Update end structures and link it to the new structure */
+            NewFreeListInfo->Header.End->Start = NewFreeListInfo;
+
+            /* The new structures is the start */
+            NewFreeListInfo->IndexStart = index;
+
+            /* Set size */
+            NewFreeListInfo->PageSize = FreeListInfoNext->PageSize + pageCount;
+
+            /* Keep index end we don't change anything here */
+            NewFreeListInfo->IndexEnd = FreeListInfoNext->IndexEnd;
+
+            /* Relink, here we will steal the list from the next field because we want to destroy it definitively */
+            NewFreeListInfo->Next = FreeListInfoNext->Next;
+            NewFreeListInfo->Last = FreeListInfoNext->Last;
+
+            /* Check if the segment that we're stealing have still link in his pocket */
             if(FreeListInfoNext == Pmm_LastFreeListInfo){
                 Pmm_LastFreeListInfo = NewFreeListInfo;
             }
-
-            memcpy(NewFreeListInfo, FreeListInfoNext, sizeof(freelistinfo_t));
-            NewFreeListInfo->PageSize += pageCount;
-            NewFreeListInfo->IndexStart = index;
-            NewFreeListInfo->Header.End->Start = NewFreeListInfo;
         }
     }else if(IsLastFree){
+        /* Get strucutres */
         freelistinfoend_t* FreeListInfoEnd = (freelistinfoend_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index - 1));
-        freelistinfo_t* FreeListInfoLast = FreeListInfoEnd->Start; /* We can Get start because we are at the end of the freelist segment */
+        
+        /* We get the end segment so with the header locate the start segment */
+        freelistinfo_t* FreeListInfoLast = FreeListInfoEnd->Start;
+        
+        /* Locate the new end structures */
         FreeListInfoEnd = (freelistinfoend_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount - 1));
+        
+        /* Add new pages we found */
         FreeListInfoLast->PageSize += pageCount;
         FreeListInfoLast->IndexEnd = index + pageCount - 1;
+
+        /* Define end and start */
         FreeListInfoLast->Header.End = FreeListInfoEnd;
         FreeListInfoEnd->Start = FreeListInfoLast;
+
+        /* We do NOT link to the list here because we already done that when we create the segment */
     }else{
-        /* Create free list */
+        /* Get strucutres */
         freelistinfo_t* FreeListInfo = (freelistinfo_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index));
         freelistinfoend_t* FreeListInfoEnd = (freelistinfoend_t*)vmm_GetVirtualAddress(Pmm_ConvertIndexToAddress(index + pageCount - 1));
-        FreeListInfo->Header.End = FreeListInfoEnd;
+        
+        /* Some numbers to characterize the segment */
         FreeListInfo->IndexStart = index;
         FreeListInfo->IndexEnd = index + pageCount - 1;
-        FreeListInfo->Last = Pmm_LastFreeListInfo;
-        FreeListInfo->Next = NULL;
         FreeListInfo->PageSize = pageCount;
+
+        /* Define end and start */
+        FreeListInfo->Header.End = FreeListInfoEnd;
         FreeListInfoEnd->Start = FreeListInfo;
 
+        /* Link to list */
+        FreeListInfo->Last = Pmm_LastFreeListInfo;
+        FreeListInfo->Next = NULL;
         if(Pmm_LastFreeListInfo != NULL){
             Pmm_LastFreeListInfo->Next = FreeListInfo;
         }
@@ -195,22 +251,22 @@ void* Pmm_RequestPages(uint64_t pageCount){
     }
 
     uint64_t index = Pmm_FreeList->IndexStart;
-    Pmm_RemovePagesToFreeList(index, pageCount);
     Pmm_LockPages_WI(index, pageCount);
+    Pmm_RemovePagesToFreeList(index, pageCount);
     AtomicRelease(&Pmm_Mutex);
 	return (void*)(index * PAGE_SIZE);
 }
 
 void Pmm_FreePage_WI(uint64_t index){
     AtomicAcquire(&Pmm_Mutex);
-    // if(Pmm_Bitmap.GetAndSet(index, false)){
-    //     Pmm_AddPageToFreeList(index, 1);
-    //     Pmm_MemoryInfo.freePageMemory++;
-    //     Pmm_MemoryInfo.usedPageMemory--;
-    //     if(Pmm_FirstFreePageIndex > index){
-    //         Pmm_FirstFreePageIndex = index;
-    //     }
-    // }
+    if(Pmm_Bitmap.GetAndSet(index, false)){
+        Pmm_AddPageToFreeList(index, 1);
+        Pmm_MemoryInfo.freePageMemory++;
+        Pmm_MemoryInfo.usedPageMemory--;
+        if(Pmm_FirstFreePageIndex > index){
+            Pmm_FirstFreePageIndex = index;
+        }
+    }
     AtomicRelease(&Pmm_Mutex);
 }
 
@@ -218,7 +274,7 @@ void Pmm_FreePages_WI(uint64_t index, uint64_t pageCount){
     AtomicAcquire(&Pmm_Mutex);
     Pmm_AddPageToFreeList(index, pageCount);
     uint64_t indexEnd = index + pageCount;
-    for (uint64_t t = index; t < indexEnd; t++){
+    for(uint64_t t = index; t < indexEnd; t++){
         if(Pmm_Bitmap.GetAndSet(t, false)){
             Pmm_MemoryInfo.freePageMemory++;
             Pmm_MemoryInfo.usedPageMemory--;

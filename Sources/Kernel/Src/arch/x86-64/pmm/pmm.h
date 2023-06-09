@@ -46,6 +46,7 @@ struct freelistinfoend_t{
 }__attribute__((packed));
 
 struct freelistinfo_t{
+    /* We put it on a header because if the segment is only one page long the end and start struct is at the same address */
     struct freelistinfoend_t Header;
     uint64_t IndexStart;
     uint64_t IndexEnd;

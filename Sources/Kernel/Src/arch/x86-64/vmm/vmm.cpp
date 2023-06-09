@@ -419,7 +419,9 @@ uint64_t vmm_Init(ukl_boot_structure_t* bootInfo){
 pagetable_t vmm_SetupProcess(){
     pagetable_t PageTable = Pmm_RequestPage();
     memset((void*)vmm_GetVirtualAddress(PageTable), 0, PAGE_SIZE);
-    vmm_Fill(PageTable, VMM_STARTRHALF, VMM_LOWERHALF, true);
+    vmm_Fill(PageTable, VMM_STARTRHALF, 0xfe, true);
+    vmm_Fill(PageTable, 0xff, VMM_LOWERHALF, true);
+    vmm_page_table* PML4VirtualAddressDestination = (vmm_page_table*)vmm_GetVirtualAddress(PageTable);
     vmm_CopyPageTable(vmm_PageTable, PageTable, VMM_LOWERHALF, VMM_HIGHERALF);
     
     uint64_t VirtualAddress = (uint64_t)vmm_GetVirtualAddress(PageTable);
@@ -436,12 +438,6 @@ pagetable_t vmm_Setupthread(pagetable_t parent){
     
     vmm_CopyPageTable(parent, PageTable, VMM_STARTRHALF, VMM_LOWERHALF);
     vmm_CopyPageTable(vmm_PageTable, PageTable, VMM_LOWERHALF, VMM_HIGHERALF);
-
-    /* Clear thread data */
-    vmm_page_table* PML4VirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress(PageTable);
-    void* Page = (void*)PML4VirtualAddress->entries[0xfe];
-    PML4VirtualAddress->entries[0xfe] = NULL;
-    Pmm_FreePage(Page);
 
     return PageTable;      
 }
