@@ -51,7 +51,7 @@ KResult windowc::CreateBuffer(){
 
     void* Address = kot_GetFreeAlignedSpace(this->Framebuffer->Size);
     kot_key_mem_t Key = NULL;
-    kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), this->Framebuffer->Size, &Address, &Key, MemoryFieldTypeShareSpaceRW);
+    if(kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), this->Framebuffer->Size, &Address, &Key, MemoryFieldTypeShareSpaceRW) != KSUCCESS) kot_Printlog("hmm");
     kot_key_mem_t KeyShare = NULL;
     kot_Sys_Keyhole_CloneModify(Key, &KeyShare, NULL, KeyholeFlagPresent, PriviledgeApp);
     

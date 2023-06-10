@@ -12,6 +12,8 @@ shell_t* NewShell(kot_process_t Target){
     Shell->ReadRequest = kot_vector_create();
 
     Shell->HeightUsed = 0;
+
+    Shell->PressedCache = NULL;
     
     kot_Sys_Event_Create(&Shell->ShellEvent);
     kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&ShellEventEntry, PriviledgeApp, (uint64_t)Shell, &Shell->ShellEventThread);
@@ -28,22 +30,17 @@ shell_t* NewShell(kot_process_t Target){
     Shell->Backbuffer->Buffer = (void*)calloc(1, Shell->Framebuffer->Size);
 
     // Load font
-    FILE* FontFile = fopen("d0:default-font.sfn", "r");
+    FILE* FontFile = fopen("d0:default-font.ttf", "r");
     fseek(FontFile, 0, SEEK_END);
     size64_t Size = ftell(FontFile);
     void* Buffer = malloc(Size);
     fseek(FontFile, 0, SEEK_SET);
     fread(Buffer, Size, 1, FontFile);
-    Shell->Font = (kfont_t*)LoadFont((void*)Buffer);
+    Shell->Font = (kfont_t*)LoadFont((void*)Buffer, Size);
     free(Buffer);
     fclose(FontFile);
 
-    font_fb_t FontFB;
-    FontFB.Address = Shell->Backbuffer->Buffer;
-    FontFB.Width = Shell->Backbuffer->Width;
-    FontFB.Height = Shell->Backbuffer->Height;
-    FontFB.Pitch = Shell->Backbuffer->Pitch;
-    LoadPen(Shell->Font, &FontFB, 0, 0, 16, 0, 0xFFFFFFFF);
+    LoadPen(Shell->Font, Shell->Backbuffer, 0, 0, 16, 0, 0xFFFFFFFF);
 
     ChangeVisibilityWindow(Shell->Wid, true);
 
@@ -155,8 +152,11 @@ void ShellEventEntry(uint64_t EventType, uint64_t GP0, uint64_t GP1, uint64_t GP
                     CurrentRequest->SizeGet += sizeof(char);
                     CurrentRequest->Buffer = (char*)realloc((void*)CurrentRequest->Buffer, CurrentRequest->SizeGet);
                     CurrentRequest->Buffer[CurrentRequest->SizeGet - 1] = Char;
-                    DrawFontSize(Shell->Font, &Char, 1);
                     BlitFramebuffer(Shell->Framebuffer, Shell->Backbuffer, 0, 0);
+                    char Text[2];
+                    Text[0] = Char;
+                    Text[1] = NULL;
+                    DrawFont(Shell->Font, (char*)&Text);
                 }else{
                     // TODO remove char
                 }

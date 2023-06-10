@@ -1017,7 +1017,7 @@ PKGCONFIG_LIBS_PRIVATE=`echo "$PKGCONFIG_LIBS_PRIVATE"  \
                               -e 's/  *$//'   \
                               -e 's/  */ /g'`
 
-LIBSSTATIC_CONFIG="-lfreetype               \
+LIBSSTATIC_CONFIG="-lfreetype -lpng16               \
                    $zlib_libsstaticconf     \
                    $bzip2_libsstaticconf    \
                    $libpng_libsstaticconf   \
@@ -1041,7 +1041,7 @@ LIBSSTATIC_CONFIG=`echo "$LIBSSTATIC_CONFIG"          \
 # prepared for.
 
 PKGCONFIG_REQUIRES=
-PKGCONFIG_LIBS='-L${libdir} -lfreetype'
+PKGCONFIG_LIBS='-L${libdir} -lfreetype -lz -lpng16'
 
 if test $enable_shared = "no"; then
   PKGCONFIG_REQUIRES="$PKGCONFIG_REQUIRES $PKGCONFIG_REQUIRES_PRIVATE"

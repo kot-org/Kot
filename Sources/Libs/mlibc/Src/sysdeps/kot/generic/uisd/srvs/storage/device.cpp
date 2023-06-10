@@ -16,6 +16,7 @@ KResult kot_Srv_StorageInitializeDeviceAccess(struct kot_srv_storage_space_info_
         struct kot_srv_storage_device_t* Device = (struct kot_srv_storage_device_t*)malloc(sizeof(struct kot_srv_storage_device_t));
         Device->BufferRWBase = kot_GetFreeAlignedSpace(BufferSize);
         Device->BufferRWSize = BufferSize;
+        Device->Lock = NULL;
         
         kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), StorageSpace->BufferRWKey, &Device->BufferRWBase);
 

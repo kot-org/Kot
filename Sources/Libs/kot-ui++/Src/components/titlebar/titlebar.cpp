@@ -117,7 +117,7 @@ namespace Ui {
 
         Titlebar->Title = Label(
             {   
-                .FontPath = "d0:default-font.sfn",
+                .FontPath = "d0:default-font.ttf",
                 .Text = Title,
                 .FontSize = Titlebar_FontSize,
                 .ForegroundColor = Titlebar->Style.ForegroundColor, 

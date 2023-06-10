@@ -1,17 +1,14 @@
 _HOME = ../../../../
 
-INCDIR = $(_HOME)Sysroot/include
-BUILDDIR := $(_HOME)Sysroot/lib
+INCDIR = $(_HOME)Sysroot/include/
+BUILDDIR := $(_HOME)Sysroot/lib/
 BINDIR = $(_HOME)Bin/Modules
 
 ASMC = nasm
 CC = kot-x86_64-clang
 AR = llvm-ar-14
 
-CFLAGS = -O3 -I../Src -fno-exceptions
-
-INCDIR = $(_HOME)Sysroot/include
-BUILDDIR = $(_HOME)Sysroot/lib/
+CFLAGS = -O3 -I../Src -fno-exceptions -I$(INCDIR)/freetype2
 
 SRCDIR := ../Src
 OBJDIR := ../Lib

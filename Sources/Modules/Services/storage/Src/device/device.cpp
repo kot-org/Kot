@@ -9,6 +9,8 @@ KResult AddDevice(kot_srv_storage_device_info_t* Info, storage_device_t** Device
         storage_device_t* Device = (storage_device_t*)malloc(sizeof(storage_device_t));
         Device->BufferRWBase = kot_GetFreeAlignedSpace(BufferSize);
         Device->BufferRWSize = BufferSize;
+
+        Device->Lock = 0;
         
         kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), Info->MainSpace.BufferRWKey, &Device->BufferRWBase);
 

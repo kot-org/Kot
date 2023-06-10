@@ -2,7 +2,7 @@
 
 extern "C" {
 
-uint64_t kot_MemoryLock;
+uint64_t kot_MemoryLock = 0;
 
 void* kot_GetFreeAlignedSpace(size64_t size){
     atomicAcquire(&kot_MemoryLock, 0);

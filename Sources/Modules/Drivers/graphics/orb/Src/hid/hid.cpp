@@ -15,6 +15,8 @@ void CursorInterruptEntry(int64_t x, int64_t y, int64_t z, uint64_t status){
 hidc::hidc(orbc* Parent){
     Orb = Parent;
 
+    CurrentFocusEvent = NULL;
+
     FILE* KursorFile = fopen("d0:darkDefault.kursor", "rb"); // todo: kursor settings and use drive to store the cursor to d1:Bin/Kursors/
 
     if(KursorFile == NULL) {

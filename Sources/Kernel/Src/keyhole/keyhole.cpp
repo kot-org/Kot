@@ -12,9 +12,7 @@ KResult Keyhole_GetAddressFromIndex(key_t* key, uint64_t index, kprocess_t* pare
     lockreference_t* AccessAddress = NULL;
     
     if(!vmm_GetFlags(parent->SharedPaging, (void*)Page, vmm_flag::vmm_Present)){
-        vmm_Map(parent->SharedPaging, (void*)Page, Pmm_RequestPage());
-        AccessAddress = (lockreference_t*)vmm_GetVirtualAddress(vmm_GetPhysical(parent->SharedPaging, (void*)Page));
-        memset((void*)AccessAddress, 0, PAGE_SIZE);
+        return KFAIL;
     }else{
         AccessAddress = (lockreference_t*)vmm_GetVirtualAddress(vmm_GetPhysical(parent->SharedPaging, (void*)Page));
     }

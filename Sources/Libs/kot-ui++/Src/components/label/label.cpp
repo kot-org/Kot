@@ -45,8 +45,7 @@ namespace Ui {
         if(Cpnt->IsFramebufferUpdate) {
             // Draw
             Cpnt->IsFramebufferUpdate = false;
-            font_fb_t FontBuffer = {.Address = Label->Cpnt->Framebuffer->Buffer, .Width = Label->Cpnt->Parent->Framebuffer->Width, .Height = Label->Cpnt->Parent->Framebuffer->Height, .Pitch = Label->Cpnt->Parent->Framebuffer->Pitch};
-            EditPen(Label->Font, &FontBuffer, (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom), Label->Style.FontSize, 0, Label->Style.ForegroundColor);
+            EditPen(Label->Font, Label->Cpnt->Framebuffer, (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom), Label->Style.FontSize, 0, Label->Style.ForegroundColor);
             // TODO add buffer
         } else if(Cpnt->IsDrawUpdate) {
             Cpnt->IsDrawUpdate = false;
@@ -92,11 +91,11 @@ namespace Ui {
             void* Font = malloc(FontFileSize);
             fread(Font, FontFileSize, 1, FontFile);
 
-            Label->Font = LoadFont(Font);
+            Label->Font = LoadFont(Font, FontFileSize);
 
             fclose(FontFile);
         } else {
-            Label->Font = LoadFont(Style.FontBuffer);
+            Label->Font = LoadFont(Style.FontBuffer, Style.FontSize);
         }
 
         memcpy(&Label->Style, &Style, sizeof(LabelStyle_t));
@@ -110,9 +109,7 @@ namespace Ui {
         
         Label->Cpnt = new Component(Style.G, LabelUpdate, (Ui::MouseEventHandler)LabelUpdate, (void*)Label, ParentCpnt, false);
 
-        font_fb_t FontBuffer = {.Address = Label->Cpnt->Framebuffer->Buffer, .Width = Label->Cpnt->Parent->Framebuffer->Width, .Height = Label->Cpnt->Parent->Framebuffer->Height, .Pitch = Label->Cpnt->Parent->Framebuffer->Pitch};
-
-        LoadPen(Label->Font, &FontBuffer, (int64_t)(Label->Cpnt->Style->Position.x + Label->Cpnt->Style->Margin.Left), (int64_t)(Label->Cpnt->Style->Position.y + Label->Cpnt->Style->Margin.Top), Label->Style.FontSize, 0, Label->Style.ForegroundColor);
+        LoadPen(Label->Font, Label->Cpnt->Framebuffer, (int64_t)(Label->Cpnt->Style->Position.x + Label->Cpnt->Style->Margin.Left), (int64_t)(Label->Cpnt->Style->Position.y + Label->Cpnt->Style->Margin.Top), Label->Style.FontSize, 0, Label->Style.ForegroundColor);
         GetTextboxInfo(Label->Font, Label->Style.Text, &Label->TextWidth, &Label->TextHeight, &Label->TextX, &Label->TextY);
         
         if(Label->Style.AutoWidth) {

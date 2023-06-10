@@ -4,7 +4,7 @@ CC = kot-x86_64-clang
 ASMC = nasm
 
 CFLAGS = -O3 -I../Src -I../../../../Sysroot/include/freetype2
-LINKERFLAGS = -Wall -lc -lz -lpng16 -lfreetype
+LINKERFLAGS = -Wall -lc -lz -lpng16 -lfreetype -lz -lpng16
 ASMFLAGS = 
 
 SRCDIR := ../Src

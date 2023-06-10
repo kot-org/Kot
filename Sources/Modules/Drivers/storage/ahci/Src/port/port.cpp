@@ -5,6 +5,7 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
     HbaPort = Port;
     PortType = Type;
     PortIndex = Index;
+    DeviceLock = NULL;
 
     // Rebase port
     StopCMD();
@@ -35,7 +36,6 @@ Device::Device(AHCIController* Parent, HBAPort_t* Port, PortTypeEnum Type, uint8
 
     // Update space size
     DefaultSpace->Size = GetSize();
-
 
     SrvAddDevice(this);
 }
@@ -86,7 +86,8 @@ Space_t* Device::CreateSpace(uint64_t Start, uint64_t Size){
     kot_Sys_CreateMemoryField(Proc, BufferRealSize, &Self->BufferVirtual, &Self->BufferKey, MemoryFieldTypeShareSpaceRW);
 
     // Load command header main
-    Self->CommandAddressTable = (HBACommandTable_t*)kot_GetPhysical((void**)&CommandHeader[0].CommandTableBaseAddress, HBA_COMMAND_TABLE_SIZE);
+    Self->CommandAddressTable = (HBACommandTable_t*)kot_GetPhysical((void**)&CommandHeader[MainSlot].CommandTableBaseAddress, HBA_COMMAND_TABLE_SIZE);
+    memset(Self->CommandAddressTable, NULL, HBA_COMMAND_TABLE_SIZE);
 
     uint64_t BufferInteration = (uint64_t)Self->BufferVirtual;
     for(size64_t i = 0; i < HBA_PRDT_MAX_ENTRIES; i++){
@@ -166,7 +167,7 @@ KResult Device::Read(Space_t* Self, uint64_t Start, size64_t Size){
 
     HbaPort->CommandIssue = 1 << MainSlot;
 
-    while (true){
+    while(true){
         if((HbaPort->CommandIssue & (1 << MainSlot)) == 0) break;
         if(HbaPort->InterruptStatus & HBA_INTERRUPT_STATU_TFE){
             return KFAIL;

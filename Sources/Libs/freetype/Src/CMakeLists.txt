@@ -518,7 +518,7 @@ set_target_properties(freetype-interface PROPERTIES
 
 set(PKGCONFIG_REQUIRES "")
 set(PKGCONFIG_REQUIRES_PRIVATE "")
-set(PKGCONFIG_LIBS "-L\${libdir} -lfreetype")
+set(PKGCONFIG_LIBS "-L\${libdir} -lfreetype -lz -lpng16")
 set(PKGCONFIG_LIBS_PRIVATE "")
 
 if (ZLIB_FOUND)

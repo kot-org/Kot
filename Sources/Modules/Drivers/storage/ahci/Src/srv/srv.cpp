@@ -1,6 +1,6 @@
 #include <srv/srv.h>
 
-uint64_t SrvLock;
+uint64_t SrvLock = 0;
 kot_uisd_storage_t* StorageHandler;
 
 void SrvAddDevice(Device* Device){
@@ -101,6 +101,8 @@ void SrvCreateProtectedSpace(kot_thread_t Callback, uint64_t CallbackArg, uint64
     kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
     kot_Sys_Close(KSUCCESS);
 }
+
+Space_t* SpaceTest;
 
 void SrvSingleRequestHandler(kot_thread_t Callback, uint64_t CallbackArg, uint64_t Start, size64_t Size, bool IsWrite){
     KResult Status = KFAIL;

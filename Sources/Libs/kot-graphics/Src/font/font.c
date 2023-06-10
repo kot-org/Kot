@@ -1,114 +1,131 @@
 #include <stdlib.h>
 
 #include <kot-graphics/font.h>
-#include <kot-graphics/font/ssfn.h>
 
-kfont_t* LoadFont(void* data){
-    kfont_t* font = malloc(sizeof(kfont_t));
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
-    font->FontContext = calloc(1, sizeof(ssfn_t));
-    font->PenContext = calloc(1, sizeof(ssfn_buf_t));
-    font->IsPen = false;
+typedef struct {
+    FT_Library library;
+    FT_Face face;
+    FT_GlyphSlot slot;
+    FT_UInt glyph_index;
+    color_t color;
+    kot_framebuffer_t fb;
+    FT_Vector pen; 
+}local_kfont_t;
 
-    ssfn_load(font->FontContext, data);
-    
+kfont_t* LoadFont(void* data, size_t size){
+    FT_Error error;
+
+    local_kfont_t* font = malloc(sizeof(local_kfont_t));
+
+    error = FT_Init_FreeType(&font->library);
+    if(error){
+        free(font);
+        return NULL;
+    }
+    error = FT_New_Memory_Face(font->library, data, size, 0, &font->face);
+    if(error){
+        free(font);
+        return NULL;
+    }
+    error = FT_Set_Char_Size(font->face, 0, 16 * 64, 96, 96); // Set default font size
+    if(error){
+        free(font);
+        return NULL;
+    }
+
     return font;
 }
 
-void FreeFont(kfont_t* font){
-    ssfn_free(font->FontContext);
-    free(font->FontContext);
-    free(font->PenContext);
+void FreeFont(kfont_t* opaque){
+    if(opaque == NULL) return;
+
+    local_kfont_t* font = (local_kfont_t*)opaque;
+
+    FT_Done_Face(font->face);
+    FT_Done_FreeType(font->library);
+    free(font);
 }
 
-void LoadPen(kfont_t* font, font_fb_t* buffer, int64_t x, int64_t y, int16_t size, int32_t style, int64_t color){
-    if(font->IsPen){
-        EditPen(font, buffer, x, y, size, style, color);
-    }else if(buffer != NULL){
-        if(x < 0){
-            x = 0;
-        }
-        if(y < 0){
-            y = 0;
-        }
-        if(size < 0){
-            size = 8;
-        }else if(size < 8 || size > SSFN_SIZE_MAX){
-            size = 8;
-        }
-        if(style < 0){
-            style = 0;
-        }
-        if(color < 0){
-            color = 0;
-        }
+void LoadPen(kfont_t* opaque, kot_framebuffer_t* fb, int64_t x, int64_t y, int16_t size, int32_t style, int64_t color) {
+    if(opaque == NULL) return;
 
-        ssfn_buf_t* Pen = (ssfn_buf_t*)font->PenContext;
-        Pen->ptr = buffer->Address;
-        Pen->w = buffer->Width;
-        Pen->h = buffer->Height;
-        Pen->p = buffer->Pitch;
-        Pen->y = y;
-        Pen->fg = color;
-        Pen->bg = 0x0;
+    local_kfont_t* font = (local_kfont_t*)opaque;
 
-        ssfn_select(font->FontContext, SSFN_FAMILY_ANY, NULL, style, size);
-        ssfn_newline(font->FontContext, font->PenContext);
-        Pen->x = x;
-        font->IsPen = true;
-    }
+    FT_Set_Pixel_Sizes(font->face, 0, size); // Set font size
+
+    font->pen.x = x;
+    font->pen.y = y;
+
+    font->color = 0xffffffff;
+
+    font->slot = font->face->glyph;
+
+    memcpy(&font->fb, fb, sizeof(kot_framebuffer_t));
 }
 
-void EditPen(kfont_t* font, font_fb_t* buffer, int64_t x, int64_t y, int16_t size, int32_t style, int64_t color){
-    ssfn_t* Font = (ssfn_t*)font->FontContext; 
-    ssfn_buf_t* Pen = (ssfn_buf_t*)font->PenContext;
-    if(buffer != NULL){
-        Pen->ptr = buffer->Address;
-        Pen->w = buffer->Width;
-        Pen->h = buffer->Height;
-        Pen->p = buffer->Pitch;
-    }
-    if(y >= 0){
-        Pen->y = y;
-    }
-    if(size >= 0){
-        if(size < 8 || size > SSFN_SIZE_MAX){
-            size = 8;
-        }
-        Font->size = size;
-    }
-    if(style >= 0){
-        Font->style = style;
-    }
-    if(color >= 0){
-        Pen->fg = color;
-    }
-    ssfn_newline(font->FontContext, font->PenContext);
-    if(x >= 0){
-        Pen->x = x;
-    }
+void EditPen(kfont_t* font, kot_framebuffer_t* fb, int64_t x, int64_t y, int16_t size, int32_t style, int64_t color){
 
-    font->IsPen = true;
 }
 
-void DrawFont(kfont_t* font, char* str){
-    if(font->IsPen){
-        ssfn_buf_t* Pen = (ssfn_buf_t*)font->PenContext;
-        while(*str) {
-            ssfn_render(font->FontContext, font->PenContext, str++);
+void DrawFont(kfont_t* opaque, char* str){
+    kot_Printlog(str);
+    return;
+    if(opaque == NULL) return;
+
+    local_kfont_t* font = (local_kfont_t*)opaque;
+
+    FT_GlyphSlot slot = font->slot;
+
+
+    while(*str){
+        if(*str == '\n'){
+            str++;
+            continue;
         }
+
+        if(FT_Load_Char(font->face, *str, FT_LOAD_RENDER)){
+            str++;
+            continue;
+        }
+
+        for(FT_Int x = 0; x < slot->bitmap.width; x++){
+            for(FT_Int y = 0; y < slot->bitmap.rows; y++){
+                // uint32_t buffer_x = font->pen.x + slot->bitmap_left + x;
+                // uint32_t buffer_y = font->pen.y - slot->bitmap_top + y;
+                // PutPixel(&font->fb, buffer_x, buffer_y, 0xffffff | (slot->bitmap.buffer[y * slot->bitmap.width + x] << 24));
+            }
+        }
+
+        font->pen.x += slot->advance.x >> 6;
+        font->pen.y += slot->advance.y;
+
+        str++;
     }
 }
 
-void DrawFontSize(kfont_t* font, char* str, size64_t Size){
-    if(font->IsPen){
-        ssfn_buf_t* Pen = (ssfn_buf_t*)font->PenContext;
-        for(size64_t i = 0; i < Size; i++){
-            ssfn_render(font->FontContext, font->PenContext, str++);
-        }
-    }
-}
+void GetTextboxInfo(kfont_t* opaque, char* str, int64_t* width, int64_t* height, int64_t* x, int64_t* y){
+    if(opaque == NULL) return;
 
-void GetTextboxInfo(kfont_t* font, char* str, int64_t* width, int64_t* height, int64_t* x, int64_t* y){
-    ssfn_bbox(font->FontContext, str, (int*)width, (int*)height, (int*)x, (int*)y);
+    local_kfont_t* font = (local_kfont_t*)opaque;
+
+    FT_GlyphSlot slot = font->slot;
+
+    *width = 0;
+    *height = 0;
+    *x = 0;
+    *y = 0;
+
+    while (*str) {
+        if(FT_Load_Char(font->face, *str, FT_LOAD_RENDER)){
+            continue;
+        }
+
+        *width += slot->advance.x >> 6;
+        *height = slot->bitmap.rows;
+
+        str++;
+    }
 }

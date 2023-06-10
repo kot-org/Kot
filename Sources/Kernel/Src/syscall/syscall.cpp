@@ -69,6 +69,7 @@ KResult Sys_CloseMemoryField(SyscallStack* Registers, kthread_t* Thread){
 KResult Sys_GetInfoMemoryField(SyscallStack* Registers, kthread_t* Thread){
     MemoryShareInfo* memoryKey;
     uint64_t flags;
+
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeSharedMemory, (uint64_t*)&memoryKey, &flags, false) != KSUCCESS) return KKEYVIOLATION;
     if(CheckUserAddress((void*)Registers->arg1, sizeof(uint64_t)) == KSUCCESS){
         uint64_t* TypePointer = (uint64_t*)Registers->arg1;
