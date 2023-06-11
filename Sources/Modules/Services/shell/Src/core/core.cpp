@@ -20,7 +20,7 @@ shell_t* NewShell(kot_process_t Target){
     kot_Sys_Event_Bind(Shell->ShellEvent, Shell->ShellEventThread, false);
     Shell->Wid = CreateWindow(Shell->ShellEvent, Window_Type_Default);
 
-    ResizeWindow(Shell->Wid, 1920, 700);
+    ResizeWindow(Shell->Wid, 900, 500);
     ChangeVisibilityWindow(Shell->Wid, true);
 
     Shell->Framebuffer = &Shell->Wid->Framebuffer;

@@ -2,11 +2,11 @@ _HOME = ../../../../
 
 CC = kot-x86_64-clang
 
-CFLAGS = -O3
-LINKERFLAGS = -Wall -lc
-
 SRCDIR := ../Src
 BINDIR := ../Bin
+
+CFLAGS = -O3 -I$(SRCDIR)
+LINKERFLAGS = -Wall -lc -I$(SRCDIR)
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
@@ -22,4 +22,4 @@ $(BINDIR)/utils/%.elf: $(SRCDIR)/utils/%.cpp
 	$(CC) -I$(@D) $(LINKERFLAGS) -o $(BINDIR)/utils/$*.elf $^
 
 main:
-	$(CC) -I$(SRCDIR) $(LINKERFLAGS) -o $(BINDIR)/Shell.elf $(SRCDIR)/main.cpp
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Shell.elf $(SRCDIR)/main.cpp

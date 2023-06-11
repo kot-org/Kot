@@ -17,7 +17,6 @@ void MouseHandlerTaskbar(uint64_t EventType, uint64_t PositionX, uint64_t Positi
 }
 
 desktopc::desktopc(orbc* Parent){
-    return;
     kot_Printlog("[ORB/DESKTOP] Initializing...");
     
     /* Play startup sound */
@@ -34,6 +33,7 @@ desktopc::desktopc(orbc* Parent){
     fclose(MusicFile);
 
     St->AddBuffer(FileBuf, FileSize);
+
 
     /* Load desktopUserSettings.json */
 
@@ -89,7 +89,6 @@ desktopc::desktopc(orbc* Parent){
 }
 
 KResult desktopc::AddMonitor(monitorc* Monitor){
-    return KSUCCESS;
     /* Add dock : fixed widgets */
     Monitor->XPositionWithDock = Monitor->XPosition;                                    // left
     Monitor->XMaxPositionWithDock = Monitor->XMaxPosition;                              // right
@@ -136,8 +135,9 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
     else
         Monitor->DesktopData->SetSolidColor(SolidColor);
 
-    if(IsClock)
-        Monitor->DesktopData->InitalizeClock(FontPathClock);
+    // TODO: regler bug : clock s'affiche pas
+    /* if(IsClock)
+        Monitor->DesktopData->InitalizeClock(FontPathClock); */
 
     Monitor->DesktopData->Desktop->UiCtx->UiStartRenderer();
 
@@ -238,32 +238,27 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
 }
 
 KResult desktopc::RemoveMonitor(monitorc* Monitor){
-    return KSUCCESS;
     Monitor->Orb->Desktop = this;
     return KSUCCESS;
 }
 
 KResult desktopc::UpdateBackground(monitorc* Monitor){
-    return KSUCCESS;
     memcpy(Monitor->BackFramebuffer->Buffer, Monitor->DesktopData->Desktop->Fb->Buffer, Monitor->DesktopData->Desktop->Fb->Size);
     return KSUCCESS;
 }
 
 KResult desktopc::UpdateBackgroundEvent(monitorc* Monitor){
-    return KSUCCESS;
     BlitGraphicEventbuffer(Monitor->Eventbuffer, Monitor->DesktopData->Taskbar->Eventbuffer, Monitor->DesktopData->Taskbar->Position.x - Monitor->XPosition, Monitor->DesktopData->Taskbar->Position.y - Monitor->YPosition);
     return KSUCCESS;
 }
 
 KResult desktopc::UpdateWidgets(monitorc* Monitor){
-    return KSUCCESS;
     // Taskbar
     BlitFramebuffer(Monitor->BackFramebuffer, Monitor->DesktopData->Taskbar->Fb, Monitor->DesktopData->Taskbar->Position.x - Monitor->XPosition, Monitor->DesktopData->Taskbar->Position.y - Monitor->YPosition);
     return KSUCCESS;
 }
 
 KResult desktopc::UpdateWidgetsEvent(monitorc* Monitor){
-    return KSUCCESS;
     BlitGraphicEventbuffer(Monitor->Eventbuffer, Monitor->DesktopData->Taskbar->Eventbuffer, Monitor->DesktopData->Taskbar->Position.x - Monitor->XPosition, Monitor->DesktopData->Taskbar->Position.y - Monitor->YPosition);
     return KSUCCESS;
 }
@@ -271,7 +266,6 @@ KResult desktopc::UpdateWidgetsEvent(monitorc* Monitor){
 // Private functions
 
 void desktopmonitor::SetWallpaper(char* Path, PictureboxFit Fit){
-    return;
     Wallpaper = Ui::Picturebox(Path, _TGA, 
         {
             .Fit = Fit,
@@ -291,7 +285,6 @@ void desktopmonitor::SetWallpaper(char* Path, PictureboxFit Fit){
 }
 
 void desktopmonitor::SetSolidColor(uint32_t Color){
-    return;
     FillRect(Desktop->Fb, 0, 0, Desktop->Fb->Width, Desktop->Fb->Height, Color);
 }
 
@@ -321,7 +314,6 @@ char* MonthString[] = {
 };
 
 void UpdateClock(Ui::Label_t* Time, Ui::Label_t* Date){
-    return;
     char TimeStr[1024];
     char DateStr[1024];
     uint64_t TimerState;
@@ -343,7 +335,6 @@ void UpdateClock(Ui::Label_t* Time, Ui::Label_t* Date){
 }
 
 void desktopmonitor::InitalizeClock(char* FontPath){
-    return;
     Ui::Flexbox_t* ClockContainer = Ui::Flexbox(
         {
             .Direction = Layout::COLUMN,
@@ -417,7 +408,6 @@ void desktopmonitor::InitalizeClock(char* FontPath){
 }
 
 void desktopc::UpdateTaskbar(JsonObject* TaskbarSettings){
-    return;
     Taskbar = (Taskbar_t*)malloc(sizeof(Taskbar_t));
 
     JsonObject* Style = (JsonObject*)TaskbarSettings->Get("style");
@@ -432,7 +422,6 @@ void desktopc::UpdateTaskbar(JsonObject* TaskbarSettings){
 }
 
 void desktopcomponent::MouseHandler(uint64_t PositionX, uint64_t PositionY, uint64_t ZValue, uint64_t Status){
-    return;
     int64_t RelativePositionX = PositionX - Position.x;
     int64_t RelativePositionY = PositionY - Position.y;
 

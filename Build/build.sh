@@ -36,6 +36,7 @@ make -C "Libs/freetype/Build"
 make -C "Libs/kot-graphics/Build"
 make -C "Libs/kot-ui/Build"
 make -C "Libs/kot-ui++/Build"
+make -C "Libs/microui/Build"
 make -C "Libs/kot-audio++/Build"
 
 # System

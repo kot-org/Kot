@@ -16,7 +16,7 @@ QEMUFLAGS =	-no-reboot 														\
 			-device e1000,netdev=net0,romfile=Bin/Firmwares/efi-e1000.rom	\
 			-netdev user,id=net0											\
 			-object filter-dump,id=f1,netdev=net0,file=dump.dat				\
-			# -accel kvm
+			-accel kvm
 
 # -audiodev wav,id=snd0,path=output.wav 	 ,audiodev=snd0		
 
@@ -30,13 +30,13 @@ run:
 debug:
 	qemu-system-x86_64 $(QEMUFLAGS) -s -S
 
-deps-ninja:
+install-ninja:
 	sudo apt install wget
 	sudo wget -qO /usr/local/bin/ninja.gz https://github.com/ninja-build/ninja/releases/latest/download/ninja-linux.zip
 	sudo gunzip /usr/local/bin/ninja.gz
 	sudo chmod a+x /usr/local/bin/ninja
 
-deps-llvm-toolchain: deps-ninja
+install-llvm-toolchain: install-ninja
 	mkdir -m 777 -p "Toolchain"
 	cd "Toolchain" && \
 	git clone https://github.com/kot-org/llvm-project && \
@@ -51,25 +51,26 @@ deps-llvm-toolchain: deps-ninja
 update-llvm-toolchain:
 	cd "Toolchain" && \
 	cd llvm-project && \
+	git pull && \
 	cd "build" && \
 	ninja all -j4 && \
 	ninja install -j4
 
 
-deps-llvm:
+install-llvm:
 	wget https://apt.llvm.org/llvm.sh
 	chmod +x llvm.sh
 	sudo ./llvm.sh 14 all
 	rm -f llvm.sh	
 
-deps-debian: deps-llvm deps-llvm-toolchain
+deps-debian: install-llvm install-llvm-toolchain
 	sudo apt update
 	sudo apt install kpartx nasm xorriso mtools grub-common grub-efi-amd64 grub-pc-bin build-essential qemu-system-x86 ovmf meson kpartx  -y
 
 clean:
 	sudo rm -rf ./Bin ./Sysroot ./Sources/*/*/*/*/*/Lib ./Sources/*/*/*/*/Lib ./Sources/*/*/*/Lib ./Sources/*/*/Lib ./Sources/*/Lib
 
-deps-github-action: deps-llvm deps-llvm-toolchain
+deps-github-action: install-llvm install-llvm-toolchain
 	sudo apt update
 	sudo apt install kpartx nasm xorriso mtools qemu-utils
 
@@ -77,4 +78,4 @@ github-action: deps-github-action build
 	qemu-img convert -f raw -O vmdk Bin/kot.img Bin/kot.vmdk
 	qemu-img convert -f raw -O vdi Bin/kot.img Bin/kot.vdi
 
-.PHONY: build run deps-llvm deps-llvm-toolchain deps-debian
+.PHONY: build run install-llvm install-llvm-toolchain deps-debian

@@ -71,6 +71,7 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
         char* SystemDataPath = SystemDataPathBuilder->toString();
         delete SystemDataPathBuilder;
         FILE* SystemDataFile = fopen(SystemDataPath, "r");
+
         if(SystemDataFile){
             fseek(SystemDataFile, 0, SEEK_END);
             size_t SystemDataFileSize = ftell(SystemDataFile);

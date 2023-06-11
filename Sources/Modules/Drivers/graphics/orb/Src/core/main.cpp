@@ -18,8 +18,7 @@ orbc::orbc(){
     size64_t FbSize = bootframebuffer->Pitch * bootframebuffer->Height;
 
     uint64_t virtualAddress = (uint64_t)kot_MapPhysical((void*)bootframebuffer->Address, FbSize);
-
-    
+        
     monitorc* monitor0 = new monitorc(this, (void*)virtualAddress, bootframebuffer->Width, bootframebuffer->Height, bootframebuffer->Pitch, bootframebuffer->Bpp, 0, 0);
 
     Hid->CursorMaxPosition.x = monitor0->GetWidth()-1;

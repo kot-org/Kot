@@ -224,23 +224,29 @@ namespace mlibc{
 
     int sys_open_dir(const char *path, int *handle){
         kot_directory_t* Dir = kot_opendir((char*)path);
+
         atomicAcquire(&kot_LockHandleList, 0);
+        
         if(kot_HandleCount >= MAX_OPEN_DIRS){
             kot_closedir(Dir);
             atomicUnlock(&kot_LockHandleList, 0);
             return -1; // Too many open files
         }
+
         kot_HandleList[kot_HandleCount++] = Dir;
         *handle = (kot_HandleCount - 1) + MAX_OPEN_FILES; // Add MAX_OPEN_FILES to know if it's file or directory
+
         atomicUnlock(&kot_LockHandleList, 0);
         return 0;
     }
 
     int sys_read_entries(int handle, void *buffer, size_t max_size, size_t *bytes_read){
         if(handle >= MAX_OPEN_FILES + MAX_OPEN_DIRS) return EBADF;
+
         atomicAcquire(&kot_LockHandleList, 0);
         kot_directory_t* Dir = kot_HandleList[handle - MAX_OPEN_FILES];
         atomicUnlock(&kot_LockHandleList, 0);
+
         if(Dir == NULL) return EBADF;
 
         kot_directory_entry_t* KotDirEntry = kot_readdir(Dir);
