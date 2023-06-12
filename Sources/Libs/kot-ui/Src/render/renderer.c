@@ -5,36 +5,115 @@
 #include <kot-graphics/orb.h>
 #include <kot-graphics/font.h>
 
+void* TableConverter;
+size64_t TableConverterCharCount;
+
+void kui_r_input_keyboard(kui_Context* ctx, char key){
+  bool IsPressed;
+  kot_GetCharFromScanCode(key, TableConverter, TableConverterCharCount, NULL, &IsPressed, NULL);
+  switch (key){
+    case 0x1C:{
+      key = KUI_KEY_RETURN;
+      if(IsPressed){
+        kui_input_keydown(ctx, key);
+      }else{
+        kui_input_keyup(ctx, key);
+      }
+      break;
+    }
+    case 0x2A:
+    case 0x26:{
+      key = KUI_KEY_SHIFT;
+      if(IsPressed){
+        kui_input_keydown(ctx, key);
+      }else{
+        kui_input_keyup(ctx, key);
+      }
+      break;
+    }
+    case 0x38:{
+      key = KUI_KEY_ALT;
+      if(IsPressed){
+        kui_input_keydown(ctx, key);
+      }else{
+        kui_input_keyup(ctx, key);
+      }
+      break;
+    }
+    case 0x1D:{
+      key = KUI_KEY_CTRL;
+      if(IsPressed){
+        kui_input_keydown(ctx, key);
+      }else{
+        kui_input_keyup(ctx, key);
+      }
+      break;
+    }
+    case 0x0E:{
+      key = KUI_KEY_BACKSPACE;
+      if(IsPressed){
+        kui_input_keydown(ctx, key);
+      }else{
+        kui_input_keyup(ctx, key);
+      }
+      break;
+    }
+    default:{
+      if(IsPressed){
+        uint64_t Cache = 0;
+        char Text[2];
+        Text[1] = '\0';
+        kot_GetCharFromScanCode(key, TableConverter, TableConverterCharCount, &Text[0], &IsPressed, &Cache);
+        kui_input_text(ctx, Text);
+      }
+      break;
+    }
+  }
+}
+
 void kui_r_event_handler(enum kot_Window_Event EventType, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3, uint64_t GP4){
   kui_Container* cnt = (kui_Container*)kot_Sys_GetExternalDataThread();
-  if(EventType == Window_Event_Mouse){
-        int64_t RelativePositionX = GP0 - cnt->window_parent->window->Position.x;
-        int64_t RelativePositionY = GP1 - cnt->window_parent->window->Position.y;
-        if(GP2){
-            kui_input_scroll(cnt->window_parent->ctx, 0, GP2);
+  kui_Context* ctx = cnt->window_parent->ctx;
+  switch (EventType){
+    case Window_Event_Mouse:{
+      int64_t RelativePositionX = GP0 - cnt->window_parent->window->Position.x;
+      int64_t RelativePositionY = GP1 - cnt->window_parent->window->Position.y;
+      if(GP2){
+        kui_input_scroll(cnt->window_parent->ctx, 0, GP2);
+      }
+      if(GP3 != ctx->last_mouse_status){
+        uint64_t PressedButton = GP3 & (~ctx->last_mouse_status);
+        if(PressedButton){
+          int Button = ((PressedButton & MOUSE_CLICK_LEFT) ? KUI_MOUSE_LEFT : 0) | ((PressedButton & MOUSE_CLICK_RIGHT) ? KUI_MOUSE_RIGHT : 0) | ((PressedButton & MOUSE_CLICK_MIDDLE) ? KUI_MOUSE_MIDDLE : 0);
+          kui_input_mousedown(ctx, RelativePositionX, RelativePositionY, Button);
         }
-        if(GP3 != cnt->window_parent->ctx->last_mouse_status){
-            uint64_t PressedButton = GP3 & (~cnt->window_parent->ctx->last_mouse_status);
-            if(PressedButton){
-                int Button = ((PressedButton & MOUSE_CLICK_LEFT) ? KUI_MOUSE_LEFT : 0) | ((PressedButton & MOUSE_CLICK_RIGHT) ? KUI_MOUSE_RIGHT : 0) | ((PressedButton & MOUSE_CLICK_MIDDLE) ? KUI_MOUSE_MIDDLE : 0);
-                kui_input_mousedown(cnt->window_parent->ctx, RelativePositionX, RelativePositionY, Button);
-            }
-            uint64_t UnpressedButton = (~GP3) & cnt->window_parent->ctx->last_mouse_status;
-            if(UnpressedButton){
-                int Button = ((UnpressedButton & MOUSE_CLICK_LEFT) ? KUI_MOUSE_LEFT : 0) | ((UnpressedButton & MOUSE_CLICK_RIGHT) ? KUI_MOUSE_RIGHT : 0) | ((UnpressedButton & MOUSE_CLICK_MIDDLE) ? KUI_MOUSE_MIDDLE : 0);
-                kui_input_mouseup(cnt->window_parent->ctx, RelativePositionX, RelativePositionY, Button);
-            }
-            cnt->window_parent->ctx->last_mouse_status = GP3;
-        }else{
-            kui_input_mousemove(cnt->window_parent->ctx, RelativePositionX, RelativePositionY);
+        uint64_t UnpressedButton = (~GP3) & ctx->last_mouse_status;
+        if(UnpressedButton){
+          int Button = ((UnpressedButton & MOUSE_CLICK_LEFT) ? KUI_MOUSE_LEFT : 0) | ((UnpressedButton & MOUSE_CLICK_RIGHT) ? KUI_MOUSE_RIGHT : 0) | ((UnpressedButton & MOUSE_CLICK_MIDDLE) ? KUI_MOUSE_MIDDLE : 0);
+          kui_input_mouseup(ctx, RelativePositionX, RelativePositionY, Button);
         }
+        ctx->last_mouse_status = GP3;
+      }else{
+        kui_input_mousemove(ctx, RelativePositionX, RelativePositionY);
+      }
+      break;
+    }
+    case Window_Event_Keyboard:{
+      kui_r_input_keyboard(ctx, GP0);
+      break;
+    }
   }
-  cnt->window_parent->ctx->callback_frame(cnt->window_parent->ctx);
+  ctx->callback_frame(ctx);
   kot_Sys_Event_Close();
+}
+
+void kui_r_init(){
+  kot_GetTableConverter("d0:azerty.bin", &TableConverter, &TableConverterCharCount);
 }
 
 void kui_r_create_window(kui_Context *ctx, kui_Container *cnt, kui_Rect rect){
   if(cnt->is_windows) return;
+  if(ctx->frame == 1) return; /* Force full calculation before creating the window */
   cnt->is_windows = true;
   cnt->window_parent = (kui_Window*)malloc(sizeof(kui_Window));
   kot_Sys_Event_Create(&cnt->window_parent->window_event);
@@ -59,6 +138,16 @@ void kui_r_create_window(kui_Context *ctx, kui_Container *cnt, kui_Rect rect){
   fclose(FontFile);
   LoadPen(cnt->window_parent->default_font, &cnt->window_parent->backbuffer, 0, 0, 11, 0, 0xffffff);
   cnt->window_parent->ctx = ctx;
+}
+
+void kui_r_move_window(kui_Container *cnt, kui_Vec2 pos){
+  pos.x += (int)cnt->window_parent->window->Position.x;
+  pos.y += (int)cnt->window_parent->window->Position.y;
+  WindowChangePosition(cnt->window_parent->window, pos.x, pos.y);
+}
+
+void kui_r_resize_window(kui_Container *cnt, kui_Rect rect){
+  ResizeWindow(cnt->window_parent->window, rect.x, rect.y);
 }
 
 void kui_r_draw_rect(kui_Container *cnt, kui_Rect rect, kui_Color color){

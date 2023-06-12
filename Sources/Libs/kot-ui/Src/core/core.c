@@ -132,6 +132,8 @@ kui_Context* kui_init(kui_ProcessFrameCallback callback) {
   ctx->_style = default_style;
   ctx->style = &ctx->_style;
   ctx->callback_frame = callback;
+  kui_r_init();
+  ctx->callback_frame(ctx);  
   ctx->callback_frame(ctx);
   return ctx;
 }
@@ -1045,6 +1047,10 @@ int kui_begin_window_ex(kui_Context *ctx, const char *title, kui_Rect rect, int 
       kui_Id id = kui_get_id(ctx, "!title", 6);
       kui_update_control(ctx, id, tr, opt);
       kui_draw_control_text(ctx, title, tr, KUI_COLOR_TITLETEXT, opt);
+      if (id == ctx->focus && ctx->mouse_down == KUI_MOUSE_LEFT) {
+        // TODO
+        // kui_r_move_window(cnt, ctx->mouse_delta.x, ctx->mouse_delta.y);
+      }
       body.y += tr.h;
       body.h -= tr.h;
     }
@@ -1073,6 +1079,7 @@ int kui_begin_window_ex(kui_Context *ctx, const char *title, kui_Rect rect, int 
     if (id == ctx->focus && ctx->mouse_down == KUI_MOUSE_LEFT) {
       cnt->rect.w = kui_max(96, cnt->rect.w + ctx->mouse_delta.x);
       cnt->rect.h = kui_max(64, cnt->rect.h + ctx->mouse_delta.y);
+      kui_r_resize_window(cnt, cnt->rect);
     }
   }
 

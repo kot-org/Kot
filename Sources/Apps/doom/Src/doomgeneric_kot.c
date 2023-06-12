@@ -99,13 +99,12 @@ static uint8_t ConvertToDoomKey(char key){
       break;
     default:{
       bool IsPressed;
-      uint64_t Cache;
+      uint64_t Cache = 0;
       char ScanCode = key;
       kot_GetCharFromScanCode(ScanCode, TableConverter, TableConverterCharCount, &key, &IsPressed, &Cache);
       break;
     }
-
-    }
+  }
 
   return key;
 }
