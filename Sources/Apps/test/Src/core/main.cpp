@@ -1,153 +1,118 @@
 #include <stdio.h>
-#include <string.h>
-#include <limits.h>
-#include <math.h>
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
+#include <kot/sys.h>
 
+#include <kot-ui/core.h>
+#include <kot-ui/renderer.h>
 
+static float bg[3] = { 90, 95, 100 };
 
-#define WIDTH   640
-#define HEIGHT  480
+static void test_window(kui_Context *ctx) {
+  /* do window */
+  if (kui_begin_window(ctx, "Demo Window", kui_rect(40, 40, 500, 450))) {
+    kui_Container *win = kui_get_current_container(ctx);
+    win->rect.w = kui_max(win->rect.w, 240);
+    win->rect.h = kui_max(win->rect.h, 300);
 
-
-/* origin is the upper left corner */
-unsigned char image[HEIGHT][WIDTH];
-
-
-/* Replace this function with something useful. */
-
-void
-draw_bitmap( FT_Bitmap*  bitmap,
-             FT_Int      x,
-             FT_Int      y)
-{
-  FT_Int  i, j, p, q;
-  FT_Int  x_max = x + bitmap->width;
-  FT_Int  y_max = y + bitmap->rows;
-
-
-  for ( i = x, p = 0; i < x_max; i++, p++ )
-  {
-    for ( j = y, q = 0; j < y_max; j++, q++ )
-    {
-      if ( i < 0      || j < 0       ||
-           i >= WIDTH || j >= HEIGHT )
-        continue;
-
-      image[j][i] |= bitmap->buffer[q * bitmap->width + p];
+    /* window info */
+    if (kui_header(ctx, "Window Info")) {
+      kui_Container *win = kui_get_current_container(ctx);
+      char buf[64];
+      kui_layout_row(ctx, 2, (int[]) { 54, -1 }, 0);
+      kui_label(ctx,"Position:");
+      sprintf(buf, "%d, %d", win->rect.x, win->rect.y); kui_label(ctx, buf);
+      kui_label(ctx, "Size:");
+      sprintf(buf, "%d, %d", win->rect.w, win->rect.h); kui_label(ctx, buf);
     }
+
+    /* labels + buttons */
+    if (kui_header_ex(ctx, "Test Buttons", KUI_OPT_EXPANDED)) {
+      kui_layout_row(ctx, 3, (int[]) { 86, -110, -1 }, 0);
+      kui_label(ctx, "Test buttons 1:");
+      if (kui_button(ctx, "Button 1")) { kot_Printlog("Pressed button 1"); }
+      if (kui_button(ctx, "Button 2")) { kot_Printlog("Pressed button 2"); }
+      kui_label(ctx, "Test buttons 2:");
+      if (kui_button(ctx, "Button 3")) { kot_Printlog("Pressed button 3"); }
+      if (kui_button(ctx, "Popup")) { kui_open_popup(ctx, "Test Popup"); }
+      if (kui_begin_popup(ctx, "Test Popup")) {
+        kui_button(ctx, "Hello");
+        kui_button(ctx, "World");
+        kui_end_popup(ctx);
+      }
+    }
+
+    /* tree */
+    if (kui_header_ex(ctx, "Tree and Text", KUI_OPT_EXPANDED)) {
+      kui_layout_row(ctx, 2, (int[]) { 140, -1 }, 0);
+      kui_layout_begin_column(ctx);
+      if (kui_begin_treenode(ctx, "Test 1")) {
+        if (kui_begin_treenode(ctx, "Test 1a")) {
+          kui_label(ctx, "Hello");
+          kui_label(ctx, "world");
+          kui_end_treenode(ctx);
+        }
+        if (kui_begin_treenode(ctx, "Test 1b")) {
+          if (kui_button(ctx, "Button 1")) { kot_Printlog("Pressed button 1"); }
+          if (kui_button(ctx, "Button 2")) { kot_Printlog("Pressed button 2"); }
+          kui_end_treenode(ctx);
+        }
+        kui_end_treenode(ctx);
+      }
+      if (kui_begin_treenode(ctx, "Test 2")) {
+        kui_layout_row(ctx, 2, (int[]) { 54, 54 }, 0);
+        if (kui_button(ctx, "Button 3")) { kot_Printlog("Pressed button 3"); }
+        if (kui_button(ctx, "Button 4")) { kot_Printlog("Pressed button 4"); }
+        if (kui_button(ctx, "Button 5")) { kot_Printlog("Pressed button 5"); }
+        if (kui_button(ctx, "Button 6")) { kot_Printlog("Pressed button 6"); }
+        kui_end_treenode(ctx);
+      }
+      if (kui_begin_treenode(ctx, "Test 3")) {
+        static int checks[3] = { 1, 0, 1 };
+        kui_checkbox(ctx, "Checkbox 1", &checks[0]);
+        kui_checkbox(ctx, "Checkbox 2", &checks[1]);
+        kui_checkbox(ctx, "Checkbox 3", &checks[2]);
+        kui_end_treenode(ctx);
+      }
+      kui_layout_end_column(ctx);
+
+      kui_layout_begin_column(ctx);
+      kui_layout_row(ctx, 1, (int[]) { -1 }, 0);
+      kui_text(ctx, "Lorem ipsum dolor sit amet, consectetur adipiscing "
+        "elit. Maecenas lacinia, sem eu lacinia molestie, mi risus faucibus "
+        "ipsum, eu varius magna felis a nulla.");
+      kui_layout_end_column(ctx);
+    }
+
+    /* background color sliders */
+    if (kui_header_ex(ctx, "Background Color", KUI_OPT_EXPANDED)) {
+      kui_layout_row(ctx, 2, (int[]) { -78, -1 }, 74);
+      /* sliders */
+      kui_layout_begin_column(ctx);
+      kui_layout_row(ctx, 2, (int[]) { 46, -1 }, 0);
+      kui_label(ctx, "Red:");   kui_slider(ctx, &bg[0], 0, 255);
+      kui_label(ctx, "Green:"); kui_slider(ctx, &bg[1], 0, 255);
+      kui_label(ctx, "Blue:");  kui_slider(ctx, &bg[2], 0, 255);
+      kui_layout_end_column(ctx);
+      /* color preview */
+      kui_Rect r = kui_layout_next(ctx);
+      kui_draw_rect(ctx, r, kui_color(bg[0], bg[1], bg[2], 255));
+      char buf[32];
+      sprintf(buf, "#%02X%02X%02X", (int) bg[0], (int) bg[1], (int) bg[2]);
+      kui_draw_control_text(ctx, buf, r, KUI_COLOR_TEXT, KUI_OPT_ALIGNCENTER);
+    }
+
+    kui_end_window(ctx);
   }
 }
 
 
-void
-show_image( void )
-{
-  int  i, j;
+int main(){
+    kui_Context* ctx = kui_init();
+    while(true){
+        kui_begin(ctx);
+        test_window(ctx);
+        kui_end(ctx);
+    }
 
-
-  for ( i = 0; i < HEIGHT; i++ )
-  {
-    for ( j = 0; j < WIDTH; j++ )
-      putchar( image[i][j] == 0 ? ' '
-                                : image[i][j] < 128 ? '+'
-                                                    : '*' );
-    putchar( '\n' );
-  }
-}
-
-
-int
-main( int     argc,
-      char**  argv )
-{
-  return 0;
-  FT_Library    library;
-  FT_Face       face;
-
-  FT_GlyphSlot  slot;
-  FT_Matrix     matrix;                 /* transformation matrix */
-  FT_Vector     pen;                    /* untransformed origin  */
-  FT_Error      error;
-
-  char*         filename;
-  char*         text;
-
-  double        angle;
-  int           target_height;
-  int           n, num_chars;
-
-  filename      = "d1:Kot/horrendo.ttf\0";                           /* first argument     */
-  text          = "Hello world";                           /* second argument    */
-  num_chars     = strlen( text );
-  angle         = ( 25.0 / 360 ) * 3.14159 * 2;      /* use 25 degrees     */
-  target_height = HEIGHT;
-  error = FT_Init_FreeType( &library );              /* initialize library */
-
-  // Initialisation de FreeType
-  FT_Init_FreeType(&library);
-
-  FILE* fontFile = fopen(filename, "r");
-
-  fseek(fontFile, 0, SEEK_END);
-
-  long fileSize = ftell(fontFile);
-
-  fseek(fontFile, 0, SEEK_SET);
-
-  FT_Byte* fontBuffer = (FT_Byte*)malloc(fileSize);
-  fread(fontBuffer, fileSize, 1, fontFile);
-
-  fclose(fontFile);
-
-  /* error handling omitted */
-  error = FT_New_Memory_Face(library, fontBuffer, fileSize, 0, &face); /* create face object */
-  /* error handling omitted */
-
-  /* use 50pt at 100dpi */
-  error = FT_Set_Char_Size( face, 50 * 64, 0,
-                            100, 0 );                /* set character size */
-  /* error handling omitted */
-
-  slot = face->glyph;
-
-  /* set up matrix */
-  matrix.xx = (FT_Fixed)( cos( angle ) * 0x10000L );
-  matrix.xy = (FT_Fixed)(-sin( angle ) * 0x10000L );
-  matrix.yx = (FT_Fixed)( sin( angle ) * 0x10000L );
-  matrix.yy = (FT_Fixed)( cos( angle ) * 0x10000L );
-
-  /* the pen position in 26.6 cartesian space coordinates; */
-  /* start at (300,200) relative to the upper left corner  */
-  pen.x = 300 * 64;
-  pen.y = ( target_height - 200 ) * 64;
-  
-  for ( n = 0; n < num_chars; n++ )
-  {
-    /* set transformation */
-    FT_Set_Transform( face, &matrix, &pen );
-
-    /* load glyph image into the slot (erase previous one) */
-    error = FT_Load_Char( face, text[n], FT_LOAD_RENDER );
-    if ( error )
-      continue;                 /* ignore errors */
-
-    /* now, draw to our target surface (convert position) */
-    draw_bitmap( &slot->bitmap,
-                 slot->bitmap_left,
-                 target_height - slot->bitmap_top );
-
-    /* increment pen position */
-    pen.x += slot->advance.x;
-    pen.y += slot->advance.y;
-  }
-
-  show_image();
-
-  FT_Done_Face    ( face );
-  FT_Done_FreeType( library );
-
-  return 0;
+    return 0;
 }

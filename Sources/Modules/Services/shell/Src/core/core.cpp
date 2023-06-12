@@ -40,7 +40,7 @@ shell_t* NewShell(kot_process_t Target){
     free(Buffer);
     fclose(FontFile);
 
-    LoadPen(Shell->Font, Shell->Backbuffer, 0, 0, 16, 0, 0xFFFFFFFF);
+    LoadPen(Shell->Font, Shell->Backbuffer, 0, 0, 20, 0, 0xFFFFFFFF);
 
     ChangeVisibilityWindow(Shell->Wid, true);
 
@@ -52,6 +52,7 @@ void ShellPrint(shell_t* Shell, void* Buffer, size64_t Size){
     memcpy(Text, (void*)Buffer, Size);
 
     Text[Size] = NULL;
+    kot_Printlog(Text);
     int64_t TextHeight = 16; // font size
 
     if(TextHeight + Shell->HeightUsed > Shell->Backbuffer->Height){
@@ -67,7 +68,7 @@ void ShellPrint(shell_t* Shell, void* Buffer, size64_t Size){
 
         Shell->HeightUsed -= HeightToMove;
 
-        EditPen(Shell->Font, NULL, -1, Shell->HeightUsed, -1, -1, -1);
+        SetPenPosY(Shell->Font, Shell->HeightUsed);
     }
 
     Shell->HeightUsed += TextHeight;
@@ -135,7 +136,7 @@ void ShellEventEntry(uint64_t EventType, uint64_t GP0, uint64_t GP1, uint64_t GP
 
                     Shell->HeightUsed -= HeightToMove;
 
-                    EditPen(Shell->Font, NULL, -1, Shell->HeightUsed, -1, -1, -1);
+                    SetPenPosY(Shell->Font, Shell->HeightUsed);
                 }
                 Shell->HeightUsed += TextHeight;
             }
@@ -147,16 +148,15 @@ void ShellEventEntry(uint64_t EventType, uint64_t GP0, uint64_t GP1, uint64_t GP
             kot_GetCharFromScanCode(ScanCode, TableConverter, TableConverterCharCount, &Char, &IsPressed, &Shell->PressedCache);
             
             if(IsPressed){
-                
                 if(Char != 8){
                     CurrentRequest->SizeGet += sizeof(char);
                     CurrentRequest->Buffer = (char*)realloc((void*)CurrentRequest->Buffer, CurrentRequest->SizeGet);
                     CurrentRequest->Buffer[CurrentRequest->SizeGet - 1] = Char;
-                    BlitFramebuffer(Shell->Framebuffer, Shell->Backbuffer, 0, 0);
                     char Text[2];
                     Text[0] = Char;
                     Text[1] = NULL;
                     DrawFont(Shell->Font, (char*)&Text);
+                    BlitFramebuffer(Shell->Framebuffer, Shell->Backbuffer, 0, 0);
                 }else{
                     // TODO remove char
                 }

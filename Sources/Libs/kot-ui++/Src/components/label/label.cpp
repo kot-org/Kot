@@ -9,20 +9,24 @@ namespace Ui {
         switch(Label->Style.Align)
         {
             case TEXTALIGNLEFT:{
-                EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left - Label->Cpnt->Style->Margin.Right), (int64_t)(Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top - Label->Cpnt->Style->Margin.Bottom), -1, -1, -1);
+                SetPenPosX(Label->Font, Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left - Label->Cpnt->Style->Margin.Right);
+                SetPenPosY(Label->Font, Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top - Label->Cpnt->Style->Margin.Bottom);
                 break;
             }
             case TEXTALIGNCENTER:{
-                EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left + (Label->Cpnt->Style->Currentwidth - Label->TextWidth) / 2 - Label->Cpnt->Style->Margin.Right), (int64_t)(Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top - Label->Cpnt->Style->Margin.Bottom), -1, -1, -1);
+                SetPenPosX(Label->Font, Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left + (Label->Cpnt->Style->Currentwidth - Label->TextWidth) / 2 - Label->Cpnt->Style->Margin.Right);
+                SetPenPosY(Label->Font, Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top - Label->Cpnt->Style->Margin.Bottom);
                 break;
             }
             case TEXTALIGNRIGHT:{
-                EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left + Label->Cpnt->Style->Currentwidth - Label->TextWidth - Label->Cpnt->Style->Margin.Right), (int64_t)(Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top - Label->Cpnt->Style->Margin.Bottom), -1, -1, -1);
+                SetPenPosX(Label->Font, Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left + Label->Cpnt->Style->Currentwidth - Label->TextWidth - Label->Cpnt->Style->Margin.Right);
+                SetPenPosY(Label->Font, Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top - Label->Cpnt->Style->Margin.Bottom);
                 break;
             }
             default:{
                 // TEXTALIGNLEFT
-                EditPen(Label->Font, NULL, (int64_t)(Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left - Label->Cpnt->Style->Margin.Right), (int64_t)(Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top - Label->Cpnt->Style->Margin.Bottom), -1, -1, -1);
+                SetPenPosX(Label->Font, Label->Cpnt->FramebufferRelativePosition.x + Label->Cpnt->Style->Margin.Left - Label->Cpnt->Style->Margin.Right);
+                SetPenPosY(Label->Font, Label->Cpnt->FramebufferRelativePosition.y + Label->Cpnt->Style->Margin.Top - Label->Cpnt->Style->Margin.Bottom);
                 break;
             }
         }
@@ -45,7 +49,7 @@ namespace Ui {
         if(Cpnt->IsFramebufferUpdate) {
             // Draw
             Cpnt->IsFramebufferUpdate = false;
-            EditPen(Label->Font, Label->Cpnt->Framebuffer, (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom), Label->Style.FontSize, 0, Label->Style.ForegroundColor);
+            //EditPen(Label->Font, Label->Cpnt->Framebuffer, (int64_t)(Cpnt->Style->Position.x + Cpnt->Style->Margin.Left - Cpnt->Style->Margin.Right), (int64_t)(Cpnt->Style->Position.y + Cpnt->Style->Margin.Top - Cpnt->Style->Margin.Bottom), Label->Style.FontSize, 0, Label->Style.ForegroundColor);
             // TODO add buffer
         } else if(Cpnt->IsDrawUpdate) {
             Cpnt->IsDrawUpdate = false;

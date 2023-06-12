@@ -3,8 +3,8 @@ _HOME = ../../../../
 CC = kot-x86_64-clang
 ASMC = nasm
 
-CFLAGS = -O3 -I../Src -I../../../../Sysroot/include/freetype2
-LINKERFLAGS = -Wall -lc -lz -lpng16 -lfreetype -lz -lpng16
+CFLAGS = -O3 -I../Src
+LINKERFLAGS = -Wall -lc -lz -lpng16 -lfreetype -lz -lkot-ui -lkot-graphics
 ASMFLAGS = 
 
 SRCDIR := ../Src

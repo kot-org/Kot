@@ -103,7 +103,7 @@ void ExceptionHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
         if(PageFaultHandler(Cr2, Registers, CoreID)){
             return;
         }
-        Error("Page fault at 0x%x", Cr2);
+        Error("Page fault at 0x%x | Physical address detected in this page table is 0x%x", Cr2, vmm_GetPhysical((void*)Cr2));
     }
     // If exception come from kernel we can't recover it
     if(CPU::GetCodeRing(Registers) == KernelRing){

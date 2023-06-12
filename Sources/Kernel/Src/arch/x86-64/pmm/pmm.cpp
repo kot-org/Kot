@@ -220,7 +220,7 @@ void Pmm_InitBitmap(void* bufferAddress, size64_t bitmapSize){
 
 void* Pmm_RequestPage(){
     AtomicAcquire(&Pmm_Mutex);
-    for (uint64_t index = Pmm_FirstFreePageIndex; index < Pmm_MemoryInfo.totalPageMemory; index++){
+    for(uint64_t index = Pmm_FirstFreePageIndex; index < Pmm_MemoryInfo.totalPageMemory; index++){
         if(!Pmm_Bitmap.GetAndSet(index, true)){
             Pmm_FirstFreePageIndex = index;
             Pmm_MemoryInfo.freePageMemory--;
