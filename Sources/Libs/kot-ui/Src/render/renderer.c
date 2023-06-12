@@ -5,6 +5,7 @@
 #include <kot-graphics/orb.h>
 #include <kot-graphics/font.h>
 
+uint64_t KeyboardCache;
 void* TableConverter;
 size64_t TableConverterCharCount;
 
@@ -14,34 +15,6 @@ void kui_r_input_keyboard(kui_Context* ctx, char key){
   switch (key){
     case 0x1C:{
       key = KUI_KEY_RETURN;
-      if(IsPressed){
-        kui_input_keydown(ctx, key);
-      }else{
-        kui_input_keyup(ctx, key);
-      }
-      break;
-    }
-    case 0x2A:
-    case 0x26:{
-      key = KUI_KEY_SHIFT;
-      if(IsPressed){
-        kui_input_keydown(ctx, key);
-      }else{
-        kui_input_keyup(ctx, key);
-      }
-      break;
-    }
-    case 0x38:{
-      key = KUI_KEY_ALT;
-      if(IsPressed){
-        kui_input_keydown(ctx, key);
-      }else{
-        kui_input_keyup(ctx, key);
-      }
-      break;
-    }
-    case 0x1D:{
-      key = KUI_KEY_CTRL;
       if(IsPressed){
         kui_input_keydown(ctx, key);
       }else{
@@ -59,11 +32,10 @@ void kui_r_input_keyboard(kui_Context* ctx, char key){
       break;
     }
     default:{
+      char Text[2];
+      Text[1] = '\0';
+      kot_GetCharFromScanCode(key, TableConverter, TableConverterCharCount, &Text[0], &IsPressed, &KeyboardCache);
       if(IsPressed){
-        uint64_t Cache = 0;
-        char Text[2];
-        Text[1] = '\0';
-        kot_GetCharFromScanCode(key, TableConverter, TableConverterCharCount, &Text[0], &IsPressed, &Cache);
         kui_input_text(ctx, Text);
       }
       break;
