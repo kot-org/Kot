@@ -11,8 +11,6 @@ static void test_window(kui_Context *ctx) {
   /* do window */
   if (kui_begin_window(ctx, "Demo Window", kui_rect(40, 40, 500, 450))) {
     kui_Container *win = kui_get_current_container(ctx);
-    win->rect.w = kui_max(win->rect.w, 240);
-    win->rect.h = kui_max(win->rect.h, 300);
 
     /* window info */
     if (kui_header(ctx, "Window Info")) {
@@ -105,14 +103,15 @@ static void test_window(kui_Context *ctx) {
   }
 }
 
+void ProcessFrame(kui_Context* ctx){
+  kui_begin(ctx);
+  test_window(ctx);
+  kui_end(ctx);
+}
+
 
 int main(){
-    kui_Context* ctx = kui_init();
-    while(true){
-        kui_begin(ctx);
-        test_window(ctx);
-        kui_end(ctx);
-    }
+    kui_Context* ctx = kui_init(ProcessFrame);
 
     return 0;
 }

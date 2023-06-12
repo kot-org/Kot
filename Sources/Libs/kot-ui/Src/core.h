@@ -121,6 +121,8 @@ typedef struct { kui_BaseCommand base; kui_Rect rect; kui_Color color; } kui_Rec
 typedef struct { kui_BaseCommand base; kui_Font font; kui_Vec2 pos; kui_Color color; char str[1]; } kui_TextCommand;
 typedef struct { kui_BaseCommand base; kui_Rect rect; int id; kui_Color color; } kui_IconCommand;
 
+typedef void (*kui_ProcessFrameCallback)(kui_Context* ctx);
+
 typedef struct {
   kui_Rect body;
   kui_Rect next;
@@ -208,6 +210,7 @@ struct kui_Context {
   char input_text[32];
   /* kot specific data */
   uint64_t last_mouse_status;
+  kui_ProcessFrameCallback callback_frame;
 };
 
 
@@ -215,7 +218,7 @@ kui_Vec2 kui_vec2(int x, int y);
 kui_Rect kui_rect(int x, int y, int w, int h);
 kui_Color kui_color(int r, int g, int b, int a);
 
-kui_Context* kui_init();
+kui_Context* kui_init(kui_ProcessFrameCallback callback);
 void kui_begin(kui_Context *ctx);
 void kui_end(kui_Context *ctx);
 void kui_set_focus(kui_Context *ctx, kui_Id id);

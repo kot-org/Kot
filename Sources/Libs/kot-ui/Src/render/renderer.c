@@ -17,7 +17,6 @@ void kui_r_event_handler(enum kot_Window_Event EventType, uint64_t GP0, uint64_t
             uint64_t PressedButton = GP3 & (~cnt->window_parent->ctx->last_mouse_status);
             if(PressedButton){
                 int Button = ((PressedButton & MOUSE_CLICK_LEFT) ? KUI_MOUSE_LEFT : 0) | ((PressedButton & MOUSE_CLICK_RIGHT) ? KUI_MOUSE_RIGHT : 0) | ((PressedButton & MOUSE_CLICK_MIDDLE) ? KUI_MOUSE_MIDDLE : 0);
-                printf("%x\n", RelativePositionX);
                 kui_input_mousedown(cnt->window_parent->ctx, RelativePositionX, RelativePositionY, Button);
             }
             uint64_t UnpressedButton = (~GP3) & cnt->window_parent->ctx->last_mouse_status;
@@ -25,10 +24,12 @@ void kui_r_event_handler(enum kot_Window_Event EventType, uint64_t GP0, uint64_t
                 int Button = ((UnpressedButton & MOUSE_CLICK_LEFT) ? KUI_MOUSE_LEFT : 0) | ((UnpressedButton & MOUSE_CLICK_RIGHT) ? KUI_MOUSE_RIGHT : 0) | ((UnpressedButton & MOUSE_CLICK_MIDDLE) ? KUI_MOUSE_MIDDLE : 0);
                 kui_input_mouseup(cnt->window_parent->ctx, RelativePositionX, RelativePositionY, Button);
             }
+            cnt->window_parent->ctx->last_mouse_status = GP3;
         }else{
             kui_input_mousemove(cnt->window_parent->ctx, RelativePositionX, RelativePositionY);
         }
   }
+  cnt->window_parent->ctx->callback_frame(cnt->window_parent->ctx);
   kot_Sys_Event_Close();
 }
 

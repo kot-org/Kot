@@ -38,6 +38,7 @@ enum kot_Window_Event{
     Window_Event_Focus = 0x0,
     Window_Event_Mouse = 0x1,
     Window_Event_Keyboard = 0x2,
+    Window_Event_Update = 0x3,
 };
 
 struct kot_srv_graphics_callback_t{
