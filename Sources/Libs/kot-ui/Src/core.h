@@ -60,11 +60,11 @@ enum {
 };
 
 enum {
-  KUI_ICON_CLOSE = 1,
-  KUI_ICON_CHECK,
-  KUI_ICON_COLLAPSED,
-  KUI_ICON_EXPANDED,
-  KUI_ICON_MAX
+  KUI_ICON_CLOSE = 927,
+  KUI_ICON_COLLAPSED = 929,
+  KUI_ICON_EXPANDED = 928,
+  KUI_ICON_CHECK = 921,
+  KUI_ICON_MAX = 9160
 };
 
 enum {
@@ -146,6 +146,7 @@ typedef struct {
   kui_Color last_color;
   kui_Context *ctx;
   kui_Font default_font;
+  kui_Font icons_font;
 } kui_Window;
 
 typedef struct {
@@ -211,6 +212,7 @@ struct kui_Context {
   /* kot specific data */
   uint64_t last_mouse_status;
   kui_ProcessFrameCallback callback_frame;
+  void* opaque;
 };
 
 
@@ -218,7 +220,7 @@ kui_Vec2 kui_vec2(int x, int y);
 kui_Rect kui_rect(int x, int y, int w, int h);
 kui_Color kui_color(int r, int g, int b, int a);
 
-kui_Context* kui_init(kui_ProcessFrameCallback callback);
+kui_Context* kui_init(kui_ProcessFrameCallback callback, void* opaque);
 void kui_begin(kui_Context *ctx);
 void kui_end(kui_Context *ctx);
 void kui_set_focus(kui_Context *ctx, kui_Id id);
@@ -277,6 +279,7 @@ void kui_text(kui_Context *ctx, const char *text);
 void kui_label(kui_Context *ctx, const char *text);
 int kui_button_ex(kui_Context *ctx, const char *label, int icon, int opt);
 int kui_checkbox(kui_Context *ctx, const char *label, int *state);
+int kui_shellbox_raw(kui_Context *ctx, char *buf, int bufsz, kui_Id id, kui_Rect r, int opt);
 int kui_textbox_raw(kui_Context *ctx, char *buf, int bufsz, kui_Id id, kui_Rect r, int opt);
 int kui_textbox_ex(kui_Context *ctx, char *buf, int bufsz, int opt);
 int kui_slider_ex(kui_Context *ctx, kui_Real *value, kui_Real low, kui_Real high, kui_Real step, const char *fmt, int opt);

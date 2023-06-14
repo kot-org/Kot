@@ -319,3 +319,27 @@ KResult GetTextboxInfoN(kfont_t* opaque, char* str, size_t len, kfont_pos_t* wid
 
     return KSUCCESS;
 }
+
+KResult DrawGlyph(kfont_t* opaque, kfont_glyph_t glyph, kfont_dot_t width, kfont_dot_t height){
+    if(opaque == NULL) return KFAIL;
+
+    local_kfont_t* font = (local_kfont_t*)opaque;
+
+    FT_GlyphSlot slot = font->slot;
+
+    FT_Set_Pixel_Sizes(font->face, width, height);
+
+    if(FT_Load_Glyph(font->face, glyph, FT_LOAD_RENDER)){
+        return KFAIL;
+    }
+    
+    for(FT_Int x = 0; x < slot->bitmap.width; x++){
+        for(FT_Int y = 0; y < slot->bitmap.rows; y++){
+            FT_Int XPos = font->pen.x + slot->bitmap_left + x;
+            FT_Int YPos = font->pen.y - slot->bitmap_top + y + GetLineHeight(opaque);
+            PutPixel(&font->fb, XPos, YPos, 0xffffff | (slot->bitmap.buffer[y * slot->bitmap.width + x] << 24));
+        }
+    }
+    
+    return KSUCCESS;
+}

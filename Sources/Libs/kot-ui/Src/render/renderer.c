@@ -5,13 +5,13 @@
 #include <kot-graphics/orb.h>
 #include <kot-graphics/font.h>
 
-uint64_t KeyboardCache;
-void* TableConverter;
-size64_t TableConverterCharCount;
+uint64_t kui_KeyboardCache = 0;
+void* kui_TableConverter;
+size64_t kui_TableConverterCharCount;
 
 void kui_r_input_keyboard(kui_Context* ctx, char key){
   bool IsPressed;
-  kot_GetCharFromScanCode(key, TableConverter, TableConverterCharCount, NULL, &IsPressed, NULL);
+  kot_GetCharFromScanCode(key, kui_TableConverter, kui_TableConverterCharCount, NULL, &IsPressed, NULL);
   switch (key){
     case 0x1C:{
       key = KUI_KEY_RETURN;
@@ -34,7 +34,7 @@ void kui_r_input_keyboard(kui_Context* ctx, char key){
     default:{
       char Text[2];
       Text[1] = '\0';
-      kot_GetCharFromScanCode(key, TableConverter, TableConverterCharCount, &Text[0], &IsPressed, &KeyboardCache);
+      kot_GetCharFromScanCode(key, kui_TableConverter, kui_TableConverterCharCount, &Text[0], &IsPressed, &kui_KeyboardCache);
       if(IsPressed){
         kui_input_text(ctx, Text);
       }
@@ -80,7 +80,7 @@ void kui_r_event_handler(enum kot_Window_Event EventType, uint64_t GP0, uint64_t
 }
 
 void kui_r_init(){
-  kot_GetTableConverter("d0:azerty.bin", &TableConverter, &TableConverterCharCount);
+  kot_GetTableConverter("d0:azerty.bin", &kui_TableConverter, &kui_TableConverterCharCount);
 }
 
 void kui_r_create_window(kui_Context *ctx, kui_Container *cnt, kui_Rect rect){
@@ -99,16 +99,30 @@ void kui_r_create_window(kui_Context *ctx, kui_Container *cnt, kui_Rect rect){
   memcpy(&cnt->window_parent->backbuffer, &cnt->window_parent->window->Framebuffer, sizeof(kot_framebuffer_t));
   cnt->window_parent->backbuffer.Buffer = calloc(1, cnt->window_parent->backbuffer.Size);
 
-  FILE* FontFile = fopen("d0:arial.ttf", "r");
-  fseek(FontFile, 0, SEEK_END);
-  size64_t Size = ftell(FontFile);
-  void* Buffer = malloc(Size);
-  fseek(FontFile, 0, SEEK_SET);
-  fread(Buffer, Size, 1, FontFile);
-  cnt->window_parent->default_font = (kfont_t*)LoadFont((void*)Buffer, Size);
-  free(Buffer);
-  fclose(FontFile);
-  LoadPen(cnt->window_parent->default_font, &cnt->window_parent->backbuffer, 0, 0, 11, 0, 0xffffff);
+  /* Load default font */
+  FILE* DefaultFontFile = fopen("d0:arial.ttf", "r");
+  fseek(DefaultFontFile, 0, SEEK_END);
+  size64_t DefaultFontSize = ftell(DefaultFontFile);
+  void* DefaultFontBuffer = malloc(DefaultFontSize);
+  fseek(DefaultFontFile, 0, SEEK_SET);
+  fread(DefaultFontBuffer, DefaultFontSize, 1, DefaultFontFile);
+  cnt->window_parent->default_font = (kfont_t*)LoadFont((void*)DefaultFontBuffer, DefaultFontSize);
+  free(DefaultFontBuffer);
+  fclose(DefaultFontFile);
+  LoadPen(cnt->window_parent->default_font, &cnt->window_parent->backbuffer, 0, 0, 12, 0, 0xffffff);
+  cnt->window_parent->ctx = ctx;
+
+  /* Load icons font */
+  FILE* IconsFontFile = fopen("d0:icons.ttf", "r");
+  fseek(IconsFontFile, 0, SEEK_END);
+  size64_t IconsFontSize = ftell(IconsFontFile);
+  void* IconsFontBuffer = malloc(IconsFontSize);
+  fseek(IconsFontFile, 0, SEEK_SET);
+  fread(IconsFontBuffer, IconsFontSize, 1, IconsFontFile);
+  cnt->window_parent->icons_font = (kfont_t*)LoadFont((void*)IconsFontBuffer, IconsFontSize);
+  free(IconsFontBuffer);
+  fclose(IconsFontFile);
+  LoadPen(cnt->window_parent->icons_font, &cnt->window_parent->backbuffer, 0, 0, 12, 0, 0xffffff);
   cnt->window_parent->ctx = ctx;
 }
 
@@ -146,7 +160,11 @@ void kui_r_draw_text(kui_Container *cnt, kui_Font font, const char *text, int le
 void kui_r_draw_icon(kui_Container *cnt, int id, kui_Rect rect, kui_Color color){
   if(!cnt->window_parent) return;
   cnt->window_parent->last_color = color;
-  // TODO
+  kui_Font font = cnt->window_parent->icons_font;
+  SetPenColor(font, kui_convert_color_to_kot_color(color));
+  SetPenPosX(font, rect.x);
+  SetPenPosY(font, rect.y);
+  DrawGlyph(font, id, rect.w, rect.h);
 }
 
 

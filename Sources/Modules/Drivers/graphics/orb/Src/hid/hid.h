@@ -37,7 +37,7 @@ class hidc{
         void CursorInterrupt(int64_t x, int64_t y, int64_t z, uint64_t status);
         void DrawCursor(kot_framebuffer_t* fb);
 
-        hid_event_t* CurrentFocusEvent;
+        hid_event_t* CurrentFocusEvent = NULL;
 
         orbc* Orb;
 

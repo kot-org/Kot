@@ -12,6 +12,7 @@ typedef void* kfont_t;
 typedef uint64_t font_style_t;
 typedef signed long kfont_pos_t;
 typedef signed long kfont_dot_t;
+typedef unsigned long kfont_glyph_t;
 
 kfont_t* LoadFont(void* data, size_t size);
 KResult FreeFont(kfont_t* opaque);
@@ -43,6 +44,8 @@ KResult DrawFontN(kfont_t* opaque, char* str, size_t len);
 
 KResult GetTextboxInfo(kfont_t* opaque, char* str, kfont_pos_t* width, kfont_pos_t* height, kfont_pos_t* x, kfont_pos_t* y);
 KResult GetTextboxInfoN(kfont_t* opaque, char* str, size_t len, kfont_pos_t* width, kfont_pos_t* height, kfont_pos_t* x, kfont_pos_t* y);
+
+KResult DrawGlyph(kfont_t* opaque, kfont_glyph_t glyph, kfont_dot_t width, kfont_dot_t height);
 
 #if defined(__cplusplus)
 }

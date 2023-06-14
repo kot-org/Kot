@@ -43,7 +43,7 @@ void ProcessFrame(kui_Context* ctx){
 
 
 int main(){
-    kui_Context* ctx = kui_init(ProcessFrame);
+    kui_Context* ctx = kui_init(ProcessFrame, NULL);
 
     return 0;
 }

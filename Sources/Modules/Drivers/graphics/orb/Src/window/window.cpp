@@ -119,14 +119,12 @@ KResult windowc::Resize(int64_t Width, int64_t Height){
         }
     }
 
-    atomicAcquire(&Orb->Render->RenderLock, 0);
     Framebuffer->Width = Width;
     Framebuffer->Height = Height;
     Eventbuffer->Width = Width;
     Eventbuffer->Height = Height;
 
     CreateBuffer();
-    atomicUnlock(&Orb->Render->RenderLock, 0);
 
     if(GetVisible()){
         Orb->Render->UpdateAllEvents();
@@ -181,13 +179,9 @@ bool windowc::SetFocusState(bool IsFocus){
                 }
             } 
             CurrentFocusWindow = this;
-            if(WindowType == Window_Type_Default && IsVisible){
-                atomicAcquire(&Orb->Render->RenderLock, 0);
-                
-                this->DequeuWL();
-                this->EnqueuWL();
-
-                atomicUnlock(&Orb->Render->RenderLock, 0);
+            if(WindowType == Window_Type_Default && IsVisible){                
+                this->Dequeu();
+                this->Enqueu();
 
                 Orb->Render->UpdateAllEvents();
             }
@@ -238,13 +232,6 @@ KResult windowc::Close() {
 }
 
 KResult windowc::Enqueu(){
-    atomicAcquire(&Orb->Render->RenderLock, 0);
-    KResult Status = EnqueuWL();
-    atomicUnlock(&Orb->Render->RenderLock, 0);
-    return Status;
-}
-
-KResult windowc::EnqueuWL(){
     if(this->WindowType == Window_Type_Default){
         if(WindowDefaultStart == NULL){
             WindowDefaultStart = this;
@@ -291,13 +278,6 @@ KResult windowc::EnqueuWL(){
 }
 
 KResult windowc::Dequeu(){
-    atomicAcquire(&Orb->Render->RenderLock, 0);
-    KResult Status = DequeuWL();
-    atomicUnlock(&Orb->Render->RenderLock, 0);
-    return Status;
-}
-
-KResult windowc::DequeuWL(){
     if(this->Last){
         this->Last->Next = this->Next;
     }

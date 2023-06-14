@@ -51,7 +51,6 @@ int main(int argc, char* argv[], char* envp[]) {
             strcat(Path, Prefix);
             strcat(Path, Args[0]);
             strcat(Path, Suffix);
-
             if(execvp(Path, Args) == -1){
                 printf("Unknow command: %s\n", Args[0]);
                 kot_Sys_Close(KSUCCESS);

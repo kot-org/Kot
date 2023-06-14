@@ -61,9 +61,7 @@ class windowc{
         KResult Close();
 
         KResult Enqueu();
-        KResult EnqueuWL();
         KResult Dequeu();
-        KResult DequeuWL();
 };
 
 extern windowc* CurrentFocusWindow;

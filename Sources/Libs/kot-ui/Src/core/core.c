@@ -127,11 +127,12 @@ static void draw_frame(kui_Context *ctx, kui_Rect rect, int colorid) {
 }
 
 
-kui_Context* kui_init(kui_ProcessFrameCallback callback) {
+kui_Context* kui_init(kui_ProcessFrameCallback callback, void* opaque) {
   kui_Context *ctx = calloc(1, sizeof(kui_Context));
   ctx->_style = default_style;
   ctx->style = &ctx->_style;
   ctx->callback_frame = callback;
+  ctx->opaque = opaque;
   kui_r_init();
   ctx->callback_frame(ctx);  
   ctx->callback_frame(ctx);
@@ -703,6 +704,57 @@ int kui_checkbox(kui_Context *ctx, const char *label, int *state) {
   }
   r = kui_rect(r.x + box.w, r.y, r.w - box.w, r.h);
   kui_draw_control_text(ctx, label, r, KUI_COLOR_TEXT, 0);
+  return res;
+}
+
+int kui_shellbox(kui_Context *ctx, char *buf, int bufsz, int bufpsz, kui_Id id, kui_Rect r,
+  int opt)
+{
+  int res = 0;
+  kui_update_control(ctx, id, r, opt | KUI_OPT_HOLDFOCUS);
+
+  if (ctx->focus == id) {
+    /* handle text input */
+    int len = strlen(buf);
+    int n = kui_min(bufsz - len - 1, (int) strlen(ctx->input_text));
+    if (n > 0) {
+      memcpy(buf + len, ctx->input_text, n);
+      len += n;
+      buf[len] = '\0';
+      res |= KUI_RES_CHANGE;
+    }
+    /* handle backspace */
+    if (ctx->key_pressed & KUI_KEY_BACKSPACE && len > bufpsz) {
+      /* skip utf-8 continuation bytes */
+      while ((buf[--len] & 0xc0) == 0x80 && len > bufpsz);
+      buf[len] = '\0';
+      res |= KUI_RES_CHANGE;
+    }
+    /* handle return */
+    if (ctx->key_pressed & KUI_KEY_RETURN) {
+      kui_set_focus(ctx, 0);
+      res |= KUI_RES_SUBMIT;
+    }
+  }
+
+  /* draw */
+  kui_draw_control_frame(ctx, id, r, KUI_COLOR_BASE, opt);
+  if (ctx->focus == id) {
+    kui_Color color = ctx->style->colors[KUI_COLOR_TEXT];
+    kui_Font font = ctx->style->font;
+    int textw = kui_r_get_text_width(kui_get_current_container(ctx), font, buf, -1);
+    int texth = kui_r_get_text_height(kui_get_current_container(ctx), font);
+    int ofx = r.w - ctx->style->padding - textw - 1;
+    int textx = r.x + kui_min(ofx, ctx->style->padding);
+    int texty = r.y + (r.h - texth) / 2;
+    kui_push_clip_rect(ctx, r);
+    kui_text(ctx, buf);
+    kui_draw_rect(ctx, kui_rect(textx + textw, texty, 1, texth), color);
+    kui_pop_clip_rect(ctx);
+  } else {
+    kui_text(ctx, buf);
+  }
+
   return res;
 }
 
