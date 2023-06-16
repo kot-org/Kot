@@ -319,7 +319,7 @@ namespace Ui {
     struct Label_t{
         LabelStyle_t Style;
         Component* Cpnt;
-        kfont_t* Font;
+        kfont_t Font;
         int64_t TextWidth;
         int64_t TextHeight;
         int64_t TextX;

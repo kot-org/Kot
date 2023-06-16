@@ -2,7 +2,7 @@
 ** Copyright (c) 2020 rxi
 **
 ** This library is free software; you can redistribute it and/or modify it
-** under the terms of the MIT license. See `microui.c` for details.
+** under the terms of the MIT license. See `core.c` for details.
 */
 
 #ifndef KUI_CORE_H
@@ -266,20 +266,19 @@ void kui_draw_control_text(kui_Context *ctx, const char *str, kui_Rect rect, int
 int kui_mouse_over(kui_Context *ctx, kui_Rect rect);
 void kui_update_control(kui_Context *ctx, kui_Id id, kui_Rect rect, int opt);
 
-#define kui_button(ctx, label)             kui_button_ex(ctx, label, 0, KUI_OPT_ALIGNCENTER)
-#define kui_textbox(ctx, buf, bufsz)       kui_textbox_ex(ctx, buf, bufsz, 0)
-#define kui_slider(ctx, value, lo, hi)     kui_slider_ex(ctx, value, lo, hi, 0, KUI_SLIDER_FMT, KUI_OPT_ALIGNCENTER)
-#define kui_number(ctx, value, step)       kui_number_ex(ctx, value, step, KUI_SLIDER_FMT, KUI_OPT_ALIGNCENTER)
-#define kui_header(ctx, label)             kui_header_ex(ctx, label, 0)
-#define kui_begin_treenode(ctx, label)     kui_begin_treenode_ex(ctx, label, 0)
-#define kui_begin_window(ctx, title, rect) kui_begin_window_ex(ctx, title, rect, 0)
-#define kui_begin_panel(ctx, name)         kui_begin_panel_ex(ctx, name, 0)
+#define kui_button(ctx, label)                  kui_button_ex(ctx, label, 0, KUI_OPT_ALIGNCENTER)
+#define kui_textbox(ctx, buf, bufsz)            kui_textbox_ex(ctx, buf, bufsz, 0)
+#define kui_slider(ctx, value, lo, hi)          kui_slider_ex(ctx, value, lo, hi, 0, KUI_SLIDER_FMT, KUI_OPT_ALIGNCENTER)
+#define kui_number(ctx, value, step)            kui_number_ex(ctx, value, step, KUI_SLIDER_FMT, KUI_OPT_ALIGNCENTER)
+#define kui_header(ctx, label)                  kui_header_ex(ctx, label, 0)
+#define kui_begin_treenode(ctx, label)          kui_begin_treenode_ex(ctx, label, 0)
+#define kui_begin_window(ctx, title, rect)      kui_begin_window_ex(ctx, title, rect, 0)
+#define kui_begin_panel(ctx, name)              kui_begin_panel_ex(ctx, name, 0)
 
 void kui_text(kui_Context *ctx, const char *text);
 void kui_label(kui_Context *ctx, const char *text);
 int kui_button_ex(kui_Context *ctx, const char *label, int icon, int opt);
 int kui_checkbox(kui_Context *ctx, const char *label, int *state);
-int kui_shellbox_raw(kui_Context *ctx, char *buf, int bufsz, kui_Id id, kui_Rect r, int opt);
 int kui_textbox_raw(kui_Context *ctx, char *buf, int bufsz, kui_Id id, kui_Rect r, int opt);
 int kui_textbox_ex(kui_Context *ctx, char *buf, int bufsz, int opt);
 int kui_slider_ex(kui_Context *ctx, kui_Real *value, kui_Real low, kui_Real high, kui_Real step, const char *fmt, int opt);

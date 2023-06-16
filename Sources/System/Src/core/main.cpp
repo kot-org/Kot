@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
                                 }
                             }
                         }
-                        ELF::loadElf(bufferServiceFile, (enum kot_Priviledge)servicePriledge, NULL, &thread, "d0:", IsVFS);
+                        ELF::loadElf(bufferServiceFile, NULL, (enum kot_Priviledge)servicePriledge, NULL, &thread, "d0:", IsVFS);
                         free((void*)bufferServiceFile);
 
                         void* MainStackData;

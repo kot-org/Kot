@@ -11,7 +11,7 @@ int main(int argc, char* argv[]){
     uisd_test_t* TestSrv = (uisd_test_t*)addressReceive;
 
     kot_arguments_t arguments;
-    kot_key_mem_t MemoryShare = kot_Sys_ExecThread(TestSrv->GetMemory, &arguments, ExecutionTypeQueuAwait, NULL);
+    kot_key_mem_t MemoryShare = kot_Sys_ExecThread(TestSrv->GetMemory, &arguments, ExecutionTypeQueu | ExecutionTypeAwait, NULL);
     void* addressReceiveShare = GetFreeAlignedSpace(0x1000);
     Sys_AcceptMemoryField(proc, MemoryShare, &addressReceiveShare);
     kot_Printlog((char*)addressReceiveShare);

@@ -200,7 +200,7 @@ The `kui_Style` struct contains spacing and sizing information, as well
 as a `colors` array which maps `colorid` to `kui_Color`. The library uses
 the `style` pointer field of the context to resolve colors and spacing,
 it is safe to change this pointer or modify any fields of the resultant
-struct at any point. See [`microui.h`](../src/microui.h) for the struct's
+struct at any point. See [`core.h`](../Src/core.h) for the struct's
 implementation.
 
 In addition to the style struct the context stores a `draw_frame()`

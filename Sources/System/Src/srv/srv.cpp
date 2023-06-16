@@ -24,6 +24,11 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
     kot_Sys_CreateThread(proc, (void*)&LoadExecutable, PriviledgeApp, NULL, &LoadExecutableThread);
     SystemSrv->LoadExecutable = kot_MakeShareableThread(LoadExecutableThread, PriviledgeApp);
 
+    /* LoadExecutableToProcess */
+    kot_thread_t LoadExecutableToProcessThread = NULL;
+    kot_Sys_CreateThread(proc, (void*)&LoadExecutableToProcess, PriviledgeApp, NULL, &LoadExecutableToProcessThread);
+    SystemSrv->LoadExecutableToProcess = kot_MakeShareableThread(LoadExecutableToProcessThread, PriviledgeApp);
+
     /* GetFramebuffer */
     kot_thread_t GetFramebufferThread = NULL;
     kot_Sys_CreateThread(proc, (void*)&GetFramebuffer, PriviledgeApp, NULL, &GetFramebufferThread);
@@ -109,7 +114,7 @@ KResult LoadExecutable(kot_thread_t Callback, uint64_t CallbackArg, kot_process_
 
             void* BufferExecutable = malloc(ExecutableFileSize);
             fread(BufferExecutable, ExecutableFileSize, 1, ExecutableFile);
-            Status = ELF::loadElf((void*)BufferExecutable, (enum kot_Priviledge)Priviledge, NULL, &Thread, dirname(Path), true);
+            Status = ELF::loadElf((void*)BufferExecutable, NULL, (enum kot_Priviledge)Priviledge, NULL, &Thread, dirname(Path), true);
             free(BufferExecutable);
             ThreadOutput = kot_MakeShareableThreadToProcess(Thread, Process);
         }
@@ -127,6 +132,41 @@ KResult LoadExecutable(kot_thread_t Callback, uint64_t CallbackArg, kot_process_
     };
 
     kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+    kot_Sys_Close(KSUCCESS);
+}
+
+KResult LoadExecutableToProcess(kot_thread_t Callback, uint64_t CallbackArg, kot_process_t Process, void* Data, size64_t Size){
+    // Load filesystem handler
+    if(!KotSpecificData.VFSHandler){
+        kot_srv_storage_callback_t* Callback = kot_Srv_Storage_VFSLoginApp(ShareProcess, FS_AUTHORIZATION_HIGH, Storage_Permissions_Admin | Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, "d0:", true);
+        KotSpecificData.VFSHandler = Callback->Data;
+        free(Callback);
+    }
+
+    KResult Status = KFAIL;
+    char* Path = (char*)((uintptr_t)Data + Size);
+    kot_thread_t Thread;
+    FILE* ExecutableFile = fopen(Path, "r");
+    if(ExecutableFile){
+        fseek(ExecutableFile, 0, SEEK_END);
+        size_t ExecutableFileSize = ftell(ExecutableFile);
+        fseek(ExecutableFile, 0, SEEK_SET);
+
+        void* BufferExecutable = malloc(ExecutableFileSize);
+        fread(BufferExecutable, ExecutableFileSize, 1, ExecutableFile);
+        Status = ELF::loadElf((void*)BufferExecutable, Process, (enum kot_Priviledge)0, NULL, &Thread, dirname(Path), true);
+        free(BufferExecutable);
+
+        kot_ShareDataWithArguments_t DataArguments{
+            .Data = Data,
+            .Size = Size,
+            .ParameterPosition = 0x0,
+        };
+
+        kot_arguments_t arguments;
+        kot_Sys_ExecThread(Thread, &arguments, ExecutionTypeQueu, &DataArguments) == KSUCCESS;
+    }
+
     kot_Sys_Close(KSUCCESS);
 }
 

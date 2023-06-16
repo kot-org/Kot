@@ -1,4 +1,5 @@
 #include <kot/uisd/srvs/system.h>
+#include <bits/ensure.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -72,6 +73,33 @@ struct kot_srv_system_callback_t* kot_Srv_System_LoadExecutable(uint64_t Privile
         kot_Sys_Pause(false);
     }
     return callback;
+}
+
+/* LoadExecutableToProcess */
+__attribute__((__noreturn__)) void kot_Srv_System_LoadExecutableToProcess(char* Path, void* Data, size64_t Size){
+    __ensure(Path != NULL);
+
+    if(!kot_srv_system_callback_thread) kot_Srv_System_Initialize();
+
+    struct kot_arguments_t parameters;
+    parameters.arg[0] = NULL;
+    parameters.arg[1] = NULL;
+    parameters.arg[2] = kot_ProcessKeyForUISD;
+    parameters.arg[4] = Size;
+
+
+    struct kot_ShareDataWithArguments_t data;
+
+    size64_t TotalSize = Size + strlen(Path) + 1;
+
+    data.Data = malloc(TotalSize);
+    data.Size = TotalSize; // add '\0' char
+    data.ParameterPosition = 0x3; 
+
+    memcpy(data.Data, Data, Size);
+    memcpy((void*)((uintptr_t)data.Data + Size), Path, strlen(Path) + 1);
+    
+    __ensure(kot_Sys_ExecThread(kot_SystemData->LoadExecutableToProcess, &parameters, ExecutionTypeQueu | ExecutionTypeClose, &data) == KSUCCESS);
 }
 
 /* GetFrameBufer */

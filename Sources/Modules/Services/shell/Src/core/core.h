@@ -13,11 +13,23 @@ struct shell_t{
 
     char* OutputBuffer;
     size64_t OutputBufferSize;
-    bool OutputUpdated;
+    char* OuputBufferLastShow;
 
     char* InputBuffer;
     size64_t InputBufferSize;
 
+    kot_framebuffer_t TextFramebuffer;
+
+    kfont_t ShellFont;
+
+    kot_event_t Event;
+
+    uint64_t LineNumberShow;
+    uint64_t LineNumberMax;
+    uint64_t Width;
+    uint64_t Height;
+
+    uint64_t Lock;
 };
 
 struct read_request_shell_t{
@@ -31,6 +43,7 @@ struct read_request_shell_t{
 
 struct shell_t* NewShell(kot_process_t Target);
 
+void ShellPrintWU(shell_t* Shell, void* Buffer, size64_t Size);
 void ShellPrint(shell_t* Shell, void* Buffer, size64_t Size);
 
 KResult ShellSendRequest(shell_t* Shell, read_request_shell_t* Request);

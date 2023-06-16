@@ -596,7 +596,7 @@ KResult VFSfileReadInitrd(kot_thread_t Callback, uint64_t CallbackArg,  InitrdCo
 
     kot_Sys_Keyhole_CloneModify(MemoryKey, &arguments.arg[2], Context->Target, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
     
-    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueuAwait, NULL);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu | ExecutionTypeAwait, NULL);
     kot_Sys_CloseMemoryField(kot_Sys_GetProcess(), MemoryKey, Buffer);
 
     free((void*)CallbackSys->Data);
@@ -619,7 +619,7 @@ KResult VFSGetfilesizeInitrd(kot_thread_t Callback, uint64_t CallbackArg,  Initr
         .arg[5] = NULL,                 /* GP3 */
     };
 
-    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueuAwait, NULL);
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu | ExecutionTypeAwait, NULL);
 
     free((void*)CallbackSys->Data);
     free(CallbackSys);

@@ -34,7 +34,7 @@ namespace ELF {
         return (Elf64_Half)(((uint64_t)shdr - (uint64_t)self->shdrs) / self->Header->e_shentsize);
     }
 
-    KResult loadElf(void* buffer, enum kot_Priviledge privilege, uint64_t identifier, kot_thread_t* mainthread, char* rootpath, bool isVFS) {
+    KResult loadElf(void* buffer, kot_process_t proc, enum kot_Priviledge privilege, uint64_t identifier, kot_thread_t* mainthread, char* rootpath, bool isVFS){
         elf_t* self = (elf_t*)calloc(1, sizeof(elf_t));
         self->Buffer = buffer;
         self->Header = (Elf64_Ehdr*)buffer;
@@ -44,10 +44,11 @@ namespace ELF {
             free(self);
             return KFAIL;
         }
+
         
-        kot_process_t proc = NULL;
-        
-        if(kot_Sys_CreateProc(&proc, privilege, identifier) != KSUCCESS) return KFAIL;
+        if(!proc){
+            if(kot_Sys_CreateProc(&proc, privilege, identifier) != KSUCCESS) return KFAIL;
+        }
         /* TODO : create thread identifier */
         if(kot_Sys_CreateThread(proc, (void*)self->Header->e_entry, privilege, NULL, mainthread) != KSUCCESS) return KFAIL;
 

@@ -78,12 +78,12 @@ enum MemoryFieldType{
     MemoryFieldTypeSendSpaceRO  = 0x3,
 };
 
-enum ExecutionType{
-    ExecutionTypeQueu           = 0x0,
-    ExecutionTypeQueuAwait      = 0x1,
-    ExecutionTypeOneshot        = 0x2,
-    ExecutionTypeOneshotAwait   = 0x3,
-};
+#define ExecutionTypeQueu       (1 << 0)
+#define ExecutionTypeOneshot    (1 << 1)
+#define ExecutionTypeAwait      (1 << 2)
+#define ExecutionTypeClose      (1 << 3)
+
+typedef uint64_t execution_type_t;
 
 enum AllocationType{
     AllocationTypeBasic                 = 0x0,

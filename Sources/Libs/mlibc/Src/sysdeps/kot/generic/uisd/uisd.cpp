@@ -22,7 +22,7 @@ size64_t kot_ControllerTypeSize[ControllerCount] = {
     sizeof(kot_uisd_shell_t)
 };
 
-kot_thread_t kot_CallBackUISDThread = NULL;
+kot_thread_t kot_srv_uisd_callback_thread = NULL;
 kot_process_t kot_ProcessKeyForUISD = NULL;
 
 KResult kot_CallbackUISD(uint64_t Task, KResult Status, kot_uisd_callbackInfo_t* Info, uint64_t GP0, uint64_t GP1);
@@ -34,7 +34,7 @@ KResult kot_InitializeUISD(){
     kot_process_t Proc = kot_Sys_GetProcess();
 
     kot_Sys_CreateThread(Proc, (void*)&kot_CallbackUISD, PriviledgeApp, NULL, &UISDthreadKeyCallback);
-    kot_CallBackUISDThread = kot_MakeShareableThreadToProcess(UISDthreadKeyCallback, KotSpecificData.UISDHandlerProcess);
+    kot_srv_uisd_callback_thread = kot_MakeShareableThreadToProcess(UISDthreadKeyCallback, KotSpecificData.UISDHandlerProcess);
 
     kot_Sys_Keyhole_CloneModify(Proc, &kot_ProcessKeyForUISD, KotSpecificData.UISDHandlerProcess, KeyholeFlagPresent | KeyholeFlagDataTypeProcessMemoryAccessible, PriviledgeApp);
     
@@ -56,7 +56,7 @@ KResult kot_CallbackUISD(uint64_t Task, KResult Status, kot_uisd_callbackInfo_t*
 }
 
 kot_uisd_callbackInfo_t* kot_GetControllerUISD(enum kot_uisd_controller_type_enum Controller, void** Location, bool AwaitCallback){
-    if(!kot_CallBackUISDThread) kot_InitializeUISD();
+    if(!kot_srv_uisd_callback_thread) kot_InitializeUISD();
     kot_thread_t Self = kot_Sys_GetThread();
     kot_uisd_callbackInfo_t* Info = (kot_uisd_callbackInfo_t*)malloc(sizeof(kot_uisd_callbackInfo_t));
     Info->Self = Self;
@@ -68,7 +68,7 @@ kot_uisd_callbackInfo_t* kot_GetControllerUISD(enum kot_uisd_controller_type_enu
     struct kot_arguments_t parameters;
     parameters.arg[0] = UISDGetTask;
     parameters.arg[1] = Controller;
-    parameters.arg[2] = kot_CallBackUISDThread;
+    parameters.arg[2] = kot_srv_uisd_callback_thread;
     parameters.arg[3] = (uint64_t)Info;
     parameters.arg[4] = kot_ProcessKeyForUISD;
     parameters.arg[5] = (uint64_t)*Location;
@@ -82,7 +82,7 @@ kot_uisd_callbackInfo_t* kot_GetControllerUISD(enum kot_uisd_controller_type_enu
 }
 
 kot_uisd_callbackInfo_t* kot_CreateControllerUISD(enum kot_uisd_controller_type_enum Controller, kot_key_mem_t MemoryField, bool AwaitCallback){
-    if(!kot_CallBackUISDThread) kot_InitializeUISD();
+    if(!kot_srv_uisd_callback_thread) kot_InitializeUISD();
     kot_thread_t Self = kot_Sys_GetThread();
     kot_uisd_callbackInfo_t* Info = (kot_uisd_callbackInfo_t*)malloc(sizeof(kot_uisd_callbackInfo_t));
     Info->Self = Self;
@@ -96,7 +96,7 @@ kot_uisd_callbackInfo_t* kot_CreateControllerUISD(enum kot_uisd_controller_type_
     struct kot_arguments_t parameters;
     parameters.arg[0] = UISDCreateTask;
     parameters.arg[1] = Controller;
-    parameters.arg[2] = kot_CallBackUISDThread;
+    parameters.arg[2] = kot_srv_uisd_callback_thread;
     parameters.arg[3] = (uint64_t)Info;
     parameters.arg[4] = MemoryFieldKey;
     KResult Status = kot_Sys_ExecThread(KotSpecificData.UISDHandler, &parameters, ExecutionTypeQueu, NULL);
@@ -154,7 +154,7 @@ void* kot_FindControllerUISD(enum kot_uisd_controller_type_enum Controller){
 }
 
 KResult kot_ResetUISDThreads(){
-    kot_CallBackUISDThread = NULL;
+    kot_srv_uisd_callback_thread = NULL;
 
     // Reset every clients
     kot_srv_system_callback_thread = NULL;

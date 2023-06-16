@@ -9,6 +9,9 @@
 extern "C" {
 #endif
 
+extern kot_process_t kot_ProcessKeyForUISD;
+
+extern kot_thread_t kot_srv_uisd_callback_thread;
 extern kot_thread_t kot_srv_system_callback_thread;
 extern kot_thread_t kot_srv_storage_callback_thread;
 extern kot_thread_t kot_srv_time_callback_thread;
@@ -51,6 +54,7 @@ typedef struct {
 typedef struct {
     kot_uisd_controller_t ControllerHeader; 
     kot_thread_t LoadExecutable;
+    kot_thread_t LoadExecutableToProcess;
     kot_thread_t GetFramebuffer;
     kot_thread_t ReadFileInitrd;
     kot_thread_t GetTableInRootSystemDescription;
@@ -147,6 +151,8 @@ typedef struct {
     uint64_t Location;
     KResult Status;
 } kot_uisd_callbackInfo_t;
+
+KResult kot_InitializeUISD();
 
 kot_uisd_callbackInfo_t* kot_GetControllerUISD(enum kot_uisd_controller_type_enum Controller, void** Location, bool AwaitCallback);
 kot_uisd_callbackInfo_t* kot_CreateControllerUISD(enum kot_uisd_controller_type_enum Controller, kot_key_mem_t MemoryField, bool AwaitCallback);

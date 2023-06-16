@@ -96,7 +96,7 @@ KResult kot_Sys_Duplicatethread(kot_process_t parent, kot_thread_t source, kot_t
     return Syscall_24(KSys_DuplicateThread, parent, source, self);
 }
 
-KResult kot_Sys_ExecThread(kot_thread_t self, struct kot_arguments_t* parameters, enum kot_ExecutionType type, struct kot_ShareDataWithArguments_t* data){
+KResult kot_Sys_ExecThread(kot_thread_t self, struct kot_arguments_t* parameters, kot_execution_type_t type, struct kot_ShareDataWithArguments_t* data){
     return Syscall_32(KSys_ExecThread, self, parameters, type, data);
 }
 

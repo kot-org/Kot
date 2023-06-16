@@ -422,13 +422,13 @@ KResult Sys_ExecThread(SyscallStack* Registers, kthread_t* Thread){
     kthread_t* threadkey;
     uint64_t flags;
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags, false) != KSUCCESS) return KKEYVIOLATION;
-    enum ExecutionType Type = (enum ExecutionType)(Registers->arg2 & 0b11); // only the two first bits can be handle
-    if(Type == ExecutionTypeQueu || Type == ExecutionTypeQueuAwait){
+    execution_type_t Type = (execution_type_t)Registers->arg2;
+    if(Type & ExecutionTypeQueu || Type & ExecutionTypeQueu){
         if(!(flags & KeyholeFlagDataTypeThreadIsExecutableWithQueue)){
             return KKEYVIOLATION;
         }
     }
-    if(Type == ExecutionTypeOneshot || Type == ExecutionTypeOneshotAwait){
+    if(Type & ExecutionTypeOneshot || Type & ExecutionTypeOneshot){
         if(!(flags & KeyholeFlagDataTypeThreadIsExecutableOneshot)){
             return KKEYVIOLATION;
         }

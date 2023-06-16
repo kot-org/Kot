@@ -227,7 +227,7 @@ class TaskManager{
         KResult Createthread(kthread_t** self, kprocess_t* proc, void* entryPoint, uint64_t externalData);
         KResult Createthread(kthread_t** self, kprocess_t* proc, void* entryPoint, enum Priviledge priviledge, uint64_t externalData);
         KResult Duplicatethread(kthread_t** self, kprocess_t* proc, kthread_t* source);
-        KResult Execthread(kthread_t* Caller, kthread_t* Self, enum ExecutionType Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers);
+        KResult Execthread(kthread_t* Caller, kthread_t* Self, execution_type_t Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers);
         KResult Unpause(kthread_t* task); 
         KResult Unpause_WL(kthread_t* task); 
         KResult Exit(ContextStack* Registers, kthread_t* task, uint64_t ReturnValue); 

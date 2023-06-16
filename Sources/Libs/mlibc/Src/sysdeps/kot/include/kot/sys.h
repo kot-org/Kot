@@ -92,12 +92,12 @@ enum kot_MemoryFieldType{
     MemoryFieldTypeSendSpaceRO  = 0x3,
 };
 
-enum kot_ExecutionType{
-    ExecutionTypeQueu           = 0x0,
-    ExecutionTypeQueuAwait      = 0x1,
-    ExecutionTypeOneshot        = 0x2,
-    ExecutionTypeOneshotAwait   = 0x3,
-};
+#define ExecutionTypeQueu       (1 << 0)
+#define ExecutionTypeOneshot    (1 << 1)
+#define ExecutionTypeAwait      (1 << 2)
+#define ExecutionTypeClose      (1 << 3)
+
+typedef uint64_t kot_execution_type_t;
 
 enum kot_AllocationType{
     AllocationTypeBasic                 = 0x0,
@@ -130,7 +130,7 @@ KResult kot_Sys_Event_Close();
 KResult kot_Sys_CreateThread(kot_process_t self, void* entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result); // TODO make external data field
 KResult kot_Sys_CreateThreadWithoutAutoInit(kot_process_t self, void* entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result); // TODO make external data field
 KResult kot_Sys_Duplicatethread(kot_process_t parent, kot_thread_t source, kot_thread_t* self);
-KResult kot_Sys_ExecThread(kot_thread_t self, struct kot_arguments_t* parameters, enum kot_ExecutionType type, struct kot_ShareDataWithArguments_t* data);
+KResult kot_Sys_ExecThread(kot_thread_t self, struct kot_arguments_t* parameters, kot_execution_type_t type, struct kot_ShareDataWithArguments_t* data);
 KResult kot_Sys_Keyhole_CloneModify(kot_key_t source, kot_key_t* destination, kot_process_t target, uint64_t flags, enum kot_Priviledge privilidge);
 KResult kot_Sys_Keyhole_Verify(kot_key_t self, enum kot_DataType type, kot_process_t* target, uint64_t* flags, uint64_t* priviledge);
 KResult kot_Sys_Thread_Info_Get(kot_thread_t thread, uint64_t arg, uint64_t* value);

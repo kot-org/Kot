@@ -106,11 +106,10 @@ void kui_r_create_window(kui_Context *ctx, kui_Container *cnt, kui_Rect rect){
   void* DefaultFontBuffer = malloc(DefaultFontSize);
   fseek(DefaultFontFile, 0, SEEK_SET);
   fread(DefaultFontBuffer, DefaultFontSize, 1, DefaultFontFile);
-  cnt->window_parent->default_font = (kfont_t*)LoadFont((void*)DefaultFontBuffer, DefaultFontSize);
+  cnt->window_parent->default_font = LoadFont((void*)DefaultFontBuffer, DefaultFontSize);
   free(DefaultFontBuffer);
   fclose(DefaultFontFile);
   LoadPen(cnt->window_parent->default_font, &cnt->window_parent->backbuffer, 0, 0, 12, 0, 0xffffff);
-  cnt->window_parent->ctx = ctx;
 
   /* Load icons font */
   FILE* IconsFontFile = fopen("d0:icons.ttf", "r");
@@ -119,10 +118,11 @@ void kui_r_create_window(kui_Context *ctx, kui_Container *cnt, kui_Rect rect){
   void* IconsFontBuffer = malloc(IconsFontSize);
   fseek(IconsFontFile, 0, SEEK_SET);
   fread(IconsFontBuffer, IconsFontSize, 1, IconsFontFile);
-  cnt->window_parent->icons_font = (kfont_t*)LoadFont((void*)IconsFontBuffer, IconsFontSize);
+  cnt->window_parent->icons_font = LoadFont((void*)IconsFontBuffer, IconsFontSize);
   free(IconsFontBuffer);
   fclose(IconsFontFile);
   LoadPen(cnt->window_parent->icons_font, &cnt->window_parent->backbuffer, 0, 0, 12, 0, 0xffffff);
+
   cnt->window_parent->ctx = ctx;
 }
 
@@ -186,7 +186,7 @@ int kui_r_get_text_width(kui_Container *cnt, kui_Font font, const char *text, in
 int kui_r_get_text_height(kui_Container *cnt, kui_Font font){
   if(!cnt->window_parent) return 0;
   if(font == NULL) font = cnt->window_parent->default_font;
-  return (int)GetLineHeight(font);
+  return (int)GetBearingY(font);
 }
 
 

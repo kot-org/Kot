@@ -248,32 +248,22 @@ KResult ThreadQueu_t::NextThreadInQueu_WL(){
     return KSUCCESS;
 }
 
-KResult TaskManager::Execthread(kthread_t* Caller, kthread_t* Self, enum ExecutionType Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers){
+KResult TaskManager::Execthread(kthread_t* Caller, kthread_t* Self, execution_type_t Type, arguments_t* FunctionParameters, ThreadShareData_t* Data, ContextStack* Registers){
     if(Self->IsEvent) return KFAIL;
 
     ThreadQueu_t* queu = Self->Queu;
     AtomicAcquire(&queu->Lock);
-    switch (Type){
-        case ExecutionTypeQueu:{
-            queu->SetThreadInQueu(Caller, Self, FunctionParameters, false, Data);
-            break;
-        }        
-        case ExecutionTypeQueuAwait:{
+    if(Type & ExecutionTypeQueu){
+        if(Type & ExecutionTypeAwait){
             queu->SetThreadInQueu_NSU(Caller, Self, FunctionParameters, true, Data);
             AtomicRelease(&queu->Lock);
             Caller->Pause_WL(Registers, true); // We can do this because we have already lock the scheduler
             return KSUCCESS;
-        }        
-        case ExecutionTypeOneshot:{
-            if(!queu->TasksInQueu){
-                queu->SetThreadInQueu(Caller, Self, FunctionParameters, false, Data);
-            }else{
-                AtomicRelease(&queu->Lock);
-                return KFAIL;
-            }
-            break;
-        }        
-        case ExecutionTypeOneshotAwait:{
+        }else{
+            queu->SetThreadInQueu(Caller, Self, FunctionParameters, false, Data);
+        }
+    }else{
+        if(Type & ExecutionTypeAwait){
             if(!queu->TasksInQueu){
                 queu->SetThreadInQueu_NSU(Caller, Self, FunctionParameters, true, Data);
                 AtomicRelease(&queu->Lock);
@@ -283,10 +273,19 @@ KResult TaskManager::Execthread(kthread_t* Caller, kthread_t* Self, enum Executi
                 AtomicRelease(&queu->Lock);
                 return KFAIL;
             }
-            break;
-        }        
+        }else{
+            if(!queu->TasksInQueu){
+                queu->SetThreadInQueu(Caller, Self, FunctionParameters, false, Data);
+            }else{
+                AtomicRelease(&queu->Lock);
+                return KFAIL;
+            }
+        }
     }
     AtomicRelease(&queu->Lock);
+    if(Type & ExecutionTypeClose){
+        Caller->Close(Registers, Registers->arg0);
+    }
     return KSUCCESS;
 }
 

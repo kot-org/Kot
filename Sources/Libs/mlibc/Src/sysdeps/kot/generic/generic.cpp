@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <kot/sys.h>
+#include <kot/uisd.h>
 #include <bits/ensure.h>
 #include <frg/vector.hpp>
 #include <mlibc/debug.hpp>
@@ -149,12 +150,8 @@ namespace mlibc{
     }
 
     int sys_execve(const char *path, char *const argv[], char *const envp[]){
-        kot_srv_system_callback_t* Callback = kot_Srv_System_LoadExecutable(kot_Sys_GetPriviledgeThread(), (char*)path, true);
-        KResult Status = Callback->Status;
-
-        if(Status != KSUCCESS){
-            free((void*)Callback);
-            return -1;
+        if(!fopen(path, "r")){
+           return -1;
         }
 
         void* MainStackData;
@@ -163,17 +160,8 @@ namespace mlibc{
         for(; argv[argc] != NULL; argc++);
         kot_SetupStack(&MainStackData, &SizeMainStackData, argc, (char**)argv, (char**)envp);
 
-        kot_ShareDataWithArguments_t Data{
-            .Data = MainStackData,
-            .Size = SizeMainStackData,
-            .ParameterPosition = 0x0,
-        };
+        kot_Srv_System_LoadExecutableToProcess((char*)path, MainStackData, SizeMainStackData);
 
-        kot_arguments_t InitParameters;
-        __ensure(kot_Sys_ExecThread((kot_thread_t)Callback->Data, &InitParameters, ExecutionTypeQueu, &Data) == KSUCCESS);
-        free((void*)MainStackData);
-        free((void*)Callback);
-        kot_Sys_Close(KSUCCESS);
         __builtin_unreachable();
     }
 
