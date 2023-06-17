@@ -55,8 +55,13 @@ namespace mlibc{
         }
         atomicAcquire(&KotAnonAllocateLock, 0);
         *pointer = (void*)KotSpecificData.HeapLocation;
-        int Status = (Syscall_48(KSys_Map, kot_Sys_GetProcess(), (uint64_t)pointer, 0, 0, (uint64_t)&size, false) != KSUCCESS);
-        KotSpecificData.HeapLocation += size;
+        uint64_t SizeAllocate = size;
+        int Status = (Syscall_48(KSys_Map, kot_Sys_GetProcess(), (uint64_t)pointer, 0, 0, (uint64_t)&SizeAllocate, false) != KSUCCESS);
+        if(SizeAllocate > size){
+            KotSpecificData.HeapLocation += SizeAllocate;
+        }else{
+            KotSpecificData.HeapLocation += size;
+        }
         atomicUnlock(&KotAnonAllocateLock, 0);
         return Status;
     }
@@ -160,7 +165,7 @@ namespace mlibc{
         for(; argv[argc] != NULL; argc++);
         kot_SetupStack(&MainStackData, &SizeMainStackData, argc, (char**)argv, (char**)envp);
 
-        kot_Srv_System_LoadExecutableToProcess((char*)path, MainStackData, SizeMainStackData);
+        kot_Srv_System_LoadExecutableToProcess((char*)path, MainStackData, SizeMainStackData, 0, NULL, 0);
 
         __builtin_unreachable();
     }

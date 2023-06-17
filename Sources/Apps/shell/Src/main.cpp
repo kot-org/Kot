@@ -19,8 +19,6 @@ void GetInput() {
 
     fgets(Input, MAX_CHAR, stdin);
 
-    kot_Printlog(Input);
-
     Args[0] = strtok(Input, " \n\t");
 
     uint8_t i = 1;

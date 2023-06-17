@@ -144,7 +144,10 @@ KResult LoadExecutableToProcess(kot_thread_t Callback, uint64_t CallbackArg, kot
     }
 
     KResult Status = KFAIL;
-    char* Path = (char*)((uintptr_t)Data + Size);
+    uint8_t DataPosition = *(uint8_t*)((uintptr_t)Data + Size);
+    uint64_t Flags = *(uint64_t*)((uintptr_t)Data + Size + sizeof(uint8_t));
+    kot_arguments_t* Arguments = (kot_arguments_t*)((uintptr_t)Data + Size + sizeof(uint8_t) + sizeof(uint64_t));
+    char* Path = (char*)((uintptr_t)Data + Size + sizeof(uint8_t) + sizeof(uint64_t) + sizeof(kot_arguments_t));
     kot_thread_t Thread;
     FILE* ExecutableFile = fopen(Path, "r");
     if(ExecutableFile){
@@ -154,17 +157,16 @@ KResult LoadExecutableToProcess(kot_thread_t Callback, uint64_t CallbackArg, kot
 
         void* BufferExecutable = malloc(ExecutableFileSize);
         fread(BufferExecutable, ExecutableFileSize, 1, ExecutableFile);
-        Status = ELF::loadElf((void*)BufferExecutable, Process, (enum kot_Priviledge)0, NULL, &Thread, dirname(Path), true);
+        Status = ELF::loadElf((void*)BufferExecutable, Process, (enum kot_Priviledge)kot_Sys_GetPriviledgeThreadLauncher(), NULL, &Thread, dirname(Path), true);
         free(BufferExecutable);
 
         kot_ShareDataWithArguments_t DataArguments{
             .Data = Data,
             .Size = Size,
-            .ParameterPosition = 0x0,
+            .ParameterPosition = DataPosition,
         };
 
-        kot_arguments_t arguments;
-        kot_Sys_ExecThread(Thread, &arguments, ExecutionTypeQueu, &DataArguments) == KSUCCESS;
+        kot_Sys_ExecThread(Thread, Arguments, ExecutionTypeQueu, &DataArguments) == KSUCCESS;
     }
 
     kot_Sys_Close(KSUCCESS);

@@ -163,5 +163,7 @@ uint8_t GetRingPL(uint8_t priviledge){
             return DevicesRing;
         case PriviledgeApp:
             return UserAppRing;
+        default:
+            return UserAppRing;
     }
 }

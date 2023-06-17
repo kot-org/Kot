@@ -46,7 +46,7 @@ void kot_Srv_System_Initialize();
 void kot_Srv_System_Callback(KResult Status, struct kot_srv_system_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);
 
 struct kot_srv_system_callback_t* kot_Srv_System_LoadExecutable(uint64_t Priviledge, char* Path, bool IsAwait);
-__attribute__((__noreturn__)) void kot_Srv_System_LoadExecutableToProcess(char* Path, void* Data, size64_t Size);
+__attribute__((__noreturn__)) void kot_Srv_System_LoadExecutableToProcess(char* Path, void* Data, size64_t Size, uint64_t DataPosition, kot_arguments_t* Arguments, uint64_t Flags);
 struct kot_srv_system_callback_t* kot_Srv_System_GetFramebuffer(bool IsAwait);
 struct kot_srv_system_callback_t* kot_Srv_System_ReadFileInitrd(char* Name,  bool IsAwait);
 struct kot_srv_system_callback_t* kot_Srv_System_GetTableInRootSystemDescription(char* Name, bool IsAwait);

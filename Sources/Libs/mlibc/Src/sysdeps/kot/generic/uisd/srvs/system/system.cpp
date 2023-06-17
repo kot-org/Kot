@@ -76,7 +76,7 @@ struct kot_srv_system_callback_t* kot_Srv_System_LoadExecutable(uint64_t Privile
 }
 
 /* LoadExecutableToProcess */
-__attribute__((__noreturn__)) void kot_Srv_System_LoadExecutableToProcess(char* Path, void* Data, size64_t Size){
+__attribute__((__noreturn__)) void kot_Srv_System_LoadExecutableToProcess(char* Path, void* Data, size64_t Size, uint64_t DataPosition, kot_arguments_t* Arguments, uint64_t Flags){
     __ensure(Path != NULL);
 
     if(!kot_srv_system_callback_thread) kot_Srv_System_Initialize();
@@ -90,14 +90,21 @@ __attribute__((__noreturn__)) void kot_Srv_System_LoadExecutableToProcess(char* 
 
     struct kot_ShareDataWithArguments_t data;
 
-    size64_t TotalSize = Size + strlen(Path) + 1;
+    size64_t TotalSize = Size + sizeof(uint8_t) + sizeof(uint64_t) + sizeof(kot_arguments_t) + strlen(Path) + 1; // add '\0' char
 
     data.Data = malloc(TotalSize);
-    data.Size = TotalSize; // add '\0' char
+    data.Size = TotalSize;
     data.ParameterPosition = 0x3; 
 
     memcpy(data.Data, Data, Size);
-    memcpy((void*)((uintptr_t)data.Data + Size), Path, strlen(Path) + 1);
+    *(uint8_t*)((uintptr_t)data.Data + Size) = DataPosition;
+    *(uint64_t*)((uintptr_t)data.Data + Size + sizeof(uint8_t)) = DataPosition;
+    if(Arguments){
+        memcpy((void*)((uintptr_t)data.Data + Size + sizeof(uint8_t) + sizeof(uint64_t)), Arguments, sizeof(kot_arguments_t));
+    }else{
+        memset((void*)((uintptr_t)data.Data + Size + sizeof(uint8_t) + sizeof(uint64_t)), 0, sizeof(kot_arguments_t));
+    }
+    memcpy((void*)((uintptr_t)data.Data + Size + sizeof(uint8_t) + sizeof(uint64_t) + sizeof(kot_arguments_t)), Path, strlen(Path) + 1);
     
     __ensure(kot_Sys_ExecThread(kot_SystemData->LoadExecutableToProcess, &parameters, ExecutionTypeQueu | ExecutionTypeClose, &data) == KSUCCESS);
 }
