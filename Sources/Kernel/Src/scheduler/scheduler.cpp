@@ -321,6 +321,30 @@ KResult TaskManager::Exit(ContextStack* Registers, kthread_t* task, uint64_t Ret
 
     globalTaskManager->ReleaseScheduler();
 
+    kprocess_t* ProcParent = task->Parent;
+    while(ProcParent->Parent){
+        ProcParent = ProcParent->Parent;
+    }
+
+    AtomicAcquire(&ProcParent->WaitPIDLock);
+    for(uint64_t i = 0; i < ProcParent->WaitPIDCount; i++){
+        wait_pid_t* WaitPIDInfo = (wait_pid_t*)ProcParent->WaitPIDList->pop64();
+        if(WaitPIDInfo->Pid <= 0){
+            if(WaitPIDInfo->Pid == -1 || WaitPIDInfo->Pid == 0){
+                WaitPIDInfo->Thread->PIDWaitStatus = static_cast<int>(ReturnValue);
+                Unpause(WaitPIDInfo->Thread);
+            }else{
+                if(-(WaitPIDInfo->Pid) == task->Parent->PID){
+                    WaitPIDInfo->Thread->PIDWaitStatus = static_cast<int>(ReturnValue);
+                    Unpause(WaitPIDInfo->Thread);
+                }
+            }
+            ProcParent->WaitPIDCount--;
+            kfree(WaitPIDInfo);
+        }
+    }
+    AtomicRelease(&ProcParent->WaitPIDLock);
+
     if(task->IsEvent){
         // Clear event
     }
@@ -367,6 +391,9 @@ KResult TaskManager::CreateProcessWithoutPaging(kprocess_t** key, enum Priviledg
     proc->StackIterator = STACK_TOP;
     AtomicClearLock(&proc->StackIteratorLock);
 
+    proc->WaitPIDList = KStackInitialize(0x50);
+    proc->WaitPIDCount = 0;
+
     proc->PID = PID; 
     proc->PPID = 0; 
     proc->PPIDCount = 0; 
@@ -392,7 +419,7 @@ KResult TaskManager::CreateProcess(kprocess_t** key, enum Priviledge priviledge,
     KResult status = CreateProcessWithoutPaging(key, priviledge, externalData);
     if(status == KSUCCESS){
         (*key)->SharedPaging = vmm_SetupProcess();
-        Keyhole_Create(&(*key)->ProcessKey, (*key), (*key), DataTypeProcess, (uint64_t)(*key), DEFAULT_FLAGS_KEY, PriviledgeApp, false);
+        Keyhole_Create(&(*key)->ProcessKey, (*key), (*key), DataTypeProcess, (uint64_t)(*key), DEFAULT_FLAGS_KEY, PriviledgeApp);
     }
     return status;
 }
@@ -475,7 +502,7 @@ kthread_t* kprocess_t::Createthread(void* entryPoint, enum Priviledge priviledge
     thread->MemoryAllocated += PAGE_SIZE;
     thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
-    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DEFAULT_FLAGS_KEY, PriviledgeApp, false);
+    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DEFAULT_FLAGS_KEY, PriviledgeApp);
     vmm_Map(thread->Paging, (void*)SELF_DATA_START_ADDRESS, threadDataPA, thread->RingPL == UserAppRing);
     
     /* ID */
@@ -561,7 +588,7 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
     thread->MemoryAllocated += PAGE_SIZE;
     thread->threadData = (SelfData*)vmm_GetVirtualAddress(threadDataPA);
     
-    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DEFAULT_FLAGS_KEY, PriviledgeApp, false);
+    Keyhole_Create(&thread->threadData->ThreadKey, this, this, DataTypeThread, (uint64_t)thread, DEFAULT_FLAGS_KEY, PriviledgeApp);
     vmm_Map(thread->Paging, (void*)SELF_DATA_START_ADDRESS, threadDataPA, thread->RingPL == UserAppRing);
     
     thread->threadData->ProcessKey = ProcessKey;
@@ -629,9 +656,15 @@ KResult kprocess_t::Fork(ContextStack* Registers, kthread_t* Caller, kprocess_t*
 
     (*Child)->Parent = this;
 
+    kprocess_t* ProcParent = this;
+    while(ProcParent->Parent){
+        ProcParent = ProcParent->Parent;
+    }
+    ProcParent->ProcessChildCount++;
+
     vmm_ForkMemory(this, *Child);
 
-    Keyhole_Create(&(*Child)->ProcessKey, (*Child), (*Child), DataTypeProcess, (uint64_t)(*Child), DEFAULT_FLAGS_KEY, PriviledgeApp, false);
+    Keyhole_Create(&(*Child)->ProcessKey, (*Child), (*Child), DataTypeProcess, (uint64_t)(*Child), DEFAULT_FLAGS_KEY, PriviledgeApp);
     
     *ChildThread = Caller->ForkThread(Registers, *Child);
 

@@ -6,6 +6,7 @@
 #include <frg/string.hpp>
 #include <frg/vector.hpp>
 #include <mlibc/debug.hpp>
+#include <kot/descriptor.h>
 #include <mlibc/elf/startup.h>
 
 #if MLIBC_STATIC_BUILD
@@ -51,14 +52,21 @@ LibraryGuard::LibraryGuard() {
 			__mlibc_stack_data.envp);
 }
 
-extern int kot_InitFS(uint64_t Flags);
+extern int kot_InitFS(uint64_t Flags, int DescriptorInitializationReturnValue);
 
 extern "C" void __mlibc_entry(uintptr_t *entry_stack, int (*main_fn)(int argc, char *argv[], char *env[]), uint64_t Flags) {
+	int DescriptorInitialization = kot_InitializeDescriptorSaver();
+
 	__dlapi_enter(entry_stack);
 
 	ExecFlags = Flags;
 
-	kot_InitFS(Flags);
+
+	if(DescriptorInitialization < 0){
+		mlibc::panicLogger() << "mlibc: descriptor can't be loaded" << frg::endlog;
+	}
+
+	kot_InitFS(Flags, DescriptorInitialization);
 	if(!(Flags & EXEC_FLAGS_SHELL_DISABLED)){
 		kot_InitializeShell();
 	}

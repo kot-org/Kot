@@ -84,7 +84,7 @@ namespace ELF {
                 KotSpecificDataClient = (kot_SpecificData_t*)calloc(1, sizeof(kot_SpecificData_t));
                 KotSpecificDataClient->MMapPageSize = KotSpecificData.MMapPageSize;
                 KotSpecificDataClient->HeapLocation = HeapLocation;
-                KotSpecificDataClient->FreeMemorySpace = KotSpecificData.FreeMemorySpace;
+                KotSpecificDataClient->FreeMemorySpace = FreeMemorySpaceAddress;
                 KotSpecificDataClient->UISDHandler = KotSpecificData.UISDHandler;
 
                 if(isVFS){

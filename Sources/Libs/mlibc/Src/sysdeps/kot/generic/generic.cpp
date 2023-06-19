@@ -55,13 +55,8 @@ namespace mlibc{
         }
         atomicAcquire(&KotAnonAllocateLock, 0);
         *pointer = (void*)KotSpecificData.HeapLocation;
-        uint64_t SizeAllocate = size;
-        int Status = (Syscall_48(KSys_Map, kot_Sys_GetProcess(), (uint64_t)pointer, 0, 0, (uint64_t)&SizeAllocate, false) != KSUCCESS);
-        if(SizeAllocate > size){
-            KotSpecificData.HeapLocation += SizeAllocate;
-        }else{
-            KotSpecificData.HeapLocation += size;
-        }
+        KotSpecificData.HeapLocation += size;
+        int Status = (Syscall_48(KSys_Map, kot_Sys_GetProcess(), (uint64_t)pointer, AllocationTypeBasic, 0, (uint64_t)&size, false) != KSUCCESS);
         atomicUnlock(&KotAnonAllocateLock, 0);
         return Status;
     }
@@ -149,9 +144,11 @@ namespace mlibc{
     }
 
     int sys_waitpid(pid_t pid, int *status, int flags, struct rusage *ru, pid_t *ret_pid){
-        // TODO
-        //__ensure(!"Not implemented");
-        return 0;
+        if(ru) {
+            mlibc::infoLogger() << "mlibc: struct rusage in sys_waitpid is unsupported" << frg::endlog;
+            return ENOSYS;
+        }
+        return (kot_Sys_WaitPID(pid, status, flags) != KSUCCESS);
     }
 
     int sys_execve(const char *path, char *const argv[], char *const envp[]){

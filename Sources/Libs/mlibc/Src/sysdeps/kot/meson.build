@@ -13,6 +13,7 @@ libc_sources += files(
 	'generic/cstring.cpp',
 	'generic/generic.cpp',
 	'generic/uisd/uisd.cpp',
+	'generic/descriptor.cpp',
 	'generic/filesystem.cpp',
 	'generic/utils/utils.cpp',
 	'generic/utils/map/map.cpp',

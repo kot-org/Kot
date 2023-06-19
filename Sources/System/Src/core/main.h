@@ -58,3 +58,4 @@ struct InfoSlot {
 }__attribute__((packed));
 
 extern kot_process_t proc;
+extern void* FreeMemorySpaceAddress;

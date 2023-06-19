@@ -5,6 +5,7 @@
 using namespace std;
 
 kot_process_t proc;
+void* FreeMemorySpaceAddress;
 
 
 KResult SetupStack(void** Data, size64_t* Size, int argc, char** argv, char** envp){
@@ -57,6 +58,8 @@ KResult SetupStack(void** Data, size64_t* Size, int argc, char** argv, char** en
 }
 
 int main(int argc, char* argv[]) {
+    FreeMemorySpaceAddress = KotSpecificData.FreeMemorySpace;
+
     KernelInfo* kernelInfo = (KernelInfo*)argv[0];
 
     kot_Printlog("[System] Initialization ...");

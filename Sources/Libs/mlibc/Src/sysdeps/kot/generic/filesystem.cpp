@@ -6,43 +6,41 @@
 #include <bits/ensure.h>
 #include <frg/vector.hpp>
 #include <mlibc/debug.hpp>
+#include <kot/descriptor.h>
 #include <mlibc/allocator.hpp>
 #include <kot/uisd/srvs/time.h>
 #include <mlibc/all-sysdeps.hpp>
 #include <abi-bits/seek-whence.h>
 #include <kot/uisd/srvs/storage.h>
 
-#define MAX_OPEN_FILES 256
-#define MAX_OPEN_DIRS 256
-
-uint64_t kot_LockFDList;
-kot_file_t* kot_FDList[MAX_OPEN_FILES];
-int kot_FDCount;
-uint64_t kot_LockHandleList;
-kot_directory_t* kot_HandleList[MAX_OPEN_DIRS];
-int kot_HandleCount;
-
 uint64_t FSExecFlags;
+int DescriptorInitialization;
 
-int kot_InitFS(uint64_t Flags){
-    kot_LockFDList = 0;
-    kot_LockHandleList = 0;
-    kot_HandleCount = 0;
-    kot_FDCount = 3;
+int kot_InitFS(uint64_t Flags, int DescriptorInitializationReturnValue){
     FSExecFlags = Flags;
+    DescriptorInitialization = DescriptorInitializationReturnValue;
     return 0;
 }
 
 extern "C" int kot_OpenShellFile(const char *pathname){
-    kot_file_t* Shell = kot_fopenmf((char*)pathname, 0, O_CREAT | O_RDWR);
+    if(DescriptorInitialization == 0){
+        // Descriptors isn't initialized yet
+        kot_file_t* Shell = kot_fopenmf((char*)pathname, 0, O_CREAT | O_RDWR);
 
-    if(Shell == NULL) return -1;
+        if(Shell == NULL) return -1;
 
-    Shell->ExternalData |= File_Is_TTY;
-    
-    kot_FDList[0] = Shell;      // stdin
-    kot_FDList[1] = Shell;      // stdout
-    kot_FDList[2] = Shell;      // stderr
+        Shell->ExternalData |= File_Is_TTY;
+
+        kot_descriptor_t Descriptor{
+            .Size = sizeof(kot_file_t),
+            .Data = Shell,
+            .Type = KOT_DESCRIPTOR_TYPE_FILE,
+        };
+        kot_ModifyDescriptor(0, &Descriptor); // stdin
+        kot_ModifyDescriptor(1, &Descriptor); // stdout
+        kot_ModifyDescriptor(2, &Descriptor); // stderr
+        free(Shell);
+    }
 
     return 0;
 }
@@ -50,21 +48,27 @@ extern "C" int kot_OpenShellFile(const char *pathname){
 namespace mlibc{
     int sys_open(const char *pathname, int flags, mode_t mode, int *fd){
         kot_file_t* File = kot_fopenmf((char*)pathname, flags, mode);
+
         if(!File){
             *fd = 0;
             return -1; 
-        } 
-        atomicAcquire(&kot_LockFDList, 0);
-        if(kot_FDCount >= MAX_OPEN_FILES){
-            kot_fclose(File);
-            atomicUnlock(&kot_LockFDList, 0);
-            *fd = 0;
-            return -1; // Too many open files
         }
-        kot_FDList[kot_FDCount++] = File;
-        *fd = kot_FDCount - 1;
-        atomicUnlock(&kot_LockFDList, 0);
-        return 0;
+
+        kot_descriptor_t Descriptor{
+            .Size = sizeof(kot_file_t),
+            .Data = File,
+            .Type = KOT_DESCRIPTOR_TYPE_FILE,
+        };
+
+        *fd = kot_SaveDescriptor(&Descriptor);
+
+        if(*fd >= 0){
+            free(File);
+            return 0;
+        }else{
+            kot_fclose(File);
+            return -1;
+        }
     }
 
     int sys_read(int fd, void *buf, size_t count, ssize_t *bytes_read){
@@ -74,11 +78,10 @@ namespace mlibc{
                 return 0;
             }
         }
-        if(fd >= MAX_OPEN_FILES) return EBADF;
-        atomicAcquire(&kot_LockFDList, 0);
-        kot_file_t* File = kot_FDList[fd];
-        atomicUnlock(&kot_LockFDList, 0);
-        if(File == NULL) return EBADF;
+        kot_descriptor_t* Descriptor = kot_GetDescriptor(fd);
+        if(Descriptor == NULL) return EBADF;
+        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_FILE) return EBADF;
+        kot_file_t* File = (kot_file_t*)Descriptor->Data;
 
         atomicAcquire(&File->Lock, 0);
         kot_srv_storage_callback_t* CallbackReadFile = kot_Srv_Storage_Readfile(File, (void*)buf, File->Position, count, true);
@@ -106,11 +109,12 @@ namespace mlibc{
             }
         }
         if(count > SSIZE_MAX) return -1;
-        if(fd >= MAX_OPEN_FILES) return EBADF;
-        atomicAcquire(&kot_LockFDList, 0);
-        kot_file_t* File = kot_FDList[fd];
-        atomicUnlock(&kot_LockFDList, 0);
-        if(File == NULL) return EBADF;
+
+        kot_descriptor_t* Descriptor = kot_GetDescriptor(fd);
+        if(Descriptor == NULL) return EBADF;
+        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_FILE) return EBADF;
+        kot_file_t* File = (kot_file_t*)Descriptor->Data;
+
         atomicAcquire(&File->Lock, 0);
         struct kot_srv_storage_callback_t* CallbackWriteFile = kot_Srv_Storage_Writefile(File, (void*)buf, File->Position, count, File->IsDataEnd, true);
         KResult Status = CallbackWriteFile->Status;
@@ -135,11 +139,12 @@ namespace mlibc{
                 return 0;
             }
         }
-        if(fd >= MAX_OPEN_FILES) return EBADF;
-        atomicAcquire(&kot_LockFDList, 0);
-        kot_file_t* File = kot_FDList[fd];
-        atomicUnlock(&kot_LockFDList, 0);
-        if(File == NULL) return EBADF;
+
+        kot_descriptor_t* Descriptor = kot_GetDescriptor(fd);
+        if(Descriptor == NULL) return EBADF;
+        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_FILE) return EBADF;
+        kot_file_t* File = (kot_file_t*)Descriptor->Data;
+
         atomicAcquire(&File->Lock, 0);
         switch(whence){
             case SEEK_SET:{
@@ -181,40 +186,8 @@ namespace mlibc{
                 return 0;
             }
         }
-        if(fd < MAX_OPEN_FILES){
-            atomicAcquire(&kot_LockFDList, 0);
-            if(!kot_FDList[fd]){
-                atomicUnlock(&kot_LockFDList, 0);
-                return EBADF;
-            }
-            if(kot_fclose(kot_FDList[fd]) != KSUCCESS){
-                atomicUnlock(&kot_LockFDList, 0);
-                return -1;
-            }
-            kot_FDCount--;
-            for (int i = fd; i < kot_FDCount; i++) {
-                kot_FDList[i] = kot_FDList[i + 1];
-            }
-            atomicUnlock(&kot_LockFDList, 0);
-            return 0;
-        }else if(fd < MAX_OPEN_FILES + MAX_OPEN_DIRS){
-            atomicAcquire(&kot_LockHandleList, 0);
-            if(!kot_HandleList[fd - MAX_OPEN_FILES]){
-                atomicUnlock(&kot_LockHandleList, 0);
-                return EBADF;
-            }
-            if(kot_closedir(kot_HandleList[fd - MAX_OPEN_FILES]) != KSUCCESS){
-                atomicUnlock(&kot_LockHandleList, 0);
-                return -1;
-            }
-            kot_HandleCount--;
-            for (int i = fd; i < kot_HandleCount; i++) {
-                kot_HandleList[i] = kot_HandleList[i + 1];
-            }
-            atomicUnlock(&kot_LockHandleList, 0);
-            return 0;
-        }
-        return EBADF;
+        kot_FreeDescriptor(fd);
+        return 0;
     }
 
     int sys_flock(int fd, int options){
@@ -225,29 +198,30 @@ namespace mlibc{
     int sys_open_dir(const char *path, int *handle){
         kot_directory_t* Dir = kot_opendir((char*)path);
 
-        atomicAcquire(&kot_LockHandleList, 0);
-        
-        if(kot_HandleCount >= MAX_OPEN_DIRS){
+        kot_descriptor_t Descriptor{
+            .Size = sizeof(kot_directory_t),
+            .Data = Dir,
+            .Type = KOT_DESCRIPTOR_TYPE_DIRECTORY,
+        };
+
+        *handle = kot_SaveDescriptor(&Descriptor);
+
+        if(*handle >= 0){
+            free(Dir);
+            return 0;
+        }else{
             kot_closedir(Dir);
-            atomicUnlock(&kot_LockHandleList, 0);
-            return -1; // Too many open files
+            return -1;
         }
 
-        kot_HandleList[kot_HandleCount++] = Dir;
-        *handle = (kot_HandleCount - 1) + MAX_OPEN_FILES; // Add MAX_OPEN_FILES to know if it's file or directory
-
-        atomicUnlock(&kot_LockHandleList, 0);
         return 0;
     }
 
     int sys_read_entries(int handle, void *buffer, size_t max_size, size_t *bytes_read){
-        if(handle >= MAX_OPEN_FILES + MAX_OPEN_DIRS) return EBADF;
-
-        atomicAcquire(&kot_LockHandleList, 0);
-        kot_directory_t* Dir = kot_HandleList[handle - MAX_OPEN_FILES];
-        atomicUnlock(&kot_LockHandleList, 0);
-
-        if(Dir == NULL) return EBADF;
+        kot_descriptor_t* Descriptor = kot_GetDescriptor(handle);
+        if(Descriptor == NULL) return EBADF;
+        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_DIRECTORY) return EBADF;
+        kot_directory_t* Dir = (kot_directory_t*)Descriptor->Data;
 
         kot_directory_entry_t* KotDirEntry = kot_readdir(Dir);
 
@@ -281,11 +255,12 @@ namespace mlibc{
                 return 0;
             }
         }
-        if(fd >= MAX_OPEN_FILES) return EBADF;
-        atomicAcquire(&kot_LockFDList, 0);
-        kot_file_t* File = kot_FDList[fd];
-        atomicUnlock(&kot_LockFDList, 0);
-        if(File == NULL) return EBADF;
+
+        kot_descriptor_t* Descriptor = kot_GetDescriptor(fd);
+        if(Descriptor == NULL) return EBADF;
+        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_FILE) return EBADF;
+        kot_file_t* File = (kot_file_t*)Descriptor->Data;
+
         return ((File->ExternalData & File_Is_TTY) ? 0 : ENOTTY);
     }
 
@@ -308,11 +283,10 @@ namespace mlibc{
     }
 
     int sys_stat(fsfd_target fsfdt, int fd, const char *path, int flags, struct stat *statbuf){
-        if(fd >= MAX_OPEN_FILES) return EBADF;
-        atomicAcquire(&kot_LockFDList, 0);
-        kot_file_t* File = kot_FDList[fd];
-        atomicUnlock(&kot_LockFDList, 0);
-        if(File == NULL) return EBADF;
+        kot_descriptor_t* Descriptor = kot_GetDescriptor(fd);
+        if(Descriptor == NULL) return EBADF;
+        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_FILE) return EBADF;
+        kot_file_t* File = (kot_file_t*)Descriptor->Data;
 
         kot_srv_storage_callback_t* CallbackFileSize = kot_Srv_Storage_Getfilesize(File, true);
         if(CallbackFileSize->Status != KSUCCESS){

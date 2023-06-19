@@ -116,6 +116,10 @@ KResult kot_Sys_Thread_Info_Get(kot_thread_t thread, uint64_t arg, uint64_t* val
     return Syscall_24(KSys_Thread_Info_Get, thread, (uint64_t)arg, (uint64_t)value);
 }
 
+KResult kot_Sys_WaitPID(pid_t pid, int* status, int flags){
+    return Syscall_24(KSys_WaitPID, pid, status, flags);
+}
+
 KResult kot_Sys_Logs(char* message, size64_t size){
     return Syscall_16(KSys_Logs, message, size);
 }

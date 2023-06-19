@@ -17,6 +17,6 @@ int main(int argc, char* argv[]) {
         if(argc > 0)
             putchar(' ');
     }
-    
+    putchar('\n');
     return EXIT_SUCCESS;
 }

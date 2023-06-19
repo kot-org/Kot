@@ -5,6 +5,7 @@
 #include <kot/types.h>
 #include <kot/thread.h>
 #include <kot/syscall.h>
+#include <abi-bits/pid_t.h>
 
 #if defined(__cplusplus)
 extern "C" struct kot_SpecificData_t KotSpecificData;
@@ -135,6 +136,7 @@ KResult kot_Sys_Keyhole_CloneModify(kot_key_t source, kot_key_t* destination, ko
 KResult kot_Sys_Keyhole_Verify(kot_key_t self, enum kot_DataType type, kot_process_t* target, uint64_t* flags, uint64_t* priviledge);
 KResult kot_Sys_Thread_Info_Get(kot_thread_t thread, uint64_t arg, uint64_t* value);
 KResult kot_Sys_SetTCB(kot_thread_t thread, void* pointer);
+KResult kot_Sys_WaitPID(pid_t pid, int* status, int flags);
 KResult kot_Sys_Logs(char* message, size64_t size);
 
 void kot_Sys_Schedule();

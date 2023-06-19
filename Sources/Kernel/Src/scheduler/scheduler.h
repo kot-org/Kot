@@ -122,6 +122,14 @@ struct kprocess_t{
     locker_t StackIteratorLock;
     uintptr_t StackIterator;
 
+    /* WaitPID */
+    locker_t WaitPIDLock;
+    class KStack* WaitPIDList;
+    uint64_t WaitPIDCount;
+
+    /* Process Child */
+    uint64_t ProcessChildCount;
+
     kthread_t* Createthread(void* entryPoint, uint64_t externalData);
     kthread_t* Createthread(void* entryPoint, enum Priviledge priviledge, uint64_t externalData);
     kthread_t* Duplicatethread(kthread_t* source);
@@ -184,6 +192,9 @@ struct kthread_t{
 
     /* External data */
     uint64_t ExternalData_T;
+
+    /* PIDWait */
+    int PIDWaitStatus;
 
     void SaveContext(struct ContextStack* Registers, uint64_t CoreID);
     void SaveContext(struct ContextStack* Registers);
