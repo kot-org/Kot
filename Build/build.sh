@@ -70,7 +70,7 @@ make -C "Modules/Services/hid/Build"
 make -C "Modules/Services/audio/Build"
 make -C "Modules/Services/time/Build"
 make -C "Modules/Services/storage/Build"
-make -C "Modules/Services/shell/Build"
+make -C "Modules/Services/terminal/Build"
 
 # Apps
 echo -e "\e[32mCompiling kot apps...\e[0m"

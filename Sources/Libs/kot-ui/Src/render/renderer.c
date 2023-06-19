@@ -9,7 +9,7 @@ uint64_t kui_KeyboardCache = 0;
 void* kui_TableConverter;
 size64_t kui_TableConverterCharCount;
 
-void kui_r_input_keyboard(kui_Context* ctx, char key){
+void kui_r_input_keyboard(kui_Context* ctx, uint64_t key){
   bool IsPressed;
   kot_GetCharFromScanCode(key, kui_TableConverter, kui_TableConverterCharCount, NULL, &IsPressed, NULL);
   switch (key){

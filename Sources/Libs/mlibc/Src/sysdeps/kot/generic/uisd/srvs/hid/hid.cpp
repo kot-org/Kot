@@ -2,6 +2,7 @@
 #include <abi-bits/seek-whence.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 extern "C" {
 
@@ -64,6 +65,7 @@ KResult kot_GetCharFromScanCode(uint64_t ScanCode, void* TableConverter, size64_
         *IsPressed = true;
     }
 
+
     if(!Char) return KSUCCESS;
     
     if(ScanCode > TableConverterCharCount){
@@ -75,7 +77,7 @@ KResult kot_GetCharFromScanCode(uint64_t ScanCode, void* TableConverter, size64_
 
     if(LowerTableConverter[ScanCode] == 0xf){ // shift
         if(*IsPressed){
-            *PressedCache = (1 << 0);
+            *PressedCache |= (1 << 0);
         }else{
             *PressedCache &= ~(1 << 0);
         }

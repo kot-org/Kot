@@ -9,7 +9,7 @@ ASMFLAGS =
 
 SRCDIR := ../Src
 OBJDIR := ../Lib
-BINDIR = $(_HOME)Sources/Modules/Services/shell/Bin
+BINDIR = $(_HOME)Sources/Modules/Services/terminal/Bin
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
@@ -34,4 +34,4 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 link:
 	@ echo !==== LINKING
 	@ mkdir -p $(BINDIR)
-	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Shell.elf $(OBJS) $(OBJSCPP)
+	$(CC) $(LINKERFLAGS) -o $(BINDIR)/Terminal.elf $(OBJS) $(OBJSCPP)

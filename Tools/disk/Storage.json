@@ -9,62 +9,74 @@
     },
     {
         "source": "Sources/Modules/Drivers/graphics/orb/Bin/Orb.elf",
-        "destination": "Kot/System/Drivers/Orb/Orb.elf"
+        "destination": "Bin/orb"
     },
     {
         "source": "Sources/Modules/Drivers/audio/hda/Bin/Hda.elf",
-        "destination": "Kot/System/Drivers/Hda/Hda.elf"
+        "destination": "Bin/hda"
     },
     {
         "source": "Sources/Modules/Drivers/bus/ps2/Bin/Ps2.elf",
-        "destination": "Kot/System/Drivers/Ps2/Ps2.elf"
+        "destination": "Bin/ps2"
     },
     {
         "source": "Sources/Modules/Drivers/net/e1000/Bin/E1000.elf",
-        "destination": "Kot/System/Drivers/E1000/E1000.elf"
+        "destination": "Bin/e1000"
     },
     {
         "source": "Sources/Modules/Services/hid/Bin/Hid.elf",
-        "destination": "Kot/System/Services/Hid/Hid.elf"
+        "destination": "Bin/hid"
     },
     {
         "source": "Sources/Modules/Services/audio/Bin/Audio.elf",
-        "destination": "Kot/System/Services/Audio/Audio.elf"
+        "destination": "Bin/audio"
     },
     {
-        "source": "Sources/Modules/Services/shell/Bin/Shell.elf",
-        "destination": "Kot/System/Services/Shell/Shell.elf"
+        "source": "Sources/Modules/Services/terminal/Bin/Terminal.elf",
+        "destination": "Bin/terminal"
     },
     {
         "source": "Sources/Apps/doom/Bin/Doom.elf",
-        "destination": "Kot/System/Apps/Shell/utils/doom.elf"
+        "destination": "Bin/doom"
     },
     {
         "source": "Sources/Apps/tcc/Bin/Tcc.elf",
-        "destination": "Kot/System/Apps/Shell/utils/tcc.elf"
+        "destination": "Bin/tcc"
     },
     {
         "source": "Sources/Apps/lua/Bin/Lua.elf",
-        "destination": "Kot/System/Apps/Shell/utils/lua.elf"
+        "destination": "Bin/lua"
     },
     {
         "source": "Sources/Apps/test/Bin/Test.elf",
-        "destination": "Kot/System/Apps/Test/Test.elf"
+        "destination": "Bin/test"
     },
     {
         "source": "Sources/Apps/calculator/Bin/Calculator.elf",
-        "destination": "Kot/System/Apps/Calculator/Calculator.elf"
+        "destination": "Bin/calculator"
     },
     {
         "source": "Sources/Apps/explorer/Bin/Explorer.elf",
-        "destination": "Kot/System/Apps/Explorer/Explorer.elf"
+        "destination": "Bin/explorer"
     },
     {
         "source": "Sources/Apps/shell/Bin/Shell.elf",
-        "destination": "Kot/System/Apps/Shell/Shell.elf"
+        "destination": "Bin/shell"
     },
     {
-        "source": "Sources/Apps/shell/Bin/utils",
-        "destination": "Kot/System/Apps/Shell/"
+        "source": "Sources/Apps/shell/Bin/utils/cat.elf",
+        "destination": "Bin/cat"
+    },
+    {
+        "source": "Sources/Apps/shell/Bin/utils/echo.elf",
+        "destination": "Bin/echo"
+    },
+    {
+        "source": "Sources/Apps/shell/Bin/utils/launch.elf",
+        "destination": "Bin/launch"
+    },
+    {
+        "source": "Sources/Apps/shell/Bin/utils/ls.elf",
+        "destination": "Bin/ls"
     }
 ]

@@ -32,8 +32,7 @@ void GetInput() {
 }
 
 int main(int argc, char* argv[], char* envp[]) {
-    char* Prefix = "d1:Kot/System/Apps/Shell/utils/";
-    char* Suffix = ".elf";
+    char* Prefix = "d1:Bin/";
     
     while(true) {
         // prompt
@@ -46,12 +45,11 @@ int main(int argc, char* argv[], char* envp[]) {
         pid_t pid = fork();
 
         if(pid == 0){
-            size_t PathSize = strlen(Prefix) + strlen(Suffix) + strlen(Args[0]) + 1;
+            size_t PathSize = strlen(Prefix) + strlen(Args[0]) + 1;
             char* Path = (char*)calloc(PathSize, sizeof(char));
 
             strcat(Path, Prefix);
             strcat(Path, Args[0]);
-            strcat(Path, Suffix);
             if(execvp(Path, Args) == -1){
                 printf("Unknow command: %s\n", Args[0]);
                 break;
