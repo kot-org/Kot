@@ -55,7 +55,7 @@ void DrawHeader(kui_Context* Ctx){
                 Ctx->opaque = (void*)TmpPath;
                 memcpy(PathBarBuffer, TmpPath, strlen(TmpPath) + 1);
             }else{
-                closedir(Tmp);
+                free(TmpPath);
             }
         }
     }
@@ -69,8 +69,6 @@ void DrawHeader(kui_Context* Ctx){
                 Directory = Tmp;
                 Ctx->opaque = (void*)TmpPath;
                 memcpy(PathBarBuffer, TmpPath, strlen(TmpPath) + 1);
-            }else{
-                closedir(Tmp);
             }
         }
     }
@@ -88,8 +86,6 @@ void DrawHeader(kui_Context* Ctx){
                 memcpy(TmpPath, PathBarBuffer, Len);
                 TmpPath[Len] = '\0';
                 Ctx->opaque = (void*)TmpPath;
-            }else{
-                closedir(Tmp);
             }
         }
     }
@@ -105,7 +101,7 @@ void DrawHeader(kui_Context* Ctx){
                 Ctx->opaque = (void*)TmpPath;
                 memcpy(PathBarBuffer, TmpPath, strlen(TmpPath) + 1);
             }else{
-                closedir(Tmp);
+                free(TmpPath);
             }
         }
     }
@@ -120,10 +116,45 @@ void DrawHeader(kui_Context* Ctx){
                 Ctx->opaque = (void*)TmpPath;
                 memcpy(PathBarBuffer, TmpPath, strlen(TmpPath) + 1);
             }else{
-                closedir(Tmp);
+                free(TmpPath);
             }
         }
     }
+}
+
+void DrawBookmarks(kui_Context* Ctx){
+    kui_layout_row(Ctx, 2, (int[]){150, -1}, -1);
+    kui_begin_panel(Ctx, "Bookmarks");
+}
+
+void DrawFiles(kui_Context* Ctx){
+    struct dirent* Entry = NULL;
+
+    kui_end_panel(Ctx);
+    kui_begin_panel(Ctx, "Files");
+    while((Entry = readdir(Directory)) != NULL){
+        if(!strcmp(Entry->d_name, ".") || !strcmp(Entry->d_name, "..")){
+            continue;
+        }
+        kui_layout_row(Ctx, 1, (int[]){-1}, 25);
+        if(kui_button_ex(Ctx, Entry->d_name, 0, 0)){
+            char* TmpPath = NextPath((char*)Ctx->opaque, Entry->d_name);
+            DIR* Tmp = opendir(TmpPath);
+            if(Tmp){
+                free(Ctx->opaque);
+                closedir(Directory);
+                Directory = Tmp;
+                Ctx->opaque = (void*)TmpPath;
+                memcpy(PathBarBuffer, TmpPath, strlen(TmpPath) + 1);
+            }else{
+                free(TmpPath);
+            }
+        }
+    }
+    kui_end_panel(Ctx);
+    rewinddir(Directory);
+
+    kui_end_window(Ctx);
 }
 
 void WindowRenderer(kui_Context* Ctx){
@@ -134,42 +165,11 @@ void WindowRenderer(kui_Context* Ctx){
     if(kui_begin_window(Ctx, "File explorer", kui_rect(50, 50, 900, 400))){
         Cnt = kui_get_current_container(Ctx);
 
-        uint64_t FieldCount = Cnt->rect.w / FIELD_WIDTH;
-        uint64_t FieldWidth = Cnt->rect.w / FieldCount;
-
-        struct dirent* Entry = NULL;
-        uint64_t Count = 0;
-
         DrawHeader(Ctx);
 
-        kui_layout_row(Ctx, 2, (int[]){150, -1}, -1);
-        kui_begin_panel(Ctx, "Bookmarks");
-        kui_end_panel(Ctx);
-        kui_begin_panel(Ctx, "Files");
-        while((Entry = readdir(Directory)) != NULL){
-            if(!strcmp(Entry->d_name, ".") || !strcmp(Entry->d_name, "..")){
-                continue;
-            }
-            kui_layout_row(Ctx, 1, (int[]){-1}, 25);
-            if(kui_button_ex(Ctx, Entry->d_name, 0, 0)){
-                char* TmpPath = NextPath((char*)Ctx->opaque, Entry->d_name);
-                DIR* Tmp = opendir(TmpPath);
-                if(Tmp){
-                    free(Ctx->opaque);
-                    closedir(Directory);
-                    Directory = Tmp;
-                    Ctx->opaque = (void*)TmpPath;
-                    memcpy(PathBarBuffer, TmpPath, strlen(TmpPath) + 1);
-                }else{
-                    closedir(Tmp);
-                }
-            }
-            Count++;
-        }
-        kui_end_panel(Ctx);
-        rewinddir(Directory);
+        DrawBookmarks(Ctx);
 
-        kui_end_window(Ctx);
+        DrawFiles(Ctx);
     }
     kui_end(Ctx);
     kui_r_present(Cnt);
