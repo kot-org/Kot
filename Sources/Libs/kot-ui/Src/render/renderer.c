@@ -186,14 +186,13 @@ int kui_r_get_text_width(kui_Container *cnt, kui_Font font, const char *text, in
 int kui_r_get_text_height(kui_Container *cnt, kui_Font font){
   if(!cnt->window_parent) return 0;
   if(font == NULL) font = cnt->window_parent->default_font;
-  return (int)GetBearingY(font);
+  return (int)GetLineHeight(font);
 }
 
 
 void kui_r_set_clip_rect(kui_Container *cnt, kui_Rect rect){
   if(!cnt->window_parent) return;
-  rect.h = cnt->window_parent->backbuffer.Height - (rect.y + rect.h);
-  kui_r_draw_rect(cnt, rect, cnt->window_parent->last_color);
+  // TODO : add tester for put pixel
 }
 
 
@@ -201,6 +200,11 @@ void kui_r_clear(kui_Container *cnt, kui_Color clr){
   if(!cnt->window_parent) return;
   kui_Rect Rect = {.x = 0, .y = 0, .w = cnt->window_parent->backbuffer.Width, .h = cnt->window_parent->backbuffer.Height};
   kui_r_draw_rect(cnt, Rect, clr);
+}
+
+void kui_r_framebuffer(kui_Container *cnt, kot_framebuffer_t* fb, kui_Rect rect){
+  if(!cnt->window_parent) return;
+  BlitFramebuffer(&cnt->window_parent->backbuffer, fb, rect.x, rect.y);
 }
 
 void kui_r_present(kui_Container *cnt){

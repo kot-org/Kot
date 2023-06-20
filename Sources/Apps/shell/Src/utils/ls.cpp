@@ -1,12 +1,23 @@
 #include <stdio.h>
 #include <dirent.h>
+#include <stdlib.h>
 
 int main(int argc, char* argv[]) {
     DIR* Directory;
     struct dirent* Entry;
 
-    // TODO: opendir avec arg
-    Directory = opendir("d1:.");
+    char* DirPath = "d1:.";
+
+    if(argc >= 2){
+        DirPath = argv[1];
+    }
+
+    Directory = opendir(DirPath);
+
+    if(!Directory){
+        printf("Directory : '%s' not found\n", DirPath);
+        return EXIT_FAILURE;
+    }
 
     while((Entry = readdir(Directory)) != NULL) {
         printf("%s\n", Entry->d_name);
@@ -14,5 +25,5 @@ int main(int argc, char* argv[]) {
 
     closedir(Directory);
 
-    return 0;
+    return EXIT_SUCCESS;
 }

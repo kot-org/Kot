@@ -3,6 +3,7 @@
 #include <core/main.h>
 
 #include <kot-ui/core.h>
+#include <kot-ui/renderer.h>
 
 struct shell_t{
     kui_Context* Ctx;

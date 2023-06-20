@@ -142,42 +142,71 @@ namespace mlibc{
 
         kot_descriptor_t* Descriptor = kot_GetDescriptor(fd);
         if(Descriptor == NULL) return EBADF;
-        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_FILE) return EBADF;
-        kot_file_t* File = (kot_file_t*)Descriptor->Data;
+        if(Descriptor->Type == KOT_DESCRIPTOR_TYPE_FILE){
+            kot_file_t* File = (kot_file_t*)Descriptor->Data;
 
-        atomicAcquire(&File->Lock, 0);
-        switch(whence){
-            case SEEK_SET:{
-                File->Position = offset;
-                *new_offset = File->Position;
-                atomicUnlock(&File->Lock, 0);
-                return 0;
-            }
-            case SEEK_CUR:{
-                File->Position += offset;
-                *new_offset = File->Position;
-                atomicUnlock(&File->Lock, 0);
-                return 0;
-            }
-            case SEEK_END:{
-                kot_srv_storage_callback_t* CallbackFileSize = kot_Srv_Storage_Getfilesize(File, true);
-                if(CallbackFileSize->Status != KSUCCESS){
-                    free(CallbackFileSize);
+            atomicAcquire(&File->Lock, 0);
+            switch(whence){
+                case SEEK_SET:{
+                    File->Position = offset;
+                    *new_offset = File->Position;
                     atomicUnlock(&File->Lock, 0);
-                    return -1;
+                    return 0;
                 }
-                size64_t Size = CallbackFileSize->Data;
-                File->Position = Size;
-                free(CallbackFileSize);
-                *new_offset = File->Position;
-                atomicUnlock(&File->Lock, 0);
-                return 0;
+                case SEEK_CUR:{
+                    File->Position += offset;
+                    *new_offset = File->Position;
+                    atomicUnlock(&File->Lock, 0);
+                    return 0;
+                }
+                case SEEK_END:{
+                    kot_srv_storage_callback_t* CallbackFileSize = kot_Srv_Storage_Getfilesize(File, true);
+                    if(CallbackFileSize->Status != KSUCCESS){
+                        free(CallbackFileSize);
+                        atomicUnlock(&File->Lock, 0);
+                        return -1;
+                    }
+                    size64_t Size = CallbackFileSize->Data;
+                    File->Position = Size;
+                    free(CallbackFileSize);
+                    *new_offset = File->Position;
+                    atomicUnlock(&File->Lock, 0);
+                    return 0;
+                }
+                default:{
+                    atomicUnlock(&File->Lock, 0);
+                    return EINVAL;
+                }
             }
-            default:{
-                atomicUnlock(&File->Lock, 0);
-                return EINVAL;
+        }else if(Descriptor->Type == KOT_DESCRIPTOR_TYPE_DIRECTORY){
+            kot_directory_t* Dir = (kot_directory_t*)Descriptor->Data;
+
+            atomicAcquire(&Dir->Lock, 0);
+            switch(whence){
+                case SEEK_SET:{
+                    Dir->Position = offset;
+                    *new_offset = Dir->Position;
+                    atomicUnlock(&Dir->Lock, 0);
+                    return 0;
+                }
+                case SEEK_CUR:{
+                    Dir->Position += offset;
+                    *new_offset = Dir->Position;
+                    atomicUnlock(&Dir->Lock, 0);
+                    return 0;
+                }
+                case SEEK_END:{
+                    atomicUnlock(&Dir->Lock, 0);
+                    return 0;
+                }
+                default:{
+                    atomicUnlock(&Dir->Lock, 0);
+                    return EINVAL;
+                }
             }
+
         }
+        return -1;
     }
 
     int sys_close(int fd){
@@ -197,6 +226,11 @@ namespace mlibc{
 
     int sys_open_dir(const char *path, int *handle){
         kot_directory_t* Dir = kot_opendir((char*)path);
+
+        if(!Dir){
+            *handle = 0;
+            return -1; 
+        }
 
         kot_descriptor_t Descriptor{
             .Size = sizeof(kot_directory_t),

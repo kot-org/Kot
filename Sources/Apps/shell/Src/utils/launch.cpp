@@ -60,17 +60,24 @@ KResult SetupStack(void** Data, size64_t* Size, int argc, char** argv, char** en
 
 
 int main(int argc, char* argv[]) {
-    if(argc != 2){
+    if(argc < 2){
         printf("Usage : launch <executable-path>\n");
         return EXIT_FAILURE;
     }
 
-    kot_srv_system_callback_t* Callback = kot_Srv_System_LoadExecutable(PriviledgeApp, argv[1], true);
+    char* Prefix = "d1:Bin/";
+    size_t PathSize = strlen(Prefix) + strlen(argv[1]) + 1;
+    char* Path = (char*)calloc(PathSize, sizeof(char));
+
+    strcat(Path, Prefix);
+    strcat(Path, argv[1]);
+
+    kot_srv_system_callback_t* Callback = kot_Srv_System_LoadExecutable(PriviledgeApp, Path, true);
 
     if(Callback->Status == KSUCCESS){
         void* MainStackData;
         size64_t SizeMainStackData;
-        char* Argv[] = {argv[1], NULL};
+        char* Argv[] = {Path, NULL};
         char* Env[] = {NULL};
         SetupStack(&MainStackData, &SizeMainStackData, 1, Argv, Env);
 
@@ -87,7 +94,7 @@ int main(int argc, char* argv[]) {
         free(Callback);
     }else{
         free(Callback);
-        printf("File not found : '%s'\n", argv[1]);
+        printf("File not found : '%s'\n", Path);
     }
 
     return EXIT_SUCCESS;

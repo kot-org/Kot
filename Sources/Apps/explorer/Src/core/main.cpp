@@ -1,99 +1,116 @@
 #include <core/main.h>
 
-UiWindow::Window* ExplorerWindow;
+#define FIELD_WIDTH 90
+#define FIELD_HEIGHT 50
 
-bool IsRoot;
-char* MainPath;
+DIR* Directory;
 
-void LoadFiles(char* Path){
-    ExplorerWindow->Cpnt->ClearChilds();
+static char PathBuffer[PATH_MAX];
 
-    kot_directory_t* Dir = kot_opendir(Path);
-    MainPath = Path;
-    uint64_t FilesCount;
-    kot_filecount(Dir, &FilesCount);
-
-    kot_directory_entries_t* Directories = kot_mreaddir(Dir, 0, FilesCount);
-    kot_directory_entry_t* Entry = &Directories->FirstEntry;
-
-    for(uint64_t i = 0; i < Directories->EntryCount; i++){
-        Explorer_File_Data* FileData = (Explorer_File_Data*)malloc(sizeof(Explorer_File_Data));
-
-        FileData->IsFile = Entry->IsFile;
-        FileData->Name = (char*)malloc(strlen(Entry->Name));
-
-        strcpy(FileData->Name, Entry->Name);
-
-        Ui::Button_t* Filebox = Button(
-            {
-                .Onclick = [&]() {
-                    if(!FileData->IsFile){
-                        std::StringBuilder* builder = new std::StringBuilder(MainPath);
-
-                        if(IsRoot)
-                            IsRoot = false;
-                        else
-                            builder->append("/");
-                            
-                        builder->append(FileData->Name);
-                        LoadFiles(builder->toString());
-
-                        free(builder);
-                    }
-                }
-            },
-            { 
-                .G = { 
-                        .Width = 100,
-                        .Height = 100,
-                        .IsHidden = false
-                    }, 
-                .BackgroundColor = 0x1E1E1E,
-                .ExternalData = (uint64_t)FileData,
-                .HoverColor = 0xff0000
-            }
-        , ExplorerWindow->Cpnt);
-
-        Ui::Picturebox_t* FileImage = Picturebox((char*)(FileData->IsFile ? "d0:file.tga" : "d0:folder.tga"), Ui::_TGA, 
-            {
-                .Fit = Ui::PICTUREFILL,
-                .Transparency = true,
-                .G{
-                    .Width = -100, 
-                    .Height = -100, 
-                    .IsHidden = false
-                }
-            }
-        , Filebox->Cpnt);
-
-        Ui::Label_t* LabelFileName = Ui::Label(
-            {
-                .Text = FileData->Name,
-                .FontSize = 12,
-                .ForegroundColor = 0xffffffff,
-                .Align = Ui::TEXTALIGNCENTER,
-                .AutoWidth = false,
-                .AutoHeight = true,
-                .G{
-                    .Width = -100,
-                    .Align{
-                        .x = Ui::AlignTypeX::CENTER,
-                        .y = Ui::AlignTypeY::MIDDLE,
-                    },     
-                }
-            }
-        , Filebox->Cpnt);
-
-        Entry = (kot_directory_entry_t*)((uint64_t)&Directories->FirstEntry + Entry->NextEntryPosition);
-    }
-
-    free(Directories);
+char* NextPath(char* Current, char* Target){
+    char* NextPath = (char*)malloc(strlen(Current) + strlen((char*)Target) + strlen("/") + 1);
+    NextPath[0] = '\0';
+    strcat(NextPath, (char*)Current);
+    strcat(NextPath, "/");
+    strcat(NextPath, Target);
+    return NextPath;
 }
 
-int main() {
-    ExplorerWindow = new UiWindow::Window("File explorer", "d0:explorer.tga", 600, 600, 600, 10);
-    IsRoot = true;
-    LoadFiles("d1:");
+char* LastPath(char* Current){
+    char* LastSlash = strrchr(Current, '/');
+    if(LastSlash == NULL){
+        return NULL;
+    }
+    size_t Len = (uintptr_t)LastSlash - (uintptr_t)Current;
+    char* LastPath = (char*)malloc(Len + 1);
+    memcpy(LastPath, Current, Len);
+    LastPath[Len] = '\0';
+    return LastPath;
+}
 
+void WindowRenderer(kui_Context* Ctx){
+    kui_Container* Cnt;
+
+    kui_begin(Ctx);
+
+    if(kui_begin_window(Ctx, "File explorer", kui_rect(50, 50, 900, 400))){
+        Cnt = kui_get_current_container(Ctx);
+
+        uint64_t FieldCount = Cnt->rect.w / FIELD_WIDTH;
+        uint64_t FieldWidth = Cnt->rect.w / FieldCount;
+
+        struct dirent* Entry = NULL;
+        uint64_t Count = 0;
+        kui_layout_row(Ctx, 3, (int[]){25, 25, -1}, 27);
+        if(kui_button_ex(Ctx, NULL, 1462, 0)){
+            char* TmpPath = LastPath((char*)Ctx->opaque);
+            if(TmpPath){
+                DIR* Tmp = opendir(TmpPath);
+                if(Tmp){
+                    free(Ctx->opaque);
+                    Directory = Tmp;
+                    Ctx->opaque = (void*)TmpPath;
+                    memcpy(PathBuffer, TmpPath, strlen(TmpPath) + 1);
+                }else{
+                    free(Tmp);
+                }
+            }
+        }
+        if(kui_button_ex(Ctx, NULL, 1463, 0)){
+            char* TmpPath = LastPath((char*)Ctx->opaque);
+            if(TmpPath){
+                DIR* Tmp = opendir(TmpPath);
+                if(Tmp){
+                    free(Ctx->opaque);
+                    Directory = Tmp;
+                    Ctx->opaque = (void*)TmpPath;
+                    memcpy(PathBuffer, TmpPath, strlen(TmpPath) + 1);
+                }else{
+                    free(Tmp);
+                }
+            }
+        }
+
+        if(kui_textbox(Ctx, PathBuffer, sizeof(PathBuffer)) & KUI_RES_SUBMIT){
+            kui_set_focus(Ctx, Ctx->last_id);
+        }
+        kui_layout_row(Ctx, 2, (int[]){150, -1}, -1);
+        kui_begin_panel(Ctx, "Bookmarks");
+        kui_end_panel(Ctx);
+        kui_begin_panel(Ctx, "Files");
+        while((Entry = readdir(Directory)) != NULL){
+            if(!strcmp(Entry->d_name, ".") || !strcmp(Entry->d_name, "..")){
+                continue;
+            }
+            kui_layout_row(Ctx, 1, (int[]){-1}, 25);
+            if(kui_button_ex(Ctx, Entry->d_name, 0, 0)){
+                char* TmpPath = NextPath((char*)Ctx->opaque, Entry->d_name);
+                DIR* Tmp = opendir(TmpPath);
+                if(Tmp){
+                    free(Ctx->opaque);
+                    Directory = Tmp;
+                    Ctx->opaque = (void*)TmpPath;
+                    memcpy(PathBuffer, TmpPath, strlen(TmpPath) + 1);
+                }else{
+                    free(Tmp);
+                }
+            }
+            Count++;
+        }
+        kui_end_panel(Ctx);
+        rewinddir(Directory);
+
+        kui_end_window(Ctx);
+    }
+    kui_end(Ctx);
+    kui_r_present(Cnt);
+}
+
+int main(int argc, char* argv[]){
+    char* Root = (char*)malloc(strlen("d1:.") + 1);
+    memcpy(Root, "d1:.", strlen("d1:.") + 1);
+    memcpy(PathBuffer, Root, strlen("d1:.") + 1);
+    Directory = opendir(Root);
+    kui_init(WindowRenderer, (void*)Root);
     return KSUCCESS;
 }

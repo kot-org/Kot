@@ -56,14 +56,14 @@ static kui_Style default_style = {
   24, 12, 8,
   {
     { 230, 230, 230, 255 }, /* KUI_COLOR_TEXT */
-    { 25,  25,  25,  255 }, /* KUI_COLOR_BORDER */
-    { 50,  50,  50,  255 }, /* KUI_COLOR_WINDOWBG */
-    { 25,  25,  25,  255 }, /* KUI_COLOR_TITLEBG */
+    { 25,  24,  26,  255 }, /* KUI_COLOR_BORDER */
+    { 9,   9,   11,  255 }, /* KUI_COLOR_WINDOWBG */
+    { 25,  24,  26,  255 }, /* KUI_COLOR_TITLEBG */
     { 240, 240, 240, 255 }, /* KUI_COLOR_TITLETEXT */
     { 0,   0,   0,   0   }, /* KUI_COLOR_PANELBG */
-    { 75,  75,  75,  255 }, /* KUI_COLOR_BUTTON */
-    { 95,  95,  95,  255 }, /* KUI_COLOR_BUTTONHOVER */
-    { 115, 115, 115, 255 }, /* KUI_COLOR_BUTTONFOCUS */
+    { 25,  24,  26,  255 }, /* KUI_COLOR_BUTTON */
+    { 51,  153, 255, 255 }, /* KUI_COLOR_BUTTONHOVER */
+    { 12,  75,  221, 255 }, /* KUI_COLOR_BUTTONFOCUS */
     { 30,  30,  30,  255 }, /* KUI_COLOR_BASE */
     { 35,  35,  35,  255 }, /* KUI_COLOR_BASEHOVER */
     { 40,  40,  40,  255 }, /* KUI_COLOR_BASEFOCUS */
@@ -141,6 +141,7 @@ kui_Context* kui_init(kui_ProcessFrameCallback callback, void* opaque) {
 
 
 void kui_begin(kui_Context *ctx) {
+  ctx->command_list.idx = 0;
   ctx->root_list.idx = 0;
   ctx->scroll_target = NULL;
   ctx->hover_root = ctx->next_hover_root;
@@ -192,6 +193,44 @@ void kui_end(kui_Context *ctx) {
   /* sort root containers by zindex */
   n = ctx->root_list.idx;
   qsort(ctx->root_list.items, n, sizeof(kui_Container*), compare_zindex);
+
+  /* set root container jump commands */
+  for (i = 0; i < n; i++) {
+    kui_Container *cnt = ctx->root_list.items[i];
+    /* if this is the first container then make the first command jump to it.
+    ** otherwise set the previous container's tail to jump to this one */
+    if (i == 0) {
+      kui_Command *cmd = (kui_Command*) ctx->command_list.items;
+      cmd->jump.dst = (char*) cnt->head + sizeof(kui_JumpCommand);
+    } else {
+      kui_Container *prev = ctx->root_list.items[i - 1];
+      prev->tail->jump.dst = (char*) cnt->head + sizeof(kui_JumpCommand);
+    }
+    /* make the last container's tail jump to the end of command list */
+    if (i == n - 1) {
+      cnt->tail->jump.dst = ctx->command_list.items + ctx->command_list.idx;
+    }
+  }
+
+  /* render everything */
+  kui_Command *cmd = NULL;
+  while (kui_next_command(ctx, &cmd)) {
+    if (cmd->type == KUI_COMMAND_TEXT) {
+      kui_r_draw_text(cmd->base.cnt, cmd->text.font, cmd->text.str, cmd->text.len, cmd->text.pos, cmd->text.color);
+    }
+    if (cmd->type == KUI_COMMAND_RECT) {
+      kui_r_draw_rect(cmd->base.cnt, cmd->rect.rect, cmd->rect.color);
+    }
+    if (cmd->type == KUI_COMMAND_ICON) {
+      kui_r_draw_icon(cmd->base.cnt, cmd->icon.id, cmd->icon.rect, cmd->icon.color);
+    }
+    if (cmd->type == KUI_COMMAND_CLIP) {
+      kui_r_set_clip_rect(cmd->base.cnt, cmd->clip.rect);
+    }
+    if (cmd->type == KUI_COMMAND_FRAMEBUFFER){
+      kui_r_framebuffer(cmd->base.cnt, cmd->framebuffer.fb, cmd->framebuffer.rect);
+    }
+  }
 }
 
 
@@ -295,7 +334,7 @@ kui_Container* kui_get_current_container(kui_Context *ctx) {
 static kui_Container* get_container(kui_Context *ctx, kui_Id id, int opt) {
   kui_Container *cnt;
   kui_Window* Parent;
-  if(ctx->container_stack.idx){
+  if(ctx->container_stack.idx > 0){
     Parent = kui_get_current_container(ctx)->window_parent;
   }else{
     Parent = NULL;
@@ -306,6 +345,9 @@ static kui_Container* get_container(kui_Context *ctx, kui_Id id, int opt) {
     if (ctx->containers[idx].open || ~opt & KUI_OPT_CLOSED) {
       kui_pool_update(ctx, ctx->container_pool, idx);
     }
+    if(Parent){
+      ctx->containers[idx].window_parent = Parent;
+    }
     return &ctx->containers[idx];
   }
   if (opt & KUI_OPT_CLOSED) { return NULL; }
@@ -315,7 +357,9 @@ static kui_Container* get_container(kui_Context *ctx, kui_Id id, int opt) {
   memset(cnt, 0, sizeof(*cnt));
   cnt->open = 1;
   kui_bring_to_front(ctx, cnt);
-  cnt->window_parent = Parent;
+  if(Parent){
+    cnt->window_parent = Parent;
+  }
   return cnt;
 }
 
@@ -411,15 +455,65 @@ void kui_input_text(kui_Context *ctx, const char *text) {
   memcpy(ctx->input_text + len, text, size);
 }
 
-void kui_set_clip(kui_Context *ctx, kui_Rect rect){
-  kui_r_set_clip_rect(kui_get_current_container(ctx), rect);
+
+/*============================================================================
+** commandlist
+**============================================================================*/
+
+kui_Command* kui_push_command(kui_Context *ctx, int type, int size) {
+  kui_Command *cmd = (kui_Command*) (ctx->command_list.items + ctx->command_list.idx);
+  expect(ctx->command_list.idx + size < KUI_COMMANDLIST_SIZE);
+  cmd->base.type = type;
+  cmd->base.size = size;
+  cmd->base.cnt = kui_get_current_container(ctx);
+  ctx->command_list.idx += size;
+  return cmd;
+}
+
+
+int kui_next_command(kui_Context *ctx, kui_Command **cmd) {
+  if (*cmd) {
+    *cmd = (kui_Command*) (((char*) *cmd) + (*cmd)->base.size);
+  } else {
+    *cmd = (kui_Command*) ctx->command_list.items;
+  }
+  while ((char*) *cmd != ctx->command_list.items + ctx->command_list.idx) {
+    if ((*cmd)->type != KUI_COMMAND_JUMP) { return 1; }
+    *cmd = (*cmd)->jump.dst;
+  }
+  return 0;
+}
+
+
+static kui_Command* push_jump(kui_Context *ctx, kui_Command *dst) {
+  kui_Command *cmd;
+  cmd = kui_push_command(ctx, KUI_COMMAND_JUMP, sizeof(kui_JumpCommand));
+  cmd->jump.dst = dst;
+  return cmd;
+}
+
+
+void kui_set_framebuffer(kui_Context *ctx, kui_Rect rect, kui_framebuffer_t* fb) {
+  kui_Command *cmd;
+  cmd = kui_push_command(ctx, KUI_COMMAND_FRAMEBUFFER, sizeof(kui_FramebufferCommand));
+  cmd->framebuffer.rect = rect;
+  cmd->framebuffer.fb = fb;
+}
+
+void kui_set_clip(kui_Context *ctx, kui_Rect rect) {
+  kui_Command *cmd;
+  cmd = kui_push_command(ctx, KUI_COMMAND_CLIP, sizeof(kui_ClipCommand));
+  cmd->clip.rect = rect;
 }
 
 
 void kui_draw_rect(kui_Context *ctx, kui_Rect rect, kui_Color color) {
+  kui_Command *cmd;
   rect = intersect_rects(rect, kui_get_clip_rect(ctx));
   if (rect.w > 0 && rect.h > 0) {
-    kui_r_draw_rect(kui_get_current_container(ctx), rect, color);
+    cmd = kui_push_command(ctx, KUI_COMMAND_RECT, sizeof(kui_RectCommand));
+    cmd->rect.rect = rect;
+    cmd->rect.color = color;
   }
 }
 
@@ -435,6 +529,7 @@ void kui_draw_box(kui_Context *ctx, kui_Rect rect, kui_Color color) {
 void kui_draw_text(kui_Context *ctx, kui_Font font, const char *str, int len,
   kui_Vec2 pos, kui_Color color)
 {
+  kui_Command *cmd;
   kui_Rect rect = kui_rect(
     pos.x, pos.y, kui_r_get_text_width(kui_get_current_container(ctx), font, str, len), kui_r_get_text_height(kui_get_current_container(ctx), font));
   int clipped = kui_check_clip(ctx, rect);
@@ -442,19 +537,29 @@ void kui_draw_text(kui_Context *ctx, kui_Font font, const char *str, int len,
   if (clipped == KUI_CLIP_PART) { kui_set_clip(ctx, kui_get_clip_rect(ctx)); }
   /* add command */
   if (len < 0) { len = strlen(str); }
-  kui_r_draw_text(kui_get_current_container(ctx), font, str, len, pos, color);
+  cmd = kui_push_command(ctx, KUI_COMMAND_TEXT, sizeof(kui_TextCommand) + len);
+  memcpy(cmd->text.str, str, len);
+  cmd->text.str[len] = '\0';
+  cmd->text.len = len;
+  cmd->text.pos = pos;
+  cmd->text.color = color;
+  cmd->text.font = font;
   /* reset clipping if it was set */
   if (clipped) { kui_set_clip(ctx, unclipped_rect); }
 }
 
 
 void kui_draw_icon(kui_Context *ctx, int id, kui_Rect rect, kui_Color color) {
+  kui_Command *cmd;
   /* do clip command if the rect isn't fully contained within the cliprect */
   int clipped = kui_check_clip(ctx, rect);
   if (clipped == KUI_CLIP_ALL ) { return; }
   if (clipped == KUI_CLIP_PART) { kui_set_clip(ctx, kui_get_clip_rect(ctx)); }
   /* do icon command */
-  kui_r_draw_icon(kui_get_current_container(ctx), id, rect, color);
+  cmd = kui_push_command(ctx, KUI_COMMAND_ICON, sizeof(kui_IconCommand));
+  cmd->icon.id = id;
+  cmd->icon.rect = rect;
+  cmd->icon.color = color;
   /* reset clipping if it was set */
   if (clipped) { kui_set_clip(ctx, unclipped_rect); }
 }
@@ -574,6 +679,7 @@ static int in_hover_root(kui_Context *ctx) {
     if (ctx->container_stack.items[i] == ctx->hover_root) { return 1; }
     /* only root containers have their `head` field set; stop searching if we've
     ** reached the current root container */
+    if (ctx->container_stack.items[i]->head) { break; }
   }
   return 0;
 }
@@ -947,7 +1053,7 @@ void kui_end_treenode(kui_Context *ctx) {
       cnt->scroll.y = kui_clamp(cnt->scroll.y, 0, maxscroll);                \
                                                                             \
       /* draw base and thumb */                                             \
-      draw_frame(ctx, base, KUI_COLOR_SCROLLBASE);                        \
+      draw_frame(ctx, base, KUI_COLOR_SCROLLBASE);                      \
       thumb = base;                                                         \
       thumb.h = kui_max(ctx->style->thumb_size, base.h * b->h / cs.y);       \
       thumb.y += cnt->scroll.y * (base.h - thumb.h) / maxscroll;            \
@@ -992,6 +1098,7 @@ static void begin_root_container(kui_Context *ctx, kui_Container *cnt) {
   push(ctx->container_stack, cnt);
   /* push container to roots list and push head command */
   push(ctx->root_list, cnt);
+  cnt->head = push_jump(ctx, NULL);
   /* set as hover root if the mouse is overlapping this container and it has a
   ** higher zindex than the current hover root */
   if (rect_overlaps_vec2(cnt->rect, ctx->mouse_pos) &&
@@ -1010,6 +1117,8 @@ static void end_root_container(kui_Context *ctx) {
   /* push tail 'goto' jump command and set head 'skip' command. the final steps
   ** on initing these are done in kui_end() */
   kui_Container *cnt = kui_get_current_container(ctx);
+  cnt->tail = push_jump(ctx, NULL);
+  cnt->head->jump.dst = ctx->command_list.items + ctx->command_list.idx;
   /* pop base clip rect and container */
   kui_pop_clip_rect(ctx);
   pop_container(ctx);
@@ -1102,7 +1211,6 @@ int kui_begin_window_ex(kui_Context *ctx, const char *title, kui_Rect rect, int 
 
 
 void kui_end_window(kui_Context *ctx) {
-  kui_r_present(kui_get_current_container(ctx));
   kui_pop_clip_rect(ctx);
   end_root_container(ctx);
 }

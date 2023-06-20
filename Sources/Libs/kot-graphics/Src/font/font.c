@@ -174,7 +174,14 @@ kfont_pos_t GetLineHeight(kfont_t opaque){
     return font->face->size->metrics.height >> 6;
 }
 
-kfont_pos_t GetBearingY(kfont_t opaque){
+kfont_pos_t GetGlyphWidth(kfont_t opaque){
+    if(opaque == NULL) return 0;
+
+    local_kfont_t* font = (local_kfont_t*)opaque;
+    return font->face->glyph->metrics.width >> 6;
+}
+
+kfont_pos_t GetGlyphBearingY(kfont_t opaque){
     if(opaque == NULL) return 0;
 
     local_kfont_t* font = (local_kfont_t*)opaque;
@@ -266,7 +273,7 @@ KResult GetTextboxInfo(kfont_t opaque, char* str, kfont_pos_t* width, kfont_pos_
     FT_GlyphSlot slot = font->slot;
 
     *x = font->x;
-    *y = GetBearingY(opaque);
+    *y = GetGlyphBearingY(opaque);
 
     *width = 0;
 
@@ -306,7 +313,7 @@ KResult GetTextboxInfoN(kfont_t opaque, char* str, size_t len, kfont_pos_t* widt
     FT_GlyphSlot slot = font->slot;
 
     *x = font->x;
-    *y = GetBearingY(opaque);
+    *y = GetGlyphBearingY(opaque);
 
     *width = 0;
 
@@ -341,14 +348,14 @@ KResult DrawGlyph(kfont_t opaque, kfont_glyph_t glyph, kfont_dot_t width, kfont_
 
     FT_GlyphSlot slot = font->slot;
 
-    FT_Set_Pixel_Sizes(font->face, width, height);
+    FT_Set_Pixel_Sizes(font->face, 0, height);
 
     if(FT_Load_Glyph(font->face, glyph, FT_LOAD_RENDER)){
         return KFAIL;
     }
 
-    uint64_t DeltaX = font->pen.x + slot->bitmap_left;
-    uint64_t DeltaY = font->pen.y - slot->bitmap_top + GetBearingY(opaque) + (height - GetBearingY(opaque)) / 2;
+    uint64_t DeltaX = font->pen.x + slot->bitmap_left + (width - GetGlyphWidth(opaque)) / 2;
+    uint64_t DeltaY = font->pen.y - slot->bitmap_top + GetGlyphBearingY(opaque) + (height - GetGlyphBearingY(opaque)) / 2;
     
     for(FT_Int x = 0; x < slot->bitmap.width; x++){
         for(FT_Int y = 0; y < slot->bitmap.rows; y++){

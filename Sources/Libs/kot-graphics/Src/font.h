@@ -38,7 +38,9 @@ KResult SetPenColor(kfont_t opaque, color_t color);
 color_t GetPenColor(kfont_t opaque);
 
 kfont_pos_t GetLineHeight(kfont_t opaque);
-kfont_pos_t GetBearingY(kfont_t opaque);
+
+kfont_pos_t GetGlyphWidth(kfont_t opaque);
+kfont_pos_t GetGlyphBearingY(kfont_t opaque);
 
 KResult DrawFont(kfont_t opaque, char* str);
 KResult DrawFontN(kfont_t opaque, char* str, size_t len);

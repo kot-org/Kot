@@ -19,6 +19,7 @@ int kui_r_get_text_width(kui_Container *cnt, kui_Font font, const char *text, in
 int kui_r_get_text_height(kui_Container *cnt, kui_Font font);
 void kui_r_set_clip_rect(kui_Container *cnt, kui_Rect rect);
 void kui_r_clear(kui_Container *cnt, kui_Color color);
+void kui_r_framebuffer(kui_Container *cnt, kot_framebuffer_t* fb, kui_Rect rect);
 void kui_r_present(kui_Container *cnt);
 
 

@@ -26,13 +26,15 @@ char* GetNextLine(char* Str){
 
 void WindowRenderer(kui_Context *Ctx){
     shell_t* Shell = (shell_t*)Ctx->opaque;
+    kui_Container* Cnt;
+    kui_Rect R;
 
 
     kui_begin(Ctx);
     if(kui_begin_window(Ctx, "Shell", kui_rect(0, 0, Shell->Width, Shell->Height))){
         kui_layout_row(Ctx, 1, (int[]) { -1 }, -1);
-        kui_Rect R = kui_layout_next(Ctx);
-        kui_Container* Cnt = kui_get_current_container(Ctx);
+        R = kui_layout_next(Ctx);
+        Cnt = kui_get_current_container(Ctx);
         if(Cnt->window_parent){
             if(!Shell->TextFramebuffer.Buffer){
                 Shell->Event = Cnt->window_parent->window_event;
@@ -78,13 +80,13 @@ void WindowRenderer(kui_Context *Ctx){
             memset(Shell->TextFramebuffer.Buffer, NULL, Shell->TextFramebuffer.Size);
             DrawFont(Shell->ShellFont, Shell->OuputBufferLastShow);
             DrawFont(Shell->ShellFont, Shell->InputBuffer);
-            BlitFramebuffer(&Cnt->window_parent->backbuffer, &Shell->TextFramebuffer, R.x, R.y);
+            kui_set_framebuffer(Ctx, R, &Shell->TextFramebuffer);
             atomicUnlock(&Shell->Lock, 0);
         }
         kui_end_window(Ctx);
     }
     kui_end(Ctx);
-
+    kui_r_present(Cnt);
 }
 
 shell_t* NewShell(kot_process_t Target){

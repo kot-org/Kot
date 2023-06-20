@@ -46,7 +46,8 @@ int main(int argc, char* argv[], char* envp[]) {
 
         if(pid == 0){
             size_t PathSize = strlen(Prefix) + strlen(Args[0]) + 1;
-            char* Path = (char*)calloc(PathSize, sizeof(char));
+            char* Path = (char*)malloc(PathSize);
+            Path[0] = '\0';
 
             strcat(Path, Prefix);
             strcat(Path, Args[0]);
@@ -60,5 +61,5 @@ int main(int argc, char* argv[], char* envp[]) {
         }
     }
     
-    return 0;
+    return EXIT_SUCCESS;
 }

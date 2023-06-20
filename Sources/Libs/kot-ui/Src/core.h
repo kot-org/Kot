@@ -18,6 +18,7 @@ extern "C" {
 
 #define KUI_VERSION "2.01"
 
+#define KUI_COMMANDLIST_SIZE     (256 * 1024)
 #define KUI_ROOTLIST_SIZE        32
 #define KUI_CONTAINERSTACK_SIZE  32
 #define KUI_CLIPSTACK_SIZE       32
@@ -39,6 +40,16 @@ extern "C" {
 enum {
   KUI_CLIP_PART = 1,
   KUI_CLIP_ALL
+};
+
+enum {
+  KUI_COMMAND_JUMP = 1,
+  KUI_COMMAND_FRAMEBUFFER,
+  KUI_COMMAND_CLIP,
+  KUI_COMMAND_RECT,
+  KUI_COMMAND_TEXT,
+  KUI_COMMAND_ICON,
+  KUI_COMMAND_MAX
 };
 
 enum {
@@ -105,6 +116,8 @@ enum {
 
 
 typedef struct kui_Context kui_Context;
+typedef struct kui_Container kui_Container;
+typedef kot_framebuffer_t kui_framebuffer_t;
 typedef unsigned kui_Id;
 typedef KUI_REAL kui_Real;
 typedef void* kui_Font;
@@ -114,14 +127,26 @@ typedef struct { int x, y, w, h; } kui_Rect;
 typedef struct { unsigned char r, g, b, a; } kui_Color;
 typedef struct { kui_Id id; int last_update; } kui_PoolItem;
 
-typedef struct { int type, size; } kui_BaseCommand;
+typedef struct { int type, size; kui_Container *cnt; } kui_BaseCommand;
 typedef struct { kui_BaseCommand base; void *dst; } kui_JumpCommand;
+typedef struct { kui_BaseCommand base; kui_Rect rect; kui_framebuffer_t *fb; } kui_FramebufferCommand;
 typedef struct { kui_BaseCommand base; kui_Rect rect; } kui_ClipCommand;
 typedef struct { kui_BaseCommand base; kui_Rect rect; kui_Color color; } kui_RectCommand;
-typedef struct { kui_BaseCommand base; kui_Font font; kui_Vec2 pos; kui_Color color; char str[1]; } kui_TextCommand;
+typedef struct { kui_BaseCommand base; kui_Font font; kui_Vec2 pos; kui_Color color; size_t len; char str[1]; } kui_TextCommand;
 typedef struct { kui_BaseCommand base; kui_Rect rect; int id; kui_Color color; } kui_IconCommand;
 
 typedef void (*kui_ProcessFrameCallback)(kui_Context* ctx);
+
+typedef union {
+  int type;
+  kui_BaseCommand base;
+  kui_JumpCommand jump;
+  kui_FramebufferCommand framebuffer;
+  kui_ClipCommand clip;
+  kui_RectCommand rect;
+  kui_TextCommand text;
+  kui_IconCommand icon;
+} kui_Command;
 
 typedef struct {
   kui_Rect body;
@@ -139,7 +164,7 @@ typedef struct {
 
 typedef struct {
   bool is_window;
-  kot_framebuffer_t backbuffer;
+  kui_framebuffer_t backbuffer;
   kot_window_t *window;
   kot_thread_t window_handler_thread;
   kot_event_t window_event;
@@ -148,18 +173,6 @@ typedef struct {
   kui_Font default_font;
   kui_Font icons_font;
 } kui_Window;
-
-typedef struct {
-  kui_Rect rect;
-  kui_Rect body;
-  kui_Vec2 content_size;
-  kui_Vec2 scroll;
-  int zindex;
-  int open;
-  /* kot specific data*/
-  kui_Window* window_parent;
-  bool is_windows;
-} kui_Container;
 
 typedef struct {
   kui_Font font;
@@ -172,6 +185,19 @@ typedef struct {
   int thumb_size;
   kui_Color colors[KUI_COLOR_MAX];
 } kui_Style;
+
+struct kui_Container {
+  kui_Command *head, *tail;
+  kui_Rect rect;
+  kui_Rect body;
+  kui_Vec2 content_size;
+  kui_Vec2 scroll;
+  int zindex;
+  int open;
+  /* kot specific data*/
+  kui_Window* window_parent;
+  bool is_windows;
+};
 
 struct kui_Context {
   /* core state */
@@ -190,6 +216,7 @@ struct kui_Context {
   char number_edit_buf[KUI_MAX_FMT];
   kui_Id number_edit;
   /* stacks */
+  kui_stack(char, KUI_COMMANDLIST_SIZE) command_list;
   kui_stack(kui_Container*, KUI_ROOTLIST_SIZE) root_list;
   kui_stack(kui_Container*, KUI_CONTAINERSTACK_SIZE) container_stack;
   kui_stack(kui_Rect, KUI_CLIPSTACK_SIZE) clip_stack;
@@ -247,6 +274,9 @@ void kui_input_keydown(kui_Context *ctx, int key);
 void kui_input_keyup(kui_Context *ctx, int key);
 void kui_input_text(kui_Context *ctx, const char *text);
 
+kui_Command* kui_push_command(kui_Context *ctx, int type, int size);
+int kui_next_command(kui_Context *ctx, kui_Command **cmd);
+void kui_set_framebuffer(kui_Context *ctx, kui_Rect rect, kui_framebuffer_t* fb);
 void kui_set_clip(kui_Context *ctx, kui_Rect rect);
 void kui_draw_rect(kui_Context *ctx, kui_Rect rect, kui_Color color);
 void kui_draw_box(kui_Context *ctx, kui_Rect rect, kui_Color color);
@@ -295,7 +325,7 @@ void kui_begin_panel_ex(kui_Context *ctx, const char *name, int opt);
 void kui_end_panel(kui_Context *ctx);
 
 static inline color_t kui_convert_color_to_kot_color(kui_Color color){
-  return color.r | (color.g << 8) | (color.b << 16) | (color.a << 24);
+  return color.b | (color.g << 8) | (color.r << 16) | (color.a << 24);
 }
 
 #if defined(__cplusplus)
