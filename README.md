@@ -5,7 +5,16 @@
 # KotOS
 A 64-bit x86 operating system written in C/C++
 
-<a href="https://discord.gg/XJzhM7uKkz">Discord server</a>
+<img src="https://discordapp.com/api/guilds/901353839557476363/widget.png?style=banner3" alt="Discord Banner 3"/>
+
+# Screenshots
+
+<p align="center">
+	<img src="./Meta/Screenshots/1.png?raw=true" width="90%"/> 
+	<img src="./Meta/Screenshots/2.png?raw=true" width="90%"/> 
+	<img src="./Meta/Screenshots/3.png?raw=true" width="90%"/> 
+	<img src="./Meta/Screenshots/4.png?raw=true" width="90%"/> 
+</p>
 
 # Features
 - Architecture specific :
@@ -69,14 +78,6 @@ A 64-bit x86 operating system written in C/C++
 			- Stack
 		- Kot-graphics and kot-ui : 
 			- For graphical apps
-
-# Screenshots
-
-<p align="center">
-	<img src="./Meta/Screenshots/1.png?raw=true" width="90%"/> 
-	<img src="./Meta/Screenshots/2.png?raw=true" width="90%"/> 
-	<img src="./Meta/Screenshots/3.png?raw=true" width="90%"/> 
-</p>
 
 
 # Required Tools
