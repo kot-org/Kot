@@ -67,8 +67,8 @@ static kui_Style default_style = {
     { 30,  30,  30,  255 }, /* KUI_COLOR_BASE */
     { 35,  35,  35,  255 }, /* KUI_COLOR_BASEHOVER */
     { 40,  40,  40,  255 }, /* KUI_COLOR_BASEFOCUS */
-    { 43,  43,  43,  255 }, /* KUI_COLOR_SCROLLBASE */
-    { 30,  30,  30,  255 }  /* KUI_COLOR_SCROLLTHUMB */
+    { 30,  30,  30,  255 }  /* KUI_COLOR_SCROLLBASE */
+    { 43,  43,  43,  255 }, /* KUI_COLOR_SCROLLTHUMB */
   }
 };
 

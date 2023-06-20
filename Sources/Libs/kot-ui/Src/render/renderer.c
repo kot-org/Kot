@@ -162,9 +162,9 @@ void kui_r_draw_icon(kui_Container *cnt, int id, kui_Rect rect, kui_Color color)
   cnt->window_parent->last_color = color;
   kui_Font font = cnt->window_parent->icons_font;
   SetPenColor(font, kui_convert_color_to_kot_color(color));
-  SetPenPosX(font, rect.x);
-  SetPenPosY(font, rect.y);
-  DrawGlyph(font, id, rect.w, rect.h);
+  SetPenPosX(font, rect.x + 2);
+  SetPenPosY(font, rect.y + 2);
+  DrawGlyph(font, id, rect.w - 4, rect.h - 4);
 }
 
 
