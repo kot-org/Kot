@@ -80,7 +80,7 @@ void kui_r_event_handler(enum kot_Window_Event EventType, uint64_t GP0, uint64_t
 }
 
 void kui_r_init(){
-  kot_GetTableConverter("d0:azerty.bin", &kui_TableConverter, &kui_TableConverterCharCount);
+  kot_GetTableConverter("d0:/azerty.bin", &kui_TableConverter, &kui_TableConverterCharCount);
 }
 
 void kui_r_create_window(kui_Context *ctx, kui_Container *cnt, kui_Rect rect){
@@ -100,7 +100,7 @@ void kui_r_create_window(kui_Context *ctx, kui_Container *cnt, kui_Rect rect){
   cnt->window_parent->backbuffer.Buffer = calloc(1, cnt->window_parent->backbuffer.Size);
 
   /* Load default font */
-  FILE* DefaultFontFile = fopen("d0:arial.ttf", "r");
+  FILE* DefaultFontFile = fopen("d0:/arial.ttf", "r");
   fseek(DefaultFontFile, 0, SEEK_END);
   size64_t DefaultFontSize = ftell(DefaultFontFile);
   void* DefaultFontBuffer = malloc(DefaultFontSize);
@@ -112,7 +112,7 @@ void kui_r_create_window(kui_Context *ctx, kui_Container *cnt, kui_Rect rect){
   LoadPen(cnt->window_parent->default_font, &cnt->window_parent->backbuffer, 0, 0, 12, 0, 0xffffff);
 
   /* Load icons font */
-  FILE* IconsFontFile = fopen("d0:icons.ttf", "r");
+  FILE* IconsFontFile = fopen("d0:/icons.ttf", "r");
   fseek(IconsFontFile, 0, SEEK_END);
   size64_t IconsFontSize = ftell(IconsFontFile);
   void* IconsFontBuffer = malloc(IconsFontSize);
@@ -138,6 +138,7 @@ void kui_r_resize_window(kui_Container *cnt, kui_Rect rect){
 
 void kui_r_draw_rect(kui_Container *cnt, kui_Rect rect, kui_Color color){
   if(!cnt->window_parent) return;
+  if(!color.a) return;
   cnt->window_parent->last_color = color;
   FillRect(&cnt->window_parent->backbuffer, rect.x, rect.y, rect.w, rect.h, kui_convert_color_to_kot_color(color));
 }
@@ -145,6 +146,7 @@ void kui_r_draw_rect(kui_Container *cnt, kui_Rect rect, kui_Color color){
 
 void kui_r_draw_text(kui_Container *cnt, kui_Font font, const char *text, int len, kui_Vec2 pos, kui_Color color){
   if(!cnt->window_parent) return;
+  if(!color.a) return;
   cnt->window_parent->last_color = color;
   if(font == NULL) font = cnt->window_parent->default_font;
   if(len == -1){ 
@@ -159,6 +161,7 @@ void kui_r_draw_text(kui_Container *cnt, kui_Font font, const char *text, int le
 
 void kui_r_draw_icon(kui_Container *cnt, int id, kui_Rect rect, kui_Color color){
   if(!cnt->window_parent) return;
+  if(!color.a) return;
   cnt->window_parent->last_color = color;
   kui_Font font = cnt->window_parent->icons_font;
   SetPenColor(font, kui_convert_color_to_kot_color(color));

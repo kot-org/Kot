@@ -1,12 +1,18 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <stdlib.h>
+#include <limits.h>
+#include <unistd.h> 
 
 int main(int argc, char* argv[]) {
     DIR* Directory;
     struct dirent* Entry;
 
-    char* DirPath = "d1:.";
+    char CWDPath[PATH_MAX];
+
+    getcwd(CWDPath, PATH_MAX);
+
+    char* DirPath = CWDPath;
 
     if(argc >= 2){
         DirPath = argv[1];

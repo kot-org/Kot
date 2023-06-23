@@ -117,7 +117,7 @@ namespace Ui {
 
         Titlebar->Title = Label(
             {   
-                .FontPath = "d0:default-font.ttf",
+                .FontPath = "d0:/default-font.ttf",
                 .Text = Title,
                 .FontSize = Titlebar_FontSize,
                 .ForegroundColor = Titlebar->Style.ForegroundColor, 
@@ -157,7 +157,7 @@ namespace Ui {
             }
         , Titlebar->BtnBox->Cpnt);
 
-        Picturebox_t* CloseImage = Picturebox("d0:close.tga", _TGA, 
+        Picturebox_t* CloseImage = Picturebox("d0:/close.tga", _TGA, 
             {
                 .Fit = PICTUREFILL,
                 .Transparency = true,
@@ -187,7 +187,7 @@ namespace Ui {
             }
         , Titlebar->BtnBox->Cpnt);
 
-        Picturebox_t* SizeImage = Picturebox("d0:maximize.tga", _TGA, 
+        Picturebox_t* SizeImage = Picturebox("d0:/maximize.tga", _TGA, 
             {
                 .Fit = PICTUREFILL, 
                 .Transparency = true,
@@ -216,7 +216,7 @@ namespace Ui {
             }
         , Titlebar->BtnBox->Cpnt);
 
-        Picturebox_t* HideImage = Picturebox("d0:minimize.tga", _TGA, 
+        Picturebox_t* HideImage = Picturebox("d0:/minimize.tga", _TGA, 
             {
                 .Fit = PICTUREFILL, 
                 .Transparency = true,

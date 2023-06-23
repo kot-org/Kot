@@ -21,7 +21,7 @@ extern "C" {
 #define Storage_Permissions_Create         (1 << 3)
 
 
-#define Client_VFS_Function_Count       0x6
+#define Client_VFS_Function_Count       0x8
 
 #define Client_VFS_File_Remove          0x0
 #define Client_VFS_File_Open            0x1
@@ -29,6 +29,8 @@ extern "C" {
 #define Client_VFS_Dir_Create           0x3
 #define Client_VFS_Dir_Remove           0x4
 #define Client_VFS_Dir_Open             0x5
+#define Client_VFS_Get_CWD              0x6
+#define Client_VFS_Set_CWD              0x7
 
 #define File_Function_Count             0x4
 
@@ -167,6 +169,9 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Rename(char* OldPath, char* N
 struct kot_srv_storage_callback_t* kot_Srv_Storage_DirCreate(char* Path, mode_t Mode, bool IsAwait);
 struct kot_srv_storage_callback_t* kot_Srv_Storage_DirRemove(char* Path, bool IsAwait);
 struct kot_srv_storage_callback_t* kot_Srv_Storage_DirOpen(char* Path, kot_process_t Target, bool IsAwait);
+
+struct kot_srv_storage_callback_t* kot_Srv_Storage_GetCWD(bool IsAwait);
+struct kot_srv_storage_callback_t* kot_Srv_Storage_SetCWD(char* Path, bool IsAwait);
 
 struct kot_srv_storage_callback_t* kot_Srv_Storage_Closefile(kot_file_t* File, bool IsAwait);
 struct kot_srv_storage_callback_t* kot_Srv_Storage_Getfilesize(kot_file_t* File, bool IsAwait);

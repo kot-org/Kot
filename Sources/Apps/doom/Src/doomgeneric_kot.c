@@ -170,7 +170,7 @@ void DG_SetWindowTitle(const char * title){
 }
 
 int main(int argc, char **argv){
-    kot_GetTableConverter("d0:azerty.bin", &TableConverter, &TableConverterCharCount);
+    kot_GetTableConverter("d0:/azerty.bin", &TableConverter, &TableConverterCharCount);
 
     doomgeneric_Create(argc, argv);
     while(true){

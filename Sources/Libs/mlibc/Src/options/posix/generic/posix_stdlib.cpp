@@ -293,8 +293,10 @@ char *realpath(const char *path, char *out) {
 					<< resolv.data() << "'" << frg::endlog;
 		struct stat st;
 		if(int e = mlibc::sys_stat(mlibc::fsfd_target::path,
-				-1, resolv.data(), AT_SYMLINK_NOFOLLOW, &st); e)
-			return e;
+				-1, resolv.data(), AT_SYMLINK_NOFOLLOW, &st); e){
+					mlibc::infoLogger() << e << frg::endlog;
+					return e;
+				}
 
 		if(S_ISLNK(st.st_mode)) {
 			if(debugPathResolution) {

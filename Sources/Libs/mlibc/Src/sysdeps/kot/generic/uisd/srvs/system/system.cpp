@@ -90,7 +90,7 @@ __attribute__((__noreturn__)) void kot_Srv_System_LoadExecutableToProcess(char* 
 
     struct kot_ShareDataWithArguments_t data;
 
-    size64_t TotalSize = Size + sizeof(uint8_t) + sizeof(uint64_t) + sizeof(kot_arguments_t) + strlen(Path) + 1; // add '\0' char
+    size64_t TotalSize = Size + sizeof(uint8_t) + sizeof(uint64_t) + sizeof(kot_thread_t) + sizeof(kot_arguments_t) + strlen(Path) + 1; // add '\0' char
 
     data.Data = malloc(TotalSize);
     data.Size = TotalSize;
@@ -99,12 +99,13 @@ __attribute__((__noreturn__)) void kot_Srv_System_LoadExecutableToProcess(char* 
     memcpy(data.Data, Data, Size);
     *(uint8_t*)((uintptr_t)data.Data + Size) = DataPosition;
     *(uint64_t*)((uintptr_t)data.Data + Size + sizeof(uint8_t)) = DataPosition;
+    *(kot_thread_t*)((uintptr_t)data.Data + Size + sizeof(uint8_t) + sizeof(uint64_t)) = KotSpecificData.VFSHandler;
     if(Arguments){
-        memcpy((void*)((uintptr_t)data.Data + Size + sizeof(uint8_t) + sizeof(uint64_t)), Arguments, sizeof(kot_arguments_t));
+        memcpy((void*)((uintptr_t)data.Data + Size + sizeof(uint8_t) + sizeof(uint64_t) + sizeof(kot_thread_t)), Arguments, sizeof(kot_arguments_t));
     }else{
-        memset((void*)((uintptr_t)data.Data + Size + sizeof(uint8_t) + sizeof(uint64_t)), 0, sizeof(kot_arguments_t));
+        memset((void*)((uintptr_t)data.Data + Size + sizeof(uint8_t) + sizeof(uint64_t) + sizeof(kot_thread_t)), 0, sizeof(kot_arguments_t));
     }
-    memcpy((void*)((uintptr_t)data.Data + Size + sizeof(uint8_t) + sizeof(uint64_t) + sizeof(kot_arguments_t)), Path, strlen(Path) + 1);
+    memcpy((void*)((uintptr_t)data.Data + Size + sizeof(uint8_t) + sizeof(uint64_t) + sizeof(kot_thread_t) + sizeof(kot_arguments_t)), Path, strlen(Path) + 1);
     
     __ensure(kot_Sys_ExecThread(kot_SystemData->LoadExecutableToProcess, &parameters, ExecutionTypeQueu | ExecutionTypeClose, &data) == KSUCCESS);
 }

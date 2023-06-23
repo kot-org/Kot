@@ -7,10 +7,9 @@ CFLAGS = -O3 -I../Src -fno-exceptions
 LINKERFLAGS = -Wall -lc -lkot-graphics -lfreetype -lz -lpng16 -lkot-ui
 ASMFLAGS = 
 
-SRCDIR := ../Src
-OBJDIR := ../Lib
-BINDIR = $(_HOME)Bin/Modules
-BINDIR = $(_HOME)Sources/Apps/explorer/Bin
+SRCDIR = ../Src
+OBJDIR = ../Lib
+BINDIR = ../Bin
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 

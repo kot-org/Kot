@@ -52,7 +52,7 @@ KResult SetupStack(void** Data, size64_t* Size, int argc, char** argv, char** en
 KResult ExecuteSystemAction(uint64_t PartitonID){
     // Load filesystem handler
     if(!KotSpecificData.VFSHandler){
-        kot_srv_storage_callback_t* Callback = kot_Srv_Storage_VFSLoginApp(kot_Sys_GetProcess(), FS_AUTHORIZATION_HIGH, Storage_Permissions_Admin | Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, "d0:", true);
+        kot_srv_storage_callback_t* Callback = kot_Srv_Storage_VFSLoginApp(kot_Sys_GetProcess(), FS_AUTHORIZATION_HIGH, Storage_Permissions_Admin | Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, "d0:/", true);
         KotSpecificData.VFSHandler = Callback->Data;
         free(Callback);
     }
@@ -67,7 +67,7 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
 
         StringBuilder* SystemDataPathBuilder = new StringBuilder("d");
         SystemDataPathBuilder->append(DiskNumberBuffer);
-        SystemDataPathBuilder->append(":Kot/System/Starter.json");
+        SystemDataPathBuilder->append(":/kot/System/Starter.json");
         char* SystemDataPath = SystemDataPathBuilder->toString();
         delete SystemDataPathBuilder;
         FILE* SystemDataFile = fopen(SystemDataPath, "r");
@@ -114,7 +114,7 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
 
                         StringBuilder* ServicePathBuilder = new StringBuilder("d");
                         ServicePathBuilder->append(DiskNumberBuffer);
-                        ServicePathBuilder->append(":");
+                        ServicePathBuilder->append(":/");
                         ServicePathBuilder->append(File->Get());
                         char* FilePath = ServicePathBuilder->toString();
                         delete ServicePathBuilder;

@@ -7,10 +7,9 @@ CFLAGS = -O3 -I../Src -fno-exceptions
 LINKERFLAGS = -Wall -lc -lkot-c++
 ASMFLAGS = 
 
-SRCDIR := ../Src
-OBJDIR := ../Lib
-BUILDDIR = ../Bin
-BINDIR = $(_HOME)Sources/Modules/Drivers/net/e1000/Bin
+SRCDIR = ../Src
+OBJDIR = ../Lib
+BINDIR = ../Bin
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 

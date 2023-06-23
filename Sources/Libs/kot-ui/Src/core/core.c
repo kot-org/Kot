@@ -62,8 +62,11 @@ static kui_Style default_style = {
     { 240, 240, 240, 255 }, /* KUI_COLOR_TITLETEXT */
     { 0,   0,   0,   0   }, /* KUI_COLOR_PANELBG */
     { 25,  24,  26,  255 }, /* KUI_COLOR_BUTTON */
-    { 51,  153, 255, 255 }, /* KUI_COLOR_BUTTONHOVER */
-    { 12,  75,  221, 255 }, /* KUI_COLOR_BUTTONFOCUS */
+    { 43,  42,  44,  255 }, /* KUI_COLOR_BUTTONHOVER */
+    { 33,  32,  34,  255 }, /* KUI_COLOR_BUTTONFOCUS */
+    { 9,   9,   11,  255 }, /* KUI_COLOR_BUTTONDARK */
+    { 33,  32,  34,  255 }, /* KUI_COLOR_BUTTONDARKHOVER */
+    { 25,  24,  26,  255 }, /* KUI_COLOR_BUTTONDARKFOCUS */
     { 30,  30,  30,  255 }, /* KUI_COLOR_BASE */
     { 35,  35,  35,  255 }, /* KUI_COLOR_BASEHOVER */
     { 40,  40,  40,  255 }, /* KUI_COLOR_BASEFOCUS */
@@ -115,14 +118,16 @@ static int rect_overlaps_vec2(kui_Rect r, kui_Vec2 p) {
 }
 
 
-static void draw_frame(kui_Context *ctx, kui_Rect rect, int colorid) {
+static void draw_frame(kui_Context *ctx, kui_Rect rect, int colorid, int opt) {
   kui_draw_rect(ctx, rect, ctx->style->colors[colorid]);
   if (colorid == KUI_COLOR_SCROLLBASE  ||
       colorid == KUI_COLOR_SCROLLTHUMB ||
       colorid == KUI_COLOR_TITLEBG) { return; }
   /* draw border */
-  if (ctx->style->colors[KUI_COLOR_BORDER].a) {
-    kui_draw_box(ctx, expand_rect(rect, 1), ctx->style->colors[KUI_COLOR_BORDER]);
+  if (!(opt & KUI_OPT_NOBORDER)) {
+    if (ctx->style->colors[KUI_COLOR_BORDER].a) {
+      kui_draw_box(ctx, expand_rect(rect, 1), ctx->style->colors[KUI_COLOR_BORDER]);
+    }
   }
 }
 
@@ -690,7 +695,7 @@ void kui_draw_control_frame(kui_Context *ctx, kui_Id id, kui_Rect rect,
 {
   if (opt & KUI_OPT_NOFRAME) { return; }
   colorid += (ctx->focus == id) ? 2 : (ctx->hover == id) ? 1 : 0;
-  draw_frame(ctx, rect, colorid);
+  draw_frame(ctx, rect, colorid, opt);
 }
 
 
@@ -994,7 +999,7 @@ static int header(kui_Context *ctx, const char *label, int istreenode, int opt) 
 
   /* draw */
   if (istreenode) {
-    if (ctx->hover == id) { draw_frame(ctx, r, KUI_COLOR_BUTTONHOVER); }
+    if (ctx->hover == id) { draw_frame(ctx, r, KUI_COLOR_BUTTONHOVER, opt); }
   } else {
     kui_draw_control_frame(ctx, id, r, KUI_COLOR_BUTTON, 0);
   }
@@ -1053,11 +1058,11 @@ void kui_end_treenode(kui_Context *ctx) {
       cnt->scroll.y = kui_clamp(cnt->scroll.y, 0, maxscroll);                \
                                                                             \
       /* draw base and thumb */                                             \
-      draw_frame(ctx, base, KUI_COLOR_SCROLLBASE);                      \
+      draw_frame(ctx, base, KUI_COLOR_SCROLLBASE, 0);                      \
       thumb = base;                                                         \
       thumb.h = kui_max(ctx->style->thumb_size, base.h * b->h / cs.y);       \
       thumb.y += cnt->scroll.y * (base.h - thumb.h) / maxscroll;            \
-      draw_frame(ctx, thumb, KUI_COLOR_SCROLLTHUMB);                    \
+      draw_frame(ctx, thumb, KUI_COLOR_SCROLLTHUMB, 0);                    \
                                                                             \
       /* set this as the scroll_target (will get scrolled on mousewheel) */ \
       /* if the mouse is over it */                                         \
@@ -1143,14 +1148,14 @@ int kui_begin_window_ex(kui_Context *ctx, const char *title, kui_Rect rect, int 
 
   /* draw frame */
   if (~opt & KUI_OPT_NOFRAME) {
-    draw_frame(ctx, rect, KUI_COLOR_WINDOWBG);
+    draw_frame(ctx, rect, KUI_COLOR_WINDOWBG, opt);
   }
 
   /* do title bar */
   if (~opt & KUI_OPT_NOTITLE) {
     kui_Rect tr = rect;
     tr.h = ctx->style->title_height;
-    draw_frame(ctx, tr, KUI_COLOR_TITLEBG);
+    draw_frame(ctx, tr, KUI_COLOR_TITLEBG, opt);
 
     /* do title text */
     if (~opt & KUI_OPT_NOTITLE) {
@@ -1245,7 +1250,7 @@ void kui_begin_panel_ex(kui_Context *ctx, const char *name, int opt) {
   cnt = get_container(ctx, ctx->last_id, opt);
   cnt->rect = kui_layout_next(ctx);
   if (~opt & KUI_OPT_NOFRAME) {
-    draw_frame(ctx, cnt->rect, KUI_COLOR_PANELBG);
+    draw_frame(ctx, cnt->rect, KUI_COLOR_PANELBG, opt);
   }
   push(ctx->container_stack, cnt);
   push_container_body(ctx, cnt, cnt->rect, opt);

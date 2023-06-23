@@ -5,6 +5,7 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include FT_GLYPH_H
 
 typedef struct {
     FT_Library library;
@@ -273,7 +274,7 @@ KResult GetTextboxInfo(kfont_t opaque, char* str, kfont_pos_t* width, kfont_pos_
     FT_GlyphSlot slot = font->slot;
 
     *x = font->x;
-    *y = GetGlyphBearingY(opaque);
+    *y = GetLineHeight(opaque);
 
     *width = 0;
 
@@ -313,7 +314,7 @@ KResult GetTextboxInfoN(kfont_t opaque, char* str, size_t len, kfont_pos_t* widt
     FT_GlyphSlot slot = font->slot;
 
     *x = font->x;
-    *y = GetGlyphBearingY(opaque);
+    *y = GetLineHeight(opaque);
 
     *width = 0;
 

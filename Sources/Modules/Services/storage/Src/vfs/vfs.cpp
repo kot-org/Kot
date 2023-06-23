@@ -9,7 +9,29 @@ static client_vfs_dispatch_t VFSClientDispatcherFunctions[Client_VFS_Function_Co
     [Client_VFS_Dir_Create] = (client_vfs_dispatch_t)VFSDirCreate,
     [Client_VFS_Dir_Remove] = (client_vfs_dispatch_t)VFSDirRemove,
     [Client_VFS_Dir_Open] = (client_vfs_dispatch_t)VFSDirOpen,
+    [Client_VFS_Get_CWD] = (client_vfs_dispatch_t)VFSGetCWD,
+    [Client_VFS_Set_CWD] = (client_vfs_dispatch_t)VFSSetCWD,
 };
+
+char* LastPath(char* Current){
+    char* LastDir = strrchr(Current, '/');
+    if(LastDir == NULL){
+        char* LastDir = strchr(Current, ':');
+        if((uintptr_t)LastDir == ((uintptr_t)Current + strlen(Current)) - 1){
+            return NULL;
+        }
+        size_t Len = (uintptr_t)LastDir - (uintptr_t)Current + 1;
+        char* LastPath = (char*)malloc(Len + 1);
+        memcpy(LastPath, Current, Len);
+        LastPath[Len] = '\0';
+        return LastPath;
+    }
+    size_t Len = (uintptr_t)LastDir - (uintptr_t)Current;
+    char* LastPath = (char*)malloc(Len + 1);
+    memcpy(LastPath, Current, Len);
+    LastPath[Len] = '\0';
+    return LastPath;
+}
 
 KResult InitializeVFS(){
     VFSProcess = kot_ShareProcessKey(kot_Sys_GetProcess());
@@ -79,6 +101,23 @@ KResult VFSAskForAuthorization(ClientVFSContext* Context, kot_authorization_t au
     return KFAIL;
 }
 
+char* GetAbsolutePath(partition_t* Partition, char* Path){
+    char TmpPath[PATH_MAX];
+    if(Path){
+        if(Path[0] == '/'){
+            Path++;
+        }
+        sprintf(TmpPath, "d%d:/%s", Partition->StaticVolumeMountPoint, Path);
+    }else{
+        sprintf(TmpPath, "d%d:/", Partition->StaticVolumeMountPoint);
+    }
+    size_t Length = strlen(TmpPath);
+    char* AbsolutePath = (char*)malloc(Length + 1);
+    strncpy(AbsolutePath, TmpPath, Length);
+    AbsolutePath[Length] = '\0';
+    return AbsolutePath;
+}
+
 KResult GetVFSAbsolutePath(char** AbsolutePath, partition_t** Partition, char* Path){
     std::StringBuilder* Sb = new std::StringBuilder(Path);
     int64_t RelativePathStart = Sb->indexOf(":");
@@ -94,7 +133,7 @@ KResult GetVFSAbsolutePath(char** AbsolutePath, partition_t** Partition, char* P
     }else{
         char* AccessTypeBuffer = Sb->substr(0, 1);
         char* VolumeBuffer = Sb->substr(1, RelativePathStart);
-        *AbsolutePath = Sb->substr(RelativePathStart + 1, Sb->length());
+        *AbsolutePath = Sb->substr(RelativePathStart + 2, Sb->length());
 
         char AccessType = *AccessTypeBuffer;
         uint64_t Volume = atoi(VolumeBuffer);
@@ -147,16 +186,20 @@ KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFS
 
     partition_t* PartitionContext;
     if(RelativePathStart == -1){
+        std::StringBuilder* RelativeSb = new std::StringBuilder(Context->Path);
+        if((uintptr_t)strrchr(Context->Path, '/') != (uintptr_t)Context->Path + strlen(Context->Path) - 1){
+            RelativeSb->append("/");
+        }
+        RelativeSb->append(Path);
+        *RelativePath = RelativeSb->toString();
         PartitionContext = Context->Partition;
-        Sb->append(Context->Path, 0);
-        *RelativePath = Sb->toString();
     }else if(RelativePathStart == 0){
         free(Sb);
         return KFAIL;
     }else{
         char* AccessTypeBuffer = Sb->substr(0, 1);
         char* VolumeBuffer = Sb->substr(1, RelativePathStart);
-        *RelativePath = Sb->substr(RelativePathStart + 1, Sb->length());
+        *RelativePath = Sb->substr(RelativePathStart + 2, Sb->length());
 
         char AccessType = *AccessTypeBuffer;
         uint64_t Volume = atoi(VolumeBuffer);
@@ -236,15 +279,20 @@ KResult VFSMount(kot_thread_t Callback, uint64_t CallbackArg, bool IsMount, kot_
 KResult VFSLoginApp(kot_thread_t Callback, uint64_t CallbackArg, kot_process_t Process, kot_authorization_t Authorization, kot_permissions_t Permissions, char* Path){
     KResult Status = KFAIL;
     ClientVFSContext* Context = (ClientVFSContext*)malloc(sizeof(ClientVFSContext));
-    Context->Authorization = Authorization;
-    Context->Permissions = Permissions;
     kot_thread_t VFSClientShareableDispatcherThread = NULL;
     if(GetVFSAbsolutePath(&Context->Path, &Context->Partition, Path) == KSUCCESS){
+        Context->Authorization = Authorization;
+        Context->Permissions = Permissions;
+        
         if(Context->Path){
             Context->PathLength = strlen(Context->Path);
         }else{
             Context->PathLength = NULL;
         }
+
+        Context->AbsolutePath = GetAbsolutePath(Context->Partition, Context->Path);
+        Context->AbsolutePathLength = strlen(Context->AbsolutePath);
+
         Context->StaticVolumeMountPoint = Context->Partition->StaticVolumeMountPoint;
         Context->DynamicVolumeMountPoint = Context->Partition->DynamicVolumeMountPoint;
 
@@ -252,6 +300,10 @@ KResult VFSLoginApp(kot_thread_t Callback, uint64_t CallbackArg, kot_process_t P
         kot_thread_t VFSClientDispatcherThread = NULL;
         kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&VFSClientDispatcher, PriviledgeApp, (uint64_t)Context, &VFSClientDispatcherThread);
         VFSClientShareableDispatcherThread = kot_MakeShareableThreadToProcess(VFSClientDispatcherThread, Process);
+
+        Status = KSUCCESS;
+    }else{
+        free(Context);
     }
     
     kot_arguments_t arguments{
@@ -533,6 +585,85 @@ KResult VFSDirOpen(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext
     }else{
         Status = kot_Sys_ExecThread(Partition->FSServerFunctions.Opendir, &arguments, ExecutionTypeQueu, NULL);
     }
+    
+    return Status; 
+}
+
+KResult VFSGetCWD(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions){    
+    kot_arguments_t arguments{
+        .arg[0] = KSUCCESS,                     /* Status */
+        .arg[1] = CallbackArg,                  /* CallbackArg */
+        .arg[2] = NULL,                         /* Path */
+        .arg[3] = Context->AbsolutePathLength,  /* Length */
+        .arg[4] = NULL,                         /* GP2 */
+        .arg[5] = NULL,                         /* GP3 */
+    };
+
+    kot_ShareDataWithArguments_t data{
+        .Data = Context->AbsolutePath,
+        .Size = Context->AbsolutePathLength,
+        .ParameterPosition = 2,
+    };
+
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
+    
+    return KSUCCESS; 
+}
+
+
+KResult VFSSetCWD(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path){    
+    KResult Status = KFAIL;
+    
+    char* NewPath = NULL;
+    partition_t* NewPartition = NULL;
+
+    char TmpPath[PATH_MAX];
+
+    if(GetVFSAbsolutePath(&NewPath, &NewPartition, Path) == KSUCCESS){
+        char* NewAbsolutePath = GetAbsolutePath(NewPartition, NewPath);
+        DIR* Directory = opendir(NewAbsolutePath);
+        if(Directory){
+            char* OldPath = Context->Path;
+            partition_t* OldPartition = Context->Partition;
+            char* OldAbsolutePath = Context->AbsolutePath;
+
+            Context->Path = NewPath;
+            Context->Partition = NewPartition;
+            Context->AbsolutePath = NewAbsolutePath;
+
+            free(OldPath); 
+            free(OldPartition);
+            free(OldAbsolutePath);
+
+            if(Context->Path){
+                Context->PathLength = strlen(Context->Path);
+            }else{
+                Context->PathLength = NULL;
+            }
+
+            Context->AbsolutePathLength = strlen(Context->AbsolutePath);
+
+            Context->StaticVolumeMountPoint = Context->Partition->StaticVolumeMountPoint;
+            Context->DynamicVolumeMountPoint = Context->Partition->DynamicVolumeMountPoint;
+
+            Status = KSUCCESS;
+
+            closedir(Directory);
+        }else{
+            free(NewAbsolutePath);
+        }
+    }
+    
+    kot_arguments_t arguments{
+        .arg[0] = Status,           /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = NULL,             /* GP0 */
+        .arg[3] = NULL,             /* GP1 */
+        .arg[4] = NULL,             /* GP2 */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
     
     return Status; 
 }

@@ -13,7 +13,7 @@
 
 namespace ELF {
     
-    KResult loadElf(void* buffer, kot_process_t proc, enum kot_Priviledge privilege, uint64_t identifier, kot_thread_t* mainthread, char* rootpath, bool isVFS);
+    KResult loadElf(void* buffer, kot_process_t proc, enum kot_Priviledge privilege, uint64_t identifier, kot_thread_t* mainthread, char* rootpath, bool isVFS, kot_thread_t VFSHandler);
     bool Check(struct elf_t* self);
 
     struct elf_t {

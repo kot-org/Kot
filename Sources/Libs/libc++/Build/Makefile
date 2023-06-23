@@ -2,7 +2,6 @@ _HOME = ../../../../
 
 INCDIR = $(_HOME)Sysroot/include
 BUILDDIR := $(_HOME)Sysroot/lib
-BINDIR = $(_HOME)Bin/Modules
 
 ASMC = nasm
 CC = kot-x86_64-clang
@@ -10,8 +9,8 @@ AR = llvm-ar-14
 
 CFLAGS = -O3 -fno-exceptions
 
-SRCDIR := ../Src
-OBJDIR := ../Lib
+SRCDIR = ../Src
+OBJDIR = ../Lib
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 

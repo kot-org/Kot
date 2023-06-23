@@ -2,7 +2,6 @@ _HOME = ../../../../
 
 INCDIR = $(_HOME)Sysroot/include
 BUILDDIR := $(_HOME)Sysroot/lib
-BINDIR = $(_HOME)Bin/Modules
 
 OBJDIR := ../Lib
 SRCDIR := ../Src

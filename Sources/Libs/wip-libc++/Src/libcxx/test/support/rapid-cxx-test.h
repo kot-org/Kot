@@ -526,7 +526,7 @@ namespace rapid_cxx_test
       void trim_func_string() {
           const char* void_loc = ::strstr(func, "void ");
           if (void_loc == func) {
-              func += strlen("void ");
+              func += sizeof("void ");
           }
           const char* namespace_loc = ::strstr(func, "::");
           if (namespace_loc) {

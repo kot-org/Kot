@@ -521,6 +521,79 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_DirOpen(char* Path, kot_proce
 }
 
 
+/* GetCWD */
+
+KResult Srv_Storage_GetCWD_Callback(KResult Status, struct kot_srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    if(Status == KSUCCESS){
+        Callback->Data = (uintptr_t)malloc(GP1);
+        Callback->Size = GP1;
+        memcpy((void*)Callback->Data, (void*)GP0, GP1);
+    }
+    return Status;
+}
+
+struct kot_srv_storage_callback_t* kot_Srv_Storage_GetCWD(bool IsAwait){
+    if(!kot_srv_storage_callback_thread) Srv_Storage_Initialize();
+    
+    kot_thread_t self = kot_Sys_GetThread();
+
+    struct kot_srv_storage_callback_t* callback = (struct kot_srv_storage_callback_t*)malloc(sizeof(struct kot_srv_storage_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Storage_GetCWD_Callback;
+
+    struct kot_arguments_t parameters;
+    parameters.arg[0] = kot_srv_storage_callback_thread;
+    parameters.arg[1] = (uint64_t)callback;
+    parameters.arg[2] = Client_VFS_Get_CWD;
+
+    KResult Status = kot_Sys_ExecThread(KotSpecificData.VFSHandler, &parameters, ExecutionTypeQueu, NULL);
+    if(Status == KSUCCESS && IsAwait){
+        kot_Sys_Pause(false);
+    }
+    return callback;
+}
+
+
+/* SetCWD */
+
+KResult Srv_Storage_SetCWD_Callback(KResult Status, struct kot_srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
+    return Status;
+}
+
+struct kot_srv_storage_callback_t* kot_Srv_Storage_SetCWD(char* Path, bool IsAwait){
+    if(!kot_srv_storage_callback_thread) Srv_Storage_Initialize();
+    
+    kot_thread_t self = kot_Sys_GetThread();
+
+    struct kot_srv_storage_callback_t* callback = (struct kot_srv_storage_callback_t*)malloc(sizeof(struct kot_srv_storage_callback_t));
+    callback->Self = self;
+    callback->Data = NULL;
+    callback->Size = NULL;
+    callback->IsAwait = IsAwait;
+    callback->Status = KBUSY;
+    callback->Handler = &Srv_Storage_SetCWD_Callback;
+
+    struct kot_arguments_t parameters;
+    parameters.arg[0] = kot_srv_storage_callback_thread;
+    parameters.arg[1] = (uint64_t)callback;
+    parameters.arg[2] = Client_VFS_Set_CWD;
+
+    struct kot_ShareDataWithArguments_t data;
+    data.Data = (void*)Path;
+    data.Size = strlen(Path) + 1; // add '\0' char
+    data.ParameterPosition = 0x3;
+
+    KResult Status = kot_Sys_ExecThread(KotSpecificData.VFSHandler, &parameters, ExecutionTypeQueu, &data);
+    if(Status == KSUCCESS && IsAwait){
+        kot_Sys_Pause(false);
+    }
+    return callback;
+}
+
 
 /* File specific */
 

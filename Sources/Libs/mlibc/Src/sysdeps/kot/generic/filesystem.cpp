@@ -265,7 +265,7 @@ namespace mlibc{
             DirEntry->d_ino = KotDirEntry->NextEntryPosition;
             DirEntry->d_off = 0;
             DirEntry->d_reclen = sizeof(dirent);
-            DirEntry->d_type = KotDirEntry->IsFile;
+            DirEntry->d_type = KotDirEntry->IsFile ? DT_REG : DT_DIR;
             strcpy(DirEntry->d_name, KotDirEntry->Name);
 
             *bytes_read = sizeof(dirent);
@@ -317,35 +317,93 @@ namespace mlibc{
     }
 
     int sys_stat(fsfd_target fsfdt, int fd, const char *path, int flags, struct stat *statbuf){
+        if(path){
+            int e = sys_open(path, flags, 0666, &fd);
+            if(e){
+                e = sys_open_dir(path, &fd);
+                if(e){
+                    return 0;
+                }
+            }
+            return 0;
+        }
+
         kot_descriptor_t* Descriptor = kot_GetDescriptor(fd);
         if(Descriptor == NULL) return EBADF;
-        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_FILE) return EBADF;
-        kot_file_t* File = (kot_file_t*)Descriptor->Data;
+        if(Descriptor->Type == KOT_DESCRIPTOR_TYPE_FILE){
+            kot_file_t* File = (kot_file_t*)Descriptor->Data;
 
-        kot_srv_storage_callback_t* CallbackFileSize = kot_Srv_Storage_Getfilesize(File, true);
-        if(CallbackFileSize->Status != KSUCCESS){
-            free(File);
-            return -1;
+            kot_srv_storage_callback_t* CallbackFileSize = kot_Srv_Storage_Getfilesize(File, true);
+            if(CallbackFileSize->Status != KSUCCESS){
+                if(path){
+                    sys_close(fd);
+                }
+                return -1;
+            }
+            statbuf->st_size = CallbackFileSize->Data;
+            free(CallbackFileSize);
+            // TODO
+            statbuf->st_dev = 0;
+            statbuf->st_ino = 0;
+            statbuf->st_mode = 0;
+            statbuf->st_nlink = 0;
+            statbuf->st_uid = 0;
+            statbuf->st_gid = 0;
+            statbuf->st_rdev = 0;
+            statbuf->st_blksize = 0;
+            statbuf->st_blocks = 0;
+
+            if(path){
+                sys_close(fd);
+            }
+            return 0;
+        }else if(Descriptor->Type == KOT_DESCRIPTOR_TYPE_DIRECTORY){
+            kot_directory_t* Dir = (kot_directory_t*)Descriptor->Data;
+            // TODO
+            statbuf->st_size = 0;
+            statbuf->st_dev = 0;
+            statbuf->st_ino = 0;
+            statbuf->st_mode = 0;
+            statbuf->st_nlink = 0;
+            statbuf->st_uid = 0;
+            statbuf->st_gid = 0;
+            statbuf->st_rdev = 0;
+            statbuf->st_blksize = 0;
+            statbuf->st_blocks = 0;
+
+            if(path){
+                sys_close(fd);
+            }
+            return 0;
+        }else{
+            return 0;
         }
-        statbuf->st_size = CallbackFileSize->Data;
-        free(CallbackFileSize);
-        // TODO
-        statbuf->st_dev = 0;
-        statbuf->st_ino = 0;
-        statbuf->st_mode = 0;
-        statbuf->st_nlink = 0;
-        statbuf->st_uid = 0;
-        statbuf->st_gid = 0;
-        statbuf->st_rdev = 0;
-        statbuf->st_blksize = 0;
-        statbuf->st_blocks = 0;
-        free(File);
-        return 0;
     }
 
     int sys_fcntl(int fd, int request, va_list args, int *result_value){
         // TODO
         infoLogger() << "mlibc: sys_fcntl unsupported request (" << request << ")" << frg::endlog;
         return 0;
+    }
+
+    int sys_getcwd(char *buffer, size_t size){
+        kot_srv_storage_callback_t* Callback = kot_Srv_Storage_GetCWD(true);
+        if((Callback->Size + 1) > size){
+            free(Callback);
+            return ERANGE;
+        }
+        memcpy(buffer, (void*)Callback->Data, Callback->Size);
+        buffer[Callback->Size] = '\0';
+        free(Callback);
+        return 0;
+    }
+
+    int sys_chdir(const char *path){
+        char AbsolutePathBuffer[PATH_MAX];
+        char* AbsolutePath = realpath(path, AbsolutePathBuffer);
+        kot_srv_storage_callback_t* Callback = kot_Srv_Storage_SetCWD((char*)AbsolutePath, true);
+        KResult Status = Callback->Status;
+        free(Callback);
+        return (Status != KSUCCESS);
     }
 }

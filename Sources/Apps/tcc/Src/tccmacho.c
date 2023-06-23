@@ -1746,7 +1746,7 @@ static void collect_sections(TCCState *s1, struct macho *mo, const char *filenam
     dysymlc = add_lc(mo, LC_DYSYMTAB, sizeof(*dysymlc));
 
     if (s1->output_type == TCC_OUTPUT_EXE) {
-        i = (sizeof(*dyldlc) + strlen("/usr/lib/dyld") + 1 + 7) &-8;
+        i = (sizeof(*dyldlc) + sizeof("/usr/lib/dyld") + 1 + 7) &-8;
         dyldlc = add_lc(mo, LC_LOAD_DYLINKER, i);
         dyldlc->name = sizeof(*dyldlc);
         str = (char*)dyldlc + dyldlc->name;

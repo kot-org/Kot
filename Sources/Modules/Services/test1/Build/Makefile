@@ -7,8 +7,8 @@ CFLAGS = -O3 --target=x86_64-unknown-none-elf -fno-rtti -ffreestanding -fshort-w
 LINKERFLAGS = -nostartfiles -Wall -static -L$(_HOME)Sysroot/lib/kot -lc
 ASMFLAGS = 
 
-SRCDIR := ../Src
-OBJDIR := ../Lib
+SRCDIR = ../Src
+OBJDIR = ../Lib
 BINDIR = $(_HOME)Bin/Modules
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))

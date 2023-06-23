@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <unistd.h>
+#include <limits.h>
 #include <sys/wait.h>
 
 #include <kot/sys.h>
@@ -32,11 +34,17 @@ void GetInput() {
 }
 
 int main(int argc, char* argv[], char* envp[]) {
-    char* Prefix = "d1:Bin/";
+    char* Prefix = "d1:/bin/";
     
     while(true) {
         // prompt
-        printf("> ");
+        char CommandInit[PATH_MAX + sizeof("$ ")];
+
+        getcwd(CommandInit, PATH_MAX);
+
+        strcat(CommandInit, "$ "); 
+
+        printf(CommandInit);
 
         GetInput();
 

@@ -236,8 +236,8 @@ static void merge_test_coverage (tcov_file *file, FILE *fp,
 	while (fgets(str, sizeof(str), fp) &&
 	       (p = strstr(str, "0:File:")) == NULL) {}
         if ((p = strstr(str, "0:File:")) == NULL ||
-	    strncmp (p + strlen("0:File:"), file->filename, len) != 0 ||
-	    p[strlen("0:File:") + len] != ' ')
+	    strncmp (p + sizeof("0:File:"), file->filename, len) != 0 ||
+	    p[sizeof("0:File:") + len] != ' ')
 	    break;
 	for (i = 0; i < file->n_func; i++) {
 	    int j;

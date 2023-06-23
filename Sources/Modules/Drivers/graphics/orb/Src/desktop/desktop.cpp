@@ -22,22 +22,24 @@ desktopc::desktopc(orbc* Parent){
     /* Play startup sound */
     Audio::Stream* St = new Audio::Stream(0);
 
-    FILE* MusicFile = fopen("d1:Kot/Sounds/startup.bin", "r");
+    FILE* MusicFile = fopen("d1:/kot/Sounds/startup.bin", "r");
 
-    fseek(MusicFile, 0, SEEK_END);
-    size64_t FileSize = ftell(MusicFile);
-    fseek(MusicFile, 0, SEEK_SET); 
+    if(MusicFile){
+        fseek(MusicFile, 0, SEEK_END);
+        size64_t FileSize = ftell(MusicFile);
+        fseek(MusicFile, 0, SEEK_SET); 
 
-    void* FileBuf = malloc(FileSize);
-    fread(FileBuf, FileSize, 1, MusicFile);
-    fclose(MusicFile);
+        void* FileBuf = malloc(FileSize);
+        fread(FileBuf, FileSize, 1, MusicFile);
+        fclose(MusicFile);
 
-    St->AddBuffer(FileBuf, FileSize);
+        St->AddBuffer(FileBuf, FileSize);
+    }
+
 
 
     /* Load desktopUserSettings.json */
-
-    FILE* SettingsFile = fopen("d1:User/root/Share/Settings/desktop.json", "r");
+    FILE* SettingsFile = fopen("d1:/user/root/Share/Settings/desktop.json", "r");
 
     assert(SettingsFile != NULL);
 
@@ -219,7 +221,7 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
             }
         , AppsContainer->Cpnt); */
 
-        /* Picturebox_t* AppIcon = Picturebox("d0:kotlogo.tga", PictureboxType::_TGA,
+        /* Picturebox_t* AppIcon = Picturebox("d0:/kotlogo.tga", PictureboxType::_TGA,
             {
                 .Fit = Ui::PICTUREFILL,
                 .Transparency = true,

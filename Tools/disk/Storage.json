@@ -1,82 +1,94 @@
 [
     {
-        "source": "Disk/Kot/.",
-        "destination": "Kot"
+        "source": "Disk/kot/.",
+        "destination": "kot"
     },
     {
-        "source": "Disk/User/.",
-        "destination": "User"
+        "source": "Disk/user/.",
+        "destination": "user"
     },
     {
         "source": "Sources/Modules/Drivers/graphics/orb/Bin/Orb.elf",
-        "destination": "Bin/orb"
+        "destination": "bin/orb"
     },
     {
         "source": "Sources/Modules/Drivers/audio/hda/Bin/Hda.elf",
-        "destination": "Bin/hda"
+        "destination": "bin/hda"
     },
     {
         "source": "Sources/Modules/Drivers/bus/ps2/Bin/Ps2.elf",
-        "destination": "Bin/ps2"
+        "destination": "bin/ps2"
     },
     {
         "source": "Sources/Modules/Drivers/net/e1000/Bin/E1000.elf",
-        "destination": "Bin/e1000"
+        "destination": "bin/e1000"
     },
     {
         "source": "Sources/Modules/Services/hid/Bin/Hid.elf",
-        "destination": "Bin/hid"
+        "destination": "bin/hid"
     },
     {
         "source": "Sources/Modules/Services/audio/Bin/Audio.elf",
-        "destination": "Bin/audio"
+        "destination": "bin/audio"
     },
     {
         "source": "Sources/Modules/Services/terminal/Bin/Terminal.elf",
-        "destination": "Bin/terminal"
+        "destination": "bin/terminal"
     },
     {
         "source": "Sources/Apps/doom/Bin/Doom.elf",
-        "destination": "Bin/doom"
+        "destination": "bin/doom"
     },
     {
         "source": "Sources/Apps/tcc/Bin/Tcc.elf",
-        "destination": "Bin/tcc"
+        "destination": "bin/tcc"
     },
     {
         "source": "Sources/Apps/lua/Bin/Lua.elf",
-        "destination": "Bin/lua"
+        "destination": "bin/lua"
     },
     {
         "source": "Sources/Apps/test/Bin/Test.elf",
-        "destination": "Bin/test"
+        "destination": "bin/test"
     },
     {
         "source": "Sources/Apps/calculator/Bin/Calculator.elf",
-        "destination": "Bin/calculator"
+        "destination": "bin/calculator"
     },
     {
         "source": "Sources/Apps/explorer/Bin/Explorer.elf",
-        "destination": "Bin/explorer"
+        "destination": "bin/explorer"
+    },
+    {
+        "source": "Sources/Apps/audio-player/Bin/Audio-player.elf",
+        "destination": "bin/audio-player"
+    },
+    {
+        "source": "Sources/Apps/notepad/Bin/Notepad.elf",
+        "destination": "bin/notepad"
     },
     {
         "source": "Sources/Apps/shell/Bin/Shell.elf",
-        "destination": "Bin/shell"
+        "destination": "bin/shell"
     },
     {
         "source": "Sources/Apps/shell/Bin/utils/cat.elf",
-        "destination": "Bin/cat"
+        "destination": "bin/cat"
     },
     {
         "source": "Sources/Apps/shell/Bin/utils/echo.elf",
-        "destination": "Bin/echo"
+        "destination": "bin/echo"
     },
     {
         "source": "Sources/Apps/shell/Bin/utils/launch.elf",
-        "destination": "Bin/launch"
+        "destination": "bin/launch"
+    },
+    {
+        "source": "Sources/Apps/shell/Bin/utils/cd.elf",
+        "destination": "bin/cd"
     },
     {
         "source": "Sources/Apps/shell/Bin/utils/ls.elf",
-        "destination": "Bin/ls"
+        "destination": "bin/ls"
     }
 ]

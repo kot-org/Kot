@@ -7,9 +7,9 @@ CFLAGS = -O3 -I../Src
 LINKERFLAGS = -Wall -lc -lz -lpng16 -lfreetype -lz -lkot-ui -lkot-graphics
 ASMFLAGS = 
 
-SRCDIR := ../Src
-OBJDIR := ../Lib
-BINDIR = $(_HOME)Sources/Apps/test/Bin
+SRCDIR = ../Src
+OBJDIR = ../Lib
+BINDIR = ../Bin
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 

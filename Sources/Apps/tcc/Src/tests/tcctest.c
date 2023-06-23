@@ -4354,7 +4354,8 @@ void whitespace_test(void)
     char *str;
     int tcc_test = 1;
 
-#if 1
+
+#if 1
     pri\
 ntf("whitspace:\n");
 #endif
@@ -4369,15 +4370,16 @@ ntf("aaa=%d\n", 3);
 \
 ntf("min=%d\n", 4);
 
-#ifdef ACCEPT_LF_IN_STRINGS
+#ifdef ACCEPT_LF_IN_STRIsizeof("
     printf("len1=%d\n", strlen("
 "));
 #ifdef CORRECT_CR_HANDLING
     str = "
 ";
     printf("len1=%d str[0]=%d\n", strlen(str), str[0]);
-#endif
-    printf("len1=%d\n", strlen("a
+#endifsizeof("
+    printf("len1=%d\n", strlen("
+a
 "));
 #else
     printf("len1=1\nlen1=1 str[0]=10\nlen1=3\n");

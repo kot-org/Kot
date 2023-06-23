@@ -7,9 +7,8 @@ CFLAGS = -O3 -I../Src -fno-exceptions
 LINKERFLAGS = -Wall -lc -lkot-c++
 ASMFLAGS = 
 
-SRCDIR := ../Src
-OBJDIR := ../Lib
-BUILDDIR = ../Bin
+SRCDIR = ../Src
+OBJDIR = ../Lib
 BINDIR = $(_HOME)Bin/Modules
 
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))

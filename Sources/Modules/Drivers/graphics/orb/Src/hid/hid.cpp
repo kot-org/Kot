@@ -15,7 +15,7 @@ void CursorInterruptEntry(int64_t x, int64_t y, int64_t z, uint64_t status){
 hidc::hidc(orbc* Parent){
     Orb = Parent;
 
-    FILE* KursorFile = fopen("d0:darkDefault.kursor", "rb"); // todo: kursor settings and use drive to store the cursor to d1:Bin/Kursors/
+    FILE* KursorFile = fopen("d0:/darkDefault.kursor", "rb"); // todo: kursor settings and use drive to store the cursor to d1:bin/Kursors/
 
     if(KursorFile == NULL) {
         kot_Printlog("[GRAPHICS/ORB] \033[0;31mERR:\033[0m Kursor file not found."); // todo: error log

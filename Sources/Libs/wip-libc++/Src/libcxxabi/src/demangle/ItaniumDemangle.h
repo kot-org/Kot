@@ -3672,7 +3672,7 @@ Node *AbstractManglingParser<Derived, Alloc>::parseQualifiedType() {
 
     // extension            ::= U <objc-name> <objc-type>  # objc-type<identifier>
     if (Qual.startsWith("objcproto")) {
-      StringView ProtoSourceName = Qual.dropFront(std::strlen("objcproto"));
+      StringView ProtoSourceName = Qual.dropFront(std::sizeof("objcproto"));
       StringView Proto;
       {
         SwapAndRestore<const char *> SaveFirst(First, ProtoSourceName.begin()),

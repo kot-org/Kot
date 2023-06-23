@@ -3,6 +3,8 @@
 #include <core/main.h>
 
 #include <stdio.h>
+#include <dirent.h>
+#include <limits.h>
 #include <kot/bits.h>
 #include <kot/authorization.h>
 #include <kot/uisd/srvs/system.h>
@@ -22,6 +24,8 @@ struct ClientVFSContext{
     struct partition_t* Partition;
     char* Path;
     size64_t PathLength;
+    char* AbsolutePath;
+    size64_t AbsolutePathLength;
     uint64_t StaticVolumeMountPoint;
     uint64_t DynamicVolumeMountPoint;
 };
@@ -44,7 +48,8 @@ KResult VFSRename(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext*
 KResult VFSDirCreate(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path, mode_t Mode);
 KResult VFSDirRemove(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path);
 KResult VFSDirOpen(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path, kot_process_t Target);
-
+KResult VFSGetCWD(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions);
+KResult VFSSetCWD(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext* Context, kot_permissions_t Permissions, char* Path);
 
 typedef KResult (*file_dispatch_t)(kot_thread_t Callback, uint64_t CallbackArg,  struct InitrdContext* Context, uint64_t GP0, uint64_t GP1, uint64_t GP2);
 
