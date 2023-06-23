@@ -32,10 +32,11 @@ void UpdateEntries(){
 }
 
 char* NextPath(char* Current, char* Target){
-    char* NextPath = (char*)malloc(strlen(Current) + strlen((char*)Target) + sizeof("/") + 1);
+    size_t Length = strlen(Current);
+    char* NextPath = (char*)malloc(Length + strlen((char*)Target) + sizeof("/") + 1);
     NextPath[0] = '\0';
     strcat(NextPath, (char*)Current);
-    if((uintptr_t)strchr(Current, ':') != ((uintptr_t)Current + strlen(Current)) - 1){
+    if(Current[Length - 1] != '/'){
         strcat(NextPath, "/");
     }
     strcat(NextPath, Target);
@@ -45,21 +46,20 @@ char* NextPath(char* Current, char* Target){
 char* LastPath(char* Current){
     char* LastDir = strrchr(Current, '/');
     if(LastDir == NULL){
-        char* LastDir = strchr(Current, ':');
-        if((uintptr_t)LastDir == ((uintptr_t)Current + strlen(Current)) - 1){
-            return NULL;
-        }
+        return NULL;
+    }else if(LastDir == strchr(Current, '/')){
         size_t Len = (uintptr_t)LastDir - (uintptr_t)Current + 1;
+        char* LastPath = (char*)malloc(Len + 1);
+        memcpy(LastPath, Current, Len);
+        LastPath[Len] = '\0';
+        return LastPath;       
+    }else{
+        size_t Len = (uintptr_t)LastDir - (uintptr_t)Current;
         char* LastPath = (char*)malloc(Len + 1);
         memcpy(LastPath, Current, Len);
         LastPath[Len] = '\0';
         return LastPath;
     }
-    size_t Len = (uintptr_t)LastDir - (uintptr_t)Current;
-    char* LastPath = (char*)malloc(Len + 1);
-    memcpy(LastPath, Current, Len);
-    LastPath[Len] = '\0';
-    return LastPath;
 }
 
 void OpenFolder(kui_Context* Ctx, char* Path){
@@ -206,10 +206,13 @@ void DrawFiles(kui_Context* Ctx){
                         // TODO
                     }
                 }else{
-                    char* Path = (char*)malloc(strlen(PathBarBuffer) + sizeof("/") + strlen(Entry->d_name) + 1);
+                    size_t Length = strlen(PathBarBuffer);
+                    char* Path = (char*)malloc(Length + sizeof("/") + strlen(Entry->d_name) + 1);
                     Path[0] = '\0';
                     strcat(Path, PathBarBuffer);
-                    strcat(Path, "/");
+                    if(PathBarBuffer[Length - 1] != '/'){
+                        strcat(Path, "/");
+                    }
                     strcat(Path, Entry->d_name);
 
                     char* Argv[] = {Path, NULL};
