@@ -269,7 +269,9 @@ char *realpath(const char *path, char *out) {
 			// Remove a single segment from resolv.
 			if(resolv.size() > 1) {
 				auto slash = strrchr(resolv.data(), '/');
-				__ensure(slash); // We never remove the leading sla.
+				if(!slash){
+					return 0;
+				}
 				resolv.resize((slash - resolv.data()) + 1);
 				*slash = 0; // Replace the slash by a null-terminator.
 			}

@@ -119,6 +119,10 @@ if not no_headers
 		'include/kot/uisd/srvs/storage/device.h',
 		subdir: 'kot/uisd/srvs/storage'
 	)
+	install_headers(
+		'include/sys/sysmacros.h',
+		subdir: 'sys'
+	)
 endif
 
 if not headers_only
