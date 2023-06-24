@@ -553,7 +553,6 @@ void kui_draw_text(kui_Context *ctx, kui_Font font, const char *str, int len,
   if (clipped) { kui_set_clip(ctx, unclipped_rect); }
 }
 
-
 void kui_draw_icon(kui_Context *ctx, int id, kui_Rect rect, kui_Color color) {
   kui_Command *cmd;
   /* do clip command if the rect isn't fully contained within the cliprect */
@@ -1079,9 +1078,11 @@ static void scrollbars(kui_Context *ctx, kui_Container *cnt, kui_Rect *body) {
   cs.x += ctx->style->padding * 2;
   cs.y += ctx->style->padding * 2;
   kui_push_clip_rect(ctx, *body);
+
   /* resize body to make room for scrollbars */
   if (cs.y > cnt->body.h) { body->w -= sz; }
   if (cs.x > cnt->body.w) { body->h -= sz; }
+
   /* to create a horizontal or vertical scrollbar almost-identical code is
   ** used; only the references to `x|y` `w|h` need to be switched */
   scrollbar(ctx, cnt, body, cs, x, y, w, h);
@@ -1129,16 +1130,19 @@ static void end_root_container(kui_Context *ctx) {
   pop_container(ctx);
 }
 
-
 int kui_begin_window_ex(kui_Context *ctx, const char *title, kui_Rect rect, int opt) {
   kui_Rect body;
   kui_Id id = kui_get_id(ctx, title, strlen(title));
   kui_Container *cnt = get_container(ctx, id, opt);
+
   if (!cnt || !cnt->open) { return 0; }
   if(!cnt->is_windows) kui_r_create_window(ctx, cnt, rect);
+
   /* we already set rect.x, rect.y as the position of the window so we don't need them anymore, because we want the component to be display at (0, 0)*/
   rect.x = 0;
   rect.y = 0;
+
+  static kui_Vec2 TitleClickOffset;
   
   push(ctx->id_stack, id);
 
@@ -1162,10 +1166,15 @@ int kui_begin_window_ex(kui_Context *ctx, const char *title, kui_Rect rect, int 
       kui_Id id = kui_get_id(ctx, "!title", 6);
       kui_update_control(ctx, id, tr, opt);
       kui_draw_control_text(ctx, title, tr, KUI_COLOR_TITLETEXT, opt);
-      if (id == ctx->focus && ctx->mouse_down == KUI_MOUSE_LEFT) {
-        // TODO
-        // kui_r_move_window(cnt, ctx->mouse_delta.x, ctx->mouse_delta.y);
+
+      if (id == ctx->focus && ctx->mouse_pressed == KUI_MOUSE_LEFT) {
+        TitleClickOffset.x = ctx->mouse_pos.x;
+        TitleClickOffset.y = ctx->mouse_pos.y;
       }
+      if (id == ctx->focus && ctx->mouse_down == KUI_MOUSE_LEFT) {
+        kui_r_move_window(cnt, ctx->mouse_pos, TitleClickOffset);
+      }
+
       body.y += tr.h;
       body.h -= tr.h;
     }
@@ -1179,6 +1188,7 @@ int kui_begin_window_ex(kui_Context *ctx, const char *title, kui_Rect rect, int 
       kui_update_control(ctx, id, r, opt);
       if (ctx->mouse_pressed == KUI_MOUSE_LEFT && id == ctx->focus) {
         cnt->open = 0;
+        // todo: close window
       }
     }
   }

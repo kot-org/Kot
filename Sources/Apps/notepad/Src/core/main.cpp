@@ -4,8 +4,13 @@ void DrawHeader(kui_Context* Ctx){
 
 }
 
-void DrawTexbox(kui_Context* Ctx){
+void DrawTextarea(kui_Context* Ctx){
+    char text[1024] = NULL;
 
+    kui_layout_row(Ctx, 1, (int[]){-1}, 50);
+    if(kui_textbox(Ctx, text, sizeof(text))) {
+
+    }
 }
 
 void WindowRenderer(kui_Context* Ctx){
@@ -18,7 +23,7 @@ void WindowRenderer(kui_Context* Ctx){
 
         DrawHeader(Ctx);
 
-        DrawTexbox(Ctx);
+        DrawTextarea(Ctx);
 
         kui_end_window(Ctx);
     }
