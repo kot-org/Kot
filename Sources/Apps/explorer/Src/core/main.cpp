@@ -3,10 +3,10 @@
 #define FIELD_WIDTH 90
 #define FIELD_HEIGHT 50
 
-#define ROOT_PATH "d1:/"
+#define ROOT_PATH "/d1:/"
 #define ROOT_PATH_LEN strlen(ROOT_PATH)
 
-#define USER_FOLDER "d1:/user/root/"
+#define USER_FOLDER "/d1:/user/root/"
 
 DIR* Directory;
 dirent* Entries[256];
@@ -33,7 +33,7 @@ void UpdateEntries(){
 
 char* NextPath(char* Current, char* Target){
     size_t Length = strlen(Current);
-    char* NextPath = (char*)malloc(Length + strlen((char*)Target) + sizeof("/") + 1);
+    char* NextPath = (char*)malloc(Length + strlen((char*)Target) + sizeof('/') + 1);
     NextPath[0] = '\0';
     strcat(NextPath, (char*)Current);
     if(Current[Length - 1] != '/'){
@@ -207,7 +207,7 @@ void DrawFiles(kui_Context* Ctx){
                     }
                 }else{
                     size_t Length = strlen(PathBarBuffer);
-                    char* Path = (char*)malloc(Length + sizeof("/") + strlen(Entry->d_name) + 1);
+                    char* Path = (char*)malloc(Length + sizeof('/') + strlen(Entry->d_name) + 1);
                     Path[0] = '\0';
                     strcat(Path, PathBarBuffer);
                     if(PathBarBuffer[Length - 1] != '/'){

@@ -97,7 +97,7 @@ void InitializeSrv(struct KernelInfo* kernelInfo){
 KResult LoadExecutable(kot_thread_t Callback, uint64_t CallbackArg, kot_process_t Process, uint64_t Priviledge, char* Path){
     // Load filesystem handler
     if(!KotSpecificData.VFSHandler){
-        kot_srv_storage_callback_t* Callback = kot_Srv_Storage_VFSLoginApp(ShareProcess, FS_AUTHORIZATION_HIGH, Storage_Permissions_Admin | Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, "d0:/", true);
+        kot_srv_storage_callback_t* Callback = kot_Srv_Storage_VFSLoginApp(ShareProcess, FS_AUTHORIZATION_HIGH, Storage_Permissions_Admin | Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, "/d0:/", true);
         KotSpecificData.VFSHandler = Callback->Data;
         free(Callback);
     }
@@ -138,7 +138,7 @@ KResult LoadExecutable(kot_thread_t Callback, uint64_t CallbackArg, kot_process_
 KResult LoadExecutableToProcess(kot_thread_t Callback, uint64_t CallbackArg, kot_process_t Process, void* Data, size64_t Size){
     // Load filesystem handler
     if(!KotSpecificData.VFSHandler){
-        kot_srv_storage_callback_t* Callback = kot_Srv_Storage_VFSLoginApp(ShareProcess, FS_AUTHORIZATION_HIGH, Storage_Permissions_Admin | Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, "d0:/", true);
+        kot_srv_storage_callback_t* Callback = kot_Srv_Storage_VFSLoginApp(ShareProcess, FS_AUTHORIZATION_HIGH, Storage_Permissions_Admin | Storage_Permissions_Read | Storage_Permissions_Write | Storage_Permissions_Create, "/d0:/", true);
         KotSpecificData.VFSHandler = Callback->Data;
         free(Callback);
     }

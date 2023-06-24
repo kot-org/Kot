@@ -107,9 +107,9 @@ char* GetAbsolutePath(partition_t* Partition, char* Path){
         if(Path[0] == '/'){
             Path++;
         }
-        sprintf(TmpPath, "d%d:/%s", Partition->StaticVolumeMountPoint, Path);
+        sprintf(TmpPath, "/d%d:/%s", Partition->StaticVolumeMountPoint, Path);
     }else{
-        sprintf(TmpPath, "d%d:/", Partition->StaticVolumeMountPoint);
+        sprintf(TmpPath, "/d%d:/", Partition->StaticVolumeMountPoint);
     }
     size_t Length = strlen(TmpPath);
     char* AbsolutePath = (char*)malloc(Length + 1);
@@ -119,136 +119,138 @@ char* GetAbsolutePath(partition_t* Partition, char* Path){
 }
 
 KResult GetVFSAbsolutePath(char** AbsolutePath, partition_t** Partition, char* Path){
-    std::StringBuilder* Sb = new std::StringBuilder(Path);
-    int64_t RelativePathStart = Sb->indexOf(":");
+    if(Path[0] == '/'){
+        std::StringBuilder* Sb = new std::StringBuilder(Path);
+        int64_t RelativePathStart = Sb->indexOf(":");
 
-    partition_t* PartitionContext;
+        partition_t* PartitionContext;
 
-    if(RelativePathStart == -1){
-        free(Sb);
-        return KFAIL;
-    }else if(RelativePathStart == 0){
-        free(Sb);
-        return KFAIL;
-    }else{
-        char* AccessTypeBuffer = Sb->substr(0, 1);
-        char* VolumeBuffer = Sb->substr(1, RelativePathStart);
-        *AbsolutePath = Sb->substr(RelativePathStart + 2, Sb->length());
+        if(RelativePathStart == -1){
+            free(Sb);
+            return KFAIL;
+        }else if(RelativePathStart == 0){
+            free(Sb);
+            return KFAIL;
+        }else{
+            char* AccessTypeBuffer = Sb->substr(1, 2);
+            char* VolumeBuffer = Sb->substr(2, RelativePathStart);
+            *AbsolutePath = Sb->substr(RelativePathStart + 2, Sb->length());
 
-        char AccessType = *AccessTypeBuffer;
-        uint64_t Volume = atoi(VolumeBuffer);
+            char AccessType = *AccessTypeBuffer;
+            uint64_t Volume = atoi(VolumeBuffer);
 
-        free(VolumeBuffer);
+            free(VolumeBuffer);
 
-        if(*AccessTypeBuffer == 's'){
-            // TODO
-            assert(0);
-        }else if(*AccessTypeBuffer == 'd'){
-            if(Volume >= PartitionsList->length){
-                free(Sb);
-                free(*AbsolutePath);
-                free(AccessTypeBuffer);
-                return KFAIL;                
-            }
-            PartitionContext = (partition_t*)kot_vector_get(PartitionsList, Volume);
-            if(!PartitionContext->IsMount){
+            if(*AccessTypeBuffer == 's'){
+                // TODO
+                assert(0);
+            }else if(*AccessTypeBuffer == 'd'){
+                if(Volume >= PartitionsList->length){
+                    free(Sb);
+                    free(*AbsolutePath);
+                    free(AccessTypeBuffer);
+                    return KFAIL;                
+                }
+                PartitionContext = (partition_t*)kot_vector_get(PartitionsList, Volume);
+                if(!PartitionContext->IsMount){
+                    free(Sb);
+                    free(*AbsolutePath);
+                    free(AccessTypeBuffer);
+                    return KFAIL;
+                }
+            }else{
                 free(Sb);
                 free(*AbsolutePath);
                 free(AccessTypeBuffer);
                 return KFAIL;
             }
-        }else{
-            free(Sb);
-            free(*AbsolutePath);
             free(AccessTypeBuffer);
-            return KFAIL;
         }
-        free(AccessTypeBuffer);
+        *Partition = PartitionContext;
+        free(Sb);
+        return KSUCCESS;
+    }else{
+        return KFAIL;
     }
-    *Partition = PartitionContext;
-    free(Sb);
-    return KSUCCESS;
 }
 
 KResult GetVFSAccessData(char** RelativePath, partition_t** Partition, ClientVFSContext* Context, char* Path){
+    partition_t* PartitionContext;
     if(Path[0] == '/'){
         if(!strncmp(Path, DEV_PATH, DEV_PATH_LEN)){
             // OS Services
             return GetDevAccessData(RelativePath, Partition, Context, Path);
         }else{
-            // Otherwise valid path can't begin with /
-            return KFAIL;
-        }
-    }
-
-    std::StringBuilder* Sb = new std::StringBuilder(Path);
-    int64_t RelativePathStart = Sb->indexOf(":");
-
-    partition_t* PartitionContext;
-    if(RelativePathStart == -1){
-        std::StringBuilder* RelativeSb = new std::StringBuilder(Context->Path);
-        if((uintptr_t)strrchr(Context->Path, '/') != (uintptr_t)Context->Path + strlen(Context->Path) - 1){
-            RelativeSb->append("/");
-        }
-        RelativeSb->append(Path);
-        *RelativePath = RelativeSb->toString();
-        PartitionContext = Context->Partition;
-    }else if(RelativePathStart == 0){
-        free(Sb);
-        return KFAIL;
-    }else{
-        char* AccessTypeBuffer = Sb->substr(0, 1);
-        char* VolumeBuffer = Sb->substr(1, RelativePathStart);
-        *RelativePath = Sb->substr(RelativePathStart + 2, Sb->length());
-
-        char AccessType = *AccessTypeBuffer;
-        uint64_t Volume = atoi(VolumeBuffer);
-
-        free(VolumeBuffer);
-
-        if(*AccessTypeBuffer == 's'){
-            // TODO
-            assert(0);
-        }else if(*AccessTypeBuffer == 'd'){
-            if(Context->DynamicVolumeMountPoint == Volume && !strncmp(*RelativePath, Context->Path, Context->PathLength)){
+            std::StringBuilder* Sb = new std::StringBuilder(Path);
+            int64_t RelativePathStart = Sb->indexOf(":");
+            if(RelativePathStart == -1){
+                *RelativePath = Sb->substr(1, Sb->length()); // remove the first slash
                 PartitionContext = Context->Partition;
-            }else{
-                if(Volume >= PartitionsList->length){
-                    free(Sb);
-                    free(*RelativePath);
-                    free(AccessTypeBuffer);
-                    return KFAIL;                
-                }
-                kot_authorization_t AuthorizationNeed = (Volume == Context->StaticVolumeMountPoint) ? FS_AUTHORIZATION_MEDIUM : FS_AUTHORIZATION_HIGH;
-                if(AuthorizationNeed > Context->Authorization){
-                    if(Volume > PartitionsList->length) return KNOTALLOW;
+                free(Sb);
+            }else if(RelativePathStart > 1){
+                char* AccessTypeBuffer = Sb->substr(1, 2);
+                char* VolumeBuffer = Sb->substr(2, RelativePathStart);
+                *RelativePath = Sb->substr(RelativePathStart + 2, Sb->length());
+                free(Sb);
 
-                    if(VFSAskForAuthorization(Context, AuthorizationNeed) != KSUCCESS){
-                        free(Sb);
-                        free(*RelativePath);
-                        free(AccessTypeBuffer);
-                        return KNOTALLOW;
+                char AccessType = *AccessTypeBuffer;
+                uint64_t Volume = atoi(VolumeBuffer);
+
+                free(VolumeBuffer);
+
+                if(*AccessTypeBuffer == 's'){
+                    // TODO
+                    assert(0);
+                }else if(*AccessTypeBuffer == 'd'){
+                    if(Context->DynamicVolumeMountPoint == Volume && !strncmp(*RelativePath, Context->Path, Context->PathLength)){
+                        PartitionContext = Context->Partition;
+                    }else{
+                        if(Volume >= PartitionsList->length){
+                            free(*RelativePath);
+                            free(AccessTypeBuffer);
+                            return KFAIL;                
+                        }
+                        kot_authorization_t AuthorizationNeed = (Volume == Context->StaticVolumeMountPoint) ? FS_AUTHORIZATION_MEDIUM : FS_AUTHORIZATION_HIGH;
+                        if(AuthorizationNeed > Context->Authorization){
+                            if(Volume > PartitionsList->length) return KNOTALLOW;
+
+                            if(VFSAskForAuthorization(Context, AuthorizationNeed) != KSUCCESS){
+                                free(*RelativePath);
+                                free(AccessTypeBuffer);
+                                return KNOTALLOW;
+                            }
+                        }
+                        PartitionContext = (partition_t*)kot_vector_get(PartitionsList, Volume);
+                        if(!PartitionContext->IsMount){
+                            free(*RelativePath);
+                            free(AccessTypeBuffer);
+                            return KFAIL;
+                        }
                     }
-                }
-                PartitionContext = (partition_t*)kot_vector_get(PartitionsList, Volume);
-                if(!PartitionContext->IsMount){
-                    free(Sb);
+                }else{
                     free(*RelativePath);
                     free(AccessTypeBuffer);
                     return KFAIL;
                 }
+                free(AccessTypeBuffer);
+            }else{
+                return KFAIL;
             }
-        }else{
-            free(Sb);
-            free(*RelativePath);
-            free(AccessTypeBuffer);
-            return KFAIL;
         }
-        free(AccessTypeBuffer);
+    }else{
+        std::StringBuilder* RelativeSb = new std::StringBuilder(Context->Path);
+        if(Context->Path){
+            if((uintptr_t)strrchr(Context->Path, '/') != (uintptr_t)Context->Path + strlen(Context->Path) - 1){
+                RelativeSb->append("/");
+            }
+        }
+        RelativeSb->append(Path);
+        *RelativePath = RelativeSb->toString();
+        PartitionContext = Context->Partition;
+        free(RelativeSb);
     }
 
     *Partition = PartitionContext;
-    free(Sb);
     return KSUCCESS;
 }
 
@@ -287,7 +289,7 @@ KResult VFSLoginApp(kot_thread_t Callback, uint64_t CallbackArg, kot_process_t P
         if(Context->Path){
             Context->PathLength = strlen(Context->Path);
         }else{
-            Context->PathLength = NULL;
+            Context->PathLength = 0;
         }
 
         Context->AbsolutePath = GetAbsolutePath(Context->Partition, Context->Path);
@@ -619,7 +621,7 @@ KResult VFSSetCWD(kot_thread_t Callback, uint64_t CallbackArg, ClientVFSContext*
 
     char TmpPath[PATH_MAX];
 
-    if(GetVFSAbsolutePath(&NewPath, &NewPartition, Path) == KSUCCESS){
+    if(GetVFSAccessData(&NewPath, &NewPartition, Context, Path) == KSUCCESS){
         char* NewAbsolutePath = GetAbsolutePath(NewPartition, NewPath);
         DIR* Directory = opendir(NewAbsolutePath);
         if(Directory){

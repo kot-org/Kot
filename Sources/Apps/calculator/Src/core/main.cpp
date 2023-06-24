@@ -85,7 +85,7 @@ void ClearCalculator() {
 }
 
 int main() {
-    UiWindow::Window* CalculatorWindow = new UiWindow::Window("Calculator", "d0:/calculator.tga", 400, 600, 10, 10);
+    UiWindow::Window* CalculatorWindow = new UiWindow::Window("Calculator", "/d0:/calculator.tga", 400, 600, 10, 10);
 
     CreateDisplay(CalculatorWindow->Cpnt);
 

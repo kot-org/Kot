@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    char* Prefix = "d1:/bin/";
+    char* Prefix = "/d1:/bin/";
     size_t PathSize = strlen(Prefix) + strlen(argv[1]) + 1;
     char* Path = (char*)calloc(PathSize, sizeof(char));
 

@@ -22,7 +22,7 @@ desktopc::desktopc(orbc* Parent){
     /* Play startup sound */
     Audio::Stream* St = new Audio::Stream(0);
 
-    FILE* MusicFile = fopen("d1:/kot/Sounds/startup.bin", "r");
+    FILE* MusicFile = fopen("/d1:/kot/Sounds/startup.bin", "r");
 
     if(MusicFile){
         fseek(MusicFile, 0, SEEK_END);
@@ -39,7 +39,7 @@ desktopc::desktopc(orbc* Parent){
 
 
     /* Load desktopUserSettings.json */
-    FILE* SettingsFile = fopen("d1:/user/root/Share/Settings/desktop.json", "r");
+    FILE* SettingsFile = fopen("/d1:/user/root/Share/Settings/desktop.json", "r");
 
     assert(SettingsFile != NULL);
 
@@ -221,7 +221,7 @@ KResult desktopc::AddMonitor(monitorc* Monitor){
             }
         , AppsContainer->Cpnt); */
 
-        /* Picturebox_t* AppIcon = Picturebox("d0:/kotlogo.tga", PictureboxType::_TGA,
+        /* Picturebox_t* AppIcon = Picturebox("/d0:/kotlogo.tga", PictureboxType::_TGA,
             {
                 .Fit = Ui::PICTUREFILL,
                 .Transparency = true,

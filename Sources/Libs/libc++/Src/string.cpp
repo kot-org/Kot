@@ -42,10 +42,15 @@ namespace std {
     }
 
     void StringBuilder::set(char* str) {
-        uint64_t fromSize = strlen(str);
-        buffer = (char*) malloc(fromSize+1);
-        memcpy(buffer, str, fromSize);
-        buffer[fromSize] = '\0';
+        if(str){
+            uint64_t fromSize = strlen(str);
+            buffer = (char*) malloc(fromSize+1);
+            memcpy(buffer, str, fromSize);
+            buffer[fromSize] = '\0';
+        }else{
+            buffer = (char*) malloc(1);
+            buffer[0] = '\0';
+        }
     }
 
     char* StringBuilder::substr(uint64_t startingAt, uint64_t endingAt) {

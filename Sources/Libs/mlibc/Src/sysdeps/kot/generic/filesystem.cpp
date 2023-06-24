@@ -401,6 +401,9 @@ namespace mlibc{
     int sys_chdir(const char *path){
         char AbsolutePathBuffer[PATH_MAX];
         char* AbsolutePath = realpath(path, AbsolutePathBuffer);
+        if(!AbsolutePath){
+            return -1;
+        }
         kot_srv_storage_callback_t* Callback = kot_Srv_Storage_SetCWD((char*)AbsolutePath, true);
         KResult Status = Callback->Status;
         free(Callback);

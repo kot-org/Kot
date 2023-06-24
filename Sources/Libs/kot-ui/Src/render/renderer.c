@@ -80,7 +80,7 @@ void kui_r_event_handler(enum kot_Window_Event EventType, uint64_t GP0, uint64_t
 }
 
 void kui_r_init(){
-  kot_GetTableConverter("d0:/azerty.bin", &kui_TableConverter, &kui_TableConverterCharCount);
+  kot_GetTableConverter("/d0:/azerty.bin", &kui_TableConverter, &kui_TableConverterCharCount);
 }
 
 void kui_r_create_window(kui_Context *ctx, kui_Container *cnt, kui_Rect rect){
@@ -100,7 +100,7 @@ void kui_r_create_window(kui_Context *ctx, kui_Container *cnt, kui_Rect rect){
   cnt->window_parent->backbuffer.Buffer = calloc(1, cnt->window_parent->backbuffer.Size);
 
   /* Load default font */
-  FILE* DefaultFontFile = fopen("d0:/arial.ttf", "r");
+  FILE* DefaultFontFile = fopen("/d0:/arial.ttf", "r");
   fseek(DefaultFontFile, 0, SEEK_END);
   size64_t DefaultFontSize = ftell(DefaultFontFile);
   void* DefaultFontBuffer = malloc(DefaultFontSize);
@@ -112,7 +112,7 @@ void kui_r_create_window(kui_Context *ctx, kui_Container *cnt, kui_Rect rect){
   LoadPen(cnt->window_parent->default_font, &cnt->window_parent->backbuffer, 0, 0, 12, 0, 0xffffff);
 
   /* Load icons font */
-  FILE* IconsFontFile = fopen("d0:/icons.ttf", "r");
+  FILE* IconsFontFile = fopen("/d0:/icons.ttf", "r");
   fseek(IconsFontFile, 0, SEEK_END);
   size64_t IconsFontSize = ftell(IconsFontFile);
   void* IconsFontBuffer = malloc(IconsFontSize);

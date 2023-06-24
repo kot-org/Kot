@@ -101,7 +101,7 @@ void CreateDisplay(Component* Window) {
     , Main->Cpnt);
 
     // Load font
-    FILE* FontFile = fopen("d0:/default-font.ttf", "rb");
+    FILE* FontFile = fopen("/d0:/default-font.ttf", "rb");
     assert(FontFile != NULL);
 
     fseek(FontFile, 0, SEEK_END);

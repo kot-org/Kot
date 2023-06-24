@@ -109,7 +109,7 @@ shell_t* NewShell(kot_process_t Target){
     Shell->TextFramebuffer.Buffer = NULL;
 
     /* Load default font */
-    FILE* DefaultFontFile = fopen("d0:/arial.ttf", "r");
+    FILE* DefaultFontFile = fopen("/d0:/arial.ttf", "r");
     fseek(DefaultFontFile, 0, SEEK_END);
     size64_t DefaultFontSize = ftell(DefaultFontFile);
     void* DefaultFontBuffer = malloc(DefaultFontSize);
