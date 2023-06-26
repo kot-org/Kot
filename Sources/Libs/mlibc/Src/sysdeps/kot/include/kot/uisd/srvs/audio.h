@@ -111,6 +111,23 @@ struct kot_srv_audio_callback_t* kot_Srv_Audio_GetDeviceInfo(uint64_t OutputID, 
 
 struct kot_srv_audio_callback_t* kot_Srv_Audio_AddDevice(kot_srv_audio_device_t* Device, bool IsAwait);
 
+static inline size_t kot_Srv_Audio_GetEncodingSize(enum kot_AudioEncoding Encoding){
+    switch (Encoding){
+        case AudioEncodingPCMS8LE:
+            return 1;   
+        case AudioEncodingPCMS16LE:
+            return 2;        
+        case AudioEncodingPCMS20LE:
+            return 4;        
+        case AudioEncodingPCMS24LE:
+            return 4;        
+        case AudioEncodingPCMS32LE:
+            return 4;        
+        default:
+            return 0;
+    }
+}
+
 
 #if defined(__cplusplus)
 } 

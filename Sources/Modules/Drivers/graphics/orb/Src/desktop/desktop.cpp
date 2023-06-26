@@ -20,21 +20,21 @@ desktopc::desktopc(orbc* Parent){
     kot_Printlog("[ORB/DESKTOP] Initializing...");
     
     /* Play startup sound */
-    Audio::Stream* St = new Audio::Stream(0);
+    // Audio::Stream* St = new Audio::Stream(0);
 
-    FILE* MusicFile = fopen("/d1:/kot/Sounds/startup.bin", "r");
+    // FILE* MusicFile = fopen("/d1:/kot/Sounds/startup.bin", "r");
 
-    if(MusicFile){
-        fseek(MusicFile, 0, SEEK_END);
-        size64_t FileSize = ftell(MusicFile);
-        fseek(MusicFile, 0, SEEK_SET); 
+    // if(MusicFile){
+    //     fseek(MusicFile, 0, SEEK_END);
+    //     size64_t FileSize = ftell(MusicFile);
+    //     fseek(MusicFile, 0, SEEK_SET); 
 
-        void* FileBuf = malloc(FileSize);
-        fread(FileBuf, FileSize, 1, MusicFile);
-        fclose(MusicFile);
+    //     void* FileBuf = malloc(FileSize);
+    //     fread(FileBuf, FileSize, 1, MusicFile);
+    //     fclose(MusicFile);
 
-        St->AddBuffer(FileBuf, FileSize);
-    }
+    //     St->AddBuffer(FileBuf, FileSize);
+    // }
 
 
 

@@ -11,10 +11,13 @@
 #include <kot++/vector.h>
 
 namespace Audio{
+    typedef void (*BufferCallback)(struct Buffer* Buf);
 
     struct Buffer{
         kot_memory_buffer_t Buffer;
         uint64_t Index;
+        uint64_t NextIndex;
+        BufferCallback Callback;
     };
 
     class Stream{
@@ -24,9 +27,14 @@ namespace Audio{
             kot_srv_audio_device_info_t* GetDeviceInfoStream();
             KResult SetVolume(uint8_t Volume);
             KResult OnDeviceUpdate(uint64_t DeviceID, uint64_t OldDeviceID);
-            template <typename T> KResult MixAudioBuffers();
+            KResult WriteBuffer(uint64_t Offset, size64_t SizeToProcess);
+            KResult LoadBuffer();
             KResult OnOffsetUpdate();
-            KResult AddBuffer(void* Base, size64_t Size);
+            KResult FindNext();
+            int64_t AddBuffer(void* Base, size64_t Size, int64_t LastBufferIndex, BufferCallback Callback);
+            kot_audio_format* GetStreamFormat();
+
+            void* ExternalData;
         private:
             uint64_t Lock;
             uint64_t OutputID;

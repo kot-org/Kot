@@ -71,6 +71,9 @@ namespace std{
             }
 
             T& get(uint64_t Index){
+                if(Index < 0 || Index >= Size){
+                    return Data[0];
+                }
                 atomicAcquire(&Lock, 0);
                 T& DataOutput = Data[Index];
                 atomicUnlock(&Lock, 0);

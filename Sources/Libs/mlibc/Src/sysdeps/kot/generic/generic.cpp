@@ -38,11 +38,13 @@ namespace mlibc{
     }
 
     int sys_futex_wait(int *pointer, int expected, const struct timespec *time){
+        return 0;
         // TODO
         __ensure(!"Not implemented");
     }
 
     int sys_futex_wake(int *pointer){
+        return 0;
         // TODO
         __ensure(!"Not implemented");
     }

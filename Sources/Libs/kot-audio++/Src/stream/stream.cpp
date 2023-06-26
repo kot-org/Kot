@@ -34,12 +34,14 @@ namespace Audio{
             struct kot_srv_audio_callback_t* Callback = kot_Srv_Audio_RequestStream(DeviceID, true);
             StreamBuffer = (kot_audio_share_buffer_t*)Callback->Data;
             free(Callback);
+            size64_t Size = 0;
+            kot_Sys_GetInfoMemoryField(StreamBuffer->StreamBufferKey, NULL, &Size);
+            LocalStreamBuffer.Base = kot_GetFreeAlignedSpace(Size);
             kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), StreamBuffer->StreamBufferKey, &LocalStreamBuffer.Base);
             LocalStreamBuffer.Size = StreamBuffer->StreamRealSize;
             kot_Sys_Event_Bind(StreamBuffer->OnOffsetUpdate, OffsetUpdate, false);
         }
         atomicUnlock(&Lock, 0);
-
     }
 
     Stream::~Stream(){
@@ -70,7 +72,10 @@ namespace Audio{
                 free(StreamBuffer);
             }
             struct kot_srv_audio_callback_t* Callback = kot_Srv_Audio_RequestStream(OutputID, true);
-            StreamBuffer = (kot_audio_share_buffer_t*)Callback->Data;      
+            StreamBuffer = (kot_audio_share_buffer_t*)Callback->Data;   
+            size64_t Size = 0;
+            kot_Sys_GetInfoMemoryField(StreamBuffer->StreamBufferKey, NULL, &Size);
+            LocalStreamBuffer.Base = kot_GetFreeAlignedSpace(Size);   
             kot_Sys_AcceptMemoryField(kot_Sys_GetProcess(), StreamBuffer->StreamBufferKey, &LocalStreamBuffer.Base);
             LocalStreamBuffer.Size = StreamBuffer->StreamRealSize; 
             kot_Sys_Event_Bind(StreamBuffer->OnOffsetUpdate, OffsetUpdate, false);     
@@ -79,18 +84,37 @@ namespace Audio{
         return KSUCCESS;
     }
 
-    template <typename T> 
-    KResult Stream::MixAudioBuffers(){
-        uint64_t Offset = (*(uint64_t*)((uint64_t)LocalStreamBuffer.Base + StreamBuffer->PositionOfStreamData) + (StreamBuffer->SizeOffsetUpdateToTrigger * 2)) % StreamBuffer->StreamSize;
-        uint64_t SizeToProcess = StreamBuffer->SizeOffsetUpdateToTrigger;
-        if(InputStreams[0].Index > InputStreams[0].Buffer.Size + StreamBuffer->SizeOffsetUpdateToTrigger){
-            SizeToProcess = InputStreams[0].Index % StreamBuffer->SizeOffsetUpdateToTrigger;
+    KResult Stream::WriteBuffer(uint64_t Offset, size64_t SizeToProcess){
+        ssize_t SizeToProcessFirst = SizeToProcess;
+        ssize_t SizeToProcessEnd = 0;
+        if(SizeToProcessFirst + Offset > StreamBuffer->StreamSize){
+            SizeToProcessFirst = StreamBuffer->StreamSize - Offset;
+            SizeToProcessEnd = SizeToProcess - SizeToProcessFirst;
         }
-        for(uint64_t i = 0; i < SizeToProcess; i += sizeof(T)){
-            *(T*)((uint64_t)LocalStreamBuffer.Base + ((Offset + i) % LocalStreamBuffer.Size)) = *(T*)((uint64_t)InputStreams[0].Buffer.Base + InputStreams[0].Index + i);
-        }
-        InputStreams[0].Index += SizeToProcess;
+        
+        memcpy((void*)((uintptr_t)LocalStreamBuffer.Base + Offset), (void*)((uintptr_t)InputStreams[0].Buffer.Base + InputStreams[0].Index), SizeToProcessFirst);
+        InputStreams[0].Index += SizeToProcessFirst;
+        memcpy(LocalStreamBuffer.Base, (void*)((uintptr_t)InputStreams[0].Buffer.Base + InputStreams[0].Index), SizeToProcessEnd);
+        InputStreams[0].Index += SizeToProcessEnd;
 
+        return KSUCCESS;
+    }
+
+    KResult Stream::LoadBuffer(){
+        uint64_t Offset = (*(uint64_t*)((uint64_t)LocalStreamBuffer.Base + StreamBuffer->PositionOfStreamData) + (StreamBuffer->SizeOffsetUpdateToTrigger * 2)) % StreamBuffer->StreamSize;
+        size64_t SizeToProcess = StreamBuffer->SizeOffsetUpdateToTrigger;
+        if(InputStreams[0].Index + InputStreams[0].Buffer.Size > StreamBuffer->SizeOffsetUpdateToTrigger){
+            SizeToProcess = InputStreams[0].Buffer.Size - InputStreams[0].Index;
+        }
+        WriteBuffer(Offset, SizeToProcess);
+        // if(InputStreams[0].Index >= InputStreams[0].Buffer.Size){
+        //     uint64_t NewOffset = Offset + SizeToProcess;
+        //     size64_t NewSizeToProcess = StreamBuffer->SizeOffsetUpdateToTrigger - SizeToProcess;
+        //     FindNext();
+        //     if(InputStreams.size() >= 1){
+        //         WriteBuffer(NewOffset, NewSizeToProcess);
+        //     }
+        // }
         return KSUCCESS;
     }
 
@@ -98,32 +122,65 @@ namespace Audio{
         // TODO : mix more than one stream
         if(InputStreams.size() >= 1){
             if(InputStreams[0].Index >= InputStreams[0].Buffer.Size){
-                InputStreams.remove(0);
-                // Clear buffer
-                memset(LocalStreamBuffer.Base, 0, LocalStreamBuffer.Size);
-            }else{
-                if(StreamBuffer->Format.Encoding == AudioEncodingPCMS8LE || StreamBuffer->Format.Encoding == AudioEncodingPCMS16LE){
-                    MixAudioBuffers<uint16_t>();
-                }else{
-                    MixAudioBuffers<uint32_t>();
+                FindNext();
+                if(InputStreams.size() >= 1){
+                    LoadBuffer();
                 }
+            }else{
+                LoadBuffer();
             }
         }
         return KSUCCESS;
     }
 
-    KResult Stream::AddBuffer(void* Base, size64_t Size){
+    KResult Stream::FindNext(){
+        atomicAcquire(&Lock, 1);
+        KResult Status = KFAIL;
+        if(InputStreams.size() >= 1){
+            InputStreams[0].Callback(&InputStreams[0]);
+            uint64_t NextIndex = InputStreams[0].NextIndex;
+            if(NextIndex){
+                InputStreams.set(0, InputStreams[NextIndex]);
+                InputStreams.remove(NextIndex);
+            }else{
+                InputStreams.remove(0);
+            }
+            Status = KSUCCESS;
+        }
+        atomicUnlock(&Lock, 1);  
+        return Status;     
+    }
+
+    int64_t Stream::AddBuffer(void* Base, size64_t Size, int64_t LastBufferIndex, BufferCallback Callback){
+        atomicAcquire(&Lock, 1);
+        Buffer* Last = NULL;
+
+        if(LastBufferIndex >= 0 && LastBufferIndex < InputStreams.size()){
+            Last = &InputStreams[LastBufferIndex];
+        }
+
         Buffer NewBuffer{
             .Buffer{
                 .Base = Base,
                 .Size = Size,
             },
             .Index = 0,
+            .NextIndex = 0,
+            .Callback = Callback,
         };
 
-        InputStreams.push(NewBuffer);
+        uint64_t Index = InputStreams.push(NewBuffer);
+        if(Last){
+            if(Last->Buffer.Base && Index != LastBufferIndex){
+                Last->NextIndex = Index;
+            }
+        }
+        atomicUnlock(&Lock, 1);
+        return static_cast<int64_t>(Index);
+    }
 
-        return KSUCCESS;
+    kot_audio_format* Stream::GetStreamFormat(){
+        return &StreamBuffer->Format;
     }
 
 }

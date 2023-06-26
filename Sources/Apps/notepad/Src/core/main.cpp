@@ -5,7 +5,7 @@ void DrawHeader(kui_Context* Ctx){
 }
 
 void DrawTextarea(kui_Context* Ctx){
-    char text[1024] = NULL;
+    char text[1024];
 
     kui_layout_row(Ctx, 1, (int[]){-1}, 50);
     if(kui_textbox(Ctx, text, sizeof(text))) {
