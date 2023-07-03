@@ -26,7 +26,8 @@ int main(int argc, char* argv[]){
     kot_Srv_Time_SetTickPointerKey(&Hpet->MainCounterAddress, Hpet->TickPeriod, true);
 
     kot_Printlog("[TIMER/HPET] Initialized with success");
-    return KSUCCESS;
+    
+    kot_Sys_Close(KSUCCESS); /* Don't close the process */
 }
 
 uint64_t HPET_t::ReadRegister(uint64_t offset){

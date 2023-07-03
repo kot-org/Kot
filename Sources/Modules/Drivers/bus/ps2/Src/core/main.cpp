@@ -39,7 +39,8 @@ int main(int argc, char* argv[]){
     EnablePorts();
     
     kot_Printlog("[BUS/PS2] Driver initialized successfully");
-    return KSUCCESS;
+    
+    kot_Sys_Close(KSUCCESS); /* Don't close the process */
 }
 
 void DisablePorts(){

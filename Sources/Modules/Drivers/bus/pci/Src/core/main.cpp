@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
 
     kot_Printlog("[BUS/PCI] Driver initialized successfully");
 
-    return KSUCCESS;
+    kot_Sys_Close(KSUCCESS); /* Don't close the process */
 }
 
 /* List functions */

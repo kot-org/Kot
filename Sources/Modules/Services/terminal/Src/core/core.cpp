@@ -13,6 +13,21 @@ uint64_t LineCount(char* Str){
     return Count;
 }
 
+uint64_t LineCountN(char* Str, size_t Size){
+    uint64_t Count = 0;
+    size_t SizeRead = 1;
+    
+    while(*Str && SizeRead != Size){
+        if(*Str == '\n'){
+            Count++;
+        }
+        Str++;
+        SizeRead++;
+    }
+    
+    return Count;
+}
+
 char* GetNextLine(char* Str){
     char* Tmp = Str;
     while(*Str){
@@ -139,7 +154,7 @@ void ShellPrintWU(shell_t* Shell, void* Buffer, size64_t Size){
     void* OldBuffer = Shell->OutputBuffer;
     Shell->OutputBuffer = (char*)realloc(Shell->OutputBuffer, Shell->OutputBufferSize);
     Shell->OuputBufferLastShow = (char*)((uintptr_t)Shell->OuputBufferLastShow - (uintptr_t)OldBuffer + (uintptr_t)Shell->OutputBuffer);
-    uint64_t BufferLineCount = LineCount((char*)Buffer);
+    uint64_t BufferLineCount = LineCountN((char*)Buffer, Size);
     Shell->LineNumberShow += BufferLineCount;
     if(BufferLineCount < Shell->LineNumberMax){
         for(uint64_t i = Shell->LineNumberMax; Shell->LineNumberMax < Shell->LineNumberShow;){

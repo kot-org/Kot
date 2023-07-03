@@ -34,5 +34,5 @@ int main(){
     InitialiseServer(Orb);
     kot_Printlog("[GRAPHICS/ORB] Service started");
     
-    return KSUCCESS;
+    kot_Sys_Close(KSUCCESS); /* Don't close the process */
 }

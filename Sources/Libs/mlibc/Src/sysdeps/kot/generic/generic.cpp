@@ -30,7 +30,7 @@ namespace mlibc{
     }
 
     int sys_tcb_set(void *pointer){
-        return (kot_Sys_SetTCB(kot_Sys_GetThread(), (void*)pointer) != KSUCCESS);
+        return -(kot_Sys_SetTCB(kot_Sys_GetThread(), (void*)pointer) != KSUCCESS);
     }
 
     int sys_futex_tid(){
@@ -39,14 +39,14 @@ namespace mlibc{
 
     int sys_futex_wait(int *pointer, int expected, const struct timespec *time){
         return 0;
-        // TODO
         __ensure(!"Not implemented");
+        // TODO
     }
 
     int sys_futex_wake(int *pointer){
         return 0;
-        // TODO
         __ensure(!"Not implemented");
+        // TODO
     }
 
     int sys_anon_allocate(size_t size, void **pointer){
@@ -70,12 +70,16 @@ namespace mlibc{
 
     int sys_vm_map(void *hint, size_t size, int prot, int flags, int fd, off_t offset, void **window){
         // TODO
-        __ensure(!"Not implemented");
-        return (Syscall_48(KSys_Map, kot_Sys_GetProcess(), (uint64_t)&hint, 0, 0, (uint64_t)&size, false) != KSUCCESS);
+        if(hint){
+            *window = hint;
+            return -(Syscall_48(KSys_Map, kot_Sys_GetProcess(), (uint64_t)window, 0, 0, (uint64_t)&size, false) != KSUCCESS);
+        }else{
+            return sys_anon_allocate(size, window);
+        }
     }
 
     int sys_vm_unmap(void *pointer, size_t size){
-        return (kot_Sys_Unmap(kot_Sys_GetProcess(), (void*)pointer, static_cast<size64_t>(size)) != KSUCCESS);
+        return -(kot_Sys_Unmap(kot_Sys_GetProcess(), (void*)pointer, static_cast<size64_t>(size)) != KSUCCESS);
     }
 
     int sys_vm_protect(void *pointer, size_t size, int prot){
@@ -142,15 +146,15 @@ namespace mlibc{
             // We are parent
             *child = ProcessChild;
         }
-        return (Status != KSUCCESS);
+        return -(Status != KSUCCESS);
     }
 
     int sys_waitpid(pid_t pid, int *status, int flags, struct rusage *ru, pid_t *ret_pid){
         if(ru) {
             mlibc::infoLogger() << "mlibc: struct rusage in sys_waitpid is unsupported" << frg::endlog;
-            return ENOSYS;
+            return -ENOSYS;
         }
-        return (kot_Sys_WaitPID(pid, status, flags) != KSUCCESS);
+        return -(kot_Sys_WaitPID(pid, status, flags) != KSUCCESS);
     }
 
     int sys_execve(const char *path, char *const argv[], char *const envp[]){
@@ -193,7 +197,7 @@ namespace mlibc{
         __ensure(kot_Sys_Map(kot_Sys_GetProcess(), (void**)&VirtualAddress, AllocationTypeBasic, NULL, (size64_t*)&SizeToAlloc, false) == KSUCCESS);
         void* Buffer = (void*)((uintptr_t)CurrentSeg + sizeof(size64_t));
         KotSpecificData.HeapLocation = (uint64_t)((uintptr_t)KotSpecificData.HeapLocation + SizeToAlloc + KotSpecificData.MMapPageSize); // Add page size for the guard
-        *CurrentSeg = SizeToAlloc;
+        *CurrentSeg = size;
         atomicUnlock(&sys_debug_malloc_lock, 0);
         return Buffer;
     }
@@ -204,8 +208,9 @@ namespace mlibc{
             return NULL;
         }
         if(ptr != NULL){
-            uint64_t oldSize = *(uint64_t*)((uintptr_t)ptr - sizeof(uint64_t));
-            if (size < oldSize) {
+            size64_t oldSize = *(size64_t*)((uintptr_t)ptr - sizeof(size64_t));
+            if(oldSize > size){
+                mlibc::infoLogger() << size << " " << oldSize << frg::endlog;
                 oldSize = size;
             }
             memcpy(newBuffer, ptr, oldSize);

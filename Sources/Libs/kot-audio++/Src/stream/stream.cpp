@@ -85,8 +85,8 @@ namespace Audio{
     }
 
     KResult Stream::WriteBuffer(uint64_t Offset, size64_t SizeToProcess){
-        ssize_t SizeToProcessFirst = SizeToProcess;
-        ssize_t SizeToProcessEnd = 0;
+        size_t SizeToProcessFirst = SizeToProcess;
+        size_t SizeToProcessEnd = 0;
         if(SizeToProcessFirst + Offset > StreamBuffer->StreamSize){
             SizeToProcessFirst = StreamBuffer->StreamSize - Offset;
             SizeToProcessEnd = SizeToProcess - SizeToProcessFirst;
@@ -103,18 +103,27 @@ namespace Audio{
     KResult Stream::LoadBuffer(){
         uint64_t Offset = (*(uint64_t*)((uint64_t)LocalStreamBuffer.Base + StreamBuffer->PositionOfStreamData) + (StreamBuffer->SizeOffsetUpdateToTrigger * 2)) % StreamBuffer->StreamSize;
         size64_t SizeToProcess = StreamBuffer->SizeOffsetUpdateToTrigger;
-        if(InputStreams[0].Index + InputStreams[0].Buffer.Size > StreamBuffer->SizeOffsetUpdateToTrigger){
-            SizeToProcess = InputStreams[0].Buffer.Size - InputStreams[0].Index;
+        if(InputStreams[0].Index + StreamBuffer->SizeOffsetUpdateToTrigger > InputStreams[0].Buffer.Size){
+            uint64_t SizeToWrite = StreamBuffer->SizeOffsetUpdateToTrigger;
+            uint64_t CurrentOffset = Offset;
+            while(SizeToWrite){
+                SizeToProcess = InputStreams[0].Buffer.Size - InputStreams[0].Index;
+                if(SizeToProcess > SizeToWrite){
+                    SizeToProcess = SizeToWrite;
+                }
+                WriteBuffer(CurrentOffset, SizeToProcess);
+                if(InputStreams[0].Buffer.Size >= InputStreams[0].Index){
+                    FindNext();
+                    if(InputStreams.size() < 1){
+                        break;
+                    }
+                }
+                SizeToWrite -= SizeToProcess;
+                CurrentOffset = (CurrentOffset + SizeToProcess) % StreamBuffer->StreamSize;
+            }
+        }else{
+            WriteBuffer(Offset, SizeToProcess);
         }
-        WriteBuffer(Offset, SizeToProcess);
-        // if(InputStreams[0].Index >= InputStreams[0].Buffer.Size){
-        //     uint64_t NewOffset = Offset + SizeToProcess;
-        //     size64_t NewSizeToProcess = StreamBuffer->SizeOffsetUpdateToTrigger - SizeToProcess;
-        //     FindNext();
-        //     if(InputStreams.size() >= 1){
-        //         WriteBuffer(NewOffset, NewSizeToProcess);
-        //     }
-        // }
         return KSUCCESS;
     }
 
@@ -129,6 +138,9 @@ namespace Audio{
             }else{
                 LoadBuffer();
             }
+        }else{
+            uint64_t Offset = (*(uint64_t*)((uint64_t)LocalStreamBuffer.Base + StreamBuffer->PositionOfStreamData) + (StreamBuffer->SizeOffsetUpdateToTrigger * 2)) % StreamBuffer->StreamSize;
+            memset((void*)((uintptr_t)LocalStreamBuffer.Base + Offset), 0, StreamBuffer->SizeOffsetUpdateToTrigger);
         }
         return KSUCCESS;
     }
@@ -137,7 +149,7 @@ namespace Audio{
         atomicAcquire(&Lock, 1);
         KResult Status = KFAIL;
         if(InputStreams.size() >= 1){
-            InputStreams[0].Callback(&InputStreams[0]);
+            InputStreams[0].Callback((void*)this, &InputStreams[0]);
             uint64_t NextIndex = InputStreams[0].NextIndex;
             if(NextIndex){
                 InputStreams.set(0, InputStreams[NextIndex]);

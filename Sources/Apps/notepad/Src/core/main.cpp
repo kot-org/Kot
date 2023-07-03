@@ -33,5 +33,5 @@ void WindowRenderer(kui_Context* Ctx){
 
 int main(int argc, char* argv[]){
     kui_init(WindowRenderer, NULL);
-    return KSUCCESS;
+    kot_Sys_Close(KSUCCESS); /* Don't close the process */
 }

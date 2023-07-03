@@ -6,5 +6,5 @@ int main(int argc, char* argv[]){
     InitialiseServer();
     kot_Printlog("[Time] Service loaded");
 
-    return KSUCCESS;
+    kot_Sys_Close(KSUCCESS); /* Don't close the process */
 }

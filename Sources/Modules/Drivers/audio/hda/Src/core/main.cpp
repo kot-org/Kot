@@ -28,5 +28,5 @@ int main(int argc, char* argv[]) {
 
     kot_Printlog("[AUDIO/HDA] Driver initialized successfully");
 
-    return KSUCCESS;
+    kot_Sys_Close(KSUCCESS); /* Don't close the process */
 }

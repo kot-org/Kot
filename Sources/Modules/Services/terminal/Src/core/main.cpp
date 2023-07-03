@@ -2,5 +2,6 @@
 
 int main(){
     SrvInitalize();
-    return KSUCCESS;
+    
+    kot_Sys_Close(KSUCCESS); /* Don't close the process */
 }

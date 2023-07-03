@@ -70,6 +70,9 @@ static kui_Style default_style = {
     { 30,  30,  30,  255 }, /* KUI_COLOR_BASE */
     { 35,  35,  35,  255 }, /* KUI_COLOR_BASEHOVER */
     { 40,  40,  40,  255 }, /* KUI_COLOR_BASEFOCUS */
+    { 150, 150, 150, 255 }, /* KUI_COLOR_THUMB */
+    { 230, 230, 230, 255 }, /* KUI_COLOR_THUMBHOVER */
+    { 170, 170, 170, 255 }, /* KUI_COLOR_THUMBFOCUS */
     { 30,  30,  30,  255 }, /* KUI_COLOR_SCROLLBASE */
     { 43,  43,  43,  255 }, /* KUI_COLOR_SCROLLTHUMB */
   }
@@ -931,7 +934,7 @@ int kui_slider_ex(kui_Context *ctx, kui_Real *value, kui_Real low, kui_Real high
   w = ctx->style->thumb_size;
   x = (v - low) * (base.w - w) / (high - low);
   thumb = kui_rect(base.x + x, base.y, w, base.h);
-  kui_draw_control_frame(ctx, id, thumb, KUI_COLOR_BUTTON, opt);
+  kui_draw_control_frame(ctx, id, thumb, KUI_COLOR_THUMB, opt);
   /* draw text  */
   sprintf(buf, fmt, v);
   kui_draw_control_text(ctx, buf, base, KUI_COLOR_TEXT, opt);

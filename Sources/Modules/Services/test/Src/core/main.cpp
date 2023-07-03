@@ -37,4 +37,6 @@ int main(int argc, char* argv[]){
     CreateControllerUISD(ControllerTypeEnum_Test, key, true);
 
     kot_Printlog("[Test] End");
+
+    kot_Sys_Close(KSUCCESS); /* Don't close the process */
 }

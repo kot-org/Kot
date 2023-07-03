@@ -11,7 +11,7 @@
 #include <kot++/vector.h>
 
 namespace Audio{
-    typedef void (*BufferCallback)(struct Buffer* Buf);
+    typedef void (*BufferCallback)(void* Stream, struct Buffer* Buf);
 
     struct Buffer{
         kot_memory_buffer_t Buffer;

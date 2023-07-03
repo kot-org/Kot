@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     kot_time_t* Time;
     kot_Srv_Time_SetTimePointerKey(&Time, true);
 
-    while (true){
+    while(true){
         Time->Year = RTCGetYear() + 2000;
         Time->Month = RTCGetMonth();
         Time->Day = RTCGetDayOfMonth();
@@ -108,5 +108,6 @@ int main(int argc, char* argv[]) {
         Time->Second = RTCGetSecond();
         kot_SleepFromTick(&TimerState, 1000);
     }
-    return KSUCCESS;
+
+    kot_Sys_Close(KSUCCESS); /* Don't close the process */
 }

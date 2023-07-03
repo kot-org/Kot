@@ -17,4 +17,6 @@ int main(int argc, char* argv[]){
     kot_Printlog((char*)addressReceiveShare);
 
     kot_Printlog("[Test1] End");
+
+    kot_Sys_Close(KSUCCESS); /* Don't close the process */
 }

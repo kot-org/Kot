@@ -1,5 +1,8 @@
 #pragma once
 
+#include <frg/string.hpp>
+#include <frg/vector.hpp>
+#include <mlibc/debug.hpp>
 #include <mlibc/thread.hpp>
 #include <mlibc/internal-sysdeps.hpp>
 

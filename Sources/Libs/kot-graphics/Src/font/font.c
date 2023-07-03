@@ -16,7 +16,6 @@ typedef struct {
     kot_framebuffer_t fb;
     FT_Vector pen; 
     kfont_dot_t size;
-    kfont_pos_t x;
 }local_kfont_t;
 
 kfont_t LoadFont(void* data, size_t size){
@@ -91,7 +90,6 @@ KResult SetPenPosX(kfont_t opaque, kfont_pos_t x){
     local_kfont_t* font = (local_kfont_t*)opaque;
 
     font->pen.x = x;
-    font->x = x;
     return KSUCCESS;
 }
 
@@ -190,44 +188,7 @@ kfont_pos_t GetGlyphBearingY(kfont_t opaque){
 }
 
 KResult DrawFont(kfont_t opaque, char* str){
-    if(opaque == NULL) return KFAIL;
-
-    local_kfont_t* font = (local_kfont_t*)opaque;
-
-    FT_GlyphSlot slot = font->slot;
-
-
-    while(*str){
-        if(*str == '\n'){
-            font->pen.x = font->x;
-            font->pen.y += GetLineHeight(opaque);
-            str++;
-            continue;
-        }
-
-        if(FT_Load_Char(font->face, *str, FT_LOAD_RENDER)){
-            str++;
-            continue;
-        }
-
-        uint64_t DeltaX = font->pen.x + slot->bitmap_left;
-        uint64_t DeltaY = font->pen.y - slot->bitmap_top + GetLineHeight(opaque);
-
-        for(FT_Int x = 0; x < slot->bitmap.width; x++){
-            for(FT_Int y = 0; y < slot->bitmap.rows; y++){
-                FT_Int XPos = DeltaX + x;
-                FT_Int YPos = DeltaY + y;
-                PutPixel(&font->fb, XPos, YPos, font->color | (slot->bitmap.buffer[y * slot->bitmap.width + x] << 24));
-            }
-        }
-
-        font->pen.x += slot->advance.x >> 6;
-        font->pen.y += slot->advance.y;
-
-        str++;
-    }
-
-    return KSUCCESS;
+    return DrawFontN(opaque, str, strlen(str));
 }
 
 KResult DrawFontN(kfont_t opaque, char* str, size_t len){
@@ -237,9 +198,11 @@ KResult DrawFontN(kfont_t opaque, char* str, size_t len){
 
     FT_GlyphSlot slot = font->slot;
 
+    kfont_pos_t XPosInitial = font->pen.x;
+
     for(size_t i = 0; i < len; i++){
         if(str[i] == '\n'){
-            font->pen.x = font->x;
+            font->pen.x = XPosInitial;
             font->pen.y += GetLineHeight(opaque);
             continue;
         }
@@ -267,43 +230,7 @@ KResult DrawFontN(kfont_t opaque, char* str, size_t len){
 }
 
 KResult GetTextboxInfo(kfont_t opaque, char* str, kfont_pos_t* width, kfont_pos_t* height, kfont_pos_t* x, kfont_pos_t* y){
-    if(opaque == NULL) return KFAIL;
-
-    local_kfont_t* font = (local_kfont_t*)opaque;
-
-    FT_GlyphSlot slot = font->slot;
-
-    *x = font->x;
-    *y = GetLineHeight(opaque);
-
-    *width = 0;
-
-    while(*str){
-        if(*str == '\n'){
-            *x = font->x;
-            *y += GetLineHeight(opaque);
-            str++;
-            continue;
-        }
-
-        if(FT_Load_Char(font->face, *str, FT_LOAD_RENDER)){
-            str++;
-            continue;
-        }
-
-        *x += slot->advance.x >> 6;
-        *y += slot->advance.y;
-
-        if(*x > *width){
-            *width = *x;
-        }
-
-        str++;
-    }
-
-    *height = *y;
-
-    return KSUCCESS;
+    return GetTextboxInfoN(opaque, str, strlen(str), width, height, x, y);
 }
 
 KResult GetTextboxInfoN(kfont_t opaque, char* str, size_t len, kfont_pos_t* width, kfont_pos_t* height, kfont_pos_t* x, kfont_pos_t* y){
@@ -313,15 +240,17 @@ KResult GetTextboxInfoN(kfont_t opaque, char* str, size_t len, kfont_pos_t* widt
 
     FT_GlyphSlot slot = font->slot;
 
-    *x = font->x;
-    *y = GetLineHeight(opaque);
+    kfont_pos_t XDelta = 0;
+    kfont_pos_t YDelta = 0;
+
+    YDelta = GetLineHeight(opaque);
 
     *width = 0;
 
     for(size_t i = 0; i < len; i++){
         if(str[i] == '\n'){
-            *x = font->x;
-            *y += GetLineHeight(opaque);
+            XDelta = 0;
+            YDelta += GetLineHeight(opaque);
             continue;
         }
 
@@ -329,15 +258,17 @@ KResult GetTextboxInfoN(kfont_t opaque, char* str, size_t len, kfont_pos_t* widt
             continue;
         }
 
-        *x += slot->advance.x >> 6;
-        *y += slot->advance.y;
+        XDelta += slot->advance.x >> 6;
+        YDelta += slot->advance.y;
 
-        if(*x > *width){
-            *width = *x;
+        if(XDelta > *width){
+            *width = XDelta;
         }
     }
 
-    *height = *y;
+    *height = YDelta;
+    *x = YDelta + font->pen.x;
+    *y = YDelta + font->pen.y;
 
     return KSUCCESS;
 }

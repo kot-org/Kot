@@ -79,8 +79,8 @@ namespace mlibc{
             }
         }
         kot_descriptor_t* Descriptor = kot_GetDescriptor(fd);
-        if(Descriptor == NULL) return EBADF;
-        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_FILE) return EBADF;
+        if(Descriptor == NULL) return -EBADF;
+        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_FILE) return -EBADF;
         kot_file_t* File = (kot_file_t*)Descriptor->Data;
 
         atomicAcquire(&File->Lock, 0);
@@ -111,8 +111,8 @@ namespace mlibc{
         if(count > SSIZE_MAX) return -1;
 
         kot_descriptor_t* Descriptor = kot_GetDescriptor(fd);
-        if(Descriptor == NULL) return EBADF;
-        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_FILE) return EBADF;
+        if(Descriptor == NULL) return -EBADF;
+        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_FILE) return -EBADF;
         kot_file_t* File = (kot_file_t*)Descriptor->Data;
 
         atomicAcquire(&File->Lock, 0);
@@ -141,7 +141,7 @@ namespace mlibc{
         }
 
         kot_descriptor_t* Descriptor = kot_GetDescriptor(fd);
-        if(Descriptor == NULL) return EBADF;
+        if(Descriptor == NULL) return -EBADF;
         if(Descriptor->Type == KOT_DESCRIPTOR_TYPE_FILE){
             kot_file_t* File = (kot_file_t*)Descriptor->Data;
 
@@ -174,8 +174,9 @@ namespace mlibc{
                     return 0;
                 }
                 default:{
+                    *new_offset = 0;
                     atomicUnlock(&File->Lock, 0);
-                    return EINVAL;
+                    return -EINVAL;
                 }
             }
         }else if(Descriptor->Type == KOT_DESCRIPTOR_TYPE_DIRECTORY){
@@ -201,7 +202,7 @@ namespace mlibc{
                 }
                 default:{
                     atomicUnlock(&Dir->Lock, 0);
-                    return EINVAL;
+                    return -EINVAL;
                 }
             }
 
@@ -253,8 +254,8 @@ namespace mlibc{
 
     int sys_read_entries(int handle, void *buffer, size_t max_size, size_t *bytes_read){
         kot_descriptor_t* Descriptor = kot_GetDescriptor(handle);
-        if(Descriptor == NULL) return EBADF;
-        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_DIRECTORY) return EBADF;
+        if(Descriptor == NULL) return -EBADF;
+        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_DIRECTORY) return -EBADF;
         kot_directory_t* Dir = (kot_directory_t*)Descriptor->Data;
 
         kot_directory_entry_t* KotDirEntry = kot_readdir(Dir);
@@ -291,11 +292,11 @@ namespace mlibc{
         }
 
         kot_descriptor_t* Descriptor = kot_GetDescriptor(fd);
-        if(Descriptor == NULL) return EBADF;
-        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_FILE) return EBADF;
+        if(Descriptor == NULL) return -EBADF;
+        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_FILE) return -EBADF;
         kot_file_t* File = (kot_file_t*)Descriptor->Data;
 
-        return ((File->ExternalData & File_Is_TTY) ? 0 : ENOTTY);
+        return ((File->ExternalData & File_Is_TTY) ? 0 : -ENOTTY);
     }
 
     int sys_rmdir(const char *path){
@@ -317,25 +318,35 @@ namespace mlibc{
     }
 
     int sys_stat(fsfd_target fsfdt, int fd, const char *path, int flags, struct stat *statbuf){
-        if(path){
-            int e = sys_open(path, flags, 0666, &fd);
-            if(e){
-                e = sys_open_dir(path, &fd);
-                if(e){
-                    return 0;
+        if(fsfdt == fsfd_target::none){
+            return -1;
+        }
+
+        bool IsOpenWithPath = false;
+        if(fsfdt == fsfd_target::path || fsfdt == fsfd_target::fd_path){
+            if(path){
+                if(path[0]){
+                    IsOpenWithPath = true;
+                    int e = sys_open(path, flags, 0666, &fd);
+                    if(e){
+                        e = sys_open_dir(path, &fd);
+                        if(e){
+                            return -1;
+                        }
+                    }
                 }
             }
-            return 0;
         }
 
         kot_descriptor_t* Descriptor = kot_GetDescriptor(fd);
-        if(Descriptor == NULL) return EBADF;
+        if(Descriptor == NULL) return -EBADF;
         if(Descriptor->Type == KOT_DESCRIPTOR_TYPE_FILE){
             kot_file_t* File = (kot_file_t*)Descriptor->Data;
 
             kot_srv_storage_callback_t* CallbackFileSize = kot_Srv_Storage_Getfilesize(File, true);
             if(CallbackFileSize->Status != KSUCCESS){
-                if(path){
+                free(CallbackFileSize);
+                if(IsOpenWithPath){
                     sys_close(fd);
                 }
                 return -1;
@@ -353,7 +364,7 @@ namespace mlibc{
             statbuf->st_blksize = 0;
             statbuf->st_blocks = 0;
 
-            if(path){
+            if(IsOpenWithPath){
                 sys_close(fd);
             }
             return 0;
@@ -371,26 +382,27 @@ namespace mlibc{
             statbuf->st_blksize = 0;
             statbuf->st_blocks = 0;
 
-            if(path){
+            if(IsOpenWithPath){
                 sys_close(fd);
             }
             return 0;
         }else{
-            return 0;
+            return -1;
         }
     }
 
     int sys_fcntl(int fd, int request, va_list args, int *result_value){
         // TODO
+        *result_value = 0;
         infoLogger() << "mlibc: sys_fcntl unsupported request (" << request << ")" << frg::endlog;
-        return 0;
+        return -1;
     }
 
     int sys_getcwd(char *buffer, size_t size){
         kot_srv_storage_callback_t* Callback = kot_Srv_Storage_GetCWD(true);
         if((Callback->Size + 1) > size){
             free(Callback);
-            return ERANGE;
+            return -ERANGE;
         }
         memcpy(buffer, (void*)Callback->Data, Callback->Size);
         buffer[Callback->Size] = '\0';

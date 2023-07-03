@@ -51,6 +51,13 @@ struct kot_srv_graphics_callback_t{
 };
 
 typedef struct {
+    uint64_t XMin;
+    uint64_t XMax;
+    uint64_t YMin;
+    uint64_t YMax;
+} kot_clip_rect_t;
+
+typedef struct {
     void* Buffer;
     size64_t Size;
     uint64_t Pitch;

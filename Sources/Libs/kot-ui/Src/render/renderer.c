@@ -93,10 +93,15 @@ void kui_r_init(){
 
 void kui_r_create_window(kui_Context *ctx, kui_Container *cnt, kui_Rect rect){
   if(cnt->is_windows) return;
-  if(ctx->frame == 1) return; /* Force full calculation before creating the window */
+  if(ctx->frame == 2){ 
+    /* Force full calculation before showing the window */
+    cnt->is_windows = true;
+    ChangeVisibilityWindow(cnt->window_parent->window, true);
+    return;
+  }
   
-  cnt->is_windows = true;
   cnt->window_parent = (kui_Window*)malloc(sizeof(kui_Window));
+  cnt->window_parent->ctx = ctx;
 
   kot_Sys_Event_Create(&cnt->window_parent->window_event);
   kot_Sys_CreateThread(kot_Sys_GetProcess(), (void*)&kui_r_event_handler, PriviledgeApp, cnt, &cnt->window_parent->window_handler_thread);
@@ -106,7 +111,6 @@ void kui_r_create_window(kui_Context *ctx, kui_Container *cnt, kui_Rect rect){
 
   WindowChangePosition(cnt->window_parent->window, rect.x, rect.y);
   ResizeWindow(cnt->window_parent->window, rect.w, rect.h);
-  ChangeVisibilityWindow(cnt->window_parent->window, true);
 
   memcpy(&cnt->window_parent->backbuffer, &cnt->window_parent->window->Framebuffer, sizeof(kot_framebuffer_t));
   cnt->window_parent->backbuffer.Buffer = calloc(1, cnt->window_parent->backbuffer.Size);
@@ -123,7 +127,6 @@ void kui_r_create_window(kui_Context *ctx, kui_Container *cnt, kui_Rect rect){
 
   cnt->window_parent->default_font = LoadFont((void*)DefaultFontBuffer, DefaultFontSize);
 
-  free(DefaultFontBuffer);
   fclose(DefaultFontFile);
 
   LoadPen(cnt->window_parent->default_font, &cnt->window_parent->backbuffer, 0, 0, 12, 0, 0xffffff);
@@ -140,12 +143,9 @@ void kui_r_create_window(kui_Context *ctx, kui_Container *cnt, kui_Rect rect){
   
   cnt->window_parent->icons_font = LoadFont((void*)IconsFontBuffer, IconsFontSize);
 
-  free(IconsFontBuffer);
   fclose(IconsFontFile);
 
   LoadPen(cnt->window_parent->icons_font, &cnt->window_parent->backbuffer, 0, 0, 12, 0, 0xffffff);
-
-  cnt->window_parent->ctx = ctx;
 }
 
 void kui_r_move_window(kui_Container *cnt, kui_Vec2 pos, kui_Vec2 offset){
@@ -228,7 +228,7 @@ int kui_r_get_text_height(kui_Container *cnt, kui_Font font){
 
 void kui_r_set_clip_rect(kui_Container *cnt, kui_Rect rect){
   if(!cnt->window_parent) return;
-  // TODO : add tester for put pixel
+  // TODO : add test for put pixel
 }
 
 
@@ -246,6 +246,5 @@ void kui_r_framebuffer(kui_Container *cnt, kot_framebuffer_t* fb, kui_Rect rect)
 
 void kui_r_present(kui_Container *cnt){
   if(!cnt->window_parent) return;
-  
   memcpy(cnt->window_parent->window->Framebuffer.Buffer, cnt->window_parent->backbuffer.Buffer, cnt->window_parent->backbuffer.Size);
 }

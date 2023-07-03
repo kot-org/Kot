@@ -184,7 +184,6 @@ void DrawBookmarks(kui_Context* Ctx){
         OpenSystemBookmarks(Ctx, "Trash");
     }
 
-    kui_layout_row(Ctx, 1, (int[]){-1}, 25);
     kui_end_panel(Ctx);
 }
 
@@ -254,5 +253,5 @@ int main(int argc, char* argv[]){
     Directory = opendir(Root);
     UpdateEntries();
     kui_init(WindowRenderer, (void*)Root);
-    return KSUCCESS;
+    kot_Sys_Close(KSUCCESS); /* Don't close the process */
 }

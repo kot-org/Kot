@@ -500,7 +500,9 @@ KResult Sys_TCB_Set(SyscallStack* Registers, kthread_t* Thread){
     if(Keyhole_Get(Thread, (key_t)Registers->arg0, DataTypeThread, (uint64_t*)&threadkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!(flags & KeyholeFlagDataTypeThreadAllowChangeTCB)) return KMEMORYVIOLATION;
     threadkey->FSBase = (void*)Registers->arg1;
-    CPU::SetCPUFSBase((uint64_t)threadkey->FSBase);
+    if(Thread->TID == threadkey->TID && Thread->Parent->PID == threadkey->Parent->PID){
+        CPU::SetCPUFSBase((uint64_t)threadkey->FSBase);
+    }
     return KSUCCESS;
 }
 

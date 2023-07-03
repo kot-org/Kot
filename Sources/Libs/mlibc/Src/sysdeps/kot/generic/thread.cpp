@@ -25,7 +25,8 @@ Tcb *__rtdl_allocateTcb();
 // Warning: This function must be used after each kot_Sys_CreateThread unless another initialization for the thread has been performed
 KResult kot_InitializeThread(kot_thread_t thread){
     auto new_tcb = __rtdl_allocateTcb();
-    pid_t tid;
+    pid_t tid = 0;
+    kot_Sys_Thread_Info_Get(thread, 0, (uint64_t*)&tid);
     pthread_attr_t attr;
     pthread_attr_init(&attr);
 
@@ -38,13 +39,16 @@ KResult kot_InitializeThread(kot_thread_t thread){
         return ENOSYS;
     }
     void *entry;
-    kot_Sys_Thread_Info_Get(kot_Sys_GetThread(), 3, (uint64_t*)&entry);
+    kot_Sys_Thread_Info_Get(thread, 3, (uint64_t*)&entry);
     int ret = mlibc::sys_prepare_stack(&stack, reinterpret_cast<void*>(entry),
             NULL, new_tcb, &attr.__mlibc_stacksize, &attr.__mlibc_guardsize);
     if (ret)
         return ret;
 
-    new_tcb->stackAddr = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(stack) - attr.__mlibc_stacksize - attr.__mlibc_guardsize);      
+    new_tcb->stackSize = attr.__mlibc_stacksize;
+	new_tcb->guardSize = attr.__mlibc_guardsize;
+    new_tcb->stackAddr = stack;  
+    new_tcb->tid = tid;
 
     kot_Sys_SetTCB(thread, (void*)new_tcb);
     return KSUCCESS; 

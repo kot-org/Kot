@@ -5,5 +5,5 @@ int main(int argc, char* argv[]){
     InitializeVolumeListener();
     kot_Printlog("[FS-Ext] Initialized");
 
-    return KSUCCESS;
+    kot_Sys_Close(KSUCCESS); /* Don't close the process */
 }

@@ -35,8 +35,8 @@ hidc::hidc(orbc* Parent){
 
     CursorWidth = Width;
     CursorHeight = Height;
-    CursorPosition.x = CursorMaxPosition.x / 2;
-    CursorPosition.y = CursorMaxPosition.y / 2;
+    CursorPosition.x = 0;
+    CursorPosition.y = 0;
 
     void* PixelMapTmp = (void*) ((uint64_t)Header + Header->PixelMapOffset);
     size64_t PixelMapSize = Height * Pitch;
@@ -44,7 +44,7 @@ hidc::hidc(orbc* Parent){
     memcpy(PixelMap, PixelMapTmp, PixelMapSize);
 
     void* BitmapMaskTmp = (void*) ((uint64_t)Header + Header->BitmapMaskOffset);
-    size64_t BitmapMaskSize = DIV_ROUND_UP(Height * Pitch, 8);
+    size64_t BitmapMaskSize = Height * Pitch / 8;
     BitmapMask = malloc(BitmapMaskSize);
     memcpy(BitmapMask, BitmapMaskTmp, BitmapMaskSize);
 
@@ -153,7 +153,7 @@ void hidc::DrawCursor(kot_framebuffer_t* fb){
         for(uint32_t x = 0; x < Width; x++) {
             PixelPos = y * CursorWidth + x;
 
-            if(BIT_CHECK(Mask[PixelPos / 8], PixelPos % 8))
+            if(BIT_CHECK(Mask[PixelPos / 8], PixelPos % 8) && PixelExist(fb, CursorPosition.x + x, CursorPosition.y + y) == 1)
                 PutPixel(fb, CursorPosition.x + x, CursorPosition.y + y, Pixel[PixelPos]);
         }
     }
