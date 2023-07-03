@@ -95,11 +95,13 @@ KResult AudioHandler::LoadTrack(char* Path){
 
     if(avformat_open_input(&AvFormatCtx, TrackPath, NULL, NULL)){
         avformat_free_context(AvFormatCtx);
+        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
 
     if(avformat_find_stream_info(AvFormatCtx, NULL)){
         avformat_free_context(AvFormatCtx);
+        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
 
@@ -148,6 +150,7 @@ KResult AudioHandler::LoadTrack(char* Path){
     
     if(AvStreamIndex < 0){
         avformat_free_context(AvFormatCtx);
+        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
 
@@ -157,6 +160,7 @@ KResult AudioHandler::LoadTrack(char* Path){
     const AVCodec* Codec = avcodec_find_decoder(AvStream->codecpar->codec_id);
     if (!Codec) {
         avformat_free_context(AvFormatCtx);
+        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
 
@@ -164,16 +168,19 @@ KResult AudioHandler::LoadTrack(char* Path){
 
     if(AvCodecCtx == NULL){
         avformat_free_context(AvFormatCtx);
+        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
 
     if(avcodec_parameters_to_context(AvCodecCtx, AvStream->codecpar)){
         avformat_free_context(AvFormatCtx);
+        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
 
     if(avcodec_open2(AvCodecCtx, Codec, NULL) < 0){
         avformat_free_context(AvFormatCtx);
+        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
     
@@ -185,9 +192,10 @@ KResult AudioHandler::LoadTrack(char* Path){
 }
 
 void AudioHandler::ClearTrack(){
+    SetPlay(false);
+    
     atomicAcquire(&Lock, 0);
 
-    SetPlay(false);
     free(TrackPath);
     TrackPath = NULL;
 
@@ -229,8 +237,7 @@ void AudioHandler::DecodeAudio(){
     atomicAcquire(&Lock, 0);
     while(av_read_frame(AvFormatCtx, AvPacket) >= 0 && GetPlay()){
         if(avcodec_send_packet(AvCodecCtx, AvPacket)){
-            av_packet_unref(AvPacket);
-            continue;
+            break;
         }
 
         int Ret = 0;
@@ -238,9 +245,7 @@ void AudioHandler::DecodeAudio(){
         while(Ret >= 0){
             Ret = avcodec_receive_frame(AvCodecCtx, AvFrame);
 
-            if(Ret == AVERROR_EOF || Ret == AVERROR(EAGAIN)){
-                break;
-            }else if(Ret){
+            if(Ret){
                 break;
             }
 
@@ -270,7 +275,6 @@ void AudioHandler::DecodeAudio(){
             SizeWritten += Format->NumberOfChannels * SampleSize * SamplesWrite;
 
             Timestamp = (float)AvFrame->best_effort_timestamp / (float)AvStream->time_base.den;
-            kot_Sys_Event_Trigger(OnNewFrameEvent, &OnNewFrameEventArgs);
 
             av_frame_unref(AvFrame);
         }
@@ -288,9 +292,9 @@ void AudioHandler::DecodeAudio(){
             av_seek_frame(AvFormatCtx, AvStreamIndex, (long)(Timestamp / av_q2d(AvStream->time_base)), 0);
             IsTimestampChanged = false;
         }
+        kot_Sys_Event_Trigger(OnNewFrameEvent, &OnNewFrameEventArgs);
     }
     atomicUnlock(&Lock, 0);
-    SetPlay(false);
 }
 
 KResult AudioHandler::ReloadSwr(){
@@ -304,9 +308,10 @@ KResult AudioHandler::ReloadSwr(){
 
     if(AvCodecCtx->channels == 1){
         av_opt_set_int(SwrCtx, "in_channel_layout", AV_CH_LAYOUT_MONO, 0);
-    }else if(Format->NumberOfChannels == 2){
+    }else if(AvCodecCtx->channels == 2){
         av_opt_set_int(SwrCtx, "in_channel_layout", AV_CH_LAYOUT_STEREO, 0);
     }else{
+        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
 
@@ -318,6 +323,7 @@ KResult AudioHandler::ReloadSwr(){
     }else if(Format->NumberOfChannels == 2){
         av_opt_set_int(SwrCtx, "out_channel_layout", AV_CH_LAYOUT_STEREO, 0);
     }else{
+        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
 
@@ -328,10 +334,12 @@ KResult AudioHandler::ReloadSwr(){
     }else if(Format->Encoding == AudioEncodingPCMS32LE){
         av_opt_set_sample_fmt(SwrCtx, "out_sample_fmt", AV_SAMPLE_FMT_S32, 0);
     }else{
+        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
 
     if(swr_init(SwrCtx)){
+        atomicUnlock(&Lock, 0);
         return KFAIL;
     }
 
