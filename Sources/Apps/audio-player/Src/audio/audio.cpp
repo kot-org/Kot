@@ -50,23 +50,22 @@ bool AudioHandler::GetPlay(){
 void AudioHandler::SetPlay(bool Status){
     if(Status != IsPlaying && TrackPath){
         IsPlaying = Status;
-        kot_Sys_ExecThread(DecodeAudioThread, NULL, ExecutionTypeQueu, NULL);
-    }else{
-        IsPlaying = Status;
+        if(Status == true){
+            kot_Sys_ExecThread(DecodeAudioThread, NULL, ExecutionTypeQueu, NULL);
+        }
     }
 }
 
 
 void AudioHandler::SetCurrentTimestamp(float Time){
     if(!GetPlay()){
-        atomicAcquire(&Lock, 1);
+        atomicAcquire(&Lock, 0);
+        TimestampSeek = Time;
+        IsTimestampChanged = true;
         if(!GetPlay()){
             Timestamp = Time;
-        }else{
-            TimestampSeek = Time;
-            IsTimestampChanged = true;
         }
-        atomicUnlock(&Lock, 1);
+        atomicUnlock(&Lock, 0);
     }else{
         TimestampSeek = Time;
         IsTimestampChanged = true;
@@ -227,7 +226,7 @@ void AudioHandler::FreeStreamBuffer(Audio::Stream* St, Audio::Buffer* Buffer){
 }
 
 void AudioHandler::DecodeAudio(){
-    atomicAcquire(&Lock, 1);
+    atomicAcquire(&Lock, 0);
     while(av_read_frame(AvFormatCtx, AvPacket) >= 0 && GetPlay()){
         if(avcodec_send_packet(AvCodecCtx, AvPacket)){
             av_packet_unref(AvPacket);
@@ -290,7 +289,8 @@ void AudioHandler::DecodeAudio(){
             IsTimestampChanged = false;
         }
     }
-    atomicUnlock(&Lock, 1);
+    atomicUnlock(&Lock, 0);
+    SetPlay(false);
 }
 
 KResult AudioHandler::ReloadSwr(){
@@ -298,7 +298,7 @@ KResult AudioHandler::ReloadSwr(){
         return KFAIL;
     }
 
-    atomicAcquire(&Lock, 1);
+    atomicAcquire(&Lock, 0);
 
     swr_close(SwrCtx);
 
@@ -335,7 +335,7 @@ KResult AudioHandler::ReloadSwr(){
         return KFAIL;
     }
 
-    atomicUnlock(&Lock, 1);
+    atomicUnlock(&Lock, 0);
 
     return KSUCCESS;
 }
