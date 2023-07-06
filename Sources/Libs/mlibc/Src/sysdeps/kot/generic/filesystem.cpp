@@ -51,7 +51,7 @@ namespace mlibc{
 
         if(!File){
             *fd = 0;
-            return -1; 
+            return ENOENT; 
         }
 
         kot_descriptor_t Descriptor{
@@ -67,7 +67,7 @@ namespace mlibc{
             return 0;
         }else{
             kot_fclose(File);
-            return -1;
+            return EMFILE;
         }
     }
 

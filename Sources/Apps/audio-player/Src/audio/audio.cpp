@@ -235,6 +235,8 @@ void AudioHandler::FreeStreamBuffer(Audio::Stream* St, Audio::Buffer* Buffer){
 
 void AudioHandler::DecodeAudio(){
     atomicAcquire(&Lock, 0);
+    SizeWritten = 0;
+    SamplesWritten = 0;
     while(av_read_frame(AvFormatCtx, AvPacket) >= 0 && GetPlay()){
         if(avcodec_send_packet(AvCodecCtx, AvPacket)){
             break;
@@ -255,11 +257,13 @@ void AudioHandler::DecodeAudio(){
                 LastIndexStreamBuffer = Stream->AddBuffer(Buffers[LastBufferAllocated].Buffer, SizeWritten, LastIndexStreamBuffer, FreeStreamBufferEntry);
 
                 LastBufferAllocated = (LastBufferAllocated + 1) % BufferCount;
+                atomicAcquire(&Lock, 2);
                 if(!Buffers[LastBufferAllocated].IsFree){
-                    atomicAcquire(&Lock, 2);
                     IsDecodePaused = true;
                     atomicUnlock(&Lock, 2);
                     kot_Sys_Pause(false);
+                }else{
+                    atomicUnlock(&Lock, 2);
                 }
 
                 Buffers[LastBufferAllocated].IsFree = false;

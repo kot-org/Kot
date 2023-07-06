@@ -129,6 +129,7 @@ namespace Audio{
 
     KResult Stream::OnOffsetUpdate(){
         // TODO : mix more than one stream
+        atomicAcquire(&Lock, 1);
         if(InputStreams.size() >= 1){
             if(InputStreams[0].Index >= InputStreams[0].Buffer.Size){
                 FindNext();
@@ -142,11 +143,11 @@ namespace Audio{
             uint64_t Offset = (*(uint64_t*)((uint64_t)LocalStreamBuffer.Base + StreamBuffer->PositionOfStreamData) + (StreamBuffer->SizeOffsetUpdateToTrigger * 2)) % StreamBuffer->StreamSize;
             memset((void*)((uintptr_t)LocalStreamBuffer.Base + Offset), 0, StreamBuffer->SizeOffsetUpdateToTrigger);
         }
+        atomicUnlock(&Lock, 1);
         return KSUCCESS;
     }
 
     KResult Stream::FindNext(){
-        atomicAcquire(&Lock, 1);
         KResult Status = KFAIL;
         if(InputStreams.size() >= 1){
             InputStreams[0].Callback((void*)this, &InputStreams[0]);
@@ -158,8 +159,7 @@ namespace Audio{
                 InputStreams.remove(0);
             }
             Status = KSUCCESS;
-        }
-        atomicUnlock(&Lock, 1);  
+        } 
         return Status;     
     }
 

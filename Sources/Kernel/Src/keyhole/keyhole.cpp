@@ -72,7 +72,7 @@ KResult Keyhole_Verify(kthread_t* caller, key_t key, enum DataType type){
     if(!CheckAddress((void*)lock, sizeof(lock_t))) return KFAIL;
     if(lock->Signature0 != 'L' || lock->Signature1 != 'O' || lock->Signature2 != 'K') return KFAIL;
     if(lock->Target != NULL){
-        if(lock->Target->PID != caller->Parent->PID) return KFAIL; // Just check the PID, to share key beetween fork process
+        if(lock->Target->PIDKey != caller->Parent->PIDKey) return KFAIL; // Just check the PID, to share key beetween fork process
     }
     if(type != DataTypeUnknow){
         if(lock->Type != type) return KFAIL;            

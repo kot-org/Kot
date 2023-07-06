@@ -1,8 +1,11 @@
 #pragma once
+#include <mm/mm.h>
 #include <arch/arch.h>
 #include <lib/types.h>
 #include <heap/heap.h>
+#include <lib/pid.h>
 #include <lib/limits.h>
+#include <lib/vector.h>
 #include <event/event.h>
 #include <keyhole/keyhole.h>
 
@@ -17,6 +20,7 @@ class TaskManager;
 #define LOCK_ADDRESS vmm_MapAddress(0xfd, 0, 0, 0) 
 #define FREE_MEMORY_SPACE_ADDRESS LOCK_ADDRESS
 #define APP_STACK_MAX_SIZE vmm_MapAddress(0, 0, 1, 0)
+#define USERSPACE_TOP_ADDRESS vmm_MapAddress(0x100, 0, 0, 0)
 #define DEFAULT_FLAGS_KEY 0xff
 
 
@@ -76,9 +80,12 @@ struct kthread_t;
 
 struct kprocess_t{
     /* ID infos */
-    uint64_t PID;
-    uint64_t PPID;
-    uint64_t PPIDCount;
+    pid_t PID;
+    pid_t PPID;
+    pid_t PIDKey;
+
+    bool HaveForkPaging;
+    uint64_t ListIndex;
 
     struct kprocess_t* Parent;
 
@@ -86,6 +93,7 @@ struct kprocess_t{
     enum Priviledge DefaultPriviledge;
 
     /* Memory */
+    struct MemoryHandler_t* MemoryManager;
     pagetable_t SharedPaging;
     uint64_t MemoryAllocated;
 
@@ -257,6 +265,10 @@ class TaskManager{
         void AcquireScheduler();
         void ReleaseScheduler();
 
+        KResult AddProcessList(kprocess_t* process);
+        KResult RemoveProcessList(kprocess_t* process);
+        kprocess_t* GetProcessList(pid_t pid);
+
         bool IsSchedulerEnable[MAX_PROCESSORS];
         uint64_t TimeByCore[MAX_PROCESSORS];
         kthread_t* ThreadExecutePerCore[MAX_PROCESSORS];
@@ -271,16 +283,17 @@ class TaskManager{
         uint64_t CurrentTaskExecute = 0;
         uint64_t IddleTaskNumber = 0;
         void* IddleTaskPointer = 0;
-        uint64_t PID = 0;
+        pid_t PID = 0;
 
         kthread_t* FirstNode;
         kthread_t* LastNode;
 
-        struct Node* ProcessList = NULL;
+        kot_vector_t* ProcessList;
+
         //iddle
         kprocess_t* KernelProc = NULL; 
-        kthread_t* IdleNode[MAX_PROCESSORS];    
-        struct Node* GlobalProcessNode;
+        kthread_t* IdleNode[MAX_PROCESSORS];
+
 };
 
 void SetParameters(ContextStack* Registers, arguments_t* FunctionParameters);

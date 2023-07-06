@@ -30,23 +30,19 @@ namespace mlibc{
     }
 
     int sys_tcb_set(void *pointer){
-        return -(kot_Sys_SetTCB(kot_Sys_GetThread(), (void*)pointer) != KSUCCESS);
+        return (int)Syscall_8(KSys_Std_TCB_Set, (uint64_t)pointer);
     }
 
     int sys_futex_tid(){
-        return static_cast<int>(kot_Sys_GetTID());
+        return (int)Syscall_0(KSys_Std_Futex_TID);
     }
 
     int sys_futex_wait(int *pointer, int expected, const struct timespec *time){
-        return 0;
-        __ensure(!"Not implemented");
-        // TODO
+        return (int)Syscall_24(KSys_Std_Futex_Wait, (uint64_t)pointer, (uint64_t)expected, (uint64_t)time);
     }
 
     int sys_futex_wake(int *pointer){
-        return 0;
-        __ensure(!"Not implemented");
-        // TODO
+        return (int)Syscall_8(KSys_Std_Futex_Wake, (uint64_t)pointer);
     }
 
     int sys_anon_allocate(size_t size, void **pointer){
@@ -58,7 +54,7 @@ namespace mlibc{
         atomicAcquire(&KotAnonAllocateLock, 0);
         *pointer = (void*)KotSpecificData.HeapLocation;
         KotSpecificData.HeapLocation += size;
-        int Status = (Syscall_48(KSys_Map, kot_Sys_GetProcess(), (uint64_t)pointer, AllocationTypeBasic, 0, (uint64_t)&size, false) != KSUCCESS);
+        int Status = (Syscall_48(KSys_Kot_Map, kot_Sys_GetProcess(), (uint64_t)pointer, AllocationTypeBasic, 0, (uint64_t)&size, false) != KSUCCESS);
         atomicUnlock(&KotAnonAllocateLock, 0);
         return Status;
     }
@@ -69,31 +65,37 @@ namespace mlibc{
     }
 
     int sys_vm_map(void *hint, size_t size, int prot, int flags, int fd, off_t offset, void **window){
-        // TODO
-        if(hint){
-            *window = hint;
-            return -(Syscall_48(KSys_Map, kot_Sys_GetProcess(), (uint64_t)window, 0, 0, (uint64_t)&size, false) != KSUCCESS);
-        }else{
-            return sys_anon_allocate(size, window);
+        auto Result = Syscall_40(KSys_Std_Vm_Map, (uint64_t)hint, (uint64_t)size, (uint64_t)prot, (uint64_t)flags);
+
+        if(Result < 0){
+            return -Result;
         }
+
+        *window = (void *)Result;
+        return 0;
     }
 
     int sys_vm_unmap(void *pointer, size_t size){
-        return -(kot_Sys_Unmap(kot_Sys_GetProcess(), (void*)pointer, static_cast<size64_t>(size)) != KSUCCESS);
+        return Syscall_16(KSys_Std_Vm_Unmap, (uint64_t)pointer, (uint64_t)size);
     }
 
     int sys_vm_protect(void *pointer, size_t size, int prot){
-        // TODO
-        __ensure(!"Not implemented");
+        auto Result = Syscall_24(KSys_Std_Vm_Protect, (uint64_t)pointer, (uint64_t)size, (uint64_t)prot);
+
+        if(Result < 0){
+            return -Result;
+        }
+
+        return 0;
     }
 
     [[noreturn]] void sys_exit(int status){
-        Syscall_8(KSys_Exit, status);
+        Syscall_8(KSys_Std_Exit, (uint64_t)status);
         __builtin_unreachable();
     }
 
     [[noreturn, gnu::weak]] void sys_thread_exit(){
-        sys_exit(KSUCCESS);
+        Syscall_0(KSys_Std_Thread_Exit);
         __builtin_unreachable();
     }
 
@@ -119,42 +121,58 @@ namespace mlibc{
     }
 
     int sys_sigprocmask(int how, const sigset_t *__restrict set, sigset_t *__restrict retrieve){
-        // TODO
-        //__ensure(!"Not implemented");
+        auto Result = Syscall_24(KSys_Std_Sigprocmask, (uint64_t)how, (uint64_t)set, (uint64_t)retrieve);
+
+        if(Result < 0){
+            return -Result;
+        }
+
         return 0;
     }
 
-    int sys_sigaction(int, const struct sigaction *__restrict, struct sigaction *__restrict){
-        // TODO
-        //__ensure(!"Not implemented");
+    int sys_sigaction(int how, const struct sigaction *__restrict action, struct sigaction *__restrict old_action){
+        uint64_t Sigreturn = (uint64_t)0; // TODO
+
+        auto Result = Syscall_32(KSys_Std_Sigaction, (uint64_t)how, (uint64_t)action, (uint64_t)Sigreturn, (uint64_t)old_action);
+
+        if (Result < 0) {
+            return -Result;
+        }
+
         return 0;
     }
 
     int sys_fork(pid_t *child){
-        kot_process_t ProcessChild;
-        KResult Status = kot_Sys_Fork((kot_process_t*)&ProcessChild);
+        pid_t Result = (pid_t)Syscall_0(KSys_Std_Fork);
 
-        if(Status != KSUCCESS) return -1;
-
-
-        if(kot_Sys_GetPPID()){
-            // We are child
-            // Reset UISD thread to avoid redirection to parent process
-            __ensure(kot_ResetUISDThreads() == KSUCCESS);
-            *child = NULL;
-        }else{
-            // We are parent
-            *child = ProcessChild;
+        if(Result < 0){
+            return -Result;
         }
-        return -(Status != KSUCCESS);
+
+        if(Result == 0){
+            __ensure(kot_ResetUISDThreads() == KSUCCESS);
+        }
+
+        *child = Result;
+
+        return 0;
     }
 
     int sys_waitpid(pid_t pid, int *status, int flags, struct rusage *ru, pid_t *ret_pid){
-        if(ru) {
+        if(ru){
             mlibc::infoLogger() << "mlibc: struct rusage in sys_waitpid is unsupported" << frg::endlog;
             return -ENOSYS;
         }
-        return -(kot_Sys_WaitPID(pid, status, flags) != KSUCCESS);
+
+        auto Result = Syscall_24(KSys_Std_Wait_PID, pid, status, flags);
+
+        if(Result < 0){
+            return -Result;
+        }
+
+        *ret_pid = static_cast<pid_t>(Result);
+
+        return 0;
     }
 
     int sys_execve(const char *path, char *const argv[], char *const envp[]){
@@ -174,12 +192,17 @@ namespace mlibc{
     }
 
     pid_t sys_getpid(){
-        return static_cast<pid_t>(kot_Sys_GetPID());
+        return static_cast<pid_t>(Syscall_0(KSys_Std_Get_PID));
     }
 
-    int sys_kill(int, int){
-        // TODO
-        __ensure(!"Not implemented");
+    int sys_kill(int pid, int sig){
+        auto Result = Syscall_16(KSys_Std_Kill, pid, sig);
+
+        if(Result < 0){
+            return -Result;
+        }
+
+        return 0;
     }
 
     uint64_t sys_debug_malloc_lock = 0;

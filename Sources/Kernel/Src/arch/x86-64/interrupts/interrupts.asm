@@ -17,6 +17,8 @@ EXTERN InterruptHandler
     %assign y %1*2
     SWAPGS_IF_NECESSARY y
     PUSH_REG
+
+    cld
     
     mov rdi, rsp
     mov rsi, [gs:0x0]

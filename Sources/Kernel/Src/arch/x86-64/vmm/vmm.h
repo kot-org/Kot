@@ -14,7 +14,7 @@ enum vmm_flag{
     vmm_Accessed        = 5,
     vmm_LargerPages     = 7,
     vmm_Master          = 9, 
-    vmm_IsPureMemory = 10,
+    vmm_IsPureMemory    = 10,
     vmm_Slave           = 11,
 };
 

@@ -45,3 +45,5 @@ struct MemoryShareInfo{
 uint64_t CreateMemoryField(struct kthread_t* self, struct kprocess_t* process, size64_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, enum MemoryFieldType type);
 uint64_t AcceptMemoryField(struct kthread_t* self, struct kprocess_t* process, MemoryShareInfo* shareInfo, uint64_t* virtualAddressPointer);
 uint64_t CloseMemoryField(struct kthread_t* self, struct kprocess_t* process, MemoryShareInfo* shareInfo, void* virtualAddress);
+
+int AllocateAnonymousVMObject(void** Base, size_t Size, bool Hint, bool Fixed);

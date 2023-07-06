@@ -6,122 +6,122 @@ extern "C" {
 __attribute__((section(".KotSpecificData"))) struct kot_SpecificData_t KotSpecificData;
 
 KResult kot_Sys_CreateMemoryField(kot_process_t self, size64_t size, void** virtualAddressPointer, kot_key_mem_t* keyPointer, enum kot_MemoryFieldType type){
-    return Syscall_40(KSys_CreateMemoryField, self, size, virtualAddressPointer, keyPointer, type);
+    return Syscall_40(KSys_Kot_CreateMemoryField, self, size, virtualAddressPointer, keyPointer, type);
 }
 
 KResult kot_Sys_AcceptMemoryField(kot_process_t self, kot_key_mem_t key, void** virtualAddressPointer){
-    return Syscall_24(KSys_AcceptMemoryField, self, key, virtualAddressPointer);
+    return Syscall_24(KSys_Kot_AcceptMemoryField, self, key, virtualAddressPointer);
 }
 
 KResult kot_Sys_CloseMemoryField(kot_process_t self, kot_key_mem_t key, void* address){
-    return Syscall_24(KSys_CloseMemoryField, self, key, address);
+    return Syscall_24(KSys_Kot_CloseMemoryField, self, key, address);
 }
 
 KResult kot_Sys_GetInfoMemoryField(kot_key_mem_t key, uint64_t* typePointer, size64_t* sizePointer){
-    return Syscall_24(KSys_GetTypeMemoryField, key, typePointer, sizePointer);
+    return Syscall_24(KSys_Kot_GetInfoMemoryField, key, typePointer, sizePointer);
 }
 
 KResult kot_Sys_CreateProc(kot_process_t* key, enum kot_Priviledge privilege, uint64_t data){
-    return Syscall_24(KSys_CreateProc, key, privilege, data);
+    return Syscall_24(KSys_Kot_CreateProc, key, privilege, data);
 }
 
 KResult kot_Sys_Fork(kot_process_t* child){
-    return Syscall_8(KSys_Fork, child);
+    return Syscall_8(KSys_Kot_Fork, child);
 }
 
 KResult kot_Sys_CloseProc(){
-    return Syscall_0(KSys_CloseProc);
+    return Syscall_0(KSys_Kot_CloseProc);
 }
 
 KResult kot_Sys_Close(uint64_t errorCode){
-    return Syscall_8(KSys_Close, errorCode);
+    return Syscall_8(KSys_Kot_Close, errorCode);
 }
 
 KResult kot_Sys_Exit(uint64_t errorCode){
-    return Syscall_8(KSys_Exit, errorCode);
+    return Syscall_8(KSys_Kot_Exit, errorCode);
 }
 
 KResult kot_Sys_Pause(bool force){
-    return Syscall_8(KSys_Pause, force);
+    return Syscall_8(KSys_Kot_Pause, force);
 }
 
 KResult kot_Sys_Unpause(kot_thread_t self){
-    return Syscall_8(KSys_UnPause, self);
+    return Syscall_8(KSys_Kot_UnPause, self);
 }
 
 KResult kot_Sys_Map(kot_process_t self, void** addressVirtual, enum kot_AllocationType type, void** addressPhysical, size64_t* size, bool findFree){
-    return Syscall_48(KSys_Map, self, (uintptr_t*)addressVirtual, type, addressPhysical, size, findFree);
+    return Syscall_48(KSys_Kot_Map, self, (uintptr_t*)addressVirtual, type, addressPhysical, size, findFree);
 }
 
 KResult kot_Sys_Unmap(kot_thread_t self, void* addressVirtual, size64_t size){
-    return Syscall_24(KSys_Unmap, self, addressVirtual, size);
+    return Syscall_24(KSys_Kot_Unmap, self, addressVirtual, size);
 }
 
 void* kot_Sys_GetPhysical(void* addressVirtual){
-    return (void*)Syscall_8(KSys_GetPhysical, addressVirtual);
+    return (void*)Syscall_8(KSys_Kot_GetPhysical, addressVirtual);
 }
 
 KResult kot_Sys_Event_Create(kot_event_t* self){
-    return Syscall_8(KSys_Event_Create, self);
+    return Syscall_8(KSys_Kot_Event_Create, self);
 }
 
 KResult kot_Sys_Event_Bind(kot_event_t self, kot_thread_t task, bool IgnoreMissedEvents){
-    return Syscall_24(KSys_Event_Bind, self, task, IgnoreMissedEvents);
+    return Syscall_24(KSys_Kot_Event_Bind, self, task, IgnoreMissedEvents);
 }
 
 KResult kot_Sys_Event_Unbind(kot_event_t self, kot_thread_t task){
-    return Syscall_16(KSys_Event_Unbind, self, task);
+    return Syscall_16(KSys_Kot_Event_Unbind, self, task);
 }
 
 KResult kot_Sys_Event_Trigger(kot_event_t self, struct kot_arguments_t* parameters){
-    return Syscall_16(KSys_Event_Trigger, self, parameters);
+    return Syscall_16(KSys_Kot_Event_Trigger, self, parameters);
 }
 
 KResult kot_Sys_Event_Close(){
-    return Syscall_0(KSys_Event_Close);
+    return Syscall_0(KSys_Kot_Event_Close);
 }
 
 KResult kot_Sys_CreateThread(kot_process_t self, void* entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result){
-    KResult Status = Syscall_40(KSys_CreateThread, self, entryPoint, privilege, externalData, result);
+    KResult Status = Syscall_40(KSys_Kot_CreateThread, self, entryPoint, privilege, externalData, result);
     if(Status != KSUCCESS) return Status;
     Status = kot_InitializeThread(*result);
     return Status;
 }
 
 KResult kot_Sys_CreateThreadWithoutAutoInit(kot_process_t self, void* entryPoint, enum kot_Priviledge privilege, uint64_t externalData, kot_thread_t* result){
-    return Syscall_40(KSys_CreateThread, self, entryPoint, privilege, externalData, result);
+    return Syscall_40(KSys_Kot_CreateThread, self, entryPoint, privilege, externalData, result);
 }
 
 KResult kot_Sys_Duplicatethread(kot_process_t parent, kot_thread_t source, kot_thread_t* self){
-    return Syscall_24(KSys_DuplicateThread, parent, source, self);
+    return Syscall_24(KSys_Kot_DuplicateThread, parent, source, self);
 }
 
 KResult kot_Sys_ExecThread(kot_thread_t self, struct kot_arguments_t* parameters, kot_execution_type_t type, struct kot_ShareDataWithArguments_t* data){
-    return Syscall_32(KSys_ExecThread, self, parameters, type, data);
+    return Syscall_32(KSys_Kot_ExecThread, self, parameters, type, data);
 }
 
 KResult kot_Sys_Keyhole_CloneModify(kot_key_t source, kot_key_t* destination, kot_process_t target, uint64_t flags, enum kot_Priviledge privilidge){
-    return Syscall_40(KSys_Keyhole_CloneModify, source, destination, target, flags, privilidge);
+    return Syscall_40(KSys_Kot_Keyhole_CloneModify, source, destination, target, flags, privilidge);
 }
 
 KResult kot_Sys_Keyhole_Verify(kot_key_t self, enum kot_DataType type, kot_process_t* target, uint64_t* flags, uint64_t* priviledge){
-    return Syscall_40(KSys_Keyhole_Verify, self, type, target, flags, priviledge);
+    return Syscall_40(KSys_Kot_Keyhole_Verify, self, type, target, flags, priviledge);
 }
 
 KResult kot_Sys_SetTCB(kot_thread_t thread, void* pointer){
-    return Syscall_16(KSys_TCB_Set, thread, (uint64_t)pointer);
+    return Syscall_16(KSys_Kot_TCB_Set, thread, (uint64_t)pointer);
 }
 
 KResult kot_Sys_Thread_Info_Get(kot_thread_t thread, uint64_t arg, uint64_t* value){
-    return Syscall_24(KSys_Thread_Info_Get, thread, (uint64_t)arg, (uint64_t)value);
+    return Syscall_24(KSys_Kot_Thread_Info_Get, thread, (uint64_t)arg, (uint64_t)value);
 }
 
 KResult kot_Sys_WaitPID(pid_t pid, int* status, int flags){
-    return Syscall_24(KSys_WaitPID, pid, status, flags);
+    return Syscall_24(KSys_Kot_WaitPID, pid, status, flags);
 }
 
 KResult kot_Sys_Logs(char* message, size64_t size){
-    return Syscall_16(KSys_Logs, message, size);
+    return Syscall_16(KSys_Kot_Logs, message, size);
 }
 
 void kot_Sys_Schedule(){

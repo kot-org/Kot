@@ -541,6 +541,8 @@ void vmm_CopyPageTable(vmm_page_table* Dst, vmm_page_table* Src, uint64_t Start,
 }
 
 void vmm_ForkMemory(kprocess_t* Parent, kprocess_t* Child){
+    Parent->HaveForkPaging = true;
+    Child->HaveForkPaging = true;
     Child->SharedPaging = vmm_SetupProcess();
     vmm_CopyPageTable((vmm_page_table*)vmm_GetVirtualAddress(Child->SharedPaging), (vmm_page_table*)vmm_GetVirtualAddress(Parent->SharedPaging), VMM_STARTRHALF, VMM_LOWERHALF, VMM_MAXLEVEL - 1);
     // TODO : Make write copy

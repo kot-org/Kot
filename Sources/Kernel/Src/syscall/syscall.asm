@@ -62,6 +62,8 @@ SyscallEntry:
 
 	PUSH_REG
 
+	cld
+
 	mov rax, [gs:0x8] 
 	mov rdi, rsp
 	mov rsi, [rax + 0x18]

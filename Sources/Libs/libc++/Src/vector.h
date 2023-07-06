@@ -42,10 +42,10 @@ namespace std{
             }
 
             void remove(uint64_t Index){
-                atomicAcquire(&Lock, 0);
                 if(Index < 0 || Index >= Size){
                     return;
                 }
+                atomicAcquire(&Lock, 0);
                 for(uint64_t i = Index; i < Size - 1; ++i){
                     Data[i] = Data[i + 1];
                 }
@@ -54,10 +54,10 @@ namespace std{
             }
 
             void set(uint64_t Index, const T& Item){
-                atomicAcquire(&Lock, 0);
                 if(Index < 0 || Index >= Size){
                     return;
                 }
+                atomicAcquire(&Lock, 0);
                 Data[Index] = Item;
                 atomicUnlock(&Lock, 0);
             }

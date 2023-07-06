@@ -150,6 +150,8 @@ typedef struct {
 
 typedef uint64_t kot_permissions_t;
 
+extern kot_process_t kot_ShareProcessFS;
+
 void kot_Srv_Storage_Initialize();
 
 void kot_Srv_Storage_Callback(KResult Status, struct kot_srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3);

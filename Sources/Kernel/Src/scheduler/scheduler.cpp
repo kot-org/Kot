@@ -322,28 +322,28 @@ KResult TaskManager::Exit(ContextStack* Registers, kthread_t* task, uint64_t Ret
     globalTaskManager->ReleaseScheduler();
 
     kprocess_t* ProcParent = task->Parent;
-    while(ProcParent->Parent){
+    while(ProcParent){
+        AtomicAcquire(&ProcParent->WaitPIDLock);
+        for(uint64_t i = 0; i < ProcParent->WaitPIDCount; i++){
+            wait_pid_t* WaitPIDInfo = (wait_pid_t*)ProcParent->WaitPIDList->pop64();
+            if(WaitPIDInfo->Pid <= 0){
+                if(WaitPIDInfo->Pid == -1 || WaitPIDInfo->Pid == 0){
+                    WaitPIDInfo->Thread->PIDWaitStatus = static_cast<int>(ReturnValue);
+                    Unpause(WaitPIDInfo->Thread);
+                }else{
+                    if(-(WaitPIDInfo->Pid) == ProcParent->PID){
+                        WaitPIDInfo->Thread->PIDWaitStatus = static_cast<int>(ReturnValue);
+                        Unpause(WaitPIDInfo->Thread);
+                    }
+                }
+                ProcParent->WaitPIDCount--;
+                kfree(WaitPIDInfo);
+            }
+        }
+        AtomicRelease(&ProcParent->WaitPIDLock);
         ProcParent = ProcParent->Parent;
     }
 
-    AtomicAcquire(&ProcParent->WaitPIDLock);
-    for(uint64_t i = 0; i < ProcParent->WaitPIDCount; i++){
-        wait_pid_t* WaitPIDInfo = (wait_pid_t*)ProcParent->WaitPIDList->pop64();
-        if(WaitPIDInfo->Pid <= 0){
-            if(WaitPIDInfo->Pid == -1 || WaitPIDInfo->Pid == 0){
-                WaitPIDInfo->Thread->PIDWaitStatus = static_cast<int>(ReturnValue);
-                Unpause(WaitPIDInfo->Thread);
-            }else{
-                if(-(WaitPIDInfo->Pid) == task->Parent->PID){
-                    WaitPIDInfo->Thread->PIDWaitStatus = static_cast<int>(ReturnValue);
-                    Unpause(WaitPIDInfo->Thread);
-                }
-            }
-            ProcParent->WaitPIDCount--;
-            kfree(WaitPIDInfo);
-        }
-    }
-    AtomicRelease(&ProcParent->WaitPIDLock);
 
     if(task->IsEvent){
         // Clear event
@@ -363,15 +363,6 @@ KResult TaskManager::Exit(ContextStack* Registers, kthread_t* task, uint64_t Ret
 
 KResult TaskManager::CreateProcessWithoutPaging(kprocess_t** key, enum Priviledge priviledge, uint64_t externalData){
     kprocess_t* proc = (kprocess_t*)kcalloc(sizeof(kprocess_t));
-
-    AtomicAcquire(&CreateProcessLock);
-    if(ProcessList == NULL){
-        ProcessList = CreateNode((void*)0);
-        proc->NodeParent = ProcessList->Add(proc);
-    }else{
-        proc->NodeParent = ProcessList->Add(proc);
-    }
-    AtomicRelease(&CreateProcessLock);
 
     /* Setup default priviledge */
     proc->DefaultPriviledge = priviledge;
@@ -395,12 +386,16 @@ KResult TaskManager::CreateProcessWithoutPaging(kprocess_t** key, enum Priviledg
     proc->WaitPIDCount = 0;
 
     proc->PID = PID; 
+    proc->PIDKey = PID; 
     proc->PPID = 0; 
-    proc->PPIDCount = 0; 
+    proc->HaveForkPaging = false; 
     PID++;
     NumberProcessTotal++;
 
     *key = proc;
+
+    AddProcessList(proc);
+    
     return KSUCCESS;
 }
 
@@ -419,6 +414,7 @@ KResult TaskManager::CreateProcess(kprocess_t** key, enum Priviledge priviledge,
     KResult status = CreateProcessWithoutPaging(key, priviledge, externalData);
     if(status == KSUCCESS){
         (*key)->SharedPaging = vmm_SetupProcess();
+        (*key)->MemoryManager = MMCreateHandler((*key)->SharedPaging, (void*)PAGE_SIZE, FREE_MEMORY_SPACE_ADDRESS);
         Keyhole_Create(&(*key)->ProcessKey, (*key), (*key), DataTypeProcess, (uint64_t)(*key), DEFAULT_FLAGS_KEY, PriviledgeApp);
     }
     return status;
@@ -433,6 +429,34 @@ KResult TaskManager::CreateProcess(kthread_t* caller, kprocess_t** key, enum Pri
     proc->ExternalData_P_PCI = caller->Parent->ExternalData_P;
     proc->Priviledge_PCI = caller->Priviledge;
     return status;
+}
+
+KResult TaskManager::AddProcessList(kprocess_t* process){
+    AtomicAcquire(&CreateProcessLock);
+    process->ListIndex = kot_vector_push(ProcessList, process);
+    AtomicRelease(&CreateProcessLock);
+    return KSUCCESS;
+}
+
+KResult TaskManager::RemoveProcessList(kprocess_t* process){
+    AtomicAcquire(&CreateProcessLock);
+    kot_vector_remove(ProcessList, process->ListIndex);
+    AtomicRelease(&CreateProcessLock);
+    return KSUCCESS;    
+}
+
+kprocess_t* TaskManager::GetProcessList(pid_t pid){
+    kprocess_t* Process = NULL;
+    AtomicAcquire(&CreateProcessLock);
+    for(uint64_t i = 0; i < ProcessList->length; i++){
+        kprocess_t* Tmp = (kprocess_t*)kot_vector_get(ProcessList, i);;
+        if(Tmp->PID == pid){
+            Process = Tmp;
+            break;
+        }
+    }
+    AtomicRelease(&CreateProcessLock);
+    return Process;    
 }
 
 kthread_t* kprocess_t::Createthread(void* entryPoint, uint64_t externalData){
@@ -611,21 +635,10 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
     return thread;
 }
 
-KResult kprocess_t::Fork(ContextStack* Registers, kthread_t* Caller, kprocess_t** Child, kthread_t** ChildThread){
+KResult kprocess_t::Fork(ContextStack* Registers, kthread_t* Caller, kprocess_t** Child, kthread_t** ChildThread){    
     if(Parent) return KFAIL; // Only accept non fork process
-
-    PPIDCount++;
     
     *Child = (kprocess_t*)kcalloc(sizeof(kprocess_t));
-
-    AtomicAcquire(&TaskManagerParent->CreateProcessLock);
-    if(TaskManagerParent->ProcessList == NULL){
-        TaskManagerParent->ProcessList = CreateNode((void*)0);
-        (*Child)->NodeParent = TaskManagerParent->ProcessList->Add((*Child));
-    }else{
-        (*Child)->NodeParent = TaskManagerParent->ProcessList->Add((*Child));
-    }
-    AtomicRelease(&TaskManagerParent->CreateProcessLock);
 
     AtomicAcquire(&StackIteratorLock);
     (*Child)->StackIterator = StackIterator;
@@ -644,8 +657,11 @@ KResult kprocess_t::Fork(ContextStack* Registers, kthread_t* Caller, kprocess_t*
     (*Child)->LockLimit = SELF_DATA_START_ADDRESS;
     (*Child)->LockIndex = 0;
     (*Child)->ExternalData_P = ExternalData_P;
-    (*Child)->PID = PID; 
-    (*Child)->PPID = PPIDCount;
+    (*Child)->PID = TaskManagerParent->PID; 
+    TaskManagerParent->PID++;
+
+    (*Child)->PPID = this->PID;
+    (*Child)->PIDKey = this->PIDKey;
     TaskManagerParent->NumberProcessTotal++;
 
     (*Child)->PID_PCI = PID;
@@ -663,6 +679,9 @@ KResult kprocess_t::Fork(ContextStack* Registers, kthread_t* Caller, kprocess_t*
     ProcParent->ProcessChildCount++;
 
     vmm_ForkMemory(this, *Child);
+    (*Child)->MemoryManager = MMCloneHandler((*Child)->SharedPaging, this->MemoryManager);
+
+    TaskManagerParent->AddProcessList(*Child);
 
     Keyhole_Create(&(*Child)->ProcessKey, (*Child), (*Child), DataTypeProcess, (uint64_t)(*Child), DEFAULT_FLAGS_KEY, PriviledgeApp);
     
@@ -721,6 +740,8 @@ void TaskManager::InitScheduler(uint8_t NumberOfCores, void* IddleTaskFunction){
     void* virtualMemory = (void*)vmm_GetVirtualAddress(physcialMemory);
     vmm_Map(vmm_PageTable, virtualMemory, physcialMemory, true, false);
     memcpy(virtualMemory, IddleTaskFunction, PAGE_SIZE);
+
+    ProcessList = kot_vector_create();
 
     IddleTaskPointer = virtualMemory; 
 
@@ -800,7 +821,7 @@ bool kthread_t::PageFaultHandler(bool IsWriting, uint64_t Address){
     if(ExtendStack(Address)){
        return true; 
     }else if(IsWriting){
-        if(Parent->Parent || Parent->PPIDCount){
+        if(Parent->HaveForkPaging){
             return vmm_MapFork(Paging, Address);
         }else{
             return false;
@@ -999,6 +1020,9 @@ KResult kthread_t::Close(ContextStack* Registers, uint64_t ReturnValue){
 KResult kthread_t::CloseQueu(uint64_t ReturnValue){
     if(IsFork){
         // Forked thread doesn't have queu
+        IsBlock = true;
+        IsClose = true;
+        IsPause = false;
         globalTaskManager->AcquireScheduler();
         return KFAIL;
     }
@@ -1037,7 +1061,7 @@ kthread_t* kthread_t::ForkThread(ContextStack* Registers, kprocess_t* Child){
     ChildThread->Regs->threadInfo = ChildThread->Info;
 
     // Set different results for parents and childs
-    ChildThread->Regs->GlobalPurpose = KSUCCESS,
+    ChildThread->Regs->GlobalPurpose = 0;
 
     // Start child thread
     ChildThread->IsClose = false;

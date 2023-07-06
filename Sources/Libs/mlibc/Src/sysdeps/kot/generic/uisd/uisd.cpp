@@ -5,6 +5,7 @@
 #include <frg/string.hpp>
 #include <frg/vector.hpp>
 #include <mlibc/debug.hpp>
+#include <kot/uisd/srvs/storage.h>
 
 extern "C" {
 
@@ -165,6 +166,8 @@ KResult kot_ResetUISDThreads(){
     kot_srv_graphics_callback_thread = NULL;
     // Authorization doesn't have thread
     kot_srv_audio_callback_thread = NULL;
+
+    kot_ShareProcessFS = NULL;
     
     return KSUCCESS;
 }
