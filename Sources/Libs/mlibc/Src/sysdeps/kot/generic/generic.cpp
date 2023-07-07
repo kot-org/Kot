@@ -34,7 +34,7 @@ namespace mlibc{
     }
 
     int sys_futex_tid(){
-        return (int)Syscall_0(KSys_Std_Futex_TID);
+        return static_cast<int>(kot_Sys_GetTID());
     }
 
     int sys_futex_wait(int *pointer, int expected, const struct timespec *time){
@@ -46,17 +46,7 @@ namespace mlibc{
     }
 
     int sys_anon_allocate(size_t size, void **pointer){
-        // TODO
-        if(size % KotSpecificData.MMapPageSize){
-            size -= size % KotSpecificData.MMapPageSize;
-            size += KotSpecificData.MMapPageSize;
-        }
-        atomicAcquire(&KotAnonAllocateLock, 0);
-        *pointer = (void*)KotSpecificData.HeapLocation;
-        KotSpecificData.HeapLocation += size;
-        int Status = (Syscall_48(KSys_Kot_Map, kot_Sys_GetProcess(), (uint64_t)pointer, AllocationTypeBasic, 0, (uint64_t)&size, false) != KSUCCESS);
-        atomicUnlock(&KotAnonAllocateLock, 0);
-        return Status;
+        return sys_vm_map(nullptr, size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS, -1, 0, pointer);
     }
 
     int sys_anon_free(void *pointer, size_t size){
@@ -65,14 +55,13 @@ namespace mlibc{
     }
 
     int sys_vm_map(void *hint, size_t size, int prot, int flags, int fd, off_t offset, void **window){
-        auto Result = Syscall_40(KSys_Std_Vm_Map, (uint64_t)hint, (uint64_t)size, (uint64_t)prot, (uint64_t)flags);
+        auto Result = Syscall_40(KSys_Std_Vm_Map, (uint64_t)hint, (uint64_t)size, (uint64_t)prot, (uint64_t)flags, (uint64_t)window);
 
         if(Result < 0){
             return -Result;
         }
 
-        *window = (void *)Result;
-        return 0;
+        return Result;
     }
 
     int sys_vm_unmap(void *pointer, size_t size){

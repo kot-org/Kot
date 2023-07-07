@@ -5,20 +5,19 @@ extern "C" {
 /* Std */
 #define KSys_Std_Start 0x0
 #define KSys_Std_TCB_Set KSys_Std_Start + 0x0
-#define KSys_Std_Futex_TID KSys_Std_Start + 0x1
-#define KSys_Std_Futex_Wait KSys_Std_Start + 0x2
-#define KSys_Std_Futex_Wake KSys_Std_Start + 0x3
-#define KSys_Std_Vm_Map KSys_Std_Start + 0x4
-#define KSys_Std_Vm_Unmap KSys_Std_Start + 0x5
-#define KSys_Std_Vm_Protect KSys_Std_Start + 0x6
-#define KSys_Std_Exit KSys_Std_Start + 0x7
-#define KSys_Std_Thread_Exit KSys_Std_Start + 0x8
-#define KSys_Std_Sigprocmask KSys_Std_Start + 0x9
-#define KSys_Std_Sigaction KSys_Std_Start + 0xA
-#define KSys_Std_Fork KSys_Std_Start + 0xB
-#define KSys_Std_Wait_PID KSys_Std_Start + 0xC
-#define KSys_Std_Get_PID KSys_Std_Start + 0xD
-#define KSys_Std_Kill KSys_Std_Start + 0xE
+#define KSys_Std_Futex_Wait KSys_Std_Start + 0x1
+#define KSys_Std_Futex_Wake KSys_Std_Start + 0x2
+#define KSys_Std_Vm_Map KSys_Std_Start + 0x3
+#define KSys_Std_Vm_Unmap KSys_Std_Start + 0x4
+#define KSys_Std_Vm_Protect KSys_Std_Start + 0x5
+#define KSys_Std_Exit KSys_Std_Start + 0x6
+#define KSys_Std_Thread_Exit KSys_Std_Start + 0x7
+#define KSys_Std_Sigprocmask KSys_Std_Start + 0x8
+#define KSys_Std_Sigaction KSys_Std_Start + 0x9
+#define KSys_Std_Fork KSys_Std_Start + 0xA
+#define KSys_Std_Wait_PID KSys_Std_Start + 0xB
+#define KSys_Std_Get_PID KSys_Std_Start + 0xC
+#define KSys_Std_Kill KSys_Std_Start + 0xD
 
 /* Kot */
 #define KSys_Kot_Start KSys_Std_Kill

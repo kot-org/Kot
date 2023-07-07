@@ -3,7 +3,6 @@
 static SyscallHandler SyscallHandlers[Syscall_Count] = { 
     /* Std*/
     [KSys_Std_TCB_Set] = reinterpret_cast<SyscallHandler>(Sys_Std_TCB_Set),
-    [KSys_Std_Futex_TID] = reinterpret_cast<SyscallHandler>(Sys_Std_Futex_TID),
     [KSys_Std_Futex_Wait] = reinterpret_cast<SyscallHandler>(Sys_Std_Futex_Wait),
     [KSys_Std_Futex_Wake] = reinterpret_cast<SyscallHandler>(Sys_Std_Futex_Wake),
     [KSys_Std_Vm_Map] = reinterpret_cast<SyscallHandler>(Sys_Std_Vm_Map),

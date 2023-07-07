@@ -1,4 +1,5 @@
 #include <elf/elf.h>
+#include <abi-bits/vm-flags.h>
 
 namespace ELF{
     static inline char* GetSectionName(elf_t* self, Elf64_Shdr* shdr){
@@ -163,6 +164,14 @@ namespace ELF{
                     kfree(KotSpecificData);
                 }
             }
+        }
+
+        size_t ProtectedSize =  HeapLocation - (uintptr_t)proc->MemoryManager->Base;
+        int Errno = 0;
+        MemoryRegion_t* Region = MMAllocateRegionVM(proc->MemoryManager, proc->MemoryManager->Base, ProtectedSize, MAP_FIXED, PROT_READ | PROT_WRITE | PROT_EXEC, &Errno);
+
+        if(!Region){
+            return KFAIL;
         }
 
         *selfthread = mainthread;

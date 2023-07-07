@@ -1,4 +1,5 @@
 #include <syscall/kot/kot.h>
+#include <abi-bits/errno.h>
 #include <abi-bits/vm-flags.h>
 
 
@@ -31,7 +32,7 @@ KResult Sys_Kot_CreateMemoryField(SyscallStack* Registers, kthread_t* Thread){
     uint64_t data;
     if(Keyhole_Get(Thread, (key_t)SYSCALL_ARG0(Registers), DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!(flags & KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
-    if(CreateMemoryField(Thread, processkey, SYSCALL_ARG1(Registers), (uint64_t*)SYSCALL_ARG2(Registers), &data, (enum MemoryFieldType)SYSCALL_ARG4(Registers)) != KSUCCESS) return KFAIL;
+    if(MMCreateMemoryField(Thread, processkey, SYSCALL_ARG1(Registers), (uint64_t*)SYSCALL_ARG2(Registers), &data, (enum MemoryFieldType)SYSCALL_ARG4(Registers)) != KSUCCESS) return KFAIL;
     return Keyhole_Create((key_t*)SYSCALL_ARG3(Registers), Thread->Parent, NULL, DataTypeSharedMemory, data, KeyholeFlagFullPermissions, PriviledgeApp);
 }
 
@@ -49,7 +50,7 @@ KResult Sys_Kot_AcceptMemoryField(SyscallStack* Registers, kthread_t* Thread){
     if(Keyhole_Get(Thread, (key_t)SYSCALL_ARG0(Registers), DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!(flags & KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
     if(Keyhole_Get(Thread, (key_t)SYSCALL_ARG1(Registers), DataTypeSharedMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    return AcceptMemoryField(Thread, processkey, memoryKey, virtualAddressPointer);
+    return MMAcceptMemoryField(Thread, processkey, memoryKey, virtualAddressPointer);
 }
 
 /* Sys_Kot_CloseMemoryField :
@@ -62,7 +63,7 @@ KResult Sys_Kot_CloseMemoryField(SyscallStack* Registers, kthread_t* Thread){
     if(Keyhole_Get(Thread, (key_t)SYSCALL_ARG0(Registers), DataTypeProcess, (uint64_t*)&processkey, &flags) != KSUCCESS) return KKEYVIOLATION;
     if(!(flags & KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
     if(Keyhole_Get(Thread, (key_t)SYSCALL_ARG1(Registers), DataTypeSharedMemory, (uint64_t*)&memoryKey, &flags) != KSUCCESS) return KKEYVIOLATION;
-    return CloseMemoryField(Thread, processkey, memoryKey, (void*)SYSCALL_ARG2(Registers));    
+    return MMCloseMemoryField(Thread, processkey, memoryKey, (void*)SYSCALL_ARG2(Registers));    
 }
 
 /* Sys_Kot_GetInfoMemoryField :
@@ -221,11 +222,16 @@ KResult Sys_Kot_Map(SyscallStack* Registers, kthread_t* Thread){
         *AddressVirtual -= *AddressVirtual % PAGE_SIZE;
     }
 
-    MemoryRegion_t* Region = MMAllocateRegionVM(Thread->Parent->MemoryManager, (void*)*AddressVirtual, *Size, Flags, PROT_READ | PROT_WRITE | PROT_EXEC);
+    int Errno = 0;
+    MemoryRegion_t* Region = MMAllocateRegionVM(Thread->Parent->MemoryManager, (void*)*AddressVirtual, *Size, Flags, PROT_READ | PROT_WRITE | PROT_EXEC, &Errno);
 
     if(!Region){
         *Size = 0;
-        return KFAIL;
+        if(Errno == EEXIST){
+            return KSUCCESS;
+        }else{
+            return KFAIL;
+        }
     }
 
     KResult Status = KFAIL;

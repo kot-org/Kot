@@ -37,15 +37,6 @@ int Sys_Std_TCB_Set(SyscallStack* Registers, kthread_t* Thread){
     return 0;
 }
 
-int Sys_Std_Futex_TID(SyscallStack* Registers, kthread_t* Thread){
-    /* args */
-
-    /* main */
-
-    /* return */
-    return static_cast<int>(Thread->TID);
-}
-
 int Sys_Std_Futex_Wait(SyscallStack* Registers, kthread_t* Thread){
     /* args */
 
@@ -74,55 +65,89 @@ int Sys_Std_Vm_Map(SyscallStack* Registers, kthread_t* Thread){
     int Flags = static_cast<int>(SYSCALL_ARG3(Registers));
     void** Window = reinterpret_cast<void**>(SYSCALL_ARG4(Registers));
 
+    if(!CheckUserAddress((void*)Window, sizeof(void*))){
+        return -EINVAL;
+    } 
+
     /* main */
     if(Size == 0){
         /* return */
         return -EINVAL;
     }
 
-    bool Fixed = Flags & MAP_FIXED;
-    bool Anon = Flags & MAP_ANONYMOUS;
-
     int UnknownFlags = Flags & ~(MAP_ANONYMOUS | MAP_FIXED);
     if(UnknownFlags){
+        /* return */
         Warning("Sys_Std_Vm_Map: Unsupported flags %x", Flags);
         return -EINVAL;
     }
 
     if(Size > 0x40000000){
+        /* return */
         Warning("Sys_Std_Vm_Map: Unsupported size: %u", Size);
         return -EINVAL;
     }
 
-    MemoryRegion_t* Region = MMAllocateRegionVM(Thread->Parent->MemoryManager, Hint, Size, Flags, Prot);
+    if(Size % PAGE_SIZE){
+        Size -= Size % PAGE_SIZE;
+        Size += PAGE_SIZE;
+    }
 
-    /* return */
+    if((uintptr_t)Hint % PAGE_SIZE){
+        Hint = (void*)((uintptr_t)Hint - (uintptr_t)Hint % PAGE_SIZE);
+    }
+
+    int Errno = 0;
+    MemoryRegion_t* Region = MMAllocateRegionVM(Thread->Parent->MemoryManager, Hint, Size, Flags, Prot, &Errno);
     if(!Region){
-        return -EINVAL;
-    }else{
+        /* return */
+        Warning("Sys_Std_Vm_Map: Region is isn't valid");
+        return -Errno;
+    }
+    
+    /* return */
+    if(MMAllocateMemoryBlock(Thread->Parent->MemoryManager, Region) == KSUCCESS){
+        /* return */
         *Window = Region->Base;
         return 0;
+    }else{
+        return -EINVAL;
     }
+
 }
 
 int Sys_Std_Vm_Unmap(SyscallStack* Registers, kthread_t* Thread){
     /* args */
+    void* Pointer = reinterpret_cast<void*>(SYSCALL_ARG0(Registers));
+    size_t Size = static_cast<size_t>(SYSCALL_ARG1(Registers));
+    
 
     /* main */
-    // TODO
-
-    /* return */
-    return 0;
+    if(MMFree(Thread->Parent->MemoryManager, Pointer, Size) == KSUCCESS){
+        /* return */
+        return 0;
+    }else{
+        /* return */
+        return -EINVAL;   
+    }
 }
 
 int Sys_Std_Vm_Protect(SyscallStack* Registers, kthread_t* Thread){
     /* args */
+    void* Pointer = reinterpret_cast<void*>(SYSCALL_ARG0(Registers));
+    size_t Size = static_cast<size_t>(SYSCALL_ARG1(Registers));
+    int Prot = static_cast<int>(SYSCALL_ARG2(Registers));
+    
 
     /* main */
-    // TODO
+    if(MMProtect(Thread->Parent->MemoryManager, Pointer, Size, Prot) == KSUCCESS){
+        /* return */
+        return 0;
+    }else{
+        /* return */
+        return -EINVAL;   
+    }
 
-    /* return */
-    return 0;
 }
 
 int Sys_Std_Exit(SyscallStack* Registers, kthread_t* Thread){
