@@ -17,7 +17,7 @@ tools:
         - '-DLLVM_PARALLEL_LINK_JOBS=2'
         - '-DLLVM_USE_LINKER=lld'
         - '-G Ninja'
-        - '@SOURCE_ROOT@/Toolchain/host-llvm/llvm'
+        - '@SOURCE_ROOT@/Toolchain/host-llvm-backend/llvm'
     compile:
       - args: ['ninja', 'all']
     install:
