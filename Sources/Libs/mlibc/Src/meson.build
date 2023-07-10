@@ -149,7 +149,6 @@ elif host_machine.system() == 'keyronex'
 	internal_conf.set10('MLIBC_MAP_FILE_WINDOWS', true)
 	subdir('sysdeps/keyronex')
 elif host_machine.system() == 'kot'
-	disable_linux_option = true
 	rtdl_include_dirs += include_directories('sysdeps/kot/include')
 	libc_include_dirs += include_directories('sysdeps/kot/include')
 	subdir('sysdeps/kot')

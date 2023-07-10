@@ -22,6 +22,12 @@ QEMUFLAGS =	-no-reboot 														\
 
 build:
 	bash ./Build/build.sh 
+	xbstrap install --all
+
+	bash Tools/BuildTools.sh
+
+	cp grub.cfg Bin/BootFiles/boot/grub/grub.cfg
+	grub-mkrescue --xorriso=xorriso -o Bin/kot.iso Bin/BootFiles
 
 # debug with your own qemu build : ../qemu/bin/debug/native/x86_64-softmmu/
 run:
@@ -36,45 +42,28 @@ install-ninja:
 	sudo gunzip /usr/local/bin/ninja.gz
 	sudo chmod a+x /usr/local/bin/ninja
 
-install-llvm-toolchain: install-ninja
-	mkdir -m 777 -p "Toolchain"
-	cd "Toolchain" && \
-	git clone https://github.com/kot-org/llvm-project && \
-	cd "llvm-project" && \
-	git checkout release/14.x && \
-	mkdir -m 777 -p "build" && \
-	cd "build" && \
-	cmake -DCMAKE_C_COMPILER=clang-14 -DCMAKE_CXX_COMPILER=clang++-14 -DCMAKE_INSTALL_PREFIX="$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))/Toolchain/local" -DLLVM_ENABLE_PROJECTS="clang;lld" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DLLVM_PARALLEL_LINK_JOBS=2 -DLLVM_USE_LINKER=lld -G "Ninja" ../llvm && \
-	ninja all -j4 && \
-	ninja install -j4
-
-update-llvm-toolchain:
-	cd "Toolchain" && \
-	cd llvm-project && \
-	git pull && \
-	cd "build" && \
-	ninja all -j4 && \
-	ninja install -j4
-
-
 install-llvm:
 	wget https://apt.llvm.org/llvm.sh
 	chmod +x llvm.sh
 	sudo ./llvm.sh 14 all
 	rm -f llvm.sh	
 
-deps-debian: install-llvm install-llvm-toolchain
+deps-debian: install-llvm install-ninja
 	sudo apt update
-	sudo apt install kpartx nasm xorriso mtools grub-common grub-efi-amd64 grub-pc-bin build-essential qemu-system-x86 ovmf meson kpartx  -y
+	sudo apt install kpartx nasm xorriso mtools grub-common grub-efi-amd64 grub-pc-bin build-essential qemu-system-x86 ovmf meson kpartx python3 python3-pip python3-setuptools python3-wheel ninja-build  -y
+	pip3 install meson
+	pip3 install xbstrap
+
+init:
+	xbstrap init .
+
+tools:
+	xbstrap install-tool --all
 
 clean:
 	sudo rm -rf ./Bin ./Sysroot ./Sources/*/*/*/*/*/Lib ./Sources/*/*/*/*/Lib ./Sources/*/*/*/Lib ./Sources/*/*/Lib ./Sources/*/Lib
 
-deps-github-action: install-llvm install-llvm-toolchain
-	sudo apt update
-	sudo apt install kpartx nasm xorriso mtools qemu-utils
-
-github-action: deps-github-action build
+github-action: deps-debian init build
 	qemu-img convert -f raw -O vmdk Bin/kot.img Bin/kot.vmdk
 	qemu-img convert -f raw -O vdi Bin/kot.img Bin/kot.vdi
 

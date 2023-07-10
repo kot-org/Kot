@@ -518,6 +518,7 @@ kthread_t* kprocess_t::Createthread(void* entryPoint, enum Priviledge priviledge
     thread->IsBlock = true;
     thread->IsClose = true;
     thread->IsFork = false;
+    thread->SignalMask = 0;
     thread->Queu = (ThreadQueu_t*)kcalloc(sizeof(ThreadQueu_t));
     thread->ExternalData_T = externalData;
 
@@ -605,6 +606,7 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
     thread->IsBlock = true;
     thread->IsClose = true;
     thread->IsFork = false;
+    thread->SignalMask = 0;
     thread->Queu = (ThreadQueu_t*)kcalloc(sizeof(ThreadQueu_t)); 
 
     /* Thread Data */

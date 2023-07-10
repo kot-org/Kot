@@ -1,7 +1,7 @@
 _HOME = ../../../../
 
-INCDIR = $(_HOME)Sysroot/include
-BUILDDIR := $(_HOME)Sysroot/lib
+INCDIR = $(_HOME)Sysroot/usr/include
+BUILDDIR := $(_HOME)Sysroot/usr/lib
 
 OBJDIR := ../Lib
 SRCDIR := ../Src

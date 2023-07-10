@@ -1,7 +1,7 @@
 _HOME = ../../../../
 
-INCDIR = $(_HOME)Sysroot/include
-BUILDDIR := $(_HOME)Sysroot/lib
+INCDIR = $(_HOME)Sysroot/usr/include
+BUILDDIR := $(_HOME)Sysroot/usr/lib
 
 ASMC = nasm
 CC = kot-x86_64-clang

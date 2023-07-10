@@ -10,7 +10,8 @@ int main(int argc, char *argv[]) {
     if(getcwd(cwd, sizeof(cwd)) != NULL) {
         args[0] = KOT_BASE_PATH"/Toolchain/local/bin/clang";
         args[1] = "--target=x86_64-kot";
-        args[2] = "--sysroot="KOT_BASE_PATH"/Sysroot";
+        args[2] = "--sysroot="KOT_BASE_PATH"/Sysroot/usr";
+        args[3] = "--sysroot="KOT_BASE_PATH"/Sysroot/usr";
         
         for(int i = 1; i < argc; i++){
             args[i + 2] = argv[i];

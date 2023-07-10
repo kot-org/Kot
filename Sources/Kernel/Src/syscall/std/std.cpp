@@ -3,6 +3,7 @@
 #include <bits/off_t.h>
 #include <abi-bits/errno.h>
 #include <abi-bits/pid_t.h>
+#include <abi-bits/signal.h>
 #include <abi-bits/vm-flags.h>
 
 /* -------------------------------Specs--------------------------------------- */
@@ -173,9 +174,32 @@ int Sys_Std_Thread_Exit(SyscallStack* Registers, kthread_t* Thread){
 
 int Sys_Std_Sigprocmask(SyscallStack* Registers, kthread_t* Thread){
     /* args */
+    int How = static_cast<int>(SYSCALL_ARG0(Registers));
+    const sigset_t* Set = reinterpret_cast<const sigset_t*>(SYSCALL_ARG1(Registers));
+    sigset_t* Retrieve = reinterpret_cast<sigset_t*>(SYSCALL_ARG2(Registers));
 
     /* main */
-    // TODO
+    if(Retrieve){
+        if(CheckUserAddress(Retrieve, sizeof(sigset_t)) != KSUCCESS){
+            return -EINVAL;
+        }
+        *Retrieve = Thread->SignalMask;
+    }
+    switch (How){
+        case SIG_BLOCK:
+            Thread->SignalMask |= *Set;
+            break;
+        case SIG_UNBLOCK:{
+            Thread->SignalMask &= ~(*Set);
+            break;
+        }
+        case SIG_SETMASK:{
+            Thread->SignalMask = *Set;
+            break;
+        }
+        default:
+            return -EINVAL;
+    }
 
     /* return */
     return 0;
@@ -183,6 +207,9 @@ int Sys_Std_Sigprocmask(SyscallStack* Registers, kthread_t* Thread){
 
 int Sys_Std_Sigaction(SyscallStack* Registers, kthread_t* Thread){
     /* args */
+    int Signum = static_cast<int>(SYSCALL_ARG0(Registers));
+    const struct sigaction* Act = reinterpret_cast<sigaction*>(SYSCALL_ARG1(Registers));
+    struct sigaction* Oldact = reinterpret_cast<sigaction*>(SYSCALL_ARG2(Registers));
 
     /* main */
     // TODO

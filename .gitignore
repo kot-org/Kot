@@ -6,6 +6,11 @@ Compilers
 Toolchain
 Sysroot
 Bin
+Bundled
+*-builds
+packages
+tools
+kot-base
 
 # Prerequisites
 *.d
@@ -21,6 +26,8 @@ Bin
 # Precompiled Headers
 *.gch
 *.pch
+*.link
+*.xbstrap
 
 # Compiled Dynamic libraries
 *.so

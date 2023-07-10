@@ -1,4 +1,0 @@
-# Use libc subproject for compiling this project and its subprojects
-
-[properties]
-c_stdlib = ['libc', 'libc_native_dep']

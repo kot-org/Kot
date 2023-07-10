@@ -1,12 +1,13 @@
 #pragma once
 #include <mm/mm.h>
+#include <lib/pid.h>
 #include <arch/arch.h>
 #include <lib/types.h>
 #include <heap/heap.h>
-#include <lib/pid.h>
 #include <lib/limits.h>
 #include <lib/vector.h>
 #include <event/event.h>
+#include <abi-bits/signal.h>
 #include <keyhole/keyhole.h>
 
 struct TaskQueuNode;
@@ -203,6 +204,9 @@ struct kthread_t{
 
     /* PIDWait */
     int PIDWaitStatus;
+
+    /* Signals */
+    sigset_t SignalMask;
 
     void SaveContext(struct ContextStack* Registers, uint64_t CoreID);
     void SaveContext(struct ContextStack* Registers);

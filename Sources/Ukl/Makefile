@@ -26,7 +26,7 @@ DIRS = $(wildcard $(SRCDIR)/*)
 
 all: ukl
 
-ukl: $(OBJS) link createISO
+ukl: $(OBJS) link
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@ echo !==== COMPILING $^
@@ -46,11 +46,3 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 link:
 	@ echo !==== LINKING
 	$(LD) $(LDFLAGS) -o $(BUILDDIR)/boot/ukl.elf $(OBJS) $(OBJSCPP)
-
-createISO:
-	@ echo !==== ISO
-
-	bash $(_HOME)Tools/BuildTools.sh
-
-	cp grub.cfg $(BUILDDIR)/boot/grub/grub.cfg
-	grub-mkrescue --xorriso=xorriso -o $(BINDIR)/kot.iso $(BUILDDIR)

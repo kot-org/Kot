@@ -19,6 +19,7 @@ if not no_headers
 	)
 	install_headers(
 		'include/sys/queue.h',
+		'include/sys/ioccom.h',
 		subdir: 'sys'
 	)
 	install_headers(

@@ -1,0 +1,20 @@
+packages:
+  # Kot-ukl
+  - name: Ukl
+    source:
+      subdir: 'Sources'
+    tools_required:
+      - host-llvm
+    build:
+      - args: ['make']
+        workdir: '@THIS_SOURCE_DIR@'
+
+  # Kot-kernel
+  - name: Kernel
+    source:
+      subdir: 'Sources'
+    tools_required:
+      - host-llvm
+    build:
+      - args: ['make']
+        workdir: '@THIS_SOURCE_DIR@'

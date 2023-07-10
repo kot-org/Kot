@@ -1,0 +1,24 @@
+tools:
+  - name: host-llvm
+    source:
+      subdir: 'Toolchain'
+      git: 'https://github.com/kot-org/llvm-project'
+      branch: 'release/14.x'
+      version: '14.x'
+    configure:
+      - args:
+        - 'cmake'
+        - '-DCMAKE_C_COMPILER=clang-14'
+        - '-DCMAKE_CXX_COMPILER=clang++-14'
+        - '-DCMAKE_INSTALL_PREFIX=@SOURCE_ROOT@/Toolchain/local' 
+        - '-DLLVM_ENABLE_PROJECTS=clang;lld'
+        - '-DCMAKE_BUILD_TYPE=Release'
+        - '-DBUILD_SHARED_LIBS=ON' 
+        - '-DLLVM_PARALLEL_LINK_JOBS=2'
+        - '-DLLVM_USE_LINKER=lld'
+        - '-G Ninja'
+        - '@SOURCE_ROOT@/Toolchain/host-llvm/llvm'
+    compile:
+      - args: ['ninja', 'all']
+    install:
+      - args: ['ninja', 'install']

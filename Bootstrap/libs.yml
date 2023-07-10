@@ -1,0 +1,108 @@
+packages:
+  - name: linux-headers
+    source:
+      subdir: 'Bundled'
+      url: 'https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.8.tar.xz'
+      checksum: 'blake2b:1eeab95bf09757131031ebeaa3fb66f01626ecfe3b72d0044176613d027ac6643c688a0bb8f4493ae6faa3d3bf0c89fcdff3c28d7b8375e59ed6e8bd6d856e44'
+      extract_path: 'linux-6.1.8'
+      format: 'tar.xz'
+      version: '6.1.8'
+    configure:
+      - args: ['cp', '-Tr', '@THIS_SOURCE_DIR@', '.']
+    build:
+      - args: ['make', 'ARCH=x86_64', 'headers_install']
+      - args: ['find', 'usr/include', '-type', 'f', '!', '-name', '*.h', '-delete']
+      - args: ['rm', 'usr/include/linux/libc-compat.h']
+      - args: ['mkdir', '-p', '@SYSROOT_DIR@/usr']
+      - args: ['cp', '-r', 'usr/include', '@SYSROOT_DIR@/usr']
+
+  - name: freetype
+    source:
+      git: 'https://github.com/freetype/freetype'
+      subdir: 'Bundled'
+      tag: 'VER-2-11-1'
+      version: '2.11.1'
+    pkgs_required:
+      - mlibc
+    tools_required:
+      - host-llvm
+    configure:
+    - args:
+        - 'meson'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/Build/kot.cross-file'
+        - '-Ddefault_library=static'
+        - '-Dprefix=/usr'
+        - '@THIS_SOURCE_DIR@'
+    build:
+      - args: ['ninja', 'all']
+      - args: ['ninja', 'install', 'all']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+
+  - name: ffmpeg
+    source:
+      git: 'https://github.com/FFmpeg/FFmpeg'
+      tag: 'n5.0.1'
+      version: '5.0.1'
+      subdir: 'Bundled'
+    pkgs_required:
+      - mlibc
+    tools_required:
+      - host-llvm
+    configure:
+    - args:
+      - '@THIS_SOURCE_DIR@/configure'
+      - '--disable-programs'
+      - '--enable-static'
+      - '--disable-shared' 
+      - '--disable-doc'
+      - '--disable-avdevice'
+      - '--disable-mmx'
+      - '--disable-network'
+      - '--disable-demuxer=nistsphere'
+      - '--disable-libv4l2 --disable-v4l2-m2m'
+      - '--arch=x86_64'
+      - '--enable-cross-compile'
+      - '--cc=kot-x86_64-clang'
+      - '--cxx=kot-x86_64-clang'
+      - '--ld=kot-x86_64-clang'
+      - '--target-os=none'
+      - '--prefix=@SYSROOT_DIR@/usr'
+      - '--sysroot=@SYSROOT_DIR@/usr'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+
+  - name: libdrm
+    source:
+      subdir: 'Bundled'
+      git: 'https://gitlab.freedesktop.org/mesa/drm'
+      tag: 'libdrm-2.4.115'
+      version: '2.4.115'
+    tools_required:
+      - host-llvm
+    pkgs_required:
+      - mlibc
+    configure:
+      - args:
+        - 'meson'
+        - '--cross-file'
+        - '@SOURCE_ROOT@/Build/kot.cross-file'
+        - '--prefix=/usr'
+        - '--libdir=lib'
+        - '--buildtype=debugoptimized'
+        - '-Ddefault_library=static'
+        - '-Dintel=disabled'
+        - '-Dvmwgfx=disabled'
+        - '-Dradeon=disabled'
+        - '-Damdgpu=disabled'
+        - '-Dnouveau=disabled'
+        - '-Dman-pages=disabled'
+        - '-Dcairo-tests=disabled'
+        - '@THIS_SOURCE_DIR@'
+    build:
+    - args: ['ninja']
+    - args: ['ninja', 'install']
+      environ:
+        DESTDIR: '@THIS_COLLECT_DIR@'
