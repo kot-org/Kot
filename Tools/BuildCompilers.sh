@@ -7,6 +7,6 @@ if [ -f ../Toolchain/local/bin/clang ]; then
     sudo cp "../Compilers/kot-x86_64-clang" "/usr/bin"
 else
     printf "\033[0;31m /!\\ \033[0m kot-x86_64-clang cross compiler does not exist.\n"
-    printf "  ↳ \033[0;36m ⓘ \033[0m Run \x1B[1mmake install-llvm-toolchain\x1B[0m\n"
+    printf "  ↳ \033[0;36m ⓘ \033[0m Run \x1B[1mmake build\x1B[0m\n"
     kill -15 $PPID
 fi

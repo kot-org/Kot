@@ -1,5 +1,5 @@
 tools:
-  - name: host-llvm
+  - name: host-llvm-backend
     source:
       subdir: 'Toolchain'
       git: 'https://github.com/kot-org/llvm-project'
@@ -22,3 +22,11 @@ tools:
       - args: ['ninja', 'all']
     install:
       - args: ['ninja', 'install']
+
+  - name: host-llvm
+    source:
+      subdir: 'Tools'
+    tools_required:
+      - host-llvm-backend
+    compile:
+      - args: ['sh', 'Tools/BuildCompilers.sh']

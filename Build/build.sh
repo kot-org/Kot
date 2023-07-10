@@ -25,7 +25,3 @@ mkdir -m 777 -p $BINDIR"/Firmwares/"
 
 cp -p -R ./Build/Bin/Modules/** $BINDIR"/Modules/"
 cp -p -R ./Build/Bin/Firmwares/** $BINDIR"/Firmwares/"
-
-# Compiler
-echo -e "\e[32mCompiling kot compilers...\e[0m"
-bash "Tools/BuildCompilers.sh"
