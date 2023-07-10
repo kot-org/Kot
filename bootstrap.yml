@@ -5,8 +5,9 @@ directories:
     system_root: 'Sysroot'
 
 imports:
-  - file: Bootstrap/libs.yml
   - file: Bootstrap/host-tools.yml
+  - file: Bootstrap/libs.yml
+  - file: Bootstrap/ports.yml
   - file: Bootstrap/kot-base.yml
   - file: Bootstrap/kot-libs.yml
   - file: Bootstrap/kot-apps.yml

@@ -8,6 +8,10 @@
         "destination": "user"
     },
     {
+        "source": "Sysroot/usr/.",
+        "destination": "usr"
+    },
+    {
         "source": "Sources/Modules/Drivers/graphics/orb/Bin/Orb.elf",
         "destination": "bin/orb"
     },

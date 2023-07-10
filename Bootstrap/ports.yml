@@ -1,0 +1,32 @@
+packages:
+  - name: bash
+    source:
+      git: 'https://github.com/bminor/bash'
+      branch: 'master'
+      commit: '9439ce094c9aa7557a9d53ac7b412a23aa66e36b'
+      version: '5.1.16'
+      subdir: 'Bundled'
+    tools_required:
+      - host-llvm
+    pkgs_required:
+      - mlibc
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=x86_64-none'
+        - '--prefix=/usr'
+        - '--without-bash-malloc'
+        - '--disable-nls'
+        environ:
+          CC: 'kot-x86_64-clang'
+          CXX: 'kot-x86_64-clang'
+          ac_cv_func_wcswidth: 'yes'
+          bash_cv_getenv_redef: 'no'
+          ac_cv_func_getcwd: 'yes'
+          bash_cv_getcwd_malloc: 'yes'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
+      - args: ['ln', '-sf', '/usr/bin/bash', '@THIS_COLLECT_DIR@/usr/bin/sh']
+      - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/bin']
+      - args: ['ln', '-sf', '/usr/bin/bash', '@THIS_COLLECT_DIR@/bin/sh']

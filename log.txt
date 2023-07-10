@@ -1,0 +1,1080 @@
+checking build system type... x86_64-pc-linux-gnu
+checking host system type... x86_64-pc-none
+
+Beginning configuration for bash-5.1-release for x86_64-pc-none
+
+checking for x86_64-none-gcc... kot-x86_64-clang
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... yes
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether kot-x86_64-clang accepts -g... yes
+checking for kot-x86_64-clang option to accept ISO C89... none needed
+checking for library containing strerror... none required
+checking how to run the C preprocessor... kot-x86_64-clang -E
+checking for grep that handles long lines and -e... /usr/bin/grep
+checking for egrep... /usr/bin/grep -E
+checking for ANSI C header files... yes
+checking for sys/types.h... yes
+checking for sys/stat.h... yes
+checking for stdlib.h... yes
+checking for string.h... yes
+checking for memory.h... yes
+checking for strings.h... yes
+checking for inttypes.h... yes
+checking for stdint.h... yes
+checking for unistd.h... yes
+checking minix/config.h usability... no
+checking minix/config.h presence... no
+checking for minix/config.h... no
+checking whether it is safe to define __EXTENSIONS__... yes
+checking for special C compiler options needed for large files... no
+checking for _FILE_OFFSET_BITS value needed for large files... no
+checking whether kot-x86_64-clang needs -traditional... no
+checking for a BSD-compatible install... /usr/bin/install -c
+checking for x86_64-none-ar... no
+checking for ar... ar
+checking for x86_64-none-ranlib... no
+checking for ranlib... ranlib
+checking for bison... bison -y
+checking whether make sets $(MAKE)... yes
+checking for an ANSI C-conforming const... yes
+checking for inline... inline
+checking whether byte ordering is bigendian... no
+checking for preprocessor stringizing operator... yes
+checking for long double with more range or precision than double... no
+checking for function prototypes... yes
+checking whether char is unsigned... no
+checking for working volatile... yes
+checking for C/C++ restrict keyword... __restrict
+checking for a thread-safe mkdir -p... /usr/bin/mkdir -p
+checking for a sed that does not truncate output... /usr/bin/sed
+checking whether NLS is requested... no
+checking for msgfmt... /usr/bin/msgfmt
+checking for gmsgfmt... /usr/bin/msgfmt
+checking for xgettext... /usr/bin/xgettext
+checking for msgmerge... /usr/bin/msgmerge
+checking whether we are using the GNU C Library 2 or newer... no
+checking whether the -Werror option is usable... yes
+checking for simple visibility declarations... yes
+checking for size_t... yes
+checking for stdint.h... yes
+checking for working alloca.h... yes
+checking for alloca... yes
+checking for stdlib.h... (cached) yes
+checking for unistd.h... (cached) yes
+checking for sys/param.h... yes
+checking for xlocale.h... no
+checking for sys/time.h... yes
+checking for getpagesize... yes
+checking for working mmap... no
+checking whether integer division by zero raises SIGFPE... guessing yes
+checking for inttypes.h... yes
+checking for unsigned long long int... yes
+checking for inttypes.h... (cached) yes
+checking whether the inttypes.h PRIxNN macros are broken... no
+checking for ld used by kot-x86_64-clang... /usr/bin/ld
+checking if the linker (/usr/bin/ld) is GNU ld... yes
+checking for shared library run path origin... done
+checking 32-bit host C ABI... no
+checking for the common suffixes of directories in the library search path... lib,lib
+checking whether imported symbols can be declared weak... guessing yes
+checking pthread.h usability... yes
+checking pthread.h presence... yes
+checking for pthread.h... yes
+checking for pthread_kill in -lpthread... yes
+checking for multithread API to use... posix
+checking for pthread_rwlock_t... yes
+checking whether pthread_rwlock_rdlock prefers a writer to a reader... guessing yes
+checking for iconv... yes
+checking for working iconv... guessing yes
+checking for iconv declaration... 
+         extern size_t iconv (iconv_t cd, char * *inbuf, size_t *inbytesleft, char * *outbuf, size_t *outbytesleft);
+checking argz.h usability... no
+checking argz.h presence... no
+checking for argz.h... no
+checking for inttypes.h... (cached) yes
+checking limits.h usability... yes
+checking limits.h presence... yes
+checking for limits.h... yes
+checking for unistd.h... (cached) yes
+checking for sys/param.h... (cached) yes
+checking for getcwd... (cached) yes
+checking for getegid... yes
+checking for geteuid... yes
+checking for getgid... yes
+checking for getuid... yes
+checking for mempcpy... yes
+checking for munmap... yes
+checking for stpcpy... yes
+checking for strcasecmp... yes
+checking for strdup... yes
+checking for strtoul... yes
+checking for tsearch... yes
+checking for argz_count... no
+checking for argz_stringify... no
+checking for argz_next... no
+checking for __fsetlocking... yes
+checking for localeconv... yes
+checking whether feof_unlocked is declared... yes
+checking whether fgets_unlocked is declared... yes
+checking for bison... bison
+checking version of bison... 3.8.2, ok
+checking for long long int... yes
+checking for wchar_t... yes
+checking for wint_t... yes
+checking whether wint_t is too small... no
+checking for intmax_t... yes
+checking whether printf() supports POSIX/XSI format strings... guessing yes
+checking whether we are using the GNU C Library >= 2.1 or uClibc... no
+checking for stdint.h... (cached) yes
+checking for SIZE_MAX... yes
+checking for stdint.h... (cached) yes
+checking for symlink... yes
+checking for uselocale... yes
+checking for alarm... yes
+checking for fpurge... no
+checking for __fpurge... yes
+checking for snprintf... yes
+checking for vsnprintf... yes
+checking for working fcntl.h... cross-compiling
+checking whether uselocale works... guessing yes
+checking for fake locale system (OpenBSD)... guessing no
+checking for Solaris 11.4 locale system... no
+checking for getlocalename_l... no
+checking for CFPreferencesCopyAppValue... no
+checking for CFLocaleCopyCurrent... no
+checking for CFLocaleCopyPreferredLanguages... no
+checking for flexible array members... yes
+checking for x86_64-none-ar... ar
+checking for ptrdiff_t... yes
+checking features.h usability... yes
+checking features.h presence... yes
+checking for features.h... yes
+checking stddef.h usability... yes
+checking stddef.h presence... yes
+checking for stddef.h... yes
+checking for stdlib.h... (cached) yes
+checking for string.h... (cached) yes
+checking for asprintf... yes
+checking for fwprintf... yes
+checking for newlocale... yes
+checking for putenv... yes
+checking for setenv... yes
+checking for setlocale... yes
+checking for snprintf... (cached) yes
+checking for strnlen... yes
+checking for uselocale... (cached) yes
+checking for wcslen... yes
+checking for wcsnlen... no
+checking for mbrtowc... yes
+checking for wcrtomb... yes
+checking whether _snprintf is declared... no
+checking whether _snwprintf is declared... no
+checking whether getc_unlocked is declared... yes
+checking for nl_langinfo and CODESET... yes
+checking for LC_MESSAGES... yes
+checking for CFPreferencesCopyAppValue... (cached) no
+checking for CFLocaleCopyCurrent... (cached) no
+checking for CFLocaleCopyPreferredLanguages... (cached) no
+checking whether to use NLS... no
+checking for dirent.h that defines DIR... yes
+checking for library containing opendir... none required
+checking whether time.h and sys/time.h may both be included... yes
+checking whether sys/types.h defines makedev... no
+checking sys/mkdev.h usability... no
+checking sys/mkdev.h presence... no
+checking for sys/mkdev.h... no
+checking sys/sysmacros.h usability... yes
+checking sys/sysmacros.h presence... yes
+checking for sys/sysmacros.h... yes
+checking for inttypes.h... (cached) yes
+checking for unistd.h... (cached) yes
+checking for stdlib.h... (cached) yes
+checking stdarg.h usability... yes
+checking stdarg.h presence... yes
+checking for stdarg.h... yes
+checking varargs.h usability... no
+checking varargs.h presence... no
+checking for varargs.h... no
+checking for limits.h... (cached) yes
+checking for string.h... (cached) yes
+checking for memory.h... (cached) yes
+checking locale.h usability... yes
+checking locale.h presence... yes
+checking for locale.h... yes
+checking termcap.h usability... no
+checking termcap.h presence... no
+checking for termcap.h... no
+checking termio.h usability... no
+checking termio.h presence... no
+checking for termio.h... no
+checking termios.h usability... yes
+checking termios.h presence... yes
+checking for termios.h... yes
+checking dlfcn.h usability... yes
+checking dlfcn.h presence... yes
+checking for dlfcn.h... yes
+checking stdbool.h usability... yes
+checking stdbool.h presence... yes
+checking for stdbool.h... yes
+checking for stddef.h... (cached) yes
+checking for stdint.h... (cached) yes
+checking netdb.h usability... yes
+checking netdb.h presence... yes
+checking for netdb.h... yes
+checking pwd.h usability... yes
+checking pwd.h presence... yes
+checking for pwd.h... yes
+checking grp.h usability... yes
+checking grp.h presence... yes
+checking for grp.h... yes
+checking for strings.h... (cached) yes
+checking regex.h usability... yes
+checking regex.h presence... yes
+checking for regex.h... yes
+checking syslog.h usability... yes
+checking syslog.h presence... yes
+checking for syslog.h... yes
+checking ulimit.h usability... no
+checking ulimit.h presence... no
+checking for ulimit.h... no
+checking sys/pte.h usability... no
+checking sys/pte.h presence... no
+checking for sys/pte.h... no
+checking sys/stream.h usability... no
+checking sys/stream.h presence... no
+checking for sys/stream.h... no
+checking sys/select.h usability... yes
+checking sys/select.h presence... yes
+checking for sys/select.h... yes
+checking sys/file.h usability... yes
+checking sys/file.h presence... yes
+checking for sys/file.h... yes
+checking sys/ioctl.h usability... yes
+checking sys/ioctl.h presence... yes
+checking for sys/ioctl.h... yes
+checking sys/mman.h usability... yes
+checking sys/mman.h presence... yes
+checking for sys/mman.h... yes
+checking for sys/param.h... (cached) yes
+checking sys/random.h usability... yes
+checking sys/random.h presence... yes
+checking for sys/random.h... yes
+checking sys/socket.h usability... yes
+checking sys/socket.h presence... yes
+checking for sys/socket.h... yes
+checking for sys/stat.h... (cached) yes
+checking for sys/time.h... (cached) yes
+checking sys/times.h usability... yes
+checking sys/times.h presence... yes
+checking for sys/times.h... yes
+checking for sys/types.h... (cached) yes
+checking sys/wait.h usability... yes
+checking sys/wait.h presence... yes
+checking for sys/wait.h... yes
+checking netinet/in.h usability... yes
+checking netinet/in.h presence... yes
+checking for netinet/in.h... yes
+checking arpa/inet.h usability... yes
+checking arpa/inet.h presence... yes
+checking for arpa/inet.h... yes
+checking for sys/ptem.h... no
+checking for sys/resource.h... yes
+checking for working alloca.h... (cached) yes
+checking for alloca... (cached) yes
+checking for uid_t in sys/types.h... yes
+checking for unistd.h... (cached) yes
+checking for working chown... no
+checking whether getpgrp requires zero arguments... yes
+checking for vprintf... yes
+checking for _doprnt... no
+checking for working strcoll... no
+checking return type of signal handlers... void
+checking for __setostype... no
+checking for wait3... yes
+checking for mkfifo... yes
+checking for dup2... yes
+checking for eaccess... no
+checking for fcntl... yes
+checking for getdtablesize... yes
+checking for getentropy... yes
+checking for getgroups... yes
+checking for gethostname... yes
+checking for getpagesize... (cached) yes
+checking for getpeername... yes
+checking for getrandom... yes
+checking for getrlimit... yes
+checking for getrusage... yes
+checking for gettimeofday... yes
+checking for kill... yes
+checking for killpg... yes
+checking for lstat... yes
+checking for pselect... yes
+checking for readlink... yes
+checking for select... yes
+checking for setdtablesize... no
+checking for setitimer... yes
+checking for tcgetpgrp... yes
+checking for uname... yes
+checking for ulimit... no
+checking for waitpid... yes
+checking for rename... yes
+checking for bcopy... no
+checking for bzero... no
+checking for confstr... yes
+checking for faccessat... yes
+checking for fnmatch... yes
+checking for getaddrinfo... yes
+checking for gethostbyname... yes
+checking for getservbyname... yes
+checking for getservent... yes
+checking for inet_aton... yes
+checking for imaxdiv... yes
+checking for memmove... yes
+checking for pathconf... yes
+checking for putenv... (cached) yes
+checking for raise... yes
+checking for random... yes
+checking for regcomp... yes
+checking for regexec... yes
+checking for setenv... (cached) yes
+checking for setlinebuf... yes
+checking for setlocale... (cached) yes
+checking for setvbuf... yes
+checking for siginterrupt... yes
+checking for strchr... yes
+checking for sysconf... yes
+checking for syslog... yes
+checking for tcgetattr... yes
+checking for times... yes
+checking for ttyname... yes
+checking for tzset... yes
+checking for unsetenv... yes
+checking for vasprintf... yes
+checking for asprintf... (cached) yes
+checking for isascii... yes
+checking for isblank... yes
+checking for isgraph... yes
+checking for isprint... yes
+checking for isspace... yes
+checking for isxdigit... yes
+checking for getpwent... yes
+checking for getpwnam... yes
+checking for getpwuid... yes
+checking for mkstemp... yes
+checking for mkdtemp... yes
+checking for arc4random... no
+checking for getcwd... (cached) yes
+checking for memset... yes
+checking for strcasecmp... (cached) yes
+checking for strcasestr... yes
+checking for strerror... yes
+checking for strftime... yes
+checking for strnlen... (cached) yes
+checking for strpbrk... yes
+checking for strstr... yes
+checking for strtod... yes
+checking for strtol... yes
+checking for strtoul... (cached) yes
+checking for strtoll... yes
+checking for strtoull... yes
+checking for strtoimax... yes
+checking for strtoumax... yes
+checking for dprintf... yes
+checking for strchrnul... yes
+checking for strdup... (cached) yes
+checking libaudit.h usability... no
+checking libaudit.h presence... no
+checking for libaudit.h... no
+checking whether AUDIT_USER_TTY is declared... yes
+checking whether confstr is declared... yes
+checking whether printf is declared... yes
+checking whether sbrk is declared... yes
+checking whether setregid is declared... yes
+checking whether strcpy is declared... yes
+checking whether strsignal is declared... yes
+checking for setresuid... yes
+checking for setresgid... yes
+checking whether strtold is declared... yes
+checking for broken strtold... no
+checking for declaration of strtoimax... yes
+checking for declaration of strtol... yes
+checking for declaration of strtoll... yes
+checking for declaration of strtoul... yes
+checking for declaration of strtoull... yes
+checking for declaration of strtoumax... yes
+checking for working mktime... no
+checking for argz.h... (cached) no
+checking errno.h usability... yes
+checking errno.h presence... yes
+checking for errno.h... yes
+checking fcntl.h usability... yes
+checking fcntl.h presence... yes
+checking for fcntl.h... yes
+checking malloc.h usability... yes
+checking malloc.h presence... yes
+checking for malloc.h... yes
+checking stdio_ext.h usability... yes
+checking stdio_ext.h presence... yes
+checking for stdio_ext.h... yes
+checking for getpagesize... (cached) yes
+checking for working mmap... (cached) no
+checking for __argz_count... no
+checking for __argz_next... no
+checking for __argz_stringify... no
+checking for dcgettext... yes
+checking for mempcpy... (cached) yes
+checking for munmap... (cached) yes
+checking for mremap... yes
+checking for stpcpy... (cached) yes
+checking for strcspn... yes
+checking wctype.h usability... yes
+checking wctype.h presence... yes
+checking for wctype.h... yes
+checking wchar.h usability... yes
+checking wchar.h presence... yes
+checking for wchar.h... yes
+checking langinfo.h usability... yes
+checking langinfo.h presence... yes
+checking for langinfo.h... yes
+checking mbstr.h usability... no
+checking mbstr.h presence... no
+checking for mbstr.h... no
+checking for mbrlen... yes
+checking for mbscasecmp... no
+checking for mbscmp... no
+checking for mbsnrtowcs... yes
+checking for mbsrtowcs... yes
+checking for mbschr... no
+checking for wcrtomb... (cached) yes
+checking for wcscoll... yes
+checking for wcsdup... yes
+checking for wcwidth... yes
+checking for wctype... yes
+checking for wcswidth... (cached) yes
+checking whether mbrtowc and mbstate_t are properly declared... (cached) yes
+checking for iswlower... yes
+checking for iswupper... yes
+checking for towlower... yes
+checking for towupper... yes
+checking for iswctype... yes
+checking for nl_langinfo and CODESET... yes
+checking for wchar_t in wchar.h... yes
+checking for wctype_t in wctype.h... yes
+checking for wint_t in wctype.h... yes
+checking for wcwidth broken with unicode combining characters... no
+checking for locale_charset... no
+checking size of wchar_t... 4
+checking for dlopen in -ldl... yes
+checking for dlopen... yes
+checking for dlclose... yes
+checking for dlsym... yes
+checking whether sys_siglist is declared... no
+checking type of array argument to getgroups... gid_t
+checking for off_t... yes
+checking for mode_t... yes
+checking for uid_t in sys/types.h... (cached) yes
+checking for pid_t... yes
+checking for size_t... (cached) yes
+checking for uintptr_t... yes
+checking for ssize_t... yes
+checking for time_t... yes
+checking for long long... long long
+checking for unsigned long long... unsigned long long
+checking return type of signal handlers... (cached) void
+checking for sig_atomic_t in signal.h... yes
+checking size of char... 1
+checking size of short... 2
+checking size of int... 4
+checking size of long... 8
+checking size of char *... 8
+checking size of double... 8
+checking size of long long... 8
+checking for u_int... yes
+checking for u_long... yes
+checking for bits16_t... no
+checking for u_bits16_t... no
+checking for bits32_t... no
+checking for u_bits32_t... no
+checking for bits64_t... no
+checking for ptrdiff_t... (cached) yes
+checking whether stat file-mode macros are broken... no
+checking whether #! works in shell scripts... yes
+checking whether the ctype macros accept non-ascii characters... no
+checking if dup2 fails to clear the close-on-exec flag... no
+checking whether pgrps need synchronization... no
+checking for type of signal functions... posix
+checking for sys_errlist and sys_nerr... yes
+checking for sys_siglist in system C library... no
+checking for _sys_siglist in signal.h or unistd.h... no
+checking for _sys_siglist in system C library... no
+checking whether signal handlers are of type void... yes
+checking for clock_t... yes
+checking for sigset_t... yes
+checking for sig_atomic_t... yes
+checking for quad_t... yes
+checking for intmax_t... yes
+checking for uintmax_t... yes
+checking for socklen_t... yes
+checking for size and type of struct rlimit fields... rlim_t
+checking size of intmax_t... 8
+checking for struct termios.c_line... yes
+checking for struct termio.c_line... no
+checking for struct dirent.d_ino... yes
+checking for struct dirent.d_fileno... yes
+checking for struct dirent.d_namlen... no
+checking for struct winsize in sys/ioctl.h and termios.h... termios.h
+checking for struct timeval in sys/time.h and time.h... yes
+checking for struct stat.st_blocks... yes
+checking whether struct tm is in sys/time.h or time.h... time.h
+checking for struct tm.tm_zone... yes
+checking for struct timezone in sys/time.h and time.h... yes
+checking for offset of exit status in return status from wait... 0
+checking for struct timespec in <time.h>... yes
+checking for struct stat.st_atim.tv_nsec... yes
+checking whether struct stat.st_atim is of type struct timespec... yes
+checking for sbrk... yes
+checking for working sbrk... yes
+checking for the existence of strsignal... yes
+checking if opendir() opens non-directories... no
+checking whether ulimit can substitute for getdtablesize... no
+checking whether fpurge is declared... no
+checking to see if getenv can be redefined... (cached) no
+checking if getcwd() will dynamically allocate memory with 0 size... (cached) yes
+checking for presence of POSIX-style sigsetjmp/siglongjmp... missing
+checking whether or not strcoll and strcmp differ... no
+checking for standard-conformant snprintf... yes
+checking for standard-conformant vsnprintf... yes
+checking for standard-conformant putenv declaration... yes
+checking for standard-conformant unsetenv declaration... yes
+checking for printf floating point output in hex notation... no
+checking whether fnmatch can be used to check bracket equivalence classes... no
+checking if signal handlers must be reinstalled when invoked... no
+checking for presence of necessary job control definitions... present
+checking for presence of named pipes... missing
+checking whether termios.h defines TIOCGWINSZ... yes
+checking for TIOCSTAT in sys/ioctl.h... no
+checking for FIONREAD in sys/ioctl.h... yes
+checking whether WCONTINUED flag to waitpid is unavailable or available but broken... no
+checking for speed_t in sys/types.h... no
+checking whether getpw functions are declared in pwd.h... yes
+checking for unusable real-time signals due to large values... yes
+checking for tgetent... no
+checking for tgetent in -ltermcap... no
+checking for tgetent in -ltinfo... no
+checking for tgetent in -lcurses... no
+checking for tgetent in -lncurses... no
+checking for tgetent in -lncursesw... no
+checking which library has the termcap functions... using gnutermcap
+checking whether /dev/fd is available... standard
+checking whether /dev/stdin stdout stderr are available... present
+checking for default mail directory... /var/mail
+checking shared object configuration for loadable builtins... unsupported
+configure: creating ./config.status
+config.status: creating Makefile
+config.status: creating builtins/Makefile
+config.status: creating lib/readline/Makefile
+config.status: creating lib/glob/Makefile
+config.status: creating lib/intl/Makefile
+config.status: creating lib/malloc/Makefile
+config.status: creating lib/sh/Makefile
+config.status: creating lib/termcap/Makefile
+config.status: creating lib/tilde/Makefile
+config.status: creating doc/Makefile
+config.status: creating support/Makefile
+config.status: creating po/Makefile.in
+config.status: creating examples/loadables/Makefile
+config.status: creating examples/loadables/Makefile.inc
+config.status: creating examples/loadables/perl/Makefile
+config.status: creating support/bash.pc
+config.status: creating support/bashbug.sh
+config.status: creating config.h
+config.status: executing po-directories commands
+config.status: creating po/POTFILES
+config.status: creating po/Makefile
+config.status: executing default commands
+rm -f mksyntax
+gcc -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib   -g -DCROSS_COMPILING  -g -DCROSS_COMPILING -o mksyntax /home/konect/Programming/Kot/Bundled/bash/mksyntax.c 
+rm -f mksignames.o
+rm -f buildsignames.o
+rm -f unwind_prot.o
+gcc -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib   -g -DCROSS_COMPILING -DBUILDTOOL -c /home/konect/Programming/Kot/Bundled/bash/support/mksignames.c
+gcc -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib   -g -DCROSS_COMPILING -DBUILDTOOL -o buildsignames.o -c /home/konect/Programming/Kot/Bundled/bash/support/signames.c
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/unwind_prot.c
+rm -f alias.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/alias.c
+rm -f pcomplib.o
+rm -f xmalloc.o
+rm -f signames.o
+make[1]: Entering directory '/home/konect/Programming/Kot/pkg-builds/bash/builtins'
+rm -f mkbuiltins.o
+gcc -c  -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -DCROSS_COMPILING /home/konect/Programming/Kot/Bundled/bash/builtins/mkbuiltins.c
+make[1]: Entering directory '/home/konect/Programming/Kot/pkg-builds/bash/builtins'
+gcc  -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -DCROSS_COMPILING  -g -DCROSS_COMPILING -o psize.aux /home/konect/Programming/Kot/Bundled/bash/builtins/psize.c
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/pcomplib.c
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/xmalloc.c
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/support/signames.c
+make[1]: Entering directory '/home/konect/Programming/Kot/pkg-builds/bash/support'
+rm -f man2html.o
+gcc -c  -DHAVE_CONFIG_H -DSHELL  -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash   -g /home/konect/Programming/Kot/Bundled/bash/support/man2html.c
+rm -f shell.o
+rm -f eval.o
+rm -f general.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/shell.c
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/eval.c
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/general.c
+rm -f make_cmd.o
+rm -f print_cmd.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/make_cmd.c
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/print_cmd.c
+rm -f dispose_cmd.o
+/bin/sh /home/konect/Programming/Kot/Bundled/bash/builtins/psize.sh > pipesize.h
+rm -f copy_cmd.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/dispose_cmd.c
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/copy_cmd.c
+rm -f error.o
+gcc  -g -DCROSS_COMPILING -o mkbuiltins mkbuiltins.o 
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/error.c
+rm -f expr.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/expr.c
+rm -f flags.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/flags.c
+./mkbuiltins -externfile builtext.h -structfile builtins.c \
+    -noproduction -D /home/konect/Programming/Kot/Bundled/bash/builtins   /home/konect/Programming/Kot/Bundled/bash/builtins/alias.def /home/konect/Programming/Kot/Bundled/bash/builtins/bind.def /home/konect/Programming/Kot/Bundled/bash/builtins/break.def /home/konect/Programming/Kot/Bundled/bash/builtins/builtin.def /home/konect/Programming/Kot/Bundled/bash/builtins/caller.def /home/konect/Programming/Kot/Bundled/bash/builtins/cd.def /home/konect/Programming/Kot/Bundled/bash/builtins/colon.def /home/konect/Programming/Kot/Bundled/bash/builtins/command.def /home/konect/Programming/Kot/Bundled/bash/builtins/declare.def /home/konect/Programming/Kot/Bundled/bash/builtins/echo.def /home/konect/Programming/Kot/Bundled/bash/builtins/enable.def /home/konect/Programming/Kot/Bundled/bash/builtins/eval.def /home/konect/Programming/Kot/Bundled/bash/builtins/getopts.def /home/konect/Programming/Kot/Bundled/bash/builtins/exec.def /home/konect/Programming/Kot/Bundled/bash/builtins/exit.def /home/konect/Programming/Kot/Bundled/bash/builtins/fc.def /home/konect/Programming/Kot/Bundled/bash/builtins/fg_bg.def /home/konect/Programming/Kot/Bundled/bash/builtins/hash.def /home/konect/Programming/Kot/Bundled/bash/builtins/help.def /home/konect/Programming/Kot/Bundled/bash/builtins/history.def /home/konect/Programming/Kot/Bundled/bash/builtins/jobs.def /home/konect/Programming/Kot/Bundled/bash/builtins/kill.def /home/konect/Programming/Kot/Bundled/bash/builtins/let.def /home/konect/Programming/Kot/Bundled/bash/builtins/read.def /home/konect/Programming/Kot/Bundled/bash/builtins/return.def /home/konect/Programming/Kot/Bundled/bash/builtins/set.def /home/konect/Programming/Kot/Bundled/bash/builtins/setattr.def /home/konect/Programming/Kot/Bundled/bash/builtins/shift.def /home/konect/Programming/Kot/Bundled/bash/builtins/source.def /home/konect/Programming/Kot/Bundled/bash/builtins/suspend.def /home/konect/Programming/Kot/Bundled/bash/builtins/test.def /home/konect/Programming/Kot/Bundled/bash/builtins/times.def /home/konect/Programming/Kot/Bundled/bash/builtins/trap.def /home/konect/Programming/Kot/Bundled/bash/builtins/type.def /home/konect/Programming/Kot/Bundled/bash/builtins/ulimit.def /home/konect/Programming/Kot/Bundled/bash/builtins/umask.def /home/konect/Programming/Kot/Bundled/bash/builtins/wait.def /home/konect/Programming/Kot/Bundled/bash/builtins/reserved.def /home/konect/Programming/Kot/Bundled/bash/builtins/pushd.def /home/konect/Programming/Kot/Bundled/bash/builtins/shopt.def /home/konect/Programming/Kot/Bundled/bash/builtins/printf.def /home/konect/Programming/Kot/Bundled/bash/builtins/complete.def /home/konect/Programming/Kot/Bundled/bash/builtins/mapfile.def
+make[1]: Leaving directory '/home/konect/Programming/Kot/pkg-builds/bash/builtins'
+rm -f hashcmd.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/hashcmd.c
+rm -f hashlib.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/hashlib.c
+rm -f mailcheck.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/mailcheck.c
+rm -f mksignames
+gcc -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib   -g -DCROSS_COMPILING  -g -DCROSS_COMPILING -o mksignames mksignames.o buildsignames.o 
+rm -f input.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/input.c
+gcc  -DHAVE_CONFIG_H -DSHELL  -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash   -g man2html.o -o man2html -ldl 		
+rm -f pathexp.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/pathexp.c
+rm -f sig.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/sig.c
+make[1]: Leaving directory '/home/konect/Programming/Kot/pkg-builds/bash/support'
+rm -f test.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/test.c
+rm -f array.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/array.c
+rm -f arrayfunc.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/arrayfunc.c
+rm -f assoc.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/assoc.c
+rm -f braces.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/braces.c
+rm -f bracecomp.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/bracecomp.c
+rm -f bashhist.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/bashhist.c
+rm -f bashline.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/bashline.c
+rm -f list.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/list.c
+rm -f stringlib.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/stringlib.c
+rm -f locale.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/locale.c
+rm -f findcmd.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/findcmd.c
+rm -f pcomplete.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/pcomplete.c
+rm -f syntax.c
+./mksyntax -o syntax.c
+rm -f execute_cmd.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/execute_cmd.c
+rm -f jobs.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/jobs.c
+rm -f subst.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/subst.c
+rm -f lsignames.h
+./mksignames lsignames.h
+rm -f syntax.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c syntax.c
+/bin/sh /home/konect/Programming/Kot/Bundled/bash/support/mkversion.sh -b -S /home/konect/Programming/Kot/Bundled/bash -s release -d 5.1 -o newversion.h \
+	&& mv newversion.h version.h
+if cmp -s lsignames.h signames.h ; then :; else rm -f signames.h ; cp lsignames.h signames.h ; fi
+rm -f version.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/version.c
+make[1]: Entering directory '/home/konect/Programming/Kot/pkg-builds/bash/builtins'
+rm -f builtins.o
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security builtins.c
+rm -f alias.o
+rm -f bind.o
+rm -f break.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/alias.def
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/bind.def
+rm -f builtin.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/break.def
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security alias.c || ( rm -f alias.c ; exit 1 )
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security bind.c || ( rm -f bind.c ; exit 1 )
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/builtin.def
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security break.c || ( rm -f break.c ; exit 1 )
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security builtin.c || ( rm -f builtin.c ; exit 1 )
+rm -f caller.o
+rm -f cd.o
+rm -f colon.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/caller.def
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/cd.def
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/colon.def
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security caller.c || ( rm -f caller.c ; exit 1 )
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security cd.c || ( rm -f cd.c ; exit 1 )
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security colon.c || ( rm -f colon.c ; exit 1 )
+rm -f command.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/command.def
+rm -f common.o
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security command.c || ( rm -f command.c ; exit 1 )
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security /home/konect/Programming/Kot/Bundled/bash/builtins/common.c
+rm -f declare.o
+gcc -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib   -g -DCROSS_COMPILING -DBUILDTOOL -c -o buildversion.o /home/konect/Programming/Kot/Bundled/bash/version.c
+rm -f echo.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/declare.def
+rm -f variables.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/variables.c
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/echo.def
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security declare.c || ( rm -f declare.c ; exit 1 )
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security echo.c || ( rm -f echo.c ; exit 1 )
+rm -f enable.o
+rm -f trap.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/trap.c
+rm -f eval.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/enable.def
+gcc -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib   -g -DCROSS_COMPILING  -g -DCROSS_COMPILING -o bashversion /home/konect/Programming/Kot/Bundled/bash/support/bashversion.c buildversion.o 
+rm -f builtin.c
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/eval.def
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security enable.c || ( rm -f enable.c ; exit 1 )
+rm -f break.c
+rm -f alias.c
+rm -f caller.c
+rm -f command.c
+
+	  ***********************************************************
+rm -f colon.c
+	  *                                                         *
+	  * GNU bash, version 5.1.16(1)-release (x86_64-pc-none)
+	  *                                                         *
+	  ***********************************************************
+
+making lib/glob/libglob.a in ./lib/glob
+making lib/sh/libsh.a in ./lib/sh
+make[1]: Entering directory '/home/konect/Programming/Kot/pkg-builds/bash/lib/glob'
+rm -f glob.o
+rm -f bind.c
+making lib/readline/libreadline.a in ./lib/readline
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security eval.c || ( rm -f eval.c ; exit 1 )
+make[1]: Entering directory '/home/konect/Programming/Kot/pkg-builds/bash/lib/sh'
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/clktck.c
+rm -f evalfile.o
+rm -f strmatch.o
+rm -f evalstring.o
+kot-x86_64-clang -c  -DHAVE_CONFIG_H -DSHELL -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib   -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/glob/glob.c
+make[1]: Entering directory '/home/konect/Programming/Kot/pkg-builds/bash/lib/readline'
+rm -f readline.o
+rm -f vi_mode.o
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/readline.c
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/vi_mode.c
+kot-x86_64-clang -c  -DHAVE_CONFIG_H -DSHELL -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib   -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/glob/strmatch.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/clock.c
+rm -f smatch.o
+rm -f funmap.o
+rm -f cd.c
+rm -f xmbsrtowcs.o
+kot-x86_64-clang -c  -DHAVE_CONFIG_H -DSHELL -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib   -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/glob/smatch.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/getenv.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/oslib.c
+rm -f keymaps.o
+rm -f echo.c
+kot-x86_64-clang -c  -DHAVE_CONFIG_H -DSHELL -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib   -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/glob/xmbsrtowcs.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/setlinebuf.c
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/funmap.c
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security /home/konect/Programming/Kot/Bundled/bash/builtins/evalfile.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/strnlen.c
+rm -f gmisc.o
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/keymaps.c
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security /home/konect/Programming/Kot/Bundled/bash/builtins/evalstring.c
+kot-x86_64-clang -c  -DHAVE_CONFIG_H -DSHELL -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib   -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/glob/gmisc.c
+rm -f parens.o
+making lib/termcap/libtermcap.a in ./lib/termcap
+rm -f search.o
+making lib/tilde/libtilde.a in ./lib/tilde
+rm -f exec.o
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/itos.c
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/parens.c
+rm -f exit.o
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/search.c
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/exec.def
+make[1]: Entering directory '/home/konect/Programming/Kot/pkg-builds/bash/lib/termcap'
+kot-x86_64-clang -c -g -O2 -Wno-parentheses -Wno-format-security -DHAVE_CONFIG_H  -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/lib/termcap /home/konect/Programming/Kot/Bundled/bash/lib/termcap/termcap.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/zread.c
+rm -f rltty.o
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/zwrite.c
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/exit.def
+rm -f complete.o
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/shtty.c
+make[1]: Entering directory '/home/konect/Programming/Kot/pkg-builds/bash/lib/tilde'
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security /home/konect/Programming/Kot/Bundled/bash/lib/tilde/tilde.c
+kot-x86_64-clang -c -g -O2 -Wno-parentheses -Wno-format-security -DHAVE_CONFIG_H  -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/lib/termcap /home/konect/Programming/Kot/Bundled/bash/lib/termcap/tparam.c
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/rltty.c
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security exec.c || ( rm -f exec.c ; exit 1 )
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/shmatch.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/eaccess.c
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/complete.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/netconn.c
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security exit.c || ( rm -f exit.c ; exit 1 )
+rm -f bind.o
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/netopen.c
+rm -f fc.o
+rm -f isearch.o
+rm -f fg_bg.o
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/timeval.c
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/bind.c
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/fc.def
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/fg_bg.def
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/isearch.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/makepath.c
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security fc.c || ( rm -f fc.c ; exit 1 )
+rm -f display.o
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security fg_bg.c || ( rm -f fg_bg.c ; exit 1 )
+rm -f signals.o
+rm -f hash.o
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/display.c
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/signals.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/pathcanon.c
+rm -f help.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/hash.def
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/help.def
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security hash.c || ( rm -f hash.c ; exit 1 )
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security help.c || ( rm -f help.c ; exit 1 )
+rm -f enable.c
+rm -f history.o
+rm -f util.o
+rm -f jobs.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/history.def
+rm -f kill.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/jobs.def
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security history.c || ( rm -f history.c ; exit 1 )
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/util.c
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/kill.c
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security jobs.c || ( rm -f jobs.c ; exit 1 )
+rm -f undo.o
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/pathphys.c
+rm -f macro.o
+rm -f kill.o
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/tmpfile.c
+rm -f let.o
+rm -f mapfile.o
+rm -f pushd.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/kill.def
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/macro.c
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/let.def
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/undo.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/stringlist.c
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/mapfile.def
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/pushd.def
+rm -f eval.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/stringvec.c
+rm -f fc.c
+rm -f input.o
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/input.c
+rm -f fg_bg.c
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security kill.c || ( rm -f kill.c ; exit 1 )
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security let.c || ( rm -f let.c ; exit 1 )
+rm -f exit.c
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security mapfile.c || ( rm -f mapfile.c ; exit 1 )
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/spell.c
+rm -f callback.o
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security pushd.c || ( rm -f pushd.c ; exit 1 )
+rm -f hash.c
+rm -f read.o
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/callback.c
+rm -f return.o
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/shquote.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/strtrans.c
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/read.def
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/return.def
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security read.c || ( rm -f read.c ; exit 1 )
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security return.c || ( rm -f return.c ; exit 1 )
+rm -f set.o
+rm -f setattr.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/set.def
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/setattr.def
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security set.c || ( rm -f set.c ; exit 1 )
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security setattr.c || ( rm -f setattr.c ; exit 1 )
+rm -f shift.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/shift.def
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security shift.c || ( rm -f shift.c ; exit 1 )
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/snprintf.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/mailstat.c
+rm -f exec.c
+rm -f source.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/source.def
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security source.c || ( rm -f source.c ; exit 1 )
+rm -f declare.c
+rm -f suspend.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/suspend.def
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security suspend.c || ( rm -f suspend.c ; exit 1 )
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/fmtulong.c
+rm -f help.c
+rm -f test.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/test.def
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/fmtullong.c
+rm -f libtilde.a
+rm -f terminal.o
+ar cr libtilde.a tilde.o
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/terminal.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/fmtumax.c
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security test.c || ( rm -f test.c ; exit 1 )
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/zcatfd.c
+rm -f text.o
+rm -f -f libtermcap.a
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/text.c
+ar cr libtermcap.a termcap.o tparam.o
+rm -f nls.o
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/nls.c
+rm -f times.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/times.def
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security times.c || ( rm -f times.c ; exit 1 )
+rm -f misc.o
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/misc.c
+rm -f history.o
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/zmapfd.c
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/history.c
+rm -f test.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/winsize.c
+rm -f trap.o
+rm -f return.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/wcsdup.c
+rm -f y.tab.o
+rm -f shift.c
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/y.tab.c
+rm -f suspend.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/fpurge.c
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/trap.def
+rm -f let.c
+rm -f histexpand.o
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security trap.c || ( rm -f trap.c ; exit 1 )
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/histexpand.c
+rm -f history.c
+rm -f type.o
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/zgetline.c
+rm -f mapfile.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/mbscmp.c
+rm -f histfile.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/type.def
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/histfile.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/uconvert.c
+rm -f ulimit.o
+rm -f histsearch.o
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security type.c || ( rm -f type.c ; exit 1 )
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/ufuncs.c
+rm -f shell.o
+rm -f source.c
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/histsearch.c
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/shell.c
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/ulimit.def
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/casemod.c
+rm -f umask.o
+rm -f savestring.o
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/input_avail.c
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security ulimit.c || ( rm -f ulimit.c ; exit 1 )
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/umask.def
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/savestring.c
+rm -f wait.o
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/mbscasecmp.c
+rm -f getopts.o
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/fnxform.c
+rm -f mbutil.o
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security umask.c || ( rm -f umask.c ; exit 1 )
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/wait.def
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/getopts.def
+rm -f tilde.o
+rm -f shopt.o
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/mbutil.c
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security wait.c || ( rm -f wait.c ; exit 1 )
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/unicode.c
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security getopts.c || ( rm -f getopts.c ; exit 1 )
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/shopt.def
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/shmbchar.c
+test -n "ranlib" && ranlib libtilde.a
+kot-x86_64-clang -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  -DREADLINE_LIBRARY -c /home/konect/Programming/Kot/Bundled/bash/lib/readline/tilde.c
+test -n "ranlib" && ranlib libtermcap.a
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/utf8.c
+rm -f colors.o
+rm -f parse-colors.o
+rm -f set.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/random.c
+rm -f setattr.c
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/colors.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/gettimeofday.c
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/parse-colors.c
+rm -f times.c
+rm -f xmalloc.o
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/wcsnwidth.c
+rm -f xfree.o
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security shopt.c || ( rm -f shopt.c ; exit 1 )
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/xmalloc.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/mktime.c
+rm -f printf.o
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/xfree.c
+kot-x86_64-clang -c   -I. -I../.. -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib/sh  -DHAVE_CONFIG_H -DSHELL  -g -O2 -Wno-parentheses -Wno-format-security   /home/konect/Programming/Kot/Bundled/bash/lib/sh/mbschr.c
+rm -f getopt.o
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/printf.def
+rm -f compat.o
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security /home/konect/Programming/Kot/Bundled/bash/builtins/getopt.c
+kot-x86_64-clang -c -DHAVE_CONFIG_H -DSHELL   -I. -I/home/konect/Programming/Kot/pkg-builds/bash -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/lib  -g -O2 -Wno-parentheses -Wno-format-security  /home/konect/Programming/Kot/Bundled/bash/lib/readline/compat.c
+rm -f trap.c
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security printf.c || ( rm -f printf.c ; exit 1 )
+rm -f bashgetopt.o
+make[1]: Leaving directory '/home/konect/Programming/Kot/pkg-builds/bash/lib/termcap'
+make[1]: Leaving directory '/home/konect/Programming/Kot/pkg-builds/bash/lib/tilde'
+rm -f umask.c
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security /home/konect/Programming/Kot/Bundled/bash/builtins/bashgetopt.c
+make[1]: Leaving directory '/home/konect/Programming/Kot/pkg-builds/bash/builtins'
+rm -f redir.o
+rm -f complete.o
+kot-x86_64-clang  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"none"' -DCONF_MACHTYPE='"x86_64-pc-none"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib    -g -O2 -Wno-parentheses -Wno-format-security -c /home/konect/Programming/Kot/Bundled/bash/redir.c
+./mkbuiltins -D /home/konect/Programming/Kot/Bundled/bash/builtins /home/konect/Programming/Kot/Bundled/bash/builtins/complete.def
+kot-x86_64-clang -c   -DHAVE_CONFIG_H -DSHELL  -I. -I..  -I/home/konect/Programming/Kot/Bundled/bash -I/home/konect/Programming/Kot/Bundled/bash/include -I/home/konect/Programming/Kot/Bundled/bash/lib -I/home/konect/Programming/Kot/Bundled/bash/builtins    -g -O2 -Wno-parentheses -Wno-format-security complete.c || ( rm -f complete.c ; exit 1 )
+rm -f wait.c
+rm -f jobs.c
+rm -f -f libglob.a
+ar cr libglob.a glob.o strmatch.o smatch.o xmbsrtowcs.o gmisc.o
+rm -f ulimit.c
+rm -f type.c
+rm -f getopts.c
+test -n "ranlib" && ranlib libglob.a
+rm -f shopt.c
+rm -f read.c
+rm -f complete.c
+rm -f printf.c
+make[1]: Leaving directory '/home/konect/Programming/Kot/pkg-builds/bash/lib/glob'
+rm -f kill.c
+rm -f libsh.a
+ar cr libsh.a clktck.o clock.o getenv.o oslib.o setlinebuf.o strnlen.o itos.o zread.o zwrite.o shtty.o shmatch.o eaccess.o netconn.o netopen.o timeval.o makepath.o pathcanon.o pathphys.o tmpfile.o stringlist.o stringvec.o spell.o shquote.o strtrans.o snprintf.o mailstat.o fmtulong.o fmtullong.o fmtumax.o zcatfd.o zmapfd.o winsize.o wcsdup.o fpurge.o zgetline.o mbscmp.o uconvert.o ufuncs.o casemod.o input_avail.o mbscasecmp.o fnxform.o unicode.o shmbchar.o utf8.o random.o gettimeofday.o wcsnwidth.o mktime.o mbschr.o
+test -n "ranlib" && ranlib libsh.a
+make[1]: Leaving directory '/home/konect/Programming/Kot/pkg-builds/bash/lib/sh'
+rm -f pushd.c
+rm -f libbuiltins.a
+ar cr libbuiltins.a builtins.o alias.o bind.o break.o builtin.o caller.o cd.o colon.o command.o common.o declare.o echo.o enable.o eval.o evalfile.o evalstring.o exec.o exit.o fc.o fg_bg.o hash.o help.o history.o jobs.o kill.o let.o mapfile.o pushd.o read.o return.o set.o setattr.o shift.o source.o suspend.o test.o times.o trap.o type.o ulimit.o umask.o wait.o getopts.o shopt.o printf.o getopt.o bashgetopt.o complete.o
+rm -f libreadline.a
+ar cr libreadline.a readline.o vi_mode.o funmap.o keymaps.o parens.o search.o rltty.o complete.o bind.o isearch.o display.o signals.o util.o kill.o undo.o macro.o input.o callback.o terminal.o text.o nls.o misc.o history.o histexpand.o histfile.o histsearch.o shell.o savestring.o mbutil.o tilde.o colors.o parse-colors.o xmalloc.o xfree.o compat.o 
+ranlib libbuiltins.a
+test -n "ranlib" && ranlib libreadline.a
+make[1]: Leaving directory '/home/konect/Programming/Kot/pkg-builds/bash/builtins'
+make[1]: Leaving directory '/home/konect/Programming/Kot/pkg-builds/bash/lib/readline'
+making lib/readline/libhistory.a in ./lib/readline
+make[1]: Entering directory '/home/konect/Programming/Kot/pkg-builds/bash/lib/readline'
+rm -f libhistory.a
+ar cr libhistory.a history.o histexpand.o histfile.o histsearch.o shell.o savestring.o mbutil.o xmalloc.o xfree.o
+test -n "ranlib" && ranlib libhistory.a
+make[1]: Leaving directory '/home/konect/Programming/Kot/pkg-builds/bash/lib/readline'
+rm -f bash
+kot-x86_64-clang -L./builtins -L./lib/readline -L./lib/readline -L./lib/glob -L./lib/tilde  -L./lib/sh  -L./lib/termcap  -g -O2 -Wno-parentheses -Wno-format-security   -o bash shell.o eval.o y.tab.o general.o make_cmd.o print_cmd.o  dispose_cmd.o execute_cmd.o variables.o copy_cmd.o error.o expr.o flags.o jobs.o subst.o hashcmd.o hashlib.o mailcheck.o trap.o input.o unwind_prot.o pathexp.o sig.o test.o version.o alias.o array.o arrayfunc.o assoc.o braces.o bracecomp.o bashhist.o bashline.o  list.o stringlib.o locale.o findcmd.o redir.o pcomplete.o pcomplib.o syntax.o xmalloc.o signames.o -lbuiltins -lglob -lsh -lreadline -lhistory ./lib/termcap/libtermcap.a -ltilde     -ldl 
