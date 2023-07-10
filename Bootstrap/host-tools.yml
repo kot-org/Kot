@@ -29,4 +29,4 @@ tools:
     tools_required:
       - host-llvm-backend
     compile:
-      - args: ['sh', 'Tools/BuildCompilers.sh']
+      - args: ['sh', '@SOURCE_ROOT@/Tools/BuildCompilers.sh']
