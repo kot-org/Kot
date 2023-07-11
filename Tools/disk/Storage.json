@@ -12,6 +12,10 @@
         "destination": "usr"
     },
     {
+        "source": "Sysroot/bin/.",
+        "destination": "bin"
+    },
+    {
         "source": "Sources/Modules/Drivers/graphics/orb/Bin/Orb.elf",
         "destination": "bin/orb"
     },

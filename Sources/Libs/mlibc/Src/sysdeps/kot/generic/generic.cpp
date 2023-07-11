@@ -194,6 +194,11 @@ namespace mlibc{
         return 0;
     }
 
+    uid_t sys_getuid(){
+        mlibc::infoLogger() << "mlibc: sys_setuid is a stub" << frg::endlog;
+        return 0;
+    }
+
     uint64_t sys_debug_malloc_lock = 0;
 
     void *sys_debug_malloc(size_t size){
