@@ -1,1 +1,0 @@
-Src folder is clone from https://github.com/C-Chads/tinycc

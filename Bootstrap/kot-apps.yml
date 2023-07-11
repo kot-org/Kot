@@ -49,17 +49,6 @@ packages:
       - args: ['make']
         workdir: '@THIS_SOURCE_DIR@/Build'
 
-  - name: lua
-    source:
-      subdir: 'Sources/Apps'
-    tools_required:
-      - host-llvm
-    pkgs_required:
-      - mlibc
-    build:
-      - args: ['make']
-        workdir: '@THIS_SOURCE_DIR@/Build'
-
   - name: notepad
     source:
       subdir: 'Sources/Apps'
@@ -80,17 +69,6 @@ packages:
     pkgs_required:
       - mlibc
       - kot-ui
-    build:
-      - args: ['make']
-        workdir: '@THIS_SOURCE_DIR@/Build'
-
-  - name: tcc
-    source:
-      subdir: 'Sources/Apps'
-    tools_required:
-      - host-llvm
-    pkgs_required:
-      - mlibc
     build:
       - args: ['make']
         workdir: '@THIS_SOURCE_DIR@/Build'

@@ -61,7 +61,7 @@ tools:
 	xbstrap install-tool --all
 
 clean:
-	sudo rm -rf ./Bin ./Sysroot ./Sources/*/*/*/*/*/Lib ./Sources/*/*/*/*/Lib ./Sources/*/*/*/Lib ./Sources/*/*/Lib ./Sources/*/Lib
+	sudo rm -rf ./Bin ./Sysroot ./pkg-builds ./packages ./Sources/*/*/*/*/*/Lib ./Sources/*/*/*/*/Lib ./Sources/*/*/*/Lib ./Sources/*/*/Lib ./Sources/*/Lib
 
 github-action: deps-debian init build
 	qemu-img convert -f raw -O vmdk Bin/kot.img Bin/kot.vmdk

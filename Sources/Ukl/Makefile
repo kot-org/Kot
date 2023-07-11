@@ -45,4 +45,5 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 	
 link:
 	@ echo !==== LINKING
+	@ mkdir -p $(BUILDDIR)/boot
 	$(LD) $(LDFLAGS) -o $(BUILDDIR)/boot/ukl.elf $(OBJS) $(OBJSCPP)
