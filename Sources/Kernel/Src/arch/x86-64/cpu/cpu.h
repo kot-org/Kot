@@ -228,6 +228,7 @@ struct rflags_t{
     bool DF:1;
     bool OF:1;
     uint8_t IOPL:2;
+    bool NT:1;
     bool RF:1;
     bool VM:1;
     bool AC:1;
