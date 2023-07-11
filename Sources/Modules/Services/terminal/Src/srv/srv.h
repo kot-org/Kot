@@ -15,3 +15,4 @@ KResult Closeshell(kot_thread_t Callback, uint64_t CallbackArg, struct shell_t* 
 KResult Getshellsize(kot_thread_t Callback, uint64_t CallbackArg, struct shell_t* Shell, uint64_t GP0, uint64_t GP1, uint64_t GP2);
 KResult Readshell(kot_thread_t Callback, uint64_t CallbackArg, struct shell_t* Shell, uint64_t GP0, uint64_t GP1, uint64_t GP2);
 KResult Writeshell(kot_thread_t Callback, uint64_t CallbackArg, struct shell_t* Shell, uint64_t GP0, uint64_t GP1, uint64_t GP2);
+KResult Ioctlshell(kot_thread_t Callback, uint64_t CallbackArg, shell_t* Shell, uint64_t GP0, uint64_t GP1, uint64_t GP2);

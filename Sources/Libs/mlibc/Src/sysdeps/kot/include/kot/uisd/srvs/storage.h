@@ -32,12 +32,14 @@ extern "C" {
 #define Client_VFS_Get_CWD              0x6
 #define Client_VFS_Set_CWD              0x7
 
-#define File_Function_Count             0x4
+#define File_Function_Count             0x6
 
 #define File_Function_Close             0x0
 #define File_Function_GetSize           0x1
 #define File_Function_Read              0x2
 #define File_Function_Write             0x3
+#define File_Function_Ioctl             0x4
+#define File_Function_Stat              0x5
 
 // External data file
 #define File_Is_Binary                  (1 << 0)
@@ -179,6 +181,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Closefile(kot_file_t* File, b
 struct kot_srv_storage_callback_t* kot_Srv_Storage_Getfilesize(kot_file_t* File, bool IsAwait);
 struct kot_srv_storage_callback_t* kot_Srv_Storage_Readfile(kot_file_t* File, void* Buffer, uint64_t Start, size64_t Size, bool IsAwait);
 struct kot_srv_storage_callback_t* kot_Srv_Storage_Writefile(kot_file_t* File, void* Buffer, uint64_t Start, size64_t Size, bool IsDataEnd, bool IsAwait);
+struct kot_srv_storage_callback_t* kot_Srv_Storage_Ioctl(kot_file_t* File, unsigned long Request, void* Arg, bool IsAwait);
 
 struct kot_srv_storage_callback_t* kot_Srv_Storage_Closedir(kot_directory_t* Dir, bool IsAwait);
 struct kot_srv_storage_callback_t* kot_Srv_Storage_Getdircount(kot_directory_t* Dir, bool IsAwait);

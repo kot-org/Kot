@@ -34,7 +34,7 @@ void GetInput() {
 }
 
 int main(int argc, char* argv[], char* envp[]) {
-    char* Prefix = "/d1:/bin/";
+    char* Prefix = "/d1:/usr/bin/";
     
     while(true) {
         // prompt

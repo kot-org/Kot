@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <kot/sys.h>
+#include <sys/ioctl.h>
 #include <bits/ensure.h>
 #include <frg/vector.hpp>
 #include <mlibc/debug.hpp>
@@ -225,6 +226,34 @@ namespace mlibc{
         __ensure(!"Not implemented");
     }
 
+    int sys_ioctl(int fd, unsigned long request, void* arg, int* result){
+        kot_descriptor_t* Descriptor = kot_GetDescriptor(fd);
+        if(!Descriptor){
+            return EINVAL;
+        }
+        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_FILE){
+            return EINVAL;
+        }
+        
+        kot_file_t* File = (kot_file_t*)Descriptor->Data;
+
+        kot_srv_storage_callback_t* Callback = kot_Srv_Storage_Ioctl(File, request, arg, true);
+
+        int IoctlResult = static_cast<int>(Callback->Data);
+
+        free(Callback);
+
+        if(IoctlResult < 0){
+            return -IoctlResult;
+        }
+
+        if (result){
+            *result = IoctlResult;
+        }
+
+        return 0;
+    }
+
     int sys_open_dir(const char *path, int *handle){
         kot_directory_t* Dir = kot_opendir((char*)path);
 
@@ -420,5 +449,28 @@ namespace mlibc{
         KResult Status = Callback->Status;
         free(Callback);
         return (Status != KSUCCESS);
+    }
+
+    int sys_tcgetattr(int fd, struct termios *attr){
+        int result;
+
+        if (int e = sys_ioctl(fd, TCGETS, (void *)attr, &result); e)
+            return e;
+
+        return 0;
+    }
+
+    int sys_tcsetattr(int fd, int optional_action, const struct termios *attr){
+        if (optional_action)
+            mlibc::infoLogger()
+                << "mlibc: warning: sys_tcsetattr ignores optional_action"
+                << frg::endlog;
+
+        int result;
+
+        if (int e = sys_ioctl(fd, TCSETSF, (void *)attr, &result); e)
+            return e;
+
+        return 0;
     }
 }

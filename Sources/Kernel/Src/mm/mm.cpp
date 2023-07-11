@@ -47,6 +47,7 @@ static MemoryRegion_t* MergeRegion(MemoryHandler_t* Handler, MemoryRegion_t* Reg
     if(Region->Next){
         MemoryRegion_t* From = Region->Next;
         Region->Size += From->Size;
+        Region->BlockCount += From->BlockCount;
         RemoveRegion(Handler, From);
         return Region;
     }else{

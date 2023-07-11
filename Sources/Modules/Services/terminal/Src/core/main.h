@@ -1,8 +1,12 @@
 #pragma once
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <termios.h>
+#include <sys/ioctl.h>
+
 #include <kot/sys.h>
 #include <kot/uisd.h>
 #include <kot/utils.h>

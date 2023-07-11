@@ -16,7 +16,7 @@ QEMUFLAGS =	-no-reboot 														\
 			-device e1000,netdev=net0,romfile=Bin/Firmwares/efi-e1000.rom	\
 			-netdev user,id=net0											\
 			-object filter-dump,id=f1,netdev=net0,file=dump.dat				\
-			-accel kvm
+			# -accel kvm
 
 # -audiodev wav,id=snd0,path=output.wav 	 ,audiodev=snd0		
 
@@ -50,9 +50,9 @@ install-llvm:
 
 deps-debian: install-llvm install-ninja
 	sudo apt update
-	sudo apt install kpartx nasm xorriso mtools grub-common grub-efi-amd64 grub-pc-bin build-essential qemu-system-x86 ovmf meson kpartx python3 python3-pip python3-setuptools python3-wheel ninja-build  -y
-	pip3 install meson
-	pip3 install xbstrap
+	sudo apt install kpartx nasm xorriso mtools grub-common grub-efi-amd64 grub-pc-bin build-essential qemu-system-x86 ovmf meson kpartx python3 python3-pip python3-setuptools python3-wheel ninja-build cmake -y
+	sudo pip3 install meson
+	sudo pip3 install xbstrap
 
 init:
 	xbstrap init .

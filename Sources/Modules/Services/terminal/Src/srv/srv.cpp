@@ -5,6 +5,7 @@ static shell_dispatch_t ShellDispatcher[File_Function_Count] = {
     [File_Function_GetSize] = Getshellsize,
     [File_Function_Read] = Readshell,
     [File_Function_Write] = Writeshell,
+    [File_Function_Ioctl] = Ioctlshell,
 };
 
 kot_process_t ProcessKey;
@@ -161,6 +162,68 @@ KResult Writeshell(kot_thread_t Callback, uint64_t CallbackArg, shell_t* Shell, 
     };
 
     kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, NULL);
+
+    return KSUCCESS;
+}
+
+/* Direct access */
+KResult Ioctlshell(kot_thread_t Callback, uint64_t CallbackArg, shell_t* Shell, uint64_t GP0, uint64_t GP1, uint64_t GP2){
+    /* Args */
+    unsigned long Request = static_cast<unsigned long>(GP0);
+    void* Arg = reinterpret_cast<void*>(GP1);
+    void* Data = NULL;
+    size_t Size = 0;
+    bool IsAllocate = false;
+    
+    KResult Status = KFAIL;
+    int Result = 0;
+    
+    switch (Request){
+        case TCGETS:
+            Data = Shell->Terminos;
+            Size = sizeof(struct termios);
+            break;
+        case TCSETS:
+            memcpy(Shell->Terminos, Arg, sizeof(struct termios));
+            break;
+        case TIOCGWINSZ:
+            Data = Shell->Winsize;
+            Size = sizeof(struct winsize);
+            break;
+        case TIOCSWINSZ:
+            memcpy(Shell->Winsize, Arg, sizeof(struct winsize));
+            break;
+        case TIOCGPTN:
+            Data = malloc(sizeof(uint64_t));
+            Size = sizeof(uint64_t);
+            *(uint64_t*)Data = 0;
+            IsAllocate = true;
+            break;
+        default:
+            Result = -EINVAL;
+            break;
+    }
+    
+    kot_arguments_t arguments{
+        .arg[0] = Status,           /* Status */
+        .arg[1] = CallbackArg,      /* CallbackArg */
+        .arg[2] = (uint64_t)Result, /* Result */
+        .arg[3] = NULL,             /* Data */
+        .arg[4] = Size,             /* Size */
+        .arg[5] = NULL,             /* GP3 */
+    };
+
+    kot_ShareDataWithArguments_t DataShare{
+        .ParameterPosition = 0x3,
+        .Data = Data,
+        .Size = Size,
+    };
+
+    kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &DataShare);
+
+    if(IsAllocate){
+        free(Data);
+    }
 
     return KSUCCESS;
 }

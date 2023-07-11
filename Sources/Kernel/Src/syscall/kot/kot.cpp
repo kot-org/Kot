@@ -227,11 +227,7 @@ KResult Sys_Kot_Map(SyscallStack* Registers, kthread_t* Thread){
 
     if(!Region){
         *Size = 0;
-        if(Errno == EEXIST){
-            return KSUCCESS;
-        }else{
-            return KFAIL;
-        }
+        return KSUCCESS;
     }
 
     KResult Status = KFAIL;

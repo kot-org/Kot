@@ -1,5 +1,20 @@
 #include <core/core.h>
 
+cc_t c_cc_default[NCCS]{
+    4,    // VEOF
+    '\n', // VEOL
+    '\b', // VERASE
+    0,    // VINTR
+    0,    // VKILL
+    0,    // VMIN
+    0,    // VQUIT
+    0,    // VSTART
+    0,    // VSTOP
+    0,    // VSUSP
+    0,    // VTIME
+};
+
+
 uint64_t LineCount(char* Str){
     uint64_t Count = 0;
     
@@ -61,8 +76,21 @@ void WindowRenderer(kui_Context *Ctx){
                 Shell->TextFramebuffer.Pitch = Shell->TextFramebuffer.Btpp * Shell->TextFramebuffer.Width;
                 Shell->TextFramebuffer.Size = Shell->TextFramebuffer.Pitch * Shell->TextFramebuffer.Height;
                 Shell->TextFramebuffer.Buffer = malloc(Shell->TextFramebuffer.Size);
+
                 LoadPen(Shell->ShellFont, &Shell->TextFramebuffer, 0, 0, 16, 0, 0xffffff);
                 Shell->LineNumberMax = Shell->TextFramebuffer.Height / GetLineHeight(Shell->ShellFont) - 1;
+
+                kfont_pos_t CharWidth;
+                kfont_pos_t CharHeight;
+                kfont_pos_t CharX; 
+                kfont_pos_t CharY;
+                GetTextboxInfoN(Shell->ShellFont, "A", 1, &CharWidth, &CharHeight, &CharX, &CharY);
+                Shell->CharsPerLine = Shell->TextFramebuffer.Width / CharWidth;
+
+                Shell->Winsize->ws_row = static_cast<unsigned short>(Shell->CharsPerLine);
+                Shell->Winsize->ws_col = static_cast<unsigned short>(Shell->LineNumberMax);
+                Shell->Winsize->ws_xpixel = static_cast<unsigned short>(Shell->TextFramebuffer.Width);
+                Shell->Winsize->ws_ypixel = static_cast<unsigned short>(Shell->TextFramebuffer.Height);
             }
             int Len = strlen(Shell->InputBuffer);
             int N = kui_min(Shell->InputBufferSize - Len - 1, (int)strlen(Ctx->input_text));
@@ -141,6 +169,15 @@ shell_t* NewShell(kot_process_t Target){
     Shell->Lock = 0;
 
     Shell->Ctx = NULL;
+
+    Shell->Terminos = (termios*)malloc(sizeof(termios));
+    Shell->Winsize = (winsize*)malloc(sizeof(winsize));
+
+    Shell->Terminos->c_lflag = ECHO | ICANON;
+
+    for(int i = 0; i < NCCS; i++){
+        Shell->Terminos->c_cc[i] = c_cc_default[i];
+    }
 
     return Shell;
 }

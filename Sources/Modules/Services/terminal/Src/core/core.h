@@ -27,10 +27,14 @@ struct shell_t{
 
     uint64_t LineNumberShow;
     uint64_t LineNumberMax;
+    uint64_t CharsPerLine;
     uint64_t Width;
     uint64_t Height;
 
     uint64_t Lock;
+
+    struct termios* Terminos;
+    struct winsize* Winsize;
 };
 
 struct read_request_shell_t{

@@ -77,26 +77,14 @@
     },
     {
         "source": "Sources/Apps/shell/Bin/Shell.elf",
-        "destination": "bin/shell"
-    },
-    {
-        "source": "Sources/Apps/shell/Bin/utils/cat.elf",
-        "destination": "bin/cat"
-    },
-    {
-        "source": "Sources/Apps/shell/Bin/utils/echo.elf",
-        "destination": "bin/echo"
-    },
-    {
-        "source": "Sources/Apps/shell/Bin/utils/launch.elf",
-        "destination": "bin/launch"
+        "destination": "usr/bin/shell"
     },
     {
         "source": "Sources/Apps/shell/Bin/utils/cd.elf",
-        "destination": "bin/cd"
+        "destination": "usr/bin/cd"
     },
     {
-        "source": "Sources/Apps/shell/Bin/utils/ls.elf",
-        "destination": "bin/ls"
+        "source": "Sources/Apps/shell/Bin/utils/launch.elf",
+        "destination": "usr/bin/launch"
     }
 ]
