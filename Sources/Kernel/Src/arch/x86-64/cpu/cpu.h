@@ -229,13 +229,13 @@ struct rflags_t{
     bool OF:1;
     uint8_t IOPL:2;
     bool NT:1;
+    bool Reserved3:1;
     bool RF:1;
     bool VM:1;
     bool AC:1;
     bool VIF:1;
     bool VIP:1;
     bool ID:1;
-    bool Reserved3:1;
     bool Reserved4:1;
     bool Reserved5:1;
     bool Reserved6:1;
