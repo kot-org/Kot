@@ -181,7 +181,11 @@ namespace mlibc{
     }
 
     pid_t sys_getpid(){
-        return static_cast<pid_t>(Syscall_0(KSys_Std_Get_PID));
+        return static_cast<pid_t>(kot_Sys_GetPID());
+    }
+
+    pid_t sys_getppid(){
+        return static_cast<pid_t>(kot_Sys_GetPPID());
     }
 
     int sys_kill(int pid, int sig){
@@ -194,8 +198,66 @@ namespace mlibc{
         return 0;
     }
 
+    int sys_gethostname(char* buffer, size_t bufsize){
+        mlibc::infoLogger() << "mlibc: " << __func__ << " isn't implemented" << frg::endlog;
+        if(bufsize < strlen("Root")){
+            return -1;
+        }
+
+        strcpy(buffer, "Root");
+
+        return 0;
+    }
+
+    int sys_getpgid(pid_t pid, pid_t *pgid) {
+        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub" << frg::endlog;
+        *pgid = 0;
+
+        return 0;
+    }
+
     uid_t sys_getuid(){
-        mlibc::infoLogger() << "mlibc: sys_setuid is a stub" << frg::endlog;
+        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub" << frg::endlog;
+        return 0;
+    }
+
+    uid_t sys_geteuid(){
+        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub" << frg::endlog;
+        return 0;
+    }
+
+    gid_t sys_getgid(){
+        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub" << frg::endlog;
+        return 0;
+    }
+
+    gid_t sys_getegid(){
+        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub" << frg::endlog;
+        return 0;
+    }
+
+    int sys_setgid(gid_t gid){
+        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub" << frg::endlog;
+        return 0;
+    }
+
+    int sys_setegid(gid_t egid){
+        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub" << frg::endlog;
+        return 0;
+    }
+
+    int sys_setsid(pid_t *sid){
+        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub" << frg::endlog;
+        return 0;
+    }
+
+    int sys_seteuid(uid_t euid){
+        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub" << frg::endlog;
+        return 0;
+    }
+
+    int sys_setpgid(pid_t pid, pid_t pgid) {
+        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub" << frg::endlog;
         return 0;
     }
 

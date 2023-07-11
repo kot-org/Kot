@@ -1,3 +1,5 @@
+# Packages
+
 packages:
   - name: linux-headers
     source:
@@ -106,3 +108,12 @@ packages:
     - args: ['ninja', 'install']
       environ:
         DESTDIR: '@THIS_COLLECT_DIR@'
+
+# Sources
+
+sources:
+  - name: gnulib
+    subdir: 'Bundled'
+    git: 'https://git.savannah.gnu.org/git/gnulib.git'
+    branch: 'master'
+    rolling_version: true

@@ -1,10 +1,8 @@
 #ifndef _ABIBITS_MODE_T_H
 #define _ABIBITS_MODE_T_H
 
-#if __WORDSIZE == 64
-typedef unsigned long int           mode_t;
-#else
-typedef unsigned long long int      mode_t;
-#endif
+#include <bits/types.h>
+
+typedef __mlibc_uint64      mode_t;
 
 #endif // _ABIBITS_MODE_T_H

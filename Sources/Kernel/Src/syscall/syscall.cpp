@@ -14,7 +14,6 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_Std_Sigaction] = reinterpret_cast<SyscallHandler>(Sys_Std_Sigaction),
     [KSys_Std_Fork] = reinterpret_cast<SyscallHandler>(Sys_Std_Fork),
     [KSys_Std_Wait_PID] = reinterpret_cast<SyscallHandler>(Sys_Std_Wait_PID),
-    [KSys_Std_Get_PID] = reinterpret_cast<SyscallHandler>(Sys_Std_Get_PID),
     [KSys_Std_Kill] = reinterpret_cast<SyscallHandler>(Sys_Std_Kill),
 
     /* Kot specific */

@@ -165,6 +165,8 @@ packages:
       - host-llvm
     pkgs_required:
       - mlibc
+      - kot-ui
+      - libc++
     build:
       - args: ['make']
         workdir: '@THIS_SOURCE_DIR@/Build'

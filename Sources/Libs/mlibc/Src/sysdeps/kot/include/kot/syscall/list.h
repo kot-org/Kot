@@ -16,8 +16,7 @@ extern "C" {
 #define KSys_Std_Sigaction KSys_Std_Start + 0x9
 #define KSys_Std_Fork KSys_Std_Start + 0xA
 #define KSys_Std_Wait_PID KSys_Std_Start + 0xB
-#define KSys_Std_Get_PID KSys_Std_Start + 0xC
-#define KSys_Std_Kill KSys_Std_Start + 0xD
+#define KSys_Std_Kill KSys_Std_Start + 0xC
 
 /* Kot */
 #define KSys_Kot_Start KSys_Std_Kill

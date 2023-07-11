@@ -17,6 +17,7 @@ packages:
         - '--prefix=/usr'
         - '--without-bash-malloc'
         - '--disable-nls'
+        - 'CFLAGS=-DNEED_EXTERN_PC'
         environ:
           CC: 'kot-x86_64-clang'
           CXX: 'kot-x86_64-clang'
@@ -30,3 +31,36 @@ packages:
       - args: ['cp', '@THIS_COLLECT_DIR@/usr/bin/bash', '@THIS_COLLECT_DIR@/usr/bin/sh']
       - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/bin']
       - args: ['cp', '@THIS_COLLECT_DIR@/usr/bin/bash', '@THIS_COLLECT_DIR@/bin/sh']
+
+  - name: coreutils
+    source:
+      subdir: 'Bundled'
+      git: 'git://git.sv.gnu.org/coreutils'
+      tag: 'v9.0'
+      tools_required:
+        - host-llvm
+      sources_required: 
+        - gnulib
+      regenerate:
+        - args: ['./bootstrap', '--gnulib-srcdir=@SOURCE_ROOT@/Bundled/gnulib', '--skip-po', '--no-git']
+        - args: ['cp', '@BUILD_ROOT@/tools/host-automake/share/automake-1.16/config.sub', '@THIS_SOURCE_DIR@/build-aux']
+    configure:
+      # Sometimes coreutils does not use host compiler to build make-prime-list
+      - args: |
+          @THIS_SOURCE_DIR@/configure
+          make src/make-prime-list
+          ./src/make-prime-list 5000 > "@THIS_SOURCE_DIR@/src/primes.h"
+          make distclean
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=x86_64-none'
+        - '--prefix=/usr'
+        environ:
+          CFLAGS: '-Wno-error -DSLOW_BUT_NO_HACKS'
+          CC: 'kot-x86_64-clang'
+          CXX: 'kot-x86_64-clang'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'

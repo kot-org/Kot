@@ -180,25 +180,31 @@ int Sys_Std_Sigprocmask(SyscallStack* Registers, kthread_t* Thread){
 
     /* main */
     if(Retrieve){
-        if(CheckUserAddress(Retrieve, sizeof(sigset_t)) != KSUCCESS){
+        if(CheckUserAddress((void*)Retrieve, sizeof(sigset_t)) != KSUCCESS){
             return -EINVAL;
         }
         *Retrieve = Thread->SignalMask;
     }
-    switch (How){
-        case SIG_BLOCK:
-            Thread->SignalMask |= *Set;
-            break;
-        case SIG_UNBLOCK:{
-            Thread->SignalMask &= ~(*Set);
-            break;
-        }
-        case SIG_SETMASK:{
-            Thread->SignalMask = *Set;
-            break;
-        }
-        default:
+
+    if(Set){
+        if(CheckUserAddress((void*)Set, sizeof(const sigset_t)) != KSUCCESS){
             return -EINVAL;
+        }
+        switch (How){
+            case SIG_BLOCK:
+                Thread->SignalMask |= *Set;
+                break;
+            case SIG_UNBLOCK:{
+                Thread->SignalMask &= ~(*Set);
+                break;
+            }
+            case SIG_SETMASK:{
+                Thread->SignalMask = *Set;
+                break;
+            }
+            default:
+                return -EINVAL;
+        }
     }
 
     /* return */
@@ -287,15 +293,6 @@ int Sys_Std_Wait_PID(SyscallStack* Registers, kthread_t* Thread){
 
     /* return */
     return 0;
-}
-
-int Sys_Std_Get_PID(SyscallStack* Registers, kthread_t* Thread){
-    /* args */
-
-    /* main */
-
-    /* return */
-    return static_cast<int>(Thread->Parent->PID);
 }
 
 int Sys_Std_Kill(SyscallStack* Registers, kthread_t* Thread){
