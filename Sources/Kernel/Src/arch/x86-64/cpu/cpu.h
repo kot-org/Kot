@@ -245,7 +245,8 @@ struct rflags_t{
     bool Reserved10:1;
     bool Reserved11:1;
     bool Reserved12:1;
-    uint32_t Reserved13;
+    bool Reserved13:1;
+    uint32_t Reserved14;
 }__attribute__((packed));
 
 
