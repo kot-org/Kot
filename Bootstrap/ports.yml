@@ -41,9 +41,6 @@ packages:
         - host-llvm
       sources_required: 
         - gnulib
-      regenerate:
-        - args: ['./bootstrap', '--gnulib-srcdir=@SOURCE_ROOT@/Bundled/gnulib', '--skip-po', '--no-git']
-        - args: ['cp', '@BUILD_ROOT@/tools/host-automake/share/automake-1.16/config.sub', '@THIS_SOURCE_DIR@/build-aux']
     configure:
       # Sometimes coreutils does not use host compiler to build make-prime-list
       - args: |
