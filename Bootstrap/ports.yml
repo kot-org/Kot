@@ -41,6 +41,8 @@ packages:
         - host-llvm
       sources_required: 
         - gnulib
+      regenerate:
+        - args: ['./bootstrap', '--gnulib-srcdir=@SOURCE_ROOT@/Bundled/gnulib', '--skip-po', '--no-git']
     configure:
       # Sometimes coreutils does not use host compiler to build make-prime-list
       - args: |
