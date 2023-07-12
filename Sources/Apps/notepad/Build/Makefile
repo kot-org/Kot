@@ -4,7 +4,7 @@ CC = kot-x86_64-clang
 ASMC = nasm
 
 CFLAGS = -O3 -I../Src -fno-exceptions
-LINKERFLAGS = -Wall -lc -lkot-graphics -lfreetype -lpng16 -lz -lkot-ui
+LINKERFLAGS = -Wall -lc -lkot-graphics -lfreetype -lz -lkot-ui
 ASMFLAGS = 
 
 SRCDIR = ../Src

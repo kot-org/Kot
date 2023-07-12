@@ -35,6 +35,7 @@ packages:
         - '@SOURCE_ROOT@/Build/kot.cross-file'
         - '-Ddefault_library=static'
         - '-Dprefix=/usr'
+        - '-Dpng=disabled'
         - '@THIS_SOURCE_DIR@'
     build:
       - args: ['ninja', 'all']
