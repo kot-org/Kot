@@ -53,7 +53,7 @@ install-llvm:
 	rm -f llvm.sh	
 
 deps-debian: update-pkgs install-llvm install-ninja
-	sudo apt install kpartx nasm xorriso mtools grub-common grub-efi-amd64 grub-pc-bin build-essential qemu-system-x86 ovmf meson kpartx python3 python3-pip python3-setuptools python3-wheel ninja-build cmake automake bison gperf texinfo apt-file -y
+	sudo apt install kpartx nasm xorriso mtools grub-common grub-efi-amd64 grub-pc-bin build-essential qemu-system-x86 ovmf meson kpartx python3 python3-pip python3-setuptools python3-wheel ninja-build cmake automake bison gperf texinfo apt-file parted -y
 	sudo apt-file update 
 	apt-file search autopoint
 	sudo apt install autopoint
