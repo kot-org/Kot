@@ -36,6 +36,10 @@ run:
 debug:
 	qemu-system-x86_64 $(QEMUFLAGS) -s -S
 
+update-pkgs:
+	sudo apt update
+	sudo apt upgrade
+
 install-ninja:
 	sudo apt install wget
 	sudo wget -qO /usr/local/bin/ninja.gz https://github.com/ninja-build/ninja/releases/latest/download/ninja-linux.zip
@@ -48,8 +52,7 @@ install-llvm:
 	sudo ./llvm.sh 14 all
 	rm -f llvm.sh	
 
-deps-debian: install-llvm install-ninja
-	sudo apt update
+deps-debian: update-pkgs install-llvm install-ninja
 	sudo apt install kpartx nasm xorriso mtools grub-common grub-efi-amd64 grub-pc-bin build-essential qemu-system-x86 ovmf meson kpartx python3 python3-pip python3-setuptools python3-wheel ninja-build cmake -y
 	sudo pip3 install meson
 	sudo pip3 install xbstrap

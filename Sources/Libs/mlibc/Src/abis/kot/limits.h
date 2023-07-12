@@ -15,149 +15,74 @@
 
 
 /* Kot doesn't wrap header files so the following code is the copy of gcc implementation */
-/* Copyright (C) 1991-2018 Free Software Foundation, Inc.
-This file is part of GCC.
-GCC is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 3, or (at your option) any later
-version.
-GCC is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-Under Section 7 of GPL version 3, you are granted additional
-permissions described in the GCC Runtime Library Exception, version
-3.1, as published by the Free Software Foundation.
-You should have received a copy of the GNU General Public License and
-a copy of the GCC Runtime Library Exception along with this program;
-see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
-<http://www.gnu.org/licenses/>.  */
+# ifndef _LIMITS_H
+#  define _LIMITS_H	1
 
-#ifndef _LIMITS_H___
-#define _LIMITS_H___
+#include <bits/wordsize.h>
 
-/* Number of bits in a `char'.  */
-#undef CHAR_BIT
-#define CHAR_BIT __CHAR_BIT__
+/* We don't have #include_next.
+   Define ANSI <limits.h> for standard 32-bit words.  */
 
-/* Maximum length of a multibyte character.  */
-#ifndef MB_LEN_MAX
-#define MB_LEN_MAX 1
-#endif
+/* These assume 8-bit `char's, 16-bit `short int's,
+   and 32-bit `int's and `long int's.  */
+
+/* Number of bits in a `char'.	*/
+#  define CHAR_BIT	8
 
 /* Minimum and maximum values a `signed char' can hold.  */
-#undef SCHAR_MIN
-#define SCHAR_MIN (-SCHAR_MAX - 1)
-#undef SCHAR_MAX
-#define SCHAR_MAX __SCHAR_MAX__
+#  define SCHAR_MIN	(-128)
+#  define SCHAR_MAX	127
 
-/* Maximum value an `unsigned char' can hold.  (Minimum is 0).  */
-#undef UCHAR_MAX
-#if __SCHAR_MAX__ == __INT_MAX__
-# define UCHAR_MAX (SCHAR_MAX * 2U + 1U)
-#else
-# define UCHAR_MAX (SCHAR_MAX * 2 + 1)
-#endif
+/* Maximum value an `unsigned char' can hold.  (Minimum is 0.)  */
+#  define UCHAR_MAX	255
 
 /* Minimum and maximum values a `char' can hold.  */
-#ifdef __CHAR_UNSIGNED__
-# undef CHAR_MIN
-# if __SCHAR_MAX__ == __INT_MAX__
-#  define CHAR_MIN 0U
-# else
-#  define CHAR_MIN 0
-# endif
-# undef CHAR_MAX
-# define CHAR_MAX UCHAR_MAX
-#else
-# undef CHAR_MIN
-# define CHAR_MIN SCHAR_MIN
-# undef CHAR_MAX
-# define CHAR_MAX SCHAR_MAX
-#endif
+#  ifdef __CHAR_UNSIGNED__
+#   define CHAR_MIN	0
+#   define CHAR_MAX	UCHAR_MAX
+#  else
+#   define CHAR_MIN	SCHAR_MIN
+#   define CHAR_MAX	SCHAR_MAX
+#  endif
 
 /* Minimum and maximum values a `signed short int' can hold.  */
-#undef SHRT_MIN
-#define SHRT_MIN (-SHRT_MAX - 1)
-#undef SHRT_MAX
+#  define SHRT_MIN	(-32768)
+#  define SHRT_MAX	32767
 
-/* Maximum value an `unsigned short int' can hold.  (Minimum is 0).  */
-#undef USHRT_MAX
-#if __SHRT_MAX__ == __INT_MAX__
-# define USHRT_MAX (SHRT_MAX * 2U + 1U)
-#else
-# define USHRT_MAX (SHRT_MAX * 2 + 1)
-#endif
+/* Maximum value an `unsigned short int' can hold.  (Minimum is 0.)  */
+#  define USHRT_MAX	65535
 
 /* Minimum and maximum values a `signed int' can hold.  */
-#undef INT_MIN
-#define INT_MIN (-INT_MAX - 1)
-#undef INT_MAX
-#define INT_MAX __INT_MAX__
+#  define INT_MIN	(-INT_MAX - 1)
+#  define INT_MAX	2147483647
 
-/* Maximum value an `unsigned int' can hold.  (Minimum is 0).  */
-#undef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1U)
+/* Maximum value an `unsigned int' can hold.  (Minimum is 0.)  */
+#  define UINT_MAX	4294967295U
 
-/* Minimum and maximum values a `signed long int' can hold.
-   (Same as `int').  */
-#undef LONG_MIN
-#define LONG_MIN (-LONG_MAX - 1L)
-#undef LONG_MAX
-#define LONG_MAX __LONG_MAX__
+/* Minimum and maximum values a `signed long int' can hold.  */
+#  if __WORDSIZE == 64
+#   define LONG_MAX	9223372036854775807L
+#  else
+#   define LONG_MAX	2147483647L
+#  endif
+#  define LONG_MIN	(-LONG_MAX - 1L)
 
-/* Maximum value an `unsigned long int' can hold.  (Minimum is 0).  */
-#undef ULONG_MAX
-#define ULONG_MAX (LONG_MAX * 2UL + 1UL)
+/* Maximum value an `unsigned long int' can hold.  (Minimum is 0.)  */
+#  if __WORDSIZE == 64
+#   define ULONG_MAX	18446744073709551615UL
+#  else
+#   define ULONG_MAX	4294967295UL
+#  endif
 
-#if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#  ifdef __USE_ISOC99
+
 /* Minimum and maximum values a `signed long long int' can hold.  */
-# undef LLONG_MIN
-# define LLONG_MIN (-LLONG_MAX - 1LL)
-# undef LLONG_MAX
-# define LLONG_MAX __LONG_LONG_MAX__
+#   define LLONG_MAX	9223372036854775807LL
+#   define LLONG_MIN	(-LLONG_MAX - 1LL)
 
-/* Maximum value an `unsigned long long int' can hold.  (Minimum is 0).  */
-# undef ULLONG_MAX
-# define ULLONG_MAX (LLONG_MAX * 2ULL + 1ULL)
-#endif
+/* Maximum value an `unsigned long long int' can hold.  (Minimum is 0.)  */
+#   define ULLONG_MAX	18446744073709551615ULL
 
-#if defined (__GNU_LIBRARY__) ? defined (__USE_GNU) : !defined (__STRICT_ANSI__)
-/* Minimum and maximum values a `signed long long int' can hold.  */
-# undef LONG_LONG_MIN
-# define LONG_LONG_MIN (-LONG_LONG_MAX - 1LL)
-# undef LONG_LONG_MAX
-# define LONG_LONG_MAX __LONG_LONG_MAX__
+#  endif /* ISO C99 */
 
-/* Maximum value an `unsigned long long int' can hold.  (Minimum is 0).  */
-# undef ULONG_LONG_MAX
-# define ULONG_LONG_MAX (LONG_LONG_MAX * 2ULL + 1ULL)
-#endif
-
-#ifdef __STDC_WANT_IEC_60559_BFP_EXT__
-/* TS 18661-1 widths of integer types.  */
-# undef CHAR_WIDTH
-# define CHAR_WIDTH __SCHAR_WIDTH__
-# undef SCHAR_WIDTH
-# define SCHAR_WIDTH __SCHAR_WIDTH__
-# undef UCHAR_WIDTH
-# define UCHAR_WIDTH __SCHAR_WIDTH__
-# undef SHRT_WIDTH
-# define SHRT_WIDTH __SHRT_WIDTH__
-# undef USHRT_WIDTH
-# define USHRT_WIDTH __SHRT_WIDTH__
-# undef INT_WIDTH
-# define INT_WIDTH __INT_WIDTH__
-# undef UINT_WIDTH
-# define UINT_WIDTH __INT_WIDTH__
-# undef LONG_WIDTH
-# define LONG_WIDTH __LONG_WIDTH__
-# undef ULONG_WIDTH
-# define ULONG_WIDTH __LONG_WIDTH__
-# undef LLONG_WIDTH
-# define LLONG_WIDTH __LONG_WIDTH__ + __LONG_WIDTH__
-# undef ULLONG_WIDTH
-# define ULLONG_WIDTH __LONG_WIDTH__ + __LONG_WIDTH__
-#endif
-
-#endif /* _LIMITS_H___ */
+# endif	/* limits.h  */
