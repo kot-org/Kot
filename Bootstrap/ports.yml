@@ -39,8 +39,6 @@ packages:
       tag: 'v9.0'
       tools_required:
         - host-llvm
-      sources_required: 
-        - gnulib
       regenerate:
         - args: ['./bootstrap']
     configure:
