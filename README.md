@@ -5,6 +5,8 @@
 # KotOS
 A 64-bit x86 operating system written in C/C++
 
+[![C/C++ CI](https://github.com/kot-org/Kot/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/kot-org/Kot/actions/workflows/c-cpp.yml)
+
 <img src="https://discordapp.com/api/guilds/901353839557476363/widget.png?style=banner3" alt="Discord Banner 3"/>
 
 # Screenshots
