@@ -3,8 +3,6 @@
 #include <lib/vector.h>
 #include <heap/heap.h>
 
-#define BLOCK_SIZE PAGE_SIZE
-
 struct MemoryHandler_t{
     void* Base;
     size_t Size;
@@ -21,11 +19,7 @@ struct MemoryRegion_t{
     void* Base;
     size_t Size;
     uint64_t BlockCount;
-    int Flags;
-    int Prot;
     bool IsFree;
-    bool IsMap;
-    locker_t Lock;
 
     struct MemoryRegion_t* Next;
     struct MemoryRegion_t* Last;
@@ -36,14 +30,16 @@ MemoryHandler_t* MMCreateHandler(pagetable_t Paging, void* Base, size_t Size);
 MemoryHandler_t* MMCloneHandler(pagetable_t Paging, MemoryHandler_t* Source);
 KResult MMFreeHandler(MemoryHandler_t* Handler);
 
-MemoryRegion_t* MMAllocateRegionVM(MemoryHandler_t* Handler, void* Base, size_t Size, int Flags, int Prot, int* Errno);
-KResult MMFree(MemoryHandler_t* Handler, void* Base, size_t Size);
+KResult MMAllocateRegionVM(MemoryHandler_t* Handler, void* Base, size_t Size, bool IsFixed, void** BaseResult);
+KResult MMFreeRegion(MemoryHandler_t* Handler, void* Base, size_t Size);
 MemoryRegion_t* MMGetRegion(MemoryHandler_t* Handler, void* Base);
 
-KResult MMAllocateMemoryBlock(MemoryHandler_t* Handler, MemoryRegion_t* Region);
-KResult MMAllocateMemoryBlockMaster(MemoryHandler_t* Handler, MemoryRegion_t* Region);
-KResult MMAllocateMemoryContigous(MemoryHandler_t* Handler, MemoryRegion_t* Region);
-KResult MMMapPhysical(MemoryHandler_t* Handler, MemoryRegion_t* Region, void* Base);
+KResult MMAllocateMemoryBlock(MemoryHandler_t* Handler, void* Base, size_t Size, int Prot, size_t* SizeAllocate);
+KResult MMAllocateMemoryBlockMaster(MemoryHandler_t* Handler, void* Base, size_t Size, int Prot, size_t* SizeAllocate);
+KResult MMAllocateMemoryContigous(MemoryHandler_t* Handler, void* Base, size_t Size, int Prot, size_t* SizeAllocate);
+KResult MMMapPhysical(MemoryHandler_t* Handler, void* BasePhysical, void* Base, size_t Size, int Prot);
+
+KResult MMUnmap(MemoryHandler_t* Handler, void* Base, size_t Size);
 
 KResult MMProtect(MemoryHandler_t* Handler, void* Base, size_t Size, int Prot);
 

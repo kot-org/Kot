@@ -24,18 +24,15 @@ static MemoryRegion_t* SplitRegion(MemoryHandler_t* Handler, MemoryRegion_t* Reg
         MemoryRegion_t* NewRegion = (MemoryRegion_t*)kmalloc(sizeof(MemoryRegion_t));
         NewRegion->Base = (void*)((uintptr_t)Region->Base + Size);
         NewRegion->Size = Region->Size - Size;
-        NewRegion->BlockCount = NewRegion->Size / BLOCK_SIZE;
-        NewRegion->Flags = Region->Flags;
-        NewRegion->Prot = Region->Prot;
+        NewRegion->BlockCount = DivideRoundUp(NewRegion->Size, PAGE_SIZE);
         NewRegion->IsFree = Region->IsFree;
-        NewRegion->IsMap = Region->IsMap;
         NewRegion->Last = Region;
         NewRegion->Next = Region->Next;
 
 
         Region->Next = NewRegion;
         Region->Size = Size;
-        Region->BlockCount = Region->Size / BLOCK_SIZE;
+        Region->BlockCount = DivideRoundUp(Region->Size, PAGE_SIZE);
 
         Handler->RegionCount++;
 
@@ -65,11 +62,8 @@ MemoryHandler_t* MMCreateHandler(pagetable_t Paging, void* Base, size_t Size){
     MemoryRegion_t* Region = (MemoryRegion_t*)kmalloc(sizeof(MemoryRegion_t));
     Region->Base = Base;
     Region->Size = Size;
-    Region->BlockCount = Size / BLOCK_SIZE;
-    Region->Flags = 0;
-    Region->Prot = PROT_NONE;
+    Region->BlockCount = DivideRoundUp(Size, PAGE_SIZE);
     Region->IsFree = true;
-    Region->IsMap = false;
     Region->Last = NULL;
     Region->Next = NULL;
 
@@ -130,7 +124,7 @@ KResult FreeHandler(MemoryHandler_t* Handler){
 }
 
 
-MemoryRegion_t* MMAllocateRegionVM(MemoryHandler_t* Handler, void* Base, size_t Size, int Flags, int Prot, int* Errno){
+KResult MMAllocateRegionVM(MemoryHandler_t* Handler, void* Base, size_t Size, bool IsFixed, void** BaseResult){
     assert(!((uintptr_t)Base % PAGE_SIZE));
     assert(!(Size % PAGE_SIZE));
 
@@ -138,20 +132,18 @@ MemoryRegion_t* MMAllocateRegionVM(MemoryHandler_t* Handler, void* Base, size_t 
 
     MemoryRegion_t* Region = NULL;
 
-    if(Flags & MAP_FIXED){
+    if(IsFixed){
         MemoryRegion_t* Tmp = MMGetRegion(Handler, Base);
         if(!Tmp){
             AtomicRelease(&Handler->Lock);
-            *Errno = EINVAL;
-            return NULL;
+            return KMEMORYVIOLATION;
         }
         if(Tmp->Base != Base){
             size_t SizeUnusable = (uintptr_t)Base - (uintptr_t)Tmp->Base;
             MemoryRegion_t* UsableRegion = SplitRegion(Handler, Tmp, SizeUnusable);
             while(UsableRegion->Size < Size){
                 if(!MergeRegion(Handler, UsableRegion)){
-                    *Errno = EINVAL;
-                    return NULL;
+                    return KMEMORYVIOLATION;
                 }
             }
             SplitRegion(Handler, UsableRegion, Size);
@@ -159,13 +151,13 @@ MemoryRegion_t* MMAllocateRegionVM(MemoryHandler_t* Handler, void* Base, size_t 
         }else{
             while(Tmp->Size < Size){
                 if(!MergeRegion(Handler, Tmp)){
-                    *Errno = EINVAL;
-                    return NULL;
+                    return KMEMORYVIOLATION;
                 }
             }
             SplitRegion(Handler, Tmp, Size);
             Region = Tmp;
         }
+        *BaseResult = Base; 
     }else{
         MemoryRegion_t* RegionToSplit = NULL; 
         MemoryRegion_t* Tmp = Handler->LastFreeRegion;
@@ -180,24 +172,48 @@ MemoryRegion_t* MMAllocateRegionVM(MemoryHandler_t* Handler, void* Base, size_t 
         }
         if(!RegionToSplit){
             AtomicRelease(&Handler->Lock);
-            *Errno = EINVAL;
-            return NULL;
+            return KFAIL;
         }
         SplitRegion(Handler, RegionToSplit, Size);
         Region = RegionToSplit;
+
+        *BaseResult = Region->Base;
     }
 
     Region->IsFree = false;
-    Region->Prot = Prot;
-    Region->Flags = Flags;
 
     AtomicRelease(&Handler->Lock);
 
-    return Region;
+    return KSUCCESS;
 }
 
-KResult MMFree(MemoryHandler_t* Handler, void* Base, size_t Size){
-    // TODO
+KResult MMFreeRegion(MemoryHandler_t* Handler, void* Base, size_t Size){
+    assert(!((uintptr_t)Base % PAGE_SIZE));
+    assert(!(Size % PAGE_SIZE));
+
+    AtomicAcquire(&Handler->Lock);
+
+    MemoryRegion_t* Region = MMGetRegion(Handler, Base);
+
+    if(Region->Base != Base){
+        size_t SizeUnusable = (uintptr_t)Base - (uintptr_t)Region->Base;
+        Region = SplitRegion(Handler, Region, SizeUnusable);
+    }
+
+    if(Region->Size != Size){
+        while(Region->Size < Size){
+            if(!MergeRegion(Handler, Region)){
+                return KMEMORYVIOLATION;
+            }
+        }
+        if(Region->Size > Size){
+            Region = SplitRegion(Handler, Region, Size);
+        }
+    }
+
+    Region->IsFree = true;
+
+    AtomicRelease(&Handler->Lock);
 
     return KSUCCESS;
 }
@@ -214,134 +230,81 @@ MemoryRegion_t* MMGetRegion(MemoryHandler_t* Handler, void* Base){
 }
 
 
-KResult MMAllocateMemoryBlock(MemoryHandler_t* Handler, MemoryRegion_t* Region){
-    AtomicAcquire(&Handler->Lock);
+KResult MMAllocateMemoryBlock(MemoryHandler_t* Handler, void* Base, size_t Size, int Prot, size_t* SizeAllocate){
+    uintptr_t VirtualAddress = (uintptr_t)Base;
 
-    if(Region->IsFree){
-        AtomicRelease(&Handler->Lock);
-        return KFAIL;
+    size_t BlockCount = DivideRoundUp(Size, PAGE_SIZE);
+
+    *SizeAllocate = 0;
+    for(uint64_t i = 0; i < BlockCount; i++){
+        if(!vmm_GetFlags(Handler->Paging, (void*)((uint64_t)VirtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Present)){
+            vmm_Map(Handler->Paging, (void*)VirtualAddress, Pmm_RequestPage(), Prot & PROT_READ, Prot & PROT_WRITE, true);
+            *SizeAllocate += PAGE_SIZE;
+        }
+        VirtualAddress += PAGE_SIZE;
     }
-
-
-    if(Region->IsMap){
-        AtomicRelease(&Handler->Lock);
-        return KFAIL;
-    }
-
-    uintptr_t VirtualAddress = (uintptr_t)Region->Base;
-    for(uint64_t i = 0; i < Region->BlockCount; i++){
-        vmm_Map(Handler->Paging, (void*)VirtualAddress, Pmm_RequestPage(), Region->Prot & PROT_READ, Region->Prot & PROT_WRITE, true);
-        VirtualAddress += BLOCK_SIZE;
-    }
-
-    Region->IsMap = true;
-
-    AtomicRelease(&Handler->Lock);
 
     return KSUCCESS;
 }
 
-KResult MMAllocateMemoryBlockMaster(MemoryHandler_t* Handler, MemoryRegion_t* Region){
-    AtomicAcquire(&Handler->Lock);
+KResult MMAllocateMemoryBlockMaster(MemoryHandler_t* Handler, void* Base, size_t Size, int Prot, size_t* SizeAllocate){
+    uintptr_t VirtualAddress = (uintptr_t)Base;
 
-    if(Region->IsFree){
-        AtomicRelease(&Handler->Lock);
-        return KFAIL;
-    }
+    size_t BlockCount = DivideRoundUp(Size, PAGE_SIZE);
 
-
-    if(Region->IsMap){
-        AtomicRelease(&Handler->Lock);
-        return KFAIL;
-    }
-
-    uintptr_t VirtualAddress = (uintptr_t)Region->Base;
-    for(uint64_t i = 0; i < Region->BlockCount; i++){
-        vmm_Map(Handler->Paging, (void*)VirtualAddress, Pmm_RequestPage(), Region->Prot & PROT_READ, Region->Prot & PROT_WRITE, false);
+    *SizeAllocate = 0;
+    for(uint64_t i = 0; i < BlockCount; i++){
+        if(!vmm_GetFlags(Handler->Paging, (void*)((uint64_t)VirtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Present)){
+            vmm_Map(Handler->Paging, (void*)VirtualAddress, Pmm_RequestPage(), Prot & PROT_READ, Prot & PROT_WRITE, false);
+            SizeAllocate += PAGE_SIZE;
+        }
         vmm_SetFlags(Handler->Paging, (void*)VirtualAddress, vmm_flag::vmm_Master, true); //set master state
-        VirtualAddress += BLOCK_SIZE;
+        VirtualAddress += PAGE_SIZE;
     }
-
-    Region->IsMap = true;
-
-    AtomicRelease(&Handler->Lock);
 
     return KSUCCESS;
 }
 
-KResult MMAllocateMemoryContigous(MemoryHandler_t* Handler, MemoryRegion_t* Region){
-    AtomicAcquire(&Handler->Lock);
+KResult MMAllocateMemoryContigous(MemoryHandler_t* Handler, void* Base, size_t Size, int Prot, size_t* SizeAllocate){
+    size_t BlockCount = DivideRoundUp(Size, PAGE_SIZE);
 
-    if(Region->IsFree){
-        AtomicRelease(&Handler->Lock);
-        return KFAIL;
+    uintptr_t VirtualAddress = (uintptr_t)Base;
+    uintptr_t PhysicalAddress = (uintptr_t)Pmm_RequestPages(BlockCount);
+    
+    *SizeAllocate = 0;
+    for(uint64_t i = 0; i < BlockCount; i++){
+        if(!vmm_GetFlags(Handler->Paging, (void*)((uint64_t)VirtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Present)){
+            vmm_Map(Handler->Paging, (void*)VirtualAddress, (void*)PhysicalAddress, Prot & PROT_READ, Prot & PROT_WRITE, true);
+            *SizeAllocate += PAGE_SIZE;
+        }
+        VirtualAddress += PAGE_SIZE;
+        PhysicalAddress += PAGE_SIZE;
     }
-
-
-    if(Region->IsMap){
-        AtomicRelease(&Handler->Lock);
-        return KFAIL;
-    }
-
-
-    uintptr_t VirtualAddress = (uintptr_t)Region->Base;
-    uintptr_t PhysicalAddress = (uintptr_t)Pmm_RequestPages(Region->BlockCount);
-    for(uint64_t i = 0; i < Region->BlockCount; i++){
-        vmm_Map(Handler->Paging, (void*)VirtualAddress, (void*)PhysicalAddress, Region->Prot & PROT_READ, Region->Prot & PROT_WRITE, true);
-        VirtualAddress += BLOCK_SIZE;
-        PhysicalAddress += BLOCK_SIZE;
-    }
-
-    Region->IsMap = true;
-
-    AtomicRelease(&Handler->Lock);
 
     return KSUCCESS;
 }
 
-KResult MMMapPhysical(MemoryHandler_t* Handler, MemoryRegion_t* Region, void* Base){
-    AtomicAcquire(&Handler->Lock);
+KResult MMMapPhysical(MemoryHandler_t* Handler, void* BasePhysical, void* Base, size_t Size, int Prot){
+    uintptr_t VirtualAddress = (uintptr_t)Base;
+    uintptr_t PhysicalAddress = (uintptr_t)BasePhysical;
 
-    if(Region->IsFree){
-        AtomicRelease(&Handler->Lock);
-        return KFAIL;
+    size_t BlockCount = DivideRoundUp(Size, PAGE_SIZE);
+
+    for(uint64_t i = 0; i < BlockCount; i++){
+        vmm_Map(Handler->Paging, (void*)VirtualAddress, (void*)PhysicalAddress, Prot & PROT_READ, Prot & PROT_WRITE, true);
+        VirtualAddress += PAGE_SIZE;
+        PhysicalAddress += PAGE_SIZE;
     }
-
-    if(Region->IsMap){
-        AtomicRelease(&Handler->Lock);
-        return KFAIL;
-    }
-
-    uintptr_t VirtualAddress = (uintptr_t)Region->Base;
-    uintptr_t PhysicalAddress = (uintptr_t)Base;
-    for(uint64_t i = 0; i < Region->BlockCount; i++){
-        vmm_Map(Handler->Paging, (void*)VirtualAddress, (void*)PhysicalAddress, Region->Prot & PROT_READ, Region->Prot & PROT_WRITE, true);
-        VirtualAddress += BLOCK_SIZE;
-        PhysicalAddress += BLOCK_SIZE;
-    }
-
-    Region->IsMap = true;
-
-    AtomicRelease(&Handler->Lock);
 
     return KSUCCESS;
 }
 
-KResult MMUnmap(MemoryHandler_t* Handler, MemoryRegion_t* Region){
-    AtomicAcquire(&Handler->Lock);
+KResult MMUnmap(MemoryHandler_t* Handler, void* Base, size_t Size){
+    uintptr_t VirtualAddress = (uintptr_t)Base;
 
-    if(Region->IsFree){
-        AtomicRelease(&Handler->Lock);
-        return KFAIL;
-    }
+    size_t BlockCount = DivideRoundUp(Size, PAGE_SIZE);
 
-    if(Region->IsMap){
-        AtomicRelease(&Handler->Lock);
-        return KFAIL;
-    }
-
-    uintptr_t VirtualAddress = (uintptr_t)Region->Base;
-    for(uint64_t i = 0; i < Region->BlockCount; i++){
+    for(uint64_t i = 0; i < BlockCount; i++){
         if(vmm_GetFlags(Handler->Paging, (void*)VirtualAddress, vmm_flag::vmm_Master)){
             if(vmm_GetFlags(Handler->Paging, (void*)VirtualAddress, vmm_flag::vmm_IsPureMemory)){
                 Pmm_FreePage(vmm_GetPhysical(Handler->Paging, (void*)VirtualAddress));
@@ -350,16 +313,20 @@ KResult MMUnmap(MemoryHandler_t* Handler, MemoryRegion_t* Region){
         }
     }
 
-    Region->IsMap = false;
-
-    AtomicRelease(&Handler->Lock);
-
     return KSUCCESS;
 }
 
 KResult MMProtect(MemoryHandler_t* Handler, void* Base, size_t Size, int Prot){
-    // TODO
-    
+    uintptr_t VirtualAddress = (uintptr_t)Base;
+
+    size_t BlockCount = DivideRoundUp(Size, PAGE_SIZE);
+
+    for(uint64_t i = 0; i < BlockCount; i++){
+        vmm_SetFlags(Handler->Paging, (void*)VirtualAddress, vmm_flag::vmm_User, Prot & PROT_READ);
+        vmm_SetFlags(Handler->Paging, (void*)VirtualAddress, vmm_flag::vmm_ReadWrite, Prot & PROT_WRITE);
+        VirtualAddress += PAGE_SIZE;
+    }
+
     return KSUCCESS;
 }
 
@@ -390,13 +357,10 @@ uint64_t MMCreateMemoryField(kthread_t* self, kprocess_t* process, size64_t size
                 realSize += PAGE_SIZE;
             }
 
-            int Errno = 0;
-            MemoryRegion_t* Region = MMAllocateRegionVM(process->MemoryManager, (void*)virtualAddress, realSize, MAP_FIXED | MAP_SHARED, PROT_READ | PROT_WRITE | PROT_EXEC, &Errno);
-
-
-            if(Region){
-                MMAllocateMemoryBlockMaster(process->MemoryManager, Region);
-            }else if(Errno != EEXIST){
+            if(MMAllocateRegionVM(process->MemoryManager, (void*)virtualAddress, realSize, MAP_FIXED | MAP_SHARED, (void**)&virtualAddress) == KSUCCESS){
+                size_t SizeAllocate;
+                MMAllocateMemoryBlockMaster(process->MemoryManager, virtualAddress, realSize, PROT_READ | PROT_WRITE | PROT_EXEC, &SizeAllocate);
+            }else{
                 return KFAIL;
             }
 
@@ -413,12 +377,10 @@ uint64_t MMCreateMemoryField(kthread_t* self, kprocess_t* process, size64_t size
                 realSize += PAGE_SIZE;
             }
 
-            int Errno = 0;
-            MemoryRegion_t* Region = MMAllocateRegionVM(process->MemoryManager, (void*)virtualAddress, realSize, MAP_FIXED | MAP_SHARED, PROT_READ | PROT_WRITE | PROT_EXEC, &Errno);
-
-            if(Region){
-                MMAllocateMemoryBlockMaster(process->MemoryManager, Region);
-            }else if(Errno != EEXIST){
+            if(MMAllocateRegionVM(process->MemoryManager, (void*)virtualAddress, realSize, MAP_FIXED | MAP_SHARED, (void**)&virtualAddress) == KSUCCESS){
+                size_t SizeAllocate;
+                MMAllocateMemoryBlockMaster(process->MemoryManager, (void*)virtualAddress, realSize, PROT_READ | PROT_WRITE | PROT_EXEC, &SizeAllocate);
+            }else{
                 return KFAIL;
             }
 
@@ -476,10 +438,7 @@ uint64_t MMAcceptMemoryField(kthread_t* self, kprocess_t* process, MemoryShareIn
                 virtualAddress = (void*)((uint64_t)virtualAddress - (uint64_t)virtualAddress % PAGE_SIZE);
             }
 
-            int Errno = 0;
-            MemoryRegion_t* Region = MMAllocateRegionVM(process->MemoryManager, virtualAddress, shareInfo->RealSize, MAP_FIXED | MAP_SHARED, PROT_READ | PROT_WRITE | PROT_EXEC, &Errno);
-
-            if(!Region && Errno != EEXIST){
+            if(MMAllocateRegionVM(process->MemoryManager, virtualAddress, shareInfo->RealSize, MAP_FIXED | MAP_SHARED, &virtualAddress) != KSUCCESS){
                 return KFAIL;
             }
 
@@ -498,10 +457,7 @@ uint64_t MMAcceptMemoryField(kthread_t* self, kprocess_t* process, MemoryShareIn
                 virtualAddress = (void*)((uint64_t)virtualAddress - (uint64_t)virtualAddress % PAGE_SIZE);
             }
 
-            int Errno = 0;
-            MemoryRegion_t* Region = MMAllocateRegionVM(process->MemoryManager, virtualAddress, shareInfo->RealSize, MAP_FIXED | MAP_SHARED, PROT_READ | PROT_WRITE | PROT_EXEC, &Errno);
-
-            if(!Region && Errno != EEXIST){
+            if(MMAllocateRegionVM(process->MemoryManager, virtualAddress, shareInfo->RealSize, MAP_FIXED | MAP_SHARED, &virtualAddress) != KSUCCESS){
                 return KFAIL;
             }
 
@@ -533,31 +489,26 @@ uint64_t MMAcceptMemoryField(kthread_t* self, kprocess_t* process, MemoryShareIn
                 sizeAlign -= sizeAlign % PAGE_SIZE;
                 sizeAlign += PAGE_SIZE;
             }
-            
-            int Errno = 0;
-            MemoryRegion_t* Region = MMAllocateRegionVM(process->MemoryManager, virtualAddressAlign, sizeAlign, MAP_FIXED | MAP_SHARED, PROT_READ | PROT_WRITE | PROT_EXEC, &Errno);
 
-            if(!Region && Errno != EEXIST){
+            if(MMAllocateRegionVM(process->MemoryManager, virtualAddressAlign, sizeAlign, MAP_FIXED | MAP_SHARED, &virtualAddressAlign) != KSUCCESS){
                 return KFAIL;
             }
 
-            if(Region){
-                /* Allocate child memory */
-                if((uint64_t)virtualAddress + pages * PAGE_SIZE < vmm_HHDMAdress){
-                    for(uint64_t i = 0; i < pages; i++){
-                        if(!vmm_GetFlags(pageTable, (void*)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Present)){
-                            vmm_Unmap(pageTable, (void*)((uint64_t)virtualAddress + i * PAGE_SIZE));
-                        }
+            /* Allocate child memory */
+            if((uint64_t)virtualAddress + pages * PAGE_SIZE < vmm_HHDMAdress){
+                for(uint64_t i = 0; i < pages; i++){
+                    if(!vmm_GetFlags(pageTable, (void*)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Present)){
+                        vmm_Unmap(pageTable, (void*)((uint64_t)virtualAddress + i * PAGE_SIZE));
                     }
-                    
-                    for(uint64_t i = 0; i < pages; i++){
-                        if(!vmm_GetFlags(pageTable, (void*)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Present)){
-                            vmm_Map(pageTable, (void*)((uint64_t)virtualAddress + i * PAGE_SIZE), Pmm_RequestPage(), true, true, false);
-                            vmm_SetFlags(pageTable, (void*)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Master, true); //set master state
-                            process->MemoryAllocated += PAGE_SIZE;                    
-                        }
-                    } 
                 }
+                
+                for(uint64_t i = 0; i < pages; i++){
+                    if(!vmm_GetFlags(pageTable, (void*)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Present)){
+                        vmm_Map(pageTable, (void*)((uint64_t)virtualAddress + i * PAGE_SIZE), Pmm_RequestPage(), true, true, false);
+                        vmm_SetFlags(pageTable, (void*)((uint64_t)virtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Master, true); //set master state
+                        process->MemoryAllocated += PAGE_SIZE;                    
+                    }
+                } 
             }
             
             /* Copy memory */

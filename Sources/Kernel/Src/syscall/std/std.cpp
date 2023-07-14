@@ -98,18 +98,18 @@ int Sys_Std_Vm_Map(SyscallStack* Registers, kthread_t* Thread){
         Hint = (void*)((uintptr_t)Hint - (uintptr_t)Hint % PAGE_SIZE);
     }
 
-    int Errno = 0;
-    MemoryRegion_t* Region = MMAllocateRegionVM(Thread->Parent->MemoryManager, Hint, Size, Flags, Prot, &Errno);
-    if(!Region){
+    void* BaseResult = NULL;
+    if(MMAllocateRegionVM(Thread->Parent->MemoryManager, Hint, Size, Flags & MAP_FIXED, &BaseResult) != KSUCCESS){
         /* return */
         Warning("Sys_Std_Vm_Map: Region is isn't valid");
-        return -Errno;
+        return -EINVAL;
     }
     
     /* return */
-    if(MMAllocateMemoryBlock(Thread->Parent->MemoryManager, Region) == KSUCCESS){
+    size_t SizeAllocate;
+    if(MMAllocateMemoryBlock(Thread->Parent->MemoryManager, BaseResult, Size, Prot, &SizeAllocate) == KSUCCESS){
         /* return */
-        *Window = Region->Base;
+        *Window = BaseResult;
         return 0;
     }else{
         return -EINVAL;
@@ -124,7 +124,14 @@ int Sys_Std_Vm_Unmap(SyscallStack* Registers, kthread_t* Thread){
     
 
     /* main */
-    if(MMFree(Thread->Parent->MemoryManager, Pointer, Size) == KSUCCESS){
+    if(MMUnmap(Thread->Parent->MemoryManager, Pointer, Size) == KSUCCESS){
+        /* return */
+        return 0;
+    }else{
+        /* return */
+        return -EINVAL;   
+    }
+    if(MMFreeRegion(Thread->Parent->MemoryManager, Pointer, Size) == KSUCCESS){
         /* return */
         return 0;
     }else{

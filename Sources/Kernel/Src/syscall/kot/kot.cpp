@@ -208,11 +208,6 @@ KResult Sys_Kot_Map(SyscallStack* Registers, kthread_t* Thread){
         return KMEMORYVIOLATION;
     } 
 
-    int Flags = 0;
-    if(!IsNeedToBeFree){
-        Flags |= MAP_FIXED;
-    }
-
     if(*Size % PAGE_SIZE){
         *Size -= *Size % PAGE_SIZE;
         *Size += PAGE_SIZE;
@@ -223,38 +218,33 @@ KResult Sys_Kot_Map(SyscallStack* Registers, kthread_t* Thread){
     }
 
     int Errno = 0;
-    MemoryRegion_t* Region = MMAllocateRegionVM(Thread->Parent->MemoryManager, (void*)*AddressVirtual, *Size, Flags, PROT_READ | PROT_WRITE | PROT_EXEC, &Errno);
+    size_t SizeResult = *Size;
+    void* BaseResult = NULL;
+    
+    KResult Status = MMAllocateRegionVM(Thread->Parent->MemoryManager, (void*)*AddressVirtual, *Size, !IsNeedToBeFree, &BaseResult);
 
-    if(!Region){
+    if(Status != KSUCCESS){
         *Size = 0;
-        return KSUCCESS;
+        return Status;
     }
-
-    KResult Status = KFAIL;
 
     switch(Type){
         case AllocationTypePhysicalContiguous:
-            Status = MMAllocateMemoryContigous(Thread->Parent->MemoryManager, Region);
+            Status = MMAllocateMemoryContigous(Thread->Parent->MemoryManager, BaseResult, SizeResult, PROT_READ | PROT_WRITE | PROT_EXEC, Size);
             break;
         case AllocationTypePhysical:
-            Status = MMMapPhysical(Thread->Parent->MemoryManager, Region, (void*)*AddressPhysical);
+            Status = MMMapPhysical(Thread->Parent->MemoryManager, (void*)*AddressPhysical, BaseResult, SizeResult, PROT_READ | PROT_WRITE | PROT_EXEC);
             break;
         default:
-            Status = MMAllocateMemoryBlock(Thread->Parent->MemoryManager, Region);
+            Status = MMAllocateMemoryBlock(Thread->Parent->MemoryManager, BaseResult, SizeResult, PROT_READ | PROT_WRITE | PROT_EXEC, Size);
             break;
-    }
-
-    if(Status == KSUCCESS){
-        *Size = Region->Size;
-    }else{
-        *Size = 0;
     }
 
     if(Type == AllocationTypePhysicalContiguous && IsPhysicalAddress){
-        *AddressPhysical = vmm_GetPhysical(Thread->Parent->SharedPaging, Region->Base);
+        *AddressPhysical = vmm_GetPhysical(Thread->Parent->SharedPaging, BaseResult);
     }
 
-    return KSUCCESS;
+    return Status;
 }
 
 /* Sys_Kot_Unmap :

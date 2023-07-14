@@ -167,10 +167,8 @@ namespace ELF{
         }
 
         size_t ProtectedSize =  HeapLocation - (uintptr_t)proc->MemoryManager->Base;
-        int Errno = 0;
-        MemoryRegion_t* Region = MMAllocateRegionVM(proc->MemoryManager, proc->MemoryManager->Base, ProtectedSize, MAP_FIXED, PROT_READ | PROT_WRITE | PROT_EXEC, &Errno);
-
-        if(!Region){
+        void* BaseResult = NULL;
+        if(MMAllocateRegionVM(proc->MemoryManager, proc->MemoryManager->Base, ProtectedSize, true, &BaseResult) != KSUCCESS){
             return KFAIL;
         }
 
