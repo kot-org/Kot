@@ -213,7 +213,7 @@ KResult Readfile(kot_thread_t Callback, uint64_t CallbackArg, ext_file_t* File, 
     }
     
     kot_key_mem_t BufferKey;
-
+    kot_Printlog(File->)
     KResult Status = File->ReadFile(&BufferKey, GP0, Size);
 
     kot_arguments_t arguments{

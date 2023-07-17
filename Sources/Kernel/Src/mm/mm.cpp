@@ -9,12 +9,21 @@ static KResult RemoveRegion(MemoryHandler_t* Handler, MemoryRegion_t* Region){
     if(Region->Next){
         Region->Next->Last = Region->Last;
     }
+    if(Handler->LastFreeRegion == Region){
+        if(Region->Last){
+            Handler->LastFreeRegion = Region->Last;
+        }else{
+            Handler->LastFreeRegion = Region->Next;
+        }
+    }
     Handler->RegionCount--;
+    memset(Region, 0xff, sizeof(MemoryRegion_t));
+    kfree(Region);
     return KSUCCESS;
 }
 
 static MemoryRegion_t* SplitRegion(MemoryHandler_t* Handler, MemoryRegion_t* Region, size_t Size){
-    if(Region->Size == Size){
+    if(Size == 0 || Region->Size == Size){
         return Region;
     }else{
         if(Region->Size < Size){
@@ -29,7 +38,10 @@ static MemoryRegion_t* SplitRegion(MemoryHandler_t* Handler, MemoryRegion_t* Reg
         NewRegion->Last = Region;
         NewRegion->Next = Region->Next;
 
-
+        if(Region->Next){
+            Region->Next->Last = NewRegion;
+        }
+        
         Region->Next = NewRegion;
         Region->Size = Size;
         Region->BlockCount = DivideRoundUp(Region->Size, PAGE_SIZE);
@@ -130,32 +142,25 @@ KResult MMAllocateRegionVM(MemoryHandler_t* Handler, void* Base, size_t Size, bo
 
     AtomicAcquire(&Handler->Lock);
 
-    MemoryRegion_t* Region = NULL;
+    MemoryRegion_t* Region;
 
     if(IsFixed){
-        MemoryRegion_t* Tmp = MMGetRegion(Handler, Base);
-        if(!Tmp){
+        Region = MMGetRegion(Handler, Base);
+        if(!Region){
+            Message("%x", Base);
             AtomicRelease(&Handler->Lock);
             return KMEMORYVIOLATION;
         }
-        if(Tmp->Base != Base){
-            size_t SizeUnusable = (uintptr_t)Base - (uintptr_t)Tmp->Base;
-            MemoryRegion_t* UsableRegion = SplitRegion(Handler, Tmp, SizeUnusable);
-            while(UsableRegion->Size < Size){
-                if(!MergeRegion(Handler, UsableRegion)){
-                    return KMEMORYVIOLATION;
-                }
+        size_t SizeUnusable = (uintptr_t)Base - (uintptr_t)Region->Base;
+        size_t SizeNeed = SizeUnusable + Size;
+        while(Region->Size < SizeNeed){
+            if(!MergeRegion(Handler, Region)){
+                return KMEMORYVIOLATION;
             }
-            SplitRegion(Handler, UsableRegion, Size);
-            Region = UsableRegion;
-        }else{
-            while(Tmp->Size < Size){
-                if(!MergeRegion(Handler, Tmp)){
-                    return KMEMORYVIOLATION;
-                }
-            }
-            SplitRegion(Handler, Tmp, Size);
-            Region = Tmp;
+        }
+        if(Region->IsFree){
+            Region = SplitRegion(Handler, Region, SizeUnusable);
+            SplitRegion(Handler, Region, Size);
         }
         *BaseResult = Base; 
     }else{
@@ -180,7 +185,23 @@ KResult MMAllocateRegionVM(MemoryHandler_t* Handler, void* Base, size_t Size, bo
         *BaseResult = Region->Base;
     }
 
+    if(Region->Next){
+        if(!Region->Next->IsFree){
+            if(!MergeRegion(Handler, Region)){
+                assert(!"Not allowed !!");
+            }
+        }
+    }
+    
     Region->IsFree = false;
+
+    if(Region->Last){
+        if(!Region->Last->IsFree){
+            if(!MergeRegion(Handler, Region->Last)){
+                assert(!"Not allowed !!");
+            }
+        }
+    }
 
     AtomicRelease(&Handler->Lock);
 
@@ -211,7 +232,23 @@ KResult MMFreeRegion(MemoryHandler_t* Handler, void* Base, size_t Size){
         }
     }
 
+    if(Region->Next){
+        if(Region->Next->IsFree){
+            if(!MergeRegion(Handler, Region)){
+                assert(!"Not allowed !!");
+            }
+        }
+    }
+    
     Region->IsFree = true;
+
+    if(Region->Last){
+        if(Region->Last->IsFree){
+            if(!MergeRegion(Handler, Region->Last)){
+                assert(!"Not allowed !!");
+            }
+        }
+    }
 
     AtomicRelease(&Handler->Lock);
 

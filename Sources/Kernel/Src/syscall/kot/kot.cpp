@@ -217,9 +217,12 @@ KResult Sys_Kot_Map(SyscallStack* Registers, kthread_t* Thread){
         *AddressVirtual -= *AddressVirtual % PAGE_SIZE;
     }
 
-    int Errno = 0;
     size_t SizeResult = *Size;
     void* BaseResult = NULL;
+
+    if(processkey->PID == 3){
+        asm("nop");
+    }
     
     KResult Status = MMAllocateRegionVM(Thread->Parent->MemoryManager, (void*)*AddressVirtual, *Size, !IsNeedToBeFree, &BaseResult);
 

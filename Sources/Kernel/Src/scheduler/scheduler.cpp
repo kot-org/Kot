@@ -414,7 +414,7 @@ KResult TaskManager::CreateProcess(kprocess_t** key, enum Priviledge priviledge,
     KResult status = CreateProcessWithoutPaging(key, priviledge, externalData);
     if(status == KSUCCESS){
         (*key)->SharedPaging = vmm_SetupProcess();
-        (*key)->MemoryManager = MMCreateHandler((*key)->SharedPaging, (void*)PAGE_SIZE, FREE_MEMORY_SPACE_ADDRESS);
+        (*key)->MemoryManager = MMCreateHandler((*key)->SharedPaging, (void*)PAGE_SIZE, FREE_MEMORY_SPACE_ADDRESS - PAGE_SIZE);
         Keyhole_Create(&(*key)->ProcessKey, (*key), (*key), DataTypeProcess, (uint64_t)(*key), DEFAULT_FLAGS_KEY, PriviledgeApp);
     }
     return status;

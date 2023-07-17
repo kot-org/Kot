@@ -6,7 +6,6 @@ LoadGDT:
     mov ax, 0x10 ; ss kernel
     mov ds, ax
     mov es, ax
-    mov fs, ax
     mov ss, ax
     mov fs, ax
     mov gs, ax

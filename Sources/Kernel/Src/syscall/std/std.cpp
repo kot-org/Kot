@@ -59,6 +59,10 @@ int Sys_Std_Futex_Wake(SyscallStack* Registers, kthread_t* Thread){
 }
 
 int Sys_Std_Vm_Map(SyscallStack* Registers, kthread_t* Thread){
+    if(Thread->Parent->PID == 3){
+        asm("nop");
+    }
+    
     /* args */
     void* Hint = reinterpret_cast<void*>(SYSCALL_ARG0(Registers));
     size_t Size = static_cast<size_t>(SYSCALL_ARG1(Registers));
