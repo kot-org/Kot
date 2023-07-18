@@ -51,14 +51,20 @@ int memcmp(const void *aptr, const void *bptr, size64_t size){
 
 bool CheckAddress(void* address, size64_t size, void* pagingEntry){
     if(address == NULL) return false;
-    uint64_t NumberPage = DivideRoundUp(size, PAGE_SIZE);
-    uint64_t AddressItinerator = (uint64_t)address;
+    uintptr_t AddressEnd = (uintptr_t)address + (uintptr_t)size;
+    uintptr_t AddressItinerator = (uintptr_t)address;
 
-    for(uint64_t i = 0; i < NumberPage; i++){
+    AddressItinerator -= AddressItinerator % PAGE_SIZE;
+
+    if(AddressEnd % PAGE_SIZE){
+        AddressEnd -= AddressEnd % PAGE_SIZE;
+        AddressEnd += PAGE_SIZE;
+    }
+
+    for(; AddressItinerator < AddressEnd; AddressItinerator += PAGE_SIZE){
         if(!vmm_GetFlags(pagingEntry, (void*)AddressItinerator, vmm_flag::vmm_Present)){
             return false;
-        } 
-        AddressItinerator += PAGE_SIZE;
+        }
     }
 
     return true;

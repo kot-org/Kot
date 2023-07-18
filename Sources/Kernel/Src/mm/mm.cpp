@@ -147,7 +147,6 @@ KResult MMAllocateRegionVM(MemoryHandler_t* Handler, void* Base, size_t Size, bo
     if(IsFixed){
         Region = MMGetRegion(Handler, Base);
         if(!Region){
-            Message("%x", Base);
             AtomicRelease(&Handler->Lock);
             return KMEMORYVIOLATION;
         }
