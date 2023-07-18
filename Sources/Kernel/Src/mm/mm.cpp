@@ -274,7 +274,7 @@ KResult MMAllocateMemoryBlock(MemoryHandler_t* Handler, void* Base, size_t Size,
 
     *SizeAllocate = 0;
     for(uint64_t i = 0; i < BlockCount; i++){
-        if(!vmm_GetFlags(Handler->Paging, (void*)((uint64_t)VirtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Present)){
+        if(!vmm_GetFlags(Handler->Paging, (void*)((uint64_t)VirtualAddress), vmm_flag::vmm_Present)){
             vmm_Map(Handler->Paging, (void*)VirtualAddress, Pmm_RequestPage(), Prot & PROT_READ, Prot & PROT_WRITE, true);
             *SizeAllocate += PAGE_SIZE;
         }
@@ -291,7 +291,7 @@ KResult MMAllocateMemoryBlockMaster(MemoryHandler_t* Handler, void* Base, size_t
 
     *SizeAllocate = 0;
     for(uint64_t i = 0; i < BlockCount; i++){
-        if(!vmm_GetFlags(Handler->Paging, (void*)((uint64_t)VirtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Present)){
+        if(!vmm_GetFlags(Handler->Paging, (void*)((uint64_t)VirtualAddress), vmm_flag::vmm_Present)){
             vmm_Map(Handler->Paging, (void*)VirtualAddress, Pmm_RequestPage(), Prot & PROT_READ, Prot & PROT_WRITE, false);
             SizeAllocate += PAGE_SIZE;
         }
@@ -310,7 +310,7 @@ KResult MMAllocateMemoryContigous(MemoryHandler_t* Handler, void* Base, size_t S
     
     *SizeAllocate = 0;
     for(uint64_t i = 0; i < BlockCount; i++){
-        if(!vmm_GetFlags(Handler->Paging, (void*)((uint64_t)VirtualAddress + i * PAGE_SIZE), vmm_flag::vmm_Present)){
+        if(!vmm_GetFlags(Handler->Paging, (void*)((uint64_t)VirtualAddress), vmm_flag::vmm_Present)){
             vmm_Map(Handler->Paging, (void*)VirtualAddress, (void*)PhysicalAddress, Prot & PROT_READ, Prot & PROT_WRITE, true);
             *SizeAllocate += PAGE_SIZE;
         }
