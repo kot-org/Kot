@@ -78,6 +78,7 @@ if not no_headers
 	)
 	install_headers(
 		'include/kot/authorization.h',
+		'include/kot/ioctlsrv.h',
 		'include/kot/keyhole.h',
 		'include/kot/syscall.h',
 		'include/kot/cstring.h',

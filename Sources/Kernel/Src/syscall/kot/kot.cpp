@@ -86,6 +86,28 @@ KResult Sys_Kot_GetInfoMemoryField(SyscallStack* Registers, kthread_t* Thread){
     return KSUCCESS;
 }
 
+/* Sys_Kot_InterProcessMemoryCopy :
+    Arguments : 
+*/
+KResult Sys_Kot_InterProcessMemoryCopy(SyscallStack* Registers, kthread_t* Thread){
+    void* ToAddr = reinterpret_cast<void*>(SYSCALL_ARG1(Registers));
+    void* FromAddr = reinterpret_cast<void*>(SYSCALL_ARG3(Registers));
+
+    size64_t Size = static_cast<size64_t>(SYSCALL_ARG4(Registers));
+
+    kprocess_t* FromProc;
+    kprocess_t* ToProc;
+    uint64_t Flags;
+
+    if(Keyhole_Get(Thread, (key_t)SYSCALL_ARG2(Registers), DataTypeProcess, (uint64_t*)&ToProc, &Flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!(Flags & KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
+
+    if(Keyhole_Get(Thread, (key_t)SYSCALL_ARG0(Registers), DataTypeProcess, (uint64_t*)&FromProc, &Flags) != KSUCCESS) return KKEYVIOLATION;
+    if(!(Flags & KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
+    
+    return MMInterProcessMemoryCopy(Thread, ToProc, ToAddr, FromProc, FromAddr, Size);    
+}
+
 /* Sys_Kot_CreateProc :
     Arguments : 
 */

@@ -21,6 +21,7 @@ static SyscallHandler SyscallHandlers[Syscall_Count] = {
     [KSys_Kot_AcceptMemoryField] = Sys_Kot_AcceptMemoryField,
     [KSys_Kot_CloseMemoryField] = Sys_Kot_CloseMemoryField,
     [KSys_Kot_GetInfoMemoryField] = Sys_Kot_GetInfoMemoryField,
+    [KSys_Kot_InterProcessMemoryCopy] = Sys_Kot_InterProcessMemoryCopy,
     [KSys_Kot_CreateProc] = Sys_Kot_CreateProc,
     [KSys_Kot_Fork] = Sys_Kot_Fork,
     [KSys_Kot_CloseProc] = Sys_Kot_CloseProc,

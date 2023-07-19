@@ -21,6 +21,10 @@ KResult kot_Sys_GetInfoMemoryField(kot_key_mem_t key, uint64_t* typePointer, siz
     return Syscall_24(KSys_Kot_GetInfoMemoryField, key, typePointer, sizePointer);
 }
 
+KResult kot_Sys_InterProcessMemoryCopy(kot_process_t ToProc, void* ToAddr, kot_process_t FromProc, void* FromAddr, size64_t Size){
+    return Syscall_40(KSys_Kot_InterProcessMemoryCopy, ToProc, ToAddr, FromProc, FromAddr, Size);
+}
+
 KResult kot_Sys_CreateProc(kot_process_t* key, enum kot_Priviledge privilege, uint64_t data){
     return Syscall_24(KSys_Kot_CreateProc, key, privilege, data);
 }

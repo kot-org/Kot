@@ -11,8 +11,15 @@ extern "C" {
 
 kot_process_t kot_ShareProcessFS = NULL;
 
+
+kot_process_t kot_ShareProcessKeyFS(kot_process_t Process){
+    kot_process_t ReturnValue;
+    kot_Sys_Keyhole_CloneModify(Process, &ReturnValue, NULL, KeyholeFlagPresent | KeyholeFlagDataTypeProcessMemoryAccessible, PriviledgeApp);
+    return ReturnValue;
+}
+
 kot_file_t* kot_fopen(char* Path, char* Mode){
-    if(!kot_ShareProcessFS) kot_ShareProcessFS = kot_ShareProcessKey(kot_Sys_GetProcess());
+    if(!kot_ShareProcessFS) kot_ShareProcessFS = kot_ShareProcessKeyFS(kot_Sys_GetProcess());
     if(Mode[0] == 'r'){
         if(Mode[1] == '\0'){
             struct kot_srv_storage_callback_t* CallbackFile = kot_Srv_Storage_Openfile(Path, Storage_Permissions_Read, kot_ShareProcessFS, true);
@@ -205,7 +212,7 @@ kot_file_t* kot_fopen(char* Path, char* Mode){
 }
 
 kot_file_t* kot_fopenmf(char* Path, int Flags, mode_t Mode){
-    if(!kot_ShareProcessFS) kot_ShareProcessFS = kot_ShareProcessKey(kot_Sys_GetProcess());
+    if(!kot_ShareProcessFS) kot_ShareProcessFS = kot_ShareProcessKeyFS(kot_Sys_GetProcess());
 
     kot_permissions_t Permissions = NULL;
 
@@ -330,7 +337,7 @@ uint64_t kot_ftell(kot_file_t* File){
 }
 
 kot_directory_t* kot_opendir(char* Path){
-    if(!kot_ShareProcessFS) kot_ShareProcessFS = kot_ShareProcessKey(kot_Sys_GetProcess());
+    if(!kot_ShareProcessFS) kot_ShareProcessFS = kot_ShareProcessKeyFS(kot_Sys_GetProcess());
     struct kot_srv_storage_callback_t* CallbackDir = kot_Srv_Storage_DirOpen(Path, kot_ShareProcessFS, true);
     if(CallbackDir->Status != KSUCCESS){
         free(CallbackDir);

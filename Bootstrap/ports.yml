@@ -61,3 +61,29 @@ packages:
       - args: ['make', 'install']
         environ:
           DESTDIR: '@THIS_COLLECT_DIR@'
+
+  # - name: nano
+  #   source:
+  #     subdir: 'Bundled'
+  #     git: 'git://git.sv.gnu.org/nano'
+  #     branch: 'master'
+  #     regenerate:
+  #       - args: ['./autogen.sh']
+  #   tools_required:
+  #     - host-llvm
+  #   pkgs_required:
+  #     - ncurses
+  #   configure:
+  #     - args:
+  #       - '@THIS_SOURCE_DIR@/configure'
+  #       - '--host'
+  #       - '--host-alias=none'
+  #       environ:
+  #         CFLAGS: '-Wno-error -DSLOW_BUT_NO_HACKS'
+  #         CC: 'kot-x86_64-clang'
+  #         CXX: 'kot-x86_64-clang'
+  #   build:
+  #     - args: ['make', '-j@PARALLELISM@']
+  #     - args: ['make', 'install']
+  #       environ:
+  #         DESTDIR: '@THIS_COLLECT_DIR@'

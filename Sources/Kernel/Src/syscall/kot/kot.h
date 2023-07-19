@@ -5,6 +5,7 @@ KResult Sys_Kot_CreateMemoryField(struct SyscallStack* Registers, kthread_t* Thr
 KResult Sys_Kot_AcceptMemoryField(struct SyscallStack* Registers, kthread_t* Thread);
 KResult Sys_Kot_CloseMemoryField(struct SyscallStack* Registers, kthread_t* Thread);
 KResult Sys_Kot_GetInfoMemoryField(struct SyscallStack* Registers, kthread_t* Thread);
+KResult Sys_Kot_InterProcessMemoryCopy(struct SyscallStack* Registers, kthread_t* Thread);
 KResult Sys_Kot_CreateProc(struct SyscallStack* Registers, kthread_t* Thread);
 KResult Sys_Kot_Fork(struct SyscallStack* Registers, kthread_t* Thread);
 KResult Sys_Kot_CloseProc(struct SyscallStack* Registers, kthread_t* Thread);

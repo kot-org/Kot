@@ -113,6 +113,7 @@ KResult kot_Sys_CreateMemoryField(kot_process_t self, size64_t size, void** virt
 KResult kot_Sys_AcceptMemoryField(kot_process_t self, kot_key_mem_t key, void** virtualAddressPointer);
 KResult kot_Sys_CloseMemoryField(kot_process_t self, kot_key_mem_t key, void* address);
 KResult kot_Sys_GetInfoMemoryField(kot_key_mem_t key, uint64_t* typePointer, size64_t* sizePointer);
+KResult kot_Sys_InterProcessMemoryCopy(kot_process_t ToProc, void* ToAddr, kot_process_t FromProc, void* FromAddr, size64_t Size);
 KResult kot_Sys_CreateProc(kot_process_t* key, enum kot_Priviledge privilege, uint64_t data);
 KResult kot_Sys_Fork(kot_process_t* child);
 KResult kot_Sys_CloseProc();

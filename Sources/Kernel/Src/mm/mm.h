@@ -70,3 +70,5 @@ struct MemoryShareInfo{
 uint64_t MMCreateMemoryField(struct kthread_t* self, struct kprocess_t* process, size64_t size, uint64_t* virtualAddressPointer, uint64_t* keyPointer, enum MemoryFieldType type);
 uint64_t MMAcceptMemoryField(struct kthread_t* self, struct kprocess_t* process, struct MemoryShareInfo* shareInfo, uint64_t* virtualAddressPointer);
 uint64_t MMCloseMemoryField(struct kthread_t* self, struct kprocess_t* process, struct MemoryShareInfo* shareInfo, void* virtualAddress);
+
+KResult MMInterProcessMemoryCopy(kthread_t* Self, kprocess_t* ToProc, void* ToAddr, kprocess_t* FromProc, void* FromAddr, size64_t Size);

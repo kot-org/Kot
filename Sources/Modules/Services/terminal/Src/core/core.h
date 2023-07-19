@@ -31,6 +31,8 @@ struct shell_t{
     uint64_t Width;
     uint64_t Height;
 
+    uint64_t TerminalID;
+
     uint64_t Lock;
 
     struct termios* Terminos;

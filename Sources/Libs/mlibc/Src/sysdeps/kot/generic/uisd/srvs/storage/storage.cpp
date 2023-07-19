@@ -755,7 +755,6 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Writefile(kot_file_t* File, v
 
 KResult Srv_Storage_Ioctl_Callback(KResult Status, struct kot_srv_storage_callback_t* Callback, uint64_t GP0, uint64_t GP1, uint64_t GP2, uint64_t GP3){
     if(Status == KSUCCESS){
-        memcpy((void*)Callback->Data, (void*)GP1, (size_t)GP2);
         Callback->Data = (uintptr_t)GP0;
         Callback->Size = sizeof(int);
     }
@@ -770,7 +769,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Ioctl(kot_file_t* File, unsig
     struct kot_srv_storage_callback_t* callback = (struct kot_srv_storage_callback_t*)malloc(sizeof(struct kot_srv_storage_callback_t));
     callback->Self = self;
     callback->Size = NULL;
-    callback->Data = (uintptr_t)Arg;
+    callback->Data = NULL;
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_Ioctl_Callback;
@@ -780,15 +779,10 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Ioctl(kot_file_t* File, unsig
     parameters.arg[1] = (uint64_t)callback;
     parameters.arg[2] = File_Function_Ioctl;
     parameters.arg[3] = (uint64_t)Request;
-
-    struct kot_ShareDataWithArguments_t ArgData{
-        .Data = Arg,
-        .Size = IOCPARM_MAX,
-        .ParameterPosition = 0x4,
-    };
+    parameters.arg[4] = (uint64_t)Arg;
 
 
-    KResult Status = kot_Sys_ExecThread(File->FileThreadHandler, &parameters, ExecutionTypeQueu, &ArgData);
+    KResult Status = kot_Sys_ExecThread(File->FileThreadHandler, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
         kot_Sys_Pause(false);
     }

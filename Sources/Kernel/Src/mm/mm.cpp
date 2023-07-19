@@ -656,3 +656,86 @@ uint64_t MMCloseMemoryField(kthread_t* self, kprocess_t* process, MemoryShareInf
     
     return KSUCCESS;
 }
+
+KResult MMInterProcessMemoryCopy(kthread_t* Self, kprocess_t* ToProc, void* ToAddr, kprocess_t* FromProc, void* FromAddr, size64_t Size){
+    pagetable_t ToPageTable = ToProc->SharedPaging;
+    pagetable_t FromPageTable = FromProc->SharedPaging;
+    
+    pagetable_t LastPageTable = vmm_GetPageTable();
+    vmm_Swap(Self, ToPageTable);
+
+    uintptr_t Alignement = (uintptr_t)ToAddr & 0xFFF;
+    uint64_t Pages = DivideRoundUp(Size + Alignement, PAGE_SIZE);
+
+    void* VirtualAddressAlign = ToAddr;
+    size_t SizeAlign = Size;
+
+    if((uintptr_t)VirtualAddressAlign % PAGE_SIZE > 0){
+        VirtualAddressAlign = (void*)((uintptr_t)VirtualAddressAlign - (uintptr_t)VirtualAddressAlign % PAGE_SIZE);
+    }
+
+    if(SizeAlign % PAGE_SIZE){
+        SizeAlign -= SizeAlign % PAGE_SIZE;
+        SizeAlign += PAGE_SIZE;
+    }
+
+    if(MMAllocateRegionVM(ToProc->MemoryManager, VirtualAddressAlign, SizeAlign, MAP_FIXED | MAP_SHARED, &VirtualAddressAlign) != KSUCCESS){
+        return KFAIL;
+    }
+
+    /* Allocate child memory */
+    if((uint64_t)ToAddr + Pages * PAGE_SIZE < vmm_HHDMAdress){
+        for(uint64_t i = 0; i < Pages; i++){
+            if(!vmm_GetFlags(ToPageTable, (void*)((uint64_t)ToAddr + i * PAGE_SIZE), vmm_flag::vmm_Present)){
+                vmm_Unmap(ToPageTable, (void*)((uint64_t)ToAddr + i * PAGE_SIZE));
+            }
+        }
+        
+        for(uint64_t i = 0; i < Pages; i++){
+            if(!vmm_GetFlags(ToPageTable, (void*)((uint64_t)ToAddr + i * PAGE_SIZE), vmm_flag::vmm_Present)){
+                vmm_Map(ToPageTable, (void*)((uint64_t)ToAddr + i * PAGE_SIZE), Pmm_RequestPage(), true, true, false);
+                vmm_SetFlags(ToPageTable, (void*)((uint64_t)ToAddr + i * PAGE_SIZE), vmm_flag::vmm_Master, true); //set master state
+                ToProc->MemoryAllocated += PAGE_SIZE;                    
+            }
+        } 
+    }
+    
+    /* Copy memory */
+    uintptr_t VirtualAddressParentIterator = (uintptr_t)FromAddr;
+    uintptr_t VirtualAddressIterator = (uintptr_t)ToAddr;
+    uint64_t i = 0;
+
+    if(VirtualAddressParentIterator % PAGE_SIZE){
+        size64_t SizeToCopy = 0;
+        if(Size > PAGE_SIZE - (VirtualAddressParentIterator % PAGE_SIZE)){
+            SizeToCopy = PAGE_SIZE - (VirtualAddressParentIterator % PAGE_SIZE);
+        }else{
+            SizeToCopy = Size;
+        }
+
+        void* PhysicalAddressParentIterator = vmm_GetPhysical(FromPageTable, (void*)VirtualAddressParentIterator);
+        memcpy((void*)VirtualAddressIterator, (void*)vmm_GetVirtualAddress(PhysicalAddressParentIterator), SizeToCopy);
+
+        VirtualAddressParentIterator += SizeToCopy;
+        VirtualAddressIterator += SizeToCopy;
+        Size -= SizeToCopy;
+        i++;
+    }
+
+    while(Size != 0){
+        size64_t SizeToCopy = Size;
+        if(Size > PAGE_SIZE){
+            SizeToCopy = PAGE_SIZE;
+        }
+
+        void* PhysicalAddressParentIterator = vmm_GetPhysical(FromPageTable, (void*)VirtualAddressParentIterator);
+
+        memcpy((void*)VirtualAddressIterator, (void*)vmm_GetVirtualAddress(PhysicalAddressParentIterator), SizeToCopy);
+        VirtualAddressIterator += SizeToCopy;
+        VirtualAddressParentIterator += SizeToCopy;
+        Size -= SizeToCopy;
+    } 
+    vmm_Swap(Self, LastPageTable);
+
+    return KSUCCESS;
+}
