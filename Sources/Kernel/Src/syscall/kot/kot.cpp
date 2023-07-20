@@ -99,11 +99,14 @@ KResult Sys_Kot_InterProcessMemoryCopy(SyscallStack* Registers, kthread_t* Threa
     kprocess_t* ToProc;
     uint64_t Flags;
 
-    if(Keyhole_Get(Thread, (key_t)SYSCALL_ARG2(Registers), DataTypeProcess, (uint64_t*)&ToProc, &Flags) != KSUCCESS) return KKEYVIOLATION;
+    if(Keyhole_Get(Thread, (key_t)SYSCALL_ARG0(Registers), DataTypeProcess, (uint64_t*)&ToProc, &Flags) != KSUCCESS) return KKEYVIOLATION;
     if(!(Flags & KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
 
-    if(Keyhole_Get(Thread, (key_t)SYSCALL_ARG0(Registers), DataTypeProcess, (uint64_t*)&FromProc, &Flags) != KSUCCESS) return KKEYVIOLATION;
+    if(Keyhole_Get(Thread, (key_t)SYSCALL_ARG2(Registers), DataTypeProcess, (uint64_t*)&FromProc, &Flags) != KSUCCESS) return KKEYVIOLATION;
     if(!(Flags & KeyholeFlagDataTypeProcessMemoryAccessible)) return KKEYVIOLATION;
+
+    if(CheckUserAddress(ToAddr, Size, ToProc->SharedPaging) != KSUCCESS) return KMEMORYVIOLATION;
+    if(CheckUserAddress(FromAddr, Size, FromProc->SharedPaging) != KSUCCESS) return KMEMORYVIOLATION;
     
     return MMInterProcessMemoryCopy(Thread, ToProc, ToAddr, FromProc, FromAddr, Size);    
 }

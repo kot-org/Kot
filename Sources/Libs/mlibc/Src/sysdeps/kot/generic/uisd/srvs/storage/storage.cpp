@@ -763,7 +763,8 @@ KResult Srv_Storage_Ioctl_Callback(KResult Status, struct kot_srv_storage_callba
 
 struct kot_srv_storage_callback_t* kot_Srv_Storage_Ioctl(kot_file_t* File, unsigned long Request, void* Arg, bool IsAwait){
     if(!kot_srv_storage_callback_thread) Srv_Storage_Initialize();
-    
+    if(!kot_ShareProcessFS) kot_ShareProcessFS = kot_ShareProcessKeyFS(kot_Sys_GetProcess());
+
     kot_thread_t self = kot_Sys_GetThread();
 
     struct kot_srv_storage_callback_t* callback = (struct kot_srv_storage_callback_t*)malloc(sizeof(struct kot_srv_storage_callback_t));
@@ -780,6 +781,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Ioctl(kot_file_t* File, unsig
     parameters.arg[2] = File_Function_Ioctl;
     parameters.arg[3] = (uint64_t)Request;
     parameters.arg[4] = (uint64_t)Arg;
+    parameters.arg[5] = (uint64_t)kot_ShareProcessFS;
 
 
     KResult Status = kot_Sys_ExecThread(File->FileThreadHandler, &parameters, ExecutionTypeQueu, NULL);

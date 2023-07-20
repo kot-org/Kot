@@ -189,6 +189,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Readdir(kot_directory_t* Dir,
 
 struct kot_srv_storage_callback_t* kot_Srv_Storage_NewDev(char* Name, struct kot_srv_storage_fs_server_functions_t* FSServerFunctions, bool IsAwait);
 
+kot_process_t kot_ShareProcessKeyFS(kot_process_t Process);
 kot_file_t* kot_fopen(char* Path, char* Mode);
 kot_file_t* kot_fopenmf(char* Path, int Flags, mode_t Mode);
 KResult kot_fclose(kot_file_t* File);

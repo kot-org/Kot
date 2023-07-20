@@ -173,25 +173,27 @@ KResult Ioctlshell(kot_thread_t Callback, uint64_t CallbackArg, shell_t* Shell, 
     /* Args */
     unsigned long Request = static_cast<unsigned long>(GP0);
     void* Arg = reinterpret_cast<void*>(GP1);
+    kot_process_t TargetProc = static_cast<kot_process_t>(GP2);
     
     KResult Status = KFAIL;
     int Result = 0;
+
     
     switch (Request){
         case TCGETS:
-            SetArgData(Shell->Terminos, sizeof(struct termios), Arg, Shell->Target);
+            SetArgData(Shell->Terminos, sizeof(struct termios), Arg, TargetProc);
             break;
         case TCSETS:
-            GetArgData(Shell->Terminos, sizeof(struct termios), Arg, Shell->Target);
+            GetArgData(Shell->Terminos, sizeof(struct termios), Arg, TargetProc);
             break;
         case TIOCGWINSZ:
-            SetArgData(Shell->Winsize, sizeof(struct winsize), Arg, Shell->Target);
+            SetArgData(Shell->Winsize, sizeof(struct winsize), Arg, TargetProc);
             break;
         case TIOCSWINSZ:
-            GetArgData(Shell->Winsize, sizeof(struct winsize), Arg, Shell->Target);
+            GetArgData(Shell->Winsize, sizeof(struct winsize), Arg, TargetProc);
             break;
         case TIOCGPTN:
-            SetArgData(&Shell->TerminalID, sizeof(uint64_t), Arg, Shell->Target);
+            SetArgData(&Shell->TerminalID, sizeof(uint64_t), Arg, TargetProc);
             break;
         default:
             Result = -EINVAL;

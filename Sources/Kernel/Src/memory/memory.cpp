@@ -75,21 +75,7 @@ bool CheckAddress(void* address, size64_t size){
 }
 
 bool CheckUserAddress(void* address, size64_t size, void* pagingEntry){
-    if(address == NULL) return false;
-    if((uint64_t)address >= VMM_HIGHER_HALF_ADDRESS){
-        return false;
-    }
-    uint64_t NumberPage = DivideRoundUp(size, PAGE_SIZE);
-    uint64_t AddressItinerator = (uint64_t)address;
-
-    for(uint64_t i = 0; i < NumberPage; i++){
-        if(!vmm_GetFlags(pagingEntry, (void*)AddressItinerator, vmm_flag::vmm_Present)){
-            return false;
-        } 
-        AddressItinerator += PAGE_SIZE;
-    }
-
-    return true;
+    return CheckAddress(address, size, pagingEntry);
 }
 
 bool CheckUserAddress(void* address, size64_t size){
