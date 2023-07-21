@@ -772,7 +772,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Ioctl(kot_file_t* File, unsig
     struct kot_srv_storage_callback_t* callback = (struct kot_srv_storage_callback_t*)malloc(sizeof(struct kot_srv_storage_callback_t));
     callback->Self = self;
     callback->Size = NULL;
-    callback->Data = NULL;
+    callback->Data = (uintptr_t)-1;
     callback->IsAwait = IsAwait;
     callback->Status = KBUSY;
     callback->Handler = &Srv_Storage_Ioctl_Callback;

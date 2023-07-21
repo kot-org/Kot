@@ -236,14 +236,14 @@ KResult ShellSendRequest(shell_t* Shell, read_request_shell_t* Request){
 
     kot_key_mem_t BufferKey;
     kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), Request->SizeGet, (void**)&Request->Buffer, &BufferKey, MemoryFieldTypeSendSpaceRO);
-    kot_Sys_Keyhole_CloneModify(BufferKey, &arguments.arg[2], Shell->Target, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
+    kot_Sys_Keyhole_CloneModify(BufferKey, &arguments.arg[2], Request->TargetDataProc, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
     
     KResult Status = kot_Sys_ExecThread(Request->Callback, &arguments, ExecutionTypeQueu | ExecutionTypeAwait, NULL);
     kot_vector_remove(Shell->ReadRequest, 0);
     return Status;
 }
 
-KResult ShellCreateRequest(shell_t* Shell, kot_thread_t Callback, uint64_t CallbackArg, size64_t SizeRequest){
+KResult ShellCreateRequest(shell_t* Shell, kot_thread_t Callback, uint64_t CallbackArg, size64_t SizeRequest, kot_process_t TargetDataProc){
     if(!Shell->Ctx){
         Shell->Ctx = kui_init(WindowRenderer, Shell); 
     } 
@@ -255,6 +255,7 @@ KResult ShellCreateRequest(shell_t* Shell, kot_thread_t Callback, uint64_t Callb
     Request->SizeRequest = SizeRequest;
     Request->SizeGet = NULL;
     Request->Buffer = NULL;
+    Request->TargetDataProc = TargetDataProc;
 
     kot_vector_push(Shell->ReadRequest, (void*)Request);
 

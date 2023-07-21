@@ -135,7 +135,8 @@ KResult Getshellsize(kot_thread_t Callback, uint64_t CallbackArg, shell_t* Shell
 /* Direct access */
 KResult Readshell(kot_thread_t Callback, uint64_t CallbackArg, shell_t* Shell, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     // Ignore GP0 : start
-    return ShellCreateRequest(Shell, Callback, CallbackArg, GP1);
+    kot_process_t TargetDataProc = static_cast<kot_process_t>(GP2);
+    return ShellCreateRequest(Shell, Callback, CallbackArg, GP1, TargetDataProc);
 }
 
 /* Direct access */

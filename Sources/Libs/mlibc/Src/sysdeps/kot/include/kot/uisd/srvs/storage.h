@@ -43,7 +43,6 @@ extern "C" {
 
 // External data file
 #define File_Is_Binary                  (1 << 0)
-#define File_Is_TTY                     (1 << 1)
 
 
 #define Dir_Function_Count              0x3

@@ -30,8 +30,6 @@ extern "C" int kot_OpenShellFile(const char *pathname){
 
         if(Shell == NULL) return -1;
 
-        Shell->ExternalData |= File_Is_TTY;
-
         kot_descriptor_t Descriptor{
             .Size = sizeof(kot_file_t),
             .Data = Shell,
@@ -238,7 +236,6 @@ namespace mlibc{
         kot_file_t* File = (kot_file_t*)Descriptor->Data;
 
         kot_srv_storage_callback_t* Callback = kot_Srv_Storage_Ioctl(File, request, arg, true);
-
         int IoctlResult = static_cast<int>(Callback->Data);
 
         free(Callback);
@@ -320,12 +317,14 @@ namespace mlibc{
             }
         }
 
-        kot_descriptor_t* Descriptor = kot_GetDescriptor(fd);
-        if(Descriptor == NULL) return -EBADF;
-        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_FILE) return -EBADF;
-        kot_file_t* File = (kot_file_t*)Descriptor->Data;
+        struct winsize Info;
+        int Result;
 
-        return ((File->ExternalData & File_Is_TTY) ? 0 : -ENOTTY);
+        if(!sys_ioctl(fd, TIOCGWINSZ, &Info, &Result)){
+            return 0;
+        }
+
+        return ENOTTY;
     }
 
     int sys_rmdir(const char *path){
