@@ -708,6 +708,7 @@ KResult VFSfileDispatcherInitrd(kot_thread_t Callback, uint64_t CallbackArg, uin
 
 KResult VFSfileReadInitrd(kot_thread_t Callback, uint64_t CallbackArg,  InitrdContext* Context, uint64_t GP0, uint64_t GP1, uint64_t GP2){
     size64_t Size = GP1;
+    kot_process_t TargetDataProc = static_cast<kot_process_t>(GP2);
 
     kot_srv_system_callback_t* CallbackSys = kot_Srv_System_ReadFileInitrd(Context->Path, true);
 
@@ -727,7 +728,7 @@ KResult VFSfileReadInitrd(kot_thread_t Callback, uint64_t CallbackArg,  InitrdCo
     kot_key_mem_t MemoryKey;
     kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), Size, &Buffer, &MemoryKey, MemoryFieldTypeSendSpaceRO);
 
-    kot_Sys_Keyhole_CloneModify(MemoryKey, &arguments.arg[2], Context->Target, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
+    kot_Sys_Keyhole_CloneModify(MemoryKey, &arguments.arg[2], TargetDataProc, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
     
     kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu | ExecutionTypeAwait, NULL);
     kot_Sys_CloseMemoryField(kot_Sys_GetProcess(), MemoryKey, Buffer);

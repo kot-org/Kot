@@ -6,11 +6,11 @@
 int main(int argc, char **argv){
     struct winsize* sz = (struct winsize*)malloc(sizeof(struct winsize));
 
-    sz->ws_col = 0;
-    sz->ws_row = 0;
-
+    printf("Info tty : \n");
+    printf("    - Resolution : \n");
     ioctl(0, TIOCGWINSZ, sz);
-    printf("Column: %i  Row: %i\n", sz->ws_col, sz->ws_row);
+    printf("        - Symbols : %ix%i\n", sz->ws_col, sz->ws_row);
+    printf("        - Pixels: %ix%i\n", sz->ws_xpixel, sz->ws_ypixel);
 
     return 0;
 }

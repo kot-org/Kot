@@ -681,6 +681,7 @@ KResult Srv_Storage_Readfile_Callback(KResult Status, struct kot_srv_storage_cal
 
 struct kot_srv_storage_callback_t* kot_Srv_Storage_Readfile(kot_file_t* File, void* Buffer, uint64_t Start, size64_t Size, bool IsAwait){
     if(!kot_srv_storage_callback_thread) Srv_Storage_Initialize();
+    if(!kot_ShareProcessFS) kot_ShareProcessFS = kot_ShareProcessKeyFS(kot_Sys_GetProcess());
     
     kot_thread_t self = kot_Sys_GetThread();
 
@@ -698,6 +699,7 @@ struct kot_srv_storage_callback_t* kot_Srv_Storage_Readfile(kot_file_t* File, vo
     parameters.arg[2] = File_Function_Read;
     parameters.arg[3] = Start;
     parameters.arg[4] = Size;
+    parameters.arg[5] = (uint64_t)kot_ShareProcessFS;
 
     KResult Status = kot_Sys_ExecThread(File->FileThreadHandler, &parameters, ExecutionTypeQueu, NULL);
     if(Status == KSUCCESS && IsAwait){
