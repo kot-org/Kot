@@ -194,7 +194,7 @@ KResult Ioctlshell(kot_thread_t Callback, uint64_t CallbackArg, shell_t* Shell, 
             GetArgData(Shell->Winsize, sizeof(struct winsize), Arg, TargetDataProc);
             break;
         case TIOCGPTN:
-            SetArgData(&Shell->TerminalID, sizeof(uint64_t), Arg, TargetDataProc);
+            SetArgData(&Shell->TerminalID, sizeof(int), Arg, TargetDataProc);
             break;
         default:
             Result = -EINVAL;

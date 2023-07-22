@@ -126,27 +126,11 @@ packages:
         - '@THIS_SOURCE_DIR@/configure'
         - '--host=x86_64-none'
         - '--prefix=/usr'
-        - '--without-ada'
-        - '--enable-pc-files'
-        - '--with-static'
-        - '--without-shared'
-        - '--without-normal'
-        - '--with-manpage-format=normal'
-        - '--with-pkg-config-libdir=/usr/lib/pkgconfig'
-        - '--with-termlib'
         - '--enable-widec'
         - '--disable-stripping'
         environ:
-          cf_cv_func_nanosleep: 'yes'
+          CC: 'kot-x86_64-clang'
+          CXX: 'kot-x86_64-clang'
     build:
       - args: ['make', '-j@PARALLELISM@']
       - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
-      - args: |
-          for lib in ncurses form panel menu tinfo ; do
-              rm -vf                    @THIS_COLLECT_DIR@/usr/lib/lib${lib}.a
-              echo "INPUT(-l${lib}w)" > @THIS_COLLECT_DIR@/usr/lib/lib${lib}.a
-              ln -sfv ${lib}w.pc        @THIS_COLLECT_DIR@/usr/lib/pkgconfig/${lib}.pc
-          done
-          rm -vf                     @THIS_COLLECT_DIR@/usr/lib/libcursesw.a
-          echo "INPUT(-lncursesw)" > @THIS_COLLECT_DIR@/usr/lib/libcursesw.a
-          ln -sfv libncurses.a      @THIS_COLLECT_DIR@/usr/lib/libcurses.a

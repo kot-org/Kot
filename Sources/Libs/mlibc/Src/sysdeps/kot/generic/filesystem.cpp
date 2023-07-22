@@ -317,10 +317,10 @@ namespace mlibc{
             }
         }
 
-        struct winsize Info;
+        int Id;
         int Result;
 
-        if(!sys_ioctl(fd, TIOCGWINSZ, &Info, &Result)){
+        if(!sys_ioctl(fd, TIOCGPTN, &Id, &Result)){
             return 0;
         }
 

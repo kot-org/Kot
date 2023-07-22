@@ -87,8 +87,8 @@ void WindowRenderer(kui_Context *Ctx){
                 GetTextboxInfoN(Shell->ShellFont, "A", 1, &CharWidth, &CharHeight, &CharX, &CharY);
                 Shell->CharsPerLine = Shell->TextFramebuffer.Width / CharWidth;
 
-                Shell->Winsize->ws_row = static_cast<unsigned short>(Shell->CharsPerLine);
-                Shell->Winsize->ws_col = static_cast<unsigned short>(Shell->LineNumberMax);
+                Shell->Winsize->ws_row = static_cast<unsigned short>(Shell->LineNumberMax);
+                Shell->Winsize->ws_col = static_cast<unsigned short>(Shell->CharsPerLine);
                 Shell->Winsize->ws_xpixel = static_cast<unsigned short>(Shell->TextFramebuffer.Width);
                 Shell->Winsize->ws_ypixel = static_cast<unsigned short>(Shell->TextFramebuffer.Height);
             }

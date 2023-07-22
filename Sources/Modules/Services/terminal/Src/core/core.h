@@ -31,7 +31,7 @@ struct shell_t{
     uint64_t Width;
     uint64_t Height;
 
-    uint64_t TerminalID;
+    int TerminalID;
 
     uint64_t Lock;
 
