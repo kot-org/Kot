@@ -79,7 +79,6 @@ packages:
         - '--host=x86_64-none'
         - '--prefix=/usr'
         environ:
-          CFLAGS: '-Wno-error -DSLOW_BUT_NO_HACKS'
           CC: 'kot-x86_64-clang'
           CXX: 'kot-x86_64-clang'
     build:
