@@ -20,6 +20,10 @@
         "destination": "bin/orb"
     },
     {
+        "source": "Sources/Modules/Drivers/graphics/kterm/Bin/Kterm.elf",
+        "destination": "bin/kterm"
+    },
+    {
         "source": "Sources/Modules/Drivers/audio/hda/Bin/Hda.elf",
         "destination": "bin/hda"
     },
