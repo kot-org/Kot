@@ -81,6 +81,7 @@ kot_term_t* CreateTerminal(kot_framebuffer_t* Fb, char* FontPath, char* ImagePat
     TerminalHandler->InputBufferSize = 0x1000;
     TerminalHandler->InputBuffer = (char*)malloc(TerminalHandler->InputBufferSize);
     TerminalHandler->InputBuffer[0] = '\0';
+    TerminalHandler->InputCursorPos = 0;
 
     TerminalHandler->Winsize.ws_row = TerminalHandler->Term.rows;
     TerminalHandler->Winsize.ws_col = TerminalHandler->Term.cols;
@@ -104,19 +105,29 @@ void WriteTerminal(kot_term_t* Handler, const char* Text, size_t Size){
 }
 
 void BackspaceTerminal(kot_term_t* Handler){
-    size_t XCursorPos;
-    size_t YCursorPos;
-    term_get_cursor_pos(&Handler->Term, &XCursorPos, &YCursorPos);
-    if(XCursorPos == 0){
-        XCursorPos = Handler->Term.cols;
-        YCursorPos--;
-    }else{
-        XCursorPos--;
+    if(Handler->InputCursorPos){
+        int Len = strlen(Handler->InputBuffer);
+        memcpy((void*)((uintptr_t)Handler->InputBuffer + (uintptr_t)Handler->InputCursorPos - 1), (void*)((uintptr_t)Handler->InputBuffer + (uintptr_t)Handler->InputCursorPos), Len - Handler->InputCursorPos + 1);
+        size_t XCursorPos;
+        size_t YCursorPos;
+        term_get_cursor_pos(&Handler->Term, &XCursorPos, &YCursorPos);
+        Handler->InputCursorPos--;
+
+        if(XCursorPos == 0){
+            XCursorPos = Handler->Term.cols;
+            YCursorPos--;
+        }else{
+            XCursorPos--;
+        }
+
+        term_set_cursor_pos(&Handler->Term, XCursorPos, YCursorPos);
+
+        term_write(&Handler->Term, (void*)((uintptr_t)Handler->InputBuffer + (uintptr_t)Handler->InputCursorPos), Len - Handler->InputCursorPos);
+        term_putchar(&Handler->Term, ' ');
+        
+        term_set_cursor_pos(&Handler->Term, XCursorPos, YCursorPos);
+        term_double_buffer_flush(&Handler->Term);
     }
-    term_set_cursor_pos(&Handler->Term, XCursorPos, YCursorPos);
-    term_putchar(&Handler->Term, ' ');
-    term_set_cursor_pos(&Handler->Term, XCursorPos, YCursorPos);
-    term_double_buffer_flush(&Handler->Term);
 }
 
 KResult SendRequestTerminal(kot_term_t* Handler, read_request_shell_t* Request){
@@ -160,11 +171,7 @@ void PressKeyTerminal(kot_term_t* Handler, uint64_t Key){
         switch(Key){
             case 0x0E:{
                 // Backspace
-                int Len = strlen(Handler->InputBuffer);
-                if(Len){
-                    Handler->InputBuffer[Len - 1] = '\0';
-                    BackspaceTerminal(Handler);
-                }
+                BackspaceTerminal(Handler);
                 break;
             }
             case 0x1C:{
@@ -179,16 +186,46 @@ void PressKeyTerminal(kot_term_t* Handler, uint64_t Key){
                     CurrentRequest->Buffer = Handler->InputBuffer;
                     SendRequestTerminal(Handler, CurrentRequest);
                     Handler->InputBuffer[0] = '\0';
+                    Handler->InputCursorPos = 0;
                     PutCharTerminal(Handler, '\n');
                 }
                 break;
             }
             case 0x4B:{
                 // Left arrow
+                if(Handler->InputCursorPos){
+                    Handler->InputCursorPos--;
+                    size_t XCursorPos;
+                    size_t YCursorPos;
+                    term_get_cursor_pos(&Handler->Term, &XCursorPos, &YCursorPos);
+                    if(XCursorPos == 0){
+                        XCursorPos = Handler->Term.cols;
+                        YCursorPos--;
+                    }else{
+                        XCursorPos--;
+                    }
+                    term_set_cursor_pos(&Handler->Term, XCursorPos, YCursorPos);
+                    term_double_buffer_flush(&Handler->Term);
+                }
                 break;
             }
             case 0x4D:{
                 // Right arrow
+                int Len = strlen(Handler->InputBuffer);
+                if(Handler->InputCursorPos < Len){
+                    Handler->InputCursorPos++;
+                    size_t XCursorPos;
+                    size_t YCursorPos;
+                    term_get_cursor_pos(&Handler->Term, &XCursorPos, &YCursorPos);
+                    if(XCursorPos == Handler->Term.cols){
+                        XCursorPos = 0;
+                        YCursorPos++;
+                    }else{
+                        XCursorPos++;
+                    }
+                    term_set_cursor_pos(&Handler->Term, XCursorPos, YCursorPos);
+                    term_double_buffer_flush(&Handler->Term);
+                }
                 break;
             }
             case 0x48:{
@@ -201,15 +238,15 @@ void PressKeyTerminal(kot_term_t* Handler, uint64_t Key){
             }
             default: {
                 char Char = '\0';
-                int Len = strlen(Handler->InputBuffer);
                 kot_GetCharFromScanCode(Key, TableConverter, TableConverterCharCount, &Char, &IsPressed, &Cache);
-                Handler->InputBuffer[Len] = Char;
-                Handler->InputBuffer[Len + 1] = '\0';
+                Handler->InputBuffer[Handler->InputCursorPos] = Char;
+                Handler->InputBuffer[Handler->InputCursorPos + 1] = '\0';
 
-                Len++;
                 PutCharTerminal(Handler, Char);
+                Handler->InputCursorPos++;
 
                 if(Handler->ReadRequest->length){
+                    int Len = strlen(Handler->InputBuffer);
                     read_request_shell_t* CurrentRequest = (read_request_shell_t*)kot_vector_get(Handler->ReadRequest, 0);
                     if(Len == CurrentRequest->SizeRequest){
                         Handler->InputBuffer[Len] = '\n';
@@ -219,6 +256,7 @@ void PressKeyTerminal(kot_term_t* Handler, uint64_t Key){
                         CurrentRequest->Buffer = Handler->InputBuffer;
                         SendRequestTerminal(Handler, CurrentRequest);
                         Handler->InputBuffer[0] = '\0';
+                        Handler->InputCursorPos = 0;
                         PutCharTerminal(Handler, '\n');
                     }
                 }

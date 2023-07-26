@@ -98,4 +98,5 @@ Download the latest release <a href="https://github.com/kot-org/Kot/releases">he
 # Credits
 - Icons: [Icon8](https://icons8.com/).
 - Song: https://pixabay.com/sound-effects/id-103697/
+- Terminal wallpaper: https://unsplash.com/photos/the-night-sky-with-stars-above-a-mountain-range-4D_udGMVq3s
 

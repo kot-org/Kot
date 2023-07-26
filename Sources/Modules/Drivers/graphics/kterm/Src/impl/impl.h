@@ -19,6 +19,7 @@ typedef struct{
 
     char* InputBuffer;
     size64_t InputBufferSize;
+    uint64_t InputCursorPos;
 
     struct termios Terminos;
     struct winsize Winsize;

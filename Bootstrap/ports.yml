@@ -16,7 +16,6 @@ packages:
         - '--host=x86_64-none'
         - '--prefix=/usr'
         - '--without-bash-malloc'
-        - '--disable-nls'
         - 'CFLAGS=-DNEED_EXTERN_PC'
         environ:
           CC: 'kot-x86_64-clang'

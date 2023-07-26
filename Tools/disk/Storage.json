@@ -1,19 +1,11 @@
 [
     {
-        "source": "Disk/kot/.",
-        "destination": "kot"
+        "source": "Disk/.",
+        "destination": "/."
     },
     {
-        "source": "Disk/user/.",
-        "destination": "user"
-    },
-    {
-        "source": "Sysroot/usr/.",
-        "destination": "usr"
-    },
-    {
-        "source": "Sysroot/bin/.",
-        "destination": "bin"
+        "source": "Sysroot/.",
+        "destination": "/."
     },
     {
         "source": "Sources/Modules/Drivers/graphics/orb/Bin/Orb.elf",
