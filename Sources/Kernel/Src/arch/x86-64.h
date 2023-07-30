@@ -5,7 +5,8 @@
 #define INT_ScheduleAPIC    0x40
 #define INT_Schedule        0x41
 #define INT_DestroySelf     0x42
-#define INT_Stop            0x43
+#define INT_PauseSelf       0x43
+#define INT_Stop            0x44
 
 #define PAGE_SIZE (uint64_t)0x1000
 #define KERNEL_STACK_SIZE PAGE_SIZE * 0x10 /* 10 MB */

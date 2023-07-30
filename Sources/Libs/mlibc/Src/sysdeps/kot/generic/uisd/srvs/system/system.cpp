@@ -1,4 +1,6 @@
 #include <kot/uisd/srvs/system.h>
+#include <mlibc/debug.hpp>
+#include <frg/vector.hpp>
 #include <bits/ensure.h>
 #include <stdlib.h>
 #include <string.h>
@@ -106,7 +108,6 @@ __attribute__((__noreturn__)) void kot_Srv_System_LoadExecutableToProcess(char* 
         memset((void*)((uintptr_t)data.Data + Size + sizeof(uint8_t) + sizeof(uint64_t) + sizeof(kot_thread_t)), 0, sizeof(kot_arguments_t));
     }
     memcpy((void*)((uintptr_t)data.Data + Size + sizeof(uint8_t) + sizeof(uint64_t) + sizeof(kot_thread_t) + sizeof(kot_arguments_t)), Path, strlen(Path) + 1);
-    
     __ensure(kot_Sys_ExecThread(kot_SystemData->LoadExecutableToProcess, &parameters, ExecutionTypeQueu | ExecutionTypeClose, &data) == KSUCCESS);
 }
 

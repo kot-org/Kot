@@ -212,8 +212,11 @@ KResult ReadFileFromInitrd(kot_thread_t Callback, uint64_t CallbackArg, char* Na
             kot_Sys_Close(KFAIL);
         }
 
+        void* dataShareable = malloc(file->size);
+        memcpy(dataShareable, fileData, file->size);
+
         kot_ShareDataWithArguments_t data{
-            .Data = fileData,
+            .Data = dataShareable,
             .Size = file->size,
             .ParameterPosition = 0x3, 
         };
@@ -228,6 +231,7 @@ KResult ReadFileFromInitrd(kot_thread_t Callback, uint64_t CallbackArg, char* Na
         };
         
         kot_Sys_ExecThread(Callback, &arguments, ExecutionTypeQueu, &data);
+        free(dataShareable);
         kot_Sys_Close(KSUCCESS);
     }else{
         kot_arguments_t arguments{

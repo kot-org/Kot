@@ -1,6 +1,6 @@
 [bits 64]
 
-GLOBAL LaunchUserSpace, ForceSchedule, ForceSelfDestruction
+GLOBAL LaunchUserSpace, ForceSchedule, ForceSelfDestruction, ForceSelfPause
 
 LaunchUserSpace:
 	sti
@@ -13,3 +13,7 @@ ForceSchedule:
 ForceSelfDestruction:
 	int 0x42
 	jmp ForceSelfDestruction
+
+ForceSelfPause:
+	int 0x43
+	ret

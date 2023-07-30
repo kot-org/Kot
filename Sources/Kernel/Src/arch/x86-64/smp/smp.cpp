@@ -13,7 +13,7 @@ extern "C" void TrampolineMain(){
     uint64_t stackScheduler = (uint64_t)stackalloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
     TSSSetIST(CPU::GetAPICID(), IST_Scheduler, stackScheduler);
     uint64_t stackDestroySelf = (uint64_t)stackalloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
-    TSSSetIST(CPU::GetAPICID(), IST_DestroySelf, stackDestroySelf);
+    TSSSetIST(CPU::GetAPICID(), IST_DestroyPauseSelf, stackDestroySelf);
 
     CPU::InitCore();
     simdInit();

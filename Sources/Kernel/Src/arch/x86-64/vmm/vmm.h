@@ -69,7 +69,7 @@ void vmm_ClearMemory(pagetable_t src);
 void vmm_ForkMemory(struct kprocess_t* Parent, struct kprocess_t* Child);
 bool vmm_MapFork(pagetable_t Table, uint64_t Address);
 
-#define VMM_STARTRHALF 0x0
+#define VMM_STARTHALF 0x0
 #define VMM_LOWERHALF 0x100
 #define VMM_HIGHERALF 0x200
 #define VMM_MAXLEVEL 0x4 

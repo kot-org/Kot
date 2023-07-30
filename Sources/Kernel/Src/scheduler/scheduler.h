@@ -204,6 +204,7 @@ struct kthread_t{
 
     /* PIDWait */
     int PIDWaitStatus;
+    pid_t PIDWaitPIDChild;
 
     /* Signals */
     sigset_t SignalMask;
@@ -238,6 +239,7 @@ class TaskManager{
     public:
         void Scheduler(struct ContextStack* Registers, uint64_t CoreID);
         void DestroySelf(struct ContextStack* Registers, uint64_t CoreID);
+        void PauseSelf(ContextStack* Registers, uint64_t CoreID);
         void SwitchTask(struct ContextStack* Registers, uint64_t CoreID, kthread_t* task);
 
         void EnqueueTask(struct kthread_t* task);
@@ -268,6 +270,8 @@ class TaskManager{
 
         void AcquireScheduler();
         void ReleaseScheduler();
+        
+        void PauseSelf();
 
         KResult AddProcessList(kprocess_t* process);
         KResult RemoveProcessList(kprocess_t* process);

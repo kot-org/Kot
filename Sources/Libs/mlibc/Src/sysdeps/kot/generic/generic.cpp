@@ -11,6 +11,7 @@
 #include <kot/uisd/srvs/time.h>
 #include <mlibc/all-sysdeps.hpp>
 #include <kot/uisd/srvs/system.h>
+#include <kot/uisd/srvs/storage.h>
 
 
 extern char **environ;
@@ -169,13 +170,33 @@ namespace mlibc{
            return -1;
         }
 
+        char AbsolutePathBufferDisk[PATH_MAX];
+
+        AbsolutePathBufferDisk[0] = '\0';
+        
+        if(!strstr(path, ":/")){
+            char AbsolutePathBuffer[PATH_MAX];
+            char* AbsolutePath = realpath(path, AbsolutePathBuffer);
+            if(!AbsolutePath){
+                return -1;
+            }
+            kot_srv_storage_callback_t* Callback = kot_Srv_Storage_GetCWD(true);
+            *((char*)strchr((char*)(Callback->Data + sizeof('/')), '/')) = '\0';
+            strcat(AbsolutePathBufferDisk, (char*)Callback->Data);
+            strcat(AbsolutePathBufferDisk, AbsolutePath);
+            free((void*)Callback->Data);
+            free(Callback);
+        }else{
+            strcpy(AbsolutePathBufferDisk, path);
+        }
+
         void* MainStackData;
         size64_t SizeMainStackData;
         uint64_t argc = 0;
         for(; argv[argc] != NULL; argc++);
         kot_SetupStack(&MainStackData, &SizeMainStackData, argc, (char**)argv, (char**)envp);
 
-        kot_Srv_System_LoadExecutableToProcess((char*)path, MainStackData, SizeMainStackData, 0, NULL, 0);
+        kot_Srv_System_LoadExecutableToProcess((char*)AbsolutePathBufferDisk, MainStackData, SizeMainStackData, 0, NULL, 0);
 
         __builtin_unreachable();
     }
@@ -259,6 +280,10 @@ namespace mlibc{
     int sys_setpgid(pid_t pid, pid_t pgid) {
         mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub" << frg::endlog;
         return 0;
+    }
+
+    int sys_ttyname(int, char *, size_t) {
+        return ENOSYS;
     }
 
     uint64_t sys_debug_malloc_lock = 0;

@@ -434,6 +434,7 @@ namespace mlibc{
         }
         memcpy(buffer, (void*)Callback->Data, Callback->Size);
         buffer[Callback->Size] = '\0';
+        free((void*)Callback->Data);
         free(Callback);
         return 0;
     }

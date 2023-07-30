@@ -9,11 +9,11 @@
 #define Exception_PageFault 0xE
 #define Exception_End       0x20
 
-#define IST_Null            0x0
-#define IST_Interrupts      0x1
-#define IST_SchedulerAPIC   0x2
-#define IST_Scheduler       0x3
-#define IST_DestroySelf     0x4
+#define IST_Null                0x0
+#define IST_Interrupts          0x1
+#define IST_SchedulerAPIC       0x2
+#define IST_Scheduler           0x3
+#define IST_DestroyPauseSelf    0x4
 
 #define IRQ_START 0x20
 

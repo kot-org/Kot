@@ -272,8 +272,9 @@ int Sys_Std_Wait_PID(SyscallStack* Registers, kthread_t* Thread){
             ProcParent->WaitPIDList->push64((uint64_t)WaitPIDInfo);
             ProcParent->WaitPIDCount++;
             AtomicRelease(&ProcParent->WaitPIDLock);
-            Thread->Pause((ContextStack*)Registers, false);
+            Thread->Parent->TaskManagerParent->PauseSelf();
             *Status = Thread->PIDWaitStatus;
+            return Thread->PIDWaitPIDChild;
         }else{
             AtomicRelease(&ProcParent->WaitPIDLock);
             kfree(WaitPIDInfo);
@@ -293,8 +294,9 @@ int Sys_Std_Wait_PID(SyscallStack* Registers, kthread_t* Thread){
             ProcParent->WaitPIDList->push64((uint64_t)WaitPIDInfo);
             ProcParent->WaitPIDCount++;
             AtomicRelease(&ProcParent->WaitPIDLock);
-            Thread->Pause((ContextStack*)Registers, false);
+            Thread->Parent->TaskManagerParent->PauseSelf();
             *Status = Thread->PIDWaitStatus;
+            return Thread->PIDWaitPIDChild;
         }else{
             AtomicRelease(&ProcParent->WaitPIDLock);
             kfree(WaitPIDInfo);
@@ -303,7 +305,7 @@ int Sys_Std_Wait_PID(SyscallStack* Registers, kthread_t* Thread){
     }
 
     /* return */
-    return 0;
+    return -ECHILD;
 }
 
 int Sys_Std_Kill(SyscallStack* Registers, kthread_t* Thread){

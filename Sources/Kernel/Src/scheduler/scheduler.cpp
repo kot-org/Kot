@@ -37,6 +37,26 @@ void TaskManager::DestroySelf(ContextStack* Registers, uint64_t CoreID){
     AtomicRelease(&SchedulerLock);   
 }
 
+/* To call destroy self you should acuqire mutex sheduler before */
+void TaskManager::PauseSelf(ContextStack* Registers, uint64_t CoreID){
+    /* Update time */
+    uint64_t actualTime = HPET::GetTime();
+    TimeByCore[CoreID] = actualTime;
+
+    /* Save thread */
+    kthread_t* threadEnd = ThreadExecutePerCore[CoreID];
+
+    if(threadEnd != NULL){
+        threadEnd->SaveContext(Registers, CoreID);
+        threadEnd->IsPause = true;
+    }
+
+    /* Find & restore thread */
+    kthread_t* threadStart = GetTread_WL();
+    threadStart->CreateContext(Registers, CoreID);
+    AtomicRelease(&SchedulerLock);   
+}
+
 void TaskManager::EnqueueTask(kthread_t* thread){
     AcquireScheduler();
     EnqueueTask_WL(thread);
@@ -329,10 +349,14 @@ KResult TaskManager::Exit(ContextStack* Registers, kthread_t* task, uint64_t Ret
             if(WaitPIDInfo->Pid <= 0){
                 if(WaitPIDInfo->Pid == -1 || WaitPIDInfo->Pid == 0){
                     WaitPIDInfo->Thread->PIDWaitStatus = static_cast<int>(ReturnValue);
+                    WaitPIDInfo->Thread->PIDWaitPIDChild = task->Parent->PID;
+                    ProcParent->ProcessChildCount--;
                     Unpause(WaitPIDInfo->Thread);
                 }else{
-                    if(-(WaitPIDInfo->Pid) == ProcParent->PID){
+                    if(-(WaitPIDInfo->Pid) == task->Parent->PID){
                         WaitPIDInfo->Thread->PIDWaitStatus = static_cast<int>(ReturnValue);
+                        WaitPIDInfo->Thread->PIDWaitPIDChild = task->Parent->PID;
+                        ProcParent->ProcessChildCount--;
                         Unpause(WaitPIDInfo->Thread);
                     }
                 }
@@ -414,7 +438,7 @@ KResult TaskManager::CreateProcess(kprocess_t** key, enum Priviledge priviledge,
     KResult status = CreateProcessWithoutPaging(key, priviledge, externalData);
     if(status == KSUCCESS){
         (*key)->SharedPaging = vmm_SetupProcess();
-        (*key)->MemoryManager = MMCreateHandler((*key)->SharedPaging, (void*)PAGE_SIZE, FREE_MEMORY_SPACE_ADDRESS - PAGE_SIZE);
+        (*key)->MemoryManager = MMCreateHandler((*key)->SharedPaging, (void*)PAGE_SIZE, FREE_MEMORY_SPACE_ADDRESS - PAGE_SIZE, (void*)PAGE_SIZE, USERSPACE_TOP_ADDRESS - PAGE_SIZE);
         Keyhole_Create(&(*key)->ProcessKey, (*key), (*key), DataTypeProcess, (uint64_t)(*key), DEFAULT_FLAGS_KEY, PriviledgeApp);
     }
     return status;
@@ -637,9 +661,7 @@ kthread_t* kprocess_t::Duplicatethread(kthread_t* source){
     return thread;
 }
 
-KResult kprocess_t::Fork(ContextStack* Registers, kthread_t* Caller, kprocess_t** Child, kthread_t** ChildThread){    
-    if(Parent) return KFAIL; // Only accept non fork process
-    
+KResult kprocess_t::Fork(ContextStack* Registers, kthread_t* Caller, kprocess_t** Child, kthread_t** ChildThread){ 
     *Child = (kprocess_t*)kcalloc(sizeof(kprocess_t));
 
     AtomicAcquire(&StackIteratorLock);
@@ -780,6 +802,11 @@ void TaskManager::AcquireScheduler(){
 void TaskManager::ReleaseScheduler(){
     AtomicRelease(&SchedulerLock);
     CPU::EnableInterrupts();
+}
+
+void TaskManager::PauseSelf(){
+    AcquireScheduler();
+    ForceSelfPause();
 }
 
 void kthread_t::SaveContext(ContextStack* Registers, uint64_t CoreID){

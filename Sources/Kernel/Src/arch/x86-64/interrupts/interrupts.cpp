@@ -58,14 +58,14 @@ void InitializeInterrupts(ArchInfo_t* ArchInfo){
     /* Shedule */
     SetIDTGate((void*)InterruptEntryList[INT_ScheduleAPIC], INT_ScheduleAPIC, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_SchedulerAPIC, idtr);
     SetIDTGate((void*)InterruptEntryList[INT_Schedule], INT_Schedule, InterruptGateType, UserAppRing, GDTInfoSelectorsRing[KernelRing].Code, IST_Scheduler, idtr);
-    SetIDTGate((void*)InterruptEntryList[INT_DestroySelf], INT_DestroySelf, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_DestroySelf, idtr); // Interrupt gate type because interrupt should be disable before
+    SetIDTGate((void*)InterruptEntryList[INT_DestroySelf], INT_DestroySelf, InterruptGateType, KernelRing, GDTInfoSelectorsRing[KernelRing].Code, IST_DestroyPauseSelf, idtr); // Interrupt gate type because interrupt should be disable before
 
     uint64_t stackSchedulerAPIC = (uint64_t)stackalloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
     TSSSetIST(CPU::GetAPICID(), IST_SchedulerAPIC, stackSchedulerAPIC);
     uint64_t stackScheduler = (uint64_t)stackalloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
     TSSSetIST(CPU::GetAPICID(), IST_Scheduler, stackScheduler);
     uint64_t stackDestroySelf = (uint64_t)stackalloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
-    TSSSetIST(CPU::GetAPICID(), IST_DestroySelf, stackDestroySelf);
+    TSSSetIST(CPU::GetAPICID(), IST_DestroyPauseSelf, stackDestroySelf);
 
     asm("lidt %0" : : "m" (idtr));   
 }
@@ -85,6 +85,9 @@ extern "C" void InterruptHandler(ContextStack* Registers, uint64_t CoreID){
     }else if(Registers->InterruptNumber == INT_DestroySelf){
         // Destroy
         globalTaskManager->DestroySelf(Registers, CoreID);
+    }else if(Registers->InterruptNumber == INT_PauseSelf){
+        // Pause
+        globalTaskManager->PauseSelf(Registers, CoreID);
     }else if(Registers->InterruptNumber == INT_Stop){
         // Stop all
         while(true){
@@ -103,7 +106,7 @@ void ExceptionHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
         if(PageFaultHandler(Cr2, Registers, CoreID)){
             return;
         }
-        Error("Page fault at 0x%x | Physical address detected in this page table is 0x%x", Cr2, vmm_GetPhysical((void*)Cr2));
+        Error("Page fault at 0x%x | Physical address detected in this page table is 0x%x", Cr2, vmm_GetPhysical((pagetable_t)Registers->cr3, (void*)Cr2));
     }
     // If exception come from kernel we can't recover it
     if(CPU::GetCodeRing(Registers) == KernelRing){
@@ -113,8 +116,8 @@ void ExceptionHandler(uint64_t Cr2, ContextStack* Registers, uint64_t CoreID){
         PrintRegisters(Registers);
         StackFrame_t* Frame = (StackFrame_t*)Registers->rbp;
         TraceBegin();
-        while(Frame){
-            if(!Frame->InstructionPointer) break;
+        while(CheckUserAddress(Frame, sizeof(StackFrame_t)) == KSUCCESS){
+            if(CheckUserAddress(Frame->InstructionPointer, sizeof(uint64_t)) != KSUCCESS) break;
             Trace("0x%x", Frame->InstructionPointer);
             Frame = Frame->Next;
         }

@@ -164,6 +164,7 @@ KResult CreateRequestTerminal(kot_term_t* Handler, kot_thread_t Callback, uint64
 }
 
 void PressKeyTerminal(kot_term_t* Handler, uint64_t Key){
+    if(!Handler->ReadRequest->length) return;
     static uint64_t Cache = 0;
     bool IsPressed;
     kot_GetCharFromScanCode(Key, TableConverter, TableConverterCharCount, NULL, &IsPressed, NULL);
@@ -245,21 +246,6 @@ void PressKeyTerminal(kot_term_t* Handler, uint64_t Key){
                 PutCharTerminal(Handler, Char);
                 Handler->InputCursorPos++;
 
-                if(Handler->ReadRequest->length){
-                    int Len = strlen(Handler->InputBuffer);
-                    read_request_shell_t* CurrentRequest = (read_request_shell_t*)kot_vector_get(Handler->ReadRequest, 0);
-                    if(Len == CurrentRequest->SizeRequest){
-                        Handler->InputBuffer[Len] = '\n';
-                        Len++;
-                        Handler->InputBuffer[Len] = '\0';
-                        CurrentRequest->SizeGet = Len;
-                        CurrentRequest->Buffer = Handler->InputBuffer;
-                        SendRequestTerminal(Handler, CurrentRequest);
-                        Handler->InputBuffer[0] = '\0';
-                        Handler->InputCursorPos = 0;
-                        PutCharTerminal(Handler, '\n');
-                    }
-                }
                 break;
             }
         }

@@ -120,14 +120,22 @@ KResult ExecuteSystemAction(uint64_t PartitonID){
                         delete ServicePathBuilder;
 
                         kot_srv_system_callback_t* Callback = kot_Srv_System_LoadExecutable(Priviledge->Get(), FilePath, true);
+                        free(FilePath);
 
                         if(Callback->Status == KSUCCESS){
                             void* MainStackData;
                             size64_t SizeMainStackData;
-                            char* Argv[] = {FilePath, NULL};
+
+                            StringBuilder* ExecPathBuilder = new StringBuilder("/");
+                            ExecPathBuilder->append(File->Get());
+                            char* ExecPath = ExecPathBuilder->toString();
+
+                            char* Argv[] = {ExecPath, "-l", NULL};
                             char* Env[] = {NULL};
-                            SetupStack(&MainStackData, &SizeMainStackData, 1, Argv, Env);
-                            free(FilePath);
+                            SetupStack(&MainStackData, &SizeMainStackData, 2, Argv, Env);
+                            
+                            delete ExecPathBuilder;
+                            free(ExecPath);
 
                             kot_ShareDataWithArguments_t Data{
                                 .Data = MainStackData,

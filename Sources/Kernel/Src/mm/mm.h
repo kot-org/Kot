@@ -6,6 +6,8 @@
 struct MemoryHandler_t{
     void* Base;
     size_t Size;
+    void* BaseNoRegion;
+    size_t SizeNoRegion;
     uint64_t RegionCount;
     struct MemoryRegion_t* FirstRegion;
     struct MemoryRegion_t* LastFreeRegion;
@@ -26,7 +28,7 @@ struct MemoryRegion_t{
 };
 
 
-MemoryHandler_t* MMCreateHandler(pagetable_t Paging, void* Base, size_t Size);
+MemoryHandler_t* MMCreateHandler(pagetable_t Paging, void* Base, size_t Size, void* BaseNoRegion, size_t SizeNoRegion);
 MemoryHandler_t* MMCloneHandler(pagetable_t Paging, MemoryHandler_t* Source);
 KResult MMFreeHandler(MemoryHandler_t* Handler);
 

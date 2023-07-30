@@ -19,7 +19,7 @@ extern "C" {
 #define KSys_Std_Kill KSys_Std_Start + 0xC
 
 /* Kot */
-#define KSys_Kot_Start KSys_Std_Kill
+#define KSys_Kot_Start KSys_Std_Kill + 0x1
 #define KSys_Kot_CreateMemoryField KSys_Kot_Start + 0x0
 #define KSys_Kot_AcceptMemoryField KSys_Kot_Start + 0x1
 #define KSys_Kot_CloseMemoryField KSys_Kot_Start + 0x2

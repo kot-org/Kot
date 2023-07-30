@@ -419,7 +419,7 @@ uint64_t vmm_Init(ukl_boot_structure_t* bootInfo){
 pagetable_t vmm_SetupProcess(){
     pagetable_t PageTable = Pmm_RequestPage();
     memset((void*)vmm_GetVirtualAddress(PageTable), 0, PAGE_SIZE);
-    vmm_Fill(PageTable, VMM_STARTRHALF, 0xfe, true);
+    vmm_Fill(PageTable, VMM_STARTHALF, 0xfe, true);
     vmm_Fill(PageTable, 0xff, VMM_LOWERHALF, true);
     vmm_page_table* PML4VirtualAddressDestination = (vmm_page_table*)vmm_GetVirtualAddress(PageTable);
     vmm_CopyPageTable(vmm_PageTable, PageTable, VMM_LOWERHALF, VMM_HIGHERALF);
@@ -436,7 +436,7 @@ pagetable_t vmm_Setupthread(pagetable_t parent){
 
     uint64_t VirtualAddress = (uint64_t)vmm_GetVirtualAddress(PageTable);
     
-    vmm_CopyPageTable(parent, PageTable, VMM_STARTRHALF, VMM_LOWERHALF);
+    vmm_CopyPageTable(parent, PageTable, VMM_STARTHALF, VMM_LOWERHALF);
     vmm_CopyPageTable(vmm_PageTable, PageTable, VMM_LOWERHALF, VMM_HIGHERALF);
 
     return PageTable;      
@@ -459,13 +459,13 @@ uint64_t vmm_CopyProcessMemory(pagetable_t dst, pagetable_t src){
     uint64_t memoryUsed = 0;
 
     ScanTable_t scanner[VMM_MAXLEVEL];
-    scanner[0].start = VMM_STARTRHALF;
+    scanner[0].start = VMM_STARTHALF;
     scanner[0].end = VMM_LOWERHALF;
     scanner[0].index = scanner[0].start;
     scanner[0].Table = PML4VirtualAddressSource;
 
     for(uint8_t i = 1; i < VMM_MAXLEVEL; i++){
-        scanner[i].start = VMM_STARTRHALF;
+        scanner[i].start = VMM_STARTHALF;
         scanner[i].end = VMM_HIGHERALF;
         scanner[i].index = scanner[i].start;
         scanner[i].Table = 0;
@@ -526,7 +526,7 @@ void vmm_CopyPageTable(vmm_page_table* Dst, vmm_page_table* Src, uint64_t Start,
                 memset(NextLevelDst, 0, PAGE_SIZE);
                 vmm_SetAddress(&PDE, (uint64_t)NextLevelDstPhysical >> 12);
                 Dst->entries[i] = PDE;
-                vmm_CopyPageTable(NextLevelDst, NextLevelSrc, VMM_STARTRHALF, VMM_HIGHERALF, Level - 1);
+                vmm_CopyPageTable(NextLevelDst, NextLevelSrc, VMM_STARTHALF, VMM_HIGHERALF, Level - 1);
             }else{
                 if(!vmm_GetFlag(&Src->entries[i], vmm_Master) || !vmm_GetFlag(&Src->entries[i], vmm_Slave)){
                     void* Physical = (void*)Pmm_RequestPage();
@@ -544,13 +544,13 @@ void vmm_ForkMemory(kprocess_t* Parent, kprocess_t* Child){
     Parent->HaveForkPaging = true;
     Child->HaveForkPaging = true;
     Child->SharedPaging = vmm_SetupProcess();
-    vmm_CopyPageTable((vmm_page_table*)vmm_GetVirtualAddress(Child->SharedPaging), (vmm_page_table*)vmm_GetVirtualAddress(Parent->SharedPaging), VMM_STARTRHALF, VMM_LOWERHALF, VMM_MAXLEVEL - 1);
+    vmm_CopyPageTable((vmm_page_table*)vmm_GetVirtualAddress(Child->SharedPaging), (vmm_page_table*)vmm_GetVirtualAddress(Parent->SharedPaging), VMM_STARTHALF, VMM_LOWERHALF, VMM_MAXLEVEL - 1);
     // TODO : Make write copy
     // vmm_page_table* PML4VirtualAddressSource = (vmm_page_table*)vmm_GetVirtualAddress(Parent->SharedPaging);
-    // for(uint16_t i = VMM_STARTRHALF; i < VMM_LOWERHALF; i++){
+    // for(uint16_t i = VMM_STARTHALF; i < VMM_LOWERHALF; i++){
     //     vmm_page_table* PDPVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((void*)((uint64_t)vmm_GetAddress(&PML4VirtualAddressSource->entries[i]) << 12));    
     //     if(vmm_GetFlag(&PML4VirtualAddressSource->entries[i], vmm_flag::vmm_Present)){
-    //         for(uint16_t y = VMM_STARTRHALF; y < VMM_HIGHERALF; y++){
+    //         for(uint16_t y = VMM_STARTHALF; y < VMM_HIGHERALF; y++){
     //             uint64_t PDE = PDPVirtualAddress->entries[y];
     //             vmm_SetFlag(&PDE, vmm_flag::vmm_Master, true); // set flag master and slave to know that is a fork
     //             vmm_SetFlag(&PDE, vmm_flag::vmm_Slave, true);
@@ -639,7 +639,7 @@ bool vmm_MapFork(pagetable_t Table, uint64_t Address){
     //         PML4VirtualAddress->entries[Indexer.PDP_i] = PDE;
 
     //         PDPVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uint64_t)NewPage);
-    //         for(uint16_t i = VMM_STARTRHALF; i < VMM_LOWERHALF; i++){
+    //         for(uint16_t i = VMM_STARTHALF; i < VMM_LOWERHALF; i++){
     //             uint64_t PDEChild = PDPVirtualAddress->entries[i];
     //             vmm_SetFlag(&PDEChild, vmm_Slave, true);
     //             vmm_SetFlag(&PDEChild, vmm_Master, true);
@@ -658,7 +658,7 @@ bool vmm_MapFork(pagetable_t Table, uint64_t Address){
     //         PDPVirtualAddress->entries[Indexer.PD_i] = PDE;
 
     //         PDVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uint64_t)NewPage);
-    //         for(uint16_t i = VMM_STARTRHALF; i < VMM_LOWERHALF; i++){
+    //         for(uint16_t i = VMM_STARTHALF; i < VMM_LOWERHALF; i++){
     //             uint64_t PDEChild = PDVirtualAddress->entries[i];
     //             vmm_SetFlag(&PDEChild, vmm_Slave, true);
     //             vmm_SetFlag(&PDEChild, vmm_Master, true);
@@ -677,7 +677,7 @@ bool vmm_MapFork(pagetable_t Table, uint64_t Address){
     //         PDVirtualAddress->entries[Indexer.PT_i] = PDE;
 
     //         PTVirtualAddress = (vmm_page_table*)vmm_GetVirtualAddress((uint64_t)NewPage);
-    //         for(uint16_t i = VMM_STARTRHALF; i < VMM_LOWERHALF; i++){
+    //         for(uint16_t i = VMM_STARTHALF; i < VMM_LOWERHALF; i++){
     //             uint64_t PDEChild = PTVirtualAddress->entries[i];
     //             vmm_SetFlag(&PDEChild, vmm_Slave, true);
     //             vmm_SetFlag(&PDEChild, vmm_Master, true);

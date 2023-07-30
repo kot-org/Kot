@@ -75,11 +75,14 @@ bool CheckAddress(void* address, size64_t size){
 }
 
 bool CheckUserAddress(void* address, size64_t size, void* pagingEntry){
+    if((uintptr_t)address >= VMM_HIGHER_HALF_ADDRESS){
+        return false;
+    }
     return CheckAddress(address, size, pagingEntry);
 }
 
 bool CheckUserAddress(void* address, size64_t size){
     void* PagingEntry = NULL;
     __asm__ __volatile__ ("mov %%cr3, %%rax" : "=a"(PagingEntry));
-    return CheckAddress(address, size, PagingEntry);
+    return CheckUserAddress(address, size, PagingEntry);
 }

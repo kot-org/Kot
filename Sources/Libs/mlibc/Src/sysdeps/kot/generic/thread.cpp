@@ -62,9 +62,11 @@ KResult kot_SetupStack(void** Data, size64_t* Size, int argc, char** argv, char*
     size64_t envc = 0;
     size64_t envs = 0;
     auto ev = envp;
+
     while(*ev){
         envc++;
         envs += strlen(*ev) + 1; // Add NULL char at the end
+        ev++;
     }
 
     *Size = sizeof(void*) + (argc + 1) * sizeof(char*) + (envc + 1) * sizeof(char*) + args + envs;

@@ -64,10 +64,12 @@ static MemoryRegion_t* MergeRegion(MemoryHandler_t* Handler, MemoryRegion_t* Reg
     }
 }
 
-MemoryHandler_t* MMCreateHandler(pagetable_t Paging, void* Base, size_t Size){
+MemoryHandler_t* MMCreateHandler(pagetable_t Paging, void* Base, size_t Size, void* BaseNoRegion, size_t SizeNoRegion){
     MemoryHandler_t* Handler = (MemoryHandler_t*)kmalloc(sizeof(MemoryHandler_t));
     Handler->Base = Base;
     Handler->Size = Size;
+    Handler->BaseNoRegion = BaseNoRegion;
+    Handler->SizeNoRegion = SizeNoRegion;
     Handler->Paging = Paging;
     Handler->RegionCount = 0;
 
@@ -92,6 +94,8 @@ MemoryHandler_t* MMCloneHandler(pagetable_t Paging, MemoryHandler_t* Source){
     MemoryHandler_t* Destination = (MemoryHandler_t*)kmalloc(sizeof(MemoryHandler_t));
     Destination->Base = Source->Base;
     Destination->Size = Source->Size;
+    Destination->BaseNoRegion = Source->BaseNoRegion;
+    Destination->SizeNoRegion = Source->SizeNoRegion;
     Destination->Paging = Paging;
     Destination->RegionCount = Source->RegionCount;
 
@@ -148,13 +152,22 @@ KResult MMAllocateRegionVM(MemoryHandler_t* Handler, void* Base, size_t Size, bo
         Region = MMGetRegion(Handler, Base);
         if(!Region){
             AtomicRelease(&Handler->Lock);
-            return KMEMORYVIOLATION;
+            if((uintptr_t)Base + (uintptr_t)Size > (uintptr_t)Handler->BaseNoRegion + (uintptr_t)Handler->SizeNoRegion){
+                return KMEMORYVIOLATION;
+            }else{
+                *BaseResult = Base;
+                return KSUCCESS;
+            }
         }
         size_t SizeUnusable = (uintptr_t)Base - (uintptr_t)Region->Base;
         size_t SizeNeed = SizeUnusable + Size;
         while(Region->Size < SizeNeed){
             if(!MergeRegion(Handler, Region)){
-                return KMEMORYVIOLATION;
+                if((uintptr_t)Region->Base + (uintptr_t)Region->Size > (uintptr_t)Handler->BaseNoRegion + (uintptr_t)Handler->SizeNoRegion){
+                    return KMEMORYVIOLATION;
+                }else{
+                    break;
+                }
             }
         }
         if(Region->IsFree){
@@ -255,6 +268,10 @@ KResult MMFreeRegion(MemoryHandler_t* Handler, void* Base, size_t Size){
 }
 
 MemoryRegion_t* MMGetRegion(MemoryHandler_t* Handler, void* Base){
+    if((uintptr_t)Base > (uintptr_t)Handler->Base + (uintptr_t)Handler->Size){
+        return NULL;
+    }
+
     MemoryRegion_t* Region = Handler->FirstRegion;
     for(uint64_t i = 0; i < Handler->RegionCount; i++){
         if((uintptr_t)Region->Base <= (uintptr_t)Base && (uintptr_t)Region->Base + Region->Size > (uintptr_t)Base){
@@ -336,6 +353,14 @@ KResult MMMapPhysical(MemoryHandler_t* Handler, void* BasePhysical, void* Base, 
 }
 
 KResult MMUnmap(MemoryHandler_t* Handler, void* Base, size_t Size){
+    if((uintptr_t)Base < (uintptr_t)Handler->Base){
+        return KMEMORYVIOLATION;
+    }
+
+    if((uintptr_t)Base + (uintptr_t)Size > (uintptr_t)Handler->Base + (uintptr_t)Handler->Size){
+        return KMEMORYVIOLATION;
+    }
+
     uintptr_t VirtualAddress = (uintptr_t)Base;
 
     size_t BlockCount = DivideRoundUp(Size, PAGE_SIZE);
@@ -527,6 +552,7 @@ uint64_t MMAcceptMemoryField(kthread_t* self, kprocess_t* process, MemoryShareIn
             }
 
             if(MMAllocateRegionVM(process->MemoryManager, virtualAddressAlign, sizeAlign, MAP_FIXED | MAP_SHARED, &virtualAddressAlign) != KSUCCESS){
+                vmm_Swap(self, lastPageTable);
                 return KFAIL;
             }
 
