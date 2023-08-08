@@ -176,7 +176,6 @@ KResult Ioctlshell(kot_thread_t Callback, uint64_t CallbackArg, shell_t* Shell, 
     void* Arg = reinterpret_cast<void*>(GP1);
     kot_process_t TargetDataProc = static_cast<kot_process_t>(GP2);
     
-    KResult Status = KFAIL;
     int Result = 0;
 
     
@@ -202,7 +201,7 @@ KResult Ioctlshell(kot_thread_t Callback, uint64_t CallbackArg, shell_t* Shell, 
     }
     
     kot_arguments_t arguments{
-        .arg[0] = Status,           /* Status */
+        .arg[0] = KSUCCESS,         /* Status */
         .arg[1] = CallbackArg,      /* CallbackArg */
         .arg[2] = (uint64_t)Result, /* Result */
         .arg[3] = NULL,             /* GP1 */

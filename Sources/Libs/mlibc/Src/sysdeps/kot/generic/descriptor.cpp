@@ -65,7 +65,9 @@ extern "C" {
         atomicAcquire(&DescriptorTableLock, 0);
         DescriptorTable[DescriptorTable[KOT_DESCRIPTOR_COUNT_INDEX]] = (uintptr_t)DescriptorAddress;
         uint64_t Index = DescriptorTable[KOT_DESCRIPTOR_COUNT_INDEX];
-        DescriptorTable[KOT_DESCRIPTOR_COUNT_INDEX]++;
+        while(DescriptorTable[DescriptorTable[KOT_DESCRIPTOR_COUNT_INDEX]]){
+            DescriptorTable[KOT_DESCRIPTOR_COUNT_INDEX]++;
+        }
         atomicUnlock(&DescriptorTableLock, 0);
 
 
@@ -115,7 +117,28 @@ extern "C" {
         // Start at 1 the index's descriptor gives to us
         Index += KOT_DESCRIPTOR_FIRST_USABLE_INDEX;
 
+        atomicAcquire(&DescriptorTableLock, 0);
         DescriptorTable[Index] = NULL;
+
+        if(Index < DescriptorTable[KOT_DESCRIPTOR_COUNT_INDEX]){
+            DescriptorTable[KOT_DESCRIPTOR_COUNT_INDEX] = Index;
+        }
+        atomicUnlock(&DescriptorTableLock, 0);
+        return KSUCCESS;
+    }
+
+    KResult kot_MoveDescriptor(int64_t From, int64_t To){
+        atomicAcquire(&DescriptorTableLock, 0);
+        if(DescriptorTable[To]){
+            return KFAIL;
+        }
+        if(To == DescriptorTable[KOT_DESCRIPTOR_COUNT_INDEX]){
+            while(DescriptorTable[DescriptorTable[KOT_DESCRIPTOR_COUNT_INDEX]]){
+                DescriptorTable[KOT_DESCRIPTOR_COUNT_INDEX]++;
+            }          
+        }
+        atomicUnlock(&DescriptorTableLock, 0);
+        DescriptorTable[To] = DescriptorTable[From];
         return KSUCCESS;
     }
 

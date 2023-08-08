@@ -88,6 +88,8 @@ kot_term_t* CreateTerminal(kot_framebuffer_t* Fb, char* FontPath, char* ImagePat
     TerminalHandler->Winsize.ws_xpixel = Fb->Width;
     TerminalHandler->Winsize.ws_ypixel = Fb->Height;
 
+    TerminalHandler->ForegroundPID = -1;
+
     return TerminalHandler;
 }
 
@@ -140,7 +142,7 @@ KResult SendRequestTerminal(kot_term_t* Handler, read_request_shell_t* Request){
     arguments.arg[5] = NULL;                 /* GP3 */
 
     kot_key_mem_t BufferKey;
-    kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), Request->SizeGet, (void**)&Request->Buffer, &BufferKey, MemoryFieldTypeSendSpaceRO);
+    kot_Sys_CreateMemoryField(kot_Sys_GetProcess(), Request->SizeRequest, (void**)&Request->Buffer, &BufferKey, MemoryFieldTypeSendSpaceRO);
     kot_Sys_Keyhole_CloneModify(BufferKey, &arguments.arg[2], Request->TargetDataProc, KeyholeFlagPresent | KeyholeFlagCloneable | KeyholeFlagEditable, PriviledgeApp);
     
     KResult Status = kot_Sys_ExecThread(Request->Callback, &arguments, ExecutionTypeQueu | ExecutionTypeAwait, NULL);
@@ -154,7 +156,6 @@ KResult CreateRequestTerminal(kot_term_t* Handler, kot_thread_t Callback, uint64
     Request->CallbackArg = CallbackArg;
 
     Request->SizeRequest = SizeRequest;
-    Request->SizeGet = NULL;
     Request->Buffer = NULL;
     Request->TargetDataProc = TargetDataProc;
 
@@ -164,7 +165,6 @@ KResult CreateRequestTerminal(kot_term_t* Handler, kot_thread_t Callback, uint64
 }
 
 void PressKeyTerminal(kot_term_t* Handler, uint64_t Key){
-    if(!Handler->ReadRequest->length) return;
     static uint64_t Cache = 0;
     bool IsPressed;
     kot_GetCharFromScanCode(Key, TableConverter, TableConverterCharCount, NULL, &IsPressed, NULL);
@@ -177,19 +177,22 @@ void PressKeyTerminal(kot_term_t* Handler, uint64_t Key){
             }
             case 0x1C:{
                 // Enter
-                if(Handler->ReadRequest->length){
-                    int Len = strlen(Handler->InputBuffer);
-                    read_request_shell_t* CurrentRequest = (read_request_shell_t*)kot_vector_get(Handler->ReadRequest, 0);
-                    Handler->InputBuffer[Len] = '\n';
-                    Len++;
-                    Handler->InputBuffer[Len] = '\0';
-                    CurrentRequest->SizeGet = Len;
-                    CurrentRequest->Buffer = Handler->InputBuffer;
-                    SendRequestTerminal(Handler, CurrentRequest);
-                    Handler->InputBuffer[0] = '\0';
-                    Handler->InputCursorPos = 0;
-                    PutCharTerminal(Handler, '\n');
+                int Len = strlen(Handler->InputBuffer);
+                Handler->InputBuffer[Len] = '\n';
+                Len++;
+                char* RequestsBuffer = Handler->InputBuffer;
+                PutCharTerminal(Handler, '\n');
+                while(Len > 0){
+                    if(Handler->ReadRequest->length){
+                        read_request_shell_t* CurrentRequest = (read_request_shell_t*)kot_vector_get(Handler->ReadRequest, 0);
+                        CurrentRequest->Buffer = RequestsBuffer;
+                        Len -= CurrentRequest->SizeRequest;
+                        RequestsBuffer += CurrentRequest->SizeRequest;
+                        SendRequestTerminal(Handler, CurrentRequest);
+                    }
                 }
+                Handler->InputBuffer[0] = '\0';
+                Handler->InputCursorPos = 0;
                 break;
             }
             case 0x4B:{

@@ -34,6 +34,7 @@ int64_t kot_SaveDescriptor(kot_descriptor_t* Descriptor);
 kot_descriptor_t* kot_GetDescriptor(int64_t Index);
 KResult kot_ModifyDescriptor(int64_t Index, kot_descriptor_t* Descriptor);
 KResult kot_FreeDescriptor(int64_t Index);
+KResult kot_MoveDescriptor(int64_t From, int64_t To);
 size64_t kot_GetDescriptorCount();
 
 

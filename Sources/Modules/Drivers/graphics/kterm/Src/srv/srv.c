@@ -183,13 +183,19 @@ KResult Ioctlshell(kot_thread_t Callback, uint64_t CallbackArg, kot_term_t* Shel
     void* Arg = (void*)GP1;
     kot_process_t TargetDataProc = (kot_process_t)GP2;
     
-    KResult Status = KFAIL;
     int Result = 0;
-
     
     switch (Request){
         case TCGETS:
             SetArgData(&Shell->Terminos, sizeof(struct termios), Arg, TargetDataProc);
+            break;
+        case TCSETSW:
+            // TODO
+            GetArgData(&Shell->Terminos, sizeof(struct termios), Arg, TargetDataProc);
+            break;
+        case TCSETSF:
+            // TODO
+            GetArgData(&Shell->Terminos, sizeof(struct termios), Arg, TargetDataProc);
             break;
         case TCSETS:
             GetArgData(&Shell->Terminos, sizeof(struct termios), Arg, TargetDataProc);
@@ -200,16 +206,23 @@ KResult Ioctlshell(kot_thread_t Callback, uint64_t CallbackArg, kot_term_t* Shel
         case TIOCSWINSZ:
             GetArgData(&Shell->Winsize, sizeof(struct winsize), Arg, TargetDataProc);
             break;
+        case TIOCGPGRP:
+            SetArgData(&Shell->ForegroundPID, sizeof(pid_t), Arg, TargetDataProc);
+            break;
+        case TIOCSPGRP:
+            GetArgData(&Shell->ForegroundPID, sizeof(pid_t), Arg, TargetDataProc);
+            break;
         case TIOCGPTN:
             SetArgData(&Shell->TerminalID, sizeof(int), Arg, TargetDataProc);
             break;
-        default:
+        default:{
             Result = -EINVAL;
             break;
+        }
     }
     
     struct kot_arguments_t arguments;
-    arguments.arg[0] = Status;           /* Status */
+    arguments.arg[0] = KSUCCESS;         /* Status */
     arguments.arg[1] = CallbackArg;      /* CallbackArg */
     arguments.arg[2] = (uint64_t)Result; /* Result */
     arguments.arg[3] = NULL;             /* GP1 */

@@ -420,10 +420,28 @@ namespace mlibc{
     }
 
     int sys_fcntl(int fd, int request, va_list args, int *result_value){
-        // TODO
-        *result_value = 0;
-        infoLogger() << "mlibc: sys_fcntl unsupported request (" << request << ")" << frg::endlog;
-        return -1;
+        kot_descriptor_t* Descriptor = kot_GetDescriptor(fd);
+        
+        if(!Descriptor){
+            return EINVAL;
+        }
+
+        if(Descriptor->Type != KOT_DESCRIPTOR_TYPE_FILE){
+            return EINVAL;
+        }
+
+        kot_file_t* File = (kot_file_t*)Descriptor->Data;
+
+        switch(request){
+            case F_SETFD:
+                break;
+            default:
+                // TODO
+                *result_value = 0;
+                infoLogger() << "mlibc: sys_fcntl unsupported request (" << request << ")" << frg::endlog;
+                return EINVAL;
+        }
+        return 0;
     }
 
     int sys_getcwd(char *buffer, size_t size){
@@ -471,6 +489,16 @@ namespace mlibc{
         if (int e = sys_ioctl(fd, TCSETSF, (void *)attr, &result); e)
             return e;
 
+        return 0;
+    }
+
+    int sys_dup(int fd, int flags, int *newfd){
+        // TODO
+        *newfd = fd;
+        return 0;
+    }
+
+    int sys_pselect(int nfds, fd_set* readfds, fd_set* writefds, fd_set *exceptfds, const struct timespec* timeout, const sigset_t* sigmask, int *num_events){
         return 0;
     }
 }

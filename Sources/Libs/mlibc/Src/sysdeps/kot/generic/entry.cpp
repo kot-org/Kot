@@ -70,7 +70,7 @@ extern "C" void __mlibc_entry(uintptr_t *entry_stack, int (*main_fn)(int argc, c
 	if(!(Flags & EXEC_FLAGS_SHELL_DISABLED)){
 		kot_InitializeShell();
 	}
-	mlibc::infoLogger() << __mlibc_stack_data.argv[0] << frg::endlog;
+
 	auto result = main_fn(__mlibc_stack_data.argc, __mlibc_stack_data.argv, environ);
 	exit(result);
 }
