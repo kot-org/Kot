@@ -106,6 +106,7 @@ packages:
       - host-llvm
     pkgs_required:
       - mlibc
+      - libc++
     build:
       - args: ['make']
         workdir: '@THIS_SOURCE_DIR@/Build'
