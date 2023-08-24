@@ -1,0 +1,15 @@
+{
+    "tasks": [
+        {
+            "label": "Launch-qemu",
+            "command": "gnome-terminal",
+            "args": [
+                "--",
+                "sh",
+                "-c",
+                "bash -c \"cd ${workspaceFolder}/target && sudo make liamd/debug\""
+            ]
+        }
+    ],
+    "version": "2.0.0"
+}

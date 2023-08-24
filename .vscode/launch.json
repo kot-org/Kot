@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Remote attach",
+            "type": "lldb",
+            "request": "custom",
+            "preLaunchTask": "Launch-qemu",
+            "targetCreateCommands": [
+                "target create ${workspaceFolder}/sources/core/kernel/target/limine/amd64/bin/kernel.elf"
+            ],
+            "processCreateCommands": [
+                "settings set target.x86-disassembly-flavor intel",
+                "gdb-remote localhost:1234",
+                "c"
+            ]
+        },
+    ]
+}

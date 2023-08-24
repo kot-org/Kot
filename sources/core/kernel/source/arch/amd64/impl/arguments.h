@@ -1,0 +1,6 @@
+#ifndef _AMD64_IMPL_ARGUMENTS_H
+#define _AMD64_IMPL_ARGUMENTS_H
+
+#define MAX_ARGUMENTS_COUNT 6
+
+#endif
