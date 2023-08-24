@@ -15,7 +15,7 @@ volatile storage_handler_t* storage_handler = NULL;
 
 static module_flags_t modules_flags[MODULE_TYPE_COUNT];
 
-static const char* modules_cfg_path = "/modules.cfg";
+static const char* modules_cfg_path = "/system/starter/modules.cfg";
 
 void modules_init(void){
     kernel_file_t* file = open(modules_cfg_path, 0);

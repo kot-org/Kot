@@ -1196,6 +1196,7 @@ int get_directory_entries(fat_directory_internal_t* dir, uint64_t start, uint64_
 
     dirent_t* entry = (dirent_t*)buffer;
     dirent_t* last_entry = entry;
+    entry->d_off = 0;
 
     fat_short_entry_t* current_dir;
     while((current_dir = fat_read_entry_with_cache(dir->ctx, cluster_base, entry_index, cluster_buffer, &cluster_cache_id_count_from_base, &last_cluster_read)) != NULL && current_count < count){
@@ -1221,13 +1222,13 @@ int get_directory_entries(fat_directory_internal_t* dir, uint64_t start, uint64_
                 }
 
                 entry->d_ino = (ino_t)fat_get_cluster_entry(dir->ctx, current_dir);
-                entry->d_off = (off_t)sizeof(dirent_t);
+                last_entry->d_off = (off_t)entry_index;
                 entry->d_reclen = sizeof(dirent_t);
                 entry->d_type = current_dir->attributes.directory ? DT_DIR : DT_REG;
                 last_entry = entry;
 
                 current_count++;
-                entry = (dirent_t*)((off_t)entry + entry->d_off);
+                entry = (dirent_t*)((off_t)entry + entry->d_reclen);
             }
         }
         entry_index++;
@@ -1311,20 +1312,6 @@ int fat_mount(partition_t* partition){
     ctx->root_dir = calloc(1, sizeof(fat_short_entry_t));
     ctx->root_dir->attributes.directory = true;
     fat_set_cluster_entry(ctx->root_dir, ctx->bpb->root_cluster_number);
-
-    int err;
-    fat_directory_internal_t* dir = fat_open_dir(ctx, "", &err);
-
-    dirent_t* entries = malloc(10 * sizeof(dirent_t));
-    uint64_t read_entries_count = 0;
-
-    get_directory_entries(dir, 0, 10, entries, &read_entries_count);
-
-    dirent_t* entry = entries;
-    for(uint64_t i = 0; i < read_entries_count; i++){
-        log_printf("%s %d\n", entry->d_name, entry->d_type);
-        entry = (dirent_t*)((off_t)entry + entry->d_off);
-    }
 
     return 0;
 }

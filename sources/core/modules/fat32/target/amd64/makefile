@@ -6,7 +6,7 @@ override HOME = ../..
 # Project Resources
 SOURCE = $(HOME)/source
 KERNEL_SOURCE = $(HOME)/../../kernel/source
-BIN = bin
+BIN = bin/system/modules
 
 # Tools
 CC = clang-16

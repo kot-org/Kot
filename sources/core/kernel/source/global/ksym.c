@@ -13,7 +13,7 @@ void ksym_init(void){
 	assert(ksym_hashmap == NULL);
 	ksym_hashmap = hashmap_create(32);
 
-	void* file_ptr = initrd_get_file("/kernel.sym");
+	void* file_ptr = initrd_get_file("/system/kernel/kernel.sym");
 	assert(file_ptr);
 
 	ksym_list = initrd_get_file_base(file_ptr);
