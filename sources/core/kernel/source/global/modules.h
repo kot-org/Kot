@@ -11,11 +11,12 @@
 #define MODULE_TYPE_UNDEFINE        (0)
 #define MODULE_TYPE_VFS             (1)
 #define MODULE_TYPE_PCI             (2)
-#define MODULE_TYPE_STORAGE         (3)
+#define MODULE_TYPE_TIME            (3)
+#define MODULE_TYPE_STORAGE         (4)
 
-#define MODULE_TYPE_COUNT       (4)
+#define MODULE_TYPE_COUNT           (5)
 
-#define MODULE_FLAGS_LOADED     (1 << 0)
+#define MODULE_FLAGS_LOADED         (1 << 0)
 
 typedef uint8_t module_type_t;
 typedef uint8_t module_flags_t;

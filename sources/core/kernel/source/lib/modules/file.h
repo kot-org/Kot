@@ -3,7 +3,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
-
+#include <dirent.h>
+#include <sys/types.h>
 
 typedef struct kernel_file_t{
     size_t seek_position;
@@ -13,5 +14,13 @@ typedef struct kernel_file_t{
     size_t (*write)(void*, size_t, struct kernel_file_t*);
     int (*close)(struct kernel_file_t*);
 } kernel_file_t;
+
+typedef struct dirent_t{
+    ino_t d_ino;
+    off_t d_off;
+    uint16_t d_reclen;
+    char d_type;
+    char d_name[1024];
+} dirent_t;
 
 #endif // _MODULES_FILE_H

@@ -14,8 +14,12 @@ uint8_t get_current_hour(void){
     return time_handler->get_current_hour();
 }
 
-uint8_t get_current_day(void){
-    return time_handler->get_current_day();
+uint8_t get_current_month_day(void){
+    return time_handler->get_current_month_day();
+}
+
+uint8_t get_current_week_day(void){
+    return time_handler->get_current_week_day();
 }
 
 uint8_t get_current_month(void){

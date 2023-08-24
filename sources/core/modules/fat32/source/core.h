@@ -27,6 +27,8 @@
 #define WRITE_CLUSTER_CHAIN_FLAG_EOC    (1 << 0) // End of chain
 #define WRITE_CLUSTER_CHAIN_FLAG_FWZ    (1 << 1) // fill with zero : fill the last cluster with 0
 
+#define FAT32_SIGNATURE (((uint64_t)'F' << (0)) | ((uint64_t)'A' << (8)) | ((uint64_t)'T' << (16)) | ((uint64_t)'3' << (24)) | ((uint64_t)'2' << (32)) | ((uint64_t)' ' << (40)) | ((uint64_t)' ' << (48)) | ((uint64_t)' ' << (56)))
+
 
 typedef struct{
     uint8_t jump[3];
@@ -137,5 +139,11 @@ typedef struct{
     char* path;
     fat_context_t* ctx;
 } fat_file_internal_t;
+
+typedef struct{
+    fat_short_entry_t entry;
+    char* path;
+    fat_context_t* ctx;
+} fat_directory_internal_t;
 
 #endif // _MODULE_FAT32_CORE_H

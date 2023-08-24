@@ -1,7 +1,5 @@
 #include <core.h>
 
-#define FAT32_SIGNATURE (((uint64_t)'F' << (0)) | ((uint64_t)'A' << (8)) | ((uint64_t)'T' << (16)) | ((uint64_t)'3' << (24)) | ((uint64_t)'2' << (32)) | ((uint64_t)' ' << (40)) | ((uint64_t)' ' << (48)) | ((uint64_t)' ' << (56)))
-
 static uint64_t cluster_to_lba(fat_context_t* ctx, uint32_t cluster){
     return ctx->first_usable_lba + ctx->bpb->sectors_per_cluster * (cluster - 2);
 }
@@ -57,17 +55,17 @@ static inline void fat_set_cluster_entry(fat_short_entry_t* dir, uint32_t cluste
 
 static uint16_t fat_get_current_time(void){
     uint16_t time = 0;
-    time |= (get_current_day() & 0x1F);
-    time |= (get_current_month() & 0xF) << 5;
-    time |= ((get_current_year() - 1980) & 0x7F) << 9;
+    time |= (get_current_second() & 0x1F);
+    time |= (get_current_minute() & 0x3F) << 5;
+    time |= (get_current_hour() & 0x1F) << 11;
     return time;
 }
 
 static uint16_t fat_get_current_date(void){
     uint16_t date = 0;
-    date |= (get_current_second() & 0x1F);
-    date |= (get_current_minute() & 0x3F) << 5;
-    date |= (get_current_hour() & 0x1F) << 11;
+    date |= (get_current_month_day() & 0x1F);
+    date |= (get_current_month() & 0xF) << 5;
+    date |= ((get_current_year() - 1980) & 0x7F) << 9;
     return date;
 }
 
@@ -358,7 +356,7 @@ static uint8_t fat_get_lfn_check_sum(char* name){
 static bool fat_is_need_lfn(char* name, bool is_file){
     size_t name_len = strlen(name);
     if(is_file){
-        if(name_len > 8){
+        if(name_len > 9){ // 8 + 1 for the extension dot
             return true;
         }
     }else{
@@ -963,29 +961,30 @@ int fat_remove_file(fat_context_t* ctx, const char* path){
 fat_file_internal_t* fat_open(fat_context_t* ctx, const char* path, int flags, mode_t mode, int* error){
     void* cluster_buffer = malloc(ctx->cluster_size);
     
-    fat_short_entry_t* dir = fat_find_entry_with_path_from_root(ctx, path, cluster_buffer);
+    fat_short_entry_t* file_entry = fat_find_entry_with_path_from_root(ctx, path, cluster_buffer);
 
-    if(dir == NULL){
+    if(file_entry == NULL){
         if(flags & O_CREAT){
             if((*error = fat_create_file(ctx, path, cluster_buffer))){
                 free(cluster_buffer);
                 return NULL;
             }
-            dir = fat_find_entry_with_path_from_root(ctx, path, cluster_buffer);
-            assert(dir != NULL);
+            file_entry = fat_find_entry_with_path_from_root(ctx, path, cluster_buffer);
+            assert(file_entry != NULL);
         }else{
             *error = ENOENT;
             return NULL;
         }
     }
 
-    if(dir->attributes.directory){
+    if(file_entry->attributes.directory){
+        *error = ENOENT;
         free(cluster_buffer);
         return NULL;
     }
 
     fat_file_internal_t* file = malloc(sizeof(fat_file_internal_t));
-    memcpy(&file->entry, dir, sizeof(fat_short_entry_t));
+    memcpy(&file->entry, file_entry, sizeof(fat_short_entry_t));
 
     size_t path_size = strlen(path) + 1;
     file->path = malloc(path_size);
@@ -1143,6 +1142,115 @@ int fat_remove_dir(fat_context_t* ctx, const char* path){
     return err;
 }
 
+fat_directory_internal_t* fat_open_dir(fat_context_t* ctx, const char* path, int* error){
+    void* cluster_buffer = malloc(ctx->cluster_size);
+    
+    fat_short_entry_t* dir_entry;
+    if(path[0] == '\0'){
+        /* root directory */
+        dir_entry = ctx->root_dir;
+    }else{
+        dir_entry = fat_find_entry_with_path_from_root(ctx, path, cluster_buffer);
+    }
+
+    if(dir_entry == NULL){
+        *error = ENOENT;
+        return NULL;
+    }
+
+    if(!dir_entry->attributes.directory){
+        *error = ENOENT;
+        free(cluster_buffer);
+        return NULL;
+    }
+
+    fat_directory_internal_t* dir = malloc(sizeof(fat_directory_internal_t));
+    memcpy(&dir->entry, dir_entry, sizeof(fat_short_entry_t));
+
+    size_t path_size = strlen(path) + 1;
+    dir->path = malloc(path_size);
+    memcpy(dir->path, path, path_size);
+
+    dir->ctx = ctx;
+
+    free(cluster_buffer);
+
+    return dir; 
+}
+
+int get_directory_entries(fat_directory_internal_t* dir, uint64_t start, uint64_t count, dirent_t** entries, uint64_t* read_entries_count){
+    *entries = NULL;
+    *read_entries_count = 0;
+
+    uint32_t cluster_cache_id_count_from_base = 0;
+    uint32_t last_cluster_read = 0;
+
+    uint32_t entry_index = (uint32_t)start;
+
+    uint64_t current_count = 0;
+
+    bool is_last_entry_lfn = false;
+
+    void* cluster_buffer = malloc(dir->ctx->cluster_size);
+
+    uint32_t cluster_base = fat_get_cluster_entry(dir->ctx, &dir->entry);
+
+    dirent_t* entry = NULL;
+    dirent_t* last_entry = NULL;
+
+    fat_short_entry_t* current_dir;
+    while((current_dir = fat_read_entry_with_cache(dir->ctx, cluster_base, entry_index, cluster_buffer, &cluster_cache_id_count_from_base, &last_cluster_read)) != NULL && current_count < count){
+        if(entry == NULL){
+            entry = malloc(sizeof(dirent_t));
+        }
+        
+        if(fat_entry_valid(current_dir)){
+            if(fat_is_lfn(current_dir)){
+                fat_long_entry_name_t* lfn = (fat_long_entry_name_t*)current_dir;
+                uint8_t order = lfn->order & ~0x40;
+
+                for(uint8_t y = 0; y < order; y++){
+                    lfn = (fat_long_entry_name_t*)fat_read_entry_with_cache(dir->ctx, cluster_base, entry_index + y, cluster_buffer, &cluster_cache_id_count_from_base, &last_cluster_read);
+                    fat_parse_lfn(&entry->d_name[LFN_NAME_SIZE * (order - 1 - y)], lfn);
+                }
+
+                entry_index += order - 1;
+
+                is_last_entry_lfn = true;
+            }else{
+                if(!is_last_entry_lfn){
+                    fat_parse_sfn(entry->d_name, current_dir);
+                }else{
+                    is_last_entry_lfn = false;
+                }
+
+                current_count++;
+
+                entry->d_ino = 0;
+                if(last_entry != NULL){
+                    entry->d_off = (off_t)((intptr_t)last_entry - (intptr_t)entry);
+                }else{
+                    entry->d_off = 0;
+                }
+                entry->d_reclen = sizeof(dirent_t);
+                entry->d_type = current_dir->attributes.directory ? DT_DIR : DT_REG;
+                *entries = entry;
+
+                last_entry = entry;
+                entry = NULL;
+            }
+        }
+        entry_index++;
+    }
+
+
+    free(cluster_buffer);
+
+    *read_entries_count = current_count;
+
+    return 0;
+}
+
 
 /* directory and file */
 
@@ -1212,31 +1320,19 @@ int fat_mount(partition_t* partition){
     ctx->root_dir->attributes.directory = true;
     fat_set_cluster_entry(ctx->root_dir, ctx->bpb->root_cluster_number);
 
-    fat_create_dir(ctx, "heyiamdir");
-    int error;
-    fat_file_internal_t* file = fat_open(ctx, "heyiamdir/./hello_world0.txt", O_CREAT, 0, &error);
-    assert(file != NULL);
-    char* buffer = "hello world !!";
-    size_t size = strlen(buffer);
-    size_t size_tmp = 0;
-    for(int i = 0; i < 37; i++){
-        size_t size_tmp = 0;
-        fat_write(file, i * size, size, &size_tmp, buffer, true);
+    int err;
+    fat_directory_internal_t* dir = fat_open_dir(ctx, "", &err);
+
+    dirent_t* entries;
+    uint64_t read_entries_count = 0;
+
+    get_directory_entries(dir, 0, -1, &entries, &read_entries_count);
+
+    dirent_t* entry = entries;
+    for(uint64_t i = 0; i < read_entries_count; i++){
+        log_printf("%s %d %d\n", entry->d_name, entry->d_type);
+        entry = (dirent_t*)((off_t)entry + entry->d_off);
     }
-
-    fat_create_dir(ctx, "test0");
-    fat_create_dir(ctx, "test1");
-    // fat_create_dir(ctx, "test2");
-    fat_create_dir(ctx, "test3");
-    fat_create_dir(ctx, "test4");
-    fat_create_dir(ctx, "test5");
-    fat_remove_dir(ctx, "test0");
-    // fat_remove_dir(ctx, "heyiamdir");
-
-    fat_remove_file(ctx, "pci0.ksys");
-
-    // assert(!fat_rename(ctx, "pci.ksys", "heyiamdir/pci.ksys"));
-    assert(!fat_rename(ctx, "limine", "heyiamdir/testmove"));
 
     return 0;
 }

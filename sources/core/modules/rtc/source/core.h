@@ -1,0 +1,32 @@
+#ifndef _MODULE_RTC_CORE_H
+#define _MODULE_RTC_CORE_H
+
+#include <arch/include.h>
+#include ARCH_INCLUDE(asm.h)
+
+#define CMOS_ADDR       0x70
+#define CMOS_DATA       0x71
+
+#define RTC_SECOND      0x0
+#define RTC_MINUTE      0x2
+#define RTC_HOUR        0x4
+#define RTC_DOW         0x6 // day of week
+#define RTC_DOM         0x7 // day of month
+#define RTC_MONTH       0x8
+#define RTC_YEAR        0x9
+#define RTC_CENTURY     0x32
+
+#define RTC_REGA        0xA
+
+#define RTC_YEAR_BASE   2000
+
+
+uint8_t rtc_get_second(void);
+uint8_t rtc_get_minute(void);
+uint8_t rtc_get_hour(void);
+uint8_t rtc_get_day_of_week(void);
+uint8_t rtc_get_day_of_month(void);
+uint8_t rtc_get_month(void);
+uint16_t rtc_get_year(void);
+
+#endif // _MODULE_RTC_CORE_H
