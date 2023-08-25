@@ -309,7 +309,7 @@ kernel_dir_t* dir_open(vfs_ctx_t* ctx, const char* path, int* error){
 }
 
 /* file and directory */
-int rename(vfs_ctx_t* ctx, const char* old_path, const char* new_path){
+int vfs_rename(vfs_ctx_t* ctx, const char* old_path, const char* new_path){
     char old_fs_relative_path[VFS_MAX_PATH_SIZE];
     fs_t* old_fs;
 
@@ -336,7 +336,7 @@ int rename(vfs_ctx_t* ctx, const char* old_path, const char* new_path){
 }
 
 /* file and directory */
-int link(vfs_ctx_t* ctx, const char* src_path, const char* dst_path){
+int vfs_link(vfs_ctx_t* ctx, const char* src_path, const char* dst_path){
     char src_fs_relative_path[VFS_MAX_PATH_SIZE];
     fs_t* src_fs;
 
@@ -362,6 +362,6 @@ int link(vfs_ctx_t* ctx, const char* src_path, const char* dst_path){
     return src_fs->rename(src_fs, src_fs_relative_path, dst_fs_relative_path);
 }
 
-int unlink_at(vfs_ctx_t* ctx, kernel_dir_t* parent_dir, const char* path, mode_t mode){
+int vfs_unlink_at(vfs_ctx_t* ctx, kernel_dir_t* parent_dir, const char* path, mode_t mode){
     return parent_dir->fs_ctx->unlink_at(parent_dir->fs_ctx, parent_dir, path, mode);
 }

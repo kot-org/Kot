@@ -1,5 +1,5 @@
-#ifndef _LOCK_H
-#define _LOCK_H 1
+#ifndef LIB_LOCK_H
+#define LIB_LOCK_H 1
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -22,4 +22,4 @@ static inline void spinlock_release(spinlock_t *lock) {
     __atomic_store_n(&lock->lock, 0, __ATOMIC_SEQ_CST);
 }
 
-#endif // _LOCK_H
+#endif // LIB_LOCK_H

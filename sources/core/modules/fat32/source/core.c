@@ -69,6 +69,18 @@ static uint16_t fat_get_current_date(void){
     return date;
 }
 
+static void fat_get_entry_date(struct tm* timeinfo, uint16_t date){
+    timeinfo->tm_mday = date & 0x1F;
+    timeinfo->tm_mon = (date >> 5) & 0xF;
+    timeinfo->tm_year = ((date >> 9) & 0x7F) + FAT32_YEAR_BASE - TM_YEAR_BASE;
+}
+
+static void fat_get_entry_time(struct tm* timeinfo, uint16_t time){
+    timeinfo->tm_sec = time & 0x1F;
+    timeinfo->tm_min = (time >> 5) & 0x3F;
+    timeinfo->tm_hour = ((time >> 11) & 0x1F);
+}
+
 
 static int fat_read_boot_sector(fat_context_t* ctx){
     return read_partition(ctx->partition, 0, sizeof(bpb_t), ctx->bpb);
@@ -1264,18 +1276,69 @@ static inline char* fat_interface_convert_path(char* str){
     }
 }
 
-int fat_interface_file_remove(struct fs_t* ctx, const char* path){
+int fat_interface_file_remove(fs_t* ctx, const char* path){
     return fat_remove_file((fat_context_t*)ctx->internal_data, fat_interface_convert_path((char*)path));
 }
 
-int fat_interface_file_read(void* buffer, size_t size, size_t* size_read, struct kernel_file_t* file){
+int fat_interface_file_read(void* buffer, size_t size, size_t* size_read, kernel_file_t* file){
     fat_file_internal_t* fat_file = file->internal_data;
     return fat_file_read(fat_file, file->seek_position, size, size_read, buffer);
 }
 
-int fat_interface_file_write(void* buffer, size_t size, size_t* size_write, struct kernel_file_t* file){
+int fat_interface_file_write(void* buffer, size_t size, size_t* size_write, kernel_file_t* file){
     fat_file_internal_t* fat_file = file->internal_data;
     return fat_file_write(fat_file, file->seek_position, size, size_write, buffer, true);
+}
+
+int fat_interface_file_seek(off_t offset, int whence, off_t* new_offset, kernel_file_t* file){
+    fat_file_internal_t* fat_file = file->internal_data;
+    switch(whence){
+        case SEEK_SET:{
+            file->seek_position = offset;
+            *new_offset = file->seek_position;
+            return 0;
+        }
+        case SEEK_CUR:{
+            file->seek_position += offset;
+            *new_offset = file->seek_position;
+            return 0;
+        }
+        case SEEK_END:{
+            file->seek_position = fat_file->entry.size;
+            *new_offset = file->seek_position;
+            return 0;
+        }
+    }
+    *new_offset = 0;
+    return EINVAL;
+}
+
+int fat_interface_file_ioctl(uint32_t request, void* arg, int* result, kernel_file_t* file){
+    return ENOTTY;
+}
+
+int fat_interface_file_stat(int flags, struct stat* statbuf, kernel_file_t* file){
+    fat_file_internal_t* fat_file = file->internal_data;
+    memset(statbuf, 0, sizeof(struct stat));
+    statbuf->st_size = fat_file->entry.size;
+    statbuf->st_blocks = DIV_ROUNDUP(statbuf->st_size, 512);
+    statbuf->st_blksize = 512;
+
+    struct tm time_info;
+
+    fat_get_entry_time(&time_info, 0);
+    fat_get_entry_date(&time_info, fat_file->entry.last_access_date);
+    statbuf->st_atime = mktime(&time_info);
+
+    fat_get_entry_time(&time_info, fat_file->entry.last_write_time);
+    fat_get_entry_date(&time_info, fat_file->entry.last_write_date);
+    statbuf->st_mtime = mktime(&time_info);
+
+    fat_get_entry_time(&time_info, fat_file->entry.creation_time);
+    fat_get_entry_date(&time_info, fat_file->entry.creation_date);
+    statbuf->st_ctime = mktime(&time_info);
+
+    return 0;
 }
 
 int fat_interface_file_close(struct kernel_file_t* file){
@@ -1291,11 +1354,14 @@ struct kernel_file_t* fat_interface_file_open(struct fs_t* ctx, const char* path
         return NULL;
     }
     kernel_file_t* file = malloc(sizeof(kernel_file_t));
-    file->size = fat_file->entry.size;
+    file->file_size_initial = fat_file->entry.size;
     file->fs_ctx = ctx;
     file->internal_data = fat_file;
     file->read = &fat_interface_file_read;
     file->write = &fat_interface_file_write;
+    file->seek = &fat_interface_file_seek;
+    file->ioctl = &fat_interface_file_ioctl;
+    file->stat = &fat_interface_file_stat;
     file->close = &fat_interface_file_close;
 
     return file;

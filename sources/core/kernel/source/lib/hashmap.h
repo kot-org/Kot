@@ -1,5 +1,5 @@
-#ifndef _HASHMAP_H
-#define _HASHMAP_H 1
+#ifndef LIB_HASHMAP_H
+#define LIB_HASHMAP_H 1
 
 #include <stddef.h>
 
@@ -22,4 +22,4 @@ void* hashmap_get_key_with_key(hashmap_t* map, const void* key);
 uint64_t hashmap_get_start(hashmap_t* map);
 
 uint64_t hashmap_get_end(hashmap_t* map);
-#endif // _HASHMAP_H
+#endif // LIB_HASHMAP_H

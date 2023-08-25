@@ -27,8 +27,8 @@ int dir_create(vfs_ctx_t* ctx, const char* path, mode_t mode);
 int dir_create_at(vfs_ctx_t* ctx, kernel_dir_t* parent_dir, const char* path, mode_t mode);
 int dir_remove(vfs_ctx_t* ctx, const char* path);
 kernel_dir_t* dir_open(vfs_ctx_t* ctx, const char* path, int* error);
-int rename(vfs_ctx_t* ctx, const char* old_path, const char* new_path);
-int link(vfs_ctx_t* ctx, const char* src_path, const char* dst_path);
-int unlink_at(vfs_ctx_t* ctx, kernel_dir_t* parent_dir, const char* path, mode_t mode);
+int vfs_rename(vfs_ctx_t* ctx, const char* old_path, const char* new_path);
+int vfs_link(vfs_ctx_t* ctx, const char* src_path, const char* dst_path);
+int vfs_unlink_at(vfs_ctx_t* ctx, kernel_dir_t* parent_dir, const char* path, mode_t mode);
 
 #endif // _MODULE_VFS_CORE_H

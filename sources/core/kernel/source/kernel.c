@@ -4,6 +4,7 @@
 #include <global/pmm.h>
 #include <lib/assert.h>
 #include <global/dir.h>
+#include <global/file.h>
 #include <impl/serial.h>
 #include <impl/memory.h>
 #include <global/heap.h>
@@ -70,6 +71,12 @@ void kernel_entry(void) {
             entry = (dirent_t*)((off_t)entry + entry->d_reclen);
         }
     }
+
+    kernel_file_t* file = f_open(NULL, "/sda/system/kernel/kernel.elf", 0, 0, &err);
+    assert(file);
+    struct stat statbuf = {};
+    assert(!f_stat(0, &statbuf, file));
+    log_printf("%d\n", statbuf.st_mtime);
 
     arch_idle();
 }

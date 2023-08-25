@@ -1,5 +1,5 @@
-#ifndef _MODULES_TIME_H
-#define _MODULES_TIME_H 1
+#ifndef LIB_MODULES_TIME_H
+#define LIB_MODULES_TIME_H 1
 
 #include <impl/time.h>
 #include <lib/modules/file.h>
@@ -20,4 +20,4 @@ typedef struct{
     ms_t (*get_current_ms)(void);
 } time_handler_t;
 
-#endif // _MODULES_TIME_H
+#endif // LIB_MODULES_TIME_H

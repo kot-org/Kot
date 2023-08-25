@@ -1,5 +1,5 @@
-#ifndef _MODULES_PCI_H
-#define _MODULES_PCI_H 1
+#ifndef LIB_MODULES_PCI_H
+#define LIB_MODULES_PCI_H 1
 
 #include <lib/modules/file.h>
 
@@ -40,4 +40,4 @@ typedef struct{
     int (*config_write_word)(pci_device_id_t, uint16_t, uint16_t); // arg 0: id | arg1: offset | arg2: value | return result
 } pci_handler_t;
 
-#endif // _MODULES_PCI_H
+#endif // LIB_MODULES_PCI_H

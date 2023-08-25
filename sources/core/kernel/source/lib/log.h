@@ -1,5 +1,5 @@
-#ifndef _LOG_H
-#define _LOG_H 1
+#ifndef LIB_LOG_H
+#define LIB_LOG_H 1
 
 #include <stdarg.h>
 
@@ -31,4 +31,4 @@ static inline void log_info(const char *fmt, ...) {
     va_end(args);
 }
 
-#endif // _LOG_H
+#endif // LIB_LOG_H

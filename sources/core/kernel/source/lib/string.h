@@ -1,5 +1,5 @@
-#ifndef _STRING_H
-#define _STRING_H 1
+#ifndef LIB_STRING_H
+#define LIB_STRING_H 1
 
 #include <stddef.h>
 
@@ -139,4 +139,4 @@ static inline char* strncpy(char* destination, const char* source, size_t num){
     return ptr;
 }
 
-#endif // _STRING_H
+#endif // LIB_STRING_H

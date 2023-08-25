@@ -1,5 +1,5 @@
-#ifndef _MODULES_STORAGE_H
-#define _MODULES_STORAGE_H 1
+#ifndef LIB_MODULES_STORAGE_H
+#define LIB_MODULES_STORAGE_H 1
 
 #include <stdint.h>
 #include <stddef.h>
@@ -26,4 +26,4 @@ typedef struct storage_handler_t{
     int (*remove_potential_owner)(storage_potential_owner_t*);
 } storage_handler_t;
 
-#endif // _MODULES_VFS_H
+#endif // LIB_MODULES_VFS_H

@@ -96,6 +96,10 @@
         "stddef.h": "c",
         "cstring": "c",
         "core.h": "c",
-        "dir.h": "c"
+        "dir.h": "c",
+        "struct_tm.h": "c",
+        "dirent.h": "c",
+        "guid.h": "c",
+        "random": "c"
     }
 }

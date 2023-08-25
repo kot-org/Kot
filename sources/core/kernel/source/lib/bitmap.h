@@ -1,5 +1,5 @@
-#ifndef _BITMAP_H
-#define _BITMAP_H 1
+#ifndef LIB_BITMAP_H
+#define LIB_BITMAP_H 1
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -37,4 +37,4 @@ static bool bitmap_get_set_bit(bitmap_t bitmap, uint64_t index, bool value) {
     return current_value;
 }
 
-#endif // _BITMAP_H
+#endif // LIB_BITMAP_H

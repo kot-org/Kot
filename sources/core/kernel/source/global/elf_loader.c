@@ -56,8 +56,8 @@ int load_elf_module(module_metadata_t** metadata, int argc, char* args[]){
 
     spinlock_acquire(&load_elf_module_lock);
 
-    void* module_address = vmm_get_free_contiguous(file->size);
-    f_read(module_address, file->size, &bytes_read, file);
+    void* module_address = vmm_get_free_contiguous(file->file_size_initial);
+    f_read(module_address, file->file_size_initial, &bytes_read, file);
 
     for(elf64_half i = 0; i < header.e_shnum; i++){
         struct elf64_shdr* section_header = (struct elf64_shdr*)(module_address + header.e_shoff + header.e_shentsize * i);

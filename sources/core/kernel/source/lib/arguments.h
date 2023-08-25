@@ -1,5 +1,5 @@
-#ifndef _ARGUMENTS_H
-#define _ARGUMENTS_H 1
+#ifndef LIB_ARGUMENTS_H
+#define LIB_ARGUMENTS_H 1
 
 
 #include <arch/include.h>

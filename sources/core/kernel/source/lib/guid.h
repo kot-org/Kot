@@ -1,5 +1,5 @@
-#ifndef _GUID_H
-#define _GUID_H 1
+#ifndef LIB_GUID_H
+#define LIB_GUID_H 1
 
 #include <stdint.h>
 
@@ -13,4 +13,4 @@ typedef struct{
     uint8_t data4[6];
 }__attribute__((packed)) guid_t;
 
-#endif // _GUID_H
+#endif // LIB_GUID_H

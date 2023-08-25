@@ -1,5 +1,5 @@
-#ifndef _VECTOR_H
-#define _VECTOR_H 1
+#ifndef LIB_VECTOR_H
+#define LIB_VECTOR_H 1
 
 #include <stdint.h>
 
@@ -18,4 +18,4 @@ void* vector_get(vector_t* vector, uint64_t index);
 void vector_clear(vector_t* vector);
 vector_t* vector_clone(vector_t* vector);
 
-#endif
+#endif // LIB_VECTOR_H

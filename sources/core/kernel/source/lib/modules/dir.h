@@ -1,5 +1,5 @@
-#ifndef _MODULES_DIR_H
-#define _MODULES_DIR_H 1
+#ifndef LIB_MODULES_DIR_H
+#define LIB_MODULES_DIR_H 1
 
 struct kernel_dir_t;
 
@@ -24,4 +24,4 @@ typedef struct dirent_t{
     char d_name[1024];
 } dirent_t;
 
-#endif // _MODULES_DIR_H
+#endif // LIB_MODULES_DIR_H

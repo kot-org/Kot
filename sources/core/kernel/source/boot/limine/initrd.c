@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <stddef.h>
 #include <lib/log.h>
+#include <lib/math.h>
 #include <sys/types.h>
 #include <lib/string.h>
 #include <lib/memory.h>
@@ -86,6 +87,40 @@ int initrd_write(void* buffer, size_t size, size_t* bytes_write, kernel_file_t* 
     return ENOSYS;
 }
 
+int initrd_seek(off_t offset, int whence, off_t* new_offset, kernel_file_t* file){
+    switch(whence){
+        case SEEK_SET:{
+            file->seek_position = offset;
+            *new_offset = file->seek_position;
+            return 0;
+        }
+        case SEEK_CUR:{
+            file->seek_position += offset;
+            *new_offset = file->seek_position;
+            return 0;
+        }
+        case SEEK_END:{
+            file->seek_position = initrd_get_file_size(file->internal_data);
+            *new_offset = file->seek_position;
+            return 0;
+        }
+    }
+    *new_offset = 0;
+    return EINVAL;
+}
+
+int initrd_ioctl(uint32_t request, void* arg, int* result, kernel_file_t* file){
+    return ENOTTY;
+}
+
+int initrd_stat(int flags, struct stat* statbuf, kernel_file_t* file){
+    memset(statbuf, 0, sizeof(struct stat));
+    statbuf->st_size = initrd_get_file_size(file->internal_data);
+    statbuf->st_blocks = DIV_ROUNDUP(statbuf->st_size, 512);
+    statbuf->st_blksize = 512;
+    return 0;
+}
+
 int initrd_close(kernel_file_t* file){
     return 0;
 }
@@ -94,11 +129,14 @@ kernel_file_t* initrd_open(fs_t* ctx, const char* path, int flags, mode_t mode, 
     void* file_ptr = initrd_get_file(path);
     if(file_ptr != NULL){
         kernel_file_t* file = (kernel_file_t*)malloc(sizeof(kernel_file_t));
-        file->size = initrd_get_file_size(file_ptr);
+        file->file_size_initial = initrd_get_file_size(file_ptr);
         file->seek_position = 0;
         file->internal_data = file_ptr;
         file->read = &initrd_read;
         file->write = &initrd_write;
+        file->seek = &initrd_seek;
+        file->ioctl = &initrd_ioctl;
+        file->stat = &initrd_stat;
         file->close = &initrd_close;
         return file;
     }else{

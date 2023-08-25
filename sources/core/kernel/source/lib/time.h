@@ -1,6 +1,11 @@
-#ifndef _TIME_H
-#define _TIME_H 1
+#ifndef LIB_TIME_H
+#define LIB_TIME_H 1
 
+#include <time.h>
 #include <global/time.h>
 
-#endif // _TIME_H
+#define TM_YEAR_BASE 1900
+
+time_t mktime(struct tm* timeinfo);
+
+#endif // LIB_TIME_H

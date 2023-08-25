@@ -1,5 +1,5 @@
-#ifndef _MATH_H
-#define _MATH_H 1
+#ifndef LIB_MATH_H
+#define LIB_MATH_H 1
 
 #define MIN(A, B) ({ \
     __auto_type MIN_a = A; \
@@ -33,4 +33,4 @@
 
 #define SIZEOF_ARRAY(ARRAY) (sizeof(ARRAY) / sizeof(ARRAY[0]))
 
-#endif // _MATH_H
+#endif // LIB_MATH_H

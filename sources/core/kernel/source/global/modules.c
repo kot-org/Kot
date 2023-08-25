@@ -22,9 +22,9 @@ void modules_init(void){
     int err = 0;
     kernel_file_t* file = f_open(KERNEL_VFS_CTX, modules_cfg_path, 0, 0, &err);
     if(file != NULL){
-        void* buffer = malloc(file->size);
+        void* buffer = malloc(file->file_size_initial);
         size_t bytes_read;
-        f_read(buffer, file->size, &bytes_read, file);
+        f_read(buffer, file->file_size_initial, &bytes_read, file);
         char* line = (char*)buffer;
         while(line != NULL){
             char* data = strchr(line, '=') + sizeof(char);

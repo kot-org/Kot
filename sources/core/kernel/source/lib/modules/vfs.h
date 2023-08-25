@@ -1,5 +1,5 @@
-#ifndef _MODULES_VFS_H
-#define _MODULES_VFS_H 1
+#ifndef LIB_MODULES_VFS_H
+#define LIB_MODULES_VFS_H 1
 
 #include <stdbool.h>
 #include <lib/modules/dir.h>
@@ -74,4 +74,4 @@ typedef struct{
     int (*free_friendly_fs_mount_name)(const char* fs_mount_name);
 } vfs_handler_t;
 
-#endif // _MODULES_VFS_H
+#endif // LIB_MODULES_VFS_H
