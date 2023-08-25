@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <stddef.h>
+#include <lib/log.h>
 #include <sys/types.h>
 #include <lib/string.h>
 #include <lib/memory.h>
@@ -63,7 +64,7 @@ ssize_t initrd_get_file_size(void* file_ptr){
     return -EINVAL;
 }
 
-size_t initrd_read(void* buffer, size_t size, kernel_file_t* file){
+int initrd_read(void* buffer, size_t size, size_t* bytes_read, kernel_file_t* file){
     if(file == NULL){
         return 0;
     }
@@ -75,18 +76,21 @@ size_t initrd_read(void* buffer, size_t size, kernel_file_t* file){
 
     memcpy(buffer, initrd_get_file_base(file->internal_data) + file->seek_position, size);
 
-    return size;
+    *bytes_read = size;
+
+    return 0;
 }
 
-size_t initrd_write(void* buffer, size_t size, kernel_file_t* file){
-    return 0;
+int initrd_write(void* buffer, size_t size, size_t* bytes_write, kernel_file_t* file){
+    *bytes_write = 0;
+    return ENOSYS;
 }
 
 int initrd_close(kernel_file_t* file){
     return 0;
 }
 
-kernel_file_t* initrd_open(const char* path, int flags){
+kernel_file_t* initrd_open(fs_t* ctx, const char* path, int flags, mode_t mode, int* error){
     void* file_ptr = initrd_get_file(path);
     if(file_ptr != NULL){
         kernel_file_t* file = (kernel_file_t*)malloc(sizeof(kernel_file_t));
@@ -102,7 +106,11 @@ kernel_file_t* initrd_open(const char* path, int flags){
     }
 }
 
+kernel_file_t* early_vfs_initrd_open(vfs_ctx_t* ctx, const char* path, int flags, mode_t mode, int* error){
+    return initrd_open(NULL, path + sizeof("/initrd") - 1, flags, mode, error);
+}
+
 void initrd_init(void) {
-    early_vfs_handler.open = &initrd_open;
+    early_vfs_handler.file_open = &early_vfs_initrd_open;
     vfs_handler = &early_vfs_handler;
 }

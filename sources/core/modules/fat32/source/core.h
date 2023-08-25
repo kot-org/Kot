@@ -8,6 +8,7 @@
 #include <lib/time.h>
 #include <lib/memory.h>
 #include <lib/string.h>
+#include <global/vfs.h>
 
 #define ENTRY_SIZE                  (32)
 
@@ -27,8 +28,8 @@
 #define WRITE_CLUSTER_CHAIN_FLAG_EOC    (1 << 0) // End of chain
 #define WRITE_CLUSTER_CHAIN_FLAG_FWZ    (1 << 1) // fill with zero : fill the last cluster with 0
 
+#define FAT32_YEAR_BASE 1980
 #define FAT32_SIGNATURE (((uint64_t)'F' << (0)) | ((uint64_t)'A' << (8)) | ((uint64_t)'T' << (16)) | ((uint64_t)'3' << (24)) | ((uint64_t)'2' << (32)) | ((uint64_t)' ' << (40)) | ((uint64_t)' ' << (48)) | ((uint64_t)' ' << (56)))
-
 
 typedef struct{
     uint8_t jump[3];

@@ -4,9 +4,34 @@
 #define MODULE_NAME "vfs"
 
 #include <core.c>
+#include <initrd.c>
+
+static vfs_handler_t vfs_handler_buffer;
 
 int init(int argc, char* args[]){
     log_printf("[module/"MODULE_NAME"] loading start\n");
+
+    init_vfs();
+
+    init_vfs_initrd();
+    
+    vfs_handler_buffer.file_remove = &file_remove;
+    vfs_handler_buffer.file_open = &file_open;
+    vfs_handler_buffer.dir_create = &dir_create;
+    vfs_handler_buffer.dir_create_at = &dir_create_at;
+    vfs_handler_buffer.dir_remove = &dir_remove;
+    vfs_handler_buffer.dir_open = &dir_open;
+    vfs_handler_buffer.rename = &rename;
+    vfs_handler_buffer.link = &link;
+    vfs_handler_buffer.unlink_at = &unlink_at;
+
+    vfs_handler_buffer.mount_fs = &mount_fs;
+    vfs_handler_buffer.unmount_fs = &unmount_fs;
+
+    vfs_handler_buffer.request_friendly_fs_mount_name = &request_friendly_fs_mount_name;
+    vfs_handler_buffer.free_friendly_fs_mount_name = &free_friendly_fs_mount_name;
+
+    vfs_handler = &vfs_handler_buffer;
 
 
     log_printf("[module/"MODULE_NAME"] loading end\n");  

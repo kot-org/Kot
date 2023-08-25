@@ -91,4 +91,52 @@ static inline char to_upper(char c){
     return c;
 }
 
+static inline char* strcat(char* destination, const char* source){
+    char* ptr = destination + strlen(destination);
+ 
+    while(*source != '\0'){
+        *ptr++ = *source++;
+    }
+
+    *ptr = '\0';
+
+    return destination;
+}
+
+static inline char* strcpy(char* destination, const char* source){
+    if(destination == NULL){
+        return NULL;
+    }
+ 
+    char *ptr = destination;
+ 
+    while(*source != '\0'){
+        *destination = *source;
+        destination++;
+        source++;
+    }
+ 
+    *destination = '\0';
+ 
+    return ptr;
+}
+
+static inline char* strncpy(char* destination, const char* source, size_t num){
+    if(destination == NULL){
+        return NULL;
+    }
+ 
+    char* ptr = destination;
+ 
+    while(*source && num--){
+        *destination = *source;
+        destination++;
+        source++;
+    }
+ 
+    *destination = '\0';
+ 
+    return ptr;
+}
+
 #endif // _STRING_H

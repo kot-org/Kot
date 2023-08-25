@@ -2,6 +2,8 @@
 #include <impl/boot.h>
 #include <impl/arch.h>
 #include <global/pmm.h>
+#include <lib/assert.h>
+#include <global/dir.h>
 #include <impl/serial.h>
 #include <impl/memory.h>
 #include <global/heap.h>
@@ -48,5 +50,26 @@ void kernel_entry(void) {
     time_init();
 
     modules_init();
+
+    int err;
+    kernel_dir_t* dir = d_open(NULL, "/sda/", &err);
+    assert(dir);
+
+    dirent_t* entries = malloc(20 * sizeof(dirent_t));
+    uint64_t read_entries_count = 0;
+
+    while(true){
+        d_get_entries(entries, 20 * sizeof(dirent_t), &read_entries_count, dir);
+        if(read_entries_count == 0){
+            break;
+        }
+
+        dirent_t* entry = entries;
+        for(uint64_t i = 0; i < read_entries_count / sizeof(dirent_t); i++){
+            log_printf("%s\n", entry->d_name);
+            entry = (dirent_t*)((off_t)entry + entry->d_reclen);
+        }
+    }
+
     arch_idle();
 }

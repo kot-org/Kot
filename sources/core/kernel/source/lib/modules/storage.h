@@ -11,6 +11,7 @@ typedef struct storage_device_t{
     uint64_t storage_size;
     void* internal_data;
     void* external_data; // reserved for storage handler
+    bool is_removable;
 } storage_device_t;
 
 typedef struct {

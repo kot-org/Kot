@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <stddef.h>
 #include <lib/log.h>
+#include <global/vfs.h>
 #include <lib/string.h>
 #include <impl/panic.h>
 #include <global/heap.h>
@@ -15,13 +16,15 @@ volatile storage_handler_t* storage_handler = NULL;
 
 static module_flags_t modules_flags[MODULE_TYPE_COUNT];
 
-static const char* modules_cfg_path = "/system/starter/modules.cfg";
+static const char* modules_cfg_path = "/initrd/system/starter/modules.cfg";
 
 void modules_init(void){
-    kernel_file_t* file = open(modules_cfg_path, 0);
+    int err = 0;
+    kernel_file_t* file = f_open(KERNEL_VFS_CTX, modules_cfg_path, 0, 0, &err);
     if(file != NULL){
         void* buffer = malloc(file->size);
-        file->read(buffer, file->size, file);
+        size_t bytes_read;
+        f_read(buffer, file->size, &bytes_read, file);
         char* line = (char*)buffer;
         while(line != NULL){
             char* data = strchr(line, '=') + sizeof(char);
@@ -46,7 +49,7 @@ void modules_init(void){
 
         }
         free(buffer);
-        file->close(file);
+        f_close(file);
     }else{
         panic("%s not found !", modules_cfg_path);
     }

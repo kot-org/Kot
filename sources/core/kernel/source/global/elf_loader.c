@@ -24,7 +24,8 @@ static bool check_elf_signature(struct elf64_ehdr* header){
 static spinlock_t load_elf_module_lock;
 
 int load_elf_module(module_metadata_t** metadata, int argc, char* args[]){
-    kernel_file_t* file = open(args[0], 0);
+    int err = 0;
+    kernel_file_t* file = f_open(KERNEL_VFS_CTX, args[0], 0, 0, &err);
 
     if(file == NULL){
         return ENOENT;
@@ -32,30 +33,31 @@ int load_elf_module(module_metadata_t** metadata, int argc, char* args[]){
 
     struct elf64_ehdr header;
 
-    file->read(&header, sizeof(struct elf64_ehdr), file);
+    size_t bytes_read;
+    f_read(&header, sizeof(struct elf64_ehdr), &bytes_read, file);
 
     if(!check_elf_signature(&header)){
         log_error("Invalid executable file : %s, bad header signature\n", args[0]);
-        file->close(file);
+        f_close(file);
         return EINVAL;
     }
 
     if(header.e_ident[EI_CLASS] != ELFCLASS64){
         log_error("Invalid executable file : %s, wrong elf class\n", args[0]);
-        file->close(file);
+        f_close(file);
         return EINVAL;
     }
 
     if(header.e_type != ET_REL){
         log_error("Invalid executable file : %s, not relocatable\n", args[0]);
-        file->close(file);
+        f_close(file);
         return EINVAL;
     }
 
     spinlock_acquire(&load_elf_module_lock);
 
     void* module_address = vmm_get_free_contiguous(file->size);
-    file->read(module_address, file->size, file);
+    f_read(module_address, file->size, &bytes_read, file);
 
     for(elf64_half i = 0; i < header.e_shnum; i++){
         struct elf64_shdr* section_header = (struct elf64_shdr*)(module_address + header.e_shoff + header.e_shentsize * i);
@@ -103,7 +105,7 @@ int load_elf_module(module_metadata_t** metadata, int argc, char* args[]){
     if(module_data == NULL){
         log_error("Executable file : %s, isn't a module\n", args[0]);
         unmap_module(module_address);
-        file->close(file);
+        f_close(file);
         return EINVAL;
     }
 
@@ -135,7 +137,7 @@ int load_elf_module(module_metadata_t** metadata, int argc, char* args[]){
                         log_error("Executable file : %s, relocation %d not supported\n", args[0], ELF64_R_TYPE(table[y].r_info));
                         unmap_module(module_address);
                         spinlock_release(&load_elf_module_lock);
-                        file->close(file);
+                        f_close(file);
                         return EINVAL;
                     }
                 }
@@ -145,7 +147,7 @@ int load_elf_module(module_metadata_t** metadata, int argc, char* args[]){
 
     spinlock_release(&load_elf_module_lock);
 
-    file->close(file);
+    f_close(file);
     
     log_printf("Executable file : %s, is successfully dected as a module named : %s\n", args[0], module_data->name);
 

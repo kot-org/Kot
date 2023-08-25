@@ -65,7 +65,7 @@ static uint16_t fat_get_current_date(void){
     uint16_t date = 0;
     date |= (get_current_month_day() & 0x1F);
     date |= (get_current_month() & 0xF) << 5;
-    date |= ((get_current_year() - 1980) & 0x7F) << 9;
+    date |= ((get_current_year() - FAT32_YEAR_BASE) & 0x7F) << 9;
     return date;
 }
 
@@ -958,7 +958,7 @@ int fat_remove_file(fat_context_t* ctx, const char* path){
     return err;
 }
 
-fat_file_internal_t* fat_open(fat_context_t* ctx, const char* path, int flags, mode_t mode, int* error){
+fat_file_internal_t* fat_open_file(fat_context_t* ctx, const char* path, int flags, mode_t mode, int* error){
     void* cluster_buffer = malloc(ctx->cluster_size);
     
     fat_short_entry_t* file_entry = fat_find_entry_with_path_from_root(ctx, path, cluster_buffer);
@@ -1003,7 +1003,7 @@ fat_file_internal_t* fat_open(fat_context_t* ctx, const char* path, int flags, m
     return file;
 }
 
-int fat_read(fat_file_internal_t* file, uint64_t start, size_t size, size_t* size_read, void* buffer){
+int fat_file_read(fat_file_internal_t* file, uint64_t start, size_t size, size_t* size_read, void* buffer){
     uint64_t size_read_tmp = 0;
 
     uint32_t base_cluster = fat_get_cluster_file(&file->entry);
@@ -1019,7 +1019,7 @@ int fat_read(fat_file_internal_t* file, uint64_t start, size_t size, size_t* siz
     return err;
 }
 
-int fat_write(fat_file_internal_t* file, uint64_t start, size_t size, size_t* size_write, void* buffer, bool is_end_of_file){
+int fat_file_write(fat_file_internal_t* file, uint64_t start, size_t size, size_t* size_write, void* buffer, bool is_end_of_file){
     if(size == 0){
         return 0;
     }
@@ -1056,7 +1056,7 @@ int fat_write(fat_file_internal_t* file, uint64_t start, size_t size, size_t* si
 
 /* directory */
 
-int fat_create_dir(fat_context_t* ctx, const char* path){
+int fat_create_dir(fat_context_t* ctx, const char* path, mode_t mode){
     if(path[0] == '\0'){
         return ENOENT;
     }
@@ -1178,36 +1178,30 @@ fat_directory_internal_t* fat_open_dir(fat_context_t* ctx, const char* path, int
     return dir; 
 }
 
-int get_directory_entries(fat_directory_internal_t* dir, uint64_t start, uint64_t count, void* buffer, uint64_t* read_entries_count){
-    *read_entries_count = 0;
+int fat_interface_get_directory_entries(void* buffer, size_t max_size, size_t* bytes_read, kernel_dir_t* dir){
+    fat_directory_internal_t* internal_dir = (fat_directory_internal_t*)dir->internal_data;
+
+    uint32_t max_entry_count = (uint32_t)(max_size / sizeof(dirent_t));
+    dirent_t* entry = (dirent_t*)buffer;
+    uint32_t entry_index = (uint32_t)dir->seek_position;
+    uint32_t current_entry_count = 0;
 
     uint32_t cluster_cache_id_count_from_base = 0;
     uint32_t last_cluster_read = 0;
 
-    uint32_t entry_index = (uint32_t)start;
-
-    uint64_t current_count = 0;
-
-    bool is_last_entry_lfn = false;
-
-    void* cluster_buffer = malloc(dir->ctx->cluster_size);
-
-    uint32_t cluster_base = fat_get_cluster_entry(dir->ctx, &dir->entry);
-
-    dirent_t* entry = (dirent_t*)buffer;
-    dirent_t* last_entry = entry;
-    entry->d_off = 0;
-
     fat_short_entry_t* current_dir;
-    while((current_dir = fat_read_entry_with_cache(dir->ctx, cluster_base, entry_index, cluster_buffer, &cluster_cache_id_count_from_base, &last_cluster_read)) != NULL && current_count < count){
-        
+    bool is_last_entry_lfn = false;
+    void* cluster_buffer = malloc(internal_dir->ctx->cluster_size);
+    uint32_t cluster_base = fat_get_cluster_entry(internal_dir->ctx, &internal_dir->entry);
+
+    while((current_dir = fat_read_entry_with_cache(internal_dir->ctx, cluster_base, entry_index, cluster_buffer, &cluster_cache_id_count_from_base, &last_cluster_read)) != NULL && current_entry_count < max_entry_count){
         if(fat_entry_valid(current_dir)){
             if(fat_is_lfn(current_dir)){
                 fat_long_entry_name_t* lfn = (fat_long_entry_name_t*)current_dir;
                 uint8_t order = lfn->order & ~0x40;
 
                 for(uint8_t y = 0; y < order; y++){
-                    lfn = (fat_long_entry_name_t*)fat_read_entry_with_cache(dir->ctx, cluster_base, entry_index + y, cluster_buffer, &cluster_cache_id_count_from_base, &last_cluster_read);
+                    lfn = (fat_long_entry_name_t*)fat_read_entry_with_cache(internal_dir->ctx, cluster_base, entry_index + y, cluster_buffer, &cluster_cache_id_count_from_base, &last_cluster_read);
                     fat_parse_lfn(&entry->d_name[LFN_NAME_SIZE * (order - 1 - y)], lfn);
                 }
 
@@ -1221,25 +1215,25 @@ int get_directory_entries(fat_directory_internal_t* dir, uint64_t start, uint64_
                     is_last_entry_lfn = false;
                 }
 
-                entry->d_ino = (ino_t)fat_get_cluster_entry(dir->ctx, current_dir);
-                last_entry->d_off = (off_t)entry_index;
+                entry->d_ino = (ino_t)fat_get_cluster_entry(internal_dir->ctx, current_dir);
+                entry->d_off = (off_t)entry_index;
                 entry->d_reclen = sizeof(dirent_t);
                 entry->d_type = current_dir->attributes.directory ? DT_DIR : DT_REG;
-                last_entry = entry;
 
-                current_count++;
+                current_entry_count++;
+
                 entry = (dirent_t*)((off_t)entry + entry->d_reclen);
             }
         }
         entry_index++;
     }
 
-    /* set last entry offset to 0 */
-    last_entry->d_off = 0;
 
     free(cluster_buffer);
 
-    *read_entries_count = current_count;
+    dir->seek_position = entry_index;
+
+    *bytes_read = current_entry_count * sizeof(dirent_t);
 
     return 0;
 }
@@ -1255,6 +1249,97 @@ int fat_rename(fat_context_t* ctx, const char* old_path, const char* new_path){
     free(cluster_buffer);
 
     return err;
+}
+
+/* interface */
+static inline char* fat_interface_convert_path(char* str){
+    size_t str_len = strlen(str);
+    if(str[str_len - 1] == '/'){
+        str[str_len - 1] = '\0';
+    }
+    if(str[0] == '/'){
+        return str + sizeof((char)'/');
+    }else{
+        return str;
+    }
+}
+
+int fat_interface_file_remove(struct fs_t* ctx, const char* path){
+    return fat_remove_file((fat_context_t*)ctx->internal_data, fat_interface_convert_path((char*)path));
+}
+
+int fat_interface_file_read(void* buffer, size_t size, size_t* size_read, struct kernel_file_t* file){
+    fat_file_internal_t* fat_file = file->internal_data;
+    return fat_file_read(fat_file, file->seek_position, size, size_read, buffer);
+}
+
+int fat_interface_file_write(void* buffer, size_t size, size_t* size_write, struct kernel_file_t* file){
+    fat_file_internal_t* fat_file = file->internal_data;
+    return fat_file_write(fat_file, file->seek_position, size, size_write, buffer, true);
+}
+
+int fat_interface_file_close(struct kernel_file_t* file){
+    fat_file_internal_t* fat_file = file->internal_data;
+    free(fat_file);
+    free(file);
+    return 0;
+}
+
+struct kernel_file_t* fat_interface_file_open(struct fs_t* ctx, const char* path, int flags, mode_t mode, int* error){
+    fat_file_internal_t* fat_file = fat_open_file((fat_context_t*)ctx->internal_data, fat_interface_convert_path((char*)path), flags, mode, error);
+    if(fat_file == NULL){
+        return NULL;
+    }
+    kernel_file_t* file = malloc(sizeof(kernel_file_t));
+    file->size = fat_file->entry.size;
+    file->fs_ctx = ctx;
+    file->internal_data = fat_file;
+    file->read = &fat_interface_file_read;
+    file->write = &fat_interface_file_write;
+    file->close = &fat_interface_file_close;
+
+    return file;
+}
+
+
+int fat_interface_dir_create(struct fs_t* ctx, const char* path, mode_t mode){
+    return fat_create_dir((fat_context_t*)ctx->internal_data, fat_interface_convert_path((char*)path), mode);
+}
+
+int fat_interface_dir_create_at(struct fs_t* ctx, struct kernel_dir_t* dir, const char* path, mode_t mode){
+    return ENOSYS;
+}
+
+int fat_interface_dir_remove(struct fs_t* ctx, const char* path){
+    return fat_remove_dir((fat_context_t*)ctx->internal_data, fat_interface_convert_path((char*)path));
+}
+
+struct kernel_dir_t* fat_interface_dir_open(struct fs_t* ctx, const char* path, int* error){
+    fat_context_t* fat_ctx = (fat_context_t*)ctx->internal_data;
+    fat_directory_internal_t* fat_dir = fat_open_dir(fat_ctx, fat_interface_convert_path((char*)path), error);
+    if(fat_dir == NULL){
+        return NULL;
+    }
+    kernel_dir_t* dir = malloc(sizeof(kernel_dir_t));
+    dir->fs_ctx = ctx;
+    dir->seek_position = (fat_get_cluster_entry(fat_ctx, &fat_dir->entry) == fat_ctx->bpb->root_cluster_number) ? 0 : DIR_MINIMUM_ENTRIES;
+    dir->internal_data = fat_dir;
+    dir->get_directory_entries = &fat_interface_get_directory_entries;
+
+    return dir;
+}
+
+
+int fat_interface_rename(struct fs_t* ctx, const char* old_path, const char* new_path){
+    return fat_rename((fat_context_t*)ctx->internal_data, fat_interface_convert_path((char*)old_path), fat_interface_convert_path((char*)new_path));
+}
+
+int fat_interface_link(struct fs_t* ctx, const char* src_path, const char* dst_path){
+    return ENOSYS;
+}
+
+int fat_interface_unlink_at(struct fs_t* ctx, struct kernel_dir_t* dir, const char* path, mode_t mode){
+    return ENOSYS;
 }
 
 /* mount */
@@ -1312,6 +1397,21 @@ int fat_mount(partition_t* partition){
     ctx->root_dir = calloc(1, sizeof(fat_short_entry_t));
     ctx->root_dir->attributes.directory = true;
     fat_set_cluster_entry(ctx->root_dir, ctx->bpb->root_cluster_number);
+    
+    fs_t* vfs_interface = malloc(sizeof(fs_t));
+	vfs_interface->internal_data = ctx;
+    vfs_interface->file_remove = &fat_interface_file_remove;
+    vfs_interface->file_open = &fat_interface_file_open;
+    vfs_interface->dir_create = &fat_interface_dir_create;
+    vfs_interface->dir_create_at = &fat_interface_dir_create_at;
+    vfs_interface->dir_remove = &fat_interface_dir_remove;
+    vfs_interface->dir_open = &fat_interface_dir_open;
+    vfs_interface->rename = &fat_interface_rename;
+    vfs_interface->link = &fat_interface_link;
+    vfs_interface->unlink_at = &fat_interface_unlink_at;
+    char* mount_path = vfs_request_friendly_fs_mount_name(partition->device->is_removable);
+    vfs_mount_fs(mount_path, vfs_interface);
+    vfs_free_friendly_fs_mount_name(mount_path);
 
     return 0;
 }
