@@ -137,7 +137,7 @@ struct elf64_shdr{
     uint64_t   sh_entsize;
 };
 
-struct Elf64_Dyn{
+struct elf64_dyn{
   elf64_sxword d_tag;		/* entry tag value */
   union{
     elf64_xword d_val;

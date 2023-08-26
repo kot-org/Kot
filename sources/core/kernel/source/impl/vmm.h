@@ -30,6 +30,8 @@ int vmm_map_page(vmm_space_t space, void* virtual_page, void* physical_page, mem
 
 int vmm_map(vmm_space_t space, memory_range_t virtual_range, memory_range_t physical_range, memory_flags_t flags);
 
+int vmm_map_allocate(vmm_space_t space, memory_range_t virtual_range, memory_flags_t flags);
+
 int vmm_update_flags(vmm_space_t space, memory_range_t virtual_range, memory_flags_t flags);
 
 int vmm_unmap(vmm_space_t space, memory_range_t virtual_range);

@@ -172,6 +172,14 @@ int vmm_map(vmm_space_t space, memory_range_t virtual_range, memory_range_t phys
     return 0;
 }
 
+int vmm_map_allocate(vmm_space_t space, memory_range_t virtual_range, memory_flags_t flags) {
+    for(uintptr_t i = 0; i < virtual_range.size; i += PAGE_SIZE) {
+        vmm_map_page(space, (void*)((uintptr_t)virtual_range.address + i), pmm_allocate_page(), flags);
+    }
+
+    return 0;
+}
+
 int vmm_update_flags(vmm_space_t space, memory_range_t virtual_range, memory_flags_t flags) {
     struct vmm_page_table* table = vmm_get_virtual_address(space);
 

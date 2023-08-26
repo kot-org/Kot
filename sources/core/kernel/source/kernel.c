@@ -43,6 +43,7 @@ void kernel_entry(void) {
     ksym_init();
 
     initrd_init();
+    
     /* graphics_init needs memory to be init*/
     graphics_init();
 
@@ -51,32 +52,6 @@ void kernel_entry(void) {
     time_init();
 
     modules_init();
-
-    int err;
-    kernel_dir_t* dir = d_open(NULL, "/sda/", &err);
-    assert(dir);
-
-    dirent_t* entries = malloc(20 * sizeof(dirent_t));
-    uint64_t read_entries_count = 0;
-
-    while(true){
-        d_get_entries(entries, 20 * sizeof(dirent_t), &read_entries_count, dir);
-        if(read_entries_count == 0){
-            break;
-        }
-
-        dirent_t* entry = entries;
-        for(uint64_t i = 0; i < read_entries_count / sizeof(dirent_t); i++){
-            log_printf("%s\n", entry->d_name);
-            entry = (dirent_t*)((off_t)entry + entry->d_reclen);
-        }
-    }
-
-    kernel_file_t* file = f_open(NULL, "/sda/system/kernel/kernel.elf", 0, 0, &err);
-    assert(file);
-    struct stat statbuf = {};
-    assert(!f_stat(0, &statbuf, file));
-    log_printf("%d\n", statbuf.st_mtime);
 
     arch_idle();
 }

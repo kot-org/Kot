@@ -29,6 +29,7 @@ typedef struct process_t{
     process_flags_t flags;
     context_flags_t ctx_flags;
     vmm_space_t vmm_space;
+    vfs_ctx_t* vfs_ctx;
 } process_t;
 
 
