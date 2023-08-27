@@ -7,6 +7,8 @@
 /* 
 The file in ARCH_INCLUDE(impl/vmm.h) is expected to have :
     - The declaration of type : vmm_space_t
+    - The definition of : VMM_USERSPACE_TOP_ADDRESS
+    - The definition of : VMM_USERSPACE_BOTTOM_ADDRESS
 */
 #include ARCH_INCLUDE(impl/vmm.h)
 
@@ -30,7 +32,7 @@ int vmm_map_page(vmm_space_t space, void* virtual_page, void* physical_page, mem
 
 int vmm_map(vmm_space_t space, memory_range_t virtual_range, memory_range_t physical_range, memory_flags_t flags);
 
-int vmm_map_allocate(vmm_space_t space, memory_range_t virtual_range, memory_flags_t flags);
+int vmm_map_allocate(vmm_space_t space, memory_range_t virtual_range, memory_flags_t flags, size_t* size_allocate);
 
 int vmm_update_flags(vmm_space_t space, memory_range_t virtual_range, memory_flags_t flags);
 

@@ -169,6 +169,81 @@ struct load_elf_exec_segments_info{
     char* ld_path;
 };
 
+/* This function need to be run with its paging to access to its stack*/
+static void* load_elf_exec_load_stack(void* at_entry, void* at_phdr, void* at_phent, void* at_phnum, int argc, char* args[], char* envp[], void* stack){
+    uintptr_t stack_iteration = (uintptr_t)stack;
+
+    int envc = 0;
+
+    while(envp[envc] != NULL){
+        envc++;
+    }
+    
+    uintptr_t arg_pointers[argc];
+    for(int i = 0; i < argc; i++){
+        size_t arg_len = strlen(args[i]);
+        stack_iteration -= (uintptr_t)arg_len + 1;
+        strncpy((void*)stack_iteration, args[i], arg_len);
+        arg_pointers[i] = (uintptr_t)stack_iteration;
+    }
+    
+    uintptr_t env_pointers[envc];
+    for(int i = 0; i < envc; i++){
+        size_t env_len = strlen(envp[envc]);
+        stack_iteration -= (uintptr_t)env_len + 1;
+        strncpy((void*)stack_iteration, envp[envc], env_len);
+        env_pointers[i] = (uintptr_t)stack_iteration;
+    }
+
+    /* Align stack to 16 bytes */
+    stack = (void *)stack - ((uintptr_t)stack & 0xf);
+
+    if((argc + envc + 1) & 1){
+        stack--;
+    }
+
+    stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(struct auxv));
+    ((struct auxv*)stack)->a_type = AT_NULL;
+    ((struct auxv*)stack)->a_val =  0;
+
+    stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(struct auxv));
+    ((struct auxv*)stack)->a_type = AT_ENTRY;
+    ((struct auxv*)stack)->a_val = at_entry;
+
+    stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(struct auxv));
+    ((struct auxv*)stack)->a_type = AT_PHDR;
+    ((struct auxv*)stack)->a_val =  at_phdr;
+
+    stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(struct auxv));
+    ((struct auxv*)stack)->a_type = AT_PHENT;
+    ((struct auxv*)stack)->a_val =  at_phent;
+
+    stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(struct auxv));
+    ((struct auxv*)stack)->a_type = AT_PHNUM;
+    ((struct auxv*)stack)->a_val =  at_phnum;
+
+    stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(uintptr_t));
+    *(uintptr_t*)stack = 0; // NULL
+
+    for(int i = 0; i < envc; i++){
+        stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(uintptr_t));
+        *(uintptr_t*)stack = env_pointers[i];   
+    }    
+
+    stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(uintptr_t));
+    *(uintptr_t*)stack = 0; // NULL
+
+    for(int i = 0; i < argc; i++){
+        stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(uintptr_t));
+        *(uintptr_t*)stack = arg_pointers[i];   
+    }    
+
+    stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(uintptr_t));
+    *(uintptr_t*)stack = argc;
+
+    return stack;
+}
+
 static int load_elf_exec_segments(struct elf64_ehdr* header, void* buffer, struct load_elf_exec_segments_info* segments_info, void* base){
     for(elf64_half i = 0; i < header->e_phnum; i++){
         struct elf64_phdr* phdr = (struct elf64_phdr*)((uintptr_t)buffer + (uintptr_t)header->e_phoff + ((uintptr_t)i * (uintptr_t)header->e_phentsize));
@@ -183,7 +258,8 @@ static int load_elf_exec_segments(struct elf64_ehdr* header, void* buffer, struc
             void* address_to_clear = (void*)((uintptr_t)address_data_to_copy + (uintptr_t)size_data_to_copy);
             size_t size_to_clear = size - size_data_to_copy;
 
-            vmm_map_allocate(vmm_get_current_space(), (memory_range_t){address, size}, MEMORY_FLAG_READABLE | MEMORY_FLAG_WRITABLE | MEMORY_FLAG_EXECUTABLE | MEMORY_FLAG_USER);
+            size_t size_allocate;
+            vmm_map_allocate(vmm_get_current_space(), (memory_range_t){address, size}, MEMORY_FLAG_READABLE | MEMORY_FLAG_WRITABLE | MEMORY_FLAG_EXECUTABLE | MEMORY_FLAG_USER, &size_allocate);
 
             memcpy(address, address_data_to_copy, size_data_to_copy);
 
@@ -204,7 +280,7 @@ static int load_elf_exec_segments(struct elf64_ehdr* header, void* buffer, struc
     return 0;
 }
 
-int load_elf_exec(process_t* process_ctx, int argc, char* args[]){
+int load_elf_exec(process_t* process_ctx, int argc, char* args[], char* envp[], void* stack){
     char* file_path = args[0];
 
     int err = 0;
@@ -237,9 +313,11 @@ int load_elf_exec(process_t* process_ctx, int argc, char* args[]){
         return EINVAL;
     }
 
+    void* entry_point = NULL;
+
     vmm_space_t vmm_space_to_restore = vmm_get_current_space();
 
-    vmm_space_swap(process_ctx->vmm_space);
+    vmm_space_swap(process_ctx->memory_handler->vmm_space);
 
     void* buffer = malloc(file->file_size_initial);
     f_read(buffer, file->file_size_initial, &bytes_read, file);
@@ -247,13 +325,16 @@ int load_elf_exec(process_t* process_ctx, int argc, char* args[]){
     struct load_elf_exec_segments_info exec_segments_info;
     load_elf_exec_segments(&header, buffer, &exec_segments_info, NULL);
 
+    free(buffer);
+
+    f_close(file);
+    
     if(exec_segments_info.ld_path != NULL){
         kernel_file_t* ld_file = f_open(process_ctx->vfs_ctx, exec_segments_info.ld_path, 0, 0, &err);
         if(err){
             log_error("Dynamic linker file not found with the following path : %s\n", exec_segments_info.ld_path);
             
             vmm_space_swap(vmm_space_to_restore);
-            free(buffer);
 
             return err;
         }
@@ -264,19 +345,19 @@ int load_elf_exec(process_t* process_ctx, int argc, char* args[]){
 
         if(!check_elf_signature(&ld_header)){
             log_error("Invalid dynamic linker file : %s, bad header signature\n", exec_segments_info.ld_path);
-            f_close(file);
+            f_close(ld_file);
             return EINVAL;
         }
 
         if(ld_header.e_ident[EI_CLASS] != ELFCLASS64){
             log_error("Invalid dynamic linker file : %s, wrong elf class\n", exec_segments_info.ld_path);
-            f_close(file);
+            f_close(ld_file);
             return EINVAL;
         }
 
         if(header.e_type != ET_DYN){
             log_error("Invalid dynamic linker file : %s, not dynamic\n", exec_segments_info.ld_path);
-            f_close(file);
+            f_close(ld_file);
             return EINVAL;
         }
 
@@ -285,11 +366,29 @@ int load_elf_exec(process_t* process_ctx, int argc, char* args[]){
 
         struct load_elf_exec_segments_info ld_segments_info;
         load_elf_exec_segments(&ld_header, ld_buffer, &ld_segments_info, DYNAMIC_LINKER_BASE_ADDRESS);
+
+        free(ld_buffer);
+
+        f_close(ld_file);
+
+        entry_point = (void*)ld_header.e_entry;
+    }else{
+        entry_point = (void*)header.e_entry;
     }
+
+    stack = load_elf_exec_load_stack((void*)header.e_entry, exec_segments_info.at_phdr, (void*)(uintptr_t)header.e_phentsize, (void*)(uintptr_t)header.e_phnum, argc, args, envp, stack);
 
     vmm_space_swap(vmm_space_to_restore);
 
-    free(buffer);
+    spinlock_acquire(&process_ctx->data_lock);
+
+    if(process_ctx->entry_thread != NULL){
+        scheduler_free_thread(process_ctx->entry_thread);
+    }
+
+    process_ctx->entry_thread = scheduler_create_thread(process_ctx, entry_point, stack);
+
+    spinlock_release(&process_ctx->data_lock);
 
     return 0;
 }

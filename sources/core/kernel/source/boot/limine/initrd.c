@@ -122,6 +122,7 @@ int initrd_stat(int flags, struct stat* statbuf, kernel_file_t* file){
 }
 
 int initrd_close(kernel_file_t* file){
+    free(file);
     return 0;
 }
 

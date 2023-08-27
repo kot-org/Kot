@@ -1,4 +1,6 @@
+#include <lib/string.h>
 #include <global/vfs.h>
+#include <global/heap.h>
 #include <global/modules.h>
 #include <lib/modules/vfs.h>
 
@@ -28,4 +30,31 @@ char* vfs_request_friendly_fs_mount_name(bool is_removable){
 
 int vfs_free_friendly_fs_mount_name(const char* fs_mount_name){
     return vfs_handler->free_friendly_fs_mount_name(fs_mount_name);
+}
+
+vfs_ctx_t* vfs_create_ctx(const char* cwd){
+    vfs_ctx_t* ctx = malloc(sizeof(vfs_ctx_t));
+
+    ctx->cwd_size = strlen(cwd);
+    ctx->cwd = malloc(ctx->cwd_size + 1);
+    strncpy(ctx->cwd, cwd, ctx->cwd_size);
+
+    return ctx;
+}
+
+vfs_ctx_t* vfs_copy_ctx(vfs_ctx_t* src){
+    vfs_ctx_t* dst = malloc(sizeof(vfs_ctx_t));
+
+    dst->cwd_size = src->cwd_size;
+    dst->cwd = malloc(dst->cwd_size + 1);
+    strncpy(dst->cwd, src->cwd, dst->cwd_size);
+
+    return dst;
+}
+
+int vfs_free_ctx(vfs_ctx_t* ctx){
+    free(ctx->cwd);
+    free(ctx);
+    
+    return 0;
 }

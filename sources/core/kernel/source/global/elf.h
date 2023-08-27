@@ -160,6 +160,11 @@ struct elf64_rela{
     int64_t    r_addend;
 };
 
+struct auxv{
+	uint64_t a_type;
+	void* a_val;
+};
+
 
 #define	PT_NULL		        0		/* Program header table entry unused */
 #define PT_LOAD		        1		/* Loadable program segment */
@@ -239,6 +244,14 @@ struct elf64_rela{
 #define SHT_SHLIB	        10
 #define SHT_DYNSYM	        11
 #define SHT_NUM		        12
+
+#define AT_NULL             0
+#define AT_ENTRY            10
+#define AT_PHDR             20
+#define AT_PHENT            21
+#define AT_PHNUM            22
+#define AT_RANDOM           25
+#define AT_EXECFN           31
 
 
 #endif // _GLOBAL_ELF_H

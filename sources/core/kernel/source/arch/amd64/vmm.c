@@ -105,6 +105,17 @@ static int vmm_unmap_page(struct vmm_page_table* table, void* virtual_page) {
     return 0;
 }
 
+static bool vmm_page_is_present(struct vmm_page_table* table, void* virtual_page){
+    struct vmm_page_table* pml4 = table;
+    struct vmm_page_table* pml3 = vmm_get_entry(pml4, VMM_PML_4_GET_INDEX(virtual_page), VMM_FLAG_READ_WRITE | MEMORY_FLAG_USER);
+    struct vmm_page_table* pml2 = vmm_get_entry(pml3, VMM_PML_3_GET_INDEX(virtual_page), VMM_FLAG_READ_WRITE | MEMORY_FLAG_USER);
+    struct vmm_page_table* pml1 = vmm_get_entry(pml2, VMM_PML_2_GET_INDEX(virtual_page), VMM_FLAG_READ_WRITE | MEMORY_FLAG_USER);
+    
+    vmm_entry entry = pml1->entries[VMM_PML_1_GET_INDEX(virtual_page)];
+
+    return VMM_GET_FLAG(entry, VMM_FLAG_PRESENT);   
+}
+
 static int vmm_flush_page(void* virtual_page) {
     asm_invlpg(virtual_page);
     return 0;
@@ -172,9 +183,16 @@ int vmm_map(vmm_space_t space, memory_range_t virtual_range, memory_range_t phys
     return 0;
 }
 
-int vmm_map_allocate(vmm_space_t space, memory_range_t virtual_range, memory_flags_t flags) {
+int vmm_map_allocate(vmm_space_t space, memory_range_t virtual_range, memory_flags_t flags, size_t* size_allocate) {
+    *size_allocate = 0;
+
+    struct vmm_page_table* table = vmm_get_virtual_address(space);
+
     for(uintptr_t i = 0; i < virtual_range.size; i += PAGE_SIZE) {
-        vmm_map_page(space, (void*)((uintptr_t)virtual_range.address + i), pmm_allocate_page(), flags);
+        if(!vmm_page_is_present(table, (void*)((uintptr_t)virtual_range.address + i))){
+            vmm_map_page(space, (void*)((uintptr_t)virtual_range.address + i), pmm_allocate_page(), flags);
+            *size_allocate += PAGE_SIZE;
+        }
     }
 
     return 0;

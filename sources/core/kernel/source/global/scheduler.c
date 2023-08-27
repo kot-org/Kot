@@ -95,11 +95,18 @@ void scheduler_handler(cpu_context_t* ctx){
 process_t* scheduler_create_process(process_flags_t flags){
     process_t* process = (process_t*)calloc(1, sizeof(process_t));
 
-    process->ctx_flags = ((PROCESS_GET_FLAG_TYPE(flags) == PROCESS_TYPE_APP) ? CONTEXT_FLAG_USER : 0); 
+    process->ctx_flags = ((PROCESS_GET_FLAG_TYPE(flags) == PROCESS_TYPE_EXEC) ? CONTEXT_FLAG_USER : 0); 
 
-    process->vmm_space = vmm_create_space();
+    process->memory_handler = mm_create_handler(vmm_create_space(), (void*)VMM_USERSPACE_BOTTOM_ADDRESS, VMM_USERSPACE_TOP_ADDRESS - VMM_USERSPACE_BOTTOM_ADDRESS);
+
+    process->vfs_ctx = KERNEL_VFS_CTX;
 
     return process;
+}
+
+int scheduler_free_process(process_t* process){
+    // TODO
+    return 0;
 }
 
 thread_t* scheduler_create_thread(process_t* process, void* entry_point, void* stack){
@@ -113,8 +120,13 @@ thread_t* scheduler_create_thread(process_t* process, void* entry_point, void* s
     return thread;
 }
 
-void scheduler_launcher_thread(thread_t* thread, arguments_t* args){
-    context_start(thread->ctx, thread->process->vmm_space, thread->entry_point, thread->stack, args, thread->process->ctx_flags);
+int scheduler_free_thread(thread_t* thread){
+    // TODO
+    return 0;
+}
+
+void scheduler_launch_thread(thread_t* thread, arguments_t* args){
+    context_start(thread->ctx, thread->process->memory_handler->vmm_space, thread->entry_point, thread->stack, args, thread->process->ctx_flags);
 
     scheduler_enqueue(thread);
 }

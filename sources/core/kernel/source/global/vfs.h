@@ -16,4 +16,8 @@ int vfs_unmount_fs(const char* fs_mount_name);
 char* vfs_request_friendly_fs_mount_name(bool is_removable);
 int vfs_free_friendly_fs_mount_name(const char* fs_mount_name);
 
+vfs_ctx_t* vfs_create_ctx(const char* cwd);
+vfs_ctx_t* vfs_copy_ctx(vfs_ctx_t* ctx);
+int vfs_free_ctx(vfs_ctx_t* ctx);
+
 #endif // _GLOBAL_VFS_H
