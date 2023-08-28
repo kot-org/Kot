@@ -107,11 +107,7 @@
 
 /* compiler specific configuration */
 
-#if UINT_MAX == 0xffffffffu
 typedef unsigned int khint32_t;
-#elif ULONG_MAX == 0xffffffffu
-typedef unsigned long khint32_t;
-#endif
 
 #if ULONG_MAX == ULLONG_MAX
 typedef unsigned long khint64_t;

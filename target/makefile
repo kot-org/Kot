@@ -12,24 +12,7 @@ info_system = /bin/echo -e "$(_PURPLE)[core/system]$(_END) $(_BOLD)$1$(_END)"
 # Limine AMD64 (liamd)
 
 liamd/build:
-	@ mkdir -m 777 -p liamd/sysroot
-	@ mkdir -m 777 -p liamd/flash/limine
-	@ mkdir -m 777 -p liamd/flash/system/kernel/
-	@ cd $(SOURCES)/tools && bash build.sh
-	@ $(call info_kernel,"Compiling...")
-	@ make -C "$(KERNEL)/limine/amd64" kernel.elf 
-	@ cp $(KERNEL)/limine/amd64/bin/kernel.elf liamd/flash/system/kernel/
-	@ cp $(KERNEL)/limine/amd64/bin/kernel.sym liamd/flash/system/kernel/
-	@ cd modules/target/amd64/ && bash build.sh
-	@ cp -r modules/target/amd64/bin/. liamd/flash/.
-	@ cp -r initrd/. liamd/flash/.
-	@ $(call info_kernel,"done.")
-	@ make -C "$(EXTERN)" limine
-	@ cp limine.cfg $(EXTERN)/limine/limine-bios.sys $(EXTERN)/limine/limine-bios-cd.bin $(EXTERN)/limine/limine-uefi-cd.bin liamd/flash/limine
-	@ mkdir -p liamd/flash/EFI/BOOT
-	@ cp $(EXTERN)/limine/BOOTX64.EFI liamd/flash/EFI/BOOT/
-	@ bash boot-disk.sh liamd amd64 liamd/boot-kot.img
-
+	@ cd build && bash liamd.sh $(word 2,$(MAKECMDGOALS))
 	
 ovmf-amd64:
 	@ make -C "$(EXTERN)" ovmf-amd64

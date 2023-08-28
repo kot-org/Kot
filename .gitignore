@@ -1,0 +1,9 @@
+*.link
+*.xbstrap
+
+tools/
+bundled/
+sysroot/
+packages/
+pkg-builds/
+tool-builds/

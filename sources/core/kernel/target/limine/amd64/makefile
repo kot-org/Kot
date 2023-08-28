@@ -4,9 +4,11 @@ cyan = /bin/echo -e "\x1b[36m\#\# $1\x1b[0m"
 override HOME = ../../..
 
 # Project Resources
+SYSROOT = $(HOME)/../../../sysroot
+INCLUDE = $(SYSROOT)/usr/include
 SOURCE = $(HOME)/source
 TOOLS = $(HOME)/../../tools
-BIN = bin
+BIN = bin/system/kernel
 LIB = lib
 
 LDS = kernel.ld
@@ -18,6 +20,7 @@ LD = ld.lld-16
 
 # Tools Config
 CFLAGS = -I$(SOURCE) \
+         -I$(INCLUDE) \
 		 -ffreestanding \
 		 -fpie \
 		 --target=x86_64-unknown-none-elf \
@@ -31,7 +34,9 @@ CFLAGS = -I$(SOURCE) \
 		 -g \
 		 -fshort-wchar \
 		 -Werror \
-		 -Wstrict-prototypes
+		 -Wstrict-prototypes \
+		 -Wno-ignored-attributes \
+		 -include "$(INCLUDE)/abi-bits/limits.h"
 
 ASMFLAGS = -i$(realpath $(SOURCE)/arch/amd64) -f elf64
 
@@ -73,6 +78,7 @@ $(LIB)/%_s.o: $(SOURCE)/%.s
 	@ $(ASMC) $(ASMFLAGS) $^ -o $@
 
 link:
+	@ mkdir -m 777 -p $(BIN)
 	@ $(LD) $(LDFLAGS) -o $(BIN)/kernel.elf $(OBJS)
 
 ksym:

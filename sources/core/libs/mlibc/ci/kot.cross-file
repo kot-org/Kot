@@ -1,0 +1,12 @@
+[binaries]
+c = 'clang-16'
+cpp = 'clang-16'
+
+[properties]
+needs_exe_wrapper = true
+
+[host_machine]
+system = 'kot'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
+endian = 'little'

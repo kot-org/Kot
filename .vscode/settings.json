@@ -102,6 +102,10 @@
         "guid.h": "c",
         "random": "c",
         "exec.h": "c",
-        "mm.h": "c"
+        "mm.h": "c",
+        "iterator": "cpp",
+        "__tree": "cpp",
+        "set": "cpp",
+        "cstdint": "cpp"
     }
 }
