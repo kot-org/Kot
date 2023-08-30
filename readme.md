@@ -2,7 +2,7 @@
 	<img src="./meta/images/laptop.png?raw=true" width="90%"/> 
 </p>
 
-# The New Kot (**TNK**)
+# The New Kot (<span style="color:red;">TNK</span>)
 A 64-bit x86 operating system written in C/C++
 
 <img src="https://discordapp.com/api/guilds/901353839557476363/widget.png?style=banner3" alt="Discord Banner 3"/>
@@ -14,4 +14,4 @@ A 64-bit x86 operating system written in C/C++
 </p>
 
 # Build it yourself
-That's easy! Run `make init` to install all the required build tools and then run `make build` to start the building process. Right after, `make run` will start **TNK** in Qemu.
+That's easy! Run `make init` to install all the required build tools and then run `make build` to start the building process. Right after, `make run` will start <span style="color:red;">TNK</span> in Qemu.
