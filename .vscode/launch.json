@@ -7,7 +7,7 @@
             "request": "custom",
             "preLaunchTask": "Launch-qemu",
             "targetCreateCommands": [
-                "target create ${workspaceFolder}/sources/core/kernel/target/limine/amd64/bin/kernel.elf"
+                "target create ${workspaceFolder}/sources/core/kernel/target/limine/amd64/bin/system/kernel/kernel.elf"
             ],
             "processCreateCommands": [
                 "settings set target.x86-disassembly-flavor intel",
