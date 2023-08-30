@@ -15,7 +15,3 @@ A 64-bit x86 operating system written in C/C++
 
 # Build it yourself
 That's easy! Run `make init` to install all the required build tools and then run `make build` to start the building process. Right after, `make run` will start **TNK** in Qemu.
-
-# Run Kot
-Download the latest release <a href="https://github.com/kot-org/Kot/releases">here</a> and make it run on your x86-64 emulator such as qemu, bochs, vmware, virtual box, ...
-
