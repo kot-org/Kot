@@ -2,7 +2,7 @@
 	<img src="./meta/images/laptop.png?raw=true" width="90%"/> 
 </p>
 
-# $${\color{red}The New Kot (TNK)}$$
+# The New Kot
 A 64-bit x86 operating system written in C/C++
 
 <img src="https://discordapp.com/api/guilds/901353839557476363/widget.png?style=banner3" alt="Discord Banner 3"/>
