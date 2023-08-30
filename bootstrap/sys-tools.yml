@@ -142,3 +142,40 @@ tools:
           - args: ['make', '-j@PARALLELISM@', 'all-target-libstdc++-v3']
         install:
           - args: ['make', 'install-strip-target-libstdc++-v3']
+
+  - name: bootstrap-host-gcc
+    from_source: gcc
+    tools_required:
+      - tool: host-binutils
+        recursive: true
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--prefix=@PREFIX@'
+        - '--target=x86_64-kot'
+        - '--with-sysroot=@SYSROOT_DIR@'
+        - '--enable-languages=c,c++'
+        - '--disable-multilib'
+        - '--enable-initfini-array'
+        - 'CFLAGS=-O2 -pipe'
+        - 'CXXFLAGS=-O2 -pipe'
+    stages:
+      - name: compiler
+        pkgs_required:
+          - mlibc-headers
+        compile:
+          - args: ['make', '-j@PARALLELISM@', 'all-gcc']
+        install:
+          - args: ['make', 'install-gcc']
+          - args: ['mkdir', '-p', '@PREFIX@/x86_64-kot/bin']
+          - args: ['ln', '-sf', '../../../host-binutils/x86_64-kot/bin/ld', '@PREFIX@/x86_64-kot/bin/ld']
+      - name: libgcc
+        tools_required:
+          - tool: host-gcc
+            stage_dependencies: [compiler]
+        pkgs_required:
+          - mlibc-headers
+        compile:
+          - args: ['make', '-j@PARALLELISM@', 'all-target-libgcc']
+        install:
+          - args: ['make', 'install-strip-target-libgcc']

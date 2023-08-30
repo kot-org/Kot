@@ -39,8 +39,7 @@ packages:
 
   - name: mlibc
     tools_required:
-      - tool: host-gcc
-        stage_dependencies: [compiler]
+      - bootstrap-host-gcc
     pkgs_required:
       - linux-headers
       - mlibc-headers
