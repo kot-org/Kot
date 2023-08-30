@@ -38,6 +38,9 @@ packages:
           DESTDIR: '@THIS_COLLECT_DIR@'
 
   - name: mlibc
+    tools_required:
+      - tool: host-gcc
+        stage_dependencies: [compiler]
     pkgs_required:
       - linux-headers
       - mlibc-headers

@@ -43,6 +43,7 @@
 #include "printf_config.h"
 #endif
 
+#include <limits.h>
 #include <lib/printf.h>
 
 #ifdef __cplusplus
@@ -79,12 +80,12 @@
 
 // Support for the decimal notation floating point conversion specifiers (%f, %F)
 #ifndef PRINTF_SUPPORT_DECIMAL_SPECIFIERS
-#define PRINTF_SUPPORT_DECIMAL_SPECIFIERS 1
+#define PRINTF_SUPPORT_DECIMAL_SPECIFIERS 0
 #endif
 
 // Support for the exponential notation floating point conversion specifiers (%e, %g, %E, %G)
-#ifndef PRINTF_SUPPORT_EXPONENTIAL_SPECIFIERS
-#define PRINTF_SUPPORT_EXPONENTIAL_SPECIFIERS 1
+#ifndef PRINTF_SUPPORT_EXPONENTIAL_SPECIFIER
+#define PRINTF_SUPPORT_EXPONENTIAL_SPECIFIERS 0
 #endif
 
 // Support for the length write-back specifier (%n)
@@ -625,13 +626,6 @@ static void apply_scaling(double num, struct scaling_factor normalization, doubl
 
 static void unapply_scaling(double normalized, struct scaling_factor normalization, double* return_value)
 {
-#ifdef __GNUC__
-// accounting for a static analysis bug in GCC 6.x and earlier
-#pragma GCC diagnostic push
-#if !defined(__has_warning) || __has_warning("-Wmaybe-uninitialized")
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-#endif
   *return_value = normalization.multiply ? normalized / normalization.raw_factor : normalized * normalization.raw_factor;
 #ifdef __GNUC__
 #pragma GCC diagnostic pop

@@ -1,0 +1,71 @@
+From e37db1c2c7cd0e1757c26ba7749e7671b91b560c Mon Sep 17 00:00:00 2001
+From: Keep-Konect <66421869+Keep-Konect@users.noreply.github.com>
+Date: Tue, 29 Aug 2023 09:52:10 +0200
+Subject: [PATCH] Kot specific toolchain
+
+---
+ bfd/config.bfd    | 5 +++++
+ config.sub        | 2 +-
+ gas/configure.tgt | 1 +
+ ld/configure.tgt  | 4 ++++
+ 4 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/bfd/config.bfd b/bfd/config.bfd
+index 30087e3b..45af916c 100644
+--- a/bfd/config.bfd
++++ b/bfd/config.bfd
+@@ -719,6 +719,11 @@ case "${targ}" in
+     targ_defvec=i386_elf32_vec
+     targ_selvecs="iamcu_elf32_vec i386_pe_vec i386_pei_vec"
+     ;;
++  x86_64-*-kot*)
++    targ_defvec=x86_64_elf64_vec
++    targ_selvecs=i386_elf32_vec
++    want64=true
++    ;;
+   i[3-7]86-*-interix*)
+     targ_defvec=i386_pei_vec
+     targ_selvecs="i386_pe_vec"
+diff --git a/config.sub b/config.sub
+index 7384e919..f1bf9162 100755
+--- a/config.sub
++++ b/config.sub
+@@ -1704,7 +1704,7 @@ case $os in
+ 	     | hpux* | unos* | osf* | luna* | dgux* | auroraux* | solaris* \
+ 	     | sym* |  plan9* | psp* | sim* | xray* | os68k* | v88r* \
+ 	     | hiux* | abug | nacl* | netware* | windows* \
+-	     | os9* | macos* | osx* | ios* \
++	     | os9* | macos* | osx* | ios* | kot* \
+ 	     | mpw* | magic* | mmixware* | mon960* | lnews* \
+ 	     | amigaos* | amigados* | msdos* | newsos* | unicos* | aof* \
+ 	     | aos* | aros* | cloudabi* | sortix* | twizzler* \
+diff --git a/gas/configure.tgt b/gas/configure.tgt
+index 338892ad..4b5be97e 100644
+--- a/gas/configure.tgt
++++ b/gas/configure.tgt
+@@ -221,6 +221,7 @@ case ${generic_target} in
+   i386-*-beos*)				fmt=elf ;;
+   i386-*-elfiamcu)			fmt=elf arch=iamcu ;;
+   i386-*-elf*)				fmt=elf ;;
++  i386-*-kot*)				fmt=elf ;;
+   i386-*-fuchsia*)			fmt=elf ;;
+   i386-*-genode*)			fmt=elf ;;
+   i386-*-bsd*)				fmt=aout em=386bsd ;;
+diff --git a/ld/configure.tgt b/ld/configure.tgt
+index 6205d7c9..014b02d7 100644
+--- a/ld/configure.tgt
++++ b/ld/configure.tgt
+@@ -323,6 +323,10 @@ i[3-7]86-*-linux-*)	targ_emul=elf_i386
+ 			targ64_extra_emuls="elf_x86_64 elf32_x86_64 elf_l1om elf_k1om"
+ 			targ64_extra_libpath="elf_x86_64 elf32_x86_64"
+ 			;;
++x86_64-*-kot*)
++			targ_emul=elf_x86_64
++			targ_extra_emuls=elf_i386
++			;;
+ i[3-7]86-*-redox*)	targ_emul=elf_i386
+ 			targ_extra_emuls=elf_x86_64
+ 			;;
+-- 
+2.34.1
+

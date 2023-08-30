@@ -1,6 +1,6 @@
 [binaries]
-c = 'clang-16'
-cpp = 'clang-16'
+c = 'x86_64-kot-gcc'
+cpp = 'x86_64-kot-g++'
 
 [properties]
 needs_exe_wrapper = true

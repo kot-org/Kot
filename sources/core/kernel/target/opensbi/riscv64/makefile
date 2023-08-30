@@ -16,10 +16,6 @@ prepare:
 	@ mkdir -m 777 -p $(BIN)
 	@ mkdir -m 777 -p $(LIB)
 
-# Tools
-CC = clang-16
-LD = ld.lld-16
-
 # Tools Config
 CFLAGS = -I$(SOURCE) \
 		 -ffreestanding \

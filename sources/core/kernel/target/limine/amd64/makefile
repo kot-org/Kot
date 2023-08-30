@@ -13,17 +13,11 @@ LIB = lib
 
 LDS = kernel.ld
 
-# Tools
-CC = clang-16
-ASMC = nasm
-LD = ld.lld-16
-
 # Tools Config
 CFLAGS = -I$(SOURCE) \
          -I$(INCLUDE) \
 		 -ffreestanding \
 		 -fpie \
-		 --target=x86_64-unknown-none-elf \
 		 -nostdlib \
 		 -fno-stack-protector \
 		 -mno-avx \
@@ -36,7 +30,7 @@ CFLAGS = -I$(SOURCE) \
 		 -Werror \
 		 -Wstrict-prototypes \
 		 -Wno-ignored-attributes \
-		 -include "$(INCLUDE)/abi-bits/limits.h"
+		 -Wno-address-of-packed-member \
 
 ASMFLAGS = -i$(realpath $(SOURCE)/arch/amd64) -f elf64
 
@@ -79,9 +73,9 @@ $(LIB)/%_s.o: $(SOURCE)/%.s
 
 link:
 	@ mkdir -m 777 -p $(BIN)
-	@ $(LD) $(LDFLAGS) -o $(BIN)/kernel.elf $(OBJS)
+	@ sudo $(LD) $(LDFLAGS) -o $(BIN)/kernel.elf $(OBJS)
 
 ksym:
-	@ $(TOOLS)/ksym $(BIN)/kernel.elf $(BIN)/kernel.sym
+	@ sudo $(TOOLS)/ksym $(BIN)/kernel.elf $(BIN)/kernel.sym
 
 kernel.elf: $(OBJS) link ksym

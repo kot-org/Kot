@@ -8,16 +8,10 @@ SOURCE = $(HOME)/source
 KERNEL_SOURCE = $(HOME)/../../kernel/source
 BIN = bin/system/modules
 
-# Tools
-CC = clang-16
-ASMC = nasm
-LD = ld.lld-16
-
 # Tools Config
 CFLAGS = -I$(SOURCE) \
  		 -I$(KERNEL_SOURCE) \
 		 -ffreestanding \
-		 --target=x86_64-unknown-none-elf \
 		 -nostdlib \
 		 -fno-stack-protector \
 		 -mno-avx \
