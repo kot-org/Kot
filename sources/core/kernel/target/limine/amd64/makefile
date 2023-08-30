@@ -73,7 +73,7 @@ $(LIB)/%_s.o: $(SOURCE)/%.s
 
 link:
 	@ mkdir -m 777 -p $(BIN)
-	@ sudo $(LD) $(LDFLAGS) -o $(BIN)/kernel.elf $(OBJS)
+	@ $(LD) $(LDFLAGS) -o $(BIN)/kernel.elf $(OBJS)
 
 ksym:
 	@ sudo $(TOOLS)/ksym $(BIN)/kernel.elf $(BIN)/kernel.sym

@@ -1,4 +1,4 @@
-subprojects
+subprojects/*
 !subprojects/*.wrap
 *.xbstrap
 # editor configs:
