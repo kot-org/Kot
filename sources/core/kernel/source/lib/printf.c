@@ -43,7 +43,6 @@
 #include "printf_config.h"
 #endif
 
-#include <limits.h>
 #include <lib/printf.h>
 
 #ifdef __cplusplus

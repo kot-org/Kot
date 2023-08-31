@@ -4,6 +4,15 @@
 #include <global/modules.h>
 #include <lib/modules/vfs.h>
 
+vfs_ctx_t* kernel_vfs_ctx = NULL;
+
+void vfs_init(void){
+    kernel_vfs_ctx = malloc(sizeof(vfs_ctx_t));
+    kernel_vfs_ctx->cwd_size = sizeof((char)'\0');
+    kernel_vfs_ctx->cwd = malloc(kernel_vfs_ctx->cwd_size);
+    kernel_vfs_ctx->cwd[0] = '\0';
+}
+
 int vfs_rename(vfs_ctx_t* ctx, const char* old_path, const char* new_path){
     return vfs_handler->rename(ctx, old_path, new_path);
 }

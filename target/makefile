@@ -12,7 +12,7 @@ info_system = /bin/echo -e "$(_PURPLE)[core/system]$(_END) $(_BOLD)$1$(_END)"
 # Limine AMD64 (liamd)
 
 liamd/build:
-	@ cd build && bash liamd.sh $(word 2,$(MAKECMDGOALS))
+	@ cd build && bash liamd.sh $(PACKAGE)
 	
 ovmf-amd64:
 	@ make -C "$(EXTERN)" ovmf-amd64

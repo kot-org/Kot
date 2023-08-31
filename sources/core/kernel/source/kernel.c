@@ -10,6 +10,7 @@
 #include <global/heap.h>
 #include <impl/initrd.h>
 #include <global/ksym.h>
+#include <global/apps.h>
 #include <impl/graphics.h>
 #include <global/scheduler.h>
 #include <global/elf_loader.h>
@@ -47,11 +48,17 @@ void kernel_entry(void) {
     /* graphics_init needs memory to be init*/
     graphics_init();
 
+    scheduler_init();
+
     arch_stage2();
 
     time_init();
 
+    vfs_init();
+
     modules_init();
+
+    apps_init();
 
     arch_idle();
 }

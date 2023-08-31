@@ -51,7 +51,7 @@ void modules_init(void){
         free(buffer);
         f_close(file);
     }else{
-        panic("%s not found !", modules_cfg_path);
+        panic("file: %s not found !", modules_cfg_path);
     }
 }
 

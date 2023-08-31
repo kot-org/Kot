@@ -40,6 +40,9 @@ typedef struct process_t{
     memory_handler_t* memory_handler;
 } process_t;
 
+extern process_t* proc_kernel;
+
+void scheduler_init(void);
 
 void scheduler_handler(cpu_context_t* ctx);
 

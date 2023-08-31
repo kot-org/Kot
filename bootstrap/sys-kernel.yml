@@ -12,6 +12,11 @@ packages:
         - '-C'
         - '@THIS_SOURCE_DIR@/target/@OPTION:boot_name@/@OPTION:arch_name@'
         - 'kernel.elf'
+        environ:
+          CC: "@OPTION:cc@"
+          CXX: "@OPTION:cxx@"
+          LD: "@OPTION:ld@"
+          ASMC: "@OPTION:asmc@"
       - args: 
         - 'cp'
         - '-r'

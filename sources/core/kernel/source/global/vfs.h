@@ -6,7 +6,11 @@
 
 #include <lib/modules/file.h>
 
-#define KERNEL_VFS_CTX NULL
+extern vfs_ctx_t* kernel_vfs_ctx;
+
+#define KERNEL_VFS_CTX kernel_vfs_ctx
+
+void vfs_init(void);
 
 int vfs_rename(vfs_ctx_t* ctx, const char* old_path, const char* new_path);
 int vfs_link(vfs_ctx_t* ctx, const char* src_path, const char* dst_path);

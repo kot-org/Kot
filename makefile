@@ -20,7 +20,7 @@ init:
 	@ xbstrap install-tool --all
 
 build:
-	@ cd target && make $(TARGET)/build $(word 2,$(MAKECMDGOALS))
+	@ cd target && make $(TARGET)/build
 
 run:
 	@ cd target && make $(TARGET)/run

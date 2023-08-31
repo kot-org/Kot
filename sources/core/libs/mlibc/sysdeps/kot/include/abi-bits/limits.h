@@ -1,1 +1,1 @@
-../../../../abis/kot/limits.h
+../../../../abis/linux/limits.h

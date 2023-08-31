@@ -11,6 +11,8 @@ static spinlock_t scheduler_spinlock = {};
 static thread_t* scheduler_first_node;
 static thread_t* scheduler_last_node;
 
+process_t* proc_kernel = NULL;
+
 static void scheduler_enqueue_wl(thread_t* thread){
     if(scheduler_first_node == NULL){
         scheduler_first_node = thread;
@@ -75,6 +77,10 @@ static void scheduler_dequeue(thread_t* thread){
     spinlock_release(&scheduler_spinlock);
 }
 
+void scheduler_init(void){
+    proc_kernel = scheduler_create_process(PROCESS_TYPE_MODULES);
+}
+
 void scheduler_handler(cpu_context_t* ctx){
     if(spinlock_test_and_acq(&scheduler_spinlock)){
         thread_t* ending_thread = ARCH_CONTEXT_SYSCALL_SELECTOR(ctx);
@@ -97,7 +103,7 @@ process_t* scheduler_create_process(process_flags_t flags){
 
     process->ctx_flags = ((PROCESS_GET_FLAG_TYPE(flags) == PROCESS_TYPE_EXEC) ? CONTEXT_FLAG_USER : 0); 
 
-    process->memory_handler = mm_create_handler(vmm_create_space(), (void*)VMM_USERSPACE_BOTTOM_ADDRESS, VMM_USERSPACE_TOP_ADDRESS - VMM_USERSPACE_BOTTOM_ADDRESS);
+    process->memory_handler = mm_create_handler(vmm_create_space(), (void*)VMM_USERSPACE_BOTTOM_ADDRESS, (size_t)((uintptr_t)VMM_USERSPACE_TOP_ADDRESS - (uintptr_t)VMM_USERSPACE_BOTTOM_ADDRESS));
 
     process->vfs_ctx = KERNEL_VFS_CTX;
 
