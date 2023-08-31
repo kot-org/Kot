@@ -1,3 +1,3 @@
 #!/bin/bash
 
-clang-16 -o ksym -Wall ksym.c
+$CC -o $CWD/ksym -Wall $CWD/ksym.c

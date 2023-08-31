@@ -181,3 +181,19 @@ tools:
           - args: ['make', '-j@PARALLELISM@', 'all-target-libgcc']
         install:
           - args: ['make', 'install-target-libgcc']
+
+  - name: tools
+    source:
+      subdir: 'sources'
+    tools_required:
+      - host-gcc
+    compile:
+      - args:
+        - 'bash'
+        - '@THIS_SOURCE_DIR@/build.sh'
+        environ:
+          CC: "@OPTION:cc@"
+          CXX: "@OPTION:cxx@"
+          LD: "@OPTION:ld@"
+          ASMC: "@OPTION:asmc@"
+          CWD: "@THIS_SOURCE_DIR@"
