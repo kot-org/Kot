@@ -107,5 +107,14 @@
         "__tree": "cpp",
         "set": "cpp",
         "cstdint": "cpp"
+    },
+    "files.exclude": {
+        "bundled": true,
+        "packages": true,
+        "pkg-builds": true,
+        "sysroot": true,
+        "tool-builds": true,
+        "tools": true,
+        "bootstrap.link": true
     }
 }
