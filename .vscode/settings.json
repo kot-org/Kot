@@ -106,7 +106,9 @@
         "iterator": "cpp",
         "__tree": "cpp",
         "set": "cpp",
-        "cstdint": "cpp"
+        "cstdint": "cpp",
+        "socket": "c",
+        "expected": "c"
     },
     "files.exclude": {
         "bundled": true,
