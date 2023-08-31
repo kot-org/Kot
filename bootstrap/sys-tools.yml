@@ -156,26 +156,28 @@ tools:
         - '--with-sysroot=@SYSROOT_DIR@'
         - '--enable-languages=c,c++'
         - '--disable-multilib'
+        - '--disable-shared'
         - '--enable-initfini-array'
-        - 'CFLAGS=-O2 -pipe'
-        - 'CXXFLAGS=-O2 -pipe'
+        - 'CFLAGS=-O2'
+        - 'CXXFLAGS=-O2'
     stages:
       - name: compiler
         pkgs_required:
-          - mlibc-headers
+         - mlibc-headers
         compile:
+          - args: ['mkdir', '-p', '@SYSROOT_DIR@/usr/include']
           - args: ['make', '-j@PARALLELISM@', 'all-gcc']
         install:
           - args: ['make', 'install-gcc']
           - args: ['mkdir', '-p', '@PREFIX@/x86_64-kot/bin']
-          - args: ['ln', '-sf', '../../../host-binutils/x86_64-kot/bin/ld', '@PREFIX@/x86_64-kot/bin/ld']
+          - args: ['ln', '-sf', '../../../cross-binutils/x86_64-kot/bin/as', '@PREFIX@/x86_64-kot/bin/as']
+          - args: ['ln', '-sf', '../../../cross-binutils/x86_64-kot/bin/ld', '@PREFIX@/x86_64-kot/bin/ld']
+
       - name: libgcc
         tools_required:
-          - tool: host-gcc
+          - tool: bootstrap-host-gcc
             stage_dependencies: [compiler]
-        pkgs_required:
-          - mlibc-headers
         compile:
           - args: ['make', '-j@PARALLELISM@', 'all-target-libgcc']
         install:
-          - args: ['make', 'install-strip-target-libgcc']
+          - args: ['make', 'install-target-libgcc']
