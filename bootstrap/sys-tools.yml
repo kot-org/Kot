@@ -189,3 +189,5 @@ tools:
       - args:
         - 'bash'
         - '@THIS_SOURCE_DIR@/build.sh'
+        environ:
+          CWD: "@THIS_SOURCE_DIR@"
