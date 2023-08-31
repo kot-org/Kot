@@ -50,10 +50,10 @@ static int get_fs_mount_name_from_path(vfs_ctx_t* ctx, const char* path, char* f
         fs_mount_name[0] = '/';
         size_t fs_mount_name_size = (size_t)((uintptr_t)fs_relative_path_tmp - (uintptr_t)path);
         strncpy(fs_mount_name + sizeof((char)'/'), path, fs_mount_name_size);
-        memcpy(fs_relative_path, fs_relative_path_tmp, strlen(fs_relative_path_tmp));
+        strcpy(fs_relative_path, fs_relative_path_tmp);
     }else{
         fs_mount_name[0] = '/';
-        memcpy(fs_mount_name + sizeof((char)'/'), path, path_size);
+        strncpy(fs_mount_name + sizeof((char)'/'), path, path_size);
     }
     return 0;
 }

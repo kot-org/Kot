@@ -6,7 +6,7 @@ int get_ownership(storage_device_t* device, uint64_t start, uint64_t size, guid_
 	partition->size = size;
 	partition->device = device;
 
-	if(fat_mount(partition)){
+	if(!fat_mount(partition)){
 		return 0;
 	}
 

@@ -22,6 +22,9 @@ init:
 build:
 	@ cd target && make $(TARGET)/build
 
+configure:
+	@ cd target && make $(TARGET)/configure
+
 run:
 	@ cd target && make $(TARGET)/run
 

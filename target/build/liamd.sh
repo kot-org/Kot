@@ -1,6 +1,7 @@
 #!/bin/bash
 
-PACKAGE_NAME=$1
+ACTION=$1
+PACKAGE_NAME=$2
 
 if [ "$PACKAGE_NAME" = "all" ]; then
     PACKAGE_NAME="--all"
@@ -12,11 +13,12 @@ source boot-disk.sh mount liamd amd64 liamd/boot-kot.img boot_disk_kot_mount
 
 cd ../ # root
 
+echo --$PACKAGE_NAME
 
 if [ "$PACKAGE_NAME" = "" ]; then
-    xbstrap install $PACKAGE_NAME
+    xbstrap install --$ACTION
 else
-    xbstrap install $PACKAGE_NAME --rebuild
+    xbstrap install $PACKAGE_NAME --$ACTION
 fi
 
 cd target/ # target

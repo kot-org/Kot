@@ -78,7 +78,11 @@ int ahci_device_read(struct storage_device_t* storage, uint64_t start, size_t si
     uint64_t read_position = start;
 
     if(start + size > device->size){
-        size = device->size - start;
+        if(start < device->size){
+            size = device->size - start;
+        }else{
+            return EIO;
+        }
     }
 
     for(size_t size_to_process = size; size_to_process > 0;){

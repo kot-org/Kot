@@ -273,6 +273,7 @@ static int load_elf_exec_segments(struct elf64_ehdr* header, void* buffer, struc
 
                 segments_info->ld_path = malloc(size_data_to_copy + 1); // add 1 for the null char at the end
                 strncpy(segments_info->ld_path, address_data_to_copy, size_data_to_copy);
+                segments_info->ld_path[size_data_to_copy] = '\0';
             }
         }
     }
@@ -322,7 +323,7 @@ int load_elf_exec(process_t* process_ctx, int argc, char* args[], char* envp[], 
     void* buffer = malloc(file->file_size_initial);
     f_read(buffer, file->file_size_initial, &bytes_read, file);
 
-    struct load_elf_exec_segments_info exec_segments_info;
+    struct load_elf_exec_segments_info exec_segments_info = {};
     load_elf_exec_segments(&header, buffer, &exec_segments_info, NULL);
 
     free(buffer);
