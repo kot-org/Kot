@@ -7,7 +7,7 @@ A 64-bit x86 operating system written in C/C++
 
 [![C/C++ CI](https://github.com/kot-org/new-kot/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/kot-org/new-kot/actions/workflows/c-cpp.yml)
 
-<img src="https://discordapp.com/api/guilds/901353839557476363/widget.png?style=banner3" alt="Discord Banner 3"/>
+[![Discord](https://discordapp.com/api/guilds/901353839557476363/widget.png?style=banner3)](https://discord.gg/XJzhM7uKkz)
 
 # Screenshots
 
@@ -16,7 +16,7 @@ A 64-bit x86 operating system written in C/C++
 </p>
 
 # Build it yourself
-That's easy! Run `make init` to install all the required build tools and then run `make build` to start the building process. Right after, `make run` will start **TNK** in Qemu.
+That's easy! Run `make init` to install all the required build tools and then run `PACKAGE=all make build` to start the building process. Right after, `make run` will start **TNK** in Qemu.
 
 # How to Use the Main Makefile
 
