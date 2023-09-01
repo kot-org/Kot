@@ -245,7 +245,7 @@ static int sata_write(ahci_device_t* ahci_device, uint64_t start, size_t size, v
     return 0;
 }
 
-ahci_device_t* init_sata_device(hba_port_t* port){
+ahci_device_t* sata_device_init(hba_port_t* port){
     ahci_sata_device_t* device = malloc(sizeof(ahci_sata_device_t));
     device->ahci_device.internal_data = device;
 

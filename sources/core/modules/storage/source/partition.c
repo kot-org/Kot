@@ -53,7 +53,7 @@ static void find_owner_partitions(storage_potential_owner_t* potential_owner){
     spinlock_release(&partition_list_lock);
 }
 
-void init_partition(void){
+void partition_init(void){
     partition_list = vector_create();
     potential_owner_list = vector_create();
 }

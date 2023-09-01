@@ -1,6 +1,6 @@
 #include <main.h>
 
-pci_device_list_info_t* init_pci_list(void){
+pci_device_list_info_t* pci_list_init(void){
     pci_device_list_info_t* return_value = (pci_device_list_info_t*)malloc(sizeof(pci_device_list_info_t));
     return_value->devices = vector_create();
     return return_value;

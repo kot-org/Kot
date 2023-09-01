@@ -32,14 +32,14 @@ static void controller_find_ports(ahci_controller_t* controller){
         if(ports_implemented & (1 << i)){
             uint8_t port_type = controller_get_port_type(&controller->abar->ports[i]);
             if(port_type == PORT_TYPE_SATA){
-                ahci_device_t* device = init_sata_device(&controller->abar->ports[i]);
-                ahci_init_device(device);
+                ahci_device_t* device = sata_device_init(&controller->abar->ports[i]);
+                ahci_device_init(device);
             }
         }
     }
 }
 
-ahci_controller_t* init_controller(pci_device_id_t device_id){
+ahci_controller_t* controller_init(pci_device_id_t device_id){
     ahci_controller_t* controller = (ahci_controller_t*)malloc(sizeof(ahci_controller_t));
 
     pci_bar_info_t bar_info;

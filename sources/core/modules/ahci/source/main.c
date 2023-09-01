@@ -30,7 +30,7 @@ int init(int argc, char* args[]){
 
     for(size_t i = 0; i < ahci_controller_count; i++){
         pci_device_id_t device_id = pci_handler->find_device(&device_info, i);
-        controllers[i] = init_controller(device_id);
+        controllers[i] = controller_init(device_id);
     }
 
     log_printf("[module/"MODULE_NAME"] loading end\n");

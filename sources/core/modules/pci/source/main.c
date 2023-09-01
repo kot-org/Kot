@@ -22,12 +22,12 @@ int init(int argc, char* args[]){
 
     void* mcfg_table = acpi_find_table(acpi_rsdp, "MCFG");
     
-    pci_device_list_info_t* pci_device_list = init_pci_list();
+    pci_device_list_info_t* pci_device_list = pci_list_init();
 
     if(mcfg_table != NULL){
-        init_pcie(pci_device_list, mcfg_table);
+        pcie_init(pci_device_list, mcfg_table);
     }else{
-        init_pci(pci_device_list);
+        pci_init(pci_device_list);
     }
 
     pci_device_array = (pci_device_array_info_t*)malloc(sizeof(pci_device_array_info_t));

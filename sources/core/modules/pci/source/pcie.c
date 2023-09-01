@@ -72,7 +72,7 @@ static void enumerate_bus(pci_device_list_info_t* pci_device_list, void* base_ad
     }
 }
 
-void init_pcie(pci_device_list_info_t* pci_device_list, void* mcfg_address){
+void pcie_init(pci_device_list_info_t* pci_device_list, void* mcfg_address){
     mcfg_header_t* mcfg = (mcfg_header_t*)mcfg_address;
 
     size_t entries = ((mcfg->header.length) - sizeof(mcfg_header_t)) / sizeof(device_config_t);

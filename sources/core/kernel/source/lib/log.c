@@ -10,7 +10,7 @@
 void log_print(const char *str) {
     static spinlock_t print_lock = SPINLOCK_INIT;
     spinlock_acquire(&print_lock);
-    print_terminal(str);
+    terminal_print(str);
     for (uint64_t i = 0; str[i] != '\0'; i++) {
         serial_write(str[i]);
         if (str[i] == '\n') serial_write('\r');   

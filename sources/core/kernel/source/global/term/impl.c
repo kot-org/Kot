@@ -17,7 +17,7 @@ void callback(struct term_t* term, uint64_t type, uint64_t gp0, uint64_t gp1, ui
     
 }
 
-void init_term(void* fb_base, uint64_t fb_width, uint64_t fb_height, uint64_t fb_pitch, void* image_base, size_t image_size) {
+void terminal_init(void* fb_base, uint64_t fb_width, uint64_t fb_height, uint64_t fb_pitch, void* image_base, size_t image_size) {
     struct framebuffer_t frm = {
         (uintptr_t)fb_base,
         fb_width,
@@ -67,15 +67,15 @@ void init_term(void* fb_base, uint64_t fb_width, uint64_t fb_height, uint64_t fb
     term_vbe(&terminal, frm, font, style, back);
 }
 
-void put_char_terminal(char c) {
+void terminal_put_char(char c) {
     term_putchar(&terminal, c);
     term_double_buffer_flush(&terminal);
 }
 
-void write_terminal(const char* text, size_t size) {
+void terminal_write(const char* text, size_t size) {
     term_write(&terminal, text, size);
 }
 
-void print_terminal(const char* text) {
-    write_terminal(text, strlen(text));
+void terminal_print(const char* text) {
+    terminal_write(text, strlen(text));
 }

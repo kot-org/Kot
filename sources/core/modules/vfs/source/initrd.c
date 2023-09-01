@@ -1,7 +1,7 @@
 #include <core.h>
 #include <impl/initrd.h>
 
-void init_vfs_initrd(void){
+void vfs_initrd_init(void){
     fs_t* fs_vfs = malloc(sizeof(fs_t));
     fs_vfs->file_remove = (file_remove_fs_t)&vfs_return_not_implemented;
     fs_vfs->file_open = &initrd_open;

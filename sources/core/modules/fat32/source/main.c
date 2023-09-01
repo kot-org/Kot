@@ -15,7 +15,7 @@ int init(int argc, char* args[]){
     assert(modules_request_dependency(MODULE_TYPE_TIME) == 0);
     assert(modules_request_dependency(MODULE_TYPE_STORAGE) == 0);
 
-    init_interface();
+    interface_init();
 
     log_printf("[module/"MODULE_NAME"] loading end\n");
     return 0;

@@ -33,7 +33,7 @@ typedef struct {
     uint64_t vector_index;
 } partition_t;
 
-void init_partition(void);
+void partition_init(void);
 int load_parititons(device_partitions_t* device_partitions);
 int new_partition(storage_device_t* device, uint64_t start, uint64_t size, guid_t* partition_type_guid);
 

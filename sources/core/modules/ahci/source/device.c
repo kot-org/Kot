@@ -109,7 +109,7 @@ int ahci_device_write(struct storage_device_t* storage, uint64_t start, size_t s
     return 0;
 }
 
-void ahci_init_device(ahci_device_t* device){
+void ahci_device_init(ahci_device_t* device){
     device->storage = malloc(sizeof(storage_device_t));
     device->storage->storage_size = device->size;
     device->storage->internal_data = device;

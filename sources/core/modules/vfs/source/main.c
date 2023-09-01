@@ -5,15 +5,18 @@
 
 #include <core.c>
 #include <initrd.c>
+#include <system.c>
 
 static vfs_handler_t vfs_handler_buffer;
 
 int init(int argc, char* args[]){
     log_printf("[module/"MODULE_NAME"] loading start\n");
 
-    init_vfs();
+    vfs_init();
 
-    init_vfs_initrd();
+    vfs_initrd_init();
+
+    system_tasks_init();
     
     vfs_handler_buffer.file_remove = &file_remove;
     vfs_handler_buffer.file_open = &file_open;

@@ -21,6 +21,6 @@ void graphics_init(void) {
             file_size = initrd_get_file_size(file_ptr);
         }
 
-        init_term(framebuffer->address, framebuffer->width, framebuffer->height, framebuffer->pitch, file_base, file_size);
+        terminal_init(framebuffer->address, framebuffer->width, framebuffer->height, framebuffer->pitch, file_base, file_size);
     }
 }

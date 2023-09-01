@@ -14,7 +14,7 @@ int get_ownership(storage_device_t* device, uint64_t start, uint64_t size, guid_
 	return EINVAL;
 }
 
-void init_interface(void){
+void interface_init(void){
 	fat32_potential_owner.get_ownership = &get_ownership;
     storage_handler->add_potential_owner(&fat32_potential_owner);
 }

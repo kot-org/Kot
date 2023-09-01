@@ -12,7 +12,7 @@
 int init(int argc, char* args[]){
     log_printf("[module/"MODULE_NAME"] loading start\n");
 
-    init_partition();
+    partition_init();
     interface_init();
 
     log_printf("[module/"MODULE_NAME"] loading end\n");

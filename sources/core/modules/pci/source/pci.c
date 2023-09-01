@@ -122,7 +122,7 @@ static void get_device(pci_device_list_info_t* pci_device_list, uint16_t bus, ui
     return;
 }
 
-void init_pci(pci_device_list_info_t* pci_device_list){
+void pci_init(pci_device_list_info_t* pci_device_list){
     for(uint32_t bus = 0; bus < 256; bus++) {
         for(uint32_t device = 0; device < 32; device++) {
 

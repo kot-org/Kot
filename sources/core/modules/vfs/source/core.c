@@ -160,7 +160,7 @@ kernel_dir_t* vfs_dir_open(fs_t* ctx, const char* path, int* error){
     return dir;
 }
 
-void init_vfs(void){
+void vfs_init(void){
     vfs_hashmap = hashmap_create(32);
     fs_t* fs_vfs = malloc(sizeof(fs_t));
     fs_vfs->file_remove = (file_remove_fs_t)&vfs_return_not_implemented;
@@ -209,6 +209,8 @@ int mount_fs(const char* fs_mount_name, fs_t* new_fs){
     char* fs_mount_name_buffer = malloc(size_fs_mount_name);
     strncpy(fs_mount_name_buffer, fs_mount_name, size_fs_mount_name);
     int err = add_fs(fs_mount_name_buffer, fs);
+
+    system_tasks_mount(new_fs);
 
     spinlock_release(&vfs_lock);
     return err;
