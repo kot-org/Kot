@@ -31,7 +31,17 @@ function mount_boot_disk {
         if [[ $TARGET_NAME == li* ]]; then
             mkdir -p ${MOUNT_DIR}/limine
             mkdir -p ${MOUNT_DIR}/initrd
+            mkdir -p ${MOUNT_DIR}/system/disk
             mkdir -p ${MOUNT_DIR}/EFI/BOOT
+
+            cp disk.cfg disktmp.cfg
+            echo "DISK_SYSTEM_UUID=$(uuidgen)" > tmp.txt
+            cat disktmp.cfg >> tmp.txt
+            mv tmp.txt disktmp.cfg
+            cp disktmp.cfg ${MOUNT_DIR}/system/disk/disk.cfg
+            rm tmp.txt
+            rm disktmp.cfg
+
             make -C "${EXTERN}" limine
             cp limine.cfg ${EXTERN}/limine/limine-bios.sys ${EXTERN}/limine/limine-bios-cd.bin ${EXTERN}/limine/limine-uefi-cd.bin ${MOUNT_DIR}/limine
             cp ${EXTERN}/limine/BOOTX64.EFI ${MOUNT_DIR}/EFI/BOOT/
