@@ -14,6 +14,8 @@ typedef struct kernel_dir_t{
     uint64_t seek_position;
     void* internal_data;
     int (*get_directory_entries)(void*, size_t, size_t*, struct kernel_dir_t*);
+    int (*create_at)(struct kernel_dir_t* dir, const char* path, mode_t mode);
+    int (*unlink_at)(struct kernel_dir_t* dir, const char* path, int flags);
 } kernel_dir_t;
 
 typedef struct dirent_t{

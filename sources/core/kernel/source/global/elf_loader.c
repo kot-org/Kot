@@ -39,7 +39,7 @@ int load_elf_module(module_metadata_t** metadata, int argc, char* args[]){
     struct elf64_ehdr header;
 
     size_t bytes_read;
-    f_read(&header, sizeof(struct elf64_ehdr), &bytes_read, file);
+    assert(!f_read(&header, sizeof(struct elf64_ehdr), &bytes_read, file));
 
     if(!check_elf_signature(&header)){
         log_error("Invalid executable file : %s, bad header signature\n", file_path);
@@ -62,7 +62,11 @@ int load_elf_module(module_metadata_t** metadata, int argc, char* args[]){
     spinlock_acquire(&load_elf_module_lock);
 
     void* module_address = vmm_get_free_contiguous(file->file_size_initial);
-    f_read(module_address, file->file_size_initial, &bytes_read, file);
+
+    off_t offset;
+    f_seek(0, SEEK_SET, &offset, file);
+
+    assert(!f_read(module_address, file->file_size_initial, &bytes_read, file));
 
     for(elf64_half i = 0; i < header.e_shnum; i++){
         struct elf64_shdr* section_header = (struct elf64_shdr*)(module_address + header.e_shoff + header.e_shentsize * i);
@@ -293,7 +297,7 @@ int load_elf_exec(process_t* process_ctx, int argc, char* args[], char* envp[], 
     struct elf64_ehdr header;
 
     size_t bytes_read;
-    f_read(&header, sizeof(struct elf64_ehdr), &bytes_read, file);
+    assert(!f_read(&header, sizeof(struct elf64_ehdr), &bytes_read, file));
 
     if(!check_elf_signature(&header)){
         log_error("Invalid executable file : %s, bad header signature\n", file_path);
@@ -320,7 +324,11 @@ int load_elf_exec(process_t* process_ctx, int argc, char* args[], char* envp[], 
     vmm_space_swap(process_ctx->memory_handler->vmm_space);
 
     void* buffer = malloc(file->file_size_initial);
-    f_read(buffer, file->file_size_initial, &bytes_read, file);
+        
+    off_t offset;
+    f_seek(0, SEEK_SET, &offset, file);
+
+    assert(!f_read(buffer, file->file_size_initial, &bytes_read, file));
 
     struct load_elf_exec_segments_info exec_segments_info = {};
     load_elf_exec_segments(&header, buffer, &exec_segments_info, NULL);
@@ -341,7 +349,7 @@ int load_elf_exec(process_t* process_ctx, int argc, char* args[], char* envp[], 
 
         struct elf64_ehdr ld_header;
 
-        f_read(&ld_header, sizeof(struct elf64_ehdr), &bytes_read, ld_file);
+        assert(!f_read(&ld_header, sizeof(struct elf64_ehdr), &bytes_read, ld_file));
 
         if(!check_elf_signature(&ld_header)){
             log_error("Invalid dynamic linker file : %s, bad header signature\n", exec_segments_info.ld_path);
@@ -355,14 +363,17 @@ int load_elf_exec(process_t* process_ctx, int argc, char* args[], char* envp[], 
             return EINVAL;
         }
 
-        if(header.e_type != ET_DYN){
+        if(ld_header.e_type != ET_DYN){
             log_error("Invalid dynamic linker file : %s, not dynamic\n", exec_segments_info.ld_path);
             f_close(ld_file);
             return EINVAL;
         }
 
         void* ld_buffer = malloc(ld_file->file_size_initial);
-        f_read(ld_buffer, ld_file->file_size_initial, &bytes_read, ld_file);
+
+        f_seek(0, SEEK_SET, &offset, file);
+
+        assert(!f_read(ld_buffer, ld_file->file_size_initial, &bytes_read, ld_file));
 
         struct load_elf_exec_segments_info ld_segments_info;
         load_elf_exec_segments(&ld_header, ld_buffer, &ld_segments_info, DYNAMIC_LINKER_BASE_ADDRESS);

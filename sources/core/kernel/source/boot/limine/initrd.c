@@ -79,6 +79,8 @@ int initrd_read(void* buffer, size_t size, size_t* bytes_read, kernel_file_t* fi
 
     *bytes_read = size;
 
+    file->seek_position += *bytes_read;
+
     return 0;
 }
 
@@ -141,6 +143,7 @@ kernel_file_t* initrd_open(fs_t* ctx, const char* path, int flags, mode_t mode, 
         file->close = &initrd_close;
         return file;
     }else{
+        *error = ENOENT;
         return NULL;
     }
 }

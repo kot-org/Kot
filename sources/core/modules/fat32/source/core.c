@@ -1250,6 +1250,14 @@ int fat_interface_get_directory_entries(void* buffer, size_t max_size, size_t* b
     return 0;
 }
 
+int fat_interface_create_at(struct kernel_dir_t* dir, const char* path, mode_t mode){
+    return ENOSYS;
+}
+
+int fat_interface_unlink_at(struct kernel_dir_t* dir, const char* path, int flags){
+    return ENOSYS;
+}
+
 
 /* directory and file */
 
@@ -1282,12 +1290,16 @@ int fat_interface_file_remove(fs_t* ctx, const char* path){
 
 int fat_interface_file_read(void* buffer, size_t size, size_t* size_read, kernel_file_t* file){
     fat_file_internal_t* fat_file = file->internal_data;
-    return fat_file_read(fat_file, file->seek_position, size, size_read, buffer);
+    int err = fat_file_read(fat_file, file->seek_position, size, size_read, buffer);
+    file->seek_position += *size_read;
+    return err;
 }
 
 int fat_interface_file_write(void* buffer, size_t size, size_t* size_write, kernel_file_t* file){
     fat_file_internal_t* fat_file = file->internal_data;
-    return fat_file_write(fat_file, file->seek_position, size, size_write, buffer, true);
+    int err = fat_file_write(fat_file, file->seek_position, size, size_write, buffer, true);
+    file->seek_position += *size_write;
+    return err;
 }
 
 int fat_interface_file_seek(off_t offset, int whence, off_t* new_offset, kernel_file_t* file){
@@ -1357,6 +1369,7 @@ struct kernel_file_t* fat_interface_file_open(struct fs_t* ctx, const char* path
     file->file_size_initial = fat_file->entry.size;
     file->fs_ctx = ctx;
     file->internal_data = fat_file;
+    file->seek_position = 0;
     file->read = &fat_interface_file_read;
     file->write = &fat_interface_file_write;
     file->seek = &fat_interface_file_seek;
@@ -1370,10 +1383,6 @@ struct kernel_file_t* fat_interface_file_open(struct fs_t* ctx, const char* path
 
 int fat_interface_dir_create(struct fs_t* ctx, const char* path, mode_t mode){
     return fat_create_dir((fat_context_t*)ctx->internal_data, fat_interface_convert_path((char*)path), mode);
-}
-
-int fat_interface_dir_create_at(struct fs_t* ctx, struct kernel_dir_t* dir, const char* path, mode_t mode){
-    return ENOSYS;
 }
 
 int fat_interface_dir_remove(struct fs_t* ctx, const char* path){
@@ -1391,6 +1400,8 @@ struct kernel_dir_t* fat_interface_dir_open(struct fs_t* ctx, const char* path, 
     dir->seek_position = (fat_get_cluster_entry(fat_ctx, &fat_dir->entry) == fat_ctx->bpb->root_cluster_number) ? 0 : DIR_MINIMUM_ENTRIES;
     dir->internal_data = fat_dir;
     dir->get_directory_entries = &fat_interface_get_directory_entries;
+    dir->create_at = &fat_interface_create_at;
+    dir->unlink_at = &fat_interface_unlink_at;
 
     return dir;
 }
@@ -1401,10 +1412,6 @@ int fat_interface_rename(struct fs_t* ctx, const char* old_path, const char* new
 }
 
 int fat_interface_link(struct fs_t* ctx, const char* src_path, const char* dst_path){
-    return ENOSYS;
-}
-
-int fat_interface_unlink_at(struct fs_t* ctx, struct kernel_dir_t* dir, const char* path, mode_t mode){
     return ENOSYS;
 }
 
@@ -1469,12 +1476,11 @@ int fat_mount(partition_t* partition){
     vfs_interface->file_remove = &fat_interface_file_remove;
     vfs_interface->file_open = &fat_interface_file_open;
     vfs_interface->dir_create = &fat_interface_dir_create;
-    vfs_interface->dir_create_at = &fat_interface_dir_create_at;
     vfs_interface->dir_remove = &fat_interface_dir_remove;
     vfs_interface->dir_open = &fat_interface_dir_open;
     vfs_interface->rename = &fat_interface_rename;
     vfs_interface->link = &fat_interface_link;
-    vfs_interface->unlink_at = &fat_interface_unlink_at;
+
     char* mount_path = vfs_request_friendly_fs_mount_name(partition->device->is_removable);
     vfs_mount_fs(mount_path, vfs_interface);
     vfs_free_friendly_fs_mount_name(mount_path);

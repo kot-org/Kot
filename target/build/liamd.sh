@@ -13,8 +13,6 @@ source boot-disk.sh mount liamd amd64 liamd/boot-kot.img boot_disk_kot_mount
 
 cd ../ # root
 
-echo --$PACKAGE_NAME
-
 if [ "$PACKAGE_NAME" = "" ]; then
     xbstrap install --$ACTION
 else

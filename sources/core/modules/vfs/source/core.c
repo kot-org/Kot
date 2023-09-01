@@ -145,6 +145,14 @@ int vfs_get_directory_entries(void* buffer, size_t max_size, size_t* bytes_read,
     return 0;
 }
 
+int vfs_create_at(struct kernel_dir_t* dir, const char* path, mode_t mode){
+    return ENOSYS;
+}
+
+int vfs_unlink_at(struct kernel_dir_t* dir, const char* path, int flags){
+    return ENOSYS;
+}
+
 kernel_dir_t* vfs_dir_open(fs_t* ctx, const char* path, int* error){
     if(path[0] != '\0'){
         *error = ENOENT;
@@ -156,6 +164,8 @@ kernel_dir_t* vfs_dir_open(fs_t* ctx, const char* path, int* error){
     dir->fs_ctx = ctx;
     dir->seek_position = hashmap_get_start(vfs_hashmap);
     dir->get_directory_entries = &vfs_get_directory_entries;
+    dir->create_at = &vfs_create_at;
+    dir->unlink_at = &vfs_unlink_at;
 
     return dir;
 }
@@ -166,13 +176,11 @@ void vfs_init(void){
     fs_vfs->file_remove = (file_remove_fs_t)&vfs_return_not_implemented;
     fs_vfs->file_open = &vfs_file_open_not_implemented;
     fs_vfs->dir_create = (dir_create_fs_t)&vfs_return_not_implemented;
-    fs_vfs->dir_create_at = (dir_create_at_fs_t)&vfs_return_not_implemented;
     fs_vfs->dir_remove = (dir_remove_fs_t)&vfs_return_not_implemented;
     fs_vfs->dir_open = &vfs_dir_open;
     fs_vfs->rename = (rename_fs_t)&vfs_return_not_implemented;
     fs_vfs->link = (link_fs_t)&vfs_return_not_implemented;
-    fs_vfs->unlink_at = (unlink_at_fs_t)&vfs_return_not_implemented;
-    mount_fs("/", fs_vfs);
+    local_mount_fs("/", fs_vfs);
 }
 
 char* request_friendly_fs_mount_name(bool is_removable){
@@ -194,6 +202,23 @@ int free_friendly_fs_mount_name(const char* fs_mount_name){
     return 0;
 }
 
+/* Warning : this function should be called by a parent which possess the vfs_lock */
+int local_mount_fs(const char* fs_mount_name, fs_t* new_fs){
+    if(get_fs(fs_mount_name) != NULL){
+        return EINVAL;
+    }
+
+    fs_t* fs = malloc(sizeof(fs_t));
+    memcpy(fs, new_fs, sizeof(fs_t));
+
+    size_t size_fs_mount_name = strlen(fs_mount_name) + 1;
+    char* fs_mount_name_buffer = malloc(size_fs_mount_name);
+    strncpy(fs_mount_name_buffer, fs_mount_name, size_fs_mount_name);
+    int err = add_fs(fs_mount_name_buffer, fs);
+
+    return err;
+}
+
 int mount_fs(const char* fs_mount_name, fs_t* new_fs){
     spinlock_acquire(&vfs_lock);
 
@@ -209,7 +234,7 @@ int mount_fs(const char* fs_mount_name, fs_t* new_fs){
     char* fs_mount_name_buffer = malloc(size_fs_mount_name);
     strncpy(fs_mount_name_buffer, fs_mount_name, size_fs_mount_name);
     int err = add_fs(fs_mount_name_buffer, fs);
-
+    
     system_tasks_mount(new_fs);
 
     spinlock_release(&vfs_lock);
@@ -277,10 +302,6 @@ int dir_create(vfs_ctx_t* ctx, const char* path, mode_t mode){
     }
 
     return fs->dir_create(fs, fs_relative_path, mode);
-}
-
-int dir_create_at(vfs_ctx_t* ctx, kernel_dir_t* parent_dir, const char* path, mode_t mode){
-    return parent_dir->fs_ctx->dir_create_at(parent_dir->fs_ctx, parent_dir, path, mode);
 }
 
 int dir_remove(vfs_ctx_t* ctx, const char* path){
@@ -361,9 +382,5 @@ int vfs_link(vfs_ctx_t* ctx, const char* src_path, const char* dst_path){
         return EXDEV;
     }
 
-    return src_fs->rename(src_fs, src_fs_relative_path, dst_fs_relative_path);
-}
-
-int vfs_unlink_at(vfs_ctx_t* ctx, kernel_dir_t* parent_dir, const char* path, mode_t mode){
-    return parent_dir->fs_ctx->unlink_at(parent_dir->fs_ctx, parent_dir, path, mode);
+    return src_fs->link(src_fs, src_fs_relative_path, dst_fs_relative_path);
 }

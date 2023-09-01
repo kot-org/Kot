@@ -21,10 +21,6 @@ int vfs_link(vfs_ctx_t* ctx, const char* src_path, const char* dst_path){
     return vfs_handler->link(ctx, src_path, dst_path);
 }
 
-int vfs_unlink_at(vfs_ctx_t* ctx, struct kernel_dir_t* dir, const char* path, mode_t mode){
-    return vfs_handler->unlink_at(ctx, dir, path, mode);
-}
-
 int vfs_mount_fs(const char* fs_mount_name, fs_t* fs){
     return vfs_handler->mount_fs(fs_mount_name, fs);
 }

@@ -60,6 +60,9 @@ function mount_boot_disk {
 }
 
 function unmount_boot_disk {
+    # update sysroot directory
+    cp -r -f ../sysroot/. ${MOUNT_DIR}/.
+
     # Unmount the partition
     sudo umount ${MOUNT_DIR}
 
