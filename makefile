@@ -17,7 +17,6 @@ deps-debian: update-pkgs install-ninja
 
 init:
 	@ xbstrap init .
-	@ xbstrap install-tool --all
 
 build:
 	@ cd target && make $(TARGET)/build
