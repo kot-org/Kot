@@ -1,7 +1,9 @@
 #include <stddef.h>
+#include <lib/log.h>
 #include <stdbool.h>
 #include <lib/lock.h>
 #include <impl/arch.h>
+#include <lib/assert.h>
 #include <global/heap.h>
 #include <impl/context.h>
 #include <global/scheduler.h>
@@ -85,7 +87,7 @@ void scheduler_handler(cpu_context_t* ctx){
     if(spinlock_test_and_acq(&scheduler_spinlock)){
         thread_t* ending_thread = ARCH_CONTEXT_SYSCALL_SELECTOR(ctx);
 
-        if(ending_thread){
+        if(ending_thread != NULL){
             context_save(ending_thread->ctx, ctx);
             scheduler_enqueue_wl(ending_thread);
         }
@@ -110,16 +112,26 @@ process_t* scheduler_create_process(process_flags_t flags){
     return process;
 }
 
+int scheduler_launch_process(process_t* process){
+    arguments_t args;
+
+    args.arg[0] = (uintptr_t)process->entry_thread->stack;
+
+    return scheduler_launch_thread(process->entry_thread, &args);
+}
+
 int scheduler_free_process(process_t* process){
     // TODO
     return 0;
 }
 
-thread_t* scheduler_create_thread(process_t* process, void* entry_point, void* stack){
+thread_t* scheduler_create_thread(process_t* process, void* entry_point, void* stack, void* stack_base, size_t stack_size){
     thread_t* thread = (thread_t*)calloc(1, sizeof(thread_t));
 
     thread->ctx = context_create();
     thread->stack = stack;
+    thread->stack_base = stack_base;
+    thread->stack_size = stack_size;
     thread->process = process;
     thread->entry_point = entry_point;
 
@@ -127,12 +139,15 @@ thread_t* scheduler_create_thread(process_t* process, void* entry_point, void* s
 }
 
 int scheduler_free_thread(thread_t* thread){
+    assert(!mm_free_region(thread->process->memory_handler, thread->stack_base, thread->stack_size));
     // TODO
     return 0;
 }
 
-void scheduler_launch_thread(thread_t* thread, arguments_t* args){
+int scheduler_launch_thread(thread_t* thread, arguments_t* args){
     context_start(thread->ctx, thread->process->memory_handler->vmm_space, thread->entry_point, thread->stack, args, thread->process->ctx_flags);
 
     scheduler_enqueue(thread);
+
+    return 0;
 }

@@ -25,7 +25,10 @@ typedef struct thread_t{
 
     struct process_t* process; 
     void* entry_point; 
+
     void* stack;
+    void* stack_base;
+    size_t stack_size;
 
     struct thread_t* next;
     struct thread_t* last;
@@ -47,11 +50,11 @@ void scheduler_init(void);
 void scheduler_handler(cpu_context_t* ctx);
 
 process_t* scheduler_create_process(process_flags_t flags);
+int scheduler_launch_process(process_t* process);
 int scheduler_free_process(process_t* process);
 
-thread_t* scheduler_create_thread(process_t* process, void* entry_point, void* stack);
+thread_t* scheduler_create_thread(process_t* process, void* entry_point, void* stack, void* stack_base, size_t stack_size);
 int scheduler_free_thread(thread_t* thread);
-
-void scheduler_launch_thread(thread_t* thread, arguments_t* args);
+int scheduler_launch_thread(thread_t* thread, arguments_t* args);
 
 #endif // _GLOBAL_SCHEDULER_H

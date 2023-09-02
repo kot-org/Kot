@@ -19,8 +19,6 @@
 
 #include <kernel.h>
 
-void test_userspace(void);
-
 /**
  * kernel_entry have to be called with 64 bits enabled!
  * it is preferable to make the less things before jumping into kernel_entry

@@ -248,7 +248,7 @@ static void* load_elf_exec_load_stack(void* at_entry, void* at_phdr, void* at_ph
     return stack;
 }
 
-static int load_elf_exec_segments(struct elf64_ehdr* header, void* buffer, struct load_elf_exec_segments_info* segments_info, void* base){
+static int load_elf_exec_segments(process_t* process_ctx, struct elf64_ehdr* header, void* buffer, struct load_elf_exec_segments_info* segments_info, void* base){
     for(elf64_half i = 0; i < header->e_phnum; i++){
         struct elf64_phdr* phdr = (struct elf64_phdr*)((uintptr_t)buffer + (uintptr_t)header->e_phoff + ((uintptr_t)i * (uintptr_t)header->e_phentsize));
 
@@ -263,7 +263,9 @@ static int load_elf_exec_segments(struct elf64_ehdr* header, void* buffer, struc
             size_t size_to_clear = size - size_data_to_copy;
 
             size_t size_allocate;
-            vmm_map_allocate(vmm_get_current_space(), (memory_range_t){address, size}, MEMORY_FLAG_READABLE | MEMORY_FLAG_WRITABLE | MEMORY_FLAG_EXECUTABLE | MEMORY_FLAG_USER, &size_allocate);
+            void* address_allocate;
+            assert(!mm_allocate_region_vm(process_ctx->memory_handler, address, size, true, &address_allocate));
+            assert(!mm_allocate_memory_block(process_ctx->memory_handler, address, size, PROT_READ | PROT_WRITE | PROT_EXEC, &size_allocate));
 
             memcpy(address, address_data_to_copy, size_data_to_copy);
 
@@ -284,7 +286,7 @@ static int load_elf_exec_segments(struct elf64_ehdr* header, void* buffer, struc
     return 0;
 }
 
-int load_elf_exec(process_t* process_ctx, int argc, char* args[], char* envp[], void* stack){
+int load_elf_exec(process_t* process_ctx, int argc, char* args[], char* envp[]){
     char* file_path = args[0];
 
     int err = 0;
@@ -331,7 +333,7 @@ int load_elf_exec(process_t* process_ctx, int argc, char* args[], char* envp[], 
     assert(!f_read(buffer, file->file_size_initial, &bytes_read, file));
 
     struct load_elf_exec_segments_info exec_segments_info = {};
-    load_elf_exec_segments(&header, buffer, &exec_segments_info, NULL);
+    load_elf_exec_segments(process_ctx, &header, buffer, &exec_segments_info, NULL);
 
     free(buffer);
 
@@ -376,18 +378,24 @@ int load_elf_exec(process_t* process_ctx, int argc, char* args[], char* envp[], 
         assert(!f_read(ld_buffer, ld_file->file_size_initial, &bytes_read, ld_file));
 
         struct load_elf_exec_segments_info ld_segments_info;
-        load_elf_exec_segments(&ld_header, ld_buffer, &ld_segments_info, DYNAMIC_LINKER_BASE_ADDRESS);
+        load_elf_exec_segments(process_ctx, &ld_header, ld_buffer, &ld_segments_info, DYNAMIC_LINKER_BASE_ADDRESS);
 
         free(ld_buffer);
 
         f_close(ld_file);
 
-        entry_point = (void*)ld_header.e_entry;
+        entry_point = (void*)((uintptr_t)ld_header.e_entry + (uintptr_t)DYNAMIC_LINKER_BASE_ADDRESS);
     }else{
         entry_point = (void*)header.e_entry;
     }
 
-    stack = load_elf_exec_load_stack((void*)header.e_entry, exec_segments_info.at_phdr, (void*)(uintptr_t)header.e_phentsize, (void*)(uintptr_t)header.e_phnum, argc, args, envp, stack);
+    void* stack_base;
+    size_t size_allocate;
+    assert(!mm_allocate_region_vm(process_ctx->memory_handler, NULL, PROCESS_STACK_SIZE, false, &stack_base));
+    assert(!mm_allocate_memory_block(process_ctx->memory_handler, stack_base, PROCESS_STACK_SIZE, PROT_READ | PROT_WRITE, &size_allocate));
+
+    void* stack_end = (void*)((uintptr_t)stack_base + (uintptr_t)PROCESS_STACK_SIZE);
+    void* stack = load_elf_exec_load_stack((void*)header.e_entry, exec_segments_info.at_phdr, (void*)(uintptr_t)header.e_phentsize, (void*)(uintptr_t)header.e_phnum, argc, args, envp, stack_end);
 
     vmm_space_swap(vmm_space_to_restore);
 
@@ -397,7 +405,7 @@ int load_elf_exec(process_t* process_ctx, int argc, char* args[], char* envp[], 
         scheduler_free_thread(process_ctx->entry_thread);
     }
 
-    process_ctx->entry_thread = scheduler_create_thread(process_ctx, entry_point, stack);
+    process_ctx->entry_thread = scheduler_create_thread(process_ctx, entry_point, stack, stack_base, PROCESS_STACK_SIZE);
 
     spinlock_release(&process_ctx->data_lock);
 

@@ -70,7 +70,8 @@ static memory_region_t* merge_region(memory_handler_t* handler, memory_region_t*
 }
 
 static memory_flags_t mm_getmemory_flags_from_prot(int prot){
-    return ((prot & PROT_READ) ? MEMORY_FLAG_READABLE : 0) | ((prot & PROT_WRITE) ? MEMORY_FLAG_WRITABLE : 0) | ((prot & PROT_EXEC) ? MEMORY_FLAG_EXECUTABLE : 0);
+    /* note mm is made for userapp so it always map as user */
+    return MEMORY_FLAG_USER | ((prot & PROT_READ) ? MEMORY_FLAG_READABLE : 0) | ((prot & PROT_WRITE) ? MEMORY_FLAG_WRITABLE : 0) | ((prot & PROT_EXEC) ? MEMORY_FLAG_EXECUTABLE : 0);
 }
 
 memory_handler_t* mm_create_handler(vmm_space_t vmm_space, void* base, size_t size){
@@ -147,8 +148,13 @@ int free_handler(memory_handler_t* handler){
 
 
 int mm_allocate_region_vm(memory_handler_t* handler, void* base, size_t size, bool is_fixed, void** base_result){
-    assert(!((uintptr_t)base % PAGE_SIZE));
-    assert(!(size % PAGE_SIZE));
+    if((uintptr_t)base % PAGE_SIZE){
+        size += (size_t)((uintptr_t)base % PAGE_SIZE);
+        base = (void*)((uintptr_t)base - ((uintptr_t)base % PAGE_SIZE));
+    }
+    if(size % PAGE_SIZE){
+        size = size - (size % PAGE_SIZE) + PAGE_SIZE;
+    }
 
     spinlock_acquire(&handler->lock);
 

@@ -88,17 +88,9 @@ static void expand_heap(size_t length) {
         length += PAGE_SIZE;
     }
 
-    size_t page_count = DIV_ROUNDUP(length, PAGE_SIZE);
-
-
-    for (size_t i = 0; i < page_count; i++) {
-        void* new_physical_address = pmm_allocate_page();
-        heap_end = (void*)((uint64_t)heap_end - (uint64_t)PAGE_SIZE);
-        if((uintptr_t)heap_end < (uintptr_t)heap_low) {
-            panic("heap used all allocated virtual size");
-        }
-        vmm_map(kernel_space, (memory_range_t) {heap_end, PAGE_SIZE}, (memory_range_t) {new_physical_address, PAGE_SIZE}, MEMORY_FLAG_READABLE | MEMORY_FLAG_WRITABLE);
-    }
+    size_t size_allocate;
+    heap_end = (void*)((uintptr_t)heap_end - (uintptr_t)length);
+    vmm_map_allocate(kernel_space, (memory_range_t) {heap_end, length}, MEMORY_FLAG_READABLE | MEMORY_FLAG_WRITABLE, &size_allocate);
 
     struct heap_segment_header* new_segment = (struct heap_segment_header*)heap_end;
 
