@@ -13,7 +13,8 @@
 #define ARCH_CONTEXT_ARG5(context)              ((context)->r9)
 #define ARCH_CONTEXT_THREAD(context)            ((context)->rdi)
 #define ARCH_CONTEXT_RETURN(context)            ((context)->rax)
-#define ARCH_CONTEXT_SYSCALL_SELECTOR(context)  ((context)->ctx_info->thread)
+#define ARCH_CONTEXT_INFO_SELECTOR(context)     ((context)->ctx_info->thread)
+#define ARCH_CONTEXT_SYSCALL_SELECTOR(context)  ((context)->rax)
 
 typedef struct{
     void* kernel_stack;

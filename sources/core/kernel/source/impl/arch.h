@@ -14,6 +14,7 @@ The file in ARCH_INCLUDE(impl/vmm.h) is expected to have :
         - ARCH_CONTEXT_ARG4(context)
         - ARCH_CONTEXT_ARG5(context)
         - ARCH_CONTEXT_RETURN(context)
+        - ARCH_CONTEXT_INFO_SELECTOR(context)
         - ARCH_CONTEXT_SYSCALL_SELECTOR(context)
 */
 #include ARCH_INCLUDE(impl/arch.h)

@@ -5,7 +5,7 @@
 #include <bits/ensure.h>
 
 /* types */
-using sc_word_t = long;
+typedef long sc_word_t;
 
 /* list */
 #define SYSCALL_COUNT 1
@@ -24,6 +24,8 @@ sc_word_t do_syscall6(long sc, sc_word_t arg1, sc_word_t arg2, sc_word_t arg3, s
 
 
 /* inline functions */
+#ifdef __cplusplus
+
 inline sc_word_t sc_cast(long x) { 
     return x; 
 }
@@ -34,6 +36,7 @@ inline sc_word_t sc_cast(const void *x) {
 __attribute__((always_inline)) static inline long _do_syscall(int call) {
     return do_syscall0(call);
 }
+
 
 __attribute__((always_inline)) static inline long _do_syscall(int call, sc_word_t arg0) {
     return do_syscall1(call, arg0);
@@ -59,9 +62,12 @@ __attribute__((always_inline)) static inline long _do_syscall(int call, sc_word_
     return do_syscall6(call, arg0, arg1, arg2, arg3, arg4, arg5);
 }
 
+
 template <typename... T>
 __attribute__((always_inline)) static inline long syscall(sc_word_t call, T... args) {
     return _do_syscall(call, sc_cast(args)...);
 }
+
+#endif 
 
 #endif // SYSCALL_H

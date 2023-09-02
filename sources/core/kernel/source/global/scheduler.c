@@ -85,7 +85,7 @@ void scheduler_init(void){
 
 void scheduler_handler(cpu_context_t* ctx){
     if(spinlock_test_and_acq(&scheduler_spinlock)){
-        thread_t* ending_thread = ARCH_CONTEXT_SYSCALL_SELECTOR(ctx);
+        thread_t* ending_thread = ARCH_CONTEXT_INFO_SELECTOR(ctx);
 
         if(ending_thread != NULL){
             context_save(ending_thread->ctx, ctx);
