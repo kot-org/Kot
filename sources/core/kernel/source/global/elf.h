@@ -246,12 +246,20 @@ struct auxv{
 #define SHT_NUM		        12
 
 #define AT_NULL             0
-#define AT_ENTRY            10
-#define AT_PHDR             20
-#define AT_PHENT            21
-#define AT_PHNUM            22
-#define AT_RANDOM           25
-#define AT_EXECFN           31
+#define AT_IGNORE           1
+#define AT_EXECFD           2
+#define AT_PHDR             3
+#define AT_PHENT            4
+#define AT_PHNUM            5
+#define AT_PAGESZ           6
+#define AT_BASE             7
+#define AT_FLAGS            8
+#define AT_ENTRY            9
+#define AT_NOTELF           10
+#define AT_UID              11
+#define AT_EUID             12
+#define AT_GID              13
+#define AT_EGID             14
 
 
 #endif // _GLOBAL_ELF_H
