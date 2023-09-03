@@ -295,3 +295,8 @@ void* vmm_get_free_contiguous(size_t size){
 
     return return_value;
 }
+
+int vmm_check_memory(vmm_space_t space, memory_range_t virtual_range){
+    // TODO
+    return 0;
+}

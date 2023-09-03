@@ -20,7 +20,7 @@ void context_free(context_t* ctx){
     free(ctx);
 }
 
-void context_start(context_t* ctx, vmm_space_t vmm_space, void* ip, void* sp, arguments_t* args, context_flags_t flags){
+void context_start(context_t* ctx, vmm_space_t vmm_space, void* ip, void* sp, arguments_t* args, context_flags_t flags, thread_t* thread){
     ctx->cpu_ctx.cr3 = (uint64_t)vmm_space; 
     ctx->cpu_ctx.rip = (uint64_t)ip; 
     ctx->cpu_ctx.rsp = (uint64_t)sp; 
@@ -44,6 +44,9 @@ void context_start(context_t* ctx, vmm_space_t vmm_space, void* ip, void* sp, ar
     }
 
     ctx->cpu_ctx.ctx_info = (context_info_t*)calloc(1, sizeof(context_info_t));
+    ctx->cpu_ctx.ctx_info->thread = thread;
+    ctx->cpu_ctx.ctx_info->cs = ctx->cpu_ctx.cs;
+    ctx->cpu_ctx.ctx_info->ss = ctx->cpu_ctx.ss;
     ctx->cpu_ctx.ctx_info->kernel_stack = malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
 }
 

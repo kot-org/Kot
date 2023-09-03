@@ -44,6 +44,8 @@ void* vmm_get_physical_address(vmm_space_t space, void* virtual_address);
 
 void* vmm_get_free_contiguous(size_t size);
 
+int vmm_check_memory(vmm_space_t space, memory_range_t virtual_range);
+
 static inline void* vmm_get_virtual_address(void* physical_address) {
     return (void*)((uintptr_t)physical_address + (uintptr_t)hhdm_address);
 }

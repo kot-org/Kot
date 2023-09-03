@@ -3,19 +3,6 @@
 
 #include <stdint.h>
 
-#define KERNEL_STACK_SIZE 0x10000
-
-#define ARCH_CONTEXT_ARG0(context)              ((context)->rdi)
-#define ARCH_CONTEXT_ARG1(context)              ((context)->rsi)
-#define ARCH_CONTEXT_ARG2(context)              ((context)->rdx)
-#define ARCH_CONTEXT_ARG3(context)              ((context)->rcx)
-#define ARCH_CONTEXT_ARG4(context)              ((context)->r8)
-#define ARCH_CONTEXT_ARG5(context)              ((context)->r9)
-#define ARCH_CONTEXT_THREAD(context)            ((context)->rdi)
-#define ARCH_CONTEXT_RETURN(context)            ((context)->rax)
-#define ARCH_CONTEXT_INFO_SELECTOR(context)     ((context)->ctx_info->thread)
-#define ARCH_CONTEXT_SYSCALL_SELECTOR(context)  ((context)->rax)
-
 typedef struct{
     void* kernel_stack;
     uint64_t cs;
@@ -54,5 +41,22 @@ typedef struct{
     uint64_t rsp; 
     uint64_t ss;
 }__attribute__((packed)) cpu_context_t; 
+
+#include <global/scheduler.h>
+
+#define KERNEL_STACK_SIZE 0x10000
+
+#define ARCH_CONTEXT_ARG0(context)              ((context)->rdi)
+#define ARCH_CONTEXT_ARG1(context)              ((context)->rsi)
+#define ARCH_CONTEXT_ARG2(context)              ((context)->rdx)
+#define ARCH_CONTEXT_ARG3(context)              ((context)->rcx)
+#define ARCH_CONTEXT_ARG4(context)              ((context)->r8)
+#define ARCH_CONTEXT_ARG5(context)              ((context)->r9)
+#define ARCH_CONTEXT_THREAD(context)            ((context)->rdi)
+#define ARCH_CONTEXT_RETURN(context)            ((context)->rax)
+#define ARCH_CONTEXT_CURRENT_THREAD(context)    ((thread_t*)((context)->ctx_info->thread))
+#define ARCH_CONTEXT_SYSCALL_SELECTOR(context)  ((context)->rax)
+
+#define ARCH_GET_CONTEXT_FROM_THREAD(thread)    (&thread->ctx->cpu_ctx)
 
 #endif // _AMD64_IMPL_ARCH_H

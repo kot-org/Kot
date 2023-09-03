@@ -4,6 +4,7 @@
 #include <impl/vmm.h>
 #include <impl/arch.h>
 #include <lib/arguments.h>
+#include <global/scheduler.h>
 
 #include <arch/include.h>
 /* 
@@ -20,7 +21,7 @@ context_t* context_create(void);
 
 void context_free(context_t* ctx);
 
-void context_start(context_t* ctx, vmm_space_t vmm_space, void* ip, void* sp, arguments_t* args, context_flags_t flags);
+void context_start(context_t* ctx, vmm_space_t vmm_space, void* ip, void* sp, arguments_t* args, context_flags_t flags, struct thread_t* thread);
 
 void context_save(context_t* ctx, cpu_context_t* cpu_ctx);
 

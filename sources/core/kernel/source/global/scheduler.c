@@ -13,6 +13,12 @@ static spinlock_t scheduler_spinlock = {};
 static thread_t* scheduler_first_node;
 static thread_t* scheduler_last_node;
 
+static pid_t scheduler_pid_iteration = 0;
+static spinlock_t scheduler_pid_iteration_spinlock = {};
+
+static int scheduler_tid_iteration = 0;
+static spinlock_t scheduler_tid_iteration_spinlock = {};
+
 process_t* proc_kernel = NULL;
 
 static void scheduler_enqueue_wl(thread_t* thread){
@@ -79,13 +85,35 @@ static void scheduler_dequeue(thread_t* thread){
     spinlock_release(&scheduler_spinlock);
 }
 
+static pid_t scheduler_get_new_pid(void){
+    spinlock_acquire(&scheduler_pid_iteration_spinlock);
+
+    pid_t pid = scheduler_pid_iteration;
+    scheduler_pid_iteration++;
+
+    spinlock_release(&scheduler_pid_iteration_spinlock);
+
+    return pid;
+}
+
+static int scheduler_get_new_tid(void){
+    spinlock_acquire(&scheduler_tid_iteration_spinlock);
+
+    int tid = scheduler_tid_iteration;
+    scheduler_tid_iteration++;
+
+    spinlock_release(&scheduler_tid_iteration_spinlock);
+    
+    return tid;
+}
+
 void scheduler_init(void){
     proc_kernel = scheduler_create_process(PROCESS_TYPE_MODULES);
 }
 
 void scheduler_handler(cpu_context_t* ctx){
     if(spinlock_test_and_acq(&scheduler_spinlock)){
-        thread_t* ending_thread = ARCH_CONTEXT_INFO_SELECTOR(ctx);
+        thread_t* ending_thread = ARCH_CONTEXT_CURRENT_THREAD(ctx);
 
         if(ending_thread != NULL){
             context_save(ending_thread->ctx, ctx);
@@ -108,6 +136,8 @@ process_t* scheduler_create_process(process_flags_t flags){
     process->memory_handler = mm_create_handler(vmm_create_space(), (void*)VMM_USERSPACE_BOTTOM_ADDRESS, (size_t)((uintptr_t)VMM_USERSPACE_TOP_ADDRESS - (uintptr_t)VMM_USERSPACE_BOTTOM_ADDRESS));
 
     process->vfs_ctx = KERNEL_VFS_CTX;
+
+    process->pid = scheduler_get_new_pid();
 
     return process;
 }
@@ -135,6 +165,8 @@ thread_t* scheduler_create_thread(process_t* process, void* entry_point, void* s
     thread->process = process;
     thread->entry_point = entry_point;
 
+    thread->tid = scheduler_get_new_tid();
+
     return thread;
 }
 
@@ -145,7 +177,7 @@ int scheduler_free_thread(thread_t* thread){
 }
 
 int scheduler_launch_thread(thread_t* thread, arguments_t* args){
-    context_start(thread->ctx, thread->process->memory_handler->vmm_space, thread->entry_point, thread->stack, args, thread->process->ctx_flags);
+    context_start(thread->ctx, thread->process->memory_handler->vmm_space, thread->entry_point, thread->stack, args, thread->process->ctx_flags, thread);
 
     scheduler_enqueue(thread);
 

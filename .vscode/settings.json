@@ -108,7 +108,10 @@
         "set": "cpp",
         "cstdint": "cpp",
         "socket": "c",
-        "expected": "c"
+        "expected": "c",
+        "__threading_support": "c",
+        "thread": "c",
+        "arguments.h": "c"
     },
     "files.exclude": {
         "bundled": true,

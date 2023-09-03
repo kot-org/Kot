@@ -33,7 +33,7 @@ namespace mlibc{
 
     int sys_futex_tid(){
         auto result = do_syscall(SYS_GET_TID);
-        return static_cast<pid_t>(result);
+        return static_cast<int>(result);
     }
 
     int sys_futex_wait(int *pointer, int expected, const struct timespec *time){

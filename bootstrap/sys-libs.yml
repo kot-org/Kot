@@ -31,6 +31,8 @@ packages:
         - '-Dlinux_kernel_headers=@BUILD_ROOT@/packages/linux-headers/usr/include'
         - '--prefix=/usr'
         - '@THIS_SOURCE_DIR@'
+        environ:
+          LC_ALL: 'C'
     build:
       - args: ['ninja']
       - args: ['ninja', 'install']
@@ -53,6 +55,8 @@ packages:
         - '-Dlinux_kernel_headers=@BUILD_ROOT@/packages/linux-headers/usr/include'
         - '--prefix=/usr'
         - '@THIS_SOURCE_DIR@'
+        environ:
+          LC_ALL: 'C'
     build:
       - args: ['ninja']
       - args: ['ninja', 'install']

@@ -10,9 +10,13 @@ static void syscall_handler_log(cpu_context_t* ctx){
     char* message = (char*)ARCH_CONTEXT_ARG0(ctx);
     size_t len = (size_t)ARCH_CONTEXT_ARG1(ctx);
 
-    log_printf("%.*s\n", len, message);
+    if(!vmm_check_memory(vmm_get_current_space(), (memory_range_t){message, len})){
+        log_printf("%.*s\n", len, message);
 
-    ARCH_CONTEXT_RETURN(ctx) = 0;
+        ARCH_CONTEXT_RETURN(ctx) = 0;
+    }else{
+        ARCH_CONTEXT_RETURN(ctx) = EINVAL;
+    }
 }
 
 static void syscall_handler_arch_prctl(cpu_context_t* ctx){
@@ -21,8 +25,7 @@ static void syscall_handler_arch_prctl(cpu_context_t* ctx){
 }
 
 static void syscall_handler_get_tid(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    ARCH_CONTEXT_RETURN(ctx) = -ENOSYS;    
+    ARCH_CONTEXT_RETURN(ctx) = ARCH_CONTEXT_CURRENT_THREAD(ctx)->tid;
 }
 
 static void syscall_handler_futex_wait(cpu_context_t* ctx){
@@ -101,8 +104,7 @@ static void syscall_handler_execve(cpu_context_t* ctx){
 }
 
 static void syscall_handler_getpid(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    ARCH_CONTEXT_RETURN(ctx) = -ENOSYS;    
+    ARCH_CONTEXT_RETURN(ctx) = ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->pid;  
 }
 
 static void syscall_handler_getppid(cpu_context_t* ctx){

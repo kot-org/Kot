@@ -1,6 +1,9 @@
 #ifndef _GLOBAL_SCHEDULER_H
 #define _GLOBAL_SCHEDULER_H 1
 
+struct thread_t;
+struct process_t;
+
 #include <lib/lock.h>
 #include <impl/vmm.h>
 #include <global/mm.h>
@@ -30,6 +33,8 @@ typedef struct thread_t{
     void* stack_base;
     size_t stack_size;
 
+    int tid;
+
     struct thread_t* next;
     struct thread_t* last;
 } thread_t;
@@ -41,6 +46,8 @@ typedef struct process_t{
     thread_t* entry_thread;
     spinlock_t data_lock;
     memory_handler_t* memory_handler;
+
+    pid_t pid;
 } process_t;
 
 extern process_t* proc_kernel;
