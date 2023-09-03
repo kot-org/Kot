@@ -8,9 +8,42 @@
 typedef long sc_word_t;
 
 /* list */
-#define SYSCALL_COUNT 1
+#define SYS_COUNT               34
 
-#define SYS_LOG 0
+#define SYS_LOG                 0
+#define SYS_ARCH_PRCTL          1
+#define SYS_GET_TID             2
+#define SYS_FUTEX_WAIT          3
+#define SYS_FUTEX_WAKE          4
+#define SYS_MMAP                5
+#define SYS_MUNMAP              6
+#define SYS_MPROTECT            7
+#define SYS_EXIT                8
+#define SYS_THREAD_EXIT         9
+#define SYS_CLOCK_GET           10
+#define SYS_CLOCK_GETRES        11
+#define SYS_SLEEP               12
+#define SYS_SIGPROCMASK         13
+#define SYS_SIGACTION           14
+#define SYS_FORK                15
+#define SYS_WAITPID             16
+#define SYS_EXECVE              17
+#define SYS_GETPID              18
+#define SYS_GETPPID             19
+#define SYS_KILL                20
+#define SYS_FILE_OPEN           21
+#define SYS_FILE_READ           22
+#define SYS_FILE_WRITE          23
+#define SYS_FILE_SEEK           24
+#define SYS_FILE_CLOSE          25
+#define SYS_FILE_IOCTL          26
+#define SYS_DIR_READ_ENTRIES    27
+#define SYS_DIR_REMOVE          28
+#define SYS_UNLINK_AT           29
+#define SYS_RENAME_AT           30
+#define SYS_PATH_STAT           31
+#define SYS_FD_STAT             32
+#define SYS_FCNTL               33
 
 
 /* extern functions */
@@ -64,7 +97,7 @@ __attribute__((always_inline)) static inline long _do_syscall(int call, sc_word_
 
 
 template <typename... T>
-__attribute__((always_inline)) static inline long syscall(sc_word_t call, T... args) {
+__attribute__((always_inline)) static inline long do_syscall(sc_word_t call, T... args) {
     return _do_syscall(call, sc_cast(args)...);
 }
 
