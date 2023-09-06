@@ -14,6 +14,7 @@
 #include <impl/graphics.h>
 #include <global/scheduler.h>
 #include <global/elf_loader.h>
+#include <global/console.h>
 
 #include <lib/log.h>
 
@@ -25,13 +26,17 @@
 */
 void kernel_entry(void) {
     serial_init();
+    console_init();
+
+    console_print("hello world!");
+
     log_info("version  = %s %lu.%lu\n", KERNEL_VERSION, KERNEL_MAJOR, KERNEL_MINOR);
     log_info("branch   = %s\n", KERNEL_BRANCH);
     log_info("arch     = %s\n", KERNEL_ARCH);
     log_info("protocol = %s\n", BOOT_PROTOCOL);
     log_print("\n");
 
-    arch_stage1();
+/*     arch_stage1();
 
     memory_init();
 
@@ -43,12 +48,12 @@ void kernel_entry(void) {
 
     initrd_init();
     
-    /* graphics_init needs memory to be init*/
-    graphics_init();
+     graphics_init needs memory to be init
+    //graphics_init();
 
     vfs_init();
 
-    /* scheduler_init needs vfs to be init*/
+    scheduler_init needs vfs to be init
     scheduler_init();
 
     arch_stage2();
@@ -57,7 +62,7 @@ void kernel_entry(void) {
 
     modules_init();
 
-    apps_init();
+    apps_init(); */
 
     arch_idle();
 }

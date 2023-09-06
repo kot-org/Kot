@@ -4,8 +4,8 @@
 #include <global/term.h>
 
 static volatile struct limine_framebuffer_request framebuffer_request = {
-    .id = LIMINE_FRAMEBUFFER_REQUEST,
-    .revision = 0
+    /* .id = LIMINE_FRAMEBUFFER_REQUEST,
+    .revision = 0 */
 };
 
 const char* term_wallpaper_path = "/system/kterm/term_wallpaper.bmp";
