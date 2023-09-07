@@ -6,6 +6,9 @@
 
 void console_init(void);
 
+void console_set_bg_color(uint32_t bg);
+void console_set_fg_color(uint32_t fg);
+
 void console_putchar(char c);
 void console_print(const char* str);
 
