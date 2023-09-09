@@ -17,9 +17,10 @@ deps-debian: update-pkgs install-ninja
 
 init:
 	@ xbstrap init .
+	@ mkdir -m 777 -p sysroot
 
 build:
-	@ cd target && make $(TARGET)/build
+	@ cd target && LC_ALL=C make $(TARGET)/build
 
 configure:
 	@ cd target && make $(TARGET)/configure

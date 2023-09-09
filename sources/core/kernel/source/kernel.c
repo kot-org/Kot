@@ -15,6 +15,7 @@
 #include <impl/graphics.h>
 #include <global/scheduler.h>
 #include <global/elf_loader.h>
+#include <global/console.h>
 
 #include <lib/log.h>
 
@@ -26,6 +27,13 @@
 */
 void kernel_entry(void) {
     serial_init();
+    console_init();
+
+    console_set_fg_color(0xFF0000);
+    console_print("hello world!\n");
+    console_set_fg_color(0xFFFFFF);
+    console_print("i love kot");
+
     log_info("version  = %s %lu.%lu\n", KERNEL_VERSION, KERNEL_MAJOR, KERNEL_MINOR);
     log_info("branch   = %s\n", KERNEL_BRANCH);
     log_info("arch     = %s\n", KERNEL_ARCH);
@@ -43,13 +51,10 @@ void kernel_entry(void) {
     ksym_init();
 
     initrd_init();
-    
-    /* graphics_init needs memory to be init*/
-    // graphics_init();
 
     vfs_init();
 
-    /* scheduler_init needs vfs to be init*/
+    /* scheduler_init needs vfs to be init */
     scheduler_init();
 
     arch_stage2();

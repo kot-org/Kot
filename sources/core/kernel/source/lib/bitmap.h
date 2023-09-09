@@ -5,19 +5,26 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#define BIT_SET(a,b) ((a) |= (1ULL<<(b)))
+#define BIT_CLEAR(a,b) ((a) &= ~(1ULL<<(b)))
+#define BIT_GET(a,b) (!!((a) & (1ULL<<(b))))        // '!!' to make sure this returns 0 or 1
+
+#define BITSET  true
+#define NOBIT   false
+
 typedef uint8_t* bitmap_t;
 
 void bitmap_init(void* address, size_t size, bitmap_t* bitmap, bool default_value);
 
 static inline bool bitmap_get_bit(bitmap_t bitmap, size_t index) {
-    return bitmap[index / 8] & (1 << (index % 8));
+    return BIT_GET(bitmap[index / 8], index % 8);
 }
 
 static inline void bitmap_set_bit(bitmap_t bitmap, size_t index, bool value) {
     if(value) {
-        bitmap[index / 8] |= (1 << (index % 8));
+        BIT_SET(bitmap[index / 8], index % 8);
     }else{
-        bitmap[index / 8] &= ~(1 << (index % 8));
+        BIT_CLEAR(bitmap[index / 8], index % 8);
     }
 }
 
