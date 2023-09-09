@@ -13,7 +13,7 @@
 
 namespace mlibc{
     int sys_open(const char *pathname, int flags, mode_t mode, int *fd){
-        auto result = do_syscall(SYS_FILE_OPEN, 0, pathname, strlen(pathname), flags);
+        auto result = do_syscall(SYS_FILE_OPEN, pathname, strlen(pathname), flags, mode);
 
         if(result < 0){
             return -result;

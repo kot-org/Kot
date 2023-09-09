@@ -57,5 +57,6 @@ void context_save(context_t* ctx, cpu_context_t* cpu_ctx){
 
 void context_restore(context_t* ctx, cpu_context_t* cpu_ctx){
     simd_restore_context(ctx->simd_ctx);
+    set_cpu_fs_base(ctx->fs_base);
     memcpy(cpu_ctx, &ctx->cpu_ctx, sizeof(cpu_context_t));
 }

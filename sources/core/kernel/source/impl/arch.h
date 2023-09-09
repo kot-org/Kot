@@ -5,8 +5,15 @@
 
 /* 
 The file in ARCH_INCLUDE(impl/vmm.h) is expected to have :
-    - The declaration of struct : cpu_context_t
+    - The declaration of struct as type : cpu_context_t
+    - The declaration of variable type : arch_context_arg_t
     - The following macros :
+        - ARCH_CONTEXT_SYSCALL_ARG0(context)
+        - ARCH_CONTEXT_SYSCALL_ARG1(context)
+        - ARCH_CONTEXT_SYSCALL_ARG2(context)
+        - ARCH_CONTEXT_SYSCALL_ARG3(context)
+        - ARCH_CONTEXT_SYSCALL_ARG4(context)
+        - ARCH_CONTEXT_SYSCALL_ARG5(context)
         - ARCH_CONTEXT_ARG0(context)
         - ARCH_CONTEXT_ARG1(context)
         - ARCH_CONTEXT_ARG2(context)

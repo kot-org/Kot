@@ -259,14 +259,13 @@ static int load_elf_exec_segments(process_t* process_ctx, struct elf64_ehdr* hea
             void* address_data_to_copy = (void*)((uintptr_t)buffer + (uintptr_t)phdr->p_offset);
             size_t size_data_to_copy = phdr->p_filesz;
 
-            void* address_to_clear = (void*)((uintptr_t)address_data_to_copy + (uintptr_t)size_data_to_copy);
+            void* address_to_clear = (void*)((uintptr_t)address + (uintptr_t)size_data_to_copy);
             size_t size_to_clear = size - size_data_to_copy;
 
             size_t size_allocate;
             void* address_allocate;
             assert(!mm_allocate_region_vm(process_ctx->memory_handler, address, size, true, &address_allocate));
             assert(!mm_allocate_memory_block(process_ctx->memory_handler, address, size, PROT_READ | PROT_WRITE | PROT_EXEC, &size_allocate));
-
             memcpy(address, address_data_to_copy, size_data_to_copy);
 
             memset(address_to_clear, 0, size_to_clear);
@@ -373,7 +372,7 @@ int load_elf_exec(process_t* process_ctx, int argc, char* args[], char* envp[]){
 
         void* ld_buffer = malloc(ld_file->file_size_initial);
 
-        f_seek(0, SEEK_SET, &offset, file);
+        f_seek(0, SEEK_SET, &offset, ld_file);
 
         assert(!f_read(ld_buffer, ld_file->file_size_initial, &bytes_read, ld_file));
 

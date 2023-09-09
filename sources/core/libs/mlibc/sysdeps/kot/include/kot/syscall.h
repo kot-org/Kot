@@ -48,13 +48,12 @@ typedef long sc_word_t;
 
 /* extern functions */
 sc_word_t do_syscall0(long sc);
-sc_word_t do_syscall1(long sc, sc_word_t arg1);
-sc_word_t do_syscall2(long sc, sc_word_t arg1, sc_word_t arg2);
-sc_word_t do_syscall3(long sc, sc_word_t arg1, sc_word_t arg2, sc_word_t arg3);
-sc_word_t do_syscall4(long sc, sc_word_t arg1, sc_word_t arg2, sc_word_t arg3, sc_word_t arg4);
-sc_word_t do_syscall5(long sc, sc_word_t arg1, sc_word_t arg2, sc_word_t arg3, sc_word_t arg4, sc_word_t arg5);
-sc_word_t do_syscall6(long sc, sc_word_t arg1, sc_word_t arg2, sc_word_t arg3, sc_word_t arg4, sc_word_t arg5, sc_word_t arg6);
-
+sc_word_t do_syscall1(long sc, sc_word_t arg0);
+sc_word_t do_syscall2(long sc, sc_word_t arg0, sc_word_t arg1);
+sc_word_t do_syscall3(long sc, sc_word_t arg0, sc_word_t arg1, sc_word_t arg2);
+sc_word_t do_syscall4(long sc, sc_word_t arg0, sc_word_t arg1, sc_word_t arg2, sc_word_t arg3);
+sc_word_t do_syscall5(long sc, sc_word_t arg0, sc_word_t arg1, sc_word_t arg2, sc_word_t arg3, sc_word_t arg4);
+sc_word_t do_syscall6(long sc, sc_word_t arg0, sc_word_t arg1, sc_word_t arg2, sc_word_t arg3, sc_word_t arg4, sc_word_t arg5);
 
 /* inline functions */
 #ifdef __cplusplus

@@ -23,25 +23,25 @@ static int remove_fs(const char* fs_mount_name){
 }
 
 static int get_fs_mount_name_from_path(vfs_ctx_t* ctx, const char* path, char* fs_mount_name, char* fs_relative_path){
-    char full_path[VFS_MAX_PATH_SIZE];
+    char full_path[VFS_MAX_PATH_SIZE + 1];
     size_t path_size = strlen(path);
     if(path[0] != '/'){
         full_path[0] = '\0';
         if(ctx != NULL){
-            if(ctx->cwd_size + path_size + 1 > VFS_MAX_PATH_SIZE){
+            if(ctx->cwd_size + path_size > VFS_MAX_PATH_SIZE){
                 return ENAMETOOLONG;
             }
             strcat(full_path, ctx->cwd);
             strcat(full_path, path);
             path = full_path;
         }else{
-            if(path_size + 1 > VFS_MAX_PATH_SIZE){
+            if(path_size > VFS_MAX_PATH_SIZE){
                 return ENAMETOOLONG;
             }
         }
     }else{
         path += sizeof((char)'/');
-        if(path_size + 1 > VFS_MAX_PATH_SIZE){
+        if(path_size > VFS_MAX_PATH_SIZE){
             return ENAMETOOLONG;
         }
     }
@@ -59,7 +59,7 @@ static int get_fs_mount_name_from_path(vfs_ctx_t* ctx, const char* path, char* f
 }
 
 static int get_fs_and_relative_path(vfs_ctx_t* ctx, const char* path, char* fs_relative_path, fs_t** fs){
-    char fs_mount_name[VFS_MAX_PATH_SIZE];
+    char fs_mount_name[VFS_MAX_PATH_SIZE + 1];
     int err = get_fs_mount_name_from_path(ctx, path, fs_mount_name, fs_relative_path);
     if(err){
         return err;
@@ -211,9 +211,9 @@ int local_mount_fs(const char* fs_mount_name, fs_t* new_fs){
     fs_t* fs = malloc(sizeof(fs_t));
     memcpy(fs, new_fs, sizeof(fs_t));
 
-    size_t size_fs_mount_name = strlen(fs_mount_name) + 1;
-    char* fs_mount_name_buffer = malloc(size_fs_mount_name);
-    strncpy(fs_mount_name_buffer, fs_mount_name, size_fs_mount_name);
+    size_t len_fs_mount_name = strlen(fs_mount_name);
+    char* fs_mount_name_buffer = malloc(len_fs_mount_name + 1);
+    strncpy(fs_mount_name_buffer, fs_mount_name, len_fs_mount_name);
     int err = add_fs(fs_mount_name_buffer, fs);
 
     return err;
@@ -221,7 +221,7 @@ int local_mount_fs(const char* fs_mount_name, fs_t* new_fs){
 
 int mount_fs(const char* fs_mount_name, fs_t* new_fs){
     spinlock_acquire(&vfs_lock);
-
+    
     if(get_fs(fs_mount_name) != NULL){
         spinlock_release(&vfs_lock);
         return EINVAL;
@@ -230,9 +230,9 @@ int mount_fs(const char* fs_mount_name, fs_t* new_fs){
     fs_t* fs = malloc(sizeof(fs_t));
     memcpy(fs, new_fs, sizeof(fs_t));
 
-    size_t size_fs_mount_name = strlen(fs_mount_name) + 1;
-    char* fs_mount_name_buffer = malloc(size_fs_mount_name);
-    strncpy(fs_mount_name_buffer, fs_mount_name, size_fs_mount_name);
+    size_t len_fs_mount_name = strlen(fs_mount_name);
+    char* fs_mount_name_buffer = malloc(len_fs_mount_name + 1);
+    strncpy(fs_mount_name_buffer, fs_mount_name, len_fs_mount_name);
     int err = add_fs(fs_mount_name_buffer, fs);
     
     system_tasks_mount(new_fs);
@@ -265,7 +265,7 @@ int unmount_fs(const char* fs_mount_name){
 
 /* file */
 int file_remove(vfs_ctx_t* ctx, const char* path){
-    char fs_relative_path[VFS_MAX_PATH_SIZE];
+    char fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     fs_t* fs;
 
     int error = get_fs_and_relative_path(ctx, path, fs_relative_path, &fs);
@@ -278,7 +278,7 @@ int file_remove(vfs_ctx_t* ctx, const char* path){
 }
 
 kernel_file_t* file_open(vfs_ctx_t* ctx, const char* path, int flags, mode_t mode, int* error){
-    char fs_relative_path[VFS_MAX_PATH_SIZE];
+    char fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     fs_t* fs;
 
     *error = get_fs_and_relative_path(ctx, path, fs_relative_path, &fs);
@@ -292,7 +292,7 @@ kernel_file_t* file_open(vfs_ctx_t* ctx, const char* path, int flags, mode_t mod
 
 /* directory */
 int dir_create(vfs_ctx_t* ctx, const char* path, mode_t mode){
-    char fs_relative_path[VFS_MAX_PATH_SIZE];
+    char fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     fs_t* fs;
 
     int error = get_fs_and_relative_path(ctx, path, fs_relative_path, &fs);
@@ -305,7 +305,7 @@ int dir_create(vfs_ctx_t* ctx, const char* path, mode_t mode){
 }
 
 int dir_remove(vfs_ctx_t* ctx, const char* path){
-    char fs_relative_path[VFS_MAX_PATH_SIZE];
+    char fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     fs_t* fs;
 
     int error = get_fs_and_relative_path(ctx, path, fs_relative_path, &fs);
@@ -318,7 +318,7 @@ int dir_remove(vfs_ctx_t* ctx, const char* path){
 }
 
 kernel_dir_t* dir_open(vfs_ctx_t* ctx, const char* path, int* error){
-    char fs_relative_path[VFS_MAX_PATH_SIZE];
+    char fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     fs_t* fs;
 
 
@@ -333,7 +333,7 @@ kernel_dir_t* dir_open(vfs_ctx_t* ctx, const char* path, int* error){
 
 /* file and directory */
 int vfs_rename(vfs_ctx_t* ctx, const char* old_path, const char* new_path){
-    char old_fs_relative_path[VFS_MAX_PATH_SIZE];
+    char old_fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     fs_t* old_fs;
 
     int error = get_fs_and_relative_path(ctx, old_path, old_fs_relative_path, &old_fs);
@@ -341,7 +341,7 @@ int vfs_rename(vfs_ctx_t* ctx, const char* old_path, const char* new_path){
     if(error){
         return error;
     }
-    char new_fs_relative_path[VFS_MAX_PATH_SIZE];
+    char new_fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     fs_t* new_fs;
 
     error = get_fs_and_relative_path(ctx, new_path, new_fs_relative_path, &new_fs);
@@ -360,7 +360,7 @@ int vfs_rename(vfs_ctx_t* ctx, const char* old_path, const char* new_path){
 
 /* file and directory */
 int vfs_link(vfs_ctx_t* ctx, const char* src_path, const char* dst_path){
-    char src_fs_relative_path[VFS_MAX_PATH_SIZE];
+    char src_fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     fs_t* src_fs;
 
     int error = get_fs_and_relative_path(ctx, src_path, src_fs_relative_path, &src_fs);
@@ -368,7 +368,7 @@ int vfs_link(vfs_ctx_t* ctx, const char* src_path, const char* dst_path){
     if(error){
         return error;
     }
-    char dst_fs_relative_path[VFS_MAX_PATH_SIZE];
+    char dst_fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     fs_t* dst_fs;
 
     error = get_fs_and_relative_path(ctx, dst_path, dst_fs_relative_path, &dst_fs);

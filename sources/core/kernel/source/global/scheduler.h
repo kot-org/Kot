@@ -11,6 +11,14 @@ struct process_t;
 #include <global/vfs.h>
 #include <global/pmm.h>
 #include <impl/context.h>
+#include <global/resources.h>
+
+#include <arch/include.h>
+#include ARCH_INCLUDE(impl/scheduler.h)
+/* 
+The file in ARCH_INCLUDE(impl/scheduler.h) is expected to have :
+    - The declaration of struct as type : thread_arch_state_t
+*/
 
 typedef uint64_t process_flags_t;
 
@@ -35,6 +43,8 @@ typedef struct thread_t{
 
     int tid;
 
+    thread_arch_state_t* arch_state;
+
     struct thread_t* next;
     struct thread_t* last;
 } thread_t;
@@ -46,6 +56,7 @@ typedef struct process_t{
     thread_t* entry_thread;
     spinlock_t data_lock;
     memory_handler_t* memory_handler;
+    descriptors_ctx_t descriptors_ctx;
 
     pid_t pid;
 } process_t;
@@ -62,6 +73,10 @@ int scheduler_free_process(process_t* process);
 
 thread_t* scheduler_create_thread(process_t* process, void* entry_point, void* stack, void* stack_base, size_t stack_size);
 int scheduler_free_thread(thread_t* thread);
+
+/* note the following function should be define in arch folder*/
+int scheduler_arch_prctl_thread(thread_t* thread, int code, void* address);
+
 int scheduler_launch_thread(thread_t* thread, arguments_t* args);
 
 #endif // _GLOBAL_SCHEDULER_H

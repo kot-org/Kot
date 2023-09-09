@@ -29,25 +29,12 @@ uint64_t ExecFlags = 0;
 static LibraryGuard guard;
 
 LibraryGuard::LibraryGuard() {
-	__mlibc_initLocale();
+    __mlibc_initLocale();
 
-	mlibc::parse_exec_stack(__dlapi_entrystack(), &__mlibc_stack_data);
-
-	// Convert offset to pointer
-	char** argv = __mlibc_stack_data.argv;
-	for(int i = 0; i < __mlibc_stack_data.argc; i++){
-        *argv = (char*)((uint64_t)(*argv) + (uint64_t)__dlapi_entrystack());
-		argv++;
-    }
-
-	char** ev = __mlibc_stack_data.envp;
-	while(*ev){
-		*ev = (char*)((uint64_t)(*ev) + (uint64_t)__dlapi_entrystack());
-		ev++;
-	}
-
-	mlibc::set_startup_data(__mlibc_stack_data.argc, __mlibc_stack_data.argv,
-			__mlibc_stack_data.envp);
+    // Parse the exec() stack.
+    mlibc::parse_exec_stack(__dlapi_entrystack(), &__mlibc_stack_data);
+    mlibc::set_startup_data(__mlibc_stack_data.argc, __mlibc_stack_data.argv,
+                            __mlibc_stack_data.envp);
 }
 
 extern "C" void __mlibc_entry(uintptr_t *entry_stack, int (*main_fn)(int argc, char *argv[], char *env[])) {

@@ -6,6 +6,7 @@
 typedef struct{
     cpu_context_t cpu_ctx;
     void* simd_ctx;
+    uint64_t fs_base;
 }context_t;
 
 #endif

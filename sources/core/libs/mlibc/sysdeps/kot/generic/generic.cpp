@@ -65,13 +65,14 @@ namespace mlibc{
     }
 
     int sys_vm_map(void *hint, size_t size, int prot, int flags, int fd, off_t offset, void **window){
-        auto result = do_syscall(SYS_MMAP, hint, size, prot, flags, fd, offset);
+        intptr_t result = do_syscall(SYS_MMAP, hint, size, prot, flags, fd, offset);
 
         if(result < 0){
             return -result;
         }
 
         *window = (void*)result;
+        
         return 0;
     }
 
@@ -97,14 +98,14 @@ namespace mlibc{
 
     [[noreturn]] void sys_exit(int status){
         do_syscall(SYS_EXIT, status);
-
-        __builtin_unreachable();
+        
+        mlibc::panicLogger() << "mlibc: " << __func__ << " failed" << frg::endlog;
     }
 
     [[noreturn, gnu::weak]] void sys_thread_exit(){
         do_syscall(SYS_THREAD_EXIT);
         
-        __builtin_unreachable();
+        mlibc::panicLogger() << "mlibc: " << __func__ << " failed" << frg::endlog;
     }
 
     int sys_clock_get(int clock, time_t *secs, long *nanos){
@@ -158,8 +159,7 @@ namespace mlibc{
     }
 
     int sys_sigaction(int how, const struct sigaction *__restrict action, struct sigaction *__restrict old_action){
-        // TODO
-        __ensure(!"Not implemented");
+        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub!" << frg::endlog;
         return 0;
     }
 

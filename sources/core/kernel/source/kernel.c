@@ -1,3 +1,4 @@
+#include <fcntl.h>
 #include <impl/vmm.h>
 #include <impl/boot.h>
 #include <impl/arch.h>
@@ -44,7 +45,7 @@ void kernel_entry(void) {
     initrd_init();
     
     /* graphics_init needs memory to be init*/
-    graphics_init();
+    // graphics_init();
 
     vfs_init();
 

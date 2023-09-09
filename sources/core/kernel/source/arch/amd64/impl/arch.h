@@ -46,14 +46,24 @@ typedef struct{
 
 #define KERNEL_STACK_SIZE 0x10000
 
+typedef uint64_t arch_context_arg_t;
+
+#define ARCH_CONTEXT_SYSCALL_ARG0(context)      ((context)->rdi)
+#define ARCH_CONTEXT_SYSCALL_ARG1(context)      ((context)->rsi)
+#define ARCH_CONTEXT_SYSCALL_ARG2(context)      ((context)->rdx)
+#define ARCH_CONTEXT_SYSCALL_ARG3(context)      ((context)->r10)
+#define ARCH_CONTEXT_SYSCALL_ARG4(context)      ((context)->r8)
+#define ARCH_CONTEXT_SYSCALL_ARG5(context)      ((context)->r9)
+
 #define ARCH_CONTEXT_ARG0(context)              ((context)->rdi)
 #define ARCH_CONTEXT_ARG1(context)              ((context)->rsi)
 #define ARCH_CONTEXT_ARG2(context)              ((context)->rdx)
 #define ARCH_CONTEXT_ARG3(context)              ((context)->rcx)
 #define ARCH_CONTEXT_ARG4(context)              ((context)->r8)
 #define ARCH_CONTEXT_ARG5(context)              ((context)->r9)
-#define ARCH_CONTEXT_THREAD(context)            ((context)->rdi)
+
 #define ARCH_CONTEXT_RETURN(context)            ((context)->rax)
+
 #define ARCH_CONTEXT_CURRENT_THREAD(context)    ((thread_t*)((context)->ctx_info->thread))
 #define ARCH_CONTEXT_SYSCALL_SELECTOR(context)  ((context)->rax)
 

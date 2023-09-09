@@ -38,6 +38,7 @@ packages:
       - args: ['ninja', 'install']
         environ:
           DESTDIR: '@THIS_COLLECT_DIR@'
+          LC_ALL: 'C'
 
   - name: mlibc
     tools_required:
@@ -62,3 +63,4 @@ packages:
       - args: ['ninja', 'install']
         environ:
           DESTDIR: '@THIS_COLLECT_DIR@'
+          LC_ALL: 'C'

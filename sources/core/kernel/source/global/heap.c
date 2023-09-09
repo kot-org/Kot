@@ -8,6 +8,54 @@
 #include <global/pmm.h>
 #include <global/heap.h>
 
+#define HEAP_DEBUG 0
+
+#ifdef HEAP_DEBUG
+
+static void* heap_end = 0;
+static spinlock_t lock = {};
+
+struct heap_segment_header{
+    size_t length;
+}__attribute__((aligned(0x10)));
+
+static struct heap_segment_header* get_heap_segment_header(void* address) {
+    return (struct heap_segment_header*)(void*)((uint64_t)address - sizeof(struct heap_segment_header));
+}
+
+void heap_init(void* heap_address_high, void* heap_address_low){
+    heap_end = heap_address_high;
+}
+
+void* malloc(size_t size){
+    size += sizeof(struct heap_segment_header);
+
+    spinlock_acquire(&lock);
+    heap_end = (void*)((uintptr_t)heap_end - (uintptr_t)size);
+
+    void* buffer = (void*)((uintptr_t)heap_end + (uintptr_t)sizeof(struct heap_segment_header));
+
+    if((uintptr_t)heap_end % PAGE_SIZE){
+        heap_end = (void*)((uintptr_t)heap_end - (uintptr_t)heap_end % (uintptr_t)PAGE_SIZE);
+    }
+    
+    size_t size_allocate;
+    vmm_map_allocate(kernel_space, (memory_range_t){heap_end, size}, MEMORY_FLAG_READABLE | MEMORY_FLAG_WRITABLE, &size_allocate);
+
+    get_heap_segment_header(buffer)->length = size - sizeof(struct heap_segment_header);
+
+    heap_end = (void*)((uintptr_t)heap_end - (uintptr_t)PAGE_SIZE);
+    spinlock_release(&lock);
+
+    return buffer;
+}
+
+void free(void* ptr){
+    // stub
+}
+
+#else
+
 struct heap_segment_header{
     bool is_free;
     size_t length;
@@ -143,12 +191,6 @@ void heap_init(void* heap_address_high, void* heap_address_low) {
     free_size += PAGE_SIZE;  
 }
 
-void* calloc(size_t number, size_t size) {
-    void* address = malloc(number * size);
-    memset(address, 0, number * size);
-    return address;
-}
-
 void* malloc(size_t size) {    
     if(size == 0) return NULL;
 
@@ -222,6 +264,13 @@ void free(void* address) {
         }
         spinlock_release(&lock);
     }
+}
+#endif
+
+void* calloc(size_t number, size_t size) {
+    void* address = malloc(number * size);
+    memset(address, 0, number * size);
+    return address;
 }
 
 void* realloc(void* buffer, size_t size) {

@@ -297,6 +297,9 @@ void* vmm_get_free_contiguous(size_t size){
 }
 
 int vmm_check_memory(vmm_space_t space, memory_range_t virtual_range){
+    if(virtual_range.address == NULL){
+        return EINVAL;
+    }
     // TODO
     return 0;
 }

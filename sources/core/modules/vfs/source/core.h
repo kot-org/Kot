@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <system.h>
+#include <limits.h>
 #include <lib/math.h>
 #include <lib/lock.h>
 #include <global/vfs.h>
@@ -14,7 +15,7 @@
 #include <lib/hashmap.h>
 #include <lib/modules/vfs.h>
 
-#define VFS_MAX_PATH_SIZE 4096
+#define VFS_MAX_PATH_SIZE PATH_MAX
 
 int vfs_return_not_implemented(void);
 kernel_file_t* vfs_file_open_not_implemented(fs_t* ctx, const char* path, int flags, mode_t mode, int* error);

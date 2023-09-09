@@ -12,7 +12,7 @@ static fs_t* system_fs;
 
 /* file */
 int system_file_remove(fs_t* ctx, const char* path){
-    char fs_relative_path[VFS_MAX_PATH_SIZE];
+    char fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     strcpy(fs_relative_path, ctx->internal_data);
     strcat(fs_relative_path, path);
 
@@ -20,7 +20,7 @@ int system_file_remove(fs_t* ctx, const char* path){
 }
 
 kernel_file_t* system_file_open(fs_t* ctx, const char* path, int flags, mode_t mode, int* error){
-    char fs_relative_path[VFS_MAX_PATH_SIZE];
+    char fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     strcpy(fs_relative_path, ctx->internal_data);
     strcat(fs_relative_path, path);
 
@@ -29,7 +29,7 @@ kernel_file_t* system_file_open(fs_t* ctx, const char* path, int flags, mode_t m
 
 /* directory */
 int system_dir_create(fs_t* ctx, const char* path, mode_t mode){
-    char fs_relative_path[VFS_MAX_PATH_SIZE];
+    char fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     strcpy(fs_relative_path, ctx->internal_data);
     strcat(fs_relative_path, path);
 
@@ -37,7 +37,7 @@ int system_dir_create(fs_t* ctx, const char* path, mode_t mode){
 }
 
 int system_dir_remove(fs_t* ctx, const char* path){
-    char fs_relative_path[VFS_MAX_PATH_SIZE];
+    char fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     strcpy(fs_relative_path, ctx->internal_data);
     strcat(fs_relative_path, path);
 
@@ -45,7 +45,7 @@ int system_dir_remove(fs_t* ctx, const char* path){
 }
 
 kernel_dir_t* system_dir_open(fs_t* ctx, const char* path, int* error){
-    char fs_relative_path[VFS_MAX_PATH_SIZE];
+    char fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     strcpy(fs_relative_path, ctx->internal_data);
     strcat(fs_relative_path, path);
 
@@ -54,11 +54,11 @@ kernel_dir_t* system_dir_open(fs_t* ctx, const char* path, int* error){
 
 /* file and directory */
 int system_rename(fs_t* ctx, const char* old_path, const char* new_path){
-    char old_fs_relative_path[VFS_MAX_PATH_SIZE];
+    char old_fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     strcpy(old_fs_relative_path, ctx->internal_data);
     strcat(old_fs_relative_path, old_path);
 
-    char new_fs_relative_path[VFS_MAX_PATH_SIZE];
+    char new_fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     strcpy(new_fs_relative_path, ctx->internal_data);
     strcat(new_fs_relative_path, new_path);
 
@@ -67,11 +67,11 @@ int system_rename(fs_t* ctx, const char* old_path, const char* new_path){
 
 /* file and directory */
 int system_link(fs_t* ctx, const char* src_path, const char* dst_path){
-    char src_fs_relative_path[VFS_MAX_PATH_SIZE];
+    char src_fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     strcpy(src_fs_relative_path, ctx->internal_data);
     strcat(src_fs_relative_path, src_path);
 
-    char dst_fs_relative_path[VFS_MAX_PATH_SIZE];
+    char dst_fs_relative_path[VFS_MAX_PATH_SIZE + 1];
     strcpy(dst_fs_relative_path, ctx->internal_data);
     strcat(dst_fs_relative_path, dst_path);
 
@@ -85,10 +85,12 @@ static bool check_system_file(fs_t* fs){
 
     if(!error){
         if(initrd_disk_cfg_size == disk_file->file_size_initial){
-            void* disk_cfg_buffer = malloc(initrd_disk_cfg_size);
+            void* disk_cfg_buffer = malloc(initrd_disk_cfg_size + 1);
             size_t size_read;
 
             disk_file->read(disk_cfg_buffer, initrd_disk_cfg_size, &size_read, disk_file);
+
+            (*(char*)((uintptr_t)disk_cfg_buffer + (uintptr_t)initrd_disk_cfg_size)) = '\0';
 
             assert(initrd_disk_cfg_size == size_read);
 
@@ -149,7 +151,6 @@ void system_tasks_mount(fs_t* fs){
             }else{
                 line = NULL;
             }
-
             if(strstr(current_line, "ROOT_DIR_PATH=")){
                 fs_t* fs_vfs = malloc(sizeof(fs_t));
                 /* note we don't need to copy string from data to internal data because data won't be free */
@@ -175,11 +176,13 @@ void system_tasks_init(void){
 
     if(!error){
         initrd_disk_cfg_size = disk_file->file_size_initial;
-        initrd_disk_cfg_buffer = malloc(initrd_disk_cfg_size);
+        initrd_disk_cfg_buffer = malloc(initrd_disk_cfg_size + 1);
 
         size_t size_read;
 
         disk_file->read(initrd_disk_cfg_buffer, initrd_disk_cfg_size, &size_read, disk_file);
+
+        (*(char*)((uintptr_t)initrd_disk_cfg_buffer + (uintptr_t)initrd_disk_cfg_size)) = '\0';
 
         assert(initrd_disk_cfg_size == size_read);
     }else{
