@@ -130,7 +130,8 @@
         "streambuf": "cpp",
         "__bits": "cpp",
         "__config": "cpp",
-        "__debug": "cpp"
+        "__debug": "cpp",
+        "console.h": "c"
     },
     "files.exclude": {
         "bundled": true,

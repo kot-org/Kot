@@ -15,7 +15,6 @@
 #include <impl/graphics.h>
 #include <global/scheduler.h>
 #include <global/elf_loader.h>
-#include <global/console.h>
 
 #include <lib/log.h>
 
@@ -26,13 +25,9 @@
  * it is preferable to make the less things before jumping into kernel_entry
 */
 void kernel_entry(void) {
-    serial_init();
-    console_init();
+    graphics_init();
 
-    console_set_fg_color(0xFF0000);
-    console_print("hello world!\n");
-    console_set_fg_color(0xFFFFFF);
-    console_print("i love kot");
+    serial_init();
 
     log_info("version  = %s %lu.%lu\n", KERNEL_VERSION, KERNEL_MAJOR, KERNEL_MINOR);
     log_info("branch   = %s\n", KERNEL_BRANCH);

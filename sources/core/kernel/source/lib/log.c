@@ -5,16 +5,12 @@
 #include <impl/serial.h>
 
 #include <stdint.h>
-#include <global/term.h>
+#include <global/console.h>
 
 void log_print(const char *str) {
     static spinlock_t print_lock = SPINLOCK_INIT;
     spinlock_acquire(&print_lock);
-    terminal_print(str);
-    for (uint64_t i = 0; str[i] != '\0'; i++) {
-        serial_write(str[i]);
-        if (str[i] == '\n') serial_write('\r');   
-    }
+    console_print(str);
     spinlock_release(&print_lock);
 }
 
