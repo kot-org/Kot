@@ -25,9 +25,9 @@
  * it is preferable to make the less things before jumping into kernel_entry
 */
 void kernel_entry(void) {
-    graphics_init();
-
     serial_init();
+
+    graphics_init();
 
     log_info("version  = %s %lu.%lu\n", KERNEL_VERSION, KERNEL_MAJOR, KERNEL_MINOR);
     log_info("branch   = %s\n", KERNEL_BRANCH);

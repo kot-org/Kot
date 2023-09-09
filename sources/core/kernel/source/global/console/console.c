@@ -1,12 +1,10 @@
-#include <boot/limine.h>
 #include <global/console.h>
 
 #include "vgafont.h"
+#include "ansi.h"
 
-#include <lib/log.h>
 #include <lib/bitmap.h>
 #include <lib/memory.h>
-#include <lib/string.h>
 #include <lib/assert.h>
 #include <impl/serial.h>
 
@@ -20,17 +18,18 @@ static uint8_t fb_bpp;
 static uint8_t fb_btpp;
 static size_t fb_size;
 
-static uint16_t cx_max_index;
-static uint16_t cy_max_index;
 
 // char position
 static uint16_t cx_index;
 static uint16_t cy_index;
 
-static void console_set_bg_color(uint32_t bg) {
+static uint16_t cx_max_index;
+static uint16_t cy_max_index;
+
+void console_set_bg_color(uint32_t bg) {
     bg_color = bg;
 }
-static void console_set_fg_color(uint32_t fg) {
+void console_set_fg_color(uint32_t fg) {
     fg_color = fg;
 }
 
@@ -40,10 +39,13 @@ static void console_putpixel(uint16_t x, uint16_t y, uint32_t color) {
 
 static void console_scroll_line(void){
     cy_index--;
+    
     size_t line_size = (size_t)fb_pitch * (size_t)VGAFONT_HEIGHT;
     void* fb_base_copy = (void*)((uintptr_t)fb_base + (uintptr_t)line_size);
+
     size_t size_to_copy = fb_size - line_size;
     memcpy(fb_base, fb_base_copy, size_to_copy);
+    
     void* fb_base_to_clear = (void*)((uintptr_t)fb_base + (uintptr_t)size_to_copy);
     memset(fb_base_to_clear, 0, size_to_copy);
 }
@@ -67,7 +69,6 @@ void console_init(void* base, uint64_t width, uint64_t height, uint64_t pitch, u
     fb_btpp = bpp / 8;
     fb_size = pitch * height;
 
-
     cx_index = 0;
     cy_index = 0;
 
@@ -76,23 +77,26 @@ void console_init(void* base, uint64_t width, uint64_t height, uint64_t pitch, u
 }
 
 void console_putchar(char c) {
-    if(c == '\n') {
-        console_new_line();
-    }
-
     uint8_t* glyph = &vgafont[c*((VGAFONT_WIDTH*VGAFONT_HEIGHT)/8)];
 
     // char pixel-position
     uint16_t cx_ppos = cx_index * VGAFONT_WIDTH;
-
     if((cx_ppos + VGAFONT_WIDTH) > fb_width) {
         console_new_line();
     }
 
     uint16_t cy_ppos = cy_index * VGAFONT_HEIGHT;
-
     if((cy_ppos + VGAFONT_HEIGHT) > fb_height) {
         console_scroll_line();
+    }
+
+    if(c == '\n') {
+        console_new_line();
+        return;
+    }
+    if(c == '\r') {
+        cx_index = 0;
+        return;
     }
 
     for(uint16_t y = 0; y < VGAFONT_HEIGHT; y++) {
@@ -110,10 +114,16 @@ void console_putchar(char c) {
 }
 
 void console_print(const char* str) {
-    for(size_t i = 0; i < strlen(str); i++) {
+    for(size_t i = 0; str[i] != '\0'; i++) {
+        if(str[i] == ANSI_CONTROL || str[i] == '\033') {
+            i += ansi_read(str+i); // increment i to ignore ANSI code
+        }
+
         console_putchar(str[i]);
         serial_write(str[i]);
+
         if (str[i] == '\n'){
+            console_putchar('\r');
             serial_write('\r');   
         }
     }

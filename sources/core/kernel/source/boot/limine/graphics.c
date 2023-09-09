@@ -1,5 +1,4 @@
-#include <boot/limine.h>
-
+#include <impl/graphics.h>
 #include <impl/initrd.h>
 #include <global/console.h>
 

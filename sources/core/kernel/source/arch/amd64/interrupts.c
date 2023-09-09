@@ -94,7 +94,6 @@ static void interrupt_error_handler(cpu_context_t* ctx, uint8_t cpu_id) {
 
     log_print("------------------------------------------------------------\n");
     log_print("KERNEL FATAL EXCEPTION : \n");
-    log_print("\n");
     log_print("------------------------------------------------------------\n");
 
     dump_registers(ctx);
