@@ -2,6 +2,7 @@
 #define LIB_STRING_H 1
 
 #include <stddef.h>
+#include <limits.h>
 
 static inline size_t strlen(const char *str) {
 	register const char *s;
@@ -137,6 +138,31 @@ static inline char* strncpy(char* destination, const char* source, size_t num){
     *destination = '\0';
  
     return ptr;
+}
+
+static inline int atoi(const char* str)
+{
+    int sign = 1, base = 0, i = 0;
+ 
+    while (str[i] == ' ') {
+        i++;
+    }
+ 
+    if (str[i] == '-' || str[i] == '+') {
+        sign = 1 - 2 * (str[i++] == '-');
+    }
+ 
+    while (str[i] >= '0' && str[i] <= '9') {
+        if (base > INT_MAX / 10
+            || (base == INT_MAX / 10 && str[i] - '0' > 7)) {
+            if (sign == 1)
+                return INT_MAX;
+            else
+                return INT_MIN;
+        }
+        base = 10 * base + (str[i++] - '0');
+    }
+    return base * sign;
 }
 
 #endif // LIB_STRING_H

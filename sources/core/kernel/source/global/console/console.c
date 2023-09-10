@@ -7,6 +7,7 @@
 #include <lib/memory.h>
 #include <lib/assert.h>
 #include <impl/serial.h>
+#include <lib/string.h>
 
 static uint32_t bg_color;
 static uint32_t fg_color;
@@ -114,7 +115,7 @@ void console_putchar(char c) {
 }
 
 void console_print(const char* str) {
-    for(size_t i = 0; str[i] != '\0'; i++) {
+    for(size_t i = 0; i < strlen(str); i++) {
         if(str[i] == ANSI_CONTROL || str[i] == '\033') {
             i += ansi_read(str+i); // increment i to ignore ANSI code
         }
@@ -122,7 +123,7 @@ void console_print(const char* str) {
         console_putchar(str[i]);
         serial_write(str[i]);
 
-        if (str[i] == '\n'){
+        if(str[i] == '\n'){
             console_putchar('\r');
             serial_write('\r');   
         }

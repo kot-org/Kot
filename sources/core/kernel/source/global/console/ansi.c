@@ -2,8 +2,6 @@
 
 #include <global/console.h>
 
-#include <lib/log.h>
-
 uint16_t ansi_read(const char* code) {
     uint16_t i = 0;
 
@@ -126,7 +124,7 @@ uint16_t ansi_read(const char* code) {
 
             case ANSI_BRIGHT_BG:
             {
-                i++; // we increment by 1 because bright_bg is > 100
+                i++; // we increment by 1 to take the last digit (color) because bright_bg is > 100
 
                 switch(code[i+1])
                 {

@@ -20,6 +20,8 @@
 
 #include <kernel.h>
 
+#include <global/console.h>
+
 /**
  * kernel_entry have to be called with 64 bits enabled!
  * it is preferable to make the less things before jumping into kernel_entry
@@ -49,7 +51,7 @@ void kernel_entry(void) {
 
     vfs_init();
 
-    /* scheduler_init needs vfs to be init */
+    /* scheduler_init needs vfs to be init */ 
     scheduler_init();
 
     arch_stage2();
