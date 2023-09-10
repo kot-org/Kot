@@ -44,9 +44,11 @@ static struct limine_memmap_entry* pmm_find_free_entry(struct limine_memmap_resp
     for(uint64_t i = 0; i < memory_info->entry_count; i++) {
         if(memory_info->entries[i]->type == LIMINE_MEMMAP_USABLE) {
             if(memory_info->entries[i]->length >= minimum_size) {
-                if(memory_info->entries[i]->base < TRAMPOLINE_END){
-                    if(memory_info->entries[i]->length - (TRAMPOLINE_END - memory_info->entries[i]->base) >= minimum_size){
-                        return memory_info->entries[i];
+                if(memory_info->entries[i]->base < PHYSICAL_ADDRESS_RESERVED_END){
+                    if(memory_info->entries[i]->length >= (PHYSICAL_ADDRESS_RESERVED_END - memory_info->entries[i]->base)){
+                        if(memory_info->entries[i]->length - (PHYSICAL_ADDRESS_RESERVED_END - memory_info->entries[i]->base) >= minimum_size){
+                            return memory_info->entries[i];
+                        }
                     }
                 }else{
                     return memory_info->entries[i];
@@ -77,8 +79,8 @@ void pmm_init(void) {
     assert(bitmap_memmap_entry);
 
     void* bitmap_base;
-    if(bitmap_memmap_entry->base < TRAMPOLINE_END){
-        bitmap_base = (void*)TRAMPOLINE_END;
+    if(bitmap_memmap_entry->base < PHYSICAL_ADDRESS_RESERVED_END){
+        bitmap_base = (void*)PHYSICAL_ADDRESS_RESERVED_END;
     }else{
         bitmap_base = (void*)bitmap_memmap_entry->base;
     }
@@ -89,9 +91,13 @@ void pmm_init(void) {
         if(memory_info->entries[i]->type == LIMINE_MEMMAP_USABLE) {
             uintptr_t base = (uintptr_t)memory_info->entries[i]->base;
             uint64_t size = memory_info->entries[i]->length;
-            if(base <= TRAMPOLINE_END){
-                size = size - (TRAMPOLINE_END - memory_info->entries[i]->base);
-                base = TRAMPOLINE_END;
+            if(base <= PHYSICAL_ADDRESS_RESERVED_END){
+                if(size > (PHYSICAL_ADDRESS_RESERVED_END - memory_info->entries[i]->base)){
+                    size = size - (PHYSICAL_ADDRESS_RESERVED_END - memory_info->entries[i]->base);
+                    base = PHYSICAL_ADDRESS_RESERVED_END;
+                }else{
+                    continue;
+                }
             }
             if(memory_info->entries[i] != bitmap_memmap_entry) {
                 pmm_unreserve_pages((void*)base, size / PAGE_SIZE);
@@ -109,4 +115,5 @@ void pmm_init(void) {
             }
         }
     }
+    void* test = pmm_allocate_page();
 }
