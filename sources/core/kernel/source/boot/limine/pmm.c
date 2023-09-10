@@ -115,5 +115,4 @@ void pmm_init(void) {
             }
         }
     }
-    void* test = pmm_allocate_page();
 }
