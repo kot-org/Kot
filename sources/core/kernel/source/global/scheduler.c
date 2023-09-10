@@ -21,6 +21,12 @@ static spinlock_t scheduler_tid_iteration_spinlock = {};
 
 process_t* proc_kernel = NULL;
 
+static void scheduler_iddle(void){
+    while(true){
+        scheduler_generate_task_switching();
+    }    
+}
+
 static void scheduler_enqueue_wl(thread_t* thread){
     if(scheduler_first_node == NULL){
         scheduler_first_node = thread;
@@ -33,6 +39,7 @@ static void scheduler_enqueue_wl(thread_t* thread){
 
     scheduler_last_node = thread;
     thread->next = scheduler_first_node;
+    thread->is_in_queue = true;
 }
 
 static void scheduler_dequeue_wl(thread_t* thread){
@@ -42,7 +49,6 @@ static void scheduler_dequeue_wl(thread_t* thread){
         }else{
             scheduler_first_node = NULL;
             scheduler_last_node = NULL;
-            return;
         }
     }
     if(scheduler_last_node == thread){
@@ -63,6 +69,7 @@ static void scheduler_dequeue_wl(thread_t* thread){
     thread->next->last = thread->last;
     thread->last = NULL;
     thread->next = NULL;
+    thread->is_in_queue = false;
 }
 
 static thread_t* scheduler_get_tread_wl(void){
@@ -116,8 +123,14 @@ void scheduler_handler(cpu_context_t* ctx){
         thread_t* ending_thread = ARCH_CONTEXT_CURRENT_THREAD(ctx);
 
         if(ending_thread != NULL){
-            context_save(ending_thread->ctx, ctx);
-            scheduler_enqueue_wl(ending_thread);
+            if(ending_thread->is_exiting){
+                scheduler_free_thread(ending_thread);
+                ARCH_CONTEXT_CURRENT_THREAD_FIELD(ctx) = NULL;
+                ctx->rip = (uint64_t)&scheduler_iddle;
+            }else{
+                context_save(ending_thread->ctx, ctx);
+                scheduler_enqueue_wl(ending_thread);
+            }
         }
 
         thread_t* starting_thread = scheduler_get_tread_wl();
@@ -139,6 +152,8 @@ process_t* scheduler_create_process(process_flags_t flags){
 
     process->pid = scheduler_get_new_pid();
 
+    process->threads = vector_create();
+
     return process;
 }
 
@@ -155,6 +170,26 @@ int scheduler_free_process(process_t* process){
     return 0;
 }
 
+int scheduler_exit_process(process_t* process, cpu_context_t* ctx){
+    /* we do not free the current thread */
+    int index = 0;
+    while(process->threads->length > 1){
+        thread_t* thread;
+        do{
+            thread = vector_get(process->threads, index);
+            index++;
+        }while(thread == ARCH_CONTEXT_CURRENT_THREAD(ctx));
+        assert(!scheduler_exit_thread(thread, ctx));
+    }
+
+    assert(!scheduler_free_process(process));
+
+    /* free maybe the current thread */
+    assert(!scheduler_exit_thread(vector_get(process->threads, 0), ctx));
+
+    return 0;
+}
+
 thread_t* scheduler_create_thread(process_t* process, void* entry_point, void* stack, void* stack_base, size_t stack_size){
     thread_t* thread = (thread_t*)calloc(1, sizeof(thread_t));
 
@@ -167,19 +202,48 @@ thread_t* scheduler_create_thread(process_t* process, void* entry_point, void* s
 
     thread->tid = scheduler_get_new_tid();
 
+    thread->index = vector_push(process->threads, thread);
+    
     return thread;
-}
-
-int scheduler_free_thread(thread_t* thread){
-    assert(!mm_free_region(thread->process->memory_handler, thread->stack_base, thread->stack_size));
-    // TODO
-    return 0;
 }
 
 int scheduler_launch_thread(thread_t* thread, arguments_t* args){
     context_start(thread->ctx, thread->process->memory_handler->vmm_space, thread->entry_point, thread->stack, args, thread->process->ctx_flags, thread);
 
     scheduler_enqueue(thread);
+
+    return 0;
+}
+
+int scheduler_free_thread(thread_t* thread){
+    assert(!mm_free_region(thread->process->memory_handler, thread->stack_base, thread->stack_size));
+
+    context_free(thread->ctx);
+
+    free(thread);
+
+    return 0;
+}
+
+int scheduler_exit_thread(thread_t* thread, cpu_context_t* ctx){
+    vector_remove(thread->process->threads, thread->index);
+
+    spinlock_acquire(&scheduler_tid_iteration_spinlock);
+
+    if(thread->is_in_queue){
+        scheduler_dequeue(thread);
+        scheduler_free_thread(thread);
+
+        spinlock_release(&scheduler_tid_iteration_spinlock);
+    }else{
+        thread->is_exiting = true;
+
+        spinlock_release(&scheduler_tid_iteration_spinlock);
+
+        if(ARCH_CONTEXT_CURRENT_THREAD(ctx) == thread){
+            scheduler_generate_task_switching();
+        }
+    }
 
     return 0;
 }

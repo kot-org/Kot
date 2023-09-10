@@ -64,8 +64,9 @@ typedef uint64_t arch_context_arg_t;
 
 #define ARCH_CONTEXT_RETURN(context)            ((context)->rax)
 
-#define ARCH_CONTEXT_CURRENT_THREAD(context)    ((thread_t*)((context)->ctx_info->thread))
-#define ARCH_CONTEXT_SYSCALL_SELECTOR(context)  ((context)->rax)
+#define ARCH_CONTEXT_CURRENT_THREAD_FIELD(context)  ((context)->ctx_info->thread)
+#define ARCH_CONTEXT_CURRENT_THREAD(context)        ((thread_t*)ARCH_CONTEXT_CURRENT_THREAD_FIELD(context))
+#define ARCH_CONTEXT_SYSCALL_SELECTOR(context)      ((context)->rax)
 
 #define ARCH_GET_CONTEXT_FROM_THREAD(thread)    (&thread->ctx->cpu_ctx)
 

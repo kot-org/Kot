@@ -10,6 +10,7 @@ struct process_t;
 #include <impl/arch.h>
 #include <global/vfs.h>
 #include <global/pmm.h>
+#include <lib/vector.h>
 #include <impl/context.h>
 #include <global/resources.h>
 
@@ -45,8 +46,14 @@ typedef struct thread_t{
 
     thread_arch_state_t* arch_state;
 
+    bool is_exiting;
+
+    uint64_t index;
+
     struct thread_t* next;
     struct thread_t* last;
+
+    bool is_in_queue;
 } thread_t;
 
 typedef struct process_t{
@@ -58,6 +65,8 @@ typedef struct process_t{
     memory_handler_t* memory_handler;
     descriptors_ctx_t descriptors_ctx;
 
+    vector_t* threads;
+
     pid_t pid;
 } process_t;
 
@@ -67,16 +76,19 @@ void scheduler_init(void);
 
 void scheduler_handler(cpu_context_t* ctx);
 
+void scheduler_generate_task_switching(void); /* note the following function should be define in arch folder */
+
 process_t* scheduler_create_process(process_flags_t flags);
 int scheduler_launch_process(process_t* process);
 int scheduler_free_process(process_t* process);
+int scheduler_exit_process(process_t* process, cpu_context_t* ctx);
 
 thread_t* scheduler_create_thread(process_t* process, void* entry_point, void* stack, void* stack_base, size_t stack_size);
-int scheduler_free_thread(thread_t* thread);
-
-/* note the following function should be define in arch folder*/
-int scheduler_arch_prctl_thread(thread_t* thread, int code, void* address);
-
+int scheduler_arch_prctl_thread(thread_t* thread, int code, void* address); /* note the following function should be define in arch folder */
 int scheduler_launch_thread(thread_t* thread, arguments_t* args);
+int scheduler_free_thread(thread_t* thread);
+int scheduler_exit_thread(thread_t* thread, cpu_context_t* ctx);
+
+
 
 #endif // _GLOBAL_SCHEDULER_H

@@ -105,13 +105,11 @@ static void syscall_handler_mprotect(cpu_context_t* ctx){
 }
 
 static void syscall_handler_exit(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    SYSCALL_RETURN(ctx, -scheduler_exit_process(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process, ctx));
 }
 
 static void syscall_handler_thread_exit(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    SYSCALL_RETURN(ctx, -scheduler_exit_thread(ARCH_CONTEXT_CURRENT_THREAD(ctx), ctx));  
 }
 
 static void syscall_handler_clock_get(cpu_context_t* ctx){

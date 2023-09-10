@@ -22,6 +22,7 @@ The file in ARCH_INCLUDE(impl/vmm.h) is expected to have :
         - ARCH_CONTEXT_ARG5(context)
         - ARCH_CONTEXT_RETURN(context)
         - ARCH_CONTEXT_CURRENT_THREAD(context)
+        - ARCH_CONTEXT_CURRENT_THREAD_FIELD(context)
         - ARCH_CONTEXT_SYSCALL_SELECTOR(context)
         - ARCH_GET_CONTEXT_FROM_THREAD(thread)
 */

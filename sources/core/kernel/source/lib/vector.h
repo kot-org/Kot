@@ -6,6 +6,7 @@
 typedef struct {
     void** items;
     uint64_t length;
+    spinlock_t lock;
 }vector_t;
 
 

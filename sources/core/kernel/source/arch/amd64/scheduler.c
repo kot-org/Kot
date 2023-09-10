@@ -4,6 +4,11 @@
 #include <arch/include.h>
 #include ARCH_INCLUDE(cpu.h)
 #include ARCH_INCLUDE(context.h)
+#include ARCH_INCLUDE(interrupts.h)
+
+void scheduler_generate_task_switching(void){
+    asm("int %0" : : "i"(INT_SCHEDULE_APIC_TIMER));
+}
 
 int scheduler_arch_prctl_thread(thread_t* thread, int code, void* address){
     switch(code){
@@ -18,7 +23,7 @@ int scheduler_arch_prctl_thread(thread_t* thread, int code, void* address){
             thread->ctx->fs_base = (uint64_t)address;
             set_cpu_fs_base((uint64_t)address);
             break;
-        }   
+        }
         default:{
             return EINVAL;
         }
