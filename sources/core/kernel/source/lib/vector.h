@@ -2,6 +2,7 @@
 #define LIB_VECTOR_H 1
 
 #include <stdint.h>
+#include <lib/lock.h>
 
 typedef struct {
     void** items;
