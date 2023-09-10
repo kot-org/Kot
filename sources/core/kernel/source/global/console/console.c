@@ -117,7 +117,10 @@ void console_putchar(char c) {
 void console_print(const char* str) {
     for(size_t i = 0; i < strlen(str); i++) {
         if(str[i] == ANSI_CONTROL || str[i] == '\033') {
-            i += ansi_read(str+i); // increment i to ignore ANSI code
+            size_t next_char_position = (size_t)ansi_read(str+i) + i; // increment i to ignore ANSI code
+            for(; i < next_char_position; i++){
+                serial_write(str[i]); // use the ANSI code for serial
+            }
         }
 
         console_putchar(str[i]);
