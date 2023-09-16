@@ -131,7 +131,8 @@
         "__bits": "cpp",
         "__config": "cpp",
         "__debug": "cpp",
-        "console.h": "c"
+        "console.h": "c",
+        "devfs.h": "c"
     },
     "files.exclude": {
         "bundled": true,

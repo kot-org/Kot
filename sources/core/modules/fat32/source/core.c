@@ -1493,7 +1493,7 @@ int fat_mount(partition_t* partition){
     vfs_interface->link = &fat_interface_link;
 
     char* mount_path = vfs_request_friendly_fs_mount_name(partition->device->is_removable);
-    vfs_mount_fs(mount_path, vfs_interface);
+    assert(!vfs_mount_fs(mount_path, vfs_interface));
     vfs_free_friendly_fs_mount_name(mount_path);
 
     return 0;
