@@ -29,16 +29,16 @@ function mount_boot_disk {
         sudo mount -o uid=1000,gid=1000 ${LOOPBACK}p1 ${MOUNT_DIR}
 
         if [[ $TARGET_NAME == li* ]]; then
-            mkdir -p ${MOUNT_DIR}/limine
-            mkdir -p ${MOUNT_DIR}/initrd
-            mkdir -p ${MOUNT_DIR}/system/disk
-            mkdir -p ${MOUNT_DIR}/EFI/BOOT
+            sudo mkdir -p ${MOUNT_DIR}/limine
+            sudo mkdir -p ${MOUNT_DIR}/initrd
+            sudo mkdir -p ${MOUNT_DIR}/system/disk
+            sudo mkdir -p ${MOUNT_DIR}/EFI/BOOT
 
             cp disk.cfg disktmp.cfg
             echo "DISK_SYSTEM_UUID=$(uuidgen)" > tmp.txt
             cat disktmp.cfg >> tmp.txt
             mv tmp.txt disktmp.cfg
-            cp disktmp.cfg ${MOUNT_DIR}/system/disk/disk.cfg
+            sudo cp disktmp.cfg ${MOUNT_DIR}/system/disk/disk.cfg
             rm tmp.txt
             rm disktmp.cfg
 

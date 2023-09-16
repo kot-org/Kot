@@ -158,7 +158,7 @@ int load_elf_module(module_metadata_t** metadata, int argc, char* args[]){
 
     f_close(file);
     
-    log_printf("Executable file : %s, is successfully dected as a module named : %s\n", file_path, module_data->name);
+    log_printf("Executable file : %s, is successfully detected as a module named : %s\n", file_path, module_data->name);
 
     *metadata = module_data;
 
