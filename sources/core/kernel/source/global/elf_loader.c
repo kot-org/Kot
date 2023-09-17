@@ -200,52 +200,52 @@ static void* load_elf_exec_load_stack(void* at_entry, void* at_phdr, void* at_ph
     }
 
     /* Align stack to 16 bytes */
-    stack = (void *)stack - ((uintptr_t)stack & 0xf);
+    stack_iteration = (uintptr_t)stack_iteration - ((uintptr_t)stack_iteration & 0xf);
 
     if((argc + envc + 1) & 1){
-        stack--;
+        stack_iteration--;
     }
 
-    stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(struct auxv));
-    ((struct auxv*)stack)->a_type = AT_NULL;
-    ((struct auxv*)stack)->a_val =  0;
+    stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(struct auxv));
+    ((struct auxv*)stack_iteration)->a_type = AT_NULL;
+    ((struct auxv*)stack_iteration)->a_val =  0;
 
-    stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(struct auxv));
-    ((struct auxv*)stack)->a_type = AT_ENTRY;
-    ((struct auxv*)stack)->a_val = at_entry;
+    stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(struct auxv));
+    ((struct auxv*)stack_iteration)->a_type = AT_ENTRY;
+    ((struct auxv*)stack_iteration)->a_val = at_entry;
 
-    stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(struct auxv));
-    ((struct auxv*)stack)->a_type = AT_PHDR;
-    ((struct auxv*)stack)->a_val =  at_phdr;
+    stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(struct auxv));
+    ((struct auxv*)stack_iteration)->a_type = AT_PHDR;
+    ((struct auxv*)stack_iteration)->a_val =  at_phdr;
 
-    stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(struct auxv));
-    ((struct auxv*)stack)->a_type = AT_PHENT;
-    ((struct auxv*)stack)->a_val =  at_phent;
+    stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(struct auxv));
+    ((struct auxv*)stack_iteration)->a_type = AT_PHENT;
+    ((struct auxv*)stack_iteration)->a_val =  at_phent;
 
-    stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(struct auxv));
-    ((struct auxv*)stack)->a_type = AT_PHNUM;
-    ((struct auxv*)stack)->a_val =  at_phnum;
+    stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(struct auxv));
+    ((struct auxv*)stack_iteration)->a_type = AT_PHNUM;
+    ((struct auxv*)stack_iteration)->a_val =  at_phnum;
 
-    stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(uintptr_t));
-    *(uintptr_t*)stack = 0; // NULL
+    stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(uintptr_t));
+    *(uintptr_t*)stack_iteration = 0; // NULL
 
     for(int i = 0; i < envc; i++){
-        stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(uintptr_t));
-        *(uintptr_t*)stack = env_pointers[i];   
-    }    
+        stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(uintptr_t));
+        *(uintptr_t*)stack_iteration = env_pointers[i];   
+    }
 
-    stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(uintptr_t));
-    *(uintptr_t*)stack = 0; // NULL
+    stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(uintptr_t));
+    *(uintptr_t*)stack_iteration = 0; // NULL
 
     for(int i = 0; i < argc; i++){
-        stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(uintptr_t));
-        *(uintptr_t*)stack = arg_pointers[i];   
+        stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(uintptr_t));
+        *(uintptr_t*)stack_iteration = arg_pointers[i];   
     }    
 
-    stack = (void*)((uintptr_t)stack - (uintptr_t)sizeof(uintptr_t));
-    *(uintptr_t*)stack = argc;
+    stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(uintptr_t));
+    *(uintptr_t*)stack_iteration = argc;
 
-    return stack;
+    return (void*)stack_iteration;
 }
 
 static int load_elf_exec_segments(process_t* process_ctx, struct elf64_ehdr* header, void* buffer, struct load_elf_exec_segments_info* segments_info, void* base){
