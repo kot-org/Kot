@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <lib/log.h>
+#include <global/heap.h>
 #include <global/devfs.h>
 
 int console_interface_read(void* buffer, size_t size, size_t* bytes_read, struct kernel_file_t* file){
@@ -26,18 +27,28 @@ int console_interface_stat(int flags, struct stat* statbuf, kernel_file_t* file)
 }
 
 int console_interface_close(kernel_file_t* file){
+    free(file);
     return 0;
 }
 
+kernel_file_t* console_interface_open(struct fs_t* ctx, const char* path, int flags, mode_t mode, int* error){
+    kernel_file_t* file = malloc(sizeof(kernel_file_t));
+
+    file->fs_ctx = ctx;
+    file->seek_position = 0;
+    file->file_size_initial = 0;
+    file->internal_data = NULL;
+
+    file->read = console_interface_read;
+    file->write = console_interface_write;
+    file->seek = console_interface_seek;
+    file->ioctl = console_interface_ioctl;
+    file->stat = console_interface_stat;
+    file->close = console_interface_close;
+
+    return file;
+}
+
 void interface_init(void){
-    devfs_functions_t console_functions;
-
-    console_functions.read = console_interface_read;
-    console_functions.write = console_interface_write;
-    console_functions.seek = console_interface_seek;
-    console_functions.ioctl = console_interface_ioctl;
-    console_functions.stat = console_interface_stat;
-    console_functions.close = console_interface_close;
-
-    devfs_add_dev("tty0", &console_functions);
+    devfs_add_dev("tty0", &console_interface_open);
 }

@@ -13,7 +13,7 @@ struct devfs_context_t;
 
 typedef struct{
     size_t size;
-    devfs_functions_t functions;
+    file_open_fs_t open_handler;
 } devfs_file_internal_t;
 
 typedef struct{

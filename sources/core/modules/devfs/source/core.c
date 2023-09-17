@@ -229,32 +229,13 @@ int devfs_interface_file_remove(fs_t* ctx, const char* path){
     return 0;
 }
 
-int devfs_interface_file_close(struct kernel_file_t* file){
-    devfs_file_internal_t* devfs_file = file->internal_data;
-    devfs_file->functions.close(file);
-    free(devfs_file);
-    free(file);
-    return 0;
-}
-
 struct kernel_file_t* devfs_interface_file_open(struct fs_t* ctx, const char* path, int flags, mode_t mode, int* error){
     devfs_file_internal_t* devfs_file = devfs_open_file((devfs_context_t*)ctx->internal_data, devfs_interface_convert_path((char*)path), flags, mode, error);
     if(devfs_file == NULL){
         return NULL;
     }
-    kernel_file_t* file = malloc(sizeof(kernel_file_t));
-    file->file_size_initial = devfs_file->size;
-    file->fs_ctx = ctx;
-    file->internal_data = devfs_file;
-    file->seek_position = 0;
-    file->read = devfs_file->functions.read;
-    file->write = devfs_file->functions.write;
-    file->seek = devfs_file->functions.seek;
-    file->ioctl = devfs_file->functions.ioctl;
-    file->stat = devfs_file->functions.stat;
-    file->close = &devfs_interface_file_close;
 
-    return file;
+    return devfs_file->open_handler(ctx, path, flags, mode, error);
 }
 
 
@@ -361,7 +342,7 @@ int devfs_interface_link(struct fs_t* ctx, const char* src_path, const char* dst
     return ENOSYS;
 }
 
-int devfs_add_dev(devfs_context_t* devfs_ctx, const char* path, devfs_functions_t* functions){
+int devfs_add_dev(devfs_context_t* devfs_ctx, const char* path, file_open_fs_t open_handler){
     int error = 0;
     char* entry_name;
     devfs_directory_entry_t* parent = devfs_find_last_directory_with_path_from_root(devfs_ctx, path, &entry_name, &error);
@@ -376,7 +357,7 @@ int devfs_add_dev(devfs_context_t* devfs_ctx, const char* path, devfs_functions_
 
     entry->data.file->size = 0;
 
-    memcpy(&entry->data.file->functions, functions, sizeof(devfs_functions_t));
+    entry->data.file->open_handler = open_handler;
 
     entry->parent = parent;
 
