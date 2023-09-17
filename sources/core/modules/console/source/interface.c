@@ -8,7 +8,7 @@ int console_interface_read(void* buffer, size_t size, size_t* bytes_read, struct
 }
 
 int console_interface_write(void* buffer, size_t size, size_t* bytes_write, kernel_file_t* file){
-    log_printf("%.*s\n", size, buffer);
+    log_printf("%.*s", size, buffer);
     *bytes_write = size;
     return 0;
 }
