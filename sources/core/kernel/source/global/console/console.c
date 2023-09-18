@@ -48,7 +48,7 @@ static void console_scroll_line(void){
     memcpy(fb_base, fb_base_copy, size_to_copy);
     
     void* fb_base_to_clear = (void*)((uintptr_t)fb_base + (uintptr_t)size_to_copy);
-    memset(fb_base_to_clear, 0, size_to_copy);
+    memset32(fb_base_to_clear, DEFAULT_BG_COLOR, size_to_copy / sizeof(uint32_t));
 }
 
 static void console_new_line(void){
@@ -75,6 +75,8 @@ void console_init(void* base, uint64_t width, uint64_t height, uint64_t pitch, u
 
     cx_max_index = fb_width / VGAFONT_WIDTH;
     cy_max_index = fb_height / VGAFONT_HEIGHT;
+
+    memset32(fb_base, DEFAULT_BG_COLOR, fb_size / sizeof(uint32_t));
 }
 
 void console_putchar(char c) {

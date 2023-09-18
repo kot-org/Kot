@@ -3,7 +3,7 @@
 
 #include <boot/limine.h>
 
-#define DEFAULT_BG_COLOR 0x000000
+#define DEFAULT_BG_COLOR 0x333333
 #define DEFAULT_FG_COLOR 0xEEEEEE
 
 void console_set_bg_color(uint32_t bg);
