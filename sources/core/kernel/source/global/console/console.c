@@ -59,8 +59,8 @@ static void console_new_line(void){
 void console_init(void* base, uint64_t width, uint64_t height, uint64_t pitch, uint8_t bpp) {
     assert(bpp == 32);
 
-    bg_color = DEFAULT_BG_COLOR;
-    fg_color = DEFAULT_FG_COLOR;
+    console_set_bg_color(DEFAULT_BG_COLOR);
+    console_set_fg_color(DEFAULT_FG_COLOR);
     
     fb_base = base;
     fb_width = width;
@@ -119,7 +119,7 @@ void console_putchar(char c) {
 void console_print(const char* str) {
     for(size_t i = 0; i < strlen(str); i++) {
         if(str[i] == ANSI_CONTROL || str[i] == '\033') {
-            size_t next_char_position = (size_t)ansi_read(str+i) + i; // increment i to ignore ANSI code
+            size_t next_char_position = (size_t)ansi_read(str+i) + i;
             for(; i < next_char_position; i++){
                 serial_write(str[i]); // use the ANSI code for serial
             }

@@ -1,4 +1,3 @@
-#include <fcntl.h>
 #include <impl/vmm.h>
 #include <impl/boot.h>
 #include <impl/arch.h>
@@ -19,8 +18,6 @@
 #include <lib/log.h>
 
 #include <kernel.h>
-
-#include <global/console.h>
 
 /**
  * kernel_entry have to be called with 64 bits enabled!
