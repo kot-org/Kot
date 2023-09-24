@@ -36,5 +36,5 @@ C_SRC = $(filter-out $(SOURCE)/main.c,$(call rwildcard,$(SOURCE),*.c))
 # Target
 build:
 	@ mkdir -m 777 -p $(BIN)
-	@ $(CC) $(CFLAGS) -c $(SOURCE)/main.c -o $(BIN)/console.ksys
+	@ $(CC) $(CFLAGS) -c $(SOURCE)/main.c -o $(BIN)/devconsole.ksys
 

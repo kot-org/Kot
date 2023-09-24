@@ -56,19 +56,19 @@ static void console_new_line(void){
     cy_index++;
 }
 
-void console_init(void* base, uint64_t width, uint64_t height, uint64_t pitch, uint8_t bpp) {
-    assert(bpp == 32);
+void console_init(boot_fb_t* boot_fb) {
+    assert(boot_fb->bpp == 32);
 
     bg_color = DEFAULT_BG_COLOR;
     fg_color = DEFAULT_FG_COLOR;
     
-    fb_base = base;
-    fb_width = width;
-    fb_height = height;
-    fb_pitch = pitch;
-    fb_bpp = bpp;
-    fb_btpp = bpp / 8;
-    fb_size = pitch * height;
+    fb_base = boot_fb->base;
+    fb_width = boot_fb->width;
+    fb_height = boot_fb->height;
+    fb_pitch = boot_fb->pitch;
+    fb_bpp = boot_fb->bpp;
+    fb_btpp = boot_fb->btpp;
+    fb_size = boot_fb->size;
 
     cx_index = 0;
     cy_index = 0;

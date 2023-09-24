@@ -132,7 +132,10 @@
         "__config": "cpp",
         "__debug": "cpp",
         "console.h": "c",
-        "devfs.h": "c"
+        "devfs.h": "c",
+        "complex": "cpp",
+        "fb.h": "c",
+        "boot_fb.h": "c"
     },
     "files.exclude": {
         "bundled": true,

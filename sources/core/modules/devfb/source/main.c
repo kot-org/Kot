@@ -2,7 +2,7 @@
 #include <lib/assert.h>
 #include <global/modules.h>
 
-#define MODULE_NAME "console"
+#define MODULE_NAME "devfb"
 
 #include <interface.c>
 

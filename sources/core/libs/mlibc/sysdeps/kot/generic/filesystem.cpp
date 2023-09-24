@@ -83,6 +83,7 @@ namespace mlibc{
         if(ptr_result != NULL){
             *ptr_result = result;
         }
+        
         return 0;
     }
 

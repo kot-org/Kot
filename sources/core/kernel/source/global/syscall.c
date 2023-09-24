@@ -309,8 +309,30 @@ static void syscall_handler_file_close(cpu_context_t* ctx){
 }
 
 static void syscall_handler_file_ioctl(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    int fd = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    unsigned long request = (unsigned long)ARCH_CONTEXT_SYSCALL_ARG1(ctx); 
+    void* arg = (void*)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+
+    descriptor_t* descriptor = get_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd);
+
+    if(descriptor == NULL){
+        SYSCALL_RETURN(ctx, -EBADF);
+    }
+    
+    if(descriptor->type != DESCRIPTOR_TYPE_FILE){
+        SYSCALL_RETURN(ctx, -EISDIR);
+    }
+
+    kernel_file_t* file = descriptor->data.file;
+
+    int ptr_result;
+    int error = file->ioctl(request, arg, &ptr_result, file);
+
+    if(error){
+        SYSCALL_RETURN(ctx, -error);     
+    }
+
+    SYSCALL_RETURN(ctx, ptr_result); 
 }
 
 static void syscall_handler_dir_read_entries(cpu_context_t* ctx){

@@ -15,6 +15,7 @@ int console_interface_write(void* buffer, size_t size, size_t* bytes_write, kern
 }
 
 int console_interface_seek(off_t offset, int whence, off_t* new_offset, kernel_file_t* file){
+    *new_offset = 0;
     return 0;
 }
 
