@@ -11,11 +11,41 @@ void *memcpy(void *dest, const void *src, size_t n) {
     return dest;
 }
 
-void *memset(void *s, int c, size_t n) {
+void *memset(void *s, uint8_t c, size_t n) {
     uint8_t *p = (uint8_t *) s;
 
     for (size_t i = 0; i < n; i++) {
         p[i] = (uint8_t) c;
+    }
+
+    return s;
+}
+
+void *memset16(void *s, uint16_t c, size_t n) {
+    uint16_t *p = (uint16_t *) s;
+
+    for (size_t i = 0; i < n; i++) {
+        p[i] = (uint16_t) c;
+    }
+
+    return s;
+}
+
+void *memset32(void *s, uint32_t c, size_t n) {
+    uint32_t *p = (uint32_t *) s;
+
+    for (size_t i = 0; i < n; i++) {
+        p[i] = (uint32_t) c;
+    }
+
+    return s;
+}
+
+void *memset64(void *s, uint64_t c, size_t n) {
+    uint64_t *p = (uint64_t *) s;
+
+    for (size_t i = 0; i < n; i++) {
+        p[i] = (uint64_t) c;
     }
 
     return s;

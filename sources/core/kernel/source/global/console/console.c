@@ -48,7 +48,7 @@ static void console_scroll_line(void){
     memcpy(fb_base, fb_base_copy, size_to_copy);
     
     void* fb_base_to_clear = (void*)((uintptr_t)fb_base + (uintptr_t)size_to_copy);
-    memset(fb_base_to_clear, 0, size_to_copy);
+    memset32(fb_base_to_clear, DEFAULT_BG_COLOR, size_to_copy / sizeof(uint32_t));
 }
 
 static void console_new_line(void){
@@ -59,8 +59,8 @@ static void console_new_line(void){
 void console_init(boot_fb_t* boot_fb) {
     assert(boot_fb->bpp == 32);
 
-    bg_color = DEFAULT_BG_COLOR;
-    fg_color = DEFAULT_FG_COLOR;
+    console_set_bg_color(DEFAULT_BG_COLOR);
+    console_set_fg_color(DEFAULT_FG_COLOR);
     
     fb_base = boot_fb->base;
     fb_width = boot_fb->width;
@@ -75,6 +75,8 @@ void console_init(boot_fb_t* boot_fb) {
 
     cx_max_index = fb_width / VGAFONT_WIDTH;
     cy_max_index = fb_height / VGAFONT_HEIGHT;
+
+    memset32(fb_base, DEFAULT_BG_COLOR, fb_size / sizeof(uint32_t));
 }
 
 void console_putchar(char c) {
@@ -117,7 +119,7 @@ void console_putchar(char c) {
 void console_print(const char* str) {
     for(size_t i = 0; i < strlen(str); i++) {
         if(str[i] == ANSI_CONTROL || str[i] == '\033') {
-            size_t next_char_position = (size_t)ansi_read(str+i) + i; // increment i to ignore ANSI code
+            size_t next_char_position = (size_t)ansi_read(str+i) + i;
             for(; i < next_char_position; i++){
                 serial_write(str[i]); // use the ANSI code for serial
             }
