@@ -3,11 +3,15 @@
 #include "vgafont.h"
 #include "ansi.h"
 
+#include <lib/lock.h>
 #include <lib/bitmap.h>
 #include <lib/memory.h>
 #include <lib/assert.h>
 #include <impl/serial.h>
 #include <lib/string.h>
+
+static bool use_boot_fb = false;
+static spinlock_t boot_fb_lock = {};
 
 static uint32_t bg_color;
 static uint32_t fg_color;
@@ -56,30 +60,54 @@ static void console_new_line(void){
     cy_index++;
 }
 
-void console_init(boot_fb_t* boot_fb) {
-    assert(boot_fb->bpp == 32);
+static int boot_fb_callback(void){
+    console_print("Warning : console will no more use the framebuffer for this session\n");
+    spinlock_acquire(&boot_fb_lock);
+    use_boot_fb = false;
+    spinlock_release(&boot_fb_lock);
+    return 0;
+}
 
+void console_init(void) {
     console_set_bg_color(DEFAULT_BG_COLOR);
     console_set_fg_color(DEFAULT_FG_COLOR);
-    
-    fb_base = boot_fb->base;
-    fb_width = boot_fb->width;
-    fb_height = boot_fb->height;
-    fb_pitch = boot_fb->pitch;
-    fb_bpp = boot_fb->bpp;
-    fb_btpp = boot_fb->btpp;
-    fb_size = boot_fb->size;
 
-    cx_index = 0;
-    cy_index = 0;
+    graphics_boot_fb_t* boot_fb = graphics_get_boot_fb(&boot_fb_callback);
 
-    cx_max_index = fb_width / VGAFONT_WIDTH;
-    cy_max_index = fb_height / VGAFONT_HEIGHT;
+    if(boot_fb == NULL){
+        use_boot_fb = false;
+    }else{
+        if(boot_fb->bpp != 32){
+            use_boot_fb = false;
+        }else{
+            use_boot_fb = true;
 
-    memset32(fb_base, DEFAULT_BG_COLOR, fb_size / sizeof(uint32_t));
+            fb_base = boot_fb->base;
+            fb_width = boot_fb->width;
+            fb_height = boot_fb->height;
+            fb_pitch = boot_fb->pitch;
+            fb_bpp = boot_fb->bpp;
+            fb_btpp = boot_fb->btpp;
+            fb_size = boot_fb->size;
+        }
+        cx_index = 0;
+        cy_index = 0;
+
+        cx_max_index = fb_width / VGAFONT_WIDTH;
+        cy_max_index = fb_height / VGAFONT_HEIGHT;
+
+        memset32(fb_base, DEFAULT_BG_COLOR, fb_size / sizeof(uint32_t));
+    }
 }
 
 void console_putchar(char c) {
+    spinlock_acquire(&boot_fb_lock);
+
+    if(!use_boot_fb){
+        spinlock_release(&boot_fb_lock);
+        return;
+    }
+
     uint8_t* glyph = &vgafont[c*((VGAFONT_WIDTH*VGAFONT_HEIGHT)/8)];
 
     // char pixel-position
@@ -95,10 +123,12 @@ void console_putchar(char c) {
 
     if(c == '\n') {
         console_new_line();
+        spinlock_release(&boot_fb_lock);
         return;
     }
     if(c == '\r') {
         cx_index = 0;
+        spinlock_release(&boot_fb_lock);
         return;
     }
 
@@ -114,6 +144,8 @@ void console_putchar(char c) {
         cy_ppos++;
     }
     cx_index++;
+
+    spinlock_release(&boot_fb_lock);
 }
 
 void console_print(const char* str) {

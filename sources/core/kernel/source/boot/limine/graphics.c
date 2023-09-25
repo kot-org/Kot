@@ -3,7 +3,8 @@
 #include <impl/graphics.h>
 #include <global/console.h>
 
-graphics_boot_fb_t boot_fb;
+static graphics_boot_fb_t boot_fb;
+static graphics_ask_ownership_boot_fb_t last_owner_callback = NULL;
 
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
@@ -24,10 +25,19 @@ void graphics_init(void) {
         boot_fb.bpp = framebuffer->bpp;
         boot_fb.btpp = framebuffer->bpp / 8;
 
-        console_init(&boot_fb);
+        console_init();
     }
 }
 
-graphics_boot_fb_t* graphics_get_boot_fb(void) {
+
+graphics_boot_fb_t* graphics_get_boot_fb(graphics_ask_ownership_boot_fb_t owner_callback) {
+    if(last_owner_callback != NULL){
+        if(last_owner_callback()){
+            return NULL;
+        }
+    }
+
+    last_owner_callback = owner_callback;
+
     return &boot_fb;
 }

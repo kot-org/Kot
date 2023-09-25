@@ -15,8 +15,10 @@ typedef struct{
     uint8_t btpp;
 } graphics_boot_fb_t;
 
+typedef int (*graphics_ask_ownership_boot_fb_t)(void);
+
 void graphics_init(void);
 
-graphics_boot_fb_t* graphics_get_boot_fb(void);
+graphics_boot_fb_t* graphics_get_boot_fb(graphics_ask_ownership_boot_fb_t owner_callback);
 
 #endif

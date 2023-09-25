@@ -127,9 +127,9 @@ void interface_init(void){
     var_screeninfo.bits_per_pixel = boot_fb->bpp;
     var_screeninfo.grayscale = 0;
 
-    var_screeninfo.red = (struct fb_bitfield){0, 8, 0};
+    var_screeninfo.red = (struct fb_bitfield){16, 8, 0};
     var_screeninfo.green = (struct fb_bitfield){8, 8, 0};
-    var_screeninfo.blue = (struct fb_bitfield){16, 8, 0};
+    var_screeninfo.blue = (struct fb_bitfield){0, 8, 0};
 
     var_screeninfo.nonstd = 0;
 
