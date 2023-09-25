@@ -3,6 +3,7 @@
 #include "vgafont.h"
 #include "ansi.h"
 
+#include <lib/log.h>
 #include <lib/lock.h>
 #include <lib/bitmap.h>
 #include <lib/memory.h>
@@ -61,7 +62,7 @@ static void console_new_line(void){
 }
 
 static int boot_fb_callback(void){
-    console_print("Warning : console will no more use the framebuffer for this session\n");
+    log_warning("console will no more use the framebuffer for this session\n");
     spinlock_acquire(&boot_fb_lock);
     use_boot_fb = false;
     spinlock_release(&boot_fb_lock);

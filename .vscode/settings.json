@@ -136,7 +136,8 @@
         "complex": "cpp",
         "fb.h": "c",
         "boot_fb.h": "c",
-        "ioctl.h": "c"
+        "ioctl.h": "c",
+        "ansi.h": "c"
     },
     "files.exclude": {
         "bundled": true,
