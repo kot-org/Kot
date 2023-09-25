@@ -1,6 +1,12 @@
 #ifndef _IMPL_BOOT_H
 #define _IMPL_BOOT_H
 
-extern const char *BOOT_PROTOCOL; // this must be defined in the boot file !
+#include <lib/string.h>
+
+#ifndef BOOT_PROTOCOL
+    #define BOOT_PROTOCOL "unknown"
+#endif
+
+void boot_loading(void);
 
 #endif // _BOOT_H

@@ -13,8 +13,8 @@ uint16_t ansi_read(const char* code) {
         switch(code[i])
         {
             case ANSI_RESET:
-                console_set_fg_color(DEFAULT_FG_COLOR);
                 console_set_bg_color(DEFAULT_BG_COLOR);
+                console_set_fg_color(DEFAULT_FG_COLOR);
                 break;
 
             case ANSI_FG:

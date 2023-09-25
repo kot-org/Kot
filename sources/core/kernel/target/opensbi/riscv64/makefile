@@ -1,5 +1,7 @@
 cyan = /bin/echo -e "\x1b[36m\#\# $1\x1b[0m"
 
+include ../makefile.cfg
+
 # Project Root
 override HOME = ../../..
 
@@ -17,7 +19,7 @@ prepare:
 	@ mkdir -m 777 -p $(LIB)
 
 # Tools Config
-CFLAGS = -I$(SOURCE) \
+CFLAGS += -I$(SOURCE) \
 		 -ffreestanding \
 		 --target=riscv64-unknown-none-elf \
 		 -nostdlib \

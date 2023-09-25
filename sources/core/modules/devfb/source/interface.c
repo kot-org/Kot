@@ -2,12 +2,15 @@
 #include <lib/log.h>
 #include <impl/vmm.h>
 #include <linux/fb.h>
-#include <linux/fb.h>
 #include <lib/string.h>
 #include <global/pmm.h>
 #include <global/heap.h>
 #include <global/devfs.h>
 #include <impl/graphics.h>
+#include <lib/lock.h>
+
+static bool use_boot_fb = false;
+static spinlock_t boot_fb_lock = {};
 
 static graphics_boot_fb_t* boot_fb = NULL;
 static struct fb_fix_screeninfo fix_screeninfo = {};
@@ -98,8 +101,16 @@ kernel_file_t* fb_interface_open(struct fs_t* ctx, const char* path, int flags, 
     return file;
 }
 
+static int boot_fb_callback(void){
+    log_warning("console will no more use the framebuffer for this session\n");
+    spinlock_acquire(&boot_fb_lock);
+    use_boot_fb = false;
+    spinlock_release(&boot_fb_lock);
+    return 0;
+}
+
 void interface_init(void){
-    boot_fb = graphics_get_boot_fb();
+    boot_fb = graphics_get_boot_fb(&boot_fb_callback);
 
     /* fill fix_screeninfo struct */
     strcpy((char*)&fix_screeninfo.id, "BOOT FB");

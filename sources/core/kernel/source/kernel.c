@@ -28,6 +28,8 @@ void kernel_entry(void) {
 
     graphics_init();
 
+    boot_loading();
+ 
     log_info("version  = %s %lu.%lu\n", KERNEL_VERSION, KERNEL_MAJOR, KERNEL_MINOR);
     log_info("branch   = %s\n", KERNEL_BRANCH);
     log_info("arch     = %s\n", KERNEL_ARCH);

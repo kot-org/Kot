@@ -1,11 +1,13 @@
 cyan = /bin/echo -e "\x1b[36m\#\# $1\x1b[0m"
 
+include ../makefile.cfg
+
 # Project Root
 override HOME = ../../..
 
 # Project Resources
 SOURCE = $(HOME)/source
-BIN = bin
+BIN = bin/system/kernel
 LIB = lib
 
 LDS = kernel.ld
@@ -17,7 +19,7 @@ prepare:
 	@ mkdir -m 777 -p $(LIB)
 
 # Tools Config
-CFLAGS = -I$(SOURCE) \
+CFLAGS += -I$(SOURCE) \
 		 -ffreestanding \
 		 --target=aarch64-unknown-none-elf \
 		 -nostdlib \
@@ -40,7 +42,7 @@ LDFLAGS = -T $(LDS) \
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
 # Source Files
-C_SRC = $(SOURCE)/boot/limine.c # bootprotocol specific
+C_SRC = $(SOURCE)/boot/boot.c # bootprotocol specific
 C_SRC += $(wildcard $(SOURCE)/boot/limine/*.c) # bootprotocol specific
 C_SRC += $(call rwildcard,$(SOURCE)/boot/limine/aarch64,*.c) # bootprotocol specific & arch specific
 C_SRC += $(call rwildcard,$(SOURCE)/arch/aarch64,*.c) # arch specific
