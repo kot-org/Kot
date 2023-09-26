@@ -6,6 +6,8 @@ TARGET_NAME=$2
 TARGET_ARCH=$3
 BOOT_DISK=$4
 MOUNT_DIR=$5
+UID=$(id -u)
+GID=$(id -g)
 
 function mount_boot_disk {
     if ! [[ -f $BOOT_DISK ]] && ! [[ -e $BOOT_DISK ]]; then
@@ -26,7 +28,7 @@ function mount_boot_disk {
                 
         # Mount the partition
         mkdir -p ${MOUNT_DIR}
-        sudo mount -o uid=1000,gid=1000 ${LOOPBACK}p1 ${MOUNT_DIR}
+        sudo mount -o uid=${UID},gid=${GID} ${LOOPBACK}p1 ${MOUNT_DIR}
 
         if [[ $TARGET_NAME == li* ]]; then
             sudo mkdir -p ${MOUNT_DIR}/limine
@@ -54,7 +56,7 @@ function mount_boot_disk {
 
         # Mount the partition
         mkdir -p ${MOUNT_DIR}
-        sudo mount -o uid=1000,gid=1000 ${LOOPBACK}p1 ${MOUNT_DIR}
+        sudo mount -o uid=${UID},gid=${GID} ${LOOPBACK}p1 ${MOUNT_DIR}
     fi
 
 }
