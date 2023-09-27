@@ -31,10 +31,10 @@ LIAMD_QEMU_FLAGS = \
 	-no-shutdown
 
 liamd/run: liamd/build ovmf-amd64
-	qemu-system-x86_64 $(LIAMD_QEMU_FLAGS) -enable-kvm
+	sudo qemu-system-x86_64 $(LIAMD_QEMU_FLAGS) -enable-kvm
 
 liamd/debug:
-	qemu-system-x86_64 $(LIAMD_QEMU_FLAGS) -S -s
+	sudo qemu-system-x86_64 $(LIAMD_QEMU_FLAGS) -S -s
 
 # Limine AARCH64 (liarm)
 
