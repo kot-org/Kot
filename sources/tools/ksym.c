@@ -8,6 +8,7 @@
 typedef struct{
     Elf64_Addr address;
     Elf64_Xword size;
+    uint64_t name_len;
     char name[];
 }__attribute__((packed)) ksym_t;
 
@@ -17,13 +18,16 @@ static inline bool check_elf_signature(Elf64_Ehdr* header){
 
 static inline void add_symbol_to_list(FILE* list_file, const char* name, Elf64_Addr address, Elf64_Xword size){
     size_t name_len = strlen(name);
-    size_t info_sym_size = sizeof(Elf64_Addr) + sizeof(Elf64_Xword) + name_len + 1;
-    ksym_t* sym = malloc(info_sym_size);
-    sym->address = address;
-    sym->size = size;
-    strncpy((char*)&sym->name, name, name_len);
-    sym->name[name_len] = '\0';
-    fwrite(sym, info_sym_size, 1, list_file);
+    if(name_len > 0){
+        size_t info_sym_size = sizeof(ksym_t) + name_len + sizeof((char)'\0');
+        ksym_t* sym = malloc(info_sym_size);
+        sym->address = address;
+        sym->size = size;
+        sym->name_len = name_len;
+        strncpy((char*)&sym->name, name, name_len);
+        sym->name[name_len] = '\0';
+        fwrite(sym, info_sym_size, 1, list_file);
+    }
 }
 
 int main(int argc, char* args[]) {

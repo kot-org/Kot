@@ -46,5 +46,8 @@ To configure all packages in the project, use the following command: `PACKAGE=al
 This command will configure all packages and also reconfigure them if needed.
 By following these instructions, you can effectively use the main Makefile to build and configure packages in your project.
 
+6. **Use USB key:**
 
+To use a USB key with **The New Kot**, please note that this method requires a certain level of knowledge about the Linux system, as improper usage can potentially damage your system's data. To utilize this method, you need to set the `BOOT_DEVICE` variable with the correct USB device name. Here's an example of how to do it: `BOOT_DEVICE=<device> PACKAGE=all make build`
+Replace <device> with the actual device name of your USB key, such as /dev/sdc. Be aware that using the USB key in this way will format it, erasing any existing data. Ensure that you have correctly identified the USB device name, as specifying the wrong device can result in data loss. This command will start The New Kot in Qemu using the specified USB key as the boot device.
 

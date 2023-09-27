@@ -6,19 +6,19 @@ TARGET_NAME=$2
 TARGET_ARCH=$3
 BOOT_DISK=$4
 MOUNT_DIR=$5
-UID=$(id -u)
-GID=$(id -g)
+CURRENT_UID=$(id -u)
+CURRENT_GID=$(id -g)
 
 function mount_boot_disk {
-    if ! [[ -f $BOOT_DISK ]] && ! [[ -e $BOOT_DISK ]]; then
+    if ! [[ -f $BOOT_DISK ]] || [[ -b $BOOT_DISK ]]; then
         mkdir -p $(dirname ${BOOT_DISK})
 
-        dd if=/dev/zero bs=1M count=0 seek=64 of=${BOOT_DISK}
+        sudo dd if=/dev/zero bs=1M count=0 seek=64 of=${BOOT_DISK}
 
         # Configure GPT partition table
-        parted -s ${BOOT_DISK} mklabel gpt
-        parted -s ${BOOT_DISK} mkpart ESP fat32 2048s 100%
-        parted -s ${BOOT_DISK} set 1 esp on
+        sudo parted -s ${BOOT_DISK} mklabel gpt
+        sudo parted -s ${BOOT_DISK} mkpart ESP fat32 2048s 100%
+        sudo parted -s ${BOOT_DISK} set 1 esp on
 
         # Set up loopback device
         LOOPBACK=$(sudo losetup -Pf --show ${BOOT_DISK})
@@ -28,7 +28,7 @@ function mount_boot_disk {
                 
         # Mount the partition
         mkdir -p ${MOUNT_DIR}
-        sudo mount -o uid=${UID},gid=${GID} ${LOOPBACK}p1 ${MOUNT_DIR}
+        sudo mount -o uid=${CURRENT_UID},gid=${CURRENT_GID} ${LOOPBACK}p1 ${MOUNT_DIR}
 
         if [[ $TARGET_NAME == li* ]]; then
             sudo mkdir -p ${MOUNT_DIR}/limine
@@ -48,7 +48,7 @@ function mount_boot_disk {
             cp limine.cfg ${EXTERN}/limine/limine-bios.sys ${EXTERN}/limine/limine-bios-cd.bin ${EXTERN}/limine/limine-uefi-cd.bin ${MOUNT_DIR}/limine
             cp ${EXTERN}/limine/BOOTX64.EFI ${MOUNT_DIR}/EFI/BOOT/
             cp -r initrd/. ${MOUNT_DIR}/.
-            ${EXTERN}/limine/limine bios-install ${BOOT_DISK}
+            sudo ${EXTERN}/limine/limine bios-install ${BOOT_DISK}
         fi
     else
         # Set up loopback device
@@ -56,7 +56,7 @@ function mount_boot_disk {
 
         # Mount the partition
         mkdir -p ${MOUNT_DIR}
-        sudo mount -o uid=${UID},gid=${GID} ${LOOPBACK}p1 ${MOUNT_DIR}
+        sudo mount -o uid=${CURRENT_UID},gid=${CURRENT_GID} ${LOOPBACK}p1 ${MOUNT_DIR}
     fi
 
 }

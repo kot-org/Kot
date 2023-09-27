@@ -1,4 +1,5 @@
 TARGET ?= liamd
+BOOT_DEVICE ?= virtual
 
 update-pkgs:
 	sudo apt update
@@ -20,13 +21,13 @@ init:
 	@ mkdir -m 777 -p sysroot
 
 build:
-	@ cd target && LC_ALL=C make $(TARGET)/build
+	@ cd target && BOOT_DEVICE=$(BOOT_DEVICE) LC_ALL=C make $(TARGET)/build
 
 configure:
-	@ cd target && make $(TARGET)/configure
+	@ cd target && BOOT_DEVICE=$(BOOT_DEVICE) LC_ALL=C make $(TARGET)/configure
 
 run:
-	@ cd target && make $(TARGET)/run
+	@ cd target && BOOT_DEVICE=$(BOOT_DEVICE) LC_ALL=C make $(TARGET)/run
 
 all: init build run
 

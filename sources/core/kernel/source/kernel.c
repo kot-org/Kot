@@ -25,10 +25,10 @@
 */
 void kernel_entry(void) {
     serial_init();
+    log_success("serial : initialized\n");
 
     graphics_init();
-
-    boot_loading();
+    log_success("graphics : initialized\n");
  
     log_info("version  = %s %lu.%lu\n", KERNEL_VERSION, KERNEL_MAJOR, KERNEL_MINOR);
     log_info("branch   = %s\n", KERNEL_BRANCH);
@@ -37,8 +37,10 @@ void kernel_entry(void) {
     log_print("\n");
 
     arch_stage1();
+    log_success("arch stage 1 : done\n");
 
     memory_init();
+    log_success("memory : initialized\n");
 
     log_info("memory available = %lu MiB\n", pmm_get_available() / 0x100000);
     log_info("memory reserved  = %lu MiB\n", pmm_get_reserved() / 0x100000);
@@ -47,17 +49,23 @@ void kernel_entry(void) {
     ksym_init();
 
     initrd_init();
+    log_success("initrd : initialized\n");
 
     vfs_init();
+    log_success("vfs : initialized\n");
 
     /* scheduler_init needs vfs to be init */ 
     scheduler_init();
+    log_success("scheduler : initialized\n");
 
     arch_stage2();
+    log_success("arch stage 2 : done\n");
 
     time_init();
+    log_success("time : initialized\n");
 
     modules_init();
+    log_success("modules : initialized\n");
 
     apps_init();
 

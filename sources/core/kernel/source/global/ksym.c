@@ -22,7 +22,7 @@ void ksym_init(void){
 	ksym_t* ksym = ksym_list;
 	for(size_t i = 0; i < ksym_size;){
 	 	ksym_add(ksym->name, (void*)ksym->address);
-		size_t size_field = sizeof(elf64_addr) + sizeof(elf64_xword) + strlen(ksym->name) + 1;
+		size_t size_field = sizeof(ksym_t) + ksym->name_len + sizeof((char)'\0');
 	 	ksym = (ksym_t*)((uintptr_t)ksym + (uintptr_t)size_field);
 		i += size_field;
 	}

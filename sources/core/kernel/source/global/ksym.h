@@ -7,6 +7,7 @@
 typedef struct{
     elf64_addr address;
     elf64_xword size;
+    uint64_t name_len;
     char name[];
 }__attribute__((packed)) ksym_t;
 

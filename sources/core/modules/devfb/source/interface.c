@@ -101,12 +101,10 @@ kernel_file_t* fb_interface_open(struct fs_t* ctx, const char* path, int flags, 
     return file;
 }
 
+
 static int boot_fb_callback(void){
-    log_warning("console will no more use the framebuffer for this session\n");
-    spinlock_acquire(&boot_fb_lock);
-    use_boot_fb = false;
-    spinlock_release(&boot_fb_lock);
-    return 0;
+    log_warning("'dev/fb0' refuses to give ownership of its boot_fb\n");
+    return EACCES;
 }
 
 void interface_init(void){
