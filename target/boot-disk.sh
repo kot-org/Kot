@@ -13,7 +13,9 @@ function mount_boot_disk {
     if ! [[ -f $BOOT_DISK ]] || [[ -b $BOOT_DISK ]]; then
         mkdir -p $(dirname ${BOOT_DISK})
 
-        sudo dd if=/dev/zero bs=1M count=0 seek=64 of=${BOOT_DISK}
+        if ! [[ -b $BOOT_DISK ]]; then
+          sudo dd if=/dev/zero bs=1M count=0 seek=64 of=${BOOT_DISK}
+        fi
 
         # Configure GPT partition table
         sudo parted -s ${BOOT_DISK} mklabel gpt
@@ -63,7 +65,7 @@ function mount_boot_disk {
 
 function unmount_boot_disk {
     # update sysroot directory
-    cp -r -f ../sysroot/. ${MOUNT_DIR}/.
+    cp -r -f ../sysroot/. ${MOUNT_DIR}/. 2>/dev/null
 
     # Unmount the partition
     sudo umount ${MOUNT_DIR}

@@ -1,3 +1,4 @@
+#include <lib/log.h>
 #include <impl/arch.h>
 #include <lib/assert.h>
 
@@ -15,30 +16,46 @@
 
 void arch_stage1(void) {
     __asm__ volatile("cli");
+    log_success("arch stage 1 : interrupts disabled\n");
+
     gdt_init();
+    log_success("arch stage 1 : gdt initialized\n");
+
     idt_init();
+    log_success("arch stage 1 : idt initialized\n");
 }
 
 void arch_stage2(void) {
     cpu_init();
+    log_success("arch stage 2 : cpu initialized\n");
+
     simd_init();
+    log_success("arch stage 2 : simd initialized\n");
+
     acpi_init();
+    log_success("arch stage 2 : acpi initialized\n");
 
     struct acpi_hpet_header* hpet = acpi_find_table(acpi_rsdp, "HPET");
     assert(hpet);
     hpet_init(hpet);
+    log_success("arch stage 2 : hpet initialized\n");
 
     struct acpi_madt_header* madt = acpi_find_table(acpi_rsdp, "APIC");
     assert(madt);
     apic_init(madt);
+    log_success("arch stage 2 : madt initialized\n");
 
     smp_init();
+    log_success("arch stage 2 : smp initialized\n");
 
     syscall_enable(GDT_KERNEL_CODE * sizeof(gdt_entry_t), GDT_USER_CODE * sizeof(gdt_entry_t));
+    log_success("arch stage 2 : syscall initialized\n");
 
     start_lapic_timer();
+    log_success("arch stage 2 : lapic timer initialized\n");
 
     __asm__ volatile("sti");
+    log_success("arch stage 2 : interrupt enabled\n");
 }
 
 void arch_pause(void) {
