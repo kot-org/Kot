@@ -12,7 +12,7 @@ install-ninja:
 	sudo chmod a+x /usr/local/bin/ninja
 
 deps-debian: update-pkgs install-ninja
-	sudo apt install nasm build-essential parted qemu-system-x86 meson python3 python3-pip python3-setuptools python3-wheel ninja-build cmake sed m4 texinfo libgmp-dev bison flex curl -y
+	sudo apt install nasm build-essential parted qemu-img qemu-system-x86 meson python3 python3-pip python3-setuptools python3-wheel ninja-build cmake sed m4 texinfo libgmp-dev bison flex curl -y
 	sudo pip3 install meson
 	sudo pip3 install xbstrap
 
@@ -32,3 +32,5 @@ run:
 all: init build run
 
 github-action: deps-debian init build
+	qemu-img convert -f raw -O vdi target/liamd/boot-kot.img target/liamd/boot-kot.vdi
+	qemu-img convert -f raw -O vmdk target/liamd/boot-kot.img target/liamd/boot-kot.vmdk

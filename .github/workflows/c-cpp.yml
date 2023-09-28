@@ -24,3 +24,5 @@ jobs:
           title: "Nightly Build"
           files: |
             target/liamd/boot-kot.img
+            target/liamd/boot-kot.vdi
+            target/liamd/boot-kot.vmdk
