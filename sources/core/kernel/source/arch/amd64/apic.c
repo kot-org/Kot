@@ -16,23 +16,21 @@
 
 //processors
 struct local_processor** processors;
-uint8_t processor_count;
+uint8_t processor_count = 0;
 
 struct lapic_address** lapic_address;
 
 //ioapic
 struct ioapic** ioapics;
-uint64_t ioapic_count;
+uint64_t ioapic_count = 0;
 
 //iso
 struct interrupt_source_override** isos;
-uint64_t iso_count;
+uint64_t iso_count = 0;
+
+uint64_t max_apicid = 1;
 
 void apic_init(struct acpi_madt_header* madt){
-    processor_count = 0;
-    iso_count = 0;
-    uint64_t max_apicid = 1;
-
     uint64_t entries = (madt->header.length - sizeof(struct acpi_madt_header));
 
     for(uint64_t i = 0; i < entries;){
@@ -194,8 +192,15 @@ void smp_init(void){
     //tmp trampoline map
     vmm_map(kernel_space, (memory_range_t){ (void*)TRAMPOLINE_ADDRESS, PAGE_SIZE }, (memory_range_t){ (void*)TRAMPOLINE_ADDRESS, PAGE_SIZE }, MEMORY_FLAG_READABLE | MEMORY_FLAG_WRITABLE | MEMORY_FLAG_EXECUTABLE);
 
+    bool* is_apicid_loaded = (bool*)calloc(max_apicid + 1, sizeof(bool));
+
+    is_apicid_loaded[cpu_get_apicid()] = true; /* this is the current processor */
+
     for(int i = 0; i < processor_count; i++){ 
-        if(processors[i]->apicid == cpu_get_apicid()) continue; 
+        if(!(processors[i]->flags & 1)) continue;
+        if(is_apicid_loaded[processors[i]->apicid]) continue;
+
+        log_info("wait processor %d...\n", processors[i]->apicid);
 
         data->paging = kernel_space;
         data->main_entry = &trampoline_main; 
@@ -207,8 +212,6 @@ void smp_init(void){
         lapic_send_init_ipi(processors[i]->apicid);
 
         data_trampoline.status = 0;
-        
-        log_info("wait processor %d...\n", i);
 
         // send startup ipi twice 
         lapic_send_startup_ipi(processors[i]->apicid, (void*)TRAMPOLINE_ADDRESS);
@@ -216,8 +219,12 @@ void smp_init(void){
         while (data_trampoline.status != 0xef){
             __asm__ __volatile__ ("pause" : : : "memory");
         } 
-        log_info("processor %d respond with success\n", i);
+
+        is_apicid_loaded[processors[i]->apicid] = true;
+
+        log_info("processor %d respond with success\n", processors[i]->apicid);
     }
+
     data_trampoline.status = 0xff;
     vmm_unmap(kernel_space, (memory_range_t){ (void*)TRAMPOLINE_ADDRESS, PAGE_SIZE });
 
