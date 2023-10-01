@@ -5,6 +5,7 @@
 
 #include <lib/log.h>
 #include <lib/lock.h>
+#include <lib/printf.h>
 #include <lib/bitmap.h>
 #include <lib/memory.h>
 #include <lib/assert.h>
@@ -24,6 +25,7 @@ static uint8_t fb_bpp;
 static uint8_t fb_btpp;
 static size_t fb_size;
 
+static uint16_t line_count = 0;
 
 // char position
 static uint16_t cx_index;
@@ -43,22 +45,43 @@ static void console_putpixel(uint16_t x, uint16_t y, uint32_t color) {
     fb_base[y*fb_width+x] = color;
 }
 
-static void console_scroll_line(void){
-    cy_index--;
+static void console_setchar(uint16_t cx_ppos, uint16_t cy_ppos, char c){
+    uint8_t* glyph = &vgafont[c*((VGAFONT_WIDTH*VGAFONT_HEIGHT)/8)];
     
-    size_t line_size = (size_t)fb_pitch * (size_t)VGAFONT_HEIGHT;
-    void* fb_base_copy = (void*)((uintptr_t)fb_base + (uintptr_t)line_size);
+    for(uint16_t y = 0; y < VGAFONT_HEIGHT; y++) {
+        for(uint16_t x = 0; x < VGAFONT_WIDTH; x++) {
+            
+            if(BIT_GET(glyph[y], VGAFONT_WIDTH-x) == BITSET) {
+                console_putpixel(cx_ppos+x, cy_ppos, fg_color); 
+            }
+        }
+        cy_ppos++;
+    }
+}
 
-    size_t size_to_copy = fb_size - line_size;
-    memcpy(fb_base, fb_base_copy, size_to_copy);
-    
-    void* fb_base_to_clear = (void*)((uintptr_t)fb_base + (uintptr_t)size_to_copy);
-    memset32(fb_base_to_clear, DEFAULT_BG_COLOR, size_to_copy / sizeof(uint32_t));
+static void console_printline(uint16_t x, uint16_t line, char* str){
+    for(size_t i = 0; i < strlen(str); i++) {
+        console_setchar((x + i) * VGAFONT_WIDTH, line * VGAFONT_HEIGHT, str[i]);
+    }
 }
 
 static void console_new_line(void){
     cx_index = 0;
-    cy_index++;
+    cy_index = ((cy_index + 1) % cy_max_index);
+    uint16_t next_cy_index = ((cy_index + 1) % cy_max_index);
+
+    line_count++;
+
+    size_t line_size = (size_t)fb_pitch * (size_t)VGAFONT_HEIGHT;
+    size_t line_pixel_count = (size_t)fb_width * (size_t)VGAFONT_HEIGHT; 
+    void* fb_base_to_clear = (void*)((uintptr_t)fb_base + (uintptr_t)line_size * cy_index);
+    memset32(fb_base_to_clear, DEFAULT_BG_COLOR, line_pixel_count);
+    void* fb_base_to_cut = (void*)((uintptr_t)fb_base + (uintptr_t)line_size * next_cy_index);
+    memset32(fb_base_to_cut, DEFAULT_CUT_COLOR, line_pixel_count);
+
+    char cut_buffer[cx_max_index];
+    snprintf_((char*)&cut_buffer, cx_max_index, "line : %d", line_count);
+    console_printline(0, next_cy_index, cut_buffer);
 }
 
 static int boot_fb_callback(void){
@@ -109,8 +132,6 @@ void console_putchar(char c) {
         return;
     }
 
-    uint8_t* glyph = &vgafont[c*((VGAFONT_WIDTH*VGAFONT_HEIGHT)/8)];
-
     // char pixel-position
     uint16_t cx_ppos = cx_index * VGAFONT_WIDTH;
     if((cx_ppos + VGAFONT_WIDTH) > fb_width) {
@@ -118,9 +139,6 @@ void console_putchar(char c) {
     }
 
     uint16_t cy_ppos = cy_index * VGAFONT_HEIGHT;
-    if((cy_ppos + VGAFONT_HEIGHT) > fb_height) {
-        console_scroll_line();
-    }
 
     if(c == '\n') {
         console_new_line();
@@ -133,17 +151,8 @@ void console_putchar(char c) {
         return;
     }
 
-    for(uint16_t y = 0; y < VGAFONT_HEIGHT; y++) {
-        for(uint16_t x = 0; x < VGAFONT_WIDTH; x++) {
-            
-            if(BIT_GET(glyph[y], VGAFONT_WIDTH-x) == BITSET) {
-                console_putpixel(cx_ppos+x, cy_ppos, fg_color); 
-            } else {
-                console_putpixel(cx_ppos+x, cy_ppos, bg_color); 
-            }
-        }
-        cy_ppos++;
-    }
+    console_setchar(cx_ppos, cy_ppos, c);
+
     cx_index++;
 
     spinlock_release(&boot_fb_lock);

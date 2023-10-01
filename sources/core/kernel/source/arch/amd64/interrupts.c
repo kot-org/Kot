@@ -5,6 +5,7 @@
 #include <global/ksym.h>
 #include <global/syscall.h>
 #include <global/scheduler.h>
+#include <global/hw_interrupt.h>
 
 #include <arch/include.h>
 #include ARCH_INCLUDE(asm.h)
@@ -111,7 +112,7 @@ void interrupt_handler(cpu_context_t* ctx, uint8_t cpu_id) {
     }else if(ctx->interrupt_number < 32) {
         interrupt_error_handler(ctx, cpu_id);
     }else{
-        // TODO
+        hw_interrupt_trigger(ctx, ctx->interrupt_number);
     }
 
     local_apic_eoi(cpu_id);

@@ -1,6 +1,8 @@
 #ifndef _AMD64_INTERRUPTS_H
 #define _AMD64_INTERRUPTS_H 1
 
+#define IRQ_START 0x20
+
 #define INT_SCHEDULE_APIC_TIMER 0x40
 
 #endif // _AMD64_INTERRUPTS_H

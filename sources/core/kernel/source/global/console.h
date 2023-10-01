@@ -6,6 +6,7 @@
 
 #define DEFAULT_BG_COLOR 0x1B1B1B
 #define DEFAULT_FG_COLOR 0xEEEEEE
+#define DEFAULT_CUT_COLOR 0x00CCCC
 
 void console_set_bg_color(uint32_t bg);
 void console_set_fg_color(uint32_t fg);

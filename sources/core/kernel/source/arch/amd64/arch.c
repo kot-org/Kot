@@ -1,6 +1,7 @@
 #include <lib/log.h>
 #include <impl/arch.h>
 #include <lib/assert.h>
+#include <global/hw_interrupt.h>
 
 #include <arch/include.h>
 #include ARCH_INCLUDE(idt.h)
@@ -26,6 +27,8 @@ void arch_stage1(void) {
 }
 
 void arch_stage2(void) {
+    hw_interrupt_init(256);
+
     cpu_init();
     log_success("arch stage 2 : cpu initialized\n");
 

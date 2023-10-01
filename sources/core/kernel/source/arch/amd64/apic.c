@@ -130,7 +130,7 @@ void io_apic_init(uint8_t io_apic_id){
     uint32_t base = ioapic->global_system_interrupt_base;
 
     for (size_t i = 0; i < max_interrupts; i++){
-            uint8_t irq_number = i + 0x20;
+            uint8_t irq_number = i + IRQ_START;
             io_apic_set_redirection_entry((void*)ioapic_address_virtual, i - base, (struct ioapic_redirection_entry){
                 .vector = irq_number,
                 .delivery_mode = ioapic_redirection_entry_delivery_mode_fixed,
@@ -146,7 +146,7 @@ void io_apic_init(uint8_t io_apic_id){
 
     for(size_t i = 0; i < iso_count; i++) {
         struct interrupt_source_override* iso = isos[i];
-        uint8_t irq_number = iso->irq_source + 0x20;
+        uint8_t irq_number = iso->irq_source + IRQ_START;
         io_apic_set_redirection_entry((void*)ioapic_address_virtual, iso->irq_source, (struct ioapic_redirection_entry){
             .vector = irq_number,
             .delivery_mode = ioapic_redirection_entry_delivery_mode_fixed,
@@ -398,4 +398,13 @@ uint32_t create_local_apic_ipi_register(struct local_apic_ipi reg){
         (reg.destination_mode << local_apic_interruptipi_destination_mode) |
         (reg.destination_type << local_apic_interruptipi_destination_type)
     );
+}
+
+/* implementation */
+
+int hw_interrupt_set_state(int id, bool is_enable){
+    if(id >= IRQ_START && (ioapics[0]->max_interrupts + IRQ_START) > id){
+        io_change_irq_state(id - IRQ_START, 0, is_enable);
+    }
+    return 0;
 }
