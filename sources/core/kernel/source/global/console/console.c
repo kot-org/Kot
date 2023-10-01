@@ -3,6 +3,7 @@
 #include "vgafont.h"
 #include "ansi.h"
 
+#include <kernel.h>
 #include <lib/log.h>
 #include <lib/lock.h>
 #include <lib/printf.h>
@@ -11,6 +12,8 @@
 #include <lib/assert.h>
 #include <impl/serial.h>
 #include <lib/string.h>
+
+#define CONSOLE_VERSION "1.0"
 
 static bool use_boot_fb = false;
 static spinlock_t boot_fb_lock = {};
@@ -80,7 +83,7 @@ static void console_new_line(void){
     memset32(fb_base_to_cut, DEFAULT_CUT_COLOR, line_pixel_count);
 
     char cut_buffer[cx_max_index];
-    snprintf_((char*)&cut_buffer, cx_max_index, "line : %d", line_count);
+    snprintf_((char*)&cut_buffer, cx_max_index, "Kot | Kernel : %s | Console version : %s | Number of lines written : %d", KERNEL_VERSION, CONSOLE_VERSION, line_count);
     console_printline(0, next_cy_index, cut_buffer);
 }
 
