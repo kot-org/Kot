@@ -9,7 +9,6 @@
 
 int main(int argc, char* argv[]){
     assert(argc > 0);
-    return;
 
     int fb_fd = open("/dev/fb0", O_RDWR); 
 

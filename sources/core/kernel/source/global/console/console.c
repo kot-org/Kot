@@ -83,7 +83,7 @@ static void console_new_line(void){
     memset32(fb_base_to_cut, DEFAULT_CUT_COLOR, line_pixel_count);
 
     char cut_buffer[cx_max_index];
-    snprintf_((char*)&cut_buffer, cx_max_index, "Kot | Kernel : %s | Console version : %s | Number of lines written : %d", KERNEL_VERSION, CONSOLE_VERSION, line_count);
+    snprintf_((char*)&cut_buffer, cx_max_index, "Kot version : %s | Kernel version : %s | Console version : %s | Number of lines written : %d", GIT_HASH, KERNEL_VERSION, CONSOLE_VERSION, line_count);
     console_printline(0, next_cy_index, cut_buffer);
 }
 

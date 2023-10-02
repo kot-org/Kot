@@ -34,6 +34,7 @@ CFLAGS += -I$(SOURCE) \
 		 -Wstrict-prototypes \
 		 -Wno-ignored-attributes \
 		 -Wno-address-of-packed-member \
+		 -DGIT_HASH='"$(shell git log --pretty=format:'%h' -n 1)"'
 
 ASMFLAGS = -i$(realpath $(SOURCE)/arch/amd64) -f elf64
 
