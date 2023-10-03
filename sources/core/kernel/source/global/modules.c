@@ -11,6 +11,7 @@
 
 volatile vfs_handler_t* vfs_handler = NULL;
 volatile pci_handler_t* pci_handler = NULL;
+volatile hid_handler_t* hid_handler = NULL;
 volatile time_handler_t* time_handler = NULL;
 volatile devfs_handler_t* devfs_handler = NULL;
 volatile storage_handler_t* storage_handler = NULL;

@@ -5,18 +5,20 @@
 #include <stdbool.h>
 #include <lib/modules/vfs.h>
 #include <lib/modules/pci.h>
+#include <lib/modules/hid.h>
 #include <lib/modules/time.h>
 #include <lib/modules/devfs.h>
 #include <lib/modules/storage.h>
 
 #define MODULE_TYPE_UNDEFINE        (0)
 #define MODULE_TYPE_VFS             (1)
-#define MODULE_TYPE_DEVFS           (2)
-#define MODULE_TYPE_PCI             (3)
+#define MODULE_TYPE_PCI             (2)
+#define MODULE_TYPE_HID             (3)
 #define MODULE_TYPE_TIME            (4)
-#define MODULE_TYPE_STORAGE         (5)
+#define MODULE_TYPE_DEVFS           (5)
+#define MODULE_TYPE_STORAGE         (6)
 
-#define MODULE_TYPE_COUNT           (6)
+#define MODULE_TYPE_COUNT           (7)
 
 #define MODULE_FLAGS_LOADED         (1 << 0)
 
@@ -32,6 +34,7 @@ typedef struct{
 
 extern volatile vfs_handler_t* vfs_handler;
 extern volatile pci_handler_t* pci_handler;
+extern volatile hid_handler_t* hid_handler;
 extern volatile time_handler_t* time_handler;
 extern volatile devfs_handler_t* devfs_handler;
 extern volatile storage_handler_t* storage_handler;

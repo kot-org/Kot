@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <lib/assert.h>
+#include <global/modules.h>
 #include <global/hw_interrupt.h>
 
 #include <arch/include.h>

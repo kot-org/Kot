@@ -78,7 +78,7 @@ static void console_new_line(void){
     size_t line_size = (size_t)fb_pitch * (size_t)VGAFONT_HEIGHT;
     size_t line_pixel_count = (size_t)fb_width * (size_t)VGAFONT_HEIGHT; 
     void* fb_base_to_clear = (void*)((uintptr_t)fb_base + (uintptr_t)line_size * cy_index);
-    memset32(fb_base_to_clear, DEFAULT_BG_COLOR, line_pixel_count);
+    memset32(fb_base_to_clear, bg_color, line_pixel_count);
     void* fb_base_to_cut = (void*)((uintptr_t)fb_base + (uintptr_t)line_size * next_cy_index);
     memset32(fb_base_to_cut, DEFAULT_CUT_COLOR, line_pixel_count);
 
@@ -123,7 +123,7 @@ void console_init(void) {
         cx_max_index = fb_width / VGAFONT_WIDTH;
         cy_max_index = fb_height / VGAFONT_HEIGHT;
 
-        memset32(fb_base, DEFAULT_BG_COLOR, fb_size / sizeof(uint32_t));
+        memset32(fb_base, bg_color, fb_size / sizeof(uint32_t));
     }
 }
 

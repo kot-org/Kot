@@ -141,7 +141,8 @@
         "io.h": "c",
         "hw_interrupt.h": "c",
         "printf.h": "c",
-        "serial.h": "c"
+        "serial.h": "c",
+        "hid.h": "c"
     },
     "files.exclude": {
         "bundled": true,

@@ -8,6 +8,8 @@
 #include <sys/ioctl.h>
 
 int main(int argc, char* argv[]){
+    return 0;
+
     assert(argc > 0);
 
     int fb_fd = open("/dev/fb0", O_RDWR); 

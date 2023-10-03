@@ -10,6 +10,8 @@
 int init(int argc, char* args[]){
     log_printf("[module/"MODULE_NAME"] loading start\n");
 
+    assert(modules_request_dependency(MODULE_TYPE_HID) == 0);
+
     int error = ports_initalize();
     if(error) return error;
 
