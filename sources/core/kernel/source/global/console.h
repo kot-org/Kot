@@ -14,6 +14,7 @@ void console_set_fg_color(uint32_t fg);
 void console_init(void);
 
 void console_putchar(char c);
+void console_delchar(void);
 void console_print(const char* str);
 
 #endif // _GLOBAL_CONSOLE_H

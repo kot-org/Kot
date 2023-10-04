@@ -2,6 +2,47 @@
 #include <lib/log.h>
 #include <global/heap.h>
 #include <global/devfs.h>
+#include <global/console.h>
+
+#define KEY_BUFFER_SIZE 1024
+
+spinlock_t key_handler_lock = {};
+
+char key_buffer[KEY_BUFFER_SIZE];
+uint16_t key_buffer_index = 0;
+
+void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed){
+    if(is_pressed){
+        spinlock_acquire(&key_handler_lock);
+
+        if(translated_key >= 0x21 && translated_key <= 0x7E){
+            if(((key_buffer_index + 1)  % (KEY_BUFFER_SIZE - 1)) == 0){
+                log_warning("[module/"MODULE_NAME"] flushing key buffer\n");
+            }
+
+            key_buffer[key_buffer_index] = translated_key;
+            key_buffer_index = (key_buffer_index + 1)  % (KEY_BUFFER_SIZE - 1);
+            key_buffer[key_buffer_index] = '\0';
+
+            console_putchar(translated_key);
+        }else if(translated_key == '\n'){
+            console_putchar(translated_key);
+            
+            log_success("sending '%s' to the console\n", key_buffer);
+
+            key_buffer_index = 0;
+            key_buffer[key_buffer_index] = '\0';
+        }else if(translated_key == 0x8){
+            if(key_buffer_index != 0){
+                key_buffer_index--;
+                key_buffer[key_buffer_index] = '\0';
+                console_delchar();
+            }
+        }
+
+        spinlock_release(&key_handler_lock);
+    }
+}
 
 int console_interface_read(void* buffer, size_t size, size_t* bytes_read, struct kernel_file_t* file){
     *bytes_read = 0;
@@ -51,5 +92,7 @@ kernel_file_t* console_interface_open(struct fs_t* ctx, const char* path, int fl
 }
 
 void interface_init(void){
+    hid_handler->set_key_handler(&key_handler);
+
     devfs_add_dev("tty0", &console_interface_open);
 }

@@ -62,6 +62,15 @@ static void console_setchar(uint16_t cx_ppos, uint16_t cy_ppos, char c){
     }
 }
 
+static void console_clearchar(uint16_t cx_ppos, uint16_t cy_ppos){    
+    for(uint16_t y = 0; y < VGAFONT_HEIGHT; y++) {
+        for(uint16_t x = 0; x < VGAFONT_WIDTH; x++) {
+            console_putpixel(cx_ppos+x, cy_ppos, bg_color); 
+        }
+        cy_ppos++;
+    }
+}
+
 static void console_printline(uint16_t x, uint16_t line, char* str){
     for(size_t i = 0; i < strlen(str); i++) {
         console_setchar((x + i) * VGAFONT_WIDTH, line * VGAFONT_HEIGHT, str[i]);
@@ -158,6 +167,24 @@ void console_putchar(char c) {
 
     cx_index++;
 
+    spinlock_release(&boot_fb_lock);
+}
+
+void console_delchar(void){
+    spinlock_acquire(&boot_fb_lock);
+    if(cx_index != 0){
+        cx_index--;
+    }else{
+        cx_index = cx_max_index - 1;
+        if(cy_index == 0){
+            cy_index = cy_max_index - 1;
+        }else{
+            cy_index = (cy_index - 1) % cy_max_index;
+        }
+    }
+    uint16_t cx_ppos = cx_index * VGAFONT_WIDTH;
+    uint16_t cy_ppos = cy_index * VGAFONT_HEIGHT;
+    console_clearchar(cx_ppos, cy_ppos);
     spinlock_release(&boot_fb_lock);
 }
 

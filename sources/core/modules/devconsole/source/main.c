@@ -1,4 +1,5 @@
 #include <lib/log.h>
+#include <lib/lock.h>
 #include <lib/assert.h>
 #include <global/modules.h>
 
