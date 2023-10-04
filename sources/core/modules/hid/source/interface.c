@@ -37,16 +37,18 @@ int key_update_state(uint64_t scancode, bool is_pressed){
 
     spinlock_acquire(&scancode_translation_table_lock);
 
+    uint64_t translation_index = scancode;
+
     if(is_caps_lock ^ is_shift_pressed){
-        scancode = scancode + translated_key_shift_start;
+        translation_index = translation_index + translated_key_shift_start;
     }
     
     if(is_alt_gr_pressed){
-        scancode = scancode + translated_key_alt_gr_start;
+        translation_index = translation_index + translated_key_alt_gr_start;
     }
 
-    if(scancode < scancode_table_size){
-        translated_key = scancode_table_buffer[scancode];
+    if(translation_index < scancode_table_size){
+        translated_key = scancode_table_buffer[translation_index];
     }
 
     spinlock_release(&scancode_translation_table_lock);
