@@ -123,9 +123,11 @@ void scheduler_handler(cpu_context_t* ctx){
         thread_t* ending_thread = ARCH_CONTEXT_CURRENT_THREAD(ctx);
 
         if(ending_thread != NULL){
-            if(ending_thread->is_exiting){
-                scheduler_free_thread(ending_thread);
-                ARCH_CONTEXT_CURRENT_THREAD_FIELD(ctx) = NULL;
+            if(ending_thread->is_pausing){
+                if(ending_thread->is_exiting){
+                    scheduler_free_thread(ending_thread);
+                    ARCH_CONTEXT_CURRENT_THREAD_FIELD(ctx) = NULL;
+                }
                 ctx->rip = (uint64_t)&scheduler_iddle;
             }else{
                 context_save(ending_thread->ctx, ctx);
@@ -215,6 +217,35 @@ int scheduler_launch_thread(thread_t* thread, arguments_t* args){
     return 0;
 }
 
+int scheduler_pause_thread(thread_t* thread, cpu_context_t* ctx){
+    spinlock_acquire(&scheduler_spinlock);
+
+    if(thread->is_in_queue){
+        scheduler_dequeue(thread);
+
+        spinlock_release(&scheduler_spinlock);
+    }else{
+        thread->is_pausing = true;
+
+        spinlock_release(&scheduler_spinlock);
+
+        if(ctx == NULL){
+            scheduler_generate_task_switching();
+        }else if(ARCH_CONTEXT_CURRENT_THREAD(ctx) == thread){
+            scheduler_generate_task_switching();
+        }
+    }
+}
+
+int scheduler_unpause_thread(thread_t* thread){
+    if(thread->is_pausing){
+        scheduler_enqueue(thread);
+        return 0;
+    }else{
+        return EINVAL;
+    }
+}
+
 int scheduler_free_thread(thread_t* thread){
     assert(!mm_free_region(thread->process->memory_handler, thread->stack_base, thread->stack_size));
 
@@ -228,22 +259,29 @@ int scheduler_free_thread(thread_t* thread){
 int scheduler_exit_thread(thread_t* thread, cpu_context_t* ctx){
     vector_remove(thread->process->threads, thread->index);
 
-    spinlock_acquire(&scheduler_tid_iteration_spinlock);
+    spinlock_acquire(&scheduler_spinlock);
 
     if(thread->is_in_queue){
         scheduler_dequeue(thread);
         scheduler_free_thread(thread);
 
-        spinlock_release(&scheduler_tid_iteration_spinlock);
+        spinlock_release(&scheduler_spinlock);
     }else{
+        thread->is_pausing = true;
         thread->is_exiting = true;
 
-        spinlock_release(&scheduler_tid_iteration_spinlock);
+        spinlock_release(&scheduler_spinlock);
 
-        if(ARCH_CONTEXT_CURRENT_THREAD(ctx) == thread){
+        if(ctx == NULL){
+            scheduler_generate_task_switching();
+        }else if(ARCH_CONTEXT_CURRENT_THREAD(ctx) == thread){
             scheduler_generate_task_switching();
         }
     }
 
     return 0;
+}
+
+thread_t* scheduler_get_current_thread(void){
+    return context_get_thread();
 }

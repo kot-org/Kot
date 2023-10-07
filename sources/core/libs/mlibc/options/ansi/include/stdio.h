@@ -215,7 +215,7 @@ int fputc_unlocked(int, FILE *);
 size_t fread_unlocked(void *__restrict, size_t, size_t, FILE *__restrict);
 size_t fwrite_unlocked(const void *__restrict, size_t, size_t, FILE *__restrict);
 
-char *fgets_unlocked(char *, int, FILE *);
+char *fgets_unlocked(char *, size_t, FILE *);
 int fputs_unlocked(const char *, FILE *);
 
 #ifdef __cplusplus

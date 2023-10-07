@@ -46,6 +46,7 @@ typedef struct thread_t{
 
     thread_arch_state_t* arch_state;
 
+    bool is_pausing;
     bool is_exiting;
 
     uint64_t index;
@@ -86,8 +87,11 @@ int scheduler_exit_process(process_t* process, cpu_context_t* ctx);
 thread_t* scheduler_create_thread(process_t* process, void* entry_point, void* stack, void* stack_base, size_t stack_size);
 int scheduler_arch_prctl_thread(thread_t* thread, int code, void* address); /* note the following function should be define in arch folder */
 int scheduler_launch_thread(thread_t* thread, arguments_t* args);
+int scheduler_pause_thread(thread_t* thread, cpu_context_t* ctx);
+int scheduler_unpause_thread(thread_t* thread);
 int scheduler_free_thread(thread_t* thread);
 int scheduler_exit_thread(thread_t* thread, cpu_context_t* ctx);
+thread_t* scheduler_get_current_thread(void);
 
 
 

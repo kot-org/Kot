@@ -60,3 +60,9 @@ void context_restore(context_t* ctx, cpu_context_t* cpu_ctx){
     set_cpu_fs_base(ctx->fs_base);
     memcpy(cpu_ctx, &ctx->cpu_ctx, sizeof(cpu_context_t));
 }
+
+void* context_get_thread(void){
+    context_info_t* ctx_info = NULL;
+    asm("mov %%gs:0x8, %0":"=r"(ctx_info));
+    return ctx_info->thread;
+}

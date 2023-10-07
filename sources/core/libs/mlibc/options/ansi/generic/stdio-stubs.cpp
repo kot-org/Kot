@@ -1218,9 +1218,9 @@ size_t fwrite_unlocked(const void *buffer, size_t size, size_t count, FILE *file
 	}
 }
 
-char *fgets_unlocked(char *__restrict buffer, int max_size, FILE *stream) {
+char *fgets_unlocked(char *__restrict buffer, size_t max_size, FILE *stream) {
 	__ensure(max_size > 0);
-	for(int i = 0; ; i++) {
+	for(size_t i = 0; ; i++) {
 		if(i == max_size - 1) {
 			buffer[i] = 0;
 			return buffer;

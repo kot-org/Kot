@@ -3,19 +3,23 @@
 #include <global/heap.h>
 #include <global/devfs.h>
 #include <global/console.h>
+#include <global/scheduler.h>
 
 #define KEY_BUFFER_SIZE 1024
 
 spinlock_t key_handler_lock = {};
 
-char key_buffer[KEY_BUFFER_SIZE];
+char key_buffer[KEY_BUFFER_SIZE + 1];
 uint16_t key_buffer_index = 0;
+
+thread_t* waiting_thread_for_input = NULL;
+spinlock_t lock_waiting_thread_for_input = {};
 
 void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed){
     if(is_pressed){
         spinlock_acquire(&key_handler_lock);
 
-        if(translated_key >= 0x21 && translated_key <= 0x7E){
+        if((translated_key >= 0x21 && translated_key <= 0x7E) || translated_key == ' '){
             if(((key_buffer_index + 1)  % (KEY_BUFFER_SIZE - 1)) == 0){
                 log_warning("[module/"MODULE_NAME"] flushing key buffer\n");
             }
@@ -30,8 +34,24 @@ void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed){
             
             log_success("sending '%s' to the console\n", key_buffer);
 
-            key_buffer_index = 0;
-            key_buffer[key_buffer_index] = '\0';
+            if(!spinlock_test_and_acq(&lock_waiting_thread_for_input)){
+                log_success("1\n");
+                scheduler_unpause_thread(waiting_thread_for_input);
+                log_success("2\n");
+                /* wait the main thread before overwritting the key buffer*/
+                log_success("3\n");
+                spinlock_acquire(&lock_waiting_thread_for_input);
+                log_success("4\n");
+                key_buffer_index = 0;
+                log_success("5\n");
+                key_buffer[key_buffer_index] = '\0';
+                spinlock_release(&lock_waiting_thread_for_input);
+            }else{
+                log_warning("No one are watching what you ae doing ! \n");
+                spinlock_release(&lock_waiting_thread_for_input);
+            }
+
+
         }else if(translated_key == 0x8){
             if(key_buffer_index != 0){
                 key_buffer_index--;
@@ -45,8 +65,18 @@ void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed){
 }
 
 int console_interface_read(void* buffer, size_t size, size_t* bytes_read, struct kernel_file_t* file){
-    *bytes_read = 0;
-    return ENOSYS;
+    if(spinlock_test_and_acq(&lock_waiting_thread_for_input)){
+        log_success("trying to read input\n");
+        waiting_thread_for_input = scheduler_get_current_thread();
+        log_success("0\n");
+        scheduler_pause_thread(waiting_thread_for_input, NULL);
+        log_success("-1\n");
+        spinlock_release(&lock_waiting_thread_for_input);
+        return 0;
+    }else{
+        *bytes_read = 0;
+        return EIO;
+    }
 }
 
 int console_interface_write(void* buffer, size_t size, size_t* bytes_write, kernel_file_t* file){

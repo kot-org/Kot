@@ -4,7 +4,9 @@
 #include <impl/arch.h>
 
 typedef struct{
+    /* mandatory fields for every arch */
     cpu_context_t cpu_ctx;
+    /* optional fields */
     void* simd_ctx;
     uint64_t fs_base;
 }context_t;

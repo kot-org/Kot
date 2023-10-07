@@ -27,4 +27,6 @@ void context_save(context_t* ctx, cpu_context_t* cpu_ctx);
 
 void context_restore(context_t* ctx, cpu_context_t* cpu_ctx);
 
+void* context_get_thread(void);
+
 #endif // _IMPL_CONTEXT_H

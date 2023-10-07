@@ -8,6 +8,14 @@
 #include <sys/ioctl.h>
 
 int main(int argc, char* argv[]){
+    char str[100];
+
+    printf("Enter a value: %d\n", SIZE_MAX);
+    gets(str);
+
+    // printf("\nYou entered: ");
+    // puts(str);
+
     return 0;
 
     assert(argc > 0);
