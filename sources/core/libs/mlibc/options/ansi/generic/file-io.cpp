@@ -555,8 +555,8 @@ int fd_file::parse_modestring(const char *mode) {
 } // namespace mlibc
 
 namespace {
-	mlibc::fd_file stdin_file{0};
-	mlibc::fd_file stdout_file{1};
+	mlibc::fd_file stdin_file{0, nullptr, true};
+	mlibc::fd_file stdout_file{1, nullptr, true};
 	mlibc::fd_file stderr_file{2, nullptr, true};
 
 	struct stdio_guard {

@@ -75,7 +75,7 @@ extern process_t* proc_kernel;
 
 void scheduler_init(void);
 
-void scheduler_handler(cpu_context_t* ctx);
+void scheduler_handler(cpu_context_t* ctx, uint8_t cpu_id);
 
 void scheduler_generate_task_switching(void); /* note the following function should be define in arch folder */
 

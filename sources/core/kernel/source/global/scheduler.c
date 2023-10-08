@@ -118,7 +118,7 @@ void scheduler_init(void){
     proc_kernel = scheduler_create_process(PROCESS_TYPE_MODULES);
 }
 
-void scheduler_handler(cpu_context_t* ctx){
+void scheduler_handler(cpu_context_t* ctx, uint8_t cpu_id){
     if(spinlock_test_and_acq(&scheduler_spinlock)){
         thread_t* ending_thread = ARCH_CONTEXT_CURRENT_THREAD(ctx);
 
@@ -126,9 +126,11 @@ void scheduler_handler(cpu_context_t* ctx){
             if(ending_thread->is_pausing){
                 if(ending_thread->is_exiting){
                     scheduler_free_thread(ending_thread);
-                    ARCH_CONTEXT_CURRENT_THREAD_FIELD(ctx) = NULL;
+                }else{
+                    context_save(ending_thread->ctx, ctx);
                 }
-                ctx->rip = (uint64_t)&scheduler_iddle;
+
+                context_iddle(ctx, cpu_id);
             }else{
                 context_save(ending_thread->ctx, ctx);
                 scheduler_enqueue_wl(ending_thread);
@@ -220,6 +222,11 @@ int scheduler_launch_thread(thread_t* thread, arguments_t* args){
 int scheduler_pause_thread(thread_t* thread, cpu_context_t* ctx){
     spinlock_acquire(&scheduler_spinlock);
 
+    if(thread->is_pausing || thread->is_exiting){
+        spinlock_release(&scheduler_spinlock);
+        return EINVAL;
+    }
+
     if(thread->is_in_queue){
         scheduler_dequeue(thread);
 
@@ -238,7 +245,13 @@ int scheduler_pause_thread(thread_t* thread, cpu_context_t* ctx){
 }
 
 int scheduler_unpause_thread(thread_t* thread){
+    spinlock_acquire(&scheduler_spinlock);
+
     if(thread->is_pausing){
+        thread->is_pausing = false;
+
+        spinlock_release(&scheduler_spinlock);
+
         scheduler_enqueue(thread);
         return 0;
     }else{

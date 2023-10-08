@@ -228,6 +228,7 @@ void smp_init(void){
     data_trampoline.status = 0xff;
     vmm_unmap(kernel_space, (memory_range_t){ (void*)TRAMPOLINE_ADDRESS, PAGE_SIZE });
 
+    context_init(processor_count);
 }  
 
 void* get_lapic_address(void){

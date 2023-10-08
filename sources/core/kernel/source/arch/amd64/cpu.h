@@ -140,6 +140,8 @@
 #define RFLAGS_VIRTUAL_INTERRUPT_PENDING    (1 << 20)
 #define RFLAGS_ID                           (1 << 21)
 
+#define MAX_CORE_COUNT                      256
+
 
 void cpu_init(void);
 void reload_gs_fs(void);

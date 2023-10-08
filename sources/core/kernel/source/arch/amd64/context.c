@@ -9,6 +9,23 @@
 #include ARCH_INCLUDE(simd.h)
 #include ARCH_INCLUDE(context.h)
 
+context_info_t* iddle_ctx_info[MAX_CORE_COUNT];
+
+static void context_iddle_handler(void){
+    while(true){
+        asm("pause");
+    }
+}
+
+void context_init(uint8_t cpu_count){
+    for(uint8_t i = 0; i < cpu_count; i++){
+        iddle_ctx_info[i] = calloc(1, sizeof(context_info_t));
+        iddle_ctx_info[i]->cs = GDT_KERNEL_CODE * sizeof(gdt_entry_t);
+        iddle_ctx_info[i]->ss = GDT_KERNEL_DATA * sizeof(gdt_entry_t);
+        iddle_ctx_info[i]->kernel_stack = malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+    }
+}
+
 context_t* context_create(void){
     context_t* ctx = calloc(1, sizeof(context_t));
     ctx->simd_ctx = simd_create_context();
@@ -59,6 +76,14 @@ void context_restore(context_t* ctx, cpu_context_t* cpu_ctx){
     simd_restore_context(ctx->simd_ctx);
     set_cpu_fs_base(ctx->fs_base);
     memcpy(cpu_ctx, &ctx->cpu_ctx, sizeof(cpu_context_t));
+}
+
+void context_iddle(cpu_context_t* cpu_ctx, uint8_t cpu_id){
+    cpu_ctx->ctx_info = iddle_ctx_info[cpu_id];
+    cpu_ctx->cr3 = (uint64_t)vmm_get_kernel_space(); 
+    cpu_ctx->rip = (uint64_t)&context_iddle_handler; 
+    cpu_ctx->rsp = (uint64_t)iddle_ctx_info[cpu_id]->kernel_stack; 
+    cpu_ctx->rflags = RFLAGS_INTERRUPT_ENABLE | RFLAGS_ONE;
 }
 
 void* context_get_thread(void){

@@ -108,7 +108,7 @@ static void interrupt_error_handler(cpu_context_t* ctx, uint8_t cpu_id) {
 
 void interrupt_handler(cpu_context_t* ctx, uint8_t cpu_id) {
     if(ctx->interrupt_number == INT_SCHEDULE_APIC_TIMER){
-        scheduler_handler(ctx);
+        scheduler_handler(ctx, cpu_id);
     }else if(ctx->interrupt_number < 32) {
         interrupt_error_handler(ctx, cpu_id);
     }else{
