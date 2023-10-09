@@ -1,7 +1,7 @@
 #include <impl/panic.h>
 #include <global/exec.h>
 
-static const char* app_init_path = "/sda/system/init/init.elf";
+static const char* app_init_path = "/sda/bin/sh";
 
 void apps_init(void){
     char* args[1];
