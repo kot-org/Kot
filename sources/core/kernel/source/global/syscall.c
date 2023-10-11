@@ -356,8 +356,27 @@ static void syscall_handler_rename_at(cpu_context_t* ctx){
 }
 
 static void syscall_handler_path_stat(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    char* path = (char*)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    size_t path_len = (size_t)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
+    struct stat* stat_buf = (struct stat*)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+
+    if(path_len >= PATH_MAX){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+
+    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){stat_buf, sizeof(struct stat)})){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+
+    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){path, path_len + 1})){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+
+    path[path_len] = '\0';
+
+    // TODO
+
+    SYSCALL_RETURN(ctx, ENOSYS);    
 }
 
 static void syscall_handler_fd_stat(cpu_context_t* ctx){
@@ -366,6 +385,11 @@ static void syscall_handler_fd_stat(cpu_context_t* ctx){
 }
 
 static void syscall_handler_fcntl(cpu_context_t* ctx){
+    log_warning("%s : syscall not implemented\n", __FUNCTION__);
+    SYSCALL_RETURN(ctx, -ENOSYS);    
+}
+
+static void syscall_handler_getcwd(cpu_context_t* ctx){
     log_warning("%s : syscall not implemented\n", __FUNCTION__);
     SYSCALL_RETURN(ctx, -ENOSYS);    
 }
@@ -404,7 +428,8 @@ static syscall_handler_t handlers[SYS_COUNT] = {
     syscall_handler_rename_at,
     syscall_handler_path_stat,
     syscall_handler_fd_stat,
-    syscall_handler_fcntl
+    syscall_handler_fcntl,
+    syscall_handler_getcwd
 };
 
 void syscall_handler(cpu_context_t* ctx){

@@ -193,4 +193,14 @@ namespace mlibc{
         }
         return 0;
     }
+
+    int sys_getcwd(char* buffer, size_t size){
+        auto result = do_syscall(SYS_GETCWD, buffer, size);
+
+        if(result < 0){
+            return -result;
+        }
+
+        return 0;
+    }
 }
