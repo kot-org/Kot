@@ -179,8 +179,10 @@ static void* load_elf_exec_load_stack(void* at_entry, void* at_phdr, void* at_ph
 
     int envc = 0;
 
-    while(envp[envc] != NULL){
-        envc++;
+    if(envp != NULL){
+        while(envp[envc] != NULL){
+            envc++;
+        }
     }
     
     uintptr_t arg_pointers[argc];
@@ -285,9 +287,7 @@ static int load_elf_exec_segments(process_t* process_ctx, struct elf64_ehdr* hea
     return 0;
 }
 
-int load_elf_exec(process_t* process_ctx, int argc, char* args[], char* envp[]){
-    char* file_path = args[0];
-
+int load_elf_exec(process_t* process_ctx, char* file_path, int argc, char* args[], char* envp[]){
     int err = 0;
     kernel_file_t* file = f_open(process_ctx->vfs_ctx, file_path, 0, 0, &err);
 
@@ -387,6 +387,8 @@ int load_elf_exec(process_t* process_ctx, int argc, char* args[], char* envp[]){
     }else{
         entry_point = (void*)header.e_entry;
     }
+    
+    vmm_space_swap(vmm_space_to_restore);
 
     void* stack_base;
     size_t size_allocate;
@@ -396,7 +398,6 @@ int load_elf_exec(process_t* process_ctx, int argc, char* args[], char* envp[]){
     void* stack_end = (void*)((uintptr_t)stack_base + (uintptr_t)PROCESS_STACK_SIZE);
     void* stack = load_elf_exec_load_stack((void*)header.e_entry, exec_segments_info.at_phdr, (void*)(uintptr_t)header.e_phentsize, (void*)(uintptr_t)header.e_phnum, argc, args, envp, stack_end);
 
-    vmm_space_swap(vmm_space_to_restore);
 
     spinlock_acquire(&process_ctx->data_lock);
 

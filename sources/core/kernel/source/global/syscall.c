@@ -9,6 +9,7 @@
 #include <global/file.h>
 #include <global/syscall.h>
 #include <global/resources.h>
+#include <global/elf_loader.h>
 
 #define SYSCALL_RETURN(ctx, return_value) ARCH_CONTEXT_RETURN(ctx) = (arch_context_arg_t)return_value; return;
 
@@ -148,8 +149,30 @@ static void syscall_handler_waitpid(cpu_context_t* ctx){
 }
 
 static void syscall_handler_execve(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    char* path = (char*)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    char** args = (char**)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
+    char** envp = (char**)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+
+    // TODO  : check path, args, envp
+
+    int argc = 0;
+    
+    while(args[argc] != NULL){
+        argc++;
+    }
+
+    process_t* new_process = scheduler_create_process(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->flags);
+
+    int error = load_elf_exec(new_process, path, argc, args, envp);
+
+    if(error){
+        scheduler_free_process(new_process);
+        SYSCALL_RETURN(ctx, -error);
+    }
+
+    assert(!scheduler_launch_process(new_process));
+
+    scheduler_exit_process(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process, ctx);
 }
 
 static void syscall_handler_getpid(cpu_context_t* ctx){

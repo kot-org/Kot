@@ -6,6 +6,6 @@
 
 #include <global/scheduler.h>
 
-int create_exec(process_t* parent, int argc, char* args[], char* envp[]);
+int create_exec(process_t* parent, char* path, int argc, char* args[], char* envp[]);
 
 #endif // _GLOBAL_EXEC_H

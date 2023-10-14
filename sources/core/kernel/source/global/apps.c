@@ -1,7 +1,7 @@
 #include <impl/panic.h>
 #include <global/exec.h>
 
-static const char* app_init_path = "/sda/bin/sh";
+static const char* app_init_path = "/sda/system/init/init.elf";
 
 void apps_init(void){
     char* args[1];
@@ -10,7 +10,7 @@ void apps_init(void){
     char* envp[1];
     envp[0] = NULL;
 
-    int error = create_exec(proc_kernel, 1, args, envp);
+    int error = create_exec(proc_kernel, args[0], 1, args, envp);
 
     if(error){
         panic("Initialisation app: %s can't be load correctly !! \nError code : %d", app_init_path, error);

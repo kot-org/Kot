@@ -1,6 +1,5 @@
 #include <errno.h>
 #include <lib/assert.h>
-#include <global/exec.h>
 #include <global/heap.h>
 #include <global/scheduler.h>
 #include <global/elf_loader.h>
@@ -23,13 +22,13 @@ static inline int create_std_file_descriptor(process_t* process_ctx){
     return 0;
 }
 
-int create_exec(process_t* parent, int argc, char* args[], char* envp[]){
+int create_exec(process_t* parent, char* path, int argc, char* args[], char* envp[]){
     process_t* process_ctx = scheduler_create_process(PROCESS_SET_FLAG_TYPE(PROCESS_TYPE_EXEC));
 
     process_ctx->vfs_ctx = vfs_copy_ctx(parent->vfs_ctx);
 
 
-    int err = load_elf_exec(process_ctx, argc, args, envp);
+    int err = load_elf_exec(process_ctx, path, argc, args, envp);
 
     if(err){
         vfs_free_ctx(process_ctx->vfs_ctx);

@@ -148,6 +148,8 @@ void scheduler_handler(cpu_context_t* ctx, uint8_t cpu_id){
 process_t* scheduler_create_process(process_flags_t flags){
     process_t* process = (process_t*)calloc(1, sizeof(process_t));
 
+    process->flags = flags;
+
     process->ctx_flags = ((PROCESS_GET_FLAG_TYPE(flags) == PROCESS_TYPE_EXEC) ? CONTEXT_FLAG_USER : 0); 
 
     process->memory_handler = mm_create_handler(vmm_create_space(), (void*)VMM_USERSPACE_BOTTOM_ADDRESS, (size_t)((uintptr_t)VMM_USERSPACE_TOP_ADDRESS - (uintptr_t)VMM_USERSPACE_BOTTOM_ADDRESS));

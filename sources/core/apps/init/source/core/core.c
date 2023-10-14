@@ -9,26 +9,14 @@
 
 int main(int argc, char* argv[]){
     while(1){
-        char op;
-        int first, second;
-        printf("Enter 'a (+, -, *, /) b': ");
-        scanf("%d %c %d", &first, &op, &second);
+        char path[2048];
+        printf("Launcher Enter the app: ");
+        scanf("%s", &path);
 
-        switch(op){
-            case '+':
-                printf("%d + %d = %d\n", first, second, first + second);
-                break;
-            case '-':
-                printf("%d - %d = %d\n", first, second, first - second);
-                break;
-            case '*':
-                printf("%d * %d = %d\n", first, second, first * second);
-                break;
-            case '/':
-                printf("%d / %d = %d\n", first, second, first / second);
-                break;
-            default:
-                printf("Error! operator is not correct : '%c'\n", op);
+        char* args[] = {path, NULL};
+
+        if(execv(path, args)){
+            printf("\nError loading : '%s'\n", path);
         }
     }
 
