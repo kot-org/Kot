@@ -31,6 +31,6 @@ int add_descriptor(descriptors_ctx_t* ctx, descriptor_t* descriptor);
 descriptor_t* get_descriptor(descriptors_ctx_t* ctx, int index);
 int remove_descriptor(descriptors_ctx_t* ctx, int index);
 int move_descriptor(descriptors_ctx_t* ctx, int old_index, int new_index);
-
+int copy_process_descriptors(descriptors_ctx_t* dst, descriptors_ctx_t* src);
 
 #endif // _GLOBAL_RESOURCES_H

@@ -163,12 +163,17 @@ static void syscall_handler_execve(cpu_context_t* ctx){
 
     process_t* new_process = scheduler_create_process(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->flags);
 
+    new_process->vfs_ctx = vfs_copy_ctx(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx);
+
     int error = load_elf_exec(new_process, path, argc, args, envp);
 
     if(error){
         scheduler_free_process(new_process);
         SYSCALL_RETURN(ctx, -error);
     }
+
+    // TODO : make sure we don't loose descriptors when exiting the process
+    copy_process_descriptors(&new_process->descriptors_ctx, &ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx);
 
     assert(!scheduler_launch_process(new_process));
 

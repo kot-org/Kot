@@ -396,7 +396,16 @@ int load_elf_exec(process_t* process_ctx, char* file_path, int argc, char* args[
     assert(!mm_allocate_memory_block(process_ctx->memory_handler, stack_base, PROCESS_STACK_SIZE, PROT_READ | PROT_WRITE, &size_allocate));
 
     void* stack_end = (void*)((uintptr_t)stack_base + (uintptr_t)PROCESS_STACK_SIZE);
-    void* stack = load_elf_exec_load_stack((void*)header.e_entry, exec_segments_info.at_phdr, (void*)(uintptr_t)header.e_phentsize, (void*)(uintptr_t)header.e_phnum, argc, args, envp, stack_end);
+    
+    void* kernel_mapped_stack_base = vmm_get_free_contiguous_take_and_release(PROCESS_STACK_SIZE);
+    void* kernel_mapped_stack_end = (void*)((uintptr_t)kernel_mapped_stack_base + (uintptr_t)PROCESS_STACK_SIZE);
+    mm_share_region(process_ctx->memory_handler, vmm_get_current_space(), kernel_mapped_stack_base, stack_base, PROCESS_STACK_SIZE, PROT_READ | PROT_WRITE);
+
+    void* kernel_mapped_stack = load_elf_exec_load_stack((void*)header.e_entry, exec_segments_info.at_phdr, (void*)(uintptr_t)header.e_phentsize, (void*)(uintptr_t)header.e_phnum, argc, args, envp, kernel_mapped_stack_end);
+    
+    vmm_release_free_contiguous_take_and_release();
+
+    void* stack = (void*)((uintptr_t)kernel_mapped_stack - (uintptr_t)kernel_mapped_stack_base + (uintptr_t)stack_base);
 
 
     spinlock_acquire(&process_ctx->data_lock);

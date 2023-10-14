@@ -317,6 +317,16 @@ int mm_map_physical(memory_handler_t* handler, void* base_physical, void* base, 
     return vmm_map(handler->vmm_space, (memory_range_t){base, size}, (memory_range_t){base_physical, size}, mm_getmemory_flags_from_prot(prot));
 }
 
+int mm_share_region(memory_handler_t* handler, vmm_space_t space, void* base_dst, void* base_src, size_t size, int prot){
+    size_t page_count = DIV_ROUNDUP(size, PAGE_SIZE);
+
+    for(int i = 0; i < page_count; i++){
+        vmm_map(space, (memory_range_t){(void*)((uintptr_t)base_dst + i * PAGE_SIZE), PAGE_SIZE}, (memory_range_t){vmm_get_physical_address(handler->vmm_space, (void*)((uintptr_t)base_src + i * PAGE_SIZE)), PAGE_SIZE}, mm_getmemory_flags_from_prot(prot));
+    }
+
+    return 0;
+}
+
 int mm_unmap(memory_handler_t* handler, void* base, size_t size){
     if((uintptr_t)base < (uintptr_t)handler->base){
         return EINVAL;

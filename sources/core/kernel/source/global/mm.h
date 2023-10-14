@@ -42,6 +42,8 @@ int mm_allocate_memory_block(memory_handler_t* handler, void* base, size_t size,
 int mm_allocate_memory_contigous(memory_handler_t* handler, void* base, size_t size, int prot, size_t* size_allocate);
 int mm_map_physical(memory_handler_t* handler, void* base_physical, void* base, size_t size, int prot);
 
+int mm_share_region(memory_handler_t* handler, vmm_space_t space, void* base_dst, void* base_src, size_t size, int prot);
+
 int mm_unmap(memory_handler_t* handler, void* base, size_t size);
 
 int mm_protect(memory_handler_t* handler, void* base, size_t size, int prot);

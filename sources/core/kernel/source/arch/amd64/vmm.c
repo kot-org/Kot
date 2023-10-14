@@ -296,6 +296,27 @@ void* vmm_get_free_contiguous(size_t size){
     return return_value;
 }
 
+void* vmm_get_free_contiguous_take_and_release(size_t size){
+    spinlock_acquire(&get_free_contiguous_lock);
+
+    if(size % PAGE_SIZE){
+        size -= size % PAGE_SIZE;
+        size += PAGE_SIZE;
+    }
+
+    void* return_value = vmm_free_contiguous_address_iteration;
+
+    for(size_t i = 0; i < size; i += PAGE_SIZE){
+        vmm_map_page(kernel_space, (void*)((uintptr_t)return_value + (uintptr_t)i), pmm_allocate_page(), MEMORY_FLAG_READABLE | MEMORY_FLAG_WRITABLE | MEMORY_FLAG_EXECUTABLE);
+    }
+
+    return return_value;
+}
+
+void vmm_release_free_contiguous_take_and_release(void){
+    spinlock_release(&get_free_contiguous_lock);
+}
+
 int vmm_check_memory(vmm_space_t space, memory_range_t virtual_range){
     if(virtual_range.address == NULL){
         return EINVAL;

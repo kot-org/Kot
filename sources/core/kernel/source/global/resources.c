@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <lib/assert.h>
 #include <global/resources.h>
 
 static inline int check_index(int index){
@@ -125,4 +126,14 @@ int move_descriptor(descriptors_ctx_t* ctx, int old_index, int new_index){
     spinlock_release(&ctx->lock);   
 
     return 0; 
+}
+
+int copy_process_descriptors(descriptors_ctx_t* dst, descriptors_ctx_t* src){
+    assert(!(dst->index_search_begin));
+
+    for(int i = 0; i < MAX_DESCRIPTORS; i++){
+        dst->descriptors[i] = src->descriptors[i];
+    }
+
+    return 0;
 }
