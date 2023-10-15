@@ -1,19 +1,22 @@
 #include <global/console.h>
 
-#include "vgafont.h"
 #include "ansi.h"
 
 #include <kernel.h>
 #include <lib/log.h>
 #include <lib/lock.h>
+#include <lib/string.h>
 #include <lib/printf.h>
 #include <lib/bitmap.h>
 #include <lib/memory.h>
 #include <lib/assert.h>
 #include <impl/serial.h>
-#include <lib/string.h>
+#include <impl/initrd.h>
 
 #define CONSOLE_VERSION "1.0"
+
+#define FONT_WIDTH 8
+#define FONT_HEIGHT 16
 
 static bool use_boot_fb = false;
 static spinlock_t boot_fb_lock = {};
@@ -37,6 +40,9 @@ static uint16_t cy_index;
 static uint16_t cx_max_index;
 static uint16_t cy_max_index;
 
+static uint8_t* font_buffer;
+static size_t font_size;
+
 void console_set_bg_color(uint32_t bg) {
     bg_color = bg;
 }
@@ -49,12 +55,12 @@ static void console_putpixel(uint16_t x, uint16_t y, uint32_t color) {
 }
 
 static void console_setchar(uint16_t cx_ppos, uint16_t cy_ppos, char c){
-    uint8_t* glyph = &vgafont[c*((VGAFONT_WIDTH*VGAFONT_HEIGHT)/8)];
+    uint8_t* glyph = &font_buffer[c*((FONT_WIDTH*FONT_HEIGHT)/8)];
     
-    for(uint16_t y = 0; y < VGAFONT_HEIGHT; y++) {
-        for(uint16_t x = 0; x < VGAFONT_WIDTH; x++) {
+    for(uint16_t y = 0; y < FONT_HEIGHT; y++) {
+        for(uint16_t x = 0; x < FONT_WIDTH; x++) {
             
-            if(BIT_GET(glyph[y], VGAFONT_WIDTH-x) == BITSET) {
+            if(BIT_GET(glyph[y], FONT_WIDTH-x) == BITSET) {
                 console_putpixel(cx_ppos+x, cy_ppos, fg_color); 
             }
         }
@@ -63,8 +69,8 @@ static void console_setchar(uint16_t cx_ppos, uint16_t cy_ppos, char c){
 }
 
 static void console_clearchar(uint16_t cx_ppos, uint16_t cy_ppos){    
-    for(uint16_t y = 0; y < VGAFONT_HEIGHT; y++) {
-        for(uint16_t x = 0; x < VGAFONT_WIDTH; x++) {
+    for(uint16_t y = 0; y < FONT_HEIGHT; y++) {
+        for(uint16_t x = 0; x < FONT_WIDTH; x++) {
             console_putpixel(cx_ppos+x, cy_ppos, bg_color); 
         }
         cy_ppos++;
@@ -73,7 +79,7 @@ static void console_clearchar(uint16_t cx_ppos, uint16_t cy_ppos){
 
 static void console_printline(uint16_t x, uint16_t line, char* str){
     for(size_t i = 0; i < strlen(str); i++) {
-        console_setchar((x + i) * VGAFONT_WIDTH, line * VGAFONT_HEIGHT, str[i]);
+        console_setchar((x + i) * FONT_WIDTH, line * FONT_HEIGHT, str[i]);
     }
 }
 
@@ -84,8 +90,8 @@ static void console_new_line(void){
 
     line_count++;
 
-    size_t line_size = (size_t)fb_pitch * (size_t)VGAFONT_HEIGHT;
-    size_t line_pixel_count = (size_t)fb_width * (size_t)VGAFONT_HEIGHT; 
+    size_t line_size = (size_t)fb_pitch * (size_t)FONT_HEIGHT;
+    size_t line_pixel_count = (size_t)fb_width * (size_t)FONT_HEIGHT; 
     void* fb_base_to_clear = (void*)((uintptr_t)fb_base + (uintptr_t)line_size * cy_index);
     memset32(fb_base_to_clear, bg_color, line_pixel_count);
     void* fb_base_to_cut = (void*)((uintptr_t)fb_base + (uintptr_t)line_size * next_cy_index);
@@ -105,6 +111,10 @@ static int boot_fb_callback(void){
 }
 
 void console_init(void) {
+    void* font_file = initrd_get_file("/system/console/fonts/vga.bin");
+    font_size = initrd_get_file_size(font_file);
+    font_buffer = initrd_get_file_base(font_file);
+
     console_set_bg_color(DEFAULT_BG_COLOR);
     console_set_fg_color(DEFAULT_FG_COLOR);
 
@@ -129,8 +139,8 @@ void console_init(void) {
         cx_index = 0;
         cy_index = 0;
 
-        cx_max_index = fb_width / VGAFONT_WIDTH;
-        cy_max_index = fb_height / VGAFONT_HEIGHT;
+        cx_max_index = fb_width / FONT_WIDTH;
+        cy_max_index = fb_height / FONT_HEIGHT;
 
         memset32(fb_base, bg_color, fb_size / sizeof(uint32_t));
     }
@@ -145,12 +155,12 @@ void console_putchar(char c) {
     }
 
     // char pixel-position
-    uint16_t cx_ppos = cx_index * VGAFONT_WIDTH;
-    if((cx_ppos + VGAFONT_WIDTH) > fb_width) {
+    uint16_t cx_ppos = cx_index * FONT_WIDTH;
+    if((cx_ppos + FONT_WIDTH) > fb_width) {
         console_new_line();
     }
 
-    uint16_t cy_ppos = cy_index * VGAFONT_HEIGHT;
+    uint16_t cy_ppos = cy_index * FONT_HEIGHT;
 
     if(c == '\n') {
         console_new_line();
@@ -182,8 +192,8 @@ void console_delchar(void){
             cy_index = (cy_index - 1) % cy_max_index;
         }
     }
-    uint16_t cx_ppos = cx_index * VGAFONT_WIDTH;
-    uint16_t cy_ppos = cy_index * VGAFONT_HEIGHT;
+    uint16_t cx_ppos = cx_index * FONT_WIDTH;
+    uint16_t cy_ppos = cy_index * FONT_HEIGHT;
     console_clearchar(cx_ppos, cy_ppos);
     spinlock_release(&boot_fb_lock);
 }

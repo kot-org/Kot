@@ -27,6 +27,9 @@ void kernel_entry(void) {
     serial_init();
     log_success("serial : initialized\n");
 
+    initrd_init();
+    log_success("initrd : initialized\n");
+
     graphics_init();
     log_success("graphics : initialized\n");
  
@@ -47,9 +50,6 @@ void kernel_entry(void) {
     log_print("\n");
 
     ksym_init();
-
-    initrd_init();
-    log_success("initrd : initialized\n");
 
     vfs_init();
     log_success("vfs : initialized\n");

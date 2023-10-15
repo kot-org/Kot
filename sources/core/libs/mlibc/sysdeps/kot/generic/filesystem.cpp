@@ -203,4 +203,9 @@ namespace mlibc{
 
         return 0;
     }
+
+    int sys_pselect(int num_fds, fd_set *read_set, fd_set *write_set, fd_set *except_set, const struct timespec *timeout, const sigset_t *sigmask, int *num_events) {
+        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub!\n" << frg::endlog;
+        return 0;
+    }
 }

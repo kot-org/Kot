@@ -9,16 +9,14 @@
 
 int main(int argc, char* argv[]){
     while(1){
-        char path[2048];
-        printf("Launcher Enter the app: ");
-        scanf("%s", &path);
+        printf("\n[0;33m--- Welcome to Kot ---\n");
+        printf("If you encounter any bugs during your session, please report them on the github repository: \nhttps://github.com/kot-org/new-kot\e[0;37m\n");
 
-        char* args[] = {path, NULL};
+        char *argv[] = {"/usr/bin/bash", NULL};
+        execvp("/usr/bin/bash", argv);
 
-        if(execv(path, args)){
-            printf("\nError loading : '%s'\n", path);
-        }
+        perror("init: /usr/bin/bash");
+
+        return EXIT_FAILURE;
     }
-
-    return 0;
 }
