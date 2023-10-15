@@ -7,6 +7,9 @@
 #include <global/console.h>
 #include <global/scheduler.h>
 
+#include <console/ansi.c>
+#include <console/console.c>
+
 #define BUFFER_COUNT    2
 #define KEY_BUFFER_SIZE 1024
 
@@ -33,13 +36,13 @@ void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed){
             key_buffer_char_index = (key_buffer_char_index + 1)  % KEY_BUFFER_SIZE;
             key_buffer[key_buffer_char_write_index][key_buffer_char_index] = '\0';
 
-            console_putchar(translated_key);
+            devconsole_putchar(translated_key);
         }else if(translated_key == '\n'){
             key_buffer[key_buffer_char_write_index][key_buffer_char_index] = translated_key;
             key_buffer_char_index = (key_buffer_char_index + 1) % KEY_BUFFER_SIZE;
             key_buffer[key_buffer_char_write_index][key_buffer_char_index] = '\0';
             
-            console_putchar(translated_key);
+            devconsole_putchar(translated_key);
 
             key_buffer_char_write_index = (key_buffer_char_write_index + 1) % BUFFER_COUNT;
 
@@ -54,7 +57,7 @@ void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed){
             if(key_buffer_char_index != 0){
                 key_buffer_char_index--;
                 key_buffer[key_buffer_char_write_index][key_buffer_char_index] = '\0';
-                console_delchar();
+                devconsole_delchar();
             }
         }
 
@@ -93,7 +96,7 @@ int console_interface_read(void* buffer, size_t size, size_t* bytes_read, struct
 }
 
 int console_interface_write(void* buffer, size_t size, size_t* bytes_write, kernel_file_t* file){
-    log_info("console : %.*s\n", size, buffer);
+    devconsole_print(buffer, size);
     *bytes_write = size;
     return 0;
 }
@@ -122,6 +125,8 @@ int console_interface_close(kernel_file_t* file){
 }
 
 kernel_file_t* console_interface_open(struct fs_t* ctx, const char* path, int flags, mode_t mode, int* error){
+    devconsole_init();
+    
     kernel_file_t* file = malloc(sizeof(kernel_file_t));
 
     file->fs_ctx = ctx;
