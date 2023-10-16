@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <lib/log.h>
+#include <lib/math.h>
 #include <impl/vmm.h>
 #include <lib/lock.h>
 #include <lib/assert.h>
@@ -399,7 +400,18 @@ int load_elf_exec(process_t* process_ctx, char* file_path, int argc, char* args[
     
     void* kernel_mapped_stack_base = vmm_get_free_contiguous_take_and_release(PROCESS_STACK_SIZE);
     void* kernel_mapped_stack_end = (void*)((uintptr_t)kernel_mapped_stack_base + (uintptr_t)PROCESS_STACK_SIZE);
-    mm_share_region(process_ctx->memory_handler, vmm_get_current_space(), kernel_mapped_stack_base, stack_base, PROCESS_STACK_SIZE, PROT_READ | PROT_WRITE);
+    
+    /* map stack to the kernel space so we can access to it */
+    size_t page_count = DIV_ROUNDUP(PROCESS_STACK_SIZE, PAGE_SIZE);
+    for(int i = 0; i < page_count; i++){
+        vmm_map(
+            vmm_get_current_space(), 
+            (memory_range_t){(void*)((uintptr_t)kernel_mapped_stack_base + i * PAGE_SIZE), PAGE_SIZE}, 
+            (memory_range_t){vmm_get_physical_address(process_ctx->memory_handler->vmm_space, 
+            (void*)((uintptr_t)stack_base + i * PAGE_SIZE)), PAGE_SIZE}, 
+            MEMORY_FLAG_USER | MEMORY_FLAG_READABLE | MEMORY_FLAG_WRITABLE
+        );
+    }
 
     void* kernel_mapped_stack = load_elf_exec_load_stack((void*)header.e_entry, exec_segments_info.at_phdr, (void*)(uintptr_t)header.e_phentsize, (void*)(uintptr_t)header.e_phnum, argc, args, envp, kernel_mapped_stack_end);
     

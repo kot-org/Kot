@@ -41,6 +41,7 @@ int vmm_unmap(vmm_space_t space, memory_range_t virtual_range);
 int vmm_flush(vmm_space_t space, memory_range_t virtual_range);
 
 void* vmm_get_physical_address(vmm_space_t space, void* virtual_address);
+int vmm_get_flags(vmm_space_t space, void* virtual_page);
 
 void* vmm_get_free_contiguous(size_t size);
 void* vmm_get_free_contiguous_take_and_release(size_t size);

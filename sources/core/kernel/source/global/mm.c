@@ -299,34 +299,6 @@ int mm_allocate_memory_block(memory_handler_t* handler, void* base, size_t size,
     return vmm_map_allocate(handler->vmm_space, (memory_range_t){base, size}, mm_getmemory_flags_from_prot(prot), size_allocate);
 }
 
-int mm_allocate_memory_contigous(memory_handler_t* handler, void* base, size_t size, int prot, size_t* size_allocate){
-    size_t page_count = DIV_ROUNDUP(size, PAGE_SIZE);
-    void* base_physical = pmm_allocate_pages(page_count);
-
-    if(base_physical == NULL){
-        *size_allocate = 0;
-        return ENOMEM;
-    }
-
-    *size_allocate = size;
-
-    return mm_map_physical(handler, base_physical, base, size, prot);
-}
-
-int mm_map_physical(memory_handler_t* handler, void* base_physical, void* base, size_t size, int prot){
-    return vmm_map(handler->vmm_space, (memory_range_t){base, size}, (memory_range_t){base_physical, size}, mm_getmemory_flags_from_prot(prot));
-}
-
-int mm_share_region(memory_handler_t* handler, vmm_space_t space, void* base_dst, void* base_src, size_t size, int prot){
-    size_t page_count = DIV_ROUNDUP(size, PAGE_SIZE);
-
-    for(int i = 0; i < page_count; i++){
-        vmm_map(space, (memory_range_t){(void*)((uintptr_t)base_dst + i * PAGE_SIZE), PAGE_SIZE}, (memory_range_t){vmm_get_physical_address(handler->vmm_space, (void*)((uintptr_t)base_src + i * PAGE_SIZE)), PAGE_SIZE}, mm_getmemory_flags_from_prot(prot));
-    }
-
-    return 0;
-}
-
 int mm_unmap(memory_handler_t* handler, void* base, size_t size){
     if((uintptr_t)base < (uintptr_t)handler->base){
         return EINVAL;
@@ -341,4 +313,49 @@ int mm_unmap(memory_handler_t* handler, void* base, size_t size){
 
 int mm_protect(memory_handler_t* handler, void* base, size_t size, int prot){
     return vmm_update_flags(handler->vmm_space, (memory_range_t){base, size}, mm_getmemory_flags_from_prot(prot));
+}
+
+int mm_fork(memory_handler_t* dst, memory_handler_t* src){
+    dst->base = src->base;
+    dst->size = src->size;
+    dst->region_count = src->region_count;
+
+    memory_region_t* last_region = NULL;
+    memory_region_t* region = src->first_region;
+    for(uint64_t i = 0; i < src->region_count; i++){
+        memory_region_t* region_copy = (memory_region_t*)malloc(sizeof(memory_region_t));
+
+        memcpy(region_copy, region, sizeof(memory_region_t));
+
+        if(!region->is_free){
+            for(int i = 0; i < region->block_count; i++){
+                vmm_map(
+                    dst->vmm_space, 
+                    (memory_range_t){(void*)((uintptr_t)region->base + i * PAGE_SIZE), PAGE_SIZE}, 
+                    (memory_range_t){vmm_get_physical_address(src->vmm_space, 
+                    (void*)((uintptr_t)region->base + i * PAGE_SIZE)), PAGE_SIZE}, 
+                    vmm_get_flags(src->vmm_space, (void*)((uintptr_t)region->base + i * PAGE_SIZE))
+                );
+            }
+        }
+        
+        if(last_region){
+            region_copy->last = last_region;
+            last_region->next = region_copy;
+        }
+
+        if(region == src->first_region){
+            dst->first_region = region_copy;
+        }
+
+        if(region == src->last_free_region){
+            dst->last_free_region = region_copy;
+        }
+
+        last_region = region_copy;
+
+        region = region->next;
+    } 
+
+    return 0;
 }

@@ -245,6 +245,17 @@ void* vmm_get_physical_address(vmm_space_t space, void* virtual_address) {
     return (void*)((uintptr_t)VMM_GET_PHYSICAL(*entry) + ((uintptr_t)virtual_address % PAGE_SIZE));
 }
 
+int vmm_get_flags(vmm_space_t space, void* virtual_page) {
+    struct vmm_page_table* pml4 = vmm_get_virtual_address(space);
+    struct vmm_page_table* pml3 = vmm_get_entry(pml4, VMM_PML_4_GET_INDEX(virtual_page), VMM_FLAG_READ_WRITE | MEMORY_FLAG_USER);
+    struct vmm_page_table* pml2 = vmm_get_entry(pml3, VMM_PML_3_GET_INDEX(virtual_page), VMM_FLAG_READ_WRITE | MEMORY_FLAG_USER);
+    struct vmm_page_table* pml1 = vmm_get_entry(pml2, VMM_PML_2_GET_INDEX(virtual_page), VMM_FLAG_READ_WRITE | MEMORY_FLAG_USER);
+    
+    vmm_entry entry = pml1->entries[VMM_PML_1_GET_INDEX(virtual_page)];
+
+    return entry & VMM_FLAG_MASK;
+}
+
 int vmm_clear_lower_half_entries(vmm_space_t space) {
     struct vmm_page_table* last_level_table = (struct vmm_page_table*)vmm_get_virtual_address(space);
     
