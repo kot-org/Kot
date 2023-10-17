@@ -29,6 +29,8 @@ void context_save(context_t* ctx, cpu_context_t* cpu_ctx);
 
 void context_restore(context_t* ctx, cpu_context_t* cpu_ctx);
 
+void contex_fork(context_t* ctx, cpu_context_t* cpu_ctx, struct thread_t* thread);
+
 void context_iddle(cpu_context_t* cpu_ctx, uint8_t cpu_id);
 
 void* context_get_thread(void);

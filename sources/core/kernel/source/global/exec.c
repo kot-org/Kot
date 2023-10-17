@@ -8,7 +8,7 @@ static inline int create_std_file_descriptor(process_t* process_ctx){
     int error = 0;
 
     for(int i = 0; i < 3; i++){
-        kernel_file_t* std_file = f_open(process_ctx->vfs_ctx, "dev/tty0", 0, 0, &error);
+        kernel_file_t* std_file = f_open(process_ctx->vfs_ctx, "/dev/tty0", 0, 0, &error);
         assert(!error);
         
         descriptor_t* descriptor = malloc(sizeof(descriptor_t));

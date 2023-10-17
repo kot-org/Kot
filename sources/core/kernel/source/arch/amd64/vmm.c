@@ -44,6 +44,11 @@ struct vmm_page_table{
     vmm_entry entries[512];
 }__attribute__((packed));
 
+static memory_flags_t vmm_get_memory_flags(vmm_entry entry){
+    memory_flags_t flags = ((entry & VMM_FLAG_CACHE_DISABLED) ? MEMORY_FLAG_DMA : 0) | ((entry & VMM_FLAG_READ_WRITE) ? MEMORY_FLAG_WRITABLE : 0) | ((entry & VMM_FLAG_USER) ? MEMORY_FLAG_USER : 0);
+    return flags;
+}
+
 static vmm_entry vmm_make_entry(void* physical_address, memory_flags_t flags) {
     vmm_entry entry = 0;
     VMM_SET_PHYSICAL(entry, physical_address);
@@ -253,7 +258,7 @@ int vmm_get_flags(vmm_space_t space, void* virtual_page) {
     
     vmm_entry entry = pml1->entries[VMM_PML_1_GET_INDEX(virtual_page)];
 
-    return entry & VMM_FLAG_MASK;
+    return vmm_get_memory_flags(entry);
 }
 
 int vmm_clear_lower_half_entries(vmm_space_t space) {

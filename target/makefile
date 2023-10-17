@@ -67,7 +67,7 @@ LIARM_QEMU_FLAGS = \
 	-cpu cortex-a72 \
 	-machine virt \
 	-m 2G \
-	-smp cores=4 \
+	-smp cores=1 \
 	-serial stdio \
 	-device ramfb \
 	-no-reboot \

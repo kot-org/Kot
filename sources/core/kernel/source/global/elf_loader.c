@@ -196,9 +196,9 @@ static void* load_elf_exec_load_stack(void* at_entry, void* at_phdr, void* at_ph
     
     uintptr_t env_pointers[envc];
     for(int i = 0; i < envc; i++){
-        size_t env_len = strlen(envp[envc]);
+        size_t env_len = strlen(envp[i]);
         stack_iteration -= (uintptr_t)env_len + 1;
-        strncpy((void*)stack_iteration, envp[envc], env_len);
+        strncpy((void*)stack_iteration, envp[i], env_len);
         env_pointers[i] = (uintptr_t)stack_iteration;
     }
 

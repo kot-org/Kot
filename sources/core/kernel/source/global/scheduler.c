@@ -6,6 +6,7 @@
 #include <lib/assert.h>
 #include <global/heap.h>
 #include <impl/context.h>
+#include <sys/resource.h>
 #include <global/scheduler.h>
 
 static spinlock_t scheduler_spinlock = {};
@@ -18,6 +19,20 @@ static spinlock_t scheduler_pid_iteration_spinlock = {};
 
 static int scheduler_tid_iteration = 0;
 static spinlock_t scheduler_tid_iteration_spinlock = {};
+
+static vector_t* schduler_waitpid_list = NULL;
+
+struct child_result_info{
+    pid_t return_pid;
+    int return_status;
+};
+
+struct waitpid_info{
+    thread_t* waiting_thread;
+    pid_t pid;
+    int flags;
+    struct child_result_info child_result;
+};
 
 process_t* proc_kernel = NULL;
 
@@ -114,8 +129,40 @@ static int scheduler_get_new_tid(void){
     return tid;
 }
 
+static void waitpid_return(pid_t pid, int status, struct waitpid_info* info, uint64_t index){
+    info->waiting_thread->is_pausing = false;
+    scheduler_enqueue_wl(info->waiting_thread);
+
+    vector_remove(schduler_waitpid_list, index);
+}
+
+static void exit_thread_routine(thread_t* thread){
+    if(thread == thread->process->entry_thread){
+        if(thread->process->parent != NULL){
+            for(uint64_t i = 0; i < schduler_waitpid_list->length; i++){
+                struct waitpid_info* info = vector_get(schduler_waitpid_list, i);
+                if(info->waiting_thread->process->pid == thread->process->parent->pid){
+                    if(info->pid == -1){
+                        waitpid_return(thread->process->pid, thread->process->return_status, info, i);
+                    }
+                }
+            }
+        }
+
+        if(thread->process->parent != NULL){
+            struct child_result_info* child_result = (struct child_result_info*)malloc(sizeof(struct child_result_info));
+            child_result->return_pid = thread->process->pid;
+            child_result->return_status = thread->process->return_status;
+            vector_push(thread->process->parent->childs_result, child_result);
+        }
+    }
+
+    scheduler_free_thread(thread);
+}
+
 void scheduler_init(void){
     proc_kernel = scheduler_create_process(PROCESS_TYPE_MODULES);
+    schduler_waitpid_list = vector_create();
 }
 
 void scheduler_handler(cpu_context_t* ctx, uint8_t cpu_id){
@@ -125,7 +172,7 @@ void scheduler_handler(cpu_context_t* ctx, uint8_t cpu_id){
         if(ending_thread != NULL){
             if(ending_thread->is_pausing){
                 if(ending_thread->is_exiting){
-                    scheduler_free_thread(ending_thread);
+                    exit_thread_routine(ending_thread);
                 }else{
                     context_save(ending_thread->ctx, ctx);
                 }
@@ -159,6 +206,8 @@ process_t* scheduler_create_process(process_flags_t flags){
     process->pid = scheduler_get_new_pid();
 
     process->threads = vector_create();
+
+    process->childs_result = vector_create();
 
     return process;
 }
@@ -299,4 +348,68 @@ int scheduler_exit_thread(thread_t* thread, cpu_context_t* ctx){
 
 thread_t* scheduler_get_current_thread(void){
     return context_get_thread();
+}
+
+int scheduler_waitpid(pid_t pid, int* status, int flags, struct rusage* ru, cpu_context_t* ctx){
+    // TODO : support ru and flags
+    
+    if(flags){
+        log_warning("Waitpid : flag not implemented : %d\n", flags);
+    }
+
+    if(ru != NULL){
+        log_warning("Waitpid : rusage not implemented\n");
+    }
+
+    spinlock_acquire(&scheduler_spinlock);
+
+    vector_t* childs_result = ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->childs_result;
+    
+    for(uint64_t i = 0; i < childs_result->length; i++){
+        struct child_result_info* child_result = vector_get(childs_result, i); 
+        if(pid == -1){
+            vector_remove(childs_result, i);
+            spinlock_release(&scheduler_spinlock);
+            *status = child_result->return_status;
+            return child_result->return_pid;
+        }
+    }
+
+    struct waitpid_info* info = malloc(sizeof(struct waitpid_info));
+    info->waiting_thread = ARCH_CONTEXT_CURRENT_THREAD(ctx);
+    info->pid = pid;
+    info->flags = flags;
+    info->child_result = (struct child_result_info){0, 0};
+
+    vector_push(schduler_waitpid_list, info);
+    ARCH_CONTEXT_CURRENT_THREAD(ctx)->is_pausing = true;
+    spinlock_release(&scheduler_spinlock);
+    scheduler_generate_task_switching();
+
+    pid_t return_pid = info->child_result.return_pid;
+    *status = info->child_result.return_status;
+    free(info);
+    return return_pid;
+
+}
+
+void scheduler_fork_syscall(cpu_context_t* ctx){
+    process_t* new_process = scheduler_create_process(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->flags);
+    new_process->parent = ARCH_CONTEXT_CURRENT_THREAD(ctx)->process;
+
+    assert(!mm_fork(new_process->memory_handler, ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->memory_handler));
+
+    new_process->vfs_ctx = vfs_copy_ctx(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx);
+
+    // TODO : make sure we don't loose descriptors when exiting the process
+    copy_process_descriptors(&new_process->descriptors_ctx, &ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx);
+
+    new_process->entry_thread = scheduler_create_thread(new_process, ARCH_CONTEXT_IP(ctx), ARCH_CONTEXT_SP(ctx), ARCH_CONTEXT_CURRENT_THREAD(ctx)->stack_base, PROCESS_STACK_SIZE);
+    
+    contex_fork(new_process->entry_thread->ctx, ctx, new_process->entry_thread);
+    ARCH_CONTEXT_RETURN(&new_process->entry_thread->ctx->cpu_ctx) = 0; 
+
+    scheduler_enqueue(new_process->entry_thread);
+
+    ARCH_CONTEXT_RETURN(ctx) = new_process->pid; 
 }

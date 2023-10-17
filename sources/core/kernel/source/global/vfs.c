@@ -8,8 +8,8 @@ vfs_ctx_t* kernel_vfs_ctx = NULL;
 
 void vfs_init(void){
     kernel_vfs_ctx = malloc(sizeof(vfs_ctx_t));
-    kernel_vfs_ctx->cwd_size = sizeof((char)'\0');
-    kernel_vfs_ctx->cwd = malloc(kernel_vfs_ctx->cwd_size);
+    kernel_vfs_ctx->cwd_size = 0;
+    kernel_vfs_ctx->cwd = malloc(kernel_vfs_ctx->cwd_size + 1);
     kernel_vfs_ctx->cwd[0] = '\0';
 }
 

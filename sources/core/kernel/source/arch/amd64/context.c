@@ -78,11 +78,24 @@ void context_restore(context_t* ctx, cpu_context_t* cpu_ctx){
     memcpy(cpu_ctx, &ctx->cpu_ctx, sizeof(cpu_context_t));
 }
 
+void contex_fork(context_t* ctx, cpu_context_t* cpu_ctx, thread_t* thread){
+    context_save(ctx, cpu_ctx);
+    ctx->fs_base = ((thread_t*)cpu_ctx->ctx_info->thread)->ctx->fs_base;
+    ctx->cpu_ctx.cr3 = (uint64_t)thread->process->memory_handler->vmm_space;
+    ctx->cpu_ctx.ctx_info = (context_info_t*)calloc(1, sizeof(context_info_t));
+    ctx->cpu_ctx.ctx_info->thread = thread;
+    ctx->cpu_ctx.ctx_info->cs = ctx->cpu_ctx.cs;
+    ctx->cpu_ctx.ctx_info->ss = ctx->cpu_ctx.ss;
+    ctx->cpu_ctx.ctx_info->kernel_stack = malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
+}
+
 void context_iddle(cpu_context_t* cpu_ctx, uint8_t cpu_id){
     cpu_ctx->ctx_info = iddle_ctx_info[cpu_id];
     cpu_ctx->cr3 = (uint64_t)vmm_get_kernel_space(); 
     cpu_ctx->rip = (uint64_t)&context_iddle_handler; 
     cpu_ctx->rsp = (uint64_t)iddle_ctx_info[cpu_id]->kernel_stack; 
+    cpu_ctx->cs = cpu_ctx->ctx_info->cs;
+    cpu_ctx->ss = cpu_ctx->ctx_info->ss;
     cpu_ctx->rflags = RFLAGS_INTERRUPT_ENABLE | RFLAGS_ONE;
 }
 

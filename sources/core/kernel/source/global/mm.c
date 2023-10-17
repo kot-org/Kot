@@ -329,13 +329,15 @@ int mm_fork(memory_handler_t* dst, memory_handler_t* src){
 
         if(!region->is_free){
             for(int i = 0; i < region->block_count; i++){
+                void* physical_address = pmm_allocate_page();
+                void* virtual_address = (void*)((uintptr_t)region->base + i * PAGE_SIZE);
                 vmm_map(
                     dst->vmm_space, 
-                    (memory_range_t){(void*)((uintptr_t)region->base + i * PAGE_SIZE), PAGE_SIZE}, 
-                    (memory_range_t){vmm_get_physical_address(src->vmm_space, 
-                    (void*)((uintptr_t)region->base + i * PAGE_SIZE)), PAGE_SIZE}, 
-                    vmm_get_flags(src->vmm_space, (void*)((uintptr_t)region->base + i * PAGE_SIZE))
+                    (memory_range_t){virtual_address, PAGE_SIZE}, 
+                    (memory_range_t){physical_address, PAGE_SIZE}, 
+                    vmm_get_flags(src->vmm_space, virtual_address)
                 );
+                memcpy(vmm_get_virtual_address(physical_address), virtual_address, PAGE_SIZE);
             }
         }
         

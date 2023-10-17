@@ -12,6 +12,7 @@ struct process_t;
 #include <global/pmm.h>
 #include <lib/vector.h>
 #include <impl/context.h>
+#include <sys/resource.h>
 #include <global/resources.h>
 
 #include <arch/include.h>
@@ -69,6 +70,12 @@ typedef struct process_t{
     vector_t* threads;
 
     pid_t pid;
+
+    struct process_t* parent;
+    
+    vector_t* childs_result;
+
+    int return_status;
 } process_t;
 
 extern process_t* proc_kernel;
@@ -92,7 +99,8 @@ int scheduler_unpause_thread(thread_t* thread);
 int scheduler_free_thread(thread_t* thread);
 int scheduler_exit_thread(thread_t* thread, cpu_context_t* ctx);
 thread_t* scheduler_get_current_thread(void);
-
+int scheduler_waitpid(pid_t pid, int* status, int flags, struct rusage* ru, cpu_context_t* ctx);
+void scheduler_fork_syscall(cpu_context_t* ctx);
 
 
 #endif // _GLOBAL_SCHEDULER_H

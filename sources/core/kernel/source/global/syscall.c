@@ -138,26 +138,13 @@ static void syscall_handler_sigaction(cpu_context_t* ctx){
     SYSCALL_RETURN(ctx, -ENOSYS);    
 }
 
-static void syscall_handler_fork(cpu_context_t* ctx){
-    process_t* new_process = scheduler_create_process(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->flags);
-
-    assert(!mm_fork(new_process->memory_handler, ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->memory_handler));
-
-    new_process->vfs_ctx = vfs_copy_ctx(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx);
-
-    // TODO : make sure we don't loose descriptors when exiting the process
-    copy_process_descriptors(&new_process->descriptors_ctx, &ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx);
-
-    new_process->entry_thread = scheduler_create_thread(new_process, ARCH_CONTEXT_IP(ctx), ARCH_CONTEXT_SP(ctx), ARCH_CONTEXT_CURRENT_THREAD(ctx)->stack_base, PROCESS_STACK_SIZE);
-    
-    assert(!scheduler_launch_process(new_process));
-
-    SYSCALL_RETURN(ctx, 0);    
-}
-
 static void syscall_handler_waitpid(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    pid_t pid = (pid_t)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    int* status = (int*)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
+    int flags = (int)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+    struct rusage* ru = (struct rusage*)ARCH_CONTEXT_SYSCALL_ARG3(ctx);
+    
+    SYSCALL_RETURN(ctx, scheduler_waitpid(pid, status, flags, ru, ctx));    
 }
 
 static void syscall_handler_execve(cpu_context_t* ctx){
@@ -430,8 +417,23 @@ static void syscall_handler_fcntl(cpu_context_t* ctx){
 }
 
 static void syscall_handler_getcwd(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    char* buffer = (char*)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    size_t size = (size_t)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
+
+    size_t cwd_size = ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_size;
+
+    if(cwd_size >= size){
+        SYSCALL_RETURN(ctx, -ERANGE);    
+    }
+
+    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){buffer, cwd_size + 1})){
+        SYSCALL_RETURN(ctx, -EINVAL);    
+    }
+
+    memcpy(buffer, ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd, cwd_size);
+    buffer[cwd_size] = '\0';
+    
+    SYSCALL_RETURN(ctx, 0);    
 }
 
 static syscall_handler_t handlers[SYS_COUNT] = { 
@@ -450,7 +452,7 @@ static syscall_handler_t handlers[SYS_COUNT] = {
     syscall_handler_sleep,
     syscall_handler_sigprocmask,
     syscall_handler_sigaction,
-    syscall_handler_fork,
+    scheduler_fork_syscall,
     syscall_handler_waitpid,
     syscall_handler_execve,
     syscall_handler_getpid,
