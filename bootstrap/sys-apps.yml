@@ -44,9 +44,6 @@ packages:
         - '--disable-nls'
         environ:
           ac_cv_func_wcswidth: 'yes'
-          bash_cv_getenv_redef: 'no'
-          ac_cv_func_getcwd: 'yes'
-          bash_cv_getcwd_malloc: 'yes'
     build:
       - args: ['make', '-j@PARALLELISM@']
       - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
