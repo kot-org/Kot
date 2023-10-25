@@ -42,6 +42,7 @@ packages:
         - '--prefix=/usr'
         - '--without-bash-malloc'
         - '--disable-nls'
+        - 'CFLAGS=-mno-stackrealign'
         environ:
           ac_cv_func_wcswidth: 'yes'
     build:
