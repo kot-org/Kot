@@ -51,3 +51,34 @@ packages:
       - args: ['cp', '@THIS_COLLECT_DIR@/usr/bin/bash', '@THIS_COLLECT_DIR@/usr/bin/sh']
       - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/bin']
       - args: ['cp', '@THIS_COLLECT_DIR@/usr/bin/bash', '@THIS_COLLECT_DIR@/bin/sh']
+
+  - name: coreutils
+    source:
+      subdir: 'bundled'
+      url: 'https://ftp.gnu.org/gnu/coreutils/coreutils-8.32.tar.xz'
+      format: 'tar.xz'
+      extract_path: 'coreutils-8.32'
+      patch-path-strip: 1
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+      - args: ['make', 'src/make-prime-list']
+      - args: |
+          ./src/make-prime-list 5000 > @THIS_SOURCE_DIR@/src/primes.h
+      - args: ['make', 'clean']
+      # No compile coreutils for the correct target.
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=x86_64-kot'
+        - '--prefix=/usr'
+        - 'CFLAGS=-DSLOW_BUT_NO_HACKS -Wno-error'
+        - '--enable-install-program=hostname'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
