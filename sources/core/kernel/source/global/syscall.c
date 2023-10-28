@@ -160,23 +160,23 @@ static void syscall_handler_execve(cpu_context_t* ctx){
         argc++;
     }
 
-    process_t* new_process = scheduler_create_process(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->flags);
+    process_t* process = ARCH_CONTEXT_CURRENT_THREAD(ctx)->process;
 
-    new_process->vfs_ctx = vfs_copy_ctx(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx);
+    thread_t* old_entry_thread = process->entry_thread;
 
-    int error = load_elf_exec(new_process, path, argc, args, envp);
+    process->entry_thread = NULL;
+
+    process->vfs_ctx = vfs_copy_ctx(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx);
+
+    int error = load_elf_exec(process, path, argc, args, envp);
 
     if(error){
-        scheduler_free_process(new_process);
         SYSCALL_RETURN(ctx, -error);
     }
 
-    // TODO : make sure we don't loose descriptors when exiting the process
-    copy_process_descriptors(&new_process->descriptors_ctx, &ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx);
+    // TODO free the old thread
 
-    assert(!scheduler_launch_process(new_process));
-
-    scheduler_exit_process(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process, ctx);
+    context_restore(process->entry_thread->ctx, ctx);
 }
 
 static void syscall_handler_getpid(cpu_context_t* ctx){
