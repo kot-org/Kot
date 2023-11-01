@@ -8,6 +8,7 @@
 #include <impl/context.h>
 #include <sys/resource.h>
 #include <global/scheduler.h>
+#include <global/elf_loader.h>
 
 static spinlock_t scheduler_spinlock = {};
 
@@ -227,20 +228,18 @@ int scheduler_free_process(process_t* process){
 
 int scheduler_exit_process(process_t* process, cpu_context_t* ctx){
     /* we do not free the current thread */
-    int index = 0;
-    while(process->threads->length > 1){
-        thread_t* thread;
-        do{
-            thread = vector_get(process->threads, index);
-            index++;
-        }while(thread == ARCH_CONTEXT_CURRENT_THREAD(ctx));
-        assert(!scheduler_exit_thread(thread, ctx));
+
+    for(int i = 0; i < process->threads->length; i++){
+        thread_t* thread = vector_get(process->threads, i);
+        if(thread != ARCH_CONTEXT_CURRENT_THREAD(ctx) && thread != NULL){
+            assert(!scheduler_exit_thread(thread, ctx));
+        }
     }
 
     assert(!scheduler_free_process(process));
 
     /* free maybe the current thread */
-    assert(!scheduler_exit_thread(vector_get(process->threads, 0), ctx));
+    assert(!scheduler_exit_thread(ARCH_CONTEXT_CURRENT_THREAD(ctx), ctx));
 
     return 0;
 }
@@ -311,7 +310,9 @@ int scheduler_unpause_thread(thread_t* thread){
 }
 
 int scheduler_free_thread(thread_t* thread){
-    assert(!mm_free_region(thread->process->memory_handler, thread->stack_base, thread->stack_size));
+    if(!thread->is_stack_free_disabled){
+        assert(!mm_free_region(thread->process->memory_handler, thread->stack_base, thread->stack_size));
+    }
 
     context_free(thread->ctx);
 
@@ -321,7 +322,7 @@ int scheduler_free_thread(thread_t* thread){
 }
 
 int scheduler_exit_thread(thread_t* thread, cpu_context_t* ctx){
-    vector_remove(thread->process->threads, thread->index);
+    vector_set(thread->process->threads, thread->index, NULL);
 
     spinlock_acquire(&scheduler_spinlock);
 
@@ -391,6 +392,39 @@ int scheduler_waitpid(pid_t pid, int* status, int flags, struct rusage* ru, cpu_
     free(info);
     return return_pid;
 
+}
+
+int scheduler_execve_syscall(char* path, int argc, char** args, char** envp, cpu_context_t* ctx){
+    process_t* process = ARCH_CONTEXT_CURRENT_THREAD(ctx)->process;
+
+    int error = 0;
+    kernel_file_t* file = f_open(process->vfs_ctx, path, 0, 0, &error);
+
+    if(error){
+        return error;
+    }
+
+
+    thread_t* old_entry_thread = process->entry_thread;
+
+    process->entry_thread = NULL;
+
+    memory_handler_t* old_memory_handler = process->memory_handler;
+
+    process->memory_handler = mm_create_handler(vmm_create_space(), (void*)VMM_USERSPACE_BOTTOM_ADDRESS, (size_t)((uintptr_t)VMM_USERSPACE_TOP_ADDRESS - (uintptr_t)VMM_USERSPACE_BOTTOM_ADDRESS));
+
+    assert(!load_elf_exec_with_file(process, file, argc, args, envp));
+
+    // TODO free the old_entry_thread
+    // TODO free the old_memory_handler
+
+    assert(!scheduler_launch_process(process));
+    
+    // because the stack should be already free before
+    ARCH_CONTEXT_CURRENT_THREAD(ctx)->is_stack_free_disabled = true;
+    assert(!scheduler_exit_thread(ARCH_CONTEXT_CURRENT_THREAD(ctx), ctx));
+
+    __builtin_trap();
 }
 
 void scheduler_fork_syscall(cpu_context_t* ctx){

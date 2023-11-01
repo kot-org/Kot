@@ -14,7 +14,7 @@ function mount_boot_disk {
         mkdir -p $(dirname ${BOOT_DISK})
 
         if ! [[ -b $BOOT_DISK ]]; then
-          sudo dd if=/dev/zero bs=1M count=0 seek=64 of=${BOOT_DISK}
+          sudo dd if=/dev/zero bs=5M count=0 seek=64 of=${BOOT_DISK}
         fi
 
         # Configure GPT partition table

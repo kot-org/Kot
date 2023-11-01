@@ -68,6 +68,10 @@ static inline void io_write32(uint16_t port, uint32_t data) {
 	__asm__ volatile("outl %0, %w1" : : "a" (data), "d" (port));
 }
 
+static inline void io_write_string(uint16_t port, uint8_t *buffer, int count) {
+    __asm__ volatile("rep outsw " : : "c"(count), "d"(port), "S"(buffer));
+}
+
 static inline uint8_t io_read8(uint16_t port) {
     uint8_t data;
     __asm__ volatile("inb %w1, %b0" : "=a" (data) : "d" (port));
@@ -84,6 +88,10 @@ static inline uint32_t io_read32(uint16_t port) {
     uint32_t data;
     __asm__ volatile("inl %w1, %0" : "=a" (data) : "d" (port));
     return data;
+}
+
+static inline void io_read_string(uint16_t port, uint8_t* buffer, int count) {
+    __asm__ volatile("rep insw" :: "c"(count), "d"(port), "D"(buffer));
 }
 
 static inline uint64_t rdmsr(uint32_t index){

@@ -56,6 +56,8 @@ typedef struct thread_t{
     struct thread_t* last;
 
     bool is_in_queue;
+
+    bool is_stack_free_disabled;
 } thread_t;
 
 typedef struct process_t{
@@ -100,6 +102,7 @@ int scheduler_free_thread(thread_t* thread);
 int scheduler_exit_thread(thread_t* thread, cpu_context_t* ctx);
 thread_t* scheduler_get_current_thread(void);
 int scheduler_waitpid(pid_t pid, int* status, int flags, struct rusage* ru, cpu_context_t* ctx);
+int scheduler_execve_syscall(char* path, int argc, char** args, char** envp, cpu_context_t* ctx);
 void scheduler_fork_syscall(cpu_context_t* ctx);
 
 

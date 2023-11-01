@@ -4,6 +4,7 @@
 #include <lib/log.h>
 #include <impl/arch.h>
 #include <lib/assert.h>
+#include <parameters.h>
 #include <kot/syscall.h>
 #include <global/heap.h>
 #include <global/file.h>
@@ -160,23 +161,7 @@ static void syscall_handler_execve(cpu_context_t* ctx){
         argc++;
     }
 
-    process_t* process = ARCH_CONTEXT_CURRENT_THREAD(ctx)->process;
-
-    thread_t* old_entry_thread = process->entry_thread;
-
-    process->entry_thread = NULL;
-
-    process->vfs_ctx = vfs_copy_ctx(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx);
-
-    int error = load_elf_exec(process, path, argc, args, envp);
-
-    if(error){
-        SYSCALL_RETURN(ctx, -error);
-    }
-
-    // TODO free the old thread
-
-    context_restore(process->entry_thread->ctx, ctx);
+    SYSCALL_RETURN(ctx, -scheduler_execve_syscall(path, argc, args, envp, ctx));
 }
 
 static void syscall_handler_getpid(cpu_context_t* ctx){
@@ -475,11 +460,21 @@ static syscall_handler_t handlers[SYS_COUNT] = {
 };
 
 void syscall_handler(cpu_context_t* ctx){
-    if(ARCH_CONTEXT_SYSCALL_SELECTOR(ctx) >= SYS_COUNT){
+    int syscall_selector = ARCH_CONTEXT_SYSCALL_SELECTOR(ctx);
+
+    if(syscall_selector >= SYS_COUNT){
+        #ifdef DEBUG_SYSCALL
+        log_info("Syscall : %d, doesn't exist\n", syscall_selector);
+        #endif
+
         SYSCALL_RETURN(ctx, -EINVAL);
     }
  
     handlers[ARCH_CONTEXT_SYSCALL_SELECTOR(ctx)](ctx);
+
+    #ifdef DEBUG_SYSCALL
+    log_info("Syscall : %d, return : %d\n", syscall_selector, ARCH_CONTEXT_RETURN(ctx));
+    #endif
 
     return;
 }

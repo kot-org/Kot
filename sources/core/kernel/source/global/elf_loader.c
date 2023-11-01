@@ -14,6 +14,7 @@
 #include <global/heap.h>
 #include <global/modules.h>
 #include <global/scheduler.h>
+#include <global/elf_loader.h>
 
 /* general */
 static bool check_elf_signature(struct elf64_ehdr* header){
@@ -296,25 +297,31 @@ int load_elf_exec(process_t* process_ctx, char* file_path, int argc, char* args[
         return err;
     }
 
+    return load_elf_exec_with_file(process_ctx, file, argc, args, envp);
+}
+
+int load_elf_exec_with_file(process_t* process_ctx, kernel_file_t* file, int argc, char* args[], char* envp[]){
+    int err = 0;
+
     struct elf64_ehdr header;
 
     size_t bytes_read;
     assert(!f_read(&header, sizeof(struct elf64_ehdr), &bytes_read, file));
 
     if(!check_elf_signature(&header)){
-        log_error("Invalid executable file : %s, bad header signature\n", file_path);
+        log_error("Invalid executable file, bad header signature\n");
         f_close(file);
         return EINVAL;
     }
 
     if(header.e_ident[EI_CLASS] != ELFCLASS64){
-        log_error("Invalid executable file : %s, wrong elf class\n", file_path);
+        log_error("Invalid executable file, wrong elf class\n");
         f_close(file);
         return EINVAL;
     }
 
     if(header.e_type != ET_EXEC){
-        log_error("Invalid executable file : %s, not executable\n", file_path);
+        log_error("Invalid executable file, not executable\n");
         f_close(file);
         return EINVAL;
     }
@@ -422,9 +429,7 @@ int load_elf_exec(process_t* process_ctx, char* file_path, int argc, char* args[
 
     spinlock_acquire(&process_ctx->data_lock);
 
-    if(process_ctx->entry_thread != NULL){
-        scheduler_free_thread(process_ctx->entry_thread);
-    }
+    assert(process_ctx->entry_thread == NULL);
 
     process_ctx->entry_thread = scheduler_create_thread(process_ctx, entry_point, stack, stack_base, PROCESS_STACK_SIZE);
 
