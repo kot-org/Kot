@@ -108,6 +108,18 @@ kernel_dir_t* vfs_dir_open_not_implemented(fs_t* ctx, const char* path, int* err
     return NULL;
 }
 
+void vfs_init(void){
+    vfs_hashmap = hashmap_create(32);
+    fs_t* fs_vfs = malloc(sizeof(fs_t));
+    fs_vfs->file_remove = (file_remove_fs_t)&vfs_return_not_implemented;
+    fs_vfs->file_open = &vfs_file_open_not_implemented;
+    fs_vfs->dir_create = (dir_create_fs_t)&vfs_return_not_implemented;
+    fs_vfs->dir_remove = (dir_remove_fs_t)&vfs_return_not_implemented;
+    fs_vfs->dir_open = &vfs_dir_open_not_implemented;
+    fs_vfs->rename = (rename_fs_t)&vfs_return_not_implemented;
+    fs_vfs->link = (link_fs_t)&vfs_return_not_implemented;
+    local_mount_fs("/", fs_vfs);
+}
 
 int vfs_get_directory_entries(void* buffer, size_t max_size, size_t* bytes_read, kernel_dir_t* dir){
     uint64_t max_entry_count = (uint64_t)(max_size / sizeof(dirent_t));
@@ -168,19 +180,6 @@ kernel_dir_t* vfs_dir_open(fs_t* ctx, const char* path, int* error){
     dir->unlink_at = &vfs_unlink_at;
 
     return dir;
-}
-
-void vfs_init(void){
-    vfs_hashmap = hashmap_create(32);
-    fs_t* fs_vfs = malloc(sizeof(fs_t));
-    fs_vfs->file_remove = (file_remove_fs_t)&vfs_return_not_implemented;
-    fs_vfs->file_open = &vfs_file_open_not_implemented;
-    fs_vfs->dir_create = (dir_create_fs_t)&vfs_return_not_implemented;
-    fs_vfs->dir_remove = (dir_remove_fs_t)&vfs_return_not_implemented;
-    fs_vfs->dir_open = &vfs_dir_open;
-    fs_vfs->rename = (rename_fs_t)&vfs_return_not_implemented;
-    fs_vfs->link = (link_fs_t)&vfs_return_not_implemented;
-    local_mount_fs("/", fs_vfs);
 }
 
 char* request_friendly_fs_mount_name(bool is_removable){

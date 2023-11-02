@@ -2,7 +2,7 @@
 #include <impl/panic.h>
 #include <global/exec.h>
 
-static const char* bin_path = "/usr/bin";
+static const char* bin_path = "usr/bin/";
 static const char* app_init_path = "/sda/system/init/init.elf";
 
 

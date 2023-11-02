@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <fcntl.h>
 #include <stddef.h>
 #include <limits.h>
 #include <lib/log.h>
@@ -178,7 +179,7 @@ static void syscall_handler_kill(cpu_context_t* ctx){
     SYSCALL_RETURN(ctx, -ENOSYS);    
 }
 
-static void syscall_handler_file_open(cpu_context_t* ctx){
+static void syscall_handler_open(cpu_context_t* ctx){
     /* Although we asked about the size of the path, we expected there to be "\0" at the end, we will force his writing */
     char* path = (char*)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
     size_t path_len = (size_t)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
@@ -196,18 +197,34 @@ static void syscall_handler_file_open(cpu_context_t* ctx){
     path[path_len] = '\0';
 
     int error;
-    kernel_file_t* file = f_open(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx, path, flags, mode, &error);
 
-    if(error){
-        SYSCALL_RETURN(ctx, -error);
+    if(flags & O_DIRECTORY){
+        kernel_dir_t* dir = d_open(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx, path, &error);
+
+        if(error){
+            SYSCALL_RETURN(ctx, -error);
+        }
+
+        descriptor_t* descriptor = malloc(sizeof(descriptor_t));
+
+        descriptor->type = DESCRIPTOR_TYPE_DIR;
+        descriptor->data.dir = dir;
+
+        SYSCALL_RETURN(ctx, add_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, descriptor));
+    }else{
+        kernel_file_t* file = f_open(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx, path, flags, mode, &error);
+
+        if(error){
+            SYSCALL_RETURN(ctx, -error);
+        }
+
+        descriptor_t* descriptor = malloc(sizeof(descriptor_t));
+
+        descriptor->type = DESCRIPTOR_TYPE_FILE;
+        descriptor->data.file = file;
+
+        SYSCALL_RETURN(ctx, add_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, descriptor));
     }
-
-    descriptor_t* descriptor = malloc(sizeof(descriptor_t));
-
-    descriptor->type = DESCRIPTOR_TYPE_FILE;
-    descriptor->data.file = file;
-
-    SYSCALL_RETURN(ctx, add_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, descriptor));  
 }
 
 static void syscall_handler_file_read(cpu_context_t* ctx){
@@ -348,8 +365,34 @@ static void syscall_handler_file_ioctl(cpu_context_t* ctx){
 }
 
 static void syscall_handler_dir_read_entries(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    int handle = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    void* buffer = (void*)ARCH_CONTEXT_SYSCALL_ARG1(ctx); 
+    size_t max_size = (size_t)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+    size_t size_read = 0;
+
+    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){buffer, max_size})){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+        
+    descriptor_t* descriptor = get_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, handle);
+
+    if(descriptor == NULL){
+        SYSCALL_RETURN(ctx, -EBADF);
+    }
+    
+    if(descriptor->type != DESCRIPTOR_TYPE_DIR){
+        SYSCALL_RETURN(ctx, -EISDIR);
+    }
+
+    kernel_dir_t* dir = descriptor->data.dir;
+
+    int error = d_get_entries(buffer, max_size, &size_read, dir);
+    
+    if(error){
+        SYSCALL_RETURN(ctx, -error);
+    }
+
+    SYSCALL_RETURN(ctx, size_read); 
 }
 
 static void syscall_handler_dir_remove(cpu_context_t* ctx){
@@ -443,7 +486,7 @@ static syscall_handler_t handlers[SYS_COUNT] = {
     syscall_handler_getpid,
     syscall_handler_getppid,
     syscall_handler_kill,
-    syscall_handler_file_open,
+    syscall_handler_open,
     syscall_handler_file_read,
     syscall_handler_file_write,
     syscall_handler_file_seek,

@@ -1400,7 +1400,7 @@ int fat_interface_dir_remove(struct fs_t* ctx, const char* path){
     return fat_remove_dir((fat_context_t*)ctx->internal_data, fat_interface_convert_path((char*)path));
 }
 
-struct kernel_dir_t* fat_interface_dir_open(struct fs_t* ctx, const char* path, int* error){
+struct kernel_dir_t* fat_interface_dir_open(struct fs_t* ctx, const char* path, int* error){    
     fat_context_t* fat_ctx = (fat_context_t*)ctx->internal_data;
     fat_directory_internal_t* fat_dir = fat_open_dir(fat_ctx, fat_interface_convert_path((char*)path), error);
     if(fat_dir == NULL){
