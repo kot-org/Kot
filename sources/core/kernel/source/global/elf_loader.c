@@ -175,8 +175,12 @@ struct load_elf_exec_segments_info{
     char* ld_path;
 };
 
+static inline void* get_kernel_mapped(void* address, void* user_base, void* kernel_base){
+    return (void*)((uintptr_t)address - (uintptr_t)user_base + (uintptr_t)kernel_base);
+}
+
 /* This function need to be run with its paging to access to its stack*/
-static void* load_elf_exec_load_stack(void* at_entry, void* at_phdr, void* at_phent, void* at_phnum, int argc, char* args[], char* envp[], void* stack){
+static void* load_elf_exec_load_stack(void* at_entry, void* at_phdr, void* at_phent, void* at_phnum, int argc, char* args[], char* envp[], void* stack, void* stack_user_base, void* stack_kernel_base){
     uintptr_t stack_iteration = (uintptr_t)stack;
 
     int envc = 0;
@@ -191,7 +195,7 @@ static void* load_elf_exec_load_stack(void* at_entry, void* at_phdr, void* at_ph
     for(int i = 0; i < argc; i++){
         size_t arg_len = strlen(args[i]);
         stack_iteration -= (uintptr_t)arg_len + 1;
-        strncpy((void*)stack_iteration, args[i], arg_len);
+        strncpy(get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base), args[i], arg_len);
         arg_pointers[i] = (uintptr_t)stack_iteration;
     }
     
@@ -199,7 +203,7 @@ static void* load_elf_exec_load_stack(void* at_entry, void* at_phdr, void* at_ph
     for(int i = 0; i < envc; i++){
         size_t env_len = strlen(envp[i]);
         stack_iteration -= (uintptr_t)env_len + 1;
-        strncpy((void*)stack_iteration, envp[i], env_len);
+        strncpy(get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base), envp[i], env_len);
         env_pointers[i] = (uintptr_t)stack_iteration;
     }
 
@@ -211,43 +215,43 @@ static void* load_elf_exec_load_stack(void* at_entry, void* at_phdr, void* at_ph
     }
 
     stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(struct auxv));
-    ((struct auxv*)stack_iteration)->a_type = AT_NULL;
-    ((struct auxv*)stack_iteration)->a_val =  0;
+    ((struct auxv*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base))->a_type = AT_NULL;
+    ((struct auxv*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base))->a_val =  0;
 
     stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(struct auxv));
-    ((struct auxv*)stack_iteration)->a_type = AT_ENTRY;
-    ((struct auxv*)stack_iteration)->a_val = at_entry;
+    ((struct auxv*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base))->a_type = AT_ENTRY;
+    ((struct auxv*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base))->a_val = at_entry;
 
     stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(struct auxv));
-    ((struct auxv*)stack_iteration)->a_type = AT_PHDR;
-    ((struct auxv*)stack_iteration)->a_val =  at_phdr;
+    ((struct auxv*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base))->a_type = AT_PHDR;
+    ((struct auxv*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base))->a_val =  at_phdr;
 
     stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(struct auxv));
-    ((struct auxv*)stack_iteration)->a_type = AT_PHENT;
-    ((struct auxv*)stack_iteration)->a_val =  at_phent;
+    ((struct auxv*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base))->a_type = AT_PHENT;
+    ((struct auxv*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base))->a_val =  at_phent;
 
     stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(struct auxv));
-    ((struct auxv*)stack_iteration)->a_type = AT_PHNUM;
-    ((struct auxv*)stack_iteration)->a_val =  at_phnum;
+    ((struct auxv*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base))->a_type = AT_PHNUM;
+    ((struct auxv*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base))->a_val =  at_phnum;
 
     stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(uintptr_t));
-    *(uintptr_t*)stack_iteration = 0; // NULL
+    *(uintptr_t*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base) = 0; // NULL
 
     for(int i = 0; i < envc; i++){
         stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(uintptr_t));
-        *(uintptr_t*)stack_iteration = env_pointers[i];   
+        *(uintptr_t*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base) = env_pointers[i];   
     }
 
     stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(uintptr_t));
-    *(uintptr_t*)stack_iteration = 0; // NULL
+    *(uintptr_t*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base) = 0; // NULL
 
     for(int i = 0; i < argc; i++){
         stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(uintptr_t));
-        *(uintptr_t*)stack_iteration = arg_pointers[i];   
+        *(uintptr_t*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base) = arg_pointers[i];   
     }    
 
     stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(uintptr_t));
-    *(uintptr_t*)stack_iteration = argc;
+    *(uintptr_t*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base) = argc;
 
     return (void*)stack_iteration;
 }
@@ -416,16 +420,13 @@ int load_elf_exec_with_file(process_t* process_ctx, kernel_file_t* file, int arg
             (memory_range_t){(void*)((uintptr_t)kernel_mapped_stack_base + i * PAGE_SIZE), PAGE_SIZE}, 
             (memory_range_t){vmm_get_physical_address(process_ctx->memory_handler->vmm_space, 
             (void*)((uintptr_t)stack_base + i * PAGE_SIZE)), PAGE_SIZE}, 
-            MEMORY_FLAG_USER | MEMORY_FLAG_READABLE | MEMORY_FLAG_WRITABLE
+            MEMORY_FLAG_READABLE | MEMORY_FLAG_WRITABLE
         );
     }
 
-    void* kernel_mapped_stack = load_elf_exec_load_stack((void*)header.e_entry, exec_segments_info.at_phdr, (void*)(uintptr_t)header.e_phentsize, (void*)(uintptr_t)header.e_phnum, argc, args, envp, kernel_mapped_stack_end);
+    void* stack = load_elf_exec_load_stack((void*)header.e_entry, exec_segments_info.at_phdr, (void*)(uintptr_t)header.e_phentsize, (void*)(uintptr_t)header.e_phnum, argc, args, envp, stack_end, stack_base, kernel_mapped_stack_base);
     
     vmm_release_free_contiguous_take_and_release();
-
-    void* stack = (void*)((uintptr_t)kernel_mapped_stack - (uintptr_t)kernel_mapped_stack_base + (uintptr_t)stack_base);
-
 
     spinlock_acquire(&process_ctx->data_lock);
 
