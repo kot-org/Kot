@@ -20,6 +20,8 @@
 #define FONT_WIDTH 8
 #define FONT_HEIGHT 16
 
+#define TAB_SIZE 8
+
 static bool is_devconsole_init = false;
 static bool use_boot_fb = false;
 static spinlock_t boot_fb_lock = {};
@@ -180,6 +182,16 @@ void devconsole_putchar(char c) {
         cx_index = 0;
         spinlock_release(&boot_fb_lock);
         return;
+    }
+
+    if(c == 9){ // tab
+        if(cx_index % TAB_SIZE){
+            cx_index -= cx_index % TAB_SIZE;
+        }
+
+        cx_index += TAB_SIZE;
+        spinlock_release(&boot_fb_lock);
+        return;        
     }
 
     devconsole_setchar(cx_ppos, cy_ppos, c);
