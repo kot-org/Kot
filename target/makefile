@@ -25,7 +25,7 @@ LIAMD_QEMU_FLAGS = \
 	-drive file=liamd/boot-kot.img \
 	-machine q35 \
 	-m 2G \
-	-smp cores=1 \
+	-smp cores=4 \
 	-serial stdio \
 	-no-reboot \
 	-no-shutdown

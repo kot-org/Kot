@@ -211,7 +211,7 @@ static void* load_elf_exec_load_stack(void* at_entry, void* at_phdr, void* at_ph
     stack_iteration = (uintptr_t)stack_iteration - ((uintptr_t)stack_iteration & 0xf);
 
     if((argc + envc + 1) & 1){
-        stack_iteration--;
+        stack_iteration -= sizeof(uint64_t);
     }
 
     stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(struct auxv));
@@ -425,7 +425,7 @@ int load_elf_exec_with_file(process_t* process_ctx, kernel_file_t* file, int arg
     }
 
     void* stack = load_elf_exec_load_stack((void*)header.e_entry, exec_segments_info.at_phdr, (void*)(uintptr_t)header.e_phentsize, (void*)(uintptr_t)header.e_phnum, argc, args, envp, stack_end, stack_base, kernel_mapped_stack_base);
-    
+
     vmm_release_free_contiguous_take_and_release();
 
     spinlock_acquire(&process_ctx->data_lock);
