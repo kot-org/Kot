@@ -39,6 +39,7 @@ ifneq ("$(wildcard ../../odi/.*)","")
 else
 	cd ../../ && git clone https://github.com/Open-Driver-Interface/odi
 endif
+	cd ../../odi && sh ocf.sh
 
 
 # Target

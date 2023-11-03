@@ -142,7 +142,9 @@
         "hw_interrupt.h": "c",
         "printf.h": "c",
         "serial.h": "c",
-        "hid.h": "c"
+        "hid.h": "c",
+        "e1000.h": "c",
+        "deps.h": "c"
     },
     "files.exclude": {
         "bundled": true,

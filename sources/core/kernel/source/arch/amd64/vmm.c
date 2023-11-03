@@ -13,15 +13,6 @@
 
 #define VMM_FLAG_MASK               0xfff
 
-#define VMM_FLAG_PRESENT            (1 << 0)
-#define VMM_FLAG_READ_WRITE         (1 << 1)
-#define VMM_FLAG_USER               (1 << 2)
-#define VMM_FLAG_WRITE_THROUGH      (1 << 3)
-#define VMM_FLAG_CACHE_DISABLED     (1 << 4)
-#define VMM_FLAG_ACCESSED           (1 << 5)
-#define VMM_FLAG_DIRTY              (1 << 6)
-#define VMM_FLAG_LARGER_PAGES       (1 << 7)
-
 #define VMM_GET_FLAG(entry, flag)                       ((uintptr_t)entry & flag)   
 #define VMM_SET_FLAGS(entry, flags)                     entry = (vmm_entry)((uintptr_t)entry | (flags & VMM_FLAG_MASK))   
 #define VMM_GET_PHYSICAL(entry)                         (void*)(((uintptr_t)entry) & 0x000ffffffffff000)   
