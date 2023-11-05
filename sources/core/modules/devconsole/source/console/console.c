@@ -24,7 +24,7 @@
 
 static bool is_devconsole_init = false;
 static bool use_boot_fb = false;
-static spinlock_t boot_fb_lock = {};
+static spinlock_t boot_fb_lock = SPINLOCK_INIT;
 
 static uint32_t bg_color;
 static uint32_t fg_color;

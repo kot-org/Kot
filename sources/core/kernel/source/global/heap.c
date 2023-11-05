@@ -13,7 +13,7 @@
 #ifdef HEAP_DEBUG
 
 static void* heap_end = 0;
-static spinlock_t lock = {};
+static spinlock_t lock = SPINLOCK_INIT;
 
 struct heap_segment_header{
     size_t length;
@@ -71,7 +71,7 @@ static struct heap_segment_header* main_segment = NULL;
 static size_t total_size;
 static size_t free_size;
 static size_t used_size;
-static spinlock_t lock = {};
+static spinlock_t lock = SPINLOCK_INIT;
 
 
 static struct heap_segment_header* get_heap_segment_header(void* address) {

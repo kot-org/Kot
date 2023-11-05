@@ -448,7 +448,9 @@ static void syscall_handler_getcwd(cpu_context_t* ctx){
     char* buffer = (char*)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
     size_t size = (size_t)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
 
+    spinlock_acquire(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_lock);
     size_t cwd_size = ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_size;
+    spinlock_release(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_lock);
 
     if(cwd_size >= size){
         SYSCALL_RETURN(ctx, -ERANGE);    
@@ -458,11 +460,45 @@ static void syscall_handler_getcwd(cpu_context_t* ctx){
         SYSCALL_RETURN(ctx, -EINVAL);    
     }
 
+    spinlock_acquire(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_lock);
     memcpy(buffer, ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd, cwd_size);
+    spinlock_release(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_lock);
+
     buffer[cwd_size] = '\0';
     
     SYSCALL_RETURN(ctx, 0);    
 }
+
+static void syscall_handler_chdir(cpu_context_t* ctx){
+    char* path = (char*)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    size_t size = (size_t)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
+
+    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){path, size + 1})){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+
+    path[size] = '\0';
+
+
+    // Check if dir exist
+
+    int error = 0;
+    kernel_dir_t* dir = d_open(KERNEL_VFS_CTX, path, &error);
+
+    if(error){
+        SYSCALL_RETURN(ctx, -ENOENT);
+    }
+
+    d_close(dir);
+
+    spinlock_acquire(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_lock);
+    ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_size = size;
+    memcpy(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd, path + sizeof((char)'/'), size - sizeof((char)'/'));
+    spinlock_release(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_lock);
+
+    SYSCALL_RETURN(ctx, 0);
+}
+
 
 static syscall_handler_t handlers[SYS_COUNT] = { 
     syscall_handler_log,
@@ -499,7 +535,8 @@ static syscall_handler_t handlers[SYS_COUNT] = {
     syscall_handler_path_stat,
     syscall_handler_fd_stat,
     syscall_handler_fcntl,
-    syscall_handler_getcwd
+    syscall_handler_getcwd,
+    syscall_handler_chdir
 };
 
 void syscall_handler(cpu_context_t* ctx){

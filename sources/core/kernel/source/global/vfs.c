@@ -1,3 +1,4 @@
+#include <lib/lock.h>
 #include <lib/string.h>
 #include <global/vfs.h>
 #include <global/heap.h>
@@ -11,6 +12,7 @@ void vfs_init(void){
     kernel_vfs_ctx->cwd_size = 0;
     kernel_vfs_ctx->cwd = malloc(kernel_vfs_ctx->cwd_size + 1);
     kernel_vfs_ctx->cwd[0] = '\0';
+    kernel_vfs_ctx->cwd_lock = (spinlock_t)SPINLOCK_INIT;
 }
 
 int vfs_rename(vfs_ctx_t* ctx, const char* old_path, const char* new_path){
@@ -43,6 +45,7 @@ vfs_ctx_t* vfs_create_ctx(const char* cwd){
     ctx->cwd_size = strlen(cwd);
     ctx->cwd = malloc(ctx->cwd_size + 1);
     strncpy(ctx->cwd, cwd, ctx->cwd_size);
+    ctx->cwd_lock = (spinlock_t)SPINLOCK_INIT;
 
     return ctx;
 }
@@ -53,6 +56,7 @@ vfs_ctx_t* vfs_copy_ctx(vfs_ctx_t* src){
     dst->cwd_size = src->cwd_size;
     dst->cwd = malloc(dst->cwd_size + 1);
     strncpy(dst->cwd, src->cwd, dst->cwd_size);
+    dst->cwd_lock = (spinlock_t)SPINLOCK_INIT;
 
     return dst;
 }

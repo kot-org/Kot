@@ -10,7 +10,7 @@
 #include <lib/lock.h>
 
 static bool use_boot_fb = false;
-static spinlock_t boot_fb_lock = {};
+static spinlock_t boot_fb_lock = SPINLOCK_INIT;
 
 static graphics_boot_fb_t* boot_fb = NULL;
 static struct fb_fix_screeninfo fix_screeninfo = {};

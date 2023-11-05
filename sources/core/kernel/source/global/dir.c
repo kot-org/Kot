@@ -25,3 +25,7 @@ int d_create_at(struct kernel_dir_t* dir, const char* path, mode_t mode){
 int d_unlink_at(struct kernel_dir_t* dir, const char* path, int flags){
     return dir->unlink_at(dir, path, flags);
 }
+
+int d_close(struct kernel_dir_t* dir){
+    return dir->close(dir);
+}

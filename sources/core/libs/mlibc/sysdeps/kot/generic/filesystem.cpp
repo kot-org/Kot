@@ -191,6 +191,7 @@ namespace mlibc{
         if(ptr_result != NULL){
             *ptr_result = result;
         }
+        
         return 0;
     }
 
@@ -202,6 +203,28 @@ namespace mlibc{
         }
 
         return 0;
+    }
+
+
+    int sys_chdir(const char *path){
+        #if !MLIBC_BUILDING_RTDL
+
+        mlibc::infoLogger() << "mlibc: " << __func__ << ":" << path << "\n" << frg::endlog;
+
+        const char* real_path = realpath(path, NULL);
+        auto result = do_syscall(SYS_CHDIR, real_path, strlen(real_path));
+
+        if(result < 0){
+            return -result;
+        }
+
+        return 0;
+
+        #else
+
+        return -ENOSYS;
+
+        #endif
     }
 
     int sys_pselect(int num_fds, fd_set *read_set, fd_set *write_set, fd_set *except_set, const struct timespec *timeout, const sigset_t *sigmask, int *num_events) {

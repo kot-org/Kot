@@ -19,7 +19,7 @@
 #define FONT_HEIGHT 16
 
 static bool use_boot_fb = false;
-static spinlock_t boot_fb_lock = {};
+static spinlock_t boot_fb_lock = SPINLOCK_INIT;
 
 static uint32_t bg_color;
 static uint32_t fg_color;

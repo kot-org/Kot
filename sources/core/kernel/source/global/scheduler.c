@@ -10,16 +10,16 @@
 #include <global/scheduler.h>
 #include <global/elf_loader.h>
 
-static spinlock_t scheduler_spinlock = {};
+static spinlock_t scheduler_spinlock = SPINLOCK_INIT;
 
 static thread_t* scheduler_first_node;
 static thread_t* scheduler_last_node;
 
 static pid_t scheduler_pid_iteration = 0;
-static spinlock_t scheduler_pid_iteration_spinlock = {};
+static spinlock_t scheduler_pid_iteration_spinlock = SPINLOCK_INIT;
 
 static int scheduler_tid_iteration = 0;
-static spinlock_t scheduler_tid_iteration_spinlock = {};
+static spinlock_t scheduler_tid_iteration_spinlock = SPINLOCK_INIT;
 
 static vector_t* schduler_waitpid_list = NULL;
 

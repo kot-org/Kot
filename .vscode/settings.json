@@ -144,7 +144,11 @@
         "serial.h": "c",
         "hid.h": "c",
         "e1000.h": "c",
-        "deps.h": "c"
+        "deps.h": "c",
+        "autoconf.h": "c",
+        "executor": "cpp",
+        "*.o": "cpp",
+        "buffer": "c"
     },
     "files.exclude": {
         "bundled": true,

@@ -8,18 +8,18 @@
 #include <arch/include.h>
 #include ARCH_INCLUDE(asm.h)
 
-#include "../odi/src/deps.h"
+#include "../odi-light/src/deps.h"
 
-u64 ODI_DEP_PAGE_SIZE = PAGE_SIZE;
-u8 ODI_DEP_MPROTECT_PAGE_CACHE_DISABLE = 1 << 1;
-u8 ODI_DEP_MPROTECT_PAGE_WRITE_BIT = 1 << 4; 
+uint64_t ODI_DEP_PAGE_SIZE = PAGE_SIZE;
+uint8_t ODI_DEP_MPROTECT_PAGE_CACHE_DISABLE = 1 << 1;
+uint8_t ODI_DEP_MPROTECT_PAGE_WRITE_BIT = 1 << 4; 
 
 //Conversion management.
-char* odi_dep_itoa(s64 value, char* str, int base){
+char* odi_dep_itoa(uint64_t value, char* str, int base){
     return itoa(value, str, base);
 }
 
-s64 odi_dep_atoi(const char * str){
+uint64_t odi_dep_atoi(const char * str){
     return atoi(str);
 }
 
@@ -74,11 +74,11 @@ void odi_dep_map_current_memory(void* virtual_memory, void* physical_memory){
     odi_dep_map_current_memory_size(virtual_memory, physical_memory, PAGE_SIZE);
 }
 
-void odi_dep_mprotect_current(void* address, u64 size, u8 permissions){
+void odi_dep_mprotect_current(void* address, uint64_t size, uint8_t permissions){
     vmm_update_flags(vmm_get_kernel_space(), (memory_range_t){address, size}, permissions);
 }
 
-void* odi_dep_request_current_page(void){
+void* odi_dep_request_page(void){
     return pmm_allocate_page();
 }
 
@@ -99,43 +99,6 @@ void odi_dep_vsnprintf(char* buffer, int size, const char* format, odi_va_list a
 void odi_dep_printf(const char* format, ...){
     va_list args;
     va_start(args, format);
-    printf_(format, args);
+    log_printv(format, args);
     va_end(args);
-}
-
-//IO Management. Usually an embedded assembly line does the trick.
-void odi_dep_outb(u16 port, u8 value){
-    io_write8(port, value);
-}
-
-void odi_dep_outw(u16 port, u16 value){
-    io_write16(port, value);
-}
-
-void odi_dep_outl(u16 port, u32 value){
-    io_write32(port, value);
-}
-
-u8 odi_dep_inb(u16 port){
-    return io_read8(port);
-}
-
-u16 odi_dep_inw(u16 port){
-    return io_read16(port);
-}
-
-u32 odi_dep_inl(u16 port){
-    return io_read32(port);
-}
-
-void odi_dep_insw(u16 port, u8* buffer, int count){
-    io_read_string(port, buffer, count);
-}
-
-void odi_dep_outsw(u16 port, u8 *buffer, int count){
-    io_write_string(port, buffer, count);
-}
-
-void odi_dep_io_wait(void){
-    io_write8(0x80, 0);
 }

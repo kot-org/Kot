@@ -2,6 +2,7 @@
 #define LIB_MODULES_VFS_H 1
 
 #include <stdbool.h>
+#include <lib/lock.h>
 #include <lib/modules/dir.h>
 #include <lib/modules/file.h>
 
@@ -37,6 +38,7 @@ typedef struct{
     */
     char* cwd;
     size_t cwd_size;
+    spinlock_t cwd_lock;
 } vfs_ctx_t;
 
 typedef int (*file_remove_vfs_t)(vfs_ctx_t*, const char*);

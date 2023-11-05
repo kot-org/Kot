@@ -1,9 +1,9 @@
 #include <partition.h>
 
-static spinlock_t partition_list_lock = {};
+static spinlock_t partition_list_lock = SPINLOCK_INIT;
 static vector_t* partition_list = NULL;
 
-static spinlock_t potential_owner_list_lock = {};
+static spinlock_t potential_owner_list_lock = SPINLOCK_INIT;
 static vector_t* potential_owner_list = NULL;
 
 static void add_partition_to_list(partition_t* partition){

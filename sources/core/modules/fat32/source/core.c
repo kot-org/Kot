@@ -128,7 +128,7 @@ static inline int fat_set_next_cluster(fat_context_t* ctx, uint32_t current, uin
     return 0;
 }
 
-static spinlock_t fat_allocate_cluster_lock = {};
+static spinlock_t fat_allocate_cluster_lock = SPINLOCK_INIT;
 
 static int fat_allocate_cluster(fat_context_t* ctx, uint32_t* cluster){
     spinlock_acquire(&fat_allocate_cluster_lock);
@@ -1400,6 +1400,11 @@ int fat_interface_dir_remove(struct fs_t* ctx, const char* path){
     return fat_remove_dir((fat_context_t*)ctx->internal_data, fat_interface_convert_path((char*)path));
 }
 
+int fat_interface_close(struct kernel_dir_t* dir){
+    free(dir);
+    return 0;
+}
+
 struct kernel_dir_t* fat_interface_dir_open(struct fs_t* ctx, const char* path, int* error){    
     fat_context_t* fat_ctx = (fat_context_t*)ctx->internal_data;
     fat_directory_internal_t* fat_dir = fat_open_dir(fat_ctx, fat_interface_convert_path((char*)path), error);
@@ -1413,6 +1418,7 @@ struct kernel_dir_t* fat_interface_dir_open(struct fs_t* ctx, const char* path, 
     dir->get_directory_entries = &fat_interface_get_directory_entries;
     dir->create_at = &fat_interface_create_at;
     dir->unlink_at = &fat_interface_unlink_at;
+    dir->close = &fat_interface_close;
 
     return dir;
 }

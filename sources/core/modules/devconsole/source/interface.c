@@ -13,7 +13,7 @@
 #define BUFFER_COUNT    2
 #define KEY_BUFFER_SIZE 1024
 
-spinlock_t key_handler_lock = {};
+spinlock_t key_handler_lock = SPINLOCK_INIT;
 
 char key_buffer[BUFFER_COUNT][KEY_BUFFER_SIZE + 1];
 uint8_t key_buffer_char_write_index = 0;

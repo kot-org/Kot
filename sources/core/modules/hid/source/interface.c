@@ -11,7 +11,7 @@
 hid_handler_t hid_internal_handler;
 
 key_handler_t handler;
-spinlock_t scancode_translation_table_lock = {};
+spinlock_t scancode_translation_table_lock = SPINLOCK_INIT;
 uint16_t* scancode_table_buffer = NULL;
 size_t scancode_table_size = 0;
 

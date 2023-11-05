@@ -296,6 +296,11 @@ int devfs_interface_unlink_at(struct kernel_dir_t* dir, const char* path, int fl
     return ENOSYS;
 }
 
+int devfs_interface_close(struct kernel_dir_t* dir){
+    free(dir);
+    return 0;
+}
+
 struct kernel_dir_t* devfs_interface_dir_open(struct fs_t* ctx, const char* path, int* error){
     devfs_context_t* devfs_ctx = (devfs_context_t*)ctx->internal_data;
     devfs_directory_internal_t* devfs_dir = devfs_open_dir(devfs_ctx, devfs_interface_convert_path((char*)path), error);
@@ -309,6 +314,7 @@ struct kernel_dir_t* devfs_interface_dir_open(struct fs_t* ctx, const char* path
     dir->get_directory_entries = &devfs_interface_get_directory_entries;
     dir->create_at = &devfs_interface_create_at;
     dir->unlink_at = &devfs_interface_unlink_at;
+    dir->close = &devfs_interface_close;
 
     return dir;
 }

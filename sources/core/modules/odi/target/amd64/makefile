@@ -34,12 +34,12 @@ rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(
 C_SRC = $(filter-out $(SOURCE)/main.c,$(call rwildcard,$(SOURCE),*.c))
 
 check-odi-actions:
-ifneq ("$(wildcard ../../odi/.*)","")
-	cd ../../odi && git pull
+ifneq ("$(wildcard ../../odi-light/.*)","")
+	cd ../../odi-light && git pull
 else
-	cd ../../ && git clone https://github.com/Open-Driver-Interface/odi
+	cd ../../ && git clone https://github.com/kot-org/odi-light
 endif
-	cd ../../odi && sh ocf.sh
+	cd ../../odi-light/scripts && sh ocf.sh
 
 
 # Target
