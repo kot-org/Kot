@@ -2,6 +2,7 @@
 #define _MODULE_DEVFS_CORE_H
 
 #include <errno.h>
+#include <lib/math.h>
 #include <lib/memory.h>
 #include <lib/string.h>
 #include <lib/vector.h>

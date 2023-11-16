@@ -161,11 +161,11 @@ namespace mlibc{
 
         switch(fsfdt){
             case fsfd_target::path:{
-                result = do_syscall(SYS_PATH_STAT, path, strlen(path), statbuf);
+                result = do_syscall(SYS_PATH_STAT, path, strlen(path), flags, statbuf);
                 break;
             }
             case fsfd_target::fd:{
-                result = do_syscall(SYS_FD_STAT, fd, statbuf);
+                result = do_syscall(SYS_FD_STAT, fd, flags, statbuf);
                 break;
             }
             default:{
@@ -209,16 +209,20 @@ namespace mlibc{
     int sys_chdir(const char *path){
         #if !MLIBC_BUILDING_RTDL
 
-        mlibc::infoLogger() << "mlibc: " << __func__ << ":" << path << "\n" << frg::endlog;
-
         const char* real_path = realpath(path, NULL);
-        auto result = do_syscall(SYS_CHDIR, real_path, strlen(real_path));
 
-        if(result < 0){
-            return -result;
+        if(real_path != NULL){
+            auto result = do_syscall(SYS_CHDIR, real_path, strlen(real_path));
+
+            if(result < 0){
+                return -result;
+            }
+
+            return 0;
+        }else{
+            return ENOENT;
         }
 
-        return 0;
 
         #else
 

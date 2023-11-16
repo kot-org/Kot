@@ -78,6 +78,14 @@ int system_link(fs_t* ctx, const char* src_path, const char* dst_path){
     return system_fs->link(system_fs, src_fs_relative_path, dst_fs_relative_path);
 }
 
+int system_stat(fs_t* ctx, const char* path, int flags, struct stat* statbuf){
+    char fs_relative_path[VFS_MAX_PATH_SIZE + 1];
+    strcpy(fs_relative_path, ctx->internal_data);
+    strcat(fs_relative_path, path);
+
+    return system_fs->stat(system_fs, fs_relative_path, flags, statbuf);
+}
+
 static bool check_system_file(fs_t* fs){
     int error = 0;
 
@@ -162,6 +170,7 @@ void system_tasks_mount(fs_t* fs){
                 fs_vfs->dir_open = &system_dir_open;
                 fs_vfs->rename = &system_rename;
                 fs_vfs->link = &system_link;
+                fs_vfs->stat = &system_stat;
                 local_mount_fs(data, fs_vfs);         
             }
         }

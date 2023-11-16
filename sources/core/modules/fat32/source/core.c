@@ -1343,6 +1343,7 @@ int fat_interface_file_ioctl(uint32_t request, void* arg, int* result, kernel_fi
 int fat_interface_file_stat(int flags, struct stat* statbuf, kernel_file_t* file){
     fat_file_internal_t* fat_file = file->internal_data;
     memset(statbuf, 0, sizeof(struct stat));
+    statbuf->st_mode = S_IFREG;
     statbuf->st_size = fat_file->entry.size;
     statbuf->st_blocks = DIV_ROUNDUP(statbuf->st_size, 512);
     statbuf->st_blksize = 512;
@@ -1432,6 +1433,46 @@ int fat_interface_link(struct fs_t* ctx, const char* src_path, const char* dst_p
     return ENOSYS;
 }
 
+int fat_interface_stat(struct fs_t* ctx, const char* path, int flags, struct stat* statbuf){
+    char* path_convert = fat_interface_convert_path((char*)path);
+    fat_context_t* fat_ctx = (fat_context_t*)ctx->internal_data;
+
+    void* cluster_buffer = malloc(fat_ctx->cluster_size);
+
+    fat_short_entry_t* fat_entry = fat_find_entry_with_path_from_root(fat_ctx, path_convert, cluster_buffer);
+
+    if(fat_entry != NULL){
+        fat_entry = fat_find_entry_with_path_from_root(fat_ctx, path_convert, cluster_buffer);
+        memset(statbuf, 0, sizeof(struct stat));
+
+        statbuf->st_mode = fat_entry->attributes.directory ? S_IFDIR : S_IFREG;
+
+        statbuf->st_size = fat_entry->size;
+        statbuf->st_blocks = DIV_ROUNDUP(statbuf->st_size, 512);
+        statbuf->st_blksize = 512;
+
+        struct tm time_info;
+
+        fat_get_entry_time(&time_info, 0);
+        fat_get_entry_date(&time_info, fat_entry->last_access_date);
+        statbuf->st_atime = mktime(&time_info);
+
+        fat_get_entry_time(&time_info, fat_entry->last_write_time);
+        fat_get_entry_date(&time_info, fat_entry->last_write_date);
+        statbuf->st_mtime = mktime(&time_info);
+
+        fat_get_entry_time(&time_info, fat_entry->creation_time);
+        fat_get_entry_date(&time_info, fat_entry->creation_date);
+        statbuf->st_ctime = mktime(&time_info);
+
+        free(cluster_buffer);
+        return 0;
+    }else{
+        free(cluster_buffer);
+        return ENOENT;
+    }
+}
+
 /* mount */
 
 int fat_mount(partition_t* partition){
@@ -1497,6 +1538,7 @@ int fat_mount(partition_t* partition){
     vfs_interface->dir_open = &fat_interface_dir_open;
     vfs_interface->rename = &fat_interface_rename;
     vfs_interface->link = &fat_interface_link;
+    vfs_interface->stat = &fat_interface_stat;
 
     char* mount_path = vfs_request_friendly_fs_mount_name(partition->device->is_removable);
     assert(!vfs_mount_fs(mount_path, vfs_interface));

@@ -10,5 +10,6 @@ void vfs_initrd_init(void){
     fs_vfs->dir_open = &vfs_dir_open_not_implemented;
     fs_vfs->rename = (rename_fs_t)&vfs_return_not_implemented;
     fs_vfs->link = (link_fs_t)&vfs_return_not_implemented;
+    fs_vfs->stat = (stat_fs_t)&vfs_return_not_implemented;
     local_mount_fs("/initrd", fs_vfs);
 }

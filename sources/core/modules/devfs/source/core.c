@@ -59,7 +59,7 @@ static devfs_directory_entry_t* devfs_get_entry(devfs_directory_entry_t* entry, 
         }
     }
 
-    return NULL;
+    return entry;
 }
 
 static int devfs_create_directory_entry_to_parent(devfs_directory_entry_t* parent, char* entry_name){
@@ -284,8 +284,35 @@ int devfs_interface_dir_remove(struct fs_t* ctx, const char* path){
 }
 
 int devfs_interface_get_directory_entries(void* buffer, size_t max_size, size_t* bytes_read, kernel_dir_t* dir){
-    // TODO
-    return ENOSYS;
+    uint64_t max_entry_count = (uint64_t)(max_size / sizeof(dirent_t));
+    dirent_t* entry = (dirent_t*)buffer;
+    uint64_t entry_index = dir->seek_position;
+    uint64_t current_entry_count = 0;
+
+    devfs_directory_internal_t* devfs_dir = dir->internal_data;
+    uint64_t entry_index_end = devfs_dir->entries->length;
+
+    while(entry_index < entry_index_end && current_entry_count < max_entry_count){
+        devfs_directory_entry_t* dir_entry = vector_get(devfs_dir->entries, entry_index);
+        entry->d_ino = (ino_t)entry_index;
+        entry->d_off = (off_t)entry_index;
+        entry->d_reclen = sizeof(dirent_t);
+        entry->d_type =  dir_entry->is_file ? DT_REG : DT_DIR;
+        size_t size_name_to_copy = MIN(strlen(dir_entry->name), sizeof(entry->d_name) - 1);
+        strncpy(entry->d_name, dir_entry->name, size_name_to_copy);
+        entry->d_name[size_name_to_copy] = '\0';
+
+        current_entry_count++;
+
+        entry = (dirent_t*)((off_t)entry + entry->d_reclen);
+        entry_index++;
+    }
+
+    dir->seek_position = entry_index;
+
+    *bytes_read = current_entry_count * sizeof(dirent_t);
+
+    return 0;
 }
 
 int devfs_interface_create_at(struct kernel_dir_t* dir, const char* path, mode_t mode){
@@ -348,6 +375,10 @@ int devfs_interface_link(struct fs_t* ctx, const char* src_path, const char* dst
     return ENOSYS;
 }
 
+int devfs_interface_stat(struct fs_t* ctx, const char* path, int flags, struct stat* statbuf){
+    return ENOSYS;
+}
+
 int devfs_add_dev(devfs_context_t* devfs_ctx, const char* path, file_open_fs_t open_handler){
     int error = 0;
     char* entry_name;
@@ -401,6 +432,7 @@ devfs_context_t* init_devfs(void){
         vfs_interface->dir_open = &devfs_interface_dir_open;
         vfs_interface->rename = &devfs_interface_rename;
         vfs_interface->link = &devfs_interface_link;
+        vfs_interface->stat = &devfs_interface_stat;
 
         assert(!vfs_mount_fs("/dev", vfs_interface));
         assert(!vfs_mount_fs("/devfs", vfs_interface));

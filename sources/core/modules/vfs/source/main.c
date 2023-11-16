@@ -25,6 +25,7 @@ int init(int argc, char* args[]){
     vfs_handler_buffer.dir_open = &dir_open;
     vfs_handler_buffer.rename = &vfs_rename;
     vfs_handler_buffer.link = &vfs_link;
+    vfs_handler_buffer.stat = &vfs_stat;
 
     vfs_handler_buffer.mount_fs = &mount_fs;
     vfs_handler_buffer.unmount_fs = &unmount_fs;

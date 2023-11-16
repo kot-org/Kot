@@ -17,6 +17,7 @@ typedef struct kernel_dir_t* (*dir_open_fs_t)(struct fs_t*, const char*, int*);
 
 typedef int (*rename_fs_t)(struct fs_t*, const char*, const char*);
 typedef int (*link_fs_t)(struct fs_t*, const char*, const char*);
+typedef int (*stat_fs_t)(struct fs_t*, const char*, int, struct stat*);
 
 typedef struct fs_t{
     void* internal_data;
@@ -28,6 +29,7 @@ typedef struct fs_t{
     dir_open_fs_t dir_open;
     rename_fs_t rename;
     link_fs_t link;
+    stat_fs_t stat;
 } fs_t;
 
 typedef struct{
@@ -51,6 +53,8 @@ typedef struct kernel_dir_t* (*dir_open_vfs_t)(vfs_ctx_t*, const char*, int*);
 typedef int (*rename_vfs_t)(vfs_ctx_t*, const char*, const char*);
 typedef int (*link_vfs_t)(vfs_ctx_t*, const char*, const char*);
 
+typedef int (*stat_vfs_t)(vfs_ctx_t*, const char*, int, struct stat*);
+
 
 typedef struct{
     file_remove_vfs_t file_remove;
@@ -60,6 +64,7 @@ typedef struct{
     dir_open_vfs_t dir_open;
     rename_vfs_t rename;
     link_vfs_t link;
+    stat_vfs_t stat;
 
     int (*mount_fs)(const char* fs_mount_name, fs_t* fs);
     int (*unmount_fs)(const char* fs_mount_name);

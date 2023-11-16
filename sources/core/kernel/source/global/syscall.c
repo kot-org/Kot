@@ -413,13 +413,14 @@ static void syscall_handler_rename_at(cpu_context_t* ctx){
 static void syscall_handler_path_stat(cpu_context_t* ctx){
     char* path = (char*)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
     size_t path_len = (size_t)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
-    struct stat* stat_buf = (struct stat*)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+    int flags = (int)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+    struct stat* statbuf = (struct stat*)ARCH_CONTEXT_SYSCALL_ARG3(ctx);
 
     if(path_len >= PATH_MAX){
         SYSCALL_RETURN(ctx, -EINVAL);
     }
 
-    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){stat_buf, sizeof(struct stat)})){
+    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){statbuf, sizeof(struct stat)})){
         SYSCALL_RETURN(ctx, -EINVAL);
     }
 
@@ -429,9 +430,13 @@ static void syscall_handler_path_stat(cpu_context_t* ctx){
 
     path[path_len] = '\0';
 
-    // TODO
+    int error = vfs_stat(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx, path, flags, statbuf);
 
-    SYSCALL_RETURN(ctx, ENOSYS);    
+    if(error){
+        SYSCALL_RETURN(ctx, -error);
+    }
+
+    SYSCALL_RETURN(ctx, 0);
 }
 
 static void syscall_handler_fd_stat(cpu_context_t* ctx){
@@ -449,7 +454,7 @@ static void syscall_handler_getcwd(cpu_context_t* ctx){
     size_t size = (size_t)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
 
     spinlock_acquire(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_lock);
-    size_t cwd_size = ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_size;
+    size_t cwd_size = ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_size + sizeof((char)'/');
     spinlock_release(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_lock);
 
     if(cwd_size >= size){
@@ -461,10 +466,14 @@ static void syscall_handler_getcwd(cpu_context_t* ctx){
     }
 
     spinlock_acquire(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_lock);
-    memcpy(buffer, ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd, cwd_size);
+    ssize_t size_to_copy = cwd_size - sizeof((char)'/') - sizeof((char)'/');
+    if(size_to_copy > 0){
+        memcpy(buffer + sizeof((char)'/'), ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd, size_to_copy);
+    }
     spinlock_release(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_lock);
 
-    buffer[cwd_size] = '\0';
+    buffer[0] = '/';
+    buffer[cwd_size - sizeof((char)'/')] = '\0';
     
     SYSCALL_RETURN(ctx, 0);    
 }
@@ -492,8 +501,29 @@ static void syscall_handler_chdir(cpu_context_t* ctx){
     d_close(dir);
 
     spinlock_acquire(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_lock);
-    ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_size = size;
-    memcpy(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd, path + sizeof((char)'/'), size - sizeof((char)'/'));
+
+    ssize_t size_to_copy = size;
+
+    if(path[0] == '/'){
+        path++;
+        size_to_copy--;
+    }
+
+    if(path[size - 1] == '/'){
+        size_to_copy--;
+    }
+
+    size_t cwd_size = size_to_copy + sizeof((char)'/'); 
+    ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_size = cwd_size;
+    ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd = malloc(cwd_size + sizeof((char)'\0'));
+
+    if(size_to_copy > 0){
+        memcpy(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd, path, size_to_copy);
+    }
+
+    ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd[cwd_size - 1] = '/';
+    ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd[cwd_size] = '\0';
+
     spinlock_release(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx->cwd_lock);
 
     SYSCALL_RETURN(ctx, 0);

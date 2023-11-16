@@ -148,7 +148,11 @@
         "autoconf.h": "c",
         "executor": "cpp",
         "*.o": "cpp",
-        "buffer": "c"
+        "buffer": "c",
+        "rope": "c",
+        "regex": "c",
+        "internet": "c",
+        "typeindex": "c"
     },
     "files.exclude": {
         "bundled": true,

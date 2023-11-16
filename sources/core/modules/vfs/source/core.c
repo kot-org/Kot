@@ -55,6 +55,7 @@ static int get_fs_mount_name_from_path(vfs_ctx_t* ctx, const char* path, char* f
         strncpy(fs_mount_name + sizeof((char)'/'), path, fs_mount_name_size);
         strcpy(fs_relative_path, fs_relative_path_tmp);
     }else{
+        fs_relative_path[0] = '\0';
         fs_mount_name[0] = '/';
         strncpy(fs_mount_name + sizeof((char)'/'), path, path_size);
     }
@@ -106,7 +107,7 @@ kernel_file_t* vfs_file_open_not_implemented(fs_t* ctx, const char* path, int fl
     return NULL;
 }
 
-int vfs_get_directory_entries(void* buffer, size_t max_size, size_t* bytes_read, kernel_dir_t* dir){
+int vfs_interface_get_directory_entries(void* buffer, size_t max_size, size_t* bytes_read, kernel_dir_t* dir){
     uint64_t max_entry_count = (uint64_t)(max_size / sizeof(dirent_t));
     dirent_t* entry = (dirent_t*)buffer;
     uint64_t entry_index = dir->seek_position;
@@ -118,17 +119,20 @@ int vfs_get_directory_entries(void* buffer, size_t max_size, size_t* bytes_read,
     while(entry_index < entry_index_end && current_entry_count < max_entry_count){
         char* name = hashmap_get_key(vfs_hashmap, entry_index);
         if(name != NULL){
-            entry->d_ino = (ino_t)entry_index;
-            entry->d_off = (off_t)entry_index;
-            entry->d_reclen = sizeof(dirent_t);
-            entry->d_type = DT_DIR;
-            size_t size_name_to_copy = MIN(strlen(name), sizeof(entry->d_name) - 1);
-            strncpy(entry->d_name, name, size_name_to_copy);
-            entry->d_name[size_name_to_copy] = '\0';
+            name += sizeof((char)'/');
+            if(name[0] != '\0'){
+                entry->d_ino = (ino_t)entry_index;
+                entry->d_off = (off_t)entry_index;
+                entry->d_reclen = sizeof(dirent_t);
+                entry->d_type = DT_DIR;
+                size_t size_name_to_copy = MIN(strlen(name), sizeof(entry->d_name) - 1);
+                strncpy(entry->d_name, name, size_name_to_copy);
+                entry->d_name[size_name_to_copy] = '\0';
 
-            current_entry_count++;
+                current_entry_count++;
 
-            entry = (dirent_t*)((off_t)entry + entry->d_reclen);
+                entry = (dirent_t*)((off_t)entry + entry->d_reclen);
+            }
         }
         entry_index++;
     }
@@ -142,35 +146,36 @@ int vfs_get_directory_entries(void* buffer, size_t max_size, size_t* bytes_read,
     return 0;
 }
 
-int vfs_create_at(struct kernel_dir_t* dir, const char* path, mode_t mode){
+int vfs_interface_create_at(struct kernel_dir_t* dir, const char* path, mode_t mode){
     return ENOSYS;
 }
 
-int vfs_unlink_at(struct kernel_dir_t* dir, const char* path, int flags){
+int vfs_interface_unlink_at(struct kernel_dir_t* dir, const char* path, int flags){
     return ENOSYS;
 }
 
-int vfs_close(struct kernel_dir_t* dir){
+int vfs_interface_close(struct kernel_dir_t* dir){
     free(dir);
     return 0;
 }
 
-kernel_dir_t* vfs_dir_open(fs_t* ctx, const char* path, int* error){
-    if(path[0] != '\0'){
-        *error = ENOENT;
-        return NULL;
-    }
-
+kernel_dir_t* vfs_interface_dir_open(fs_t* ctx, const char* path, int* error){
     kernel_dir_t* dir = malloc(sizeof(kernel_dir_t));
 
     dir->fs_ctx = ctx;
     dir->seek_position = hashmap_get_start(vfs_hashmap);
-    dir->get_directory_entries = &vfs_get_directory_entries;
-    dir->create_at = &vfs_create_at;
-    dir->unlink_at = &vfs_unlink_at;
-    dir->close = &vfs_close;
+    dir->get_directory_entries = &vfs_interface_get_directory_entries;
+    dir->create_at = &vfs_interface_create_at;
+    dir->unlink_at = &vfs_interface_unlink_at;
+    dir->close = &vfs_interface_close;
 
     return dir;
+}
+
+int vfs_interface_stat(struct fs_t* ctx, const char* path, int flags, struct stat* statbuf){
+    memset(statbuf, 0, sizeof(struct stat));
+    statbuf->st_mode = S_IFDIR;
+    return 0;
 }
 
 void vfs_init(void){
@@ -180,10 +185,12 @@ void vfs_init(void){
     fs_vfs->file_open = &vfs_file_open_not_implemented;
     fs_vfs->dir_create = (dir_create_fs_t)&vfs_return_not_implemented;
     fs_vfs->dir_remove = (dir_remove_fs_t)&vfs_return_not_implemented;
-    fs_vfs->dir_open = &vfs_dir_open;
+    fs_vfs->dir_open = &vfs_interface_dir_open;
     fs_vfs->rename = (rename_fs_t)&vfs_return_not_implemented;
     fs_vfs->link = (link_fs_t)&vfs_return_not_implemented;
+    fs_vfs->stat = &vfs_interface_stat;
     local_mount_fs("/", fs_vfs);
+    local_mount_fs("/.", fs_vfs);
 }
 
 char* request_friendly_fs_mount_name(bool is_removable){
@@ -385,4 +392,17 @@ int vfs_link(vfs_ctx_t* ctx, const char* src_path, const char* dst_path){
     }
 
     return src_fs->link(src_fs, src_fs_relative_path, dst_fs_relative_path);
+}
+
+int vfs_stat(vfs_ctx_t* ctx, const char* path, int flags, struct stat* statbuf){
+    char fs_relative_path[VFS_MAX_PATH_SIZE + 1];
+    fs_t* fs;
+
+    int error = get_fs_and_relative_path(ctx, path, fs_relative_path, &fs);
+    
+    if(error){
+        return error;
+    }
+
+    return fs->stat(fs, fs_relative_path, flags, statbuf);    
 }

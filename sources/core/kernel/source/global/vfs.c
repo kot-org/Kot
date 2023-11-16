@@ -23,6 +23,10 @@ int vfs_link(vfs_ctx_t* ctx, const char* src_path, const char* dst_path){
     return vfs_handler->link(ctx, src_path, dst_path);
 }
 
+int vfs_stat(vfs_ctx_t* ctx, const char* path, int flags, struct stat* statbuf){
+    return vfs_handler->stat(ctx, path, flags, statbuf);
+}
+
 int vfs_mount_fs(const char* fs_mount_name, fs_t* fs){
     return vfs_handler->mount_fs(fs_mount_name, fs);
 }
