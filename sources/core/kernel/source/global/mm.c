@@ -135,6 +135,11 @@ memory_handler_t* mm_clone_handler(vmm_space_t vmm_space, memory_handler_t* sour
     return destination;    
 }
 
+int mm_free_handler(memory_handler_t* handler){
+    // TODO
+    return 0;
+}
+
 int free_handler(memory_handler_t* handler){
     memory_region_t* region = handler->first_region;
     for(uint64_t i = 0; i < handler->region_count; i++){
