@@ -322,9 +322,9 @@ int scheduler_free_thread(thread_t* thread){
 }
 
 int scheduler_exit_thread(thread_t* thread, cpu_context_t* ctx){
-    vector_set(thread->process->threads, thread->index, NULL);
-
     spinlock_acquire(&scheduler_spinlock);
+    
+    vector_set(thread->process->threads, thread->index, NULL);
 
     if(thread->is_in_queue){
         scheduler_dequeue(thread);
@@ -413,10 +413,18 @@ int scheduler_execve_syscall(char* path, int argc, char** args, char** envp, cpu
 
     process->memory_handler = mm_create_handler(vmm_create_space(), (void*)VMM_USERSPACE_BOTTOM_ADDRESS, (size_t)((uintptr_t)VMM_USERSPACE_TOP_ADDRESS - (uintptr_t)VMM_USERSPACE_BOTTOM_ADDRESS));
 
-    assert(!load_elf_exec_with_file(process, file, argc, args, envp));
+    error = load_elf_exec_with_file(process, file, argc, args, envp);
+    
+    if(error){
+        memory_handler_t* memory_handler_to_free = process->memory_handler;
+        process->entry_thread = old_entry_thread;
+        process->memory_handler = old_memory_handler;
+        mm_free_handler(memory_handler_to_free);
+        return error;
+    }
 
     // TODO free the old_entry_thread
-    // TODO free the old_memory_handler
+    mm_free_handler(old_memory_handler);
 
     assert(!scheduler_launch_process(process));
     
