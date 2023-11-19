@@ -152,7 +152,8 @@
         "rope": "c",
         "regex": "c",
         "internet": "c",
-        "typeindex": "c"
+        "typeindex": "c",
+        "doomgeneric.h": "c"
     },
     "files.exclude": {
         "bundled": true,

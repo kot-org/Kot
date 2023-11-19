@@ -83,31 +83,41 @@ int fb_interface_read(void* buffer, size_t size, size_t* bytes_read, struct kern
 }
 
 int fb_interface_write(void* buffer, size_t size, size_t* bytes_write, kernel_file_t* file){
-    memcpy((void*)((uintptr_t)boot_fb->base + (uintptr_t)file->seek_position), buffer, size);
+    ssize_t size_to_write = size;
+    if(size_to_write > boot_fb->size){
+        size_to_write = boot_fb->size;
+    }
+
+    if(size_to_write > var_screeninfo.yres_virtual * var_screeninfo.xres_virtual * boot_fb->bpp){
+        size_to_write = var_screeninfo.yres_virtual * var_screeninfo.xres_virtual * boot_fb->bpp;
+    }
+
+    uintptr_t offset_write = (uintptr_t)boot_fb->base;
+    uintptr_t offset_read = (uintptr_t)buffer;
+
+    while(size_to_write != 0){
+        size_t size_to_write_line = size_to_write;
+        if(size_to_write_line > boot_fb->pitch){
+            size_to_write_line = boot_fb->pitch;
+        }
+
+        if(size_to_write_line > var_screeninfo.xres_virtual * boot_fb->btpp){
+            size_to_write_line = var_screeninfo.xres_virtual * boot_fb->btpp;
+        }
+
+        memcpy((void*)offset_write, (void*)offset_read, size_to_write_line);
+
+        offset_write += boot_fb->pitch;
+        offset_read += size_to_write_line;
+        size_to_write -= size_to_write_line;
+    }
+
     *bytes_write = size;
     return 0;
 }
 
 int fb_interface_seek(off_t offset, int whence, off_t* new_offset, kernel_file_t* file){
-    switch(whence){
-        case SEEK_SET:{
-            file->seek_position = offset;
-            *new_offset = file->seek_position;
-            return 0;
-        }
-        case SEEK_CUR:{
-            file->seek_position += offset;
-            *new_offset = file->seek_position;
-            return 0;
-        }
-        case SEEK_END:{
-            file->seek_position = boot_fb->size;
-            *new_offset = file->seek_position;
-            return 0;
-        }
-    }
-    *new_offset = 0;
-    return EINVAL;
+    return 0;
 }
 
 int fb_interface_ioctl(uint32_t request, void* arg, int* result, kernel_file_t* file){
@@ -127,6 +137,15 @@ int fb_interface_ioctl(uint32_t request, void* arg, int* result, kernel_file_t* 
             memcpy(arg, &var_screeninfo, sizeof(struct fb_var_screeninfo));
             *result = 0;
             return 0;        
+        }
+        case FBIOPUT_VSCREENINFO:{
+            if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){arg, sizeof(struct fb_var_screeninfo)})){
+                return EINVAL;
+            }
+            var_screeninfo.xres_virtual = ((struct fb_var_screeninfo*)arg)->xres_virtual;
+            var_screeninfo.yres_virtual = ((struct fb_var_screeninfo*)arg)->yres_virtual;
+            *result = 0;
+            return 0;
         }
         default:{
             return EINVAL;
@@ -168,6 +187,5 @@ kernel_file_t* fb_interface_open(struct fs_t* ctx, const char* path, int flags, 
 
 
 void interface_init(void){
-
     devfs_add_dev("fb0", &fb_interface_open);
 }

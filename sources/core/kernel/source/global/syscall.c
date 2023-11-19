@@ -9,6 +9,7 @@
 #include <kot/syscall.h>
 #include <global/heap.h>
 #include <global/file.h>
+#include <global/time.h>
 #include <global/syscall.h>
 #include <global/resources.h>
 #include <global/elf_loader.h>
@@ -116,8 +117,18 @@ static void syscall_handler_thread_exit(cpu_context_t* ctx){
 }
 
 static void syscall_handler_clock_get(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    struct timespec* ts = (struct timespec*)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+
+    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){ts, sizeof(struct timespec)})){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+
+    ms_t ms = get_current_ms();
+
+    ts->tv_sec = ms / 1000;
+    ts->tv_nsec = ms * 1000000;
+
+    SYSCALL_RETURN(ctx, 0);     
 }
 
 static void syscall_handler_clock_getres(cpu_context_t* ctx){
@@ -126,8 +137,15 @@ static void syscall_handler_clock_getres(cpu_context_t* ctx){
 }
 
 static void syscall_handler_sleep(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    struct timespec* ts = (struct timespec*)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+
+    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){ts, sizeof(struct timespec)})){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+
+    ms_t ms = (ms_t)((ts->tv_sec * 1000) + (ts->tv_nsec / 1000000));
+
+    SYSCALL_RETURN(ctx, sleep_ms(ms));    
 }
 
 static void syscall_handler_sigprocmask(cpu_context_t* ctx){
