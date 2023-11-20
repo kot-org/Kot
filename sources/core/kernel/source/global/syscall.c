@@ -117,16 +117,19 @@ static void syscall_handler_thread_exit(cpu_context_t* ctx){
 }
 
 static void syscall_handler_clock_get(cpu_context_t* ctx){
-    struct timespec* ts = (struct timespec*)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    int clock = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    struct timespec* ts = (struct timespec*)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
+
+    // TODO : use clock
 
     if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){ts, sizeof(struct timespec)})){
         SYSCALL_RETURN(ctx, -EINVAL);
     }
 
-    ms_t ms = get_current_ms();
+    us_t us = get_current_us();
 
-    ts->tv_sec = ms / 1000;
-    ts->tv_nsec = ms * 1000000;
+    ts->tv_sec = TIME_CONVERT_MICROSECOND_TO_SECOND(us);
+    ts->tv_nsec = TIME_CONVERT_MICROSECOND_TO_NANOSECOND(TIME_GET_MICROSECOND_UNDER_SECOND(us));
 
     SYSCALL_RETURN(ctx, 0);     
 }
@@ -143,9 +146,9 @@ static void syscall_handler_sleep(cpu_context_t* ctx){
         SYSCALL_RETURN(ctx, -EINVAL);
     }
 
-    ms_t ms = (ms_t)((ts->tv_sec * 1000) + (ts->tv_nsec / 1000000));
+    us_t us = (us_t)(TIME_CONVERT_SECOND_TO_MICROSECOND(ts->tv_sec) + TIME_CONVERT_NANOSECOND_TO_MICROSECOND(ts->tv_nsec));
 
-    SYSCALL_RETURN(ctx, sleep_ms(ms));    
+    SYSCALL_RETURN(ctx, sleep_us(us));    
 }
 
 static void syscall_handler_sigprocmask(cpu_context_t* ctx){

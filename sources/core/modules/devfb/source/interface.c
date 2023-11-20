@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <lib/log.h>
+#include <lib/lock.h>
 #include <impl/vmm.h>
 #include <linux/fb.h>
 #include <lib/string.h>
@@ -7,7 +8,6 @@
 #include <global/heap.h>
 #include <global/devfs.h>
 #include <impl/graphics.h>
-#include <lib/lock.h>
 
 static bool use_boot_fb = false;
 static spinlock_t boot_fb_lock = SPINLOCK_INIT;
@@ -22,6 +22,9 @@ static int boot_fb_callback(void){
 }
 
 static void request_boot_fb(void){
+    /* get key handler */
+    hid_handler->set_key_handler(&key_handler);
+
     boot_fb = graphics_get_boot_fb(&boot_fb_callback);
 
     /* fill fix_screeninfo struct */
@@ -74,12 +77,6 @@ static void request_boot_fb(void){
     var_screeninfo.vmode = FB_VMODE_NONINTERLACED;
     var_screeninfo.rotate = 0;
     var_screeninfo.colorspace = 0;
-}
-
-int fb_interface_read(void* buffer, size_t size, size_t* bytes_read, struct kernel_file_t* file){
-    memcpy(buffer, (void*)((uintptr_t)boot_fb->base + (uintptr_t)file->seek_position), size);
-    *bytes_read = size;
-    return 0;
 }
 
 int fb_interface_write(void* buffer, size_t size, size_t* bytes_write, kernel_file_t* file){

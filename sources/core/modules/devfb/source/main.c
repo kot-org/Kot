@@ -4,6 +4,7 @@
 
 #define MODULE_NAME "devfb"
 
+#include <key.c>
 #include <interface.c>
 
 int init(int argc, char* args[]){

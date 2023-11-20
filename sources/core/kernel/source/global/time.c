@@ -34,10 +34,10 @@ int sleep(int seconds){
     return time_handler->sleep(seconds);
 }
 
-int sleep_ms(ms_t ms){
-    return time_handler->sleep_ms(ms);
+int sleep_us(us_t us){
+    return time_handler->sleep_us(us);
 }
 
-ms_t get_current_ms(void){
-    return time_handler->get_current_ms();
+us_t get_current_us(void){
+    return time_handler->get_current_us();
 }

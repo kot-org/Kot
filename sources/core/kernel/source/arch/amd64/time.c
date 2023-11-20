@@ -14,8 +14,8 @@ void time_init(void){
     early_time_handler.get_current_month = kernel_get_current_month;
     early_time_handler.get_current_year = kernel_get_current_year;
     early_time_handler.sleep = kernel_sleep;
-    early_time_handler.sleep_ms = kernel_sleep_ms;
-    early_time_handler.get_current_ms = kernel_get_current_ms;
+    early_time_handler.sleep_us = kernel_sleep_us;
+    early_time_handler.get_current_us = kernel_get_current_us;
     time_handler = &early_time_handler;
 }
 
@@ -52,11 +52,11 @@ int kernel_sleep(int seconds){
     return 0;
 }
 
-int kernel_sleep_ms(ms_t ms){
-    hpet_sleep(ms);
+int kernel_sleep_us(us_t us){
+    hpet_sleep(us);
     return 0;
 }
 
-ms_t kernel_get_current_ms(void){
+us_t kernel_get_current_us(void){
     return hpet_get_current_time();
 }

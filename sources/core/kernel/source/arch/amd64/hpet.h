@@ -9,8 +9,8 @@
 
 void hpet_init(struct acpi_hpet_header* hpet);
 
-ms_t hpet_get_current_time(void);
+us_t hpet_get_current_time(void);
 
-void hpet_sleep(ms_t ms);
+void hpet_sleep(us_t us);
 
 #endif // _AMD64_HPET_H

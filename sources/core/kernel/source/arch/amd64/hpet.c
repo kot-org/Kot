@@ -3,11 +3,10 @@
 #include <impl/vmm.h>
 #include <impl/time.h>
 #include <sys/types.h>
+#include <global/time.h>
 
 #include <arch/include.h>
 #include ARCH_INCLUDE(acpi.h)
-
-#define MILLISECOND_TO_FEMOSECOND(ms)     ms * 1000000000000 // femosecond 10E15 to microsecond 10E3
 
 #define HPET_TIMER_OFFSET_GENERAL_CAPABILITIES_ID 0x0
 #define HPET_TIMER_OFFSET_GENERAL_CONFIGURATION 0x10
@@ -60,12 +59,12 @@ void hpet_init(struct acpi_hpet_header* hpet){
 }   
 
 
-ms_t hpet_get_current_time(void){
-    return hpet_read_register(HPET_TIMER_OFFSET_MAIN_COUNTER_VALUES);
+us_t hpet_get_current_time(void){
+    return TIME_CONVERT_FEMOSECOND_TO_MICROSECOND(hpet_read_register(HPET_TIMER_OFFSET_MAIN_COUNTER_VALUES) * hpet_frequency);
 }
 
-void hpet_sleep(ms_t ms){
-    uint64_t end = hpet_read_register(HPET_TIMER_OFFSET_MAIN_COUNTER_VALUES) + (MILLISECOND_TO_FEMOSECOND(ms)) / hpet_frequency;
+void hpet_sleep(us_t us){
+    uint64_t end = hpet_read_register(HPET_TIMER_OFFSET_MAIN_COUNTER_VALUES) + (TIME_CONVERT_MICROSECOND_TO_FEMOSECOND(us)) / hpet_frequency;
     while(hpet_read_register(HPET_TIMER_OFFSET_MAIN_COUNTER_VALUES) <= end){
         __asm__ volatile ("pause" : : : "memory");
     }

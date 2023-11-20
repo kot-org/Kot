@@ -15,9 +15,9 @@ typedef struct{
     uint16_t (*get_current_year)(void);
 
     int (*sleep)(int);
-    int (*sleep_ms)(ms_t ms);
+    int (*sleep_us)(us_t us);
 
-    ms_t (*get_current_ms)(void);
+    us_t (*get_current_us)(void);
 } time_handler_t;
 
 #endif // LIB_MODULES_TIME_H
