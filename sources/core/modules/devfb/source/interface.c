@@ -9,6 +9,8 @@
 #include <global/devfs.h>
 #include <impl/graphics.h>
 
+#define FB_CLEAR_COLOR 0x00000000
+
 static bool use_boot_fb = false;
 static spinlock_t boot_fb_lock = SPINLOCK_INIT;
 
@@ -16,16 +18,40 @@ static graphics_boot_fb_t* boot_fb = NULL;
 static struct fb_fix_screeninfo fix_screeninfo = {};
 static struct fb_var_screeninfo var_screeninfo = {};
 
+static bool fb_need_to_be_request = true;
+
+
 static int boot_fb_callback(void){
-    log_warning("'dev/fb0' refuses to give ownership of its boot_fb\n");
-    return EACCES;
+    spinlock_acquire(&boot_fb_lock);
+    fb_need_to_be_request = true;
+    spinlock_release(&boot_fb_lock);
+    return 0;
 }
 
-static void request_boot_fb(void){
-    /* get key handler */
-    hid_handler->set_key_handler(&key_handler);
+static void clear_fb(void){
+    if(boot_fb != NULL){
+        memset32(boot_fb->base, FB_CLEAR_COLOR, boot_fb->size);
+    }
+}
 
-    boot_fb = graphics_get_boot_fb(&boot_fb_callback);
+static void request_fb(void){
+    spinlock_acquire(&boot_fb_lock);
+    if(fb_need_to_be_request){
+        /* get key handler */
+        hid_handler->set_key_handler(&key_handler);
+        
+        boot_fb = graphics_get_boot_fb(&boot_fb_callback);
+        clear_fb();
+        fb_need_to_be_request = false;
+    }
+}
+
+static void release_fb(void){
+    spinlock_release(&boot_fb_lock);
+}
+
+static void init_boot_fb(void){
+    request_fb();
 
     /* fill fix_screeninfo struct */
     strcpy((char*)&fix_screeninfo.id, "BOOT FB");
@@ -77,9 +103,17 @@ static void request_boot_fb(void){
     var_screeninfo.vmode = FB_VMODE_NONINTERLACED;
     var_screeninfo.rotate = 0;
     var_screeninfo.colorspace = 0;
+
+    release_fb();
 }
 
 int fb_interface_write(void* buffer, size_t size, size_t* bytes_write, kernel_file_t* file){
+    request_fb();
+
+    if(boot_fb == NULL){
+        return EACCES;
+    }
+
     ssize_t size_to_write = size;
     if(size_to_write > boot_fb->size){
         size_to_write = boot_fb->size;
@@ -108,6 +142,8 @@ int fb_interface_write(void* buffer, size_t size, size_t* bytes_write, kernel_fi
         offset_read += size_to_write_line;
         size_to_write -= size_to_write_line;
     }
+
+    release_fb();
 
     *bytes_write = size;
     return 0;
@@ -162,7 +198,7 @@ int fb_interface_close(kernel_file_t* file){
 kernel_file_t* fb_interface_open(struct fs_t* ctx, const char* path, int flags, mode_t mode, int* error){
     /* if we don't have the boot fb yet request it */
     if(boot_fb == NULL){
-        request_boot_fb();
+        init_boot_fb();
     }
 
     kernel_file_t* file = malloc(sizeof(kernel_file_t));

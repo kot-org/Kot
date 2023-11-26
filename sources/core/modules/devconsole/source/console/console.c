@@ -22,7 +22,6 @@
 
 #define TAB_SIZE 8
 
-static bool is_devconsole_init = false;
 static bool use_boot_fb = false;
 static spinlock_t boot_fb_lock = SPINLOCK_INIT;
 
@@ -47,6 +46,8 @@ static uint16_t cy_max_index;
 
 static uint8_t* font_buffer;
 static size_t font_size;
+
+void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed);
 
 void devconsole_set_bg_color(uint32_t bg) {
     bg_color = bg;
@@ -108,26 +109,21 @@ static void devconsole_new_line(void){
 }
 
 static int boot_fb_callback(void){
-    log_warning("console will no more use the framebuffer for this session\n");
     spinlock_acquire(&boot_fb_lock);
     use_boot_fb = false;
     spinlock_release(&boot_fb_lock);
     return 0;
 }
 
-void devconsole_init(void) {
-    if(is_devconsole_init){
+void devconsole_request_fb(void){
+    if(use_boot_fb){
         return;
     }
 
-    is_devconsole_init = true;
+    /* get key handler */
+    hid_handler->set_key_handler(&key_handler);
 
-    void* font_file = initrd_get_file("/system/console/fonts/vga.bin");
-    font_size = initrd_get_file_size(font_file);
-    font_buffer = initrd_get_file_base(font_file);
-
-    devconsole_set_bg_color(DEFAULT_BG_COLOR);
-    devconsole_set_fg_color(DEFAULT_FG_COLOR);
+    use_boot_fb = true;
 
     graphics_boot_fb_t* boot_fb = graphics_get_boot_fb(&boot_fb_callback);
 
@@ -155,6 +151,15 @@ void devconsole_init(void) {
 
         memset32(fb_base, bg_color, fb_size / sizeof(uint32_t));
     }
+}
+
+void devconsole_init(void) { 
+    void* font_file = initrd_get_file("/system/console/fonts/vga.bin");
+    font_size = initrd_get_file_size(font_file);
+    font_buffer = initrd_get_file_base(font_file);
+
+    devconsole_set_bg_color(DEFAULT_BG_COLOR);
+    devconsole_set_fg_color(DEFAULT_FG_COLOR);
 }
 
 void devconsole_putchar(char c) {

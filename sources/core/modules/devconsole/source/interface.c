@@ -96,6 +96,7 @@ int console_interface_read(void* buffer, size_t size, size_t* bytes_read, struct
 }
 
 int console_interface_write(void* buffer, size_t size, size_t* bytes_write, kernel_file_t* file){
+    devconsole_request_fb();
     devconsole_print(buffer, size);
     *bytes_write = size;
     return 0;
@@ -125,7 +126,6 @@ int console_interface_close(kernel_file_t* file){
 }
 
 kernel_file_t* console_interface_open(struct fs_t* ctx, const char* path, int flags, mode_t mode, int* error){
-    devconsole_init();
     
     kernel_file_t* file = malloc(sizeof(kernel_file_t));
 
@@ -148,4 +148,6 @@ void interface_init(void){
     hid_handler->set_key_handler(&key_handler);
 
     devfs_add_dev("tty0", &console_interface_open);
+
+    devconsole_init();
 }
