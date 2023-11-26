@@ -19,6 +19,8 @@ static struct fb_fix_screeninfo fix_screeninfo = {};
 static struct fb_var_screeninfo var_screeninfo = {};
 
 static bool fb_need_to_be_request = true;
+static int x_fb_start = 0;
+static int y_fb_start = 0;
 
 
 static int boot_fb_callback(void){
@@ -123,7 +125,7 @@ int fb_interface_write(void* buffer, size_t size, size_t* bytes_write, kernel_fi
         size_to_write = var_screeninfo.yres_virtual * var_screeninfo.xres_virtual * boot_fb->bpp;
     }
 
-    uintptr_t offset_write = (uintptr_t)boot_fb->base;
+    uintptr_t offset_write = (uintptr_t)boot_fb->base + (uintptr_t)y_fb_start * (uintptr_t)boot_fb->pitch;
     uintptr_t offset_read = (uintptr_t)buffer;
 
     while(size_to_write != 0){
@@ -136,7 +138,7 @@ int fb_interface_write(void* buffer, size_t size, size_t* bytes_write, kernel_fi
             size_to_write_line = var_screeninfo.xres_virtual * boot_fb->btpp;
         }
 
-        memcpy((void*)offset_write, (void*)offset_read, size_to_write_line);
+        memcpy((void*)((uintptr_t)offset_write  + (uintptr_t)x_fb_start * (uintptr_t)boot_fb->btpp), (void*)offset_read, size_to_write_line);
 
         offset_write += boot_fb->pitch;
         offset_read += size_to_write_line;
@@ -175,8 +177,14 @@ int fb_interface_ioctl(uint32_t request, void* arg, int* result, kernel_file_t* 
             if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){arg, sizeof(struct fb_var_screeninfo)})){
                 return EINVAL;
             }
-            var_screeninfo.xres_virtual = ((struct fb_var_screeninfo*)arg)->xres_virtual;
-            var_screeninfo.yres_virtual = ((struct fb_var_screeninfo*)arg)->yres_virtual;
+
+            if(((struct fb_var_screeninfo*)arg)->xres_virtual <= boot_fb->width && ((struct fb_var_screeninfo*)arg)->yres_virtual <= boot_fb->height){
+                var_screeninfo.xres_virtual = ((struct fb_var_screeninfo*)arg)->xres_virtual;
+                var_screeninfo.yres_virtual = ((struct fb_var_screeninfo*)arg)->yres_virtual;
+
+                x_fb_start = (boot_fb->width - var_screeninfo.xres_virtual) / 2; 
+                y_fb_start = (boot_fb->height - var_screeninfo.yres_virtual) / 2; 
+            }
             *result = 0;
             return 0;
         }
