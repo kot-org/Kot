@@ -15,12 +15,12 @@ install-ninja-debian:
 	sudo chmod a+x /usr/local/bin/ninja
 
 deps-debian: update-pkgs-debian install-ninja-debian
-	sudo apt install nasm build-essential parted qemu-full meson python3 python3-pip python3-setuptools python3-wheel ninja-build cmake sed m4 texinfo libgmp-dev bison flex curl -y
+	sudo apt install nasm build-essential parted qemu-utils qemu-system-x86 meson python3 python3-pip python3-setuptools python3-wheel ninja-build cmake sed m4 texinfo libgmp-dev bison flex curl -y
 	sudo pip3 install meson
 	sudo pip3 install xbstrap
 
 deps-arch: update-pkgs-arch
-	sudo pacman -S nasm ninja parted qemu-utils qemu-system-x86 meson python python-pip python-setuptools python-wheel cmake sed m4 texinfo gmp bison flex curl
+	sudo pacman -S nasm ninja parted qemu-full meson python python-pip python-setuptools python-wheel cmake sed m4 texinfo gmp bison flex curl
 	sudo pip3 install --break-system-packages meson
 	sudo pip3 install --break-system-packages xbstrap
 
