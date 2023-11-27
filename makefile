@@ -19,7 +19,7 @@ deps-debian: update-pkgs-debian install-ninja-debian
 	sudo pip3 install meson
 	sudo pip3 install xbstrap
 
-deps-arch: update-pkgs-arch install-ninja
+deps-arch: update-pkgs-arch
 	sudo pacman -S nasm ninja parted qemu-utils qemu-system-x86 meson python python-pip python-setuptools python-wheel cmake sed m4 texinfo gmp bison flex curl
 	sudo pip3 install --break-system-packages meson
 	sudo pip3 install --break-system-packages xbstrap
