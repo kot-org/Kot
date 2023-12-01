@@ -22,6 +22,29 @@ packages:
         - '-r'
         - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@/bin/.'
         - '@SOURCE_ROOT@/target/boot_disk_kot_mount/.'
+  - name: kot
+    source:
+      subdir: 'sources/core/apps'
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+    build:
+      - args: 
+        - 'make'
+        - '-C'
+        - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@'
+        - 'build'
+        environ:
+          CC: "@OPTION:cc@"
+          CXX: "@OPTION:cxx@"
+          LD: "@OPTION:ld@"
+          ASMC: "@OPTION:asmc@"
+      - args: 
+        - 'cp'
+        - '-r'
+        - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@/bin/.'
+        - '@SOURCE_ROOT@/target/boot_disk_kot_mount/.'
   - name: bash
     source:
       git: 'https://github.com/bminor/bash'
@@ -83,3 +106,12 @@ packages:
       - args: ['make', 'install']
         environ:
           DESTDIR: '@THIS_COLLECT_DIR@'
+
+  - name: pipe
+    source:
+      subdir: 'bundled'
+      git: 'https://github.com/pipeseroni/pipes.sh'
+      tag: 'v1.3.0'
+      version: '1.3.0'
+    build:
+      - args: ['make', '-C', '@THIS_SOURCE_DIR@', 'PREFIX=@THIS_COLLECT_DIR@/usr', 'install']

@@ -201,7 +201,7 @@ static int fat_read_cluster_chain(fat_context_t* ctx, uint32_t current_cluster, 
 
     while(size > 0){
         if(current_cluster >= 0xFFFFFF8 || current_cluster == 0){
-            return EINVAL; // this is still a success for the size store in size_read field
+            return 0; // this is still a success for the size store in size_read field
         }
 
         if(alignement < ctx->cluster_size){
@@ -1201,7 +1201,7 @@ fat_directory_internal_t* fat_open_dir(fat_context_t* ctx, const char* path, int
     return dir; 
 }
 
-int fat_interface_get_directory_entries(void* buffer, size_t max_size, size_t* bytes_read, kernel_dir_t* dir){
+int fat_interface_dir_get_directory_entries(void* buffer, size_t max_size, size_t* bytes_read, kernel_dir_t* dir){
     fat_directory_internal_t* internal_dir = (fat_directory_internal_t*)dir->internal_data;
 
     uint32_t max_entry_count = (uint32_t)(max_size / sizeof(dirent_t));
@@ -1261,12 +1261,18 @@ int fat_interface_get_directory_entries(void* buffer, size_t max_size, size_t* b
     return 0;
 }
 
-int fat_interface_create_at(struct kernel_dir_t* dir, const char* path, mode_t mode){
+int fat_interface_dir_create_at(struct kernel_dir_t* dir, const char* path, mode_t mode){
     return ENOSYS;
 }
 
-int fat_interface_unlink_at(struct kernel_dir_t* dir, const char* path, int flags){
+int fat_interface_dir_unlink_at(struct kernel_dir_t* dir, const char* path, int flags){
     return ENOSYS;
+}
+
+int fat_interface_dir_stat(int flags, struct stat* statbuf, struct kernel_dir_t* dir){
+    memset(statbuf, 0, sizeof(struct stat));
+    statbuf->st_mode = S_IFDIR;
+    return 0;
 }
 
 
@@ -1401,7 +1407,7 @@ int fat_interface_dir_remove(struct fs_t* ctx, const char* path){
     return fat_remove_dir((fat_context_t*)ctx->internal_data, fat_interface_convert_path((char*)path));
 }
 
-int fat_interface_close(struct kernel_dir_t* dir){
+int fat_interface_dir_close(struct kernel_dir_t* dir){
     free(dir);
     return 0;
 }
@@ -1416,10 +1422,11 @@ struct kernel_dir_t* fat_interface_dir_open(struct fs_t* ctx, const char* path, 
     dir->fs_ctx = ctx;
     dir->seek_position = (fat_get_cluster_entry(fat_ctx, &fat_dir->entry) == fat_ctx->bpb->root_cluster_number) ? 0 : DIR_MINIMUM_ENTRIES;
     dir->internal_data = fat_dir;
-    dir->get_directory_entries = &fat_interface_get_directory_entries;
-    dir->create_at = &fat_interface_create_at;
-    dir->unlink_at = &fat_interface_unlink_at;
-    dir->close = &fat_interface_close;
+    dir->get_directory_entries = &fat_interface_dir_get_directory_entries;
+    dir->create_at = &fat_interface_dir_create_at;
+    dir->unlink_at = &fat_interface_dir_unlink_at;
+    dir->stat = &fat_interface_dir_stat;
+    dir->close = &fat_interface_dir_close;
 
     return dir;
 }

@@ -283,7 +283,7 @@ int devfs_interface_dir_remove(struct fs_t* ctx, const char* path){
     return 0;
 }
 
-int devfs_interface_get_directory_entries(void* buffer, size_t max_size, size_t* bytes_read, kernel_dir_t* dir){
+int devfs_interface_dir_get_directory_entries(void* buffer, size_t max_size, size_t* bytes_read, kernel_dir_t* dir){
     uint64_t max_entry_count = (uint64_t)(max_size / sizeof(dirent_t));
     dirent_t* entry = (dirent_t*)buffer;
     uint64_t entry_index = dir->seek_position;
@@ -315,15 +315,21 @@ int devfs_interface_get_directory_entries(void* buffer, size_t max_size, size_t*
     return 0;
 }
 
-int devfs_interface_create_at(struct kernel_dir_t* dir, const char* path, mode_t mode){
+int devfs_interface_dir_create_at(struct kernel_dir_t* dir, const char* path, mode_t mode){
     return ENOSYS;
 }
 
-int devfs_interface_unlink_at(struct kernel_dir_t* dir, const char* path, int flags){
+int devfs_interface_dir_unlink_at(struct kernel_dir_t* dir, const char* path, int flags){
     return ENOSYS;
 }
 
-int devfs_interface_close(struct kernel_dir_t* dir){
+int devfs_interface_dir_stat(int flags, struct stat* statbuf, struct kernel_dir_t* dir){
+    memset(statbuf, 0, sizeof(struct stat));
+    statbuf->st_mode = S_IFDIR;
+    return 0;
+}
+
+int devfs_interface_dir_close(struct kernel_dir_t* dir){
     free(dir);
     return 0;
 }
@@ -338,10 +344,11 @@ struct kernel_dir_t* devfs_interface_dir_open(struct fs_t* ctx, const char* path
     dir->fs_ctx = ctx;
     dir->seek_position = 0;
     dir->internal_data = devfs_dir;
-    dir->get_directory_entries = &devfs_interface_get_directory_entries;
-    dir->create_at = &devfs_interface_create_at;
-    dir->unlink_at = &devfs_interface_unlink_at;
-    dir->close = &devfs_interface_close;
+    dir->get_directory_entries = &devfs_interface_dir_get_directory_entries;
+    dir->create_at = &devfs_interface_dir_create_at;
+    dir->unlink_at = &devfs_interface_dir_unlink_at;
+    dir->stat = &devfs_interface_dir_stat;
+    dir->close = &devfs_interface_dir_close;
 
     return dir;
 }

@@ -99,13 +99,13 @@ static void syscall_handler_mmap(cpu_context_t* ctx){
 }
 
 static void syscall_handler_munmap(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    // TODO
+    SYSCALL_RETURN(ctx, 0);    
 }
 
 static void syscall_handler_mprotect(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    // TODO
+    SYSCALL_RETURN(ctx, 0);    
 }
 
 static void syscall_handler_exit(cpu_context_t* ctx){
@@ -461,8 +461,27 @@ static void syscall_handler_path_stat(cpu_context_t* ctx){
 }
 
 static void syscall_handler_fd_stat(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    int fd = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    int flags = (int)ARCH_CONTEXT_SYSCALL_ARG1(ctx); 
+    struct stat* statbuf = (struct stat*)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+
+    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){statbuf, sizeof(struct stat)})){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+        
+    descriptor_t* descriptor = get_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd);
+
+    if(descriptor == NULL){
+        SYSCALL_RETURN(ctx, -EBADF);
+    }
+    
+    if(descriptor->type == DESCRIPTOR_TYPE_DIR){
+        SYSCALL_RETURN(ctx, -descriptor->data.dir->stat(flags, statbuf, descriptor->data.dir));
+    }else if(descriptor->type == DESCRIPTOR_TYPE_FILE){
+        SYSCALL_RETURN(ctx, -descriptor->data.file->stat(flags, statbuf, descriptor->data.file));
+    } 
+    
+    SYSCALL_RETURN(ctx, -EBADF);
 }
 
 static void syscall_handler_fcntl(cpu_context_t* ctx){

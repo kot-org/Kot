@@ -107,7 +107,7 @@ kernel_file_t* vfs_file_open_not_implemented(fs_t* ctx, const char* path, int fl
     return NULL;
 }
 
-int vfs_interface_get_directory_entries(void* buffer, size_t max_size, size_t* bytes_read, kernel_dir_t* dir){
+int vfs_interface_dir_get_directory_entries(void* buffer, size_t max_size, size_t* bytes_read, kernel_dir_t* dir){
     uint64_t max_entry_count = (uint64_t)(max_size / sizeof(dirent_t));
     dirent_t* entry = (dirent_t*)buffer;
     uint64_t entry_index = dir->seek_position;
@@ -146,15 +146,21 @@ int vfs_interface_get_directory_entries(void* buffer, size_t max_size, size_t* b
     return 0;
 }
 
-int vfs_interface_create_at(struct kernel_dir_t* dir, const char* path, mode_t mode){
+int vfs_interface_dir_create_at(struct kernel_dir_t* dir, const char* path, mode_t mode){
     return ENOSYS;
 }
 
-int vfs_interface_unlink_at(struct kernel_dir_t* dir, const char* path, int flags){
+int vfs_interface_dir_unlink_at(struct kernel_dir_t* dir, const char* path, int flags){
     return ENOSYS;
 }
 
-int vfs_interface_close(struct kernel_dir_t* dir){
+int vfs_interface_dir_stat(int flags, struct stat* statbuf, struct kernel_dir_t* dir){
+    memset(statbuf, 0, sizeof(struct stat));
+    statbuf->st_mode = S_IFDIR;
+    return 0;
+}
+
+int vfs_interface_dir_close(struct kernel_dir_t* dir){
     free(dir);
     return 0;
 }
@@ -164,10 +170,11 @@ kernel_dir_t* vfs_interface_dir_open(fs_t* ctx, const char* path, int* error){
 
     dir->fs_ctx = ctx;
     dir->seek_position = hashmap_get_start(vfs_hashmap);
-    dir->get_directory_entries = &vfs_interface_get_directory_entries;
-    dir->create_at = &vfs_interface_create_at;
-    dir->unlink_at = &vfs_interface_unlink_at;
-    dir->close = &vfs_interface_close;
+    dir->get_directory_entries = &vfs_interface_dir_get_directory_entries;
+    dir->create_at = &vfs_interface_dir_create_at;
+    dir->unlink_at = &vfs_interface_dir_unlink_at;
+    dir->stat = &vfs_interface_dir_stat;
+    dir->close = &vfs_interface_dir_close;
 
     return dir;
 }

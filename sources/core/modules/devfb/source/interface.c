@@ -195,7 +195,9 @@ int fb_interface_ioctl(uint32_t request, void* arg, int* result, kernel_file_t* 
 }
 
 int fb_interface_stat(int flags, struct stat* statbuf, kernel_file_t* file){
-    return ENOSYS;
+    memset(statbuf, 0, sizeof(struct stat));
+    statbuf->st_mode = S_IFIFO;
+    return 0;
 }
 
 int fb_interface_close(kernel_file_t* file){

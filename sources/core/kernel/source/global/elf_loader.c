@@ -245,7 +245,7 @@ static void* load_elf_exec_load_stack(void* at_entry, void* at_phdr, void* at_ph
     stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(uintptr_t));
     *(uintptr_t*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base) = 0; // NULL
 
-    for(int i = 0; i < argc; i++){
+    for(int i = argc - 1; i >= 0; i--){
         stack_iteration = (uintptr_t)((uintptr_t)stack_iteration - (uintptr_t)sizeof(uintptr_t));
         *(uintptr_t*)get_kernel_mapped((void*)stack_iteration, stack_user_base, stack_kernel_base) = arg_pointers[i];   
     }    
