@@ -153,7 +153,8 @@
         "regex": "c",
         "internet": "c",
         "typeindex": "c",
-        "doomgeneric.h": "c"
+        "doomgeneric.h": "c",
+        "termios.h": "c"
     },
     "files.exclude": {
         "bundled": true,

@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <termios.h>
 #include <lib/log.h>
 #include <lib/math.h>
 #include <sys/ioctl.h>
@@ -12,6 +13,30 @@
 
 #define BUFFER_COUNT    2
 #define KEY_BUFFER_SIZE 1024
+
+struct termios console_termios = (struct termios){
+    0, 
+    0, 
+    0, 
+    0, 
+    0, 
+    {
+        4,    // VEOF
+        '\n', // VEOL
+        '\b', // VERASE
+        0,    // VINTR
+        0,    // VKILL
+        0,    // VMIN
+        0,    // VQUIT
+        0,    // VSTART
+        0,    // VSTOP
+        0,    // VSUSP
+        0,    // VTIME
+    },
+    0,
+    0
+};
+struct winsize console_window_size = {};
 
 spinlock_t key_handler_lock = SPINLOCK_INIT;
 
@@ -109,9 +134,34 @@ int console_interface_seek(off_t offset, int whence, off_t* new_offset, kernel_f
 
 int console_interface_ioctl(uint32_t request, void* arg, int* result, kernel_file_t* file){
     switch(request){
-        case TIOCGWINSZ:
+        case TCGETS:{
+            if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){arg, sizeof(struct termios)})){
+                return EINVAL;
+            }
+            memcpy(arg, &console_termios, sizeof(struct termios)); 
             *result = 0;
             return 0;
+        }
+        case TCSETS:{
+            if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){arg, sizeof(struct termios)})){
+                return EINVAL;
+            }
+            memcpy(&console_termios, arg, sizeof(struct termios)); 
+            *result = 0;
+            return 0;
+        }
+        case TIOCGWINSZ:{
+            if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){arg, sizeof(struct winsize)})){
+                return EINVAL;
+            }
+            memcpy(arg, &console_window_size, sizeof(struct winsize)); 
+            *result = 0;
+            return 0;
+        }
+        case TIOCSWINSZ:{
+            *result = 0;
+            return 0;
+        }
     }
     return EINVAL;
 }
@@ -149,7 +199,12 @@ kernel_file_t* console_interface_open(struct fs_t* ctx, const char* path, int fl
 void interface_init(void){
     hid_handler->set_key_handler(&key_handler);
 
-    devfs_add_dev("tty0", &console_interface_open);
+    devfs_add_dev("tty", &console_interface_open);
+
+    console_window_size.ws_col = cx_max_index;
+    console_window_size.ws_row = cy_max_index;
+    console_window_size.ws_xpixel = fb_width;
+    console_window_size.ws_ypixel = fb_height;
 
     devconsole_init();
 }

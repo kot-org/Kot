@@ -67,6 +67,16 @@ namespace mlibc{
         return 0;
     }
 
+    int sys_access(const char* filename, int mode){
+        int fd;
+        if(int e = sys_open(filename, O_RDONLY, 0, &fd)){
+            return e;
+        }
+
+        sys_close(fd);
+        return 0;
+    }
+
     int sys_flock(int fd, int options){
         // TODO
         __ensure(!"Not implemented");
@@ -120,6 +130,19 @@ namespace mlibc{
         }
 
         return ENOTTY;
+    }
+
+    int sys_tcgetattr(int fd, struct termios *attr) {
+        int result;
+        return sys_ioctl(fd, TCGETS, (void*)attr, &result);
+    }
+
+    int sys_tcsetattr(int fd, int optional_action, struct termios *attr) {
+        int result;
+        if(optional_action){
+            mlibc::infoLogger() << "mlibc: warning: sys_tcsetattr ignores optional_action" << frg::endlog;
+        }
+        return sys_ioctl(fd, TCSETS, (void*)attr, &result);
     }
 
     int sys_rmdir(const char *path){
