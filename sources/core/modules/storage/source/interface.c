@@ -13,7 +13,11 @@ int add_storage_device(storage_device_t* device){
     device_partitions_t* device_partitions = calloc(1, sizeof(device_partitions_t));
     device_partitions->device = device;
 
-    assert(load_parititons(device_partitions) == 0);
+    int error = load_parititons(device_partitions);
+    
+    if(error){
+        return error;
+    }
 
 
     device->external_data = device_partitions;
