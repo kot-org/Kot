@@ -44,6 +44,8 @@ static uint16_t cy_index;
 static uint16_t cx_max_index;
 static uint16_t cy_max_index;
 
+static uint16_t cy_info_index;
+
 static uint8_t* font_buffer;
 static size_t font_size;
 
@@ -90,22 +92,28 @@ static void devconsole_printline(uint16_t x, uint16_t line, char* str){
 }
 
 static void devconsole_new_line(void){
-    cx_index = 0;
-    cy_index = ((cy_index + 1) % cy_max_index);
-    uint16_t next_cy_index = ((cy_index + 1) % cy_max_index);
-
     line_count++;
 
     size_t line_size = (size_t)fb_pitch * (size_t)FONT_HEIGHT;
-    size_t line_pixel_count = (size_t)fb_width * (size_t)FONT_HEIGHT; 
-    void* fb_base_to_clear = (void*)((uintptr_t)fb_base + (uintptr_t)line_size * cy_index);
-    memset32(fb_base_to_clear, bg_color, line_pixel_count);
-    void* fb_base_to_cut = (void*)((uintptr_t)fb_base + (uintptr_t)line_size * next_cy_index);
+    size_t line_pixel_count = (size_t)fb_width * (size_t)FONT_HEIGHT;
+
+    cx_index = 0;
+    if(cy_index < cy_max_index){
+        cy_index++;
+    }else{
+        void* fb_base_move = (void*)((uintptr_t)fb_base + (uintptr_t)line_size);
+        size_t size_to_move = line_size * cy_max_index;
+        memcpy(fb_base, fb_base_move, size_to_move);
+        void* fb_base_to_clear = (void*)((uintptr_t)fb_base + (uintptr_t)line_size * cy_max_index);
+        memset32(fb_base_to_clear, bg_color, line_pixel_count);
+    }
+
+    void* fb_base_to_cut = (void*)((uintptr_t)fb_base + (uintptr_t)line_size * cy_info_index);
     memset32(fb_base_to_cut, DEFAULT_CUT_COLOR_DEVCONSOLE, line_pixel_count);
 
     char cut_buffer[cx_max_index];
     snprintf_((char*)&cut_buffer, cx_max_index, "Kernel version : %s | Console version : %s | Number of lines written : %d", KERNEL_VERSION, CONSOLE_VERSION, line_count);
-    devconsole_printline(0, next_cy_index, cut_buffer);
+    devconsole_printline(0, cy_info_index, cut_buffer);
 }
 
 static int boot_fb_callback(void){
@@ -147,7 +155,8 @@ void devconsole_request_fb(void){
         cy_index = 0;
 
         cx_max_index = fb_width / FONT_WIDTH;
-        cy_max_index = fb_height / FONT_HEIGHT;
+        cy_info_index = (fb_height / FONT_HEIGHT) - 1;
+        cy_max_index = cy_info_index - 1;
 
         memset32(fb_base, bg_color, fb_size / sizeof(uint32_t));
     }

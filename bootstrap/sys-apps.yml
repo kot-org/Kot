@@ -115,3 +115,31 @@ packages:
       version: '1.3.0'
     build:
       - args: ['make', '-C', '@THIS_SOURCE_DIR@', 'PREFIX=@THIS_COLLECT_DIR@/usr', 'install']
+
+  # - name: gcc
+  #   from_source: gcc
+  #   tools_required:
+  #     - host-gcc
+  #   pkgs_required:
+  #     - mlibc
+  #   configure:
+  #     - args:
+  #       - '@THIS_SOURCE_DIR@/configure'
+  #       - '--host=x86_64-kot'
+  #       - '--prefix=/usr'
+  #       - '--target=x86_64-kot'
+  #       - '--with-sysroot=/'
+  #       - '--with-build-sysroot=@SYSROOT_DIR@'
+  #       - '--enable-languages=c,c++'
+  #       - '--enable-initfini-array'
+  #       - '--disable-multilib'
+  #       - '--disable-nls'
+  #       - 'CFLAGS=-O2 -pipe'
+  #       - 'CXXFLAGS=-O2 -pipe'
+  #   build:
+  #     - args: ['make', '-j@PARALLELISM@', 'all-gcc', 'all-target-libgcc']
+  #     - args: ['make', 'install-strip-gcc', 'install-strip-target-libgcc']
+  #       environ:
+  #         DESTDIR: '@THIS_COLLECT_DIR@'
+  #     - args: ['sh', '-c', 'cp -rv @BUILD_ROOT@/tools/host-gcc/x86_64-kot/lib/* @THIS_COLLECT_DIR@/usr/lib/']
+  #     - args: ['sh', '-c', 'cp -rv @BUILD_ROOT@/tools/host-gcc/x86_64-kot/include/* @THIS_COLLECT_DIR@/usr/include/']
