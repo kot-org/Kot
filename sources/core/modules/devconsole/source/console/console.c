@@ -28,7 +28,8 @@ static spinlock_t boot_fb_lock = SPINLOCK_INIT;
 static uint32_t bg_color;
 static uint32_t fg_color;
 
-static uint32_t* fb_base;
+static uint32_t* fb_foreground_base;
+static uint32_t* fb_background_base;
 static uint16_t fb_width, fb_height;
 static uint16_t fb_pitch;
 static uint8_t fb_bpp;
@@ -59,7 +60,8 @@ void devconsole_set_fg_color(uint32_t fg) {
 }
 
 static void devconsole_putpixel(uint16_t x, uint16_t y, uint32_t color) {
-    fb_base[y*fb_width+x] = color;
+    fb_foreground_base[y*fb_width+x] = color;
+    fb_background_base[y*fb_width+x] = color;
 }
 
 static void devconsole_setchar(uint16_t cx_ppos, uint16_t cy_ppos, char c){
@@ -101,14 +103,16 @@ static void devconsole_new_line(void){
     if(cy_index < cy_max_index){
         cy_index++;
     }else{
-        void* fb_base_move = (void*)((uintptr_t)fb_base + (uintptr_t)line_size);
+        void* fb_base_move = (void*)((uintptr_t)fb_foreground_base + (uintptr_t)line_size);
         size_t size_to_move = line_size * cy_max_index;
-        memcpy(fb_base, fb_base_move, size_to_move);
-        void* fb_base_to_clear = (void*)((uintptr_t)fb_base + (uintptr_t)line_size * cy_max_index);
-        memset32(fb_base_to_clear, bg_color, line_pixel_count);
+        memcpy(fb_foreground_base, fb_base_move, size_to_move);
+        void* fb_base_to_clear_background = (void*)((uintptr_t)fb_background_base + (uintptr_t)line_size * cy_max_index);
+        memset32(fb_base_to_clear_background , bg_color, line_pixel_count);
+        void* fb_base_to_clear_foreground = (void*)((uintptr_t)fb_foreground_base + (uintptr_t)line_size * cy_max_index);
+        memset32(fb_base_to_clear_foreground , bg_color, line_pixel_count);
     }
 
-    void* fb_base_to_cut = (void*)((uintptr_t)fb_base + (uintptr_t)line_size * cy_info_index);
+    void* fb_base_to_cut = (void*)((uintptr_t)fb_foreground_base + (uintptr_t)line_size * cy_info_index);
     memset32(fb_base_to_cut, DEFAULT_CUT_COLOR_DEVCONSOLE, line_pixel_count);
 
     char cut_buffer[cx_max_index];
@@ -143,7 +147,8 @@ void devconsole_request_fb(void){
         }else{
             use_boot_fb = true;
 
-            fb_base = boot_fb->base;
+            fb_foreground_base = boot_fb->base;
+            fb_background_base = malloc(boot_fb->size);
             fb_width = boot_fb->width;
             fb_height = boot_fb->height;
             fb_pitch = boot_fb->pitch;
@@ -158,7 +163,8 @@ void devconsole_request_fb(void){
         cy_info_index = (fb_height / FONT_HEIGHT) - 1;
         cy_max_index = cy_info_index - 1;
 
-        memset32(fb_base, bg_color, fb_size / sizeof(uint32_t));
+        memset32(fb_background_base, bg_color, fb_size / sizeof(uint32_t));
+        memset32(fb_foreground_base, bg_color, fb_size / sizeof(uint32_t));
     }
 }
 
@@ -250,4 +256,8 @@ void devconsole_print(const char* str, size_t size) {
             serial_write('\r');   
         }
     }
+}
+
+void devconsole_update_screen(void){
+    memcpy((void*)fb_foreground_base, (void*)fb_background_base, fb_size);
 }
