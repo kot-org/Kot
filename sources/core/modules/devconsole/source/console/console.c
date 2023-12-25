@@ -1,4 +1,4 @@
-#include <global/console.h>
+#include "console.h"
 
 #include "ansi.h"
 
@@ -241,20 +241,17 @@ void devconsole_delchar(void){
 
 void devconsole_print(const char* str, size_t size) {
     for(size_t i = 0; i < size; i++) {
-        if(str[i] == ANSI_CONTROL || str[i] == '\033') {
-            size_t next_char_position = (size_t)ansi_read(str+i) + i;
-            for(; i < next_char_position; i++){
-                serial_write(str[i]); // use the ANSI code for serial
-            }
-        }
-
-        devconsole_putchar(str[i]);
-        serial_write(str[i]);
-
         if(str[i] == '\n'){
             devconsole_putchar('\r');
             serial_write('\r');   
         }
+
+        if(str[i] == '\e' || str[i] == '\033') {
+            i = (size_t)ansi_read(str+i) + i;
+        }
+
+        devconsole_putchar(str[i]);
+        serial_write(str[i]);
     }
 }
 

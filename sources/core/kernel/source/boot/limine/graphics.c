@@ -11,8 +11,6 @@ static volatile struct limine_framebuffer_request framebuffer_request = {
     .revision = 0
 };
 
-const char* term_wallpaper_path = "/system/kterm/term_wallpaper.bmp";
-
 void graphics_init(void) {
     if(framebuffer_request.response->framebuffer_count > 0) {
         struct limine_framebuffer* framebuffer = framebuffer_request.response->framebuffers[0];

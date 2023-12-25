@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 
-#define ANSI_CONTROL '\e' // CSI (Control Sequence Introducer)
-
 #define ANSI_START      '['
 #define ANSI_END        'm'
 #define ANSI_SEPARATOR  ';'

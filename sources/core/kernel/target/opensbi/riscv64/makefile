@@ -43,7 +43,6 @@ rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(
 
 # Source Files
 C_SRC = $(SOURCE)/kernel.c # kernel starting point
-C_SRC += $(SOURCE)/boot/opensbi.c # bootprotocol specific
 C_SRC += $(wildcard $(SOURCE)/boot/opensbi/*.c) # bootprotocol specific
 C_SRC += $(call rwildcard,$(SOURCE)/boot/opensbi/riscv64,*.c) # bootprotocol specific & arch specific
 C_SRC += $(call rwildcard,$(SOURCE)/arch/riscv64,*.c) # arch specific

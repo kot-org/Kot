@@ -199,20 +199,17 @@ void console_delchar(void){
 }
 
 void console_print(const char* str) {
-    for(size_t i = 0; i < strlen(str); i++) {
-        if(str[i] == ANSI_CONTROL || str[i] == '\033') {
-            size_t next_char_position = (size_t)ansi_read(str+i) + i;
-            for(; i < next_char_position; i++){
-                serial_write(str[i]); // use the ANSI code for serial
-            }
-        }
-
-        console_putchar(str[i]);
-        serial_write(str[i]);
-
+  for(size_t i = 0; i < strlen(str); i++) {
         if(str[i] == '\n'){
             console_putchar('\r');
             serial_write('\r');   
         }
+
+        if(str[i] == '\e' || str[i] == '\033') {
+            i = (size_t)ansi_read(str+i) + i;
+        }
+
+        console_putchar(str[i]);
+        serial_write(str[i]);
     }
 }
