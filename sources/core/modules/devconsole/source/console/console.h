@@ -12,7 +12,7 @@ uint32_t devconsole_get_fg_color(void);
 
 void cursor_draw(void);
 void cursor_remove(void);
-void cursor_removelast(void);
+void cursor_remove_last(void);
 void cursor_update(void);
 
 #endif

@@ -202,14 +202,14 @@ void cursor_remove(void) {
     }
 }
 
-void cursor_removelast(void) {
+void cursor_remove_last(void) {
     for(uint8_t i = 0; i < FONT_HEIGHT; i++) {
         devconsole_putpixel(last_cx_index*FONT_WIDTH, last_cy_index*FONT_HEIGHT+i, bg_color);
     }
 }
 
 void cursor_update(void) {
-    cursor_removelast();
+    cursor_remove_last();
     cursor_draw();
 }
 

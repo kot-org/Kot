@@ -98,7 +98,9 @@ int console_interface_read(void* buffer, size_t size, size_t* bytes_read, struct
 
         if(key_buffer[key_buffer_to_read_index][key_buffer_char_read_index[key_buffer_to_read_index]] == '\0'){
             waiting_thread_for_input = scheduler_get_current_thread();
+            cursor_draw();
             scheduler_pause_thread(waiting_thread_for_input, NULL);
+            cursor_remove_last();
             waiting_thread_for_input = NULL;
             key_buffer_to_read_index = !key_buffer_char_write_index;
         }
@@ -124,9 +126,7 @@ int console_interface_read(void* buffer, size_t size, size_t* bytes_read, struct
 
 int console_interface_write(void* buffer, size_t size, size_t* bytes_write, kernel_file_t* file){
     devconsole_request_fb();
-    cursor_removelast();
     devconsole_print(buffer, size);
-    cursor_draw();
     *bytes_write = size;
     return 0;
 }
