@@ -1,5 +1,4 @@
 #include "console.h"
-
 #include "ansi.h"
 
 #include <kernel.h>
@@ -38,10 +37,6 @@ static size_t fb_size;
 
 static uint16_t line_count = 0;
 
-// char position
-static uint16_t cx_index;
-static uint16_t cy_index;
-
 static uint16_t cx_max_index;
 static uint16_t cy_max_index;
 
@@ -49,6 +44,16 @@ static uint16_t cy_info_index;
 
 static uint8_t* font_buffer;
 static size_t font_size;
+
+// cursor position
+static uint16_t cx_index;
+static uint16_t cy_index;
+
+static uint16_t last_cx_index = 0;
+static uint16_t last_cy_index = 0;
+
+static uint32_t cursor_color = DEFAULT_FG_COLOR;
+
 
 void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed);
 
@@ -168,6 +173,25 @@ void devconsole_request_fb(void){
     }
 }
 
+// CURSOR
+
+void cursor_update(void) {
+    // remove last cursor
+    for(uint8_t i = 0; i < FONT_HEIGHT; i++) {
+        devconsole_putpixel(last_cx_index, last_cy_index+i, bg_color);
+    }
+
+    // draw new cursor
+    for(uint8_t i = 0; i < FONT_HEIGHT; i++) {
+        devconsole_putpixel(cx_index*FONT_WIDTH, cy_index*FONT_HEIGHT+i, cursor_color);
+    }
+
+    last_cx_index = cx_index * FONT_WIDTH;
+    last_cy_index = cy_index * FONT_HEIGHT;
+}
+
+// END CURSOR
+
 void devconsole_init(void) { 
     void* font_file = initrd_get_file("/system/console/fonts/vga.bin");
     font_size = initrd_get_file_size(font_file);
@@ -235,7 +259,9 @@ void devconsole_delchar(void){
     }
     uint16_t cx_ppos = cx_index * FONT_WIDTH;
     uint16_t cy_ppos = cy_index * FONT_HEIGHT;
+
     devconsole_clearchar(cx_ppos, cy_ppos);
+
     spinlock_release(&boot_fb_lock);
 }
 

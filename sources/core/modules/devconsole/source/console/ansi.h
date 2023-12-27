@@ -1,5 +1,5 @@
-#ifndef ANSI_H
-#define ANSI_H
+#ifndef DEVCONSOLE_ANSI_H
+#define DEVCONSOLE_ANSI_H
 
 #include <stdint.h>
 

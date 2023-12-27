@@ -86,6 +86,8 @@ void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed){
             }
         }
 
+        cursor_update();
+
         spinlock_release(&key_handler_lock);
     }
 }

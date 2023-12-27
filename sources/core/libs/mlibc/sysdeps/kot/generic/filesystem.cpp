@@ -229,8 +229,8 @@ namespace mlibc{
     }
 
 
+    #ifndef MLIBC_BUILDING_RTDL
     int sys_chdir(const char *path){
-        #if !MLIBC_BUILDING_RTDL
 
         const char* real_path = realpath(path, NULL);
 
@@ -245,14 +245,8 @@ namespace mlibc{
         }else{
             return ENOENT;
         }
-
-
-        #else
-
-        return -ENOSYS;
-
-        #endif
     }
+    #endif
 
     int sys_pselect(int num_fds, fd_set *read_set, fd_set *write_set, fd_set *except_set, const struct timespec *timeout, const sigset_t *sigmask, int *num_events) {
         mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub!\n" << frg::endlog;
