@@ -175,19 +175,31 @@ void devconsole_request_fb(void){
 
 // CURSOR
 
-void cursor_update(void) {
-    // remove last cursor
-    for(uint8_t i = 0; i < FONT_HEIGHT; i++) {
-        devconsole_putpixel(last_cx_index, last_cy_index+i, bg_color);
-    }
-
+void cursor_draw(void) {
     // draw new cursor
     for(uint8_t i = 0; i < FONT_HEIGHT; i++) {
         devconsole_putpixel(cx_index*FONT_WIDTH, cy_index*FONT_HEIGHT+i, cursor_color);
     }
 
-    last_cx_index = cx_index * FONT_WIDTH;
-    last_cy_index = cy_index * FONT_HEIGHT;
+    last_cx_index = cx_index;
+    last_cy_index = cy_index;
+}
+
+void cursor_remove(void) {
+    for(uint8_t i = 0; i < FONT_HEIGHT; i++) {
+        devconsole_putpixel(cx_index*FONT_WIDTH, cy_index*FONT_HEIGHT+i, bg_color);
+    }
+}
+
+void cursor_removelast(void) {
+    for(uint8_t i = 0; i < FONT_HEIGHT; i++) {
+        devconsole_putpixel(last_cx_index*FONT_WIDTH, last_cy_index*FONT_HEIGHT+i, bg_color);
+    }
+}
+
+void cursor_update(void) {
+    cursor_removelast();
+    cursor_draw();
 }
 
 // END CURSOR

@@ -124,7 +124,9 @@ int console_interface_read(void* buffer, size_t size, size_t* bytes_read, struct
 
 int console_interface_write(void* buffer, size_t size, size_t* bytes_write, kernel_file_t* file){
     devconsole_request_fb();
+    cursor_removelast();
     devconsole_print(buffer, size);
+    cursor_draw();
     *bytes_write = size;
     return 0;
 }

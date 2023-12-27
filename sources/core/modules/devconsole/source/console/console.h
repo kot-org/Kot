@@ -8,6 +8,9 @@
 void devconsole_set_bg_color(uint32_t bg);
 void devconsole_set_fg_color(uint32_t fg);
 
+void cursor_draw(void);
+void cursor_remove(void);
+void cursor_removelast(void);
 void cursor_update(void);
 
 #endif
