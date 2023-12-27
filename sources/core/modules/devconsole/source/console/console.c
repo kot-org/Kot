@@ -60,8 +60,16 @@ void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed);
 void devconsole_set_bg_color(uint32_t bg) {
     bg_color = bg;
 }
+
+uint32_t devconsole_get_bg_color(void) {
+    return bg_color;
+}
 void devconsole_set_fg_color(uint32_t fg) {
     fg_color = fg;
+}
+
+uint32_t devconsole_get_fg_color(void) {
+    return fg_color;
 }
 
 static void devconsole_putpixel(uint16_t x, uint16_t y, uint32_t color) {
@@ -122,7 +130,10 @@ static void devconsole_new_line(void){
 
     char cut_buffer[cx_max_index];
     snprintf_((char*)&cut_buffer, cx_max_index, "Kernel version : %s | Console version : %s | Number of lines written : %d", KERNEL_VERSION, CONSOLE_VERSION, line_count);
+    uint32_t fg_color_to_restore = devconsole_get_fg_color();
+    devconsole_set_fg_color(0xffffffff);
     devconsole_printline(0, cy_info_index, cut_buffer);
+    devconsole_set_fg_color(fg_color_to_restore);
 }
 
 static int boot_fb_callback(void){
