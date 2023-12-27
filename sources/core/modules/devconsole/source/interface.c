@@ -100,7 +100,7 @@ int console_interface_read(void* buffer, size_t size, size_t* bytes_read, struct
             waiting_thread_for_input = scheduler_get_current_thread();
             cursor_draw();
             scheduler_pause_thread(waiting_thread_for_input, NULL);
-            cursor_remove_last();
+            cursor_remove();
             waiting_thread_for_input = NULL;
             key_buffer_to_read_index = !key_buffer_char_write_index;
         }
