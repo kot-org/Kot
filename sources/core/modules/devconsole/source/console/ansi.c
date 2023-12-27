@@ -43,7 +43,7 @@ uint16_t ansi_read(const char* code) {
                         devconsole_set_fg_color(0x11A8CD);
                         break;
                     case COLOR_WHITE:
-                        devconsole_set_fg_color(0xEEEEEE);
+                        devconsole_set_fg_color(0xCFCFCF);
                         break;
 
                     default:
@@ -78,7 +78,7 @@ uint16_t ansi_read(const char* code) {
                         devconsole_set_bg_color(0x11A8CD);
                         break;
                     case COLOR_WHITE:
-                        devconsole_set_bg_color(0xEEEEEE);
+                        devconsole_set_bg_color(0xCFCFCF);
                         break;
 
                     default:
@@ -113,7 +113,7 @@ uint16_t ansi_read(const char* code) {
                         devconsole_set_fg_color(0x29B8DB);
                         break;
                     case COLOR_WHITE:
-                        devconsole_set_fg_color(0xF1F1F1);
+                        devconsole_set_fg_color(0xFFFFFF);
                         break;
 
                     default:
@@ -150,7 +150,7 @@ uint16_t ansi_read(const char* code) {
                         devconsole_set_bg_color(0x29B8DB);
                         break;
                     case COLOR_WHITE:
-                        devconsole_set_bg_color(0xF1F1F1);
+                        devconsole_set_bg_color(0xFFFFFF);
                         break;
 
                     default:
