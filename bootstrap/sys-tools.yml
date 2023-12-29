@@ -34,6 +34,9 @@ sources:
       - args: ['cp', '-f',
           '@BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub',
           '@THIS_SOURCE_DIR@/mpc-1.2.1/config.sub']
+      - args: ['cp', '-f',
+          '@BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub',
+          '@THIS_SOURCE_DIR@/mpc-1.2.1/build-aux/config.sub']
       - args: ['cp',
           '@BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub',
           '@THIS_SOURCE_DIR@/mpfr-4.1.0/config.sub']

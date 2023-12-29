@@ -16,7 +16,7 @@ int main(int argc, char* argv[]){
     setenv("USER", "root", 1);
     setenv("HOSTNAME", "kot", 1);
 
-    setenv("TERM", "xterm-256color", 1);
+    setenv("TERM", "kterm", 1);
 
     printf("\e[0;33m--- Welcome to Kot ---\e[0m\n");
     printf("If you encounter any bugs during your session, please report them on the github repository:\n\e[0;36mhttps://github.com/kot-org/new-kot\e[0m\n\n");

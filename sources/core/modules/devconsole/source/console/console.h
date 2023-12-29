@@ -15,4 +15,7 @@ void cursor_remove(void);
 void cursor_remove_last(void);
 void cursor_update(void);
 
+void dev_check_display_update(void);
+void devconsole_update_display(void);
+
 #endif

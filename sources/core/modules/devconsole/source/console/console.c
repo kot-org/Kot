@@ -12,9 +12,7 @@
 #include <impl/serial.h>
 #include <impl/initrd.h>
 
-#define DEFAULT_CUT_COLOR_DEVCONSOLE 0x00995A
-
-#define CONSOLE_VERSION "1.1"
+#define CONSOLE_VERSION "1.2"
 
 #define FONT_WIDTH 8
 #define FONT_HEIGHT 16
@@ -37,12 +35,8 @@ static uint8_t fb_bpp;
 static uint8_t fb_btpp;
 static size_t fb_size;
 
-static uint16_t line_count = 0;
-
 static uint16_t cx_max_index;
 static uint16_t cy_max_index;
-
-static uint16_t cy_info_index;
 
 static uint8_t* font_buffer;
 static size_t font_size;
@@ -74,6 +68,8 @@ static uint32_t fg_bright_colors[9] = {0x666666, 0xF14C4C, 0x23D18B, 0xF5F543, 0
 static uint32_t bg_colors[10] = {0x000000, 0xCD3131, 0x0DBC79, 0xE5E510, 0x2472C8, 0xBC3FBC, 0x11A8CD, 0xCFCFCF, DEFAULT_BG_COLOR};
 static uint32_t bg_bright_colors[9] = {0x666666, 0xF14C4C, 0x23D18B, 0xF5F543, 0x3B8EEA, 0xD670D6, 0x29B8DB, 0xFFFFFF};
 
+static bool refresh_display = false;
+
 
 void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed);
 
@@ -102,9 +98,10 @@ static void devconsole_setchar(uint16_t cx_ppos, uint16_t cy_ppos, char c){
     
     for(uint16_t y = 0; y < FONT_HEIGHT; y++) {
         for(uint16_t x = 0; x < FONT_WIDTH; x++) {
-            
             if(BIT_GET(glyph[y], FONT_WIDTH-x) == BITSET) {
                 devconsole_putpixel(cx_ppos+x, cy_ppos, fg_color); 
+            }else{
+                devconsole_putpixel(cx_ppos+x, cy_ppos, bg_color); 
             }
         }
         cy_ppos++;
@@ -127,33 +124,25 @@ static void devconsole_printline(uint16_t x, uint16_t line, char* str){
 }
 
 static void devconsole_new_line(void){
-    line_count++;
-
     size_t line_size = (size_t)fb_pitch * (size_t)FONT_HEIGHT;
     size_t line_pixel_count = (size_t)fb_width * (size_t)FONT_HEIGHT;
 
-    cx_index = 0;
     if(cy_index < cy_max_index){
+        int count = cx_max_index - cx_index + 1;
+        for(int i = 0; i < count; i++){
+            devconsole_clearchar((cx_index + i) * FONT_WIDTH, cy_index * FONT_HEIGHT);
+        }
         cy_index++;
     }else{
         void* fb_base_move = (void*)((uintptr_t)fb_foreground_base + (uintptr_t)line_size);
         size_t size_to_move = line_size * cy_max_index;
         memcpy(fb_foreground_base, fb_base_move, size_to_move);
         void* fb_base_to_clear_background = (void*)((uintptr_t)fb_background_base + (uintptr_t)line_size * cy_max_index);
-        memset32(fb_base_to_clear_background , bg_color, line_pixel_count);
+        memset32(fb_base_to_clear_background, bg_color, line_pixel_count);
         void* fb_base_to_clear_foreground = (void*)((uintptr_t)fb_foreground_base + (uintptr_t)line_size * cy_max_index);
-        memset32(fb_base_to_clear_foreground , bg_color, line_pixel_count);
+        memset32(fb_base_to_clear_foreground, bg_color, line_pixel_count);
     }
-
-    void* fb_base_to_cut = (void*)((uintptr_t)fb_foreground_base + (uintptr_t)line_size * cy_info_index);
-    memset32(fb_base_to_cut, DEFAULT_CUT_COLOR_DEVCONSOLE, line_pixel_count);
-
-    char cut_buffer[cx_max_index];
-    snprintf_((char*)&cut_buffer, cx_max_index, "Kernel version : %s | Console version : %s | Number of lines written : %d", KERNEL_VERSION, CONSOLE_VERSION, line_count);
-    uint32_t fg_color_to_restore = devconsole_get_fg_color();
-    devconsole_set_fg_color(0xffffffff);
-    devconsole_printline(0, cy_info_index, cut_buffer);
-    devconsole_set_fg_color(fg_color_to_restore);
+    cx_index = 0;
 }
 
 static int boot_fb_callback(void){
@@ -195,9 +184,8 @@ void devconsole_request_fb(void){
         cx_index = 0;
         cy_index = 0;
 
-        cx_max_index = fb_width / FONT_WIDTH;
-        cy_info_index = (fb_height / FONT_HEIGHT) - 1;
-        cy_max_index = cy_info_index - 1;
+        cx_max_index = fb_width / FONT_WIDTH - 1;
+        cy_max_index = fb_height / FONT_HEIGHT - 1;
 
         memset32(fb_background_base, bg_color, fb_size / sizeof(uint32_t));
         memset32(fb_foreground_base, bg_color, fb_size / sizeof(uint32_t));
@@ -293,10 +281,8 @@ void devconsole_delchar(void){
     if(cx_index != 0){
         cx_index--;
     }else{
-        cx_index = cx_max_index - 1;
-        if(cy_index == 0){
-            cy_index = cy_max_index - 1;
-        }else{
+        if(cy_index != 0 && cx_index != 0){
+            cx_index = cx_max_index - 1;
             cy_index = (cy_index - 1) % cy_max_index;
         }
     }
@@ -334,36 +320,34 @@ char* dev_console_get_espacebuffer(void){
 }
 
 void dev_console_clear(int mode){
+    dev_check_display_update();
+
     switch (mode){
         case 0:{
             {
                 size_t size_to_clear = (size_t)FONT_WIDTH * (cx_max_index - cx_index) * (size_t)FONT_HEIGHT;
                 void* background_base_to_clear = (void*)((uintptr_t)fb_background_base + cx_index * FONT_HEIGHT * FONT_HEIGHT);
-                void* foreground_base_to_clear = (void*)((uintptr_t)fb_foreground_base + cx_index * FONT_HEIGHT * FONT_HEIGHT);
                 memset32(background_base_to_clear, bg_color, size_to_clear);
-                memset32(foreground_base_to_clear, bg_color, size_to_clear);
             }
             {
-                size_t size_to_clear = (size_t)fb_width * (size_t)FONT_HEIGHT * (size_t)(cy_info_index - (cy_index + 1));
+                size_t size_to_clear = (size_t)fb_width * (size_t)FONT_HEIGHT * (size_t)(cy_max_index - (cy_index + 1));
                 void* background_base_to_clear = (void*)((uintptr_t)fb_background_base + (cy_index + 1) * FONT_HEIGHT * fb_pitch);
-                void* foreground_base_to_clear = (void*)((uintptr_t)fb_foreground_base + (cy_index + 1) * FONT_HEIGHT * fb_pitch);
                 memset32(background_base_to_clear, bg_color, size_to_clear);
-                memset32(foreground_base_to_clear, bg_color, size_to_clear);
             }
             break;
         }
         case 1:
         case 2:{
-            size_t size_to_clear = (size_t)fb_width * (size_t)FONT_HEIGHT * (size_t)cy_info_index;
+            size_t size_to_clear = (size_t)fb_width * (size_t)FONT_HEIGHT * (size_t)cy_max_index;
             memset32(fb_background_base, bg_color, size_to_clear);
-            memset32(fb_foreground_base, bg_color, size_to_clear);
             break;
         }
     }
+    refresh_display = true;
 }
 
 void devconsole_parsechar(char c){
-    serial_write(c);
+    //serial_write(c);
     if(parse_state == devconsole_parse_state_normal){
         if(devconsole_isprintable(c)){
             devconsole_putchar(c);
@@ -399,6 +383,7 @@ void devconsole_parsechar(char c){
                 cy_index = MIN(MAX(atoi(data), cy_index), cy_max_index);
                 cx_index = MIN(MAX(atoi(separator + sizeof(ANSI_SEPARATOR)), cx_index), cx_max_index);
             }
+            parse_state = devconsole_parse_state_normal; 
         }else if(c == ANSI_SCROLL_DOWN){
             int amount = 1;
             char* data = dev_console_get_espacebuffer();
@@ -408,6 +393,7 @@ void devconsole_parsechar(char c){
             for(int i = 0; i < amount; i++){
                 devconsole_new_line();
             }
+            parse_state = devconsole_parse_state_normal; 
         }else if(c == ANSI_CURSOR_DOWN){
             int amount = 1;
             char* data = dev_console_get_espacebuffer();
@@ -415,6 +401,7 @@ void devconsole_parsechar(char c){
                 amount = atoi(data);
             }
             cy_index = MIN(cy_index + amount, cy_max_index);
+            parse_state = devconsole_parse_state_normal; 
         }else if(c == ANSI_CURSOR_FORWARD){
             int amount = 1;
             char* data = dev_console_get_espacebuffer();
@@ -422,9 +409,11 @@ void devconsole_parsechar(char c){
                 amount = atoi(data);
             }
             cx_index = MIN(cx_index + amount, cx_max_index);
+            parse_state = devconsole_parse_state_normal; 
         }else if(c == ANSI_ERASE_IN_DISPLAY){
             int mode = atoi(dev_console_get_espacebuffer());
             dev_console_clear(mode);
+            parse_state = devconsole_parse_state_normal; 
         }
     }
     
@@ -448,6 +437,7 @@ void devconsole_parsechar(char c){
         }else if(data_code >= ANSI_GRAPHICS_BG_BLACK && data_code <= ANSI_GRAPHICS_BG_DEFAULT){
             // background colors
             devconsole_set_bg_color(bg_colors[data_code - ANSI_GRAPHICS_BG_BLACK]);
+
         }else if(data_code >= ANSI_GRAPHICS_BG_BLACK_BRIGHT && data_code <= ANSI_GRAPHICS_BG_WHITE_BRIGHT){
             // background colors bright
             devconsole_set_bg_color(bg_bright_colors[data_code - ANSI_GRAPHICS_BG_BLACK_BRIGHT]);
@@ -457,7 +447,24 @@ void devconsole_parsechar(char c){
 }
 
 void devconsole_print(const char* str, size_t size) {
+    uint16_t last_cy_index = cy_index;
+
     for(size_t i = 0; i < size; i++) {
         devconsole_parsechar(str[i]);
     }
+
+    if(last_cy_index != cy_index){
+        dev_check_display_update();
+    }
+}
+
+void dev_check_display_update(void){
+    if(refresh_display){
+        devconsole_update_display();
+        refresh_display = false;
+    }
+}
+
+void devconsole_update_display(void){
+    memcpy(fb_foreground_base, fb_background_base, fb_size);
 }

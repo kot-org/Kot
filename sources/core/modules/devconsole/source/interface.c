@@ -125,6 +125,12 @@ int console_interface_read(void* buffer, size_t size, size_t* bytes_read, struct
 
 int console_interface_write(void* buffer, size_t size, size_t* bytes_write, kernel_file_t* file){
     devconsole_request_fb();
+    
+    console_window_size.ws_col = cx_max_index;
+    console_window_size.ws_row = cy_max_index;
+    console_window_size.ws_xpixel = fb_width;
+    console_window_size.ws_ypixel = fb_height;
+
     devconsole_print(buffer, size);
     *bytes_write = size;
     return 0;
@@ -203,11 +209,6 @@ void interface_init(void){
     hid_handler->set_key_handler(&key_handler);
 
     devfs_add_dev("tty", &console_interface_open);
-
-    console_window_size.ws_col = cx_max_index;
-    console_window_size.ws_row = cy_max_index;
-    console_window_size.ws_xpixel = fb_width;
-    console_window_size.ws_ypixel = fb_height;
 
     devconsole_init();
 }
