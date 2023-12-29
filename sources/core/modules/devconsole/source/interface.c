@@ -8,7 +8,6 @@
 #include <global/console.h>
 #include <global/scheduler.h>
 
-#include <console/ansi.c>
 #include <console/console.c>
 
 #define BUFFER_COUNT    2
@@ -52,7 +51,7 @@ void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed){
     if(is_pressed){
         spinlock_acquire(&key_handler_lock);
 
-        if((translated_key >= 0x21 && translated_key <= 0x7E) || translated_key == ' '){
+        if(devconsole_isprintable(translated_key)){
             if(((key_buffer_char_index + 1)  % KEY_BUFFER_SIZE) == 0){
                 log_warning("[module/"MODULE_NAME"] flushing key buffer\n");
             }

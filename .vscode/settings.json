@@ -155,7 +155,10 @@
         "typeindex": "c",
         "doomgeneric.h": "c",
         "termios.h": "c",
-        "signal.h": "c"
+        "signal.h": "c",
+        "locale.h": "c",
+        "location_buffer.h": "c",
+        "canvas.h": "c"
     },
     "files.exclude": {
         "bundled": true,

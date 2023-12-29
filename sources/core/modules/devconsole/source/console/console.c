@@ -21,6 +21,8 @@
 
 #define TAB_SIZE 8
 
+#define ESCAPE_BUFFER_MAX_SIZE 128
+
 static bool use_boot_fb = false;
 static spinlock_t boot_fb_lock = SPINLOCK_INIT;
 
@@ -53,6 +55,24 @@ static uint16_t last_cx_index = 0;
 static uint16_t last_cy_index = 0;
 
 static uint32_t cursor_color = DEFAULT_FG_COLOR;
+
+static char espacebuffer[ESCAPE_BUFFER_MAX_SIZE];
+static size_t espacebuffersize = 0;
+
+
+enum devconsole_parse_state {
+    devconsole_parse_state_normal,
+    devconsole_parse_state_escape,
+    devconsole_parse_state_control,
+    devconsole_parse_state_graphics,
+};
+
+static enum devconsole_parse_state parse_state = devconsole_parse_state_normal;
+
+static uint32_t fg_colors[10] = {0x000000, 0xCD3131, 0x0DBC79, 0xE5E510, 0x2472C8, 0xBC3FBC, 0x11A8CD, 0xCFCFCF, DEFAULT_FG_COLOR};
+static uint32_t fg_bright_colors[9] = {0x666666, 0xF14C4C, 0x23D18B, 0xF5F543, 0x3B8EEA, 0xD670D6, 0x29B8DB, 0xFFFFFF};
+static uint32_t bg_colors[10] = {0x000000, 0xCD3131, 0x0DBC79, 0xE5E510, 0x2472C8, 0xBC3FBC, 0x11A8CD, 0xCFCFCF, DEFAULT_BG_COLOR};
+static uint32_t bg_bright_colors[9] = {0x666666, 0xF14C4C, 0x23D18B, 0xF5F543, 0x3B8EEA, 0xD670D6, 0x29B8DB, 0xFFFFFF};
 
 
 void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed);
@@ -251,7 +271,7 @@ void devconsole_putchar(char c) {
         return;
     }
 
-    if(c == 9){ // tab
+    if(c == '\t'){ // tab
         if(cx_index % TAB_SIZE){
             cx_index -= cx_index % TAB_SIZE;
         }
@@ -288,22 +308,156 @@ void devconsole_delchar(void){
     spinlock_release(&boot_fb_lock);
 }
 
-void devconsole_print(const char* str, size_t size) {
-    for(size_t i = 0; i < size; i++) {
-        if(str[i] == '\n'){
-            devconsole_putchar('\r');
-            serial_write('\r');   
-        }
+bool devconsole_isprintable(uint16_t c){
+    return (c >= 0x21 && c <= 0x7E) || c == ' ';
+}
 
-        if(str[i] == '\e' || str[i] == '\033') {
-            i = (size_t)ansi_read(str+i) + i;
-        }
+bool devconsole_aplha(uint16_t c){
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
 
-        devconsole_putchar(str[i]);
-        serial_write(str[i]);
+void dev_console_appendescapebuffer(char c){
+    if(espacebuffersize + 1 < ESCAPE_BUFFER_MAX_SIZE){
+        espacebuffer[espacebuffersize] = c;
+        espacebuffersize++;
+        espacebuffer[espacebuffersize] = '\0';
     }
 }
 
-void devconsole_update_screen(void){
-    memcpy((void*)fb_foreground_base, (void*)fb_background_base, fb_size);
+void dev_console_clearescapebuffer(void){
+    espacebuffersize = 0;
+    espacebuffer[espacebuffersize] = '\0';
+}
+
+char* dev_console_get_espacebuffer(void){
+    return espacebuffer;
+}
+
+void dev_console_clear(int mode){
+    switch (mode){
+        case 0:{
+            {
+                size_t size_to_clear = (size_t)FONT_WIDTH * (cx_max_index - cx_index) * (size_t)FONT_HEIGHT;
+                void* background_base_to_clear = (void*)((uintptr_t)fb_background_base + cx_index * FONT_HEIGHT * FONT_HEIGHT);
+                void* foreground_base_to_clear = (void*)((uintptr_t)fb_foreground_base + cx_index * FONT_HEIGHT * FONT_HEIGHT);
+                memset32(background_base_to_clear, bg_color, size_to_clear);
+                memset32(foreground_base_to_clear, bg_color, size_to_clear);
+            }
+            {
+                size_t size_to_clear = (size_t)fb_width * (size_t)FONT_HEIGHT * (size_t)(cy_info_index - (cy_index + 1));
+                void* background_base_to_clear = (void*)((uintptr_t)fb_background_base + (cy_index + 1) * FONT_HEIGHT * fb_pitch);
+                void* foreground_base_to_clear = (void*)((uintptr_t)fb_foreground_base + (cy_index + 1) * FONT_HEIGHT * fb_pitch);
+                memset32(background_base_to_clear, bg_color, size_to_clear);
+                memset32(foreground_base_to_clear, bg_color, size_to_clear);
+            }
+            break;
+        }
+        case 1:
+        case 2:{
+            size_t size_to_clear = (size_t)fb_width * (size_t)FONT_HEIGHT * (size_t)cy_info_index;
+            memset32(fb_background_base, bg_color, size_to_clear);
+            memset32(fb_foreground_base, bg_color, size_to_clear);
+            break;
+        }
+    }
+}
+
+void devconsole_parsechar(char c){
+    serial_write(c);
+    if(parse_state == devconsole_parse_state_normal){
+        if(devconsole_isprintable(c)){
+            devconsole_putchar(c);
+        }else if(c == '\n'){
+            devconsole_putchar('\n');
+            devconsole_putchar('\r');
+        }else if(c == '\t'){
+            devconsole_putchar('\t');
+        }else if(c == '\e'){
+            dev_console_clearescapebuffer();
+            parse_state = devconsole_parse_state_escape;
+        }else if(c == '\b'){
+
+        }
+    }else if(parse_state == devconsole_parse_state_escape){
+        if(c == ANSI_CONTROL){
+            parse_state = devconsole_parse_state_control;
+        }else{
+            parse_state = devconsole_parse_state_normal;
+        }
+    }else if(parse_state == devconsole_parse_state_control){
+        if(!devconsole_aplha(c)){
+            dev_console_appendescapebuffer(c);
+        }else if(c == ANSI_GRAPHICS){
+            parse_state = devconsole_parse_state_graphics;
+        }else if(c == ANSI_CURSOR_POSITION){
+            cx_index = 0;
+            cy_index = 0;
+            char* data = dev_console_get_espacebuffer();
+            char* separator = strchr(data, ANSI_SEPARATOR);
+            if(separator != NULL){
+                *separator = '\0';
+                cy_index = MIN(MAX(atoi(data), cy_index), cy_max_index);
+                cx_index = MIN(MAX(atoi(separator + sizeof(ANSI_SEPARATOR)), cx_index), cx_max_index);
+            }
+        }else if(c == ANSI_SCROLL_DOWN){
+            int amount = 1;
+            char* data = dev_console_get_espacebuffer();
+            if(strlen(data)){
+                amount = atoi(data);
+            }
+            for(int i = 0; i < amount; i++){
+                devconsole_new_line();
+            }
+        }else if(c == ANSI_CURSOR_DOWN){
+            int amount = 1;
+            char* data = dev_console_get_espacebuffer();
+            if(strlen(data)){
+                amount = atoi(data);
+            }
+            cy_index = MIN(cy_index + amount, cy_max_index);
+        }else if(c == ANSI_CURSOR_FORWARD){
+            int amount = 1;
+            char* data = dev_console_get_espacebuffer();
+            if(strlen(data)){
+                amount = atoi(data);
+            }
+            cx_index = MIN(cx_index + amount, cx_max_index);
+        }else if(c == ANSI_ERASE_IN_DISPLAY){
+            int mode = atoi(dev_console_get_espacebuffer());
+            dev_console_clear(mode);
+        }
+    }
+    
+    if(parse_state == devconsole_parse_state_graphics){
+        char* data = dev_console_get_espacebuffer();
+        char* separator = strchr(data, ANSI_SEPARATOR);
+        if(separator != NULL){
+            data = separator + sizeof(ANSI_SEPARATOR);
+        }
+        int data_code = atoi(data);
+
+        if(data_code == ANSI_GRAPHICS_RESET){
+            devconsole_set_bg_color(DEFAULT_BG_COLOR);
+            devconsole_set_fg_color(DEFAULT_FG_COLOR);
+        }else if(data_code >= ANSI_GRAPHICS_FG_BLACK && data_code <= ANSI_GRAPHICS_FG_DEFAULT){
+            // foreground colors
+            devconsole_set_fg_color(fg_colors[data_code - ANSI_GRAPHICS_FG_BLACK]);
+        }else if(data_code >= ANSI_GRAPHICS_FG_BLACK_BRIGHT && data_code <= ANSI_GRAPHICS_FG_WHITE_BRIGHT){
+            // foreground colors bright
+            devconsole_set_fg_color(fg_bright_colors[data_code - ANSI_GRAPHICS_FG_BLACK_BRIGHT]);
+        }else if(data_code >= ANSI_GRAPHICS_BG_BLACK && data_code <= ANSI_GRAPHICS_BG_DEFAULT){
+            // background colors
+            devconsole_set_bg_color(bg_colors[data_code - ANSI_GRAPHICS_BG_BLACK]);
+        }else if(data_code >= ANSI_GRAPHICS_BG_BLACK_BRIGHT && data_code <= ANSI_GRAPHICS_BG_WHITE_BRIGHT){
+            // background colors bright
+            devconsole_set_bg_color(bg_bright_colors[data_code - ANSI_GRAPHICS_BG_BLACK_BRIGHT]);
+        }
+        parse_state = devconsole_parse_state_normal; 
+    }
+}
+
+void devconsole_print(const char* str, size_t size) {
+    for(size_t i = 0; i < size; i++) {
+        devconsole_parsechar(str[i]);
+    }
 }

@@ -1,0 +1,26 @@
+From a05800e45edd9621eb010f836f08098975f191d6 Mon Sep 17 00:00:00 2001
+From: Keep-Konect <66421869+konect-V@users.noreply.github.com>
+Date: Fri, 29 Dec 2023 14:13:16 +0100
+Subject: [PATCH 1/1] Port Nyancat to Kot
+
+---
+ src/nyancat.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/nyancat.c b/src/nyancat.c
+index 6989623..e3126c3 100644
+--- a/src/nyancat.c
++++ b/src/nyancat.c
+@@ -67,9 +67,7 @@
+ 
+ #include <sys/ioctl.h>
+ 
+-#ifndef TIOCGWINSZ
+ #include <termios.h>
+-#endif
+ 
+ #ifdef ECHO
+ #undef ECHO
+-- 
+2.34.1
+

@@ -107,14 +107,24 @@ packages:
         environ:
           DESTDIR: '@THIS_COLLECT_DIR@'
 
-  - name: pipe
+  - name: nyancat
     source:
       subdir: 'bundled'
-      git: 'https://github.com/pipeseroni/pipes.sh'
-      tag: 'v1.3.0'
-      version: '1.3.0'
+      git: 'https://github.com/klange/nyancat.git'
+      tag: '1.5.2'
+      version: '1.5.2'
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+    configure:
+      - args: ['cp', '-r', '@THIS_SOURCE_DIR@/.', '@THIS_BUILD_DIR@']
     build:
-      - args: ['make', '-C', '@THIS_SOURCE_DIR@', 'PREFIX=@THIS_COLLECT_DIR@/usr', 'install']
+      - args: ['make', '-j@PARALLELISM@']
+        environ:
+          CC: "x86_64-kot-gcc"
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/usr/bin']
+      - args: ['cp', '-v', '@THIS_BUILD_DIR@/src/nyancat', '@THIS_COLLECT_DIR@/usr/bin']
 
   # - name: gcc
   #   from_source: gcc

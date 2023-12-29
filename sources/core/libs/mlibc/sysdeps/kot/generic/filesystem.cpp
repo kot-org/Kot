@@ -137,12 +137,20 @@ namespace mlibc{
         return sys_ioctl(fd, TCGETS, (void*)attr, &result);
     }
 
-    int sys_tcsetattr(int fd, int optional_action, struct termios *attr) {
-        int result;
-        if(optional_action){
-            mlibc::infoLogger() << "mlibc: warning: sys_tcsetattr ignores optional_action" << frg::endlog;
+    int sys_tcsetattr(int fd, int optional_action, const struct termios *attr) {
+        int ret;
+        switch (optional_action) {
+            case TCSANOW:
+                optional_action = TCSETS; break;
+            case TCSADRAIN:
+                optional_action = TCSETSW; break;
+            case TCSAFLUSH:
+                optional_action = TCSETSF; break;
+            default:
+                __ensure(!"Unsupported tcsetattr");
         }
-        return sys_ioctl(fd, TCSETS, (void*)attr, &result);
+
+        return sys_ioctl(fd, optional_action, (void *)attr, &ret);
     }
 
     int sys_rmdir(const char *path){
