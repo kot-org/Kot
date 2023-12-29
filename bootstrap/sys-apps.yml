@@ -153,3 +153,25 @@ packages:
           DESTDIR: '@THIS_COLLECT_DIR@'
       - args: ['sh', '-c', 'cp -rv @BUILD_ROOT@/tools/host-gcc/x86_64-kot/lib/* @THIS_COLLECT_DIR@/usr/lib/']
       - args: ['sh', '-c', 'cp -rv @BUILD_ROOT@/tools/host-gcc/x86_64-kot/include/* @THIS_COLLECT_DIR@/usr/include/']
+
+  - name: nano
+    source:
+      subdir: 'Bundled'
+      git: 'git://git.sv.gnu.org/nano'
+      branch: 'master'
+      regenerate:
+        - args: ['./autogen.sh']
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - ncurses
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=x86_64-kot'
+        - '--prefix=/usr'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
