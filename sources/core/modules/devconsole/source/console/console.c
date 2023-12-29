@@ -414,33 +414,40 @@ void devconsole_parsechar(char c){
             int mode = atoi(dev_console_get_espacebuffer());
             dev_console_clear(mode);
             parse_state = devconsole_parse_state_normal; 
+        }else{
+            parse_state = devconsole_parse_state_normal; 
         }
     }
     
     if(parse_state == devconsole_parse_state_graphics){
         char* data = dev_console_get_espacebuffer();
-        char* separator = strchr(data, ANSI_SEPARATOR);
-        if(separator != NULL){
-            data = separator + sizeof(ANSI_SEPARATOR);
-        }
-        int data_code = atoi(data);
+        if(strlen(data)){
+            char* separator = strchr(data, ANSI_SEPARATOR);
+            if(separator != NULL){
+                data = separator + sizeof(ANSI_SEPARATOR);
+            }
+            int data_code = atoi(data);
 
-        if(data_code == ANSI_GRAPHICS_RESET){
+            if(data_code == ANSI_GRAPHICS_RESET){
+                devconsole_set_bg_color(DEFAULT_BG_COLOR);
+                devconsole_set_fg_color(DEFAULT_FG_COLOR);
+            }else if(data_code >= ANSI_GRAPHICS_FG_BLACK && data_code <= ANSI_GRAPHICS_FG_DEFAULT){
+                // foreground colors
+                devconsole_set_fg_color(fg_colors[data_code - ANSI_GRAPHICS_FG_BLACK]);
+            }else if(data_code >= ANSI_GRAPHICS_FG_BLACK_BRIGHT && data_code <= ANSI_GRAPHICS_FG_WHITE_BRIGHT){
+                // foreground colors bright
+                devconsole_set_fg_color(fg_bright_colors[data_code - ANSI_GRAPHICS_FG_BLACK_BRIGHT]);
+            }else if(data_code >= ANSI_GRAPHICS_BG_BLACK && data_code <= ANSI_GRAPHICS_BG_DEFAULT){
+                // background colors
+                devconsole_set_bg_color(bg_colors[data_code - ANSI_GRAPHICS_BG_BLACK]);
+
+            }else if(data_code >= ANSI_GRAPHICS_BG_BLACK_BRIGHT && data_code <= ANSI_GRAPHICS_BG_WHITE_BRIGHT){
+                // background colors bright
+                devconsole_set_bg_color(bg_bright_colors[data_code - ANSI_GRAPHICS_BG_BLACK_BRIGHT]);
+            }
+        }else{
             devconsole_set_bg_color(DEFAULT_BG_COLOR);
             devconsole_set_fg_color(DEFAULT_FG_COLOR);
-        }else if(data_code >= ANSI_GRAPHICS_FG_BLACK && data_code <= ANSI_GRAPHICS_FG_DEFAULT){
-            // foreground colors
-            devconsole_set_fg_color(fg_colors[data_code - ANSI_GRAPHICS_FG_BLACK]);
-        }else if(data_code >= ANSI_GRAPHICS_FG_BLACK_BRIGHT && data_code <= ANSI_GRAPHICS_FG_WHITE_BRIGHT){
-            // foreground colors bright
-            devconsole_set_fg_color(fg_bright_colors[data_code - ANSI_GRAPHICS_FG_BLACK_BRIGHT]);
-        }else if(data_code >= ANSI_GRAPHICS_BG_BLACK && data_code <= ANSI_GRAPHICS_BG_DEFAULT){
-            // background colors
-            devconsole_set_bg_color(bg_colors[data_code - ANSI_GRAPHICS_BG_BLACK]);
-
-        }else if(data_code >= ANSI_GRAPHICS_BG_BLACK_BRIGHT && data_code <= ANSI_GRAPHICS_BG_WHITE_BRIGHT){
-            // background colors bright
-            devconsole_set_bg_color(bg_bright_colors[data_code - ANSI_GRAPHICS_BG_BLACK_BRIGHT]);
         }
         parse_state = devconsole_parse_state_normal; 
     }
