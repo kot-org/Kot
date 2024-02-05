@@ -1,9 +1,0 @@
-[
-    {"file":"Storage.elf", "priviledge":2, "vfs":false},
-    {"file":"Pci.elf", "priviledge":1},
-    {"file":"Hpet.elf", "priviledge":1},
-    {"file":"Rtc.elf", "priviledge":1},
-    {"file":"Ahci.elf", "priviledge":1},
-    {"file":"Ext.elf", "priviledge":1},
-    {"file":"Time.elf", "priviledge":2}
-]

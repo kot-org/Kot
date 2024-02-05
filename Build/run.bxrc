@@ -1,6 +1,0 @@
-ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
-ata0-master: type=cdrom, path="../Bin/kot.iso", status=inserted
-boot: cdrom
-port_e9_hack: enabled=1
-com1: enabled=0
-mouse: type=imps2, enabled=1

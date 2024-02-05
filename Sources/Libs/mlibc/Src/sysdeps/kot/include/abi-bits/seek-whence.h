@@ -1,1 +1,0 @@
-../../../../abis/kot/seek-whence.h
