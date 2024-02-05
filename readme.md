@@ -2,8 +2,7 @@
 	<img src="./meta/images/laptop.png?raw=true" width="90%"/> 
 </p>
 
-# The New Kot
-A 64-bit x86 operating system written in C/C++
+# Kot
 
 [![C/C++ CI](https://github.com/kot-org/new-kot/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/kot-org/new-kot/actions/workflows/c-cpp.yml)
 
@@ -53,5 +52,5 @@ Replace <device> with the actual device name of your USB key, such as /dev/sdc. 
 
 7. **Use your PC:**
 
-**:warning: Kot is alpha software, use it at your own risk.**To use boot **The New Kot** on your PC, please note that this method requires a certain level of knowledge about the BIOS, as improper usage can potentially damage your system's data. First of all you have to run the command `INSTALL=true PACKAGE=all make build`, and then you can reboot your PC. Then enter into your BIOS and select `EFI/limine/BOOTX64.EFI` as a boot file.
+**:warning: Kot is alpha software, use it at your own risk.** To use boot **The New Kot** on your PC, please note that this method requires a certain level of knowledge about the BIOS, as improper usage can potentially damage your system's data. First of all you have to run the command `INSTALL=true PACKAGE=all make build`, and then you can reboot your PC. Then enter into your BIOS and select `EFI/limine/BOOTX64.EFI` as a boot file.
 
