@@ -158,7 +158,9 @@
         "signal.h": "c",
         "locale.h": "c",
         "location_buffer.h": "c",
-        "canvas.h": "c"
+        "canvas.h": "c",
+        "signal_ext.h": "c",
+        "features.h": "c"
     },
     "files.exclude": {
         "bundled": true,

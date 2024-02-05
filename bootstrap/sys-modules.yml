@@ -287,7 +287,7 @@ packages:
 
   - name: doom
     source:
-      subdir: 'sources/core/apps'
+      subdir: 'bundled'
       git: 'https://github.com/kot-org/doom'
       branch: 'master'
     tools_required:

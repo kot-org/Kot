@@ -19,6 +19,7 @@ typedef struct{
         kernel_file_t* file;
         kernel_dir_t* dir;
     }data;
+    bool is_parent;
 }descriptor_t;
 
 typedef struct{

@@ -1,16 +1,14 @@
 #include <stdio.h>
-#include <fcntl.h>
-#include <stdint.h>
-#include <assert.h>
-#include <unistd.h>
 #include <stdlib.h>
-#include <linux/fb.h>
-#include <sys/ioctl.h>
+#include <signal.h>
+
+void sigint_handler(){
+    printf("Signal\n");
+}
 
 int main(int argc, char* argv[]){
-    for(int i = 0; i < argc; i++){
-        printf("%d : %s\n", i, argv[i]);
-    }
-
+    printf("Hello\n");
+    signal(SIGINT, sigint_handler); 
+    while(1);  
     return EXIT_SUCCESS;
 }

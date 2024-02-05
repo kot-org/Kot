@@ -1,4 +1,4 @@
-global reload_gs_fs, get_cpu_context, cpu_get_apicid, set_cpu_context, get_cpu_context, set_cpu_gs_base, set_cpu_gs_kernel_base, set_cpu_fs_base
+global reload_gs_fs, get_cpu_context, cpu_get_apicid, set_cpu_context, get_cpu_context, set_cpu_gs_base, set_cpu_gs_kernel_base, set_cpu_fs_base, cpu_get_user_stack_before_syscall
 
 %define fs_base             0xc0000100
 %define gs_base             0xc0000101
@@ -48,3 +48,7 @@ cpu_get_apicid:
     jnz    need_cpuid
     mov    rax, [gs:0x0]
     ret 
+
+cpu_get_user_stack_before_syscall:
+    mov rax, [gs:0x10]	
+    ret

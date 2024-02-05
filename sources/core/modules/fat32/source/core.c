@@ -1031,11 +1031,11 @@ int fat_file_read(fat_file_internal_t* file, uint64_t start, size_t size, size_t
 
     uint32_t base_cluster = fat_get_cluster_file(&file->entry);
 
-    if(base_cluster == 0){
-        return EIO;
-    }
+    int err = 0;
 
-    int err = fat_read_cluster_chain(file->ctx, base_cluster, start, (uint64_t)size, &size_read_tmp, buffer);
+    if(base_cluster != 0){
+        err = fat_read_cluster_chain(file->ctx, base_cluster, start, (uint64_t)size, &size_read_tmp, buffer);
+    }
 
     *size_read = (size_t)size_read_tmp;
 

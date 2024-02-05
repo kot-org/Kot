@@ -7,7 +7,7 @@
 #include ARCH_INCLUDE(interrupts.h)
 
 void scheduler_generate_task_switching(void){
-    asm("int %0" : : "i"(INT_SCHEDULE_APIC_TIMER));
+    asm("int %0" : : "i"(INT_SCHEDULE));
 }
 
 int scheduler_arch_prctl_thread(thread_t* thread, int code, void* address){
@@ -21,6 +21,7 @@ int scheduler_arch_prctl_thread(thread_t* thread, int code, void* address){
         }  
         case ARCH_SET_FS:{
             thread->ctx->fs_base = (uint64_t)address;
+            thread->signal_restore_ctx->fs_base = (uint64_t)address;
             set_cpu_fs_base((uint64_t)address);
             break;
         }

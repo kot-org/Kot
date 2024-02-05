@@ -4,6 +4,7 @@
 #include <lib/math.h>
 #include <impl/vmm.h>
 #include <lib/lock.h>
+#include <parameters.h>
 #include <lib/assert.h>
 #include <lib/string.h>
 #include <lib/memory.h>
@@ -100,12 +101,28 @@ int load_elf_module(module_metadata_t** metadata, int argc, char* args[]){
                     sym_table[y].st_value = (elf64_addr)sym_table[y].st_value + (elf64_addr)sh_hdr->sh_addr;
                 }else if(sym_table[y].st_shndx == SHN_UNDEF){
                     if(sym_table[y].st_name){
-                        sym_table[y].st_value = (elf64_addr)ksym_find((char*)((elf64_addr)sym_names + (elf64_addr)sym_table[y].st_name));
+                        sym_table[y].st_value = (elf64_addr)ksym_get_address_kernel_shareable_symbols((char*)((elf64_addr)sym_names + (elf64_addr)sym_table[y].st_name));
                     }
                 }
 
                 if(sym_table[y].st_name){
-                    if(!strcmp(sym_names + sym_table[y].st_name, "module_metadata")){
+                    char* sym_name = sym_names + sym_table[y].st_name;
+
+                    #ifdef DEBUG_MODULES
+                    if(sym_table[y].st_shndx != SHN_UNDEF){
+                        size_t sym_name_len = strlen(sym_name);
+                        size_t ksym_size = sizeof(ksym_t) + sym_name_len + sizeof((char)'\0');
+                        ksym_t* ksym = malloc(ksym_size);
+                        memcpy(ksym->name, sym_name, sym_name_len);
+                        ksym->name[sym_name_len] = '\0';
+                        ksym->name_len = sym_name_len;
+                        ksym->address = sym_table[y].st_value;
+                        ksym->size = sym_table[y].st_size;
+                        ksym_add(ksym, false);
+                    }
+                    #endif
+
+                    if(!strcmp(sym_name, "module_metadata")){
                         module_data = (module_metadata_t*)sym_table[y].st_value;
                     }
                 }

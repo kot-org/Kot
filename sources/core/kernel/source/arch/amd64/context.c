@@ -2,29 +2,13 @@
 #include <impl/arch.h>
 #include <lib/memory.h>
 #include <global/heap.h>
+#include <global/scheduler.h>
 
 #include <arch/include.h>
 #include ARCH_INCLUDE(gdt.h)
 #include ARCH_INCLUDE(cpu.h)
 #include ARCH_INCLUDE(simd.h)
 #include ARCH_INCLUDE(context.h)
-
-context_info_t* iddle_ctx_info[MAX_CORE_COUNT];
-
-static void context_iddle_handler(void){
-    while(true){
-        asm("pause");
-    }
-}
-
-void context_init(uint8_t cpu_count){
-    for(uint8_t i = 0; i < cpu_count; i++){
-        iddle_ctx_info[i] = calloc(1, sizeof(context_info_t));
-        iddle_ctx_info[i]->cs = GDT_KERNEL_CODE * sizeof(gdt_entry_t);
-        iddle_ctx_info[i]->ss = GDT_KERNEL_DATA * sizeof(gdt_entry_t);
-        iddle_ctx_info[i]->kernel_stack = malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
-    }
-}
 
 context_t* context_create(void){
     context_t* ctx = calloc(1, sizeof(context_t));
@@ -89,14 +73,24 @@ void contex_fork(context_t* ctx, cpu_context_t* cpu_ctx, thread_t* thread){
     ctx->cpu_ctx.ctx_info->kernel_stack = malloc(KERNEL_STACK_SIZE) + KERNEL_STACK_SIZE;
 }
 
-void context_iddle(cpu_context_t* cpu_ctx, uint8_t cpu_id){
-    cpu_ctx->ctx_info = iddle_ctx_info[cpu_id];
-    cpu_ctx->cr3 = (uint64_t)vmm_get_kernel_space(); 
-    cpu_ctx->rip = (uint64_t)&context_iddle_handler; 
-    cpu_ctx->rsp = (uint64_t)iddle_ctx_info[cpu_id]->kernel_stack; 
-    cpu_ctx->cs = cpu_ctx->ctx_info->cs;
-    cpu_ctx->ss = cpu_ctx->ctx_info->ss;
-    cpu_ctx->rflags = RFLAGS_INTERRUPT_ENABLE | RFLAGS_ONE;
+void context_signal(signal_handler_t* handler, thread_t* thread, int signal){
+    context_save(thread->ctx, &thread->signal_restore_ctx->cpu_ctx);
+
+    uintptr_t rsp = (uintptr_t)thread->ctx->cpu_ctx.rsp;
+
+    if(rsp % sizeof(void*)){
+        rsp -= rsp % sizeof(void*);
+    }
+    rsp -= sizeof(void*);
+
+    void** sigreturn_entry = vmm_get_virtual_address(vmm_get_physical_address(thread->process->memory_handler->vmm_space, (void*)rsp));
+    *sigreturn_entry = handler->sigreturn;
+
+    thread->ctx->cpu_ctx.rdi = signal;
+    thread->ctx->cpu_ctx.rsp = (uint64_t)rsp;
+    thread->ctx->cpu_ctx.rip = (uint64_t)handler->handler;
+    thread->ctx->cpu_ctx.cs = thread->ctx->cpu_ctx.ctx_info->cs;
+    thread->ctx->cpu_ctx.ss = thread->ctx->cpu_ctx.ctx_info->ss;
 }
 
 void* context_get_thread(void){

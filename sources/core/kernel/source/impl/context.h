@@ -17,8 +17,6 @@ The file in ARCH_INCLUDE(impl/context.h) is expected to have :
 
 typedef uint64_t context_flags_t;
 
-void context_init(uint8_t cpu_count);
-
 context_t* context_create(void);
 
 void context_free(context_t* ctx);
@@ -31,7 +29,7 @@ void context_restore(context_t* ctx, cpu_context_t* cpu_ctx);
 
 void contex_fork(context_t* ctx, cpu_context_t* cpu_ctx, struct thread_t* thread);
 
-void context_iddle(cpu_context_t* cpu_ctx, uint8_t cpu_id);
+void context_signal(struct signal_handler_t* handler, struct thread_t* thread, int signal);
 
 void* context_get_thread(void);
 

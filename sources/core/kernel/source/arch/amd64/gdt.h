@@ -47,6 +47,8 @@ typedef struct {
     uint8_t base_high;
 } __attribute__((packed)) gdt_entry_t;
 
+#define GDT_GET_SEGMENT(x) x * sizeof(gdt_entry_t)
+
 typedef struct {
     uint16_t length;
     uint16_t base_low;

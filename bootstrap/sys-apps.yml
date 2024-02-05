@@ -156,11 +156,15 @@ packages:
 
   - name: nano
     source:
-      subdir: 'Bundled'
+      subdir: 'bundled'
       git: 'git://git.sv.gnu.org/nano'
       branch: 'master'
       regenerate:
         - args: ['./autogen.sh']
+        - args: ['cp',
+          '-f',
+          '@BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub',
+          '@THIS_SOURCE_DIR@/config.sub']
     tools_required:
       - host-gcc
     pkgs_required:

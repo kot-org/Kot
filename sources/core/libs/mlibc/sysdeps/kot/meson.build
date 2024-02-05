@@ -6,6 +6,7 @@ rtdl_dso_sources += files(
 
 libc_sources += files(
 	'generic/entry.cpp',
+	'generic/signal.cpp',
 	'generic/generic.cpp',
 	'generic/filesystem.cpp',
 	host_machine.cpu_family() / 'arch-syscall.cpp',
@@ -74,4 +75,10 @@ if not headers_only
 		install: true,
 		install_dir: get_option('libdir')
 	)
+endif
+
+if host_machine.cpu_family() == 'x86_64'
+	libc_sources += files('generic/signal.s')
+else
+	error('Unknown architecture')
 endif

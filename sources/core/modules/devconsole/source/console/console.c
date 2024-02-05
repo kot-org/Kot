@@ -21,6 +21,9 @@
 
 #define ESCAPE_BUFFER_MAX_SIZE 128
 
+#define MAX_COLOR 0xFFFFFFFF
+#define REVERSE_COLOR(x) (MAX_COLOR - x)
+
 static bool use_boot_fb = false;
 static spinlock_t boot_fb_lock = SPINLOCK_INIT;
 
@@ -53,11 +56,14 @@ static uint32_t cursor_color = DEFAULT_FG_COLOR;
 static char espacebuffer[ESCAPE_BUFFER_MAX_SIZE];
 static size_t espacebuffersize = 0;
 
+static thread_t* last_thread_output = NULL;
+
 
 enum devconsole_parse_state {
     devconsole_parse_state_normal,
     devconsole_parse_state_escape,
     devconsole_parse_state_control,
+    devconsole_parse_character_set,
     devconsole_parse_state_graphics,
 };
 
@@ -124,9 +130,6 @@ static void devconsole_printline(uint16_t x, uint16_t line, char* str){
 }
 
 static void devconsole_new_line(void){
-    size_t line_size = (size_t)fb_pitch * (size_t)FONT_HEIGHT;
-    size_t line_pixel_count = (size_t)fb_width * (size_t)FONT_HEIGHT;
-
     if(cy_index < cy_max_index){
         int count = cx_max_index - cx_index + 1;
         for(int i = 0; i < count; i++){
@@ -134,6 +137,9 @@ static void devconsole_new_line(void){
         }
         cy_index++;
     }else{
+        size_t line_size = (size_t)fb_pitch * (size_t)FONT_HEIGHT;
+        size_t line_pixel_count = (size_t)fb_width * (size_t)FONT_HEIGHT;
+        
         void* fb_base_move = (void*)((uintptr_t)fb_foreground_base + (uintptr_t)line_size);
         size_t size_to_move = line_size * cy_max_index;
         memcpy(fb_foreground_base, fb_base_move, size_to_move);
@@ -141,6 +147,8 @@ static void devconsole_new_line(void){
         memset32(fb_base_to_clear_background, bg_color, line_pixel_count);
         void* fb_base_to_clear_foreground = (void*)((uintptr_t)fb_foreground_base + (uintptr_t)line_size * cy_max_index);
         memset32(fb_base_to_clear_foreground, bg_color, line_pixel_count);
+
+        last_cy_index--;
     }
     cx_index = 0;
 }
@@ -148,6 +156,7 @@ static void devconsole_new_line(void){
 static int boot_fb_callback(void){
     spinlock_acquire(&boot_fb_lock);
     use_boot_fb = false;
+    last_thread_output = NULL;
     spinlock_release(&boot_fb_lock);
     return 0;
 }
@@ -347,7 +356,6 @@ void dev_console_clear(int mode){
 }
 
 void devconsole_parsechar(char c){
-    //serial_write(c);
     if(parse_state == devconsole_parse_state_normal){
         if(devconsole_isprintable(c)){
             devconsole_putchar(c);
@@ -360,11 +368,12 @@ void devconsole_parsechar(char c){
             dev_console_clearescapebuffer();
             parse_state = devconsole_parse_state_escape;
         }else if(c == '\b'){
-
         }
     }else if(parse_state == devconsole_parse_state_escape){
         if(c == ANSI_CONTROL){
             parse_state = devconsole_parse_state_control;
+        }else if(c == ANSI_CHARACTER_SET){
+            parse_state = devconsole_parse_character_set;
         }else{
             parse_state = devconsole_parse_state_normal;
         }
@@ -417,6 +426,9 @@ void devconsole_parsechar(char c){
         }else{
             parse_state = devconsole_parse_state_normal; 
         }
+    }else if(devconsole_parse_character_set){
+        // TODO : Designate G0 Character Set
+        parse_state = devconsole_parse_state_normal;
     }
     
     if(parse_state == devconsole_parse_state_graphics){
@@ -431,6 +443,9 @@ void devconsole_parsechar(char c){
             if(data_code == ANSI_GRAPHICS_RESET){
                 devconsole_set_bg_color(DEFAULT_BG_COLOR);
                 devconsole_set_fg_color(DEFAULT_FG_COLOR);
+            }else if(data_code == ANSI_GRAPHICS_REVERSE_VIDEO){
+                devconsole_set_bg_color(REVERSE_COLOR(devconsole_get_bg_color()));
+                devconsole_set_fg_color(REVERSE_COLOR(devconsole_get_fg_color()));
             }else if(data_code >= ANSI_GRAPHICS_FG_BLACK && data_code <= ANSI_GRAPHICS_FG_DEFAULT){
                 // foreground colors
                 devconsole_set_fg_color(fg_colors[data_code - ANSI_GRAPHICS_FG_BLACK]);
@@ -440,7 +455,6 @@ void devconsole_parsechar(char c){
             }else if(data_code >= ANSI_GRAPHICS_BG_BLACK && data_code <= ANSI_GRAPHICS_BG_DEFAULT){
                 // background colors
                 devconsole_set_bg_color(bg_colors[data_code - ANSI_GRAPHICS_BG_BLACK]);
-
             }else if(data_code >= ANSI_GRAPHICS_BG_BLACK_BRIGHT && data_code <= ANSI_GRAPHICS_BG_WHITE_BRIGHT){
                 // background colors bright
                 devconsole_set_bg_color(bg_bright_colors[data_code - ANSI_GRAPHICS_BG_BLACK_BRIGHT]);

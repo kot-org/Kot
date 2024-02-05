@@ -6,7 +6,9 @@
 /* 
 The file in ARCH_INCLUDE(impl/vmm.h) is expected to have :
     - The declaration of struct as type : cpu_context_t
-    - The declaration of variable type : arch_context_arg_t
+    - The declaration of typedef : arch_context_arg_t
+    - The declaration of typedef : arch_cpu_id_t
+    - The declaration of variable : arch_max_cpu_id
     - The following macros :
         - ARCH_CONTEXT_SYSCALL_ARG0(context)
         - ARCH_CONTEXT_SYSCALL_ARG1(context)
@@ -36,9 +38,14 @@ The file in ARCH_INCLUDE(impl/vmm.h) is expected to have :
 void arch_stage1(void);
 
 /**
- * arch specific stuff that need heap to be initialize
+ * arch specific stuff that need heap to be initialized
 */
 void arch_stage2(void);
+
+/**
+ * arch specific stuff that need scheduler to be initialized
+*/
+void arch_stage3(void);
 
 #include <stdnoreturn.h>
 

@@ -55,6 +55,7 @@ int add_descriptor(descriptors_ctx_t* ctx, descriptor_t* descriptor){
         return index;
     }
 
+    descriptor->is_parent = true;
     ctx->descriptors[index] = descriptor;
 
     spinlock_release(&ctx->lock);
@@ -133,6 +134,9 @@ int copy_process_descriptors(descriptors_ctx_t* dst, descriptors_ctx_t* src){
 
     for(int i = 0; i < MAX_DESCRIPTORS; i++){
         dst->descriptors[i] = src->descriptors[i];
+        if(dst->descriptors[i] != NULL){
+            dst->descriptors[i]->is_parent = false;
+        }
     }
 
     return 0;

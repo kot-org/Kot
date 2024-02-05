@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <stddef.h>
 #include <limits.h>
+#include <signal.h>
 #include <lib/log.h>
 #include <impl/arch.h>
 #include <lib/assert.h>
@@ -22,6 +23,7 @@ static void syscall_handler_log(cpu_context_t* ctx){
     size_t len = (size_t)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
 
     if(!vmm_check_memory(vmm_get_current_space(), (memory_range_t){message, len})){
+        log_count();
         log_printf("%.*s\n", len, message);
 
         SYSCALL_RETURN(ctx, 0);
@@ -152,13 +154,76 @@ static void syscall_handler_sleep(cpu_context_t* ctx){
 }
 
 static void syscall_handler_sigprocmask(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    int how = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    const sigset_t* set = (const sigset_t*)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
+    sigset_t* retrieve = (sigset_t*)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+
+    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){(void*)set, sizeof(const sigset_t)})){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+
+    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){retrieve, sizeof(sigset_t)})){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+
+    SYSCALL_RETURN(ctx, 0);    
 }
 
 static void syscall_handler_sigaction(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    int signal = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    const struct sigaction* action = (const struct sigaction*)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
+    void* sigreturn = (void*)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+    struct sigaction* old_action = (struct sigaction*)ARCH_CONTEXT_SYSCALL_ARG3(ctx);
+
+    if(signal > SIGNALS_COUNT){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+
+    signal_handler_t* signal_handler = &ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->signal_handlers[signal - 1];
+    
+    if(!vmm_check_memory(vmm_get_current_space(), (memory_range_t){old_action, sizeof(struct sigaction)})){
+        if(signal_handler->action == signal_handler_action_default){
+            *old_action = (struct sigaction){
+                {SIG_DFL},
+                signal_handler->mask,
+                signal_handler->flags,
+                NULL
+            };
+        }else if(signal_handler->action == signal_handler_action_ignore){
+            *old_action = (struct sigaction){
+                {SIG_IGN},
+                signal_handler->mask,
+                signal_handler->flags,
+                NULL
+            };
+        }else if(signal_handler->action == signal_handler_action_user){
+            *old_action = (struct sigaction){
+                {(void (*)(int))(signal_handler->handler)},
+                signal_handler->mask,
+                signal_handler->flags,
+                NULL
+            };
+        }
+    }
+
+    if(!vmm_check_memory(vmm_get_current_space(), (memory_range_t){(void*)action, sizeof(const struct sigaction)})){
+        signal_handler->sigreturn = sigreturn;
+        signal_handler->mask = action->sa_mask;
+        if(action->sa_handler == SIG_DFL){
+            signal_handler->action = signal_handler_action_default;
+        }else if(action->sa_handler == SIG_IGN){
+            signal_handler->action = signal_handler_action_ignore;
+        }else{
+            signal_handler->handler = action->sa_handler;
+            signal_handler->action = signal_handler_action_user;
+        }
+    }
+
+    SYSCALL_RETURN(ctx, 0);
+}
+
+static void syscall_handler_sigrestore(cpu_context_t* ctx){
+    SYSCALL_RETURN(ctx, -scheduler_sigrestore(ctx));
 }
 
 static void syscall_handler_waitpid(cpu_context_t* ctx){
@@ -343,19 +408,24 @@ static void syscall_handler_file_close(cpu_context_t* ctx){
         SYSCALL_RETURN(ctx, -EISDIR);
     }
 
-    kernel_file_t* file = descriptor->data.file; 
+    if(descriptor->is_parent){
+        kernel_file_t* file = descriptor->data.file; 
 
-    int error = file->close(file);
+        int error = file->close(file);
 
-    if(error){
-        SYSCALL_RETURN(ctx, -error);
+        if(error){
+            SYSCALL_RETURN(ctx, -error);
+        }
+
+        assert(!remove_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd));
+
+        free(descriptor);
+
+        SYSCALL_RETURN(ctx, 0);
+    }else{
+        assert(!remove_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd));
+        SYSCALL_RETURN(ctx, 0);
     }
-
-    assert(!remove_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd));
-
-    free(descriptor);
-
-    SYSCALL_RETURN(ctx, 0);
 }
 
 static void syscall_handler_file_ioctl(cpu_context_t* ctx){
@@ -586,6 +656,7 @@ static syscall_handler_t handlers[SYS_COUNT] = {
     syscall_handler_sleep,
     syscall_handler_sigprocmask,
     syscall_handler_sigaction,
+    syscall_handler_sigrestore,
     scheduler_fork_syscall,
     syscall_handler_waitpid,
     syscall_handler_execve,
@@ -619,11 +690,18 @@ void syscall_handler(cpu_context_t* ctx){
 
         SYSCALL_RETURN(ctx, -EINVAL);
     }
+    #ifdef DEBUG_SYSCALL
+    us_t syscall_time_start = kernel_get_current_us();
+    #endif
  
-    handlers[ARCH_CONTEXT_SYSCALL_SELECTOR(ctx)](ctx);
+    handlers[syscall_selector](ctx);
 
     #ifdef DEBUG_SYSCALL
-    log_info("Syscall : %d, return : %d\n", syscall_selector, ARCH_CONTEXT_RETURN(ctx));
+    us_t syscall_time_end = kernel_get_current_us();
+
+    us_t syscall_time_used = syscall_time_end - syscall_time_start;
+
+    log_info("Syscall : %d, return : %d, in %dus\n", syscall_selector, ARCH_CONTEXT_RETURN(ctx), syscall_time_used);
     #endif
 
     return;

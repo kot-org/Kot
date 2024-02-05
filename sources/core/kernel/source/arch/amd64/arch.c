@@ -47,18 +47,20 @@ void arch_stage2(void) {
     assert(madt);
     apic_init(madt);
     log_success("arch stage 2 : madt initialized\n");
+}
 
+void arch_stage3(void) {
     smp_init();
-    log_success("arch stage 2 : smp initialized\n");
+    log_success("arch stage 3 : smp initialized\n");
 
     syscall_enable(GDT_KERNEL_CODE * sizeof(gdt_entry_t), GDT_USER_CODE * sizeof(gdt_entry_t));
-    log_success("arch stage 2 : syscall initialized\n");
+    log_success("arch stage 3 : syscall initialized\n");
 
     start_lapic_timer();
-    log_success("arch stage 2 : lapic timer initialized\n");
+    log_success("arch stage 3 : lapic timer initialized\n");
 
     __asm__ volatile("sti");
-    log_success("arch stage 2 : interrupt enabled\n");
+    log_success("arch stage 3 : interrupt enabled\n");
 }
 
 void arch_pause(void) {

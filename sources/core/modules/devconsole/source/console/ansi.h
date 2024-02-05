@@ -20,6 +20,7 @@
 
 
 #define ANSI_CONTROL                    (char)'['
+#define ANSI_CHARACTER_SET              (char)'('
 #define ANSI_GRAPHICS                   (char)'m'
 #define ANSI_SEPARATOR                  (char)';'
 

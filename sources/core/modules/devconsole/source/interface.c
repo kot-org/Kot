@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <signal.h>
 #include <termios.h>
 #include <lib/log.h>
 #include <lib/math.h>
@@ -47,36 +48,59 @@ uint16_t key_buffer_char_read_index[BUFFER_COUNT] = {0, 0};
 thread_t* waiting_thread_for_input = NULL;
 spinlock_t lock_waiting_thread_for_input = {};
 
+bool crtl_key_is_pressed = false;
+
+static void add_key_to_key_buffer(uint16_t key){
+    if(((key_buffer_char_index + 1)  % KEY_BUFFER_SIZE) == 0){
+        log_warning("[module/"MODULE_NAME"] flushing key buffer\n");
+    }
+
+    key_buffer[key_buffer_char_write_index][key_buffer_char_index] = key;
+    key_buffer_char_index = (key_buffer_char_index + 1) % KEY_BUFFER_SIZE;
+    key_buffer[key_buffer_char_write_index][key_buffer_char_index] = '\0';
+}
+
+static void flush_key_buffer(void){
+    key_buffer_char_write_index = (key_buffer_char_write_index + 1) % BUFFER_COUNT;
+
+    key_buffer_char_index = 0;
+    key_buffer_char_read_index[key_buffer_char_write_index] = 0;
+    key_buffer[key_buffer_char_write_index][key_buffer_char_index] = '\0';
+
+    if(waiting_thread_for_input != NULL){
+        scheduler_unpause_thread(waiting_thread_for_input);
+    }
+}
+
 void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed){
-    if(is_pressed){
+    if(translated_key == 0x12){
+        spinlock_acquire(&key_handler_lock);
+        crtl_key_is_pressed = is_pressed;
+        spinlock_release(&key_handler_lock);
+    }else if(is_pressed){
         spinlock_acquire(&key_handler_lock);
 
         if(devconsole_isprintable(translated_key)){
-            if(((key_buffer_char_index + 1)  % KEY_BUFFER_SIZE) == 0){
-                log_warning("[module/"MODULE_NAME"] flushing key buffer\n");
+            if(crtl_key_is_pressed){
+                if(translated_key == 'c'){
+                    if(last_thread_output != NULL){
+                        scheduler_signal_thread(last_thread_output, SIGINT);
+                        last_thread_output = NULL;
+                        waiting_thread_for_input = NULL;
+                        flush_key_buffer();
+                        spinlock_release(&lock_waiting_thread_for_input);
+                    }
+                }
+            }else{
+                add_key_to_key_buffer(translated_key);
+                devconsole_putchar(translated_key);
             }
-
-            key_buffer[key_buffer_char_write_index][key_buffer_char_index] = translated_key;
-            key_buffer_char_index = (key_buffer_char_index + 1)  % KEY_BUFFER_SIZE;
-            key_buffer[key_buffer_char_write_index][key_buffer_char_index] = '\0';
-
-            devconsole_putchar(translated_key);
         }else if(translated_key == '\n'){
-            key_buffer[key_buffer_char_write_index][key_buffer_char_index] = translated_key;
-            key_buffer_char_index = (key_buffer_char_index + 1) % KEY_BUFFER_SIZE;
-            key_buffer[key_buffer_char_write_index][key_buffer_char_index] = '\0';
+            add_key_to_key_buffer(translated_key);
             
             devconsole_putchar(translated_key);
 
-            key_buffer_char_write_index = (key_buffer_char_write_index + 1) % BUFFER_COUNT;
-
-            key_buffer_char_index = 0;
-            key_buffer_char_read_index[key_buffer_char_write_index] = 0;
-            key_buffer[key_buffer_char_write_index][key_buffer_char_index] = '\0';
-
-            if(waiting_thread_for_input != NULL){
-                scheduler_unpause_thread(waiting_thread_for_input);
-            }
+            flush_key_buffer();
         }else if(translated_key == 0x8){
             if(key_buffer_char_index != 0){
                 key_buffer_char_index--;
@@ -93,6 +117,8 @@ void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed){
 
 int console_interface_read(void* buffer, size_t size, size_t* bytes_read, struct kernel_file_t* file){
     if(spinlock_test_and_acq(&lock_waiting_thread_for_input)){
+        last_thread_output = scheduler_get_current_thread();
+
         uint8_t key_buffer_to_read_index = !key_buffer_char_write_index;
 
         if(key_buffer[key_buffer_to_read_index][key_buffer_char_read_index[key_buffer_to_read_index]] == '\0'){
@@ -130,6 +156,10 @@ int console_interface_write(void* buffer, size_t size, size_t* bytes_write, kern
     console_window_size.ws_row = cy_max_index;
     console_window_size.ws_xpixel = fb_width;
     console_window_size.ws_ypixel = fb_height;
+
+    spinlock_acquire(&key_handler_lock);
+    last_thread_output = scheduler_get_current_thread();
+    spinlock_release(&key_handler_lock);
 
     devconsole_print(buffer, size);
     *bytes_write = size;
@@ -182,6 +212,10 @@ int console_interface_stat(int flags, struct stat* statbuf, kernel_file_t* file)
 }
 
 int console_interface_close(kernel_file_t* file){
+    spinlock_acquire(&key_handler_lock);
+    last_thread_output = NULL;
+    spinlock_release(&key_handler_lock);
+
     free(file);
     return 0;
 }

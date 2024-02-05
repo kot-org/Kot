@@ -54,12 +54,15 @@ void kernel_entry(void) {
     vfs_init();
     log_success("vfs : initialized\n");
 
+    arch_stage2();
+    log_success("arch stage 2 : done\n");
+
     /* scheduler_init needs vfs to be init */ 
     scheduler_init();
     log_success("scheduler : initialized\n");
 
-    arch_stage2();
-    log_success("arch stage 2 : done\n");
+    arch_stage3();
+    log_success("arch stage 3 : done\n");
 
     time_init();
     log_success("time : initialized\n");

@@ -29,6 +29,7 @@ struct interrupt_source_override** isos;
 uint64_t iso_count = 0;
 
 uint64_t max_apicid = 1;
+arch_cpu_id_t arch_max_cpu_id = 0;
 
 void apic_init(struct acpi_madt_header* madt){
     uint64_t entries = (madt->header.length - sizeof(struct acpi_madt_header));
@@ -111,6 +112,8 @@ void apic_init(struct acpi_madt_header* madt){
     for(uint64_t i = 0; i < ioapic_count; i++){
         io_apic_init(i);
     }
+
+    arch_max_cpu_id = (arch_cpu_id_t)max_apicid;
 }  
 
 void io_apic_init(uint8_t io_apic_id){
@@ -227,15 +230,13 @@ void smp_init(void){
 
     data_trampoline.status = 0xff;
     vmm_unmap(kernel_space, (memory_range_t){ (void*)TRAMPOLINE_ADDRESS, PAGE_SIZE });
-
-    context_init(processor_count);
 }  
 
 void* get_lapic_address(void){
     return lapic_address[cpu_get_apicid()]->virtual_address;
 }
 
-void enable_apic(uint8_t cpu_id){
+void enable_apic(arch_cpu_id_t cpu_id){
     lapic_address[cpu_id]->physical_address = (void*)(rdmsr(0x1b) & 0xfffff000);
     lapic_address[cpu_id]->virtual_address = vmm_get_virtual_address(lapic_address[cpu_id]->physical_address);
 
@@ -280,7 +281,7 @@ uint32_t local_apic_get_timer_count(void){
     return local_apic_read_register(get_lapic_address(), local_apic_register_offset_curent_count);
 }
 
-void lapic_send_init_ipi(uint8_t cpu_id){
+void lapic_send_init_ipi(arch_cpu_id_t cpu_id){
     struct local_apic_ipi register_interrupt;
     register_interrupt.vector = 0;
     register_interrupt.delivery_mode = local_apic_delivery_mode_init;
@@ -291,7 +292,7 @@ void lapic_send_init_ipi(uint8_t cpu_id){
     set_command_ipi(command_low, command_high);
 }
 
-void lapic_send_startup_ipi(uint8_t cpu_id, void* entry){
+void lapic_send_startup_ipi(arch_cpu_id_t cpu_id, void* entry){
     struct local_apic_ipi register_interrupt;
     register_interrupt.vector = (uint8_t)(((uint64_t)entry / PAGE_SIZE) & 0xff);
     register_interrupt.delivery_mode = local_apic_delivery_mode_start_up;
@@ -302,7 +303,7 @@ void lapic_send_startup_ipi(uint8_t cpu_id, void* entry){
     set_command_ipi(command_low, command_high);
 }
 
-void local_apic_eoi(uint8_t cpu_id){        
+void local_apic_eoi(arch_cpu_id_t cpu_id){        
     local_apic_write_register(lapic_address[cpu_id]->virtual_address, local_apic_register_offset_eoi, 0);
 }
 

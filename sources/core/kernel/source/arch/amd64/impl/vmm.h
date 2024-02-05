@@ -1,3 +1,5 @@
+#include <global/pmm.h>
+
 #ifndef _AMD64_IMPL_VMM_H
 #define _AMD64_IMPL_VMM_H
 

@@ -86,7 +86,7 @@ static void dump_backtrace(cpu_context_t* ctx) {
     log_print("------------------------------------------------------------\n");
 }
 
-static void interrupt_error_handler(cpu_context_t* ctx, uint8_t cpu_id) {
+static void interrupt_exception_handler(cpu_context_t* ctx, arch_cpu_id_t cpu_id) {
     if(is_panicking) {
         arch_idle();
     }
@@ -106,11 +106,17 @@ static void interrupt_error_handler(cpu_context_t* ctx, uint8_t cpu_id) {
     panic("exception : %s | error code : %d | cpu id : %d\n", exceptions_list[ctx->interrupt_number], ctx->error_code, cpu_id);
 }
 
-void interrupt_handler(cpu_context_t* ctx, uint8_t cpu_id) {
+void interrupt_handler(cpu_context_t* ctx, arch_cpu_id_t cpu_id) {
     if(ctx->interrupt_number == INT_SCHEDULE_APIC_TIMER){
-        scheduler_handler(ctx, cpu_id);
+        scheduler_handler(ctx, cpu_id, false);
+    }else if(ctx->interrupt_number == INT_SCHEDULE){
+        scheduler_handler(ctx, cpu_id, true);
     }else if(ctx->interrupt_number < 32) {
-        interrupt_error_handler(ctx, cpu_id);
+        if(ARCH_CONTEXT_IS_KERNEL(ctx)){
+            interrupt_exception_handler(ctx, cpu_id);
+        }else{
+            sheduler_exception_handler(ctx, cpu_id);
+        }
     }else{
         hw_interrupt_trigger(ctx, ctx->interrupt_number);
     }

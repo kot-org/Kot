@@ -3,7 +3,9 @@
 
 struct thread_t;
 struct process_t;
+struct signal_handler_t;
 
+#include <signal.h>
 #include <lib/lock.h>
 #include <impl/vmm.h>
 #include <global/mm.h>
@@ -16,6 +18,7 @@ struct process_t;
 #include <global/resources.h>
 
 #include <arch/include.h>
+#include ARCH_INCLUDE(impl/arch.h)
 #include ARCH_INCLUDE(impl/scheduler.h)
 /* 
 The file in ARCH_INCLUDE(impl/scheduler.h) is expected to have :
@@ -31,10 +34,28 @@ typedef uint64_t process_flags_t;
 #define PROCESS_SET_FLAG_TYPE(type) (type & PROCESS_FLAG_TYPE_MASK)
 #define PROCESS_GET_FLAG_TYPE(flags) (flags & PROCESS_FLAG_TYPE_MASK)
 
+#define IDDLE_STACK_SIZE        0x1000
 #define PROCESS_STACK_SIZE      0x400000
+
+#define SIGNALS_COUNT           34
+
+enum signal_handler_action{
+    signal_handler_action_default = 0,
+    signal_handler_action_ignore = 1,
+    signal_handler_action_user = 2
+};
+
+typedef struct signal_handler_t{
+    int flags;
+    sigset_t mask;
+    void* handler;
+    void* sigreturn;
+    enum signal_handler_action action;
+} signal_handler_t;
 
 typedef struct thread_t{
     context_t* ctx;
+    context_t* signal_restore_ctx;
 
     struct process_t* process; 
     void* entry_point; 
@@ -47,6 +68,11 @@ typedef struct thread_t{
 
     thread_arch_state_t* arch_state;
 
+    int signal;
+
+    bool is_ignoring_ctx;
+    bool is_signal_to_restore;
+    bool is_signaling;
     bool is_pausing;
     bool is_exiting;
 
@@ -58,6 +84,8 @@ typedef struct thread_t{
     bool is_in_queue;
 
     bool is_stack_free_disabled;
+
+    struct thread_t* thread_to_free;
 } thread_t;
 
 typedef struct process_t{
@@ -78,13 +106,16 @@ typedef struct process_t{
     vector_t* childs_result;
 
     int return_status;
+
+    signal_handler_t signal_handlers[SIGNALS_COUNT];
 } process_t;
 
 extern process_t* proc_kernel;
 
 void scheduler_init(void);
 
-void scheduler_handler(cpu_context_t* ctx, uint8_t cpu_id);
+void scheduler_handler(cpu_context_t* ctx, arch_cpu_id_t cpu_id, bool force_switching);
+void sheduler_exception_handler(cpu_context_t* ctx, arch_cpu_id_t cpu_id);
 
 void scheduler_generate_task_switching(void); /* note the following function should be define in arch folder */
 
@@ -98,12 +129,13 @@ int scheduler_arch_prctl_thread(thread_t* thread, int code, void* address); /* n
 int scheduler_launch_thread(thread_t* thread, arguments_t* args);
 int scheduler_pause_thread(thread_t* thread, cpu_context_t* ctx);
 int scheduler_unpause_thread(thread_t* thread);
+int scheduler_signal_thread(thread_t* thread, int signal);
 int scheduler_free_thread(thread_t* thread);
 int scheduler_exit_thread(thread_t* thread, cpu_context_t* ctx);
 thread_t* scheduler_get_current_thread(void);
 int scheduler_waitpid(pid_t pid, int* status, int flags, struct rusage* ru, cpu_context_t* ctx);
 int scheduler_execve_syscall(char* path, int argc, char** args, char** envp, cpu_context_t* ctx);
 void scheduler_fork_syscall(cpu_context_t* ctx);
-
+int scheduler_sigrestore(cpu_context_t* ctx);
 
 #endif // _GLOBAL_SCHEDULER_H

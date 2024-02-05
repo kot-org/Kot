@@ -148,21 +148,6 @@ namespace mlibc{
         return 0;
     }
 
-    int sys_sigprocmask(int how, const sigset_t *__restrict set, sigset_t *__restrict retrieve){
-        auto result = do_syscall(SYS_SIGPROCMASK, how, set, retrieve);
-
-        if(result < 0){
-            return -result;
-        }
-
-        return 0;
-    }
-
-    int sys_sigaction(int how, const struct sigaction *__restrict action, struct sigaction *__restrict old_action){
-        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub!" << frg::endlog;
-        return 0;
-    }
-
     int sys_fork(pid_t *child){
         auto result = do_syscall(SYS_FORK);
 

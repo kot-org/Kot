@@ -7,6 +7,7 @@
 
 #include <arch/include.h>
 #include ARCH_INCLUDE(acpi.h)
+#include ARCH_INCLUDE(impl/arch.h)
 
 #define LOCAL_APIC_ENABLE               0x800
 #define LOCAL_APIC_SPURIOUS_ALL         0x100
@@ -269,13 +270,13 @@ void io_apic_init(uint8_t io_apic_id);
 void io_change_irq_state(uint8_t irq, uint8_t io_apic_id, bool is_enable);
 void smp_init(void);
 void* get_lapic_address(void);
-void enable_apic(uint8_t cpu_id);
+void enable_apic(arch_cpu_id_t cpu_id);
 void start_lapic_timer(void);
 void local_apic_set_timer_count(uint32_t value);
 uint32_t local_apic_get_timer_count(void);
-void lapic_send_init_ipi(uint8_t cpu_id);
-void lapic_send_startup_ipi(uint8_t cpu_id, void* entry);
-void local_apic_eoi(uint8_t cpu_id);
+void lapic_send_init_ipi(arch_cpu_id_t cpu_id);
+void lapic_send_startup_ipi(arch_cpu_id_t cpu_id, void* entry);
+void local_apic_eoi(arch_cpu_id_t cpu_id);
 void local_apic_enable_spurious_interrupts(void);
 uint32_t local_apic_read_register(void* lapic_address, size_t offset);
 uint32_t ioapic_read_register(void* apic_ptr , uint8_t offset);

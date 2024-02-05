@@ -3,11 +3,15 @@
 
 #include <stdint.h>
 
+
+#include <arch/include.h>
+#include ARCH_INCLUDE(gdt.h)
+
 typedef struct{
     void* kernel_stack;
     uint64_t cs;
     uint64_t ss;
-    void* thread;
+    struct thread_t* thread;
 }__attribute__((packed)) context_info_t;
 
 typedef struct{
@@ -42,11 +46,15 @@ typedef struct{
     uint64_t ss;
 }__attribute__((packed)) cpu_context_t; 
 
+typedef uint64_t arch_context_arg_t;
+typedef uint8_t arch_cpu_id_t;
+
+extern arch_cpu_id_t arch_max_cpu_id;
+
 #include <global/scheduler.h>
 
 #define KERNEL_STACK_SIZE 0x10000
 
-typedef uint64_t arch_context_arg_t;
 
 #define ARCH_CONTEXT_SYSCALL_ARG0(context)      ((context)->rdi)
 #define ARCH_CONTEXT_SYSCALL_ARG1(context)      ((context)->rsi)
@@ -54,6 +62,8 @@ typedef uint64_t arch_context_arg_t;
 #define ARCH_CONTEXT_SYSCALL_ARG3(context)      ((context)->r10)
 #define ARCH_CONTEXT_SYSCALL_ARG4(context)      ((context)->r8)
 #define ARCH_CONTEXT_SYSCALL_ARG5(context)      ((context)->r9)
+
+#define ARCH_CONTEXT_IS_KERNEL(context)         ((context)->cs == GDT_GET_SEGMENT(GDT_KERNEL_CODE) || (context)->cs == GDT_GET_SEGMENT(GDT_NULL_0))
 
 #define ARCH_CONTEXT_IP(context)                ((void*)(context)->rip)
 #define ARCH_CONTEXT_SP(context)                ((void*)(context)->rsp)

@@ -8,7 +8,7 @@
 #include <global/pmm.h>
 #include <global/heap.h>
 
-#define HEAP_DEBUG 0
+// #define HEAP_DEBUG 0
 
 #ifdef HEAP_DEBUG
 

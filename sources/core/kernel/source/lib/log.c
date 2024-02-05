@@ -30,3 +30,10 @@ void log_printf(const char *fmt, ...) {
 void putchar_(char _) {
     (void)_;
 }
+
+
+void log_count(void){
+    static int count = 0;
+    log_printf("[%d]", count);
+    count++;
+}

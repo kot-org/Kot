@@ -10,6 +10,10 @@
 #include <global/scheduler.h>
 #include <global/elf_loader.h>
 
+#define HANDLE_SIGNAL_IGNORE    0
+#define HANDLE_SIGNAL_EXIT      1
+#define HANDLE_SIGNAL_EXECUTE   2
+
 static spinlock_t scheduler_spinlock = SPINLOCK_INIT;
 
 static thread_t* scheduler_first_node;
@@ -22,6 +26,8 @@ static int scheduler_tid_iteration = 0;
 static spinlock_t scheduler_tid_iteration_spinlock = SPINLOCK_INIT;
 
 static vector_t* schduler_waitpid_list = NULL;
+
+static thread_t** scheduler_iddle_threads = NULL;
 
 struct child_result_info{
     pid_t return_pid;
@@ -88,10 +94,11 @@ static void scheduler_dequeue_wl(thread_t* thread){
     thread->is_in_queue = false;
 }
 
-static thread_t* scheduler_get_tread_wl(void){
+static thread_t* scheduler_get_tread_wl(arch_cpu_id_t cpu_id){
     thread_t* return_value = scheduler_first_node;
     if(return_value != NULL){
         scheduler_dequeue_wl(return_value);
+        return return_value;
     }
     return return_value;
 }
@@ -131,10 +138,13 @@ static int scheduler_get_new_tid(void){
 }
 
 static void waitpid_return(pid_t pid, int status, struct waitpid_info* info, uint64_t index){
+    vector_remove(schduler_waitpid_list, index);
+
+    info->child_result.return_pid = pid;
+    info->child_result.return_status = status;
+
     info->waiting_thread->is_pausing = false;
     scheduler_enqueue_wl(info->waiting_thread);
-
-    vector_remove(schduler_waitpid_list, index);
 }
 
 static void exit_thread_routine(thread_t* thread){
@@ -157,40 +167,168 @@ static void exit_thread_routine(thread_t* thread){
             vector_push(thread->process->parent->childs_result, child_result);
         }
     }
+}
 
-    scheduler_free_thread(thread);
+static void scheduler_iddling(void){
+    arch_idle();
+}
+
+static int scheduler_handle_signal(thread_t* thread){
+    if(thread->is_signaling){
+        int signal = thread->signal;
+        thread->is_signaling = false;
+        thread->signal = 0;
+        if(signal == SIGKILL){
+            // End thread
+            vector_set(thread->process->threads, thread->index, NULL);
+            exit_thread_routine(thread);
+            return HANDLE_SIGNAL_EXIT;
+        }else{
+            signal_handler_t* handler = &thread->process->signal_handlers[signal - 1];
+
+            if(handler->action == signal_handler_action_default){
+                switch(signal){
+                    case SIGABRT:
+                    case SIGALRM:
+                    case SIGBUS:
+                    case SIGFPE:
+                    case SIGHUP:
+                    case SIGILL:
+                    case SIGINT:
+                    case SIGIO:
+                    case SIGKILL:
+                    case SIGPIPE:
+                    case SIGPWR:
+                    case SIGQUIT:
+                    case SIGSEGV:
+                    case SIGSTKFLT:
+                        // Exit thread
+                        vector_set(thread->process->threads, thread->index, NULL);
+                        exit_thread_routine(thread);
+                        return HANDLE_SIGNAL_EXIT;
+                    case SIGCHLD:
+                    case SIGURG:
+                    case SIGWINCH:
+                    case SIGUSR1:
+                    case SIGUSR2:
+                        // Ignore
+                        return HANDLE_SIGNAL_IGNORE;
+                    case SIGCONT:
+                    case SIGSTOP:
+                    default:
+                        log_warning("Unhandled signal %d", signal);
+                        return HANDLE_SIGNAL_IGNORE;
+                }
+            }else if(handler->action == signal_handler_action_user){
+                context_t* ctx_to_switch = thread->signal_restore_ctx;
+                thread->signal_restore_ctx = thread->ctx;
+                thread->ctx = ctx_to_switch;
+                thread->is_signal_to_restore = true;
+                
+                context_signal(handler, thread, signal);
+                return HANDLE_SIGNAL_EXECUTE;
+            }else{
+                return HANDLE_SIGNAL_IGNORE;
+            }
+        }
+    }else{
+        return HANDLE_SIGNAL_IGNORE;
+    }
 }
 
 void scheduler_init(void){
     proc_kernel = scheduler_create_process(PROCESS_TYPE_MODULES);
     schduler_waitpid_list = vector_create();
+
+    scheduler_iddle_threads = malloc(sizeof(thread_t*) * arch_max_cpu_id);
+    arguments_t iddle_args = {};
+    for(arch_cpu_id_t i = 0; i <= arch_max_cpu_id; i++){
+        void* kernel_mapped_stack_base = vmm_get_free_contiguous(IDDLE_STACK_SIZE);
+        void* kernel_mapped_stack_end = (void*)((uintptr_t)kernel_mapped_stack_base + (uintptr_t)IDDLE_STACK_SIZE);
+        scheduler_iddle_threads[i] = scheduler_create_thread(proc_kernel, &scheduler_iddling, kernel_mapped_stack_end, kernel_mapped_stack_base, IDDLE_STACK_SIZE);
+        context_start(scheduler_iddle_threads[i]->ctx, scheduler_iddle_threads[i]->process->memory_handler->vmm_space, scheduler_iddle_threads[i]->entry_point, scheduler_iddle_threads[i]->stack, &iddle_args, scheduler_iddle_threads[i]->process->ctx_flags, scheduler_iddle_threads[i]);
+        context_start(scheduler_iddle_threads[i]->signal_restore_ctx, scheduler_iddle_threads[i]->process->memory_handler->vmm_space, scheduler_iddle_threads[i]->entry_point, scheduler_iddle_threads[i]->stack, &iddle_args, scheduler_iddle_threads[i]->process->ctx_flags, scheduler_iddle_threads[i]);
+        scheduler_iddle_threads[i]->is_pausing = true;
+    }
 }
 
-void scheduler_handler(cpu_context_t* ctx, uint8_t cpu_id){
-    if(spinlock_test_and_acq(&scheduler_spinlock)){
-        thread_t* ending_thread = ARCH_CONTEXT_CURRENT_THREAD(ctx);
+void scheduler_handler(cpu_context_t* ctx, arch_cpu_id_t cpu_id, bool force_switching){
+    if(force_switching){
+        spinlock_acquire(&scheduler_spinlock);
+    }else if(!spinlock_test_and_acq(&scheduler_spinlock)){
+        return;
+    }
 
-        if(ending_thread != NULL){
-            if(ending_thread->is_pausing){
-                if(ending_thread->is_exiting){
-                    exit_thread_routine(ending_thread);
-                }else{
-                    context_save(ending_thread->ctx, ctx);
-                }
+    thread_t* ending_thread = ARCH_CONTEXT_CURRENT_THREAD(ctx);
 
-                context_iddle(ctx, cpu_id);
+    if(ending_thread != NULL){
+        if(ending_thread->thread_to_free != NULL){
+            scheduler_free_thread(ending_thread->thread_to_free);
+            ending_thread->thread_to_free = NULL;
+        }
+
+        if(ending_thread->is_ignoring_ctx){
+            ending_thread->is_ignoring_ctx = false;
+            scheduler_enqueue_wl(ending_thread);
+        }else if(ending_thread->is_pausing){
+            if(ending_thread->is_exiting){
+                exit_thread_routine(ending_thread);
             }else{
                 context_save(ending_thread->ctx, ctx);
-                scheduler_enqueue_wl(ending_thread);
+            }
+        }else{
+            context_save(ending_thread->ctx, ctx);
+            scheduler_enqueue_wl(ending_thread);
+        }
+    }
+
+    thread_t* starting_thread = scheduler_get_tread_wl(cpu_id);
+
+    if(starting_thread != NULL){
+        if(!ARCH_CONTEXT_IS_KERNEL(ARCH_GET_CONTEXT_FROM_THREAD(starting_thread))){
+            int signal_handling = scheduler_handle_signal(starting_thread);
+            if(signal_handling == HANDLE_SIGNAL_EXIT){
+                exit_thread_routine(starting_thread);
+                starting_thread = scheduler_get_tread_wl(cpu_id);     
             }
         }
-
-        thread_t* starting_thread = scheduler_get_tread_wl();
-        if(starting_thread != NULL){
-            context_restore(starting_thread->ctx, ctx);
-        }
-        spinlock_release(&scheduler_spinlock);
     }
+
+    if(ending_thread != NULL){
+        if(ending_thread->is_pausing){
+            if(starting_thread == NULL){
+                starting_thread = scheduler_iddle_threads[cpu_id];
+            }
+
+            if(ending_thread->is_exiting){
+                starting_thread->thread_to_free = ending_thread;
+            }
+        }
+    }
+
+    if(starting_thread != NULL){
+        context_restore(starting_thread->ctx, ctx);
+    }
+
+    spinlock_release(&scheduler_spinlock);
+}
+
+void sheduler_exception_handler(cpu_context_t* ctx, arch_cpu_id_t cpu_id){
+    // TODO
+    log_error("[Scheduler] '%s' : NOT IMPLEMENTED\n", __func__);
+    thread_t* ending_thread = ARCH_CONTEXT_CURRENT_THREAD(ctx);
+
+    spinlock_acquire(&scheduler_spinlock);
+
+    if(ending_thread != NULL){
+        exit_thread_routine(ending_thread);
+    }
+    
+    thread_t* starting_thread = scheduler_get_tread_wl(cpu_id);
+    if(starting_thread != NULL){
+        context_restore(starting_thread->ctx, ctx);
+    }
+    spinlock_release(&scheduler_spinlock);
 }
 
 process_t* scheduler_create_process(process_flags_t flags){
@@ -248,6 +386,7 @@ thread_t* scheduler_create_thread(process_t* process, void* entry_point, void* s
     thread_t* thread = (thread_t*)calloc(1, sizeof(thread_t));
 
     thread->ctx = context_create();
+    thread->signal_restore_ctx = context_create();
     thread->stack = stack;
     thread->stack_base = stack_base;
     thread->stack_size = stack_size;
@@ -263,6 +402,7 @@ thread_t* scheduler_create_thread(process_t* process, void* entry_point, void* s
 
 int scheduler_launch_thread(thread_t* thread, arguments_t* args){
     context_start(thread->ctx, thread->process->memory_handler->vmm_space, thread->entry_point, thread->stack, args, thread->process->ctx_flags, thread);
+    context_start(thread->signal_restore_ctx, thread->process->memory_handler->vmm_space, thread->entry_point, thread->stack, args, thread->process->ctx_flags, thread);
 
     scheduler_enqueue(thread);
 
@@ -305,14 +445,29 @@ int scheduler_unpause_thread(thread_t* thread){
         scheduler_enqueue(thread);
         return 0;
     }else{
+        spinlock_release(&scheduler_spinlock);
         return EINVAL;
     }
 }
 
-int scheduler_free_thread(thread_t* thread){
-    if(!thread->is_stack_free_disabled){
-        assert(!mm_free_region(thread->process->memory_handler, thread->stack_base, thread->stack_size));
+int scheduler_signal_thread(thread_t* thread, int signal){
+    spinlock_acquire(&scheduler_spinlock);
+
+
+    thread->is_signaling = true;
+    thread->signal = signal;
+    if(thread->is_pausing){
+        spinlock_release(&scheduler_spinlock);
+        scheduler_unpause_thread(thread);
+    }else{
+        spinlock_release(&scheduler_spinlock);
     }
+
+    return 0;
+}
+
+int scheduler_free_thread(thread_t* thread){
+    // TODO : free stack if necessary
 
     context_free(thread->ctx);
 
@@ -327,6 +482,7 @@ int scheduler_exit_thread(thread_t* thread, cpu_context_t* ctx){
     vector_set(thread->process->threads, thread->index, NULL);
 
     if(thread->is_in_queue){
+        exit_thread_routine(thread);
         scheduler_dequeue(thread);
         scheduler_free_thread(thread);
 
@@ -372,7 +528,9 @@ int scheduler_waitpid(pid_t pid, int* status, int flags, struct rusage* ru, cpu_
             vector_remove(childs_result, i);
             spinlock_release(&scheduler_spinlock);
             *status = child_result->return_status;
-            return child_result->return_pid;
+            pid_t return_pid = child_result->return_pid;
+            free(child_result);
+            return return_pid;
         }
     }
 
@@ -391,7 +549,6 @@ int scheduler_waitpid(pid_t pid, int* status, int flags, struct rusage* ru, cpu_
     *status = info->child_result.return_status;
     free(info);
     return return_pid;
-
 }
 
 int scheduler_execve_syscall(char* path, int argc, char** args, char** envp, cpu_context_t* ctx){
@@ -431,8 +588,7 @@ int scheduler_execve_syscall(char* path, int argc, char** args, char** envp, cpu
     // because the stack should be already free before
     ARCH_CONTEXT_CURRENT_THREAD(ctx)->is_stack_free_disabled = true;
     assert(!scheduler_exit_thread(ARCH_CONTEXT_CURRENT_THREAD(ctx), ctx));
-
-    __builtin_trap();
+    assert(0);
 }
 
 void scheduler_fork_syscall(cpu_context_t* ctx){
@@ -449,9 +605,28 @@ void scheduler_fork_syscall(cpu_context_t* ctx){
     new_process->entry_thread = scheduler_create_thread(new_process, ARCH_CONTEXT_IP(ctx), ARCH_CONTEXT_SP(ctx), ARCH_CONTEXT_CURRENT_THREAD(ctx)->stack_base, PROCESS_STACK_SIZE);
     
     contex_fork(new_process->entry_thread->ctx, ctx, new_process->entry_thread);
+    contex_fork(new_process->entry_thread->signal_restore_ctx, ctx, new_process->entry_thread);
     ARCH_CONTEXT_RETURN(&new_process->entry_thread->ctx->cpu_ctx) = 0; 
 
     scheduler_enqueue(new_process->entry_thread);
 
     ARCH_CONTEXT_RETURN(ctx) = new_process->pid; 
+}
+
+int scheduler_sigrestore(cpu_context_t* ctx){
+    if(ARCH_CONTEXT_CURRENT_THREAD(ctx)->is_signal_to_restore){
+        spinlock_acquire(&scheduler_spinlock);
+
+        context_t* ctx_to_switch = ARCH_CONTEXT_CURRENT_THREAD(ctx)->ctx;
+        ARCH_CONTEXT_CURRENT_THREAD(ctx)->ctx = ARCH_CONTEXT_CURRENT_THREAD(ctx)->signal_restore_ctx;
+        ARCH_CONTEXT_CURRENT_THREAD(ctx)->signal_restore_ctx = ctx_to_switch; 
+        ARCH_CONTEXT_CURRENT_THREAD(ctx)->is_signal_to_restore = false; 
+        ARCH_CONTEXT_CURRENT_THREAD(ctx)->is_ignoring_ctx = true; 
+
+        spinlock_release(&scheduler_spinlock);
+        scheduler_generate_task_switching();    
+        assert(0);
+    }else{
+        return EINVAL;
+    }
 }

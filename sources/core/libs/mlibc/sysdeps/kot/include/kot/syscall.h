@@ -8,7 +8,7 @@
 typedef long sc_word_t;
 
 /* list */
-#define SYS_COUNT               36
+#define SYS_COUNT               37
 
 #define SYS_LOG                 0
 #define SYS_ARCH_PRCTL          1
@@ -25,27 +25,28 @@ typedef long sc_word_t;
 #define SYS_SLEEP               12
 #define SYS_SIGPROCMASK         13
 #define SYS_SIGACTION           14
-#define SYS_FORK                15
-#define SYS_WAITPID             16
-#define SYS_EXECVE              17
-#define SYS_GETPID              18
-#define SYS_GETPPID             19
-#define SYS_KILL                20
-#define SYS_FILE_OPEN           21
-#define SYS_FILE_READ           22
-#define SYS_FILE_WRITE          23
-#define SYS_FILE_SEEK           24
-#define SYS_FILE_CLOSE          25
-#define SYS_FILE_IOCTL          26
-#define SYS_DIR_READ_ENTRIES    27
-#define SYS_DIR_REMOVE          28
-#define SYS_UNLINK_AT           29
-#define SYS_RENAME_AT           30
-#define SYS_PATH_STAT           31
-#define SYS_FD_STAT             32
-#define SYS_FCNTL               33
-#define SYS_GETCWD              34
-#define SYS_CHDIR               35
+#define SYS_SIGRESTORE          15
+#define SYS_FORK                16
+#define SYS_WAITPID             17
+#define SYS_EXECVE              18
+#define SYS_GETPID              19
+#define SYS_GETPPID             20
+#define SYS_KILL                21
+#define SYS_FILE_OPEN           22
+#define SYS_FILE_READ           23
+#define SYS_FILE_WRITE          24
+#define SYS_FILE_SEEK           25
+#define SYS_FILE_CLOSE          26
+#define SYS_FILE_IOCTL          27
+#define SYS_DIR_READ_ENTRIES    28
+#define SYS_DIR_REMOVE          29
+#define SYS_UNLINK_AT           30
+#define SYS_RENAME_AT           31
+#define SYS_PATH_STAT           32
+#define SYS_FD_STAT             33
+#define SYS_FCNTL               34
+#define SYS_GETCWD              35
+#define SYS_CHDIR               36
 
 
 /* extern functions */

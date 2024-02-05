@@ -151,5 +151,6 @@ void set_cpu_fs_base(uint64_t value);
 uint64_t get_cpu_context(uint64_t index);
 void set_cpu_context(uint64_t index, uint64_t value);
 uint8_t cpu_get_apicid(void);
+void* cpu_get_user_stack_before_syscall(void);
 
 #endif

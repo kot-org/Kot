@@ -248,8 +248,8 @@ int fexecve(int, char *const [], char *const []) {
 }
 
 long fpathconf(int, int) {
-	__ensure(!"Not implemented");
-	__builtin_unreachable();
+	mlibc::infoLogger() << "mlibc: fpathconf is a stub" << frg::endlog;
+	return 0;
 }
 
 int fsync(int fd) {
