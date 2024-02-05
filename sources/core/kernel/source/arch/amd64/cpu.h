@@ -1,0 +1,156 @@
+#ifndef _AMD64_CPU_H
+#define _AMD64_CPU_H 1
+
+#include <stdint.h>
+
+// CPUID_FEAT
+#define CPUID_FEAT_ECX_SSE3         (1 << 0)
+#define CPUID_FEAT_ECX_PCLMUL       (1 << 1)
+#define CPUID_FEAT_ECX_DTES64       (1 << 2)
+#define CPUID_FEAT_ECX_MONITOR      (1 << 3)
+#define CPUID_FEAT_ECX_DS_CPL       (1 << 4)
+#define CPUID_FEAT_ECX_VMX          (1 << 5)
+#define CPUID_FEAT_ECX_SMX          (1 << 6)
+#define CPUID_FEAT_ECX_EST          (1 << 7)
+#define CPUID_FEAT_ECX_TM2          (1 << 8)
+#define CPUID_FEAT_ECX_SSSE3        (1 << 9)
+#define CPUID_FEAT_ECX_CID          (1 << 10)
+#define CPUID_FEAT_ECX_SDBG         (1 << 11)
+#define CPUID_FEAT_ECX_FMA          (1 << 12)
+#define CPUID_FEAT_ECX_CX16         (1 << 13)
+#define CPUID_FEAT_ECX_XTPR         (1 << 14)
+#define CPUID_FEAT_ECX_PDCM         (1 << 15)
+#define CPUID_FEAT_ECX_PCID         (1 << 17)
+#define CPUID_FEAT_ECX_DCA          (1 << 18)
+#define CPUID_FEAT_ECX_SSE4_1       (1 << 19)
+#define CPUID_FEAT_ECX_SSE4_2       (1 << 20)
+#define CPUID_FEAT_ECX_X2APIC       (1 << 21)
+#define CPUID_FEAT_ECX_MOVBE        (1 << 22)
+#define CPUID_FEAT_ECX_POPCNT       (1 << 23)
+#define CPUID_FEAT_ECX_TSC          (1 << 24)
+#define CPUID_FEAT_ECX_AES          (1 << 25)
+#define CPUID_FEAT_ECX_XSAVE        (1 << 26)
+#define CPUID_FEAT_ECX_OSXSAVE      (1 << 27)
+#define CPUID_FEAT_ECX_AVX          (1 << 28)
+#define CPUID_FEAT_ECX_F16C         (1 << 29)
+#define CPUID_FEAT_ECX_RDRAND       (1 << 30)
+#define CPUID_FEAT_ECX_HYPERVISOR   (1 << 31)
+
+#define CPUID_FEAT_EDX_FPU          (1 << 0)
+#define CPUID_FEAT_EDX_VME          (1 << 1)
+#define CPUID_FEAT_EDX_DE           (1 << 2)
+#define CPUID_FEAT_EDX_PSE          (1 << 3)
+#define CPUID_FEAT_EDX_TSC          (1 << 4)
+#define CPUID_FEAT_EDX_MSR          (1 << 5)
+#define CPUID_FEAT_EDX_PAE          (1 << 6)
+#define CPUID_FEAT_EDX_MCE          (1 << 7)
+#define CPUID_FEAT_EDX_CX8          (1 << 8)
+#define CPUID_FEAT_EDX_APIC         (1 << 9)
+#define CPUID_FEAT_EDX_SEP          (1 << 11)
+#define CPUID_FEAT_EDX_MTRR         (1 << 12)
+#define CPUID_FEAT_EDX_PGE          (1 << 13)
+#define CPUID_FEAT_EDX_MCA          (1 << 14)
+#define CPUID_FEAT_EDX_CMOV         (1 << 15)
+#define CPUID_FEAT_EDX_PAT          (1 << 16)
+#define CPUID_FEAT_EDX_PSE36        (1 << 17)
+#define CPUID_FEAT_EDX_PSN          (1 << 18)
+#define CPUID_FEAT_EDX_CLFLUSH      (1 << 19)
+#define CPUID_FEAT_EDX_DS           (1 << 21)
+#define CPUID_FEAT_EDX_ACPI         (1 << 22)
+#define CPUID_FEAT_EDX_MMX          (1 << 23)
+#define CPUID_FEAT_EDX_FXSR         (1 << 24)
+#define CPUID_FEAT_EDX_SSE          (1 << 25)
+#define CPUID_FEAT_EDX_SSE2         (1 << 26)
+#define CPUID_FEAT_EDX_SS           (1 << 27)
+#define CPUID_FEAT_EDX_HTT          (1 << 28)
+#define CPUID_FEAT_EDX_TM           (1 << 29)
+#define CPUID_FEAT_EDX_IA64         (1 << 30)
+#define CPUID_FEAT_EDX_PBE          (1 << 31)
+
+// CR0
+#define CR0_PROTECTED_MODE_ENABLE       (1 << 0)
+#define CR0_MONITOR_CO_PROCESSOR        (1 << 1)
+#define CR0_EMULATION                   (1 << 2)
+#define CR0_TASK_SWITCHED               (1 << 3)
+#define CR0_EXTENSION_TYPE              (1 << 4)
+#define CR0_NUMERIC_ERROR_ENABLE        (1 << 5)
+#define CR0_WRITE_PROTECT_ENABLE        (1 << 16)
+#define CR0_ALIGNMENT_MASK              (1 << 18)
+#define CR0_NOT_WRITE_THROUGH_ENABLE    (1 << 29)
+#define CR0_CACHE_DISABLE               (1 << 30)
+#define CR0_PAGING_ENABLE               (1 << 31)
+
+// CR4
+#define CR4_VIRTUAL_8086_MODE_EXT               (1 << 0)
+#define CR4_PROTECTED_MODE_VIRTUAL_INT          (1 << 1)
+#define CR4_TIME_STAMP_DISABLE                  (1 << 2)
+#define CR4_DEBUGGING_EXT                       (1 << 3)
+#define CR4_PAGE_SIZE_EXT                       (1 << 4)
+#define CR4_PHYSICAL_ADDRESS_EXT                (1 << 5)
+#define CR4_MACHINE_CHECK_EXCEPTION             (1 << 6)
+#define CR4_PAGE_GLOBAL_ENABLE                  (1 << 7)
+#define CR4_PERFORMANCE_COUNTER_ENABLE          (1 << 8)
+#define CR4_FXSR_ENABLE                         (1 << 9)
+#define CR4_SIMD_EXCEPTION_SUPPORT              (1 << 10)
+#define CR4_USER_MODE_INSTRUCTION_PREVENTION    (1 << 11)
+#define CR4_5_LEVEL_PAGING_ENABLE               (1 << 12)
+#define CR4_VIRTUAL_MACHINE_EXT_ENABLE          (1 << 13)
+#define CR4_SAFER_MODE_EXT_ENABLE               (1 << 14)
+#define CR4_FS_GS_BASE_ENABLE                   (1 << 16)
+#define CR4_PCID_ENABLE                         (1 << 17)
+#define CR4_XSAVE_ENABLE                        (1 << 18)
+#define CR4_SUPERVISOR_EXE_PROTECTION_ENABLE    (1 << 20)
+#define CR4_SUPERVISOR_ACCESS_PROTECTION_ENABLE (1 << 21)
+#define CR4_KEY_PROTECTION_ENABLE               (1 << 22)
+#define CR4_CONTROL_FLOW_ENABLE                 (1 << 23)
+#define CR4_SUPERVISOR_KEY_PROTECTION_ENABLE    (1 << 24)
+
+// XCR0
+#define XCR0_XSAVE_SAVE_X87     (1 << 0)
+#define XCR0_XSAVE_SAVE_SSE     (1 << 1)
+#define XCR0_AVX_ENABLE         (1 << 2)
+#define XCR0_BNDREG_ENABLE      (1 << 3)
+#define XCR0_BNDCSR_ENABLE      (1 << 4)
+#define XCR0_AVX512_ENABLE      (1 << 5)
+#define XCR0_ZMM0_15_ENABLE     (1 << 6)
+#define XCR0_ZMM16_32_ENABLE    (1 << 7)
+#define XCR0_PKRU_ENABLE        (1 << 9)
+
+// REFLAGS
+#define RFLAGS_CARRY                        (1 << 0)
+#define RFLAGS_ONE                          (1 << 1)
+#define RFLAGS_PARITY                       (1 << 2)
+#define RFLAGS_RESERVED1                    (1 << 3)
+#define RFLAGS_AUX_CARRY                    (1 << 4)
+#define RFLAGS_RESERVED2                    (1 << 5)
+#define RFLAGS_ZERO                         (1 << 6)
+#define RFLAGS_SIGN                         (1 << 7)
+#define RFLAGS_TRAP                         (1 << 8)
+#define RFLAGS_INTERRUPT_ENABLE             (1 << 9)
+#define RFLAGS_DIRECTION                    (1 << 10)
+#define RFLAGS_OVERFLOW                     (1 << 11)
+#define RFLAGS_IO_PRIVILEGE                 (3 << 12)
+#define RFLAGS_NESTED_TASK                  (1 << 14)
+#define RFLAGS_RESERVED3                    (1 << 15)
+#define RFLAGS_RESUME                       (1 << 16)
+#define RFLAGS_VIRTUAL_8086                 (1 << 17)
+#define RFLAGS_ALIGNMENT_CHECK              (1 << 18)
+#define RFLAGS_ACCESS_CONTROL               (1 << 18)
+#define RFLAGS_VIRTUAL_INTERRUPT            (1 << 19)
+#define RFLAGS_VIRTUAL_INTERRUPT_PENDING    (1 << 20)
+#define RFLAGS_ID                           (1 << 21)
+
+#define MAX_CORE_COUNT                      256
+
+
+void cpu_init(void);
+void reload_gs_fs(void);
+void set_cpu_gs_base(uint64_t value);
+void set_cpu_gs_kernel_base(uint64_t value);
+void set_cpu_fs_base(uint64_t value);
+uint64_t get_cpu_context(uint64_t index);
+void set_cpu_context(uint64_t index, uint64_t value);
+uint8_t cpu_get_apicid(void);
+void* cpu_get_user_stack_before_syscall(void);
+
+#endif

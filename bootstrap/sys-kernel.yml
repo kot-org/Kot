@@ -1,0 +1,24 @@
+packages:
+  - name: kernel
+    tools_required:
+      - host-gcc
+      - host-binutils
+      - tools
+    source:
+      subdir: 'sources/core'
+    build:
+      - args: 
+        - 'make'
+        - '-C'
+        - '@THIS_SOURCE_DIR@/target/@OPTION:boot_name@/@OPTION:arch_name@'
+        - 'kernel.elf'
+        environ:
+          CC: "@OPTION:cc@"
+          CXX: "@OPTION:cxx@"
+          LD: "@OPTION:ld@"
+          ASMC: "@OPTION:asmc@"
+      - args: 
+        - 'cp'
+        - '-r'
+        - '@THIS_SOURCE_DIR@/target/@OPTION:boot_name@/@OPTION:arch_name@/bin/.'
+        - '@SOURCE_ROOT@/target/boot_disk_kot_mount/.'

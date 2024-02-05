@@ -1,0 +1,41 @@
+From 5f3dab957db6f4237d5b696bf005333f63401d61 Mon Sep 17 00:00:00 2001
+From: Keep-Konect <66421869+konect-V@users.noreply.github.com>
+Date: Wed, 27 Dec 2023 17:02:09 +0100
+Subject: [PATCH 1/1] Port ncurses to Kot
+
+---
+ config.sub | 2 +-
+ configure  | 4 ++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/config.sub b/config.sub
+index 0f2234c1..598cb754 100755
+--- a/config.sub
++++ b/config.sub
+@@ -1341,7 +1341,7 @@ case $os in
+ 	gnu* | bsd* | mach* | minix* | genix* | ultrix* | irix* \
+ 	     | *vms* | esix* | aix* | cnk* | sunos | sunos[34]*\
+ 	     | hpux* | unos* | osf* | luna* | dgux* | auroraux* | solaris* \
+-	     | sym* | kopensolaris* | plan9* \
++	     | sym* | kopensolaris* | plan9* | kot* \
+ 	     | amigaos* | amigados* | msdos* | newsos* | unicos* | aof* \
+ 	     | aos* | aros* | cloudabi* | sortix* | twizzler* \
+ 	     | nindy* | vxsim* | vxworks* | ebmon* | hms* | mvs* \
+diff --git a/configure b/configure
+index 06f344f3..9b135adc 100755
+--- a/configure
++++ b/configure
+@@ -5907,6 +5907,10 @@ echo "${ECHO_T}$cf_cv_ldflags_search_paths_first" >&6
+ 		MK_SHARED_LIB='${LD} ${LDFLAGS} -b -o $@'
+ 		INSTALL_LIB="-m 555"
+ 		;;
++	(kot*)
++		CC_SHARED_OPTS='-fPIC'                 
++		MK_SHARED_LIB='${CC} -shared -o $@'
++		;;
+ 	(hpux*)
+ 		# (tested with gcc 2.7.2 -- I don't have c89)
+ 		if test "$GCC" = yes; then
+-- 
+2.34.1
+

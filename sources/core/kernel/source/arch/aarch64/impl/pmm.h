@@ -1,0 +1,6 @@
+#ifndef _AARCH64_IMPL_PMM_H
+#define _AARCH64_IMPL_PMM_H
+
+#define PAGE_SIZE 0x1000
+
+#endif // _AARCH64_IMPL_PMM_H

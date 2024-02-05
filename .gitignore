@@ -1,55 +1,10 @@
-# Developpers Folders
-.vscode
-
-# Build Folders
-Compilers
-Toolchain
-Sysroot
-Bin
-Bundled
-*-builds
-packages
-tools
-kot-base
-
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.vhd
-*.slo
-*.lo
-*.o
-*.obj
-*.dat
-
-# Precompiled Headers
-*.gch
-*.pch
 *.link
 *.xbstrap
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# Temporary scripts/files
-llvm.sh
-
-Disk/
+tools/
+bundled/
+sysroot/
+packages/
+toolchain/
+pkg-builds/
+tool-builds/

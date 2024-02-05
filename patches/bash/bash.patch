@@ -1,0 +1,76 @@
+From ea3baabbc68b7249b330f58d34a40000883fd262 Mon Sep 17 00:00:00 2001
+From: Keep-Konect <66421869+Keep-Konect@users.noreply.github.com>
+Date: Mon, 9 Oct 2023 08:54:57 +0200
+Subject: [PATCH] Port bash to Kot
+
+---
+ lib/readline/terminal.c | 2 +-
+ lib/termcap/termcap.c   | 2 +-
+ shell.c                 | 4 ++--
+ support/config.sub      | 2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/lib/readline/terminal.c b/lib/readline/terminal.c
+index 05415dc4..7b1fa27f 100644
+--- a/lib/readline/terminal.c
++++ b/lib/readline/terminal.c
+@@ -103,7 +103,7 @@ static char *term_string_buffer = (char *)NULL;
+ static int tcap_initialized;
+ 
+ #if !defined (__linux__) && !defined (NCURSES_VERSION)
+-#  if defined (__EMX__) || defined (NEED_EXTERN_PC)
++#  if defined (__EMX__) || defined (__kot__) || defined (NEED_EXTERN_PC)
+ extern 
+ #  endif /* __EMX__ || NEED_EXTERN_PC */
+ char PC, *BC, *UP;
+diff --git a/lib/termcap/termcap.c b/lib/termcap/termcap.c
+index ba3dab2c..2882f0c4 100644
+--- a/lib/termcap/termcap.c
++++ b/lib/termcap/termcap.c
+@@ -627,7 +627,7 @@ scan_file (str, fd, bufp)
+   bufp->ateof = 0;
+   *bufp->ptr = '\0';
+ 
+-  lseek (fd, 0L, 0);
++  lseek (fd, 0L, SEEK_SET);
+ 
+   while (!bufp->ateof)
+     {
+diff --git a/shell.c b/shell.c
+index ce8087f7..b7475dd2 100644
+--- a/shell.c
++++ b/shell.c
+@@ -1614,7 +1614,7 @@ open_shell_script (script_name)
+ #endif
+ 
+   /* Only do this with non-tty file descriptors we can seek on. */
+-  if (fd_is_tty == 0 && (lseek (fd, 0L, 1) != -1))
++  if (fd_is_tty == 0 && (lseek (fd, 0L, SEEK_CUR) != -1))
+     {
+       /* Check to see if the `file' in `bash file' is a binary file
+ 	 according to the same tests done by execute_simple_command (),
+@@ -1651,7 +1651,7 @@ open_shell_script (script_name)
+ 	  exit (EX_BINARY_FILE);
+ 	}
+       /* Now rewind the file back to the beginning. */
+-      lseek (fd, 0L, 0);
++      lseek (fd, 0L, SEEK_SET);
+     }
+ 
+   /* Open the script.  But try to move the file descriptor to a randomly
+diff --git a/support/config.sub b/support/config.sub
+index c874b7a9..fb0d874e 100755
+--- a/support/config.sub
++++ b/support/config.sub
+@@ -1707,7 +1707,7 @@ case $os in
+ 	     | bosx* | nextstep* | cxux* | aout* | elf* | oabi* \
+ 	     | ptx* | coff* | ecoff* | winnt* | domain* | vsta* \
+ 	     | udi* | lites* | ieee* | go32* | aux* | hcos* \
+-	     | chorusrdb* | cegcc* | glidix* \
++	     | chorusrdb* | cegcc* | glidix* | kot* \
+ 	     | cygwin* | msys* | pe* | moss* | proelf* | rtems* \
+ 	     | midipix* | mingw32* | mingw64* | mint* \
+ 	     | uxpv* | beos* | mpeix* | udk* | moxiebox* \
+-- 
+2.34.1
+

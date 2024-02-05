@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: make
-      run: make github-action
+      run: PACKAGE=all make github-action
 
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
@@ -23,7 +23,6 @@ jobs:
           prerelease: true
           title: "Nightly Build"
           files: |
-            Bin/kot.iso
-            Bin/kot.img
-            Bin/kot.vmdk
-            Bin/kot.vdi
+            target/liamd/boot-kot.img
+            target/liamd/boot-kot.vdi
+            target/liamd/boot-kot.vmdk

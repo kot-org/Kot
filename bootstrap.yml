@@ -1,0 +1,29 @@
+general:
+    patch_author: KotOS Project
+
+directories:
+    system_root: 'sysroot'
+
+declare_options:
+  - name: "arch"
+    default: "x86_64"
+  - name: "arch_name"
+    default: "amd64"
+  - name: "boot_name"
+    default: "limine"
+  - name: "cc"
+    default: "x86_64-kot-gcc"
+  - name: "cxx"
+    default: "x86_64-kot-g++"
+  - name: "ld"
+    default: "x86_64-kot-ld"
+  - name: "asmc"
+    default: "nasm"
+
+imports:
+  - file: bootstrap/sys-libs.yml
+  - file: bootstrap/sys-apps.yml
+  - file: bootstrap/sys-tools.yml
+  - file: bootstrap/sys-kernel.yml
+  - file: bootstrap/sys-modules.yml
+

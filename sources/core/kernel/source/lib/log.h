@@ -1,0 +1,47 @@
+#ifndef LIB_LOG_H
+#define LIB_LOG_H 1
+
+#include <stdarg.h>
+
+void log_print(const char *str);
+void log_printv(const char *fmt, va_list args);
+void log_printf(const char *fmt, ...);
+void log_count(void);
+
+static inline void log_error(const char *fmt, ...) {
+    log_count();
+    log_print("[kernel] \e[0;31merr:\e[0m ");
+    va_list args;
+    va_start(args, fmt);
+    log_printv(fmt, args);
+    va_end(args);
+}
+
+static inline void log_warning(const char *fmt, ...) {
+    log_count();
+    log_print("[kernel] \e[0;33mwrn:\e[0m ");
+    va_list args;
+    va_start(args, fmt);
+    log_printv(fmt, args);
+    va_end(args);
+}
+
+static inline void log_success(const char *fmt, ...) {
+    log_count();
+    log_print("[kernel] \e[0;32mok:\e[0m ");
+    va_list args;
+    va_start(args, fmt);
+    log_printv(fmt, args);
+    va_end(args);
+}
+
+static inline void log_info(const char *fmt, ...) {
+    log_count();
+    log_print("[kernel] \e[0;36minf:\e[0m ");
+    va_list args;
+    va_start(args, fmt);
+    log_printv(fmt, args);
+    va_end(args);
+}
+
+#endif // LIB_LOG_H

@@ -1,0 +1,43 @@
+From 47bc5cc95e345476c4a0fc665d835a3bcbedc93f Mon Sep 17 00:00:00 2001
+From: Keep-Konect <66421869+konect-V@users.noreply.github.com>
+Date: Sat, 18 Nov 2023 18:12:41 +0100
+Subject: [PATCH 1/1] Kot port
+
+---
+ include/drm/drm.h | 4 ++--
+ xf86drm.h         | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/include/drm/drm.h b/include/drm/drm.h
+index 398c396f..0da3db6f 100644
+--- a/include/drm/drm.h
++++ b/include/drm/drm.h
+@@ -35,10 +35,10 @@
+ #ifndef _DRM_H_
+ #define _DRM_H_
+ 
+-#if   defined(__linux__)
++#if   defined(__linux__) || defined(__kot__)
+ 
+ #include <linux/types.h>
+-#include <asm/ioctl.h>
++#include <sys/ioctl.h>
+ typedef unsigned int drm_handle_t;
+ 
+ #else /* One of the BSDs */
+diff --git a/xf86drm.h b/xf86drm.h
+index 1631396a..7c113300 100644
+--- a/xf86drm.h
++++ b/xf86drm.h
+@@ -47,7 +47,7 @@ extern "C" {
+ #define DRM_MAX_MINOR   16
+ #endif
+ 
+-#if defined(__linux__)
++#if defined(__linux__) || defined(__kot__)
+ 
+ #define DRM_IOCTL_NR(n)		_IOC_NR(n)
+ #define DRM_IOC_VOID		_IOC_NONE
+-- 
+2.34.1
+
