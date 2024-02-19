@@ -159,7 +159,7 @@ void system_tasks_mount(fs_t* fs){
             }else{
                 line = NULL;
             }
-            if(strstr(current_line, "ROOT_DIR_PATH=")){
+            if(strstr(current_line, "ROOT_MOUNT_DIR_PATH=")){
                 fs_t* fs_vfs = malloc(sizeof(fs_t));
                 /* note we don't need to copy string from data to internal data because data won't be free */
                 fs_vfs->internal_data = data;

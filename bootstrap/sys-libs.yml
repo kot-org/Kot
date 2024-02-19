@@ -16,6 +16,8 @@ packages:
       # remove this file, as mlibc will override this file with one suited to mlibc
       - args: ['rm', 'usr/include/linux/libc-compat.h']
       - args: ['cp', '-r', 'usr/include', '@THIS_COLLECT_DIR@/usr']
+      - args: ['mkdir', '-p', '@SYSROOT_DIR@/etc']
+      - args: ['cp', '--remove-destination', '/usr/share/zoneinfo/UTC', '@SYSROOT_DIR@/etc/localtime']
 
   - name: mlibc-headers
     from_source: mlibc

@@ -95,6 +95,7 @@ uint32_t devconsole_get_fg_color(void) {
 }
 
 static void devconsole_putpixel(uint16_t x, uint16_t y, uint32_t color) {
+    assert(x < fb_width && y < fb_height);
     fb_foreground_base[y*fb_width+x] = color;
     fb_background_base[y*fb_width+x] = color;
 }
@@ -339,9 +340,11 @@ void dev_console_clear(int mode){
                 memset32(background_base_to_clear, bg_color, size_to_clear);
             }
             {
-                size_t size_to_clear = (size_t)fb_width * (size_t)FONT_HEIGHT * (size_t)(cy_max_index - (cy_index + 1));
-                void* background_base_to_clear = (void*)((uintptr_t)fb_background_base + (cy_index + 1) * FONT_HEIGHT * fb_pitch);
-                memset32(background_base_to_clear, bg_color, size_to_clear);
+                if(cy_index < cy_max_index){
+                    size_t size_to_clear = (size_t)fb_width * (size_t)FONT_HEIGHT * (size_t)(cy_max_index - (cy_index + 1));
+                    void* background_base_to_clear = (void*)((uintptr_t)fb_background_base + (cy_index + 1) * FONT_HEIGHT * fb_pitch);
+                    memset32(background_base_to_clear, bg_color, size_to_clear);
+                }
             }
             break;
         }

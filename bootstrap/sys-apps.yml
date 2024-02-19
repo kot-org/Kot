@@ -153,3 +153,71 @@ packages:
           DESTDIR: '@THIS_COLLECT_DIR@'
       - args: ['sh', '-c', 'cp -rv @BUILD_ROOT@/tools/host-gcc/x86_64-kot/lib/* @THIS_COLLECT_DIR@/usr/lib/']
       - args: ['sh', '-c', 'cp -rv @BUILD_ROOT@/tools/host-gcc/x86_64-kot/include/* @THIS_COLLECT_DIR@/usr/include/']
+
+  - name: nano
+    source:
+      subdir: 'bundled'
+      git: 'git://git.sv.gnu.org/nano'
+      branch: 'master'
+      regenerate:
+        - args: ['./autogen.sh']
+        - args: ['cp',
+          '-f',
+          '@BUILD_ROOT@/tools/host-automake-v1.16/share/automake-1.16/config.sub',
+          '@THIS_SOURCE_DIR@/config.sub']
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - ncurses
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=x86_64-kot'
+        - '--prefix=/usr'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+    
+  - name: vim
+    source:
+      subdir: 'bundled'
+      git: 'https://github.com/vim/vim.git'
+      tag: 'v8.2.3704'
+      version: '8.2.3704'
+    tools_required:
+      - host-gcc
+      - host-automake-v1.16
+    pkgs_required:
+      - mlibc
+      - ncurses
+    revision: 4
+    configure:
+      - args: ['cp', '-r', '@THIS_SOURCE_DIR@/.', '@THIS_BUILD_DIR@']
+      - args:
+        - './configure'
+        - '--host=x86_64-kot'
+        - '--prefix=/usr'
+        - '--disable-gtktest'
+        - '--disable-icon-cache-update'
+        - '--disable-desktop-database-update'
+        - '--disable-canberra'
+        - '--disable-selinux'
+        - '--disable-xsmp'
+        - '--disable-channel'
+        - '--disable-netbeans'
+        - '--enable-multibyte'
+        - '--disable-acl'
+        - '--disable-gpm'
+        - '--disable-sysmouse'
+        - '--disable-nls'
+        - '--with-tlib=tinfo'
+        - '--enable-gui=no'
+        - '--without-x'
+        workdir: '@THIS_BUILD_DIR@/src/'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'

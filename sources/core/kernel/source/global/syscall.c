@@ -301,7 +301,18 @@ static void syscall_handler_open(cpu_context_t* ctx){
         kernel_file_t* file = f_open(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx, path, flags, mode, &error);
 
         if(error){
-            SYSCALL_RETURN(ctx, -error);
+            kernel_dir_t* dir = d_open(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx, path, &error);
+
+            if(error){
+                SYSCALL_RETURN(ctx, -error);
+            }
+
+            descriptor_t* descriptor = malloc(sizeof(descriptor_t));
+
+            descriptor->type = DESCRIPTOR_TYPE_DIR;
+            descriptor->data.dir = dir;
+
+            SYSCALL_RETURN(ctx, add_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, descriptor));
         }
 
         descriptor_t* descriptor = malloc(sizeof(descriptor_t));

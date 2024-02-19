@@ -59,7 +59,7 @@ static devfs_directory_entry_t* devfs_get_entry(devfs_directory_entry_t* entry, 
         }
     }
 
-    return entry;
+    return NULL;
 }
 
 static int devfs_create_directory_entry_to_parent(devfs_directory_entry_t* parent, char* entry_name){
