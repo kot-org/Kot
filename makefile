@@ -34,6 +34,9 @@ build:
 configure:
 	@ cd target && BOOT_DEVICE=$(BOOT_DEVICE) LC_ALL=C make $(TARGET)/configure
 
+update:
+	@ cd target && BOOT_DEVICE=$(BOOT_DEVICE) LC_ALL=C make $(TARGET)/update
+
 run:
 	@ cd target && BOOT_DEVICE=$(BOOT_DEVICE) LC_ALL=C make $(TARGET)/run
 

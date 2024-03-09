@@ -16,6 +16,9 @@ liamd/build:
 
 liamd/configure:
 	@ cd build && bash liamd.sh reconfigure  $(BOOT_DEVICE) $(PACKAGE) $(INSTALL)
+
+liamd/update:
+	@ cd build && bash liamd.sh update  $(BOOT_DEVICE) $(PACKAGE) $(INSTALL)
 	
 ovmf-amd64:
 	@ make -C "$(EXTERN)" ovmf-amd64
