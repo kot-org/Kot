@@ -23,7 +23,7 @@ char* exceptions_list[32] = {
     "Invalid Opcode",
     "Device Not Available",
     "Double Fault",
-    "Coprocessor Segment Overrun",
+    "Coprocessor Segment Overrun", // Reserved
     "Invalid TSS",
     "Segment Not Present",
     "Stack Fault",
@@ -34,8 +34,8 @@ char* exceptions_list[32] = {
     "Alignment Check",
     "Machine Check",
     "SIMD Floating-Point Exception",
-    "Virtualization Exception",
-    "Control Protection Exception",
+    "Reserved",
+    "Control Protection Exception",   
     "Reserved",
     "Reserved",
     "Reserved",
@@ -45,6 +45,7 @@ char* exceptions_list[32] = {
     "Hypervisor Injection Exception",
     "VMM Communication Exception",
     "Security Exception",
+    "Reserved",
 };
 
 struct stack_frame{
