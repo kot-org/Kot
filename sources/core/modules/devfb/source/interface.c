@@ -24,7 +24,7 @@ static int y_fb_start = 0;
 
 
 static int boot_fb_callback(void){
-    spinlock_acquire(&boot_fb_lock);
+    assert(!spinlock_acquire(&boot_fb_lock));
     fb_need_to_be_request = true;
     spinlock_release(&boot_fb_lock);
     return 0;
@@ -37,7 +37,7 @@ static void clear_fb(void){
 }
 
 static void request_fb(void){
-    spinlock_acquire(&boot_fb_lock);
+    assert(!spinlock_acquire(&boot_fb_lock));
     if(fb_need_to_be_request){
         /* get key handler */
         hid_handler->set_key_handler(&key_handler);

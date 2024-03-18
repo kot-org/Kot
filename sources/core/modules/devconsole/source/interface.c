@@ -74,11 +74,11 @@ static void flush_key_buffer(void){
 
 void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed){
     if(translated_key == 0x12){
-        spinlock_acquire(&key_handler_lock);
+        assert(!spinlock_acquire(&key_handler_lock));
         crtl_key_is_pressed = is_pressed;
         spinlock_release(&key_handler_lock);
     }else if(is_pressed){
-        spinlock_acquire(&key_handler_lock);
+        assert(!spinlock_acquire(&key_handler_lock));
 
         if(devconsole_isprintable(translated_key)){
             if(crtl_key_is_pressed){
@@ -157,7 +157,7 @@ int console_interface_write(void* buffer, size_t size, size_t* bytes_write, kern
     console_window_size.ws_xpixel = fb_width;
     console_window_size.ws_ypixel = fb_height;
 
-    spinlock_acquire(&key_handler_lock);
+    assert(!spinlock_acquire(&key_handler_lock));
     last_thread_output = scheduler_get_current_thread();
     spinlock_release(&key_handler_lock);
 
@@ -212,7 +212,7 @@ int console_interface_stat(int flags, struct stat* statbuf, kernel_file_t* file)
 }
 
 int console_interface_close(kernel_file_t* file){
-    spinlock_acquire(&key_handler_lock);
+    assert(!spinlock_acquire(&key_handler_lock));
     last_thread_output = NULL;
     spinlock_release(&key_handler_lock);
 

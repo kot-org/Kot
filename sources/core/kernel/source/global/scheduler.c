@@ -104,19 +104,19 @@ static thread_t* scheduler_get_tread_wl(arch_cpu_id_t cpu_id){
 }
 
 static void scheduler_enqueue(thread_t* thread){
-    spinlock_acquire(&scheduler_spinlock);
+    assert(!spinlock_acquire(&scheduler_spinlock));
     scheduler_enqueue_wl(thread);
     spinlock_release(&scheduler_spinlock);
 }
 
 static void scheduler_dequeue(thread_t* thread){
-    spinlock_acquire(&scheduler_spinlock);
+    assert(!spinlock_acquire(&scheduler_spinlock));
     scheduler_dequeue_wl(thread);
     spinlock_release(&scheduler_spinlock);
 }
 
 static pid_t scheduler_get_new_pid(void){
-    spinlock_acquire(&scheduler_pid_iteration_spinlock);
+    assert(!spinlock_acquire(&scheduler_pid_iteration_spinlock));
 
     pid_t pid = scheduler_pid_iteration;
     scheduler_pid_iteration++;
@@ -127,7 +127,7 @@ static pid_t scheduler_get_new_pid(void){
 }
 
 static int scheduler_get_new_tid(void){
-    spinlock_acquire(&scheduler_tid_iteration_spinlock);
+    assert(!spinlock_acquire(&scheduler_tid_iteration_spinlock));
 
     int tid = scheduler_tid_iteration;
     scheduler_tid_iteration++;
@@ -254,7 +254,7 @@ void scheduler_init(void){
 
 void scheduler_handler(cpu_context_t* ctx, arch_cpu_id_t cpu_id, bool force_switching){
     if(force_switching){
-        spinlock_acquire(&scheduler_spinlock);
+        assert(!spinlock_acquire(&scheduler_spinlock));
     }else if(!spinlock_test_and_acq(&scheduler_spinlock)){
         return;
     }
@@ -318,7 +318,7 @@ void sheduler_exception_handler(cpu_context_t* ctx, arch_cpu_id_t cpu_id){
     log_error("[Scheduler] '%s' : NOT IMPLEMENTED\n", __func__);
     thread_t* ending_thread = ARCH_CONTEXT_CURRENT_THREAD(ctx);
 
-    spinlock_acquire(&scheduler_spinlock);
+    assert(!spinlock_acquire(&scheduler_spinlock));
 
     if(ending_thread != NULL){
         exit_thread_routine(ending_thread);
@@ -410,7 +410,7 @@ int scheduler_launch_thread(thread_t* thread, arguments_t* args){
 }
 
 int scheduler_pause_thread(thread_t* thread, cpu_context_t* ctx){
-    spinlock_acquire(&scheduler_spinlock);
+    assert(!spinlock_acquire(&scheduler_spinlock));
 
     if(thread->is_pausing || thread->is_exiting){
         spinlock_release(&scheduler_spinlock);
@@ -435,7 +435,7 @@ int scheduler_pause_thread(thread_t* thread, cpu_context_t* ctx){
 }
 
 int scheduler_unpause_thread(thread_t* thread){
-    spinlock_acquire(&scheduler_spinlock);
+    assert(!spinlock_acquire(&scheduler_spinlock));
 
     if(thread->is_pausing){
         thread->is_pausing = false;
@@ -451,7 +451,7 @@ int scheduler_unpause_thread(thread_t* thread){
 }
 
 int scheduler_signal_thread(thread_t* thread, int signal){
-    spinlock_acquire(&scheduler_spinlock);
+    assert(!spinlock_acquire(&scheduler_spinlock));
 
 
     thread->is_signaling = true;
@@ -477,7 +477,7 @@ int scheduler_free_thread(thread_t* thread){
 }
 
 int scheduler_exit_thread(thread_t* thread, cpu_context_t* ctx){
-    spinlock_acquire(&scheduler_spinlock);
+    assert(!spinlock_acquire(&scheduler_spinlock));
     
     vector_set(thread->process->threads, thread->index, NULL);
 
@@ -518,7 +518,7 @@ int scheduler_waitpid(pid_t pid, int* status, int flags, struct rusage* ru, cpu_
         log_warning("Waitpid : rusage not implemented\n");
     }
 
-    spinlock_acquire(&scheduler_spinlock);
+    assert(!spinlock_acquire(&scheduler_spinlock));
 
     vector_t* childs_result = ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->childs_result;
     
@@ -615,7 +615,7 @@ void scheduler_fork_syscall(cpu_context_t* ctx){
 
 int scheduler_sigrestore(cpu_context_t* ctx){
     if(ARCH_CONTEXT_CURRENT_THREAD(ctx)->is_signal_to_restore){
-        spinlock_acquire(&scheduler_spinlock);
+        assert(!spinlock_acquire(&scheduler_spinlock));
 
         context_t* ctx_to_switch = ARCH_CONTEXT_CURRENT_THREAD(ctx)->ctx;
         ARCH_CONTEXT_CURRENT_THREAD(ctx)->ctx = ARCH_CONTEXT_CURRENT_THREAD(ctx)->signal_restore_ctx;

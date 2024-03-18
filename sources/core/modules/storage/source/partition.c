@@ -7,31 +7,31 @@ static spinlock_t potential_owner_list_lock = SPINLOCK_INIT;
 static vector_t* potential_owner_list = NULL;
 
 static void add_partition_to_list(partition_t* partition){
-    spinlock_acquire(&partition_list_lock);
+    assert(!spinlock_acquire(&partition_list_lock));
     partition->vector_index = vector_push(partition_list, partition);
     spinlock_release(&partition_list_lock);
 }
 
 static void remove_partition_to_list(partition_t* partition){
-    spinlock_acquire(&partition_list_lock);
+    assert(!spinlock_acquire(&partition_list_lock));
     vector_remove(partition_list, partition->vector_index);
     spinlock_release(&partition_list_lock);
 }
 
 static void add_potential_owner_to_list(storage_potential_owner_t* potential_owner){
-    spinlock_acquire(&potential_owner_list_lock);
+    assert(!spinlock_acquire(&potential_owner_list_lock));
     potential_owner->external_data = (void*)vector_push(potential_owner_list, potential_owner);
     spinlock_release(&potential_owner_list_lock);
 }
 
 static void remove_potential_owner_to_list(storage_potential_owner_t* potential_owner){
-    spinlock_acquire(&potential_owner_list_lock);
+    assert(!spinlock_acquire(&potential_owner_list_lock));
     vector_remove(potential_owner_list, (uint64_t)potential_owner->external_data);
     spinlock_release(&potential_owner_list_lock);
 }
 
 static void find_partition_owner(partition_t* partition){
-    spinlock_acquire(&potential_owner_list_lock);
+    assert(!spinlock_acquire(&potential_owner_list_lock));
     for(uint64_t i = 0; i < potential_owner_list->length; i++){
         storage_potential_owner_t* potential_owner = vector_get(potential_owner_list, i);
         partition->is_owned = (potential_owner->get_ownership(partition->device, partition->start, partition->size, &partition->partition_type_guid) == 0);
@@ -43,7 +43,7 @@ static void find_partition_owner(partition_t* partition){
 }
 
 static void find_owner_partitions(storage_potential_owner_t* potential_owner){
-    spinlock_acquire(&partition_list_lock);
+    assert(!spinlock_acquire(&partition_list_lock));
     for(uint64_t i = 0; i < partition_list->length; i++){
         partition_t* partition = vector_get(partition_list, i);
         if(!partition->is_owned){

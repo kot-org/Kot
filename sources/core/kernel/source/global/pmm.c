@@ -1,3 +1,4 @@
+#include <lib/assert.h>
 #include <lib/log.h>
 #include <impl/vmm.h>
 #include <lib/lock.h>
@@ -205,7 +206,7 @@ static void pmm_add_page_to_free_list(uint64_t index, uint64_t page_count) {
 }
 
 static void pmm_free_pages_index(uint64_t index, uint64_t page_count) {
-    spinlock_acquire(&pmm_lock);
+    assert(!spinlock_acquire(&pmm_lock));
 
     pmm_add_page_to_free_list(index, page_count);
     bitmap_set_bits(pmm_bitmap, index, page_count, false);
@@ -260,7 +261,7 @@ void pmm_init_bitmap(void* address, size_t size, bool lock_all) {
 }
 
 void* pmm_allocate_page(void) {
-    spinlock_acquire(&pmm_lock);
+    assert(!spinlock_acquire(&pmm_lock));
 
     for(uint64_t index = pmm_first_free_page_index; index < highest_page_index; index++) {
         if(!bitmap_get_set_bit(pmm_bitmap, index, true)) {
@@ -280,7 +281,7 @@ void* pmm_allocate_page(void) {
 }
 
 void* pmm_allocate_pages(uint64_t page_count) {
-    spinlock_acquire(&pmm_lock);
+    assert(!spinlock_acquire(&pmm_lock));
 
     free_list_info_t* pmm_free_list = pmm_last_free_entry_free_list;
 	while(pmm_free_list->page_count < page_count) {

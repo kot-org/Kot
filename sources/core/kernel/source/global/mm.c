@@ -161,7 +161,7 @@ int mm_allocate_region_vm(memory_handler_t* handler, void* base, size_t size, bo
         size = size - (size % PAGE_SIZE) + PAGE_SIZE;
     }
 
-    spinlock_acquire(&handler->lock);
+    assert(!spinlock_acquire(&handler->lock));
 
     memory_region_t* region;
 
@@ -241,7 +241,7 @@ int mm_free_region(memory_handler_t* handler, void* base, size_t size){
     assert(!((uintptr_t)base % PAGE_SIZE));
     assert(!(size % PAGE_SIZE));
 
-    spinlock_acquire(&handler->lock);
+    assert(!spinlock_acquire(&handler->lock));
 
     memory_region_t* region = mm_get_region(handler, base);
 

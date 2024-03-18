@@ -232,26 +232,28 @@ int device_bind_msi(pci_device_t* device, uint8_t interrupt_vector, uint8_t proc
             pci_capability_t* capability_msi = NULL;
             pci_capability_t* capability_msix = NULL;
             while(capability_offset){
-                capability_offset = capability->capability_next;
                 if(capability->capability_id == pci_capabilities_msi){
                     capability_msi = capability;
                 }else if(capability->capability_id == pci_capabilities_msix){
                     capability_msix = capability;
                     break;
                 }
+                capability_offset = capability->capability_next;
                 capability = (pci_capability_t*)((uint64_t)header + (uint64_t)capability_offset);
             }
             if(capability_msix){
-                capability_msi->msix.control |= 1 << 15; // enable msi_x
+                capability_msix->msix.control |= 1 << 15; // enable msi_x
                 uint64_t table_address = ((uint64_t)device_map_physical(device_get_bar_address(device, capability_msix->msix.bir), device_get_bar_size(device, capability_msix->msix.bir)) + (uint64_t)capability_msix->msix.table_offset);
-                uint16_t entries = capability_msi->msix.control & 0x7ff;
-                if(entries <= local_device_vector){
+                uint16_t entries = capability_msix->msix.control & 0x7ff;
+                if(local_device_vector <= entries){
                     pcimsix_table_t* table = (pcimsix_table_t*)(table_address + sizeof(pcimsix_table_t) * local_device_vector);
                     table->address = 0xfee00000 | (processor << 12);
                     table->data = interrupt_vector; 
                     table->control &= ~(1 << 0); // clear first to unmasked msi
                     device->send_configuration_space(device);
-                    *version = PCI_MSIX_VERSION;
+                    if(version != NULL){
+                        *version = PCI_MSIX_VERSION;
+                    }
                     return 0;
                 }
             }else if(capability_msi){
@@ -263,7 +265,9 @@ int device_bind_msi(pci_device_t* device, uint8_t interrupt_vector, uint8_t proc
 
                     header->command |= PCI_COMMAND_INTERRUPT_DISABLE;
                     device->send_configuration_space(device);
-                    *version = PCI_MSI_VERSION;
+                    if(version != NULL){
+                        *version = PCI_MSI_VERSION;
+                    }
                     return 0;
                 }
             }

@@ -19,7 +19,7 @@ static inline void ahci_device_read_prepare(ahci_device_t* device, size_t* size_
         size_processing = device->block_cache_size;
     }
 
-    spinlock_acquire(&device->lock);
+    assert(!spinlock_acquire(&device->lock));
     device->read(device, *read_position - alignement_offset, size_processing, device->block_cache);
     memcpy((void*)*buffer_position, device->block_cache + alignement_offset, size_processing);
     spinlock_release(&device->lock);
@@ -54,7 +54,7 @@ static inline void ahci_device_write_prepare(ahci_device_t* device, size_t* size
         }
     }
 
-    spinlock_acquire(&device->lock);
+    assert(!spinlock_acquire(&device->lock));
     memcpy(device->block_cache + alignement_offset, (void*)*buffer_position, size_processing);
 
     size_t size_to_write = alignement_offset + size_processing;

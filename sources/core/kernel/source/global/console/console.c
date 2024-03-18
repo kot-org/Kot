@@ -104,7 +104,7 @@ static void console_new_line(void){
 
 static int boot_fb_callback(void){
     log_warning("console will no more use the framebuffer for this session\n");
-    spinlock_acquire(&boot_fb_lock);
+    assert(!spinlock_acquire(&boot_fb_lock));
     use_boot_fb = false;
     spinlock_release(&boot_fb_lock);
     return 0;
@@ -147,7 +147,7 @@ void console_init(void) {
 }
 
 void console_putchar(char c) {
-    spinlock_acquire(&boot_fb_lock);
+    assert(!spinlock_acquire(&boot_fb_lock));
 
     if(!use_boot_fb){
         spinlock_release(&boot_fb_lock);
@@ -181,7 +181,7 @@ void console_putchar(char c) {
 }
 
 void console_delchar(void){
-    spinlock_acquire(&boot_fb_lock);
+    assert(!spinlock_acquire(&boot_fb_lock));
     if(cx_index != 0){
         cx_index--;
     }else{

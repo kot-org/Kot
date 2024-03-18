@@ -131,7 +131,7 @@ static inline int fat_set_next_cluster(fat_context_t* ctx, uint32_t current, uin
 static spinlock_t fat_allocate_cluster_lock = SPINLOCK_INIT;
 
 static int fat_allocate_cluster(fat_context_t* ctx, uint32_t* cluster){
-    spinlock_acquire(&fat_allocate_cluster_lock);
+    assert(!spinlock_acquire(&fat_allocate_cluster_lock));
     for(uint64_t i = ctx->next_free_cluster; i < ctx->fat_entry_count; i++){
         if((fat_get_next_cluster(ctx, i)) == 0){
             fat_set_next_cluster(ctx, i, END_OF_CLUSTERCHAIN);
@@ -148,7 +148,7 @@ static int fat_allocate_cluster(fat_context_t* ctx, uint32_t* cluster){
 }
 
 static int fat_free_cluster(fat_context_t* ctx, uint32_t cluster){
-    spinlock_acquire(&fat_allocate_cluster_lock);
+    assert(!spinlock_acquire(&fat_allocate_cluster_lock));
     fat_set_next_cluster(ctx, cluster, 0);
     ctx->fsi->free_cluster_count++;
     fat_write_fs_info_sector(ctx);

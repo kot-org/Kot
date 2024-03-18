@@ -35,7 +35,7 @@ void ksym_init(void){
 }
 
 void ksym_add(ksym_t* ksym, bool add_to_kernel_shareable_symbols){
-	spinlock_acquire(&ksym_lock);
+	assert(!spinlock_acquire(&ksym_lock));
 
 	if(add_to_kernel_shareable_symbols){
 		assert(ksym_hashmap_kernel_shareable_symbols != NULL);
@@ -51,7 +51,7 @@ void ksym_add(ksym_t* ksym, bool add_to_kernel_shareable_symbols){
 void* ksym_get_address_kernel_shareable_symbols(const char* symname){
 	assert(ksym_hashmap_kernel_shareable_symbols != NULL);
 
-	spinlock_acquire(&ksym_lock);
+	assert(!spinlock_acquire(&ksym_lock));
 
 	void* address = hashmap_get(ksym_hashmap_kernel_shareable_symbols, symname);
 
@@ -67,7 +67,7 @@ char* ksym_get_name(void* address){
 
 	assert(ksym_vector != NULL);
 
-	spinlock_acquire(&ksym_lock);
+	assert(!spinlock_acquire(&ksym_lock));
 
 	for(uint64_t i = 0; i < ksym_vector->length; i++){
 		ksym_t* ksym = vector_get(ksym_vector, i);

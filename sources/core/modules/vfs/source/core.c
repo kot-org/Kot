@@ -28,7 +28,7 @@ static int get_fs_mount_name_from_path(vfs_ctx_t* ctx, const char* path, char* f
     if(path[0] != '/'){
         full_path[0] = '\0';
         if(ctx != NULL){
-            spinlock_acquire(&ctx->cwd_lock);
+            assert(!spinlock_acquire(&ctx->cwd_lock));
             if(ctx->cwd_size + path_size > VFS_MAX_PATH_SIZE){
                 spinlock_release(&ctx->cwd_lock);
                 return ENAMETOOLONG;
@@ -69,7 +69,7 @@ static int get_fs_and_relative_path(vfs_ctx_t* ctx, const char* path, char* fs_r
         return err;
     }
 
-    spinlock_acquire(&vfs_lock);
+    assert(!spinlock_acquire(&vfs_lock));
 
     if((*fs = get_fs(fs_mount_name)) == NULL){
         spinlock_release(&vfs_lock);
@@ -113,7 +113,7 @@ int vfs_interface_dir_get_directory_entries(void* buffer, size_t max_size, size_
     uint64_t entry_index = dir->seek_position;
     uint64_t current_entry_count = 0;
 
-    spinlock_acquire(&vfs_lock);
+    assert(!spinlock_acquire(&vfs_lock));
     uint64_t entry_index_end = hashmap_get_end(vfs_hashmap);
 
     while(entry_index < entry_index_end && current_entry_count < max_entry_count){
@@ -202,7 +202,7 @@ void vfs_init(void){
 
 char* request_friendly_fs_mount_name(bool is_removable){
     char* str;
-    spinlock_acquire(&friendly_name_lock);
+    assert(!spinlock_acquire(&friendly_name_lock));
     if(is_removable){
         str = get_chars_with_number("/rd", removable_friendly_name_count); // rd : removable device
         removable_friendly_name_count++;
@@ -237,7 +237,7 @@ int local_mount_fs(const char* fs_mount_name, fs_t* new_fs){
 }
 
 int mount_fs(const char* fs_mount_name, fs_t* new_fs){
-    spinlock_acquire(&vfs_lock);
+    assert(!spinlock_acquire(&vfs_lock));
     
     if(get_fs(fs_mount_name) != NULL){
         spinlock_release(&vfs_lock);
@@ -259,7 +259,7 @@ int mount_fs(const char* fs_mount_name, fs_t* new_fs){
 }
 
 int unmount_fs(const char* fs_mount_name){
-    spinlock_acquire(&vfs_lock);
+    assert(!spinlock_acquire(&vfs_lock));
 
     fs_t* fs = get_fs(fs_mount_name);
     if(fs == NULL){

@@ -1,3 +1,4 @@
+#include <lib/assert.h>
 #include <lib/log.h>
 #include <lib/lock.h>
 #include <lib/printf.h>
@@ -9,7 +10,7 @@
 
 void log_print(const char *str) {
     static spinlock_t print_lock = SPINLOCK_INIT;
-    spinlock_acquire(&print_lock);
+    assert(!spinlock_acquire(&print_lock));
     console_print(str);
     spinlock_release(&print_lock);
 }

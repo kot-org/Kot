@@ -13,6 +13,7 @@
 #include ARCH_INCLUDE(boot.h)
 #include ARCH_INCLUDE(hpet.h)
 #include ARCH_INCLUDE(syscall.h)
+#include ARCH_INCLUDE(interrupts.h)
 
 
 void arch_stage1(void) {
@@ -28,6 +29,13 @@ void arch_stage1(void) {
 
 void arch_stage2(void) {
     hw_interrupt_init(256);
+
+    for(int i = 0; i < 32; i++){
+        hw_interrupt_lock(i);
+    }
+
+    hw_interrupt_lock(INT_SCHEDULE);
+    hw_interrupt_lock(INT_SCHEDULE_APIC_TIMER);
 
     cpu_init();
     log_success("arch stage 2 : cpu initialized\n");

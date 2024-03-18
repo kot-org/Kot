@@ -62,7 +62,7 @@ int load_elf_module(module_metadata_t** metadata, int argc, char* args[]){
         return EINVAL;
     }
 
-    spinlock_acquire(&load_elf_module_lock);
+    assert(!spinlock_acquire(&load_elf_module_lock));
 
     void* module_address = vmm_get_free_contiguous(file->file_size_initial);
 
@@ -445,7 +445,7 @@ int load_elf_exec_with_file(process_t* process_ctx, kernel_file_t* file, int arg
 
     vmm_release_free_contiguous_take_and_release();
 
-    spinlock_acquire(&process_ctx->data_lock);
+    assert(!spinlock_acquire(&process_ctx->data_lock));
 
     assert(process_ctx->entry_thread == NULL);
 

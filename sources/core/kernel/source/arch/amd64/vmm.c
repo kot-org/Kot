@@ -292,7 +292,7 @@ int vmm_preload_higher_half_entries(vmm_space_t space) {
 static spinlock_t get_free_contiguous_lock = SPINLOCK_INIT;
 
 void* vmm_get_free_contiguous(size_t size){
-    spinlock_acquire(&get_free_contiguous_lock);
+    assert(!spinlock_acquire(&get_free_contiguous_lock));
 
     if(size % PAGE_SIZE){
         size -= size % PAGE_SIZE;
@@ -313,7 +313,7 @@ void* vmm_get_free_contiguous(size_t size){
 }
 
 void* vmm_get_free_contiguous_take_and_release(size_t size){
-    spinlock_acquire(&get_free_contiguous_lock);
+    assert(!spinlock_acquire(&get_free_contiguous_lock));
 
     if(size % PAGE_SIZE){
         size -= size % PAGE_SIZE;

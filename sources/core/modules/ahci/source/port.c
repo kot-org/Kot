@@ -275,7 +275,7 @@ ahci_device_t* sata_device_init(hba_port_t* port){
 
     sata_identify(device);
 
-    device->ahci_device.lock = (spinlock_t){};
+    device->ahci_device.lock = (spinlock_t)SPINLOCK_INIT;
 
     device->ahci_device.size = sata_get_size(device);
 

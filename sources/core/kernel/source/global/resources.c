@@ -46,7 +46,7 @@ static inline int free_index(descriptors_ctx_t* ctx, int index){
 
 
 int add_descriptor(descriptors_ctx_t* ctx, descriptor_t* descriptor){
-    spinlock_acquire(&ctx->lock);
+    assert(!spinlock_acquire(&ctx->lock));
 
     int index = allocate_index(ctx);
 
@@ -70,7 +70,7 @@ descriptor_t* get_descriptor(descriptors_ctx_t* ctx, int index){
         return NULL;
     }
 
-    spinlock_acquire(&ctx->lock);
+    assert(!spinlock_acquire(&ctx->lock));
 
     descriptor_t* descriptor = ctx->descriptors[index];
 
@@ -86,7 +86,7 @@ int remove_descriptor(descriptors_ctx_t* ctx, int index){
         return error;
     }
 
-    spinlock_acquire(&ctx->lock);
+    assert(!spinlock_acquire(&ctx->lock));
 
     free_index(ctx, index);
 
@@ -108,7 +108,7 @@ int move_descriptor(descriptors_ctx_t* ctx, int old_index, int new_index){
         return error;
     }
 
-    spinlock_acquire(&ctx->lock);
+    assert(!spinlock_acquire(&ctx->lock));
 
     if(ctx->descriptors[old_index] == NULL){
         spinlock_release(&ctx->lock); 

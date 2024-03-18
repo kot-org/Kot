@@ -6,6 +6,7 @@
 #include <lib/math.h>
 #include <lib/lock.h>
 #include <lib/time.h>
+#include <lib/assert.h>
 #include <lib/memory.h>
 #include <lib/string.h>
 #include <global/vfs.h>

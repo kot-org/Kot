@@ -2,6 +2,7 @@
 #define _MODULE_STORAGE_MAIN_H
 
 #include <errno.h>
+#include <lib/assert.h>
 #include <stdbool.h>
 #include <lib/log.h>
 #include <lib/guid.h>

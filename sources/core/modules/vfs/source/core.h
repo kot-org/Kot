@@ -2,7 +2,7 @@
 #define _MODULE_VFS_CORE_H
 
 #include <errno.h>
-#include <assert.h>
+#include <lib/assert.h>
 #include <system.h>
 #include <limits.h>
 #include <lib/math.h>

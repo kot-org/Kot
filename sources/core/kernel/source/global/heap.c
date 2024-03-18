@@ -1,3 +1,4 @@
+#include <lib/assert.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <lib/log.h>
@@ -30,7 +31,7 @@ void heap_init(void* heap_address_high, void* heap_address_low){
 void* malloc(size_t size){
     size += sizeof(struct heap_segment_header);
 
-    spinlock_acquire(&lock);
+    assert(!spinlock_acquire(&lock));
     heap_end = (void*)((uintptr_t)heap_end - (uintptr_t)size);
 
     void* buffer = (void*)((uintptr_t)heap_end + (uintptr_t)sizeof(struct heap_segment_header));
@@ -199,7 +200,7 @@ void* malloc(size_t size) {
         size += 0x10;
     }
 
-    spinlock_acquire(&lock);
+    assert(!spinlock_acquire(&lock));
     struct heap_segment_header* current_seg = (struct heap_segment_header*)main_segment;
     uint64_t size_with_header = size + sizeof(struct heap_segment_header);
     while(current_seg) {
@@ -230,7 +231,7 @@ void* malloc(size_t size) {
 
 void free(void* address) {
     if(address != NULL) {
-        spinlock_acquire(&lock);
+        assert(!spinlock_acquire(&lock));
         struct heap_segment_header* header = (struct heap_segment_header*)(void*)((uint64_t)address - sizeof(struct heap_segment_header));
         header->is_free = true;
         free_size += header->length + sizeof(struct heap_segment_header);

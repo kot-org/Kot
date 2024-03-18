@@ -35,7 +35,7 @@ int key_update_state(uint64_t scancode, bool is_pressed){
 
     uint16_t translated_key = 0;
 
-    spinlock_acquire(&scancode_translation_table_lock);
+    assert(!spinlock_acquire(&scancode_translation_table_lock));
 
     uint64_t translation_index = scancode;
 
@@ -72,7 +72,7 @@ int set_key_handler(key_handler_t handler_to_set){
 }
 
 int update_scancode_translation_table(uint16_t* table, size_t size){
-    spinlock_acquire(&scancode_translation_table_lock);
+    assert(!spinlock_acquire(&scancode_translation_table_lock));
     scancode_table_buffer = table;
     scancode_table_size = size;
     translated_key_shift_start = size * SUB_TABLE_SHIFT_INDEX / SUB_TABLE_COUNT;

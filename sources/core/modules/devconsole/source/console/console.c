@@ -155,7 +155,7 @@ static void devconsole_new_line(void){
 }
 
 static int boot_fb_callback(void){
-    spinlock_acquire(&boot_fb_lock);
+    assert(!spinlock_acquire(&boot_fb_lock));
     use_boot_fb = false;
     last_thread_output = NULL;
     spinlock_release(&boot_fb_lock);
@@ -243,7 +243,7 @@ void devconsole_init(void) {
 }
 
 void devconsole_putchar(char c) {
-    spinlock_acquire(&boot_fb_lock);
+    assert(!spinlock_acquire(&boot_fb_lock));
 
     if(!use_boot_fb){
         spinlock_release(&boot_fb_lock);
@@ -287,7 +287,7 @@ void devconsole_putchar(char c) {
 }
 
 void devconsole_delchar(void){
-    spinlock_acquire(&boot_fb_lock);
+    assert(!spinlock_acquire(&boot_fb_lock));
     if(cx_index != 0){
         cx_index--;
     }else{

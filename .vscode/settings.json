@@ -160,7 +160,12 @@
         "location_buffer.h": "c",
         "canvas.h": "c",
         "signal_ext.h": "c",
-        "features.h": "c"
+        "features.h": "c",
+        "device.h": "c",
+        "controller.h": "c",
+        "error.h": "c",
+        "e1000x_regs.h": "c",
+        "unistd.h": "c"
     },
     "files.exclude": {
         "bundled": true,

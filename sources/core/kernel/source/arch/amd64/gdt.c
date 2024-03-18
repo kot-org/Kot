@@ -1,6 +1,7 @@
 #include <arch/include.h>
 #include ARCH_INCLUDE(gdt.h)
 
+#include <lib/assert.h>
 #include <lib/lock.h>
 
 static tss_t _tss = {
@@ -75,7 +76,7 @@ void gdt_init(void) {
 static spinlock_t _gdt_lock = SPINLOCK_INIT;
 
 void gdt_load_tss(tss_t *tss) {
-    spinlock_acquire(&_gdt_lock);
+    assert(!spinlock_acquire(&_gdt_lock));
     _gdt.tss = gdt_tss_entry((uintptr_t) tss);
     tss_update();
     spinlock_release(&_gdt_lock);
