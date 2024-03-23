@@ -165,7 +165,13 @@
         "controller.h": "c",
         "error.h": "c",
         "e1000x_regs.h": "c",
-        "unistd.h": "c"
+        "unistd.h": "c",
+        "byteswap.h": "c",
+        "protocols.h": "c",
+        "ethernet.h": "c",
+        "if_arp.h": "c",
+        "interface.h": "c",
+        "arp.h": "c"
     },
     "files.exclude": {
         "bundled": true,

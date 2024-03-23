@@ -20,6 +20,7 @@ int init(int argc, char* args[]){
 
     assert(modules_request_dependency(MODULE_TYPE_PCI) == 0);
     assert(modules_request_dependency(MODULE_TYPE_VFS) == 0);
+    assert(modules_request_dependency(MODULE_TYPE_NET) == 0);
     assert(modules_request_dependency(MODULE_TYPE_TIME) == 0);
 
     pci_device_info_t device_info = {

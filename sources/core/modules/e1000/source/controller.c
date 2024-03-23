@@ -52,10 +52,19 @@ int e1000_controller_on_interrupt(int id){
         int rx_desc_count_to_handle = e1000_count_rx_descriptor(controller, head - 1, tail);
         int tail_current = (tail + 1) % controller->rx_desc_count;
 
-        log_info("Packet received %d:%d\n", tail_current, rx_desc_count_to_handle);
-         
-        e1000_write_register(controller, E1000_RDT0, (tail + rx_desc_count_to_handle) % controller->rx_desc_count);
         e1000_write_register(controller, E1000_ICR, E1000_ICR_RXQ0);
+
+        for(int i = 0; i < rx_desc_count_to_handle; i++){
+            net_handler->rx_packet(controller->net_device, controller->rx_desc[i + tail_current].length, vmm_get_virtual_address((void*)controller->rx_desc[i + tail_current].buffer_addr));
+
+            /* Reset data */
+            controller->rx_desc[i + tail_current].length = 0;
+            controller->rx_desc[i + tail_current].csum = 0;
+            controller->rx_desc[i + tail_current].status = 0;
+            controller->rx_desc[i + tail_current].errors = 0;
+            controller->rx_desc[i + tail_current].special = 0;
+        }   
+        e1000_write_register(controller, E1000_RDT0, (tail + rx_desc_count_to_handle) % controller->rx_desc_count);
     }
 
     return 0;
@@ -64,6 +73,7 @@ int e1000_controller_on_interrupt(int id){
 /* Specific functions */
 int controller_send_packet(e1000_controller_t* controller, void* data, uint32_t size) {
     if(size > PACKET_SIZE){
+        /* TODO */
         return EIO;
     }
 
@@ -89,6 +99,12 @@ int controller_send_packet(e1000_controller_t* controller, void* data, uint32_t 
     spinlock_release(&controller->tx_desc_lock);
 
     return 0;
+}
+
+/* Interface function */
+int e1000_interface_tx_packet(struct net_device_t* net_device, size_t size, void* buffer){
+    e1000_controller_t* controller = (e1000_controller_t*)net_device->internal_data;
+    return controller_send_packet(controller, buffer, size);
 }
 
 
@@ -153,6 +169,9 @@ void controller_init_rx(e1000_controller_t* controller){
 e1000_controller_t* controller_init(pci_device_id_t device_id){
     e1000_controller_t* controller = (e1000_controller_t*)malloc(sizeof(e1000_controller_t));
 
+    controller->net_device = (net_device_t*)malloc(sizeof(net_device_t));
+    controller->net_device->internal_data = (void*)controller;
+
     pci_bar_info_t bar_info;
 
     assert(pci_handler->get_bar_device(device_id, 0, &bar_info) == 0);
@@ -173,16 +192,14 @@ e1000_controller_t* controller_init(pci_device_id_t device_id){
 
     e1000_write_register(controller, E1000_CTRL, E1000_CTRL_ASDE | E1000_CTRL_SLU);
 
-    controller->mac_address[0] = (uint8_t)(e1000_read_register(controller, E1000_RA) & 0xFF);
-    controller->mac_address[1] = (uint8_t)(e1000_read_register(controller, E1000_RA) >> 8) & 0xFF;
-    controller->mac_address[2] = (uint8_t)(e1000_read_register(controller, E1000_RA) >> 16) & 0xFF;
-    controller->mac_address[3] = (uint8_t)(e1000_read_register(controller, E1000_RA) >> 24) & 0xFF;
-    controller->mac_address[4] = (uint8_t)(e1000_read_register(controller, E1000_RA + sizeof(uint32_t)) & 0xFF);
-    controller->mac_address[5] = (uint8_t)(e1000_read_register(controller, E1000_RA + sizeof(uint32_t)) >> 8) & 0xFF;
+    controller->net_device->mac_address[0] = (uint8_t)(e1000_read_register(controller, E1000_RA) & 0xFF);
+    controller->net_device->mac_address[1] = (uint8_t)(e1000_read_register(controller, E1000_RA) >> 8) & 0xFF;
+    controller->net_device->mac_address[2] = (uint8_t)(e1000_read_register(controller, E1000_RA) >> 16) & 0xFF;
+    controller->net_device->mac_address[3] = (uint8_t)(e1000_read_register(controller, E1000_RA) >> 24) & 0xFF;
+    controller->net_device->mac_address[4] = (uint8_t)(e1000_read_register(controller, E1000_RA + sizeof(uint32_t)) & 0xFF);
+    controller->net_device->mac_address[5] = (uint8_t)(e1000_read_register(controller, E1000_RA + sizeof(uint32_t)) >> 8) & 0xFF;
 
     e1000_write_register(controller, E1000_RA + sizeof(uint32_t), e1000_read_register(controller, E1000_RA + sizeof(uint32_t)) | E1000_RAH_AV);
-
-    log_info("Card found with mac address : %x:%x:%x:%x:%x:%x\n", controller->mac_address[0], controller->mac_address[1], controller->mac_address[2], controller->mac_address[3], controller->mac_address[4], controller->mac_address[5]);
 
     /* initialize tx */
     controller_init_tx(controller);
@@ -202,6 +219,11 @@ e1000_controller_t* controller_init(pci_device_id_t device_id){
     e1000_write_register(controller, E1000_EITR, 0xffff);
     e1000_write_register(controller, E1000_IVAR, (E1000_IVAR_INT_ALLOC_VALID  << E1000_IVAR_RXQ0_SHIFT));
     e1000_write_register(controller, E1000_IMS, E1000_IMS_RXQ0);
+
+    controller->net_device->tx_packet = e1000_interface_tx_packet;
+    controller->net_device->packet_type = packet_type_ethernet;
+
+    net_handler->add_net_device(controller->net_device);
     
     return controller;
 }

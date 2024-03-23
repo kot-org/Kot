@@ -16,7 +16,8 @@ typedef struct{
         uint16_t io;
         void* memory;
     }bar_base;
-    uint8_t mac_address[5];
+
+    net_device_t* net_device;
 
     spinlock_t tx_desc_lock;
     void* tx_desc_physical;
