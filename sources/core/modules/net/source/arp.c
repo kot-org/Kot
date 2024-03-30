@@ -144,7 +144,7 @@ uint8_t* arp_get_mac_address(net_device_t* net_device, uint32_t ip){
         return mac;
     }else{
         net_device_internal_t* internal = (net_device_internal_t*)net_device->external_data;
-        send_arp_packet(net_device, 1, ETHERTYPE_IP, ETHER_ADDR_LEN, 4, ARPOP_REQUEST, net_device->mac_address, (uint8_t*)&internal->ip, NULL, (uint8_t*)&ip);
+        send_arp_packet(net_device, 1, ETHERTYPE_IP, ETHER_ADDR_LEN, 4, ARPOP_REQUEST, net_device->mac_address, (uint8_t*)&internal->nic_ip, NULL, (uint8_t*)&ip);
         
         int timeout = 10;
         while(!mac && timeout--){

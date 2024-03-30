@@ -5,6 +5,7 @@
 #include <arp.h>
 #include <tcp.h>
 #include <udp.h>
+#include <dhcp.h>
 #include <lib/log.h>
 #include <lib/time.h>
 #include <byteswap.h>
@@ -20,7 +21,10 @@
 #define NET_DEBUG
 
 typedef struct{
-    uint32_t ip;
+    uint32_t nic_ip;
+    uint32_t dns_ip;
+    uint32_t router_ip;
+    uint32_t subnet_mask_ip;
     uint8_t default_ttl;
     uint8_t default_tos;
 }net_device_internal_t;

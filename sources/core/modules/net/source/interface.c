@@ -5,7 +5,7 @@ net_handler_t net_internal_handler;
 int add_net_device(net_device_t* net_device){
     net_device->external_data = malloc(sizeof(net_device_internal_t));
     net_device_internal_t* internal = (net_device_internal_t*)net_device->external_data;
-    internal->ip = 0;
+    internal->nic_ip = 0;
     internal->default_ttl = 255;
     internal->default_tos = 0;
 

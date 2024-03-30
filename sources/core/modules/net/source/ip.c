@@ -125,6 +125,24 @@ static uint16_t ip_get_packet_id(void){
     return id;
 }
 
+uint16_t ip_checksum(uint8_t* data, size_t len){
+    uint32_t result = 0;
+
+    for(; len > 1; data+=2, len-=2){
+        result += *(uint16_t*)data;
+    }
+
+    if(len){
+        uint8_t odd[2] = {*data, 0};
+        result += *(uint16_t*)odd;
+    }
+
+    while (result>>16)
+        result = (result & 0xffff) + (result >> 16);
+
+    return ~result;
+}
+
 int init_ip(void){
     ip_fragments = vector_create();
     ip_last_packet_id = 0;
@@ -218,15 +236,27 @@ int generate_ip_packet(net_device_t* net_device, uint8_t ihl, uint8_t tos, uint1
     ip_header->frag_off = __bswap_16(frag_off),
     ip_header->ttl = ttl;
     ip_header->protocol = protocol;
-    ip_header->check = 0; // TODO
     ip_header->saddr = saddr;
     ip_header->daddr = daddr;
+    ip_header->check = 0;
+    ip_header->check = ip_checksum((uint8_t*)ip_header, sizeof(struct iphdr));
 
     void* data_buffer_ip = (void*)((uintptr_t)buffer + (uintptr_t)sizeof(struct iphdr));
 
     memcpy(data_buffer_ip, data_buffer, data_size);
 
-    int error = send_ethernet_packet(net_device, arp_get_mac_address(net_device, daddr), ETHERTYPE_IP, size, buffer);
+    int error;
+    
+    switch (net_device->packet_type){
+        case packet_type_ethernet:{
+            error = send_ethernet_packet(net_device, arp_get_mac_address(net_device, daddr), ETHERTYPE_IP, size, buffer);
+            break;
+        }
+        default:{
+            error = -1;
+            break;
+        }
+    }
 
     free(buffer);
 

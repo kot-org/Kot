@@ -53,7 +53,9 @@ int generate_ethernet_packet(net_device_t* net_device, uint8_t* mac_target, uint
 
     memcpy(ethernet_header->ether_shost, net_device->mac_address, ETHER_ADDR_LEN);
     ethernet_header->ether_type = __bswap_16(type);
-
+    
+    *(uint32_t*)((uintptr_t)*buffer_ethernet + (uintptr_t)payload_size + (uintptr_t)sizeof(struct ether_header)) = 0; // clear FCS
+    
     *buffer_payload = (void*)((uintptr_t)(*buffer_ethernet) + (uintptr_t)sizeof(struct ether_header));
 
     return 0;

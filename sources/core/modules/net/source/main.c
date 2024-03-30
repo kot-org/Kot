@@ -3,6 +3,7 @@
 #define MODULE_NAME "net"
 
 #include <ip.c>
+#include <arp.c>
 #include <tcp.c>
 #include <udp.c>
 #include <dhcp.c>
@@ -14,6 +15,7 @@ int init(int argc, char* args[]){
 
     assert(!init_ip());
     assert(!init_arp());
+    assert(!init_udp());
     assert(!init_tcp());
     assert(!init_dhcp());
     assert(!init_ethernet());
