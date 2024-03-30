@@ -119,7 +119,7 @@ void controller_init_tx(e1000_controller_t* controller){
         controller->tx_desc[i].buffer_addr = (uint64_t) pmm_allocate_pages(PACKET_SIZE / PAGE_SIZE);
         controller->tx_desc[i].lower.flags.length = PACKET_SIZE;
         controller->tx_desc[i].lower.flags.cso = 0;
-        controller->tx_desc[i].lower.flags.cmd = (uint8_t)(((uint32_t)(E1000_TXD_CMD_EOP | E1000_TXD_CMD_IFCS | E1000_TXD_CMD_RS)) >> 24); 
+        controller->tx_desc[i].lower.flags.cmd = (uint8_t)(((uint32_t)(E1000_TXD_CMD_EOP | E1000_TXD_CMD_IFCS | E1000_TXD_CMD_RS | E1000_TXD_CMD_IC)) >> 24); 
         controller->tx_desc[i].upper.fields.status = E1000_TXD_STAT_DD;
         controller->tx_desc[i].upper.fields.css = 0;
         controller->tx_desc[i].upper.fields.special = 0;
@@ -221,9 +221,8 @@ e1000_controller_t* controller_init(pci_device_id_t device_id){
     e1000_write_register(controller, E1000_IMS, E1000_IMS_RXQ0);
 
     controller->net_device->tx_packet = e1000_interface_tx_packet;
+    controller->net_device->max_size_tx_packet = PACKET_SIZE;
     controller->net_device->packet_type = packet_type_ethernet;
-
-    net_handler->add_net_device(controller->net_device);
     
     return controller;
 }

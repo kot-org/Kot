@@ -58,6 +58,7 @@ if not no_headers
 		'include/net/ethernet.h',
 		'include/net/route.h',
 		'include/net/if_ppp.h',
+        'include/net/if_net.h',
 		subdir: 'net'
 	)
 	install_headers(

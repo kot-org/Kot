@@ -1,4 +1,10 @@
+#include <main.h>
+
 #define ETHERNET_MINIMUM_SIZE (sizeof(struct ether_header) + sizeof(uint32_t)) // header + crc 32
+
+int init_ethernet(void){
+    return 0;
+}
 
 int process_ethernet_packet(net_device_t* net_device, size_t size, void* buffer){
     if(size < ETHERNET_MINIMUM_SIZE){
@@ -21,6 +27,8 @@ int process_ethernet_packet(net_device_t* net_device, size_t size, void* buffer)
     switch (ethernet_header->ether_type){
         case ETHERTYPE_ARP:
             return process_arp_packet(net_device, size_payload, buffer_payload);
+        case ETHERTYPE_IP:
+            return process_ip_packet(net_device, size_payload, buffer_payload);
         default:
             return -1;
     }
@@ -37,7 +45,12 @@ int generate_ethernet_packet(net_device_t* net_device, uint8_t* mac_target, uint
 
     struct ether_header* ethernet_header = (struct ether_header*)*buffer_ethernet;
 
-    memcpy(ethernet_header->ether_dhost, mac_target, ETHER_ADDR_LEN);
+    if(mac_target){
+        memcpy(ethernet_header->ether_dhost, mac_target, ETHER_ADDR_LEN);
+    }else{
+        memset(ethernet_header->ether_dhost, 0xff, ETHER_ADDR_LEN);
+    }
+
     memcpy(ethernet_header->ether_shost, net_device->mac_address, ETHER_ADDR_LEN);
     ethernet_header->ether_type = __bswap_16(type);
 

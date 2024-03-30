@@ -38,7 +38,9 @@ int init(int argc, char* args[]){
     for(size_t i = 0; i < e1000_controller_count; i++){
         pci_device_id_t device_id = pci_handler->find_device(&device_info, i);
         e1000_controllers[i] = controller_init(device_id);
+        net_handler->add_net_device(e1000_controllers[i]->net_device);
     }
+
 
     log_printf("[module/"MODULE_NAME"] loading end\n");
 

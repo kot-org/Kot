@@ -75,4 +75,5 @@ void interface_init(void){
     pci_internal_handler.config_read_word = &config_read_word;
     pci_internal_handler.config_write_word = &config_write_word;
     pci_handler = &pci_internal_handler;
+    return 0;
 }

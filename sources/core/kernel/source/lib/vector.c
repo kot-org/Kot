@@ -33,19 +33,22 @@ void vector_expand(vector_t* vector, uint64_t len) {
 }
 
 uint64_t vector_push(vector_t* vector, void* item) {
+    uint64_t index;
     if (vector->items == NULL) {
         assert(!spinlock_acquire(&vector->lock));
         vector->items = (void**) malloc(8);
         vector->length = 1;
         *(void**)(vector->items) = item;
+        index = 0;
         spinlock_release(&vector->lock);
     } else {
         vector_expand(vector, 1);
         assert(!spinlock_acquire(&vector->lock));
         *(void**)(vector->items + vector->length - 1) = item;
+        index = vector->length - 1;
         spinlock_release(&vector->lock);
     }
-    return vector->length - 1;
+    return index;
 }
 
 void* vector_get(vector_t* vector, uint64_t index) {

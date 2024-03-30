@@ -1,3 +1,43 @@
+#include <main.h>
+
+vector_t* arp_table;
+
+typedef struct{
+    uint32_t ip;
+    uint8_t mac[ETHER_ADDR_LEN];
+}arp_entry_t;
+
+static uint8_t* arp_table_find(uint32_t ip){
+    for(uint64_t i = 0; i < arp_table->length; i++){
+        arp_entry_t* entry = (arp_entry_t*)vector_get(arp_table, i);
+        if(entry->ip == ip){
+            return entry->mac; 
+        }
+    }
+    return NULL;
+}
+
+static int arp_table_add(uint32_t ip, uint8_t* mac){
+    if(arp_table_find(ip) == NULL){
+        arp_entry_t* entry = (arp_entry_t*)malloc(sizeof(arp_entry_t));
+        entry->ip = ip;
+        memcpy(&entry->mac, mac, ETHER_ADDR_LEN);
+
+        vector_push(arp_table, entry);
+
+        return 0;
+    }else{
+        return -1;
+    }
+}
+
+int init_arp(void){
+    arp_table = vector_create();
+    uint8_t broadcast_mac[8] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+    arp_table_add(0xffffffff, broadcast_mac);
+    return 0;
+}
+
 int process_arp_packet(net_device_t* net_device, size_t size, void* buffer){
     struct arphdr* arp_header = (struct arphdr*)buffer;
     
@@ -29,7 +69,11 @@ int process_arp_packet(net_device_t* net_device, size_t size, void* buffer){
         uint8_t* sip = (uint8_t*)((uintptr_t)arp_header + (uintptr_t)sizeof(struct arphdr) + arp_header->ar_hln);
         uint8_t* tip = (uint8_t*)((uintptr_t)arp_header + (uintptr_t)sizeof(struct arphdr) + arp_header->ar_hln + arp_header->ar_pln + arp_header->ar_hln);
 
-        send_arp_packet(net_device, __bswap_16(arp_header->ar_hrd), __bswap_16(arp_header->ar_pro), arp_header->ar_hln, arp_header->ar_pln, ARPOP_REPLY, net_device->mac_address, tip, sha, sip);
+        arp_table_add(*((uint32_t*)sip), sha);
+
+        if(__bswap_16(arp_header->ar_op) == ARPOP_REQUEST){
+            send_arp_packet(net_device, __bswap_16(arp_header->ar_hrd), __bswap_16(arp_header->ar_pro), arp_header->ar_hln, arp_header->ar_pln, ARPOP_REPLY, net_device->mac_address, tip, sha, sip);
+        }
     }else{
         return -1;
     }
@@ -47,15 +91,32 @@ int generate_arp_header(net_device_t* net_device, uint16_t hrd, uint16_t pro, ui
     (*header_buffer)->ar_op = __bswap_16(op);
 
     uint8_t* ar_sha = (uint8_t*)((uintptr_t)*header_buffer + (uintptr_t)sizeof(struct arphdr));
-    memcpy(ar_sha, sha, hln);
+    if(sha){
+        memcpy(ar_sha, sha, hln);
+    }else{
+        memset(ar_sha, 0, hln);
+    }
+
     uint8_t* ar_tha = (uint8_t*)((uintptr_t)*header_buffer + (uintptr_t)sizeof(struct arphdr) + hln + pln);
-    memcpy(ar_tha, tha, hln);
+    if(tha){
+        memcpy(ar_tha, tha, hln);
+    }else{
+        memset(ar_tha, 0, hln);
+    }
 
     uint8_t* ar_sip = (uint8_t*)((uintptr_t)*header_buffer + (uintptr_t)sizeof(struct arphdr) + hln);
-    memcpy(ar_sip, sip, pln);
+    if(sip){
+        memcpy(ar_sip, sip, pln);
+    }else{
+        memset(ar_sip, 0, pln);
+    }
 
     uint8_t* ar_tip = (uint8_t*)((uintptr_t)*header_buffer + (uintptr_t)sizeof(struct arphdr) + hln + pln + hln);
-    memcpy(ar_tip, tip, pln);
+    if(tip){
+        memcpy(ar_tip, tip, pln);
+    }else{
+        memset(ar_tip, 0, pln);
+    }
     
     return 0;
 }
@@ -75,4 +136,22 @@ int send_arp_packet(net_device_t* net_device, uint16_t hrd, uint16_t pro, uint8_
     free(header_buffer);
 
     return error;
+}
+
+uint8_t* arp_get_mac_address(net_device_t* net_device, uint32_t ip){
+    uint8_t* mac = arp_table_find(ip);
+    if(mac){
+        return mac;
+    }else{
+        net_device_internal_t* internal = (net_device_internal_t*)net_device->external_data;
+        send_arp_packet(net_device, 1, ETHERTYPE_IP, ETHER_ADDR_LEN, 4, ARPOP_REQUEST, net_device->mac_address, (uint8_t*)&internal->ip, NULL, (uint8_t*)&ip);
+        
+        int timeout = 10;
+        while(!mac && timeout--){
+            sleep_us(1000);
+            mac = arp_table_find(ip);
+        }
+        
+        return mac;
+    }
 }

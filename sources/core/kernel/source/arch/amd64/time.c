@@ -48,7 +48,7 @@ uint16_t kernel_get_current_year(void){
 }
 
 int kernel_sleep(int seconds){
-    hpet_sleep(seconds * 1000);
+    hpet_sleep(seconds * 1000000);
     return 0;
 }
 

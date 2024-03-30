@@ -171,7 +171,12 @@
         "ethernet.h": "c",
         "if_arp.h": "c",
         "interface.h": "c",
-        "arp.h": "c"
+        "arp.h": "c",
+        "ip.h": "c",
+        "in.h": "c",
+        "tcp.h": "c",
+        "udp.h": "c",
+        "socket.h": "c"
     },
     "files.exclude": {
         "bundled": true,

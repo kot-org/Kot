@@ -2,14 +2,22 @@
 
 #define MODULE_NAME "net"
 
-#include <arp.c>
+#include <ip.c>
+#include <tcp.c>
+#include <udp.c>
+#include <dhcp.c>
 #include <ethernet.c>
 #include <interface.c>
 
 int init(int argc, char* args[]){
     log_printf("[module/"MODULE_NAME"] loading start\n");
 
-    interface_init();
+    assert(!init_ip());
+    assert(!init_arp());
+    assert(!init_tcp());
+    assert(!init_dhcp());
+    assert(!init_ethernet());
+    assert(!interface_init());
 
     log_printf("[module/"MODULE_NAME"] loading end\n");
     return 0;

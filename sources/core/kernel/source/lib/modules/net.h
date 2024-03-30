@@ -12,6 +12,7 @@ enum packet_type{
 
 typedef struct net_device_t{
     int (*tx_packet)(struct net_device_t*, size_t, void*);
+    size_t max_size_tx_packet;
     uint8_t mac_address[ETHER_ADDR_LEN];
     enum packet_type packet_type;
     void* internal_data;
