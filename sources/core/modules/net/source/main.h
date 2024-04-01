@@ -3,6 +3,7 @@
 
 #include <ip.h>
 #include <arp.h>
+#include <dns.h>
 #include <tcp.h>
 #include <udp.h>
 #include <dhcp.h>
@@ -15,6 +16,7 @@
 #include <lib/vector.h>
 #include <lib/assert.h>
 #include <lib/memory.h>
+#include <lib/string.h>
 #include <global/heap.h>
 #include <global/modules.h>
 

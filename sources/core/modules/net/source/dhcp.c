@@ -96,5 +96,20 @@ int get_dhcp_info(net_device_t* net_device){
     fill_dhcp_output(net_device, &dhcp);
     fill_dhcp_discovery_options(&dhcp);
     generate_udp_packet(net_device, 0xffffffff, 67, 68, sizeof(struct dhcp_packet), &dhcp);
+
+    /* test dns */
+    net_device_internal_t* internal = (net_device_internal_t*)net_device->external_data;
+    while(internal->dns_ip == 0){
+        sleep_us(1000);
+    }
+
+    uint32_t address;
+    uint32_t ttl;
+    uint8_t error;
+    if(!dns_resolve_ip(net_device, "wikipedia.com", &address, &ttl, &error)){
+        log_info("DNS resolve IP: %d.%d.%d.%d, TTL : %d seconds, with error code : 0x%x\n", 
+        ((uint8_t*)&address)[3], ((uint8_t*)&address)[2], ((uint8_t*)&address)[1], ((uint8_t*)&address)[0], ttl, error);
+    }
+
     return 0;
 }
