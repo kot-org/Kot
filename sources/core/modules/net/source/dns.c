@@ -141,7 +141,7 @@ int dns_resolve_ip(net_device_t* net_device, char* name, uint32_t* address, uint
     current_index_data += sizeof(uint16_t);
     *(uint16_t*)&dns_packet->data[current_index_data] = __bswap_16(1);
 
-    generate_udp_packet(net_device, internal->dns_ip, DNS_PORT, DNS_PORT, dns_packet_size, dns_packet);
+    generate_udp_packet(net_device, internal->dns_ip, __bswap_16(DNS_PORT), __bswap_16(DNS_PORT), dns_packet_size, dns_packet);
 
     int64_t timeout = 1000; // in ms
     while(!request.have_response && timeout > 0){

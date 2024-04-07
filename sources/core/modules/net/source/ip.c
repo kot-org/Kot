@@ -137,10 +137,73 @@ uint16_t ip_checksum(uint8_t* data, size_t len){
         result += *(uint16_t*)odd;
     }
 
-    while (result>>16)
-        result = (result & 0xffff) + (result >> 16);
-
+    result = (result >> 16) + (result & 0xffff);
+    result += (result >>16);
     return ~result;
+}
+
+void compute_tcp_checksum(struct iphdr* ip_header, uint16_t* data, size_t length){
+    struct tcphdr* tcp_header = (struct tcphdr*)(data);
+
+    uint32_t result = 0;
+
+    result += (ip_header->saddr >> 16) & 0xFFFF;
+    result += (ip_header->saddr) & 0xFFFF;
+    result += (ip_header->daddr >> 16) & 0xFFFF;
+    result += (ip_header->daddr) & 0xFFFF;
+    result += __bswap_16(IPPROTO_TCP);
+    result += __bswap_16(length);
+ 
+    tcp_header->th_sum = 0;
+
+    while(length > 1){
+        result += *data++;
+        length -= 2;
+    }
+
+    if(length > 0){
+        result += ((*data) & __bswap_16(0xFF00));
+    }
+
+    while(result >> 16){
+        result = (result & 0xffff) + (result >> 16);
+    }
+
+    result = ~result;
+
+    tcp_header->th_sum = (uint16_t)result;
+}
+
+void compute_udp_checksum(struct iphdr* ip_header, uint16_t* data, size_t length){
+    struct udphdr* udp_header = (struct udphdr*)(data);
+
+    uint32_t result = 0;
+
+    result += (ip_header->saddr >> 16) & 0xFFFF;
+    result += (ip_header->saddr) & 0xFFFF;
+    result += (ip_header->daddr >> 16) & 0xFFFF;
+    result += (ip_header->daddr) & 0xFFFF;
+    result += __bswap_16(IPPROTO_UDP);
+    result += __bswap_16(length);
+ 
+    udp_header->uh_sum = 0;
+
+    while(length > 1){
+        result += *data++;
+        length -= 2;
+    }
+
+    if(length > 0){
+        result += ((*data) & __bswap_16(0xFF00));
+    }
+
+    while(result >> 16){
+        result = (result & 0xffff) + (result >> 16);
+    }
+
+    result = ~result;
+
+    udp_header->uh_sum = (uint16_t)result;
 }
 
 int init_ip(void){
@@ -152,9 +215,9 @@ int init_ip(void){
 int process_full_packet(net_device_t* net_device, struct iphdr* ip_header, size_t size, void* buffer){
     switch (ip_header->protocol) {
         case IPPROTO_TCP:
-            return process_tcp_packet(net_device, size, buffer);
+            return process_tcp_packet(net_device, ip_header->saddr, size, buffer);
         case IPPROTO_UDP:
-            return process_udp_packet(net_device, size, buffer);
+            return process_udp_packet(net_device, ip_header->saddr, size, buffer);
         default:
             return -1;
     }
@@ -245,9 +308,22 @@ int generate_ip_packet(net_device_t* net_device, uint8_t ihl, uint8_t tos, uint1
 
     memcpy(data_buffer_ip, data_buffer, data_size);
 
+    if(frag_off == 0){
+        // TODO check if nic calculate checksum it
+        /* calculate checksum */
+        switch (protocol) {
+            case IPPROTO_TCP:
+                compute_tcp_checksum(ip_header, data_buffer_ip, data_size);
+                break;
+            case IPPROTO_UDP:
+                compute_udp_checksum(ip_header, data_buffer_ip, data_size);
+                break;
+        }
+    }
+
     int error;
     
-    switch (net_device->packet_type){
+    switch(net_device->packet_type){
         case packet_type_ethernet:{
             error = send_ethernet_packet(net_device, arp_get_mac_address(net_device, daddr), ETHERTYPE_IP, size, buffer);
             break;

@@ -25,7 +25,10 @@
  * about Internet Systems Consortium, see ``http://www.isc.org''.
  * To learn more about Vixie Enterprises, see ``http://www.vix.com''.
  */
- 
+
+#define DHCP_UDP_PORT_SOURCE 68
+#define DHCP_UDP_PORT_DESTINATION 67
+
 #define DHCP_UDP_OVERHEAD   (14 + /* Ethernet header */     \
                              20 + /* IP header */           \
                               8)   /* UDP header */

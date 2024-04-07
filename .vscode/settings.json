@@ -176,7 +176,8 @@
         "in.h": "c",
         "tcp.h": "c",
         "udp.h": "c",
-        "socket.h": "c"
+        "socket.h": "c",
+        "if_types.h": "c"
     },
     "files.exclude": {
         "bundled": true,

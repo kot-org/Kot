@@ -12,33 +12,33 @@ struct udp_port_redirection{
     vector_t* handlers;
 };
 
-void** redirection_port_first_level = NULL;
-size_t redirection_port_level_count = 0;
+void** udp_redirection_port_first_level = NULL;
+size_t udp_redirection_port_level_count = 0;
 
-static void upd_add_port_redirection(uint16_t port, struct udp_port_redirection* redirection_data){
-    assert(redirection_port_first_level);
+static void udp_add_port_redirection(uint16_t port, struct udp_port_redirection* redirection_data){
+    assert(udp_redirection_port_first_level);
 
-    size_t first_level_index = port / redirection_port_level_count;
-    struct udp_port_redirection** redirection_port_second_level = redirection_port_first_level[first_level_index];
+    size_t first_level_index = port / udp_redirection_port_level_count;
+    struct udp_port_redirection** redirection_port_second_level = udp_redirection_port_first_level[first_level_index];
 
-    size_t second_level_index = port % redirection_port_level_count;
+    size_t second_level_index = port % udp_redirection_port_level_count;
 
     if(redirection_port_second_level == NULL){
-        redirection_port_second_level = calloc(redirection_port_level_count, sizeof(void*));
-        redirection_port_first_level[first_level_index] = redirection_port_second_level;
+        redirection_port_second_level = calloc(udp_redirection_port_level_count, sizeof(void*));
+        udp_redirection_port_first_level[first_level_index] = redirection_port_second_level;
     }
     
     redirection_port_second_level[second_level_index] = redirection_data;
 }
 
-static struct udp_port_redirection* upd_get_port_redirection(uint16_t port){
-    assert(redirection_port_first_level);
+static struct udp_port_redirection* udp_get_port_redirection(uint16_t port){
+    assert(udp_redirection_port_first_level);
 
-    size_t first_level_index = port / redirection_port_level_count;
-    struct udp_port_redirection** redirection_port_second_level = redirection_port_first_level[first_level_index];
+    size_t first_level_index = port / udp_redirection_port_level_count;
+    struct udp_port_redirection** redirection_port_second_level = udp_redirection_port_first_level[first_level_index];
 
     if(redirection_port_second_level != NULL){
-        size_t second_level_index = port % redirection_port_level_count;
+        size_t second_level_index = port % udp_redirection_port_level_count;
         struct udp_port_redirection* redirection_data = redirection_port_second_level[second_level_index];
         return redirection_data;
     }
@@ -47,12 +47,12 @@ static struct udp_port_redirection* upd_get_port_redirection(uint16_t port){
 }
 
 uint64_t udp_listen_port(uint16_t port, void* handler, void* external_data){
-    struct udp_port_redirection* port_redirection = upd_get_port_redirection(port);
+    struct udp_port_redirection* port_redirection = udp_get_port_redirection(port);
 
     if(port_redirection == NULL){
         port_redirection = malloc(sizeof(struct udp_port_redirection));
         port_redirection->handlers = vector_create();
-        upd_add_port_redirection(port, port_redirection);
+        udp_add_port_redirection(port, port_redirection);
     }
 
     struct udp_handler* handler_data = malloc(sizeof(struct udp_handler));
@@ -65,7 +65,7 @@ uint64_t udp_listen_port(uint16_t port, void* handler, void* external_data){
 }
 
 int udp_remove_listen_port(uint16_t port, uint64_t index){
-    struct udp_port_redirection* port_redirection = upd_get_port_redirection(port);
+    struct udp_port_redirection* port_redirection = udp_get_port_redirection(port);
 
     if(port_redirection){
         struct udp_handler* handler_data = vector_get(port_redirection->handlers, index);
@@ -82,12 +82,12 @@ int udp_remove_listen_port(uint16_t port, uint64_t index){
 }
 
 int init_udp(void){
-    redirection_port_level_count = 256;
-    redirection_port_first_level = calloc(redirection_port_level_count, sizeof(void*));
+    udp_redirection_port_level_count = 256;
+    udp_redirection_port_first_level = calloc(udp_redirection_port_level_count, sizeof(void*));
     return 0;
 }
 
-int process_udp_packet(net_device_t* net_device, size_t size, void* buffer){
+int process_udp_packet(net_device_t* net_device, uint32_t saddr, size_t size, void* buffer){
     struct udphdr* udp_header = (struct udphdr*)buffer;
 
     #ifdef NET_DEBUG
@@ -100,7 +100,7 @@ int process_udp_packet(net_device_t* net_device, size_t size, void* buffer){
     );
     #endif
 
-    struct udp_port_redirection* port_redirection = upd_get_port_redirection(__bswap_16(udp_header->uh_dport));
+    struct udp_port_redirection* port_redirection = udp_get_port_redirection(__bswap_16(udp_header->uh_dport));
 
     if(port_redirection != NULL){
         for(uint64_t i = 0; i < port_redirection->handlers->length; i++){
@@ -121,10 +121,10 @@ int generate_udp_packet(net_device_t* net_device, uint32_t daddr, uint16_t dport
 
     /* Setup data */
     struct udphdr* udp_header = (struct udphdr*)packet_buffer;
-    udp_header->uh_sport = __bswap_16(sport),
-    udp_header->uh_dport = __bswap_16(dport),
-    udp_header->uh_ulen = __bswap_16(packet_size),
-    udp_header->uh_sum = 0; // done by nic
+    udp_header->uh_sport = sport; // big endian 
+    udp_header->uh_dport = dport; // big endian
+    udp_header->uh_ulen = __bswap_16(packet_size);
+    udp_header->uh_sum = 0; // done after
 
     memcpy(packet_buffer_data, data_buffer, data_size);
     
