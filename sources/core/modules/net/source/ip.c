@@ -151,8 +151,8 @@ void compute_tcp_checksum(struct iphdr* ip_header, uint16_t* data, size_t length
     result += (ip_header->saddr) & 0xFFFF;
     result += (ip_header->daddr >> 16) & 0xFFFF;
     result += (ip_header->daddr) & 0xFFFF;
-    result += __bswap_16(IPPROTO_TCP);
-    result += __bswap_16(length);
+    result += htons(IPPROTO_TCP);
+    result += htons(length);
  
     tcp_header->th_sum = 0;
 
@@ -162,7 +162,7 @@ void compute_tcp_checksum(struct iphdr* ip_header, uint16_t* data, size_t length
     }
 
     if(length > 0){
-        result += ((*data) & __bswap_16(0xFF00));
+        result += ((*data) & htons(0xFF00));
     }
 
     while(result >> 16){
@@ -183,8 +183,8 @@ void compute_udp_checksum(struct iphdr* ip_header, uint16_t* data, size_t length
     result += (ip_header->saddr) & 0xFFFF;
     result += (ip_header->daddr >> 16) & 0xFFFF;
     result += (ip_header->daddr) & 0xFFFF;
-    result += __bswap_16(IPPROTO_UDP);
-    result += __bswap_16(length);
+    result += htons(IPPROTO_UDP);
+    result += htons(length);
  
     udp_header->uh_sum = 0;
 
@@ -194,7 +194,7 @@ void compute_udp_checksum(struct iphdr* ip_header, uint16_t* data, size_t length
     }
 
     if(length > 0){
-        result += ((*data) & __bswap_16(0xFF00));
+        result += ((*data) & htons(0xFF00));
     }
 
     while(result >> 16){
@@ -231,12 +231,12 @@ int process_ip_packet(net_device_t* net_device, size_t size, void* buffer){
         ip_header->version,
         ip_header->ihl,
         ip_header->tos,
-        __bswap_16(ip_header->tot_len),
-        __bswap_16(ip_header->id),
-        __bswap_16(ip_header->frag_off),
+        ntohs(ip_header->tot_len),
+        ntohs(ip_header->id),
+        ntohs(ip_header->frag_off),
         ip_header->ttl,
         ip_header->protocol,
-        __bswap_16(ip_header->check),
+        ntohs(ip_header->check),
         ((uint8_t*)&ip_header->saddr)[0], ((uint8_t*)&ip_header->saddr)[1],((uint8_t*)&ip_header->saddr)[2],((uint8_t*)&ip_header->saddr)[3],
         ((uint8_t*)&ip_header->daddr)[0], ((uint8_t*)&ip_header->daddr)[1],((uint8_t*)&ip_header->daddr)[2],((uint8_t*)&ip_header->daddr)[3]
     );
@@ -246,7 +246,7 @@ int process_ip_packet(net_device_t* net_device, size_t size, void* buffer){
     if(ip_header->version == IPVERSION){
         if(!(ip_header->frag_off & IP_MF) && (ip_header->frag_off & IP_OFFMASK) == 0){ // there is no fragmentation
             void* buffer_data = (void*)((uintptr_t)buffer + (uintptr_t)((size_t)ip_header->ihl * (size_t)sizeof(uint32_t)));
-            size_t size_data = (size_t)__bswap_16(ip_header->tot_len) - (size_t)((size_t)ip_header->ihl * (size_t)sizeof(uint32_t));
+            size_t size_data = (size_t)ntohs(ip_header->tot_len) - (size_t)((size_t)ip_header->ihl * (size_t)sizeof(uint32_t));
 
             return process_full_packet(net_device, ip_header, size_data, buffer_data);
         }else{
@@ -255,7 +255,7 @@ int process_ip_packet(net_device_t* net_device, size_t size, void* buffer){
                 ip_fragment = create_ip_fragment(ip_header->saddr, ip_header->daddr, ip_header->id, ip_header->protocol);
             }
             void* buffer_data = (void*)((uintptr_t)buffer + (uintptr_t)((size_t)ip_header->ihl * (size_t)sizeof(uint32_t)));
-            size_t size_data = (size_t)__bswap_16(ip_header->tot_len) - (size_t)((size_t)ip_header->ihl * (size_t)sizeof(uint32_t));
+            size_t size_data = (size_t)ntohs(ip_header->tot_len) - (size_t)((size_t)ip_header->ihl * (size_t)sizeof(uint32_t));
             add_ip_fragment(ip_fragment, buffer_data, size_data, ((size_t)(ip_header->frag_off & IP_OFFMASK)) * (size_t)sizeof(uint8_t), ip_header->frag_off & IP_MF);
 
             if(is_ip_fragment_entirely_received(ip_fragment)){
@@ -294,9 +294,9 @@ int generate_ip_packet(net_device_t* net_device, uint8_t ihl, uint8_t tos, uint1
     ip_header->ihl = ihl;
     ip_header->version = IPVERSION;
     ip_header->tos = tos;
-    ip_header->tot_len = __bswap_16(size);
-    ip_header->id = __bswap_16(id),
-    ip_header->frag_off = __bswap_16(frag_off),
+    ip_header->tot_len = htons(size);
+    ip_header->id = htons(id),
+    ip_header->frag_off = htons(frag_off),
     ip_header->ttl = ttl;
     ip_header->protocol = protocol;
     ip_header->saddr = saddr;

@@ -12,7 +12,7 @@ int process_ethernet_packet(net_device_t* net_device, size_t size, void* buffer)
     }
 
     struct ether_header* ethernet_header = (struct ether_header*)buffer;
-    ethernet_header->ether_type = __bswap_16(ethernet_header->ether_type); // Switch big endian to little endian
+    ethernet_header->ether_type = ntohs(ethernet_header->ether_type);
     
     #ifdef NET_DEBUG
     log_info("Ethernet header >\n\t- Mac source : %02x:%02x:%02x:%02x:%02x:%02x\n\t- Mac destination : %02x:%02x:%02x:%02x:%02x:%02x\n\t- Type : 0x%04x\n", 
@@ -52,7 +52,7 @@ int generate_ethernet_packet(net_device_t* net_device, uint8_t* mac_target, uint
     }
 
     memcpy(ethernet_header->ether_shost, net_device->mac_address, ETHER_ADDR_LEN);
-    ethernet_header->ether_type = __bswap_16(type);
+    ethernet_header->ether_type = htons(type);
     
     *(uint32_t*)((uintptr_t)*buffer_ethernet + (uintptr_t)payload_size + (uintptr_t)sizeof(struct ether_header)) = 0; // clear FCS
     

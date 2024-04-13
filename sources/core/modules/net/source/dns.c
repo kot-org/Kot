@@ -20,7 +20,7 @@ void receive_dns_info(void* external_data, net_device_t* net_device, struct udph
         dns_packet->header.opcode == OPCODE_QUERY &&
         dns_packet->header.tc == 0 &&
         dns_packet->header.rcode == 0 &&
-        dns_packet->header.ancount == __bswap_16(1)){
+        dns_packet->header.ancount == htons(1)){
             size_t current_index_data = 0;
 
             /* ignore name */
@@ -45,15 +45,15 @@ void receive_dns_info(void* external_data, net_device_t* net_device, struct udph
                 }
             }
 
-            if(*(uint16_t*)&dns_packet->data[current_index_data] == __bswap_16(1)){ // Answer is a Type A query (host address)
+            if(*(uint16_t*)&dns_packet->data[current_index_data] == htons(1)){ // Answer is a Type A query (host address)
                 current_index_data += sizeof(uint16_t);
-                if(*(uint16_t*)&dns_packet->data[current_index_data] == __bswap_16(1)){ // Answer is class IN (Internet address)
+                if(*(uint16_t*)&dns_packet->data[current_index_data] == htons(1)){ // Answer is class IN (Internet address)
                     current_index_data += sizeof(uint16_t);
-                    ttl = __bswap_32(*(uint32_t*)&dns_packet->data[current_index_data]); // Response is valid for x seconds
+                    ttl = ntohl(*(uint32_t*)&dns_packet->data[current_index_data]); // Response is valid for x seconds
                     current_index_data += sizeof(uint32_t);
-                    if(*(uint16_t*)&dns_packet->data[current_index_data] == __bswap_16(4)){ // Address is  bytes long
+                    if(*(uint16_t*)&dns_packet->data[current_index_data] == htons(4)){ // Address is  bytes long
                         current_index_data += sizeof(uint16_t);
-                        address = __bswap_32(*(uint32_t*)&dns_packet->data[current_index_data]);
+                        address = ntohl(*(uint32_t*)&dns_packet->data[current_index_data]);
                     }
                 }
             }
@@ -109,10 +109,10 @@ int dns_resolve_ip(net_device_t* net_device, char* name, uint32_t* address, uint
     dns_packet->header.ra = 1;
     dns_packet->header.z = 0;
     dns_packet->header.rcode = 0;
-    dns_packet->header.qdcount = __bswap_16(1);
-    dns_packet->header.ancount = __bswap_16(0);
-    dns_packet->header.nscount = __bswap_16(0);
-    dns_packet->header.arcount = __bswap_16(0);
+    dns_packet->header.qdcount = htons(1);
+    dns_packet->header.ancount = htons(0);
+    dns_packet->header.nscount = htons(0);
+    dns_packet->header.arcount = htons(0);
 
     size_t current_index_data = 0;
 
@@ -137,11 +137,11 @@ int dns_resolve_ip(net_device_t* net_device, char* name, uint32_t* address, uint
     dns_packet->data[current_index_data] = 0;
     current_index_data++;
 
-    *(uint16_t*)&dns_packet->data[current_index_data] = __bswap_16(1);
+    *(uint16_t*)&dns_packet->data[current_index_data] = htons(1);
     current_index_data += sizeof(uint16_t);
-    *(uint16_t*)&dns_packet->data[current_index_data] = __bswap_16(1);
+    *(uint16_t*)&dns_packet->data[current_index_data] = htons(1);
 
-    generate_udp_packet(net_device, internal->dns_ip, __bswap_16(DNS_PORT), __bswap_16(DNS_PORT), dns_packet_size, dns_packet);
+    generate_udp_packet(net_device, internal->dns_ip, htons(DNS_PORT), htons(DNS_PORT), dns_packet_size, dns_packet);
 
     int64_t timeout = 1000; // in ms
     while(!request.have_response && timeout > 0){

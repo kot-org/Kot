@@ -92,15 +92,15 @@ int process_udp_packet(net_device_t* net_device, uint32_t saddr, size_t size, vo
 
     #ifdef NET_DEBUG
     log_info("UDP header >\n\tSource port : %d\n\tDestination port : %d\n\tLength : %d\n\tChecksum : %d\n\tData length : %d\n",
-        __bswap_16(udp_header->uh_sport),
-        __bswap_16(udp_header->uh_dport),
-        __bswap_16(udp_header->uh_ulen),
-        __bswap_16(udp_header->uh_sum),
+        ntohs(udp_header->uh_sport),
+        ntohs(udp_header->uh_dport),
+        ntohs(udp_header->uh_ulen),
+        ntohs(udp_header->uh_sum),
         size - sizeof(struct udphdr)
     );
     #endif
 
-    struct udp_port_redirection* port_redirection = udp_get_port_redirection(__bswap_16(udp_header->uh_dport));
+    struct udp_port_redirection* port_redirection = udp_get_port_redirection(ntohs(udp_header->uh_dport));
 
     if(port_redirection != NULL){
         for(uint64_t i = 0; i < port_redirection->handlers->length; i++){
@@ -123,7 +123,7 @@ int generate_udp_packet(net_device_t* net_device, uint32_t daddr, uint16_t dport
     struct udphdr* udp_header = (struct udphdr*)packet_buffer;
     udp_header->uh_sport = sport; // big endian 
     udp_header->uh_dport = dport; // big endian
-    udp_header->uh_ulen = __bswap_16(packet_size);
+    udp_header->uh_ulen = htons(packet_size);
     udp_header->uh_sum = 0; // done after
 
     memcpy(packet_buffer_data, data_buffer, data_size);

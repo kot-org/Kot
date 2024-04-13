@@ -95,6 +95,6 @@ int get_dhcp_info(net_device_t* net_device){
     struct dhcp_packet dhcp = {};
     fill_dhcp_output(net_device, &dhcp);
     fill_dhcp_discovery_options(&dhcp);
-    generate_udp_packet(net_device, 0xffffffff, __bswap_16(DHCP_UDP_PORT_DESTINATION), __bswap_16(DHCP_UDP_PORT_SOURCE), sizeof(struct dhcp_packet), &dhcp);
+    generate_udp_packet(net_device, 0xffffffff, htons(DHCP_UDP_PORT_DESTINATION), htons(DHCP_UDP_PORT_SOURCE), sizeof(struct dhcp_packet), &dhcp);
     return 0;
 }

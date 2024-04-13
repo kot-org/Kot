@@ -7,6 +7,7 @@
 #include <tcp.h>
 #include <udp.h>
 #include <dhcp.h>
+#include <lib/net.h>
 #include <lib/log.h>
 #include <lib/time.h>
 #include <byteswap.h>

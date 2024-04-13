@@ -94,25 +94,21 @@ int process_tcp_packet(net_device_t* net_device, uint32_t saddr, size_t size, vo
     size_t data_offset = tcp_header->th_off * sizeof(uint32_t);
     size_t size_data = size - data_offset;
     log_info("TCP header >\n\tSource port : %d\n\tDestination port : %d\n\tSequence number : %u\n\tAcknowledgement number : %u\n\tData offset : %d\n\tReserved : %d\n\tFlags : 0x%02x\n\tWindow : %d\n\tChecksum : %d\n\tUrgent pointer : %d\n\tData length : %d\n",
-        __bswap_16(tcp_header->th_sport),
-        __bswap_16(tcp_header->th_dport),
-        __bswap_32(tcp_header->th_seq),
-        __bswap_32(tcp_header->th_ack),
+        ntohs(tcp_header->th_sport),
+        ntohs(tcp_header->th_dport),
+        ntohl(tcp_header->th_seq),
+        ntohl(tcp_header->th_ack),
         tcp_header->th_off,
         tcp_header->th_x2,
         tcp_header->th_flags,
-        __bswap_16(tcp_header->th_win),
-        __bswap_16(tcp_header->th_sum),
-        __bswap_16(tcp_header->th_urp),
+        ntohs(tcp_header->th_win),
+        ntohs(tcp_header->th_sum),
+        ntohs(tcp_header->th_urp),
         size_data
     );
     #endif
 
-    if(tcp_header->th_flags & TH_SYN){
-        generate_tcp_packet(net_device, saddr, tcp_header->th_sport, tcp_header->th_dport, 0, __bswap_32(__bswap_32(tcp_header->th_seq) + 1), sizeof(struct tcphdr) / sizeof(uint32_t), TH_SYN | TH_ACK, 65535, 0, 0, NULL);
-    }
-
-    struct tcp_port_redirection* port_redirection = tcp_get_port_redirection(__bswap_16(tcp_header->th_sport));
+    struct tcp_port_redirection* port_redirection = tcp_get_port_redirection(ntohs(tcp_header->th_sport));
 
     if(port_redirection != NULL){
         for(uint64_t i = 0; i < port_redirection->handlers->length; i++){
