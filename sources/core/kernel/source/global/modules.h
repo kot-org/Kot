@@ -9,6 +9,7 @@
 #include <lib/modules/net.h>
 #include <lib/modules/time.h>
 #include <lib/modules/devfs.h>
+#include <lib/modules/socket.h>
 #include <lib/modules/storage.h>
 
 #define MODULE_TYPE_UNDEFINE        (0)

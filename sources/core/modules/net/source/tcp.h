@@ -4,6 +4,9 @@
 #include <protocols.h>
 #include <global/modules.h>
 
+#define TCP_TIME_OUT                10000
+#define TCP_TIME_RETRANSMISSION     1000
+
 int tcp_remove_listen_port(uint16_t port, uint64_t index);
 uint64_t tcp_listen_port(uint16_t port, void* handler, void* external_data);
 int process_tcp_packet(net_device_t* net_device, uint32_t saddr, size_t size, void* buffer);

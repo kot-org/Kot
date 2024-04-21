@@ -2,7 +2,7 @@
 
 
 struct udp_handler{
-    void (*handler)(void*, net_device_t*, struct udphdr*, size_t);
+    void (*handler)(void*, net_device_t*, struct udphdr*, size_t, uint32_t);
     void* external_data;
     uint64_t index;
 };
@@ -100,12 +100,12 @@ int process_udp_packet(net_device_t* net_device, uint32_t saddr, size_t size, vo
     );
     #endif
 
-    struct udp_port_redirection* port_redirection = udp_get_port_redirection(ntohs(udp_header->uh_dport));
+    struct udp_port_redirection* port_redirection = udp_get_port_redirection(udp_header->uh_dport);
 
     if(port_redirection != NULL){
         for(uint64_t i = 0; i < port_redirection->handlers->length; i++){
             struct udp_handler* handler_data = vector_get(port_redirection->handlers, i);
-            handler_data->handler(handler_data->external_data, net_device, udp_header, size);
+            handler_data->handler(handler_data->external_data, net_device, udp_header, size, saddr);
         }
     }
 

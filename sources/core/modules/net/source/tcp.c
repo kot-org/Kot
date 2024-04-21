@@ -2,7 +2,7 @@
 
 
 struct tcp_handler{
-    void (*handler)(void*, net_device_t*, struct tcphdr*, size_t);
+    void (*handler)(void*, net_device_t*, struct tcphdr*, size_t, uint32_t);
     void* external_data;
     uint64_t index;
 };
@@ -108,12 +108,12 @@ int process_tcp_packet(net_device_t* net_device, uint32_t saddr, size_t size, vo
     );
     #endif
 
-    struct tcp_port_redirection* port_redirection = tcp_get_port_redirection(ntohs(tcp_header->th_sport));
+    struct tcp_port_redirection* port_redirection = tcp_get_port_redirection(tcp_header->th_dport);
 
     if(port_redirection != NULL){
         for(uint64_t i = 0; i < port_redirection->handlers->length; i++){
             struct tcp_handler* handler_data = vector_get(port_redirection->handlers, i);
-            handler_data->handler(handler_data->external_data, net_device, tcp_header, size);
+            handler_data->handler(handler_data->external_data, net_device, tcp_header, size, saddr);
         }
     }
 
@@ -124,6 +124,7 @@ int generate_tcp_packet(net_device_t* net_device, uint32_t daddr, uint16_t dport
     net_device_internal_t* internal = (net_device_internal_t*)net_device->external_data;
     
     size_t packet_size = data_size + sizeof(struct tcphdr);
+
     void* packet_buffer = malloc(packet_size);
     void* packet_buffer_data = (void*)((uintptr_t)packet_buffer + (uintptr_t)sizeof(struct tcphdr));
 

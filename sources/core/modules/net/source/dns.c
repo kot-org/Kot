@@ -9,7 +9,7 @@ struct dns_request{
 
 vector_t* dns_requests = NULL;
 
-void receive_dns_info(void* external_data, net_device_t* net_device, struct udphdr* udp_header, size_t size){
+void receive_dns_info(void* external_data, net_device_t* net_device, struct udphdr* udp_header, size_t size, uint32_t saddr){
     void* buffer_data = (void*)((uintptr_t)udp_header + (uintptr_t)sizeof(struct udphdr));
     struct dns_packet* dns_packet = (struct dns_packet*)buffer_data;
 
@@ -71,7 +71,7 @@ void receive_dns_info(void* external_data, net_device_t* net_device, struct udph
 int init_dns(void){
     dns_requests = vector_create();
 
-    udp_listen_port(DNS_PORT, &receive_dns_info, NULL);
+    udp_listen_port(htons(DNS_PORT), &receive_dns_info, NULL);
     return 0;
 }
 

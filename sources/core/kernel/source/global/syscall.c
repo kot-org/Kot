@@ -324,7 +324,7 @@ static void syscall_handler_open(cpu_context_t* ctx){
     }
 }
 
-static void syscall_handler_file_read(cpu_context_t* ctx){
+static void syscall_handler_read(cpu_context_t* ctx){
     int fd = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
     void* buffer = (void*)ARCH_CONTEXT_SYSCALL_ARG1(ctx); 
     size_t size = (size_t)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
@@ -335,24 +335,37 @@ static void syscall_handler_file_read(cpu_context_t* ctx){
         SYSCALL_RETURN(ctx, -EBADF);
     }
     
-    if(descriptor->type != DESCRIPTOR_TYPE_FILE){
+    if(descriptor->type == DESCRIPTOR_TYPE_FILE){
+        kernel_file_t* file = descriptor->data.file;
+
+        size_t size_read;
+
+        int error = file->read(buffer, size, &size_read, file);
+
+        if(error){
+            SYSCALL_RETURN(ctx, -error);     
+        }
+
+        SYSCALL_RETURN(ctx, size_read);
+    }else if(descriptor->type == DESCRIPTOR_TYPE_SOCKET){
+        kernel_socket_t* socket = descriptor->data.socket;
+
+        size_t size_read;
+
+        int error = socket->read(buffer, size, &size_read, socket);
+
+        if(error){
+            SYSCALL_RETURN(ctx, -error);     
+        }
+
+        SYSCALL_RETURN(ctx, size_read);
+    }else{
         SYSCALL_RETURN(ctx, -EISDIR);
     }
 
-    kernel_file_t* file = descriptor->data.file;
-
-    size_t size_read;
-
-    int error = file->read(buffer, size, &size_read, file);
-
-    if(error){
-        SYSCALL_RETURN(ctx, -error);     
-    }
-
-    SYSCALL_RETURN(ctx, size_read);
 }
 
-static void syscall_handler_file_write(cpu_context_t* ctx){
+static void syscall_handler_write(cpu_context_t* ctx){
     int fd = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
     void* buffer = (void*)ARCH_CONTEXT_SYSCALL_ARG1(ctx); 
     size_t size = (size_t)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
@@ -363,23 +376,35 @@ static void syscall_handler_file_write(cpu_context_t* ctx){
         SYSCALL_RETURN(ctx, -EBADF);
     }
     
-    if(descriptor->type != DESCRIPTOR_TYPE_FILE){
+    if(descriptor->type == DESCRIPTOR_TYPE_FILE){
+        kernel_file_t* file = descriptor->data.file;
+
+        size_t size_write;
+        int error = file->write(buffer, size, &size_write, file);
+
+        if(error){
+            SYSCALL_RETURN(ctx, -error);    
+        }
+
+        SYSCALL_RETURN(ctx, size_write);
+    }else if(descriptor->type == DESCRIPTOR_TYPE_SOCKET){
+        kernel_socket_t* socket = descriptor->data.socket;
+
+        size_t size_write;
+        int error = socket->write(buffer, size, &size_write, socket);
+
+        if(error){
+            SYSCALL_RETURN(ctx, -error);    
+        }
+
+        SYSCALL_RETURN(ctx, size_write);
+    }else{
         SYSCALL_RETURN(ctx, -EISDIR);
     }
 
-    kernel_file_t* file = descriptor->data.file;
-
-    size_t size_write;
-    int error = file->write(buffer, size, &size_write, file);
-
-    if(error){
-        SYSCALL_RETURN(ctx, -error);    
-    }
-
-    SYSCALL_RETURN(ctx, size_write);
 }
 
-static void syscall_handler_file_seek(cpu_context_t* ctx){
+static void syscall_handler_seek(cpu_context_t* ctx){
     int fd = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
     off_t offset = (off_t)ARCH_CONTEXT_SYSCALL_ARG1(ctx); 
     int whence = (int)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
@@ -390,23 +415,35 @@ static void syscall_handler_file_seek(cpu_context_t* ctx){
         SYSCALL_RETURN(ctx, -EBADF);
     }
     
-    if(descriptor->type != DESCRIPTOR_TYPE_FILE){
+    if(descriptor->type == DESCRIPTOR_TYPE_FILE){
+        kernel_file_t* file = descriptor->data.file;
+
+        off_t new_offset;
+        int error = file->seek(offset, whence, &new_offset, file);
+
+        if(error){
+            SYSCALL_RETURN(ctx, -error);     
+        }
+
+        SYSCALL_RETURN(ctx, new_offset);
+    }else if(descriptor->type == DESCRIPTOR_TYPE_SOCKET){
+        kernel_socket_t* socket = descriptor->data.socket;
+
+        off_t new_offset;
+        int error = socket->seek(offset, whence, &new_offset, socket);
+
+        if(error){
+            SYSCALL_RETURN(ctx, -error);     
+        }
+
+        SYSCALL_RETURN(ctx, new_offset);       
+    }else{
         SYSCALL_RETURN(ctx, -EISDIR);
     }
 
-    kernel_file_t* file = descriptor->data.file;
-
-    off_t new_offset;
-    int error = file->seek(offset, whence, &new_offset, file);
-
-    if(error){
-        SYSCALL_RETURN(ctx, -error);     
-    }
-
-    SYSCALL_RETURN(ctx, new_offset);
 }
 
-static void syscall_handler_file_close(cpu_context_t* ctx){
+static void syscall_handler_close(cpu_context_t* ctx){
     int fd = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
     
     descriptor_t* descriptor = get_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd);
@@ -415,31 +452,51 @@ static void syscall_handler_file_close(cpu_context_t* ctx){
         SYSCALL_RETURN(ctx, -EBADF);
     }
     
-    if(descriptor->type != DESCRIPTOR_TYPE_FILE){
+    if(descriptor->type == DESCRIPTOR_TYPE_FILE){
+        if(descriptor->is_parent){
+            kernel_file_t* file = descriptor->data.file; 
+
+            int error = file->close(file);
+
+            if(error){
+                SYSCALL_RETURN(ctx, -error);
+            }
+
+            assert(!remove_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd));
+
+            free(descriptor);
+
+            SYSCALL_RETURN(ctx, 0);
+        }else{
+            assert(!remove_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd));
+            SYSCALL_RETURN(ctx, 0);
+        }
+    }else if(descriptor->type == DESCRIPTOR_TYPE_SOCKET){
+        if(descriptor->is_parent){
+            kernel_socket_t* socket = descriptor->data.socket; 
+
+            int error = socket->close(socket);
+
+            if(error){
+                SYSCALL_RETURN(ctx, -error);
+            }
+
+            assert(!remove_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd));
+
+            free(descriptor);
+
+            SYSCALL_RETURN(ctx, 0);
+        }else{
+            assert(!remove_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd));
+            SYSCALL_RETURN(ctx, 0);
+        }
+    }else{
         SYSCALL_RETURN(ctx, -EISDIR);
     }
 
-    if(descriptor->is_parent){
-        kernel_file_t* file = descriptor->data.file; 
-
-        int error = file->close(file);
-
-        if(error){
-            SYSCALL_RETURN(ctx, -error);
-        }
-
-        assert(!remove_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd));
-
-        free(descriptor);
-
-        SYSCALL_RETURN(ctx, 0);
-    }else{
-        assert(!remove_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd));
-        SYSCALL_RETURN(ctx, 0);
-    }
 }
 
-static void syscall_handler_file_ioctl(cpu_context_t* ctx){
+static void syscall_handler_ioctl(cpu_context_t* ctx){
     int fd = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
     unsigned long request = (unsigned long)ARCH_CONTEXT_SYSCALL_ARG1(ctx); 
     void* arg = (void*)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
@@ -450,20 +507,32 @@ static void syscall_handler_file_ioctl(cpu_context_t* ctx){
         SYSCALL_RETURN(ctx, -EBADF);
     }
     
-    if(descriptor->type != DESCRIPTOR_TYPE_FILE){
+    if(descriptor->type == DESCRIPTOR_TYPE_FILE){
+        kernel_file_t* file = descriptor->data.file;
+
+        int ptr_result;
+        int error = file->ioctl(request, arg, &ptr_result, file);
+
+        if(error){
+            SYSCALL_RETURN(ctx, -error);     
+        }
+
+        SYSCALL_RETURN(ctx, ptr_result); 
+    }else if(descriptor->type == DESCRIPTOR_TYPE_SOCKET){
+        kernel_socket_t* socket = descriptor->data.socket;
+
+        int ptr_result;
+        int error = socket->ioctl(request, arg, &ptr_result, socket);
+
+        if(error){
+            SYSCALL_RETURN(ctx, -error);     
+        }
+
+        SYSCALL_RETURN(ctx, ptr_result); 
+    }else{
         SYSCALL_RETURN(ctx, -EISDIR);
     }
 
-    kernel_file_t* file = descriptor->data.file;
-
-    int ptr_result;
-    int error = file->ioctl(request, arg, &ptr_result, file);
-
-    if(error){
-        SYSCALL_RETURN(ctx, -error);     
-    }
-
-    SYSCALL_RETURN(ctx, ptr_result); 
 }
 
 static void syscall_handler_dir_read_entries(cpu_context_t* ctx){
@@ -560,7 +629,9 @@ static void syscall_handler_fd_stat(cpu_context_t* ctx){
         SYSCALL_RETURN(ctx, -descriptor->data.dir->stat(flags, statbuf, descriptor->data.dir));
     }else if(descriptor->type == DESCRIPTOR_TYPE_FILE){
         SYSCALL_RETURN(ctx, -descriptor->data.file->stat(flags, statbuf, descriptor->data.file));
-    } 
+    }else if(descriptor->type == DESCRIPTOR_TYPE_SOCKET){
+        SYSCALL_RETURN(ctx, -descriptor->data.socket->stat(flags, statbuf, descriptor->data.socket));
+    }
     
     SYSCALL_RETURN(ctx, -EBADF);
 }
@@ -650,6 +721,132 @@ static void syscall_handler_chdir(cpu_context_t* ctx){
     SYSCALL_RETURN(ctx, 0);
 }
 
+static void syscall_handler_socket(cpu_context_t* ctx){
+    int family = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    int type = (int)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
+    int protocol = (int)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+
+    int error;
+
+    kernel_socket_t* socket = s_socket(family, type, protocol, &error);
+
+    if(!error){
+        descriptor_t* descriptor = malloc(sizeof(descriptor_t));
+        
+        descriptor->type = DESCRIPTOR_TYPE_SOCKET;
+        descriptor->data.socket = socket;
+
+        SYSCALL_RETURN(ctx, add_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, descriptor));
+    }else{
+        SYSCALL_RETURN(ctx, -error);
+    }
+}
+
+static void syscall_handler_bind(cpu_context_t* ctx){
+    int fd = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    const struct sockaddr* addr_ptr = (const struct sockaddr*)ARCH_CONTEXT_SYSCALL_ARG1(ctx); 
+    socklen_t addr_length = (socklen_t)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+
+    descriptor_t* descriptor = get_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd);
+
+    if(descriptor == NULL){
+        SYSCALL_RETURN(ctx, -EBADF);
+    }
+    
+    if(descriptor->type != DESCRIPTOR_TYPE_SOCKET){
+        SYSCALL_RETURN(ctx, -ENOTSOCK);
+    }
+
+    kernel_socket_t* socket = descriptor->data.socket;
+
+    SYSCALL_RETURN(ctx, -socket->bind(socket, addr_ptr, addr_length)); 
+}
+
+static void syscall_handler_connect(cpu_context_t* ctx){
+    int fd = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    const struct sockaddr* addr_ptr = (const struct sockaddr*)ARCH_CONTEXT_SYSCALL_ARG1(ctx); 
+    socklen_t addr_length = (socklen_t)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+
+    descriptor_t* descriptor = get_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd);
+
+    if(descriptor == NULL){
+        SYSCALL_RETURN(ctx, -EBADF);
+    }
+    
+    if(descriptor->type != DESCRIPTOR_TYPE_SOCKET){
+        SYSCALL_RETURN(ctx, -ENOTSOCK);
+    }
+
+    kernel_socket_t* socket = descriptor->data.socket;
+
+    SYSCALL_RETURN(ctx, -socket->connect(socket, addr_ptr, addr_length));   
+}
+
+static void syscall_handler_listen(cpu_context_t* ctx){
+    int fd = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    int backlog = (int)ARCH_CONTEXT_SYSCALL_ARG1(ctx); 
+
+    descriptor_t* descriptor = get_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd);
+
+    if(descriptor == NULL){
+        SYSCALL_RETURN(ctx, -EBADF);
+    }
+    
+    if(descriptor->type != DESCRIPTOR_TYPE_SOCKET){
+        SYSCALL_RETURN(ctx, -ENOTSOCK);
+    }
+
+    kernel_socket_t* socket = descriptor->data.socket;
+
+    SYSCALL_RETURN(ctx, -socket->listen(socket, backlog));    
+}
+
+static void syscall_handler_accept(cpu_context_t* ctx){
+    int fd = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    struct sockaddr* addr_ptr = (struct sockaddr*)ARCH_CONTEXT_SYSCALL_ARG1(ctx); 
+    socklen_t* addr_length = (socklen_t*)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+
+    descriptor_t* descriptor = get_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd);
+
+    if(descriptor == NULL){
+        SYSCALL_RETURN(ctx, -EBADF);
+    }
+    
+    if(descriptor->type != DESCRIPTOR_TYPE_SOCKET){
+        SYSCALL_RETURN(ctx, -ENOTSOCK);
+    }
+
+    int error;
+    kernel_socket_t* socket = descriptor->data.socket;
+    
+    kernel_socket_t* child_socket = socket->accept(socket, addr_ptr, addr_length, &error);
+
+    if(!error){
+        descriptor_t* descriptor = malloc(sizeof(descriptor_t));
+        
+        descriptor->type = DESCRIPTOR_TYPE_SOCKET;
+        descriptor->data.socket = child_socket;
+
+        SYSCALL_RETURN(ctx, add_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, descriptor));
+    }else{
+        SYSCALL_RETURN(ctx, -error);
+    } 
+}
+
+static void syscall_handler_socket_send(cpu_context_t* ctx){
+    log_warning("%s : syscall not implemented\n", __FUNCTION__);
+    SYSCALL_RETURN(ctx, -ENOSYS);    
+}
+
+static void syscall_handler_socket_recv(cpu_context_t* ctx){
+    log_warning("%s : syscall not implemented\n", __FUNCTION__);
+    SYSCALL_RETURN(ctx, -ENOSYS);    
+}
+
+static void syscall_handler_socket_pair(cpu_context_t* ctx){
+    log_warning("%s : syscall not implemented\n", __FUNCTION__);
+    SYSCALL_RETURN(ctx, -ENOSYS);    
+}
 
 static syscall_handler_t handlers[SYS_COUNT] = { 
     syscall_handler_log,
@@ -675,11 +872,11 @@ static syscall_handler_t handlers[SYS_COUNT] = {
     syscall_handler_getppid,
     syscall_handler_kill,
     syscall_handler_open,
-    syscall_handler_file_read,
-    syscall_handler_file_write,
-    syscall_handler_file_seek,
-    syscall_handler_file_close,
-    syscall_handler_file_ioctl,
+    syscall_handler_read,
+    syscall_handler_write,
+    syscall_handler_seek,
+    syscall_handler_close,
+    syscall_handler_ioctl,
     syscall_handler_dir_read_entries,
     syscall_handler_dir_remove,
     syscall_handler_unlink_at,
@@ -688,7 +885,15 @@ static syscall_handler_t handlers[SYS_COUNT] = {
     syscall_handler_fd_stat,
     syscall_handler_fcntl,
     syscall_handler_getcwd,
-    syscall_handler_chdir
+    syscall_handler_chdir,
+    syscall_handler_socket,
+    syscall_handler_bind,
+    syscall_handler_connect,
+    syscall_handler_listen,
+    syscall_handler_accept,
+    syscall_handler_socket_send,
+    syscall_handler_socket_recv,
+    syscall_handler_socket_pair
 };
 
 void syscall_handler(cpu_context_t* ctx){

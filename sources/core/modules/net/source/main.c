@@ -8,6 +8,7 @@
 #include <tcp.c>
 #include <udp.c>
 #include <dhcp.c>
+#include <socket.c>
 #include <ethernet.c>
 #include <interface.c>
 
@@ -22,6 +23,7 @@ int init(int argc, char* args[]){
     assert(!init_dhcp());
     assert(!init_ethernet());
     assert(!interface_init());
+    assert(!socket_init());
 
     log_printf("[module/"MODULE_NAME"] loading end\n");
     return 0;

@@ -31,7 +31,7 @@ static size_t fill_dhcp_discovery_options(struct dhcp_packet* dhcp){
     return length;
 }
 
-void receive_dhcp_info(void* external_data, net_device_t* net_device, struct udphdr* udp_header, size_t size){
+void receive_dhcp_info(void* external_data, net_device_t* net_device, struct udphdr* udp_header, size_t size, uint32_t saddr){
     struct dhcp_packet* dhcp = (struct dhcp_packet*)((uintptr_t)udp_header + (uintptr_t)sizeof(struct udphdr));
 
     if(dhcp->op == BOOTREPLY && dhcp->htype == HTYPE_ETHER && dhcp->hlen == ETHER_ADDR_LEN){
@@ -87,7 +87,7 @@ void receive_dhcp_info(void* external_data, net_device_t* net_device, struct udp
 }
 
 int init_dhcp(void){
-    udp_listen_port(DHCP_UDP_PORT_SOURCE, &receive_dhcp_info, NULL);
+    udp_listen_port(htons(DHCP_UDP_PORT_SOURCE), &receive_dhcp_info, NULL);
     return 0;
 }
 

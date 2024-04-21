@@ -4,11 +4,13 @@
 #include <lib/lock.h>
 #include <global/dir.h>
 #include <global/file.h>
+#include <global/socket.h>
 
 #define MAX_DESCRIPTORS         256
 
 #define DESCRIPTOR_TYPE_FILE    0
 #define DESCRIPTOR_TYPE_DIR     1
+#define DESCRIPTOR_TYPE_SOCKET  2
 
 typedef uint8_t descriptor_type_t;
 typedef uint8_t descriptor_index_t;
@@ -18,6 +20,7 @@ typedef struct{
     union{
         kernel_file_t* file;
         kernel_dir_t* dir;
+        kernel_socket_t* socket;
     }data;
     bool is_parent;
 }descriptor_t;

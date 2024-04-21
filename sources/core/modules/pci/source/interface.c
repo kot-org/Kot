@@ -65,7 +65,7 @@ int config_write_word(pci_device_id_t id, uint16_t offset, uint16_t value){
     return device_config_write_word(device_info, offset, value);
 }
 
-void interface_init(void){
+int interface_init(void){
     pci_internal_handler.count_devices = &count_devices;
     pci_internal_handler.find_device = &find_device;
     pci_internal_handler.get_info_device = &get_info_device;

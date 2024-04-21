@@ -229,4 +229,86 @@ namespace mlibc{
         *pgid = 0;
         return 0;
     }
+
+    int sys_socket(int family, int type, int protocol, int *fd){
+        auto result = do_syscall(SYS_SOCKET, family, type, protocol);
+
+        if(result < 0){
+            return -result;
+        }
+
+        *fd = result;
+        return 0;
+    }
+
+    int sys_bind(int fd, const struct sockaddr *addr_ptr, socklen_t addr_length){
+        auto result = do_syscall(SYS_BIND, fd, addr_ptr, (sc_word_t)addr_length);
+
+        if(result < 0){
+            return -result;
+        }
+
+        return 0;
+    }
+
+    int sys_connect(int fd, const struct sockaddr *addr_ptr, socklen_t addr_length){
+        auto result = do_syscall(SYS_CONNECT, fd, addr_ptr, (sc_word_t)addr_length);
+
+        if(result < 0){
+            return -result;
+        }
+
+        return 0;
+    }
+
+    int sys_listen(int fd, int backlog){
+        auto result = do_syscall(SYS_LISTEN, fd, backlog);
+
+        if(result < 0){
+            return -result;
+        }
+
+        return 0;
+    }
+
+    int sys_accept(int sockfd, int *newfd, struct sockaddr *addr_ptr, socklen_t *addr_length){
+        auto result = do_syscall(SYS_ACCEPT, sockfd, addr_ptr, addr_length);
+
+        if(result < 0){
+            return -result;
+        }
+
+        *newfd = result;
+        return 0;
+    }
+
+    int sys_msg_send(int fd, const struct msghdr *hdr, int flags, ssize_t *length){
+        auto result = do_syscall(SYS_SOCKET_SEND, fd, hdr, flags);
+        if(result < 0)
+            return -result;
+
+        *length = result;
+        return 0;
+    }
+
+    int sys_msg_recv(int sockfd, struct msghdr *msg_hdr, int flags, ssize_t *length){
+        auto result = do_syscall(SYS_SOCKET_RECV, sockfd, msg_hdr, flags);
+
+        if(result < 0){
+            return -result;
+        }
+
+        *length = result;
+        return 0;
+    }
+
+    int sys_socketpair(int domain, int type_and_flags, int proto, int *fds){
+        auto result = do_syscall(SYS_SOCKET_PAIR, domain, type_and_flags, proto, fds);
+
+        if(result < 0){
+            return -result;
+        }
+
+        return 0;
+    }
 }

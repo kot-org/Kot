@@ -177,7 +177,10 @@
         "tcp.h": "c",
         "udp.h": "c",
         "socket.h": "c",
-        "if_types.h": "c"
+        "if_types.h": "c",
+        "stat.h": "c",
+        "fstream": "c",
+        "net.h": "c"
     },
     "files.exclude": {
         "bundled": true,

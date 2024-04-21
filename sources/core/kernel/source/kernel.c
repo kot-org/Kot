@@ -67,6 +67,9 @@ void kernel_entry(void) {
     time_init();
     log_success("time : initialized\n");
 
+    s_init();
+    log_success("socket : initialized\n");
+
     modules_init();
     log_success("modules : initialized\n");
 

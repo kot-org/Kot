@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <global/vfs.h>
-#include <lib/modules/file.h>
+#include <lib/modules/dir.h>
 
 int d_create(vfs_ctx_t* ctx, const char* path, mode_t mode);
 int d_remove(vfs_ctx_t* ctx, const char* path);
