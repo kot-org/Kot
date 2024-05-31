@@ -225,8 +225,6 @@ packages:
         - '@THIS_SOURCE_DIR@/configure'
         - '--prefix=/usr'
         - '--host=x86_64-kot'
-        - '--enable-debug'
-        - '--enable-curldebug'
         - '--without-ssl'
         - '--disable-ipv6'
         - '--disable-unix-sockets'
