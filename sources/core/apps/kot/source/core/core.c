@@ -1,14 +1,24 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
+#include <curl/curl.h>
 
-void sigint_handler(){
-    printf("Signal\n");
-}
+int main(void){
+    curl_global_init(CURL_GLOBAL_ALL);
 
-int main(int argc, char* argv[]){
-    printf("Hello\n");
-    signal(SIGINT, sigint_handler); 
-    while(1);  
-    return EXIT_SUCCESS;
+    CURL* curl = curl_easy_init();
+
+    if(curl){
+        curl_easy_setopt(curl, CURLOPT_URL, "http://example.com/");
+
+        CURLcode r = curl_easy_perform(curl);
+
+        if(r != CURLE_OK){
+            printf(stderr, "can't connect to 'http://example.com/' : %s\n", curl_easy_strerror(r));
+        }
+
+        curl_easy_cleanup(curl);
+    }
+
+    curl_global_cleanup();
+
+    return 0;
 }

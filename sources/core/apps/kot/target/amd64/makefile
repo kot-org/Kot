@@ -4,8 +4,9 @@ cyan = /bin/echo -e "\x1b[36m\#\# $1\x1b[0m"
 override HOME = ../..
 
 # Project Resources
-SYSROOT = $(HOME)/../../../sysroot
+SYSROOT = $(HOME)/../../../../sysroot
 INCLUDE = $(SYSROOT)/usr/include
+LIBRARIES = $(SYSROOT)/usr/lib
 SOURCE = $(HOME)/source
 TOOLS = $(HOME)/../../tools
 BIN = bin/usr/bin
@@ -33,6 +34,6 @@ $(LIB)/%_c.o: $(SOURCE)/%.c
 
 link:
 	@ mkdir -m 777 -p $(BIN)
-	@ $(CC) $(LDFLAGS) -o $(BIN)/kot $(OBJS)
+	@ $(CC) $(LDFLAGS) -o $(BIN)/kot $(OBJS) $(LIBRARIES)/libcurl.a
 
 build: $(OBJS) link
