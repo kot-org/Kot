@@ -1,3 +1,4 @@
+#include <poll.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stddef.h>
@@ -638,7 +639,7 @@ static void syscall_handler_fd_stat(cpu_context_t* ctx){
 
 static void syscall_handler_fcntl(cpu_context_t* ctx){
     log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    SYSCALL_RETURN(ctx, 0);    
 }
 
 static void syscall_handler_getcwd(cpu_context_t* ctx){
@@ -834,18 +835,141 @@ static void syscall_handler_accept(cpu_context_t* ctx){
 }
 
 static void syscall_handler_socket_send(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    int fd = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    const struct msghdr* hdr = (const struct msghdr*)ARCH_CONTEXT_SYSCALL_ARG1(ctx); 
+    int flags = (int)ARCH_CONTEXT_SYSCALL_ARG2(ctx); 
+
+    descriptor_t* descriptor = get_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd);
+
+    if(descriptor == NULL){
+        SYSCALL_RETURN(ctx, -EBADF);
+    }
+    
+    if(descriptor->type != DESCRIPTOR_TYPE_SOCKET){
+        SYSCALL_RETURN(ctx, -ENOTSOCK);
+    }
+
+    kernel_socket_t* socket = descriptor->data.socket;
+
+    size_t size;
+    int error = socket->socket_send(socket, (struct msghdr*)hdr, flags, &size);
+
+    if(error){
+        SYSCALL_RETURN(ctx, -error);  
+    }
+
+    SYSCALL_RETURN(ctx, size);  
 }
 
 static void syscall_handler_socket_recv(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    int fd = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    const struct msghdr* hdr = (const struct msghdr*)ARCH_CONTEXT_SYSCALL_ARG1(ctx); 
+    int flags = (int)ARCH_CONTEXT_SYSCALL_ARG2(ctx); 
+
+    descriptor_t* descriptor = get_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd);
+
+    if(descriptor == NULL){
+        SYSCALL_RETURN(ctx, -EBADF);
+    }
+    
+    if(descriptor->type != DESCRIPTOR_TYPE_SOCKET){
+        SYSCALL_RETURN(ctx, -ENOTSOCK);
+    }
+
+    kernel_socket_t* socket = descriptor->data.socket;
+
+    size_t size;
+    int error = socket->socket_recv(socket, (struct msghdr*)hdr, flags, &size);
+
+    if(error){
+        SYSCALL_RETURN(ctx, -error);  
+    }
+
+    SYSCALL_RETURN(ctx, size);  
 }
 
 static void syscall_handler_socket_pair(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    int family = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    int type = (int)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
+    int protocol = (int)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+    int* fds = (int*)ARCH_CONTEXT_SYSCALL_ARG3(ctx); 
+
+    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){fds, sizeof(int) * 2})){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+
+    kernel_socket_t* first_socket; 
+    kernel_socket_t* second_socket; 
+    int error = s_socket_pair(family, type, protocol, &first_socket, &second_socket);
+
+    if(!error){
+        /* First */
+        descriptor_t* first_descriptor = malloc(sizeof(descriptor_t));
+        
+        first_descriptor->type = DESCRIPTOR_TYPE_SOCKET;
+        first_descriptor->data.socket = first_socket;
+
+        fds[0] = add_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, first_descriptor);
+        
+        /* Second */
+        descriptor_t* second_descriptor = malloc(sizeof(descriptor_t));
+        
+        second_descriptor->type = DESCRIPTOR_TYPE_SOCKET;
+        second_descriptor->data.socket = first_socket;
+        
+        fds[1] = add_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, second_descriptor);
+
+        SYSCALL_RETURN(ctx, 0);
+    }else{
+        SYSCALL_RETURN(ctx, -error);
+    }
+}
+
+
+static void syscall_handler_ppoll(cpu_context_t* ctx){
+    struct pollfd* fds = (struct pollfd*)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    int nfds = (int)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
+    const struct timespec* timeout = (const struct timespec*)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+    const sigset_t* sigmask = (const sigset_t*)ARCH_CONTEXT_SYSCALL_ARG3(ctx);
+    int* num_events = (int*)ARCH_CONTEXT_SYSCALL_ARG4(ctx);
+
+    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){fds, nfds * sizeof(struct pollfd)})){
+        SYSCALL_RETURN(ctx, -EFAULT);
+    }
+
+    us_t time_end = 0;
+
+    if(!vmm_check_memory(vmm_get_current_space(), (memory_range_t){(void*)timeout, sizeof(const struct timespec)})){
+        time_end = kernel_get_current_us() + (us_t)(TIME_CONVERT_SECOND_TO_MICROSECOND(timeout->tv_sec) + TIME_CONVERT_NANOSECOND_TO_MICROSECOND(timeout->tv_nsec));
+    }    
+
+    int event_count = 0;    
+
+    do{
+        if(event_count > 0){
+            break;
+        }
+
+        event_count = 0;
+
+        for(int i = 0; i < nfds; i++){
+            descriptor_t* descriptor = get_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fds[i].fd);
+
+            if(descriptor != NULL){
+                if(descriptor->type == DESCRIPTOR_TYPE_SOCKET){
+                    kernel_socket_t* socket = descriptor->data.socket;
+
+                    event_count += socket->socket_get_event(socket, fds[i].events, &fds[i].revents);
+                }
+            }
+        }
+    }while(time_end > kernel_get_current_us());
+
+    if(!vmm_check_memory(vmm_get_current_space(), (memory_range_t){num_events, sizeof(int)})){
+        *num_events = event_count;
+    }
+    
+    SYSCALL_RETURN(ctx, 0);
 }
 
 static syscall_handler_t handlers[SYS_COUNT] = { 
@@ -893,7 +1017,8 @@ static syscall_handler_t handlers[SYS_COUNT] = {
     syscall_handler_accept,
     syscall_handler_socket_send,
     syscall_handler_socket_recv,
-    syscall_handler_socket_pair
+    syscall_handler_socket_pair,
+    syscall_handler_ppoll
 };
 
 void syscall_handler(cpu_context_t* ctx){

@@ -115,6 +115,10 @@ int lookup_name_dns(struct lookup_result &buf, const char *name,
 		if (response_header->identification != header.identification)
 			return -EAI_FAIL;
 
+        /* Check if server return an error */
+        if ((ntohs(response_header->flags) & 0xf) != 0)
+            return 0; 
+
 		auto it = response + sizeof(struct dns_header);
 		for (int i = 0; i < ntohs(response_header->no_q); i++) {
 			auto dns_name = read_dns_name(response, it);

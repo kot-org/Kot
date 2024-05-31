@@ -80,6 +80,17 @@ void receive_dhcp_info(void* external_data, net_device_t* net_device, struct udp
                         ((uint8_t*)&internal->router_ip)[0], ((uint8_t*)&internal->router_ip)[1],((uint8_t*)&internal->router_ip)[2],((uint8_t*)&internal->router_ip)[3]
                     );
                     #endif
+
+                    int err = 0;
+                    kernel_file_t* file = f_open(KERNEL_VFS_CTX, "/etc/resolv.conf", O_CREAT, 0, &err);
+
+                    if(!err){
+                        size_t size_write;
+                        char buffer[28];
+                        sprintf_((char*)&buffer, "nameserver %d.%d.%d.%d\n", ((uint8_t*)&internal->dns_ip)[0], ((uint8_t*)&internal->dns_ip)[1],((uint8_t*)&internal->dns_ip)[2],((uint8_t*)&internal->dns_ip)[3]);
+                        file->write(buffer, strlen(buffer) + 1, &size_write, file);
+                        file->close(file);
+                    }
                 }
             }
         }

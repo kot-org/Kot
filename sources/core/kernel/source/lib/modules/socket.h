@@ -25,10 +25,14 @@ typedef struct kernel_socket_t{
     int (*listen)(struct kernel_socket_t*, int);
     int (*bind)(struct kernel_socket_t*, const struct sockaddr*, socklen_t);
     int (*connect)(struct kernel_socket_t*, const struct sockaddr*, socklen_t);
+    int (*socket_send)(struct kernel_socket_t*, struct msghdr*, int, size_t*);
+    int (*socket_recv)(struct kernel_socket_t*, struct msghdr*, int, size_t*);
+    int (*socket_get_event)(struct kernel_socket_t*, short, short*);
     struct kernel_socket_t* (*accept)(struct kernel_socket_t*, struct sockaddr*, socklen_t*, int*);
 } kernel_socket_t;
 
 typedef kernel_socket_t* (*socket_handler_t)(int family, int type, int protocol, int* error);
+typedef int (*socket_pair_handler_t)(int family, int type, int protocol, kernel_socket_t** first_socket, kernel_socket_t** second_socket);
 
 
 #endif // LIB_MODULES_SOCKET_H

@@ -1,6 +1,7 @@
 #ifndef _MODULE_NET_PROTOCOLS_H
 #define _MODULE_NET_PROTOCOLS_H
 
+#include <poll.h>
 #include <stdint.h>
 #include <netinet/ip.h>
 #include <netinet/in.h>

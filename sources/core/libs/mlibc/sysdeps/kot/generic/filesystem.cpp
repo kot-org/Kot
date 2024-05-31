@@ -260,4 +260,28 @@ namespace mlibc{
         mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub!\n" << frg::endlog;
         return 0;
     }
+
+
+    int sys_ppoll(struct pollfd *fds, int nfds, const struct timespec *timeout, const sigset_t *sigmask, int *num_events) {
+        auto result = do_syscall(SYS_PPOLL, fds, nfds, timeout, sigmask, num_events);
+
+        if(result < 0){
+            return -result;
+        }
+
+        return 0;
+    }
+
+    int sys_poll(struct pollfd *fds, nfds_t count, int timeout, int *num_events) {
+        struct timespec ts;
+        ts.tv_sec = timeout / 1000;
+        ts.tv_nsec = (timeout % 1000) * 1000000;
+        return sys_ppoll(fds, count, timeout < 0 ? NULL : &ts, NULL, num_events);
+    }
+
+    int sys_pipe(int *fds, int flags) {
+        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub" << frg::endlog;
+
+        return 0;
+    }
 }

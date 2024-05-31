@@ -361,6 +361,7 @@ void dev_console_clear(int mode){
 void devconsole_parsechar(char c){
     if(parse_state == devconsole_parse_state_normal){
         if(devconsole_isprintable(c)){
+            serial_write(c);
             devconsole_putchar(c);
         }else if(c == '\n'){
             devconsole_putchar('\n');

@@ -8,7 +8,7 @@
 typedef long sc_word_t;
 
 /* list */
-#define SYS_COUNT               45
+#define SYS_COUNT               46
 
 #define SYS_LOG                 0
 #define SYS_ARCH_PRCTL          1
@@ -55,6 +55,7 @@ typedef long sc_word_t;
 #define SYS_SOCKET_SEND         42
 #define SYS_SOCKET_RECV         43
 #define SYS_SOCKET_PAIR         44
+#define SYS_PPOLL               45
 
 
 /* extern functions */

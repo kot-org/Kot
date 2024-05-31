@@ -4,7 +4,6 @@
 
 #include <ip.c>
 #include <arp.c>
-#include <dns.c>
 #include <tcp.c>
 #include <udp.c>
 #include <dhcp.c>
@@ -19,7 +18,6 @@ int init(int argc, char* args[]){
     assert(!init_arp());
     assert(!init_udp());
     assert(!init_tcp());
-    assert(!init_dns());
     assert(!init_dhcp());
     assert(!init_ethernet());
     assert(!interface_init());

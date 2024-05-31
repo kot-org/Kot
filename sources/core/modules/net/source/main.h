@@ -1,6 +1,7 @@
 #ifndef _MODULE_NET_MAIN_H
 #define _MODULE_NET_MAIN_H
 
+#include <fcntl.h>
 #include <lib/net.h>
 #include <lib/log.h>
 #include <lib/time.h>
@@ -14,7 +15,9 @@
 #include <lib/assert.h>
 #include <lib/memory.h>
 #include <lib/string.h>
+#include <lib/printf.h>
 #include <global/heap.h>
+#include <global/file.h>
 #include <global/modules.h>
 
 #include <arch/include.h>
@@ -22,7 +25,6 @@
 
 #include <ip.h>
 #include <arp.h>
-#include <dns.h>
 #include <tcp.h>
 #include <udp.h>
 #include <dhcp.h>
