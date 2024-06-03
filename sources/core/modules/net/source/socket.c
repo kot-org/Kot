@@ -1,8 +1,23 @@
 #include <main.h>
 
+uint16_t last_allocated_port = MIN_LISTENING_PORT;
+spinlock_t allocate_port_lock = (spinlock_t)SPINLOCK_INIT;
+
+static uint16_t allocate_port(void){
+    spinlock_acquire(&allocate_port_lock);
+    uint16_t port = last_allocated_port;
+    if(last_allocated_port == MAX_LISTENING_PORT){
+        last_allocated_port = MIN_LISTENING_PORT;
+    }else{
+        last_allocated_port++;
+    }
+    spinlock_release(&allocate_port_lock);
+    return port;
+}
+
 static int get_tcp_listener(int listen_accept_count, socket_tcp_listener_t* listeners, uint32_t ip_address, uint16_t port){
     for(int i = 0; i < listen_accept_count; i++){
-        if(listeners[i].ip_address == ip_address && listeners[i].port == port){
+        if(listeners[i].ip_address == ip_address && listeners[i].source_port == port){
             return i;
         }
     }
@@ -14,7 +29,7 @@ void tcp_socket_handler(void* external_data, net_device_t* net_device, struct tc
     socket_internal_data_t* internal_data = (socket_internal_data_t*)socket->internal_data;
     
     if(internal_data->data.tcp->listeners != NULL){
-        int index = get_tcp_listener(internal_data->data.tcp->listen_accept_count, internal_data->data.tcp->listeners, saddr, tcp_header->th_sport);
+        int index = get_tcp_listener(internal_data->data.tcp->listen_accept_count, internal_data->data.tcp->listeners, saddr, tcp_header->th_dport);
         
         if(index == -1){
             if(tcp_header->th_flags & TH_SYN){
@@ -23,7 +38,8 @@ void tcp_socket_handler(void* external_data, net_device_t* net_device, struct tc
                         if(!internal_data->data.tcp->listeners[i].is_waiting_for_accept){
                             internal_data->data.tcp->listeners[i].net_device = net_device;
                             internal_data->data.tcp->listeners[i].ip_address = saddr;
-                            internal_data->data.tcp->listeners[i].port = tcp_header->th_sport;
+                            internal_data->data.tcp->listeners[i].destination_port = tcp_header->th_sport;
+                            internal_data->data.tcp->listeners[i].source_port = htons(allocate_port());
                             internal_data->data.tcp->listeners[i].sequence_receive = ntohl(tcp_header->th_seq);
                             internal_data->data.tcp->listeners[i].is_waiting_for_accept = true;
                             internal_data->data.tcp->listeners[i].last_allocated = malloc(sizeof(tcp_listener_buffer_t));
@@ -98,14 +114,15 @@ void tcp_socket_handler(void* external_data, net_device_t* net_device, struct tc
                 listener->is_fin = true;
 
                 listener->sequence_receive++;
+                listener->sequence_send++;
             }
 
             /* Acknoledge */
             generate_tcp_packet(
                 listener->net_device, 
                 listener->ip_address, 
-                listener->port, 
-                internal_data->address->sin_port, 
+                listener->destination_port, 
+                listener->source_port, 
                 htonl(listener->sequence_send), 
                 htonl(listener->sequence_receive),
                 sizeof(struct tcphdr) / sizeof(uint32_t), 
@@ -301,8 +318,8 @@ int socket_general_send_handler(void* buffer, size_t size, size_t* size_send, ke
                 generate_tcp_packet(
                     internal_data->data.tcp_child->listener->net_device, 
                     internal_data->data.tcp_child->listener->ip_address, 
-                    internal_data->data.tcp_child->listener->port, 
-                    internal_data->address->sin_port, 
+                    internal_data->data.tcp_child->listener->destination_port, 
+                    internal_data->data.tcp_child->listener->source_port, 
                     htonl(internal_data->data.tcp_child->listener->sequence_send), 
                     htonl(internal_data->data.tcp_child->listener->sequence_receive),
                     sizeof(struct tcphdr) / sizeof(uint32_t), 
@@ -352,8 +369,8 @@ int socket_general_send_handler(void* buffer, size_t size, size_t* size_send, ke
                     generate_tcp_packet(
                         internal_data->data.tcp->listeners[0].net_device, 
                         internal_data->data.tcp->listeners[0].ip_address, 
-                        internal_data->data.tcp->listeners[0].port, 
-                        internal_data->address->sin_port, 
+                        internal_data->data.tcp->listeners[0].destination_port, 
+                        internal_data->data.tcp->listeners[0].source_port, 
                         htonl(internal_data->data.tcp->listeners[0].sequence_send), 
                         htonl(internal_data->data.tcp->listeners[0].sequence_receive),
                         sizeof(struct tcphdr) / sizeof(uint32_t), 
@@ -462,99 +479,53 @@ int socket_close_handler(kernel_socket_t* socket){
 
     switch(internal_data->data_type){
         case TYPE_TCP_CHILD:{
-            spinlock_acquire(&internal_data->data.tcp_child->listener->lock);
+            socket_tcp_listener_t* listener = internal_data->data.tcp_child->listener;
 
-            internal_data->data.tcp_child->listener->sequence_waiting_for_ack = internal_data->data.tcp_child->listener->sequence_send;
+            spinlock_acquire(&listener->lock);
 
-            uint64_t time_count = 0;
+            listener->sequence_waiting_for_ack = listener->sequence_send;
++
+            generate_tcp_packet(
+                listener->net_device, 
+                listener->ip_address, 
+                listener->destination_port, 
+                listener->source_port, 
+                htonl(listener->sequence_send), 
+                htonl(listener->sequence_receive),
+                sizeof(struct tcphdr) / sizeof(uint32_t), 
+                TH_FIN, 
+                65535, 
+                0, 
+                0, 
+                NULL
+            );
 
-            while(time_count < TCP_TIME_OUT){
+            spinlock_release(&listener->lock); 
+        }
+        case TYPE_TCP:{
+            if(internal_data->data.tcp->is_connect){
+                socket_tcp_listener_t* listener = &internal_data->data.tcp->listeners[0];
+
+                spinlock_acquire(&listener->lock);
+
+                listener->sequence_waiting_for_ack = listener->sequence_send;
+
                 generate_tcp_packet(
-                    internal_data->data.tcp_child->listener->net_device, 
-                    internal_data->data.tcp_child->listener->ip_address, 
-                    internal_data->data.tcp_child->listener->port, 
-                    internal_data->address->sin_port, 
-                    htonl(internal_data->data.tcp_child->listener->sequence_send), 
-                    htonl(internal_data->data.tcp_child->listener->sequence_receive),
+                    listener->net_device, 
+                    listener->ip_address, 
+                    listener->destination_port, 
+                    listener->source_port, 
+                    htonl(listener->sequence_send), 
+                    htonl(listener->sequence_receive),
                     sizeof(struct tcphdr) / sizeof(uint32_t), 
-                    TH_FIN | TH_ACK, 
+                    TH_FIN, 
                     65535, 
                     0, 
                     0, 
                     NULL
                 );
 
-                while(internal_data->data.tcp_child->listener->sequence_waiting_for_ack || !internal_data->data.tcp_child->listener->is_fin){
-                    time_count++;
-                    kernel_sleep_us(1000);
-
-                    if(!(time_count % TCP_TIME_RETRANSMISSION)){
-                        break;
-                    }
-                }
-
-                if(!internal_data->data.tcp_child->listener->sequence_waiting_for_ack && internal_data->data.tcp_child->listener->is_fin){
-                    internal_data->data.tcp_child->listener->sequence_send++;
-
-                    spinlock_release(&internal_data->data.tcp_child->listener->lock);
-                    
-                    internal_data->data.tcp_child->listener->is_waiting_for_accept = false;
-                    internal_data->data.tcp_child->listener->is_accept = false;
-
-                    socket_internal_data_t* internal_data_parent = (socket_internal_data_t*)internal_data->data.tcp_child->parent->internal_data;
-                    internal_data_parent->data.tcp->listen_accept_count--;
-
-                    return 0;
-                }
-            }
-
-            spinlock_release(&internal_data->data.tcp_child->listener->lock);
-
-            return EIO;
-        }
-        case TYPE_TCP:{
-            if(internal_data->data.tcp->is_connect){
-                spinlock_acquire(&internal_data->data.tcp->listeners[0].lock);
-
-                internal_data->data.tcp->listeners[0].sequence_waiting_for_ack = internal_data->data.tcp->listeners[0].sequence_send;
-
-                uint64_t time_count = 0;
-
-                while(time_count < TCP_TIME_OUT){
-                    generate_tcp_packet(
-                        internal_data->data.tcp->listeners[0].net_device, 
-                        internal_data->data.tcp->listeners[0].ip_address, 
-                        internal_data->data.tcp->listeners[0].port, 
-                        internal_data->address->sin_port, 
-                        htonl(internal_data->data.tcp->listeners[0].sequence_send), 
-                        htonl(internal_data->data.tcp->listeners[0].sequence_receive),
-                        sizeof(struct tcphdr) / sizeof(uint32_t), 
-                        TH_FIN | TH_ACK, 
-                        65535, 
-                        0, 
-                        0, 
-                        NULL
-                    );
-
-                    while(internal_data->data.tcp->listeners[0].sequence_waiting_for_ack || !internal_data->data.tcp->listeners[0].is_fin){
-                        time_count++;
-                        kernel_sleep_us(1000);
-
-                        if(!(time_count % TCP_TIME_RETRANSMISSION)){
-                            break;
-                        }
-                    }
-
-                    if(!internal_data->data.tcp->listeners[0].sequence_waiting_for_ack && internal_data->data.tcp->listeners[0].is_fin){
-                        break;
-                    }
-                }
-
-                spinlock_release(&internal_data->data.tcp->listeners[0].lock);   
-
-                if(time_count >= TCP_TIME_OUT){
-                    return EIO;
-                }
+                spinlock_release(&listener->lock);   
             }
         }   
         default:
@@ -683,8 +654,8 @@ int socket_connect_handler(kernel_socket_t* socket, const struct sockaddr* addr_
                     generate_tcp_packet(
                         internal_data->data.tcp->listeners[0].net_device, 
                         internal_data->data.tcp->listeners[0].ip_address, 
-                        internal_data->data.tcp->listeners[0].port, 
-                        internal_data->address->sin_port, 
+                        internal_data->data.tcp->listeners[0].destination_port, 
+                        internal_data->data.tcp->listeners[0].source_port, 
                         htonl(internal_data->data.tcp->listeners[0].sequence_send), 
                         htonl(internal_data->data.tcp->listeners[0].sequence_receive),
                         sizeof(struct tcphdr) / sizeof(uint32_t), 
@@ -716,7 +687,8 @@ int socket_connect_handler(kernel_socket_t* socket, const struct sockaddr* addr_
                 }
             }
 
-            internal_data->data.tcp->listen_index = tcp_listen_port(address->sin_port, &tcp_socket_handler, socket);
+            uint16_t source_port = htons(allocate_port());
+            internal_data->data.tcp->listen_index = tcp_listen_port(source_port, &tcp_socket_handler, socket);
 
             internal_data->data.tcp->listen_allow_count = 0;
             internal_data->data.tcp->listen_accept_count = 1;
@@ -725,7 +697,8 @@ int socket_connect_handler(kernel_socket_t* socket, const struct sockaddr* addr_
             internal_data->data.tcp->listeners[0].lock = (spinlock_t)SPINLOCK_INIT;
             internal_data->data.tcp->listeners[0].net_device = get_main_net_device();
             internal_data->data.tcp->listeners[0].ip_address = address->sin_addr.s_addr;
-            internal_data->data.tcp->listeners[0].port = address->sin_port;
+            internal_data->data.tcp->listeners[0].destination_port = address->sin_port;
+            internal_data->data.tcp->listeners[0].source_port = source_port;
             
             internal_data->data.tcp->listeners[0].last_allocated = malloc(sizeof(tcp_listener_buffer_t));
             internal_data->data.tcp->listeners[0].last_allocated->size = 0;
@@ -747,8 +720,8 @@ int socket_connect_handler(kernel_socket_t* socket, const struct sockaddr* addr_
                 generate_tcp_packet(
                     internal_data->data.tcp->listeners[0].net_device, 
                     internal_data->data.tcp->listeners[0].ip_address, 
-                    internal_data->data.tcp->listeners[0].port, 
-                    internal_data->address->sin_port, 
+                    internal_data->data.tcp->listeners[0].destination_port, 
+                    internal_data->data.tcp->listeners[0].source_port, 
                     htonl(internal_data->data.tcp->listeners[0].sequence_send), 
                     htonl(0),
                     sizeof(struct tcphdr) / sizeof(uint32_t), 
@@ -936,8 +909,8 @@ kernel_socket_t* socket_accept_handler(kernel_socket_t* socket, struct sockaddr*
             generate_tcp_packet(
                 internal_data->data.tcp->listeners[index].net_device, 
                 internal_data->data.tcp->listeners[index].ip_address, 
-                internal_data->data.tcp->listeners[index].port, 
-                internal_data->address->sin_port, 
+                internal_data->data.tcp->listeners[index].destination_port, 
+                internal_data->data.tcp->listeners[index].source_port,  
                 htonl(internal_data->data.tcp->listeners[index].sequence_send), 
                 htonl(internal_data->data.tcp->listeners[index].sequence_receive),
                 sizeof(struct tcphdr) / sizeof(uint32_t), 

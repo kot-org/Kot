@@ -252,8 +252,11 @@ void devconsole_putchar(char c) {
 
     // char pixel-position
     uint16_t cx_ppos = cx_index * FONT_WIDTH;
-    if((cx_ppos + FONT_WIDTH) > fb_width) {
+    if(cx_ppos + FONT_WIDTH >= fb_width) {
         devconsole_new_line();
+
+        /* update with the new cx_index value */
+        cx_ppos = cx_index * FONT_WIDTH;
     }
 
     uint16_t cy_ppos = cy_index * FONT_HEIGHT;

@@ -7,6 +7,10 @@
 #include <global/socket.h>
 #include <global/modules.h>
 
+
+#define MIN_LISTENING_PORT 1024
+#define MAX_LISTENING_PORT 65535
+
 #define TYPE_TCP            1
 #define TYPE_TCP_CHILD      2
 #define TYPE_UDP            3
@@ -22,7 +26,8 @@ typedef struct tcp_listener_buffer_t{
 typedef struct{
     net_device_t* net_device;
     uint32_t ip_address;
-    uint16_t port;
+    uint16_t destination_port;
+    uint16_t source_port;
     tcp_seq sequence_receive;
     tcp_seq sequence_send;
     tcp_seq sequence_waiting_for_ack;
