@@ -225,10 +225,294 @@ packages:
         - '@THIS_SOURCE_DIR@/configure'
         - '--prefix=/usr'
         - '--host=x86_64-kot'
-        - '--without-ssl'
+        - '--with-openssl'
         - '--disable-ipv6'
         - '--disable-unix-sockets'
         - '--disable-threaded-resolver'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+
+  - name: openssl
+    source:
+      url: 'https://github.com/openssl/openssl/releases/download/OpenSSL_1_1_1w/openssl-1.1.1w.tar.gz'
+      format: 'tar.gz'
+      subdir: 'bundled'
+      extract_path: 'openssl-1.1.1w'
+      patch-path-strip: 1
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/config'
+        - '--prefix=/usr'
+        - '--host=x86_64-kot'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+packages:
+  - name: init
+    source:
+      subdir: 'sources/core/apps'
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+    build:
+      - args: 
+        - 'make'
+        - '-C'
+        - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@'
+        - 'build'
+        environ:
+          CC: "@OPTION:cc@"
+          CXX: "@OPTION:cxx@"
+          LD: "@OPTION:ld@"
+          ASMC: "@OPTION:asmc@"
+      - args: 
+        - 'cp'
+        - '-r'
+        - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@/bin/.'
+        - '@SOURCE_ROOT@/target/boot_disk_kot_mount/.'
+  - name: kot
+    source:
+      subdir: 'sources/core/apps'
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+      - curl
+    build:
+      - args: 
+        - 'make'
+        - '-C'
+        - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@'
+        - 'build'
+        environ:
+          CC: "@OPTION:cc@"
+          CXX: "@OPTION:cxx@"
+          LD: "@OPTION:ld@"
+          ASMC: "@OPTION:asmc@"
+      - args: 
+        - 'cp'
+        - '-r'
+        - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@/bin/.'
+        - '@SOURCE_ROOT@/target/boot_disk_kot_mount/.'
+  - name: bash
+    source:
+      git: 'https://github.com/bminor/bash'
+      branch: 'master'
+      commit: '9439ce094c9aa7557a9d53ac7b412a23aa66e36b'
+      version: '5.1.16'
+      subdir: 'bundled'
+    tools_required:
+      - host-gcc
+      - host-autoconf-v2.69
+      - host-automake-v1.16
+    pkgs_required:
+      - mlibc
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=x86_64-kot'
+        - '--prefix=/usr'
+        - '--without-bash-malloc'
+        - '--disable-nls'
+        environ:
+          ac_cv_func_wcswidth: 'yes'
+          ac_cv_func_getcwd: 'yes'
+          bash_cv_getcwd_malloc: 'yes'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
+      - args: ['cp', '@THIS_COLLECT_DIR@/usr/bin/bash', '@THIS_COLLECT_DIR@/usr/bin/sh']
+      - args: ['mkdir', '-p', '@THIS_COLLECT_DIR@/bin']
+      - args: ['cp', '@THIS_COLLECT_DIR@/usr/bin/bash', '@THIS_COLLECT_DIR@/bin/sh']
+
+  - name: coreutils
+    source:
+      subdir: 'bundled'
+      url: 'https://ftp.gnu.org/gnu/coreutils/coreutils-8.32.tar.xz'
+      format: 'tar.xz'
+      extract_path: 'coreutils-8.32'
+      patch-path-strip: 1
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+      - args: ['make', 'src/make-prime-list']
+      - args: |
+          ./src/make-prime-list 5000 > @THIS_SOURCE_DIR@/src/primes.h
+      - args: ['make', 'clean']
+      # No compile coreutils for the correct target.
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=x86_64-kot'
+        - '--prefix=/usr'
+        - 'CFLAGS=-DSLOW_BUT_NO_HACKS -Wno-error'
+        - '--enable-install-program=hostname'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+
+  - name: nyancat
+    source:
+      subdir: 'bundled'
+      git: 'https://github.com/klange/nyancat.git'
+      tag: '1.5.2'
+      version: '1.5.2'
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+    configure:
+      - args: ['cp', '-r', '@THIS_SOURCE_DIR@/.', '@THIS_BUILD_DIR@']
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+        environ:
+          CC: "x86_64-kot-gcc"
+      - args: ['mkdir', '-pv', '@THIS_COLLECT_DIR@/usr/bin']
+      - args: ['cp', '-v', '@THIS_BUILD_DIR@/src/nyancat', '@THIS_COLLECT_DIR@/usr/bin']
+
+  - name: gcc
+    from_source: gcc
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--host=x86_64-kot'
+        - '--prefix=/usr'
+        - '--target=x86_64-kot'
+        - '--with-sysroot=/'
+        - '--with-build-sysroot=@SYSROOT_DIR@'
+        - '--enable-languages=c,c++'
+        - '--enable-initfini-array'
+        - '--disable-multilib'
+        - '--disable-nls'
+        - 'CFLAGS=-O2 -pipe'
+        - 'CXXFLAGS=-O2 -pipe'
+    build:
+      - args: ['make', '-j@PARALLELISM@', 'all-gcc', 'all-target-libgcc']
+      - args: ['make', 'install-strip-gcc', 'install-strip-target-libgcc']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+      - args: ['sh', '-c', 'cp -rv @BUILD_ROOT@/tools/host-gcc/x86_64-kot/lib/* @THIS_COLLECT_DIR@/usr/lib/']
+      - args: ['sh', '-c', 'cp -rv @BUILD_ROOT@/tools/host-gcc/x86_64-kot/include/* @THIS_COLLECT_DIR@/usr/include/']
+    
+  - name: vim
+    source:
+      subdir: 'bundled'
+      git: 'https://github.com/vim/vim.git'
+      tag: 'v8.2.3704'
+      version: '8.2.3704'
+    tools_required:
+      - host-gcc
+      - host-automake-v1.16
+    pkgs_required:
+      - mlibc
+      - ncurses
+    revision: 4
+    configure:
+      - args: ['cp', '-r', '@THIS_SOURCE_DIR@/.', '@THIS_BUILD_DIR@']
+      - args:
+        - './configure'
+        - '--host=x86_64-kot'
+        - '--prefix=/usr'
+        - '--disable-gtktest'
+        - '--disable-icon-cache-update'
+        - '--disable-desktop-database-update'
+        - '--disable-canberra'
+        - '--disable-selinux'
+        - '--disable-xsmp'
+        - '--disable-channel'
+        - '--disable-netbeans'
+        - '--enable-multibyte'
+        - '--disable-acl'
+        - '--disable-gpm'
+        - '--disable-sysmouse'
+        - '--disable-nls'
+        - '--with-tlib=tinfo'
+        - '--enable-gui=no'
+        - '--without-x'
+        environ:
+          ac_cv_small_wchar_t: 'no'
+          ac_cv_func_sigsetjmp: 'no'
+          vim_cv_toupper_broken: 'no'
+          vim_cv_terminfo: 'yes'
+          vim_cv_tgetent: 'zero'
+          vim_cv_tty_group: ''
+          vim_cv_tty_mode: '0620'
+          vim_cv_getcwd_broken: 'no'
+          vim_cv_stat_ignores_slash: 'no'
+          vim_cv_memmove_handles_overlap: 'yes'
+          vim_cv_bcopy_handles_overlap: 'yes'
+          vim_cv_memcpy_handles_overlap: 'yes'
+        workdir: '@THIS_BUILD_DIR@/src/'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+
+  - name: curl
+    source:
+      url: 'https://curl.se/download/curl-8.7.1.tar.gz'
+      format: 'tar.gz'
+      subdir: 'bundled'
+      extract_path: 'curl-8.7.1'
+      patch-path-strip: 1
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+      - libressl
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--prefix=/usr'
+        - '--host=x86_64-kot'
+        - '--enable-static'
+        - '--with-openssl'
+        - '--disable-ipv6'
+        - '--disable-unix-sockets'
+        - '--disable-threaded-resolver'
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'install']
+        environ:
+          DESTDIR: '@THIS_COLLECT_DIR@'
+
+  - name: libressl
+    source:
+      url: 'https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-3.3.1.tar.gz'
+      format: 'tar.gz'
+      subdir: 'bundled'
+      extract_path: 'libressl-3.3.1'
+      patch-path-strip: 1
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+    configure:
+      - args:
+        - '@THIS_SOURCE_DIR@/configure'
+        - '--prefix=/usr'
+        - '--host=x86_64-kot'
+        - '--enable-static'
     build:
       - args: ['make', '-j@PARALLELISM@']
       - args: ['make', 'install']

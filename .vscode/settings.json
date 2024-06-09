@@ -182,7 +182,15 @@
         "fstream": "c",
         "net.h": "c",
         "cerrno": "cpp",
-        "curl.h": "c"
+        "curl.h": "c",
+        "urldata.h": "c",
+        "poll.h": "c",
+        "uio.h": "c",
+        "curl_setup.h": "c",
+        "curl_addrinfo.h": "c",
+        "curl_printf.h": "c",
+        "connect.h": "c",
+        "sendf.h": "c"
     },
     "files.exclude": {
         "bundled": true,

@@ -240,7 +240,7 @@ void scheduler_init(void){
     proc_kernel = scheduler_create_process(PROCESS_TYPE_MODULES);
     schduler_waitpid_list = vector_create();
 
-    scheduler_iddle_threads = malloc(sizeof(thread_t*) * arch_max_cpu_id);
+    scheduler_iddle_threads = malloc(sizeof(thread_t*) * (arch_max_cpu_id + 1));
     arguments_t iddle_args = {};
     for(arch_cpu_id_t i = 0; i <= arch_max_cpu_id; i++){
         void* kernel_mapped_stack_base = vmm_get_free_contiguous(IDDLE_STACK_SIZE);

@@ -34,6 +34,6 @@ $(LIB)/%_c.o: $(SOURCE)/%.c
 
 link:
 	@ mkdir -m 777 -p $(BIN)
-	@ $(CC) $(LDFLAGS) -o $(BIN)/kot $(OBJS) $(LIBRARIES)/libcurl.a
+	@ $(CC) $(LDFLAGS) -o $(BIN)/kot $(OBJS) $(LIBRARIES)/libcurl.a $(LIBRARIES)/libtls.a $(LIBRARIES)/libssl.a
 
 build: $(OBJS) link

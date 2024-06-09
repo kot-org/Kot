@@ -357,4 +357,9 @@ namespace mlibc{
 
         return 0;
     }
+
+    int sys_getentropy(void *buffer, size_t length){
+        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub" << frg::endlog;
+        return 0;
+    }
 }

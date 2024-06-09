@@ -367,6 +367,7 @@ void devconsole_parsechar(char c){
             serial_write(c);
             devconsole_putchar(c);
         }else if(c == '\n'){
+            serial_write('\n');
             devconsole_putchar('\n');
             devconsole_putchar('\r');
         }else if(c == '\t'){

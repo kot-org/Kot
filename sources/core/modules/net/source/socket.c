@@ -56,6 +56,7 @@ void tcp_socket_handler(void* external_data, net_device_t* net_device, struct tc
             }
         }else{
             socket_tcp_listener_t* listener = &internal_data->data.tcp->listeners[index];
+            bool is_need_to_ack = false;
 
             size_t data_offset = tcp_header->th_off * sizeof(uint32_t);
             size_t size_data = size - data_offset;
@@ -72,9 +73,12 @@ void tcp_socket_handler(void* external_data, net_device_t* net_device, struct tc
                 listener->is_accept = true;
                 listener->sequence_receive = ntohl(tcp_header->th_seq) + 1;
                 listener->sequence_send++;
+                is_need_to_ack = true;
             }
             
             if(size_data){
+                is_need_to_ack = true;
+
                 void* data = (void*)((uintptr_t)tcp_header + (uintptr_t)data_offset);
 
                 size_t awaiting_data_to_read = listener->buffer_read_size_allocated - listener->buffer_read_size;
@@ -111,27 +115,31 @@ void tcp_socket_handler(void* external_data, net_device_t* net_device, struct tc
 
 
             if(tcp_header->th_flags & TH_FIN){
+                is_need_to_ack = true;
                 listener->is_fin = true;
 
                 listener->sequence_receive++;
                 listener->sequence_send++;
             }
 
-            /* Acknoledge */
-            generate_tcp_packet(
-                listener->net_device, 
-                listener->ip_address, 
-                listener->destination_port, 
-                listener->source_port, 
-                htonl(listener->sequence_send), 
-                htonl(listener->sequence_receive),
-                sizeof(struct tcphdr) / sizeof(uint32_t), 
-                TH_ACK, 
-                65535, 
-                0, 
-                0, 
-                NULL
-            );
+            if(is_need_to_ack){
+                /* Acknoledge */
+                generate_tcp_packet(
+                    listener->net_device, 
+                    listener->ip_address, 
+                    listener->destination_port, 
+                    listener->source_port, 
+                    htonl(listener->sequence_send), 
+                    htonl(listener->sequence_receive),
+                    sizeof(struct tcphdr) / sizeof(uint32_t), 
+                    TH_ACK, 
+                    65535, 
+                    0, 
+                    0, 
+                    NULL
+                );
+            }
+
         }
     }
 }
@@ -167,62 +175,27 @@ void udp_socket_handler(void* external_data, net_device_t* net_device, struct ud
 
 int socket_general_receive_handler(void* buffer, size_t size, size_t* size_receive, kernel_socket_t* socket, struct sockaddr* addr_ptr, socklen_t addr_length, int flags){
     if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){buffer, size})){
+        *size_receive = 0;
         return EINVAL;
     }
 
     if(addr_ptr != NULL){
         if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){addr_ptr, addr_length})){
+            *size_receive = 0;
             return EINVAL;
         }
     }
 
     socket_internal_data_t* internal_data = (socket_internal_data_t*)socket->internal_data;
-
     switch(internal_data->data_type){
         case TYPE_TCP_CHILD:{
             socket_tcp_listener_t* listener = internal_data->data.tcp_child->listener;
             spinlock_acquire(&listener->lock);
 
-            if(listener->last_read != NULL){
-                size_t size_to_read = size;
-                uintptr_t offset = 0;
-                while((listener->last_read->next->size > 0) && (size_to_read > 0)){
-                    tcp_listener_buffer_t* data = listener->last_read->next;
-                    size_t size_reading = MIN(size_to_read, data->size); 
-                    void* buffer_to_copy = (void*)(offset + (uintptr_t)buffer);
-                    memcpy(buffer_to_copy, data->buffer, size_reading);
+            size_t size_to_read = size;
 
-                    if(size_reading < data->size){
-                        data->size -= size_reading;
-                        void* new_buffer = malloc(data->size);
-                        memcpy(new_buffer, data->buffer, data->size);
-                        free(data->buffer);
-                        data->buffer = new_buffer;
-                    }else{
-                        free(data->buffer);
-                        /* DO NOT free the current data */
-                        free(listener->last_read);
-                        listener->last_read = data;
-                    }
-
-                    size_to_read -= size_reading;
-                    offset += size_reading;
-
-                }
-
-                *size_receive = size - size_to_read;
-            }
-
-            spinlock_release(&listener->lock);
-            return 0;
-        }   
-        case TYPE_TCP:{
-            if(internal_data->data.tcp->is_connect){
-                socket_tcp_listener_t* listener = &internal_data->data.tcp->listeners[0];
-                spinlock_acquire(&listener->lock);
-
+            while(size_to_read == size){
                 if(listener->last_read != NULL){
-                    size_t size_to_read = size;
                     uintptr_t offset = 0;
                     while((listener->last_read->next->size > 0) && (size_to_read > 0)){
                         tcp_listener_buffer_t* data = listener->last_read->next;
@@ -233,7 +206,8 @@ int socket_general_receive_handler(void* buffer, size_t size, size_t* size_recei
                         if(size_reading < data->size){
                             data->size -= size_reading;
                             void* new_buffer = malloc(data->size);
-                            memcpy(new_buffer, data->buffer, data->size);
+                            void* data_to_copy = (void*)((uintptr_t)data->buffer + (uintptr_t)size_reading);
+                            memcpy(new_buffer, data_to_copy, data->size);
                             free(data->buffer);
                             data->buffer = new_buffer;
                         }else{
@@ -245,12 +219,54 @@ int socket_general_receive_handler(void* buffer, size_t size, size_t* size_recei
 
                         size_to_read -= size_reading;
                         offset += size_reading;
-
                     }
+                }
+            }
 
-                    *size_receive = size - size_to_read;
+
+            *size_receive = size - size_to_read;
+            spinlock_release(&listener->lock);
+            
+            return 0;
+        }   
+        case TYPE_TCP:{
+            if(internal_data->data.tcp->is_connect){
+                socket_tcp_listener_t* listener = &internal_data->data.tcp->listeners[0];
+                spinlock_acquire(&listener->lock);
+
+                size_t size_to_read = size;
+
+                while(size_to_read == size){
+                    if(listener->last_read != NULL){
+                        uintptr_t offset = 0;
+                        while((listener->last_read->next->size > 0) && (size_to_read > 0)){
+                            tcp_listener_buffer_t* data = listener->last_read->next;
+                            size_t size_reading = MIN(size_to_read, data->size); 
+                            void* buffer_to_copy = (void*)(offset + (uintptr_t)buffer);
+                            memcpy(buffer_to_copy, data->buffer, size_reading);
+
+                            if(size_reading < data->size){
+                                data->size -= size_reading;
+                                void* new_buffer = malloc(data->size);
+                                void* data_to_copy = (void*)((uintptr_t)data->buffer + (uintptr_t)size_reading);
+                                memcpy(new_buffer, data_to_copy, data->size);
+                                free(data->buffer);
+                                data->buffer = new_buffer;
+                            }else{
+                                free(data->buffer);
+                                /* DO NOT free the current data */
+                                free(listener->last_read);
+                                listener->last_read = data;
+                            }
+
+                            size_to_read -= size_reading;
+                            offset += size_reading;
+                        }
+                    }
                 }
 
+
+                *size_receive = size - size_to_read;
                 spinlock_release(&listener->lock);
                 
                 return 0;

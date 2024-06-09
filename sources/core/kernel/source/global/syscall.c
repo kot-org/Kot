@@ -46,12 +46,12 @@ static void syscall_handler_get_tid(cpu_context_t* ctx){
 
 static void syscall_handler_futex_wait(cpu_context_t* ctx){
     log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    SYSCALL_RETURN(ctx, 0);    
 }
 
 static void syscall_handler_futex_wake(cpu_context_t* ctx){
     log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    SYSCALL_RETURN(ctx, 0);    
 }
 
 static void syscall_handler_mmap(cpu_context_t* ctx){
@@ -131,7 +131,7 @@ static void syscall_handler_clock_get(cpu_context_t* ctx){
 
     us_t us = get_current_us();
 
-    ts->tv_sec = TIME_CONVERT_MICROSECOND_TO_SECOND(us);
+    ts->tv_sec = get_unix_time(us);
     ts->tv_nsec = TIME_CONVERT_MICROSECOND_TO_NANOSECOND(TIME_GET_MICROSECOND_UNDER_SECOND(us));
 
     SYSCALL_RETURN(ctx, 0);     

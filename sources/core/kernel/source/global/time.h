@@ -13,6 +13,7 @@
 #define TIME_CONVERT_MICROSECOND_TO_FEMOSECOND(t)   (t * 1000000000)
 #define TIME_CONVERT_FEMOSECOND_TO_MICROSECOND(t)   (t / 1000000000)
 
+
 uint8_t get_current_second(void);
 uint8_t get_current_minute(void);
 uint8_t get_current_hour(void);
@@ -26,5 +27,7 @@ int sleep(int seconds);
 int sleep_us(us_t us);
 
 us_t get_current_us(void);
+
+time_t get_unix_time(us_t current_us);
 
 #endif // _GLOBAL_TIME_H
