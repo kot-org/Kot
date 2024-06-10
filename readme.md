@@ -14,6 +14,9 @@
 	<img src="./meta/screenshots/0.png?raw=true" width="90%"/> 
 </p>
 
+# Use nightly build
+To run the nighly build `boot-kot.img`, you'll need the QEMU emulator. You can install it on most Linux distributions using your package manager. Once QEMU is installed, you can run the program using the following command: ```qemu-system-x86_64 -drive file=boot-kot.img -machine q35 -m 2G -smp cores=4 -serial stdio -device e1000e,netdev=net0 -netdev user,id=net0,hostfwd=tcp::5000-:5000,hostfwd=udp::5000-:5000```
+
 # Build it yourself
 That's easy! Run `make init` to install all the required build tools and then run `PACKAGE=all make build` to start the building process. Right after, `make run` will start **TNK** in Qemu.
 

@@ -22,7 +22,6 @@ jobs:
           automatic_release_tag: "nightly"
           prerelease: true
           title: "Nightly Build"
-          description: "To run this program, you'll need the QEMU emulator. You can install it on most Linux distributions using your package manager. Once QEMU is installed, you can run the program using the following command: ```qemu-system-x86_64 -drive file=boot-kot.img -machine q35 -m 2G -smp cores=4 -serial stdio -device e1000e,netdev=net0 -netdev user,id=net0,hostfwd=tcp::5000-:5000,hostfwd=udp::5000-:5000```"
           files: |
             target/liamd/boot-kot.img
             target/liamd/boot-kot.vdi
