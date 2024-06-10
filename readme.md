@@ -12,6 +12,10 @@
 
 <p align="center">
 	<img src="./meta/screenshots/0.png?raw=true" width="90%"/> 
+	<img src="./meta/screenshots/1.png?raw=true" width="90%"/> 
+	<img src="./meta/screenshots/2.png?raw=true" width="90%"/> 
+	<img src="./meta/screenshots/3.png?raw=true" width="90%"/> 
+	<img src="./meta/screenshots/4.png?raw=true" width="90%"/> 
 </p>
 
 # Use nightly build
