@@ -31,7 +31,7 @@ LIAMD_QEMU_FLAGS = \
 	-smp cores=4 \
 	-serial stdio \
 	-device e1000e,netdev=net0 \
-	-netdev user,id=net0,hostfwd=tcp::5000-:5000,hostfwd=udp::5000-:5000 \
+	-netdev user,id=net0,hostfwd=tcp::5001-:5000,hostfwd=udp::5001-:5000 \
 	-object filter-dump,id=f1,netdev=net0,file=dump.bin	\
 	-no-reboot \
 	-no-shutdown

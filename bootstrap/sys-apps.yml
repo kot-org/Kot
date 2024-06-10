@@ -256,6 +256,7 @@ packages:
       - args: ['make', 'install']
         environ:
           DESTDIR: '@THIS_COLLECT_DIR@'
+
 packages:
   - name: init
     source:
@@ -280,6 +281,7 @@ packages:
         - '-r'
         - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@/bin/.'
         - '@SOURCE_ROOT@/target/boot_disk_kot_mount/.'
+
   - name: weather
     source:
       subdir: 'sources/core/apps'
@@ -304,6 +306,7 @@ packages:
         - '-r'
         - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@/bin/.'
         - '@SOURCE_ROOT@/target/boot_disk_kot_mount/.'
+
   - name: ip
     source:
       subdir: 'sources/core/apps'
@@ -328,6 +331,7 @@ packages:
         - '-r'
         - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@/bin/.'
         - '@SOURCE_ROOT@/target/boot_disk_kot_mount/.'
+
   - name: datetime
     source:
       subdir: 'sources/core/apps'
@@ -352,6 +356,32 @@ packages:
         - '-r'
         - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@/bin/.'
         - '@SOURCE_ROOT@/target/boot_disk_kot_mount/.'
+
+  - name: llm
+    source:
+      subdir: 'sources/core/apps'
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+      - curl
+    build:
+      - args: 
+        - 'make'
+        - '-C'
+        - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@'
+        - 'build'
+        environ:
+          CC: "@OPTION:cc@"
+          CXX: "@OPTION:cxx@"
+          LD: "@OPTION:ld@"
+          ASMC: "@OPTION:asmc@"
+      - args: 
+        - 'cp'
+        - '-r'
+        - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@/bin/.'
+        - '@SOURCE_ROOT@/target/boot_disk_kot_mount/.'
+
   - name: bash
     source:
       git: 'https://github.com/bminor/bash'

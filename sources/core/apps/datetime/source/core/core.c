@@ -11,7 +11,7 @@ size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp){
 }
 
 void print_help(){
-    printf("Usage: ./program [--help | --credits | --utc]\n");
+    printf("Usage: ./datetime [--help | --credits | --utc]\n");
     printf("If no argument is provided, the program will fetch and display the current date and time in your timezone.\n");
 }
 
