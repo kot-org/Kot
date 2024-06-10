@@ -16,6 +16,7 @@ install-ninja-debian:
 
 deps-debian: update-pkgs-debian install-ninja-debian
 	sudo apt install nasm build-essential parted qemu-utils qemu-system-x86 meson python3 python3-pip python3-setuptools python3-wheel ninja-build cmake sed m4 texinfo libgmp-dev bison flex curl -y
+	sudo pip3 install --upgrade pip
 	sudo pip3 install --break-system-packages meson
 	sudo pip3 install --break-system-packages xbstrap
 
