@@ -194,7 +194,7 @@ int socket_general_receive_handler(void* buffer, size_t size, size_t* size_recei
 
             size_t size_to_read = size;
 
-            while(size_to_read == size){
+            while(size_to_read == size && !listener->is_fin){
                 if(listener->last_read != NULL){
                     uintptr_t offset = 0;
                     while((listener->last_read->next->size > 0) && (size_to_read > 0)){
@@ -236,7 +236,7 @@ int socket_general_receive_handler(void* buffer, size_t size, size_t* size_recei
 
                 size_t size_to_read = size;
 
-                while(size_to_read == size){
+                while(size_to_read == size && !listener->is_fin){
                     if(listener->last_read != NULL){
                         uintptr_t offset = 0;
                         while((listener->last_read->next->size > 0) && (size_to_read > 0)){
@@ -500,7 +500,7 @@ int socket_close_handler(kernel_socket_t* socket){
             spinlock_acquire(&listener->lock);
 
             listener->sequence_waiting_for_ack = listener->sequence_send;
-+
+
             generate_tcp_packet(
                 listener->net_device, 
                 listener->ip_address, 

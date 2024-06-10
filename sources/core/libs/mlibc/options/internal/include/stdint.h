@@ -79,17 +79,26 @@ typedef __mlibc_uintptr uintptr_t;
 #define INT16_MAX __MLIBC_INT16_MAX
 #define INT32_MAX __MLIBC_INT32_MAX
 #define INT64_MAX __MLIBC_INT64_MAX
+# ifndef INT_MAX
+#  define INT_MAX INT32_MAX
+# endif
 
 #define INT8_MIN  __MLIBC_INT8_MIN
 #define INT16_MIN __MLIBC_INT16_MIN
 #define INT32_MIN __MLIBC_INT32_MIN
 #define INT64_MIN __MLIBC_INT64_MIN
+# ifndef INT_MIN
+#  define INT_MIN INT32_MIN
+# endif
 
 // Fixed-width (unsigned).
 #define UINT8_MAX  __MLIBC_UINT8_MAX
 #define UINT16_MAX __MLIBC_UINT16_MAX
 #define UINT32_MAX __MLIBC_UINT32_MAX
 #define UINT64_MAX __MLIBC_UINT64_MAX
+# ifndef UINT_MAX
+#  define UINT_MAX (2U * INT_MAX + 1)
+# endif
 
 // Least-width (signed).
 #define INT_LEAST8_MAX  __MLIBC_INT8_MAX
@@ -146,5 +155,13 @@ typedef __mlibc_uintptr uintptr_t;
 
 // Other limits (unsigned).
 #define SIZE_MAX __MLIBC_SIZE_MAX
+
+#define SHRT_MAX   __SHRT_MAX__
+#define SHRT_MIN   (-SHRT_MAX - 1)
+#define USHRT_MAX  (SHRT_MAX * 2U + 1)
+
+#define LONG_MAX __LONG_MAX__
+#define LONG_MIN (-LONG_MAX - 1)
+#define ULONG_MAX (LONG_MAX * 2LU + 1)
 
 #endif // _MLIBC_STDINT_H

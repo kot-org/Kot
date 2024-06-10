@@ -13,6 +13,7 @@ if not no_headers
 		'include/fstab.h',
 	)
 	install_headers(
+		'include/arpa/telnet.h',
 		'include/arpa/nameser.h',
 		'include/arpa/nameser_compat.h',
 		subdir: 'arpa'

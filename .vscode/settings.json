@@ -190,7 +190,17 @@
         "curl_addrinfo.h": "c",
         "curl_printf.h": "c",
         "connect.h": "c",
-        "sendf.h": "c"
+        "sendf.h": "c",
+        "telnet.h": "c",
+        "iovec.h": "c",
+        "cf-socket.h": "c",
+        "select.h": "c",
+        "url.h": "c",
+        "sockaddr.h": "c",
+        "inet_ntop.h": "c",
+        "inet_pton.h": "c",
+        "progress.h": "c",
+        "curl_memory.h": "c"
     },
     "files.exclude": {
         "bundled": true,
