@@ -99,7 +99,7 @@ char** find_apps_url_by_tag(char* tag){
             cJSON* application = cJSON_GetArrayItem(applications, i);
             cJSON* application_tags = cJSON_GetObjectItem(application, "tags");
 
-            for(int y = 0 ; y < cJSON_GetArraySize(applications); y++){
+            for(int y = 0 ; y < cJSON_GetArraySize(application_tags); y++){
                 cJSON* application_tag = cJSON_GetArrayItem(application_tags, y);
                 if(cJSON_IsString(application_tag) && (application_tag->valuestring != NULL)){ 
                     if(!strcmp(tag, application_tag->valuestring)){
