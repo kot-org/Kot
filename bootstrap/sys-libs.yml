@@ -139,3 +139,32 @@ packages:
           rm -vf                     @THIS_COLLECT_DIR@/usr/lib/libcursesw.so
           echo "INPUT(-lncursesw)" > @THIS_COLLECT_DIR@/usr/lib/libcursesw.so
           ln -sfv libncurses.so      @THIS_COLLECT_DIR@/usr/lib/libcurses.so
+
+  - name: cjson
+    source:
+      subdir: 'bundled'
+      git: 'https://github.com/DaveGamble/cJSON'
+      tag: 'v1.7.18'
+      version: '1.7.18'
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+    revision: 4
+    configure:
+      - args:
+        - 'cmake'
+        - '@THIS_SOURCE_DIR@'
+        - '-DENABLE_CJSON_UTILS=On'
+        - '-DENABLE_CJSON_TEST=Off'
+        - '-DCMAKE_INSTALL_PREFIX=/usr'
+        - '-DBUILD_SHARED_LIBS=Off'
+        environ:
+          CC: "@OPTION:cc@"
+          CXX: "@OPTION:cxx@"
+          LD: "@OPTION:ld@"
+          ASMC: "@OPTION:asmc@"
+
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
