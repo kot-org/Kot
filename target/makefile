@@ -27,7 +27,7 @@ LIAMD_QEMU_FLAGS = \
 	-bios $(EXTERN)/ovmf-amd64/OVMF.fd \
 	-drive file=liamd/boot-kot.img \
 	-machine q35 \
-	-m 2G \
+	-m 4G \
 	-smp cores=4 \
 	-serial stdio \
 	-device e1000e,netdev=net0 \

@@ -7,6 +7,7 @@
 #include <global/socket.h>
 #include <global/modules.h>
 
+#define TIMEOUT_RECEIVE     5000
 
 #define MIN_LISTENING_PORT 1024
 #define MAX_LISTENING_PORT 65535
@@ -40,13 +41,17 @@ typedef struct{
     
     /* all buffers */
     tcp_listener_buffer_t* last_allocated;
-    tcp_listener_buffer_t* last_read; 
+    tcp_listener_buffer_t* last_read;
 
     /* current buffer */
     void* buffer_read;
-    size_t start_offset;
+    tcp_seq start_offset;
+    tcp_seq smallest_write_offset;
+    size_t smallest_continuous_size;
     size_t buffer_read_size;
     size_t buffer_read_size_allocated;
+
+    bool is_receiving_data;
 
     struct socket_internal_data_t* internal_data_parent;
 }socket_tcp_listener_t;
@@ -97,7 +102,6 @@ typedef struct socket_internal_data_t{
     }data;
 
     short events;  
-    int events_count;
 }socket_internal_data_t;
 
 int socket_connect_handler(kernel_socket_t* socket, const struct sockaddr* addr_ptr, socklen_t addr_length);

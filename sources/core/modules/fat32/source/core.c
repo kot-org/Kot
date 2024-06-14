@@ -157,15 +157,14 @@ static int fat_free_cluster(fat_context_t* ctx, uint32_t cluster){
 }
 
 static int fat_free_all_following_clusters(fat_context_t* ctx, uint32_t cluster){
-    uint32_t next_cluster = fat_get_next_cluster(ctx, cluster);
+    uint32_t next_cluster = cluster;
 
-    fat_free_cluster(ctx, cluster);
-
-    if(next_cluster < 0x0FFFFFF8){
-        return fat_free_all_following_clusters(ctx, next_cluster);
-    }else{
-        return 0;
+    while(next_cluster < 0x0FFFFFF8){
+        fat_free_cluster(ctx, next_cluster);
+        next_cluster = fat_get_next_cluster(ctx, cluster);
     }
+
+    return 0;
 }
 
 
@@ -1049,7 +1048,7 @@ int fat_file_write(fat_file_internal_t* file, uint64_t start, size_t size, size_
     
     uint64_t size_write_tmp = 0;
 
-    uint32_t base_cluster = fat_get_cluster_file(&file->entry);
+    uint32_t base_cluster = fat_get_cluster_file(&file->entry); 
 
     if(base_cluster == 0){
         // Allocate the first cluster of the entry

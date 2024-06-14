@@ -200,7 +200,10 @@
         "inet_ntop.h": "c",
         "inet_pton.h": "c",
         "progress.h": "c",
-        "curl_memory.h": "c"
+        "curl_memory.h": "c",
+        "apps.h": "c",
+        "download.h": "c",
+        "stdlib.h": "c"
     },
     "files.exclude": {
         "bundled": true,

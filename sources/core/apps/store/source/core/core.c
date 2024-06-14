@@ -4,6 +4,7 @@
 #include <curl/curl.h>
 
 #include "../apps/apps.h"
+#include "../install/install.h"
 
 void print_help(){
     printf("For help: ./store --help\n");
@@ -11,13 +12,15 @@ void print_help(){
 }
 
 int main(int argc, char *argv[]){
-    CURL *curl;
-    CURLcode res;
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    CURL *curl = curl_easy_init();
 
-    if(argc > 1){
+    if(curl == NULL){
+        printf("Can't load curl");
+        return -1;
+    }else if(argc > 1){
         if(!strcmp(argv[1], "--help")){
             print_help();
-            return 0;
         }else if(!strcmp(argv[1], "--install") && argc == 2){
             char search_mode[3];
             printf("Search with > T(tag)/N(name)\n");
@@ -29,12 +32,12 @@ int main(int argc, char *argv[]){
                 fgets(tag, sizeof(tag), stdin);
                 tag[strcspn(tag, "\n")] = 0;
 
-                char** url = find_apps_url_by_tag(tag);
+                app_url_by_tag_t** apps_available = find_apps_url_by_tag(curl, tag);
 
-                if(url != NULL){
+                if(apps_available != NULL){
                     int i = 0;
-                    while(url[i] != NULL){
-                        printf("%d) %s\n", i, url[i]);
+                    while(apps_available[i] != NULL){
+                        printf("%d) %s\n", i, apps_available[i]->name);
                         i++;
                     }
 
@@ -47,11 +50,11 @@ int main(int argc, char *argv[]){
 
                     if(index_to_install >= 0 && index_to_install < i){
                         char allow_install[3];
-                        printf("%s > Would you like to install it? (Y/N)\n", url[index_to_install]);
+                        printf("%s > Would you like to install it? (Y/N)\n", apps_available[index_to_install]->name);
                         fgets(allow_install, sizeof(allow_install), stdin);
                         allow_install[strcspn(allow_install, "\n")] = 0;
                         if(!strcmp("Y", allow_install)){
-                            // TODO
+                            install_app(curl, apps_available[index_to_install]->url, apps_available[index_to_install]->name);
                         }else{
                             printf("Cancel the installation\n");
                         }
@@ -59,11 +62,9 @@ int main(int argc, char *argv[]){
                         printf("Unknow index !\n");
                     }
 
-                    free(url);
-                    return 0;
+                    free_app_url_by_tag(apps_available);
                 }else{
                     printf("No application found with tag: %s. Please check the spelling or try a different tag.\n", tag);
-                    return 0;
                 }               
             }else if(!strcmp("N", search_mode)){
                 char name[512];
@@ -71,7 +72,7 @@ int main(int argc, char *argv[]){
                 fgets(name, sizeof(name), stdin);
                 name[strcspn(name, "\n")] = 0;
 
-                char* url = find_apps_url_by_name(name);
+                char* url = find_apps_url_by_name(curl, name);
 
                 if(url != NULL){
                     char allow_install[3];
@@ -79,40 +80,35 @@ int main(int argc, char *argv[]){
                     fgets(allow_install, sizeof(allow_install), stdin);
                     allow_install[strcspn(allow_install, "\n")] = 0;
                     if(!strcmp("Y", allow_install)){
-                        // TODO
+                        install_app(curl, url, name);
                     }else{
                         printf("Cancel the installation\n");
                     }
                     free(url);
-                    return 0;
                 }else{
                     printf("Can't find %s in the store. Did you spell it correctly?\n", name);
-                    return 0;
                 }
             }else{
                 printf("Unknow search method !\n");
-                return 0;
             }
         }else if(!strcmp(argv[1], "--install") && argc == 3){
             char* name = argv[2];
 
-            char* url = find_apps_url_by_name(name);
-
+            char* url = find_apps_url_by_name(curl, name);
+            
             if(url != NULL){
                 char allow_install[3];
                 printf("%s found in the store. Would you like to install it? (Y/N)\n", name);
                 fgets(allow_install, sizeof(allow_install), stdin);
                 allow_install[strcspn(allow_install, "\n")] = 0;
                 if(!strcmp("Y", allow_install)){
-                    // TODO
+                    install_app(curl, url, name);
                 }else{
                     printf("Cancel the installation\n");
                 }
                 free(url);
-                return 0;
             }else{
                 printf("Can't find %s in the store. Did you spell it correctly?\n", name);
-                return 0;
             }
         }else{
             print_help();
@@ -120,6 +116,10 @@ int main(int argc, char *argv[]){
     }else{
         print_help();
     }
+
+    curl_easy_cleanup(curl);
+
+    curl_global_cleanup();
 
     return 0;
 }

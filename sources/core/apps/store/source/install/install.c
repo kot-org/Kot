@@ -1,0 +1,95 @@
+#include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <sys/stat.h>
+
+#include "install.h"
+#include "../deps/deps.h"
+#include "../download/download.h"
+
+static bool is_dir_exist(char* path){
+    struct stat sb;
+    return (stat(path, &sb) == 0 && S_ISDIR(sb.st_mode));
+}
+
+static int create_dir_if_not_exist(char* path){
+    if(!is_dir_exist(path)){
+        mkdir(path, 0777);
+    }
+
+    return 0;
+}
+
+int install_app(CURL* curl, char* url, char* name){
+    char* path_store = getenv("PATHSTORE");
+    create_dir_if_not_exist(path_store);
+
+    char* path_store_app = malloc(strlen(path_store) + sizeof((char)'/') + strlen(name) + sizeof((char)'/') + 1);
+    strcpy(path_store_app, path_store);
+    strcat(path_store_app, "/");
+    strcat(path_store_app, name);
+    strcat(path_store_app, "/");
+    create_dir_if_not_exist(path_store_app);
+
+    char* path_store_app_info_json = malloc(strlen(path_store_app) + strlen("app-info.json") + 1);
+    strcpy(path_store_app_info_json, path_store_app);
+    strcat(path_store_app_info_json, "app-info.json");
+
+    if(download_file(curl, url, path_store_app_info_json)){
+        printf("Error: Aborting installation of %s!\n", name);
+
+        free(path_store_app_info_json);
+        free(path_store_app);
+        return -1;
+    }
+    
+    printf("Checking dependencies...\n");
+    char* installation_file_url = NULL;
+    if(check_dependencies(path_store_app_info_json, &installation_file_url)){
+        char force_install[3];
+        printf("Some dependencies required for installation are not found. If you choose to continue, the installation may not work as expected. Do you still want to proceed with the installation? (Y/N)\n");
+        fgets(force_install, sizeof(force_install), stdin);
+        force_install[strcspn(force_install, "\n")] = 0;
+        if(strcmp("Y", force_install)){
+            printf("Aborting installation of %s!\n", name);
+            
+            remove(path_store_app_info_json);
+            rmdir(path_store_app);
+
+            free(path_store_app_info_json);
+            free(path_store_app);
+            return -1;
+        }
+    }else{
+        printf("All dependencies found\n");
+    }
+
+    if(installation_file_url != NULL){
+        char* installation_file_name = strrchr(installation_file_url, '/');
+        if(installation_file_name != NULL){
+            installation_file_name++;
+            char* path_store_installation_file = malloc(strlen(path_store_app) + strlen(installation_file_name) + 1);
+            strcpy(path_store_installation_file, path_store_app);
+            strcat(path_store_installation_file, installation_file_name);
+
+            if(download_file(curl, "https://raw.githubusercontent.com/dscape/spell/master/test/resources/big.txt", path_store_installation_file)){
+                printf("Error: Aborting installation of %s!\n", name);
+
+                remove(path_store_app_info_json);
+                rmdir(path_store_app);
+
+                free(installation_file_url);
+                free(path_store_installation_file);
+                free(path_store_app_info_json);
+                free(path_store_app);
+                return -1;
+            }
+        }
+    }
+
+    free(path_store_app_info_json);
+    free(path_store_app);
+
+    return 0;
+}

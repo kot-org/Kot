@@ -331,10 +331,6 @@ static void syscall_handler_read(cpu_context_t* ctx){
     size_t size = (size_t)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
 
     descriptor_t* descriptor = get_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, fd);
-
-    if(descriptor == NULL){
-        SYSCALL_RETURN(ctx, -EBADF);
-    }
     
     if(descriptor->type == DESCRIPTOR_TYPE_FILE){
         kernel_file_t* file = descriptor->data.file;
@@ -570,6 +566,26 @@ static void syscall_handler_dir_read_entries(cpu_context_t* ctx){
 static void syscall_handler_dir_remove(cpu_context_t* ctx){
     log_warning("%s : syscall not implemented\n", __FUNCTION__);
     SYSCALL_RETURN(ctx, -ENOSYS);    
+}
+
+static void syscall_handler_dir_create(cpu_context_t* ctx){
+    char* path = (char*)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    size_t path_len = (size_t)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
+    mode_t mode = (mode_t)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+
+    if(path_len >= PATH_MAX){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+
+    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){path, path_len + 1})){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+
+    path[path_len] = '\0';
+
+    int error = d_create(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx, path, mode);
+
+    SYSCALL_RETURN(ctx, error);
 }
 
 static void syscall_handler_unlink_at(cpu_context_t* ctx){
@@ -1003,6 +1019,7 @@ static syscall_handler_t handlers[SYS_COUNT] = {
     syscall_handler_ioctl,
     syscall_handler_dir_read_entries,
     syscall_handler_dir_remove,
+    syscall_handler_dir_create,
     syscall_handler_unlink_at,
     syscall_handler_rename_at,
     syscall_handler_path_stat,

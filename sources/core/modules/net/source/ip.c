@@ -162,7 +162,7 @@ void compute_tcp_checksum(struct iphdr* ip_header, uint16_t* data, size_t length
     }
 
     if(length > 0){
-        result += ((*data) & htons(0xFF00));
+        result += ((*((uint8_t*)data)) & htons(0xFF00));
     }
 
     while(result >> 16){
@@ -194,7 +194,7 @@ void compute_udp_checksum(struct iphdr* ip_header, uint16_t* data, size_t length
     }
 
     if(length > 0){
-        result += ((*data) & htons(0xFF00));
+        result += ((*((uint8_t*)data)) & htons(0xFF00));
     }
 
     while(result >> 16){

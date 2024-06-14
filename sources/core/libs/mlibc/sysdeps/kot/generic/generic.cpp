@@ -358,6 +358,59 @@ namespace mlibc{
         return 0;
     }
 
+    int sys_setsockopt(int fd, int layer, int number, const void *buffer, socklen_t size) {
+        (void)fd;
+        (void)buffer;
+        (void)size;
+
+        if (layer == SOL_SOCKET && number == SO_PASSCRED) {
+            mlibc::infoLogger() << "\e[31mmlibc: setsockopt(SO_PASSCRED) is not "
+                                "implemented correctly\e[39m"
+                                << frg::endlog;
+            return 0;
+        } else if (layer == SOL_SOCKET && number == SO_ATTACH_FILTER) {
+            mlibc::infoLogger() << "\e[31mmlibc: setsockopt(SO_ATTACH_FILTER) is "
+                                "not implemented correctly\e[39m"
+                                << frg::endlog;
+            return 0;
+        } else if (layer == SOL_SOCKET && number == SO_RCVBUFFORCE) {
+            mlibc::infoLogger() << "\e[31mmlibc: setsockopt(SO_RCVBUFFORCE) is not "
+                                "implemented correctly\e[39m"
+                                << frg::endlog;
+            return 0;
+        } else if (layer == SOL_SOCKET && number == SO_SNDBUF) {
+            mlibc::infoLogger() << "\e[31mmlibc: setsockopt() call with SOL_SOCKET "
+                                "and SO_SNDBUF is unimplemented\e[39m"
+                                << frg::endlog;
+            return 0;
+        } else if (layer == SOL_SOCKET && number == SO_KEEPALIVE) {
+            mlibc::infoLogger() << "\e[31mmlibc: setsockopt() call with SOL_SOCKET "
+                                "and SO_KEEPALIVE is unimplemented\e[39m"
+                                << frg::endlog;
+            return 0;
+        } else if (layer == SOL_SOCKET && number == SO_REUSEADDR) {
+            mlibc::infoLogger() << "\e[31mmlibc: setsockopt() call with SOL_SOCKET "
+                                "and SO_REUSEADDR is unimplemented\e[39m"
+                                << frg::endlog;
+            return 0;
+        } else if (layer == AF_NETLINK && number == SO_ACCEPTCONN) {
+            mlibc::infoLogger() << "\e[31mmlibc: setsockopt() call with AF_NETLINK "
+                                "and SO_ACCEPTCONN is unimplemented\e[39m"
+                                << frg::endlog;
+            return 0;
+        }else if (layer == AF_BRIDGE && number == SO_ACCEPTCONN) {
+            mlibc::infoLogger() << "\e[31mmlibc: setsockopt() call with AF_BRIDGE "
+                                "and SO_ACCEPTCONN is unimplemented\e[39m"
+                                << frg::endlog;
+            return 0;
+        } else {
+            mlibc::panicLogger()
+                << "\e[31mmlibc: Unexpected setsockopt() call, layer: " << layer
+                << " number: " << number << "\e[39m" << frg::endlog;
+            __builtin_unreachable();
+        }
+    }
+
     int sys_getentropy(void *buffer, size_t length){
         mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub" << frg::endlog;
         return 0;

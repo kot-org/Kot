@@ -1,17 +1,16 @@
-#include <lib/assert.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <lib/log.h>
 #include <impl/vmm.h>
 #include <lib/lock.h>
 #include <lib/math.h>
+#include <lib/assert.h>
 #include <impl/panic.h>
 #include <global/pmm.h>
+#include <parameters.h>
 #include <global/heap.h>
 
-// #define HEAP_DEBUG 0
-
-#ifdef HEAP_DEBUG
+#ifdef DEBUG_HEAP
 
 static void* heap_end = 0;
 static spinlock_t lock = SPINLOCK_INIT;

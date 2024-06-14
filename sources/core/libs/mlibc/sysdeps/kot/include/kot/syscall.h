@@ -8,7 +8,7 @@
 typedef long sc_word_t;
 
 /* list */
-#define SYS_COUNT               46
+#define SYS_COUNT               47
 
 #define SYS_LOG                 0
 #define SYS_ARCH_PRCTL          1
@@ -40,22 +40,23 @@ typedef long sc_word_t;
 #define SYS_FILE_IOCTL          27
 #define SYS_DIR_READ_ENTRIES    28
 #define SYS_DIR_REMOVE          29
-#define SYS_UNLINK_AT           30
-#define SYS_RENAME_AT           31
-#define SYS_PATH_STAT           32
-#define SYS_FD_STAT             33
-#define SYS_FCNTL               34
-#define SYS_GETCWD              35
-#define SYS_CHDIR               36
-#define SYS_SOCKET              37
-#define SYS_BIND                38
-#define SYS_CONNECT             39
-#define SYS_LISTEN              40
-#define SYS_ACCEPT              41
-#define SYS_SOCKET_SEND         42
-#define SYS_SOCKET_RECV         43
-#define SYS_SOCKET_PAIR         44
-#define SYS_PPOLL               45
+#define SYS_DIR_CREATE          30
+#define SYS_UNLINK_AT           31
+#define SYS_RENAME_AT           32
+#define SYS_PATH_STAT           33
+#define SYS_FD_STAT             34
+#define SYS_FCNTL               35
+#define SYS_GETCWD              36
+#define SYS_CHDIR               37
+#define SYS_SOCKET              38
+#define SYS_BIND                39
+#define SYS_CONNECT             40
+#define SYS_LISTEN              41
+#define SYS_ACCEPT              42
+#define SYS_SOCKET_SEND         43
+#define SYS_SOCKET_RECV         44
+#define SYS_SOCKET_PAIR         45
+#define SYS_PPOLL               46
 
 
 /* extern functions */

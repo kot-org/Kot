@@ -12,6 +12,7 @@ int main(int argc, char* argv[]){
     setenv("HOME", "/usr", 1);
     setenv("PWD", getenv("HOME"), 1);
     setenv("PATH", "/usr/bin", 1);
+    setenv("PATHSTORE", "/usr/store", 1);
 
     setenv("USER", "root", 1);
     setenv("HOSTNAME", "kot", 1);

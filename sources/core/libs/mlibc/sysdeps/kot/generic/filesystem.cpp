@@ -163,6 +163,16 @@ namespace mlibc{
         return 0;
     }
 
+    int sys_mkdir(const char *path, mode_t mode) {
+        auto result = do_syscall(SYS_DIR_CREATE, path, strlen(path), mode);
+
+        if (result < 0) {
+            return -result;
+        }
+
+        return 0;
+    }
+
     int sys_unlinkat(int dirfd, const char *path, int flags){
         auto result = do_syscall(SYS_UNLINK_AT, AT_FDCWD, path, AT_REMOVEDIR);
 
