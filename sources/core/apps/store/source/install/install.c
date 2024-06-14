@@ -46,7 +46,15 @@ int install_app(CURL* curl, char* url, char* name){
     
     printf("Checking dependencies...\n");
     char* installation_file_url = NULL;
-    if(check_dependencies(path_store_app_info_json, &installation_file_url)){
+    int check_deps = check_dependencies(path_store_app_info_json, &installation_file_url);
+    if(check_deps == -2){
+        printf("Aborting installation of %s!\n", name);
+        rmdir(path_store_app);
+
+        free(path_store_app_info_json);
+        free(path_store_app);
+        return -1;
+    }if(check_deps == -1){
         char force_install[3];
         printf("Some dependencies required for installation are not found. If you choose to continue, the installation may not work as expected. Do you still want to proceed with the installation? (Y/N)\n");
         fgets(force_install, sizeof(force_install), stdin);
@@ -73,7 +81,7 @@ int install_app(CURL* curl, char* url, char* name){
             strcpy(path_store_installation_file, path_store_app);
             strcat(path_store_installation_file, installation_file_name);
 
-            if(download_file(curl, "https://raw.githubusercontent.com/dscape/spell/master/test/resources/big.txt", path_store_installation_file)){
+            if(download_file(curl, installation_file_url, path_store_installation_file)){
                 printf("Error: Aborting installation of %s!\n", name);
 
                 remove(path_store_app_info_json);

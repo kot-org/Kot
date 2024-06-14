@@ -17,7 +17,7 @@ int check_dependencies(char* app_info_json_path, char** installation_file_url){
 
     if(fp == NULL){ 
         printf("Error: Unable to open the file : %s\n", app_info_json_path); 
-        return -1; 
+        return -2; 
     } 
   
     fseek(fp, 0, SEEK_END);
@@ -33,6 +33,12 @@ int check_dependencies(char* app_info_json_path, char** installation_file_url){
     int r = 0;
 
     if(root != NULL){ 
+        cJSON* installation_file = cJSON_GetObjectItem(root, "installation_file");
+        if(cJSON_IsString(installation_file) && (installation_file->valuestring != NULL)){
+            *installation_file_url = malloc(strlen(installation_file->valuestring) + 1);
+            strcpy(*installation_file_url, installation_file->valuestring);
+        }
+
         cJSON* dependencies = cJSON_GetObjectItem(root, "dependencies_file");
         if(dependencies != NULL){
             for(int i = 0 ; i < cJSON_GetArraySize(dependencies); i++){
@@ -45,12 +51,6 @@ int check_dependencies(char* app_info_json_path, char** installation_file_url){
                     }
                 }
             }
-        }
-
-        cJSON* installation_file = cJSON_GetObjectItem(root, "installation_file");
-        if(cJSON_IsString(installation_file) && (installation_file->valuestring != NULL)){
-            *installation_file_url = malloc(strlen(installation_file->valuestring) + 1);
-            strcpy(*installation_file_url, installation_file->valuestring);
         }
     }else{
         const char *error_ptr = cJSON_GetErrorPtr(); 

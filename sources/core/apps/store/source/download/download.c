@@ -6,18 +6,20 @@
 
 static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp){
     size_t real_size = size * nmemb;
-    fwrite(contents, size, nmemb, (FILE*)userp);
+    //fwrite(contents, size, nmemb, (FILE*)userp);
     return real_size;
 }
 
 static int progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow){
     double time_begin = *(double*)clientp;
 
-    double download_speed = (double)dlnow / (time(NULL) - time_begin);
+    int download_speed = dlnow / (time(NULL) - time_begin);
+    printf("\033[-1B");
     if(download_speed > 0){
         int eta = (int)((dltotal - dlnow) / download_speed);
-        printf("\033[-1B");
-        printf("%d/%d ETA : %d s\n", (int)dlnow, (int)dltotal, eta);
+        printf("%d/%d | ETA : %d s | Speed : %d kb/s\n", (int)dlnow, (int)dltotal, eta, download_speed * 8 / 1000);
+    }else{
+        printf("%d/%d | ETA : N/A s | Speed : N/A kb/s\n", (int)dlnow, (int)dltotal);
     }
 
     return 0;
