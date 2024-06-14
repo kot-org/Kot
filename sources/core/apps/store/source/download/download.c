@@ -17,9 +17,9 @@ static int progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow
     printf("\033[-1B");
     if(download_speed > 0){
         int eta = (int)((dltotal - dlnow) / download_speed);
-        printf("%d/%d | ETA : %d s | Speed : %d kb/s\n", (int)dlnow, (int)dltotal, eta, download_speed * 8 / 1000);
+        printf("%d/%d bytes | ETA : %d s | Speed : %d kbit/s\n", (int)dlnow, (int)dltotal, eta, download_speed * 8 / 1000);
     }else{
-        printf("%d/%d | ETA : N/A s | Speed : N/A kb/s\n", (int)dlnow, (int)dltotal);
+        printf("%d/%d bytes | ETA : N/A s | Speed : N/A kbit/s\n", (int)dlnow, (int)dltotal);
     }
 
     return 0;
