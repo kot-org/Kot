@@ -1,12 +1,18 @@
-#include <stdio.h>
 #include <errno.h>
-#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <sys/stat.h>
 #include <curl/curl.h>
+
+static bool is_file_exists(char* path){
+    struct stat sb;   
+    return (stat(path, &sb) == 0);
+}
 
 static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp){
     size_t real_size = size * nmemb;                                                                                   
-    printf("%d\n", real_size);
     fwrite(contents, size, nmemb, (FILE*)userp);
     return real_size;
 }
@@ -28,35 +34,39 @@ static int progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow
 
 
 int download_file(CURL* curl, char* url, char* path){
-    printf("Initiating download of `%s` to `%s`\n", url, path);
-    int r = -1;
-    FILE* fp = fopen(path, "wb");
+    if(!is_file_exists(path)){
+        printf("Initiating download of `%s` to `%s`\n", url, path);
+        int r = -1;
+        FILE* fp = fopen(path, "wb");
 
-    if(fp == NULL){
-        printf("Failed to open file `%s` for writing. Error: %s\n", path, strerror(errno));
-    }else{
-        curl_easy_setopt(curl, CURLOPT_URL, url);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
-        curl_easy_setopt(curl, CURLOPT_CAINFO, "/usr/etc/ssl/cert.pem");
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+        if(fp == NULL){
+            printf("Failed to open file `%s` for writing. Error: %s\n", path, strerror(errno));
+        }else{
+            curl_easy_setopt(curl, CURLOPT_URL, url);
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+            curl_easy_setopt(curl, CURLOPT_CAINFO, "/usr/etc/ssl/cert.pem");
+            curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 
-        double time_begin = time(NULL);
-        curl_easy_setopt(curl, CURLOPT_XFERINFODATA, &time_begin);
-        curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress_callback);
+            double time_begin = time(NULL);
+            curl_easy_setopt(curl, CURLOPT_XFERINFODATA, &time_begin);
+            curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress_callback);
 
-        printf("N/A\n");
-        CURLcode res = curl_easy_perform(curl);
-        if(res == CURLE_OK){
-            r = 0;
-            printf("Completed successfully.\n");
-        } else {
-            printf("Failed. Error: %s\n", curl_easy_strerror(res));
+            printf("N/A\n");
+            CURLcode res = curl_easy_perform(curl);
+            if(res == CURLE_OK){
+                r = 0;
+                printf("Completed successfully.\n");
+            } else {
+                printf("Failed. Error: %s\n", curl_easy_strerror(res));
+            }
+
+            fclose(fp);
         }
 
-        fclose(fp);
+        return r;
+    }else{
+        return 0;
     }
-
-    return r;
 }

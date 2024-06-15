@@ -168,3 +168,30 @@ packages:
     build:
       - args: ['make', '-j@PARALLELISM@']
       - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
+
+  - name: libarchive
+    source:
+      subdir: 'bundled'
+      git: 'https://github.com/libarchive/libarchive'
+      tag: 'v3.7.4'
+      version: '3.7.4'
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+    revision: 4
+    configure:
+      - args:
+        - 'cmake'
+        - '@THIS_SOURCE_DIR@'
+        - '-DCMAKE_INSTALL_PREFIX=/usr'
+        - '-DBUILD_SHARED_LIBS=Off'
+        environ:
+          CC: "@OPTION:cc@"
+          CXX: "@OPTION:cxx@"
+          LD: "@OPTION:ld@"
+          ASMC: "@OPTION:asmc@"
+
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']

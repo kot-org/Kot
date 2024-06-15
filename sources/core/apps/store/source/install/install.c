@@ -6,6 +6,7 @@
 
 #include "install.h"
 #include "../deps/deps.h"
+#include "../untar/untar.h"
 #include "../download/download.h"
 
 static bool is_dir_exist(char* path){
@@ -93,6 +94,8 @@ int install_app(CURL* curl, char* url, char* name){
                 free(path_store_app);
                 return -1;
             }
+
+            untar(path_store_installation_file, path_store_app);
         }
     }
 

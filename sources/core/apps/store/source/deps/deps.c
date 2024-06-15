@@ -8,8 +8,8 @@
 #include "deps.h"
 
 static bool is_file_exists(char* path){
-  struct stat sb;   
-  return (stat(path, &sb) == 0);
+    struct stat sb;   
+    return (stat(path, &sb) == 0);
 }
 
 int check_dependencies(char* app_info_json_path, char** installation_file_url){
