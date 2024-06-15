@@ -5,8 +5,9 @@
 #include <curl/curl.h>
 
 static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp){
-    size_t real_size = size * nmemb;
-    //fwrite(contents, size, nmemb, (FILE*)userp);
+    size_t real_size = size * nmemb;                                                                                   
+    printf("%d\n", real_size);
+    fwrite(contents, size, nmemb, (FILE*)userp);
     return real_size;
 }
 

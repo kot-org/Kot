@@ -228,7 +228,7 @@ static int fat_read_cluster_chain(fat_context_t* ctx, uint32_t current_cluster, 
 static int fat_write_cluster_chain(fat_context_t* ctx, uint32_t current_cluster, uint32_t alignement, uint64_t size, uint64_t* size_write,  void* buffer, uint8_t flags){    
     uintptr_t buffer_iteration = (uintptr_t)buffer;
     size_t size_to_write = 0;
-    uint64_t next_alignement;
+    uint64_t next_alignement = alignement;
     uint32_t next_cluster = current_cluster;
 
     while(size > 0 || next_alignement > 0){
@@ -240,41 +240,28 @@ static int fat_write_cluster_chain(fat_context_t* ctx, uint32_t current_cluster,
         }
         current_cluster = next_cluster;
 
-        if(alignement < ctx->cluster_size){
+        if(next_alignement < ctx->cluster_size){
             size_to_write = size;
-            if(alignement + size_to_write > ctx->cluster_size){
-                size_to_write = ctx->cluster_size - alignement;
+            if(next_alignement + size_to_write > ctx->cluster_size){
+                size_to_write = ctx->cluster_size - next_alignement;
             }
             if(size_to_write){
-                assert(!fat_write_cluster(ctx, current_cluster, alignement, size_to_write, (void*)buffer_iteration));
+                assert(!fat_write_cluster(ctx, current_cluster, next_alignement, size_to_write, (void*)buffer_iteration));
             }
             next_alignement = 0;
         }else{
-            next_alignement = alignement - ctx->cluster_size;
+            next_alignement = next_alignement - ctx->cluster_size;
         }
 
         size -= size_to_write;
         *size_write += size_to_write;
         buffer_iteration += size_to_write;
-
+        
         next_cluster = fat_get_next_cluster(ctx, current_cluster);
     }
 
-    if(alignement < ctx->cluster_size){
-        size_to_write = size;
-        if(alignement + size_to_write > ctx->cluster_size){
-            size_to_write = ctx->cluster_size - alignement;
-        }
-        if(size_to_write){
-            assert(!fat_write_cluster(ctx, current_cluster, alignement, size_to_write, (void*)buffer_iteration));
-        }
-        next_alignement = 0;
-    }else{
-        next_alignement = alignement - ctx->cluster_size;
-    }
-
     if(flags & WRITE_CLUSTER_CHAIN_FLAG_FWZ){
-        uint32_t fill_start = alignement + size_to_write;
+        uint32_t fill_start = next_alignement + size_to_write;
         size_t fill_size_to_write = ctx->cluster_size - fill_start;
         assert(!fat_write_cluster(ctx, current_cluster, fill_start, fill_size_to_write, (void*)ctx->cluster_zero_buffer));
     }
