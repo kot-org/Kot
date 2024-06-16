@@ -21,7 +21,7 @@ deps-debian: update-pkgs-debian install-ninja-debian
 	sudo pip3 install --break-system-packages xbstrap
 
 deps-arch: update-pkgs-arch
-	sudo pacman -S nasm ninja parted qemu-full meson python python-pip python-setuptools python-wheel cmake sed m4 texinfo gmp bison flex curl
+	sudo pacman -S nasm ninja parted qemu-full meson python python-pip python-setuptools python-wheel cmake sed m4 texinfo gmp bison flex curl unzip
 	sudo pip3 install --break-system-packages meson
 	sudo pip3 install --break-system-packages xbstrap
 
