@@ -7,6 +7,7 @@
 #include "../apps/apps.h"
 #include "../update/update.h"
 #include "../install/install.h"
+#include "../uninstall/uninstall.h"
 
 void print_help(){
     printf("For help: ./store --help\n");
@@ -115,6 +116,9 @@ int main(int argc, char *argv[]){
         }else if(!strcmp(argv[1], "--update") && argc == 3){
             char* name = argv[2];
             update_app(curl, name);
+        }else if(!strcmp(argv[1], "--uninstall") && argc == 3){
+            char* name = argv[2];
+            uninstall_app(name);
         }else{
             print_help();
         }

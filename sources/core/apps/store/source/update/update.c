@@ -8,6 +8,7 @@
 
 #include "update.h"
 #include "../install/install.h"
+#include "../uninstall/uninstall.h"
 
 static bool is_dir_exist(char* path){
     struct stat sb;
@@ -179,6 +180,10 @@ int update_app(CURL* curl, char* name){
             }else if(result == 1 && url != NULL){
                 printf("%s : is not up-to-date\n", name);
                 printf("Updating...\n");
+                printf("Removing old files...\n");
+                uninstall_app(name);
+
+                printf("Installing new files...\n");
                 int r = install_app(curl, url, name, true);
                 if(!r){
                     printf("Update finish with success\n");
