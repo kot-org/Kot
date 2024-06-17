@@ -13,7 +13,7 @@ BIN = bin/usr/bin
 LIB = lib
 
 # Tools Config
-CFLAGS = 
+CFLAGS = -Werror
 
 LDFLAGS = -Wall \
 		  -lc

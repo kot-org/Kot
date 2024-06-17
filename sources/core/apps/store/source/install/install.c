@@ -22,7 +22,7 @@ static int create_dir_if_not_exist(char* path){
     return 0;
 }
 
-int install_app(CURL* curl, char* url, char* name){
+int install_app(CURL* curl, char* url, char* name, bool reinstall){
     char* path_store = getenv("PATHSTORE");
     create_dir_if_not_exist(path_store);
 
@@ -37,7 +37,7 @@ int install_app(CURL* curl, char* url, char* name){
     strcpy(path_store_app_info_json, path_store_app);
     strcat(path_store_app_info_json, "app-info.json");
 
-    if(download_file(curl, url, path_store_app_info_json)){
+    if(download_file(curl, url, path_store_app_info_json, reinstall)){
         printf("Error: Aborting installation of %s!\n", name);
 
         free(path_store_app_info_json);
@@ -82,7 +82,7 @@ int install_app(CURL* curl, char* url, char* name){
             strcpy(path_store_installation_file, path_store_app);
             strcat(path_store_installation_file, installation_file_name);
 
-            if(download_file(curl, installation_file_url, path_store_installation_file)){
+            if(download_file(curl, installation_file_url, path_store_installation_file, reinstall)){
                 printf("Error: Aborting installation of %s!\n", name);
 
                 remove(path_store_app_info_json);

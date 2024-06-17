@@ -157,11 +157,12 @@ static int fat_free_cluster(fat_context_t* ctx, uint32_t cluster){
 }
 
 static int fat_free_all_following_clusters(fat_context_t* ctx, uint32_t cluster){
-    uint32_t next_cluster = cluster;
+    uint32_t current_cluster = cluster;
 
-    while(next_cluster < 0x0FFFFFF8){
-        fat_free_cluster(ctx, next_cluster);
-        next_cluster = fat_get_next_cluster(ctx, cluster);
+    while(current_cluster < 0x0FFFFFF8 && current_cluster != 0){
+        uint32_t next_cluster = fat_get_next_cluster(ctx, current_cluster);
+        fat_free_cluster(ctx, current_cluster);
+        current_cluster = next_cluster;
     }
 
     return 0;
@@ -378,7 +379,7 @@ static bool fat_is_need_lfn(char* name, bool is_file){
         if(name[i] != to_upper(name[i])){
             return true;
         }
-    }    
+    }
 
     return false;
 }
@@ -531,6 +532,8 @@ static int fat_find_entry_info(fat_context_t* ctx, uint32_t current_cluster, con
 
                 last_entry_index_lfn = entry_index;
 
+                entry_name[LFN_NAME_SIZE * order] = '\0';
+
                 for(uint8_t y = 0; y < order; y++){
                     lfn = (fat_long_entry_name_t*)fat_read_entry_with_cache(ctx, current_cluster, entry_index + y, cluster_buffer, &cluster_cache_id_count_from_base, &last_cluster_read);
                     fat_parse_lfn(&entry_name[LFN_NAME_SIZE * (order - 1 - y)], lfn);
@@ -569,7 +572,7 @@ static int fat_find_entry_info(fat_context_t* ctx, uint32_t current_cluster, con
 }
 
 static fat_short_entry_t* fat_find_entry(fat_context_t* ctx, uint32_t current_cluster, const char* name, void* cluster_buffer){
-    char entry_name[256];
+    char entry_name[257];
 
     uint32_t cluster_cache_id_count_from_base = 0;
     uint32_t last_cluster_read = 0;
@@ -584,6 +587,8 @@ static fat_short_entry_t* fat_find_entry(fat_context_t* ctx, uint32_t current_cl
             if(fat_is_lfn(dir)){
                 fat_long_entry_name_t* lfn = (fat_long_entry_name_t*)dir;
                 uint8_t order = lfn->order & ~0x40;
+
+                entry_name[LFN_NAME_SIZE * order] = '\0';
 
                 for(uint8_t y = 0; y < order; y++){
                     lfn = (fat_long_entry_name_t*)fat_read_entry_with_cache(ctx, current_cluster, entry_index + y, cluster_buffer, &cluster_cache_id_count_from_base, &last_cluster_read);
@@ -1209,6 +1214,8 @@ int fat_interface_dir_get_directory_entries(void* buffer, size_t max_size, size_
                 fat_long_entry_name_t* lfn = (fat_long_entry_name_t*)current_dir;
                 uint8_t order = lfn->order & ~0x40;
 
+                entry->d_name[LFN_NAME_SIZE * order] = '\0';
+
                 for(uint8_t y = 0; y < order; y++){
                     lfn = (fat_long_entry_name_t*)fat_read_entry_with_cache(internal_dir->ctx, cluster_base, entry_index + y, cluster_buffer, &cluster_cache_id_count_from_base, &last_cluster_read);
                     fat_parse_lfn(&entry->d_name[LFN_NAME_SIZE * (order - 1 - y)], lfn);
@@ -1435,7 +1442,6 @@ int fat_interface_stat(struct fs_t* ctx, const char* path, int flags, struct sta
     fat_short_entry_t* fat_entry = fat_find_entry_with_path_from_root(fat_ctx, path_convert, cluster_buffer);
 
     if(fat_entry != NULL){
-        fat_entry = fat_find_entry_with_path_from_root(fat_ctx, path_convert, cluster_buffer);
         memset(statbuf, 0, sizeof(struct stat));
 
         statbuf->st_mode = fat_entry->attributes.directory ? S_IFDIR : S_IFREG;

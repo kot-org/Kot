@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <curl/curl.h>
 
 #include "../apps/apps.h"
+#include "../update/update.h"
 #include "../install/install.h"
 
 void print_help(){
@@ -54,7 +56,7 @@ int main(int argc, char *argv[]){
                         fgets(allow_install, sizeof(allow_install), stdin);
                         allow_install[strcspn(allow_install, "\n")] = 0;
                         if(!strcmp("Y", allow_install)){
-                            install_app(curl, apps_available[index_to_install]->url, apps_available[index_to_install]->name);
+                            install_app(curl, apps_available[index_to_install]->url, apps_available[index_to_install]->name, false);
                         }else{
                             printf("Cancel the installation\n");
                         }
@@ -80,7 +82,7 @@ int main(int argc, char *argv[]){
                     fgets(allow_install, sizeof(allow_install), stdin);
                     allow_install[strcspn(allow_install, "\n")] = 0;
                     if(!strcmp("Y", allow_install)){
-                        install_app(curl, url, name);
+                        install_app(curl, url, name, false);
                     }else{
                         printf("Cancel the installation\n");
                     }
@@ -102,7 +104,7 @@ int main(int argc, char *argv[]){
                 fgets(allow_install, sizeof(allow_install), stdin);
                 allow_install[strcspn(allow_install, "\n")] = 0;
                 if(!strcmp("Y", allow_install)){
-                    install_app(curl, url, name);
+                    install_app(curl, url, name, false);
                 }else{
                     printf("Cancel the installation\n");
                 }
@@ -110,6 +112,9 @@ int main(int argc, char *argv[]){
             }else{
                 printf("Can't find %s in the store. Did you spell it correctly?\n", name);
             }
+        }else if(!strcmp(argv[1], "--update") && argc == 3){
+            char* name = argv[2];
+            update_app(curl, name);
         }else{
             print_help();
         }

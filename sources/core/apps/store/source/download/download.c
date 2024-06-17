@@ -33,8 +33,8 @@ static int progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow
 }
 
 
-int download_file(CURL* curl, char* url, char* path){
-    if(!is_file_exists(path)){
+int download_file(CURL* curl, char* url, char* path, bool force_download){
+    if(!is_file_exists(path) || force_download){
         printf("Initiating download of `%s` to `%s`\n", url, path);
         int r = -1;
         FILE* fp = fopen(path, "wb");

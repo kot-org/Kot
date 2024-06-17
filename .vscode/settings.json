@@ -203,7 +203,8 @@
         "curl_memory.h": "c",
         "apps.h": "c",
         "download.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "update.h": "c"
     },
     "files.exclude": {
         "bundled": true,

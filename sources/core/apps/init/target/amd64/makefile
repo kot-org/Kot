@@ -12,7 +12,7 @@ BIN = bin/system/init
 LIB = lib
 
 # Tools Config
-CFLAGS = 
+CFLAGS = -Werror 
 
 LDFLAGS = -Wall \
 		  -lc
