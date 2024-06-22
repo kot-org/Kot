@@ -394,6 +394,7 @@ packages:
     pkgs_required:
       - mlibc
       - curl
+      - cjson
     build:
       - args: 
         - 'make'
