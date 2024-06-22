@@ -11,6 +11,8 @@ SOURCE = $(HOME)/source
 TOOLS = $(HOME)/../../tools
 BIN = bin/usr/bin
 LIB = lib
+TAR = tar
+VERSION = 0-0-1
 
 # Tools Config
 CFLAGS = -Werror 
@@ -36,4 +38,8 @@ link:
 	@ mkdir -m 777 -p $(BIN)
 	@ $(CC) $(LDFLAGS) -o $(BIN)/ip $(OBJS) $(LIBRARIES)/libcurl.a $(LIBRARIES)/libtls.a $(LIBRARIES)/libssl.a
 
-build: $(OBJS) link
+tar: 
+	@ mkdir -m 777 -p $(TAR)
+	@ tar -C $(BIN) -cf $(TAR)/ip-$(VERSION).tar ip
+
+build: $(OBJS) link tar

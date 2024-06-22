@@ -81,7 +81,7 @@ int launch_app(char* name, int argc, char *argv[]){
                 free(absolute_path);
             }
 
-            printf("Error when launching : %d\n", name);
+            printf("Error when launching : %s\n", name);
             free(path_store_app);
 
             return -1;
@@ -90,7 +90,7 @@ int launch_app(char* name, int argc, char *argv[]){
         free(path_store_app);
     }
 
-    printf("Can't find the app named : %d\n", name);
+    printf("Can't find the app named : %s\n", name);
 
     return -1;
 }
