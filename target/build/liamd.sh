@@ -25,6 +25,8 @@ else
     xbstrap install $PACKAGE_NAME --$ACTION
 fi
 
+ERROR_XBSTRAP=$?
+
 cd target/ # target
 
 if [ "$INSTALL" = "true" ]; then
@@ -33,3 +35,5 @@ if [ "$INSTALL" = "true" ]; then
 fi
 
 source boot-disk.sh unmount liamd amd64 $BOOT_DEVICE boot_disk_kot_mount
+
+exit $ERROR_XBSTRAP
