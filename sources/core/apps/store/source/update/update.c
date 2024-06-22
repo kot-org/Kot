@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -8,7 +9,7 @@
 
 #include "update.h"
 #include "../install/install.h"
-#include "../uninstall/uninstall.h"
+#include "../remove/remove.h"
 
 static bool is_dir_exist(char* path){
     struct stat sb;
@@ -161,19 +162,17 @@ static int check_update(CURL* curl, char* app_info_path, char** url){
 int update_app(CURL* curl, char* name){
     char* path_store = getenv("PATHSTORE");
     if(is_dir_exist(path_store)){
-        char* path_store_app = malloc(strlen(path_store) + sizeof((char)'/') + strlen(name) + sizeof((char)'/') + 1);
-        strcpy(path_store_app, path_store);
-        strcat(path_store_app, "/");
-        strcat(path_store_app, name);
-        strcat(path_store_app, "/");
+        char* path_store_app;
+        assert(asprintf(&path_store_app, "%s/%s/", path_store, name) >= 0);
 
         if(is_dir_exist(path_store_app)){
-            char* path_store_app_info_json = malloc(strlen(path_store_app) + strlen("app-info.json") + 1);
-            strcpy(path_store_app_info_json, path_store_app);
-            strcat(path_store_app_info_json, "app-info.json");
+            char* path_store_app_info_json;
+            assert(asprintf(&path_store_app_info_json, "%sapp-info.json", path_store_app) >= 0);
 
             char* url = NULL;
             int result = check_update(curl, path_store_app_info_json, &url);
+
+            free(path_store_app_info_json);
 
             if(result == 0){
                 printf("%s : is up-to-date\n", name);
@@ -181,7 +180,7 @@ int update_app(CURL* curl, char* name){
                 printf("%s : is not up-to-date\n", name);
                 printf("Updating...\n");
                 printf("Removing old files...\n");
-                uninstall_app(name);
+                remove_app(name, false);
 
                 printf("Installing new files...\n");
                 int r = install_app(curl, url, name, true);
@@ -196,6 +195,8 @@ int update_app(CURL* curl, char* name){
         }else{
             printf("%s : is not installed\n", name);
         }
+
+        free(path_store_app);
     }else{
         printf("%s : is not installed\n", name);
     }

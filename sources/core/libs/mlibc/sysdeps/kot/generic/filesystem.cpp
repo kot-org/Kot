@@ -154,7 +154,7 @@ namespace mlibc{
     }
 
     int sys_rmdir(const char *path){
-        auto result = do_syscall(SYS_DIR_REMOVE, AT_FDCWD, path, AT_REMOVEDIR);
+        auto result = do_syscall(SYS_DIR_REMOVE, path, strlen(path));
 
         if(result < 0){
             return -result;
@@ -174,7 +174,7 @@ namespace mlibc{
     }
 
     int sys_unlinkat(int dirfd, const char *path, int flags){
-        auto result = do_syscall(SYS_UNLINK_AT, AT_FDCWD, path, AT_REMOVEDIR);
+        auto result = do_syscall(SYS_UNLINK_AT, dirfd, path, strlen(path), flags);
 
         if(result < 0){
             return -result;

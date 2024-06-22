@@ -204,7 +204,9 @@
         "apps.h": "c",
         "download.h": "c",
         "stdlib.h": "c",
-        "update.h": "c"
+        "update.h": "c",
+        "launch.h": "c",
+        "untar.h": "c"
     },
     "files.exclude": {
         "bundled": true,

@@ -712,15 +712,16 @@ static int fat_update_entry_with_path_from_root(fat_context_t* ctx, const char* 
 static int fat_add_entry_with_path(fat_context_t* ctx, fat_short_entry_t* dir, const char* path, fat_short_entry_t* entry, bool use_lfn,void* cluster_buffer){
     char* entry_name;
 
-    dir = fat_find_last_directory(ctx, dir, path, cluster_buffer, &entry_name);
+    fat_short_entry_t* dir_tmp = fat_find_last_directory(ctx, dir, path, cluster_buffer, &entry_name);
 
-    if(dir == NULL){
+    if(dir_tmp == NULL){
         return ENOENT;
     }
 
     /* Remove dir from the cluster_buffer */
-    fat_short_entry_t dir_tmp = *dir;
-    dir = &dir_tmp;
+    fat_short_entry_t dir_tmp_buf;
+    memcpy(&dir_tmp_buf, dir_tmp, sizeof(fat_short_entry_t));
+    dir = &dir_tmp_buf;
 
     uint32_t base_cluster = fat_get_cluster_entry(ctx, dir);
 
@@ -774,22 +775,23 @@ static int fat_add_entry_with_path_from_root(fat_context_t* ctx, const char* pat
 static int fat_remove_entry_with_path(fat_context_t* ctx, fat_short_entry_t* dir, const char* path, void* cluster_buffer){
     char* entry_name;
 
-    dir = fat_find_last_directory(ctx, dir, path, cluster_buffer, &entry_name);
+    fat_short_entry_t* dir_tmp = fat_find_last_directory(ctx, dir, path, cluster_buffer, &entry_name);
 
-    if(dir == NULL){
+    if(dir_tmp == NULL){
         return ENOENT;
     }
 
     /* Remove dir from the cluster_buffer */
-    fat_short_entry_t dir_tmp = *dir;
-    dir = &dir_tmp;
+    fat_short_entry_t dir_tmp_buf;
+    memcpy(&dir_tmp_buf, dir_tmp, sizeof(fat_short_entry_t));
+    dir = &dir_tmp_buf;
 
     uint32_t base_cluster = fat_get_cluster_entry(ctx, dir);
 
     uint32_t sfn_index;
     uint32_t lfn_index;
 
-    int err = fat_find_entry_info_with_path_from_root(ctx, path, cluster_buffer, NULL, &sfn_index, &lfn_index);
+    int err = fat_find_entry_info_with_path(ctx, dir, path, cluster_buffer, NULL, &sfn_index, &lfn_index);
 
     if(err){
         return err;
@@ -808,7 +810,7 @@ static int fat_remove_entry_with_path(fat_context_t* ctx, fat_short_entry_t* dir
 
     uint64_t alignement_source = first_index_to_move * ENTRY_SIZE;
     uint64_t alignement_destination = first_index_to_remove * ENTRY_SIZE;
-    uint64_t size_to_copy = fat_get_dir_size(ctx, dir, cluster_buffer) - alignement_source;
+    uint64_t size_to_copy = fat_get_dir_size(ctx, dir, cluster_buffer) - (alignement_source - alignement_destination);
     void* buffer_to_copy = malloc(size_to_copy);
 
     uint64_t size_read_tmp;
@@ -816,6 +818,9 @@ static int fat_remove_entry_with_path(fat_context_t* ctx, fat_short_entry_t* dir
     
     uint64_t size_write_tmp;
     assert(!fat_write_cluster_chain(ctx, base_cluster, alignement_destination, size_to_copy, &size_write_tmp, buffer_to_copy, WRITE_CLUSTER_CHAIN_FLAG_EOC | WRITE_CLUSTER_CHAIN_FLAG_FWZ));
+    
+    free(buffer_to_copy);
+
     return 0;
 }
 
@@ -845,35 +850,37 @@ static int fat_clear_entry_data_with_path_from_root(fat_context_t* ctx, const ch
 
 
 static int fat_remove_and_clear_entry_with_path(fat_context_t* ctx, fat_short_entry_t* dir, const char* path, void* cluster_buffer){
-    char* entry_name;
+    char* entry_name_tmp;
 
-    fat_short_entry_t* dir_parent = fat_find_last_directory(ctx, dir, path, cluster_buffer, &entry_name);
+    fat_short_entry_t* dir_parent_tmp = fat_find_last_directory(ctx, dir, path, cluster_buffer, &entry_name_tmp);
+    char* entry_name = malloc(strlen(entry_name_tmp) + 1);
+    strcpy(entry_name, entry_name_tmp);
     
-    if(dir_parent == NULL){
-        free(cluster_buffer);
+    if(dir_parent_tmp == NULL){
         return ENOENT;
     }
 
     /* Remove dir from the cluster_buffer */
-    fat_short_entry_t dir_parent_tmp = *dir_parent;
-    dir_parent = &dir_parent_tmp;
+    fat_short_entry_t dir_parent;
+    memcpy(&dir_parent, dir_parent_tmp, sizeof(fat_short_entry_t));
 
 
-    fat_short_entry_t* entry = fat_find_entry_with_path(ctx, dir_parent, entry_name, cluster_buffer);
+    fat_short_entry_t* entry_tmp = fat_find_entry_with_path(ctx, &dir_parent, entry_name, cluster_buffer);
 
-    if(entry == NULL){
-        free(cluster_buffer);
+    if(entry_tmp == NULL){
+        free(entry_name);
         return ENOENT;
     }
 
     /* Remove entry from the cluster_buffer */
-    fat_short_entry_t entry_tmp = *entry;
-    entry = &entry_tmp;
+    fat_short_entry_t entry;
+    memcpy(&entry, entry_tmp, sizeof(fat_short_entry_t));
 
-    fat_clear_entry_data(ctx, entry, cluster_buffer);
+    assert(!fat_remove_entry_with_path(ctx, &dir_parent, entry_name, cluster_buffer));
 
-    assert(!fat_remove_entry_with_path(ctx, dir_parent, entry_name, cluster_buffer));
+    fat_clear_entry_data(ctx, &entry, cluster_buffer);
 
+    free(entry_name);
     return 0;
 }
 
@@ -895,7 +902,8 @@ static int fat_rename_entry_with_path(fat_context_t* ctx, fat_short_entry_t* old
     }
 
     /* Remove entry from the cluster_buffer */
-    fat_short_entry_t entry_tmp = *entry;
+    fat_short_entry_t entry_tmp;
+    memcpy(&entry_tmp, entry, sizeof(fat_short_entry_t));
     entry = &entry_tmp;
 
     char* new_entry_name = strrchr(new_path, '/');
@@ -965,11 +973,19 @@ static int fat_create_file(fat_context_t* ctx, const char* path, void* cluster_b
 int fat_remove_file(fat_context_t* ctx, const char* path){
     void* cluster_buffer = malloc(ctx->cluster_size);
 
-    int err = fat_remove_and_clear_entry_with_path_from_root(ctx, path, cluster_buffer);
+    fat_short_entry_t* dir = fat_find_entry_with_path_from_root(ctx, path, cluster_buffer);
 
-    free(cluster_buffer);
+    if(!dir->attributes.directory){
+        int err = fat_remove_and_clear_entry_with_path_from_root(ctx, path, cluster_buffer);
 
-    return err;
+        free(cluster_buffer);
+        
+        return err;
+    }else{
+        free(cluster_buffer);
+
+        return EISDIR;
+    }
 }
 
 fat_file_internal_t* fat_open_file(fat_context_t* ctx, const char* path, int flags, mode_t mode, int* error){
@@ -1135,25 +1151,31 @@ int fat_create_dir(fat_context_t* ctx, const char* path, mode_t mode){
 int fat_remove_dir(fat_context_t* ctx, const char* path){
     void* cluster_buffer = malloc(ctx->cluster_size);
 
-    fat_short_entry_t* dir = fat_find_entry_with_path_from_root(ctx, path, cluster_buffer);
+    fat_short_entry_t* dir_tmp = fat_find_entry_with_path_from_root(ctx, path, cluster_buffer);
 
-    /* Remove dir from the cluster_buffer */
-    fat_short_entry_t dir_tmp = *dir;
-    dir = &dir_tmp;
+    if(dir_tmp->attributes.directory){
+        /* Remove dir from the cluster_buffer */
+        fat_short_entry_t dir;
+        memcpy(&dir, dir_tmp, sizeof(fat_short_entry_t));
 
-    if(fat_get_cluster_entry(ctx, dir) == ctx->bpb->root_cluster_number){
-        return EACCES; // can't delete root dir
-    }else{
-        if(fat_get_dir_size(ctx, dir, cluster_buffer) > DIR_MINIMUM_SIZE){
-            return ENOTEMPTY;
+        if(fat_get_cluster_entry(ctx, &dir) == ctx->bpb->root_cluster_number){
+            return EACCES; // can't delete root dir
+        }else{
+            if(fat_get_dir_size(ctx, &dir, cluster_buffer) > DIR_MINIMUM_SIZE * ENTRY_SIZE){
+                return ENOTEMPTY;
+            }
         }
+
+        int err = fat_remove_and_clear_entry_with_path_from_root(ctx, path, cluster_buffer);
+
+        free(cluster_buffer);
+
+        return err;
+    }else{
+        free(cluster_buffer);
+
+        return ENOTDIR;
     }
-
-    int err = fat_remove_and_clear_entry_with_path_from_root(ctx, path, cluster_buffer);
-
-    free(cluster_buffer);
-
-    return err;
 }
 
 fat_directory_internal_t* fat_open_dir(fat_context_t* ctx, const char* path, int* error){

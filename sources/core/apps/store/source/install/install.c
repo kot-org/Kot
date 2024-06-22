@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -26,16 +27,13 @@ int install_app(CURL* curl, char* url, char* name, bool reinstall){
     char* path_store = getenv("PATHSTORE");
     create_dir_if_not_exist(path_store);
 
-    char* path_store_app = malloc(strlen(path_store) + sizeof((char)'/') + strlen(name) + sizeof((char)'/') + 1);
-    strcpy(path_store_app, path_store);
-    strcat(path_store_app, "/");
-    strcat(path_store_app, name);
-    strcat(path_store_app, "/");
+    char* path_store_app;
+    assert(asprintf(&path_store_app, "%s/%s/", path_store, name) >= 0);
+
     create_dir_if_not_exist(path_store_app);
 
-    char* path_store_app_info_json = malloc(strlen(path_store_app) + strlen("app-info.json") + 1);
-    strcpy(path_store_app_info_json, path_store_app);
-    strcat(path_store_app_info_json, "app-info.json");
+    char* path_store_app_info_json;
+    assert(asprintf(&path_store_app_info_json, "%sapp-info.json", path_store_app) >= 0);
 
     if(download_file(curl, url, path_store_app_info_json, reinstall)){
         printf("Error: Aborting installation of %s!\n", name);

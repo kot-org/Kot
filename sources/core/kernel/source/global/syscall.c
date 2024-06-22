@@ -564,8 +564,22 @@ static void syscall_handler_dir_read_entries(cpu_context_t* ctx){
 }
 
 static void syscall_handler_dir_remove(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    char* path = (char*)ARCH_CONTEXT_SYSCALL_ARG0(ctx); 
+    size_t path_len = (size_t)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
+
+    if(path_len >= PATH_MAX){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+
+    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){path, path_len + 1})){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+
+    path[path_len] = '\0';
+
+    int error = d_remove(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx, path);
+
+    SYSCALL_RETURN(ctx, -error);   
 }
 
 static void syscall_handler_dir_create(cpu_context_t* ctx){
@@ -585,12 +599,34 @@ static void syscall_handler_dir_create(cpu_context_t* ctx){
 
     int error = d_create(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx, path, mode);
 
-    SYSCALL_RETURN(ctx, error);
+    SYSCALL_RETURN(ctx, -error);
 }
 
 static void syscall_handler_unlink_at(cpu_context_t* ctx){
-    log_warning("%s : syscall not implemented\n", __FUNCTION__);
-    SYSCALL_RETURN(ctx, -ENOSYS);    
+    int dirfd = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    char* path = (char*)ARCH_CONTEXT_SYSCALL_ARG1(ctx); 
+    size_t path_len = (size_t)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+    int flags = (int)ARCH_CONTEXT_SYSCALL_ARG3(ctx);
+
+    if(path_len >= PATH_MAX){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+
+    if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){path, path_len + 1})){
+        SYSCALL_RETURN(ctx, -EINVAL);
+    }
+
+    path[path_len] = '\0';
+
+    if(dirfd == AT_FDCWD){
+        int error = f_remove(ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->vfs_ctx, path);
+
+        SYSCALL_RETURN(ctx, -error);    
+    }else{
+        // TODO
+        log_warning("%s : syscall not implemented\n", __FUNCTION__);
+        SYSCALL_RETURN(ctx, -ENOSYS);   
+    }
 }
 
 static void syscall_handler_rename_at(cpu_context_t* ctx){

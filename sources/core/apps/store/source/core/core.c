@@ -5,13 +5,17 @@
 #include <curl/curl.h>
 
 #include "../apps/apps.h"
+#include "../launch/launch.h"
 #include "../update/update.h"
 #include "../install/install.h"
-#include "../uninstall/uninstall.h"
+#include "../remove/remove.h"
 
 void print_help(){
     printf("For help: ./store --help\n");
     printf("To install an application: ./store --install [app name]\n");
+    printf("To remove an application: ./store --remove [app name]\n");
+    printf("To update an application: ./store --update [app name]\n");
+    printf("To launch an application: ./store --launch [app name] [arguments]\n");
 }
 
 int main(int argc, char *argv[]){
@@ -116,9 +120,13 @@ int main(int argc, char *argv[]){
         }else if(!strcmp(argv[1], "--update") && argc == 3){
             char* name = argv[2];
             update_app(curl, name);
-        }else if(!strcmp(argv[1], "--uninstall") && argc == 3){
+        }else if(!strcmp(argv[1], "--remove") && argc == 3){
             char* name = argv[2];
-            uninstall_app(name);
+            remove_app(name, true);
+        }else if(!strcmp(argv[1], "--launch") && argc >= 3){
+            char* name = argv[2];
+            // Keep the app name
+            launch_app(name, argc - 2, &argv[2]);
         }else{
             print_help();
         }
