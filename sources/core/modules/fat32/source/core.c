@@ -1044,6 +1044,10 @@ int fat_file_read(fat_file_internal_t* file, uint64_t start, size_t size, size_t
         err = fat_read_cluster_chain(file->ctx, base_cluster, start, (uint64_t)size, &size_read_tmp, buffer);
     }
 
+    if(size_read_tmp + start > file->entry.size){
+        size_read_tmp = file->entry.size - start;
+    }
+
     *size_read = (size_t)size_read_tmp;
 
     return err;
