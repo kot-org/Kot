@@ -19,6 +19,8 @@ void print_help(){
 }
 
 int main(int argc, char *argv[]){
+    printf("Visit <https://kot-store.github.io/> to have more information.\n");
+
     curl_global_init(CURL_GLOBAL_DEFAULT);
     CURL *curl = curl_easy_init();
 
