@@ -1,3 +1,4 @@
+#include <poll.h>
 #include <errno.h>
 #include <lib/log.h>
 #include <lib/lock.h>
@@ -205,6 +206,20 @@ int fb_interface_close(kernel_file_t* file){
     return 0;
 }
 
+int fb_interface_get_event(kernel_file_t* file, short event, short* revent){
+    *revent = (event & (POLLIN | POLLOUT));
+
+    int event_count = 0;
+    if(event & POLLIN){
+        event_count++;
+    }
+    if(event & POLLOUT){
+        event_count++;
+    }
+    
+    return event_count;
+}
+
 kernel_file_t* fb_interface_open(struct fs_t* ctx, const char* path, int flags, mode_t mode, int* error){
     /* if we don't have the boot fb yet request it */
     if(boot_fb == NULL){
@@ -224,6 +239,7 @@ kernel_file_t* fb_interface_open(struct fs_t* ctx, const char* path, int flags, 
     file->ioctl = fb_interface_ioctl;
     file->stat = fb_interface_stat;
     file->close = fb_interface_close;
+    file->get_event = fb_interface_get_event;
 
     return file;
 }

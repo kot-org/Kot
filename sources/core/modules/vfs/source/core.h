@@ -1,6 +1,7 @@
 #ifndef _MODULE_VFS_CORE_H
 #define _MODULE_VFS_CORE_H
 
+#include <poll.h>
 #include <errno.h>
 #include <lib/assert.h>
 #include <system.h>

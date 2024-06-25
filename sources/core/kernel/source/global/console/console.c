@@ -199,7 +199,7 @@ void console_delchar(void){
 }
 
 void console_print(const char* str) {
-  for(size_t i = 0; i < strlen(str); i++) {
+    for(size_t i = 0; i < strlen(str); i++) {
         if(str[i] == '\n'){
             console_putchar('\r');
             serial_write('\r');   

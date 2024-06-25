@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <limits.h>
 #include <signal.h>
+#include <sys/select.h>
+
 #include <lib/log.h>
 #include <impl/arch.h>
 #include <lib/assert.h>
@@ -1011,7 +1013,11 @@ static void syscall_handler_ppoll(cpu_context_t* ctx){
                 if(descriptor->type == DESCRIPTOR_TYPE_SOCKET){
                     kernel_socket_t* socket = descriptor->data.socket;
 
-                    event_count += socket->socket_get_event(socket, fds[i].events, &fds[i].revents);
+                    event_count += socket->get_event(socket, fds[i].events, &fds[i].revents);
+                }else if(descriptor->type == DESCRIPTOR_TYPE_FILE){
+                    kernel_file_t* file = descriptor->data.file;
+
+                    event_count += file->get_event(file, fds[i].events, &fds[i].revents);
                 }
             }
         }
@@ -1020,6 +1026,124 @@ static void syscall_handler_ppoll(cpu_context_t* ctx){
     if(!vmm_check_memory(vmm_get_current_space(), (memory_range_t){num_events, sizeof(int)})){
         *num_events = event_count;
     }
+    
+    SYSCALL_RETURN(ctx, 0);
+}
+
+static void syscall_handler_pselect(cpu_context_t* ctx){
+    int nfds = (int)ARCH_CONTEXT_SYSCALL_ARG0(ctx);
+    fd_set* readfds = (fd_set*)ARCH_CONTEXT_SYSCALL_ARG1(ctx);
+    fd_set* writefds = (fd_set*)ARCH_CONTEXT_SYSCALL_ARG2(ctx);
+    fd_set* exceptfds = (fd_set*)ARCH_CONTEXT_SYSCALL_ARG3(ctx);
+    const struct timespec* timeout = (const struct timespec*)ARCH_CONTEXT_SYSCALL_ARG4(ctx);
+    int* num_events = (int*)ARCH_CONTEXT_SYSCALL_ARG5(ctx);
+
+    if(readfds != NULL){
+        if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){readfds, sizeof(fd_set)})){
+            SYSCALL_RETURN(ctx, -EFAULT);
+        }
+    }
+
+    if(writefds != NULL){
+        if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){writefds, sizeof(fd_set)})){
+            SYSCALL_RETURN(ctx, -EFAULT);
+        }
+    }
+
+    if(exceptfds != NULL){
+        if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){exceptfds, sizeof(fd_set)})){
+            SYSCALL_RETURN(ctx, -EFAULT);
+        }
+    }
+
+    us_t time_end = 0;
+
+    if(!vmm_check_memory(vmm_get_current_space(), (memory_range_t){(void*)timeout, sizeof(const struct timespec)})){
+        time_end = kernel_get_current_us() + (us_t)(TIME_CONVERT_SECOND_TO_MICROSECOND(timeout->tv_sec) + TIME_CONVERT_NANOSECOND_TO_MICROSECOND(timeout->tv_nsec));
+    }    
+
+    int event_count = 0;
+
+    uint8_t read_mask[128];
+    uint8_t write_mask[128];
+    uint8_t except_mask[128];
+
+    if(readfds != NULL){
+        memcpy(read_mask, readfds, sizeof(fd_set));
+        memset(readfds, 0, sizeof(fd_set));
+    }else{
+        memset(read_mask, 0, sizeof(fd_set));
+    }
+
+    if(writefds != NULL){
+        memcpy(write_mask, writefds, sizeof(fd_set));
+        memset(writefds, 0, sizeof(fd_set));
+    }else{
+        memset(write_mask, 0, sizeof(fd_set));
+    }
+
+    if(exceptfds != NULL){
+        memcpy(except_mask, exceptfds, sizeof(fd_set));
+        memset(exceptfds, 0, sizeof(fd_set));
+    }else{
+        memset(except_mask, 0, sizeof(fd_set));
+    }
+
+    do{
+        if(event_count > 0){
+            break;
+        }
+
+        event_count = 0;
+
+        for(int i = 0; i < 128 && i * 8 < nfds; i++){
+            for(int j = 0; j < 8 && (i * 8 + j) < nfds; j++){
+                int current_fd = i * 8 + j;
+
+                short events = 0;
+                short revents = 0;
+
+                if((read_mask[i] >> j) & 0b1){
+                    events |= POLLIN;
+                }
+
+                if((write_mask[i] >> j) & 0b1){
+                    events |= POLLOUT;
+                }
+
+                if((except_mask[i] >> j) & 0b1){
+                    // TODO
+                }
+
+                descriptor_t* descriptor = get_descriptor(&ARCH_CONTEXT_CURRENT_THREAD(ctx)->process->descriptors_ctx, current_fd);
+
+                if(descriptor != NULL){
+                    if(descriptor->type == DESCRIPTOR_TYPE_SOCKET){
+                        kernel_socket_t* socket = descriptor->data.socket;
+
+                        event_count += socket->get_event(socket, events, &revents);
+                    }else if(descriptor->type == DESCRIPTOR_TYPE_FILE){
+                        kernel_file_t* file = descriptor->data.file;
+
+                        event_count += file->get_event(file, events, &revents);
+                    }
+                }
+
+                if(revents & POLLIN){
+                    readfds->fds_bits[current_fd / 8] |= 1 << (current_fd % 8);
+                }
+
+                if(revents & POLLOUT){
+                    writefds->fds_bits[current_fd / 8] |= 1 << (current_fd % 8);
+                }
+            }
+        }
+    }while(time_end > kernel_get_current_us());
+
+    if(!vmm_check_memory(vmm_get_current_space(), (memory_range_t){num_events, sizeof(int)})){
+        *num_events = event_count;
+    }
+
     
     SYSCALL_RETURN(ctx, 0);
 }
@@ -1071,7 +1195,8 @@ static syscall_handler_t handlers[SYS_COUNT] = {
     syscall_handler_socket_send,
     syscall_handler_socket_recv,
     syscall_handler_socket_pair,
-    syscall_handler_ppoll
+    syscall_handler_ppoll,
+    syscall_handler_pselect
 };
 
 void syscall_handler(cpu_context_t* ctx){

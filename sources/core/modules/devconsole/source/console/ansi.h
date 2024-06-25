@@ -17,12 +17,24 @@
 #define ANSI_DELETE_LINES       'M'
 #define ANSI_SCROLL_UP          'S'
 #define ANSI_SCROLL_DOWN        'T'
+#define ANSI_SCREEN_MODE        'h'
+#define ANSI_SCREEN_RESET       'l'
+#define ANSI_SCREEN_MARGIN      'r'
+
+#define ANSI_REQUEST_CURSOR_1    'n'
+#define ANSI_REQUEST_CURSOR_0    '6'
 
 
+#define ANSI_PRIVATE                    (char)'?'
 #define ANSI_CONTROL                    (char)'['
+#define ANSI_OS_COMMAND                 (char)']'
 #define ANSI_CHARACTER_SET              (char)'('
 #define ANSI_GRAPHICS                   (char)'m'
 #define ANSI_SEPARATOR                  (char)';'
+
+#define ASCII_BEL                       7
+
+#define ANSI_CURSOR                     25
 
 #define ANSI_GRAPHICS_RESET              0
 #define ANSI_GRAPHICS_BOLD               1

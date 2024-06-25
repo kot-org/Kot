@@ -829,7 +829,7 @@ static int fat_remove_entry_with_path_from_root(fat_context_t* ctx, const char* 
 }
 
 static int fat_clear_entry_data(fat_context_t* ctx, fat_short_entry_t* dir, void* cluster_buffer){
-    uint32_t base_cluster = fat_get_cluster_entry(ctx, dir);
+    uint32_t base_cluster = fat_get_cluster_entry_without_root_check(dir);
     fat_free_all_following_clusters(ctx, base_cluster);
     return 0;
 }
@@ -839,7 +839,7 @@ static int fat_clear_entry_data_with_path(fat_context_t* ctx, fat_short_entry_t*
     if(dir == NULL){
         return ENOENT;
     }
-    uint32_t base_cluster = fat_get_cluster_entry(ctx, dir);
+    uint32_t base_cluster = fat_get_cluster_entry_without_root_check(dir);
     fat_free_all_following_clusters(ctx, base_cluster);
     return 0;
 }
@@ -975,16 +975,20 @@ int fat_remove_file(fat_context_t* ctx, const char* path){
 
     fat_short_entry_t* dir = fat_find_entry_with_path_from_root(ctx, path, cluster_buffer);
 
-    if(!dir->attributes.directory){
-        int err = fat_remove_and_clear_entry_with_path_from_root(ctx, path, cluster_buffer);
+    if(dir){
+        if(!dir->attributes.directory){
+            int err = fat_remove_and_clear_entry_with_path_from_root(ctx, path, cluster_buffer);
 
-        free(cluster_buffer);
-        
-        return err;
+            free(cluster_buffer);
+            
+            return err;
+        }else{
+            free(cluster_buffer);
+
+            return EISDIR;
+        }
     }else{
-        free(cluster_buffer);
-
-        return EISDIR;
+        return ENOENT;
     }
 }
 
@@ -1397,6 +1401,20 @@ int fat_interface_file_close(struct kernel_file_t* file){
     return 0;
 }
 
+int fat_interface_file_get_event(kernel_file_t* file, short event, short* revent){
+    *revent = (event & (POLLIN | POLLOUT));
+
+    int event_count = 0;
+    if(event & POLLIN){
+        event_count++;
+    }
+    if(event & POLLOUT){
+        event_count++;
+    }
+    
+    return event_count;
+}
+
 struct kernel_file_t* fat_interface_file_open(struct fs_t* ctx, const char* path, int flags, mode_t mode, int* error){
     fat_file_internal_t* fat_file = fat_open_file((fat_context_t*)ctx->internal_data, fat_interface_convert_path((char*)path), flags, mode, error);
     if(fat_file == NULL){
@@ -1413,6 +1431,7 @@ struct kernel_file_t* fat_interface_file_open(struct fs_t* ctx, const char* path
     file->ioctl = &fat_interface_file_ioctl;
     file->stat = &fat_interface_file_stat;
     file->close = &fat_interface_file_close;
+    file->get_event = &fat_interface_file_get_event;
 
     return file;
 }

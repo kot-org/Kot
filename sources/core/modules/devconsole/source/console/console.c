@@ -38,6 +38,9 @@ static uint8_t fb_bpp;
 static uint8_t fb_btpp;
 static size_t fb_size;
 
+static uint16_t cx_min_index = 0;
+static uint16_t cy_min_index = 0;
+
 static uint16_t cx_max_index;
 static uint16_t cy_max_index;
 
@@ -58,11 +61,14 @@ static size_t espacebuffersize = 0;
 
 static thread_t* last_thread_output = NULL;
 
+static bool is_cursor = true;
+
 
 enum devconsole_parse_state {
     devconsole_parse_state_normal,
     devconsole_parse_state_escape,
     devconsole_parse_state_control,
+    devconsole_parse_state_os_command,
     devconsole_parse_character_set,
     devconsole_parse_state_graphics,
 };
@@ -76,7 +82,9 @@ static uint32_t bg_bright_colors[9] = {0x666666, 0xF14C4C, 0x23D18B, 0xF5F543, 0
 
 static bool refresh_display = false;
 
+spinlock_t key_handler_lock;
 
+void print_to_key_buffer(char* str);
 void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed);
 
 void devconsole_set_bg_color(uint32_t bg) {
@@ -303,6 +311,7 @@ void devconsole_delchar(void){
     uint16_t cy_ppos = cy_index * FONT_HEIGHT;
 
     devconsole_clearchar(cx_ppos, cy_ppos);
+    cursor_update();
 
     spinlock_release(&boot_fb_lock);
 }
@@ -364,10 +373,8 @@ void dev_console_clear(int mode){
 void devconsole_parsechar(char c){
     if(parse_state == devconsole_parse_state_normal){
         if(devconsole_isprintable(c)){
-            serial_write(c);
             devconsole_putchar(c);
         }else if(c == '\n'){
-            serial_write('\n');
             devconsole_putchar('\n');
             devconsole_putchar('\r');
         }else if(c == '\t'){
@@ -376,12 +383,15 @@ void devconsole_parsechar(char c){
             dev_console_clearescapebuffer();
             parse_state = devconsole_parse_state_escape;
         }else if(c == '\b'){
+            devconsole_delchar();
         }
     }else if(parse_state == devconsole_parse_state_escape){
         if(c == ANSI_CONTROL){
             parse_state = devconsole_parse_state_control;
         }else if(c == ANSI_CHARACTER_SET){
             parse_state = devconsole_parse_character_set;
+        }else if(c == ANSI_OS_COMMAND){
+            parse_state = devconsole_parse_state_os_command;
         }else{
             parse_state = devconsole_parse_state_normal;
         }
@@ -397,10 +407,11 @@ void devconsole_parsechar(char c){
             char* separator = strchr(data, ANSI_SEPARATOR);
             if(separator != NULL){
                 *separator = '\0';
-                cy_index = MIN(MAX(atoi(data), cy_index), cy_max_index);
-                cx_index = MIN(MAX(atoi(separator + sizeof(ANSI_SEPARATOR)), cx_index), cx_max_index);
+                cy_index = MIN(MAX(atoi(data) - 1, cy_min_index), cy_max_index);
+                cx_index = MIN(MAX(atoi(separator + sizeof(ANSI_SEPARATOR)) - 1, cx_min_index), cx_max_index);
             }
             parse_state = devconsole_parse_state_normal; 
+            cursor_update();
         }else if(c == ANSI_SCROLL_DOWN){
             int amount = 1;
             char* data = dev_console_get_espacebuffer();
@@ -411,6 +422,7 @@ void devconsole_parsechar(char c){
                 devconsole_new_line();
             }
             parse_state = devconsole_parse_state_normal; 
+            cursor_update();
         }else if(c == ANSI_CURSOR_DOWN){
             int amount = 1;
             char* data = dev_console_get_espacebuffer();
@@ -419,6 +431,7 @@ void devconsole_parsechar(char c){
             }
             cy_index = MIN(cy_index + amount, cy_max_index);
             parse_state = devconsole_parse_state_normal; 
+            cursor_update();
         }else if(c == ANSI_CURSOR_FORWARD){
             int amount = 1;
             char* data = dev_console_get_espacebuffer();
@@ -427,16 +440,73 @@ void devconsole_parsechar(char c){
             }
             cx_index = MIN(cx_index + amount, cx_max_index);
             parse_state = devconsole_parse_state_normal; 
+            cursor_update();
         }else if(c == ANSI_ERASE_IN_DISPLAY){
             int mode = atoi(dev_console_get_espacebuffer());
             dev_console_clear(mode);
             parse_state = devconsole_parse_state_normal; 
+            cursor_update();
+        }else if(c == ANSI_ERASE_IN_LINE){
+            size_t size_to_clear = (size_t)FONT_WIDTH * (cx_max_index - cx_index) * (size_t)FONT_HEIGHT;
+            void* background_base_to_clear = (void*)((uintptr_t)fb_background_base + cx_index * FONT_HEIGHT * FONT_WIDTH + cy_index * cx_max_index * FONT_HEIGHT * FONT_WIDTH);
+            memset32(background_base_to_clear, bg_color, size_to_clear);
+            parse_state = devconsole_parse_state_normal; 
+        }else if(c == ANSI_SCREEN_MODE){
+            char* data = dev_console_get_espacebuffer();
+            if(strlen(data) >= 2){
+                if(data[0] == ANSI_PRIVATE){
+                    data = data + sizeof(ANSI_PRIVATE);
+                    int data_code = atoi(data);
+                    if(data_code == ANSI_CURSOR){
+                        is_cursor = false;
+                    }
+                }
+            }
+            parse_state = devconsole_parse_state_normal; 
+        }else if(c == ANSI_SCREEN_RESET){
+            char* data = dev_console_get_espacebuffer();
+            if(strlen(data) >= 2){
+                if(data[0] == ANSI_PRIVATE){
+                    data = data + sizeof(ANSI_PRIVATE);
+                    int data_code = atoi(data);
+                    if(data_code == ANSI_CURSOR){
+                        is_cursor = true;
+                    }
+                }
+            }
+            parse_state = devconsole_parse_state_normal; 
+        }else if(c == ANSI_REQUEST_CURSOR_1){
+            if(dev_console_get_espacebuffer()[0] == ANSI_REQUEST_CURSOR_0){
+                char buf[16];
+                assert(!spinlock_acquire(&key_handler_lock));
+                print_to_key_buffer("\e[");
+                print_to_key_buffer(itoa(cy_index, buf, 10));
+                print_to_key_buffer(";");
+                print_to_key_buffer(itoa(cx_index, buf, 10));
+                print_to_key_buffer("R");
+                spinlock_release(&key_handler_lock);
+            }
+            parse_state = devconsole_parse_state_normal; 
+        }else if(c == ANSI_SCREEN_MARGIN){
+            char* data = dev_console_get_espacebuffer();
+            char* separator = strchr(data, ANSI_SEPARATOR);
+            if(separator != NULL){
+                *separator = '\0';
+                cy_min_index = atoi(data) - 1;
+                cy_max_index = atoi(separator + sizeof(ANSI_SEPARATOR)) - 1;
+            }
+            parse_state = devconsole_parse_state_normal; 
         }else{
+            log_info("Ignoring : %s%c\n", dev_console_get_espacebuffer(), c);
             parse_state = devconsole_parse_state_normal; 
         }
-    }else if(devconsole_parse_character_set){
+    }else if(parse_state == devconsole_parse_character_set){
         // TODO : Designate G0 Character Set
         parse_state = devconsole_parse_state_normal;
+    }else if(parse_state == devconsole_parse_state_os_command){
+        if(c == ASCII_BEL){
+            parse_state = devconsole_parse_state_normal;
+        }
     }
     
     if(parse_state == devconsole_parse_state_graphics){
@@ -485,6 +555,8 @@ void devconsole_print(const char* str, size_t size) {
     if(last_cy_index != cy_index){
         dev_check_display_update();
     }
+
+    cursor_update();
 }
 
 void dev_check_display_update(void){

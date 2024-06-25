@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <dirent.h>
 #include <string.h>
 #include <stdlib.h>
@@ -266,8 +267,13 @@ namespace mlibc{
     }
     #endif
 
-    int sys_pselect(int num_fds, fd_set *read_set, fd_set *write_set, fd_set *except_set, const struct timespec *timeout, const sigset_t *sigmask, int *num_events) {
-        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub!\n" << frg::endlog;
+    int sys_pselect(int nfds, fd_set* readfds, fd_set* writefds, fd_set *exceptfds, const struct timespec* timeout, const sigset_t* sigmask, int *num_events) {
+        auto result = do_syscall(SYS_SELECT, nfds, readfds, writefds, exceptfds, timeout, num_events);
+
+        if(result < 0){
+            return -result;
+        }
+        
         return 0;
     }
 
@@ -287,11 +293,5 @@ namespace mlibc{
         ts.tv_sec = timeout / 1000;
         ts.tv_nsec = (timeout % 1000) * 1000000;
         return sys_ppoll(fds, count, timeout < 0 ? NULL : &ts, NULL, num_events);
-    }
-
-    int sys_pipe(int *fds, int flags) {
-        mlibc::infoLogger() << "mlibc: " << __func__ << " is a stub" << frg::endlog;
-
-        return 0;
     }
 }

@@ -27,7 +27,7 @@ typedef struct kernel_socket_t{
     int (*connect)(struct kernel_socket_t*, const struct sockaddr*, socklen_t);
     int (*socket_send)(struct kernel_socket_t*, struct msghdr*, int, size_t*);
     int (*socket_recv)(struct kernel_socket_t*, struct msghdr*, int, size_t*);
-    int (*socket_get_event)(struct kernel_socket_t*, short, short*);
+    int (*get_event)(struct kernel_socket_t*, short, short*);
     struct kernel_socket_t* (*accept)(struct kernel_socket_t*, struct sockaddr*, socklen_t*, int*);
 } kernel_socket_t;
 

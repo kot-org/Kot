@@ -1,5 +1,6 @@
 #include <boot/limine.h>
 
+#include <poll.h>
 #include <errno.h>
 #include <stddef.h>
 #include <lib/log.h>
@@ -128,6 +129,20 @@ int initrd_close(kernel_file_t* file){
     return 0;
 }
 
+int initrd_get_event(kernel_file_t* file, short event, short* revent){
+    *revent = (event & (POLLIN | POLLOUT));
+
+    int event_count = 0;
+    if(event & POLLIN){
+        event_count++;
+    }
+    if(event & POLLOUT){
+        event_count++;
+    }
+    
+    return event_count;
+}
+
 kernel_file_t* initrd_open(fs_t* ctx, const char* path, int flags, mode_t mode, int* error){
     void* file_ptr = initrd_get_file(path);
     if(file_ptr != NULL){
@@ -141,6 +156,7 @@ kernel_file_t* initrd_open(fs_t* ctx, const char* path, int flags, mode_t mode, 
         file->ioctl = &initrd_ioctl;
         file->stat = &initrd_stat;
         file->close = &initrd_close;
+        file->get_event = &initrd_get_event;
         return file;
     }else{
         *error = ENOENT;

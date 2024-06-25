@@ -1,3 +1,4 @@
+#include <poll.h>
 #include <errno.h>
 #include <signal.h>
 #include <termios.h>
@@ -40,10 +41,9 @@ struct winsize console_window_size = {};
 
 spinlock_t key_handler_lock = SPINLOCK_INIT;
 
-char key_buffer[BUFFER_COUNT][KEY_BUFFER_SIZE + 1];
-uint8_t key_buffer_char_write_index = 0;
+char key_buffer[KEY_BUFFER_SIZE + 1];
 uint16_t key_buffer_char_index = 0;
-uint16_t key_buffer_char_read_index[BUFFER_COUNT] = {0, 0};
+size_t key_buffer_size = 0;
 
 thread_t* waiting_thread_for_input = NULL;
 spinlock_t lock_waiting_thread_for_input = {};
@@ -51,24 +51,25 @@ spinlock_t lock_waiting_thread_for_input = {};
 bool crtl_key_is_pressed = false;
 
 static void add_key_to_key_buffer(uint16_t key){
-    if(((key_buffer_char_index + 1)  % KEY_BUFFER_SIZE) == 0){
-        log_warning("[module/"MODULE_NAME"] flushing key buffer\n");
-    }
+    if(key_buffer_size < KEY_BUFFER_SIZE){
+        key_buffer[key_buffer_char_index] = key;
+        key_buffer_char_index = (key_buffer_char_index + 1);
+        key_buffer[key_buffer_char_index] = '\0';
 
-    key_buffer[key_buffer_char_write_index][key_buffer_char_index] = key;
-    key_buffer_char_index = (key_buffer_char_index + 1) % KEY_BUFFER_SIZE;
-    key_buffer[key_buffer_char_write_index][key_buffer_char_index] = '\0';
+        key_buffer_size++;
+
+        if(waiting_thread_for_input != NULL){
+            thread_t* thread_to_start = waiting_thread_for_input;
+            waiting_thread_for_input = NULL;
+            scheduler_unpause_thread(thread_to_start);
+        }
+    }
 }
 
-static void flush_key_buffer(void){
-    key_buffer_char_write_index = (key_buffer_char_write_index + 1) % BUFFER_COUNT;
-
-    key_buffer_char_index = 0;
-    key_buffer_char_read_index[key_buffer_char_write_index] = 0;
-    key_buffer[key_buffer_char_write_index][key_buffer_char_index] = '\0';
-
-    if(waiting_thread_for_input != NULL){
-        scheduler_unpause_thread(waiting_thread_for_input);
+void print_to_key_buffer(char* str){
+    while(*str){
+        add_key_to_key_buffer((uint16_t)*str);
+        str++;
     }
 }
 
@@ -87,26 +88,24 @@ void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed){
                         scheduler_signal_thread(last_thread_output, SIGINT);
                         last_thread_output = NULL;
                         waiting_thread_for_input = NULL;
-                        flush_key_buffer();
                         spinlock_release(&lock_waiting_thread_for_input);
                     }
                 }
             }else{
                 add_key_to_key_buffer(translated_key);
-                devconsole_putchar(translated_key);
+                if(is_cursor){
+                    devconsole_putchar(translated_key);
+                }
             }
         }else if(translated_key == '\n'){
             add_key_to_key_buffer(translated_key);
             
-            devconsole_putchar(translated_key);
-
-            flush_key_buffer();
-        }else if(translated_key == 0x8){
-            if(key_buffer_char_index != 0){
-                key_buffer_char_index--;
-                key_buffer[key_buffer_char_write_index][key_buffer_char_index] = '\0';
-                devconsole_delchar();
+            if(is_cursor){
+                devconsole_putchar(translated_key);
             }
+        }else if(translated_key == '\b'){
+            add_key_to_key_buffer(translated_key);
+            devconsole_delchar();
         }
 
         cursor_update();
@@ -119,25 +118,21 @@ int console_interface_read(void* buffer, size_t size, size_t* bytes_read, struct
     if(spinlock_test_and_acq(&lock_waiting_thread_for_input)){
         last_thread_output = scheduler_get_current_thread();
 
-        uint8_t key_buffer_to_read_index = !key_buffer_char_write_index;
-
-        if(key_buffer[key_buffer_to_read_index][key_buffer_char_read_index[key_buffer_to_read_index]] == '\0'){
+        if(key_buffer_size == 0){
             waiting_thread_for_input = scheduler_get_current_thread();
-            cursor_draw();
             scheduler_pause_thread(waiting_thread_for_input, NULL);
-            cursor_remove();
-            waiting_thread_for_input = NULL;
-            key_buffer_to_read_index = !key_buffer_char_write_index;
         }
 
 
         size_t size_read = 0;
 
-        while(size_read < size && key_buffer[key_buffer_to_read_index][key_buffer_char_read_index[key_buffer_to_read_index]] != '\0'){
-            ((char*)buffer)[size_read] = key_buffer[key_buffer_to_read_index][key_buffer_char_read_index[key_buffer_to_read_index]];
-            key_buffer_char_read_index[key_buffer_to_read_index]++;
+        while(size_read < key_buffer_size){
+            ((char*)buffer)[size_read] = key_buffer[size_read];
             size_read++;
         }
+
+        key_buffer_size = 0;
+        key_buffer_char_index = 0;
 
         *bytes_read = size_read;
 
@@ -220,6 +215,25 @@ int console_interface_close(kernel_file_t* file){
     return 0;
 }
 
+int console_interface_get_event(kernel_file_t* file, short event, short* revent){
+    *revent = (event & POLLOUT);
+
+    int event_count = 0;
+
+    if(event & POLLOUT){
+        event_count++;
+    }
+    
+    if(event & POLLIN){
+        if(key_buffer_size){
+            *revent |= POLLIN;
+            event_count++;
+        }
+    }
+
+    return event_count;
+}
+
 kernel_file_t* console_interface_open(struct fs_t* ctx, const char* path, int flags, mode_t mode, int* error){
     
     kernel_file_t* file = malloc(sizeof(kernel_file_t));
@@ -235,6 +249,7 @@ kernel_file_t* console_interface_open(struct fs_t* ctx, const char* path, int fl
     file->ioctl = console_interface_ioctl;
     file->stat = console_interface_stat;
     file->close = console_interface_close;
+    file->get_event = console_interface_get_event;
 
     return file;
 }

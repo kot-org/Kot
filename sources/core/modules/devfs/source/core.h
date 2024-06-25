@@ -1,6 +1,7 @@
 #ifndef _MODULE_DEVFS_CORE_H
 #define _MODULE_DEVFS_CORE_H
 
+#include <poll.h>
 #include <errno.h>
 #include <lib/math.h>
 #include <lib/memory.h>

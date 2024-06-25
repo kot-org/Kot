@@ -1,6 +1,7 @@
 #ifndef _MODULE_FAT32_CORE_H
 #define _MODULE_FAT32_CORE_H
 
+#include <poll.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <lib/math.h>

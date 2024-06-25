@@ -40,7 +40,7 @@ liamd/run: liamd/build ovmf-amd64
 	sudo qemu-system-x86_64 $(LIAMD_QEMU_FLAGS) -enable-kvm
 
 liamd/debug:
-	sudo qemu-system-x86_64 $(LIAMD_QEMU_FLAGS) -S -s
+	sudo qemu-system-x86_64 $(LIAMD_QEMU_FLAGS) -S -s | tee serial_output.txt
 
 # Limine AARCH64 (liarm)
 

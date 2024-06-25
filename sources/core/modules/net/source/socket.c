@@ -971,7 +971,7 @@ kernel_socket_t* socket_accept_handler(kernel_socket_t* socket, struct sockaddr*
     socket_child->close = &socket_close_handler;
     socket_child->socket_send = &socket_send_handler;
     socket_child->socket_recv = &socket_recv_handler;
-    socket_child->socket_get_event = &socket_get_event;
+    socket_child->get_event = &socket_get_event;
 
     socket_internal_data_t* child_internal_data = (socket_internal_data_t*)socket_child->internal_data;
     child_internal_data->lock = (spinlock_t)SPINLOCK_INIT;
@@ -1053,7 +1053,7 @@ kernel_socket_t* socket_handler(int family, int type, int protocol, int* error){
         socket->close = &socket_close_handler;
         socket->socket_send = &socket_send_handler;
         socket->socket_recv = &socket_recv_handler;
-        socket->socket_get_event = &socket_get_event;
+        socket->get_event = &socket_get_event;
 
         socket_internal_data_t* internal_data = (socket_internal_data_t*)socket->internal_data;
         internal_data->lock = (spinlock_t)SPINLOCK_INIT;

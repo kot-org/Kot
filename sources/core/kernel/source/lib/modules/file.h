@@ -22,6 +22,7 @@ typedef struct kernel_file_t{
     int (*ioctl)(uint32_t, void*, int*, struct kernel_file_t*);
     int (*stat)(int, struct stat*, struct kernel_file_t*);
     int (*close)(struct kernel_file_t*);
+    int (*get_event)(struct kernel_file_t*, short, short*);
 } kernel_file_t;
 
 #endif // LIB_MODULES_FILE_H
