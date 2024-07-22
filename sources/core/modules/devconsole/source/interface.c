@@ -105,7 +105,9 @@ void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed){
             }
         }else if(translated_key == '\b'){
             add_key_to_key_buffer(translated_key);
-            devconsole_delchar();
+            if(is_cursor){
+                devconsole_delchar();
+            }
         }
 
         cursor_update();

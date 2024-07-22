@@ -317,7 +317,7 @@ void devconsole_delchar(void){
 }
 
 bool devconsole_isprintable(uint16_t c){
-    return (c >= 0x21 && c <= 0x7E) || c == ' ';
+    return (c >= 0x21 && c <= 0x7E) || c == ' ' || c == '\t';
 }
 
 bool devconsole_aplha(uint16_t c){
@@ -348,7 +348,7 @@ void dev_console_clear(int mode){
         case 0:{
             {
                 size_t size_to_clear = (size_t)FONT_WIDTH * (cx_max_index - cx_index) * (size_t)FONT_HEIGHT;
-                void* background_base_to_clear = (void*)((uintptr_t)fb_background_base + cx_index * FONT_HEIGHT * FONT_HEIGHT);
+                void* background_base_to_clear = (void*)((uintptr_t)fb_background_base + cx_index * FONT_HEIGHT * FONT_HEIGHT * fb_btpp);
                 memset32(background_base_to_clear, bg_color, size_to_clear);
             }
             {
@@ -371,6 +371,7 @@ void dev_console_clear(int mode){
 }
 
 void devconsole_parsechar(char c){
+    serial_write(c);
     if(parse_state == devconsole_parse_state_normal){
         if(devconsole_isprintable(c)){
             devconsole_putchar(c);
@@ -447,10 +448,13 @@ void devconsole_parsechar(char c){
             parse_state = devconsole_parse_state_normal; 
             cursor_update();
         }else if(c == ANSI_ERASE_IN_LINE){
-            size_t size_to_clear = (size_t)FONT_WIDTH * (cx_max_index - cx_index) * (size_t)FONT_HEIGHT;
-            void* background_base_to_clear = (void*)((uintptr_t)fb_background_base + cx_index * FONT_HEIGHT * FONT_WIDTH + cy_index * cx_max_index * FONT_HEIGHT * FONT_WIDTH);
-            memset32(background_base_to_clear, bg_color, size_to_clear);
+            for(uint16_t i = 0; i < FONT_HEIGHT; i++){
+                size_t size_to_clear = (size_t)FONT_WIDTH * (cx_max_index - cx_index);
+                void* background_base_to_clear = (void*)((uintptr_t)fb_background_base + (cy_index * FONT_HEIGHT + i) * fb_pitch + cx_index * fb_btpp * FONT_WIDTH * FONT_HEIGHT);
+                memset32(background_base_to_clear, bg_color, size_to_clear);
+            }
             parse_state = devconsole_parse_state_normal; 
+            devconsole_update_display();
         }else if(c == ANSI_SCREEN_MODE){
             char* data = dev_console_get_espacebuffer();
             if(strlen(data) >= 2){

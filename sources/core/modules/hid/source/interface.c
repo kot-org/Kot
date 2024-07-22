@@ -35,9 +35,9 @@ int key_update_state(uint64_t scancode, bool is_pressed){
 
     uint16_t translated_key = 0;
 
-    assert(!spinlock_acquire(&scancode_translation_table_lock));
-
     uint64_t translation_index = scancode;
+    
+    assert(!spinlock_acquire(&scancode_translation_table_lock));
 
     if(is_caps_lock ^ is_shift_pressed){
         translation_index = translation_index + translated_key_shift_start;
@@ -51,8 +51,6 @@ int key_update_state(uint64_t scancode, bool is_pressed){
         translated_key = scancode_table_buffer[translation_index];
     }
 
-    spinlock_release(&scancode_translation_table_lock);
-
     if(translated_key == TSK_CAPS_LOCK && is_pressed){
         is_caps_lock = !is_caps_lock;
     }else if(translated_key == TSK_SHIFT){
@@ -60,6 +58,8 @@ int key_update_state(uint64_t scancode, bool is_pressed){
     }else if(translated_key == TSK_ALT_GR){
         is_alt_gr_pressed = is_pressed;
     }
+
+    spinlock_release(&scancode_translation_table_lock);
 
     handler(scancode, translated_key, is_pressed);
 
