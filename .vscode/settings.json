@@ -206,7 +206,8 @@
         "stdlib.h": "c",
         "update.h": "c",
         "launch.h": "c",
-        "untar.h": "c"
+        "untar.h": "c",
+        "ft2build.h": "c"
     },
     "files.exclude": {
         "bundled": true,

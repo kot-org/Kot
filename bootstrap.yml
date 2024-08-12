@@ -11,6 +11,8 @@ declare_options:
     default: "amd64"
   - name: "boot_name"
     default: "limine"
+  - name: "ar"
+    default: "x86_64-kot-ar"
   - name: "cc"
     default: "x86_64-kot-gcc"
   - name: "cxx"

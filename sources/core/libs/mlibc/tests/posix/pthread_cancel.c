@@ -76,7 +76,7 @@ static void *worker5(void *arg) {
 	return NULL;
 }
 
-static void check_result(pthread_t thread) {
+static void checint(pthread_t thread) {
 
 	void *ret_val = NULL;
 	int ret = pthread_join(thread, &ret_val);
@@ -92,7 +92,7 @@ int main() {
 	while (!worker_ready);
 	ret = pthread_cancel(thread);
 	assert(!ret);
-	check_result(thread);
+	checint(thread);
 
 	main_ready = 0;
 	worker_ready = 0;
@@ -104,7 +104,7 @@ int main() {
 	ret = pthread_cancel(thread);
 	assert(!ret);
 	main_ready = 1;
-	check_result(thread);
+	checint(thread);
 
 	main_ready = 0;
 	worker_ready = 0;
@@ -116,7 +116,7 @@ int main() {
 	ret = pthread_cancel(thread);
 	assert(!ret);
 	main_ready = 1;
-	check_result(thread);
+	checint(thread);
 
 	worker_ready = 0;
 	main_ready = 0;
@@ -127,7 +127,7 @@ int main() {
 	ret = pthread_cancel(thread);
 	assert(!ret);
 	main_ready = 1;
-	check_result(thread);
+	checint(thread);
 
 	// Test for bug where pthread_testcancel() was not checking if
 	// cancellation was triggered properly.

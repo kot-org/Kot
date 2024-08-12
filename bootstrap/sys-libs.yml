@@ -164,34 +164,107 @@ packages:
           CXX: "@OPTION:cxx@"
           LD: "@OPTION:ld@"
           ASMC: "@OPTION:asmc@"
-
     build:
       - args: ['make', '-j@PARALLELISM@']
       - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
   
-  # - name: libarchive
-  #   source:
-  #     subdir: 'bundled'
-  #     git: 'https://github.com/libarchive/libarchive'
-  #     tag: 'v3.7.4'
-  #     version: '3.7.4'
-  #   tools_required:
-  #     - host-gcc
-  #   pkgs_required:
-  #     - mlibc
-  #   revision: 4
-  #   configure:
-  #     - args:
-  #       - 'cmake'
-  #       - '@THIS_SOURCE_DIR@'
-  #       - '-DCMAKE_INSTALL_PREFIX=/usr'
-  #       - '-DBUILD_SHARED_LIBS=Off'
-  #       environ:
-  #         CC: "@OPTION:cc@"
-  #         CXX: "@OPTION:cxx@"
-  #         LD: "@OPTION:ld@"
-  #         ASMC: "@OPTION:asmc@"
+  - name: zlib
+    source:
+      subdir: 'bundled'
+      git: 'https://github.com/madler/zlib'
+      tag: 'v1.3.1'
+      version: '1.3.1'
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+    revision: 4
+    configure:
+      - args:
+        - 'cmake'
+        - '@THIS_SOURCE_DIR@'
+        - '-DCMAKE_INSTALL_PREFIX=/usr'
+        - '-DBUILD_SHARED_LIBS=Off'
+        environ:
+          CC: "@OPTION:cc@"
+          CXX: "@OPTION:cxx@"
+          LD: "@OPTION:ld@"
+          ASMC: "@OPTION:asmc@"
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
 
-  #   build:
-  #     - args: ['make', '-j@PARALLELISM@']
-  #     - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
+  - name: libpng
+    source:
+      subdir: 'bundled'
+      git: 'https://github.com/winlibs/libpng'
+      tag: 'libpng-1.6.34'
+      version: '1.6.34'
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+      - zlib
+    revision: 4
+    configure:
+      - args:
+        - 'cmake'
+        - '@THIS_SOURCE_DIR@'
+        - '-DCMAKE_INSTALL_PREFIX=/usr'
+        - '-DBUILD_SHARED_LIBS=Off'
+        environ:
+          CC: "@OPTION:cc@"
+          CXX: "@OPTION:cxx@"
+          LD: "@OPTION:ld@"
+          ASMC: "@OPTION:asmc@"
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
+  
+  - name: freetype
+    source:
+      git: 'https://github.com/freetype/freetype'
+      subdir: 'Bundled'
+      tag: 'VER-2-11-1'
+      version: '2.11.1'
+    pkgs_required:
+      - mlibc
+    tools_required:
+      - host-gcc
+    configure:
+    - args:
+      - 'cmake'
+      - '@THIS_SOURCE_DIR@'
+      - '-DCMAKE_INSTALL_PREFIX=/usr'
+      - '-DBUILD_SHARED_LIBS=Off'
+      environ:
+        CC: "@OPTION:cc@"
+        CXX: "@OPTION:cxx@"
+        LD: "@OPTION:ld@"
+        ASMC: "@OPTION:asmc@"
+    build:
+      - args: ['make', '-j@PARALLELISM@']
+      - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
+
+  - name: kot-graphics
+    source:
+      subdir: 'sources/core/libs'
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+      - freetype
+    build:
+      - args: 
+        - 'make'
+        - 'DESTDIR=@THIS_COLLECT_DIR@'
+        - 'PREFIX=/usr'
+        - '-C'
+        - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@'
+        - 'build'
+        environ:
+          AR: "@OPTION:ar@"
+          CC: "@OPTION:cc@"
+          CXX: "@OPTION:cxx@"
+          LD: "@OPTION:ld@"
+          ASMC: "@OPTION:asmc@"
