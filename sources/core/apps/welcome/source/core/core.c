@@ -1,3 +1,4 @@
+#include <math.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -15,6 +16,8 @@
 
 #include <kot-graphics/font.h>
 #include <kot-graphics/utils.h>
+#include <kot-graphics/image.h>
+
 
 kfont_t font;
 
@@ -58,6 +61,16 @@ int main(int argc, char* argv[]){
         return EXIT_FAILURE;
     }
 
+    raw_image_t* wallpaper = load_jpeg_image_file("/usr/bin/res/welcome/welcome.jpg");
+
+    raw_image_t* wallpaper_resized = resize_image(wallpaper, 0, fb.height, true);
+
+    free_raw_image(wallpaper);
+
+    draw_image(&fb, wallpaper_resized, 600, 0, fb.width - 600, fb.height);
+
+    free_raw_image(wallpaper_resized);
+
     FILE* font_file = fopen("/usr/bin/res/welcome/welcome.ttf", "rb");
 
     if(font_file == NULL){
@@ -76,11 +89,16 @@ int main(int argc, char* argv[]){
 
     fclose(font_file);
 
-    load_pen(font, &fb, 0, 0, 64, 0, 0xffffff);
-    draw_font(font, "Welcome to Kot");
+    draw_rectangle(&fb, 0, 0, fmin(600, fb.width), fb.height, 0x222222);
 
-    load_pen(font, &fb, 0, 0, 24, 0, 0xffffff);
-    write_paragraph(font, 0, get_line_height(font) * 2 + 20, 500, PARAGRAPH_JUSTIFY, "Kot is nothing more than an Operating System running on x86-64. And you already know that, but we're making to turn Kot more than just something.");
+    load_pen(font, &fb, 50, 0, 64, 0, 0xffffff);
+    write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "Welcome to Kot\n");
+
+    set_pen_size(font, 32);
+    write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "\"Kot is nothing more than an Operating System running on x86-64. And you already know that, but we're making to turn Kot more than just something.\"\n");
+    
+    set_pen_size(font, 24);
+    write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_RIGHT, "Kot team\n");
 
     draw_frame();
 

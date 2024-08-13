@@ -194,17 +194,15 @@ packages:
       - args: ['make', '-j@PARALLELISM@']
       - args: ['make', 'DESTDIR=@THIS_COLLECT_DIR@', 'install']
 
-  - name: libpng
+  - name: libjpeg
     source:
       subdir: 'bundled'
-      git: 'https://github.com/winlibs/libpng'
-      tag: 'libpng-1.6.34'
-      version: '1.6.34'
+      git: 'https://github.com/libjpeg-turbo/libjpeg-turbo'
+      branch: 'main'
     tools_required:
       - host-gcc
     pkgs_required:
       - mlibc
-      - zlib
     revision: 4
     configure:
       - args:
@@ -254,6 +252,7 @@ packages:
     pkgs_required:
       - mlibc
       - freetype
+      - libjpeg
     build:
       - args: 
         - 'make'

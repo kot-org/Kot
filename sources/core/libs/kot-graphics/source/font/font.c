@@ -229,7 +229,7 @@ int draw_font_n(kfont_t opaque, char* str, size_t len){
                 FT_Int x_pos = delta_x + x;
                 FT_Int y_pos = delta_y + y;
                 if(slot->bitmap.buffer[y * slot->bitmap.width + x]){
-                    put_pixel(&font->fb, x_pos, y_pos, blend_alpha(font->color, slot->bitmap.buffer[y * slot->bitmap.width + x]));
+                    put_pixel(&font->fb, x_pos, y_pos, blend_colors(get_pixel(&font->fb, x_pos, y_pos), font->color, slot->bitmap.buffer[y * slot->bitmap.width + x]));
                 }
             }
         }
@@ -332,6 +332,14 @@ int write_paragraph(kfont_t opaque, kfont_pos_t x, kfont_pos_t y, kfont_pos_t wi
     kfont_pos_t char_width = get_glyph_width(opaque);
     kfont_pos_t text_width;
     kfont_pos_t max_char_line = width / char_width;
+
+    if(x < 0){
+        x = get_pen_pos_x(opaque);
+    }
+
+    if(y < 0){
+        y = get_pen_pos_y(opaque);
+    }
     kfont_pos_t current_x = x;
     kfont_pos_t current_y = y;
 
@@ -356,7 +364,6 @@ int write_paragraph(kfont_t opaque, kfont_pos_t x, kfont_pos_t y, kfont_pos_t wi
             while(*line_end != ' ' || text_width > width){
                 line_end--;
 
-                printf("%d\n", text_width);
                 text_width -= char_width;
 
                 if(line_end <= line_start){
@@ -381,14 +388,23 @@ int write_paragraph(kfont_t opaque, kfont_pos_t x, kfont_pos_t y, kfont_pos_t wi
                 if(space_available > 0){
                     kfont_pos_t real_text_width = text_width;
                     get_textbox_info_n(opaque, line_start, line_end - line_start, &real_text_width, NULL, NULL, NULL);
-                    font->space_size += ROUND_UP_DIVISION(width - real_text_width + current_x - x, space_available);
-                    printf("%d %d\n", char_width, font->space_size);
+                    font->space_size += (width - real_text_width) / space_available;
                 }
             }
         }
 
         if(format == PARAGRAPH_CENTER){
-            x += (width - text_width) / 2;
+            kfont_pos_t real_text_width = text_width;
+            get_textbox_info_n(opaque, line_start, line_end - line_start, &real_text_width, NULL, NULL, NULL);
+            current_x += (width - real_text_width) / 2;
+            set_pen_pos_x(opaque, current_x);
+        }
+
+        if(format == PARAGRAPH_RIGHT){
+            kfont_pos_t real_text_width = text_width;
+            get_textbox_info_n(opaque, line_start, line_end - line_start, &real_text_width, NULL, NULL, NULL);
+            current_x += width - real_text_width;
+            set_pen_pos_x(opaque, current_x);            
         }
 
         draw_font_n(opaque, line_start, line_end - line_start);
@@ -411,6 +427,9 @@ int write_paragraph(kfont_t opaque, kfont_pos_t x, kfont_pos_t y, kfont_pos_t wi
             font->space_size = char_width;
         }
     }
+
+    set_pen_pos_x(opaque, current_x);
+    set_pen_pos_y(opaque, current_y);
 
     return 0;
 }

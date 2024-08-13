@@ -20,7 +20,8 @@ typedef uint32_t color_t;
 
 void put_pixel(kframebuffer_t* fb, uint32_t x, uint32_t y, uint32_t color);
 uint32_t get_pixel(kframebuffer_t* fb, uint32_t x, uint32_t y);
-uint32_t blend_colors(uint32_t color1, uint32_t color2, float factor);
+uint32_t blend_colors(uint32_t color1, uint32_t color2, uint8_t factor);
 uint32_t blend_alpha(uint32_t color, uint8_t factor);
+void draw_rectangle(kframebuffer_t* fb, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color);
 
 #endif // KOT_GRAPHICS_UTILS
