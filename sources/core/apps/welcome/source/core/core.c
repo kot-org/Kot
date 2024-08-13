@@ -61,15 +61,21 @@ int main(int argc, char* argv[]){
         return EXIT_FAILURE;
     }
 
-    raw_image_t* wallpaper = load_jpeg_image_file("/usr/bin/res/welcome/welcome.jpg");
+    raw_image_t* wallpaper0 = load_jpeg_image_file("/usr/bin/res/welcome/welcome0.jpg");
+    raw_image_t* wallpaper0_resized = resize_image(wallpaper0, 0, fb.height, true);
+    free_raw_image(wallpaper0);
 
-    raw_image_t* wallpaper_resized = resize_image(wallpaper, 0, fb.height, true);
+    raw_image_t* wallpaper1 = load_jpeg_image_file("/usr/bin/res/welcome/welcome1.jpg");
+    raw_image_t* wallpaper1_resized = resize_image(wallpaper1, 0, fb.height, true);
+    free_raw_image(wallpaper1);
 
-    free_raw_image(wallpaper);
+    raw_image_t* wallpaper2 = load_jpeg_image_file("/usr/bin/res/welcome/welcome2.jpg");
+    raw_image_t* wallpaper2_resized = resize_image(wallpaper2, 0, fb.height, true);
+    free_raw_image(wallpaper2);
 
-    draw_image(&fb, wallpaper_resized, 600, 0, fb.width - 600, fb.height);
-
-    free_raw_image(wallpaper_resized);
+    raw_image_t* wallpaper3 = load_jpeg_image_file("/usr/bin/res/welcome/welcome3.jpg");
+    raw_image_t* wallpaper3_resized = resize_image(wallpaper3, 0, fb.height, true);
+    free_raw_image(wallpaper3);
 
     FILE* font_file = fopen("/usr/bin/res/welcome/welcome.ttf", "rb");
 
@@ -89,22 +95,76 @@ int main(int argc, char* argv[]){
 
     fclose(font_file);
 
-    draw_rectangle(&fb, 0, 0, fmin(600, fb.width), fb.height, 0x222222);
-
-    load_pen(font, &fb, 50, 0, 64, 0, 0xffffff);
-    write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "Welcome to Kot\n");
-
-    set_pen_size(font, 32);
-    write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "\"Kot is nothing more than an Operating System running on x86-64. And you already know that, but we're making to turn Kot more than just something.\"\n");
-    
-    set_pen_size(font, 24);
-    write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_RIGHT, "Kot team\n");
-
-    draw_frame();
-
     while(true){
-        sleep(1);
-    }   
+        draw_image(&fb, wallpaper0_resized, 600, 0, fb.width - 600, fb.height);
+        draw_rectangle(&fb, 0, 0, fmin(600, fb.width), fb.height, 0x222222);
+
+        load_pen(font, &fb, 50, 0, 64, 0, 0xffffff);
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "Welcome to Kot\n");
+
+        set_pen_size(font, 32);
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "\"Kot is nothing more than an Operating System running on x86-64. And you already know that, but we're making to turn Kot more than just something.\"\n");
+        
+        set_pen_size(font, 24);
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_RIGHT, "Kot team\n");
+        draw_frame();
+
+        sleep(5);
+
+        draw_image(&fb, wallpaper1_resized, 600, 0, fb.width - 600, fb.height);
+        draw_rectangle(&fb, 0, 0, fmin(600, fb.width), fb.height, 0x222222);
+
+        load_pen(font, &fb, 50, 0, 64, 0, 0xffffff);
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "Credits :\n");
+
+        set_pen_size(font, 32);
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "Without the contributions of the following individuals (GitHub pseudonyms, listed alphabetically), Kot would not have existed:");
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- 0xS3B\n");
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- konect-V\n");
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- Moldytzu\n");
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- RaphProduction\n");
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- YiraSan\n");
+
+        draw_frame();
+
+        sleep(5);
+
+        draw_image(&fb, wallpaper2_resized, 600, 0, fb.width - 600, fb.height);
+        draw_rectangle(&fb, 0, 0, fmin(600, fb.width), fb.height, 0x222222);
+
+        load_pen(font, &fb, 50, 0, 64, 0, 0xffffff);
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "Github :\n");
+
+        set_pen_size(font, 32);
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "We have a GitHub repository available at the following link:\n");
+        set_pen_size(font, 27);
+        set_pen_color(font, 0x33ddff);
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "https://github.com/kot-org/Kot\n");
+        set_pen_color(font, 0xffffff);
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "Don't forget to star the GitHub repository to show your support!\n");
+        
+        draw_frame();
+
+        sleep(5);
+
+        draw_image(&fb, wallpaper3_resized, 600, 0, fb.width - 600, fb.height);
+        draw_rectangle(&fb, 0, 0, fmin(600, fb.width), fb.height, 0x222222);
+
+        load_pen(font, &fb, 50, 0, 64, 0, 0xffffff);
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "Play Doom on Kot\n");
+
+        set_pen_size(font, 32);
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "Play Doom on Kot and experience the classic game in a new way!\n");
+        
+        draw_frame();
+
+        sleep(5);
+    }
+
+    free_raw_image(wallpaper0_resized);
+    free_raw_image(wallpaper1_resized);
+    free_raw_image(wallpaper2_resized);
+    free_raw_image(wallpaper3_resized);
 
     return EXIT_SUCCESS;
 }
