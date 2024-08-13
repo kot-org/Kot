@@ -422,6 +422,8 @@ packages:
     pkgs_required:
       - mlibc
       - freetype
+      - libjpeg
+      - kot-graphics
     build:
       - args: 
         - 'make'
