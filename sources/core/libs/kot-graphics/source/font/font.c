@@ -420,6 +420,7 @@ int write_paragraph(kfont_t opaque, kfont_pos_t x, kfont_pos_t y, kfont_pos_t wi
             line_start++;
         }
         while(*line_start == '\n'){
+            current_y += line_height;
             line_start++;
         } 
         line_end = line_start;

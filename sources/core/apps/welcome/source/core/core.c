@@ -99,10 +99,10 @@ int main(int argc, char* argv[]){
         draw_image(&fb, wallpaper0_resized, 600, 0, fb.width - 600, fb.height);
         draw_rectangle(&fb, 0, 0, fmin(600, fb.width), fb.height, 0x222222);
 
-        load_pen(font, &fb, 50, 0, 64, 0, 0xffffff);
+        load_pen(font, &fb, 50, 0, 36, 0, 0xffffff);
         write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "Welcome to Kot\n");
 
-        set_pen_size(font, 32);
+        set_pen_size(font, 27);
         write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "\"Kot is nothing more than an Operating System running on x86-64. And you already know that, but we're making to turn Kot more than just something.\"\n");
         
         set_pen_size(font, 24);
@@ -114,16 +114,16 @@ int main(int argc, char* argv[]){
         draw_image(&fb, wallpaper1_resized, 600, 0, fb.width - 600, fb.height);
         draw_rectangle(&fb, 0, 0, fmin(600, fb.width), fb.height, 0x222222);
 
-        load_pen(font, &fb, 50, 0, 64, 0, 0xffffff);
+        load_pen(font, &fb, 50, 0, 36, 0, 0xffffff);
         write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "Credits :\n");
 
-        set_pen_size(font, 32);
+        set_pen_size(font, 27);
         write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "Without the contributions of the following individuals (GitHub pseudonyms, listed alphabetically), Kot would not have existed:");
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- 0xS3B\n");
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- konect-V\n");
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- Moldytzu\n");
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- RaphProduction\n");
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- YiraSan\n");
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- 0xS3B");
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- konect-V");
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- Moldytzu");
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- RaphProduction");
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- YiraSan");
 
         draw_frame();
 
@@ -132,12 +132,11 @@ int main(int argc, char* argv[]){
         draw_image(&fb, wallpaper2_resized, 600, 0, fb.width - 600, fb.height);
         draw_rectangle(&fb, 0, 0, fmin(600, fb.width), fb.height, 0x222222);
 
-        load_pen(font, &fb, 50, 0, 64, 0, 0xffffff);
+        load_pen(font, &fb, 50, 0, 36, 0, 0xffffff);
         write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "Github :\n");
 
-        set_pen_size(font, 32);
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "We have a GitHub repository available at the following link:\n");
         set_pen_size(font, 27);
+        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "We have a GitHub repository available at the following link:\n");
         set_pen_color(font, 0x33ddff);
         write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "https://github.com/kot-org/Kot\n");
         set_pen_color(font, 0xffffff);
@@ -150,10 +149,10 @@ int main(int argc, char* argv[]){
         draw_image(&fb, wallpaper3_resized, 600, 0, fb.width - 600, fb.height);
         draw_rectangle(&fb, 0, 0, fmin(600, fb.width), fb.height, 0x222222);
 
-        load_pen(font, &fb, 50, 0, 64, 0, 0xffffff);
+        load_pen(font, &fb, 50, 0, 36, 0, 0xffffff);
         write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "Play Doom on Kot\n");
 
-        set_pen_size(font, 32);
+        set_pen_size(font, 27);
         write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "Play Doom on Kot and experience the classic game in a new way!\n");
         
         draw_frame();
