@@ -36,7 +36,7 @@ $(LIB)/%_c.o: $(SOURCE)/%.c
 
 link:
 	@ mkdir -m 777 -p $(BIN)
-	@ $(CC) $(LDFLAGS) -o $(BIN)/ip $(OBJS) $(LIBRARIES)/libcurl.a $(LIBRARIES)/libtls.a $(LIBRARIES)/libssl.a
+	@ $(CC) $(LDFLAGS) -o $(BIN)/ip $(OBJS) $(LIBRARIES)/libz.a $(LIBRARIES)/libcurl.a $(LIBRARIES)/libtls.a $(LIBRARIES)/libssl.a
 
 tar: 
 	@ mkdir -m 777 -p $(TAR)

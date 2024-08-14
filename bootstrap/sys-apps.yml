@@ -222,6 +222,7 @@ packages:
       - host-gcc
     pkgs_required:
       - mlibc
+      - libz
     configure:
       - args:
         - '@THIS_SOURCE_DIR@/configure'
