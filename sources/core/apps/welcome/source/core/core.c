@@ -18,6 +18,19 @@
 #include <kot-graphics/utils.h>
 #include <kot-graphics/image.h>
 
+#define TEXT_WIDTH          500
+#define TEXT_MARGIN         100
+#define TITLE_SIZE          36
+#define TEXT_SIZE           27
+#define SIGNATURE_SIZE      24
+#define TEXT_START          TEXT_MARGIN / 2
+#define TEXT_COLOR          0xffffff
+#define LINK_COLOR          0x33ddff
+#define TEXT_BACKGROUND     0x222222
+#define TEXT_BOX_WIDTH      TEXT_WIDTH + TEXT_MARGIN
+#define SLIDE_TIME          5000
+#define PROGRESSBAR_HEIGHT  50
+#define PROGRESSBAR_COLOR   0xffffff
 
 kfont_t font;
 
@@ -26,11 +39,45 @@ kframebuffer_t fb;
 struct fb_fix_screeninfo fix_screeninfo;
 struct fb_var_screeninfo var_screeninfo;
 
+uint64_t get_ticks_ms(){
+    struct timeval tv; 
+    gettimeofday(&tv, NULL);
+    uint64_t milliseconds = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+    return milliseconds;
+}
 
 void draw_frame(){
     write(fb_fd, fb.buffer, fb.size);
 }
 
+int get_key(int* pressed, uint64_t* key){
+    int64_t buffer;
+    if(read(fb_fd, &buffer, 1) > 0){
+        if(buffer & ((uint64_t)1 << 63)){
+            *pressed = true;
+        }else{
+            *pressed = false;
+        }
+        *key = buffer & ~((uint64_t)1 << 63);
+    }
+    return 0;
+}
+
+int wait_for_the_next_slide(){
+    int ret = 0;
+    uint64_t start_tick = get_ticks_ms();
+    uint64_t current_tick = start_tick; 
+    uint64_t tick_to_stop = start_tick + SLIDE_TIME;
+
+    while(current_tick < tick_to_stop){
+        current_tick = get_ticks_ms();
+        uint64_t progress_size = ((current_tick - start_tick) * TEXT_BOX_WIDTH) / SLIDE_TIME;
+        draw_rectangle(&fb, 0, fb.height - PROGRESSBAR_HEIGHT, progress_size, PROGRESSBAR_HEIGHT, PROGRESSBAR_COLOR);
+        draw_frame();
+    }
+
+    return ret;
+}
 
 int main(int argc, char* argv[]){
     fb_fd = open("/dev/fb0", O_RDWR); 
@@ -96,68 +143,76 @@ int main(int argc, char* argv[]){
     fclose(font_file);
 
     while(true){
-        draw_image(&fb, wallpaper0_resized, 600, 0, fb.width - 600, fb.height);
-        draw_rectangle(&fb, 0, 0, fmin(600, fb.width), fb.height, 0x222222);
+        draw_image(&fb, wallpaper0_resized, TEXT_BOX_WIDTH, 0, fb.width - TEXT_BOX_WIDTH, fb.height);
+        draw_rectangle(&fb, 0, 0, fmin(TEXT_BOX_WIDTH, fb.width), fb.height, TEXT_BACKGROUND);
 
-        load_pen(font, &fb, 50, 0, 36, 0, 0xffffff);
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "Welcome to Kot\n");
+        load_pen(font, &fb, TEXT_START, 0, TITLE_SIZE, 0, TEXT_COLOR);
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Welcome to Kot\n");
 
-        set_pen_size(font, 27);
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "\"Kot is nothing more than an Operating System running on x86-64. And you already know that, but we're making to turn Kot more than just something.\"\n");
+        set_pen_size(font, TEXT_SIZE);
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "\"Kot is nothing more than an Operating System running on x86-64. And you already know that, but we're making to turn Kot more than just something.\"\n");
         
-        set_pen_size(font, 24);
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_RIGHT, "Kot team\n");
+        set_pen_size(font, SIGNATURE_SIZE);
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_RIGHT, "Kot team\n");
         draw_frame();
 
-        sleep(5);
+        if(wait_for_the_next_slide()){
+            break;
+        }
 
-        draw_image(&fb, wallpaper1_resized, 600, 0, fb.width - 600, fb.height);
-        draw_rectangle(&fb, 0, 0, fmin(600, fb.width), fb.height, 0x222222);
+        draw_image(&fb, wallpaper1_resized, TEXT_BOX_WIDTH, 0, fb.width - TEXT_BOX_WIDTH, fb.height);
+        draw_rectangle(&fb, 0, 0, fmin(TEXT_BOX_WIDTH, fb.width), fb.height, TEXT_BACKGROUND);
 
-        load_pen(font, &fb, 50, 0, 36, 0, 0xffffff);
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "Credits :\n");
+        load_pen(font, &fb, TEXT_START, 0, TITLE_SIZE, 0, TEXT_COLOR);
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Credits :\n");
 
-        set_pen_size(font, 27);
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "Without the contributions of the following individuals (GitHub pseudonyms, listed alphabetically), Kot would not have existed:");
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- 0xS3B");
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- konect-V");
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- Moldytzu");
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- RaphProduction");
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_LEFT, "- YiraSan");
+        set_pen_size(font, TEXT_SIZE);
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "Without the contributions of the following individuals (GitHub pseudonyms, listed alphabetically), Kot would not have existed:");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_LEFT, "- 0xS3B");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_LEFT, "- konect-V");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_LEFT, "- Moldytzu");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_LEFT, "- RaphProduction");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_LEFT, "- YiraSan");
 
         draw_frame();
 
-        sleep(5);
+        if(wait_for_the_next_slide()){
+            break;
+        }
 
-        draw_image(&fb, wallpaper2_resized, 600, 0, fb.width - 600, fb.height);
-        draw_rectangle(&fb, 0, 0, fmin(600, fb.width), fb.height, 0x222222);
+        draw_image(&fb, wallpaper2_resized, TEXT_BOX_WIDTH, 0, fb.width - TEXT_BOX_WIDTH, fb.height);
+        draw_rectangle(&fb, 0, 0, fmin(TEXT_BOX_WIDTH, fb.width), fb.height, TEXT_BACKGROUND);
 
-        load_pen(font, &fb, 50, 0, 36, 0, 0xffffff);
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "Github :\n");
+        load_pen(font, &fb, TEXT_START, 0, TITLE_SIZE, 0, TEXT_COLOR);
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Github :\n");
 
-        set_pen_size(font, 27);
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "We have a GitHub repository available at the following link:\n");
-        set_pen_color(font, 0x33ddff);
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "https://github.com/kot-org/Kot\n");
-        set_pen_color(font, 0xffffff);
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "Don't forget to star the GitHub repository to show your support!\n");
-        
-        draw_frame();
-
-        sleep(5);
-
-        draw_image(&fb, wallpaper3_resized, 600, 0, fb.width - 600, fb.height);
-        draw_rectangle(&fb, 0, 0, fmin(600, fb.width), fb.height, 0x222222);
-
-        load_pen(font, &fb, 50, 0, 36, 0, 0xffffff);
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_CENTER, "Play Doom on Kot\n");
-
-        set_pen_size(font, 27);
-        write_paragraph(font, -1, -1, fmin(500, fb.width), PARAGRAPH_JUSTIFY, "Play Doom on Kot and experience the classic game in a new way!\n");
+        set_pen_size(font, TEXT_SIZE);
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "We have a GitHub repository available at the following link:\n");
+        set_pen_color(font, LINK_COLOR);
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "https://github.com/kot-org/Kot\n");
+        set_pen_color(font, TEXT_COLOR);
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "Don't forget to star the GitHub repository to show your support!\n");
         
         draw_frame();
 
-        sleep(5);
+        if(wait_for_the_next_slide()){
+            break;
+        }
+
+        draw_image(&fb, wallpaper3_resized, TEXT_BOX_WIDTH, 0, fb.width - TEXT_BOX_WIDTH, fb.height);
+        draw_rectangle(&fb, 0, 0, fmin(TEXT_BOX_WIDTH, fb.width), fb.height, TEXT_BACKGROUND);
+
+        load_pen(font, &fb, TEXT_START, 0, TITLE_SIZE, 0, TEXT_COLOR);
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Play Doom on Kot\n");
+
+        set_pen_size(font, TEXT_SIZE);
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "Play Doom on Kot and experience the classic game in a new way!\n");
+        
+        draw_frame();
+
+        if(wait_for_the_next_slide()){
+            break;
+        }
     }
 
     free_raw_image(wallpaper0_resized);

@@ -222,11 +222,12 @@ packages:
   - name: freetype
     source:
       git: 'https://github.com/freetype/freetype'
-      subdir: 'Bundled'
+      subdir: 'bundled'
       tag: 'VER-2-11-1'
       version: '2.11.1'
     pkgs_required:
       - mlibc
+      - zlib
     tools_required:
       - host-gcc
     configure:
