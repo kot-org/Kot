@@ -16,8 +16,7 @@ LIB = lib
 CFLAGS = -Werror
 
 LDFLAGS = -Wall \
-		  -lc \
-		  -lz
+		  -lc
 
 # Recursive Wild Card
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
@@ -35,6 +34,6 @@ $(LIB)/%_c.o: $(SOURCE)/%.c
 
 link:
 	@ mkdir -m 777 -p $(BIN)
-	@ $(CC) $(LDFLAGS) -o $(BIN)/store $(OBJS) $(LIBRARIES)/libcurl.a $(LIBRARIES)/libtls.a $(LIBRARIES)/libssl.a $(LIBRARIES)/libcjson.a
+	@ $(CC) $(LDFLAGS) -o $(BIN)/store $(OBJS) $(LIBRARIES)/libcurl.a $(LIBRARIES)/libtls.a $(LIBRARIES)/libssl.a $(LIBRARIES)/libcjson.a $(LIBRARIES)/libz.a
 
 build: $(OBJS) link

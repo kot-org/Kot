@@ -4,8 +4,10 @@
 #include <assert.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/wait.h>
 #include <linux/fb.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
 
 
 int main(int argc, char* argv[]){
@@ -27,7 +29,19 @@ int main(int argc, char* argv[]){
 
     setenv("PS1", "\\[\e[0;92m$USER@$HOSTNAME\e[0;37m: \e[0;94m\\w\e[0;37m\\$\e[0m\\] ", 1); // '#' is used to indicate root user session
 
-    char *exe_argv[2] = {"/usr/bin/bash", NULL};
+    pid_t p = fork(); 
+    if(p < 0){ 
+        perror("init: fork fail"); 
+        return EXIT_FAILURE;
+    }else if (p == 0){
+        char* exe_argv[2] = {"/usr/bin/welcome", NULL};
+        execvp("/usr/bin/welcome", exe_argv);
+    }
+
+    int status = 0;
+    wait(&status);
+
+    char* exe_argv[2] = {"/usr/bin/bash", NULL};
     execvp("/usr/bin/bash", exe_argv);
 
     perror("init: /usr/bin/bash");

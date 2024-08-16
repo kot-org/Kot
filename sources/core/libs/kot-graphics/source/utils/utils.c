@@ -57,7 +57,7 @@ uint32_t blend_alpha(uint32_t color, uint8_t factor){
 void draw_rectangle(kframebuffer_t* fb, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color){
     for (uint32_t i = 0; i < width; i++) {
         for (uint32_t j = 0; j < height; j++) {
-            *(uint32_t*)((uint64_t)fb->buffer + i * fb->btpp + j * fb->pitch) = color;
+            *(uint32_t*)((uint64_t)fb->buffer + (i + x) * fb->btpp + (j + y) * fb->pitch) = color;
         }
     }
 }

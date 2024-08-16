@@ -18,19 +18,20 @@
 #include <kot-graphics/utils.h>
 #include <kot-graphics/image.h>
 
-#define TEXT_WIDTH          500
-#define TEXT_MARGIN         100
-#define TITLE_SIZE          36
-#define TEXT_SIZE           27
-#define SIGNATURE_SIZE      24
-#define TEXT_START          TEXT_MARGIN / 2
-#define TEXT_COLOR          0xffffff
-#define LINK_COLOR          0x33ddff
-#define TEXT_BACKGROUND     0x222222
-#define TEXT_BOX_WIDTH      TEXT_WIDTH + TEXT_MARGIN
-#define SLIDE_TIME          5000
-#define PROGRESSBAR_HEIGHT  50
-#define PROGRESSBAR_COLOR   0xffffff
+#define TEXT_WIDTH          (500)
+#define TEXT_MARGIN         (100)
+#define TITLE_SIZE          (36)
+#define TEXT_SIZE           (27)
+#define SIGNATURE_SIZE      (24)
+#define TEXT_START          (TEXT_MARGIN / 2)
+#define TEXT_COLOR          (0xffffff)
+#define LINK_COLOR          (0x33ddff)
+#define TEXT_BACKGROUND     (0x222222)
+#define TEXT_BOX_WIDTH      (TEXT_WIDTH + TEXT_MARGIN)
+#define SLIDE_TIME          (5000)
+#define PROGRESSBAR_HEIGHT  (5)
+#define PROGRESSBAR_COLOR   (0xffffff)
+#define INFO_SIZE           (16)
 
 kfont_t font;
 
@@ -59,6 +60,7 @@ int get_key(int* pressed, uint64_t* key){
             *pressed = false;
         }
         *key = buffer & ~((uint64_t)1 << 63);
+        return 1;
     }
     return 0;
 }
@@ -69,18 +71,53 @@ int wait_for_the_next_slide(){
     uint64_t current_tick = start_tick; 
     uint64_t tick_to_stop = start_tick + SLIDE_TIME;
 
-    while(current_tick < tick_to_stop){
-        current_tick = get_ticks_ms();
-        uint64_t progress_size = ((current_tick - start_tick) * TEXT_BOX_WIDTH) / SLIDE_TIME;
-        draw_rectangle(&fb, 0, fb.height - PROGRESSBAR_HEIGHT, progress_size, PROGRESSBAR_HEIGHT, PROGRESSBAR_COLOR);
-        draw_frame();
+    set_pen_size(font, INFO_SIZE);
+    write_paragraph(font, -1, fb.height - INFO_SIZE - (PROGRESSBAR_HEIGHT * 4) - 10, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Quit : <esc> | Next : <enter> | Pause : <p>\n");
+
+    bool is_paused = false;
+    uint64_t progress_size = 0;
+
+    while(current_tick < tick_to_stop || is_paused){
+        if(!is_paused){
+            current_tick = get_ticks_ms();
+            progress_size = ((current_tick - start_tick) * TEXT_BOX_WIDTH) / SLIDE_TIME;
+            draw_rectangle(&fb, 0, fb.height - PROGRESSBAR_HEIGHT, progress_size, PROGRESSBAR_HEIGHT, PROGRESSBAR_COLOR);
+            draw_frame();
+        }
+
+        int pressed;
+        uint64_t key;
+        if(get_key(&pressed, &key)){
+            if(pressed && key == 28){
+                break;
+            }
+            if(pressed && key == 1){
+                ret = 1;
+                break;
+            }
+            if(pressed && key == 25){
+                is_paused = true;
+                draw_rectangle(&fb, 0, fb.height - PROGRESSBAR_HEIGHT, progress_size, PROGRESSBAR_HEIGHT, TEXT_BACKGROUND);
+                draw_frame();
+            }
+            if(!pressed && key == 25){
+                if(is_paused){
+                    start_tick = get_ticks_ms();
+                    current_tick = start_tick; 
+                    tick_to_stop = start_tick + SLIDE_TIME;
+                    is_paused = false;
+                }
+            }
+        }
     }
 
     return ret;
 }
 
 int main(int argc, char* argv[]){
-    fb_fd = open("/dev/fb0", O_RDWR); 
+    fb_fd = open("/dev/fb0", O_RDWR);
+
+    printf("Loading welcome app...\n");
 
     assert(fb_fd >= 0);
 

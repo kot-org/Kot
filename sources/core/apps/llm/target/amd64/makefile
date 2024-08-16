@@ -18,8 +18,7 @@ VERSION = 0-0-1
 CFLAGS = -Werror 
 
 LDFLAGS = -Wall \
-		  -lc \
-		  -lz
+		  -lc
 
 # Recursive Wild Card
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
@@ -37,7 +36,7 @@ $(LIB)/%_c.o: $(SOURCE)/%.c
 
 link:
 	@ mkdir -m 777 -p $(BIN)
-	@ $(CC) $(LDFLAGS) -o $(BIN)/llm $(OBJS) $(LIBRARIES)/libcurl.a $(LIBRARIES)/libtls.a $(LIBRARIES)/libssl.a
+	@ $(CC) $(LDFLAGS) -o $(BIN)/llm $(OBJS) $(LIBRARIES)/libcurl.a $(LIBRARIES)/libtls.a $(LIBRARIES)/libssl.a $(LIBRARIES)/libz.a
 
 tar: 
 	@ mkdir -m 777 -p $(TAR)
