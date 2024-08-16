@@ -207,7 +207,8 @@
         "update.h": "c",
         "launch.h": "c",
         "untar.h": "c",
-        "ft2build.h": "c"
+        "ft2build.h": "c",
+        "wait.h": "c"
     },
     "files.exclude": {
         "bundled": true,
