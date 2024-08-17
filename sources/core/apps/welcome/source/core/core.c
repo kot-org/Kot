@@ -74,6 +74,8 @@ int wait_for_the_next_slide(){
     set_pen_size(font, INFO_SIZE);
     write_paragraph(font, -1, fb.height - INFO_SIZE - (PROGRESSBAR_HEIGHT * 4) - 10, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Quit : <esc> | Next : <enter> | Pause : <p>\n");
 
+    static bool is_enter_pressed = false;
+    static bool is_pause_pressed = false;
     bool is_paused = false;
     uint64_t progress_size = 0;
 
@@ -89,24 +91,38 @@ int wait_for_the_next_slide(){
         uint64_t key;
         if(get_key(&pressed, &key)){
             if(pressed && key == 28){
-                break;
+                if(!is_enter_pressed){
+                    is_enter_pressed = true;
+                    is_paused = false;
+                    break;
+                }
             }
+            if(!pressed && key == 28){
+                is_enter_pressed = false;
+            }
+
             if(pressed && key == 1){
                 ret = 1;
                 break;
             }
+            
             if(pressed && key == 25){
-                is_paused = true;
-                draw_rectangle(&fb, 0, fb.height - PROGRESSBAR_HEIGHT, progress_size, PROGRESSBAR_HEIGHT, TEXT_BACKGROUND);
-                draw_frame();
+                if(!is_pause_pressed){
+                    is_pause_pressed = true;
+                    if(!is_paused){
+                        is_paused = true;
+                        draw_rectangle(&fb, 0, fb.height - PROGRESSBAR_HEIGHT, progress_size, PROGRESSBAR_HEIGHT, TEXT_BACKGROUND);
+                        draw_frame();
+                    }else{
+                        start_tick = get_ticks_ms();
+                        current_tick = start_tick; 
+                        tick_to_stop = start_tick + SLIDE_TIME;
+                        is_paused = false;
+                    }
+                }
             }
             if(!pressed && key == 25){
-                if(is_paused){
-                    start_tick = get_ticks_ms();
-                    current_tick = start_tick; 
-                    tick_to_stop = start_tick + SLIDE_TIME;
-                    is_paused = false;
-                }
+                is_pause_pressed = false;
             }
         }
     }
