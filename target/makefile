@@ -25,6 +25,7 @@ ovmf-amd64:
 
 LIAMD_QEMU_FLAGS = \
 	-bios $(EXTERN)/ovmf-amd64/OVMF.fd \
+	-rtc base=localtime,clock=host \
 	-drive file=liamd/boot-kot.img \
 	-machine q35 \
 	-m 4G \
