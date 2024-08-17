@@ -36,7 +36,6 @@ int main(int argc, char* argv[]){
     setenv("PS1", "\\[\e[0;92m$USER@$HOSTNAME\e[0;37m: \e[0;94m\\w\e[0;37m\\$\e[0m\\] ", 1); // '#' is used to indicate root user session
 
     if(is_welcoming){
-
         pid_t p = fork(); 
         if(p < 0){ 
             perror("init: fork fail"); 
@@ -54,6 +53,27 @@ int main(int argc, char* argv[]){
 
         int status = 0;
         wait(&status);
+    }
+
+    {
+        int status = EXIT_FAILURE;
+        pid_t p = fork(); 
+        if(p < 0){ 
+            perror("init: fork fail"); 
+            return EXIT_FAILURE;
+        }else if(p == 0){
+            char* exe_argv[2] = {"/usr/bin/lock", NULL};
+            execvp("/usr/bin/lock", exe_argv);
+
+            perror("init: /usr/bin/lock");
+            return EXIT_FAILURE;
+        }
+
+        wait(&status);
+
+        if(status != EXIT_SUCCESS){
+            return status;
+        }
     }
 
     printf("\e[0;33m--- Welcome to Kot ---\e[0m\n");

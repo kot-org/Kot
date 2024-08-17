@@ -8,7 +8,7 @@ __attribute__((noinline)) int spinlock_acquire(spinlock_t *lock) {
         if (spinlock_test_and_acq(lock)) {
             break;
         }
-        if (++deadlock_counter >= 10000000) {
+        if (++deadlock_counter >= 100000000) {
             return -1;
         }
 #if defined (__x86_64__)

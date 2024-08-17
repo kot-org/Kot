@@ -72,7 +72,7 @@ int wait_for_the_next_slide(){
     uint64_t tick_to_stop = start_tick + SLIDE_TIME;
 
     set_pen_size(font, INFO_SIZE);
-    write_paragraph(font, -1, fb.height - INFO_SIZE - (PROGRESSBAR_HEIGHT * 4) - 10, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Quit : <esc> | Next : <enter> | Pause : <p>\n");
+    write_paragraph(font, -1, fb.height - INFO_SIZE - (PROGRESSBAR_HEIGHT * 4) - 10, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Quit : <Esc> | Next : <Enter> | Pause : <P>\n");
 
     static bool is_enter_pressed = false;
     static bool is_pause_pressed = false;
@@ -105,7 +105,7 @@ int wait_for_the_next_slide(){
                 ret = 1;
                 break;
             }
-            
+
             if(pressed && key == 25){
                 if(!is_pause_pressed){
                     is_pause_pressed = true;
@@ -207,6 +207,7 @@ int main(int argc, char* argv[]){
         
         set_pen_size(font, SIGNATURE_SIZE);
         write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_RIGHT, "Kot team\n");
+
         draw_frame();
 
         if(wait_for_the_next_slide()){
@@ -256,10 +257,10 @@ int main(int argc, char* argv[]){
         draw_rectangle(&fb, 0, 0, fmin(TEXT_BOX_WIDTH, fb.width), fb.height, TEXT_BACKGROUND);
 
         load_pen(font, &fb, TEXT_START, 0, TITLE_SIZE, 0, TEXT_COLOR);
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Play Doom on Kot\n");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Play Original Doom on Kot\n");
 
         set_pen_size(font, TEXT_SIZE);
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "Play Doom on Kot and experience the classic game in a new way!\n");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "Play Original Doom on Kot and experience the classic game in a new way!\n");
         
         draw_frame();
 
