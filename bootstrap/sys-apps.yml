@@ -243,6 +243,7 @@ packages:
       - host-gcc
     pkgs_required:
       - mlibc
+      - cjson
       - freetype
       - libjpeg
       - kot-graphics

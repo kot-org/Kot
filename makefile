@@ -41,6 +41,11 @@ update:
 run:
 	@ cd target && BOOT_DEVICE=$(BOOT_DEVICE) LC_ALL=C make $(TARGET)/run
 
+clean_build:
+	@ rm -f target/$(TARGET)/boot-kot.img
+	@ cd target && BOOT_DEVICE=$(BOOT_DEVICE) LC_ALL=C PACKAGE=all make $(TARGET)/build
+	@ cp target/$(TARGET)/boot-kot.img target/$(TARGET)/clean-boot-kot.img
+
 all: init build run
 
 github-action: deps-debian init build

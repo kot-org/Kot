@@ -34,7 +34,7 @@ $(LIB)/%_c.o: $(SOURCE)/%.c
 
 link:
 	@ mkdir -m 777 -p $(BIN)
-	$(CC) $(LDFLAGS) -o $(BIN)/welcome $(OBJS) $(LIBRARIES)/libkot-graphics.a $(LIBRARIES)/libfreetype.a $(LIBRARIES)/libz.a $(LIBRARIES)/libturbojpeg.a$(LIBRARIES)/libcjson.a
+	$(CC) $(LDFLAGS) -o $(BIN)/welcome $(OBJS) $(LIBRARIES)/libkot-graphics.a $(LIBRARIES)/libfreetype.a $(LIBRARIES)/libz.a $(LIBRARIES)/libturbojpeg.a
 
 copy_res:
 	@ mkdir -m 777 -p $(BIN)/res/welcome
