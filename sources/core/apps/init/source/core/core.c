@@ -51,12 +51,11 @@ int main(int argc, char* argv[]){
             return EXIT_FAILURE;
         }
 
-        int status = 0;
+        int status = EXIT_FAILURE;
         wait(&status);
     }
 
     {
-        int status = EXIT_FAILURE;
         pid_t p = fork(); 
         if(p < 0){ 
             perror("init: fork fail"); 
@@ -69,9 +68,11 @@ int main(int argc, char* argv[]){
             return EXIT_FAILURE;
         }
 
+        int status = EXIT_FAILURE;
         wait(&status);
 
         if(status != EXIT_SUCCESS){
+            printf("error: /usr/bin/lock return: %d", status);
             return status;
         }
     }

@@ -155,12 +155,10 @@ static void exit_thread_routine(thread_t* thread){
                 if(info->waiting_thread->process->pid == thread->process->parent->pid){
                     if(info->pid == -1){
                         waitpid_return(thread->process->pid, thread->process->return_status, info, i);
+                        return;
                     }
                 }
             }
-        }
-
-        if(thread->process->parent != NULL){
             struct child_result_info* child_result = (struct child_result_info*)malloc(sizeof(struct child_result_info));
             child_result->return_pid = thread->process->pid;
             child_result->return_status = thread->process->return_status;
@@ -469,9 +467,11 @@ int scheduler_signal_thread(thread_t* thread, int signal){
 int scheduler_free_thread(thread_t* thread){
     // TODO : free stack if necessary
 
-    context_free(thread->ctx);
+    // TODO : solve problems with heap concurrency
 
-    free(thread);
+    // context_free(thread->ctx);
+
+    // free(thread);
 
     return 0;
 }
