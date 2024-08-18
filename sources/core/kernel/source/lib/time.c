@@ -34,7 +34,7 @@ time_t mktime(struct tm *timeinfo){
         ts += days_per_month[year_index][mo_k] * SECS_PER_DAY;
     }
 
-    ts += (timeinfo->tm_mday - 1) * SECS_PER_DAY;
+    ts += timeinfo->tm_mday * SECS_PER_DAY;
     ts += timeinfo->tm_hour * SECS_PER_HOUR;
     ts += timeinfo->tm_min * SECS_PER_MIN;
     ts += timeinfo->tm_sec;

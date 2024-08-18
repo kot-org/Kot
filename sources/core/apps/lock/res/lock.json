@@ -1,5 +1,5 @@
 {
-    "font_path": "/usr/bin/res/lock/lock.ttf",
-    "wallpaper_path": "/usr/bin/res/lock/lock.jpg",
+    "font_path": "/usr/bin/res/lock/default_font.ttf",
+    "wallpaper_path": "/usr/bin/res/lock/default_wallpaper.jpg",
     "pin_expected": ""
 }
