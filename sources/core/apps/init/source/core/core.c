@@ -55,27 +55,27 @@ int main(int argc, char* argv[]){
         wait(&status);
     }
 
-    // {
-    //     pid_t p = fork(); 
-    //     if(p < 0){ 
-    //         perror("init: fork fail"); 
-    //         return EXIT_FAILURE;
-    //     }else if(p == 0){
-    //         char* exe_argv[2] = {"/usr/bin/lock", NULL};
-    //         execvp("/usr/bin/lock", exe_argv);
+    {
+        pid_t p = fork(); 
+        if(p < 0){ 
+            perror("init: fork fail"); 
+            return EXIT_FAILURE;
+        }else if(p == 0){
+            char* exe_argv[2] = {"/usr/bin/lock", NULL};
+            execvp("/usr/bin/lock", exe_argv);
 
-    //         perror("init: /usr/bin/lock");
-    //         return EXIT_FAILURE;
-    //     }
+            perror("init: /usr/bin/lock");
+            return EXIT_FAILURE;
+        }
 
-    //     int status = EXIT_FAILURE;
-    //     wait(&status);
+        int status = EXIT_FAILURE;
+        wait(&status);
 
-    //     if(status != EXIT_SUCCESS){
-    //         printf("error: /usr/bin/lock return: %d", status);
-    //         return status;
-    //     }
-    // }
+        if(status != EXIT_SUCCESS){
+            printf("error: /usr/bin/lock return: %d", status);
+            return status;
+        }
+    }
 
     printf("\e[0;33m--- Welcome to Kot ---\e[0m\n");
     printf("If you encounter any bugs during your session, please report them on the github repository:\n\e[0;36mhttps://github.com/kot-org/kot\e[0m\n\n");

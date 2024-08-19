@@ -340,13 +340,14 @@ void draw_desktop(){
     load_pen(font, &fb, 0, 0, DATE_TIME_SIZE, 0, DATE_TIME_COLOR);
     write_paragraph(font, 0, 0, fb.width, PARAGRAPH_CENTER, date_time_str);
 
+
+    char page_string[20];
+    snprintf(page_string, 20, "Page : %d / %d", current_page + 1, page_count);
+    write_paragraph(font, 0, 0, fb.width - 25, PARAGRAPH_RIGHT, page_string);
+    
     if(update_icon_page){
         update_icon_page = false;
         update_focus = false;
-
-        char page_string[20];
-        snprintf(page_string, 20, "Page : %d / %d", current_page + 1, page_count);
-        write_paragraph(font, 0, 0, fb.width - 25, PARAGRAPH_RIGHT, page_string);
 
         int c = 0;
         for(int j = 0; j < icon_row_count; j++){
