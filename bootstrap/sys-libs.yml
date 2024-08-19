@@ -236,6 +236,7 @@ packages:
       - '@THIS_SOURCE_DIR@'
       - '-DCMAKE_INSTALL_PREFIX=/usr'
       - '-DBUILD_SHARED_LIBS=Off'
+      - '-DFT_REQUIRE_PNG=Off'
       environ:
         CC: "@OPTION:cc@"
         CXX: "@OPTION:cxx@"
