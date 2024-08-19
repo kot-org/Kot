@@ -61,3 +61,21 @@ void draw_rectangle(kframebuffer_t* fb, uint32_t x, uint32_t y, uint32_t width, 
         }
     }
 }
+
+void draw_rectangle_border(kframebuffer_t* fb, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color){
+    for(uint32_t i = 0; i < width; i++){
+        *(uint32_t*)((uint64_t)fb->buffer + (x + i) * fb->btpp + y * fb->pitch) = color;
+    }
+
+    for(uint32_t i = 0; i < width; i++){
+        *(uint32_t*)((uint64_t)fb->buffer + (x + i) * fb->btpp + (y + height - 1) * fb->pitch) = color;
+    }
+
+    for(uint32_t j = 0; j < height; j++){
+        *(uint32_t*)((uint64_t)fb->buffer + x * fb->btpp + (y + j) * fb->pitch) = color;
+    }
+
+    for(uint32_t j = 0; j < height; j++){
+        *(uint32_t*)((uint64_t)fb->buffer + (x + width - 1) * fb->btpp + (y + j) * fb->pitch) = color;
+    }
+}

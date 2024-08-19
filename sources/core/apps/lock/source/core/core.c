@@ -189,15 +189,15 @@ int main(int argc, char* argv[]){
         return EXIT_FAILURE;
     }
 
-    json_file = fopen("/usr/bin/res/lock/lock.json", "r+"); 
+    json_file = fopen("/usr/bin/res/lock/lock.json", "r+");
 
     if(json_file == NULL){ 
         fclose(json_file);
 
         perror("Error: Unable to open the file : /usr/bin/res/lock/lock.json\n"); 
         return EXIT_FAILURE; 
-    } 
-  
+    }
+
     fseek(json_file, 0, SEEK_END);
     json_size = ftell(json_file);
     fseek(json_file, 0, SEEK_SET);
@@ -260,6 +260,14 @@ int main(int argc, char* argv[]){
     }
 
     raw_image_t* wallpaper = load_jpeg_image_file(wallpaper_path);
+
+    if(wallpaper == NULL){
+        fclose(json_file);
+
+        perror("error loading wallpaper\n");
+        return EXIT_FAILURE;
+    }
+
     raw_image_t* wallpaper_resized;
     if(wallpaper->width < wallpaper->height){
         wallpaper_resized = resize_image(wallpaper, 0, fb.height, true);

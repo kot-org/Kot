@@ -40,4 +40,8 @@ copy_res:
 	@ mkdir -m 777 -p $(BIN)/res/lock
 	@ cp -r $(HOME)/res/. $(BIN)/res/lock
 
-build: $(OBJS) link copy_res
+copy_icon:
+	@ mkdir -m 777 -p $(BIN)/icons
+	@ cp -r $(HOME)/icon/. $(BIN)/icons
+
+build: $(OBJS) link copy_res copy_icon
