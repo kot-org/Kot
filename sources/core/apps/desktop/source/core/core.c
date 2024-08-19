@@ -13,6 +13,8 @@
 #include <linux/fb.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include <cjson/cJSON.h> 
 
@@ -34,6 +36,7 @@
 #define ICON_TEXT_SIZE          (18)
 #define ICON_TEXT_COLOR         (0xffffff)
 #define ICON_BORDER_COLOR       (0x3c2d2d)
+#define ICON_BORDER_FOCUS_COLOR (0x14bacb)
 #define ICON_BORDER_MARGIN      (5)
 #define ICON_MARGIN             (20)
 
@@ -69,9 +72,15 @@ int page_count = 0;
 
 int icons_count = 0;
 int icon_start_count = 0;
+int focus_icon_row = 0;
+int focus_icon_column = 0;
 int icons_max_count = 0;
 raw_image_t** icons_image = NULL;
 char** icons_text = NULL;
+char** icons_path_end = NULL;
+
+bool update_icon_page = true;
+bool update_focus = true;
 
 uint64_t get_ticks_ms(){
     struct timeval tv; 
@@ -229,10 +238,101 @@ int load_font_data(char* font_path){
     return EXIT_SUCCESS;
 }
 
+void get_input(){
+    static bool arrow_pressed = false;
+    static bool wait_release = false;
+    static bool wait_release_up = false;
+    static bool wait_release_down = false;
+    static bool wait_release_right = false;
+    static bool wait_release_left = false;
+    
+    int pressed = 0;
+    uint64_t key = 0;
+    int ret = get_key(&pressed, &key);
+
+    if(ret){
+        if(key == 96 && !arrow_pressed){
+            arrow_pressed = true;
+        }else{
+            if(arrow_pressed && pressed){
+                uint32_t x = start_x + focus_icon_column * (ICON_MARGIN + ICON_WIDTH);
+                uint32_t y = start_y + focus_icon_row * (ICON_MARGIN + ICON_HEIGHT);
+                draw_rectangle_border(&fb, x - ICON_BORDER_MARGIN, y - ICON_BORDER_MARGIN, ICON_WIDTH + 2 * ICON_BORDER_MARGIN, ICON_HEIGHT + 2 * ICON_BORDER_MARGIN, ICON_BORDER_COLOR);
+
+                if(key == 72 && !wait_release_up){
+                    // up
+                    wait_release_up = true;
+                    if(focus_icon_row > 0){
+                        focus_icon_row--;
+                    }
+                }else if(key == 80 && !wait_release_down){
+                    // down
+                    wait_release_down = true;
+                    if(((focus_icon_column + 1) * (focus_icon_row + 2)) <= icons_count){
+                        focus_icon_row++;
+                    }
+                }else if(key == 77 && !wait_release_right){
+                    // right
+                    wait_release_right = true;
+                    if(((focus_icon_column + 2) * (focus_icon_row + 1)) <= icons_count){
+                        focus_icon_column++;
+                    }
+                }else if(key == 75 && !wait_release_left){
+                    // left
+                    wait_release_left = true;
+                    if(focus_icon_column > 0){
+                        focus_icon_column--;
+                    }
+                }
+
+                update_focus = true;
+                arrow_pressed = false;
+            }else if(arrow_pressed && !pressed){
+                if(key == 72 && wait_release_up){
+                    // up
+                    wait_release_up = false;
+                }else if(key == 80 && wait_release_down){
+                    // down
+                    wait_release_down = false;
+                }else if(key == 77 && wait_release_right){
+                    // right
+                    wait_release_right = false;
+                }else if(key == 75 && wait_release_left){
+                    // left
+                    wait_release_left = false;
+                }
+                arrow_pressed = false;
+            }else if(key == 28 && pressed){
+                int c = focus_icon_column + focus_icon_row * icon_column_count;
+
+                char executable_path[4096];
+                snprintf(executable_path, 4096, "/usr/bin/%s", icons_path_end[c]);
+                {
+                    pid_t p = fork(); 
+                    if(p < 0){ 
+                        perror("desktop: fork failed"); 
+                    }else if(p == 0){
+                        char* exe_argv[2] = {executable_path, NULL};
+                        execvp(executable_path, exe_argv);
+
+                        printf("desktop: launching failed: %s\n", icons_path_end[c]);
+                    }else{
+                        int status;
+                        wait(&status);
+                    }
+                }
+            }
+        }
+    }
+}
+
 void draw_desktop(){
     char date_time_str[20];
 
-    draw_image(&fb, wallpaper_resized, 0, 0, fb.width, fb.height);
+    if(update_icon_page){
+        draw_image(&fb, wallpaper_resized, 0, 0, fb.width, fb.height);
+    }
+
     draw_rectangle(&fb, 0, 0, fb.width, DATE_TIME_HEIGHT, DATE_TIME_BACKGROUND);
 
     get_current_date_time(date_time_str);
@@ -240,33 +340,52 @@ void draw_desktop(){
     load_pen(font, &fb, 0, 0, DATE_TIME_SIZE, 0, DATE_TIME_COLOR);
     write_paragraph(font, 0, 0, fb.width, PARAGRAPH_CENTER, date_time_str);
 
-    char page_string[20];
-    snprintf(page_string, 20, "Page : %d / %d", current_page + 1, page_count);
-    write_paragraph(font, 0, 0, fb.width - 25, PARAGRAPH_RIGHT, page_string);
+    if(update_icon_page){
+        update_icon_page = false;
+        update_focus = false;
 
-    int c = 0;
-    for(int j = 0; j < icon_column_count; j++){
-        for(int i = 0; i < icon_row_count; i++){
-            if(c >= icons_count){
-                break;
+        char page_string[20];
+        snprintf(page_string, 20, "Page : %d / %d", current_page + 1, page_count);
+        write_paragraph(font, 0, 0, fb.width - 25, PARAGRAPH_RIGHT, page_string);
+
+        int c = 0;
+        for(int j = 0; j < icon_row_count; j++){
+            for(int i = 0; i < icon_column_count; i++){
+                if(c >= icons_count){
+                    break;
+                }
+
+                uint32_t x = start_x + i * (ICON_MARGIN + ICON_WIDTH);
+                uint32_t y = start_y + j * (ICON_MARGIN + ICON_HEIGHT);
+                draw_image_with_binary_transparency(&fb, icons_image[c], x, y, ICON_IMAGE_WIDTH, ICON_IMAGE_HEIGHT);
+                
+                if(i == focus_icon_column && j == focus_icon_row){
+                    draw_rectangle_border(&fb, x - ICON_BORDER_MARGIN, y - ICON_BORDER_MARGIN, ICON_WIDTH + 2 * ICON_BORDER_MARGIN, ICON_HEIGHT + 2 * ICON_BORDER_MARGIN, ICON_BORDER_FOCUS_COLOR);
+                }else{
+                    draw_rectangle_border(&fb, x - ICON_BORDER_MARGIN, y - ICON_BORDER_MARGIN, ICON_WIDTH + 2 * ICON_BORDER_MARGIN, ICON_HEIGHT + 2 * ICON_BORDER_MARGIN, ICON_BORDER_COLOR);
+                }
+
+                set_pen_size(font, ICON_TEXT_SIZE);
+                set_pen_color(font, ~ICON_TEXT_COLOR);
+                write_paragraph(font, x + 1, y + ICON_IMAGE_HEIGHT + 1, ICON_IMAGE_WIDTH, PARAGRAPH_CENTER, icons_text[c]);
+                set_pen_color(font, ICON_TEXT_COLOR);
+                write_paragraph(font, x, y + ICON_IMAGE_HEIGHT, ICON_IMAGE_WIDTH, PARAGRAPH_CENTER, icons_text[c]);
+
+                c++;
             }
-
-            uint32_t x = start_x + i * (ICON_MARGIN + ICON_WIDTH);
-            uint32_t y = start_y + j * (ICON_MARGIN + ICON_HEIGHT);
-            draw_image_with_binary_transparency(&fb, icons_image[c], x, y, ICON_IMAGE_WIDTH, ICON_IMAGE_HEIGHT);
-            draw_rectangle_border(&fb, x - ICON_BORDER_MARGIN, y - ICON_BORDER_MARGIN, ICON_WIDTH + 2 * ICON_BORDER_MARGIN, ICON_HEIGHT + 2 * ICON_BORDER_MARGIN, ICON_BORDER_COLOR);
-
-            set_pen_size(font, ICON_TEXT_SIZE);
-            set_pen_color(font, ~ICON_TEXT_COLOR);
-            write_paragraph(font, x + 1, y + ICON_IMAGE_HEIGHT + 1, ICON_IMAGE_WIDTH, PARAGRAPH_CENTER, icons_text[c]);
-            set_pen_color(font, ICON_TEXT_COLOR);
-            write_paragraph(font, x, y + ICON_IMAGE_HEIGHT, ICON_IMAGE_WIDTH, PARAGRAPH_CENTER, icons_text[c]);
-
-            c++;
         }
     }
 
+    if(update_focus){
+        update_focus = false;
+        uint32_t x = start_x + focus_icon_column * (ICON_MARGIN + ICON_WIDTH);
+        uint32_t y = start_y + focus_icon_row * (ICON_MARGIN + ICON_HEIGHT);
+        draw_rectangle_border(&fb, x - ICON_BORDER_MARGIN, y - ICON_BORDER_MARGIN, ICON_WIDTH + 2 * ICON_BORDER_MARGIN, ICON_HEIGHT + 2 * ICON_BORDER_MARGIN, ICON_BORDER_FOCUS_COLOR);
+    }
+
     draw_frame();
+
+    get_input();
 }
 
 int main(int argc, char* argv[]){
@@ -292,10 +411,10 @@ int main(int argc, char* argv[]){
         return EXIT_FAILURE;
     }
 
-    icon_row_count = fb.width / (ICON_WIDTH + ICON_MARGIN);
-    icon_column_count = (fb.height - DATE_TIME_HEIGHT) / (ICON_HEIGHT + ICON_MARGIN);
-    start_x += (fb.width - (start_x + icon_row_count * (ICON_WIDTH + ICON_MARGIN))) / 2;
-    start_y += (fb.height - (start_y + icon_column_count * (ICON_HEIGHT + ICON_MARGIN))) / 2;
+    icon_column_count = fb.width / (ICON_WIDTH + ICON_MARGIN);
+    icon_row_count = (fb.height - DATE_TIME_HEIGHT) / (ICON_HEIGHT + ICON_MARGIN);
+    start_x += (fb.width - (start_x + icon_column_count * (ICON_WIDTH + ICON_MARGIN))) / 2;
+    start_y += (fb.height - (start_y + icon_row_count * (ICON_HEIGHT + ICON_MARGIN))) / 2;
 
     icons_max_count = icon_row_count * icon_column_count;
 
@@ -313,6 +432,7 @@ int main(int argc, char* argv[]){
         int total_count = 0;
         d = opendir("/usr/bin/icons");
         icons_text = malloc(sizeof(char*) * icons_max_count);
+        icons_path_end = malloc(sizeof(char*) * icons_max_count);
         icons_image = malloc(sizeof(raw_image_t*) * icons_max_count);
         if(d){
             while((dir = readdir(d)) != NULL){
@@ -346,6 +466,7 @@ int main(int argc, char* argv[]){
 
                                 icons_image[c] = icon_resized;
                                 icons_text[c] = name;
+                                icons_path_end[c] = name;
 
                                 /* Remove extension */
                                 char* last_dot = strrchr(name, '.');
@@ -354,6 +475,10 @@ int main(int argc, char* argv[]){
                                 }
 
                                 if(name_length - 4 > max_text_icon_length){
+                                    char* correct_name = malloc(name_length);
+                                    strncpy(correct_name, name, name_length);
+                                    icons_path_end[c] = correct_name;
+
                                     name[max_text_icon_length - 3] = '.';
                                     name[max_text_icon_length - 2] = '.';
                                     name[max_text_icon_length - 1] = '.';

@@ -24,7 +24,7 @@ void key_handler(uint64_t scancode, uint16_t translated_key, bool is_pressed){
 
     if(scancode_size_to_read > SCANCODE_BUFFER_LENGTH){
         scancode_size_to_read = SCANCODE_BUFFER_LENGTH;
-        log_warning("Buffer owerflow");
+        log_warning("Buffer owerflow\n");
     }
 
     spinlock_release(&key_handler_lock);
