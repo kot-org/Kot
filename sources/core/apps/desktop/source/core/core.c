@@ -48,9 +48,15 @@ struct fb_fix_screeninfo fix_screeninfo;
 struct fb_var_screeninfo var_screeninfo;
 
 raw_image_t* wallpaper_resized = NULL;
+raw_image_t* default_icon_image = NULL;
 
 char* wallpaper_path = NULL;
+char* default_icon_path = NULL;
 char* font_path = NULL;
+
+size_t icon_json_length = 0;
+void* icon_json_data = NULL;
+cJSON* icon_json_root = NULL;
 
 size_t json_size = 0;
 void* json_buffer = NULL;
@@ -58,6 +64,7 @@ FILE* json_file = NULL;
 cJSON* json_root = NULL;
 cJSON* wallpaper_path_json = NULL;
 cJSON* font_path_json = NULL;
+cJSON* default_icon_path_json = NULL;
 
 int icon_row_count = 0;
 int icon_column_count = 0;
@@ -71,7 +78,6 @@ int current_page = 0;
 int page_count = 0;
 
 int icons_count = 0;
-int icon_start_count = 0;
 int focus_icon_row = 0;
 int focus_icon_column = 0;
 int icons_max_count = 0;
@@ -171,8 +177,17 @@ int load_json(){
     if(json_root != NULL){ 
         wallpaper_path_json = cJSON_GetObjectItem(json_root, "wallpaper_path");
         if(cJSON_IsString(wallpaper_path_json) && (wallpaper_path_json->valuestring != NULL)){
-            wallpaper_path = malloc(strlen(wallpaper_path_json->valuestring) + 1);
-            strcpy(wallpaper_path, wallpaper_path_json->valuestring);
+            wallpaper_path = strdup(wallpaper_path_json->valuestring);
+        }else{
+            fclose(json_file);
+
+            printf("Error: Unable to parse the file : /usr/bin/res/desktop/desktop.json\n"); 
+            return EXIT_FAILURE; 
+        }
+
+        default_icon_path_json = cJSON_GetObjectItem(json_root, "default_icon_path");
+        if(cJSON_IsString(default_icon_path_json) && (default_icon_path_json->valuestring != NULL)){
+            default_icon_path = strdup(default_icon_path_json->valuestring);
         }else{
             fclose(json_file);
 
@@ -182,8 +197,7 @@ int load_json(){
         
         font_path_json = cJSON_GetObjectItem(json_root, "font_path");
         if(cJSON_IsString(font_path_json) && (font_path_json->valuestring != NULL)){
-            font_path = malloc(strlen(font_path_json->valuestring) + 1);
-            strcpy(font_path, font_path_json->valuestring);
+            font_path = strdup(font_path_json->valuestring);
         }else{
             fclose(json_file);
             
@@ -217,6 +231,23 @@ int load_wallpaper(char* wallpaper_path){
     return EXIT_SUCCESS;
 }
 
+int load_default_icon(char* default_icon_path){
+    raw_image_t* default_icon_image_not_resized = load_tga_image_file(default_icon_path);
+    if(default_icon_image_not_resized == NULL){
+        perror("error loading wallpaper\n");
+        return EXIT_FAILURE;
+    }
+    if(default_icon_image_not_resized->width < default_icon_image_not_resized->height){
+        default_icon_image = resize_image(default_icon_image_not_resized, 0, ICON_IMAGE_HEIGHT, true);
+    }else{
+        default_icon_image = resize_image(default_icon_image_not_resized, ICON_IMAGE_WIDTH, 0, true);
+    }
+
+    free_raw_image(default_icon_image_not_resized);
+
+    return EXIT_SUCCESS;
+}
+
 int load_font_data(char* font_path){
     FILE* font_file = fopen(font_path, "rb");
 
@@ -239,94 +270,105 @@ int load_font_data(char* font_path){
     return EXIT_SUCCESS;
 }
 
-int process_icons(const char* json_file_path){
-    FILE* file = fopen(json_file_path, "r");
-    if (!file) {
+int load_icon_json(const char* icon_json_file_path){
+    FILE* icon_json_file = fopen(icon_json_file_path, "r");
+    if (!icon_json_file) {
         perror("Failed to open file");
         return EXIT_FAILURE;
     }
 
-    fseek(file, 0, SEEK_END);
-    long length = ftell(file);
-    fseek(file, 0, SEEK_SET);
-    char* data = malloc(length + 1);
-    fread(data, 1, length, file);
-    fclose(file);
-    data[length] = '\0';
+    fseek(icon_json_file, 0, SEEK_END);
+    icon_json_length = ftell(icon_json_file);
+    fseek(icon_json_file, 0, SEEK_SET);
+    icon_json_data = malloc(icon_json_length + 1);
+    fread(icon_json_data, 1, icon_json_length, icon_json_file);
+    fclose(icon_json_file);
+    ((char*)icon_json_data)[icon_json_length] = '\0';
 
-    cJSON* json = cJSON_Parse(data);
-    free(data);
+    icon_json_root = cJSON_Parse(icon_json_data);
 
-    if(!json){
+    if(!icon_json_root){
         fprintf(stderr, "Error parsing JSON\n");
         return EXIT_FAILURE;
     }
 
+    return EXIT_SUCCESS;
+}
+
+int process_icons(){
     int c = 0;
     int total_count = 0;
+    int icon_start_count = current_page * icons_max_count;
     icons_text = malloc(sizeof(char*) * icons_max_count);
     icons_executable_path = malloc(sizeof(char*) * icons_max_count);
     icons_cwd_path = malloc(sizeof(char*) * icons_max_count);
     icons_image = malloc(sizeof(raw_image_t*) * icons_max_count);
 
     cJSON* item = NULL;
-    cJSON_ArrayForEach(item, json) {
-        if (total_count < icon_start_count) {
+    cJSON_ArrayForEach(item, icon_json_root) {
+        if(total_count < icon_start_count){
             total_count++;
-        } else if (total_count < icons_max_count + icon_start_count) {
+        }else if (total_count < icons_max_count + icon_start_count){
             cJSON* iconPath = cJSON_GetObjectItem(item, "iconPath");
             cJSON* executablePath = cJSON_GetObjectItem(item, "executablePath");
             cJSON* cwdPath = cJSON_GetObjectItem(item, "cwdPath");
             cJSON* appName = cJSON_GetObjectItem(item, "appName");
 
             if(iconPath && executablePath && cwdPath && appName) {
-                raw_image_t* icon = load_tga_image_file(iconPath->valuestring);
+                if(iconPath->valuestring[0] != '\0'){
+                    raw_image_t* icon = load_tga_image_file(iconPath->valuestring);
 
-                if (icon != NULL) {
-                    raw_image_t* icon_resized = NULL;
-                    if (icon->width < icon->height) {
-                        icon_resized = resize_image(icon, 0, ICON_IMAGE_HEIGHT, true);
-                    } else {
-                        icon_resized = resize_image(icon, ICON_IMAGE_WIDTH, 0, true);
-                    }
-
-                    free_raw_image(icon);
-
-                    if(icon_resized != NULL){
-                        size_t name_length = strlen(appName->valuestring) + 1;
-                        char* name = malloc(name_length);
-                        strncpy(name, appName->valuestring, name_length);
-
-                        icons_image[c] = icon_resized;
-                        icons_text[c] = name;
-                        icons_executable_path[c] = strdup(executablePath->valuestring);
-                        icons_cwd_path[c] = strdup(cwdPath->valuestring);
-
-                        if (name_length > max_text_icon_length) {
-                            char* correct_name = malloc(name_length);
-                            strncpy(correct_name, name, name_length);
-                            icons_executable_path[c] = correct_name;
-
-                            name[max_text_icon_length - 3] = '.';
-                            name[max_text_icon_length - 2] = '.';
-                            name[max_text_icon_length - 1] = '.';
-                            name[max_text_icon_length] = '\0';
+                    if(icon != NULL){
+                        raw_image_t* icon_resized = NULL;
+                        if (icon->width < icon->height) {
+                            icon_resized = resize_image(icon, 0, ICON_IMAGE_HEIGHT, true);
+                        } else {
+                            icon_resized = resize_image(icon, ICON_IMAGE_WIDTH, 0, true);
                         }
 
-                        c++;
-                        total_count++;
+                        free_raw_image(icon);
+
+                        if(icon_resized != NULL){
+                            icons_image[c] = icon_resized;
+                        }else{
+                            icons_image[c] = NULL;
+                        }
+                    }else{
+                        icons_image[c] = NULL;
                     }
+                }else{
+                    icons_image[c] = NULL;
                 }
+
+                size_t name_length = strlen(appName->valuestring) + 1;
+                char* name = malloc(name_length);
+                strncpy(name, appName->valuestring, name_length);
+
+                icons_text[c] = name;
+                icons_executable_path[c] = strdup(executablePath->valuestring);
+                icons_cwd_path[c] = strdup(cwdPath->valuestring);
+
+                if (name_length > max_text_icon_length) {
+                    char* correct_name = malloc(name_length);
+                    strncpy(correct_name, name, name_length);
+                    icons_executable_path[c] = correct_name;
+
+                    name[max_text_icon_length - 3] = '.';
+                    name[max_text_icon_length - 2] = '.';
+                    name[max_text_icon_length - 1] = '.';
+                    name[max_text_icon_length] = '\0';
+                }
+
+                c++;
+                total_count++;
             }
-        } else {
+        }else{
             total_count++;
         }
     }
 
-    cJSON_Delete(json);
-
     icons_count = c;
-    page_count = DIV_ROUND_UP(c, icons_max_count);
+    page_count = DIV_ROUND_UP(total_count, icons_max_count);
 
     return EXIT_SUCCESS;
 }
@@ -420,6 +462,24 @@ void get_input(){
                         assert(ioctl(fb_fd, FBIOPUT_VSCREENINFO, &var_screeninfo) == 0);
                     }
                 }
+            }else if(key == 60 && pressed){
+                // next page
+                if(current_page < page_count - 1){
+                    current_page++;
+                    focus_icon_row = 0;
+                    focus_icon_column = 0;
+                    process_icons();
+                    update_icon_page = true;
+                }
+            }else if(key == 59 && pressed){
+                // last page
+                if(current_page > 0){
+                    current_page--;
+                    focus_icon_row = 0;
+                    focus_icon_column = 0;
+                    process_icons();
+                    update_icon_page = true;
+                }
             }
         }
     }
@@ -440,9 +500,9 @@ void draw_desktop(){
     write_paragraph(font, 0, 0, fb.width, PARAGRAPH_CENTER, date_time_str);
 
 
-    char page_string[20];
-    snprintf(page_string, 20, "Page : %d / %d", current_page + 1, page_count);
-    write_paragraph(font, 0, 0, fb.width - 25, PARAGRAPH_RIGHT, page_string);
+    char page_string[50];
+    snprintf(page_string, 50, "Page : %d / %d | Next: <F1> | Last: <F2>", current_page + 1, page_count);
+    write_paragraph(font, 0, 0, fb.width - 35, PARAGRAPH_RIGHT, page_string);
     
     if(update_icon_page){
         update_icon_page = false;
@@ -457,7 +517,11 @@ void draw_desktop(){
 
                 uint32_t x = start_x + i * (ICON_MARGIN + ICON_WIDTH);
                 uint32_t y = start_y + j * (ICON_MARGIN + ICON_HEIGHT);
-                draw_image_with_binary_transparency(&fb, icons_image[c], x, y, ICON_IMAGE_WIDTH, ICON_IMAGE_HEIGHT);
+                if(icons_image[c] != NULL){
+                    draw_image_with_binary_transparency(&fb, icons_image[c], x, y, ICON_IMAGE_WIDTH, ICON_IMAGE_HEIGHT);
+                }else{
+                    draw_image_with_binary_transparency(&fb, default_icon_image, x, y, ICON_IMAGE_WIDTH, ICON_IMAGE_HEIGHT);
+                }
                 
                 if(i == focus_icon_column && j == focus_icon_row){
                     draw_rectangle_border(&fb, x - ICON_BORDER_MARGIN, y - ICON_BORDER_MARGIN, ICON_WIDTH + 2 * ICON_BORDER_MARGIN, ICON_HEIGHT + 2 * ICON_BORDER_MARGIN, ICON_BORDER_FOCUS_COLOR);
@@ -503,7 +567,23 @@ int main(int argc, char* argv[]){
         return EXIT_FAILURE;
     }
 
+    if(load_default_icon(default_icon_path) != EXIT_SUCCESS){
+        free_raw_image(wallpaper_resized);
+
+        fclose(json_file);
+
+        return EXIT_FAILURE;
+    }
+
     if(load_font_data(font_path) != EXIT_SUCCESS){
+        free_raw_image(wallpaper_resized);
+
+        fclose(json_file);
+
+        return EXIT_FAILURE;
+    }
+
+    if(load_icon_json("/usr/bin/icons/icons.json") != EXIT_SUCCESS){
         free_raw_image(wallpaper_resized);
 
         fclose(json_file);
@@ -523,13 +603,15 @@ int main(int argc, char* argv[]){
     get_textbox_info(font, " ", &char_width, NULL, NULL, NULL);
     max_text_icon_length = ICON_IMAGE_WIDTH / char_width;
 
-    icon_start_count = current_page * icons_max_count;
-
-    process_icons("/usr/bin/icons/icons.json");
+    process_icons();
 
     while(true){
         draw_desktop();
     }
+
+    cJSON_Delete(icon_json_root);
+
+    free(icon_json_data);
 
     free_raw_image(wallpaper_resized);
 

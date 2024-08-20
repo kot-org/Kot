@@ -30,6 +30,11 @@
 
 kfont_t font;
 
+bool redraw_image = true;
+
+kfont_pos_t pin_x = 0;
+kfont_pos_t pin_y = 0;
+
 int fb_fd = -1;
 kframebuffer_t fb;
 struct fb_fix_screeninfo fix_screeninfo;
@@ -111,9 +116,7 @@ int wait_for_pin(char* display_pin, char* pin, char* pin_expected, bool is_pin_s
     if(get_key(&pressed, &key)){
         if(pressed && key == 1){
             return 2;
-        }
-
-        if(pressed && key >= 1 && key <= 11){
+        }else if(pressed && key >= 1 && key <= 11){
             int number = key - 1;
             if(number == 10){
                 number = 0;
@@ -143,6 +146,23 @@ int wait_for_pin(char* display_pin, char* pin, char* pin_expected, bool is_pin_s
                     return 4;
                 }
             }
+        }else if(pressed && key == 14){
+            int number = key - 1;
+            if(number == 10){
+                number = 0;
+            }
+            char* str_pin = pin;
+            int c = 0;
+            while(*str_pin){
+                str_pin++;
+                c++;
+            }
+            str_pin--;
+            c--;
+
+            str_pin[0] = (char)('\0');
+            display_pin[c * 2] = '_';  
+            redraw_image = true;          
         }
     }
 
@@ -300,6 +320,7 @@ int main(int argc, char* argv[]){
     fclose(font_file);
 
     char* display_pin = "_ _ _ _";
+    char* textbox_display_pin = strdup(display_pin);
     char pin[5];
     char ask_pin[48];
     strcpy(ask_pin, "Please enter your PIN :");
@@ -336,17 +357,6 @@ int main(int argc, char* argv[]){
             char time_str[6];
             char date_str[20];
 
-            draw_image(&fb, wallpaper_resized, 0, 0, fb.width, fb.height);
-
-            get_current_time(time_str);
-            get_current_date(date_str);
-
-            load_pen(font, &fb, 0, 0, HOUR_SIZE, 0, TEXT_COLOR);
-            write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, time_str);
-
-            set_pen_size(font, DATE_SIZE);
-            write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, date_str);
-
             int r = wait_for_pin(display_pin, pin, pin_expected, is_pin_set);
             if(r == 1){
                 if(check_pin(pin, pin_expected)){
@@ -357,9 +367,10 @@ int main(int argc, char* argv[]){
                     return EXIT_SUCCESS;
                 }
                 pin[0] = '\0';
-                strcpy(display_pin, "_ _ _ _");
+                strcpy(display_pin, textbox_display_pin);
                 strcpy(ask_pin, "Wrong PIN, please enter your PIN :");
                 pin_color = WRONG_COLOR;
+                redraw_image = true;
             }else if(r == 2){
                 break;
             }else if(r == 3){
@@ -372,16 +383,27 @@ int main(int argc, char* argv[]){
                 return EXIT_SUCCESS;
             }
 
-            set_pen_size(font, PIN_INFO_SIZE);
-            set_pen_color(font, pin_color);
-            write_paragraph(font, -1, (fb.height - PIN_SIZE) / 2, fb.width, PARAGRAPH_CENTER, ask_pin);
+            if(redraw_image){
+                redraw_image = false;
 
-            set_pen_color(font, TEXT_COLOR);
+                draw_image(&fb, wallpaper_resized, 0, 0, fb.width, fb.height);
+
+                set_pen_size(font, PIN_INFO_SIZE);
+                set_pen_color(font, pin_color);
+                write_paragraph(font, -1, (fb.height - PIN_SIZE) / 2, fb.width, PARAGRAPH_CENTER, ask_pin);
+
+                set_pen_color(font, TEXT_COLOR);
+                set_pen_size(font, PIN_SIZE);
+                pin_x = get_pen_pos_x(font);
+                pin_y = get_pen_pos_y(font);
+                write_paragraph(font, pin_x, pin_y, fb.width, PARAGRAPH_CENTER, textbox_display_pin);
+
+                set_pen_size(font, INFO_SIZE);
+                write_paragraph(font, -1, fb.height - INFO_SIZE - 50, fb.width, PARAGRAPH_CENTER, "Back : <Esc>\n");
+            }
+
             set_pen_size(font, PIN_SIZE);
-            write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, display_pin);
-
-            set_pen_size(font, INFO_SIZE);
-            write_paragraph(font, -1, fb.height - INFO_SIZE - 50, fb.width, PARAGRAPH_CENTER, "Back : <Esc>\n");
+            write_paragraph(font, pin_x, pin_y, fb.width, PARAGRAPH_CENTER, display_pin);
 
             draw_frame();
         }
