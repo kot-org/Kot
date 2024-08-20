@@ -1,0 +1,26 @@
+[
+    {
+        "cwdPath": "/usr/bin/",
+        "iconPath": "/usr/bin/icons/bash.tga",
+        "executablePath": "/usr/bin/bash",
+        "appName": "Bash"
+    },
+    {
+        "cwdPath": "/usr/bin/",
+        "iconPath": "/usr/bin/icons/lock.tga",
+        "executablePath": "/usr/bin/lock",
+        "appName": "Lock"
+    },
+    {
+        "cwdPath": "/usr/bin/",
+        "iconPath": "/usr/bin/icons/nyancat.tga",
+        "executablePath": "/usr/bin/nyancat",
+        "appName": "Nyancat"
+    },
+    {
+        "cwdPath": "/usr/bin/doom",
+        "iconPath": "/usr/bin/icons/doom.tga",
+        "executablePath": "/usr/bin/doom/doomgeneric",
+        "appName": "Doom"
+    }
+]

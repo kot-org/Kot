@@ -77,7 +77,8 @@ int focus_icon_column = 0;
 int icons_max_count = 0;
 raw_image_t** icons_image = NULL;
 char** icons_text = NULL;
-char** icons_path_end = NULL;
+char** icons_executable_path = NULL;
+char** icons_cwd_path = NULL;
 
 bool update_icon_page = true;
 bool update_focus = true;
@@ -238,6 +239,98 @@ int load_font_data(char* font_path){
     return EXIT_SUCCESS;
 }
 
+int process_icons(const char* json_file_path){
+    FILE* file = fopen(json_file_path, "r");
+    if (!file) {
+        perror("Failed to open file");
+        return EXIT_FAILURE;
+    }
+
+    fseek(file, 0, SEEK_END);
+    long length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    char* data = malloc(length + 1);
+    fread(data, 1, length, file);
+    fclose(file);
+    data[length] = '\0';
+
+    cJSON* json = cJSON_Parse(data);
+    free(data);
+
+    if(!json){
+        fprintf(stderr, "Error parsing JSON\n");
+        return EXIT_FAILURE;
+    }
+
+    int c = 0;
+    int total_count = 0;
+    icons_text = malloc(sizeof(char*) * icons_max_count);
+    icons_executable_path = malloc(sizeof(char*) * icons_max_count);
+    icons_cwd_path = malloc(sizeof(char*) * icons_max_count);
+    icons_image = malloc(sizeof(raw_image_t*) * icons_max_count);
+
+    cJSON* item = NULL;
+    cJSON_ArrayForEach(item, json) {
+        if (total_count < icon_start_count) {
+            total_count++;
+        } else if (total_count < icons_max_count + icon_start_count) {
+            cJSON* iconPath = cJSON_GetObjectItem(item, "iconPath");
+            cJSON* executablePath = cJSON_GetObjectItem(item, "executablePath");
+            cJSON* cwdPath = cJSON_GetObjectItem(item, "cwdPath");
+            cJSON* appName = cJSON_GetObjectItem(item, "appName");
+
+            if(iconPath && executablePath && cwdPath && appName) {
+                raw_image_t* icon = load_tga_image_file(iconPath->valuestring);
+
+                if (icon != NULL) {
+                    raw_image_t* icon_resized = NULL;
+                    if (icon->width < icon->height) {
+                        icon_resized = resize_image(icon, 0, ICON_IMAGE_HEIGHT, true);
+                    } else {
+                        icon_resized = resize_image(icon, ICON_IMAGE_WIDTH, 0, true);
+                    }
+
+                    free_raw_image(icon);
+
+                    if(icon_resized != NULL){
+                        size_t name_length = strlen(appName->valuestring) + 1;
+                        char* name = malloc(name_length);
+                        strncpy(name, appName->valuestring, name_length);
+
+                        icons_image[c] = icon_resized;
+                        icons_text[c] = name;
+                        icons_executable_path[c] = strdup(executablePath->valuestring);
+                        icons_cwd_path[c] = strdup(cwdPath->valuestring);
+
+                        if (name_length > max_text_icon_length) {
+                            char* correct_name = malloc(name_length);
+                            strncpy(correct_name, name, name_length);
+                            icons_executable_path[c] = correct_name;
+
+                            name[max_text_icon_length - 3] = '.';
+                            name[max_text_icon_length - 2] = '.';
+                            name[max_text_icon_length - 1] = '.';
+                            name[max_text_icon_length] = '\0';
+                        }
+
+                        c++;
+                        total_count++;
+                    }
+                }
+            }
+        } else {
+            total_count++;
+        }
+    }
+
+    cJSON_Delete(json);
+
+    icons_count = c;
+    page_count = DIV_ROUND_UP(c, icons_max_count);
+
+    return EXIT_SUCCESS;
+}
+
 void get_input(){
     static bool arrow_pressed = false;
     static bool wait_release = false;
@@ -305,20 +398,26 @@ void get_input(){
             }else if(key == 28 && pressed){
                 int c = focus_icon_column + focus_icon_row * icon_column_count;
 
-                char executable_path[4096];
-                snprintf(executable_path, 4096, "/usr/bin/%s", icons_path_end[c]);
                 {
                     pid_t p = fork(); 
                     if(p < 0){ 
                         perror("desktop: fork failed"); 
                     }else if(p == 0){
-                        char* exe_argv[2] = {executable_path, NULL};
-                        execvp(executable_path, exe_argv);
-
-                        printf("desktop: launching failed: %s\n", icons_path_end[c]);
+                        char* exe_argv[2] = {icons_executable_path[c], NULL};
+                        chdir(icons_cwd_path[c]);
+                        execvp(icons_executable_path[c], exe_argv);
+                        
+                        printf("\033[1;31m%s : \033[0m", icons_executable_path[c]);
+                        perror("\033[1;31mdesktop: launching failed\033[0m"); 
+                        printf("\033[1;31mPress <Enter> to Continue\033[0m\n");
+                        getchar();
+                        exit(EXIT_FAILURE);
                     }else{
                         int status;
                         wait(&status);
+
+                        /* reset display info */
+                        assert(ioctl(fb_fd, FBIOPUT_VSCREENINFO, &var_screeninfo) == 0);
                     }
                 }
             }
@@ -426,81 +525,7 @@ int main(int argc, char* argv[]){
 
     icon_start_count = current_page * icons_max_count;
 
-    {
-        DIR* d;
-        struct dirent* dir;
-        int c = 0;
-        int total_count = 0;
-        d = opendir("/usr/bin/icons");
-        icons_text = malloc(sizeof(char*) * icons_max_count);
-        icons_path_end = malloc(sizeof(char*) * icons_max_count);
-        icons_image = malloc(sizeof(raw_image_t*) * icons_max_count);
-        if(d){
-            while((dir = readdir(d)) != NULL){
-                if(total_count < icon_start_count){
-                    total_count++;
-                }else if(total_count < icons_max_count + icon_start_count){
-                    int length = strlen(dir->d_name) + 1;
-                    char* extension_start = &dir->d_name[length - sizeof(".tga")];
-
-                    if(!strcmp(extension_start, ".tga")){
-                        char icon_path_buffer[300];
-                        strcpy(icon_path_buffer, "/usr/bin/icons/");
-                        strcat(icon_path_buffer, dir->d_name);
-
-                        raw_image_t* icon = load_tga_image_file(icon_path_buffer);
-
-                        if(icon != NULL){
-                            raw_image_t* icon_resized = NULL;
-                            if(icon->width < icon->height){
-                                icon_resized = resize_image(icon, 0, ICON_IMAGE_HEIGHT, true);
-                            }else{
-                                icon_resized = resize_image(icon, ICON_IMAGE_WIDTH, 0, true);
-                            }
-
-                            free_raw_image(icon);
-
-                            if(icon_resized != NULL){
-                                size_t name_length = strlen(dir->d_name) + 1;
-                                char* name = malloc(name_length);
-                                strncpy(name, dir->d_name, name_length);
-
-                                icons_image[c] = icon_resized;
-                                icons_text[c] = name;
-                                icons_path_end[c] = name;
-
-                                /* Remove extension */
-                                char* last_dot = strrchr(name, '.');
-                                if(last_dot != NULL){
-                                    *last_dot = '\0';
-                                }
-
-                                if(name_length - 4 > max_text_icon_length){
-                                    char* correct_name = malloc(name_length);
-                                    strncpy(correct_name, name, name_length);
-                                    icons_path_end[c] = correct_name;
-
-                                    name[max_text_icon_length - 3] = '.';
-                                    name[max_text_icon_length - 2] = '.';
-                                    name[max_text_icon_length - 1] = '.';
-                                    name[max_text_icon_length] = '\0';
-                                }
-
-                                c++;
-                                total_count++;
-                            }
-                        }                    
-                    }
-                }else{
-                    total_count++;
-                }
-
-            }
-            closedir(d);
-        }
-        icons_count = c;
-        page_count = DIV_ROUND_UP(c, icons_max_count);
-    }
+    process_icons("/usr/bin/icons/icons.json");
 
     while(true){
         draw_desktop();
