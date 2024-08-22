@@ -42,14 +42,14 @@ kfont_pos_t get_line_height(kfont_t opaque);
 kfont_pos_t get_glyph_width(kfont_t opaque);
 kfont_pos_t get_glyph_bearing_y(kfont_t opaque);
 
-int draw_font(kfont_t opaque, char* str);
-int draw_font_n(kfont_t opaque, char* str, size_t len);
+int draw_font(kfont_t opaque, uint8_t* str);
+int draw_font_n(kfont_t opaque, uint8_t* str, size_t len);
 
-int get_textbox_info(kfont_t opaque, char* str, kfont_pos_t* width, kfont_pos_t* height, kfont_pos_t* x, kfont_pos_t* y);
-int get_textbox_info_n(kfont_t opaque, char* str, size_t len, kfont_pos_t* width, kfont_pos_t* height, kfont_pos_t* x, kfont_pos_t* y);
+int get_textbox_info(kfont_t opaque, uint8_t* str, kfont_pos_t* width, kfont_pos_t* height, kfont_pos_t* x, kfont_pos_t* y);
+int get_textbox_info_n(kfont_t opaque, uint8_t* str, size_t len, kfont_pos_t* width, kfont_pos_t* height, kfont_pos_t* x, kfont_pos_t* y);
 
 int draw_glyph(kfont_t opaque, kfont_glyph_t glyph, kfont_dot_t width, kfont_dot_t height);
 
-int write_paragraph(kfont_t font, kfont_pos_t x, kfont_pos_t y, kfont_pos_t width, int format, char* text);
+int write_paragraph(kfont_t font, kfont_pos_t x, kfont_pos_t y, kfont_pos_t width, int format, uint8_t* text);
 
 #endif // KOT_GRAPHICS_FONT

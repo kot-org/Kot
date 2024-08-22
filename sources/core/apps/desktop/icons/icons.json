@@ -13,6 +13,12 @@
     },
     {
         "cwdPath": "/usr/bin/",
+        "iconPath": "/usr/bin/icons/weather-ui.tga",
+        "executablePath": "/usr/bin/weather-ui",
+        "appName": "Weather UI"
+    },
+    {
+        "cwdPath": "/usr/bin/",
         "iconPath": "/usr/bin/icons/nyancat.tga",
         "executablePath": "/usr/bin/nyancat",
         "appName": "Nyancat"

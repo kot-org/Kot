@@ -7,6 +7,7 @@
 
 #include "install.h"
 #include "../deps/deps.h"
+#include "../icon/icon.h"
 #include "../untar/untar.h"
 #include "../download/download.h"
 
@@ -45,7 +46,8 @@ int install_app(CURL* curl, char* url, char* name, bool reinstall){
     
     printf("Checking dependencies...\n");
     char* installation_file_url = NULL;
-    int check_deps = check_dependencies(path_store_app_info_json, &installation_file_url);
+    char* executable_relative_path = NULL;
+    int check_deps = check_dependencies(path_store_app_info_json, &installation_file_url, &executable_relative_path);
     if(check_deps == -2){
         printf("Aborting installation of %s!\n", name);
         rmdir(path_store_app);
@@ -92,6 +94,11 @@ int install_app(CURL* curl, char* url, char* name, bool reinstall){
                 free(path_store_app);
                 return -1;
             }
+
+            char* path_executable_file = malloc(strlen(path_store_app) + strlen(executable_relative_path) + 1);
+            strcpy(path_executable_file, path_store_app);
+            strcat(path_executable_file, executable_relative_path);
+            add_element_to_json(path_store_app, "", path_executable_file, name);
 
             untar(path_store_installation_file, path_store_app);
         }

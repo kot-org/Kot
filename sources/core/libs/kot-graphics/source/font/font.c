@@ -192,11 +192,11 @@ kfont_pos_t get_glyph_bearing_y(kfont_t opaque){
     return font->face->glyph->metrics.horiBearingY >> 6;
 }
 
-int draw_font(kfont_t opaque, char* str){
+int draw_font(kfont_t opaque, uint8_t* str){
     return draw_font_n(opaque, str, strlen(str));
 }
 
-int draw_font_n(kfont_t opaque, char* str, size_t len){
+int draw_font_n(kfont_t opaque, uint8_t* str, size_t len){
     if(opaque == NULL) return -1;
 
     local_kfont_t* font = (local_kfont_t*)opaque;
@@ -241,11 +241,11 @@ int draw_font_n(kfont_t opaque, char* str, size_t len){
     return 0;
 }
 
-int get_textbox_info(kfont_t opaque, char* str, kfont_pos_t* width, kfont_pos_t* height, kfont_pos_t* x, kfont_pos_t* y){
+int get_textbox_info(kfont_t opaque, uint8_t* str, kfont_pos_t* width, kfont_pos_t* height, kfont_pos_t* x, kfont_pos_t* y){
     return get_textbox_info_n(opaque, str, strlen(str), width, height, x, y);
 }
 
-int get_textbox_info_n(kfont_t opaque, char* str, size_t len, kfont_pos_t* width, kfont_pos_t* height, kfont_pos_t* x, kfont_pos_t* y){
+int get_textbox_info_n(kfont_t opaque, uint8_t* str, size_t len, kfont_pos_t* width, kfont_pos_t* height, kfont_pos_t* x, kfont_pos_t* y){
     if(opaque == NULL) return -1;
 
     local_kfont_t* font = (local_kfont_t*)opaque;
@@ -324,7 +324,7 @@ int draw_glyph(kfont_t opaque, kfont_glyph_t glyph, kfont_dot_t width, kfont_dot
     return 0;
 }
 
-int write_paragraph(kfont_t opaque, kfont_pos_t x, kfont_pos_t y, kfont_pos_t width, int format, char* text){
+int write_paragraph(kfont_t opaque, kfont_pos_t x, kfont_pos_t y, kfont_pos_t width, int format, uint8_t* text){
     local_kfont_t* font = (local_kfont_t*)opaque;
     FT_Load_Glyph(font->face, ' ', FT_LOAD_RENDER);
     
@@ -345,8 +345,8 @@ int write_paragraph(kfont_t opaque, kfont_pos_t x, kfont_pos_t y, kfont_pos_t wi
 
     font->space_size = char_width;
 
-    char* line_start = text;
-    char* line_end = text;
+    uint8_t* line_start = text;
+    uint8_t* line_end = text;
     
     while(*line_end){
         while (*line_end && *line_end != '\n') line_end++;
@@ -377,7 +377,7 @@ int write_paragraph(kfont_t opaque, kfont_pos_t x, kfont_pos_t y, kfont_pos_t wi
             if(format == PARAGRAPH_JUSTIFY){
                 int space_available = 0;
 
-                char* c = line_start;
+                uint8_t* c = line_start;
                 while(c != line_end){
                     if(*c == ' '){
                         space_available++;

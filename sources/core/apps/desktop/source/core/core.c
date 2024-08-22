@@ -33,7 +33,7 @@
 #define ICON_HEIGHT             (100)
 #define ICON_IMAGE_WIDTH        (75)
 #define ICON_IMAGE_HEIGHT       (75)
-#define ICON_TEXT_SIZE          (18)
+#define ICON_TEXT_SIZE          (14)
 #define ICON_TEXT_COLOR         (0xffffff)
 #define ICON_BORDER_COLOR       (0x3c2d2d)
 #define ICON_BORDER_FOCUS_COLOR (0x14bacb)
@@ -373,6 +373,22 @@ int process_icons(){
     return EXIT_SUCCESS;
 }
 
+int reload_icons(){
+    cJSON_Delete(icon_json_root);
+
+    free(icon_json_data);
+
+    if(load_icon_json("/usr/bin/icons/icons.json") != EXIT_SUCCESS){
+        return EXIT_FAILURE;
+    }
+
+    process_icons();
+
+    update_icon_page = true;
+
+    return 0;
+}
+
 void get_input(){
     static bool arrow_pressed = false;
     static bool wait_release = false;
@@ -460,6 +476,9 @@ void get_input(){
 
                         /* reset display info */
                         assert(ioctl(fb_fd, FBIOPUT_VSCREENINFO, &var_screeninfo) == 0);
+
+                        /* reload icons */
+                        reload_icons();
                     }
                 }
             }else if(key == 60 && pressed){

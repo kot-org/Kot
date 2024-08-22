@@ -208,7 +208,8 @@
         "launch.h": "c",
         "untar.h": "c",
         "ft2build.h": "c",
-        "wait.h": "c"
+        "wait.h": "c",
+        "ctype.h": "c"
     },
     "files.exclude": {
         "bundled": true,
