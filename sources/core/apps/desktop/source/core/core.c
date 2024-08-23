@@ -299,10 +299,6 @@ int process_icons(){
     int c = 0;
     int total_count = 0;
     int icon_start_count = current_page * icons_max_count;
-    icons_text = malloc(sizeof(char*) * icons_max_count);
-    icons_executable_path = malloc(sizeof(char*) * icons_max_count);
-    icons_cwd_path = malloc(sizeof(char*) * icons_max_count);
-    icons_image = malloc(sizeof(raw_image_t*) * icons_max_count);
 
     cJSON* item = NULL;
     cJSON_ArrayForEach(item, icon_json_root) {
@@ -314,7 +310,23 @@ int process_icons(){
             cJSON* cwdPath = cJSON_GetObjectItem(item, "cwdPath");
             cJSON* appName = cJSON_GetObjectItem(item, "appName");
 
-            if(iconPath && executablePath && cwdPath && appName) {
+            if(iconPath && executablePath && cwdPath && appName){
+                if(icons_image[c] != NULL){
+                    free_raw_image(icons_image[c]);
+                }
+
+                if(icons_image[c] != NULL){
+                    free(icons_text[c]);
+                }
+
+                if(icons_image[c] != NULL){
+                    free(icons_cwd_path[c]);
+                }
+                
+                if(icons_image[c] != NULL){
+                    free(icons_executable_path[c]);
+                }
+
                 if(iconPath->valuestring[0] != '\0'){
                     raw_image_t* icon = load_tga_image_file(iconPath->valuestring);
 
@@ -617,6 +629,11 @@ int main(int argc, char* argv[]){
     load_pen(font, &fb, 0, 0, ICON_TEXT_SIZE, 0, ICON_TEXT_COLOR);
     get_textbox_info(font, "a", &char_width, NULL, NULL, NULL);
     max_text_icon_length = ICON_IMAGE_WIDTH / char_width;
+
+    icons_text = calloc(icons_max_count, sizeof(char*));
+    icons_executable_path = calloc(icons_max_count, sizeof(char*));
+    icons_cwd_path = calloc(icons_max_count, sizeof(char*));
+    icons_image = calloc(icons_max_count, sizeof(raw_image_t*));
 
     process_icons();
 

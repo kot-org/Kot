@@ -1,5 +1,4 @@
 {
     "font_path": "/usr/bin/res/weather-ui/default_font.ttf",
-    "wallpaper_path": "/usr/bin/res/weather-ui/",
-    "pin_expected": ""
+    "wallpaper_path": "/usr/bin/res/weather-ui/"
 }

@@ -1,0 +1,7 @@
+{
+    "default_icon_path": "/usr/bin/res/explorer/default.tga",
+    "file_default_icon_path": "/usr/bin/res/explorer/file.tga",
+    "directory_default_icon_path": "/usr/bin/res/explorer/directory.tga",
+    "font_path": "/usr/bin/res/explorer/default_font.ttf",
+    "wallpaper_path": "/usr/bin/res/explorer/default_wallpaper.jpg"
+}

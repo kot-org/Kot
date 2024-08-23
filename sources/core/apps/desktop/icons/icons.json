@@ -7,6 +7,12 @@
     },
     {
         "cwdPath": "/usr/bin/",
+        "iconPath": "/usr/bin/icons/explorer.tga",
+        "executablePath": "/usr/bin/explorer",
+        "appName": "Explorer"
+    },
+    {
+        "cwdPath": "/usr/bin/",
         "iconPath": "/usr/bin/icons/lock.tga",
         "executablePath": "/usr/bin/lock",
         "appName": "Lock"
