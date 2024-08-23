@@ -348,11 +348,7 @@ int process_icons(){
                 icons_executable_path[c] = strdup(executablePath->valuestring);
                 icons_cwd_path[c] = strdup(cwdPath->valuestring);
 
-                if (name_length > max_text_icon_length) {
-                    char* correct_name = malloc(name_length);
-                    strncpy(correct_name, name, name_length);
-                    icons_executable_path[c] = correct_name;
-
+                if(name_length > max_text_icon_length){
                     name[max_text_icon_length - 3] = '.';
                     name[max_text_icon_length - 2] = '.';
                     name[max_text_icon_length - 1] = '.';
@@ -619,7 +615,7 @@ int main(int argc, char* argv[]){
 
     kfont_pos_t char_width = 0;
     load_pen(font, &fb, 0, 0, ICON_TEXT_SIZE, 0, ICON_TEXT_COLOR);
-    get_textbox_info(font, " ", &char_width, NULL, NULL, NULL);
+    get_textbox_info(font, "a", &char_width, NULL, NULL, NULL);
     max_text_icon_length = ICON_IMAGE_WIDTH / char_width;
 
     process_icons();

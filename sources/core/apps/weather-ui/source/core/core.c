@@ -18,6 +18,8 @@
 #include <kot-graphics/image.h>
 
 #define TEXT_COLOR         (0xffffff)
+#define HOUR_SIZE          (52)
+#define DATE_SIZE          (22)
 #define CITY_SIZE          (32)
 #define TEMP_SIZE          (49)
 #define WIND_SIZE          (22)
@@ -30,10 +32,18 @@ char* wallpaper_path = NULL;
 FILE* json_file = NULL;
 raw_image_t* wallpaper_resized = NULL;
 
+cJSON* weather_json = NULL;
+
 int fb_fd = -1;
 kframebuffer_t fb;
 struct fb_fix_screeninfo fix_screeninfo;
 struct fb_var_screeninfo var_screeninfo;
+
+
+char* area_name_str = NULL;
+char* temp_c_str = NULL;
+char* desc_str = NULL;
+char* wind_speed_str = NULL;
 
 typedef struct{
     char* buffer;
@@ -96,6 +106,17 @@ int get_key(int* pressed, uint64_t* key){
     return 0;
 }
 
+void get_current_time(char *time_str) {
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    strftime(time_str, 6, "%H:%M", t);
+}
+
+void get_current_date(char *date_str) {
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    strftime(date_str, 20, "%A, %B %d", t);
+}
 
 int wait_escape(){
     int pressed;
@@ -268,9 +289,9 @@ int load_wallpaper(char* name){
     return EXIT_SUCCESS;
 }
 
-int load_ui(){
+int load_weather_info(){
     char* weather_data = get_weather_data("");
-    cJSON* weather_json = cJSON_Parse(weather_data);
+    weather_json = cJSON_Parse(weather_data);
     free(weather_data);
 
     if(weather_json == NULL){
@@ -279,11 +300,6 @@ int load_ui(){
         close(fb_fd);
         return EXIT_FAILURE;
     }
-
-    char* area_name_str = NULL;
-    char* temp_c_str = NULL;
-    char* desc_str = NULL;
-    char* wind_speed_str = NULL;
 
     cJSON* nearest_area = cJSON_GetObjectItem(weather_json, "nearest_area");
     if(nearest_area && cJSON_IsArray(nearest_area) && cJSON_GetArraySize(nearest_area) > 0){
@@ -327,12 +343,39 @@ int load_ui(){
         return EXIT_FAILURE;
     }
 
-    load_pen(font, &fb, 0, (fb.height - (TEMP_SIZE + WIND_SIZE + CITY_SIZE)) / 2, CITY_SIZE, 0, TEXT_COLOR);
+    return EXIT_SUCCESS;
+}
 
+int draw_ui(){
     draw_image(&fb, wallpaper_resized, 0, 0, fb.width, fb.height);
+
+    char time_str[6];
+    char date_str[20];
+
+    get_current_time(time_str);
+    get_current_date(date_str);
+
+    load_pen(font, &fb, 0, 10, HOUR_SIZE, 0, TEXT_COLOR);
 
     kfont_pos_t x = get_pen_pos_x(font);
     kfont_pos_t y = get_pen_pos_y(font);
+    set_pen_color(font, ~TEXT_COLOR);
+    write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, time_str);
+    set_pen_color(font, TEXT_COLOR);
+    write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, time_str);
+
+    set_pen_size(font, DATE_SIZE);
+    x = get_pen_pos_x(font);
+    y = get_pen_pos_y(font);
+    set_pen_color(font, ~TEXT_COLOR);
+    write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, date_str);
+    set_pen_color(font, TEXT_COLOR);
+    write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, date_str);
+
+    set_pen_pos_y(font, (fb.height - (TEMP_SIZE + WIND_SIZE + CITY_SIZE)) / 2);
+    set_pen_size(font, CITY_SIZE);
+    x = get_pen_pos_x(font);
+    y = get_pen_pos_y(font);
     set_pen_color(font, ~TEXT_COLOR);
     write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, area_name_str);
     set_pen_color(font, TEXT_COLOR);
@@ -341,7 +384,7 @@ int load_ui(){
 
     char weather_info[100];
 
-    snprintf(weather_info, sizeof(weather_info), "%s%cC", temp_c_str, 0xb0);
+    snprintf(weather_info, sizeof(weather_info), "%s%cC, %s", temp_c_str, 0xb0, desc_str);
     set_pen_size(font, TEMP_SIZE);
     x = get_pen_pos_x(font);
     y = get_pen_pos_y(font);
@@ -350,7 +393,7 @@ int load_ui(){
     set_pen_color(font, TEXT_COLOR);
     write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, weather_info);
 
-    snprintf(weather_info, sizeof(weather_info), "%skm/h", wind_speed_str);
+    snprintf(weather_info, sizeof(weather_info), "\n%skm/h", wind_speed_str);
     set_pen_size(font, WIND_SIZE);
     x = get_pen_pos_x(font);
     y = get_pen_pos_y(font);
@@ -367,7 +410,7 @@ int load_ui(){
     set_pen_color(font, TEXT_COLOR);
     write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, "Exit : <Esc>\n");
 
-    cJSON_Delete(weather_json);
+    draw_frame();
 
     return EXIT_SUCCESS;
 }
@@ -385,14 +428,15 @@ int main(int argc, char* argv[]){
         return EXIT_FAILURE;
     }
 
-    if(load_ui() != EXIT_SUCCESS){
+    if(load_weather_info() != EXIT_SUCCESS){
         return EXIT_FAILURE;
     }
 
-    draw_frame();
+    while(!wait_escape()){
+        draw_ui();
+    }
 
-    while(!wait_escape());
-
+    cJSON_Delete(weather_json);
     free_raw_image(wallpaper_resized);
     fclose(json_file);
     close(fb_fd);
