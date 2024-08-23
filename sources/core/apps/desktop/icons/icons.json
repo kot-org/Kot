@@ -19,6 +19,12 @@
     },
     {
         "cwdPath": "/usr/bin/",
+        "iconPath": "/usr/bin/icons/welcome.tga",
+        "executablePath": "/usr/bin/welcome",
+        "appName": "Welcome"
+    },
+    {
+        "cwdPath": "/usr/bin/",
         "iconPath": "/usr/bin/icons/nyancat.tga",
         "executablePath": "/usr/bin/nyancat",
         "appName": "Nyancat"
