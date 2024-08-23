@@ -1,6 +1,6 @@
 [
     {
-        "cwdPath": "/usr/bin/",
+        "cwdPath": "/usr/",
         "iconPath": "/usr/bin/icons/bash.tga",
         "executablePath": "/usr/bin/bash",
         "appName": "Bash"
