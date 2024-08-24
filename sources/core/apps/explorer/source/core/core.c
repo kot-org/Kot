@@ -62,9 +62,11 @@ size_t json_size = 0;
 void* json_buffer = NULL;
 FILE* json_file = NULL;
 cJSON* json_root = NULL;
-cJSON* wallpaper_path_json = NULL;
 cJSON* font_path_json = NULL;
+cJSON* wallpaper_path_json = NULL;
+cJSON* extension_icons_json = NULL;
 cJSON* default_icon_path_json = NULL;
+cJSON* extension_executables_json = NULL;
 cJSON* file_default_icon_path_json = NULL;
 cJSON* directory_default_icon_path_json = NULL;
 
@@ -84,8 +86,10 @@ int focus_icon_row = 0;
 int focus_icon_column = 0;
 int icons_max_count = 0;
 
+raw_image_t** icons_image = NULL;
 char** icons_text = NULL;
 char** icons_real_path = NULL;
+char** icons_executable_path = NULL;
 uint8_t* icons_type = NULL;
 
 char* current_path = NULL;
@@ -151,6 +155,12 @@ char* get_parent_directory(const char* path){
     }
 
     return parent_path;
+}
+
+char* get_file_ext(char* name) {
+    char* dot = strrchr(name, '.');
+    if(!dot || dot == name) return "";
+    return dot + 1;
 }
 
 int load_fb(){
@@ -256,6 +266,16 @@ int load_json(){
             
             printf("Error: Unable to parse the file : /usr/bin/res/explorer/explorer.json\n"); 
             return EXIT_FAILURE; 
+        }
+        
+        extension_executables_json = cJSON_GetObjectItem(json_root, "extension_executables");
+        if(!cJSON_IsObject(extension_executables_json)){
+            extension_executables_json = NULL;
+        }
+        
+        extension_icons_json = cJSON_GetObjectItem(json_root, "extension_icons");
+        if(!cJSON_IsObject(extension_icons_json)){
+            extension_icons_json = NULL;
         }
     }else{
         fclose(json_file);
@@ -367,10 +387,22 @@ int process_icons(){
         }else if(total_count < icons_max_count + icon_start_count){
             if(icons_text[c] != NULL){
                 free(icons_text[c]);
+                // don't need to set null because we reassign it after
             }
 
             if(icons_real_path[c] != NULL){
                 free(icons_real_path[c]);
+                // don't need to set null because we reassign it after
+            }
+
+            if(icons_executable_path[c] != NULL){
+                free(icons_executable_path[c]);
+                icons_executable_path[c] = NULL;
+            }
+
+            if(icons_image[c] != NULL){
+                free_raw_image(icons_image[c]);
+                icons_image[c] = NULL;
             }
 
             char* full_path = NULL;
@@ -385,6 +417,30 @@ int process_icons(){
             size_t name_length = strlen(entry->d_name) + 1;
             char* name = malloc(name_length);
             strncpy(name, entry->d_name, name_length);
+
+            char* extension = get_file_ext(name);
+
+            cJSON* icon_path_json = cJSON_GetObjectItem(extension_icons_json, extension);
+            if(icon_path_json != NULL){
+                if(cJSON_IsString(icon_path_json) && (icon_path_json->valuestring != NULL)){
+                    raw_image_t* icon_image_not_resized = load_tga_image_file(icon_path_json->valuestring);
+                    if(icon_image_not_resized != NULL){
+                        if(icon_image_not_resized->width < icon_image_not_resized->height){
+                            icons_image[c] = resize_image(icon_image_not_resized, 0, ICON_IMAGE_HEIGHT, true);
+                        }else{
+                            icons_image[c] = resize_image(icon_image_not_resized, ICON_IMAGE_WIDTH, 0, true);
+                        }
+                        free_raw_image(icon_image_not_resized);
+                    }
+                }
+            }
+
+            cJSON* executable_path_json = cJSON_GetObjectItem(extension_executables_json, extension);
+            if(executable_path_json != NULL){
+                if(cJSON_IsString(executable_path_json) && (executable_path_json->valuestring != NULL)){
+                    icons_executable_path[c] = strdup(executable_path_json->valuestring);
+                }
+            }
 
             icons_text[c] = name;
             icons_real_path[c] = strdup(full_path);
@@ -495,12 +551,39 @@ void get_input(){
 
                     focus_icon_row = 0;
                     focus_icon_column = 0;
+                    current_page = 0;
                     process_icons();
                     update_icon_page = true;
                 }else{
-                    printf("\033[1;31m%s : is not a directory\033[0m\n", icons_real_path[c]);
-                    printf("Press <Enter> to Continue\n");
-                    getchar();
+                    if(icons_executable_path[c] != NULL){
+                        pid_t p = fork(); 
+                        if(p < 0){ 
+                            perror("explorer: fork failed"); 
+                        }else if(p == 0){
+                            char* exe_argv[3] = {icons_executable_path[c], icons_real_path[c], NULL};
+                            execvp(icons_executable_path[c], exe_argv);
+                            
+                            printf("\033[1;31m%s : \033[0m", icons_executable_path[c]);
+                            perror("\033[1;31mexplorer: launching failed\033[0m"); 
+                            printf("Press <Enter> to Continue\n");
+                            getchar();
+                            exit(EXIT_FAILURE);
+                        }else{
+                            int status;
+                            wait(&status);
+
+                            /* reset display info */
+                            assert(ioctl(fb_fd, FBIOPUT_VSCREENINFO, &var_screeninfo) == 0);
+
+                            /* reload icons */
+                            reload_icons();
+                        }
+                    }else{
+                        printf("\033[1;31m%s : have an unknow extension\033[0m\n", icons_real_path[c]);
+                        printf("Press <Enter> to Continue\n");
+                        getchar();
+                    }
+        
                 }
             }else if(key == 62 && pressed){
                 // open bash
@@ -534,6 +617,7 @@ void get_input(){
                 current_path = parent_directory;
                 focus_icon_row = 0;
                 focus_icon_column = 0;
+                current_page = 0;
                 process_icons();
                 update_icon_page = true;
             }else if(key == 60 && pressed){
@@ -554,6 +638,9 @@ void get_input(){
                     process_icons();
                     update_icon_page = true;
                 }
+            }else if(key == 1 && pressed){
+                // exit
+                exit(EXIT_SUCCESS);
             }
         }
     }
@@ -574,7 +661,7 @@ void draw_explorer(){
     write_paragraph(font, 0, 0, fb.width, PARAGRAPH_CENTER, date_time_str);
 
     char page_string[1024];
-    snprintf(page_string, 1024, "Parent directory: <F3> | Open BASH here : <F4> | %s", current_path);
+    snprintf(page_string, 1024, "Exit <Esc> | Parent directory: <F3> | Open BASH here : <F4> | %s", current_path);
     write_paragraph(font, 0, 0, fb.width, PARAGRAPH_LEFT, page_string);
 
     snprintf(page_string, 1024, "Page : %d / %d | Next: <F1> | Last: <F2>", current_page + 1, page_count);
@@ -594,12 +681,16 @@ void draw_explorer(){
                 uint32_t x = start_x + i * (ICON_MARGIN + ICON_WIDTH);
                 uint32_t y = start_y + j * (ICON_MARGIN + ICON_HEIGHT);
 
-                if(icons_type[c] == DT_DIR){
-                    draw_image_with_binary_transparency(&fb, directory_default_icon_image, x, y, ICON_IMAGE_WIDTH, ICON_IMAGE_HEIGHT);
-                }else if(icons_type[c] == DT_REG){
-                    draw_image_with_binary_transparency(&fb, file_default_icon_image, x, y, ICON_IMAGE_WIDTH, ICON_IMAGE_HEIGHT);
+                if(icons_image[c] != NULL){
+                    draw_image_with_binary_transparency(&fb, icons_image[c], x, y, ICON_IMAGE_WIDTH, ICON_IMAGE_HEIGHT);
                 }else{
-                    draw_image_with_binary_transparency(&fb, default_icon_image, x, y, ICON_IMAGE_WIDTH, ICON_IMAGE_HEIGHT);
+                    if(icons_type[c] == DT_DIR){
+                        draw_image_with_binary_transparency(&fb, directory_default_icon_image, x, y, ICON_IMAGE_WIDTH, ICON_IMAGE_HEIGHT);
+                    }else if(icons_type[c] == DT_REG){
+                        draw_image_with_binary_transparency(&fb, file_default_icon_image, x, y, ICON_IMAGE_WIDTH, ICON_IMAGE_HEIGHT);
+                    }else{
+                        draw_image_with_binary_transparency(&fb, default_icon_image, x, y, ICON_IMAGE_WIDTH, ICON_IMAGE_HEIGHT);
+                    }
                 }
                 
                 if(i == focus_icon_column && j == focus_icon_row){
@@ -674,8 +765,10 @@ int main(int argc, char* argv[]){
     get_textbox_info(font, "a", &char_width, NULL, NULL, NULL);
     max_text_icon_length = ICON_IMAGE_WIDTH / char_width;
 
+    icons_image = calloc(icons_max_count, sizeof(raw_image_t*));
     icons_text = calloc(icons_max_count, sizeof(char*));
     icons_real_path = calloc(icons_max_count, sizeof(char*));
+    icons_executable_path = calloc(icons_max_count, sizeof(char*));
     icons_type = calloc(icons_max_count, sizeof(uint8_t));
 
     current_path = strdup("/usr");
@@ -687,7 +780,11 @@ int main(int argc, char* argv[]){
 
     free_raw_image(wallpaper_resized);
 
+    cJSON_Delete(json_root);
+
+    free(json_buffer);
+
     fclose(json_file);
 
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
 }

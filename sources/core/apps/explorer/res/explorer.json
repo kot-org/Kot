@@ -3,5 +3,19 @@
     "file_default_icon_path": "/usr/bin/res/explorer/file.tga",
     "directory_default_icon_path": "/usr/bin/res/explorer/directory.tga",
     "font_path": "/usr/bin/res/explorer/default_font.ttf",
-    "wallpaper_path": "/usr/bin/res/explorer/default_wallpaper.jpg"
+    "wallpaper_path": "/usr/bin/res/explorer/default_wallpaper.jpg",
+    "extension_executables": {
+        "jpg": "/usr/bin/image-reader",
+        "jpeg": "/usr/bin/image-reader",
+        "png": "/usr/bin/image-reader",
+        "tga": "/usr/bin/image-reader"
+    },
+    "extension_icons": {
+        "json": "/usr/bin/res/explorer/image.json",
+        "jpg": "/usr/bin/res/explorer/image.tga",
+        "jpeg": "/usr/bin/res/explorer/image.tga",
+        "png": "/usr/bin/res/explorer/image.tga",
+        "tga": "/usr/bin/res/explorer/image.tga",
+        "ttf": "/usr/bin/res/explorer/ttf.tga"
+    }
 }

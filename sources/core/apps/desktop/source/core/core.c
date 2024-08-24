@@ -475,7 +475,7 @@ void get_input(){
                         
                         printf("\033[1;31m%s : \033[0m", icons_executable_path[c]);
                         perror("\033[1;31mdesktop: launching failed\033[0m"); 
-                        printf("\033[1;31mPress <Enter> to Continue\033[0m\n");
+                        printf("Press <Enter> to Continue\n");
                         getchar();
                         exit(EXIT_FAILURE);
                     }else{
@@ -647,7 +647,11 @@ int main(int argc, char* argv[]){
 
     free_raw_image(wallpaper_resized);
 
+    cJSON_Delete(json_root);
+
+    free(json_buffer);
+
     fclose(json_file);
 
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
 }
