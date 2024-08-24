@@ -23,6 +23,9 @@
 	<img src="./meta/screenshots/9.png?raw=true" width="90%"/> 
 </p>
 
+# Use alpha build
+To get started, simply download the following file([clean-boot-kot.img](https://github.com/kot-org/Kot/releases/download/alpha/clean-boot-kot.img)) and launch QEMU (you will need to install ovmf dependency before) with the command below: ```qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -rtc base=localtime,clock=host -drive file=clean-boot-kot.img -machine q35 -m 4G -smp cores=4 -serial stdio -device e1000e,netdev=net0 -netdev user,id=net0,hostfwd=tcp::5001-:5000,hostfwd=udp::5001-:5000 -object filter-dump,id=f1,netdev=net0,file=dump.bin -no-reboot -no-shutdown```
+
 # Use nightly build
 To run the nighly build `boot-kot.img`, you'll need the QEMU emulator and OVMF. You can install it on most Linux distributions using your package manager. Once QEMU is installed, you can run the program using the following command: ```qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -rtc base=localtime,clock=host -drive file=boot-kot.img -machine q35 -m 4G -smp cores=4 -serial stdio -device e1000e,netdev=net0 -netdev user,id=net0,hostfwd=tcp::5001-:5000,hostfwd=udp::5001-:5000 -object filter-dump,id=f1,netdev=net0,file=dump.bin -no-reboot -no-shutdown```
 
