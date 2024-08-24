@@ -19,6 +19,8 @@
 	<img src="./meta/screenshots/5.png?raw=true" width="90%"/> 
 	<img src="./meta/screenshots/6.png?raw=true" width="90%"/> 
 	<img src="./meta/screenshots/7.png?raw=true" width="90%"/> 
+	<img src="./meta/screenshots/8.png?raw=true" width="90%"/> 
+	<img src="./meta/screenshots/9.png?raw=true" width="90%"/> 
 </p>
 
 # Use nightly build
