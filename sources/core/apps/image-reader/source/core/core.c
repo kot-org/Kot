@@ -24,11 +24,13 @@
 
 #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
 
-#define HEADER_BACKGROUND    (0x111111)
-#define HEADER_SIZE          (14)
-#define HEADER_HEIGHT        (26)
-#define TEXT_COLOR           (0xffffff)
-#define INFO_SIZE            (16)
+#define HEADER_BACKGROUND       (0x111111)
+#define IMAGE_BORDER            (0xc70039)
+#define WIDTH_MARGIN            (50)
+#define HEADER_SIZE             (14)
+#define HEADER_HEIGHT           (26)
+#define TEXT_COLOR              (0xffffff)
+#define INFO_SIZE               (16)
 
 kfont_t font;
 
@@ -227,29 +229,36 @@ int main(int argc, char* argv[]){
         }
 
         if(image != NULL){
-            if(image->width < image->height){
-                image_resized = resize_image(image, 0, (fb.height - HEADER_HEIGHT) / 2, true);
-            }else{
-                image_resized = resize_image(image, fb.width / 2, 0, true);
+            uint16_t new_height = fb.height - HEADER_HEIGHT - INFO_SIZE - 100;
+            uint16_t new_width = DIV_ROUND_UP(new_height * image->width, image->height);
+            if(new_width > fb.width - WIDTH_MARGIN){
+                new_width = fb.width - WIDTH_MARGIN;
+                new_height = DIV_ROUND_UP(new_width * image->height, image->width);
             }
+            image_resized = resize_image(image, new_width, new_height, false);
 
             if(image_resized != NULL){
                 raw_image_t* wallpaper = load_jpeg_image_file(wallpaper_path);
                 raw_image_t* wallpaper_resized = NULL;
                 if(wallpaper != NULL){
                     if(wallpaper->width < wallpaper->height){
-                        wallpaper_resized = resize_image(wallpaper, 0, fb.height - HEADER_HEIGHT, true);
+                        wallpaper_resized = resize_image(wallpaper, 0, fb.height, true);
                     }else{
                         wallpaper_resized = resize_image(wallpaper, fb.width, 0, true);
                     }
                     draw_image(&fb, wallpaper_resized, 0, HEADER_HEIGHT, fb.width, fb.height - HEADER_HEIGHT);
                 }
 
-                draw_image_with_binary_transparency(&fb, image_resized, (fb.width - image_resized->width) / 2, (fb.height - HEADER_HEIGHT - image_resized->height) / 2, image_resized->width, image_resized->height);
+                uint32_t image_x = (fb.width - image_resized->width) / 2;
+                uint32_t image_y = (fb.height - image_resized->height) / 2;
+                draw_rectangle_border(&fb, image_x - 1, image_y - 1, image_resized->width + 2, image_resized->height + 2, IMAGE_BORDER);
+                draw_image_with_binary_transparency(&fb, image_resized, image_x, image_y, image_resized->width, image_resized->height);
                 draw_rectangle(&fb, 0, 0, fb.width, HEADER_HEIGHT, HEADER_BACKGROUND);
 
                 load_pen(font, &fb, 0, 0, HEADER_SIZE, 0, TEXT_COLOR);
-                write_paragraph(font, 0, 0, fb.width, PARAGRAPH_CENTER, argv[1]);
+                char* image_reader_info;
+                assert(asprintf(&image_reader_info, "%s | %dx%d", argv[1], image->width, image->height) >= 0);
+                write_paragraph(font, 0, 0, fb.width, PARAGRAPH_CENTER, image_reader_info);
 
                 set_pen_size(font, INFO_SIZE);
                 kfont_pos_t x = get_pen_pos_x(font);
@@ -263,12 +272,12 @@ int main(int argc, char* argv[]){
 
                 while(!wait_escape());
             }else{
-                printf("\033[1;31mcan't read this file: %s\033[0m", argv[1]); 
+                printf("\033[1;31mcan't read this file: %s\n\033[0m", argv[1]); 
                 printf("Press <Enter> to Continue\n");
                 getchar();            
             }
         }else{
-            printf("\033[1;31mcan't read this file: %s\033[0m", argv[1]); 
+            printf("\033[1;31mcan't read this file: %s\n\033[0m", argv[1]); 
             printf("Press <Enter> to Continue\n");
             getchar();            
         }
