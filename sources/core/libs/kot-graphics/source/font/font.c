@@ -67,7 +67,6 @@ int load_pen(kfont_t opaque, kframebuffer_t* fb, kfont_pos_t x, kfont_pos_t y, k
     FT_Load_Glyph(font->face, ' ', FT_LOAD_RENDER);
     font->space_size = get_glyph_width(font);
 
-
     memcpy(&font->fb, fb, sizeof(kframebuffer_t));
 
     return 0;

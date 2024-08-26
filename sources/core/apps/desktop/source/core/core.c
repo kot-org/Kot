@@ -427,14 +427,18 @@ void get_input(){
                 }else if(key == 80 && !wait_release_down){
                     // down
                     wait_release_down = true;
-                    if(((focus_icon_column + 1) * (focus_icon_row + 2)) <= icons_count){
-                        focus_icon_row++;
+                    if((focus_icon_row + 1) < icon_row_count){
+                        if((focus_icon_column + ((focus_icon_row + 1) * icon_column_count)) < icons_count){
+                            focus_icon_row++;
+                        }
                     }
                 }else if(key == 77 && !wait_release_right){
                     // right
                     wait_release_right = true;
-                    if(((focus_icon_column + 2) * (focus_icon_row + 1)) <= icons_count){
-                        focus_icon_column++;
+                    if((focus_icon_column + 1) < icon_column_count){
+                        if(((focus_icon_column + 1) + (focus_icon_row * icon_column_count)) < icons_count){
+                            focus_icon_column++;
+                        }
                     }
                 }else if(key == 75 && !wait_release_left){
                     // left

@@ -8,7 +8,11 @@
         "jpg": "/usr/bin/image-reader",
         "jpeg": "/usr/bin/image-reader",
         "png": "/usr/bin/image-reader",
-        "tga": "/usr/bin/image-reader"
+        "tga": "/usr/bin/image-reader",
+        "json": "/usr/bin/text-reader",
+        "txt": "/usr/bin/text-reader",
+        "c": "/usr/bin/text-reader",
+        "h": "/usr/bin/text-reader"
     },
     "extension_icons": {
         "json": "/usr/bin/res/explorer/image.json",
