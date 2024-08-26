@@ -79,3 +79,30 @@ void draw_rectangle_border(kframebuffer_t* fb, uint32_t x, uint32_t y, uint32_t 
         *(uint32_t*)((uint64_t)fb->buffer + (x + width - 1) * fb->btpp + (y + j) * fb->pitch) = color;
     }
 }
+
+void blit_framebuffer(kframebuffer_t* to, kframebuffer_t* from, uint64_t position_x, uint64_t position_y, uint32_t max_height, size_t copy_offset){
+    uintptr_t to_buffer = (uintptr_t)to->buffer;
+    uintptr_t from_buffer = (uintptr_t)from->buffer + copy_offset;
+
+    to_buffer += position_x * to->btpp + position_y * to->pitch; // offset
+
+    uint64_t width_copy = from->width;
+
+    if(position_x + width_copy >= to->width){
+        width_copy = to->width - position_x;
+    }
+
+    uint64_t height_copy = from->height;
+
+    if(position_y + height_copy >= to->height){
+        height_copy = to->height - position_y;
+    }
+
+    uint64_t pitch_copy = width_copy * to->btpp;
+
+    for(uint64_t h = 0; h < height_copy && h < max_height; h++){
+        memcpy((void*)to_buffer, (void*)from_buffer, pitch_copy);
+        to_buffer += to->pitch;
+        from_buffer += from->pitch;
+    }
+}

@@ -2,5 +2,6 @@
     "font_path": "/usr/bin/res/text-reader/default_font.ttf",
     "font_bitmap_path": "/usr/bin/res/text-reader/default_bitmap_font.pcf",
     "background_color": 4277049,
+    "background_count_color": 592137,
     "wallpaper_path": "/usr/bin/res/text-reader/default_wallpaper.jpg"
 }
