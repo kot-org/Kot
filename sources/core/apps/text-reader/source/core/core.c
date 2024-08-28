@@ -459,13 +459,19 @@ kframebuffer_t* load_buffer(){
 
     {
         char* line_count_str = NULL;
-        assert(asprintf(&line_count_str, "%04d", col_count + 1) >= 0);
-        uint32_t line_count_x = 0;
-        while(*line_count_str){
-            line_count_x += FONT_WIDTH;
-            bitmap_setchar(framebuffer, line_count_x, cy_pos, *line_count_str, TEXT_COLOR);
-            line_count_str++;
+        if(col_count + 1 < 10000){
+            assert(asprintf(&line_count_str, "%04d", col_count + 1) >= 0);
+        }else{
+            assert(asprintf(&line_count_str, "++++") >= 0);
         }
+        uint32_t line_count_x = 0;
+        char* line_count_char_inc = line_count_str;
+        while(*line_count_char_inc){
+            line_count_x += FONT_WIDTH;
+            bitmap_setchar(framebuffer, line_count_x, cy_pos, *line_count_char_inc, TEXT_COLOR);
+            line_count_char_inc++;
+        }
+        free(line_count_str);
     }
 
     while(*c){
