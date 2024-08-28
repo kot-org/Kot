@@ -91,6 +91,7 @@ char** icons_text = NULL;
 char** icons_real_path = NULL;
 char** icons_executable_path = NULL;
 uint8_t* icons_type = NULL;
+bool* icons_try_to_execute = NULL;
 
 char* current_path = NULL;
 
@@ -446,6 +447,12 @@ int process_icons(){
             icons_real_path[c] = strdup(full_path);
             icons_type[c] = (uint8_t)entry->d_type;
 
+            if(!strcmp(extension, "")){
+                icons_try_to_execute[c] = true;
+            }else{
+                icons_try_to_execute[c] = false;
+            }
+
             if(name_length > max_text_icon_length){
                 name[max_text_icon_length - 3] = '.';
                 name[max_text_icon_length - 2] = '.';
@@ -582,6 +589,29 @@ void get_input(){
                             /* reload icons */
                             reload_icons();
                         }
+                    }else if(icons_try_to_execute[c]){
+                        pid_t p = fork(); 
+                        if(p < 0){ 
+                            perror("explorer: fork failed"); 
+                        }else if(p == 0){
+                            char* exe_argv[2] = {icons_real_path[c], NULL};
+                            execvp(icons_real_path[c], exe_argv);
+                            
+                            printf("\033[1;31m%s : \033[0m", icons_real_path[c]);
+                            perror("\033[1;31mexplorer: launching failed\033[0m"); 
+                            printf("Press <Enter> to Continue\n");
+                            getchar();
+                            exit(EXIT_FAILURE);
+                        }else{
+                            int status;
+                            wait(&status);
+
+                            /* reset display info */
+                            assert(ioctl(fb_fd, FBIOPUT_VSCREENINFO, &var_screeninfo) == 0);
+
+                            /* reload icons */
+                            reload_icons();
+                        }                        
                     }else{
                         printf("\033[1;31m%s : have an unknow extension\033[0m\n", icons_real_path[c]);
                         printf("Press <Enter> to Continue\n");
@@ -774,6 +804,7 @@ int main(int argc, char* argv[]){
     icons_real_path = calloc(icons_max_count, sizeof(char*));
     icons_executable_path = calloc(icons_max_count, sizeof(char*));
     icons_type = calloc(icons_max_count, sizeof(uint8_t));
+    icons_try_to_execute = calloc(icons_max_count, sizeof(bool));
 
     current_path = strdup("/usr");
     process_icons();

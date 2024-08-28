@@ -123,7 +123,7 @@ void scroll_up(int i){
     for(int a = 0; a < i; a++){
         if((text_framebuffer->size - copy_offset) > (write_area_height * text_framebuffer->pitch)){
             copy_offset += text_framebuffer->pitch * FONT_HEIGHT;
-        }else{
+        }else if(text_framebuffer->size > (write_area_height * text_framebuffer->pitch)){
             copy_offset = text_framebuffer->size - (write_area_height * text_framebuffer->pitch);
         }
     }
@@ -597,7 +597,11 @@ int main(int argc, char* argv[]){
             blit_framebuffer(&fb, text_framebuffer, write_area_x, write_area_y, write_area_height, copy_offset);
 
             char* image_reader_info = NULL;
-            assert(asprintf(&image_reader_info, "%s", argv[1]) >= 0);
+            int percentage = 100;
+            if(text_framebuffer->height > write_area_height){
+                percentage = (((copy_offset / text_framebuffer->pitch) + write_area_height) * 100) / text_framebuffer->height;
+            }
+            assert(asprintf(&image_reader_info, "%s | %d%%", argv[1], percentage) >= 0);
             write_paragraph(font, 0, 0, fb.width, PARAGRAPH_CENTER, image_reader_info);
 
             draw_frame();

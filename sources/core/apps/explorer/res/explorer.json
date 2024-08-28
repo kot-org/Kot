@@ -15,11 +15,14 @@
         "h": "/usr/bin/text-reader"
     },
     "extension_icons": {
-        "json": "/usr/bin/res/explorer/image.json",
         "jpg": "/usr/bin/res/explorer/image.tga",
         "jpeg": "/usr/bin/res/explorer/image.tga",
         "png": "/usr/bin/res/explorer/image.tga",
         "tga": "/usr/bin/res/explorer/image.tga",
-        "ttf": "/usr/bin/res/explorer/ttf.tga"
+        "ttf": "/usr/bin/res/explorer/ttf.tga",
+        "json": "/usr/bin/res/explorer/json.tga",
+        "txt": "/usr/bin/res/explorer/text.tga",
+        "c": "/usr/bin/res/explorer/text.tga",
+        "h": "/usr/bin/res/explorer/text.tga"
     }
 }
