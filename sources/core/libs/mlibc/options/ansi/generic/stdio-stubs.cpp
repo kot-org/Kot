@@ -1237,7 +1237,10 @@ char *fgets_unlocked(char *__restrict buffer, size_t max_size, FILE *stream) {
 				// In this case, the buffer is not changed.
 				return nullptr;
 			}
-		} else {
+		} else if (c == '\b') {
+            buffer[i - 1] = 0;
+            i -= 2;
+        } else {
 			buffer[i] = c;
 		}
 

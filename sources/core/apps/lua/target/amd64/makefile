@@ -18,23 +18,11 @@ CFLAGS = -Werror
 LDFLAGS = -Wall \
 		  -lc
 
-# Recursive Wild Card
-rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
-
-# Source Files
-C_SRC = $(call rwildcard,$(SOURCE),*.c)
-
-OBJS = $(patsubst $(SOURCE)/%.c,$(LIB)/%_c.o,$(C_SRC))
-
-# Target
-$(LIB)/%_c.o: $(SOURCE)/%.c
-	@ mkdir -m 777 -p $(@D)
-	@ $(call cyan,"$(subst ../,,$^)")
-	@ $(CC) $(CFLAGS) -c $^ -o $@
-
 git:
-	@ rm -rf $(SOURCE)
-	@ cd $(HOME) && git clone https://github.com/kot-org/lua source
+	@ if [ ! -d $(SOURCE) ]; then \
+		rm -rf $(SOURCE); \
+		cd $(HOME) && git clone https://github.com/kot-org/lua source; \
+	fi
 
 compile:
 	@ cd $(SOURCE) && make all
