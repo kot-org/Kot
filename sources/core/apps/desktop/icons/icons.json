@@ -7,6 +7,12 @@
     },
     {
         "cwdPath": "/usr/bin/",
+        "iconPath": "/usr/bin/icons/lua.tga",
+        "executablePath": "/usr/bin/lua",
+        "appName": "Lua"
+    },
+    {
+        "cwdPath": "/usr/bin/",
         "iconPath": "/usr/bin/icons/explorer.tga",
         "executablePath": "/usr/bin/explorer",
         "appName": "Explorer"
