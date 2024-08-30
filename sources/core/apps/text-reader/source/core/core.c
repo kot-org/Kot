@@ -53,7 +53,7 @@ char* font_path = NULL;
 char* wallpaper_path = NULL;
 char* font_bitmap_path = NULL;
 color_t background_color = 0;
-color_t background_count_color = 0;
+color_t line_count_color = 0;
 
 size_t text_file_size = 0;
 size_t text_index_start = 0;
@@ -73,7 +73,7 @@ cJSON* font_path_json = NULL;
 cJSON* font_bitmap_path_json = NULL;
 cJSON* wallpaper_path_json = NULL;
 cJSON* background_color_json = NULL;
-cJSON* background_count_color_json = NULL;
+cJSON* line_count_color_json = NULL;
 
 uint32_t char_row_count = 0;
 uint32_t char_col_count = 0;
@@ -312,9 +312,9 @@ int load_json(){
             return EXIT_FAILURE; 
         }
 
-        background_count_color_json = cJSON_GetObjectItem(json_root, "background_count_color");
-        if(cJSON_IsNumber(background_count_color_json)){
-            background_count_color = background_count_color_json->valueint;
+        line_count_color_json = cJSON_GetObjectItem(json_root, "line_count_color");
+        if(cJSON_IsNumber(line_count_color_json)){
+            line_count_color = line_count_color_json->valueint;
         }else{
             free(json_buffer);
 
@@ -446,8 +446,8 @@ kframebuffer_t* load_buffer(){
     framebuffer->size = framebuffer->pitch * framebuffer->height;
     framebuffer->buffer = malloc(framebuffer->size);
 
-    draw_rectangle(framebuffer, LINE_COUNT_WIDTH, 0, framebuffer->width - LINE_COUNT_WIDTH, framebuffer->height, background_color);
-    draw_rectangle(framebuffer, 0, 0, LINE_COUNT_WIDTH, framebuffer->height, background_count_color);
+    draw_rectangle(framebuffer, 0, 0, framebuffer->width, framebuffer->height, background_color);
+    draw_rectangle(framebuffer, LINE_COUNT_WIDTH - (WRITE_AREA_MARGIN / 2) - 1, 0, 1, framebuffer->height, line_count_color);
 
     char* c = &text_buffer[text_index_start];
     uint32_t cx_pos = LINE_COUNT_WIDTH;
@@ -481,7 +481,11 @@ kframebuffer_t* load_buffer(){
             cy_pos += FONT_HEIGHT;
             col_count++;
             char* line_count_str = NULL;
-            assert(asprintf(&line_count_str, "%04d", col_count + 1) >= 0);
+            if(col_count + 1 < 10000){
+                assert(asprintf(&line_count_str, "%04d", col_count + 1) >= 0);
+            }else{
+                assert(asprintf(&line_count_str, "++++") >= 0);
+            }
             uint32_t line_count_x = 0;
             while(*line_count_str){
                 line_count_x += FONT_WIDTH;
