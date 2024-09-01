@@ -147,8 +147,6 @@ void convert_name_to_path(char* name){
 int load_fb(){
     fb_fd = open("/dev/fb0", O_RDWR);
 
-    printf("Loading weather-ui...\n");
-
     assert(fb_fd >= 0);
 
 

@@ -209,7 +209,9 @@
         "untar.h": "c",
         "ft2build.h": "c",
         "wait.h": "c",
-        "ctype.h": "c"
+        "ctype.h": "c",
+        "format": "c",
+        "stacktrace": "c"
     },
     "files.exclude": {
         "bundled": true,

@@ -44,6 +44,7 @@ kfont_t font;
 
 int fb_fd = -1;
 kframebuffer_t fb;
+kframebuffer_t loading_fb;
 struct fb_fix_screeninfo fix_screeninfo;
 struct fb_var_screeninfo var_screeninfo;
 
@@ -100,6 +101,10 @@ void draw_frame(){
     write(fb_fd, fb.buffer, fb.size);
 }
 
+void draw_loading_frame(){
+    write(fb_fd, loading_fb.buffer, loading_fb.size);
+}
+
 int get_key(int* pressed, uint64_t* key){
     int64_t buffer;
     if(read(fb_fd, &buffer, 1) > 0){
@@ -123,8 +128,6 @@ void get_current_date_time(char *time_str) {
 int load_fb(){
     fb_fd = open("/dev/fb0", O_RDWR);
 
-    printf("Loading desktop...\n");
-
     assert(fb_fd >= 0);
 
 
@@ -146,6 +149,8 @@ int load_fb(){
         fb.height = var_screeninfo.yres_virtual;
         fb.buffer = malloc(fb.size);
         memset(fb.buffer, 0, fb.size);
+        memcpy(&loading_fb, &fb, sizeof(kframebuffer_t));
+        loading_fb.buffer = malloc(loading_fb.size);
     }else{
         perror("'/dev/fb0' : format not supported\n");
         return EXIT_FAILURE;
@@ -397,6 +402,12 @@ int reload_icons(){
     return 0;
 }
 
+void show_loading_screen(raw_image_t* icon_image){
+    memset(loading_fb.buffer, 0, fb.size);
+    draw_image_with_binary_transparency(&loading_fb, icon_image, (loading_fb.width - ICON_IMAGE_WIDTH) / 2, (loading_fb.height - ICON_IMAGE_HEIGHT) / 2, ICON_IMAGE_WIDTH, ICON_IMAGE_HEIGHT);
+    draw_loading_frame();
+}
+
 void get_input(){
     static bool arrow_pressed = false;
     static bool wait_release = false;
@@ -469,6 +480,12 @@ void get_input(){
                 int c = focus_icon_column + focus_icon_row * icon_column_count;
 
                 {
+                    if(icons_image[c] != NULL){
+                        show_loading_screen(icons_image[c]);
+                    }else{
+                        show_loading_screen(default_icon_image);
+                    }
+
                     pid_t p = fork(); 
                     if(p < 0){ 
                         perror("desktop: fork failed"); 

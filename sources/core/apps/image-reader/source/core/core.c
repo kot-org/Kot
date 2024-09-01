@@ -88,8 +88,6 @@ int wait_escape(){
 int load_fb(){
     fb_fd = open("/dev/fb0", O_RDWR);
 
-    printf("Loading image-reader...\n");
-
     assert(fb_fd >= 0);
 
 

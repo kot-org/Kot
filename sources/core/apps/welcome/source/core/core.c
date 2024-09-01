@@ -133,8 +133,6 @@ int wait_for_the_next_slide(){
 int main(int argc, char* argv[]){
     fb_fd = open("/dev/fb0", O_RDWR);
 
-    printf("Loading welcome app...\n");
-
     assert(fb_fd >= 0);
 
 

@@ -167,8 +167,6 @@ char* get_file_ext(char* name) {
 int load_fb(){
     fb_fd = open("/dev/fb0", O_RDWR);
 
-    printf("Loading explorer...\n");
-
     assert(fb_fd >= 0);
 
 

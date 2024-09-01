@@ -82,7 +82,7 @@ void get_current_time(char *time_str) {
 void get_current_date(char *date_str) {
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
-    strftime(date_str, 20, "%A, %B %d", t);
+    strftime(date_str, 30, "%A, %B %d", t);
 }
 
 int wait_escape(){
@@ -180,8 +180,6 @@ int check_pin(char* pin, char* pin_expected){
 
 int main(int argc, char* argv[]){
     fb_fd = open("/dev/fb0", O_RDWR);
-
-    printf("Loading lock screen...\n");
 
     assert(fb_fd >= 0);
 
@@ -330,7 +328,7 @@ int main(int argc, char* argv[]){
     while(true){
         while(true){
             char time_str[6];
-            char date_str[20];
+            char date_str[30];
 
             draw_image(&fb, wallpaper_resized, 0, 0, fb.width, fb.height);
 

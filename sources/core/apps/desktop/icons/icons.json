@@ -25,6 +25,12 @@
     },
     {
         "cwdPath": "/usr/bin/",
+        "iconPath": "/usr/bin/icons/store-ui.tga",
+        "executablePath": "/usr/bin/store-ui",
+        "appName": "Store UI"
+    },
+    {
+        "cwdPath": "/usr/bin/",
         "iconPath": "/usr/bin/icons/weather-ui.tga",
         "executablePath": "/usr/bin/weather-ui",
         "appName": "Weather UI"
