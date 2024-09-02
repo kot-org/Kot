@@ -211,10 +211,7 @@ int load_json(){
     json_buffer = malloc(json_size);
     fread(json_buffer, 1, json_size, json_file); 
   
-    json_root = cJSON_Parse(json_buffer); 
-
-    int r = 0;
-
+    json_root = cJSON_Parse(json_buffer);
 
     if(json_root != NULL){ 
         wallpaper_path_json = cJSON_GetObjectItem(json_root, "wallpaper_path");

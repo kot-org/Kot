@@ -34,6 +34,10 @@ $(LIB)/%_c.o: $(SOURCE)/%.c
 
 link:
 	@ mkdir -m 777 -p $(BIN)
-	@ $(CC) $(LDFLAGS) -o $(BIN)/store-ui $(OBJS) $(LIBRARIES)/libcurl.a $(LIBRARIES)/libtls.a $(LIBRARIES)/libssl.a $(LIBRARIES)/libcjson.a $(LIBRARIES)/libz.a
+	@ $(CC) $(LDFLAGS) -o $(BIN)/store-ui $(OBJS) $(LIBRARIES)/libcurl.a $(LIBRARIES)/libtls.a $(LIBRARIES)/libssl.a $(LIBRARIES)/libcjson.a $(LIBRARIES)/libz.a $(LIBRARIES)/libkot-graphics.a $(LIBRARIES)/libfreetype.a
 
-build: $(OBJS) link
+copy_res:
+	@ mkdir -m 777 -p $(BIN)/res/store-ui
+	@ cp -r $(HOME)/res/. $(BIN)/res/store-ui
+
+build: $(OBJS) link copy_res

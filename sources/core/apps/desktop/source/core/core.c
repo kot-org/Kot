@@ -176,9 +176,6 @@ int load_json(){
   
     json_root = cJSON_Parse(json_buffer); 
 
-    int r = 0;
-
-
     if(json_root != NULL){ 
         wallpaper_path_json = cJSON_GetObjectItem(json_root, "wallpaper_path");
         if(cJSON_IsString(wallpaper_path_json) && (wallpaper_path_json->valuestring != NULL)){

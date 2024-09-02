@@ -259,8 +259,6 @@ int load_json(){
   
     json_root = cJSON_Parse(json_buffer); 
 
-    int r = 0;
-
     if(json_root != NULL){
         font_path_json = cJSON_GetObjectItem(json_root, "font_path");
         if(cJSON_IsString(font_path_json) && (font_path_json->valuestring != NULL)){

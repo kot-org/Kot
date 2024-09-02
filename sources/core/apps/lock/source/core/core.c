@@ -225,8 +225,6 @@ int main(int argc, char* argv[]){
   
     json_root = cJSON_Parse(json_buffer); 
 
-    int r = 0;
-
     char* wallpaper_path = NULL;
     char* font_path = NULL;
     char* pin_expected = NULL;

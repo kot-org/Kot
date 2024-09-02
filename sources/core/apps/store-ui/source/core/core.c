@@ -1,8 +1,28 @@
+#include <math.h>
+#include <fcntl.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <string.h>
+#include <unistd.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <dirent.h>
 #include <stdbool.h>
+
+#include <linux/fb.h>
+#include <sys/time.h>
+#include <sys/wait.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+
 #include <curl/curl.h>
+
+#include <cjson/cJSON.h> 
+
+#include <kot-graphics/font.h>
+#include <kot-graphics/utils.h>
+#include <kot-graphics/image.h>
 
 #include "../apps/apps.h"
 #include "../launch/launch.h"
@@ -10,119 +30,178 @@
 #include "../install/install.h"
 #include "../remove/remove.h"
 
-int main(int argc, char *argv[]){
-    curl_global_init(CURL_GLOBAL_DEFAULT);
-    CURL *curl = curl_easy_init();
+int fb_fd = -1;
+kframebuffer_t fb;
+CURL* curl = NULL;
+kfont_t font = NULL;
+char* font_path = NULL;
+struct fb_fix_screeninfo fix_screeninfo;
+struct fb_var_screeninfo var_screeninfo;
 
-    if(curl == NULL){
-        printf("Can't load curl");
-        return -1;
+size_t json_size = 0;
+void* json_buffer = NULL;
+FILE* json_file = NULL;
+cJSON* json_root = NULL;
+cJSON* font_path_json = NULL;
+
+uint32_t header_part_width = 0;
+char* header_text[] = {"Install <F1>", "Update <F2>", "Uninstall <F3>"};
+
+int load_fb(){
+    fb_fd = open("/dev/fb0", O_RDWR);
+
+    assert(fb_fd >= 0);
+
+
+    assert(ioctl(fb_fd, FBIOGET_FSCREENINFO, &fix_screeninfo) == 0);
+    assert(ioctl(fb_fd, FBIOGET_VSCREENINFO, &var_screeninfo) == 0);
+
+    if(
+        fix_screeninfo.visual == FB_VISUAL_TRUECOLOR && 
+        var_screeninfo.bits_per_pixel == 32 &&
+        var_screeninfo.red.length == 8 && var_screeninfo.red.msb_right == 0 &&
+        var_screeninfo.green.length == 8 && var_screeninfo.green.msb_right == 0 &&
+        var_screeninfo.blue.length == 8 && var_screeninfo.blue.msb_right == 0 
+    ){
+        fb.bpp = var_screeninfo.bits_per_pixel;
+        fb.btpp = fb.bpp / 8;
+        fb.size = var_screeninfo.xres_virtual * var_screeninfo.yres_virtual * fb.btpp;
+        fb.width = var_screeninfo.xres_virtual;
+        fb.pitch = fb.width * fb.btpp;
+        fb.height = var_screeninfo.yres_virtual;
+        fb.buffer = malloc(fb.size);
+        memset(fb.buffer, 0, fb.size);
     }else{
-        if(!strcmp(argv[1], "--install") && argc == 2){
-            char search_mode[3];
-            printf("Search with > T(tag)/N(name)\n");
-            fgets(search_mode, sizeof(search_mode), stdin);
-            search_mode[strcspn(search_mode, "\n")] = 0;
-            if(!strcmp("T", search_mode)){
-                char tag[512];
-                printf("What is the tag of the application you want to install?\n");
-                fgets(tag, sizeof(tag), stdin);
-                tag[strcspn(tag, "\n")] = 0;
-
-                app_url_by_tag_t** apps_available = find_apps_url_by_tag(curl, tag);
-
-                if(apps_available != NULL){
-                    int i = 0;
-                    while(apps_available[i] != NULL){
-                        printf("%d) %s\n", i, apps_available[i]->name);
-                        i++;
-                    }
-
-                    char link_index[10];
-                    printf("Select the index you want to install :\n");
-                    fgets(link_index, sizeof(link_index), stdin);
-                    link_index[strcspn(link_index, "\n")] = 0;
-
-                    int index_to_install = atoi(link_index);
-
-                    if(index_to_install >= 0 && index_to_install < i){
-                        char allow_install[3];
-                        printf("%s > Would you like to install it? (Y/N)\n", apps_available[index_to_install]->name);
-                        fgets(allow_install, sizeof(allow_install), stdin);
-                        allow_install[strcspn(allow_install, "\n")] = 0;
-                        if(!strcmp("Y", allow_install)){
-                            install_app(curl, apps_available[index_to_install]->url, apps_available[index_to_install]->name, false);
-                        }else{
-                            printf("Cancel the installation\n");
-                        }
-                    }else{
-                        printf("Unknow index !\n");
-                    }
-
-                    free_app_url_by_tag(apps_available);
-                }else{
-                    printf("No application found with tag: %s. Please check the spelling or try a different tag.\n", tag);
-                }               
-            }else if(!strcmp("N", search_mode)){
-                char name[512];
-                printf("What is the name of the application you want to install?\n");
-                fgets(name, sizeof(name), stdin);
-                name[strcspn(name, "\n")] = 0;
-
-                char* url = find_apps_url_by_name(curl, name);
-
-                if(url != NULL){
-                    char allow_install[3];
-                    printf("%s found in the store. Would you like to install it? (Y/N)\n", name);
-                    fgets(allow_install, sizeof(allow_install), stdin);
-                    allow_install[strcspn(allow_install, "\n")] = 0;
-                    if(!strcmp("Y", allow_install)){
-                        install_app(curl, url, name, false);
-                    }else{
-                        printf("Cancel the installation\n");
-                    }
-                    free(url);
-                }else{
-                    printf("Can't find %s in the store. Did you spell it correctly?\n", name);
-                }
-            }else{
-                printf("Unknow search method !\n");
-            }
-        }else if(!strcmp(argv[1], "--install") && argc == 3){
-            char* name = argv[2];
-
-            char* url = find_apps_url_by_name(curl, name);
-            
-            if(url != NULL){
-                char allow_install[3];
-                printf("%s found in the store. Would you like to install it? (Y/N)\n", name);
-                fgets(allow_install, sizeof(allow_install), stdin);
-                allow_install[strcspn(allow_install, "\n")] = 0;
-                if(!strcmp("Y", allow_install)){
-                    install_app(curl, url, name, false);
-                }else{
-                    printf("Cancel the installation\n");
-                }
-                free(url);
-            }else{
-                printf("Can't find %s in the store. Did you spell it correctly?\n", name);
-            }
-        }else if(!strcmp(argv[1], "--update") && argc == 3){
-            char* name = argv[2];
-            update_app(curl, name);
-        }else if(!strcmp(argv[1], "--remove") && argc == 3){
-            char* name = argv[2];
-            remove_app(name, true);
-        }else if(!strcmp(argv[1], "--launch") && argc >= 3){
-            char* name = argv[2];
-            // Keep the app name
-            launch_app(name, argc - 2, &argv[2]);
-        }
+        perror("'/dev/fb0' : format not supported");
+        return EXIT_FAILURE;
     }
 
+    return EXIT_SUCCESS;
+}
+
+void unload_fb(){
+    free(fb.buffer);
+    close(fb_fd);
+}
+
+int load_json(){
+    json_file = fopen("/usr/bin/res/store-ui/store-ui.json", "r"); 
+
+    if(json_file == NULL){ 
+        perror("Error: Unable to open the file : /usr/bin/res/store-ui/store-ui.json\n"); 
+        return EXIT_FAILURE; 
+    } 
+  
+    fseek(json_file, 0, SEEK_END);
+    json_size = ftell(json_file);
+    fseek(json_file, 0, SEEK_SET);
+    
+    json_buffer = malloc(json_size);
+    fread(json_buffer, 1, json_size, json_file); 
+  
+    json_root = cJSON_Parse(json_buffer); 
+
+    if(json_root != NULL){
+        font_path_json = cJSON_GetObjectItem(json_root, "font_path");
+        if(cJSON_IsString(font_path_json) && (font_path_json->valuestring != NULL)){
+            font_path = strdup(font_path_json->valuestring);
+        }else{
+            free(json_buffer);
+
+            fclose(json_file);
+            
+            printf("Error: Unable to parse the file : /usr/bin/res/store-ui/store-ui.json\n"); 
+            return EXIT_FAILURE; 
+        }
+    }else{
+        free(json_buffer);
+
+        fclose(json_file);
+
+        printf("Error: Unable to parse the file : /usr/bin/res/image-reader/image-reader.json\n"); 
+        return EXIT_FAILURE; 
+    }
+
+    return EXIT_SUCCESS;
+}
+
+void unload_json(){
+    free(font_path);
+}
+
+int load_font_data(){
+    FILE* font_file = fopen(font_path, "rb");
+    if(font_file == NULL){
+        perror("Failed to open font file");
+        return EXIT_FAILURE;
+    }
+
+    fseek(font_file, 0, SEEK_END);
+    size_t font_file_size = ftell(font_file);
+    fseek(font_file, 0, SEEK_SET);
+
+    void* font_data = malloc(font_file_size);
+    fread(font_data, font_file_size, 1, font_file);
+    fclose(font_file);
+
+    font = load_font(font_data, font_file_size);
+    free(font_data);
+
+    return EXIT_SUCCESS;
+}
+
+void unload_font_data(){
+    free_font(font);
+}
+
+int load_curl(){
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    curl = curl_easy_init();
+
+    if(curl == NULL){
+        perror("Can't load curl");
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+void unload_curl(){
     curl_easy_cleanup(curl);
 
     curl_global_cleanup();
+}
 
-    return 0;
+int main(int argc, char *argv[]){
+    if(load_fb() != EXIT_SUCCESS){
+        return EXIT_FAILURE;
+    }
+
+    if(load_json() != EXIT_SUCCESS){
+        unload_fb();
+        return EXIT_FAILURE;
+    }
+
+    if(load_font_data(font_path) != EXIT_SUCCESS){
+        unload_json();
+        unload_fb();
+        return EXIT_FAILURE;
+    }
+
+    if(load_curl() != EXIT_SUCCESS){
+        unload_fb();
+        unload_font_data();
+        return EXIT_FAILURE;
+    }
+
+    while(true){
+        
+    }
+
+    unload_fb();
+    unload_curl();
+    unload_json();
+    unload_font_data();
+
+    return EXIT_SUCCESS;
 }
