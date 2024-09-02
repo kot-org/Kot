@@ -28,6 +28,18 @@ static struct limine_file* initrd_get_file_ptr(const char* path){
     return NULL;
 }
 
+static inline char* initrd_interface_convert_path(char* str){
+    size_t str_len = strlen(str);
+    if(str[str_len - 1] == '/'){
+        str[str_len - 1] = '\0';
+    }
+    if(str[0] == '/'){
+        return str + sizeof((char)'/');
+    }else{
+        return str;
+    }
+}
+
 static vfs_handler_t early_vfs_handler;
 
 void* initrd_get_file(const char* path){
@@ -116,7 +128,7 @@ int initrd_ioctl(uint32_t request, void* arg, int* result, kernel_file_t* file){
     return ENOTTY;
 }
 
-int initrd_stat(int flags, struct stat* statbuf, kernel_file_t* file){
+int initrd_stat_file(int flags, struct stat* statbuf, kernel_file_t* file){
     memset(statbuf, 0, sizeof(struct stat));
     statbuf->st_size = initrd_get_file_size(file->internal_data);
     statbuf->st_blocks = DIV_ROUNDUP(statbuf->st_size, 512);
@@ -154,7 +166,7 @@ kernel_file_t* initrd_open(fs_t* ctx, const char* path, int flags, mode_t mode, 
         file->write = &initrd_write;
         file->seek = &initrd_seek;
         file->ioctl = &initrd_ioctl;
-        file->stat = &initrd_stat;
+        file->stat = &initrd_stat_file;
         file->close = &initrd_close;
         file->get_event = &initrd_get_event;
         return file;
@@ -162,6 +174,80 @@ kernel_file_t* initrd_open(fs_t* ctx, const char* path, int flags, mode_t mode, 
         *error = ENOENT;
         return NULL;
     }
+}
+
+int initrd_interface_dir_get_directory_entries(void* buffer, size_t max_size, size_t* bytes_read, kernel_dir_t* dir){
+    uint64_t max_entry_count = (uint64_t)(max_size / sizeof(dirent_t));
+    dirent_t* entry = (dirent_t*)buffer;
+    uint64_t entry_index = dir->seek_position;
+    uint64_t current_entry_count = 0;
+
+
+    while(entry_index < module_request.response->module_count && current_entry_count < max_entry_count){
+        entry->d_ino = (ino_t)entry_index;
+        entry->d_off = (off_t)entry_index;
+        entry->d_reclen = sizeof(dirent_t);
+        entry->d_type = DT_REG;
+        size_t size_name_to_copy = MIN(strlen(module_request.response->modules[entry_index]->path), sizeof(entry->d_name) - 1);
+        strncpy(entry->d_name, module_request.response->modules[entry_index]->path, size_name_to_copy);
+        entry->d_name[size_name_to_copy] = '\0';
+
+        current_entry_count++;
+
+        entry = (dirent_t*)((off_t)entry + entry->d_reclen);
+        entry_index++;
+    }
+
+    dir->seek_position = entry_index;
+
+    *bytes_read = current_entry_count * sizeof(dirent_t);
+
+    return 0;
+}
+
+int initrd_interface_dir_create_at(struct kernel_dir_t* dir, const char* path, mode_t mode){
+    return ENOSYS;
+}
+
+int initrd_interface_dir_unlink_at(struct kernel_dir_t* dir, const char* path, int flags){
+    return ENOSYS;
+}
+
+int initrd_interface_dir_stat(int flags, struct stat* statbuf, struct kernel_dir_t* dir){
+    memset(statbuf, 0, sizeof(struct stat));
+    statbuf->st_mode = S_IFDIR;
+    return 0;
+}
+
+int initrd_interface_dir_close(struct kernel_dir_t* dir){
+    free(dir);
+    return 0;
+}
+
+kernel_dir_t* initrd_dir_open(fs_t* ctx, const char* path, int* error){
+    char* converted_path = initrd_interface_convert_path((char*)path);
+    if((converted_path[0] == '\0') || !strcmp(converted_path, ".")){
+        kernel_dir_t* dir = malloc(sizeof(kernel_dir_t));
+        dir->fs_ctx = ctx;
+        dir->seek_position = 0;
+        dir->internal_data = NULL;
+        dir->get_directory_entries = &initrd_interface_dir_get_directory_entries;
+        dir->create_at = &initrd_interface_dir_create_at;
+        dir->unlink_at = &initrd_interface_dir_unlink_at;
+        dir->stat = &initrd_interface_dir_stat;
+        dir->close = &initrd_interface_dir_close;
+
+        return dir;
+    }
+
+    *error = ENOENT;
+    return NULL;
+}
+
+int initrd_stat(fs_t* ctx, const char* path, int flags, struct stat* statbuf){
+    memset(statbuf, 0, sizeof(struct stat));
+    statbuf->st_mode = S_IFIFO;
+    return 0;
 }
 
 kernel_file_t* early_vfs_initrd_open(vfs_ctx_t* ctx, const char* path, int flags, mode_t mode, int* error){

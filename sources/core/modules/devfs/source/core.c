@@ -52,6 +52,14 @@ static int devfs_remove_entry(devfs_directory_entry_t* entry){
 static devfs_directory_entry_t* devfs_get_entry(devfs_directory_entry_t* entry, const char* name){
     assert(!entry->is_file);
 
+    if(!strcmp(name, ".")){
+        return entry;
+    }
+
+    if(!strcmp(name, "..")){
+        return entry->parent;
+    }
+
     for(uint64_t i = 0; i < entry->data.directory->entries->length; i++){
         devfs_directory_entry_t* entry_read = vector_get(entry->data.directory->entries, i);
         if(!strcmp(entry_read->name, name)){
@@ -108,7 +116,9 @@ static devfs_directory_entry_t* devfs_get_entry_with_path(devfs_directory_entry_
         next_entry_name = strchr(entry_name, '/');
     }
 
-    entry = devfs_get_entry(entry, entry_name);
+    if(entry_name[0] != '\0'){
+        entry = devfs_get_entry(entry, entry_name);
+    }
 
     if(entry == NULL){
         *error = ENOENT;
@@ -237,7 +247,6 @@ struct kernel_file_t* devfs_interface_file_open(struct fs_t* ctx, const char* pa
 
     return devfs_file->open_handler(ctx, path, flags, mode, error);
 }
-
 
 int devfs_interface_dir_create(struct fs_t* ctx, const char* path, mode_t mode){
     devfs_context_t* devfs_ctx = (devfs_context_t*)ctx->internal_data;
@@ -383,7 +392,9 @@ int devfs_interface_link(struct fs_t* ctx, const char* src_path, const char* dst
 }
 
 int devfs_interface_stat(struct fs_t* ctx, const char* path, int flags, struct stat* statbuf){
-    return ENOSYS;
+    memset(statbuf, 0, sizeof(struct stat));
+    statbuf->st_mode = S_IFIFO;
+    return 0;
 }
 
 int devfs_add_dev(devfs_context_t* devfs_ctx, const char* path, file_open_fs_t open_handler){
