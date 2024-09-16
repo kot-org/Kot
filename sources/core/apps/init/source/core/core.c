@@ -77,9 +77,6 @@ int main(int argc, char* argv[]){
         }
     }
 
-    printf("\e[0;33m--- Welcome to Kot ---\e[0m\n");
-    printf("If you encounter any bugs during your session, please report them on the github repository:\n\e[0;36mhttps://github.com/kot-org/kot\e[0m\n\n");
-
     char* exe_argv[2] = {"/usr/bin/desktop", NULL};
     execvp("/usr/bin/desktop", exe_argv);
 

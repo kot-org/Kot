@@ -41,7 +41,7 @@ int main(int argc, char *argv[]){
                 fgets(tag, sizeof(tag), stdin);
                 tag[strcspn(tag, "\n")] = 0;
 
-                app_url_by_tag_t** apps_available = find_apps_url_by_tag(curl, tag);
+                app_info_t** apps_available = find_apps_url_by_tag(curl, tag);
 
                 if(apps_available != NULL){
                     int i = 0;

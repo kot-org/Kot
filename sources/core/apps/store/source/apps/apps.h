@@ -11,11 +11,11 @@ typedef struct{
 typedef struct{
     char* url;
     char* name;
-}app_url_by_tag_t;
+}app_info_t;
 
 fetch_apps_data_t* fetch_apps_data(CURL* curl);
 char* find_apps_url_by_name(CURL* curl, char* name);
-app_url_by_tag_t** find_apps_url_by_tag(CURL* curl, char* tag);
-void free_app_url_by_tag(app_url_by_tag_t** data);
+app_info_t** find_apps_url_by_tag(CURL* curl, char* tag);
+void free_app_url_by_tag(app_info_t** data);
 
 #endif // APPS_H

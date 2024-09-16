@@ -50,6 +50,6 @@ int get_textbox_info_n(kfont_t opaque, uint8_t* str, size_t len, kfont_pos_t* wi
 
 int draw_glyph(kfont_t opaque, kfont_glyph_t glyph, kfont_dot_t width, kfont_dot_t height);
 
-int write_paragraph(kfont_t font, kfont_pos_t x, kfont_pos_t y, kfont_pos_t width, int format, uint8_t* text);
+int write_paragraph(kfont_t font, kfont_pos_t x, kfont_pos_t y, kfont_pos_t width, int format, uint8_t* text, int line_count);
 
 #endif // KOT_GRAPHICS_FONT

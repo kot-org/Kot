@@ -39,33 +39,36 @@ fetch_apps_data_t* fetch_apps_data(CURL* curl){
     }
 }
 
-char* find_apps_url_by_name(CURL* curl, char* name){
+app_info_t** find_apps_url_by_name(CURL* curl, char* name){
     fetch_apps_data_t* data_info = fetch_apps_data(curl);
+    app_info_t** return_value = NULL;
+
     if(data_info != NULL){
         cJSON* root = cJSON_Parse(data_info->buffer);
         if(root != NULL){
             cJSON* applications = cJSON_GetObjectItem(root, "applications");
             
+            size_t return_value_count_url = 0;
             for(int i = 0 ; i < cJSON_GetArraySize(applications); i++){
                 cJSON* application = cJSON_GetArrayItem(applications, i);
                 cJSON* application_name = cJSON_GetObjectItem(application, "name");
-                if(cJSON_IsString(application_name) && (application_name->valuestring != NULL)){ 
-                    if(!strcmp(name, application_name->valuestring)){
+                cJSON* application_description = cJSON_GetObjectItem(application, "description");
+
+                if(cJSON_IsString(application_name) && (application_name->valuestring != NULL) && cJSON_IsString(application_description) && (application_description->valuestring != NULL)){ 
+                    if(!strcmp(name, application_name->valuestring) || name == NULL){
                         cJSON* json_link_application_url = cJSON_GetObjectItem(application, "json_link");
                         if(cJSON_IsString(json_link_application_url) && (json_link_application_url->valuestring != NULL)){ 
-                            char* return_value = malloc(strlen(json_link_application_url->valuestring) + 1);
-                            strcpy(return_value, json_link_application_url->valuestring);
-                            cJSON_Delete(root); 
-
-                            free(data_info->buffer);
-                            free(data_info);
-
-                            return return_value;
+                            return_value = realloc(return_value, (return_value_count_url + 2) * sizeof(app_info_t*));
+                            return_value[return_value_count_url + 1] = NULL;
+                            return_value[return_value_count_url] = malloc(sizeof(app_info_t));
+                            return_value[return_value_count_url]->url = strdup(json_link_application_url->valuestring);
+                            return_value[return_value_count_url]->name = strdup(application_name->valuestring);
+                            return_value[return_value_count_url]->description = strdup(application_description->valuestring);
+                            return_value_count_url++;
                         }
                     }
-                } 
+                }
             }
-
         }
 
         cJSON_Delete(root); 
@@ -74,12 +77,12 @@ char* find_apps_url_by_name(CURL* curl, char* name){
         free(data_info);
     }
 
-    return NULL;
+    return return_value;
 }
 
-app_url_by_tag_t** find_apps_url_by_tag(CURL* curl, char* tag){
+app_info_t** find_apps_url_by_tag(CURL* curl, char* tag){
     fetch_apps_data_t* data_info = fetch_apps_data(curl);
-    app_url_by_tag_t** return_value = NULL;
+    app_info_t** return_value = NULL;
 
     if(data_info != NULL){
         cJSON* root = cJSON_Parse(data_info->buffer);
@@ -91,22 +94,25 @@ app_url_by_tag_t** find_apps_url_by_tag(CURL* curl, char* tag){
                 cJSON* application = cJSON_GetArrayItem(applications, i);
                 cJSON* application_tags = cJSON_GetObjectItem(application, "tags");
                 cJSON* application_name = cJSON_GetObjectItem(application, "name");
-
-                if(cJSON_IsString(application_name) && (application_name->valuestring != NULL)){ 
+                cJSON* application_description = cJSON_GetObjectItem(application, "description");
+                if(cJSON_IsString(application_name) && (application_name->valuestring != NULL) && cJSON_IsString(application_description) && (application_description->valuestring != NULL)){ 
                     for(int y = 0 ; y < cJSON_GetArraySize(application_tags); y++){
                         cJSON* application_tag = cJSON_GetArrayItem(application_tags, y);
                         if(cJSON_IsString(application_tag) && (application_tag->valuestring != NULL)){ 
-                            if(!strcmp(tag, application_tag->valuestring)){
+                            if(tag == NULL || !strcmp(tag, application_tag->valuestring)){
                                 cJSON* json_link_application_url = cJSON_GetObjectItem(application, "json_link");
                                 if(cJSON_IsString(json_link_application_url) && (json_link_application_url->valuestring != NULL)){ 
-                                    return_value = realloc(return_value, (return_value_count_url + 2) * sizeof(app_url_by_tag_t*));
+                                    return_value = realloc(return_value, (return_value_count_url + 2) * sizeof(app_info_t*));
                                     return_value[return_value_count_url + 1] = NULL;
-                                    return_value[return_value_count_url] = malloc(sizeof(app_url_by_tag_t));
-                                    return_value[return_value_count_url]->name = malloc(strlen(application_name->valuestring) + 1);
-                                    strcpy(return_value[return_value_count_url]->name, application_name->valuestring);
-                                    return_value[return_value_count_url]->url = malloc(strlen(json_link_application_url->valuestring) + 1);
-                                    strcpy(return_value[return_value_count_url]->url, json_link_application_url->valuestring);
+                                    return_value[return_value_count_url] = malloc(sizeof(app_info_t));
+                                    return_value[return_value_count_url]->url = strdup(json_link_application_url->valuestring);
+                                    return_value[return_value_count_url]->name = strdup(application_name->valuestring);
+                                    return_value[return_value_count_url]->description = strdup(application_description->valuestring);
                                     return_value_count_url++;
+                                }
+
+                                if(tag == NULL){
+                                    break;
                                 }
                             }
                         }
@@ -124,7 +130,7 @@ app_url_by_tag_t** find_apps_url_by_tag(CURL* curl, char* tag){
     return return_value;
 }
 
-void free_app_url_by_tag(app_url_by_tag_t** data){
+void free_app_url_by(app_info_t** data){
     int i = 0;
     while(data[i] != NULL){
         free(data[i]->name);

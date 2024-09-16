@@ -77,9 +77,9 @@ char* find_apps_url_by_name(CURL* curl, char* name){
     return NULL;
 }
 
-app_url_by_tag_t** find_apps_url_by_tag(CURL* curl, char* tag){
+app_info_t** find_apps_url_by_tag(CURL* curl, char* tag){
     fetch_apps_data_t* data_info = fetch_apps_data(curl);
-    app_url_by_tag_t** return_value = NULL;
+    app_info_t** return_value = NULL;
 
     if(data_info != NULL){
         cJSON* root = cJSON_Parse(data_info->buffer);
@@ -99,9 +99,9 @@ app_url_by_tag_t** find_apps_url_by_tag(CURL* curl, char* tag){
                             if(!strcmp(tag, application_tag->valuestring)){
                                 cJSON* json_link_application_url = cJSON_GetObjectItem(application, "json_link");
                                 if(cJSON_IsString(json_link_application_url) && (json_link_application_url->valuestring != NULL)){ 
-                                    return_value = realloc(return_value, (return_value_count_url + 2) * sizeof(app_url_by_tag_t*));
+                                    return_value = realloc(return_value, (return_value_count_url + 2) * sizeof(app_info_t*));
                                     return_value[return_value_count_url + 1] = NULL;
-                                    return_value[return_value_count_url] = malloc(sizeof(app_url_by_tag_t));
+                                    return_value[return_value_count_url] = malloc(sizeof(app_info_t));
                                     return_value[return_value_count_url]->name = malloc(strlen(application_name->valuestring) + 1);
                                     strcpy(return_value[return_value_count_url]->name, application_name->valuestring);
                                     return_value[return_value_count_url]->url = malloc(strlen(json_link_application_url->valuestring) + 1);
@@ -124,7 +124,7 @@ app_url_by_tag_t** find_apps_url_by_tag(CURL* curl, char* tag){
     return return_value;
 }
 
-void free_app_url_by_tag(app_url_by_tag_t** data){
+void free_app_url_by_tag(app_info_t** data){
     int i = 0;
     while(data[i] != NULL){
         free(data[i]->name);

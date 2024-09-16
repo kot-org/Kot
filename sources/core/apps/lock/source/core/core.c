@@ -60,14 +60,14 @@ void draw_frame(){
 }
 
 int get_key(int* pressed, uint64_t* key){
-    int64_t buffer;
-    if(read(fb_fd, &buffer, 1) > 0){
-        if(buffer & ((uint64_t)1 << 63)){
+    uint64_t buffer[2];
+    if(read(fb_fd, &buffer, sizeof(uint64_t) * 2) > 0){
+        if(buffer[1] & ((uint64_t)1 << 63)){
             *pressed = true;
         }else{
             *pressed = false;
         }
-        *key = buffer & ~((uint64_t)1 << 63);
+        *key = buffer[0];
         return 1;
     }
     return 0;
@@ -334,13 +334,13 @@ int main(int argc, char* argv[]){
             get_current_date(date_str);
 
             load_pen(font, &fb, 0, 0, HOUR_SIZE, 0, TEXT_COLOR);
-            write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, time_str);
+            write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, time_str, -1);
 
             set_pen_size(font, DATE_SIZE);
-            write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, date_str);
+            write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, date_str, -1);
 
             set_pen_size(font, INFO_SIZE);
-            write_paragraph(font, -1, fb.height - INFO_SIZE - 50, fb.width, PARAGRAPH_CENTER, "Press <Enter> to log in\n");
+            write_paragraph(font, -1, fb.height - INFO_SIZE - 50, fb.width, PARAGRAPH_CENTER, "Press <Enter> to log in\n", -1);
 
             draw_frame();
 
@@ -356,6 +356,14 @@ int main(int argc, char* argv[]){
             int r = wait_for_pin(display_pin, pin, pin_expected, is_pin_set);
             if(r == 1){
                 if(check_pin(pin, pin_expected)){
+                    draw_image(&fb, wallpaper_resized, 0, 0, fb.width, fb.height);
+
+                    set_pen_size(font, PIN_INFO_SIZE);
+                    set_pen_color(font, TEXT_COLOR);
+                    write_paragraph(font, -1, (fb.height - PIN_SIZE) / 2, fb.width, PARAGRAPH_CENTER, "Loading desktop...", -1);
+
+                    draw_frame();
+
                     free_raw_image(wallpaper_resized);
 
                     fclose(json_file);
@@ -372,6 +380,14 @@ int main(int argc, char* argv[]){
             }else if(r == 3){
                 strcpy(ask_pin, "It seems you are new. Please choose your PIN :");
             }else if(r == 4){
+                draw_image(&fb, wallpaper_resized, 0, 0, fb.width, fb.height);
+
+                set_pen_size(font, PIN_INFO_SIZE);
+                set_pen_color(font, TEXT_COLOR);
+                write_paragraph(font, -1, (fb.height - PIN_SIZE) / 2, fb.width, PARAGRAPH_CENTER, "Loading desktop...", -1);
+
+                draw_frame();
+
                 free_raw_image(wallpaper_resized);
 
                 fclose(json_file);
@@ -386,20 +402,20 @@ int main(int argc, char* argv[]){
 
                 set_pen_size(font, PIN_INFO_SIZE);
                 set_pen_color(font, pin_color);
-                write_paragraph(font, -1, (fb.height - PIN_SIZE) / 2, fb.width, PARAGRAPH_CENTER, ask_pin);
+                write_paragraph(font, -1, (fb.height - PIN_SIZE) / 2, fb.width, PARAGRAPH_CENTER, ask_pin, -1);
 
                 set_pen_color(font, TEXT_COLOR);
                 set_pen_size(font, PIN_SIZE);
                 pin_x = get_pen_pos_x(font);
                 pin_y = get_pen_pos_y(font);
-                write_paragraph(font, pin_x, pin_y, fb.width, PARAGRAPH_CENTER, textbox_display_pin);
+                write_paragraph(font, pin_x, pin_y, fb.width, PARAGRAPH_CENTER, textbox_display_pin, -1);
 
                 set_pen_size(font, INFO_SIZE);
-                write_paragraph(font, -1, fb.height - INFO_SIZE - 50, fb.width, PARAGRAPH_CENTER, "Back : <Esc>\n");
+                write_paragraph(font, -1, fb.height - INFO_SIZE - 50, fb.width, PARAGRAPH_CENTER, "Back : <Esc>\n", -1);
             }
 
             set_pen_size(font, PIN_SIZE);
-            write_paragraph(font, pin_x, pin_y, fb.width, PARAGRAPH_CENTER, display_pin);
+            write_paragraph(font, pin_x, pin_y, fb.width, PARAGRAPH_CENTER, display_pin, -1);
 
             draw_frame();
         }

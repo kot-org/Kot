@@ -52,14 +52,14 @@ void draw_frame(){
 }
 
 int get_key(int* pressed, uint64_t* key){
-    int64_t buffer;
-    if(read(fb_fd, &buffer, 1) > 0){
-        if(buffer & ((uint64_t)1 << 63)){
+    uint64_t buffer[2];
+    if(read(fb_fd, &buffer, sizeof(uint64_t) * 2) > 0){
+        if(buffer[1] & ((uint64_t)1 << 63)){
             *pressed = true;
         }else{
             *pressed = false;
         }
-        *key = buffer & ~((uint64_t)1 << 63);
+        *key = buffer[0];
         return 1;
     }
     return 0;
@@ -72,7 +72,7 @@ int wait_for_the_next_slide(){
     uint64_t tick_to_stop = start_tick + SLIDE_TIME;
 
     set_pen_size(font, INFO_SIZE);
-    write_paragraph(font, -1, fb.height - INFO_SIZE - (PROGRESSBAR_HEIGHT * 4) - 10, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Quit : <Esc> | Next : <Enter> | Pause : <P>\n");
+    write_paragraph(font, -1, fb.height - INFO_SIZE - (PROGRESSBAR_HEIGHT * 4) - 10, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Quit : <Esc> | Next : <Enter> | Pause : <P>\n", -1);
 
     static bool is_enter_pressed = false;
     static bool is_pause_pressed = false;
@@ -198,13 +198,13 @@ int main(int argc, char* argv[]){
         draw_rectangle(&fb, 0, 0, fmin(TEXT_BOX_WIDTH, fb.width), fb.height, TEXT_BACKGROUND);
 
         load_pen(font, &fb, TEXT_START, 0, TITLE_SIZE, 0, TEXT_COLOR);
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Welcome to Kot\n");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Welcome to Kot\n", -1);
 
         set_pen_size(font, TEXT_SIZE);
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "\"Kot is nothing more than an Operating System running on x86-64. And you already know that, but we're making to turn Kot more than just something.\"\n");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "\"Kot is nothing more than an Operating System running on x86-64. And you already know that, but we're making to turn Kot more than just something.\"\n", -1);
         
         set_pen_size(font, SIGNATURE_SIZE);
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_RIGHT, "Kot team\n");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_RIGHT, "Kot team\n", -1);
 
         draw_frame();
 
@@ -216,15 +216,15 @@ int main(int argc, char* argv[]){
         draw_rectangle(&fb, 0, 0, fmin(TEXT_BOX_WIDTH, fb.width), fb.height, TEXT_BACKGROUND);
 
         load_pen(font, &fb, TEXT_START, 0, TITLE_SIZE, 0, TEXT_COLOR);
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Credits :\n");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Credits :\n", -1);
 
         set_pen_size(font, TEXT_SIZE);
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "Without the contributions of the following individuals (GitHub pseudonyms, listed alphabetically), Kot would not have existed:");
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_LEFT, "- 0xS3B");
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_LEFT, "- konect-V");
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_LEFT, "- Moldytzu");
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_LEFT, "- RaphProduction");
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_LEFT, "- YiraSan");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "Without the contributions of the following individuals (GitHub pseudonyms, listed alphabetically), Kot would not have existed:", -1);
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_LEFT, "- 0xS3B", -1);
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_LEFT, "- konect-V", -1);
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_LEFT, "- Moldytzu", -1);
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_LEFT, "- RaphProduction", -1);
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_LEFT, "- YiraSan", -1);
 
         draw_frame();
 
@@ -236,14 +236,14 @@ int main(int argc, char* argv[]){
         draw_rectangle(&fb, 0, 0, fmin(TEXT_BOX_WIDTH, fb.width), fb.height, TEXT_BACKGROUND);
 
         load_pen(font, &fb, TEXT_START, 0, TITLE_SIZE, 0, TEXT_COLOR);
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Github :\n");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Github :\n", -1);
 
         set_pen_size(font, TEXT_SIZE);
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "We have a GitHub repository available at the following link:\n");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "We have a GitHub repository available at the following link:\n", -1);
         set_pen_color(font, LINK_COLOR);
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "https://github.com/kot-org/Kot\n");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "https://github.com/kot-org/Kot\n", -1);
         set_pen_color(font, TEXT_COLOR);
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "Don't forget to star the GitHub repository to show your support!\n");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "Don't forget to star the GitHub repository to show your support!\n", -1);
         
         draw_frame();
 
@@ -255,10 +255,10 @@ int main(int argc, char* argv[]){
         draw_rectangle(&fb, 0, 0, fmin(TEXT_BOX_WIDTH, fb.width), fb.height, TEXT_BACKGROUND);
 
         load_pen(font, &fb, TEXT_START, 0, TITLE_SIZE, 0, TEXT_COLOR);
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Play Original Doom on Kot\n");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_CENTER, "Play Original Doom on Kot\n", -1);
 
         set_pen_size(font, TEXT_SIZE);
-        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "Play Original Doom on Kot and experience the classic game in a new way!\n");
+        write_paragraph(font, -1, -1, fmin(TEXT_WIDTH, fb.width), PARAGRAPH_JUSTIFY, "Play Original Doom on Kot and experience the classic game in a new way!\n", -1);
         
         draw_frame();
 

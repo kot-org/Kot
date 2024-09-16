@@ -93,14 +93,14 @@ char* get_weather_data(const char* city){
 }
 
 int get_key(int* pressed, uint64_t* key){
-    int64_t buffer;
-    if(read(fb_fd, &buffer, 1) > 0){
-        if(buffer & ((uint64_t)1 << 63)){
+    uint64_t buffer[2];
+    if(read(fb_fd, &buffer, sizeof(uint64_t) * 2) > 0){
+        if(buffer[1] & ((uint64_t)1 << 63)){
             *pressed = true;
         }else{
             *pressed = false;
         }
-        *key = buffer & ~((uint64_t)1 << 63);
+        *key = buffer[0];
         return 1;
     }
     return 0;
@@ -134,14 +134,17 @@ void draw_frame(){
     write(fb_fd, fb.buffer, fb.size);
 }
 
-void convert_name_to_path(char* name){
-    while(*name){
-        if(*name == ' '){
-            *name = '_';
+char* convert_name_to_path(char* name){
+    char* path = strdup(name);
+    while(*path){
+        if(*path == ' '){
+            *path = '_';
         }
-        *name = tolower(*name);
-        name++;
+        *path = tolower(*path);
+        path++;
     }
+
+    return path;
 }
 
 int load_fb(){
@@ -248,10 +251,12 @@ int load_font_data(){
 }
 
 int load_wallpaper(char* name){
-    convert_name_to_path(name);
+    char* path = convert_name_to_path(name);
 
     char* real_wallpaper_path = NULL;
-    asprintf(&real_wallpaper_path, "%s%s.jpg", wallpaper_path, name);
+    asprintf(&real_wallpaper_path, "%s%s.jpg", wallpaper_path, path);
+    free(path);
+
     if(real_wallpaper_path == NULL){
         perror("error loading wallpaper\n");
         fclose(json_file);
@@ -358,26 +363,26 @@ int draw_ui(){
     kfont_pos_t x = get_pen_pos_x(font);
     kfont_pos_t y = get_pen_pos_y(font);
     set_pen_color(font, ~TEXT_COLOR);
-    write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, time_str);
+    write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, time_str, -1);
     set_pen_color(font, TEXT_COLOR);
-    write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, time_str);
+    write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, time_str, -1);
 
     set_pen_size(font, DATE_SIZE);
     x = get_pen_pos_x(font);
     y = get_pen_pos_y(font);
     set_pen_color(font, ~TEXT_COLOR);
-    write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, date_str);
+    write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, date_str, -1);
     set_pen_color(font, TEXT_COLOR);
-    write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, date_str);
+    write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, date_str, -1);
 
     set_pen_pos_y(font, (fb.height - (TEMP_SIZE + WIND_SIZE + CITY_SIZE)) / 2);
     set_pen_size(font, CITY_SIZE);
     x = get_pen_pos_x(font);
     y = get_pen_pos_y(font);
     set_pen_color(font, ~TEXT_COLOR);
-    write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, area_name_str);
+    write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, area_name_str, -1);
     set_pen_color(font, TEXT_COLOR);
-    write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, area_name_str);
+    write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, area_name_str, -1);
 
 
     char weather_info[100];
@@ -387,26 +392,26 @@ int draw_ui(){
     x = get_pen_pos_x(font);
     y = get_pen_pos_y(font);
     set_pen_color(font, ~TEXT_COLOR);
-    write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, weather_info);
+    write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, weather_info, -1);
     set_pen_color(font, TEXT_COLOR);
-    write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, weather_info);
+    write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, weather_info, -1);
 
     snprintf(weather_info, sizeof(weather_info), "\n%skm/h", wind_speed_str);
     set_pen_size(font, WIND_SIZE);
     x = get_pen_pos_x(font);
     y = get_pen_pos_y(font);
     set_pen_color(font, ~TEXT_COLOR);
-    write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, weather_info);
+    write_paragraph(font, -1, -1, fb.width, PARAGRAPH_CENTER, weather_info, -1);
     set_pen_color(font, TEXT_COLOR);
-    write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, weather_info);
+    write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, weather_info, -1);
 
     set_pen_size(font, INFO_SIZE);
     x = get_pen_pos_x(font);
     y = fb.height - INFO_SIZE - 50;
     set_pen_color(font, ~TEXT_COLOR);
-    write_paragraph(font, -1, fb.height - INFO_SIZE - 50, fb.width, PARAGRAPH_CENTER, "Exit : <Esc>\n");
+    write_paragraph(font, -1, fb.height - INFO_SIZE - 50, fb.width, PARAGRAPH_CENTER, "Exit : <Esc>\n", -1);
     set_pen_color(font, TEXT_COLOR);
-    write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, "Exit : <Esc>\n");
+    write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, "Exit : <Esc>\n", -1);
 
     draw_frame();
 

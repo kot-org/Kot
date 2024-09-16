@@ -323,7 +323,7 @@ int draw_glyph(kfont_t opaque, kfont_glyph_t glyph, kfont_dot_t width, kfont_dot
     return 0;
 }
 
-int write_paragraph(kfont_t opaque, kfont_pos_t x, kfont_pos_t y, kfont_pos_t width, int format, uint8_t* text){
+int write_paragraph(kfont_t opaque, kfont_pos_t x, kfont_pos_t y, kfont_pos_t width, int format, uint8_t* text, int line_count){
     local_kfont_t* font = (local_kfont_t*)opaque;
     FT_Load_Glyph(font->face, ' ', FT_LOAD_RENDER);
     
@@ -346,9 +346,12 @@ int write_paragraph(kfont_t opaque, kfont_pos_t x, kfont_pos_t y, kfont_pos_t wi
 
     uint8_t* line_start = text;
     uint8_t* line_end = text;
+
+    int current_line = 0;
     
-    while(*line_end){
+    while(*line_end && (current_line < line_count || line_count == -1)){
         while (*line_end && *line_end != '\n') line_end++;
+        current_line++;
 
         bool is_dash_next_line = false;
 
@@ -406,11 +409,17 @@ int write_paragraph(kfont_t opaque, kfont_pos_t x, kfont_pos_t y, kfont_pos_t wi
             set_pen_pos_x(opaque, current_x);            
         }
 
-        draw_font_n(opaque, line_start, line_end - line_start);
-        
-        if(is_dash_next_line){
-            draw_font_n(opaque, "-", 1);
+        if(is_dash_next_line && current_line == line_count){
+            draw_font_n(opaque, line_start, line_end - line_start - 3);
+            draw_font_n(opaque, "...", 3);
+        }else{
+            draw_font_n(opaque, line_start, line_end - line_start);
+            
+            if(is_dash_next_line){
+                draw_font_n(opaque, "-", 1);
+            }
         }
+
 
         current_y += line_height;
         current_x = x;

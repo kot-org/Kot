@@ -211,7 +211,8 @@
         "wait.h": "c",
         "ctype.h": "c",
         "format": "c",
-        "stacktrace": "c"
+        "stacktrace": "c",
+        "install.h": "c"
     },
     "files.exclude": {
         "bundled": true,

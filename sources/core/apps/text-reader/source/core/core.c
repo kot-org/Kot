@@ -130,14 +130,14 @@ void scroll_up(int i){
 }
 
 int get_key(int* pressed, uint64_t* key){
-    int64_t buffer;
-    if(read(fb_fd, &buffer, 1) > 0){
-        if(buffer & ((uint64_t)1 << 63)){
+    uint64_t buffer[2];
+    if(read(fb_fd, &buffer, sizeof(uint64_t) * 2) > 0){
+        if(buffer[1] & ((uint64_t)1 << 63)){
             *pressed = true;
         }else{
             *pressed = false;
         }
-        *key = buffer & ~((uint64_t)1 << 63);
+        *key = buffer[0];
         return 1;
     }
     return 0;
@@ -570,9 +570,9 @@ int main(int argc, char* argv[]){
         kfont_pos_t x = get_pen_pos_x(font);
         kfont_pos_t y = fb.height - INFO_SIZE - 10;
         set_pen_color(font, ~TEXT_COLOR);
-        write_paragraph(font, -1, fb.height - INFO_SIZE - 10, fb.width, PARAGRAPH_CENTER, "Exit : <Esc>\n");
+        write_paragraph(font, -1, fb.height - INFO_SIZE - 10, fb.width, PARAGRAPH_CENTER, "Exit : <Esc>\n", -1);
         set_pen_color(font, TEXT_COLOR);
-        write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, "Exit : <Esc>\n");
+        write_paragraph(font, x - 1, y - 1, fb.width, PARAGRAPH_CENTER, "Exit : <Esc>\n", -1);
 
         set_pen_size(font, HEADER_SIZE);
 
@@ -608,7 +608,7 @@ int main(int argc, char* argv[]){
                 percentage = (((copy_offset / text_framebuffer->pitch) + write_area_height) * 100) / text_framebuffer->height;
             }
             assert(asprintf(&image_reader_info, "%s | %d%%", argv[1], percentage) >= 0);
-            write_paragraph(font, 0, 0, fb.width, PARAGRAPH_CENTER, image_reader_info);
+            write_paragraph(font, 0, 0, fb.width, PARAGRAPH_CENTER, image_reader_info, -1);
 
             draw_frame();
         }

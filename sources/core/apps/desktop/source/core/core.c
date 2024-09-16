@@ -106,14 +106,14 @@ void draw_loading_frame(){
 }
 
 int get_key(int* pressed, uint64_t* key){
-    int64_t buffer;
-    if(read(fb_fd, &buffer, 1) > 0){
-        if(buffer & ((uint64_t)1 << 63)){
+    uint64_t buffer[2];
+    if(read(fb_fd, &buffer, sizeof(uint64_t) * 2) > 0){
+        if(buffer[1] & ((uint64_t)1 << 63)){
             *pressed = true;
         }else{
             *pressed = false;
         }
-        *key = buffer & ~((uint64_t)1 << 63);
+        *key = buffer[0];
         return 1;
     }
     return 0;
@@ -542,12 +542,12 @@ void draw_desktop(){
     get_current_date_time(date_time_str);
 
     load_pen(font, &fb, 0, 0, DATE_TIME_SIZE, 0, DATE_TIME_COLOR);
-    write_paragraph(font, 0, 0, fb.width, PARAGRAPH_CENTER, date_time_str);
+    write_paragraph(font, 0, 0, fb.width, PARAGRAPH_CENTER, date_time_str, -1);
 
 
     char page_string[50];
     snprintf(page_string, 50, "Page : %d / %d | Next: <F1> | Last: <F2>", current_page + 1, page_count);
-    write_paragraph(font, 0, 0, fb.width - 35, PARAGRAPH_RIGHT, page_string);
+    write_paragraph(font, 0, 0, fb.width - 35, PARAGRAPH_RIGHT, page_string, -1);
     
     if(update_icon_page){
         update_icon_page = false;
@@ -576,9 +576,9 @@ void draw_desktop(){
 
                 set_pen_size(font, ICON_TEXT_SIZE);
                 set_pen_color(font, ~ICON_TEXT_COLOR);
-                write_paragraph(font, x + 1, y + ICON_IMAGE_HEIGHT + 1, ICON_IMAGE_WIDTH, PARAGRAPH_CENTER, icons_text[c]);
+                write_paragraph(font, x + 1, y + ICON_IMAGE_HEIGHT + 1, ICON_IMAGE_WIDTH, PARAGRAPH_CENTER, icons_text[c], -1);
                 set_pen_color(font, ICON_TEXT_COLOR);
-                write_paragraph(font, x, y + ICON_IMAGE_HEIGHT, ICON_IMAGE_WIDTH, PARAGRAPH_CENTER, icons_text[c]);
+                write_paragraph(font, x, y + ICON_IMAGE_HEIGHT, ICON_IMAGE_WIDTH, PARAGRAPH_CENTER, icons_text[c], -1);
 
                 c++;
             }
