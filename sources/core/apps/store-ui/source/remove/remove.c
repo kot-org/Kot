@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 
 #include "remove.h"
+#include "../icon/icon.h"
 
 #define MAX_REMOVE_DIR 256
 
@@ -84,6 +85,7 @@ int remove_app(char* name, bool check_user){
             if(do_remove){
                 printf("Removing %s\n", name);
                 remove_directory(path_store_app);
+                remove_element_from_json(name);
                 printf("Done remove %s\n", name);
                 return 0;
             }else{

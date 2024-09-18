@@ -65,6 +65,7 @@ uint32_t header_part_width = 0;
 int header_part_count = sizeof(header_text) / sizeof(char*);
 
 bool update_header = true;
+bool updated_header = false;
 bool update_wallpaper = true;
 
 int current_task = 0;
@@ -278,6 +279,8 @@ int main(int argc, char *argv[]){
         }
         if(update_header){
             update_header = false;
+
+            set_pen_size(font, HEADER_TEXT_SIZE);
             
             for(int i = 0; i < header_part_count; i++){
                 uint32_t x = i * header_part_width + HEADER_MARGIN;
@@ -291,6 +294,8 @@ int main(int argc, char *argv[]){
                 }
                 write_paragraph(font, x, HEADER_MARGIN, header_part_width, PARAGRAPH_CENTER, header_text[i], -1);
             }
+
+            updated_header = true;
         }
 
         switch (current_task){
@@ -308,9 +313,17 @@ int main(int argc, char *argv[]){
                 static char* search_bar_str_empy = "Search apps...";
                 static uint32_t y_initial_pos = 0;
                 static uint32_t x_initial_pos = 0;
+
+                if(updated_header){
+                    draw_search_box = true;
+                    draw_content_box = true;
+                    updated_header = false;
+                }
+
                 if(!y_initial_pos){
                     y_initial_pos = content_y + content_height;
                 }
+
                 if(!already_search){
                     already_search = true;
 
@@ -360,7 +373,7 @@ int main(int argc, char *argv[]){
                     uint32_t y_pos = y_initial_pos;
                     draw_content_box = false;
                     char* search_info;
-                    assert(asprintf(&search_info, "%d %s found | Press <Enter> to refresh | Press <i> to install | %s", app_count, app_count ? "apps" : "app", search_with_tag ? "Search by Tag (change to Name with <TAB>)" : "Search by Name (change to Tag with <TAB>)") >= 0);
+                    assert(asprintf(&search_info, "%d %s found | Press <Enter> to refresh | Press <Shift> to install | Press <Caps Lock> to force the installation | %s", app_count, app_count ? "apps" : "app", search_with_tag ? "Search by Tag (change to Name with <TAB>)" : "Search by Name (change to Tag with <TAB>)") >= 0);
                     set_pen_color(font, TEXT_COLOR);
                     set_pen_size(font, TEXT_SIZE);
                     write_paragraph(font, x_pos, y_pos, content_width, PARAGRAPH_LEFT, search_info, 1);
@@ -368,7 +381,7 @@ int main(int argc, char *argv[]){
                     y_pos = get_pen_pos_y(font) + HEADER_MARGIN;
                     draw_rectangle_border(&fb, x_pos, y_pos, content_width - (HEADER_MARGIN * 2), 1, TEXT_COLOR);
 
-                    app_max = (content_height - get_pen_pos_y(font)) / (TITLE_SIZE + TEXT_SIZE + HEADER_MARGIN);
+                    app_max = (content_height - get_pen_pos_y(font)) / (TITLE_SIZE + TEXT_SIZE + HEADER_MARGIN + 1);
                     
                     for(int i = app_start; i < app_count && i < app_start + app_max; i++){
                         uint32_t current_color = (app_focus == i) ? FOCUS_COLOR : TEXT_COLOR;
@@ -412,7 +425,7 @@ int main(int argc, char *argv[]){
                         }else if(key == 80 && !wait_release_down){
                             // down
                             wait_release_down = true;
-                            if(app_focus < app_count){
+                            if(app_focus < app_count - 1){
                                 app_focus++;
                                 if(app_focus == app_start + app_max - 1){
                                     app_start++;
@@ -425,10 +438,19 @@ int main(int argc, char *argv[]){
                         }else if(key == 75 && !wait_release_left){
                             // left
                             wait_release_left = true;
-                        }                            
+                        }          
+                        arrow_pressed = false;                  
                     }else if(is_pressed){
                         if(key == 1){
                             exit(EXIT_SUCCESS);
+                        }else if(key == 42){
+                            install_app(curl, apps_found[app_focus]->url, apps_found[app_focus]->name, false);
+                            printf("\033[0;32mPress the <Enter> key to go back to search.\033[0m\n");
+                            getchar();  
+                        }else if(key == 58){
+                            install_app(curl, apps_found[app_focus]->url, apps_found[app_focus]->name, true);
+                            printf("\033[0;32mPress the <Enter> key to go back to search.\033[0m\n");
+                            getchar();
                         }else if(key == 60){
                             current_task = 1;
                             update_header = true;
@@ -460,15 +482,17 @@ int main(int argc, char *argv[]){
                                 draw_search_box = true;
                             }
                         }else{
-                            if(strlen((search_bar_str != search_bar_str_empy) ? search_bar_str : "") < SEARCH_MAX_CHAR){
-                                char* new_search_bar_str = NULL;
-                                assert(asprintf(&new_search_bar_str, "%s%c", (search_bar_str != search_bar_str_empy) ? search_bar_str : "", translated_key) >= 0);
+                            if(translated_key >= 'a' && translated_key <= 'z'){
+                                if(strlen((search_bar_str != search_bar_str_empy) ? search_bar_str : "") < SEARCH_MAX_CHAR){
+                                    char* new_search_bar_str = NULL;
+                                    assert(asprintf(&new_search_bar_str, "%s%c", (search_bar_str != search_bar_str_empy) ? search_bar_str : "", translated_key) >= 0);
 
-                                if(search_bar_str != search_bar_str_empy){
-                                    free(search_bar_str);
+                                    if(search_bar_str != search_bar_str_empy){
+                                        free(search_bar_str);
+                                    }
+                                    search_bar_str = new_search_bar_str;
+                                    draw_search_box = true;
                                 }
-                                search_bar_str = new_search_bar_str;
-                                draw_search_box = true;
                             }
                         }
                     }else{
@@ -486,10 +510,418 @@ int main(int argc, char *argv[]){
                                 // left
                                 wait_release_left = false;
                             }
+                            arrow_pressed = false;
                         }
                     }
                 }
                 
+                break;
+            }
+            case 1:{
+                static char** apps_found = NULL;
+                static bool draw_search_box = true;
+                static bool draw_content_box = true;
+                static bool already_search = false;
+                static char* search_bar_str = NULL;
+                static int app_focus = 0;
+                static int app_count = 0;
+                static int app_max = 0;
+                static int app_start = 0;
+                static char* search_bar_str_empy = "Search apps...";
+                static uint32_t y_initial_pos = 0;
+                static uint32_t x_initial_pos = 0;
+
+                if(updated_header){
+                    draw_search_box = true;
+                    draw_content_box = true;
+                    updated_header = false;
+                }
+
+                if(!y_initial_pos){
+                    y_initial_pos = content_y + content_height;
+                }
+
+                if(!already_search){
+                    already_search = true;
+
+                    app_focus = 0;
+
+                    if(apps_found != NULL){
+                        free_get_installed_apps(apps_found);
+                    }
+
+                    apps_found = get_installed_apps((search_bar_str == NULL || search_bar_str == search_bar_str_empy) ? NULL : search_bar_str);
+
+                    app_count = 0;
+                    app_start = 0;
+                    if(apps_found != NULL){
+                        while(apps_found[app_count] != NULL){
+                            app_count++;
+                        }
+                    }
+                    draw_content_box = true;
+                }
+                if(draw_search_box){
+                    draw_rectangle(&fb, content_x, content_y, content_width, y_initial_pos - content_y, ~TEXT_COLOR);
+
+                    draw_search_box = false;
+                    if(search_bar_str == NULL || search_bar_str == search_bar_str_empy){
+                        set_pen_color(font, SEARCH_BAR_COLOR);
+                        search_bar_str = search_bar_str_empy;
+                    }else{
+                        set_pen_color(font, TEXT_COLOR);
+                    }
+
+                    set_pen_size(font, SEARCH_BAR_SIZE);
+                    write_paragraph(font, content_x, content_y, content_width, PARAGRAPH_CENTER, search_bar_str, 1);
+                    y_initial_pos = get_pen_pos_y(font) + HEADER_MARGIN;
+                    x_initial_pos = content_x + HEADER_MARGIN;
+                    draw_rectangle_border(&fb, x_initial_pos, y_initial_pos, content_width - (HEADER_MARGIN * 2), 1, TEXT_COLOR);
+                    y_initial_pos += 1;
+                }
+
+                if(draw_content_box){
+                    draw_rectangle(&fb, content_x, y_initial_pos, content_width, content_height - (y_initial_pos - content_y), ~TEXT_COLOR);
+
+                    uint32_t x_pos = x_initial_pos;
+                    uint32_t y_pos = y_initial_pos;
+                    draw_content_box = false;
+                    char* search_info;
+                    assert(asprintf(&search_info, "%d %s found | Press <Enter> to refresh | Press <Shift> to update the app | Search by Name", app_count, app_count ? "apps" : "app") >= 0);
+                    set_pen_color(font, TEXT_COLOR);
+                    set_pen_size(font, TEXT_SIZE);
+                    write_paragraph(font, x_pos, y_pos, content_width, PARAGRAPH_LEFT, search_info, 1);
+
+                    y_pos = get_pen_pos_y(font) + HEADER_MARGIN;
+                    draw_rectangle_border(&fb, x_pos, y_pos, content_width - (HEADER_MARGIN * 2), 1, TEXT_COLOR);
+
+                    app_max = (content_height - get_pen_pos_y(font)) / (TITLE_SIZE + HEADER_MARGIN + 1);
+                    
+                    for(int i = app_start; i < app_count && i < app_start + app_max; i++){
+                        uint32_t current_color = (app_focus == i) ? FOCUS_COLOR : TEXT_COLOR;
+                        set_pen_color(font, current_color);
+                        set_pen_size(font, TITLE_SIZE);
+                        write_paragraph(font, x_pos, y_pos, content_width, PARAGRAPH_LEFT, apps_found[i], 1);
+                        y_pos = get_pen_pos_y(font) + HEADER_MARGIN;
+                        draw_rectangle_border(&fb, x_pos, y_pos, content_width - (HEADER_MARGIN * 2), 1, current_color);
+                    }
+                }
+
+                int is_pressed = 0;
+                uint64_t key = 0;
+                uint16_t translated_key = 0;
+                int is_key = get_key(&is_pressed, &key, &translated_key);
+
+                if(is_key){
+                    static bool arrow_pressed = false;
+                    static bool wait_release = false;
+                    static bool wait_release_up = false;
+                    static bool wait_release_down = false;
+                    static bool wait_release_right = false;
+                    static bool wait_release_left = false;
+
+                    if(key == 96 && !arrow_pressed){
+                            arrow_pressed = true;
+                    }else if(arrow_pressed && is_pressed){
+                        if(key == 72 && !wait_release_up){
+                            // up
+                            wait_release_up = true;
+                            if(app_focus > 0){
+                                app_focus--;
+                                if(app_start != 0 && app_focus == app_start){
+                                    app_start--;
+                                }
+                                draw_content_box = true;
+                            }
+                        }else if(key == 80 && !wait_release_down){
+                            // down
+                            wait_release_down = true;
+                            if(app_focus < app_count - 1){
+                                app_focus++;
+                                if(app_focus == app_start + app_max - 1){
+                                    app_start++;
+                                }
+                                draw_content_box = true;
+                            }
+                        }else if(key == 77 && !wait_release_right){
+                            // right
+                            wait_release_right = true;
+                        }else if(key == 75 && !wait_release_left){
+                            // left
+                            wait_release_left = true;
+                        }          
+                        arrow_pressed = false;                  
+                    }else if(is_pressed){
+                        if(key == 1){
+                            exit(EXIT_SUCCESS);
+                        }else if(key == 42){
+                            update_app(curl, apps_found[app_focus]);
+                            printf("\033[0;32mPress the <Enter> key to go back to search.\033[0m\n");
+                            getchar();  
+                        }else if(key == 59){
+                            current_task = 0;
+                            update_header = true;
+                        }else if(key == 61){
+                            current_task = 2;
+                            update_header = true;
+                        }else if(translated_key == '\n'){
+                            draw_rectangle(&fb, content_x, y_initial_pos, content_width, content_height - (y_initial_pos - content_y), ~TEXT_COLOR);
+                            set_pen_color(font, TEXT_COLOR);
+                            set_pen_size(font, TEXT_SIZE);
+                            write_paragraph(font, x_initial_pos, y_initial_pos, content_width, PARAGRAPH_LEFT, "Loading...", 1);
+                            draw_frame();
+                            already_search = false;
+                        }else if(translated_key == '\b'){
+                            if(search_bar_str != search_bar_str_empy){
+                                char* new_search_bar_str = NULL;
+                                int new_len = strlen(search_bar_str) - 1;
+                                if(new_len > 0){
+                                    assert(asprintf(&new_search_bar_str, "%.*s", new_len, search_bar_str) >= 0);
+                                    free(search_bar_str);
+                                    search_bar_str = new_search_bar_str;
+                                }else{
+                                    free(search_bar_str);
+                                    search_bar_str = search_bar_str_empy;
+                                }
+                                draw_search_box = true;
+                            }
+                        }else{
+                            if(translated_key >= 'a' && translated_key <= 'z'){
+                                if(strlen((search_bar_str != search_bar_str_empy) ? search_bar_str : "") < SEARCH_MAX_CHAR){
+                                    char* new_search_bar_str = NULL;
+                                    assert(asprintf(&new_search_bar_str, "%s%c", (search_bar_str != search_bar_str_empy) ? search_bar_str : "", translated_key) >= 0);
+
+                                    if(search_bar_str != search_bar_str_empy){
+                                        free(search_bar_str);
+                                    }
+                                    search_bar_str = new_search_bar_str;
+                                    draw_search_box = true;
+                                }
+                            }
+                        }
+                    }else{
+                        if(arrow_pressed){
+                            if(key == 72 && wait_release_up){
+                                // up
+                                wait_release_up = false;
+                            }else if(key == 80 && wait_release_down){
+                                // down
+                                wait_release_down = false;
+                            }else if(key == 77 && wait_release_right){
+                                // right
+                                wait_release_right = false;
+                            }else if(key == 75 && wait_release_left){
+                                // left
+                                wait_release_left = false;
+                            }
+                            arrow_pressed = false;
+                        }
+                    }
+                }                
+                break;
+            }
+            case 2:{
+                static char** apps_found = NULL;
+                static bool draw_search_box = true;
+                static bool draw_content_box = true;
+                static bool already_search = false;
+                static char* search_bar_str = NULL;
+                static int app_focus = 0;
+                static int app_count = 0;
+                static int app_max = 0;
+                static int app_start = 0;
+                static char* search_bar_str_empy = "Search apps...";
+                static uint32_t y_initial_pos = 0;
+                static uint32_t x_initial_pos = 0;
+
+                if(updated_header){
+                    draw_search_box = true;
+                    draw_content_box = true;
+                    updated_header = false;
+                }
+
+                if(!y_initial_pos){
+                    y_initial_pos = content_y + content_height;
+                }
+
+                if(!already_search){
+                    already_search = true;
+
+                    app_focus = 0;
+
+                    if(apps_found != NULL){
+                        free_get_installed_apps(apps_found);
+                    }
+
+                    apps_found = get_installed_apps((search_bar_str == NULL || search_bar_str == search_bar_str_empy) ? NULL : search_bar_str);
+
+                    app_count = 0;
+                    app_start = 0;
+                    if(apps_found != NULL){
+                        while(apps_found[app_count] != NULL){
+                            app_count++;
+                        }
+                    }
+                    draw_content_box = true;
+                }
+                if(draw_search_box){
+                    draw_rectangle(&fb, content_x, content_y, content_width, y_initial_pos - content_y, ~TEXT_COLOR);
+
+                    draw_search_box = false;
+                    if(search_bar_str == NULL || search_bar_str == search_bar_str_empy){
+                        set_pen_color(font, SEARCH_BAR_COLOR);
+                        search_bar_str = search_bar_str_empy;
+                    }else{
+                        set_pen_color(font, TEXT_COLOR);
+                    }
+
+                    set_pen_size(font, SEARCH_BAR_SIZE);
+                    write_paragraph(font, content_x, content_y, content_width, PARAGRAPH_CENTER, search_bar_str, 1);
+                    y_initial_pos = get_pen_pos_y(font) + HEADER_MARGIN;
+                    x_initial_pos = content_x + HEADER_MARGIN;
+                    draw_rectangle_border(&fb, x_initial_pos, y_initial_pos, content_width - (HEADER_MARGIN * 2), 1, TEXT_COLOR);
+                    y_initial_pos += 1;
+                }
+
+                if(draw_content_box){
+                    draw_rectangle(&fb, content_x, y_initial_pos, content_width, content_height - (y_initial_pos - content_y), ~TEXT_COLOR);
+
+                    uint32_t x_pos = x_initial_pos;
+                    uint32_t y_pos = y_initial_pos;
+                    draw_content_box = false;
+                    char* search_info;
+                    assert(asprintf(&search_info, "%d %s found | Press <Enter> to refresh | Press <Shift> to remove the app | Search by Name", app_count, app_count ? "apps" : "app") >= 0);
+                    set_pen_color(font, TEXT_COLOR);
+                    set_pen_size(font, TEXT_SIZE);
+                    write_paragraph(font, x_pos, y_pos, content_width, PARAGRAPH_LEFT, search_info, 1);
+
+                    y_pos = get_pen_pos_y(font) + HEADER_MARGIN;
+                    draw_rectangle_border(&fb, x_pos, y_pos, content_width - (HEADER_MARGIN * 2), 1, TEXT_COLOR);
+
+                    app_max = (content_height - get_pen_pos_y(font)) / (TITLE_SIZE + HEADER_MARGIN + 1);
+                    
+                    for(int i = app_start; i < app_count && i < app_start + app_max; i++){
+                        uint32_t current_color = (app_focus == i) ? FOCUS_COLOR : TEXT_COLOR;
+                        set_pen_color(font, current_color);
+                        set_pen_size(font, TITLE_SIZE);
+                        write_paragraph(font, x_pos, y_pos, content_width, PARAGRAPH_LEFT, apps_found[i], 1);
+                        y_pos = get_pen_pos_y(font) + HEADER_MARGIN;
+                        draw_rectangle_border(&fb, x_pos, y_pos, content_width - (HEADER_MARGIN * 2), 1, current_color);
+                    }
+                }
+
+                int is_pressed = 0;
+                uint64_t key = 0;
+                uint16_t translated_key = 0;
+                int is_key = get_key(&is_pressed, &key, &translated_key);
+
+                if(is_key){
+                    static bool arrow_pressed = false;
+                    static bool wait_release = false;
+                    static bool wait_release_up = false;
+                    static bool wait_release_down = false;
+                    static bool wait_release_right = false;
+                    static bool wait_release_left = false;
+
+                    if(key == 96 && !arrow_pressed){
+                            arrow_pressed = true;
+                    }else if(arrow_pressed && is_pressed){
+                        if(key == 72 && !wait_release_up){
+                            // up
+                            wait_release_up = true;
+                            if(app_focus > 0){
+                                app_focus--;
+                                if(app_start != 0 && app_focus == app_start){
+                                    app_start--;
+                                }
+                                draw_content_box = true;
+                            }
+                        }else if(key == 80 && !wait_release_down){
+                            // down
+                            wait_release_down = true;
+                            if(app_focus < app_count - 1){
+                                app_focus++;
+                                if(app_focus == app_start + app_max - 1){
+                                    app_start++;
+                                }
+                                draw_content_box = true;
+                            }
+                        }else if(key == 77 && !wait_release_right){
+                            // right
+                            wait_release_right = true;
+                        }else if(key == 75 && !wait_release_left){
+                            // left
+                            wait_release_left = true;
+                        }          
+                        arrow_pressed = false;                  
+                    }else if(is_pressed){
+                        if(key == 1){
+                            exit(EXIT_SUCCESS);
+                        }else if(key == 42){
+                            remove_app(apps_found[app_focus], true);
+                            already_search = false; // reload apps availables
+                            printf("\033[0;32mPress the <Enter> key to go back to search.\033[0m\n");
+                            getchar();  
+                        }else if(key == 59){
+                            current_task = 0;
+                            update_header = true;
+                        }else if(key == 60){
+                            current_task = 1;
+                            update_header = true;
+                        }else if(translated_key == '\n'){
+                            draw_rectangle(&fb, content_x, y_initial_pos, content_width, content_height - (y_initial_pos - content_y), ~TEXT_COLOR);
+                            set_pen_color(font, TEXT_COLOR);
+                            set_pen_size(font, TEXT_SIZE);
+                            write_paragraph(font, x_initial_pos, y_initial_pos, content_width, PARAGRAPH_LEFT, "Loading...", 1);
+                            draw_frame();
+                            already_search = false;
+                        }else if(translated_key == '\b'){
+                            if(search_bar_str != search_bar_str_empy){
+                                char* new_search_bar_str = NULL;
+                                int new_len = strlen(search_bar_str) - 1;
+                                if(new_len > 0){
+                                    assert(asprintf(&new_search_bar_str, "%.*s", new_len, search_bar_str) >= 0);
+                                    free(search_bar_str);
+                                    search_bar_str = new_search_bar_str;
+                                }else{
+                                    free(search_bar_str);
+                                    search_bar_str = search_bar_str_empy;
+                                }
+                                draw_search_box = true;
+                            }
+                        }else{
+                            if(translated_key >= 'a' && translated_key <= 'z'){
+                                if(strlen((search_bar_str != search_bar_str_empy) ? search_bar_str : "") < SEARCH_MAX_CHAR){
+                                    char* new_search_bar_str = NULL;
+                                    assert(asprintf(&new_search_bar_str, "%s%c", (search_bar_str != search_bar_str_empy) ? search_bar_str : "", translated_key) >= 0);
+
+                                    if(search_bar_str != search_bar_str_empy){
+                                        free(search_bar_str);
+                                    }
+                                    search_bar_str = new_search_bar_str;
+                                    draw_search_box = true;
+                                }
+                            }
+                        }
+                    }else{
+                        if(arrow_pressed){
+                            if(key == 72 && wait_release_up){
+                                // up
+                                wait_release_up = false;
+                            }else if(key == 80 && wait_release_down){
+                                // down
+                                wait_release_down = false;
+                            }else if(key == 77 && wait_release_right){
+                                // right
+                                wait_release_right = false;
+                            }else if(key == 75 && wait_release_left){
+                                // left
+                                wait_release_left = false;
+                            }
+                            arrow_pressed = false;
+                        }
+                    }
+                }                
                 break;
             }
         }

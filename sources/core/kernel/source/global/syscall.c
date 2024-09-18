@@ -425,6 +425,29 @@ static void syscall_handler_seek(cpu_context_t* ctx){
         }
 
         SYSCALL_RETURN(ctx, new_offset);
+    }else if(descriptor->type == DESCRIPTOR_TYPE_DIR){
+        kernel_dir_t* dir = descriptor->data.dir;
+
+        switch(whence){
+            case SEEK_SET:{
+                dir->seek_position = offset;
+                break;
+            }
+            case SEEK_CUR:{
+                dir->seek_position += offset;
+                break;
+            }
+            case SEEK_END:{
+                dir->seek_position = (0xffffffffffffffff);
+                break;
+            }
+            default:{
+                SYSCALL_RETURN(ctx, -ENOSYS);
+                break;
+            }
+        }
+
+        SYSCALL_RETURN(ctx, dir->seek_position);       
     }else if(descriptor->type == DESCRIPTOR_TYPE_SOCKET){
         kernel_socket_t* socket = descriptor->data.socket;
 

@@ -55,7 +55,7 @@ app_info_t** find_apps_url_by_name(CURL* curl, char* name){
                 cJSON* application_description = cJSON_GetObjectItem(application, "description");
 
                 if(cJSON_IsString(application_name) && (application_name->valuestring != NULL) && cJSON_IsString(application_description) && (application_description->valuestring != NULL)){ 
-                    if(!strcmp(name, application_name->valuestring) || name == NULL){
+                    if(name == NULL || !strcmp(name, application_name->valuestring)){
                         cJSON* json_link_application_url = cJSON_GetObjectItem(application, "json_link");
                         if(cJSON_IsString(json_link_application_url) && (json_link_application_url->valuestring != NULL)){ 
                             return_value = realloc(return_value, (return_value_count_url + 2) * sizeof(app_info_t*));
