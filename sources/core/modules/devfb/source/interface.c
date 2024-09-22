@@ -157,7 +157,7 @@ int fb_interface_seek(off_t offset, int whence, off_t* new_offset, kernel_file_t
 }
 
 int fb_interface_ioctl(uint32_t request, void* arg, int* result, kernel_file_t* file){
-    switch (request){
+    switch(request){
         case FBIOGET_FSCREENINFO:{
             if(vmm_check_memory(vmm_get_current_space(), (memory_range_t){arg, sizeof(struct fb_fix_screeninfo)})){
                 return EINVAL;

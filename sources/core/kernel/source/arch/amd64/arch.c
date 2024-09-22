@@ -4,6 +4,7 @@
 #include <global/hw_interrupt.h>
 
 #include <arch/include.h>
+#include ARCH_INCLUDE(io.h)
 #include ARCH_INCLUDE(idt.h)
 #include ARCH_INCLUDE(gdt.h)
 #include ARCH_INCLUDE(cpu.h)
@@ -82,11 +83,19 @@ noreturn void arch_idle(void) {
 }
 
 noreturn void arch_reboot(void) {
-    // todo
+    uint8_t val = 0x02;
+    while(val & 0x02){
+        val = io_read8(0x64);
+    }
+
+    io_write8(0x64, 0xFE);
     arch_idle();
 }
 
 noreturn void arch_shutdown(void) {
-    // todo
+    io_write16(0xB004, 0x2000);
+    io_write16(0x604, 0x2000);
+    io_write16(0x4004, 0x3400);
+    io_write16(0x600, 0x34);
     arch_idle();
 }

@@ -1,6 +1,18 @@
 [
     {
         "cwdPath": "/usr/",
+        "iconPath": "/usr/bin/icons/shutdown.tga",
+        "executablePath": "/usr/bin/shutdown",
+        "appName": "Shutdown"
+    },
+    {
+        "cwdPath": "/usr/",
+        "iconPath": "/usr/bin/icons/reboot.tga",
+        "executablePath": "/usr/bin/reboot",
+        "appName": "Reboot"
+    },
+    {
+        "cwdPath": "/usr/",
         "iconPath": "/usr/bin/icons/bash.tga",
         "executablePath": "/usr/bin/bash",
         "appName": "Bash"

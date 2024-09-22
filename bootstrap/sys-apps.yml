@@ -183,32 +183,6 @@ packages:
       #   - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@/bin/.'
       #   - '@SOURCE_ROOT@/target/boot_disk_kot_mount/.'
 
-  - name: store
-    source:
-      subdir: 'sources/core/apps'
-    tools_required:
-      - host-gcc
-    pkgs_required:
-      - mlibc
-      - curl
-      - cjson
-    build:
-      - args: 
-        - 'make'
-        - '-C'
-        - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@'
-        - 'build'
-        environ:
-          CC: "@OPTION:cc@"
-          CXX: "@OPTION:cxx@"
-          LD: "@OPTION:ld@"
-          ASMC: "@OPTION:asmc@"
-      - args: 
-        - 'cp'
-        - '-r'
-        - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@/bin/.'
-        - '@SOURCE_ROOT@/target/boot_disk_kot_mount/.'
-
   - name: store-ui
     source:
       subdir: 'sources/core/apps'
@@ -404,6 +378,62 @@ packages:
         - '@SOURCE_ROOT@/target/boot_disk_kot_mount/.'
 
   - name: text-reader
+    source:
+      subdir: 'sources/core/apps'
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+      - cjson
+      - freetype
+      - libjpeg
+      - kot-graphics
+    build:
+      - args: 
+        - 'make'
+        - '-C'
+        - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@'
+        - 'build'
+        environ:
+          CC: "@OPTION:cc@"
+          CXX: "@OPTION:cxx@"
+          LD: "@OPTION:ld@"
+          ASMC: "@OPTION:asmc@"
+      - args: 
+        - 'cp'
+        - '-r'
+        - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@/bin/.'
+        - '@SOURCE_ROOT@/target/boot_disk_kot_mount/.'
+
+  - name: shutdown
+    source:
+      subdir: 'sources/core/apps'
+    tools_required:
+      - host-gcc
+    pkgs_required:
+      - mlibc
+      - cjson
+      - freetype
+      - libjpeg
+      - kot-graphics
+    build:
+      - args: 
+        - 'make'
+        - '-C'
+        - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@'
+        - 'build'
+        environ:
+          CC: "@OPTION:cc@"
+          CXX: "@OPTION:cxx@"
+          LD: "@OPTION:ld@"
+          ASMC: "@OPTION:asmc@"
+      - args: 
+        - 'cp'
+        - '-r'
+        - '@THIS_SOURCE_DIR@/target/@OPTION:arch_name@/bin/.'
+        - '@SOURCE_ROOT@/target/boot_disk_kot_mount/.'
+
+  - name: reboot
     source:
       subdir: 'sources/core/apps'
     tools_required:

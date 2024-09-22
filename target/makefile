@@ -33,9 +33,7 @@ LIAMD_QEMU_FLAGS = \
 	-serial stdio \
 	-device e1000e,netdev=net0 \
 	-netdev user,id=net0,hostfwd=tcp::5001-:5000,hostfwd=udp::5001-:5000 \
-	-object filter-dump,id=f1,netdev=net0,file=dump.bin	\
-	-no-reboot \
-	-no-shutdown
+	-object filter-dump,id=f1,netdev=net0,file=dump.bin
 
 liamd/run: liamd/build ovmf-amd64
 	sudo qemu-system-x86_64 $(LIAMD_QEMU_FLAGS) -enable-kvm
