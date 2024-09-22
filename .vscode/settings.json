@@ -212,7 +212,8 @@
         "ctype.h": "c",
         "format": "c",
         "stacktrace": "c",
-        "install.h": "c"
+        "install.h": "c",
+        "icon.h": "c"
     },
     "files.exclude": {
         "bundled": true,
