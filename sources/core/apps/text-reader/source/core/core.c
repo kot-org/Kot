@@ -391,7 +391,7 @@ int load_text_file(char* path){
 uint32_t get_buffer_height(){
     char* c = &text_buffer[text_index_start];
     uint32_t cx_pos = 0;
-    uint32_t cy_pos = 0;
+    uint32_t cy_pos = FONT_HEIGHT;
 
     uint32_t col_count = 0;
     uint32_t row_count = 0;
