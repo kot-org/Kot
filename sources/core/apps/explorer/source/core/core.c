@@ -39,6 +39,7 @@
 #define ICON_BORDER_FOCUS_COLOR (0x14bacb)
 #define ICON_BORDER_MARGIN      (5)
 #define ICON_MARGIN             (20)
+#define LOADING_SIZE            (18)
 
 kfont_t font;
 
@@ -480,6 +481,13 @@ int reload_icons(){
     return 0;
 }
 
+void show_loading_screen(){
+    memset(fb.buffer, 0, fb.size);
+    load_pen(font, &fb, 0, 0, LOADING_SIZE, 0, DATE_TIME_COLOR);
+    write_paragraph(font, 0, (fb.height - LOADING_SIZE) / 2, fb.width, PARAGRAPH_CENTER, "Loading...", -1);
+    draw_frame();
+}
+
 void get_input(){
     static bool arrow_pressed = false;
     static bool wait_release = false;
@@ -558,10 +566,12 @@ void get_input(){
                     focus_icon_row = 0;
                     focus_icon_column = 0;
                     current_page = 0;
+                    show_loading_screen();
                     process_icons();
                     update_icon_page = true;
                 }else{
                     if(icons_executable_path[c] != NULL){
+                        show_loading_screen();
                         pid_t p = fork(); 
                         if(p < 0){ 
                             perror("explorer: fork failed"); 
@@ -585,6 +595,7 @@ void get_input(){
                             reload_icons();
                         }
                     }else if(icons_try_to_execute[c]){
+                        show_loading_screen();
                         pid_t p = fork(); 
                         if(p < 0){ 
                             perror("explorer: fork failed"); 
@@ -616,6 +627,7 @@ void get_input(){
                 }
             }else if(key == 62 && pressed){
                 // open bash
+                show_loading_screen();
                 pid_t p = fork(); 
                 if(p < 0){ 
                     perror("desktop: fork failed"); 
@@ -641,6 +653,7 @@ void get_input(){
                 }
             }else if(key == 61 && pressed){
                 // go back directory
+                show_loading_screen();
                 char* parent_directory = get_parent_directory(current_path);
                 free(current_path);
                 current_path = parent_directory;
@@ -655,6 +668,7 @@ void get_input(){
                     current_page++;
                     focus_icon_row = 0;
                     focus_icon_column = 0;
+                    show_loading_screen();
                     process_icons();
                     update_icon_page = true;
                 }
@@ -664,6 +678,7 @@ void get_input(){
                     current_page--;
                     focus_icon_row = 0;
                     focus_icon_column = 0;
+                    show_loading_screen();
                     process_icons();
                     update_icon_page = true;
                 }
