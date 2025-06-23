@@ -14,6 +14,12 @@ install-ninja-debian:
 	sudo gunzip /usr/local/bin/ninja.gz
 	sudo chmod a+x /usr/local/bin/ninja
 
+deps-github: update-pkgs-debian
+	sudo apt install nasm build-essential rsync parted qemu-utils qemu-system-x86 meson python3 python3-pip python3-setuptools python3-wheel ninja-build cmake sed m4 texinfo libgmp-dev bison flex curl -y
+	sudo pip3 install --break-system-packages pillow
+	sudo pip3 install --break-system-packages meson
+	sudo pip3 install --break-system-packages xbstrap
+
 deps-debian: update-pkgs-debian install-ninja-debian
 	sudo apt install nasm build-essential rsync parted qemu-utils qemu-system-x86 meson python3 python3-pip python3-setuptools python3-wheel ninja-build cmake sed m4 texinfo libgmp-dev bison flex curl -y
 	sudo pip3 install --break-system-packages pillow
@@ -48,6 +54,6 @@ clean_build:
 
 all: init build run
 
-github-action: deps-debian init build
+github-action: deps-github init build
 	qemu-img convert -f raw -O vdi target/liamd/boot-kot.img target/liamd/boot-kot.vdi
 	qemu-img convert -f raw -O vmdk target/liamd/boot-kot.img target/liamd/boot-kot.vmdk
