@@ -4,7 +4,7 @@
 
 # Kot
 
-[![C/C++ CI](https://github.com/kot-org/new-kot/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/kot-org/new-kot/actions/workflows/c-cpp.yml)
+[![C/C++ CI](https://github.com/kot-org/kot/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/kot-org/kot/actions/workflows/c-cpp.yml)
 
 [![Discord](https://discordapp.com/api/guilds/901353839557476363/widget.png?style=banner3)](https://discord.gg/XJzhM7uKkz)
 
