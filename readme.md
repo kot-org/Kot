@@ -64,7 +64,7 @@ By following these instructions, you can effectively use the main Makefile to bu
 6. **Use USB key:**
 
 **:warning: Kot is alpha software, use it at your own risk.** To use a USB key with **Kot**, please note that this method requires a certain level of knowledge about the Linux system, as improper usage can potentially damage your system's data. To utilize this method, you need to set the `BOOT_DEVICE` variable with the correct USB device name. Here's an example of how to do it: `BOOT_DEVICE=<device> PACKAGE=all make build`
-Replace <device> with the actual device name of your USB key, such as /dev/sdc. Be aware that using the USB key in this way will format it, erasing any existing data. Ensure that you have correctly identified the USB device name, as specifying the wrong device can result in data loss. This command will start Kot in Qemu using the specified USB key as the boot device.
+Replace <device> with the actual device name of your USB key, such as /dev/sdc. Be aware that using the USB key in this way will format it, erasing any existing data. Ensure that you have correctly identified the USB device name, as specifying the wrong device can result in data loss.
 
 7. **Use your PC:**
 
